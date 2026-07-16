@@ -354,6 +354,8 @@ const GizmoMenuManager = {
     if (!el.disabled) el.click();
   },
 
+  // Badges float into the gap .gizmo-status leaves below the buttons; growing
+  // them means widening that gap too.
   renderBadges() {
     const container = document.getElementById('gizmo-menu-content');
     container.innerHTML = '';

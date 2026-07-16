@@ -21,6 +21,7 @@ import {
   setDefaultCursor,
 } from "./canvas-utils.js";
 import { GizmoMenuManager } from "../accessibility/keyboardui.js";
+import { showStatus, clearStatus } from "./status.js";
 import { translate } from "../main/translation.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 
@@ -398,11 +399,7 @@ function selectCharacter(characterName) {
   }
 
   setCrosshairCursor();
-  flock.printText({
-    text: translate("place_object_prompt"),
-    duration: 30,
-    color: "black",
-  });
+  showStatus(translate("place_object_prompt"), { owner: "placement" });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -518,11 +515,7 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   setCrosshairCursor();
-  flock.printText({
-    text: translate("place_object_prompt"),
-    duration: 30,
-    color: "black",
-  });
+  showStatus(translate("place_object_prompt"), { owner: "placement" });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -596,11 +589,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   // Mouse click fallback (capture=true)
   setCrosshairCursor();
-  flock.printText({
-    text: translate("place_object_prompt"),
-    duration: 30,
-    color: "black",
-  });
+  showStatus(translate("place_object_prompt"), { owner: "placement" });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -881,6 +870,7 @@ function cleanupPlacementMode() {
   detachActivePickHandler();
   stopCanvasKeyboardMode();
   setDefaultCursor();
+  clearStatus("placement");
   document.getElementById("showShapesButton")?.classList.remove("active");
 }
 

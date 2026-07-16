@@ -1,6 +1,24 @@
 import { flock } from "../flock.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
+import { showStatus, clearStatus } from "./status.js";
 import { translate } from "../main/translation.js";
+
+const AXIS_LOCK_KEYS = {
+  x: "axis_lock_x",
+  y: "axis_lock_y",
+  z: "axis_lock_z",
+  all: "axis_lock_all",
+};
+
+// Unlocking clears rather than announcing: there is nothing to say, and the
+// on-screen HUD already shows the axis.
+function reportAxis(axis) {
+  if (!axis) {
+    clearStatus("axis");
+    return;
+  }
+  showStatus(`🔒 ${translate(AXIS_LOCK_KEYS[axis])}`, { duration: 10, owner: "axis" });
+}
 
 // A generic handler to be used for axis-constrained
 // keyboard movement in various tools (move, scale, etc)
@@ -42,11 +60,7 @@ export function createAxisKeyboardHandler({
       case "x":
       case "X":
         axis = axis === "x" ? null : "x";
-        flock.printText({
-          text: axis ? `🔒 ${translate("axis_x")}` : translate("axis_free"),
-          duration: 10,
-          color: "black",
-        });
+        reportAxis(axis);
         onAxisChange?.(axis);
         event.preventDefault();
         break;
@@ -54,11 +68,7 @@ export function createAxisKeyboardHandler({
       case "y":
       case "Y":
         axis = axis === "y" ? null : "y";
-        flock.printText({
-          text: axis ? `🔒 ${translate("axis_y")}` : translate("axis_free"),
-          duration: 10,
-          color: "black",
-        });
+        reportAxis(axis);
         onAxisChange?.(axis);
         event.preventDefault();
         break;
@@ -66,11 +76,7 @@ export function createAxisKeyboardHandler({
       case "z":
       case "Z":
         axis = axis === "z" ? null : "z";
-        flock.printText({
-          text: axis ? `🔒 ${translate("axis_z")}` : translate("axis_free"),
-          duration: 10,
-          color: "black",
-        });
+        reportAxis(axis);
         onAxisChange?.(axis);
         event.preventDefault();
         break;
@@ -80,11 +86,7 @@ export function createAxisKeyboardHandler({
         // Uniform (all-axes) only applies to scale; ignore on move/rotate.
         if (!allowUniform) break;
         axis = axis === "all" ? null : "all";
-        flock.printText({
-          text: axis ? `🔒 ★ ${translate("axis_all")}` : translate("axis_free"),
-          duration: 10,
-          color: "black",
-        });
+        reportAxis(axis);
         onAxisChange?.(axis);
         event.preventDefault();
         break;

@@ -695,6 +695,22 @@ button {
   padding: 5px 5px 25px 0px;
   margin: 0;
   box-sizing: border-box;
+  flex-direction: column;
+}
+
+/* Status line (ui/status.js). Height must stay fixed whatever the text:
+   resizeCanvas() in main/view.js subtracts it. The top margin clears the
+   Ctrl+G badges, which renderBadges() floats 20px below each button. */
+.gizmo-status {
+  height: 1.4em;
+  /* .gizmo-buttons has no left padding, so match #shape-menu's own inset. */
+  margin: 24px 0 0 5px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Separate from #gizmoButtons's own display (toggled directly via inline
@@ -752,6 +768,16 @@ button {
      otherwise nudge the first column out of line with the row below. */
   .gizmo-buttons-inner #shape-menu {
     margin-left: 0;
+  }
+}
+
+/* Too narrow for the longest prompts on one line, so give the status two.
+   Centred to sit under the centred button grid. */
+@media (max-width: 600px) {
+  .gizmo-status {
+    height: 2.8em;
+    white-space: normal;
+    text-align: center;
   }
 }
 
@@ -1142,6 +1168,20 @@ button {
 
   .gizmo-buttons-inner {
     width: auto;
+  }
+
+  /* Free to wrap into the grey space here: the canvas is measured from
+     .gizmo-buttons-inner, so the status can't feed back into it. The bar's own
+     5px padding already provides the inset the margin gives it elsewhere. */
+  .gizmo-status {
+    align-self: stretch;
+    min-width: 0;
+    height: auto;
+    margin-left: 0;
+    white-space: normal;
+    /* The buttons are content-width and left-aligned here, not centred as on
+       portrait, so the text follows them. */
+    text-align: left;
   }
 
   /* The canvas is sized in px to already allow for the toolbar beside it, so it

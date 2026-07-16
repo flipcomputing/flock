@@ -155,6 +155,14 @@ function resizeCanvas() {
       areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
     } else {
       areaHeight -= 60; //Gizmos visible
+      // Status line below the buttons; #canvasArea clips, so it needs room.
+      const status = document.getElementById('gizmoStatus');
+      if (status) {
+        const statusStyle = getComputedStyle(status);
+        const statusHeight =
+          status.getBoundingClientRect().height + (parseFloat(statusStyle.marginTop) || 0);
+        areaHeight = Math.max(1, areaHeight - Math.round(statusHeight));
+      }
     }
   }
 

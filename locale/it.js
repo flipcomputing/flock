@@ -1168,8 +1168,8 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
   select_mesh_delete_prompt: 'ℹ️ Clicca su un oggetto per eliminarlo.',
-  select_mesh_duplicate_prompt:
-    'ℹ️ Seleziona un oggetto da duplicare, quindi fai clic per posizionare le copie.',
+  select_mesh_duplicate_prompt: 'ℹ️ Seleziona un oggetto da duplicare.',
+  place_duplicate_prompt: 'ℹ️ Fai clic per posizionare una copia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Clicca su un oggetto per orbitargli attorno.',
   place_object_prompt: "ℹ️ Fai clic su una superficie per posizionare l'oggetto.",
   position_readout: 'Posizione: {position}',
@@ -1275,11 +1275,11 @@ export default {
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 
-  axis_x: 'Asse X',
-  axis_y: 'Asse Y',
-  axis_z: 'Asse Z',
-  axis_free: 'Libero',
-  axis_all: 'Uniforme (tutti gli assi)',
+  // AI-generated; needs validation
+  axis_lock_x: "Tastiera bloccata sull'asse X",
+  axis_lock_y: "Tastiera bloccata sull'asse Y",
+  axis_lock_z: "Tastiera bloccata sull'asse Z",
+  axis_lock_all: 'Ridimensionamento su tutti gli assi',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'Generale',
