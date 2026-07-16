@@ -1224,6 +1224,8 @@ export default {
   banner_dismiss: 'Dismiss',
   xr_mode_message: 'XR Mode!',
   fly_camera_instructions: 'ℹ️ Fly camera, use arrow keys and page up/down',
+  fly_camera_instructions_touch:
+    'ℹ️ Fly camera, use the on-screen controls and drag to look around',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',
   select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate, then click to place copies.',
   select_mesh_eye_prompt: 'ℹ️ Click an object to orbit around it.',

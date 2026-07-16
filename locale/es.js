@@ -1221,6 +1221,8 @@ export default {
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
   fly_camera_instructions: 'ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down', // human
+  fly_camera_instructions_touch:
+    'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
   select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
   select_mesh_duplicate_prompt:
     'ℹ️ Selecciona un objeto para duplicar, luego haz clic para colocar las copias.', // Google (had to update it)

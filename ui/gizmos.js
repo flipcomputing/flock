@@ -2357,6 +2357,11 @@ function handleDeleteGizmo() {
   pickMeshFromScene(applyDelete);
 }
 
+const isTouchDevice = () =>
+  'ontouchstart' in window ||
+  navigator.maxTouchPoints > 0 ||
+  window.matchMedia('(pointer: coarse)').matches;
+
 // Camera: Toggle between play and fly camera modes
 function handleCameraGizmo() {
   // If orbit-view is active, drop back to the free camera first so the
@@ -2375,7 +2380,9 @@ function handleCameraGizmo() {
     flock._gamepadSource?.setFlyMode(true);
     flock._keyboardSource?.setFlyMode(true);
     flock.printText({
-      text: translate('fly_camera_instructions'),
+      text: translate(
+        isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'
+      ),
       duration: 15,
       color: 'white',
     });

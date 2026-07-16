@@ -1162,6 +1162,8 @@ export default {
     'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',
   fly_camera_instructions: 'ℹ️ Câmera de voo, use as setas e Page Up/Down',
+  fly_camera_instructions_touch:
+    'ℹ️ Câmera de voo, use os controles na tela e arraste para olhar em volta',
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',
   select_mesh_duplicate_prompt:
     'ℹ️ Selecione um objeto para duplicar, depois clique para posicionar as cópias.',
