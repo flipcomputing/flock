@@ -19,7 +19,7 @@ import {
   getNumberInput,
   isBlockLocked,
 } from './blocklyutil.js';
-import { getMeshRotationInDegrees, roundVectorToFixed, pickLeafFromRay } from './meshhelpers.js';
+import { getMeshRotationInDegrees, roundToOneDecimal, pickLeafFromRay } from './meshhelpers.js';
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
@@ -1292,17 +1292,19 @@ function enableBoundingBox(mesh) {
   mesh.showBoundingBox = true;
 }
 
-// Readout segments: each axis letter carries its arrow's colour, so it can't be
-// a plain string. One decimal, matching roundPositionValue() — the block ends up
-// with that value, so showing more precision here would be a lie.
-function positionStatus(vector) {
-  const p = roundVectorToFixed(vector, 1);
+// Readout segments: each axis is a pill bordered in its arrow's colour, so it
+// can't be a plain string. Takes the block position (see getBlockPositionFromMesh)
+// and rounds exactly as setBlockXYZ does, so the readout always agrees with the
+// numbers on the block.
+function positionStatus(position) {
   // Split the translation rather than replace into it, to keep each locale's
   // own prefix ("Posición: ") around the pills.
   const [before = '', after = ''] = translate('position_readout').split('{position}');
   const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
-    { text: `${i ? ' ' : ''}${axis}: ` },
-    { text: String(p[axis]), borderColor: AXIS_HEX[axis] },
+    { text: i ? ' ' : '' },
+    { text: axis, bold: true },
+    { text: ': ' },
+    { text: String(roundToOneDecimal(position?.[axis] ?? 0)), borderColor: AXIS_HEX[axis] },
   ]);
   return [{ text: before }, ...axes, { text: after }];
 }
@@ -2290,10 +2292,14 @@ function handleSelectGizmo() {
   setGizmoButtonActive(document.getElementById('selectButton'), true);
 
   function applySelection(pickedMesh, pickedPoint) {
-    if (pickedMesh && pickedMesh.name !== 'ground') {
-      showStatus(positionStatus(pickedMesh.getAbsolutePosition()), { duration: 10 });
-    }
     applyMeshSelection(pickedMesh, pickedPoint);
+    // Read the mesh the gizmo attached to, not the picked one: a pick can land
+    // on a child, whose position is local to its parent. The attached mesh is
+    // the root that owns the block, and is what the drag writes back from.
+    const attached = gizmoManager.attachedMesh;
+    if (attached) {
+      showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), { duration: 10 });
+    }
     setTimeout(() => {
       if (!getCanvasCircle()) document.body.style.cursor = 'crosshair';
     }, 0);

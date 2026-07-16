@@ -716,17 +716,28 @@ button {
   text-overflow: ellipsis;
 }
 
+.gizmo-status__axis {
+  font-weight: bold;
+}
+
 /* One coordinate, styled like the value field on a block. The border carries
    the axis colour (set inline, from the same AXIS_HEX as the 3D arrows); text
    stays theme-coloured, so contrast never depends on the axis colour. */
 .gizmo-status__pill {
   display: inline-block;
-  padding: 0 6px;
-  border: 1px solid;
+  padding: 0 5px;
+  border: 2px solid;
   border-radius: 999px;
   line-height: 1.25;
   background: var(--color-bg);
   color: var(--color-text);
+  /* Hold a steady size and digit width, so a value losing its decimal (0.6 -> 0)
+     doesn't shift the pills next to it. Longer values still grow. border-box so
+     min-width is the whole pill, not the text inside it. */
+  box-sizing: border-box;
+  min-width: 2.75em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Separate from #gizmoButtons's own display (toggled directly via inline

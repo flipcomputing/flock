@@ -21,18 +21,21 @@ function render(element, content) {
     return;
   }
   element.replaceChildren(
-    ...content.map(({ text, borderColor }) => {
-      if (!borderColor) return document.createTextNode(text);
+    ...content.map(({ text, bold, borderColor }) => {
+      if (!bold && !borderColor) return document.createTextNode(text);
       const span = document.createElement('span');
-      span.className = 'gizmo-status__pill';
       span.textContent = text;
-      span.style.borderColor = borderColor;
+      if (bold) span.classList.add('gizmo-status__axis');
+      if (borderColor) {
+        span.classList.add('gizmo-status__pill');
+        span.style.borderColor = borderColor;
+      }
       return span;
     })
   );
 }
 
-// `content` is a string, or an array of { text, borderColor } segments; a
+// `content` is a string, or an array of { text, bold, borderColor } segments; a
 // segment with a border renders as a pill, like a value on a block.
 // duration 0 keeps the message up until something replaces or clears it.
 export function showStatus(content, { duration = 0, owner: nextOwner = null } = {}) {
