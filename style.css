@@ -722,12 +722,15 @@ button {
   padding: 0 5px;
   border: 2px solid;
   border-radius: 999px;
+  /* Digits are cap-height against the labels' x-height, so they read bigger at
+     a matching size. */
+  font-size: 0.9em;
   line-height: 1.25;
   background: var(--color-bg);
   color: var(--color-text);
   /* Steady size and digit width, so 0.6 -> 0 doesn't shift the pills beside it. */
   box-sizing: border-box;
-  min-width: 2.75em;
+  min-width: 2.75rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
