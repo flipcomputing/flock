@@ -1227,7 +1227,8 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Fly camera, use the on-screen controls and drag to look around',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',
-  select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate, then click to place copies.',
+  select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate.',
+  place_duplicate_prompt: 'ℹ️ Click to place a copy.',
   select_mesh_eye_prompt: 'ℹ️ Click an object to orbit around it.',
   place_object_prompt: 'ℹ️ Click on a surface to place the object.',
   position_readout: 'Position: {position}',
@@ -1386,11 +1387,10 @@ export default {
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
 
-  axis_x: 'X axis',
-  axis_y: 'Y axis',
-  axis_z: 'Z axis',
-  axis_free: 'Free',
-  axis_all: 'Uniform (all axes)',
+  axis_lock_x: 'Keyboard locked to X axis',
+  axis_lock_y: 'Keyboard locked to Y axis',
+  axis_lock_z: 'Keyboard locked to Z axis',
+  axis_lock_all: 'Resizing on all axes',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'Main',

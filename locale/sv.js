@@ -1143,8 +1143,8 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
-  select_mesh_duplicate_prompt:
-    'ℹ️ Välj ett objekt att duplicera och klicka sedan för att placera kopior.',
+  select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
+  place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
@@ -1255,11 +1255,11 @@ export default {
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 
-  axis_x: 'X-axel',
-  axis_y: 'Y-axel',
-  axis_z: 'Z-axel',
-  axis_free: 'Fritt',
-  axis_all: 'Enhetlig (alla axlar)',
+  // AI-generated; needs validation
+  axis_lock_x: 'Tangentbordet låst till X-axeln',
+  axis_lock_y: 'Tangentbordet låst till Y-axeln',
+  axis_lock_z: 'Tangentbordet låst till Z-axeln',
+  axis_lock_all: 'Ändrar storlek på alla axlar',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'Allmänt',

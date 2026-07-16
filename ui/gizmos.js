@@ -19,7 +19,7 @@ import {
   getNumberInput,
   isBlockLocked,
 } from './blocklyutil.js';
-import { getMeshRotationInDegrees, roundVectorToFixed, pickLeafFromRay } from './meshhelpers.js';
+import { getMeshRotationInDegrees, roundToOneDecimal, pickLeafFromRay } from './meshhelpers.js';
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
@@ -28,6 +28,7 @@ import {
   setDefaultCursor,
 } from './canvas-utils.js';
 import { createAxisKeyboardHandler } from './axis-keyboard.js';
+import { showStatus, clearStatus } from './status.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
@@ -37,9 +38,11 @@ export let gizmoManager;
 // Enable debug messages
 const DEBUG = true;
 
-const blueColor = flock.BABYLON.Color3.FromHexString('#0072B2'); // Colour for X-axis
-const greenColor = flock.BABYLON.Color3.FromHexString('#009E73'); // Colour for Y-axis
-const orangeColor = flock.BABYLON.Color3.FromHexString('#D55E00'); // Colour for Z-axis
+const AXIS_HEX = { x: '#0072B2', y: '#009E73', z: '#D55E00' };
+
+const blueColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.x); // Colour for X-axis
+const greenColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.y); // Colour for Y-axis
+const orangeColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.z); // Colour for Z-axis
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
@@ -119,7 +122,7 @@ function createAdaptiveInput({
 
   function onHudAxisChange(axis) {
     if (keyboard?.getAxis?.()) {
-      flock.printText({ text: translate('axis_free'), duration: 10, color: 'black' });
+      clearStatus('axis');
     }
     keyboard?.setAxis?.(null);
     lastReportedAxis = axis;
@@ -564,12 +567,7 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
   }
 
   if (pickedMesh && pickedMesh.name === 'ground') {
-    const roundedPosition = roundVectorToFixed(pickedPoint, 2);
-    flock.printText({
-      text: translate('position_readout').replace('{position}', String(roundedPosition)),
-      duration: 30,
-      color: 'black',
-    });
+    showStatus(positionStatus(pickedPoint), { duration: 10 });
   }
   if (gizmoManager.attachedMesh) {
     resetChildMeshesOfAttachedMesh();
@@ -900,6 +898,7 @@ function retilePrimitiveUVsForScale(mesh) {
 export function exitGizmoState() {
   disconnectOrbitView();
   duplicateModeActive = false;
+  clearStatus('duplicate-place');
   if (duplicateRafId !== null) {
     cancelAnimationFrame(duplicateRafId);
     duplicateRafId = null;
@@ -920,6 +919,8 @@ export function exitGizmoState() {
   // Stop the axis keyboard
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
+  clearStatus('axis');
+  clearStatus('camera');
 
   // Run all queued cleanup functions
   runCleanups();
@@ -1287,10 +1288,24 @@ function enableBoundingBox(mesh) {
   mesh.showBoundingBox = true;
 }
 
+// Takes a block position, rounded as setBlockXYZ does, so the readout and the
+// block always agree.
+function positionStatus(position) {
+  const [before = '', after = ''] = translate('position_readout').split('{position}');
+  const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
+    { text: i ? ' ' : '' },
+    { text: axis, bold: true },
+    { text: ': ' },
+    { text: String(roundToOneDecimal(position?.[axis] ?? 0)), borderColor: AXIS_HEX[axis] },
+  ]);
+  return [{ text: before }, ...axes, { text: after }];
+}
+
 // Pick a mesh (used by multiple gizmos)
-function pickMeshFromScene(onPicked, persistent = false) {
+function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
+  if (prompt) showStatus(prompt, { owner: 'scene-pick' });
   let hasPicked = false;
 
   const handlePicked = (pickedMesh, pickedPoint, x, y) => {
@@ -1576,11 +1591,7 @@ function updateChildBlockPositions(mesh) {
 function startDuplicatePlacement() {
   let blockKey, blockId, canvas, onPickMesh;
   if (!gizmoManager.attachedMesh) {
-    flock.printText({
-      text: translate('select_mesh_duplicate_prompt'),
-      duration: 30,
-      color: 'black',
-    });
+    showStatus(translate('select_mesh_duplicate_prompt'), { duration: 10 });
     return;
   }
   blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
@@ -1593,6 +1604,7 @@ function startDuplicatePlacement() {
   blockId = meshBlockIdMap[blockKey];
   duplicateModeActive = true;
 
+  showStatus(translate('place_duplicate_prompt'), { owner: 'duplicate-place' });
   setCrosshairCursor();
 
   canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
@@ -1726,6 +1738,7 @@ function cleanupScenePick() {
   }
   stopCanvasKeyboardMode();
   setDefaultCursor();
+  clearStatus('scene-pick');
 }
 
 // Add to list of cleanup we need to run
@@ -2269,16 +2282,12 @@ function handleSelectGizmo() {
   setGizmoButtonActive(document.getElementById('selectButton'), true);
 
   function applySelection(pickedMesh, pickedPoint) {
-    if (pickedMesh && pickedMesh.name !== 'ground') {
-      const position = pickedMesh.getAbsolutePosition();
-      const roundedPosition = roundVectorToFixed(position, 2);
-      flock.printText({
-        text: translate('position_readout').replace('{position}', String(roundedPosition)),
-        duration: 30,
-        color: 'black',
-      });
-    }
     applyMeshSelection(pickedMesh, pickedPoint);
+    // A pick can land on a child; the attached mesh is the root owning the block.
+    const attached = gizmoManager.attachedMesh;
+    if (attached) {
+      showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), { duration: 10 });
+    }
     setTimeout(() => {
       if (!getCanvasCircle()) document.body.style.cursor = 'crosshair';
     }, 0);
@@ -2297,11 +2306,6 @@ function handleDuplicateGizmo() {
 
   // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
-    flock.printText({
-      text: translate('select_mesh_duplicate_prompt'),
-      duration: 30,
-      color: 'black',
-    });
     pickMeshFromScene((pickedMesh) => {
       if (!pickedMesh || pickedMesh.name === 'ground') {
         exitGizmoState();
@@ -2309,7 +2313,7 @@ function handleDuplicateGizmo() {
       }
       attachMeshForActiveTool(pickedMesh);
       startDuplicatePlacement();
-    });
+    }, false, translate('select_mesh_duplicate_prompt'));
     return;
   }
 
@@ -2326,7 +2330,7 @@ function handleDeleteGizmo() {
     if (!pickedMesh || pickedMesh.name === 'ground') {
       setTimeout(() => {
         if (document.getElementById('deleteButton')?.classList.contains('active')) {
-          pickMeshFromScene(applyDelete, false);
+          pickMeshFromScene(applyDelete, false, translate('select_mesh_delete_prompt'));
         }
       }, 0);
       return;
@@ -2336,7 +2340,7 @@ function handleDeleteGizmo() {
     deleteBlockWithUndo(blockId);
     setTimeout(() => {
       if (document.getElementById('deleteButton')?.classList.contains('active')) {
-        pickMeshFromScene(applyDelete, false);
+        pickMeshFromScene(applyDelete, false, translate('select_mesh_delete_prompt'));
       }
     }, 0);
   }
@@ -2348,13 +2352,7 @@ function handleDeleteGizmo() {
   }
 
   // Explain how to delete
-  flock.printText({
-    text: translate('select_mesh_delete_prompt'),
-    duration: 30,
-    color: 'black',
-  });
-
-  pickMeshFromScene(applyDelete);
+  pickMeshFromScene(applyDelete, false, translate('select_mesh_delete_prompt'));
 }
 
 const isTouchDevice = () =>
@@ -2379,13 +2377,10 @@ function handleCameraGizmo() {
     flock._onScreenSource?.pause();
     flock._gamepadSource?.setFlyMode(true);
     flock._keyboardSource?.setFlyMode(true);
-    flock.printText({
-      text: translate(
-        isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'
-      ),
-      duration: 15,
-      color: 'white',
-    });
+    showStatus(
+      translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
+      { duration: 15, owner: 'camera' }
+    );
     setGizmoButtonActive(cameraButton, true);
   } else {
     cameraMode = 'play';
@@ -2479,19 +2474,18 @@ function handleEyeGizmo() {
     return;
   }
 
-  flock.printText({
-    text: translate('select_mesh_eye_prompt'),
-    duration: 30,
-    color: 'black',
-  });
-  pickMeshFromScene((pickedMesh) => {
-    if (!pickedMesh || pickedMesh.name === 'ground') {
-      exitGizmoState();
-      return;
-    }
-    attachMeshForActiveTool(pickedMesh);
-    attachOrbitView(pickedMesh);
-  });
+  pickMeshFromScene(
+    (pickedMesh) => {
+      if (!pickedMesh || pickedMesh.name === 'ground') {
+        exitGizmoState();
+        return;
+      }
+      attachMeshForActiveTool(pickedMesh);
+      attachOrbitView(pickedMesh);
+    },
+    false,
+    translate('select_mesh_eye_prompt')
+  );
 }
 
 export function enableGizmos() {

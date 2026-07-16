@@ -1224,11 +1224,11 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
   select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
-  select_mesh_duplicate_prompt:
-    'ℹ️ Selecciona un objeto para duplicar, luego haz clic para colocar las copias.', // Google (had to update it)
+  select_mesh_duplicate_prompt: 'ℹ️ Selecciona un objeto para duplicar.', // Google (had to update it)
+  place_duplicate_prompt: 'ℹ️ Haz clic para colocar una copia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Haz clic en un objeto para orbitar alrededor de él.',
   place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
-  position_readout: 'Posición: {Posición}', // human
+  position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:
     'El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.', // human
   blocks_copied_alert: '¡Bloques copiados al almacenamiento local!', // human
@@ -1337,11 +1337,11 @@ export default {
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 
-  axis_x: 'Eje X',
-  axis_y: 'Eje Y',
-  axis_z: 'Eje Z',
-  axis_free: 'Libre',
-  axis_all: 'Uniforme (todos los ejes)',
+  // AI-generated; needs validation
+  axis_lock_x: 'Teclado bloqueado en el eje X',
+  axis_lock_y: 'Teclado bloqueado en el eje Y',
+  axis_lock_z: 'Teclado bloqueado en el eje Z',
+  axis_lock_all: 'Redimensionando en todos los ejes',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'General',

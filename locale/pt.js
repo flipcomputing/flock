@@ -1165,8 +1165,8 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Câmera de voo, use os controles na tela e arraste para olhar em volta',
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',
-  select_mesh_duplicate_prompt:
-    'ℹ️ Selecione um objeto para duplicar, depois clique para posicionar as cópias.',
+  select_mesh_duplicate_prompt: 'ℹ️ Selecione um objeto para duplicar.',
+  place_duplicate_prompt: 'ℹ️ Clique para posicionar uma cópia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Clique em um objeto para orbitar ao redor dele.',
   place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
@@ -1277,11 +1277,11 @@ export default {
   shortcut_quick_colour: 'Uso rápido de cor no seletor de cores',
   shortcut_delete_object: 'Eliminar objeto',
 
-  axis_x: 'Eixo X',
-  axis_y: 'Eixo Y',
-  axis_z: 'Eixo Z',
-  axis_free: 'Livre',
-  axis_all: 'Uniforme (todos os eixos)',
+  // AI-generated; needs validation
+  axis_lock_x: 'Teclado bloqueado no eixo X',
+  axis_lock_y: 'Teclado bloqueado no eixo Y',
+  axis_lock_z: 'Teclado bloqueado no eixo Z',
+  axis_lock_all: 'Redimensionando em todos os eixos',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'Geral',

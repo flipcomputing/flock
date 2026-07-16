@@ -1147,8 +1147,8 @@ export default {
   fly_camera_instructions_touch:
     'ℹ️ Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
   select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',
-  select_mesh_duplicate_prompt:
-    'ℹ️ Wähle ein Objekt zum Duplizieren aus und klicke dann, um Kopien zu platzieren.',
+  select_mesh_duplicate_prompt: 'ℹ️ Wähle ein Objekt zum Duplizieren aus.',
+  place_duplicate_prompt: 'ℹ️ Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu umkreisen.',
   place_object_prompt: 'ℹ️ Klicke auf eine Fläche, um das Objekt zu platzieren.',
   position_readout: 'Position: {position}',
@@ -1267,11 +1267,11 @@ export default {
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 
-  axis_x: 'X-Achse',
-  axis_y: 'Y-Achse',
-  axis_z: 'Z-Achse',
-  axis_free: 'Frei',
-  axis_all: 'Gleichmäßig (alle Achsen)',
+  // AI-generated; needs validation
+  axis_lock_x: 'Tastatur auf X-Achse beschränkt',
+  axis_lock_y: 'Tastatur auf Y-Achse beschränkt',
+  axis_lock_z: 'Tastatur auf Z-Achse beschränkt',
+  axis_lock_all: 'Größenänderung auf allen Achsen',
 
   // Keyboard shortcuts panel — category names
   shortcut_category_main: 'Allgemein',
