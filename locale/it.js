@@ -1165,6 +1165,8 @@ export default {
     'La modalità progettazione richiede una connessione a internet la prima volta che la usi. Connettiti e riprova.', // ai
   xr_mode_message: 'Modalità XR!',
   fly_camera_instructions: 'ℹ️ Telecamera volante, usa le frecce e Pag su/giù',
+  fly_camera_instructions_touch:
+    'ℹ️ Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
   select_mesh_delete_prompt: 'ℹ️ Clicca su un oggetto per eliminarlo.',
   select_mesh_duplicate_prompt:
     'ℹ️ Seleziona un oggetto da duplicare, quindi fai clic per posizionare le copie.',

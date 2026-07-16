@@ -1144,6 +1144,8 @@ export default {
     'Der Design-Modus benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   xr_mode_message: 'XR-Modus!',
   fly_camera_instructions: 'ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab',
+  fly_camera_instructions_touch:
+    'ℹ️ Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
   select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',
   select_mesh_duplicate_prompt:
     'ℹ️ Wähle ein Objekt zum Duplizieren aus und klicke dann, um Kopien zu platzieren.',

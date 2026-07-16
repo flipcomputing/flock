@@ -1152,6 +1152,8 @@ export default {
     'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',
   fly_camera_instructions: 'ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down',
+  fly_camera_instructions_touch:
+    'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',
   select_mesh_duplicate_prompt:
     'ℹ️ Wybierz obiekt do powielenia, a następnie kliknij, aby umieścić kopie.',
