@@ -1,4 +1,3 @@
-import { flock } from "../flock.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { showStatus, clearStatus } from "./status.js";
 import { translate } from "../main/translation.js";
@@ -159,7 +158,7 @@ export function createAxisKeyboardHandler({
     if (stopped) return;
     stopped = true;
     axis = null;
-    flock.clearText?.();
+    clearStatus("axis");
     KeyboardDispatcher.popMode();
   }
   stop.getAxis = () => axis;
