@@ -1265,6 +1265,15 @@ export const flock = {
       flock._hardResetCameraControls(flock.scene?.activeCamera);
     });
 
+    // macOS suppresses keyup for keys released while ⌘ is held; Babylon's
+    // camera keyboard input keeps them in _keys, so the camera would drift
+    // until the next blur. Clear its held keys when ⌘ comes up.
+    flock.canvas.addEventListener('keyup', (e) => {
+      if (e.key !== 'Meta') return;
+      const kb = flock.scene?.activeCamera?.inputs?.attached?.keyboard;
+      if (kb?._keys) kb._keys.length = 0;
+    });
+
     flock.engineReady = true;
   },
   _scheduleContextEscalation() {

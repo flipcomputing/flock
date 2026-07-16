@@ -10,6 +10,10 @@ if (!globalThis.KeyboardEvent) {
       this.keyCode = init.keyCode ?? 0;
       this.which = init.which ?? 0;
       this.repeat = init.repeat ?? false;
+      this.ctrlKey = init.ctrlKey ?? false;
+      this.metaKey = init.metaKey ?? false;
+      this.altKey = init.altKey ?? false;
+      this.shiftKey = init.shiftKey ?? false;
     }
   };
 }

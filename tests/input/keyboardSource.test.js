@@ -2,16 +2,20 @@ import { expect } from "chai";
 import { InputManager } from "../../input/inputManager.js";
 import { KeyboardSource } from "../../input/keyboardSource.js";
 
-function keydown(target, key) {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
+function keydown(target, key, modifiers = {}) {
+  target.dispatchEvent(
+    new KeyboardEvent("keydown", { key, bubbles: true, ...modifiers }),
+  );
 }
 
 function keydown_repeat(target, key) {
   target.dispatchEvent(new KeyboardEvent("keydown", { key, repeat: true, bubbles: true }));
 }
 
-function keyup(target, key) {
-  target.dispatchEvent(new KeyboardEvent("keyup", { key, bubbles: true }));
+function keyup(target, key, modifiers = {}) {
+  target.dispatchEvent(
+    new KeyboardEvent("keyup", { key, bubbles: true, ...modifiers }),
+  );
 }
 
 export function runKeyboardSourceTests() {
@@ -171,6 +175,58 @@ export function runKeyboardSourceTests() {
       });
     });
 
+    describe("modifier chords (undo shortcut vs movement)", function () {
+      it("Ctrl+Z does not register 'z' as held", function () {
+        source.start();
+        keydown(target, "z", { ctrlKey: true });
+        expect(manager.isKeyDown("z")).to.be.false;
+      });
+
+      it("⌘Z does not register 'z' as held", function () {
+        source.start();
+        keydown(target, "z", { metaKey: true });
+        expect(manager.isKeyDown("z")).to.be.false;
+      });
+
+      it("Alt+key does not register the key as held", function () {
+        source.start();
+        keydown(target, "w", { altKey: true });
+        expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("Shift+key still registers (Shift is a gameplay modifier)", function () {
+        source.start();
+        keydown(target, "W", { shiftKey: true });
+        expect(manager.isKeyDown("w")).to.be.true;
+      });
+
+      it("keyup with a modifier held still releases a plain-held key", function () {
+        source.start();
+        keydown(target, "z");
+        keyup(target, "z", { ctrlKey: true });
+        expect(manager.isKeyDown("z")).to.be.false;
+      });
+
+      it("⌘ keyup releases keys stuck by macOS keyup suppression", function () {
+        source.start();
+        keydown(target, "z");
+        // macOS never delivers the 'z' keyup while ⌘ is held; ⌘ keyup must clean up.
+        keyup(target, "Meta");
+        expect(manager.isKeyDown("z")).to.be.false;
+        expect(manager.heldKeyCount()).to.equal(0);
+      });
+
+      it("⌘ keyup leaves keys from other sources intact", function () {
+        source.start();
+        keydown(target, "z");
+        manager._setKey("e", true); // simulate another source (e.g. gamepad)
+        keyup(target, "Meta");
+        expect(manager.isKeyDown("z")).to.be.false;
+        expect(manager.isKeyDown("e")).to.be.true;
+        manager._setKey("e", false); // cleanup
+      });
+    });
+
     describe("stop", function () {
       it("stop() prevents subsequent keydown from registering", function () {
         source.start();
@@ -239,6 +295,27 @@ export function runKeyboardSourceTests() {
         source.setFlyMode(true);
         source.setFlyMode(true);
         expect(manager.isKeyDown("w")).to.be.false;
+      });
+
+      it("⌘ keyup in fly mode does not release the same key held by another source", function () {
+        source.start();
+        source.setFlyMode(true);
+        manager._setKey("w", true); // simulate another source (e.g. gamepad)
+        keydown(target, "w"); // tracked physically, never reported to InputManager
+        keyup(target, "Meta");
+        expect(manager.isKeyDown("w")).to.be.true; // other source's press intact
+        expect(source.isKeyDown("w")).to.be.false; // physical tracking cleared
+        manager._setKey("w", false); // cleanup
+      });
+
+      it("blur in fly mode does not release the same key held by another source", function () {
+        source.start();
+        source.setFlyMode(true);
+        manager._setKey("w", true); // simulate another source (e.g. gamepad)
+        keydown(target, "w");
+        target.dispatchEvent(new Event("blur"));
+        expect(manager.isKeyDown("w")).to.be.true;
+        manager._setKey("w", false); // cleanup
       });
 
       it("isKeyDown() reflects physical key state even in fly mode (camera can still read it)", function () {
