@@ -4,6 +4,7 @@ import { runKeyboardSourceTests } from "./keyboardSource.test.js";
 import { runOnScreenSourceTests } from "./onScreenSource.test.js";
 import { runGamepadSourceTests } from "./gamepadSource.test.js";
 import { runJoystickSourceTests } from "./joystickSource.test.js";
+import { runCameraControlsTests } from "./cameraControls.test.js";
 import { runXRSourceTests } from "./xrSource.test.js";
 import { runConsumerTests } from "./consumers.test.js";
 
@@ -14,6 +15,7 @@ export function runInputTests() {
   runOnScreenSourceTests();
   runGamepadSourceTests();
   runJoystickSourceTests();
+  runCameraControlsTests();
   runXRSourceTests();
   runConsumerTests();
 }

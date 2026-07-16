@@ -351,6 +351,55 @@ export function runJoystickSourceTests() {
       });
     });
 
+    describe("getMove", function () {
+      it("returns raw stick values while held", function () {
+        const { source } = makeSource(manager, onScreen, canvas);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + BASE_RADIUS, BASE_CY);
+        const move = source.getMove();
+        expect(move.x).to.be.closeTo(1, 0.01);
+        expect(move.y).to.be.closeTo(0, 0.01);
+        source.stop();
+      });
+
+      it("returns zero inside the dead zone", function () {
+        const { source } = makeSource(manager, onScreen, canvas);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + Math.round(BASE_RADIUS * 0.1), BASE_CY);
+        expect(source.getMove()).to.deep.equal({ x: 0, y: 0 });
+        source.stop();
+      });
+
+      it("returns zero after pointerup", function () {
+        const { source } = makeSource(manager, onScreen, canvas);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + BASE_RADIUS, BASE_CY);
+        canvas.dispatchPointer('pointerup', 1, BASE_CX + BASE_RADIUS, BASE_CY);
+        expect(source.getMove()).to.deep.equal({ x: 0, y: 0 });
+        source.stop();
+      });
+
+      it("returns zero while paused even if the stick is held", function () {
+        const { source } = makeSource(manager, onScreen, canvas);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + BASE_RADIUS, BASE_CY);
+        source.pause();
+        expect(source.getMove()).to.deep.equal({ x: 0, y: 0 });
+        source.stop();
+      });
+
+      it("still reflects the stick when only the InputManager axes are clobbered", function () {
+        // Gamepad polling zeroes the MOVE axes; getMove() must be unaffected.
+        const { source } = makeSource(manager, onScreen, canvas);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + BASE_RADIUS, BASE_CY);
+        manager._setAxis("MOVE_X", 0);
+        manager._setAxis("MOVE_Y", 0);
+        expect(source.getMove().x).to.be.closeTo(1, 0.01);
+        source.stop();
+      });
+    });
+
     describe("releaseAll", function () {
       it("releaseAll() clears all axes and shim keys", function () {
         const { source } = makeSource(manager, onScreen, canvas);
