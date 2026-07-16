@@ -38,8 +38,6 @@ export let gizmoManager;
 // Enable debug messages
 const DEBUG = true;
 
-// Shared by the 3D arrows and the position readout, so a coloured number always
-// matches the arrow it belongs to.
 const AXIS_HEX = { x: '#0072B2', y: '#009E73', z: '#D55E00' };
 
 const blueColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.x); // Colour for X-axis
@@ -123,7 +121,6 @@ function createAdaptiveInput({
   }
 
   function onHudAxisChange(axis) {
-    // Taking over from a keyboard lock: drop its message, the HUD shows the axis.
     if (keyboard?.getAxis?.()) {
       clearStatus('axis');
     }
@@ -919,8 +916,7 @@ export function exitGizmoState() {
     activeDuplicatePickHandler = null;
   }
 
-  // Stop the axis keyboard. The lock does not survive into the next gizmo, so
-  // its message must not either.
+  // Stop the axis keyboard
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
   clearStatus('axis');
@@ -1292,13 +1288,9 @@ function enableBoundingBox(mesh) {
   mesh.showBoundingBox = true;
 }
 
-// Readout segments: each axis is a pill bordered in its arrow's colour, so it
-// can't be a plain string. Takes the block position (see getBlockPositionFromMesh)
-// and rounds exactly as setBlockXYZ does, so the readout always agrees with the
-// numbers on the block.
+// Takes a block position, rounded as setBlockXYZ does, so the readout and the
+// block always agree.
 function positionStatus(position) {
-  // Split the translation rather than replace into it, to keep each locale's
-  // own prefix ("Posición: ") around the pills.
   const [before = '', after = ''] = translate('position_readout').split('{position}');
   const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
     { text: i ? ' ' : '' },
@@ -1309,8 +1301,7 @@ function positionStatus(position) {
   return [{ text: before }, ...axes, { text: after }];
 }
 
-// Pick a mesh (used by multiple gizmos). `prompt` shows for as long as the pick
-// is armed, so a tool that re-arms itself (delete) puts its prompt back up.
+// Pick a mesh (used by multiple gizmos)
 function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
@@ -1600,7 +1591,6 @@ function updateChildBlockPositions(mesh) {
 function startDuplicatePlacement() {
   let blockKey, blockId, canvas, onPickMesh;
   if (!gizmoManager.attachedMesh) {
-    // No pick armed on this path, so it has to time itself out.
     showStatus(translate('select_mesh_duplicate_prompt'), { duration: 10 });
     return;
   }
@@ -2293,9 +2283,7 @@ function handleSelectGizmo() {
 
   function applySelection(pickedMesh, pickedPoint) {
     applyMeshSelection(pickedMesh, pickedPoint);
-    // Read the mesh the gizmo attached to, not the picked one: a pick can land
-    // on a child, whose position is local to its parent. The attached mesh is
-    // the root that owns the block, and is what the drag writes back from.
+    // A pick can land on a child; the attached mesh is the root owning the block.
     const attached = gizmoManager.attachedMesh;
     if (attached) {
       showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), { duration: 10 });

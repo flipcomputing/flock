@@ -10,8 +10,6 @@ const AXIS_LOCK_KEYS = {
   all: "axis_lock_all",
 };
 
-// Unlocking clears rather than announcing: there is nothing to say, and the
-// on-screen HUD already shows the axis.
 function reportAxis(axis) {
   if (!axis) {
     clearStatus("axis");

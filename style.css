@@ -698,16 +698,11 @@ button {
   flex-direction: column;
 }
 
-/* Status line (ui/status.js). Height must stay fixed whatever the text:
-   resizeCanvas() in main/view.js subtracts it. The top margin clears the
-   Ctrl+G badges, which renderBadges() floats 20px below each button. */
+/* Height must stay fixed whatever the text: resizeCanvas() subtracts it. The
+   top margin clears the Ctrl+G badges renderBadges() floats below each button. */
 .gizmo-status {
-  /* Headroom for the pills' borders, which would otherwise clip against
-     overflow:hidden. resizeCanvas() measures this, so it stays in step. */
   height: 1.6em;
-  /* .gizmo-buttons has no left padding, so match #shape-menu's own inset. */
   margin: 24px 0 0 5px;
-  /* The menu text inherits the root size; track it so both scale together. */
   font-size: 1rem;
   line-height: 1.4;
   color: var(--color-text);
@@ -720,9 +715,8 @@ button {
   font-weight: bold;
 }
 
-/* One coordinate, styled like the value field on a block. The border carries
-   the axis colour (set inline, from the same AXIS_HEX as the 3D arrows); text
-   stays theme-coloured, so contrast never depends on the axis colour. */
+/* One coordinate, styled like the value field on a block. Border colour is set
+   inline, from AXIS_HEX. */
 .gizmo-status__pill {
   display: inline-block;
   padding: 0 5px;
@@ -731,9 +725,7 @@ button {
   line-height: 1.25;
   background: var(--color-bg);
   color: var(--color-text);
-  /* Hold a steady size and digit width, so a value losing its decimal (0.6 -> 0)
-     doesn't shift the pills next to it. Longer values still grow. border-box so
-     min-width is the whole pill, not the text inside it. */
+  /* Steady size and digit width, so 0.6 -> 0 doesn't shift the pills beside it. */
   box-sizing: border-box;
   min-width: 2.75em;
   text-align: center;
@@ -798,8 +790,7 @@ button {
   }
 }
 
-/* Too narrow for the longest prompts on one line, so give the status two.
-   Centred to sit under the centred button grid. */
+/* Too narrow for the longest prompts on one line, so give the status two. */
 @media (max-width: 600px) {
   .gizmo-status {
     height: 3.2em;
@@ -1197,17 +1188,13 @@ button {
     width: auto;
   }
 
-  /* Free to wrap into the grey space here: the canvas is measured from
-     .gizmo-buttons-inner, so the status can't feed back into it. The bar's own
-     5px padding already provides the inset the margin gives it elsewhere. */
+  /* Free to wrap here: the canvas is measured from .gizmo-buttons-inner. */
   .gizmo-status {
     align-self: stretch;
     min-width: 0;
     height: auto;
     margin-left: 0;
     white-space: normal;
-    /* The buttons are content-width and left-aligned here, not centred as on
-       portrait, so the text follows them. */
     text-align: left;
   }
 

@@ -1,5 +1,4 @@
-// Status line for the editor's own tools. Not flock.printText: that is the
-// program-facing API and paints into the canvas. One slot, last write wins.
+// Editor status line. Not flock.printText: that one paints into the canvas.
 
 let hideTimer = null;
 let owner = null;
@@ -35,8 +34,6 @@ function render(element, content) {
   );
 }
 
-// `content` is a string, or an array of { text, bold, borderColor } segments; a
-// segment with a border renders as a pill, like a value on a block.
 // duration 0 keeps the message up until something replaces or clears it.
 export function showStatus(content, { duration = 0, owner: nextOwner = null } = {}) {
   const element = getElement();
@@ -52,9 +49,8 @@ export function showStatus(content, { duration = 0, owner: nextOwner = null } = 
   }
 }
 
-// Passing an owner clears only that owner's message. Teardowns that run on
-// every click (cleanupPlacementMode, cleanupScenePick) must pass one, or they
-// wipe whatever another tool just put up. No owner clears unconditionally.
+// Teardowns that run on every click must pass an owner, or they wipe whatever
+// another tool just put up.
 export function clearStatus(forOwner = null) {
   if (forOwner !== null && owner !== forOwner) return;
   cancelHide();
