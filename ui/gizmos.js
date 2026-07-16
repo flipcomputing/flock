@@ -917,9 +917,12 @@ export function exitGizmoState() {
     activeDuplicatePickHandler = null;
   }
 
-  // Stop the axis keyboard
+  // Stop the axis keyboard. The lock does not survive into the next gizmo, so
+  // its message must not either.
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
+  clearStatus('axis');
+  clearStatus('camera');
 
   // Run all queued cleanup functions
   runCleanups();
@@ -2372,7 +2375,7 @@ function handleCameraGizmo() {
     flock._keyboardSource?.setFlyMode(true);
     showStatus(
       translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
-      { duration: 15 }
+      { duration: 15, owner: 'camera' }
     );
     setGizmoButtonActive(cameraButton, true);
   } else {
