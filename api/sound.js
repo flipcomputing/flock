@@ -306,6 +306,35 @@ export const flockSound = {
   getAudioContext() {
     return getOrCreateContext();
   },
+  // Babylon must be paused via pauseAsync(): its resumeOnPause watchdog
+  // undoes a raw context.suspend(). Only resume suspensions we caused —
+  // resuming without a user gesture throws NotAllowedError on iOS.
+  async syncAudioWithPageState() {
+    if (document.visibilityState === 'hidden') {
+      const engine = flock.audioEngine;
+      if (engine) {
+        if (engine.state !== 'running') return;
+        flock._audioSuspendedByVisibility = true;
+        await engine.pauseAsync().catch(() => {});
+      } else {
+        const ctx = flock.audioContext;
+        if (ctx && ctx.state === 'running') {
+          flock._audioSuspendedByVisibility = true;
+          await ctx.suspend().catch(() => {});
+        }
+      }
+      return;
+    }
+
+    if (!flock._audioSuspendedByVisibility) return;
+    flock._audioSuspendedByVisibility = false;
+    if (flock.audioEngine) {
+      // If this rejects (no gesture yet), resumeOnInteraction takes over.
+      await flock.audioEngine.resumeAsync().catch(() => {});
+    } else if (flock.audioContext && flock.audioContext.state !== 'closed') {
+      await safeResume(flock.audioContext);
+    }
+  },
   async playNotes(
     meshName,
     {

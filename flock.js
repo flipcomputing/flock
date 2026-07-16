@@ -141,6 +141,8 @@ export const flock = {
   _contextLostAt: null,
   _escalationTimer: null,
   _webglVisibilityListenerAdded: false,
+  _audioVisibilityListenerAdded: false,
+  _audioSuspendedByVisibility: false,
   document: document,
   disposed: null,
   events: {},
@@ -1397,6 +1399,13 @@ export const flock = {
             flock._scheduleContextEscalation();
           }
         }
+      });
+    }
+
+    if (!flock._audioVisibilityListenerAdded) {
+      flock._audioVisibilityListenerAdded = true;
+      document.addEventListener('visibilitychange', () => {
+        flock.syncAudioWithPageState?.();
       });
     }
 

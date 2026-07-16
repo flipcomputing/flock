@@ -348,4 +348,100 @@ export function runSoundTests(flock) {
       }).to.not.throw(); // Should handle gracefully
     });
   });
+
+  describe("Audio visibility suspend/resume @sound @slow", function () {
+    this.timeout(10000);
+
+    function setVisibility(state) {
+      Object.defineProperty(document, "visibilityState", {
+        configurable: true,
+        get: () => state,
+      });
+    }
+
+    afterEach(() => {
+      // Remove the own-property override so the prototype getter takes over again
+      delete document.visibilityState;
+      flock._audioSuspendedByVisibility = false;
+    });
+
+    function dispatchVisibility(state) {
+      setVisibility(state);
+      document.dispatchEvent(new Event("visibilitychange"));
+    }
+
+    async function waitForState(context, state, timeout = 2000) {
+      const start = Date.now();
+      while (context.state !== state && Date.now() - start < timeout) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      return context.state;
+    }
+
+    async function getRunningContext() {
+      await flock.ensureAudio();
+      const context = flock.audioEngine?._audioContext ?? flock.audioContext;
+      if (!context) return null;
+      if (context.state !== "running") {
+        await context.resume().catch(() => {});
+      }
+      return context.state === "running" ? context : null; // null: autoplay blocked
+    }
+
+    it("pauses audio when hidden and resumes when visible", async function () {
+      const context = await getRunningContext();
+      if (!context) this.skip();
+      expect(flock._audioVisibilityListenerAdded).to.be.true;
+
+      dispatchVisibility("hidden");
+      expect(await waitForState(context, "suspended")).to.equal("suspended");
+      expect(flock._audioSuspendedByVisibility).to.be.true;
+
+      // Babylon's resumeOnPause watchdog fires on a 1s interval; wait past it
+      // to prove pauseAsync stood it down and the suspension sticks.
+      if (flock.audioEngine) {
+        await new Promise((r) => setTimeout(r, 1500));
+        expect(context.state).to.equal("suspended");
+      }
+
+      dispatchVisibility("visible");
+      expect(await waitForState(context, "running")).to.equal("running");
+      expect(flock._audioSuspendedByVisibility).to.be.false;
+    });
+
+    it("keeps playing when the window loses focus but stays visible", async function () {
+      const context = await getRunningContext();
+      if (!context) this.skip();
+
+      window.dispatchEvent(new Event("blur"));
+      await new Promise((r) => setTimeout(r, 300));
+      expect(context.state).to.equal("running");
+      expect(flock._audioSuspendedByVisibility).to.be.false;
+    });
+
+    it("does not resume a context it did not suspend", async function () {
+      await flock.ensureAudio();
+      const context = flock.audioEngine?._audioContext ?? flock.audioContext;
+      if (!context || context.state === "closed") this.skip();
+
+      const engine = flock.audioEngine;
+      if (engine) {
+        await engine.pauseAsync().catch(() => {});
+      } else {
+        await context.suspend().catch(() => {});
+      }
+      expect(context.state).to.equal("suspended");
+
+      dispatchVisibility("visible");
+      await new Promise((r) => setTimeout(r, 300));
+      expect(context.state).to.equal("suspended");
+
+      // Restore for subsequent suites
+      if (engine) {
+        await engine.resumeAsync().catch(() => {});
+      } else {
+        await context.resume().catch(() => {});
+      }
+    });
+  });
 }
