@@ -791,8 +791,14 @@ function initializeApp() {
   const zoomOutBtn = document.getElementById('zoomOutBtn');
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
-  if (zoomInBtn) zoomInBtn.addEventListener('click', () => workspace.zoomCenter(1));
-  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => workspace.zoomCenter(-1));
+  // Anchor button zoom at the top-left of the visible workspace rather than
+  // the centre, so the blocks under the top-left corner stay put.
+  const zoomTopLeft = (amount) => {
+    const metrics = workspace.getMetrics();
+    workspace.zoom(metrics.absoluteLeft, metrics.absoluteTop, amount);
+  };
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => zoomTopLeft(1));
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => zoomTopLeft(-1));
   const workspaceSearchBtn = document.getElementById('workspaceSearchBtn');
   if (workspaceSearchBtn)
     workspaceSearchBtn.addEventListener('click', () => window.flockWorkspaceSearch?.open());
