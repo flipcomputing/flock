@@ -234,7 +234,12 @@ export const flockSound = {
     try {
       buffer = await loadAudioBuffer(soundUrl, context);
     } catch (err) {
-      console.warn("playSound: failed to load audio:", soundUrl, err);
+      flock.reportBlockError({
+        key: "sound_load_failed",
+        api: "playSound",
+        values: { sound: soundName, url: soundUrl },
+        error: err,
+      });
       return;
     }
 
@@ -252,6 +257,11 @@ export const flockSound = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (resolvedMesh) => {
         if (flock.audioContext !== context) { resolve(); return; }
+        // Spatial playback reads resolvedMesh.position every frame.
+        if (!flock.requireMesh(resolvedMesh, { api: "playSound", name: meshName })) {
+          resolve();
+          return;
+        }
         const result = await playBufferOnMesh(
           context,
           resolvedMesh,
@@ -663,7 +673,11 @@ export const flockSound = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
-          console.warn(`setBPM: mesh '${meshName}' not found`);
+          flock.reportBlockError({
+            key: "object_not_found",
+            api: "setBPM",
+            values: { object: meshName },
+          });
           resolve();
           return;
         }

@@ -139,6 +139,10 @@ export const flockXR = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
+        if (!flock.requireMesh(mesh, { api: "exportMesh", name: meshName })) {
+          resolve();
+          return;
+        }
         const anchorMesh = mesh;
         const rootChild = anchorMesh
           .getChildMeshes()

@@ -203,6 +203,15 @@ export class MicrobitManager {
     return this._variables.get(variableName)?.channel ?? DEFAULT_CHANNEL;
   }
 
+  /** True if the name is a declared micro:bit (via add_microbit) or currently
+   * bound to a tethered board. A declared board that is unplugged still counts. */
+  isMicrobitVariable(variableName) {
+    return (
+      this._variables.has(variableName) ||
+      this._tetheredSessionFor(variableName) !== null
+    );
+  }
+
   /**
    * Register/refresh a variable's channel. addMicrobit (runtime) and the
    * add_microbit block (editor) both land here. `forcePush` pushes to the

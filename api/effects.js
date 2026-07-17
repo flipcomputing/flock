@@ -103,8 +103,17 @@ export const flockEffects = {
   ) {
     const resultName = flock._reserveName(name);
 
-    const particlePromise = new Promise((resolve, reject) => {
+    const particlePromise = new Promise((resolve) => {
       flock.whenModelReady(emitterMesh, (meshInstance) => {
+        if (!(meshInstance instanceof flock.BABYLON.AbstractMesh)) {
+          flock.reportBlockError({
+            key: "particle_emitter_not_mesh",
+            api: "createParticleEffect",
+            values: { effect: resultName, emitter: emitterMesh },
+          });
+          resolve(null);
+          return;
+        }
         try {
           if (Array.isArray(flock.scene.particleSystems)) {
             flock.scene.particleSystems
@@ -209,7 +218,13 @@ export const flockEffects = {
           particleSystem.start();
           resolve(particleSystem);
         } catch (error) {
-          reject(error);
+          flock.reportBlockError({
+            key: "particle_effect_failed",
+            api: "createParticleEffect",
+            values: { effect: resultName },
+            error,
+          });
+          resolve(null);
         }
       });
     });

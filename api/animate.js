@@ -104,8 +104,7 @@ export const flockAnimate = {
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
-        if (!mesh) {
-          console.error(`Mesh "${meshName}" not found.`);
+        if (!flock.requireMesh(mesh, { api: 'playAnimation', name: meshName })) {
           resolve();
           return;
         }
@@ -725,8 +724,7 @@ export const flockAnimate = {
     }
 
     const mesh = await flock.whenModelReady(meshName);
-    if (!mesh) {
-      console.warn(`Mesh ${meshName} not found.`);
+    if (!flock.requireMesh(mesh, { api: 'createAnimation', name: meshName })) {
       return animationGroupName;
     }
 
@@ -922,7 +920,11 @@ export const flockAnimate = {
     if (animationGroup) {
       animationGroup.start();
     } else {
-      console.warn(`Animation group '${groupName}' not found.`);
+      flock.reportBlockError({
+        key: 'animation_group_not_found',
+        api: 'playAnimationGroup',
+        values: { group: groupName },
+      });
     }
   },
   pauseAnimationGroup(groupName) {
@@ -930,7 +932,11 @@ export const flockAnimate = {
     if (animationGroup) {
       animationGroup.pause();
     } else {
-      console.warn(`Animation group '${groupName}' not found.`);
+      flock.reportBlockError({
+        key: 'animation_group_not_found',
+        api: 'pauseAnimationGroup',
+        values: { group: groupName },
+      });
     }
   },
   stopAnimationGroup(groupName) {
@@ -938,7 +944,11 @@ export const flockAnimate = {
     if (animationGroup) {
       animationGroup.stop();
     } else {
-      console.warn(`Animation group '${groupName}' not found.`);
+      flock.reportBlockError({
+        key: 'animation_group_not_found',
+        api: 'stopAnimationGroup',
+        values: { group: groupName },
+      });
     }
   },
   // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
@@ -993,7 +1003,10 @@ export const flockAnimate = {
   },
   _resolvePropertyToAnimate(property, mesh) {
     if (!mesh) {
-      console.warn('Mesh not found.');
+      flock.reportBlockError({
+        key: 'object_not_found',
+        api: 'animate',
+      });
       return null;
     }
 

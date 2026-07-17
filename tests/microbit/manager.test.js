@@ -6,12 +6,15 @@ import {
   setMicrobitManagerForTests,
 } from "../../microbit/manager.js";
 import { PROTOCOL_VERSION } from '../../microbit/protocol.js';
-import { flockMicrobit } from "../../api/microbit.js";
+import {
+  flockMicrobit,
+  setFlockReference as setMicrobitFlock,
+} from "../../api/microbit.js";
 
-// A fake usbTransport.js: the test drives serial lines in and records lines
-// out. `onWrite` lets a test script the board's replies (e.g. answer the
-// probe with HELLO).
-class FakeTransport {
+// A test double for usbTransport.js: the test drives serial lines in and
+// records lines out. `onWrite` lets a test script the board's replies (e.g.
+// answer the probe with HELLO).
+class TestTransport {
   constructor({ onWrite = null, connectImpl = null, usbSerialNumber } = {}) {
     this.written = [];
     this.flashed = [];
@@ -61,7 +64,7 @@ class FakeTransport {
   }
 }
 
-class FakeStorage {
+class TestStorage {
   constructor(initial = {}) {
     this.data = new Map(Object.entries(initial));
   }
@@ -75,7 +78,7 @@ class FakeStorage {
 
 // Board that answers the probe as a healthy Flock board.
 function respondingTransport(deviceId, options = {}) {
-  return new FakeTransport({
+  return new TestTransport({
     ...options,
     onWrite: (line, transport) => {
       if (line === 'P\n') transport.emitLine(`HELLO flock ${PROTOCOL_VERSION} ${deviceId}`);
@@ -96,10 +99,10 @@ export function runMicrobitManagerTests() {
         createTransport: async (options) => {
           createCalls.push(options);
           const transport = transports[call++];
-          if (!transport) throw new Error("no more fake transports");
+          if (!transport) throw new Error("no more test transports");
           return transport;
         },
-        storage: storage ?? new FakeStorage(),
+        storage: storage ?? new TestStorage(),
         usb: usb ?? null,
         fetchFirmware: async () => ":FAKEHEX",
         probeTimeoutMs: 20,
@@ -135,7 +138,7 @@ export function runMicrobitManagerTests() {
 
     describe("connect flow", function () {
       it("binds a responding board: probe, channel, name scroll, persist", async function () {
-        const storage = new FakeStorage();
+        const storage = new TestStorage();
         const transport = respondingTransport("111");
         const manager = makeManager({ transports: [transport], storage });
         const seenStates = [];
@@ -175,7 +178,7 @@ export function runMicrobitManagerTests() {
       });
 
       it("times out the probe, retries once, then asks before flashing; cancel disconnects", async function () {
-        const transport = new FakeTransport(); // never answers
+        const transport = new TestTransport(); // never answers
         const manager = makeManager({ transports: [transport] });
         let confirmations = 0;
         manager.confirmFlash = () => {
@@ -197,7 +200,7 @@ export function runMicrobitManagerTests() {
 
       it("flashes after confirmation, reprobes, and binds", async function () {
         // Silent until flashed, then behaves like a Flock board.
-        const transport = new FakeTransport({
+        const transport = new TestTransport({
           onWrite: (line, t) => {
             if (line === "P\n" && t.flashed.length > 0) {
               t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
@@ -220,7 +223,7 @@ export function runMicrobitManagerTests() {
         // Never answers probes after the flash, but announces itself on
         // reboot — as the real board does. The boot HELLO arrives before the
         // post-flash probing starts.
-        const transport = new FakeTransport();
+        const transport = new TestTransport();
         transport.flash = async function (hexText, onProgress) {
           this.flashed.push(hexText);
           onProgress?.(100);
@@ -241,7 +244,7 @@ export function runMicrobitManagerTests() {
         // Ignores probes until ~2.5 probe-timeouts after the flash — longer
         // than the pre-flash retry budget, shorter than the post-flash one.
         let bootedAt = null;
-        const transport = new FakeTransport({
+        const transport = new TestTransport({
           onWrite: (line, t) => {
             if (line !== "P\n" || bootedAt === null) return;
             if (Date.now() >= bootedAt) t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
@@ -266,7 +269,7 @@ export function runMicrobitManagerTests() {
         // digits to 005 and fixes the checksum.
         const sentinelHex = ":0A000000464C4B43483A3030313B88";
         const patchedHex = ":0A000000464C4B43483A3030353B84";
-        const transport = new FakeTransport({
+        const transport = new TestTransport({
           onWrite: (line, t) => {
             if (line === "P\n" && t.flashed.length > 0) {
               t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
@@ -286,7 +289,7 @@ export function runMicrobitManagerTests() {
       });
 
       it("treats a stale protocol version as needs-flash", async function () {
-        const transport = new FakeTransport({
+        const transport = new TestTransport({
           onWrite: (line, t) => {
             if (line !== "P\n") return;
             t.emitLine(
@@ -308,7 +311,7 @@ export function runMicrobitManagerTests() {
       });
 
       it("propagates connect failures and cleans up", async function () {
-        const transport = new FakeTransport({
+        const transport = new TestTransport({
           connectImpl: async () => {
             throw new Error("no device selected");
           },
@@ -411,7 +414,7 @@ export function runMicrobitManagerTests() {
 
     describe("bindings", function () {
       it("ignores (but keeps) bindings whose variable is missing from the project", async function () {
-        const storage = new FakeStorage({
+        const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
             111: { variable: "microbit1", usbSerialNumber: "USB1" },
           }),
@@ -443,7 +446,7 @@ export function runMicrobitManagerTests() {
       }
 
       it("reconnects known boards from getDevices without scrolling the name", async function () {
-        const storage = new FakeStorage({
+        const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
             111: { variable: "microbit1", usbSerialNumber: "USB1" },
           }),
@@ -475,7 +478,7 @@ export function runMicrobitManagerTests() {
       });
 
       it("reconnects when a known board is replugged", async function () {
-        const storage = new FakeStorage({
+        const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
             111: { variable: "microbit1", usbSerialNumber: "USB1" },
           }),
@@ -670,6 +673,31 @@ export function runMicrobitManagerTests() {
           console.warn = originalWarn;
         }
       });
+
+      it('reports and does not send when the target is not a micro:bit', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        setMicrobitManagerForTests(manager);
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        const reported = [];
+        setMicrobitFlock({ reportBlockError: (info) => reported.push(info) });
+        try {
+          flockMicrobit.microbitShowImage('box1', SUN); // not a micro:bit
+          await sleep(0);
+          expect(transport.written).to.deep.equal([]);
+          expect(reported).to.have.lengthOf(1);
+          expect(reported[0].key).to.equal('not_a_microbit');
+
+          // A bound board still sends.
+          flockMicrobit.microbitShowImage('microbit1', SUN);
+          await sleep(0);
+          expect(transport.written).to.deep.equal(SUN_LINES);
+        } finally {
+          setMicrobitFlock(undefined);
+        }
+      });
     });
 
     describe('scrollText', function () {
@@ -736,6 +764,31 @@ export function runMicrobitManagerTests() {
           expect(transport.written).to.deep.equal(['S:42\n']);
         } finally {
           console.warn = originalWarn;
+        }
+      });
+
+      it('reports and does not send when the target is not a micro:bit', async function () {
+        const transport = respondingTransport('111');
+        const manager = makeManager({ transports: [transport] });
+        setMicrobitManagerForTests(manager);
+        await manager.bindFromPicker('microbit1');
+        transport.written.length = 0;
+
+        const reported = [];
+        setMicrobitFlock({ reportBlockError: (info) => reported.push(info) });
+        try {
+          flockMicrobit.microbitScrollText('box1', 'Hello'); // not a micro:bit
+          await sleep(0);
+          expect(transport.written).to.deep.equal([]);
+          expect(reported).to.have.lengthOf(1);
+          expect(reported[0].key).to.equal('not_a_microbit');
+
+          // A bound board still sends.
+          flockMicrobit.microbitScrollText('microbit1', 'Hello');
+          await sleep(0);
+          expect(transport.written).to.deep.equal(['S:Hello\n']);
+        } finally {
+          setMicrobitFlock(undefined);
         }
       });
     });

@@ -35,6 +35,26 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.x)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees in radians
     });
 
+    it("should ignore rotate/rotateTo on a non-mesh target", async function () {
+      const group = new flock.BABYLON.AnimationGroup(
+        "rotateNonMeshGroup",
+        flock.scene,
+      );
+      const reported = [];
+      const previousOnBlockError = flock.onBlockError;
+      flock.onBlockError = (info) => reported.push(info);
+      try {
+        await flock.rotate("rotateNonMeshGroup", { x: 90, y: 0, z: 0 });
+        await flock.rotateTo("rotateNonMeshGroup", { x: 90, y: 0, z: 0 });
+
+        expect(reported).to.have.lengthOf(2);
+        expect(reported.every((r) => r.key === "target_not_a_mesh")).to.be.true;
+      } finally {
+        flock.onBlockError = previousOnBlockError;
+        group.dispose();
+      }
+    });
+
     it("should rotate a box around Y axis", async function () {
       const box = flock.scene.getMeshByName(boxId);
 

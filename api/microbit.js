@@ -55,10 +55,16 @@ export const flockMicrobit = {
       console.warn("microbitShowImage: pattern must be a string");
       return;
     }
-    getMicrobitManager().showImage(
-      deviceName === "" ? null : deviceName,
-      pattern,
-    );
+    const manager = getMicrobitManager();
+    if (deviceName !== "" && !manager.isMicrobitVariable(deviceName)) {
+      _flock?.reportBlockError?.({
+        key: "not_a_microbit",
+        api: "microbitShowImage",
+        values: { object: deviceName },
+      });
+      return;
+    }
+    manager.showImage(deviceName === "" ? null : deviceName, pattern);
   },
 
   /**
@@ -77,9 +83,15 @@ export const flockMicrobit = {
       console.warn("microbitScrollText: text must be a string");
       return;
     }
-    getMicrobitManager().scrollText(
-      deviceName === "" ? null : deviceName,
-      String(text),
-    );
+    const manager = getMicrobitManager();
+    if (deviceName !== "" && !manager.isMicrobitVariable(deviceName)) {
+      _flock?.reportBlockError?.({
+        key: "not_a_microbit",
+        api: "microbitScrollText",
+        values: { object: deviceName },
+      });
+      return;
+    }
+    manager.scrollText(deviceName === "" ? null : deviceName, String(text));
   },
 };

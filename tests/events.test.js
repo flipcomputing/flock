@@ -148,17 +148,16 @@ export function runEventsTests(flock) {
         expect(called).to.be.false;
       });
 
-      it("warns and does not throw when handler is not a function", function () {
-        const warnings = [];
-        const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(" "));
+      it("reports and does not throw when handler is not a function", function () {
+        const reported = [];
+        const previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
         try {
           expect(() => flock.onEvent("jump", "notAFunction")).to.not.throw();
         } finally {
-          console.warn = originalWarn;
+          flock.onBlockError = previousOnBlockError;
         }
-        expect(warnings.some((w) => w.includes("handler must be a function"))).to
-          .be.true;
+        expect(reported.some((r) => r.key === "invalid_callback")).to.be.true;
       });
     });
 
@@ -252,17 +251,16 @@ export function runEventsTests(flock) {
         expect(upCalled).to.be.true;
       });
 
-      it("warns and does not throw when callback is not a function", function () {
-        const warnings = [];
-        const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(" "));
+      it("reports and does not throw when callback is not a function", function () {
+        const reported = [];
+        const previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
         try {
           expect(() => flock.whenKeyEvent("k", "notAFunction")).to.not.throw();
         } finally {
-          console.warn = originalWarn;
+          flock.onBlockError = previousOnBlockError;
         }
-        expect(warnings.some((w) => w.includes("callback must be a function")))
-          .to.be.true;
+        expect(reported.some((r) => r.key === "invalid_callback")).to.be.true;
       });
     });
 
@@ -281,19 +279,18 @@ export function runEventsTests(flock) {
         expect(called).to.be.true;
       });
 
-      it("warns and does not throw when callback is not a function", function () {
-        const warnings = [];
-        const originalWarn = console.warn;
-        console.warn = (...args) => warnings.push(args.join(" "));
+      it("reports and does not throw when callback is not a function", function () {
+        const reported = [];
+        const previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
         try {
           expect(() =>
             flock.whenActionEvent("FORWARD", "notAFunction"),
           ).to.not.throw();
         } finally {
-          console.warn = originalWarn;
+          flock.onBlockError = previousOnBlockError;
         }
-        expect(warnings.some((w) => w.includes("callback must be a function")))
-          .to.be.true;
+        expect(reported.some((r) => r.key === "invalid_callback")).to.be.true;
       });
     });
 

@@ -880,13 +880,14 @@ export const flockCSG = {
                 throw new Error("CSG produced empty mesh");
               }
             } catch (e) {
-              console.warn(
-                "[subtractMeshesMerge] CSG subtract failed:",
-                e.message,
-              );
-              console.warn(
-                "[subtractMeshesMerge] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
-              );
+              flock.reportBlockError({
+                key: "csg_empty_result",
+                api: "subtractMeshesMerge",
+                values: {
+                  hint: "CSG requires watertight (manifold) geometry; 3D text and merged meshes are typically non-manifold.",
+                },
+                error: e,
+              });
 
               // Clean up any empty meshes
               flock.scene.meshes
@@ -1024,13 +1025,14 @@ export const flockCSG = {
                 throw new Error("CSG produced empty mesh");
               }
             } catch (e) {
-              console.warn(
-                "[subtractMeshesIndividual] CSG subtract failed:",
-                e.message,
-              );
-              console.warn(
-                "[subtractMeshesIndividual] Note: CSG operations require watertight (manifold) geometry. 3D text and merged meshes are typically non-manifold.",
-              );
+              flock.reportBlockError({
+                key: "csg_empty_result",
+                api: "subtractMeshesIndividual",
+                values: {
+                  hint: "CSG requires watertight (manifold) geometry; 3D text and merged meshes are typically non-manifold.",
+                },
+                error: e,
+              });
 
               // Clean up any empty meshes
               flock.scene.meshes
@@ -1219,10 +1221,14 @@ export const flockCSG = {
               throw new Error("CSG produced empty mesh");
             }
           } catch (e) {
-            console.warn("[intersectMeshes] CSG toMesh failed:", e.message);
-            console.warn(
-              "[intersectMeshes] Note: CSG operations require watertight (manifold) geometry.",
-            );
+            flock.reportBlockError({
+              key: "csg_empty_result",
+              api: "intersectMeshes",
+              values: {
+                hint: "CSG requires watertight (manifold) geometry.",
+              },
+              error: e,
+            });
 
             // Clean up any empty meshes
             flock.scene.meshes

@@ -72,6 +72,37 @@ export function runMeshHierarchyTests(flock) {
         expect(childMesh.parent).to.equal(parentMesh);
       });
 
+      it("should ignore parenting to a non-mesh target", async function () {
+        const childId = "hierarchyChildNonMesh";
+        await flock.createBox(childId, {
+          width: 0.5,
+          height: 0.5,
+          depth: 0.5,
+          position: [2, 0, 0],
+        });
+        meshIds.push(childId);
+
+        const group = new flock.BABYLON.AnimationGroup(
+          "parentNonMeshGroup",
+          flock.scene,
+        );
+
+        const reported = [];
+        const previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
+        try {
+          await flock.parentChild("parentNonMeshGroup", childId);
+
+          const childMesh = flock.scene.getMeshByName(childId);
+          expect(childMesh.parent).to.not.equal(group);
+          expect(reported).to.have.lengthOf(1);
+          expect(reported[0].key).to.equal("target_not_a_mesh");
+        } finally {
+          flock.onBlockError = previousOnBlockError;
+          group.dispose();
+        }
+      });
+
       it("should apply position offsets to the child", async function () {
         const parentId = "hierarchyParent2";
         const childId = "hierarchyChild2";

@@ -791,8 +791,12 @@ export const flockShapes = {
         }
       } catch (error) {
         flock._pendingMeshIds?.delete(meshId);
-        console.error(`Error creating 3D text '${meshId}':`, error);
-        throw error;
+        flock.reportBlockError({
+          key: 'text_creation_failed',
+          api: 'create3DText',
+          values: { mesh: meshId },
+          error,
+        });
       }
     })();
 

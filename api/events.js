@@ -13,14 +13,16 @@ export const flockEvents = {
 
   onEvent(eventName, handler, once = false) {
     if (typeof handler !== "function") {
-      console.warn("onEvent: handler must be a function");
+      flock.reportBlockError({ key: "invalid_callback", api: "onEvent" });
       return;
     }
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
-      console.warn(
-        `Event name ${eventName} is reserved and cannot be broadcasted.`,
-      );
+      flock.reportBlockError({
+        key: "event_name_reserved",
+        api: "onEvent",
+        values: { event: eventName },
+      });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -51,9 +53,11 @@ export const flockEvents = {
   broadcastEvent(eventName, data) {
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
-      console.warn(
-        `Event name ${eventName} is reserved and cannot be broadcasted.`,
-      );
+      flock.reportBlockError({
+        key: "event_name_reserved",
+        api: "broadcastEvent",
+        values: { event: eventName },
+      });
       return;
     }
     if (flock.events && flock.events[eventName]) {
@@ -62,7 +66,7 @@ export const flockEvents = {
   },
   whenActionEvent(action, callback, isReleased = false) {
     if (typeof callback !== "function") {
-      console.warn("whenActionEvent: callback must be a function");
+      flock.reportBlockError({ key: "invalid_callback", api: "whenActionEvent" });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -97,7 +101,7 @@ export const flockEvents = {
   },
   whenKeyEvent(key, callback, isReleased = false) {
     if (typeof callback !== "function") {
-      console.warn("whenKeyEvent: callback must be a function");
+      flock.reportBlockError({ key: "invalid_callback", api: "whenKeyEvent" });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -130,7 +134,7 @@ export const flockEvents = {
   },
   onMicrobitEvent(variableName, eventChar, callback) {
     if (typeof callback !== "function") {
-      console.warn("onMicrobitEvent: callback must be a function");
+      flock.reportBlockError({ key: "invalid_callback", api: "onMicrobitEvent" });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -169,7 +173,11 @@ export const flockEvents = {
         }
         await action();
       } catch (error) {
-        console.log("Error while running action:", error);
+        flock.reportBlockError({
+          key: "forever_block_failed",
+          api: "forever",
+          error,
+        });
       } finally {
         isActionRunning = false;
         if (!isDisposed) {

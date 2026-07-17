@@ -178,6 +178,41 @@ export const flock = {
   ...flockMicrobit,
   ...flockSensing,
   ...flockMath,
+  // onBlockError lets the UI show a translated message from key + values.
+  onBlockError: null,
+  _debugLogging: undefined,
+  // Console output is opt-in via the ?debug=true URL param.
+  isDebugLoggingEnabled() {
+    if (flock._debugLogging === undefined) {
+      try {
+        flock._debugLogging =
+          new URLSearchParams(window.location.search).get('debug') === 'true';
+      } catch {
+        flock._debugLogging = false;
+      }
+    }
+    return flock._debugLogging;
+  },
+  reportBlockError({ key, values = {}, api, error } = {}) {
+    if (error?.name === 'AbortError') return;
+    if (flock.isDebugLoggingEnabled()) {
+      console.warn(`[flock] ${api ?? 'block'}: ${key}`, values, error ?? '');
+    }
+    try {
+      flock.onBlockError?.({ key, values, api, error });
+    } catch {
+      // a broken listener must not break the swallow path
+    }
+  },
+  requireMesh(target, { api, name } = {}) {
+    if (target instanceof flock.BABYLON.AbstractMesh) return true;
+    flock.reportBlockError({
+      key: target == null ? 'object_not_found' : 'target_not_a_mesh',
+      api,
+      values: { object: name },
+    });
+    return false;
+  },
   // Enhanced error reporting with block context
   createEnhancedError(error, code) {
     const lines = code.split('\n');

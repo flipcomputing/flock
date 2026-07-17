@@ -739,6 +739,11 @@ export const flockPhysics = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (target) {
         if (!target) {
+          flock.reportBlockError({
+            key: 'object_not_found',
+            api: 'onTrigger',
+            values: { object: meshName },
+          });
           resolve();
           return;
         }
@@ -787,7 +792,11 @@ export const flockPhysics = {
             await callbacks[currentIndex](meshId);
             currentIndex = (currentIndex + 1) % callbacks.length;
           } catch (e) {
-            console.error('Action execution failed:', e);
+            flock.reportBlockError({
+              key: "trigger_block_failed",
+              api: "onTrigger",
+              error: e,
+            });
           } finally {
             if (mode === 'wait') isExecuting = false;
           }
@@ -831,6 +840,12 @@ export const flockPhysics = {
           }
         } else if (target instanceof flock.GUI.Button) {
           registerButtonAction(target, trigger, async () => await executeAction(target.name));
+        } else {
+          flock.reportBlockError({
+            key: 'target_not_clickable',
+            api: 'onTrigger',
+            values: { object: meshName },
+          });
         }
         resolve();
       });
@@ -937,15 +952,13 @@ export const flockPhysics = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
-        if (!mesh) {
-          console.error('Model not loaded:', meshName);
+        if (!flock.requireMesh(mesh, { api: 'onIntersect', name: meshName })) {
           resolve();
           return;
         }
 
         flock.whenModelReady(otherMeshName, async function (otherMesh) {
-          if (!otherMesh) {
-            console.error('Model not loaded:', otherMeshName);
+          if (!flock.requireMesh(otherMesh, { api: 'onIntersect', name: otherMeshName })) {
             resolve();
             return;
           }

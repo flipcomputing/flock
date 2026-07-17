@@ -53,6 +53,30 @@ export function runMaterialsTests(flock) {
       ).to.be.true;
     });
 
+    it("should ignore tint on a non-mesh target", async function () {
+      // An animation group resolves by name but is not a mesh.
+      const group = new flock.BABYLON.AnimationGroup(
+        "tintNonMeshGroup",
+        flock.scene,
+      );
+
+      const reported = [];
+      const previousOnBlockError = flock.onBlockError;
+      flock.onBlockError = (info) => reported.push(info);
+      try {
+        // Must resolve, not reject or throw.
+        await flock.tint("tintNonMeshGroup", { color: "#FF0000" });
+
+        expect(reported).to.have.lengthOf(1);
+        expect(reported[0].key).to.equal("target_not_a_mesh");
+        expect(reported[0].api).to.equal("tint");
+        expect(reported[0].values.object).to.equal("tintNonMeshGroup");
+      } finally {
+        flock.onBlockError = previousOnBlockError;
+        group.dispose();
+      }
+    });
+
     it("should apply glow to a mesh", async function () {
       const { id, color } = await createBoxWithColorAndPosition("boxGlow");
       boxIds.push(id);

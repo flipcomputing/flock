@@ -90,10 +90,10 @@ export const flockTransform = {
     });
   },
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
-        if (!mesh) {
-          reject(new Error(`Mesh '${meshName}' not found`));
+        if (!flock.requireMesh(mesh, { api: 'positionAt', name: meshName })) {
+          resolve();
           return;
         }
 
@@ -129,11 +129,11 @@ export const flockTransform = {
     });
   },
   positionAtSingleCoordinate(meshName, coordinate_setting, value) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         // Prevent positionAt call if mesh doesn't exist in the first place
-        if (!mesh) {
-          reject(new Error(`Mesh '${meshName}' not found`));
+        if (!flock.requireMesh(mesh, { api: 'positionAtSingleCoordinate', name: meshName })) {
+          resolve();
           return;
         }
 
@@ -171,16 +171,16 @@ export const flockTransform = {
     });
   },
   moveTo(meshName, { target, useY = true } = {}) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh1) => {
-        if (!mesh1) {
-          reject(new Error(`Source mesh '${meshName}' not found`));
+        if (!flock.requireMesh(mesh1, { api: 'moveTo', name: meshName })) {
+          resolve();
           return;
         }
 
         flock.whenModelReady(target, (mesh2) => {
-          if (!mesh2) {
-            reject(new Error(`Target mesh '${target}' not found`));
+          if (!flock.requireMesh(mesh2, { api: 'moveTo', name: target })) {
+            resolve();
             return;
           }
 
@@ -244,7 +244,13 @@ export const flockTransform = {
 
             resolve();
           } catch (error) {
-            reject(new Error(`Failed to move mesh '${meshName}' to '${target}': ${error.message}`));
+            flock.reportBlockError({
+              key: 'move_failed',
+              api: 'moveTo',
+              values: { object: meshName, target },
+              error,
+            });
+            resolve();
           }
         });
       });
@@ -254,10 +260,10 @@ export const flockTransform = {
     x = toFinite(x);
     y = toFinite(y);
     z = toFinite(z);
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        if (!mesh) {
-          reject(new Error(`Mesh '${meshName}' not found`));
+        if (!flock.requireMesh(mesh, { api: 'moveByVector', name: meshName })) {
+          resolve();
           return;
         }
 
@@ -315,7 +321,13 @@ export const flockTransform = {
           mesh.computeWorldMatrix(true);
           resolve();
         } catch (error) {
-          reject(new Error(`Failed to move mesh '${meshName}' by vector: ${error.message}`));
+          flock.reportBlockError({
+            key: 'move_failed',
+            api: 'moveByVector',
+            values: { object: meshName },
+            error,
+          });
+          resolve();
         }
       });
     });
@@ -379,6 +391,16 @@ export const flockTransform = {
           return;
         }
 
+        if (!mesh) {
+          flock.reportBlockError({
+            key: 'object_not_found',
+            api: 'rotate',
+            values: { object: meshName },
+          });
+          resolve();
+          return;
+        }
+
         if (mesh.name === 'hemisphericLight') {
           const oldLightVector = mesh.direction;
           const xRadian = flock.BABYLON.Tools.ToRadians(x);
@@ -386,6 +408,11 @@ export const flockTransform = {
           const zRadian = flock.BABYLON.Tools.ToRadians(z);
           const newLightVector = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
           mesh.direction = oldLightVector.add(newLightVector);
+          resolve();
+          return;
+        }
+
+        if (!flock.requireMesh(mesh, { api: 'rotate', name: meshName })) {
           resolve();
           return;
         }
@@ -439,6 +466,27 @@ export const flockTransform = {
           resolve();
           return;
         }
+        if (!mesh) {
+          flock.reportBlockError({
+            key: 'object_not_found',
+            api: 'rotateTo',
+            values: { object: meshName },
+          });
+          resolve();
+          return;
+        }
+        if (
+          !(mesh instanceof flock.BABYLON.AbstractMesh) &&
+          mesh.name !== 'hemisphericLight'
+        ) {
+          flock.reportBlockError({
+            key: 'target_not_a_mesh',
+            api: 'rotateTo',
+            values: { object: meshName },
+          });
+          resolve();
+          return;
+        }
         if (!mesh.rotationQuaternion && mesh.name != 'hemisphericLight') {
           mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
             mesh.rotation.y,
@@ -476,6 +524,15 @@ export const flockTransform = {
       flock.whenModelReady(meshName),
       flock.whenModelReady(target),
     ]);
+    // lookAt supports cameras too, so guard on presence, not mesh type.
+    if (!mesh1 || !mesh2) {
+      flock.reportBlockError({
+        key: 'object_not_found',
+        api: 'lookAt',
+        values: { object: !mesh1 ? meshName : target },
+      });
+      return;
+    }
     const scene = mesh1.getScene?.() ?? mesh2.getScene?.();
     if (!scene) return;
 
@@ -492,6 +549,15 @@ export const flockTransform = {
         };
         scene.onAfterRenderObservable.add(cb);
       });
+      return;
+    }
+
+    // The general path rotates mesh1 to face mesh2's position; both must be
+    // positional meshes (the active-camera turner is handled above).
+    if (
+      !flock.requireMesh(mesh1, { api: 'lookAt', name: meshName }) ||
+      !flock.requireMesh(mesh2, { api: 'lookAt', name: target })
+    ) {
       return;
     }
 
@@ -554,6 +620,10 @@ export const flockTransform = {
     z = Number.isFinite(Number(z)) && Number(z) >= 0 ? Number(z) : 1;
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'scale', name: meshName })) {
+          resolve();
+          return;
+        }
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
@@ -657,6 +727,10 @@ export const flockTransform = {
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'resize', name: meshName })) {
+          resolve();
+          return;
+        }
         mesh.metadata = mesh.metadata || {};
 
         if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {

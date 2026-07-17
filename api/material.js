@@ -95,6 +95,10 @@ export const flockMaterial = {
     if (flock.materialsDebug) console.log(`Changing tint of ${meshName} by ${color}`);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'tint', name: meshName })) {
+          resolve();
+          return;
+        }
         if (mesh.material) {
           mesh.renderOverlay = true;
           mesh.overlayAlpha = 0.5;
@@ -128,6 +132,10 @@ export const flockMaterial = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'highlight', name: meshName })) {
+          resolve();
+          return;
+        }
         applyHighlight(mesh);
         mesh.getChildMeshes().forEach(applyHighlight);
         mesh.metadata?.clones?.forEach((cloneName) => flock.highlight(cloneName, { color: color }));
@@ -137,30 +145,39 @@ export const flockMaterial = {
   },
   glow(meshName, { color } = {}) {
     if (flock.materialsDebug) console.log(`Making ${meshName} glow`);
-    if (!flock.glowLayer) {
-      flock.glowLayer = new flock.BABYLON.GlowLayer('glowLayer', flock.scene);
-      flock.glowLayer.intensity = 0.5;
-      if (flock.sky) {
-        flock.glowLayer.addExcludedMesh(flock.sky);
-      }
-      flock.glowLayer.customEmissiveColorSelector = (mesh, _subMesh, _material, result) => {
-        const glowColor = mesh.metadata?.glowColor;
-        if (glowColor) {
-          const c = flock.BABYLON.Color3.FromHexString(glowColor);
-          result.set(c.r, c.g, c.b, 1);
-        } else {
-          result.set(0, 0, 0, 0);
-        }
-      };
-    }
-    // The layer is kept for the lifetime of the scene and toggled with
-    // isEnabled rather than disposed/recreated: every GlowLayer burns
-    // render pass ids from a never-reused page-global counter, which makes
-    // each submesh's draw-wrapper array grow and slows every later run.
-    flock.glowLayer.isEnabled = true;
-
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'glow', name: meshName })) {
+          resolve();
+          return;
+        }
+        if (!flock.glowLayer) {
+          flock.glowLayer = new flock.BABYLON.GlowLayer('glowLayer', flock.scene);
+          flock.glowLayer.intensity = 0.5;
+          if (flock.sky) {
+            flock.glowLayer.addExcludedMesh(flock.sky);
+          }
+          flock.glowLayer.customEmissiveColorSelector = (
+            glowingMesh,
+            _subMesh,
+            _material,
+            result
+          ) => {
+            const glowColor = glowingMesh.metadata?.glowColor;
+            if (glowColor) {
+              const c = flock.BABYLON.Color3.FromHexString(glowColor);
+              result.set(c.r, c.g, c.b, 1);
+            } else {
+              result.set(0, 0, 0, 0);
+            }
+          };
+        }
+        // The layer is kept for the lifetime of the scene and toggled with
+        // isEnabled rather than disposed/recreated: every GlowLayer burns
+        // render pass ids from a never-reused page-global counter, which makes
+        // each submesh's draw-wrapper array grow and slows every later run.
+        flock.glowLayer.isEnabled = true;
+
         flock.glowMesh(mesh, color);
         mesh.metadata?.clones?.forEach((_cloneName) =>
           flock.whenModelReady((cloneMesh) => flock.glowMesh(cloneMesh, { color: color }))
@@ -245,6 +262,10 @@ export const flockMaterial = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'setAlpha', name: meshName })) {
+          resolve();
+          return;
+        }
         const allMeshes = [mesh, ...mesh.getDescendants()].filter(
           (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
         );
@@ -274,6 +295,10 @@ export const flockMaterial = {
   clearEffects(meshName) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'clearEffects', name: meshName })) {
+          resolve();
+          return;
+        }
         if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
         const removeEffects = (targetMesh) => {
           targetMesh.metadata = targetMesh.metadata || {};
@@ -463,6 +488,11 @@ export const flockMaterial = {
           flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(
             flock.getColorFromString(color)
           );
+          resolve();
+          return;
+        }
+        // null sets the background above; a non-mesh object is a wrong target.
+        if (!flock.requireMesh(mesh, { api: 'changeColor', name: meshName })) {
           resolve();
           return;
         }
@@ -758,6 +788,10 @@ export const flockMaterial = {
   changeMaterial(meshName, materialName, color) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'changeMaterial', name: meshName })) {
+          resolve();
+          return;
+        }
         if (flock.materialsDebug)
           console.log(`Changing material of ${meshName} to ${materialName}`);
         const texturePath = flock.texturePath + materialName;
@@ -829,6 +863,10 @@ export const flockMaterial = {
   setMaterialInternal(meshName, materials) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'setMaterial', name: meshName })) {
+          resolve();
+          return;
+        }
         flock.applyMaterialToHierarchy(mesh, materials, {
           applyColor: true,
           blockKey: null,

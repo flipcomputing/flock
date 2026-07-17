@@ -839,6 +839,13 @@ export const flockMesh = {
     return new Promise((resolve) => {
       flock.whenModelReady(targetMesh, (targetMeshInstance) => {
         flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          if (
+            !flock.requireMesh(targetMeshInstance, { api: 'hold', name: targetMesh }) ||
+            !flock.requireMesh(meshToAttachInstance, { api: 'hold', name: meshToAttach })
+          ) {
+            resolve();
+            return;
+          }
           const targetWithSkeleton = targetMeshInstance.skeleton
             ? targetMeshInstance
             : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
@@ -879,6 +886,13 @@ export const flockMesh = {
     return new Promise((resolve) => {
       flock.whenModelReady(targetMesh, (targetMeshInstance) => {
         flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+          if (
+            !flock.requireMesh(targetMeshInstance, { api: 'attach', name: targetMesh }) ||
+            !flock.requireMesh(meshToAttachInstance, { api: 'attach', name: meshToAttach })
+          ) {
+            resolve();
+            return;
+          }
           {
             const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
             const scale = new flock.BABYLON.Vector3();
@@ -973,6 +987,10 @@ export const flockMesh = {
   drop(meshToDetach) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshToDetach, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'drop', name: meshToDetach })) {
+          resolve();
+          return;
+        }
         const worldMatrix = mesh.getWorldMatrix(true).clone();
         const scale = new flock.BABYLON.Vector3();
         const rotationNow = new flock.BABYLON.Quaternion();
@@ -1024,6 +1042,13 @@ export const flockMesh = {
     return new Promise((resolve) => {
       flock.whenModelReady(parentModelName, (parentMesh) => {
         flock.whenModelReady(childModelName, (childMesh) => {
+          if (
+            !flock.requireMesh(parentMesh, { api: 'setParent', name: parentModelName }) ||
+            !flock.requireMesh(childMesh, { api: 'setParent', name: childModelName })
+          ) {
+            resolve();
+            return;
+          }
           childMesh.setParent(parentMesh);
           resolve();
         });
@@ -1034,7 +1059,10 @@ export const flockMesh = {
     return new Promise((resolve) => {
       flock.whenModelReady(parentModelName, (parentMesh) => {
         flock.whenModelReady(childModelName, (childMesh) => {
-          if (!parentMesh || !childMesh) {
+          if (
+            !flock.requireMesh(parentMesh, { api: 'parentChild', name: parentModelName }) ||
+            !flock.requireMesh(childMesh, { api: 'parentChild', name: childModelName })
+          ) {
             resolve();
             return;
           }
@@ -1075,6 +1103,10 @@ export const flockMesh = {
   removeParent(childModelName) {
     return new Promise((resolve) => {
       flock.whenModelReady(childModelName, (childMesh) => {
+        if (!flock.requireMesh(childMesh, { api: 'removeParent', name: childModelName })) {
+          resolve();
+          return;
+        }
         const worldPosition = childMesh.getAbsolutePosition();
         childMesh.parent = null;
         childMesh.position = worldPosition;
@@ -1093,6 +1125,13 @@ export const flockMesh = {
     return new Promise((resolve) => {
       flock.whenModelReady(followerModelName, (followerMesh) => {
         flock.whenModelReady(targetModelName, (targetMesh) => {
+          if (
+            !flock.requireMesh(followerMesh, { api: 'makeFollow', name: followerModelName }) ||
+            !flock.requireMesh(targetMesh, { api: 'makeFollow', name: targetModelName })
+          ) {
+            resolve();
+            return;
+          }
           followerMesh._followObserver &&
             flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
 
@@ -1119,6 +1158,10 @@ export const flockMesh = {
   stopFollow(followerModelName) {
     return new Promise((resolve) => {
       flock.whenModelReady(followerModelName, (followerMesh) => {
+        if (!flock.requireMesh(followerMesh, { api: 'stopFollow', name: followerModelName })) {
+          resolve();
+          return;
+        }
         if (followerMesh._followObserver) {
           flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
           followerMesh._followObserver = null;

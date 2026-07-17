@@ -121,6 +121,59 @@ export function runEffectsTests(flock) {
       }, 100);
     });
 
+    it("should ignore a particle effect attached to a particle effect", async function () {
+      this.timeout(5000);
+
+      const emitterId = flock.createBox("nestedEffectEmitter", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      createdMeshes.push(emitterId);
+
+      const effectOptions = {
+        emitRate: 10,
+        colors: { start: "#ffffff", end: "#ffffff" },
+        alphas: { start: 1, end: 0 },
+        sizes: { start: 1, end: 1 },
+        lifetime: { min: 0.1, max: 0.2 },
+        shape: "flare.png",
+      };
+
+      const baseEffectName = flock.createParticleEffect("nestedBase", {
+        ...effectOptions,
+        emitterMesh: emitterId,
+      });
+      createdEffects.push(baseEffectName);
+      await flock.modelReadyPromises.get(baseEffectName);
+
+      const reported = [];
+      const previousOnBlockError = flock.onBlockError;
+      flock.onBlockError = (info) => reported.push(info);
+      try {
+        const nestedEffectName = flock.createParticleEffect("nestedChild", {
+          ...effectOptions,
+          emitterMesh: baseEffectName,
+        });
+        createdEffects.push(nestedEffectName);
+
+        const result = await flock.modelReadyPromises.get(nestedEffectName);
+        expect(result).to.equal(null);
+        const system = flock.scene.particleSystems.find(
+          (s) => s.name === nestedEffectName,
+        );
+        expect(system).to.not.exist;
+
+        expect(reported).to.have.lengthOf(1);
+        expect(reported[0].key).to.equal("particle_emitter_not_mesh");
+        expect(reported[0].values.emitter).to.equal(baseEffectName);
+      } finally {
+        flock.onBlockError = previousOnBlockError;
+      }
+    });
+
     it("should set fog parameters", function () {
       flock.scene.fogMode = null;
       flock.scene.fogColor = null;
