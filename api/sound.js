@@ -55,8 +55,8 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   const finish = () => {
     if (done) return;
     done = true;
-    try { source.stop(); } catch {}
-    try { gainNode.disconnect(); } catch {}
+    try { source.stop(); } catch { /* already stopped */ }
+    try { gainNode.disconnect(); } catch { /* already disconnected */ }
     const idx = flock.globalSounds.indexOf(soundRef);
     if (idx !== -1) flock.globalSounds.splice(idx, 1);
   };
@@ -84,7 +84,7 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
 
   const currentSound = mesh.metadata.currentSound;
   if (currentSound) {
-    try { currentSound.stop(); } catch {}
+    try { currentSound.stop(); } catch { /* already stopped */ }
   }
 
   const panner = context.createPanner();
@@ -130,10 +130,10 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
     if (done) return;
     done = true;
     flock.scene?.onBeforeRenderObservable?.remove(observer);
-    try { source.stop(); } catch {}
-    try { source.disconnect(); } catch {}
-    try { gainNode.disconnect(); } catch {}
-    try { panner.disconnect(); } catch {}
+    try { source.stop(); } catch { /* already stopped */ }
+    try { source.disconnect(); } catch { /* already disconnected */ }
+    try { gainNode.disconnect(); } catch { /* already disconnected */ }
+    try { panner.disconnect(); } catch { /* already disconnected */ }
     if (mesh.metadata?.currentSound === soundRef) delete mesh.metadata.currentSound;
     const idx = flock.globalSounds.indexOf(soundRef);
     if (idx !== -1) flock.globalSounds.splice(idx, 1);
@@ -436,7 +436,7 @@ export const flockSound = {
 
         if (!mesh.metadata.panner || mesh.metadata.panner.context !== context) {
           if (mesh.metadata.panner) {
-            try { mesh.metadata.panner.disconnect(); } catch (e) {}
+            try { mesh.metadata.panner.disconnect(); } catch { /* already disconnected */ }
           }
           const panner = context.createPanner();
           mesh.metadata.panner = panner;

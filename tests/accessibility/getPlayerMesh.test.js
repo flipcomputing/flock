@@ -90,7 +90,7 @@ export function runGetPlayerMeshTests(flock) {
     it("prefers camera attachment over heuristic match", function () {
       const camera = flock.scene.activeCamera;
       const attached = makeMesh("_test_a11y_attached");
-      const heuristic = makeMesh("_test_a11y_heuristic2", { isPlayer: true });
+      makeMesh("_test_a11y_heuristic2", { isPlayer: true });
       camera.lockedTarget = attached;
       expect(getPlayerMesh(flock.scene)).to.equal(attached);
     });

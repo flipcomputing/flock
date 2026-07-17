@@ -95,9 +95,6 @@ function resizeCanvas() {
     }
 
     const syncEmbedFrame = () => {
-      const measuredCanvasWidth = Math.max(1, Math.round(canvas.getBoundingClientRect().width));
-      const playerWidth = Math.max(1, measuredCanvasWidth);
-
       const embedShell = document.getElementById('embedShell');
       if (embedShell) {
         embedShell.style.width = '100%';
@@ -276,23 +273,6 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const requestFullscreen = () => {
-    const elem = document.documentElement;
-
-    if (elem.requestFullscreen) {
-      elem.requestFullscreen();
-    } else if (elem.mozRequestFullScreen) {
-      // For Firefox
-      elem.mozRequestFullScreen();
-    } else if (elem.webkitRequestFullscreen) {
-      // For Chrome, Safari, and Opera
-      elem.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-    } else if (elem.msRequestFullscreen) {
-      // For IE/Edge
-      elem.msRequestFullscreen();
-    }
-  };
-
   const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
 
   // No need to request fullscreen in PWA
@@ -527,18 +507,6 @@ window.matchMedia('(max-width: 1024px)').addEventListener('change', (e) => {
     onResize();
   }
 });
-
-// Modified toggle function to work with new approach
-function togglePanels() {
-  if (!isNarrowScreen()) {
-    return;
-  }
-  if (currentView === 'canvas') {
-    showCodeView();
-  } else {
-    showCanvasView();
-  }
-}
 
 // Updated play mode to work with new approach
 export function togglePlayMode() {
@@ -1129,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', () => {
     returnBtn.addEventListener('click', async () => {
       try {
         await enterFs();
-      } catch (e) {
+      } catch {
         /* stay windowed; user still has the normal fullscreen button */
       }
       dismiss();
@@ -1163,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     recovering = true;
     try {
       await exitFs(); // allowed without a user gesture
-    } catch (e) {
+    } catch {
       /* ignore */
     }
     // Let the exit settle before prompting.

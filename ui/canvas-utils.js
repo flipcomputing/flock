@@ -180,7 +180,7 @@ function handleKeydown(event) {
     case "ArrowRight":
     case "ArrowLeft":
     case "ArrowDown":
-    case "ArrowUp":
+    case "ArrowUp": {
       event.preventDefault();
       event.stopPropagation();
       heldKeys.add(event.key);
@@ -194,6 +194,7 @@ function handleKeydown(event) {
         (heldKeys.has("ArrowUp") ? moveDistance : 0);
       moveCanvasCircle(dx, dy);
       break;
+    }
 
     // Tab is assumed to restart keyboard nav mode
     case "Tab":

@@ -5,7 +5,6 @@ export class JoystickSource {
   #inputManager;
   #onScreenSource;
   #canvas;
-  #baseEllipse;
   #thumbEllipse;
   #baseRadius;
   #thumbRadius;
@@ -28,11 +27,10 @@ export class JoystickSource {
   #boundPointerMove;
   #boundPointerUp;
 
-  constructor(inputManager, onScreenSource, { canvas, baseEllipse, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}) {
+  constructor(inputManager, onScreenSource, { canvas, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}) {
     this.#inputManager = inputManager;
     this.#onScreenSource = onScreenSource;
     this.#canvas = canvas;
-    this.#baseEllipse = baseEllipse;
     this.#thumbEllipse = thumbEllipse;
     this.#baseRadius = baseRadius;
     this.#thumbRadius = thumbRadius;

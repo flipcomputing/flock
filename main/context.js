@@ -28,12 +28,12 @@ export const ContextManager = {
     if (window.Blockly) {
       // Try multiple ways to find the main workspace
       const mainWorkspace =
-        typeof Blockly.getMainWorkspace === "function"
-          ? Blockly.getMainWorkspace()
-          : Blockly.common &&
-              typeof Blockly.common.getMainWorkspace === "function"
-            ? Blockly.common.getMainWorkspace()
-            : null;
+        (typeof window.Blockly.getMainWorkspace === "function"
+          ? window.Blockly.getMainWorkspace()
+          : null) ??
+        (typeof window.Blockly.common?.getMainWorkspace === "function"
+          ? window.Blockly.common.getMainWorkspace()
+          : null);
 
       // If workspace is found, check if it's currently editing a field
       if (mainWorkspace && mainWorkspace.isTyping) {
@@ -79,7 +79,6 @@ export const ContextManager = {
     }
 
     // EDITOR: Are they in the blockly workspace or toolbox
-    const mainWS = window.Blockly?.getMainWorkspace?.();
     const currentGesture = window.Blockly?.Gesture?.getCurrentGesture?.();
 
     const isDragging = currentGesture && currentGesture.isDragging();

@@ -63,7 +63,7 @@ export function createGizmoMobileHud({
 
   // ── Axis buttons (right half, single horizontal row) ──────────────────────
   const axisButtons = {};
-  AXIS_DEFS.forEach(({ key, label, color }, i) => {
+  AXIS_DEFS.forEach(({ key, label }, i) => {
     const btn = flock.GUI.Button.CreateSimpleButton(`gizmo-axis-${key}`, label);
     btn.width = `${BTN_SIZE}px`;
     btn.height = `${BTN_SIZE}px`;

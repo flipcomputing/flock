@@ -61,7 +61,7 @@ test("coordinate + colour reporters announce their slot once", async ({
     res.printDurationProvider = pt.getInput("DURATION").getAriaLabelText?.();
     res.printTextAutoLabel = pt.getInput("TEXT").getAriaLabelText?.();
 
-    [scale, ch, pt].forEach((b) => { try { b.dispose(false); } catch (e) {} });
+    [scale, ch, pt].forEach((b) => { if (!b.isDisposed()) b.dispose(false); });
     return res;
   });
 

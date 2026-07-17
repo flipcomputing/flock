@@ -3,7 +3,7 @@ import { createAxisKeyboardHandler } from '../ui/axis-keyboard.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { topHandler, makeKeyEvent as makeEvent } from './utils/keyboardDispatcherTestUtils.js';
 
-export function runAxisKeyboardTests(flock) {
+export function runAxisKeyboardTests(_flock) {
   describe('ui/axis-keyboard @axiskeyboard', function () {
     let stop;
     let moves;

@@ -69,7 +69,6 @@ import { getBoundKeys } from './input/bindings.js';
 
 import {
   enableSceneDescription,
-  announce,
   announceSayText,
   announceObjectSay,
   getObjectLabel,
@@ -1351,7 +1350,7 @@ export const flock = {
 
     if (flock.memoryDebug)
       if (flock.hk) {
-        const [result, stats] = flock.hk._hknp.HP_GetStatistics();
+        const [, stats] = flock.hk._hknp.HP_GetStatistics();
 
         const [
           numBodies,
@@ -1390,15 +1389,19 @@ export const flock = {
                 md.heightmapBody._pluginData.hpBodyId
               );
             }
-          } catch (e) {
+          } catch {
             /* ignore */
           }
           try {
             md.heightmapBody?.dispose();
-          } catch {}
+          } catch {
+            /* already disposed */
+          }
           try {
             md.heightmapShape?.dispose();
-          } catch {}
+          } catch {
+            /* already disposed */
+          }
           md.heightmapBody = null;
           md.heightmapShape = null;
         }
@@ -1650,7 +1653,9 @@ export const flock = {
           if (!shape?._isDisposed) {
             try {
               shape.dispose();
-            } catch (e) {}
+            } catch {
+              /* already disposed */
+            }
           }
         }
 

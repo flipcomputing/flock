@@ -31,7 +31,6 @@ let _interactRegionIdx = 0;
 // Track whether initial intro has been announced for the current scene
 let lastIntroScene = null;
 let introInProgress = false;
-let queuedIntroSayText = "";
 let suppressPointerUntil = 0;
 let suppressRuntimeTextUntil = 0;
 let objectSayTextCache = new Map();
@@ -468,12 +467,6 @@ function getInteractionHint(mesh) {
     }
   }
 
-  const interactive = candidates.some(
-    (m) =>
-      m?.actionManager || m?.metadata?.interactive || m?.metadata?.clickable,
-  );
-
-
 }
 
 function closestBoundingBoxDistance(mesh, point) {
@@ -486,7 +479,7 @@ function closestBoundingBoxDistance(mesh, point) {
     const cz = Math.max(bb.minimumWorld.z, Math.min(point.z, bb.maximumWorld.z));
     const dx = cx - point.x, dy = cy - point.y, dz = cz - point.z;
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  } catch (_) {
+  } catch {
     return null;
   }
 }
@@ -499,7 +492,7 @@ function isInsideBoundingBox(mesh, point) {
     return point.x > bb.minimumWorld.x && point.x < bb.maximumWorld.x &&
            point.y > bb.minimumWorld.y && point.y < bb.maximumWorld.y &&
            point.z > bb.minimumWorld.z && point.z < bb.maximumWorld.z;
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -512,7 +505,7 @@ function isUnderfootOf(mesh, playerPos) {
     const withinXZ = playerPos.x > bb.minimumWorld.x && playerPos.x < bb.maximumWorld.x &&
                      playerPos.z > bb.minimumWorld.z && playerPos.z < bb.maximumWorld.z;
     return withinXZ && Math.abs(playerPos.y - bb.maximumWorld.y) < 2.0;
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -647,7 +640,9 @@ function getReferenceAnchor(scene) {
         const pos = { x: bb.centerWorld.x, y: bb.minimumWorld.y, z: bb.centerWorld.z };
         return { kind: "character", mesh: playerMesh, position: pos };
       }
-    } catch (_) {}
+    } catch {
+      /* no bounding info; fall through to representative position */
+    }
     const pos = getRepresentativePosition(playerMesh, playerMesh);
     if (pos) {
       return { kind: "character", mesh: playerMesh, position: pos };
@@ -822,32 +817,6 @@ function objectToSentence(
   }
 
   return sentence;
-}
-
-function enrichEnvironmentLabel(obj) {
-  const raw = String(obj?.label || "").trim();
-  const label = raw.toLowerCase();
-
-  // Hide vague or unhelpful labels
-  if (!label) return "";
-  if (
-    label === "environment" ||
-    label === "scene" ||
-    label === "object" ||
-    label === "mesh" ||
-    label === "ground" ||
-    label === "floor" ||
-    label === "terrain" ||
-    label === "sky"
-  ) {
-    return "";
-  }
-
-  // Make some common labels sound nicer
-  if (obj?.isSkyLike && raw) return raw;
-  if (obj?.isGroundLike && raw) return raw;
-
-  return raw;
 }
 
 function buildEnvironmentSummary(objects, anchor = null, scene = null) {
@@ -1109,16 +1078,15 @@ export function describeFacingObject(scene) {
   if (!cameraPos) return "No active camera is available.";
 
   // Full 3D forward direction from the camera (where the player is looking).
-  let fwdX = 0, fwdY = 0, fwdZ = 1;
+  let fwdX = 0, fwdZ = 1;
   try {
     const dir = camera.getForwardRay?.(1)?.direction;
     if (dir && Number.isFinite(dir.x) && Number.isFinite(dir.y) && Number.isFinite(dir.z)) {
       const len = Math.sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z) || 1;
       fwdX = dir.x / len;
-      fwdY = dir.y / len;
       fwdZ = dir.z / len;
     }
-  } catch (_) { /* fall through to default forward */ }
+  } catch { /* fall through to default forward */ }
 
   const anchor = getReferenceAnchor(scene);
 
@@ -1147,7 +1115,6 @@ export function describeFacingObject(scene) {
 
   let bestRoot = null;
   let bestLabel = null;
-  let bestForward = 0;
   let bestRawDist = Infinity;
   let bestSigned = 0;
   let bestScore = Infinity;
@@ -1204,7 +1171,6 @@ export function describeFacingObject(scene) {
     const score = distXZ + Math.abs(signed);
     if (score < bestScore) {
       bestScore = score;
-      bestForward = forward;
       bestRawDist = distXZ;
       bestSigned = signed;
       bestRoot = root;
@@ -1222,14 +1188,6 @@ export function describeFacingObject(scene) {
             : bestSigned > 0 ? "Left"
             : "Right";
   return `${dir}: ${bestLabel}, ${getDistanceLabel(reportDist)}.`;
-}
-
-function describeInitialWorld(scene) {
-  const charIntro = describeCharacterIntro(scene);
-  const sceneIntro = describeScene(scene);
-
-  if (charIntro && sceneIntro) return `${charIntro} ${sceneIntro}`;
-  return charIntro || sceneIntro || "World loaded.";
 }
 
 export function getHelpText(scene) {

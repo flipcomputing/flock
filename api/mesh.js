@@ -8,7 +8,6 @@ export function setFlockReference(ref) {
 
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
-    const CAPSULE_BASE_MISMATCH_DEBUG_THRESHOLD = 0.25;
     const CAPSULE_DEGENERATE_EPSILON = 0.01;
 
     mesh.computeWorldMatrix(true);
@@ -53,12 +52,6 @@ export const flockMesh = {
       localCenter.y + cylinderHeight / 2,
       localCenter.z
     );
-
-    const bboxBaseY = localMin.y;
-    const capsuleBaseY = segmentStart.y - radius;
-    const baseDelta = capsuleBaseY - bboxBaseY;
-    if (Math.abs(baseDelta) > CAPSULE_BASE_MISMATCH_DEBUG_THRESHOLD) {
-    }
 
     let shape;
     if (rawCylinderHeight <= CAPSULE_DEGENERATE_EPSILON) {

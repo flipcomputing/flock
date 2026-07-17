@@ -453,48 +453,6 @@ function registerBlocklyPlayShortcut() {
 }
 
 function registerTopBlockReorderShortcuts() {
-  function refreshMoveIndicator(ws) {
-    const block = session?.block;
-    if (!block) return;
-
-    // Try to locate the active KeyboardMover via the controller.
-    const ctrl = Blockly.keyboardNavigationController;
-    let mover = ctrl?.mover;
-    if (!mover && ctrl) {
-      for (const k of Object.keys(ctrl)) {
-        const v = ctrl[k];
-        if (v && v.constructor?.name?.includes('Mover')) {
-          mover = v;
-          break;
-        }
-      }
-    }
-
-    // Common refresh hooks — different beta builds expose different ones.
-    const indicator = mover?.moveIndicator ?? mover?.indicator ?? mover?.moveIndicator_;
-    if (indicator?.updateLocation) {
-      indicator.updateLocation(block);
-      return;
-    }
-    if (indicator?.update) {
-      indicator.update(block);
-      return;
-    }
-    if (mover?.updateIndicator) {
-      mover.updateIndicator();
-      return;
-    }
-
-    // DOM fallback: translate the indicator SVG to the block's new XY.
-    const xy = block.getRelativeToSurfaceXY();
-    const el = ws
-      .getInjectionDiv()
-      ?.querySelector(".blocklyMoveIndicator, [data-id*='moveIndicator']");
-    if (el) {
-      el.setAttribute('transform', `translate(${xy.x}, ${xy.y})`);
-    }
-  }
-
   const registry = Blockly.ShortcutRegistry.registry;
   const origRegistry = registry.getRegistry?.() ?? {};
 
@@ -526,13 +484,6 @@ function registerTopBlockReorderShortcuts() {
     return (ws.getTopBlocks(false) || [])
       .slice()
       .sort((a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y);
-  }
-
-  function findIndicatorEl(ws) {
-    return (
-      ws.getInjectionDiv()?.querySelector(".blocklyMoveIndicator, [class*='oveIndicator']") ??
-      document.querySelector(".blocklyMoveIndicator, [class*='oveIndicator']")
-    );
   }
 
   function syncIndicator() {
@@ -638,7 +589,6 @@ function registerTopBlockReorderShortcuts() {
     if (session) {
       const focused = session.block;
       const focusedOrigY = session.snapshot.get(focused);
-      const indicatorEl = findIndicatorEl(ws);
 
       const prevGroup = Blockly.Events.getGroup();
       Blockly.Events.setGroup(prevGroup || true);
