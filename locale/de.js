@@ -1153,7 +1153,7 @@ export default {
   place_object_prompt: 'ℹ️ Klicke auf eine Fläche, um das Objekt zu platzieren.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
-    'Das Pipettenwerkzeug wird in diesem Browser nicht unterstützt. Versuche es mit Chrome oder Edge.',
+    'Die Farbauswahl ist in Chrome/Edge auf dem Desktop verfügbar.', // ai
   blocks_copied_alert: 'Blöcke in den lokalen Speicher kopiert!',
   no_blocks_to_copy_alert: 'Keine Blöcke zum Kopieren verfügbar.',
   copy_blocks_failed_alert: 'Kopieren der Blöcke fehlgeschlagen.',

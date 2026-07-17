@@ -1230,7 +1230,7 @@ export default {
   place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:
-    'El selector de colores no es compatible con este navegador. Prueba con Chrome o Edge.', // human
+    'La selección de color está disponible en Chrome/Edge en ordenadores de escritorio.', // ai
   blocks_copied_alert: '¡Bloques copiados al almacenamiento local!', // human
   no_blocks_to_copy_alert: 'No hay bloques para copiar.', // human
   copy_blocks_failed_alert: 'No se pudieron copiar los bloques.', // human

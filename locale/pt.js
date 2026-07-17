@@ -1171,7 +1171,7 @@ export default {
   place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
   eyedropper_not_supported_alert:
-    'A ferramenta conta-gotas não é suportada neste navegador. Tente usar o Chrome ou Edge.',
+    'A seleção de cores está disponível no Chrome/Edge no computador.', // ai
   blocks_copied_alert: 'Blocos copiados para o armazenamento local!',
   no_blocks_to_copy_alert: 'Nenhum bloco disponível para copiar.',
   copy_blocks_failed_alert: 'Falha ao copiar os blocos.',

@@ -1174,7 +1174,7 @@ export default {
   place_object_prompt: "ℹ️ Fai clic su una superficie per posizionare l'oggetto.",
   position_readout: 'Posizione: {position}',
   eyedropper_not_supported_alert:
-    'Lo strumento contagocce non è supportato in questo browser. Prova a usare Chrome o Edge.',
+    'La selezione del colore è disponibile in Chrome/Edge su desktop.', // ai
   blocks_copied_alert: 'Blocchi copiati nella memoria locale!',
   no_blocks_to_copy_alert: 'Nessun blocco disponibile da copiare.',
   copy_blocks_failed_alert: 'Copia dei blocchi non riuscita.',

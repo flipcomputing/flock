@@ -1233,7 +1233,7 @@ export default {
   place_object_prompt: 'ℹ️ Click on a surface to place the object.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
-    'Color picker tool is not supported in this browser. Try using Chrome or Edge.',
+    'Color picking is available in Chrome/Edge on desktop.',
   blocks_copied_alert: 'Blocks copied to local storage!',
   no_blocks_to_copy_alert: 'No blocks available to copy.',
   copy_blocks_failed_alert: 'Failed to copy blocks.',

@@ -3,6 +3,12 @@ import { exitGizmoState, setGizmoButtonActive } from "./gizmos.js";
 import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
 import { ContextManager } from "../main/context.js";
 
+// UA-based rather than touch-based so touchscreen laptops still count as
+// desktop. The Macintosh clause catches iPads in desktop-mode Safari.
+const isMobileDevice = () =>
+  /Mobi|Android|iPad|iPhone/i.test(navigator.userAgent) ||
+  (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+
 const COLOR_PALETTES = {
   Bright: [
     { hex: "#EF292B", name: "color_red" },
@@ -425,6 +431,12 @@ class CustomColorPicker {
       translate("pick_color_from_screen"),
     );
     eyedropperBtn.title = translate("pick_color_from_screen");
+    // No mobile browser implements the EyeDropper API; hide the button there
+    // until we build a custom picker. Desktop browsers without the API
+    // (Firefox, Safari) keep the button and get the explanatory alert.
+    if (!window.EyeDropper && isMobileDevice()) {
+      eyedropperBtn.style.display = "none";
+    }
     const moreOptionsBtn = this.container.querySelector(
       ".color-picker-more-options",
     );

@@ -1165,7 +1165,7 @@ export default {
   place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
-    "L'outil pipette n'est pas pris en charge dans ce navigateur. Essayez d'utiliser Chrome ou Edge.",
+    'La sélection de couleur est disponible dans Chrome/Edge sur ordinateur.', // ai
   blocks_copied_alert: 'Blocs copiés dans le stockage local !',
   no_blocks_to_copy_alert: 'Aucun bloc à copier.',
   copy_blocks_failed_alert: 'Échec de la copie des blocs.',

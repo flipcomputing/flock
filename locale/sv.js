@@ -1149,7 +1149,7 @@ export default {
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
-    'Färgväljaren stöds inte i den här webbläsaren. Prova Chrome eller Edge.',
+    'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
   blocks_copied_alert: 'Block kopierade till lokal lagring!',
   no_blocks_to_copy_alert: 'Inga block att kopiera.',
   copy_blocks_failed_alert: 'Det gick inte att kopiera blocken.',

@@ -1161,7 +1161,7 @@ export default {
   place_object_prompt: 'ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
   eyedropper_not_supported_alert:
-    'Narzędzie próbnika kolorów nie jest obsługiwane w tej przeglądarce. Spróbuj użyć Chrome lub Edge.',
+    'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai
   blocks_copied_alert: 'Bloki skopiowane do pamięci lokalnej!',
   no_blocks_to_copy_alert: 'Brak bloków do skopiowania.',
   copy_blocks_failed_alert: 'Nie udało się skopiować bloków.',
