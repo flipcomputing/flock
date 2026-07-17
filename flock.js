@@ -81,7 +81,6 @@ import { initUIAccessibility, clearUIControls } from './accessibility/uiA11y.js'
 
 export const flock = {
   blockDebug: false,
-  callbackMode: true,
   separateAnimations: true,
   memoryDebug: false,
   memoryMonitorInterval: 5000,
@@ -2137,70 +2136,14 @@ export const flock = {
     });
   },
   removeEventListeners() {},
-  async *modelReadyGenerator(meshId, maxAttempts = 100, initialInterval = 100, maxInterval = 2000) {
-    let attempt = 1;
-    let interval = initialInterval;
+  whenModelReady(id, callback) {
+    // Capture the current run's abort signal now. Guards must check this
+    // captured signal, never flock.abortController re-read at settle time:
+    // stopping a run aborts and replaces the controller, so a late-settling
+    // promise from the old run would see the new run's (unaborted) signal
+    // and run its stale callback into the new scene.
     const signal = flock.abortController?.signal;
 
-    while (attempt <= maxAttempts) {
-      if (flock.disposed || !flock.scene || flock.scene.isDisposed) {
-        console.warn('Scene has been disposed or generator invalidated.');
-        return;
-      }
-
-      if (flock.scene) {
-        if (meshId === '__active_camera__') {
-          yield flock.scene.activeCamera;
-          return;
-        } else if (meshId === '__main_light__') {
-          yield flock.mainLight;
-          return;
-        } else {
-          const mesh = flock.scene.getMeshByName(meshId);
-          if (mesh) {
-            yield mesh;
-            return;
-          }
-        }
-      }
-
-      try {
-        await new Promise((resolve, reject) => {
-          const timeoutId = setTimeout(resolve, interval);
-
-          // Reject the promise if the abort signal is triggered
-          const onAbort = () => {
-            clearTimeout(timeoutId);
-            reject(new Error('Wait aborted'));
-          };
-
-          if (signal) {
-            signal.addEventListener('abort', onAbort, {
-              once: true,
-            });
-
-            // Ensure the event listener is cleaned up after resolving
-            signal.addEventListener('abort', () => signal.removeEventListener('abort', onAbort), {
-              once: true,
-            });
-          }
-        });
-      } catch (error) {
-        console.log('Timeout aborted:', error);
-        // Properly exit if the wait was aborted to prevent further processing
-        return;
-      }
-
-      interval = Math.min(interval * 2, maxInterval);
-      attempt++;
-    }
-
-    console.warn(`Mesh with ID '${meshId}' not found after ${maxAttempts} attempts.`);
-
-    // Yield null to indicate the mesh was not found
-    yield null;
-  },
-  whenModelReady(id, callback) {
     // --- Registry fast path ---
     // Steady-state O(1): once a name has resolved to a live mesh it is
     // cached in _liveNameCache (by announceMeshReady or a previous call
@@ -2212,7 +2155,7 @@ export const flock = {
     if (cached) {
       if (cached.isDisposed()) {
         flock._liveNameCache.delete(id);
-      } else if (flock.abortController?.signal?.aborted) {
+      } else if (signal?.aborted) {
         // Match the locate() hit path below: when aborted the callback is
         // not run and the returned promise never settles.
         return new Promise(() => {});
@@ -2276,191 +2219,114 @@ export const flock = {
       return t ?? null;
     };
 
-    // --- Fast path ---
-    // Check if there's a pending promise for this mesh first
-    // This ensures we wait for geometry to be attached before returning
-    if (flock.modelReadyPromises.has(id)) {
-      const pendingPromise = flock.modelReadyPromises.get(id);
-      pendingPromise
-        .then((resolvedMesh) => {
-          // Re-locate after promise resolves to get mesh with geometry.
-          // Fall back to the resolved mesh value for alias lookups where
-          // id is the pre-sanitization name (e.g. "dimnnd monkey") but
-          // the actual mesh is named differently ("dimnndmonkey").
-          const meshWithGeometry = locate() ?? resolvedMesh ?? null;
-          if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
-        })
-        .catch(() => {
-          // On error, still try to return what we can find
-          const meshWithGeometry = locate();
-          if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
-        });
-      return promise;
-    }
-
-    if (flock.scene) {
-      const existing = locate();
-      if (existing) {
-        if (!flock.abortController?.signal?.aborted) void settle(existing);
-        return promise; // <— return the promise even in fast path
+    // --- Fast paths ---
+    // Runs at call time and again when a late-arriving scene appears (the
+    // rAF wait below), since the target may already be present by then.
+    // Returns true when a path claimed the lookup and will settle.
+    const tryFastPaths = () => {
+      // Check if there's a pending promise for this mesh first
+      // This ensures we wait for geometry to be attached before returning
+      if (flock.modelReadyPromises.has(id)) {
+        const pendingPromise = flock.modelReadyPromises.get(id);
+        pendingPromise
+          .then((resolvedMesh) => {
+            // Re-locate after promise resolves to get mesh with geometry.
+            // Fall back to the resolved mesh value for alias lookups where
+            // id is the pre-sanitization name (e.g. "dimnnd monkey") but
+            // the actual mesh is named differently ("dimnndmonkey").
+            const meshWithGeometry = locate() ?? resolvedMesh ?? null;
+            if (!signal?.aborted) void settle(meshWithGeometry);
+          })
+          .catch(() => {
+            // On error, still try to return what we can find
+            const meshWithGeometry = locate();
+            if (!signal?.aborted) void settle(meshWithGeometry);
+          });
+        return true;
       }
-    }
 
-    // --- Normalize-as-fallback for createCharacter/createObject names ---
-    // createCharacter and createObject strip special characters from names
-    // (e.g. "dimnnd monkey" → "dimnndmonkey"). createBox/createSphere etc.
-    // do NOT sanitize, so "centre platform" stays "centre platform". We must
-    // NOT apply normalization upfront or those box lookups break.
-    // Instead: only redirect to the normalized id when the exact id is absent
-    // but the normalized form IS present in modelReadyPromises or the scene.
-    // This also handles the stale-alias case (after the 5s TTL cleanup).
-    if (id && !id.startsWith('__')) {
-      let norm = id.includes('__') ? id.split('__')[0] : id;
-      norm = norm.replace(/[^a-zA-Z0-9._-]/g, '');
-      if (norm && norm !== id) {
-        if (flock.modelReadyPromises.has(norm)) {
-          const pendingPromise = flock.modelReadyPromises.get(norm);
-          pendingPromise
-            .then((resolvedMesh) => {
-              const meshWithGeometry = flock.scene?.getMeshByName(norm) ?? resolvedMesh ?? null;
-              if (!flock.abortController?.signal?.aborted) void settle(meshWithGeometry);
-            })
-            .catch(() => {
-              if (!flock.abortController?.signal?.aborted) void settle(null);
-            });
-          return promise;
-        }
-        const existing = flock.scene?.getMeshByName(norm);
+      if (flock.scene) {
+        const existing = locate();
         if (existing) {
-          if (!flock.abortController?.signal?.aborted) void settle(existing);
-          return promise;
+          if (!signal?.aborted) void settle(existing);
+          return true;
         }
       }
-    }
 
-    // --- CallbackMode (observer) path ---
-    if (flock.callbackMode) {
-      const signal = flock.abortController?.signal;
+      // --- Normalize-as-fallback for createCharacter/createObject names ---
+      // createCharacter and createObject strip special characters from names
+      // (e.g. "dimnnd monkey" → "dimnndmonkey"). createBox/createSphere etc.
+      // do NOT sanitize, so "centre platform" stays "centre platform". We must
+      // NOT apply normalization upfront or those box lookups break.
+      // Instead: only redirect to the normalized id when the exact id is absent
+      // but the normalized form IS present in modelReadyPromises or the scene.
+      // This also handles the stale-alias case (after the 5s TTL cleanup).
+      if (id && !id.startsWith('__')) {
+        let norm = id.includes('__') ? id.split('__')[0] : id;
+        norm = norm.replace(/[^a-zA-Z0-9._-]/g, '');
+        if (norm && norm !== id) {
+          if (flock.modelReadyPromises.has(norm)) {
+            const pendingPromise = flock.modelReadyPromises.get(norm);
+            pendingPromise
+              .then((resolvedMesh) => {
+                const meshWithGeometry = flock.scene?.getMeshByName(norm) ?? resolvedMesh ?? null;
+                if (!signal?.aborted) void settle(meshWithGeometry);
+              })
+              .catch(() => {
+                if (!signal?.aborted) void settle(null);
+              });
+            return true;
+          }
+          const existing = flock.scene?.getMeshByName(norm);
+          if (existing) {
+            if (!signal?.aborted) void settle(existing);
+            return true;
+          }
+        }
+      }
 
-      const attachObservers = () => {
-        const scene = flock.scene;
-        if (!scene) return;
+      return false;
+    };
 
-        const disposers = [];
-        let done = false;
-        const finish = async (target /*, source */) => {
-          if (done) return;
-          done = true;
-          try {
-            if (!signal?.aborted) await settle(target);
-          } finally {
-            while (disposers.length) {
-              try {
-                disposers.pop()();
-              } catch {
-                /* ignore disposer errors */
-              }
+    if (tryFastPaths()) return promise;
+
+    // --- Observer path ---
+    const attachObservers = () => {
+      const scene = flock.scene;
+      if (!scene) return;
+
+      const disposers = [];
+      let done = false;
+      const finish = async (target /*, source */) => {
+        if (done) return;
+        done = true;
+        try {
+          if (!signal?.aborted) await settle(target);
+        } finally {
+          while (disposers.length) {
+            try {
+              disposers.pop()();
+            } catch {
+              /* ignore disposer errors */
             }
           }
-        };
+        }
+      };
 
-        // active camera
-        if (id === '__active_camera__') {
-          const camNow = scene.activeCamera;
-          if (camNow) {
-            finish(camNow);
-            return;
-          }
-          if (scene.onActiveCameraChanged) {
-            const cb = () => {
-              if (scene.activeCamera) finish(scene.activeCamera);
-            };
-            scene.onActiveCameraChanged.add(cb);
-            disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
-          }
-          if (scene.onDisposeObservable) {
-            const h = scene.onDisposeObservable.add(() => finish(undefined));
-            disposers.push(() => scene.onDisposeObservable.remove(h));
-          }
-          if (signal) {
-            const onAbort = () => finish(undefined);
-            signal.addEventListener('abort', onAbort, { once: true });
-            disposers.push(() => signal.removeEventListener('abort', onAbort));
-          }
+      // active camera
+      if (id === '__active_camera__') {
+        const camNow = scene.activeCamera;
+        if (camNow) {
+          finish(camNow);
           return;
         }
-
-        // meshes
-        if (scene.onNewMeshAddedObservable) {
-          const h = scene.onNewMeshAddedObservable.add((mesh) => {
-            if (done) return;
-            if (mesh?.name === id) {
-              finish(mesh);
-              return;
-            }
-            // Handle the case where this observer was set up before
-            // createCharacter ran. createCharacter registers the
-            // pre-sanitization name (e.g. "dimnnd monkey") in
-            // modelReadyPromises pointing to the same promise as the
-            // sanitized name ("dimnndmonkey"). When any mesh is added
-            // to the scene (triggering this callback), check whether id
-            // is now in modelReadyPromises and if so switch to waiting
-            // for that promise instead.
-            if (flock.modelReadyPromises?.has(id)) {
-              done = true;
-              while (disposers.length) {
-                try {
-                  disposers.pop()();
-                } catch {
-                  /* ignore */
-                }
-              }
-              flock.modelReadyPromises
-                .get(id)
-                .then((resolvedMesh) => {
-                  const m = locate() ?? resolvedMesh ?? null;
-                  if (!signal?.aborted) void settle(m);
-                })
-                .catch(() => void settle(undefined));
-            }
-          });
-          disposers.push(() => scene.onNewMeshAddedObservable.remove(h));
+        if (scene.onActiveCameraChanged) {
+          const cb = () => {
+            if (scene.activeCamera) finish(scene.activeCamera);
+          };
+          scene.onActiveCameraChanged.add(cb);
+          disposers.push(() => scene.onActiveCameraChanged.removeCallback(cb));
         }
-
-        // animation groups
-        if (scene.onAnimationGroupAddedObservable) {
-          const h = scene.onAnimationGroupAddedObservable.add((group) => {
-            if (!done && group?.name === id) finish(group);
-          });
-          disposers.push(() => scene.onAnimationGroupAddedObservable.remove(h));
-        }
-
-        // particle systems
-        if (scene.onNewParticleSystemAddedObservable) {
-          const h = scene.onNewParticleSystemAddedObservable.add((ps) => {
-            if (!done && ps?.name === id) finish(ps);
-          });
-          disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
-        }
-
-        // GUI controls (attach when UITexture exists)
-        const attachGui = () => {
-          const tex = scene.UITexture;
-          if (!tex?.onControlAddedObservable) return false;
-          const h = tex.onControlAddedObservable.add((ctrl) => {
-            if (!done && ctrl?.name === id) finish(ctrl);
-          });
-          disposers.push(() => tex.onControlAddedObservable.remove(h));
-          return true;
-        };
-        if (!attachGui()) {
-          const tick = scene.onBeforeRenderObservable.add(() => {
-            if (attachGui()) scene.onBeforeRenderObservable.remove(tick);
-          });
-          disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
-        }
-
-        // scene dispose / abort
         if (scene.onDisposeObservable) {
           const h = scene.onDisposeObservable.add(() => finish(undefined));
           disposers.push(() => scene.onDisposeObservable.remove(h));
@@ -2470,57 +2336,153 @@ export const flock = {
           signal.addEventListener('abort', onAbort, { once: true });
           disposers.push(() => signal.removeEventListener('abort', onAbort));
         }
-      };
-
-      // wait for scene if needed
-      if (!flock.scene) {
-        let rafId = 0;
-        const check = () => {
-          if (flock.abortController?.signal?.aborted) return;
-          if (flock.scene) {
-            cancelAnimationFrame(rafId);
-            attachObservers();
-            return;
-          }
-          rafId = requestAnimationFrame(check);
-        };
-        rafId = requestAnimationFrame(check);
-        if (signal) {
-          const onAbort = () => cancelAnimationFrame(rafId);
-          signal.addEventListener('abort', onAbort, { once: true });
-        }
-        return promise; // <— still return the promise
+        return;
       }
 
-      attachObservers();
-      return promise;
-    }
-
-    // --- Polling fallback (generator) ---
-    (async () => {
-      const generator = flock.modelReadyGenerator(id);
-      try {
-        for await (const target of generator) {
-          if (flock.abortController?.signal?.aborted) {
-            await settle(undefined);
-            return;
-          }
-          if (target) await settle(target);
+      // main light — a plain flock property with no assignment event, so
+      // check per frame until it appears (mirrors the attachGui pattern).
+      // Mesh/GUI observers below could never match a light, so without
+      // this a waiter would pend until scene dispose.
+      if (id === '__main_light__') {
+        const lightNow = flock.mainLight;
+        if (lightNow) {
+          finish(lightNow);
           return;
         }
-      } catch (err) {
-        if (flock.abortController?.signal?.aborted) {
-          // resolve undefined on abort
-          await settle(undefined);
-        } else {
-          console.error(`Error in whenModelReady for '${id}':`, err);
-          // resolve undefined on error to prevent hangs
-          await settle(undefined);
+        const tick = scene.onBeforeRenderObservable.add(() => {
+          if (flock.mainLight) finish(flock.mainLight);
+        });
+        disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
+        if (scene.onDisposeObservable) {
+          const h = scene.onDisposeObservable.add(() => finish(undefined));
+          disposers.push(() => scene.onDisposeObservable.remove(h));
         }
+        if (signal) {
+          const onAbort = () => finish(undefined);
+          signal.addEventListener('abort', onAbort, { once: true });
+          disposers.push(() => signal.removeEventListener('abort', onAbort));
+        }
+        return;
       }
-    })();
 
-    return promise; // <— important: always return the promise
+      // meshes
+      if (scene.onNewMeshAddedObservable) {
+        const h = scene.onNewMeshAddedObservable.add((mesh) => {
+          if (done) return;
+          if (mesh?.name === id) {
+            finish(mesh);
+            return;
+          }
+          // Handle the case where this observer was set up before
+          // createCharacter ran. createCharacter registers the
+          // pre-sanitization name (e.g. "dimnnd monkey") in
+          // modelReadyPromises pointing to the same promise as the
+          // sanitized name ("dimnndmonkey"). When any mesh is added
+          // to the scene (triggering this callback), check whether id
+          // is now in modelReadyPromises and if so switch to waiting
+          // for that promise instead.
+          if (flock.modelReadyPromises?.has(id)) {
+            done = true;
+            while (disposers.length) {
+              try {
+                disposers.pop()();
+              } catch {
+                /* ignore */
+              }
+            }
+            flock.modelReadyPromises
+              .get(id)
+              .then((resolvedMesh) => {
+                const m = locate() ?? resolvedMesh ?? null;
+                if (!signal?.aborted) void settle(m);
+              })
+              .catch(() => {
+                if (!signal?.aborted) void settle(undefined);
+              });
+          }
+        });
+        disposers.push(() => scene.onNewMeshAddedObservable.remove(h));
+      }
+
+      // animation groups
+      if (scene.onAnimationGroupAddedObservable) {
+        const h = scene.onAnimationGroupAddedObservable.add((group) => {
+          if (!done && group?.name === id) finish(group);
+        });
+        disposers.push(() => scene.onAnimationGroupAddedObservable.remove(h));
+      }
+
+      // particle systems
+      if (scene.onNewParticleSystemAddedObservable) {
+        const h = scene.onNewParticleSystemAddedObservable.add((ps) => {
+          if (!done && ps?.name === id) finish(ps);
+        });
+        disposers.push(() => scene.onNewParticleSystemAddedObservable.remove(h));
+      }
+
+      // GUI controls (attach when UITexture exists)
+      const attachGui = () => {
+        const tex = scene.UITexture;
+        if (!tex) return false;
+        // The texture (and the target control) may have been created since
+        // the last check — a control added before we subscribe below would
+        // otherwise be missed.
+        const existing = tex.getControlByName?.(id) ?? null;
+        if (existing) {
+          finish(existing);
+          return true;
+        }
+        if (!tex.onControlAddedObservable) return false;
+        const h = tex.onControlAddedObservable.add((ctrl) => {
+          if (!done && ctrl?.name === id) finish(ctrl);
+        });
+        disposers.push(() => tex.onControlAddedObservable.remove(h));
+        return true;
+      };
+      if (!attachGui()) {
+        const tick = scene.onBeforeRenderObservable.add(() => {
+          if (attachGui()) scene.onBeforeRenderObservable.remove(tick);
+        });
+        disposers.push(() => scene.onBeforeRenderObservable.remove(tick));
+      }
+
+      // scene dispose / abort
+      if (scene.onDisposeObservable) {
+        const h = scene.onDisposeObservable.add(() => finish(undefined));
+        disposers.push(() => scene.onDisposeObservable.remove(h));
+      }
+      if (signal) {
+        const onAbort = () => finish(undefined);
+        signal.addEventListener('abort', onAbort, { once: true });
+        disposers.push(() => signal.removeEventListener('abort', onAbort));
+      }
+    };
+
+    // wait for scene if needed
+    if (!flock.scene) {
+      let rafId = 0;
+      const check = () => {
+        if (signal?.aborted) return;
+        if (flock.scene) {
+          cancelAnimationFrame(rafId);
+          // The scene may already contain the target — its addition event
+          // fired before any observer could attach — so re-run the fast
+          // paths first or the promise would pend forever.
+          if (!tryFastPaths()) attachObservers();
+          return;
+        }
+        rafId = requestAnimationFrame(check);
+      };
+      rafId = requestAnimationFrame(check);
+      if (signal) {
+        const onAbort = () => cancelAnimationFrame(rafId);
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+      return promise; // <— still return the promise
+    }
+
+    attachObservers();
+    return promise;
   },
   announceMeshReady(meshName, groupName) {
     flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));

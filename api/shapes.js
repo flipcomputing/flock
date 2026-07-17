@@ -311,11 +311,6 @@ export const flockShapes = {
       requestAnimationFrame(() => callback());
     }
 
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(boxId, readyPromise);
-    }
-
     return newBox.name;
   },
   createSphere(
@@ -384,11 +379,6 @@ export const flockShapes = {
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(sphereId, readyPromise);
     }
 
     return newSphere.name;
@@ -470,11 +460,6 @@ export const flockShapes = {
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(cylinderId, readyPromise);
     }
 
     return newCylinder.name;
@@ -559,11 +544,6 @@ export const flockShapes = {
       requestAnimationFrame(() => callback());
     }
 
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(capsuleId, readyPromise);
-    }
-
     return newCapsule.name;
   },
   createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
@@ -638,11 +618,6 @@ export const flockShapes = {
 
     if (callback) {
       requestAnimationFrame(() => callback());
-    }
-
-    if (!flock.callbackMode) {
-      const readyPromise = Promise.resolve();
-      flock.modelReadyPromises.set(planeId, readyPromise);
     }
 
     return newPlane.name;

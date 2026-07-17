@@ -204,8 +204,8 @@ function planeRotationForNormal(normal) {
 // supplied {x, y, z} rotation in degrees.
 // Apply a flat-lying rotation to the live preview mesh. The preview mesh is
 // created from the block on a later tick (Blockly fires create events
-// asynchronously) and whenModelReady cannot wait for a mesh that does not yet
-// exist unless callbackMode is on. So poll for the mesh, then rotate it
+// asynchronously), and we look it up by metadata.blockKey rather than by name,
+// which whenModelReady cannot do. So poll for the mesh, then rotate it
 // directly (with physics) the way the rotate gizmo does.
 function applyLiveRotationWhenReady(blockId, rotation, attempts = 0) {
   if (!rotation) return;
