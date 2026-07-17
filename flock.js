@@ -1296,6 +1296,7 @@ export const flock = {
       powerPreference: 'default',
     });
 
+    flock.engine.disableUniformBuffers = true; // Meshes with alpha black on Samsung A14
     // Call preventDefault() on the raw event so the browser is willing to restore.
     flock.canvas.addEventListener('webglcontextlost', (event) => {
       event.preventDefault();
