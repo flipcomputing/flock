@@ -92,7 +92,14 @@ export const flockTransform = {
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
-        if (!flock.requireMesh(mesh, { api: 'positionAt', name: meshName })) {
+        // The active camera is positioned by the rule below but is not a mesh.
+        const isCamera = meshName === '__active_camera__';
+        if (isCamera) {
+          if (!mesh) {
+            resolve();
+            return;
+          }
+        } else if (!flock.requireMesh(mesh, { api: 'positionAt', name: meshName })) {
           resolve();
           return;
         }

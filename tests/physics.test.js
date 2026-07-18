@@ -458,6 +458,19 @@ export function runPhysicsTests(flock) {
       return flock.scene.getMeshByName(boxId);
     }
 
+    // Frame-counted rather than timed, so it holds under load.
+    function waitFrames(count) {
+      return new Promise((r) => {
+        let seen = 0;
+        const cb = () => {
+          if (++seen < count) return;
+          flock.scene.onAfterRenderObservable.removeCallback(cb);
+          r();
+        };
+        flock.scene.onAfterRenderObservable.add(cb);
+      });
+    }
+
     it("drives along the object's local direction when grounded", async function () {
       this.timeout(8000);
       const mesh = await makeGroundAndBox("velGndA", "boxSetVelocity");
@@ -594,14 +607,37 @@ export function runPhysicsTests(flock) {
       const mesh = await makeGroundAndBox("velGroundAll", id);
       flock.setSpeed(id, "forward", 6);
 
-      // 'all' to 0 stops it; resting on the ground it then stays put.
-      flock.setSpeed(id, "all", 0);
-      const start = mesh.position.clone();
-      await new Promise((r) => setTimeout(r, 500));
+      // Forward is -Z for an unrotated box, and the drive applies immediately.
+      expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-6, 0.5);
 
-      expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.lessThan(0.3);
+      flock.setSpeed(id, 'all', 0);
+
+      // Zeroed synchronously; a timed wait would measure settling instead.
+      expect(mesh.physics.getLinearVelocity().length()).to.be.closeTo(0, 1e-6);
+
+      await waitFrames(5);
+      // Settling leaves its own jitter, so compare against the drive speed.
+      const settled = mesh.physics.getLinearVelocity();
+      expect(Math.abs(settled.x)).to.be.lessThan(1);
+      expect(Math.abs(settled.z)).to.be.lessThan(1);
       // The maintained drive is cleared, so the body is free again.
       expect(mesh.metadata.velocityDrive).to.be.undefined;
+    });
+
+    it('can be driven again after a full stop', async function () {
+      this.timeout(8000);
+      const id = 'boxSetVelocityRedrive';
+      const mesh = await makeGroundAndBox('velGroundRedrive', id);
+      flock.setSpeed(id, 'forward', 6);
+      flock.setSpeed(id, 'all', 0);
+
+      flock.setSpeed(id, 'forward', 4);
+      expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-4, 0.5);
+
+      // Long enough that friction would have eaten a one-off write, so this
+      // only holds if the per-step observer survived the stop.
+      await waitFrames(30);
+      expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-4, 0.5);
     });
 
     it("should handle missing physics gracefully", async function () {
