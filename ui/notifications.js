@@ -15,6 +15,7 @@ const MESSAGE_KEYS = {
   "webgl-lost": "error_webgl_lost",
   "physics-oom": "error_physics_oom",
   audio: "error_audio",
+  speech: "error_speech",
 };
 
 function getDocument() {

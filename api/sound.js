@@ -1,8 +1,19 @@
+import { showBanner, dismissBanner } from '../ui/notifications.js';
+import { translate } from '../main/translation.js';
+
 let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
 }
+
+// cancel() runs on every speak() and on stop, so canceled/interrupted are routine.
+const SPEECH_UNAVAILABLE = new Set([
+  'synthesis-failed',
+  'synthesis-unavailable',
+  'voice-unavailable',
+  'language-unavailable',
+]);
 
 // --- Native Web Audio helpers for playSound ---
 
@@ -21,7 +32,6 @@ let _listenerCtx = null;
 let _slx = 0, _sly = 0, _slz = 0; // smoothed listener position
 let _sfx = 0, _sfy = 0, _sfz = 0; // smoothed listener forward
 
-// Contexts currently waiting on a user gesture to resume → the shared wait promise.
 const _gestureWaits = new WeakMap();
 
 async function loadAudioBuffer(url, context) {
@@ -168,9 +178,6 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
 function getOrCreateContext() {
   const babylonCtx = flock.audioEngine?._audioContext;
   if (babylonCtx) {
-    // A closed Babylon context means the engine is torn down. Bail rather than
-    // falling through to a fresh one: a second context alongside a still-set
-    // engine is the iOS failure this function exists to avoid. Play rebuilds it.
     if (babylonCtx.state === 'closed') return null;
     flock.audioContext = babylonCtx;
     return babylonCtx;
@@ -180,10 +187,7 @@ function getOrCreateContext() {
   }
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    // Babylon's engine re-arms itself after an unexpected suspend/interrupt via
-    // its own statechange watchdog; this fallback context has nothing, so an iOS
-    // interruption would silence looping audio permanently. Only the fallback
-    // gets a hook — adding one on Babylon's context would race its watchdog.
+    // Fallback only: Babylon's engine has its own watchdog and a second would race it.
     ctx.addEventListener('statechange', () => {
       if (flock.audioContext !== ctx) return;
       if (flock._audioSuspendedByVisibility) return;
@@ -199,19 +203,13 @@ function getOrCreateContext() {
 // iOS Safari will throw InvalidStateError/NotAllowedError when resume() is called
 // outside a user gesture. Defers the resume to the next pointer/touch event instead
 // of silently bailing, so audio works as soon as the user next taps the screen.
-// 'interrupted' is WebKit-only: a call/Siri/alarm parks the context there and it
-// does not always return to running on its own. 'closed' must stay excluded —
-// resume() on a closed context throws InvalidStateError and would arm the
-// gesture wait below for a context that can never recover.
+// 'interrupted' is WebKit-only; 'closed' stays excluded or resume() throws.
 async function safeResume(context) {
   if (context.state !== 'suspended' && context.state !== 'interrupted') return;
   try {
     await context.resume();
   } catch (err) {
     if (err.name !== 'InvalidStateError' && err.name !== 'NotAllowedError') throw err;
-    // One wait per context, shared by every caller. Repeated calls (statechange
-    // re-arms, concurrent sound blocks) would otherwise each stack their own
-    // listener pair and 10 s timer against the same pending gesture.
     let wait = _gestureWaits.get(context);
     if (!wait) {
       wait = new Promise((resolve) => {
@@ -236,6 +234,32 @@ async function safeResume(context) {
     }
     await wait;
   }
+}
+
+// Timer on audio time, not wall clock: the clock freezes while a context is
+// parked, so a plain setTimeout tears down notes that have not sounded.
+function audioTimer(context, delayMs, callback) {
+  const targetTime = context.currentTime + delayMs / 1000;
+  let id;
+  const tick = () => {
+    // Closed freezes currentTime, so the deadline never arrives.
+    if (context.state === 'closed') {
+      callback();
+      return;
+    }
+    if (context.state === 'suspended' || context.state === 'interrupted') {
+      id = setTimeout(tick, 250);
+      return;
+    }
+    const remainingMs = (targetTime - context.currentTime) * 1000;
+    if (remainingMs > 1) {
+      id = setTimeout(tick, remainingMs);
+      return;
+    }
+    callback();
+  };
+  id = setTimeout(tick, delayMs);
+  return () => clearTimeout(id);
 }
 
 export const flockSound = {
@@ -304,6 +328,13 @@ export const flockSound = {
     });
   },
   stopAllSounds() {
+    // The generation bump drops any speak() still awaiting voices.
+    if (flock) {
+      flock._speechGeneration = (flock._speechGeneration ?? 0) + 1;
+      flock._speechPausedByVisibility = false;
+    }
+    try { window.speechSynthesis?.cancel(); } catch { /* unsupported */ }
+
     if (!flock?.globalSounds) return;
     soundBufferCache.clear();
     const sounds = flock.globalSounds.slice();
@@ -351,10 +382,14 @@ export const flockSound = {
   // resuming without a user gesture throws NotAllowedError on iOS.
   async syncAudioWithPageState() {
     if (document.visibilityState === 'hidden') {
-      // An iOS interruption that lands before the visibilitychange leaves the
-      // context 'interrupted', not 'running'. Record intent anyway so the resume
-      // path still runs on return — only 'closed' and an already-suspended
-      // context we did not pause are left alone.
+      // Ahead of the engine handling, which can bail early.
+      const synth = window.speechSynthesis;
+      if (synth?.speaking && !synth.paused) {
+        flock._speechPausedByVisibility = true;
+        try { synth.pause(); } catch { /* unsupported */ }
+      }
+
+      // An interruption before visibilitychange leaves 'interrupted', not 'running'.
       const resumable = (state) => state === 'running' || state === 'interrupted';
       const engine = flock.audioEngine;
       if (engine) {
@@ -369,6 +404,11 @@ export const flockSound = {
         }
       }
       return;
+    }
+
+    if (flock._speechPausedByVisibility) {
+      flock._speechPausedByVisibility = false;
+      try { window.speechSynthesis?.resume(); } catch { /* unsupported */ }
     }
 
     if (!flock._audioSuspendedByVisibility) return;
@@ -440,13 +480,10 @@ export const flockSound = {
           (instrument?.attack ?? 0.01) +
           (instrument?.decay ?? 0.1) +
           (instrument?.release ?? 0.2);
-        setTimeout(
-          () => {
-            if (observer) flock.scene?.onBeforeRenderObservable?.remove(observer);
-            resolve();
-          },
-          (offsetTime + audioTail + 0.1) * 1000,
-        );
+        audioTimer(context, (offsetTime + audioTail + 0.1) * 1000, () => {
+          if (observer) flock.scene?.onBeforeRenderObservable?.remove(observer);
+          resolve();
+        });
       });
     };
 
@@ -479,6 +516,8 @@ export const flockSound = {
           return;
         }
 
+        if (!mesh.metadata || typeof mesh.metadata !== 'object') mesh.metadata = {};
+
         if (!mesh.metadata.panner || mesh.metadata.panner.context !== context) {
           if (mesh.metadata.panner) {
             try { mesh.metadata.panner.disconnect(); } catch { /* already disconnected */ }
@@ -491,8 +530,6 @@ export const flockSound = {
           panner.maxDistance = 20;
           panner.rolloffFactor = 1;
           panner.connect(context.destination);
-          // Cached on the mesh, so without this it survives until the context
-          // closes — one orphaned node per mesh that ever played notes.
           mesh.onDisposeObservable?.addOnce(() => {
             try { panner.disconnect(); } catch { /* already disconnected */ }
             if (mesh.metadata?.panner === panner) delete mesh.metadata.panner;
@@ -620,17 +657,18 @@ export const flockSound = {
     osc.stop(oscStopTime);
     if (lfo) lfo.stop(oscStopTime);
 
-    // osc.onended is the primary cleanup path; the setTimeout is a fallback in case
-    // the event never fires (e.g. context suspended). The guard ensures disconnect()
-    // is called exactly once — calling it twice throws in older Safari/WebKit.
+    // osc.onended is the primary cleanup path; the timer is a fallback for when
+    // the event never fires. The guard ensures disconnect() is called exactly
+    // once — calling it twice throws in older Safari/WebKit.
     // noteRef is registered in globalSounds so stopAllSounds() can reach these
     // oscillators directly — previously context.close() was doing that job.
     let cleanupDone = false;
     let noteRef;
+    let cancelCleanup = () => {};
     const doDisconnect = () => {
       if (cleanupDone) return;
       cleanupDone = true;
-      clearTimeout(cleanupTimer);
+      cancelCleanup();
       if (flock.globalSounds) {
         const idx = flock.globalSounds.indexOf(noteRef);
         if (idx !== -1) flock.globalSounds.splice(idx, 1);
@@ -642,7 +680,7 @@ export const flockSound = {
     };
     osc.onended = doDisconnect;
     const cleanupDelay = Math.max(100, (stopTime - context.currentTime + 0.5) * 1000);
-    const cleanupTimer = setTimeout(doDisconnect, cleanupDelay);
+    cancelCleanup = audioTimer(context, cleanupDelay, doDisconnect);
 
     noteRef = { name: 'note', stop() { try { osc.stop(0); } catch { /* already stopped */ } doDisconnect(); } };
     if (flock.globalSounds) flock.globalSounds.push(noteRef);
@@ -856,6 +894,10 @@ export const flockSound = {
       return mode === "await" ? Promise.resolve() : undefined;
     }
 
+    // cancel() cannot reach an utterance that is not queued yet.
+    const generation = (flock._speechGeneration ?? 0) + 1;
+    flock._speechGeneration = generation;
+
     // Stop any current speech
     window.speechSynthesis.cancel();
 
@@ -866,7 +908,7 @@ export const flockSound = {
     utterance.rate = Math.max(0.1, Math.min(10, rate));
     utterance.pitch = Math.max(0, Math.min(2, pitch));
     utterance.volume = Math.max(0, Math.min(1, volume));
-    utterance.lang = "en-US";
+    utterance.lang = language;
 
     // Handle spatial audio if meshName is provided and not "__everywhere__"
     let spatialAudioSetup = null;
@@ -883,19 +925,22 @@ export const flockSound = {
     // If no voices available, wait for them to load
     if (voices.length === 0) {
       await new Promise((resolve) => {
-        // Some browsers need time to load voices
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-          window.speechSynthesis.onvoiceschanged = () => {
-            voices = window.speechSynthesis.getVoices();
-            resolve();
-          };
-        } else {
-          // Fallback for browsers that don't support onvoiceschanged
-          setTimeout(() => {
-            voices = window.speechSynthesis.getVoices();
-            resolve();
-          }, 100);
+        let settled = false;
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          window.speechSynthesis.removeEventListener('voiceschanged', finish);
+          voices = window.speechSynthesis.getVoices();
+          resolve();
+        };
+        // The onvoiceschanged property is global and would clobber other listeners.
+        const supported = window.speechSynthesis.onvoiceschanged !== undefined;
+        if (supported) {
+          window.speechSynthesis.addEventListener('voiceschanged', finish);
         }
+        // Some engines never fire the event.
+        const timer = setTimeout(finish, supported ? 2000 : 100);
       });
     }
 
@@ -1077,6 +1122,11 @@ export const flockSound = {
       }
     }
 
+    if (flock._speechGeneration !== generation) {
+      spatialAudioSetup?.cleanup();
+      return undefined;
+    }
+
     // Show the spoken text as a subtitle (if enabled). Display it synchronously
     // rather than from utterance.onstart — onstart fires unreliably in Chrome
     // after speechSynthesis.cancel() (called above), so it would only show for
@@ -1102,9 +1152,20 @@ export const flockSound = {
       if (flock._subtitleToken === subtitleToken) flock.clearSubtitle();
     };
 
+    const onSpeechError = (event) => {
+      console.warn("Speech synthesis error:", event.error);
+      if (SPEECH_UNAVAILABLE.has(event.error)) {
+        showBanner('speech', { message: translate('error_speech') });
+      }
+    };
+    const onSpeechEnd = () => {
+      dismissBanner('speech');
+    };
+
     if (mode === "await") {
       return new Promise((resolve) => {
         utterance.onend = () => {
+          onSpeechEnd();
           clearSubtitle();
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();
@@ -1112,7 +1173,7 @@ export const flockSound = {
           resolve();
         };
         utterance.onerror = (event) => {
-          console.warn("Speech synthesis error:", event.error);
+          onSpeechError(event);
           clearSubtitle();
           if (spatialAudioSetup) {
             spatialAudioSetup.cleanup();
@@ -1126,13 +1187,14 @@ export const flockSound = {
     } else {
       // Fire and forget mode
       utterance.onend = () => {
+        onSpeechEnd();
         clearSubtitle();
         if (spatialAudioSetup) {
           spatialAudioSetup.cleanup();
         }
       };
       utterance.onerror = (event) => {
-        console.warn("Speech synthesis error:", event.error);
+        onSpeechError(event);
         clearSubtitle();
         if (spatialAudioSetup) {
           spatialAudioSetup.cleanup();

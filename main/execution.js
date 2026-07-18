@@ -57,9 +57,9 @@ export async function executeCode(options = {}) {
       flock.scene.debugLayer.hide();
     }
 
-    const code = javascriptGenerator.workspaceToCode(workspace);
-
     try {
+      // Inside the try: a generator throw would escape with gizmos already disposed.
+      const code = javascriptGenerator.workspaceToCode(workspace);
       await flock.runCode(code, options);
     } catch (error) {
       // A stopped run is a normal stop: skip the banner and the gizmo/debug

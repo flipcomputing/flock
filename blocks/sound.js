@@ -1356,7 +1356,13 @@ export function defineSoundBlocks() {
           {
             type: "field_dropdown",
             name: "LANGUAGE",
-            options: [getDropdownOption("en-GB"), getDropdownOption("en-US")],
+            // Bare "es" so voice matching (v.lang.startsWith) accepts es-ES,
+            // es-MX and the rest, not just Spain.
+            options: [
+              getDropdownOption("en-GB"),
+              getDropdownOption("en-US"),
+              getDropdownOption("es"),
+            ],
           },
           {
             type: "input_value",

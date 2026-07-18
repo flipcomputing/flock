@@ -975,6 +975,7 @@ export default {
 
   en_GB_option: 'Inglés (Reino Unido)', // human
   en_US_option: 'Inglés (EE.UU.)', // human
+  es_option: 'Español', // ai
 
   ADD_option: 'añadir', // human
   REPLACE_option: 'reemplazar', // human
@@ -1208,6 +1209,8 @@ export default {
   runtime_error_message: 'Error: {mensaje}', // human
   error_audio:
     'El sonido no está disponible en este dispositivo. Tu proyecto se ejecutará sin audio.', // Google translate
+  error_speech:
+    'La voz no está disponible en este momento. Tu proyecto se ejecutará sin palabras habladas.', // ai
   error_startup: 'Flock no se pudo iniciar. Intenta recargar la página.', // human
   error_project_crash:
     'Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.', // human

@@ -945,11 +945,9 @@ export const flock = {
       console.error('Enhanced error details:', enhancedError);
 
       try {
-        // Abort first: start-block timers and guarded API calls otherwise keep
-        // running against a scene whose render loop and listeners are gone.
+        // Abort first: start-block timers otherwise outlive the teardown.
         this.abortController?.abort?.();
-        // Not audioContext.close() — stopAllSounds honours the ownership rules
-        // (never closes Babylon's context) and nulls the dangling reference.
+        // stopAllSounds honours the context ownership rules; close() does not.
         this.stopAllSounds?.();
         this.engine?.stopRenderLoop?.();
         this.removeEventListeners?.();
@@ -1877,7 +1875,6 @@ export const flock = {
               return;
             }
             flock.audioEngine = audioEngine;
-            // Clear a previous run's failure banner now that audio is back.
             dismissBanner('audio');
             flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
             flock.globalStartTime = flock.audioContext?.currentTime ?? 0;

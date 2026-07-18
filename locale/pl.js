@@ -916,6 +916,7 @@ export default {
 
   en_GB_option: 'Angielski (UK)',
   en_US_option: 'Angielski (US)',
+  es_option: 'Hiszpański', // ai
 
   ADD_option: 'dodaj',
   REPLACE_option: 'zamień',
@@ -1148,6 +1149,8 @@ export default {
     'Silnik fizyczny zabrakło pamięci. Spróbuj zmniejszyć liczbę obiektów fizycznych lub ponownie wczytać projekt.', // AI-generated; needs validation
   runtime_error_message: 'Błąd: {message}',
   error_audio: 'Dźwięk nie jest dostępny na tym urządzeniu. Twój projekt uruchomi się bez dźwięku.', // Google translate
+  error_speech:
+    'Synteza mowy jest w tej chwili niedostępna. Twój projekt uruchomi się bez wypowiadanych słów.', // ai
   error_design_mode_offline:
     'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',

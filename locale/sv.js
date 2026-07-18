@@ -911,6 +911,7 @@ export default {
 
   en_GB_option: 'Engelska (UK)',
   en_US_option: 'Engelska (USA)',
+  es_option: 'Spanska', // ai
 
   ADD_option: 'lägg till',
   REPLACE_option: 'ersätt',
@@ -1136,6 +1137,8 @@ export default {
     'Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.', // AI-generated; needs validation
   runtime_error_message: 'Fel: {message}',
   error_audio: 'Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.', // Google translate
+  error_speech:
+    'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
   error_design_mode_offline:
     'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',

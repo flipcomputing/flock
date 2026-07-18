@@ -419,8 +419,7 @@ export function runSoundTests(flock) {
       expect(flock._audioSuspendedByVisibility).to.be.false;
     });
 
-    // 'interrupted' is WebKit-only (call/Siri/alarm) so Chromium never produces
-    // it — stub the engine to exercise the path this platform cannot reach.
+    // Chromium never produces 'interrupted', so stub the engine.
     it("records intent when hidden while already interrupted", async function () {
       const realEngine = flock.audioEngine;
       const calls = [];
@@ -467,6 +466,136 @@ export function runSoundTests(flock) {
         await engine.resumeAsync().catch(() => {});
       } else {
         await context.resume().catch(() => {});
+      }
+    });
+  });
+
+  describe("Audio lifecycle @sound @slow", function () {
+    this.timeout(10000);
+
+    // audioTimer defers cleanup while a context is parked on this premise; if a
+    // platform kept the clock running, that deferral would become a hang.
+    it("audio time does not advance while the context is suspended", async function () {
+      // Mirror getOrCreateContext's constructor so WebKit is covered too.
+      const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextCtor) this.skip();
+      const ctx = new AudioContextCtor();
+      try {
+        await ctx.resume().catch(() => {});
+        if (ctx.state !== "running") this.skip(); // autoplay blocked
+        await ctx.suspend();
+        // After the suspension takes effect, or suspend latency skews the delta.
+        const before = ctx.currentTime;
+        await new Promise((r) => setTimeout(r, 300));
+        expect(ctx.currentTime - before).to.be.lessThan(0.05);
+      } finally {
+        await ctx.close().catch(() => {});
+      }
+    });
+
+    // A stop during speak()'s awaits must prevent queueing, not just cancel.
+    it("does not speak when a stop lands before the utterance is queued", async function () {
+      const synth = window.speechSynthesis;
+      if (!synth) this.skip();
+      const boxId = flock.createBox("speakStopBox", {
+        color: "#FF0000",
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      const original = synth.speak;
+      let spoken = 0;
+      synth.speak = function (...args) {
+        spoken++;
+        return original.apply(synth, args);
+      };
+      try {
+        const pending = flock.speak(boxId, "hello", { mode: "await" });
+        flock.stopAllSounds(); // synchronous — lands while speak() is awaiting
+        await pending;
+        expect(spoken).to.equal(0);
+      } finally {
+        synth.speak = original;
+        flock.dispose(boxId);
+      }
+    });
+
+    const speechBanners = () =>
+      Array.from(document.querySelectorAll(".flock-banner")).filter((el) =>
+        /speech is not available/i.test(el.textContent),
+      );
+
+    // Mock the error rather than reading getVoices(): the list can populate
+    // later via voiceschanged, so an empty one is not proof of no speech.
+    async function speakWithError(error) {
+      const synth = window.speechSynthesis;
+      const realSpeak = synth.speak;
+      synth.speak = (utterance) => utterance.onerror?.({ error });
+      try {
+        speechBanners().forEach((el) => el.remove());
+        await flock.speak("__everywhere__", "hello", { mode: "await" });
+        return speechBanners().length;
+      } finally {
+        synth.speak = realSpeak;
+        speechBanners().forEach((el) => el.remove());
+      }
+    }
+
+    it("banners when speech cannot be produced", async function () {
+      if (!window.speechSynthesis) this.skip();
+      expect(await speakWithError("synthesis-failed")).to.equal(1);
+    });
+
+    it("does not banner when speech is merely cancelled", async function () {
+      if (!window.speechSynthesis) this.skip();
+      expect(await speakWithError("canceled")).to.equal(0);
+    });
+
+    // A suspension that starts and ends mid-wait advances the wall clock only.
+    it("playNotes waits on audio time, not wall clock", async function () {
+      const ctx = flock.audioEngine?._audioContext ?? flock.audioContext;
+      if (!ctx || ctx.state !== "running") this.skip();
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const play = () =>
+        flock.playNotes("__everywhere__", { notes: [60], durations: [0.5] });
+
+      const t0 = performance.now();
+      await play();
+      const baseline = performance.now() - t0;
+
+      let elapsed;
+      try {
+        const t1 = performance.now();
+        const pending = play();
+        await wait(150);
+        await ctx.suspend();
+        await wait(700);
+        await ctx.resume();
+        await pending;
+        elapsed = performance.now() - t1;
+      } finally {
+        if (ctx.state !== "running") await ctx.resume().catch(() => {});
+      }
+
+      // Without the audio-time deadline the 700 ms is absorbed.
+      expect(elapsed).to.be.greaterThan(baseline + 400);
+    });
+
+    it("stopAllSounds cancels speech", function () {
+      const synth = window.speechSynthesis;
+      if (!synth) this.skip();
+      const original = synth.cancel;
+      let calls = 0;
+      synth.cancel = function (...args) {
+        calls++;
+        return original.apply(synth, args);
+      };
+      try {
+        flock.stopAllSounds();
+        expect(calls).to.be.greaterThan(0);
+      } finally {
+        synth.cancel = original;
       }
     });
   });

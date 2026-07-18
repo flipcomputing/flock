@@ -932,6 +932,7 @@ export default {
 
   en_GB_option: 'Inglês (RU)',
   en_US_option: 'Inglês (EUA)',
+  es_option: 'Espanhol', // ai
 
   ADD_option: 'adicionar',
   REPLACE_option: 'substituir',
@@ -1158,6 +1159,8 @@ export default {
   runtime_error_message: 'Erro: {message}',
   error_audio:
     'O som não está disponível neste dispositivo. O seu projeto será executado sem áudio.', // Google translate
+  error_speech:
+    'A fala não está disponível neste momento. O seu projeto será executado sem palavras faladas.', // ai
   error_design_mode_offline:
     'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',

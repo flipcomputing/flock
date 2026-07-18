@@ -923,6 +923,7 @@ export default {
 
   en_GB_option: 'Anglais (RU)',
   en_US_option: 'Anglais (US)',
+  es_option: 'Espagnol', // ai
 
   ADD_option: 'ajouter',
   REPLACE_option: 'remplacer',
@@ -1152,6 +1153,8 @@ export default {
     "Le moteur physique n'a plus de mémoire. Réduisez le nombre d'objets physiques ou rechargez votre projet.", // AI-generated; needs validation
   runtime_error_message: 'Erreur: {message}',
   error_audio: "Le son n'est pas disponible sur cet appareil. Votre projet s'exécutera sans audio.", // Google translate
+  error_speech:
+    "La synthèse vocale n'est pas disponible pour le moment. Votre projet s'exécutera sans paroles.", // ai
   error_design_mode_offline:
     'Le mode conception nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   xr_mode_message: 'Mode XR !',

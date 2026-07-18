@@ -933,6 +933,7 @@ export default {
   male_option: "männlich",
   en_GB_option: "Englisch (UK)",
   en_US_option: "Englisch (US)",
+  es_option: 'Spanisch', // ai
 
   ADD_option: "hinzufügen",
   REPLACE_option: "ersetzen",
@@ -1140,6 +1141,8 @@ export default {
   runtime_error_message: 'Fehler: {message}',
   error_audio:
     'Sound ist auf diesem Gerät nicht verfügbar. Dein Projekt wird ohne Audio ausgeführt.', // Google translate
+  error_speech:
+    'Sprachausgabe ist gerade nicht verfügbar. Dein Projekt wird ohne gesprochene Wörter ausgeführt.', // ai
   error_design_mode_offline:
     'Der Design-Modus benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   xr_mode_message: 'XR-Modus!',
