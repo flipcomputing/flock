@@ -666,11 +666,19 @@ const scrollEditingBlockIntoView = () => {
   }
 };
 
+let _lastViewportHeight = null;
+
 const adjustViewport = () => {
   const viewportHeight = window.visualViewport?.height || window.innerHeight;
   const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
+  // iOS fires visualViewport resize alone, so nothing else re-sizes the canvas
+  // to match its --app-height-driven box.
+  if (viewportHeight !== _lastViewportHeight) {
+    _lastViewportHeight = viewportHeight;
+    handleWindowResize();
+  }
   const keyboardOpen =
     window.visualViewport && window.innerHeight - window.visualViewport.height > 150;
   document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
