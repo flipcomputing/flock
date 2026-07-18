@@ -103,6 +103,18 @@ export function handleError(error, { source, fatal = false } = {}) {
   });
 }
 
+// An error already shown by a more specific handler (engine creation failing
+// with source 'webgl-lost') still propagates, so mark it to stop the generic
+// project-run banner blaming the child's code for a device problem.
+export function markReported(error) {
+  if (error && typeof error === "object") error.flockReported = true;
+  return error;
+}
+
+export function isReported(error) {
+  return Boolean(error?.flockReported);
+}
+
 // AbortError and plain "aborted" messages are benign (cancelled fetches,
 // teardown). A WebAssembly.RuntimeError whose message mentions "abort" is a
 // genuine physics out-of-memory crash, so it must never be suppressed here.
@@ -126,14 +138,14 @@ export function installGlobalErrorHandlers() {
   globalHandlersInstalled = true;
 
   window.addEventListener("error", (event) => {
-    if (isBenignAbort(event.error)) return;
+    if (isBenignAbort(event.error) || isReported(event.error)) return;
     handleError(event.error || new Error(event.message), {
       source: "project-run",
     });
   });
 
   window.addEventListener("unhandledrejection", (event) => {
-    if (isBenignAbort(event.reason)) return;
+    if (isBenignAbort(event.reason) || isReported(event.reason)) return;
     handleError(event.reason, { source: "project-run" });
   });
 }

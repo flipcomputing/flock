@@ -57,7 +57,7 @@ import { getMicrobitManager, setFlockReference as setFlockMicrobitManager } from
 import { flockMath, setFlockReference as setFlockMath } from './api/math';
 import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
 import { translate } from './main/translation.js';
-import { handleError, dismissBanner, showBanner } from './ui/notifications.js';
+import { handleError, dismissBanner, showBanner, markReported } from './ui/notifications.js';
 import { attachInteractIndicator, detachInteractIndicator } from './ui/interactIndicator.js';
 import { InputManager } from './input/inputManager.js';
 import { KeyboardSource } from './input/keyboardSource.js';
@@ -137,9 +137,11 @@ export const flock = {
   canvas: null,
   abortController: null,
   _renderLoop: null,
+  _renderLoopStopped: false,
   _contextLostAt: null,
   _escalationTimer: null,
   _webglVisibilityListenerAdded: false,
+  _webglContextLostListenerAdded: false,
   _audioVisibilityListenerAdded: false,
   _audioSuspendedByVisibility: false,
   document: document,
@@ -486,6 +488,7 @@ export const flock = {
     flock.havokAbortHandled = true;
 
     try {
+      flock._renderLoopStopped = true;
       if (flock._renderLoop) {
         flock.engine?.stopRenderLoop(flock._renderLoop);
       } else {
@@ -1390,17 +1393,27 @@ export const flock = {
     flock.engine?.dispose();
     flock.engine = null;
 
-    flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
-      preserveDrawingBuffer: true,
-      stencil: true,
-      powerPreference: 'default',
-    });
+    try {
+      flock.engine = new flock.BABYLON.Engine(flock.canvas, true, {
+        preserveDrawingBuffer: true,
+        stencil: true,
+        powerPreference: 'default',
+      });
+    } catch (error) {
+      // WebGL unavailable or blacklisted: a device problem, not the project's.
+      handleError(error, { source: 'webgl-lost', fatal: true });
+      throw markReported(error);
+    }
 
     flock.engine.disableUniformBuffers = true; // Meshes with alpha black on Samsung A14
-    // Call preventDefault() on the raw event so the browser is willing to restore.
-    flock.canvas.addEventListener('webglcontextlost', (event) => {
-      event.preventDefault();
-    });
+
+    if (!flock._webglContextLostListenerAdded) {
+      flock._webglContextLostListenerAdded = true;
+      // Call preventDefault() on the raw event so the browser is willing to restore.
+      flock.canvas.addEventListener('webglcontextlost', (event) => {
+        event.preventDefault();
+      });
+    }
 
     flock.engine.onContextLostObservable.add(() => {
       flock._contextLostAt = Date.now();
@@ -1418,7 +1431,9 @@ export const flock = {
       flock._contextLostAt = null;
       dismissBanner('webgl-lost');
       flock.engine.resize();
-      if (flock._renderLoop) {
+      // Don't resume behind the stopped overlay if Stop was pressed while the
+      // context was lost.
+      if (flock._renderLoop && !flock._renderLoopStopped) {
         flock.engine.runRenderLoop(flock._renderLoop);
       }
     });
@@ -2005,6 +2020,7 @@ export const flock = {
           return;
         }
         // Stop the loop so a crash doesn't re-fire every frame.
+        flock._renderLoopStopped = true;
         flock.engine?.stopRenderLoop(flock._renderLoop);
         handleError(error, { source: 'project-run', fatal: false });
       }
@@ -2085,6 +2101,7 @@ export const flock = {
     }
 
     // Start the render loop now that a camera exists
+    flock._renderLoopStopped = false;
     flock.engine.runRenderLoop(flock._renderLoop);
     flock._gamepadSource = new GamepadSource(flock.inputManager, {
       scene: flock.scene,

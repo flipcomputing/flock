@@ -1,6 +1,6 @@
 import { flock } from '../flock.js';
 import { currentView, isNarrowScreen, showCanvasView } from './view.js';
-import { handleError, isBenignAbort } from '../ui/notifications.js';
+import { handleError, isBenignAbort, isReported } from '../ui/notifications.js';
 import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
@@ -68,7 +68,10 @@ export async function executeCode(options = {}) {
       if (isBenignAbort(error)) {
         return;
       }
-      handleError(error, { source: 'project-run', fatal: false });
+      // Already banner'd by a more specific handler (e.g. WebGL unavailable).
+      if (!isReported(error)) {
+        handleError(error, { source: 'project-run', fatal: false });
+      }
     }
 
     if (showDebug) {
@@ -147,6 +150,9 @@ export function stopCode() {
   stopRequested = true;
   flock.abortController?.abort();
   flock.stopAllSounds();
+  // Flag as well as stop: a context restore would otherwise resume rendering
+  // behind the stopped overlay.
+  flock._renderLoopStopped = true;
   flock.engine?.stopRenderLoop();
   showStoppedOverlay();
   flock.removeEventListeners();
