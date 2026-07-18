@@ -1220,6 +1220,12 @@ export default {
     'Your project ran out of memory. Try reloading the page and using fewer blocks.',
   error_design_mode_offline:
     'Design mode needs an internet connection the first time you use it. Connect and try again.',
+  // Block error messages (onBlockError key → text). Keys match the `key`
+  // passed to flock.reportBlockError so a handler can look them up directly.
+  recursion_too_deep:
+    'A function kept calling itself, so it was stopped. Check that it can finish.',
+  unhandled_rejection: 'Something went wrong while your project was running.',
+  uncaught_error: 'Something went wrong while your project was running.',
   banner_reload: 'Reload',
   banner_dismiss: 'Dismiss',
   xr_mode_message: 'XR Mode!',

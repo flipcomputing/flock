@@ -14,34 +14,31 @@ export const flockControl = {
       Number.isFinite(Number(duration)) && Number(duration) >= 0
         ? Math.min(Number(duration) * 1000, 2147483647)
         : 0;
+    const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
+      // Reject (not resolve) on abort so cooperative loops stop on Stop.
+      if (signal?.aborted) {
+        reject(flock.makeAbortError());
+        return;
+      }
       const timeoutId = setTimeout(() => {
-        if (flock.abortController?.signal) {
-          flock.abortController.signal.removeEventListener("abort", onAbort);
-        }
+        signal?.removeEventListener("abort", onAbort);
         resolve();
       }, ms);
 
       const onAbort = () => {
-        clearTimeout(timeoutId); // Clear the timeout if aborted
-        if (flock.abortController?.signal) {
-          flock.abortController.signal.removeEventListener("abort", onAbort);
-        }
-        // Instead of throwing an error, resolve gracefully here
-        reject(new Error("Wait aborted"));
+        clearTimeout(timeoutId);
+        signal?.removeEventListener("abort", onAbort);
+        reject(flock.makeAbortError());
       };
 
-      if (flock.abortController?.signal) {
-        flock.abortController.signal.addEventListener("abort", onAbort);
-      }
-    }).catch((error) => {
-      // Check if the error is the expected "Wait aborted" error and handle it
-      if (error.message === "Wait aborted") {
-        return;
-      }
-      // If it's another error, rethrow it
-      throw error;
+      signal?.addEventListener("abort", onAbort);
     });
+  },
+  makeAbortError() {
+    const err = new Error("Run stopped");
+    err.name = "AbortError";
+    return err;
   },
   async safeLoop(
     iteration,
@@ -73,15 +70,16 @@ export const flockControl = {
     }
     const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
+      // Reject on abort (like wait) so a condition-wait loop stops on Stop.
       if (signal?.aborted) {
-        resolve();
+        reject(flock.makeAbortError());
         return;
       }
 
       const checkCondition = () => {
         if (signal?.aborted) {
           flock.scene?.onBeforeRenderObservable?.remove(observer);
-          resolve();
+          reject(flock.makeAbortError());
           return;
         }
         try {
@@ -100,7 +98,7 @@ export const flockControl = {
         "abort",
         () => {
           flock.scene?.onBeforeRenderObservable?.remove(observer);
-          resolve();
+          reject(flock.makeAbortError());
         },
         { once: true },
       );
