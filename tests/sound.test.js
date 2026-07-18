@@ -419,6 +419,32 @@ export function runSoundTests(flock) {
       expect(flock._audioSuspendedByVisibility).to.be.false;
     });
 
+    // 'interrupted' is WebKit-only (call/Siri/alarm) so Chromium never produces
+    // it — stub the engine to exercise the path this platform cannot reach.
+    it("records intent when hidden while already interrupted", async function () {
+      const realEngine = flock.audioEngine;
+      const calls = [];
+      flock.audioEngine = {
+        state: "interrupted",
+        pauseAsync: async () => calls.push("pause"),
+        resumeAsync: async () => calls.push("resume"),
+      };
+      try {
+        dispatchVisibility("hidden");
+        await new Promise((r) => setTimeout(r, 100));
+        // Nothing to suspend, but the return trip must still resume it.
+        expect(calls).to.not.include("pause");
+        expect(flock._audioSuspendedByVisibility).to.be.true;
+
+        dispatchVisibility("visible");
+        await new Promise((r) => setTimeout(r, 100));
+        expect(calls).to.include("resume");
+        expect(flock._audioSuspendedByVisibility).to.be.false;
+      } finally {
+        flock.audioEngine = realEngine;
+      }
+    });
+
     it("does not resume a context it did not suspend", async function () {
       await flock.ensureAudio();
       const context = flock.audioEngine?._audioContext ?? flock.audioContext;

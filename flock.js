@@ -945,7 +945,12 @@ export const flock = {
       console.error('Enhanced error details:', enhancedError);
 
       try {
-        this.audioContext?.close?.();
+        // Abort first: start-block timers and guarded API calls otherwise keep
+        // running against a scene whose render loop and listeners are gone.
+        this.abortController?.abort?.();
+        // Not audioContext.close() — stopAllSounds honours the ownership rules
+        // (never closes Babylon's context) and nulls the dangling reference.
+        this.stopAllSounds?.();
         this.engine?.stopRenderLoop?.();
         this.removeEventListeners?.();
       } catch (cleanupError) {
@@ -1872,6 +1877,8 @@ export const flock = {
               return;
             }
             flock.audioEngine = audioEngine;
+            // Clear a previous run's failure banner now that audio is back.
+            dismissBanner('audio');
             flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
             flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
             if (flock.scene?.activeCamera) {
@@ -1893,6 +1900,7 @@ export const flock = {
         console.warn('[flock] Audio engine unavailable:', err);
         flock.audioEngine = null;
         flock.audioEnginePromise = Promise.resolve();
+        showBanner('audio', { message: translate('error_audio') });
       }
     }
     return flock.audioEnginePromise;

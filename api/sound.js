@@ -21,6 +21,9 @@ let _listenerCtx = null;
 let _slx = 0, _sly = 0, _slz = 0; // smoothed listener position
 let _sfx = 0, _sfy = 0, _sfz = 0; // smoothed listener forward
 
+// Contexts currently waiting on a user gesture to resume → the shared wait promise.
+const _gestureWaits = new WeakMap();
+
 async function loadAudioBuffer(url, context) {
   if (!soundBufferCache.has(url)) {
     soundBufferCache.set(
@@ -165,6 +168,10 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
 function getOrCreateContext() {
   const babylonCtx = flock.audioEngine?._audioContext;
   if (babylonCtx) {
+    // A closed Babylon context means the engine is torn down. Bail rather than
+    // falling through to a fresh one: a second context alongside a still-set
+    // engine is the iOS failure this function exists to avoid. Play rebuilds it.
+    if (babylonCtx.state === 'closed') return null;
     flock.audioContext = babylonCtx;
     return babylonCtx;
   }
@@ -172,8 +179,18 @@ function getOrCreateContext() {
     return flock.audioContext;
   }
   try {
-    flock.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    return flock.audioContext;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // Babylon's engine re-arms itself after an unexpected suspend/interrupt via
+    // its own statechange watchdog; this fallback context has nothing, so an iOS
+    // interruption would silence looping audio permanently. Only the fallback
+    // gets a hook — adding one on Babylon's context would race its watchdog.
+    ctx.addEventListener('statechange', () => {
+      if (flock.audioContext !== ctx) return;
+      if (flock._audioSuspendedByVisibility) return;
+      safeResume(ctx).catch(() => {});
+    });
+    flock.audioContext = ctx;
+    return ctx;
   } catch {
     return null;
   }
@@ -182,29 +199,42 @@ function getOrCreateContext() {
 // iOS Safari will throw InvalidStateError/NotAllowedError when resume() is called
 // outside a user gesture. Defers the resume to the next pointer/touch event instead
 // of silently bailing, so audio works as soon as the user next taps the screen.
+// 'interrupted' is WebKit-only: a call/Siri/alarm parks the context there and it
+// does not always return to running on its own. 'closed' must stay excluded —
+// resume() on a closed context throws InvalidStateError and would arm the
+// gesture wait below for a context that can never recover.
 async function safeResume(context) {
-  if (context.state !== 'suspended') return;
+  if (context.state !== 'suspended' && context.state !== 'interrupted') return;
   try {
     await context.resume();
   } catch (err) {
     if (err.name !== 'InvalidStateError' && err.name !== 'NotAllowedError') throw err;
-    await new Promise((resolve) => {
-      let timer;
-      const cleanup = () => {
-        clearTimeout(timer);
-        document.removeEventListener('pointerdown', handler);
-        document.removeEventListener('touchstart', handler);
-      };
-      const handler = () => {
-        cleanup();
-        context.resume().catch(() => {}).finally(resolve);
-      };
-      document.addEventListener('pointerdown', handler);
-      document.addEventListener('touchstart', handler, { passive: true });
-      // Abandon after 10 s — prevents a permanent listener leak when programmatic
-      // audio fires but the user never gestures (e.g. background tab, navigation).
-      timer = setTimeout(() => { cleanup(); resolve(); }, 10000);
-    });
+    // One wait per context, shared by every caller. Repeated calls (statechange
+    // re-arms, concurrent sound blocks) would otherwise each stack their own
+    // listener pair and 10 s timer against the same pending gesture.
+    let wait = _gestureWaits.get(context);
+    if (!wait) {
+      wait = new Promise((resolve) => {
+        let timer;
+        const cleanup = () => {
+          _gestureWaits.delete(context);
+          clearTimeout(timer);
+          document.removeEventListener('pointerdown', handler);
+          document.removeEventListener('touchstart', handler);
+        };
+        const handler = () => {
+          cleanup();
+          context.resume().catch(() => {}).finally(resolve);
+        };
+        document.addEventListener('pointerdown', handler);
+        document.addEventListener('touchstart', handler, { passive: true });
+        // Abandon after 10 s — prevents a permanent listener leak when programmatic
+        // audio fires but the user never gestures (e.g. background tab, navigation).
+        timer = setTimeout(() => { cleanup(); resolve(); }, 10000);
+      });
+      _gestureWaits.set(context, wait);
+    }
+    await wait;
   }
 }
 
@@ -321,16 +351,21 @@ export const flockSound = {
   // resuming without a user gesture throws NotAllowedError on iOS.
   async syncAudioWithPageState() {
     if (document.visibilityState === 'hidden') {
+      // An iOS interruption that lands before the visibilitychange leaves the
+      // context 'interrupted', not 'running'. Record intent anyway so the resume
+      // path still runs on return — only 'closed' and an already-suspended
+      // context we did not pause are left alone.
+      const resumable = (state) => state === 'running' || state === 'interrupted';
       const engine = flock.audioEngine;
       if (engine) {
-        if (engine.state !== 'running') return;
+        if (!resumable(engine.state)) return;
         flock._audioSuspendedByVisibility = true;
-        await engine.pauseAsync().catch(() => {});
+        if (engine.state === 'running') await engine.pauseAsync().catch(() => {});
       } else {
         const ctx = flock.audioContext;
-        if (ctx && ctx.state === 'running') {
+        if (ctx && resumable(ctx.state)) {
           flock._audioSuspendedByVisibility = true;
-          await ctx.suspend().catch(() => {});
+          if (ctx.state === 'running') await ctx.suspend().catch(() => {});
         }
       }
       return;
@@ -456,6 +491,12 @@ export const flockSound = {
           panner.maxDistance = 20;
           panner.rolloffFactor = 1;
           panner.connect(context.destination);
+          // Cached on the mesh, so without this it survives until the context
+          // closes — one orphaned node per mesh that ever played notes.
+          mesh.onDisposeObservable?.addOnce(() => {
+            try { panner.disconnect(); } catch { /* already disconnected */ }
+            if (mesh.metadata?.panner === panner) delete mesh.metadata.panner;
+          });
         }
 
         const panner = mesh.metadata.panner;
