@@ -7,6 +7,11 @@ import { workspace } from './blocklyinit.js';
 
 let isExecuting = false;
 
+// Stop pressed while a run is still waiting for the engine. The abort
+// controller can't carry this: the pending run has aborted the old one and not
+// yet made its own, so Stop has nothing to signal.
+let stopRequested = false;
+
 const ENGINE_READY_TIMEOUT_MS = 10000;
 
 export async function executeCode(options = {}) {
@@ -15,6 +20,7 @@ export async function executeCode(options = {}) {
   }
 
   isExecuting = true;
+  stopRequested = false;
 
   // finally must reset isExecuting: a throw anywhere below must not leave Play
   // permanently disabled.
@@ -36,6 +42,7 @@ export async function executeCode(options = {}) {
         return;
       }
       await delay(100);
+      if (stopRequested) return;
     }
 
     if (isNarrowScreen() && currentView === 'code') {
@@ -137,9 +144,10 @@ function hideStoppedOverlay() {
 }
 
 export function stopCode() {
+  stopRequested = true;
   flock.abortController?.abort();
   flock.stopAllSounds();
-  flock.engine.stopRenderLoop();
+  flock.engine?.stopRenderLoop();
   showStoppedOverlay();
   flock.removeEventListeners();
 
