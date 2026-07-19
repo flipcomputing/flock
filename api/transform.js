@@ -69,7 +69,42 @@ function toFinite(v, fallback = 0) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+// Exactly ±90° pitch makes a camera's look-at up vector degenerate; screen
+// roll then depends on platform libm rounding and can render upside down.
+function clampCameraPitchDegrees(x) {
+  const wrapped = ((x % 360) + 540) % 360 - 180;
+  if (Math.abs(Math.abs(wrapped) - 90) < 0.05) {
+    return Math.sign(wrapped) * (Math.abs(wrapped) > 90 ? 90.05 : 89.95);
+  }
+  return x;
+}
+
 export const flockTransform = {
+  // Blocks speak Euler degrees, the engine speaks quaternions; the quaternion
+  // is the source of truth — writing mesh.rotation nulls it.
+  eulerDegreesToQuat(x = 0, y = 0, z = 0) {
+    return flock.BABYLON.Quaternion.RotationYawPitchRoll(
+      flock.BABYLON.Tools.ToRadians(y),
+      flock.BABYLON.Tools.ToRadians(x),
+      flock.BABYLON.Tools.ToRadians(z)
+    ).normalize();
+  },
+  quatToEulerDegrees(quat) {
+    const euler = quat.toEulerAngles();
+    return {
+      x: flock.BABYLON.Tools.ToDegrees(euler.x),
+      y: flock.BABYLON.Tools.ToDegrees(euler.y),
+      z: flock.BABYLON.Tools.ToDegrees(euler.z),
+    };
+  },
+  ensureQuaternion(target) {
+    if (!target.rotationQuaternion) {
+      target.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerVector(
+        target.rotation ?? flock.BABYLON.Vector3.Zero()
+      );
+    }
+    return target.rotationQuaternion;
+  },
   async setBlockPositionOnMesh(mesh, { x = 0, y = 0, z = 0, useY = true, meshName = '' } = {}) {
     if (!mesh) return;
 
@@ -374,25 +409,22 @@ export const flockTransform = {
             return;
           }
 
-          const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            flock.BABYLON.Tools.ToRadians(y),
-            flock.BABYLON.Tools.ToRadians(x),
-            flock.BABYLON.Tools.ToRadians(z)
-          );
-
           if (camera.alpha !== undefined) {
             camera.alpha += flock.BABYLON.Tools.ToRadians(y);
             camera.beta += flock.BABYLON.Tools.ToRadians(x);
           } else if (camera.rotation !== undefined) {
-            if (!camera.rotationQuaternion) {
-              camera.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.z)
-              );
-            }
-
-            camera.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+            // Yaw about world up, pitch about the view's right axis; a
+            // local-space multiply would roll a pitched camera.
+            const current = camera.rotationQuaternion
+              ? camera.rotationQuaternion.toEulerAngles()
+              : camera.rotation;
+            const targetQuat = flock.eulerDegreesToQuat(
+              clampCameraPitchDegrees(flock.BABYLON.Tools.ToDegrees(current.x) + x),
+              flock.BABYLON.Tools.ToDegrees(current.y) + y,
+              flock.BABYLON.Tools.ToDegrees(current.z) + z
+            );
+            camera.rotationQuaternion = targetQuat;
+            camera.rotation.copyFrom(targetQuat.toEulerAngles());
           }
           resolve();
           return;
@@ -424,12 +456,8 @@ export const flockTransform = {
           return;
         }
 
-        const incrementalRotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          flock.BABYLON.Tools.ToRadians(y),
-          flock.BABYLON.Tools.ToRadians(x),
-          flock.BABYLON.Tools.ToRadians(z)
-        );
-        mesh.rotationQuaternion.multiplyInPlace(incrementalRotation).normalize();
+        const incrementalRotation = flock.eulerDegreesToQuat(x, y, z);
+        flock.ensureQuaternion(mesh).multiplyInPlace(incrementalRotation).normalize();
 
         if (mesh.physics) {
           mesh.physics.disablePreStep = false;
@@ -456,19 +484,9 @@ export const flockTransform = {
             camera.alpha = flock.BABYLON.Tools.ToRadians(y);
             camera.beta = flock.BABYLON.Tools.ToRadians(x);
           } else if (camera.rotation !== undefined) {
-            if (!camera.rotationQuaternion) {
-              camera.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-                flock.BABYLON.Tools.ToRadians(camera.rotation.y),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.x),
-                flock.BABYLON.Tools.ToRadians(camera.rotation.z)
-              ).normalize();
-            }
-            const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-              flock.BABYLON.Tools.ToRadians(y),
-              flock.BABYLON.Tools.ToRadians(x),
-              flock.BABYLON.Tools.ToRadians(z)
-            ).normalize();
+            const targetQuat = flock.eulerDegreesToQuat(clampCameraPitchDegrees(x), y, z);
             camera.rotationQuaternion = targetQuat;
+            camera.rotation.copyFrom(targetQuat.toEulerAngles());
           }
           resolve();
           return;
@@ -494,21 +512,7 @@ export const flockTransform = {
           resolve();
           return;
         }
-        if (!mesh.rotationQuaternion && mesh.name != 'hemisphericLight') {
-          mesh.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-            mesh.rotation.y,
-            mesh.rotation.x,
-            mesh.rotation.z
-          );
-        }
-
-        const targetQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
-          flock.BABYLON.Tools.ToRadians(y),
-          flock.BABYLON.Tools.ToRadians(x),
-          flock.BABYLON.Tools.ToRadians(z)
-        ).normalize();
-
-        mesh.rotationQuaternion = targetQuat;
+        mesh.rotationQuaternion = flock.eulerDegreesToQuat(x, y, z);
 
         if (mesh.name === 'hemisphericLight') {
           const xRadian = flock.BABYLON.Tools.ToRadians(x);
@@ -588,15 +592,7 @@ export const flockTransform = {
     const up = flock.BABYLON.Axis.Y; // world up
     const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
 
-    // Convert quaternion to Euler angles
-    const euler = q.toEulerAngles();
-
-    // Use rotateTo with the Euler angles (convert from radians to degrees)
-    await this.rotateTo(meshName, {
-      x: flock.BABYLON.Tools.ToDegrees(euler.x),
-      y: flock.BABYLON.Tools.ToDegrees(euler.y),
-      z: flock.BABYLON.Tools.ToDegrees(euler.z),
-    });
+    await this.rotateTo(meshName, flock.quatToEulerDegrees(q));
 
     // Wait one tick so transforms "stick" before returning.
     if (mesh1.physics) {

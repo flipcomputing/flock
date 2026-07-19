@@ -55,6 +55,24 @@ export function runRotationTests(flock) {
       }
     });
 
+    it("should recover when an Euler write has nulled the quaternion", async function () {
+      const box = flock.scene.getMeshByName(boxId);
+      // Babylon's rotation setter nulls the quaternion; rotate() must reseed.
+      box.rotation = new flock.BABYLON.Vector3(0, Math.PI / 4, 0);
+
+      await flock.rotate(boxId, { x: 0, y: 45, z: 0 });
+
+      const euler = box.rotationQuaternion.toEulerAngles();
+      expect(euler.y).to.be.closeTo(Math.PI / 2, 1e-6);
+    });
+
+    it("round-trips Euler degrees through the quaternion helpers", function () {
+      const result = flock.quatToEulerDegrees(flock.eulerDegreesToQuat(30, 60, 20));
+      expect(result.x).to.be.closeTo(30, 1e-6);
+      expect(result.y).to.be.closeTo(60, 1e-6);
+      expect(result.z).to.be.closeTo(20, 1e-6);
+    });
+
     it("should rotate a box around Y axis", async function () {
       const box = flock.scene.getMeshByName(boxId);
 
@@ -193,6 +211,76 @@ export function runRotationTests(flock) {
 		  flock.scene.activeCamera = originalCamera;
 		}
 	  });*/
+  });
+
+  describe("rotateTo camera pitch clamp @rotation", function () {
+    let prevActiveCamera;
+    let freeCamera;
+
+    beforeEach(function () {
+      prevActiveCamera = flock.scene.activeCamera;
+      freeCamera = new flock.BABYLON.FreeCamera(
+        "rotateToClampCamera",
+        new flock.BABYLON.Vector3(0, 7, 0),
+        flock.scene,
+      );
+      flock.scene.activeCamera = freeCamera;
+    });
+
+    afterEach(function () {
+      flock.scene.activeCamera = prevActiveCamera;
+      if (freeCamera && !freeCamera.isDisposed()) freeCamera.dispose();
+    });
+
+    it("keeps a straight-down pitch just off the ±90° singularity", async function () {
+      await flock.rotateTo("__active_camera__", { x: 90, y: 0, z: 0 });
+
+      const euler = freeCamera.rotationQuaternion.toEulerAngles();
+      expect(euler.x).to.be.closeTo(
+        flock.BABYLON.Tools.ToRadians(89.95),
+        1e-6,
+      );
+      expect(euler.x).to.be.below(Math.PI / 2);
+    });
+
+    it("clamps straight-up pitch, including wrapped angles like 270°", async function () {
+      await flock.rotateTo("__active_camera__", { x: 270, y: 0, z: 0 });
+
+      const euler = freeCamera.rotationQuaternion.toEulerAngles();
+      expect(euler.x).to.be.closeTo(
+        flock.BABYLON.Tools.ToRadians(-89.95),
+        1e-6,
+      );
+    });
+
+    it("applies increments on top of a mouse-look pose (radians in camera.rotation)", async function () {
+      freeCamera.rotation.set(0, Math.PI / 4, 0); // dragged to look 45° right
+
+      await flock.rotate("__active_camera__", { x: 0, y: 10, z: 0 });
+
+      const euler = freeCamera.rotationQuaternion.toEulerAngles();
+      expect(euler.y).to.be.closeTo(flock.BABYLON.Tools.ToRadians(55), 1e-6);
+    });
+
+    it("yaws a pitched camera turntable-style without rolling the horizon", async function () {
+      await flock.rotateTo("__active_camera__", { x: 45, y: 0, z: 0 });
+      await flock.rotate("__active_camera__", { x: 0, y: 30, z: 0 });
+
+      const euler = freeCamera.rotationQuaternion.toEulerAngles();
+      expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(45), 1e-6);
+      expect(euler.y).to.be.closeTo(flock.BABYLON.Tools.ToRadians(30), 1e-6);
+      expect(euler.z).to.be.closeTo(0, 1e-6);
+    });
+
+    it("leaves ordinary pitches unchanged and syncs camera.rotation", async function () {
+      await flock.rotateTo("__active_camera__", { x: 45, y: 30, z: 0 });
+
+      const euler = freeCamera.rotationQuaternion.toEulerAngles();
+      expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(45), 1e-6);
+      expect(euler.y).to.be.closeTo(flock.BABYLON.Tools.ToRadians(30), 1e-6);
+      expect(freeCamera.rotation.x).to.be.closeTo(euler.x, 1e-6);
+      expect(freeCamera.rotation.y).to.be.closeTo(euler.y, 1e-6);
+    });
   });
 
   describe("rotateTo API Tests @rotation", function () {

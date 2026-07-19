@@ -175,20 +175,16 @@ export const flockAnimate = {
           return;
         }
 
+        const targetQuat = flock.eulerDegreesToQuat(x, y, z);
+
         if (instant) {
-          const targetRotation = new flock.BABYLON.Vector3(
-            x * (Math.PI / 180),
-            y * (Math.PI / 180),
-            z * (Math.PI / 180)
-          );
-          mesh.rotation = targetRotation;
+          mesh.rotationQuaternion = targetQuat;
           mesh.computeWorldMatrix(true);
 
           if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
             mesh.physics.setTargetTransform(
               mesh.absolutePosition,
-              mesh.absoluteRotationQuaternion ||
-                flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation)
+              mesh.absoluteRotationQuaternion || mesh.rotationQuaternion
             );
           }
 
@@ -205,30 +201,27 @@ export const flockAnimate = {
           localQuat: c.rotationQuaternion ? c.rotationQuaternion.clone() : null,
         }));
 
-        const startRotation = mesh.rotation.clone();
-        const targetRotation = new flock.BABYLON.Vector3(
-          x * (Math.PI / 180),
-          y * (Math.PI / 180),
-          z * (Math.PI / 180)
-        );
+        // Slerp the quaternion; animating the Euler vector restarts from zero
+        // and wraps the long way across ±180°.
+        const startQuat = flock.ensureQuaternion(mesh).clone();
 
         const fps = 30;
         const frames = fps * duration;
 
         const rotateAnimation = new flock.BABYLON.Animation(
           'rotate',
-          'rotation',
+          'rotationQuaternion',
           fps,
-          flock.BABYLON.Animation.ANIMATIONTYPE_VECTOR3,
+          flock.BABYLON.Animation.ANIMATIONTYPE_QUATERNION,
           loop
             ? flock.BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
             : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
         );
 
         const rotateKeys = [
-          { frame: 0, value: startRotation },
-          { frame: frames, value: targetRotation },
-          ...(reverse ? [{ frame: frames * 2, value: startRotation }] : []),
+          { frame: 0, value: startQuat },
+          { frame: frames, value: targetQuat },
+          ...(reverse ? [{ frame: frames * 2, value: startQuat }] : []),
         ];
         rotateAnimation.setKeys(rotateKeys);
 
@@ -249,8 +242,7 @@ export const flockAnimate = {
           if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
             mesh.physics.setTargetTransform(
               mesh.absolutePosition,
-              mesh.absoluteRotationQuaternion ||
-                flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation)
+              mesh.absoluteRotationQuaternion || mesh.rotationQuaternion
             );
           }
         });
@@ -265,11 +257,7 @@ export const flockAnimate = {
 
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-          if (reverse) {
-            mesh.rotation = startRotation.clone();
-          } else {
-            mesh.rotation = targetRotation.clone();
-          }
+          mesh.rotationQuaternion = (reverse ? startQuat : targetQuat).clone();
           resolve();
         });
       });
@@ -529,12 +517,7 @@ export const flockAnimate = {
         localTargetQuaternion = parentRotation.conjugate().multiply(targetQuaternion).normalize();
       }
 
-      const euler = localTargetQuaternion.toEulerAngles();
-      targetRotation = {
-        x: flock.BABYLON.Tools.ToDegrees(euler.x),
-        y: flock.BABYLON.Tools.ToDegrees(euler.y),
-        z: flock.BABYLON.Tools.ToDegrees(euler.z),
-      };
+      targetRotation = flock.quatToEulerDegrees(localTargetQuaternion);
     } else {
       const p1 = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
       const p2 = mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition;
@@ -544,13 +527,7 @@ export const flockAnimate = {
 
       dir.normalize();
       const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, flock.BABYLON.Axis.Y);
-      const euler = q.toEulerAngles();
-
-      targetRotation = {
-        x: flock.BABYLON.Tools.ToDegrees(euler.x),
-        y: flock.BABYLON.Tools.ToDegrees(euler.y),
-        z: flock.BABYLON.Tools.ToDegrees(euler.z),
-      };
+      targetRotation = flock.quatToEulerDegrees(q);
     }
 
     await this.rotateAnim(meshName1, {

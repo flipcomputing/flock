@@ -1,6 +1,12 @@
 import { expect } from "chai";
 
 export function runAnimateTests(flock) {
+  // Rotate APIs store orientation in the quaternion; mesh.rotation reads zero.
+  const effectiveEuler = (mesh) =>
+    mesh.rotationQuaternion
+      ? mesh.rotationQuaternion.toEulerAngles()
+      : mesh.rotation.clone();
+
   describe("Animation API Tests @slow", function () {
     const boxIds = [];
 
@@ -29,14 +35,15 @@ export function runAnimateTests(flock) {
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
 
-        const initialRotation = mesh.rotation.clone();
+        const initialRotation = effectiveEuler(mesh);
 
         await flock.rotateAnim(boxId, {});
 
         // With all default values (0, 0, 0), rotation should remain the same
-        expect(mesh.rotation.x).to.be.closeTo(initialRotation.x, 0.01);
-        expect(mesh.rotation.y).to.be.closeTo(initialRotation.y, 0.01);
-        expect(mesh.rotation.z).to.be.closeTo(initialRotation.z, 0.01);
+        const endEuler = effectiveEuler(mesh);
+        expect(endEuler.x).to.be.closeTo(initialRotation.x, 0.01);
+        expect(endEuler.y).to.be.closeTo(initialRotation.y, 0.01);
+        expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
 
       it("should rotate a mesh around X axis", async function () {
@@ -55,9 +62,9 @@ export function runAnimateTests(flock) {
         await flock.rotateAnim(boxId, { x: 90, duration: 0.1 });
 
         // Check that X rotation was applied (90 degrees = π/2 radians)
-        expect(Math.abs(mesh.rotation.x)).to.be.closeTo(Math.PI / 2, 0.1);
-        expect(Math.abs(mesh.rotation.y)).to.be.lessThan(0.1);
-        expect(Math.abs(mesh.rotation.z)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.closeTo(Math.PI / 2, 0.1);
+        expect(Math.abs(effectiveEuler(mesh).y)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
       it("should rotate a mesh around Y axis", async function () {
@@ -76,9 +83,9 @@ export function runAnimateTests(flock) {
         await flock.rotateAnim(boxId, { y: 180, duration: 0.1 });
 
         // Check that Y rotation was applied (180 degrees = π radians)
-        expect(Math.abs(mesh.rotation.y)).to.be.closeTo(Math.PI, 0.1);
-        expect(Math.abs(mesh.rotation.x)).to.be.lessThan(0.1);
-        expect(Math.abs(mesh.rotation.z)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).y)).to.be.closeTo(Math.PI, 0.1);
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
       it("should rotate a mesh around Z axis", async function () {
@@ -97,9 +104,9 @@ export function runAnimateTests(flock) {
         await flock.rotateAnim(boxId, { z: 45, duration: 0.1 });
 
         // Check that Z rotation was applied (45 degrees = π/4 radians)
-        expect(Math.abs(mesh.rotation.z)).to.be.closeTo(Math.PI / 4, 0.1);
-        expect(Math.abs(mesh.rotation.x)).to.be.lessThan(0.1);
-        expect(Math.abs(mesh.rotation.y)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).z)).to.be.closeTo(Math.PI / 4, 0.1);
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).y)).to.be.lessThan(0.1);
       });
 
       it("should rotate a mesh around multiple axes", async function () {
@@ -123,9 +130,9 @@ export function runAnimateTests(flock) {
         });
 
         // Check that all rotations were applied
-        expect(Math.abs(mesh.rotation.x)).to.be.closeTo(Math.PI / 6, 0.1); // 30 degrees
-        expect(Math.abs(mesh.rotation.y)).to.be.closeTo(Math.PI / 3, 0.1); // 60 degrees
-        expect(Math.abs(mesh.rotation.z)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.closeTo(Math.PI / 6, 0.1); // 30 degrees
+        expect(Math.abs(effectiveEuler(mesh).y)).to.be.closeTo(Math.PI / 3, 0.1); // 60 degrees
+        expect(Math.abs(effectiveEuler(mesh).z)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees
       });
 
       it("should handle partial rotation parameters", async function () {
@@ -144,9 +151,9 @@ export function runAnimateTests(flock) {
         await flock.rotateAnim(boxId, { y: 90, duration: 0.1 });
 
         // Only Y should be rotated, X and Z should remain close to 0
-        expect(Math.abs(mesh.rotation.y)).to.be.closeTo(Math.PI / 2, 0.1);
-        expect(Math.abs(mesh.rotation.x)).to.be.lessThan(0.1);
-        expect(Math.abs(mesh.rotation.z)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).y)).to.be.closeTo(Math.PI / 2, 0.1);
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.lessThan(0.1);
+        expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
       it("should handle negative rotation values", async function () {
@@ -165,7 +172,7 @@ export function runAnimateTests(flock) {
         await flock.rotateAnim(boxId, { x: -90, duration: 0.1 });
 
         // Check that negative rotation was applied
-        expect(Math.abs(mesh.rotation.x)).to.be.closeTo(Math.PI / 2, 0.1);
+        expect(Math.abs(effectiveEuler(mesh).x)).to.be.closeTo(Math.PI / 2, 0.1);
       });
 
       it("should respect custom duration", async function () {
@@ -191,6 +198,29 @@ export function runAnimateTests(flock) {
         expect(actualDuration).to.be.at.most(300);
       });
 
+      it("should start from the current orientation, not snap to zero", async function () {
+        const boxId = "rotateAnimNoSnap";
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+
+        await flock.rotateTo(boxId, { x: 0, y: 45, z: 0 });
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        // Sample early in a slow animation: the pose must sit near the 45° start.
+        const animPromise = flock.rotateAnim(boxId, { y: 90, duration: 3 });
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        const midYaw = effectiveEuler(mesh).y;
+        flock.scene.stopAnimation(mesh);
+        await animPromise;
+
+        expect(midYaw).to.be.greaterThan(Math.PI / 6); // well above the ~6° a zero start would give
+      });
+
       it("should return to the start rotation when reverse is true", async function () {
         const boxId = "rotateAnimReverse";
         await flock.createBox(boxId, {
@@ -204,7 +234,7 @@ export function runAnimateTests(flock) {
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
 
-        const initialRotation = mesh.rotation.clone();
+        const initialRotation = effectiveEuler(mesh);
 
         await flock.rotateAnim(boxId, {
           y: 90,
@@ -212,9 +242,10 @@ export function runAnimateTests(flock) {
           reverse: true,
         });
 
-        expect(mesh.rotation.x).to.be.closeTo(initialRotation.x, 0.01);
-        expect(mesh.rotation.y).to.be.closeTo(initialRotation.y, 0.01);
-        expect(mesh.rotation.z).to.be.closeTo(initialRotation.z, 0.01);
+        const endEuler = effectiveEuler(mesh);
+        expect(endEuler.x).to.be.closeTo(initialRotation.x, 0.01);
+        expect(endEuler.y).to.be.closeTo(initialRotation.y, 0.01);
+        expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
     });
 
@@ -980,11 +1011,11 @@ export function runAnimateTests(flock) {
         boxIds.push(id1, id2);
 
         const mesh1 = flock.scene.getMeshByName(id1);
-        const initialRotationY = mesh1.rotation.y;
+        const initialRotationY = effectiveEuler(mesh1).y;
 
         await flock.rotateToObject(id1, id2, { duration: 0 });
 
-        expect(mesh1.rotation.y).to.not.be.closeTo(initialRotationY, 0.001);
+        expect(effectiveEuler(mesh1).y).to.not.be.closeTo(initialRotationY, 0.001);
       });
     });
   });
