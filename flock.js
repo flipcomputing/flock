@@ -1457,6 +1457,9 @@ export const flock = {
 
     flock.engine.disableUniformBuffers = true; // Meshes with alpha black on Samsung A14
 
+    // Set on the engine, not the element: Babylon reapplies its default on every pointer move.
+    flock.engine.canvasTabIndex = 0;
+
     if (!flock._webglContextLostListenerAdded) {
       flock._webglContextLostListenerAdded = true;
       // Call preventDefault() on the raw event so the browser is willing to restore.

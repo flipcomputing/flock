@@ -49,6 +49,7 @@ export default {
   pick_color_from_screen: 'Välj färg från skärmen',
   more_options: 'Fler alternativ',
   hex_placeholder: 'ff0000 eller red',
+  hex_color: 'Hexfärg', // ai
   skin_tone: 'Hudton',
   color_wheel_aria: 'Färghjul: använd piltangenterna för att välja nyans och mättnad',
 
@@ -1051,6 +1052,7 @@ export default {
   eye_button_ui: "Kretsa runt valt objekt",
 
   info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
+  skip_to_scene_ui: "Hoppa till 3D-scenen", // ai
 
   project_name_ui: "Projektnamn",
 

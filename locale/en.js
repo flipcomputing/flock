@@ -49,6 +49,7 @@ export default {
   pick_color_from_screen: 'Pick color from screen',
   more_options: 'More options',
   hex_placeholder: 'ff0000 or red',
+  hex_color: 'Hex color',
   skin_tone: 'Skin tone',
   color_wheel_aria: 'Color wheel: use arrow keys to select hue and saturation',
 
@@ -1126,6 +1127,7 @@ export default {
   eye_button_ui: "Orbit around selected object",
 
   info_panel_link_ui: "Visit Flock XR website (opens in new tab)",
+  skip_to_scene_ui: "Skip to 3D scene",
 
   project_name_ui: "Project name",
 

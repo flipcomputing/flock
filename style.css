@@ -1610,6 +1610,25 @@ button {
   border: 0;
 }
 
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  padding: 10px 16px;
+  background: var(--color-bg, #fff);
+  color: var(--color-text, #000);
+  border-radius: 0 0 4px 0;
+  text-decoration: none;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  left: 0;
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+
 /* Enhanced focus indicators */
 button:focus,
 input:focus,

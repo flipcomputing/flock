@@ -49,6 +49,7 @@ export default {
   pick_color_from_screen: 'Prendi colore dallo schermo',
   more_options: 'Altre opzioni',
   hex_placeholder: 'ff0000 o red',
+  hex_color: 'Colore esadecimale', // ai
   skin_tone: 'Tono della pelle',
   color_wheel_aria: 'Ruota dei colori: usa le frecce per scegliere tonalità e saturazione',
 
@@ -1073,6 +1074,7 @@ export default {
   eye_button_ui: "Orbita attorno all'oggetto selezionato",
 
   info_panel_link_ui: 'Visita il sito Flock XR (apre in una nuova scheda)',
+  skip_to_scene_ui: 'Vai alla scena 3D', // ai
 
   project_name_ui: 'Nome progetto',
 

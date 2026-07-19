@@ -791,6 +791,12 @@ class PanelResizer {
 
     // Prevent text selection during resize
     this.resizer.addEventListener('selectstart', (e) => e.preventDefault());
+
+    // Both elements: the value is a ratio, and a keyboard resize pins the panel
+    // to fixed px, so a later window resize moves only the container.
+    const observer = new ResizeObserver(() => this.syncAriaValue());
+    observer.observe(this.canvasArea);
+    observer.observe(this.mainContent);
   }
 
   startResize(e) {
@@ -1007,6 +1013,15 @@ class PanelResizer {
 
     // +1 guards against sub-pixel rounding tipping the last icon onto a new row.
     return Math.max(this.minPanelFloor, Math.ceil(total) + 1);
+  }
+
+  // A focusable role="separator" needs a value: the canvas panel's share of the split.
+  syncAriaValue() {
+    if (!this.enabled) return;
+    const total = this.mainContent.getBoundingClientRect().width;
+    if (!total) return;
+    const share = Math.round((this.canvasArea.getBoundingClientRect().width / total) * 100);
+    this.resizer.setAttribute('aria-valuenow', String(share));
   }
 
   triggerContentResize() {

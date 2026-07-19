@@ -442,8 +442,9 @@ class CustomColorPicker {
     );
     moreOptionsBtn.setAttribute("aria-label", translate("more_options"));
     moreOptionsBtn.title = translate("more_options");
-    this.container.querySelector("#css-color-input").placeholder =
-      translate("hex_placeholder");
+    const cssColorInput = this.container.querySelector("#css-color-input");
+    cssColorInput.placeholder = translate("hex_placeholder");
+    cssColorInput.setAttribute("aria-label", translate("hex_color"));
     this.container.querySelector(
       ".current-color-display",
     ).style.backgroundColor = this.currentColor;
@@ -2092,6 +2093,7 @@ class CustomColorPicker {
     const cssInput = this.container.querySelector("#css-color-input");
     if (cssInput) {
       cssInput.setAttribute("placeholder", translate("hex_placeholder"));
+      cssInput.setAttribute("aria-label", translate("hex_color"));
     }
 
     const useBtn = this.container.querySelector(".color-picker-use");

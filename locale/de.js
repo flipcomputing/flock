@@ -49,6 +49,7 @@ export default {
   pick_color_from_screen: 'Farbe vom Bildschirm auswählen',
   more_options: 'Weitere Optionen',
   hex_placeholder: 'ff0000 oder red',
+  hex_color: 'Hex-Farbe', // ai
   skin_tone: 'Hautton',
   color_wheel_aria: 'Farbrad: Verwenden Sie die Pfeiltasten, um Farbton und Sättigung auszuwählen',
 
@@ -1070,6 +1071,7 @@ export default {
   camera_button_ui: "Kamera-Steuerung",
   eye_button_ui: "Um ausgewähltes Objekt kreisen",
   info_panel_link_ui: "Flock XR Webseite (neuer Tab)",
+  skip_to_scene_ui: "Zur 3D-Szene springen", // ai
   project_name_ui: "Projektname",
   keyboard_controls_ui: "Tastatursteuerung [Ctrl + /]",
   keyboard_menu_ui: "Hauptmenü",

@@ -301,6 +301,9 @@
     </div>
 
     <h1 class="sr-only">FlockXR</h1>
+    <a id="skip-to-scene" class="skip-link" href="#renderCanvas" data-i18n="skip_to_scene"
+      >Skip to 3D scene</a
+    >
     <label for="importFile" class="sr-only" aria-hidden="true" data-i18n="import_project_file"
       >Import project file</label
     >
@@ -409,7 +412,7 @@
                     aria-labelledby="project-menu-item"
                     hidden
                   >
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         id="project-new"
@@ -419,7 +422,7 @@
                         >New</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         id="project-open"
@@ -429,7 +432,7 @@
                         >Open</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         id="project-save"
@@ -494,12 +497,12 @@
                         >Deutsch</a
                       >
                   </li-->
-                    <li>
+                    <li role="none">
                       <a href="#" data-lang="en" role="menuitem" tabindex="-1"
                         >English</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a href="#" data-lang="es" role="menuitem" tabindex="-1"
                         >Español</a
                       >
@@ -578,7 +581,7 @@
                     aria-labelledby="theme-menu-item"
                     hidden
                   >
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         data-theme-target="light"
@@ -589,7 +592,7 @@
                         >Light</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         data-theme-target="dark-contrast"
@@ -599,7 +602,7 @@
                         >Dark</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         data-theme-target="dark"
@@ -609,7 +612,7 @@
                         >Dark 2</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         data-theme-target="contrast"
@@ -619,7 +622,7 @@
                         >Contrast</a
                       >
                     </li>
-                    <li>
+                    <li role="none">
                       <a
                         href="#"
                         data-theme-target="low-vision"
@@ -1354,6 +1357,9 @@
             aria-label="Drag to resize panels"
             role="separator"
             aria-orientation="vertical"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="50"
             tabindex="0"
           ></div>
           <section id="codePanel" aria-label="Code editor panel">
@@ -1481,6 +1487,7 @@
           rel="noopener noreferrer"
           id="bottombar-flocklink"
           class="bottombar-flocklink"
+          data-i18n="info_panel_link"
           aria-label="Visit Flock XR website (opens in new tab)"
           title="Visit Flock XR website"
         >

@@ -42,6 +42,15 @@ export function setupInput() {
       canvas.addEventListener('keydown', handleCanvasKeyboard);
     }
 
+    // Focus directly so the href doesn't write a fragment to the URL.
+    const skipLink = document.getElementById('skip-to-scene');
+    if (skipLink && canvas) {
+      skipLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        canvas.focus();
+      });
+    }
+
     // Set up custom tab order management
     setupTabOrder();
   }
