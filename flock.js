@@ -1366,13 +1366,15 @@ export const flock = {
       'touchend',
       (event) => {
         if (event.touches.length === 0) {
-          const input = flock.scene.activeCamera.inputs?.attached?.pointers;
-          // Add null check for input itself
+          // Canvas is touchable before the first run and after disposal, when
+          // there is no scene yet.
+          const camera = flock.scene?.activeCamera;
+          const input = camera?.inputs?.attached?.pointers;
           if (
             input &&
             (input._pointA !== null || input._pointB !== null || input._isMultiTouch === true)
           ) {
-            flock._hardResetCameraControls(flock.scene.activeCamera, {
+            flock._hardResetCameraControls(camera, {
               reattachDelayMs: 100,
               noPreventDefault: true,
             });
