@@ -1220,6 +1220,10 @@ export default {
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
   error_physics_oom:
     'Your project ran out of memory. Try reloading the page and using fewer blocks.',
+  error_physics_unsupported:
+    "This browser is too old to run Flock XR's physics. Please update your browser if possible.",
+  error_physics_unsupported_ios:
+    'Flock XR needs iOS 16.4 or later on this device. Please update your iPhone or iPad if possible.',
   error_design_mode_offline:
     'Design mode needs an internet connection the first time you use it. Connect and try again.',
   // Block error messages (onBlockError key → text). Keys match the `key`

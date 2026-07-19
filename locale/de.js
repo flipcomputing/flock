@@ -1143,6 +1143,10 @@ export default {
     'Sound ist auf diesem Gerät nicht verfügbar. Dein Projekt wird ohne Audio ausgeführt.', // Google translate
   error_speech:
     'Sprachausgabe ist gerade nicht verfügbar. Dein Projekt wird ohne gesprochene Wörter ausgeführt.', // ai
+  error_physics_unsupported:
+    'Dieser Browser ist zu alt für die Physik von Flock XR. Aktualisiere deinen Browser, wenn möglich.', // ai
+  error_physics_unsupported_ios:
+    'Flock XR benötigt auf diesem Gerät iOS 16.4 oder neuer. Aktualisiere dein iPhone oder iPad, wenn möglich.', // ai
   error_design_mode_offline:
     'Der Design-Modus benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   xr_mode_message: 'XR-Modus!',

@@ -1164,6 +1164,10 @@ export default {
     "L'audio non è disponibile su questo dispositivo. Il tuo progetto verrà eseguito senza audio.", // Google translate
   error_speech:
     'La sintesi vocale non è disponibile al momento. Il tuo progetto verrà eseguito senza parole parlate.', // ai
+  error_physics_unsupported:
+    'Questo browser è troppo vecchio per eseguire la fisica di Flock XR. Aggiorna il browser, se possibile.', // ai
+  error_physics_unsupported_ios:
+    'Flock XR richiede iOS 16.4 o versioni successive su questo dispositivo. Aggiorna il tuo iPhone o iPad, se possibile.', // ai
   error_design_mode_offline:
     'La modalità progettazione richiede una connessione a internet la prima volta che la usi. Connettiti e riprova.', // ai
   xr_mode_message: 'Modalità XR!',

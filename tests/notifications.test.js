@@ -5,6 +5,7 @@ import {
   handleError,
   isBenignAbort,
 } from "../ui/notifications.js";
+import { translate } from "../main/translation.js";
 
 export function runNotificationTests() {
   describe("error notification banners", function () {
@@ -89,6 +90,24 @@ export function runNotificationTests() {
 
     it("does not treat ordinary errors as benign", function () {
       expect(isBenignAbort(new Error("something else broke"))).to.equal(false);
+    });
+
+    it("shows a translated unsupported-physics banner with no reload action", function () {
+      handleError(new Error("no simd"), { source: "physics-unsupported" });
+      const banner = document.querySelector(".flock-banner");
+      expect(banner).to.exist;
+      expect(banner.className).to.contain("flock-banner--error");
+      expect(banner.textContent).to.contain(
+        translate("error_physics_unsupported"),
+      );
+      // Reloading cannot add SIMD support, so offering it would mislead.
+      expect(document.querySelector(".flock-banner__action")).to.not.exist;
+    });
+
+    it("does not stack unsupported-physics banners across repeated runs", function () {
+      handleError(new Error("no simd"), { source: "physics-unsupported" });
+      handleError(new Error("no simd"), { source: "physics-unsupported" });
+      expect(document.querySelectorAll(".flock-banner").length).to.equal(1);
     });
   });
 }

@@ -1139,6 +1139,10 @@ export default {
   error_audio: 'Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.', // Google translate
   error_speech:
     'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
+  error_physics_unsupported:
+    'Den här webbläsaren är för gammal för att köra Flock XR:s fysik. Uppdatera din webbläsare om det går.', // ai
+  error_physics_unsupported_ios:
+    'Flock XR behöver iOS 16.4 eller senare på den här enheten. Uppdatera din iPhone eller iPad om det går.', // ai
   error_design_mode_offline:
     'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',

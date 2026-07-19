@@ -1218,6 +1218,10 @@ export default {
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
   error_physics_oom:
     'Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.', // human
+  error_physics_unsupported:
+    'Este navegador es demasiado antiguo para ejecutar la física de Flock XR. Actualiza tu navegador si es posible.', // ai
+  error_physics_unsupported_ios:
+    'Flock XR necesita iOS 16.4 o posterior en este dispositivo. Actualiza tu iPhone o iPad si es posible.', // ai
   error_design_mode_offline:
     'El modo diseño necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   banner_reload: 'Recargar', // human

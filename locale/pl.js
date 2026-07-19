@@ -1151,6 +1151,10 @@ export default {
   error_audio: 'Dźwięk nie jest dostępny na tym urządzeniu. Twój projekt uruchomi się bez dźwięku.', // Google translate
   error_speech:
     'Synteza mowy jest w tej chwili niedostępna. Twój projekt uruchomi się bez wypowiadanych słów.', // ai
+  error_physics_unsupported:
+    'Ta przeglądarka jest zbyt stara, aby uruchomić fizykę Flock XR. Zaktualizuj przeglądarkę, jeśli to możliwe.', // ai
+  error_physics_unsupported_ios:
+    'Flock XR wymaga systemu iOS 16.4 lub nowszego na tym urządzeniu. Zaktualizuj iPhone’a lub iPada, jeśli to możliwe.', // ai
   error_design_mode_offline:
     'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',

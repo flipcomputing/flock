@@ -14,9 +14,20 @@ const MESSAGE_KEYS = {
   "project-run": "error_project_crash",
   "webgl-lost": "error_webgl_lost",
   "physics-oom": "error_physics_oom",
+  "physics-unsupported": "error_physics_unsupported",
   audio: "error_audio",
   speech: "error_speech",
 };
+
+// UA sniffing only picks the wording — the capability itself is feature
+// detected. iPadOS reports as "Mac", so touch points disambiguate it.
+function isIOS() {
+  const nav = globalThis.navigator;
+  if (!nav) return false;
+  const ua = `${nav.userAgent ?? ""}`;
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  return /Mac/.test(ua) && nav.maxTouchPoints > 1;
+}
 
 function getDocument() {
   return (typeof document !== "undefined" && document) || globalThis.document;
@@ -90,7 +101,10 @@ export function handleError(error, { source, fatal = false } = {}) {
   console.error(`[flock] ${source} error:`, error);
 
   const id = source || "project-run";
-  const messageKey = MESSAGE_KEYS[id] || MESSAGE_KEYS["project-run"];
+  let messageKey = MESSAGE_KEYS[id] || MESSAGE_KEYS["project-run"];
+  if (id === "physics-unsupported" && isIOS()) {
+    messageKey = "error_physics_unsupported_ios";
+  }
 
   showBanner(id, {
     message: translate(messageKey),
