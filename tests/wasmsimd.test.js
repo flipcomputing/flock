@@ -11,6 +11,7 @@ export function runWasmSimdTests(flock) {
     afterEach(function () {
       WebAssembly.validate = realValidate;
       delete flock._wasmSimdSupported;
+      flock._havokInstancePromise = undefined;
       document.querySelectorAll('.flock-banner').forEach((banner) => banner.remove());
     });
 
@@ -74,6 +75,54 @@ export function runWasmSimdTests(flock) {
           const result = await flock.ensurePhysicsInstance(async () => instance);
           expect(result).to.equal(instance);
           expect(document.querySelector('.flock-banner')).to.not.exist;
+        } finally {
+          flock.havokInstance = previousInstance;
+        }
+      });
+
+      it('coalesces concurrent callers onto one Havok load', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        flock.havokInstance = null;
+        const instance = { havok: true };
+        let loads = 0;
+        const loadHavok = async () => {
+          loads += 1;
+          await new Promise((resolve) => setTimeout(resolve, 10));
+          return instance;
+        };
+
+        try {
+          const results = await Promise.all([
+            flock.ensurePhysicsInstance(loadHavok),
+            flock.ensurePhysicsInstance(loadHavok),
+          ]);
+          expect(loads).to.equal(1);
+          expect(results[0]).to.equal(instance);
+          expect(results[1]).to.equal(instance);
+          expect(flock._havokInstancePromise).to.equal(undefined);
+        } finally {
+          flock.havokInstance = previousInstance;
+        }
+      });
+
+      it('retries after a failed load instead of caching the rejection', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        flock.havokInstance = null;
+        const instance = { havok: true };
+        let attempts = 0;
+
+        try {
+          await flock
+            .ensurePhysicsInstance(async () => {
+              attempts += 1;
+              throw new Error('load failed');
+            })
+            .catch(() => {});
+          const result = await flock.ensurePhysicsInstance(async () => instance);
+          expect(attempts).to.equal(1);
+          expect(result).to.equal(instance);
         } finally {
           flock.havokInstance = previousInstance;
         }

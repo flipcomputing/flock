@@ -518,7 +518,12 @@ export const flock = {
     // Callers that arrive together share one in-flight load, so a second
     // caller can't start a duplicate wasm instance and leak the loser.
     if (!flock.havokInstance) {
-      flock.havokInstance = await loadHavok();
+      flock._havokInstancePromise ??= loadHavok();
+      try {
+        flock.havokInstance = await flock._havokInstancePromise;
+      } finally {
+        flock._havokInstancePromise = undefined;
+      }
     }
 
     return flock.havokInstance;
