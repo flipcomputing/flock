@@ -516,7 +516,7 @@ export default {
     'Définit la touche qui déclenche une action spécifique (avant, arrière, gauche, droite ou boutons).',
   meshes_touching_tooltip:
     'Renvoie vrai si les deux objets sélectionnés se touchent.\nMot-clé: istouching',
-  time_tooltip: 'Renvoie le temps actuel en secondes.',
+  time_tooltip: 'Renvoie le temps écoulé. Se met en pause quand l\'onglet est masqué, idéal pour les minuteurs et comptes à rebours.', // ai
   ground_level_tooltip: 'Renvoie la hauteur du sol à la position x/z actuelle.',
   distance_to_tooltip: 'Calcule la distance entre deux objets.',
   touching_surface_tooltip: "Vérifie si l'objet touche une surface.\nMot-clé: surface",

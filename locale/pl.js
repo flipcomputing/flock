@@ -512,7 +512,7 @@ export default {
     'Ustawia klawisz, który wyzwala określoną akcję (do przodu, do tyłu, w lewo, w prawo lub przyciski).',
   meshes_touching_tooltip:
     'Zwraca true, jeśli dwie wybrane obiekty się stykają.\nSłowo kluczowe: istouching',
-  time_tooltip: 'Zwraca bieżący czas w sekundach.',
+  time_tooltip: 'Zwraca czas, który upłynął. Zatrzymuje się, gdy karta jest ukryta – idealny do liczników i odliczania w grach.', // ai
   ground_level_tooltip: 'Zwraca wysokość gruntu w bieżącej pozycji x/z.',
   distance_to_tooltip: 'Oblicz odległość między obiektami %1 i %2.',
   touching_surface_tooltip: 'Sprawdź, czy obiekt %1 dotyka powierzchni.\nSłowo kluczowe: surface',

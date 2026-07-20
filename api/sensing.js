@@ -290,15 +290,20 @@ export const flockSensing = {
     return flock.inputManager.isActionDown(action);
   },
   getTime(unit) {
-    const now = Date.now();
+    // Game clock: freezes while the tab is hidden so countdowns built from
+    // differences don't jump when the player switches away and back.
+    const base = flock._hiddenAt ?? Date.now();
+    return flock.convertTime(base - (flock._hiddenAccumMs || 0), unit);
+  },
+  convertTime(ms, unit) {
     switch (unit) {
       case "milliseconds":
-        return now;
+        return ms;
       case "minutes":
-        return Math.floor(now / 60000);
+        return Math.floor(ms / 60000);
       case "seconds":
       default:
-        return Math.floor(now / 1000);
+        return Math.floor(ms / 1000);
     }
   },
 };

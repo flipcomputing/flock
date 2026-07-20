@@ -1510,6 +1510,20 @@ export const flock = {
       });
     }
 
+    if (!flock._gameClockVisibilityListenerAdded) {
+      flock._gameClockVisibilityListenerAdded = true;
+      flock._hiddenAccumMs = 0;
+      flock._hiddenAt = document.visibilityState === 'hidden' ? Date.now() : null;
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          flock._hiddenAt ??= Date.now();
+        } else if (flock._hiddenAt != null) {
+          flock._hiddenAccumMs += Date.now() - flock._hiddenAt;
+          flock._hiddenAt = null;
+        }
+      });
+    }
+
     flock.engine.enableOfflineSupport = false;
     flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
   },

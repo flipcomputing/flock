@@ -521,7 +521,7 @@ export default {
     "Imposta il tasto che attiva un'azione specifica (avanti, indietro, sinistra, destra o pulsanti).",
   meshes_touching_tooltip:
     'Restituisce vero se le due oggetto selezionate si toccano.\nParola chiave: istouching',
-  time_tooltip: 'Restituisce il tempo corrente in secondi.',
+  time_tooltip: 'Restituisce il tempo trascorso. Si mette in pausa quando la scheda è nascosta, ideale per timer e conti alla rovescia.', // ai
   ground_level_tooltip: "Restituisce l'altezza del suolo alla posizione x/z attuale.",
   distance_to_tooltip: 'Calcola la distanza tra due oggetto.',
   touching_surface_tooltip: "Controlla se l'oggetto tocca una superficie.\nParola chiave: surface",

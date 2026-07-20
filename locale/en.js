@@ -559,7 +559,7 @@ export default {
     'Set the key that triggers a specific action (forward, backward, left, right, or buttons).',
   meshes_touching_tooltip:
     'Return true if the two selected objects are touching.\nKeyword: istouching',
-  time_tooltip: 'Return the current time in seconds.',
+  time_tooltip: 'Return the elapsed time. Pauses while the tab is hidden, so it\'s best for game timers and countdowns.',
   ground_level_tooltip: 'Return the ground height at the current x/z position.',
   distance_to_tooltip: 'Calculate the distance between two objects.',
   touching_surface_tooltip: 'Check if the object is touching a surface.\nKeyword: surface',

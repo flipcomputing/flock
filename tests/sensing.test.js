@@ -76,6 +76,43 @@ export function runSensingTests(flock) {
         const s = flock.getTime("seconds");
         expect(ms).to.be.greaterThan(s);
       });
+
+      describe("hidden-tab pausing", function () {
+        let savedAccum, savedHiddenAt;
+
+        beforeEach(function () {
+          savedAccum = flock._hiddenAccumMs;
+          savedHiddenAt = flock._hiddenAt;
+        });
+
+        afterEach(function () {
+          flock._hiddenAccumMs = savedAccum;
+          flock._hiddenAt = savedHiddenAt;
+        });
+
+        it("should not advance while the tab is hidden", async function () {
+          flock._hiddenAccumMs = 0;
+          flock._hiddenAt = Date.now();
+          const before = flock.getTime("milliseconds");
+          await new Promise((resolve) => setTimeout(resolve, 30));
+          expect(flock.getTime("milliseconds")).to.equal(before);
+        });
+
+        it("should exclude accumulated hidden time", function () {
+          const realNow = Date.now;
+          Date.now = () => 1_000_000_000_000;
+          try {
+            flock._hiddenAt = null;
+            flock._hiddenAccumMs = 0;
+            const unpaused = flock.getTime("milliseconds");
+            flock._hiddenAccumMs = 5000;
+            const paused = flock.getTime("milliseconds");
+            expect(unpaused - paused).to.equal(5000);
+          } finally {
+            Date.now = realNow;
+          }
+        });
+      });
     });
   });
 }

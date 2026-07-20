@@ -518,7 +518,7 @@ export default {
     'Define a tecla que aciona uma ação específica (frente, trás, esquerda, direita ou botões).',
   meshes_touching_tooltip:
     'Retorna verdadeiro se os dois objetos selecionados estiverem tocando.\nPalavra-chave: estátocando',
-  time_tooltip: 'Retorna o tempo atual em segundos.',
+  time_tooltip: 'Retorna o tempo decorrido. Pausa enquanto a aba está oculta, ideal para cronômetros e contagens regressivas.', // ai
   ground_level_tooltip: 'Retorna a altura do solo na posição x/z atual.',
   distance_to_tooltip: 'Calcula a distância entre dois objetos.',
   touching_surface_tooltip:

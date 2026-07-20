@@ -655,7 +655,7 @@ export default {
     'Legt die Taste fest, die eine bestimmte Aktion auslöst (vorwärts, rückwärts, links, rechts oder Tasten).',
   meshes_touching_tooltip:
     'Gibt true zurück, wenn die zwei gewählten Objekte sich berühren.\nSchlüsselwort: istouching',
-  time_tooltip: 'Gibt die aktuelle Zeit in Sekunden zurück.',
+  time_tooltip: 'Gibt die verstrichene Zeit zurück. Pausiert, während der Tab verborgen ist – ideal für Spiel-Timer und Countdowns.', // ai
   ground_level_tooltip: 'Gibt die Bodenhöhe an der aktuellen x/z-Position zurück.',
   distance_to_tooltip: 'Berechnet den Abstand zwischen zwei Objekten.',
   touching_surface_tooltip: 'Prüft, ob das Objekt eine Oberfläche berührt.\nSchlüsselwort: surface',

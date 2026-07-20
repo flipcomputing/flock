@@ -505,7 +505,7 @@ export default {
     'Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).',
   meshes_touching_tooltip:
     'Returnerar sant om de två valda objekten rör vid varandra.\nKeyword: istouching',
-  time_tooltip: 'Returnerar aktuell tid i sekunder.',
+  time_tooltip: 'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
   ground_level_tooltip: 'Returnerar markhöjden vid aktuell x/z-position.',
   distance_to_tooltip: 'Beräkna avståndet mellan två objekt.',
   touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.\nKeyword: surface',
