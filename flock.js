@@ -869,8 +869,9 @@ export const flock = {
       for (const [key, value] of Object.entries(whitelist)) {
         const t = typeof value;
         if (t === 'function') {
-          // Bind to null so we don't leak host `this`
-          endowments[key] = value.bind(null);
+          // Wrap into the iframe realm: a host-realm fn leaks the untamed host
+          // Function via `.constructor` (sandbox escape). bind(null) drops host `this`.
+          endowments[key] = win.__flockWrapHostFn(value.bind(null));
         } else if (value == null || (t !== 'object' && t !== 'symbol')) {
           // primitives only
           endowments[key] = value;
@@ -879,9 +880,10 @@ export const flock = {
         }
       }
 
-      endowments.performance = {
-        now: win.performance.now.bind(win.performance),
-      };
+      // win.Object, not a host `{}`: a host literal leaks host Function via
+      // obj.constructor.constructor.
+      endowments.performance = new win.Object();
+      endowments.performance.now = win.performance.now.bind(win.performance);
 
       // Host window, not the display:none iframe: Firefox never fires rAF for
       // an unpainted document, so loop yields would hang. The host window
@@ -893,7 +895,8 @@ export const flock = {
         hostRequestAnimationFrame(guard(callback)),
       );
 
-      endowments.Date = { now: win.Date.now.bind(win.Date) };
+      endowments.Date = new win.Object();
+      endowments.Date.now = win.Date.now.bind(win.Date);
 
       // Undefine unwanted globals
       // --- shadow unsafe / unneeded globals ---
