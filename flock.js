@@ -826,6 +826,15 @@ export const flock = {
       sesScript.text = sesText;
       doc.head.appendChild(sesScript);
 
+      // Re-wraps a host-realm fn into this realm; lockdown only tames this
+      // realm, so a raw host fn would leak the untamed Function via
+      // `.constructor` (sandbox escape). Must run before lockdown.
+      const wrapScript = doc.createElement('script');
+      wrapScript.type = 'text/javascript';
+      wrapScript.text =
+        'window.__flockWrapHostFn = (fn) => (...args) => fn(...args);';
+      doc.head.appendChild(wrapScript);
+
       // Lock down the iframe realm. Disable SES's own unhandled-rejection
       // reporter (the SES_UNHANDLED_REJECTION console dump); the win backstop
       // below handles those and routes them to the friendly warn path.
@@ -874,7 +883,15 @@ export const flock = {
         now: win.performance.now.bind(win.performance),
       };
 
-      endowments.requestAnimationFrame = win.requestAnimationFrame.bind(win);
+      // Host window, not the display:none iframe: Firefox never fires rAF for
+      // an unpainted document, so loop yields would hang. The host window
+      // outlives the iframe, so guard the callback (which iframe teardown used
+      // to cancel implicitly) or a stale run's frames fire into the next run.
+      // Wrapped so the endowment carries no host `.constructor`.
+      const hostRequestAnimationFrame = window.requestAnimationFrame.bind(window);
+      endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
+        hostRequestAnimationFrame(guard(callback)),
+      );
 
       endowments.Date = { now: win.Date.now.bind(win.Date) };
 
