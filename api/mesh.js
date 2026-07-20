@@ -817,8 +817,9 @@ export const flockMesh = {
     );
 
     let boxShape;
-    if (modelName && flock.physicsShapeCache?.[modelName]) {
-      boxShape = flock.physicsShapeCache[modelName];
+    const cachedShape = modelName ? flock.physicsShapeCache?.[modelName] : null;
+    if (cachedShape && !cachedShape._isDisposed) {
+      boxShape = cachedShape;
     } else {
       boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
       if (modelName) {

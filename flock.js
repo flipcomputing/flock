@@ -1749,7 +1749,10 @@ export const flock = {
           }
           if (mesh?.dispose && typeof mesh.dispose === 'function') {
             try {
-              mesh.physics?.shape?.dispose();
+              // Shared shapes are disposed via physicsShapeCache below
+              if (!mesh.physics?.shape?._isShared) {
+                mesh.physics?.shape?.dispose();
+              }
               mesh.physics?.dispose();
 
               mesh.dispose();
