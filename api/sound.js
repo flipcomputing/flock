@@ -262,6 +262,26 @@ function audioTimer(context, delayMs, callback) {
   return () => clearTimeout(id);
 }
 
+// Headroom trim + limiter: full-scale square/saw notes would otherwise sum past ±1 and clip.
+const NOTE_HEADROOM = 0.35;
+
+function getNoteBus(context) {
+  const bus = flock._noteBus;
+  if (bus && bus.context === context) return bus.input;
+  const input = context.createGain();
+  input.gain.value = NOTE_HEADROOM;
+  const limiter = context.createDynamicsCompressor();
+  limiter.threshold.value = -6;
+  limiter.knee.value = 6;
+  limiter.ratio.value = 12;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.25;
+  input.connect(limiter);
+  limiter.connect(context.destination);
+  flock._noteBus = { context, input };
+  return input;
+}
+
 export const flockSound = {
   async playSound(
     meshName,
@@ -428,10 +448,7 @@ export const flockSound = {
       instrument = flock.createInstrument("square"),
     } = {},
   ) {
-    // A freshly-initiated playNotes means "play now", so clear any prior stop
-    // request. stopAllSounds sets _audioStopped to abort an in-flight sequence
-    // (caught by the post-setup check below and the per-note loop); it must not
-    // permanently disable future playback until a full scene dispose.
+    // Clear any prior stopAllSounds abort; stop must not disable future playback.
     flock._audioStopped = false;
     notes = notes.map((note) => (note === "_" ? null : note));
     durations = durations.map(Number);
@@ -455,6 +472,8 @@ export const flockSound = {
         bpm = Number(bpm);
         if (!isFinite(bpm) || bpm <= 0) bpm = 60;
 
+        // One time base with lookahead; per-note currentTime reads add jitter.
+        const baseTime = context.currentTime + 0.05;
         let offsetTime = 0;
         for (let i = 0; i < notes.length; i++) {
           const note = notes[i];
@@ -468,7 +487,7 @@ export const flockSound = {
               note,
               duration,
               bpm,
-              context.currentTime + offsetTime,
+              baseTime + offsetTime,
               instrument,
             );
           }
@@ -480,7 +499,7 @@ export const flockSound = {
           (instrument?.attack ?? 0.01) +
           (instrument?.decay ?? 0.1) +
           (instrument?.release ?? 0.2);
-        audioTimer(context, (offsetTime + audioTail + 0.1) * 1000, () => {
+        audioTimer(context, (0.05 + offsetTime + audioTail + 0.1) * 1000, () => {
           if (observer) flock.scene?.onBeforeRenderObservable?.remove(observer);
           resolve();
         });
@@ -488,16 +507,14 @@ export const flockSound = {
     };
 
     if (meshName === "__everywhere__") {
-      // Disconnect any lingering gain from a prior __everywhere__ call immediately.
-      // context.close() is async; an old gain can still feed the destination for a
-      // brief window, producing a comb-filter offset that sounds like echo.
+      // context.close() is async; a lingering prior gain would briefly double the output.
       if (flock._everywhereGain) {
         try { flock._everywhereGain.disconnect(); } catch { /* already detached */ }
         flock._everywhereGain = null;
       }
       const gain = context.createGain();
       flock._everywhereGain = gain;
-      gain.connect(context.destination);
+      gain.connect(getNoteBus(context));
       return scheduleNotes(null, gain, null).then(() => {
         if (flock._everywhereGain === gain) flock._everywhereGain = null;
         try { gain.disconnect(); } catch { /* already detached */ }
@@ -529,7 +546,7 @@ export const flockSound = {
           panner.refDistance = 1;
           panner.maxDistance = 20;
           panner.rolloffFactor = 1;
-          panner.connect(context.destination);
+          panner.connect(getNoteBus(context));
           mesh.onDisposeObservable?.addOnce(() => {
             try { panner.disconnect(); } catch { /* already disconnected */ }
             if (mesh.metadata?.panner === panner) delete mesh.metadata.panner;
@@ -570,7 +587,6 @@ export const flockSound = {
   ) {
     if (!context || context.state === "closed") return;
 
-    // Validate numeric parameters to prevent Web Audio API errors
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
       console.warn("playMidiNote: Invalid parameters", {
         duration,
@@ -580,16 +596,15 @@ export const flockSound = {
       return;
     }
 
-    // Create fresh audio nodes per note so ADSR envelopes don't interfere
+    // Fresh nodes per note so ADSR envelopes don't interfere
     const osc = context.createOscillator();
     const gainNode = context.createGain();
-    gainNode.gain.setValueAtTime(0, context.currentTime); // Start silent to prevent click on first note
+    gainNode.gain.setValueAtTime(0, context.currentTime); // silent until envelope starts
     const panner = mesh.metadata.panner;
 
     osc.type = instrument?.type ?? "sine";
-    osc.frequency.value = flock.midiToFrequency(note); // Convert MIDI note to frequency
+    osc.frequency.value = flock.midiToFrequency(note);
 
-    // Set up LFO effect if specified
     const effect = instrument?.effect ?? "none";
     const effectRate = instrument?.effectRate ?? 5;
     const effectDepth = instrument?.effectDepth ?? 0.5;
@@ -612,14 +627,11 @@ export const flockSound = {
       }
     }
 
-    // Connect the oscillator to the gain node and panner
-    // (panner is already connected to destination by the caller)
     osc.connect(gainNode);
     gainNode.connect(panner);
 
-    const gap = Math.min(0.05, (60 / bpm) * 0.05); // Slightly larger gap
+    const gap = Math.min(0.05, (60 / bpm) * 0.05);
 
-    // Use ADSR from the instrument if available, otherwise use simple defaults
     const volume = instrument?.volume ?? 1.0;
     const attack = instrument?.attack ?? 0.01;
     const decay = instrument?.decay ?? 0.1;
@@ -628,17 +640,13 @@ export const flockSound = {
     const noteDuration = flock.durationInSeconds(duration, bpm);
 
     const startTime = Math.max(playTime, context.currentTime + 0.01);
-    const attackEnd = startTime + attack;
-    const decayEnd = attackEnd + decay;
-    const releaseStart = Math.max(
-      decayEnd,
-      startTime + noteDuration - gap - release,
-    );
-    // Cap the release so a short note can't ring for longer than the note itself.
-    // Without this, a 0.5s note with release=1.0 would extend 1.4s and audibly
-    // bleed over the next notes, especially at full volume (__everywhere__ / inside mesh).
-    const effectiveRelease = Math.min(release, noteDuration);
-    const stopTime = releaseStart + effectiveRelease;
+    // Scale the whole envelope to fit the note slot so tails never ring into the next note.
+    const slot = Math.max(0.02, noteDuration - gap);
+    const envScale = Math.min(1, slot / (attack + decay + release));
+    const attackEnd = startTime + attack * envScale;
+    const decayEnd = attackEnd + decay * envScale;
+    const releaseStart = Math.max(decayEnd, startTime + slot - release * envScale);
+    const stopTime = startTime + slot;
 
     gainNode.gain.cancelScheduledValues(startTime);
     gainNode.gain.setValueAtTime(0, startTime);
@@ -647,21 +655,15 @@ export const flockSound = {
     gainNode.gain.setValueAtTime(sustain * volume, releaseStart);
     gainNode.gain.linearRampToValueAtTime(0, stopTime);
 
-    osc.start(playTime); // Start the note at playTime
-    if (lfo) lfo.start(playTime);
+    // startTime, not playTime — the envelope is clamped to startTime.
+    osc.start(startTime);
+    if (lfo) lfo.start(startTime);
 
-    const oscStopTime =
-      isFinite(stopTime) && stopTime > playTime
-        ? stopTime
-        : Math.max(playTime + 0.001, context.currentTime + 0.02);
-    osc.stop(oscStopTime);
-    if (lfo) lfo.stop(oscStopTime);
+    osc.stop(stopTime);
+    if (lfo) lfo.stop(stopTime);
 
-    // osc.onended is the primary cleanup path; the timer is a fallback for when
-    // the event never fires. The guard ensures disconnect() is called exactly
-    // once — calling it twice throws in older Safari/WebKit.
-    // noteRef is registered in globalSounds so stopAllSounds() can reach these
-    // oscillators directly — previously context.close() was doing that job.
+    // onended cleans up, timer is the fallback; double disconnect throws in older WebKit.
+    // globalSounds registration lets stopAllSounds reach live notes.
     let cleanupDone = false;
     let noteRef;
     let cancelCleanup = () => {};
