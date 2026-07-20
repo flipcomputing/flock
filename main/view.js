@@ -25,7 +25,12 @@ let pendingScrollBlockId = null;
 export function onResize(mode) {
   // First handle canvas and engine
   resizeCanvas();
-  if (flock.engine) flock.engine.resize();
+  // Don't resize the engine against a hidden canvas (0 width in code view);
+  // it would collapse the render buffer. Visibility paths re-resize.
+  const renderCanvas = document.getElementById('renderCanvas');
+  if (flock.engine && renderCanvas && renderCanvas.clientWidth > 0) {
+    flock.engine.resize();
+  }
   // Notify listeners that layout needs updating for the new canvas size.
   window.dispatchEvent(new Event('flock:canvas-resize'));
 
@@ -68,6 +73,9 @@ function resizeCanvas() {
   if (!canvasArea || !canvas) return;
 
   const areaRect = canvasArea.getBoundingClientRect();
+  // Hidden or collapsed (e.g. display:none in narrow-screen code view). Skip so
+  // the buffer isn't shrunk to near-minimum; visibility paths re-resize.
+  if (areaRect.width <= 0 || areaRect.height <= 0) return;
   let areaWidth = Math.max(1, Math.round(areaRect.width));
   let areaHeight = Math.max(1, Math.round(areaRect.height));
 
@@ -669,7 +677,11 @@ const scrollEditingBlockIntoView = () => {
 let _lastViewportHeight = null;
 
 const adjustViewport = () => {
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
+  // Under pinch/auto zoom visualViewport.height shrinks though the layout
+  // viewport hasn't; multiply by scale so --app-height doesn't collapse. At
+  // scale 1 this is identical to the raw height.
+  const vv = window.visualViewport;
+  const viewportHeight = vv ? vv.height * vv.scale : window.innerHeight;
   const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
