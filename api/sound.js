@@ -495,11 +495,10 @@ export const flockSound = {
           offsetTime += flock.durationInSeconds(duration, bpm);
         }
 
-        const audioTail =
-          (instrument?.attack ?? 0.01) +
-          (instrument?.decay ?? 0.1) +
-          (instrument?.release ?? 0.2);
-        audioTimer(context, (0.05 + offsetTime + audioTail + 0.1) * 1000, () => {
+        // Every note is silent by the end of its own slot — playMidiNote scales
+        // the envelope to fit — so waiting out a further attack/decay/release
+        // here would just be dead air before whatever plays next.
+        audioTimer(context, (0.05 + offsetTime + 0.05) * 1000, () => {
           if (observer) flock.scene?.onBeforeRenderObservable?.remove(observer);
           resolve();
         });

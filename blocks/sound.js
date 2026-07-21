@@ -166,6 +166,57 @@ function abcParseFraction(str) {
   return parseFloat(str) || 1;
 }
 
+// Break a w:/W: line into the events that align it to notes: a syllable per
+// note, * to skip a note, _ to hold the previous one, | to jump to the next
+// bar. A trailing - marks a syllable that joins the next one into one word.
+function abcParseLyrics(raw) {
+  const events = [];
+  let syllable = "";
+
+  const flush = (joinNext) => {
+    if (!syllable) return;
+    events.push({ t: "syl", text: syllable, joinNext });
+    syllable = "";
+  };
+
+  for (let i = 0; i < raw.length; i++) {
+    const c = raw[i];
+    if (c === "\\" && raw[i + 1] === "-") { syllable += "-"; i++; }
+    else if (/\s/.test(c)) flush(false);
+    else if (c === "-") flush(true);
+    else if (c === "~") syllable += " ";
+    else if (c === "*") { flush(false); events.push({ t: "skip" }); }
+    else if (c === "_") { flush(false); events.push({ t: "hold" }); }
+    else if (c === "|") { flush(false); events.push({ t: "bar" }); }
+    else syllable += c;
+  }
+  flush(false);
+
+  return events;
+}
+
+// Walk one music line's tokens alongside its lyric events, writing each
+// syllable onto the note that sings it. Rests and bar lines are not sung.
+function abcAssignLyrics(lineTokens, events) {
+  let idx = 0;
+
+  for (const ev of events) {
+    if (ev.t === "bar") {
+      while (idx < lineTokens.length && lineTokens[idx].t !== "bar") idx++;
+      idx++;
+      continue;
+    }
+    while (idx < lineTokens.length && lineTokens[idx].t !== "note") idx++;
+    const note = lineTokens[idx];
+    if (!note) return;
+    if (ev.t === "syl") {
+      note.syl = ev.text;
+      note.joinNext = ev.joinNext;
+    }
+    idx++;
+  }
+}
+
 function parseAbc(abcText) {
   const lines = abcText.split("\n");
   let title = "";
@@ -174,10 +225,12 @@ function parseAbc(abcText) {
   let bpm = 120;
   let keyAcc = {};
   const musicLines = [];
+  const unalignedLyrics = [];
+  let voice = null;
 
   for (const line of lines) {
     const t = line.trim();
-    if (!t) continue;
+    if (!t || t.startsWith("%")) continue;
     const hm = t.match(/^[a-z]*([A-Za-z]):(.*)/);
     if (hm) {
       const [, key, value] = hm;
@@ -185,7 +238,16 @@ function parseAbc(abcText) {
       if (key === "T") title = v;
       else if (key === "C") composer = v;
       else if (key === "L") lFraction = abcParseFraction(v);
-      else if (key === "Q") {
+      else if (key === "w") {
+        // Aligned lyrics belong to the music line just above them; each
+        // further w: line under the same music line is another verse.
+        const target = musicLines[musicLines.length - 1];
+        const events = abcParseLyrics(v);
+        if (target && events.length > 0) target.verses.push(events);
+      } else if (key === "W") {
+        const events = abcParseLyrics(v);
+        if (events.length > 0) unalignedLyrics.push(events);
+      } else if (key === "Q") {
         const qm = v.match(/(\d+)$/);
         if (qm) bpm = parseInt(qm[1]);
       } else if (key === "K") {
@@ -195,85 +257,131 @@ function parseAbc(abcText) {
           : {};
       }
     } else {
-      musicLines.push(t);
+      // [V:2] at the head of a line switches voice, and holds until the next
+      // marker. A tune can carry several parts; only the melody is imported.
+      const vm = t.match(/^\[V:\s*([^\]\s]+)/);
+      if (vm) voice = vm[1];
+      musicLines.push({ text: t, voice, verses: [] });
     }
+  }
+
+  const melodyVoice = musicLines.find((l) => l.voice !== null)?.voice ?? null;
+  const melody =
+    melodyVoice === null
+      ? musicLines
+      : musicLines.filter((l) => l.voice === melodyVoice);
+
+  // W: lines have no alignment of their own, so fall back to one per music
+  // line in order — only when the tune used no aligned lyrics at all.
+  if (unalignedLyrics.length > 0 && !melody.some((l) => l.verses.length)) {
+    unalignedLyrics.forEach((events, idx) => {
+      if (melody[idx]) melody[idx].verses.push(events);
+    });
   }
 
   const fullTitle = composer ? `${title} - ${composer}` : title;
   const noteBase = lFraction * 4;
-  const sections = abcParseSections(musicLines, noteBase, keyAcc);
-  return { title: fullTitle, bpm, sections };
+  const verseCount = Math.max(1, ...melody.map((l) => l.verses.length));
+  // One pass per verse: same notes, different words on them.
+  const verses = Array.from({ length: verseCount }, (_, verseIdx) =>
+    abcParseSections(melody, noteBase, keyAcc, verseIdx),
+  );
+  return { title: fullTitle, bpm, verses };
 }
 
-function abcParseSections(musicLines, noteBase, keyAcc) {
-  const text = musicLines.join(" ").replace(/%[^\n]*/g, "");
+function abcParseSections(musicLines, noteBase, keyAcc, verseIdx = 0) {
   const tokens = [];
-  let i = 0;
 
-  while (i < text.length) {
-    const c = text[i];
-    if (/\s/.test(c)) { i++; continue; }
+  // Tokenise line by line so each line's syllables can be laid onto its notes
+  for (let lineIdx = 0; lineIdx < musicLines.length; lineIdx++) {
+    const verses = musicLines[lineIdx].verses;
+    // A verse whose line is all skips (w:*****) is the chorus: the words are
+    // written out once, under the first verse, and sung again each time.
+    const sung = (events) => events?.some((e) => e.t === "syl");
+    const events = sung(verses[verseIdx]) ? verses[verseIdx] : verses[0];
+    const text = musicLines[lineIdx].text.replace(/%.*/, "");
+    const lineStart = tokens.length;
+    let i = 0;
 
-    if (c === "|") {
-      const n = text[i + 1];
-      if (n === ":") { tokens.push({ t: "rs" }); i += 2; }
-      else if (n === "]") { tokens.push({ t: "bar" }); i += 2; }
-      else if (n === "1") { tokens.push({ t: "v1" }); i += 2; }
-      else if (n === "2") { tokens.push({ t: "v2" }); i += 2; }
-      else if (n === "|") { tokens.push({ t: "bar" }); i += 2; }
-      else { tokens.push({ t: "bar" }); i++; }
-    } else if (c === ":") {
-      if (text[i + 1] === "|") {
-        tokens.push({ t: "re" });
-        i += 2;
-        // Look ahead for volta markers (e.g. :|[1 or :|1)
-        while (i < text.length && /\s/.test(text[i])) i++;
-        if (text[i] === "[" && (text[i + 1] === "1" || text[i + 1] === "2")) {
-          tokens.push({ t: text[i + 1] === "1" ? "v1" : "v2" }); i += 2;
-        } else if (text[i] === "1") {
-          tokens.push({ t: "v1" }); i++;
-        } else if (text[i] === "2") {
-          tokens.push({ t: "v2" }); i++;
-        }
-      } else { i++; }
-    } else if (c === "[") {
-      if (text[i + 1] === "1") { tokens.push({ t: "v1" }); i += 2; }
-      else if (text[i + 1] === "2") { tokens.push({ t: "v2" }); i += 2; }
-      else { i++; }
-    } else {
-      const sub = text.slice(i);
-      const m = sub.match(/^([_^=]*)([A-Ga-gz])([',]*)(\d*)(\/\d*)?/);
-      if (m) {
-        const [full, accStr, letter, octStr, numStr, denomStr] = m;
-        const num = numStr ? parseInt(numStr) : 1;
-        let denom = 1;
-        if (denomStr) denom = denomStr === "/" ? 2 : parseInt(denomStr.slice(1)) || 2;
-        const beats = noteBase * (num / denom);
-        const lo = letter.toLowerCase();
+    while (i < text.length) {
+      const c = text[i];
+      if (/\s/.test(c)) { i++; continue; }
 
-        if (lo === "z" || lo === "x") {
-          tokens.push({ t: "rest", beats });
-        } else {
-          const base = letter.toUpperCase();
-          let midi = ABC_BASE_MIDI[base] + (letter !== letter.toUpperCase() ? 12 : 0);
-          for (const oc of octStr) {
-            if (oc === "'") midi += 12;
-            else if (oc === ",") midi -= 12;
+      // Chord symbols ("G") and decorations (!f!) hold letters that would
+      // otherwise be read as notes, so skip them whole.
+      if (c === '"' || c === "!" || c === "+") {
+        const end = text.indexOf(c, i + 1);
+        i = end === -1 ? text.length : end + 1;
+        continue;
+      }
+
+      if (c === "|") {
+        const n = text[i + 1];
+        if (n === ":") { tokens.push({ t: "rs" }); i += 2; }
+        else if (n === "]") { tokens.push({ t: "bar" }); i += 2; }
+        else if (n === "1") { tokens.push({ t: "v1" }); i += 2; }
+        else if (n === "2") { tokens.push({ t: "v2" }); i += 2; }
+        else if (n === "|") { tokens.push({ t: "bar" }); i += 2; }
+        else { tokens.push({ t: "bar" }); i++; }
+      } else if (c === ":") {
+        if (text[i + 1] === "|") {
+          tokens.push({ t: "re" });
+          i += 2;
+          // Look ahead for volta markers (e.g. :|[1 or :|1)
+          while (i < text.length && /\s/.test(text[i])) i++;
+          if (text[i] === "[" && (text[i + 1] === "1" || text[i + 1] === "2")) {
+            tokens.push({ t: text[i + 1] === "1" ? "v1" : "v2" }); i += 2;
+          } else if (text[i] === "1") {
+            tokens.push({ t: "v1" }); i++;
+          } else if (text[i] === "2") {
+            tokens.push({ t: "v2" }); i++;
           }
-          let acc = 0;
-          let hasAcc = false;
-          if (accStr) {
-            hasAcc = true;
-            for (const a of accStr) {
-              if (a === "^") acc++;
-              else if (a === "_") acc--;
+        } else { i++; }
+      } else if (c === "[") {
+        if (text[i + 1] === "1") { tokens.push({ t: "v1" }); i += 2; }
+        else if (text[i + 1] === "2") { tokens.push({ t: "v2" }); i += 2; }
+        else if (/^\[[A-Za-z]:/.test(text.slice(i))) {
+          // Inline field such as [V:1] — not music
+          const end = text.indexOf("]", i);
+          i = end === -1 ? text.length : end + 1;
+        } else { i++; }
+      } else {
+        const sub = text.slice(i);
+        const m = sub.match(/^([_^=]*)([A-Ga-gz])([',]*)(\d*)(\/\d*)?/);
+        if (m) {
+          const [full, accStr, letter, octStr, numStr, denomStr] = m;
+          const num = numStr ? parseInt(numStr) : 1;
+          let denom = 1;
+          if (denomStr) denom = denomStr === "/" ? 2 : parseInt(denomStr.slice(1)) || 2;
+          const beats = noteBase * (num / denom);
+          const lo = letter.toLowerCase();
+
+          if (lo === "z" || lo === "x") {
+            tokens.push({ t: "rest", beats });
+          } else {
+            const base = letter.toUpperCase();
+            let midi = ABC_BASE_MIDI[base] + (letter !== letter.toUpperCase() ? 12 : 0);
+            for (const oc of octStr) {
+              if (oc === "'") midi += 12;
+              else if (oc === ",") midi -= 12;
             }
+            let acc = 0;
+            let hasAcc = false;
+            if (accStr) {
+              hasAcc = true;
+              for (const a of accStr) {
+                if (a === "^") acc++;
+                else if (a === "_") acc--;
+              }
+            }
+            tokens.push({ t: "note", base, midi, beats, hasAcc, acc, lyricId: lineIdx });
           }
-          tokens.push({ t: "note", base, midi, beats, hasAcc, acc });
-        }
-        i += full.length;
-      } else { i++; }
+          i += full.length;
+        } else { i++; }
+      }
     }
+
+    if (events) abcAssignLyrics(tokens.slice(lineStart), events);
   }
 
   // State machine: parse tokens into sections
@@ -303,7 +411,13 @@ function abcParseSections(musicLines, noteBase, keyAcc) {
     } else if (keyAcc[tok.base] !== undefined) {
       midiAcc = keyAcc[tok.base];
     }
-    currentBar.push({ midi: tok.midi + midiAcc, beats: tok.beats });
+    currentBar.push({
+      midi: tok.midi + midiAcc,
+      beats: tok.beats,
+      syl: tok.syl,
+      joinNext: tok.joinNext,
+      lyricId: tok.lyricId,
+    });
   };
 
   for (let tokIdx = 0; tokIdx < tokens.length; tokIdx++) {
@@ -491,6 +605,111 @@ function propagateInstrument(block, instrumentState) {
   }
 }
 
+function makeTextBlock(ws, value) {
+  const b = ws.newBlock("text");
+  b.setFieldValue(value, "TEXT");
+  b.initSvg();
+  b.render();
+  return b;
+}
+
+function buildSubtitleBlock(ws, words, seconds) {
+  const b = ws.newBlock("subtitle");
+  b.initSvg();
+  b.render();
+  b.getInput("TEXT").connection.connect(makeTextBlock(ws, words).outputConnection);
+  b.getInput("DURATION").connection.connect(makeNumBlock(ws, seconds).outputConnection);
+  return b;
+}
+
+// A caption shorter than this reads as a flash, so bars keep being added to it.
+const MIN_CAPTION_WORDS = 4;
+// Shorter than this at the end of a lyric line and it joins the phrase before.
+const TAIL_CAPTION_WORDS = 3;
+
+// Join the syllables sung across a run of bars back into words: a syllable
+// marked joinNext runs straight into the one after it (mid-word hyphen).
+function barsCaption(bars) {
+  let text = "";
+  let join = false;
+  for (const bar of bars) {
+    for (const note of bar) {
+      if (!note.syl) continue;
+      if (text && !join) text += " ";
+      text += note.syl;
+      join = note.joinNext;
+    }
+  }
+  return text;
+}
+
+function captionWordCount(bars) {
+  const caption = barsCaption(bars);
+  return caption ? caption.split(" ").length : 0;
+}
+
+// Build the statement chain for a run of bars, split into subtitle + play
+// pairs: a new caption starts when the lyric line changes or once the running
+// caption is long enough to read. Returns the first and last block of the
+// chain, or null if there is nothing to play.
+function buildPlayChain(ws, bars, meshName, speed) {
+  const validBars = (bars || []).filter((b) => b && b.length > 0);
+  if (validBars.length === 0) return null;
+
+  const groups = [];
+  for (const bar of validBars) {
+    // A bar with no words of its own extends the run it follows, so the last
+    // caption stays up through instrumental bars and lyric-free tunes still
+    // play as a single block.
+    const sung = bar.find((n) => n.syl);
+    const lyricId = sung ? sung.lyricId : null;
+    const prev = groups[groups.length - 1];
+    const sameLine = prev && prev.lyricId === lyricId;
+    if (prev && !sung) {
+      prev.bars.push(bar);
+    } else if (sameLine && captionWordCount(prev.bars) < MIN_CAPTION_WORDS) {
+      prev.bars.push(bar);
+    } else {
+      groups.push({ lyricId, bars: [bar] });
+    }
+  }
+
+  // A tail of a word or two belongs with the phrase before it
+  for (let g = groups.length - 1; g > 0; g--) {
+    const words = captionWordCount(groups[g].bars);
+    if (words > 0 && words < TAIL_CAPTION_WORDS && groups[g - 1].lyricId === groups[g].lyricId) {
+      groups[g - 1].bars.push(...groups[g].bars);
+      groups.splice(g, 1);
+    }
+  }
+
+  let first = null;
+  let last = null;
+
+  for (const group of groups) {
+    const playBlock = buildPlayBlock(ws, group.bars, meshName);
+    if (!playBlock) continue;
+
+    const caption = barsCaption(group.bars);
+    let head = playBlock;
+    if (caption && speed > 0) {
+      const beats = group.bars.reduce(
+        (total, bar) => total + bar.reduce((sum, note) => sum + note.beats, 0),
+        0,
+      );
+      const seconds = Math.round((beats / speed) * 1000) / 1000;
+      head = buildSubtitleBlock(ws, caption, seconds);
+      head.nextConnection.connect(playBlock.previousConnection);
+    }
+
+    if (last) last.nextConnection.connect(head.previousConnection);
+    else first = head;
+    last = playBlock;
+  }
+
+  return first ? { first, last } : null;
+}
+
 function makeNumBlock(ws, value) {
   const b = ws.newBlock("math_number");
   b.setFieldValue(String(value), "NUM");
@@ -499,8 +718,10 @@ function makeNumBlock(ws, value) {
   return b;
 }
 
-function abcBuildDoBlocks(ws, doInput, sections, bpm, meshName) {
-  const hasBars = sections.some((s) =>
+// verses holds one set of sections per w: verse — the same notes each time,
+// carrying that verse's words, so the tune body is laid out once per verse.
+function abcBuildDoBlocks(ws, doInput, verses, bpm, meshName) {
+  const hasBars = verses[0]?.some((s) =>
     s.type === "plain" ? s.bars?.length > 0 :
     s.type === "repeat" ? s.bars?.length > 0 :
     (s.commonBars?.length > 0 || s.firstBars?.length > 0 || s.secondBars?.length > 0)
@@ -519,12 +740,12 @@ function abcBuildDoBlocks(ws, doInput, sections, bpm, meshName) {
 
   let prevNext = speedBlock.nextConnection;
 
-  for (const section of sections) {
+  for (const section of verses.flat()) {
     if (section.type === "plain") {
-      const playBlock = buildPlayBlock(ws, section.bars, meshName);
-      if (!playBlock) continue;
-      prevNext.connect(playBlock.previousConnection);
-      prevNext = playBlock.nextConnection;
+      const chain = buildPlayChain(ws, section.bars, meshName, speed);
+      if (!chain) continue;
+      prevNext.connect(chain.first.previousConnection);
+      prevNext = chain.last.nextConnection;
 
     } else if (section.type === "repeat") {
       const repeatBlock = ws.newBlock("controls_repeat_ext");
@@ -532,9 +753,9 @@ function abcBuildDoBlocks(ws, doInput, sections, bpm, meshName) {
       repeatBlock.render();
       repeatBlock.getInput("TIMES").connection.connect(makeNumBlock(ws, 2).outputConnection);
 
-      const playBlock = buildPlayBlock(ws, section.bars, meshName);
-      if (playBlock) {
-        repeatBlock.getInput("DO").connection.connect(playBlock.previousConnection);
+      const chain = buildPlayChain(ws, section.bars, meshName, speed);
+      if (chain) {
+        repeatBlock.getInput("DO").connection.connect(chain.first.previousConnection);
       }
 
       prevNext.connect(repeatBlock.previousConnection);
@@ -571,20 +792,20 @@ function abcBuildDoBlocks(ws, doInput, sections, bpm, meshName) {
       compareBlock.getInput("B").connection.connect(makeNumBlock(ws, 1).outputConnection);
       ifBlock.getInput("IF0").connection.connect(compareBlock.outputConnection);
 
-      const firstPlay = buildPlayBlock(ws, section.firstBars, meshName);
-      if (firstPlay) {
-        ifBlock.getInput("DO0").connection.connect(firstPlay.previousConnection);
+      const firstChain = buildPlayChain(ws, section.firstBars, meshName, speed);
+      if (firstChain) {
+        ifBlock.getInput("DO0").connection.connect(firstChain.first.previousConnection);
       }
 
-      const secondPlay = buildPlayBlock(ws, section.secondBars, meshName);
-      if (secondPlay) {
-        ifBlock.getInput("ELSE").connection.connect(secondPlay.previousConnection);
+      const secondChain = buildPlayChain(ws, section.secondBars, meshName, speed);
+      if (secondChain) {
+        ifBlock.getInput("ELSE").connection.connect(secondChain.first.previousConnection);
       }
 
-      const commonPlay = buildPlayBlock(ws, section.commonBars, meshName);
-      const doFirst = commonPlay || ifBlock;
-      if (commonPlay) {
-        commonPlay.nextConnection.connect(ifBlock.previousConnection);
+      const commonChain = buildPlayChain(ws, section.commonBars, meshName, speed);
+      const doFirst = commonChain ? commonChain.first : ifBlock;
+      if (commonChain) {
+        commonChain.last.nextConnection.connect(ifBlock.previousConnection);
       }
       forBlock.getInput("DO").connection.connect(doFirst.previousConnection);
 
@@ -1303,7 +1524,7 @@ export function defineSoundBlocks() {
         return;
       }
       const parsed = parseAbc(abcText);
-      console.log("[play_tune] importing:", parsed.title, "sections:", parsed.sections.length, "bpm:", parsed.bpm);
+      console.log("[play_tune] importing:", parsed.title, "verses:", parsed.verses.length, "sections:", parsed.verses[0].length, "bpm:", parsed.bpm);
 
       Blockly.Events.setGroup(true);
       try {
@@ -1319,7 +1540,7 @@ export function defineSoundBlocks() {
           if (existing) existing.dispose(false);
 
           try {
-            abcBuildDoBlocks(ws, doInput, parsed.sections, parsed.bpm, meshName);
+            abcBuildDoBlocks(ws, doInput, parsed.verses, parsed.bpm, meshName);
           } catch (e) {
             console.error("[play_tune] DO block creation failed:", e);
           }
