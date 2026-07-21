@@ -365,18 +365,14 @@ const GizmoMenuManager = {
         return { entry, rect: el.getBoundingClientRect() };
       })
       .filter(Boolean);
-    // When the buttons wrap into multiple rows (portrait), a below-button badge
-    // sits on top of the next row's buttons — so only the bottom row keeps its
-    // badge below; every row above it gets the badge placed above instead.
+    // If badges span two rows, put top row badges on top
     const bottomRowTop = Math.max(...visible.map(({ rect }) => rect.top));
     visible.forEach(({ entry, rect }) => {
       const badge = document.createElement('div');
       badge.className = 'gizmo-key-badge';
       badge.innerText = entry.label;
       const isBottomRow = rect.top >= bottomRowTop - rect.height / 2;
-      badge.style.top = isBottomRow
-        ? `${rect.top + rect.height + 8}px`
-        : `${rect.top - 8}px`;
+      badge.style.top = isBottomRow ? `${rect.top + rect.height + 8}px` : `${rect.top - 8}px`;
       badge.style.left = `${rect.left + rect.width / 2}px`;
       container.appendChild(badge);
     });
