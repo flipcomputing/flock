@@ -2010,9 +2010,9 @@ body.color-picker-open #renderCanvas {
     right: 0;
     top: 100%; /* directly below the toolbar */
     bottom: auto;
-    /* top:100% lands below the toolbar's 25px bottom padding, leaving a wide
-       gap; pull the menu back up to sit just under the buttons. */
-    margin-top: -20px;
+    /* Pull back up past the bar's 25px bottom padding and the .gizmo-status
+       block below the buttons (24px margin + 3.2rem) to sit just under them. */
+    margin-top: calc(-44px - 3.2rem);
     width: auto;
     max-width: 100%;
     padding: 10px; /* symmetric so the grey side gaps match */
