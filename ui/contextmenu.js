@@ -27,6 +27,18 @@ function renderShortcut(label, shortcut) {
   return wrapper;
 }
 
+// Hide separators with no items between them
+function collapseSeparators(options) {
+  if (!Array.isArray(options)) return options;
+  const out = [];
+  for (const option of options) {
+    if (!option?.separator) out.push(option);
+    else if (out.length && !out[out.length - 1].separator) out.push(option);
+  }
+  while (out.length && out[out.length - 1].separator) out.pop();
+  return out;
+}
+
 export function initContextMenus(workspace) {
   // ------- Pointer tracking for "paste at pointer" -------
   let lastCM = { x: 0, y: 0 };
@@ -192,8 +204,7 @@ export function initContextMenus(workspace) {
 
     const origDisplayText = item.displayText;
     item.displayText = (scope) => {
-      const text =
-        typeof origDisplayText === 'function' ? origDisplayText(scope) : origDisplayText;
+      const text = typeof origDisplayText === 'function' ? origDisplayText(scope) : origDisplayText;
       const hasComment = scope?.block?.getCommentText?.() != null;
       return renderShortcut(text, hasComment ? 'Shift+K' : 'K');
     };
@@ -423,6 +434,26 @@ export function initContextMenus(workspace) {
     }
   })();
 
+  // Drop separators left stranded
+  (function filterStrandedSeparators() {
+    const proto = Blockly.BlockSvg.prototype;
+    if (!proto.__flockSeparatorFilter) {
+      const origGenerate = proto.generateContextMenu;
+      proto.generateContextMenu = function (...args) {
+        return collapseSeparators(origGenerate.apply(this, args));
+      };
+      proto.__flockSeparatorFilter = true;
+    }
+
+    // Workspace scope has no equivalent method; configureContextMenu is the
+    // documented hook and mutates the array in place.
+    const origConfigure = workspace.configureContextMenu;
+    workspace.configureContextMenu = function (options, e) {
+      origConfigure?.call(this, options, e);
+      options.splice(0, options.length, ...collapseSeparators(options));
+    };
+  })();
+
   // ===== OVERRIDE CLIPBOARD METHODS =====
   const origCopy = Blockly.clipboard.copy;
   const origToastShow = Blockly.Toast?.show;
@@ -493,38 +524,6 @@ export function initContextMenus(workspace) {
   }
 
   const host = workspace.getInjectionDiv() || document;
-  let __fcLastPointer = { x: 0, y: 0 };
-  let __fcLastPointerType = 'mouse'; // 'mouse' | 'touch' | 'pen'
-  let __fcMenuPoint = null;
-  let __fcMenuPointerType = 'mouse';
-
-  host.addEventListener(
-    'pointerdown',
-    (e) => {
-      if (!e.isPrimary) return;
-      __fcLastPointer = { x: e.clientX, y: e.clientY };
-      __fcLastPointerType = e.pointerType || 'mouse';
-    },
-    { capture: true }
-  );
-
-  host.addEventListener(
-    'pointermove',
-    (e) => {
-      if (!e.isPrimary) return;
-      __fcLastPointer = { x: e.clientX, y: e.clientY };
-      __fcLastPointerType = e.pointerType || __fcLastPointerType;
-    },
-    { capture: true }
-  );
-
-  // Capture the *actual* coordinates that opened the context menu (works for long-press)
-  const __origShow = Blockly.ContextMenu.show;
-  Blockly.ContextMenu.show = function (e, options, rtl) {
-    __fcMenuPoint = { x: e.clientX, y: e.clientY };
-    __fcMenuPointerType = e.pointerType || __fcLastPointerType || 'mouse';
-    return __origShow.call(Blockly.ContextMenu, e, options, rtl);
-  };
   host.addEventListener(
     'contextmenu',
     (e) => {
@@ -988,7 +987,9 @@ export function initContextMenus(workspace) {
       }
       let meshRoot = mesh;
       while (meshRoot?.parent) meshRoot = meshRoot.parent;
-      const exitMode = !!window.orbitViewActive && (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
+      const exitMode =
+        !!window.orbitViewActive &&
+        (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
       viewBtn.innerHTML = exitMode ? viewExitSvg : viewEnterSvg;
       viewBtn.setAttribute(
         'aria-label',
