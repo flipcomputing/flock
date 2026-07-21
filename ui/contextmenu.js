@@ -884,10 +884,20 @@ export function initContextMenus(workspace) {
       };
     }
 
+    // Play mode hides #codePanel without deselecting the block (main/view.js).
+    const workspaceIsVisible = () => {
+      const div = workspace.getInjectionDiv?.();
+      return !!div && div.clientWidth > 0 && div.clientHeight > 0;
+    };
+
     function positionBlockToolbar() {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
+      if (!workspaceIsVisible()) {
+        hideBlockToolbar();
+        return;
+      }
       const rect = getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
       const blockCenterX = Math.round(rect.left + rect.width / 2);
       blockToolbar.style.left = `${blockCenterX}px`;
@@ -1005,6 +1015,8 @@ export function initContextMenus(workspace) {
       blockToolbar.classList.remove('visible');
       clearBadges();
     }
+
+    window.flockBlockToolbar = { hide: hideBlockToolbar };
 
     const isToolbarBlock = (block) => block && !block.isInFlyout && !block.isShadow();
 

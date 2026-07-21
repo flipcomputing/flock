@@ -13,6 +13,7 @@ export function runContextMenuTests(_flock) {
     let container;
     let createdBlocks;
     let previousMainWorkspace;
+    let blockToolbar;
 
     before(function () {
       // The full app registers block types during its Blockly-init sequence,
@@ -30,6 +31,8 @@ export function runContextMenuTests(_flock) {
       document.body.appendChild(container);
       workspace = Blockly.inject(container, { collapse: true });
       initContextMenus(workspace);
+      // initContextMenus appends its toolbar to <body>; ours is the newest.
+      blockToolbar = [...document.querySelectorAll('.fc-block-toolbar')].pop();
     });
 
     after(function () {
@@ -270,6 +273,36 @@ export function runContextMenuTests(_flock) {
 
         // It should have landed connected below the target, not floating loose.
         expect(target.nextConnection.isConnected()).to.equal(true);
+      });
+    });
+
+    describe('floating block toolbar', function () {
+      // Blockly fires its change events asynchronously.
+      const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+      it('dismisses itself when repositioned against a collapsed workspace', async function () {
+        const block = makeBlock();
+        // Keyboard modality shows the toolbar at once; pointer waits for a hover.
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+        block.select();
+        await flush();
+        expect(blockToolbar.classList.contains('visible')).to.equal(true);
+
+        // Collapse rather than display:none — the toolbar survives this, so the
+        // dismissal below is the visibility guard rather than a Blockly deselect.
+        container.style.width = '0px';
+        container.style.height = '0px';
+        try {
+          await flush();
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+
+          block.moveBy(1, 1); // any event that repositions the toolbar
+          await flush();
+          expect(blockToolbar.classList.contains('visible')).to.equal(false);
+        } finally {
+          container.style.width = '300px';
+          container.style.height = '200px';
+        }
       });
     });
   });

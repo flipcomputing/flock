@@ -548,6 +548,7 @@ export function togglePlayMode() {
       window.flockShortcutsPanel?.panel?.classList.contains('hidden') ?? true
     );
     window.flockShortcutsPanel?.hide();
+    window.flockBlockToolbar?.hide();
     blocklyArea.style.display = 'none';
     gizmoButtons.style.display = 'none';
     bottomBar.style.display = 'none';
