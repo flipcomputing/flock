@@ -2299,8 +2299,10 @@ kbd {
   box-sizing: border-box;
 }
 
-#info-panel-tabs #flocklink {
-  order: 999;
+#info-panel-tablist {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 #info-panel-body {
