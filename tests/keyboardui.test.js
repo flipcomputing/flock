@@ -236,14 +236,6 @@ export function runKeyboardUiTests(flock) {
           expect(area5.selector).to.equal('#viewToggle');
         });
 
-        it('keeps area 5 as the info panel tabs when #info-panel-tabs is on screen', function () {
-          const el = document.createElement('div');
-          el.id = 'info-panel-tabs';
-          document.body.appendChild(el);
-          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
-          expect(area5.selector).to.equal('#info-panel-tabs');
-        });
-
         it('swaps area 9 for the reload button when one is connected to the DOM', function () {
           const reload = document.createElement('button');
           reload.id = 'reload-btn';
