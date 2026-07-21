@@ -1077,12 +1077,6 @@ function handleShapeMenuKeydown(event) {
 function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
-  // The gizmo overlay shows number-key badges as a keyboard-placement aid.
-  // In the narrow/mobile view there's no keyboard and it would just cover the
-  // 2-row toolbar, so only open it on the wide desktop layout.
-  if (window.innerWidth > 1024) {
-    GizmoMenuManager.toggle(true);
-  }
   const isValidHit = (x, y) =>
     !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
 
