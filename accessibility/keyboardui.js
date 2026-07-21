@@ -666,7 +666,7 @@ const InfoPanel = {
 
   init() {
     this._el = document.getElementById('info-panel');
-    this._tablist = document.getElementById('info-panel-tabs');
+    this._tablist = document.getElementById('info-panel-tablist');
     this._body = document.getElementById('info-panel-body');
   },
 

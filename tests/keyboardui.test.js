@@ -267,7 +267,8 @@ export function runKeyboardUiTests(flock) {
         // and initialize them here, the same way main.js's bootstrap does.
         panelRoot = document.createElement('div');
         panelRoot.innerHTML =
-          '<div id="info-panel"><div id="info-panel-tabs" role="tablist"></div>' +
+          '<div id="info-panel"><div id="info-panel-tabs">' +
+          '<div id="info-panel-tablist" role="tablist"></div></div>' +
           '<div id="info-panel-body"></div></div>';
         document.body.appendChild(panelRoot);
         InfoPanel.init();
