@@ -33,9 +33,9 @@ function collapseSeparators(options) {
   const out = [];
   for (const option of options) {
     if (!option?.separator) out.push(option);
-    else if (out.length && !out[out.length - 1].separator) out.push(option);
+    else if (out.length && !out[out.length - 1]?.separator) out.push(option);
   }
-  while (out.length && out[out.length - 1].separator) out.pop();
+  while (out.length && out[out.length - 1]?.separator) out.pop();
   return out;
 }
 
