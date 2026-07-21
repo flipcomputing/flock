@@ -358,14 +358,25 @@ const GizmoMenuManager = {
   renderBadges() {
     const container = document.getElementById('gizmo-menu-content');
     container.innerHTML = '';
-    this.buttons.forEach((entry) => {
-      const el = document.getElementById(entry.id);
-      if (!el || el.offsetParent === null) return;
-      const rect = el.getBoundingClientRect();
+    const visible = this.buttons
+      .map((entry) => {
+        const el = document.getElementById(entry.id);
+        if (!el || el.offsetParent === null) return null;
+        return { entry, rect: el.getBoundingClientRect() };
+      })
+      .filter(Boolean);
+    // When the buttons wrap into multiple rows (portrait), a below-button badge
+    // sits on top of the next row's buttons — so only the bottom row keeps its
+    // badge below; every row above it gets the badge placed above instead.
+    const bottomRowTop = Math.max(...visible.map(({ rect }) => rect.top));
+    visible.forEach(({ entry, rect }) => {
       const badge = document.createElement('div');
       badge.className = 'gizmo-key-badge';
       badge.innerText = entry.label;
-      badge.style.top = `${rect.top + rect.height + 8}px`;
+      const isBottomRow = rect.top >= bottomRowTop - rect.height / 2;
+      badge.style.top = isBottomRow
+        ? `${rect.top + rect.height + 8}px`
+        : `${rect.top - 8}px`;
       badge.style.left = `${rect.left + rect.width / 2}px`;
       container.appendChild(badge);
     });
