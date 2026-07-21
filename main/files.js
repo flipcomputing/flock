@@ -4,6 +4,31 @@ import { translate } from "./translation.js";
 import { getMetadata } from "meta-png";
 import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from "../config.js";
 
+// Limits applied to every project source — file, drag-and-drop and fetched URL.
+const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
+
+// Typed so callers can pick the right alert without matching message strings.
+class ProjectTooLargeError extends Error {
+  constructor() {
+    super("File content is too large");
+    this.name = "ProjectTooLargeError";
+  }
+}
+
+class ProjectReadError extends Error {
+  constructor(options) {
+    super("Failed to read project file", options);
+    this.name = "ProjectReadError";
+  }
+}
+
+function alertKeyForProjectError(error) {
+  if (error instanceof ProjectTooLargeError) return "file_too_large_alert";
+  if (error instanceof ProjectReadError) return "failed_to_read_file_alert";
+  return "invalid_project_alert";
+}
+
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
   try {
@@ -317,33 +342,21 @@ function validateBlocklyJson(json) {
 }
 
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
+  if (!workspace || !json) {
+    throw new Error("Invalid workspace or json data.");
+  }
+
+  // Validation failures propagate to the caller; the catch below is only for a
+  // workspace that broke mid-load, never for rejected JSON.
+  const validatedJson = validateBlocklyJson(json);
+
   try {
-    if (!workspace || !json) {
-      throw new Error("Invalid workspace or json data.");
-    }
-
-    // Validate JSON before loading into workspace
-    const validatedJson = validateBlocklyJson(json);
-
-     // Load the validated JSON
     Blockly.serialization.workspaces.load(validatedJson, workspace);
 
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas: false });
   } catch (error) {
     console.error("Failed to load workspace:", error);
-
-    // Handle validation errors
-    if (
-      error.message.includes("Suspicious content") ||
-      error.message.includes("Dangerous property") ||
-      error.message.includes("Invalid Blockly structure")
-    ) {
-      console.error(
-        "Security validation failed - JSON may contain malicious content",
-      );
-      throw error; // Re-throw security errors - don't try to recover
-    }
 
     // Handle corruption errors
     if (error.message.includes("isDeadOrDying")) {
@@ -381,19 +394,58 @@ function parseProjectJsonResponse(response) {
       );
     }
 
-    try {
-      return JSON.parse(projectText);
-    } catch (error) {
-      throw new Error(
-        `Failed to parse project JSON from ${contentType || "unknown content type"}`,
-        { cause: error },
-      );
-    }
+    return parseProjectText(projectText, {
+      describeParseError: `Failed to parse project JSON from ${contentType || "unknown content type"}`,
+    });
   });
 }
 
 export function fetchProjectJson(projectPath) {
   return fetch(projectPath).then(parseProjectJsonResponse);
+}
+
+// Parses project text into validated Blockly JSON: enforces the size limit,
+// parses, and checks the structure. Throws on any failure.
+function parseProjectText(text, { describeParseError } = {}) {
+  if (typeof text !== "string") {
+    throw new Error("File content is invalid (not a string)");
+  }
+  if (text.length > MAX_PROJECT_TEXT_LENGTH) {
+    throw new ProjectTooLargeError();
+  }
+
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch (error) {
+    throw describeParseError
+      ? new Error(describeParseError, { cause: error })
+      : error;
+  }
+
+  if (!isValidProjectFileJson(json)) {
+    throw new Error("Invalid Blockly project file structure");
+  }
+
+  return json;
+}
+
+// Same route for File sources: size check and read, then parseProjectText.
+async function readProjectFile(file) {
+  if (file.size > MAX_PROJECT_FILE_BYTES) {
+    throw new ProjectTooLargeError();
+  }
+
+  let text;
+  try {
+    text = await file.text();
+  } catch (error) {
+    throw new ProjectReadError({ cause: error });
+  }
+
+  return parseProjectText(text, {
+    describeParseError: `Failed to parse project file: ${file.name}`,
+  });
 }
 
 // Function to load workspace from various sources
@@ -463,11 +515,16 @@ export function loadWorkspace(workspace, executeCallback) {
         });
     }
   } else if (savedState) {
-    loadWorkspaceAndExecute(
-      JSON.parse(savedState),
-      workspace,
-      effectiveCallback,
-    );
+    try {
+      loadWorkspaceAndExecute(
+        parseProjectText(savedState),
+        workspace,
+        effectiveCallback,
+      );
+    } catch (error) {
+      console.error("Error loading autosaved project:", error);
+      loadStarter();
+    }
   } else {
     loadStarter();
   }
@@ -698,9 +755,7 @@ function handlePNGImport(content) {
     }
 
     const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
-    const validatedBlocks = validateSnippetBlocks(decodedMetadata);
-    const workspace = Blockly.getMainWorkspace();
-    appendSnippetBlocksAtViewport(workspace, validatedBlocks);
+    appendSnippetAtViewport(Blockly.getMainWorkspace(), decodedMetadata);
   } catch (error) {
     console.error("Error processing PNG metadata:", error);
   }
@@ -710,16 +765,15 @@ function handlePNGImport(content) {
 function handleJSONImport(content) {
   try {
     const blockJson = JSON.parse(content);
-    const validatedBlocks = validateSnippetBlocks(blockJson);
-    const workspace = Blockly.getMainWorkspace();
-    appendSnippetBlocksAtViewport(workspace, validatedBlocks);
+    appendSnippetAtViewport(Blockly.getMainWorkspace(), blockJson);
   } catch (error) {
     console.error("Error processing JSON file:", error);
   }
 }
 
-// Validate snippet content before appending to the workspace
-function validateSnippetBlocks(snippetData) {
+// The one intake route for snippets: validates its own input, so appending
+// unvalidated blocks isn't reachable through a wrong-helper call.
+function appendSnippetAtViewport(workspace, snippetData) {
   if (!snippetData) {
     throw new Error("Snippet data is empty or undefined");
   }
@@ -729,17 +783,9 @@ function validateSnippetBlocks(snippetData) {
     snippetData?.blocks?.blocks ??
     (Array.isArray(snippetData) ? snippetData : [snippetData]);
 
-  const wrappedWorkspace = {
-    blocks: {
-      blocks,
-    },
-  };
+  const validated = validateBlocklyJson({ blocks: { blocks } });
+  const blocksJson = validated.blocks.blocks;
 
-  const validated = validateBlocklyJson(wrappedWorkspace);
-  return validated.blocks.blocks;
-}
-
-function appendSnippetBlocksAtViewport(workspace, blocksJson) {
   // Capture the set of existing top blocks so we can detect new ones.
   const before = new Set(workspace.getTopBlocks(false).map((b) => b.id));
 
@@ -783,49 +829,25 @@ function isValidProjectFileJson(json) {
 
 // Private helper: process a project file (used by file input and drag-and-drop)
 function processProjectFileDrop(file, workspace, executeCallback) {
-  const maxSize = 5 * 1024 * 1024;
-  if (file.size > maxSize) {
-    alert(translate("file_too_large_alert"));
-    return;
-  }
-
   const lowerName = file.name.toLowerCase();
   if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
     alert(translate("invalid_filetype_alert"));
     return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function () {
-    window.loadingCode = true;
-    try {
-      const text = reader.result;
-      if (typeof text !== "string") {
-        throw new Error("File content is invalid (not a string)");
-      }
-      if (text.length > 4 * 1024 * 1024) {
-        throw new Error("File content is too large");
-      }
-      const json = JSON.parse(text);
-      if (!isValidProjectFileJson(json)) {
-        throw new Error("Invalid Blockly project file structure");
-      }
-
+  window.loadingCode = true;
+  readProjectFile(file)
+    .then((json) => {
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
-    } catch (e) {
-      console.error("Error loading Blockly project:", e);
-      alert(translate("invalid_project_alert"));
+    })
+    .catch((error) => {
+      console.error("Error loading Blockly project:", error);
+      alert(translate(alertKeyForProjectError(error)));
       window.loadingCode = false;
-    }
-  };
-  reader.onerror = function () {
-    alert(translate("failed_to_read_file_alert"));
-    window.loadingCode = false;
-  };
-  reader.readAsText(file);
+    });
 }
 
 // Private helper: process a dropped snippet or PNG file
@@ -925,13 +947,6 @@ export function setupFileInput(workspace, executeCallback) {
     const file = event.target.files[0];
     if (!file) return;
 
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert(translate("file_too_large_alert"));
-      event.target.value = ""; // Reset the input
-      return;
-    }
-
     const lowerName = file.name.toLowerCase();
     if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
       alert(translate("invalid_filetype_alert"));
@@ -939,42 +954,24 @@ export function setupFileInput(workspace, executeCallback) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = function () {
-      window.loadingCode = true;
-      try {
-        const text = reader.result;
-        if (typeof text !== "string") {
-          throw new Error("File content is invalid (not a string)");
-        }
-        if (text.length > 4 * 1024 * 1024) {
-          throw new Error("File content is too large");
-        }
-        const json = JSON.parse(text);
-        if (!isValidProjectFileJson(json)) {
-          throw new Error("Invalid Blockly project file structure");
-        }
-
+    window.loadingCode = true;
+    readProjectFile(file)
+      .then((json) => {
         document.getElementById("projectName").value =
           getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
-      } catch (e) {
-        console.error("Error loading Blockly project:", e);
-        alert(translate("invalid_project_alert"));
+      })
+      .catch((error) => {
+        console.error("Error loading Blockly project:", error);
+        alert(translate(alertKeyForProjectError(error)));
         window.loadingCode = false;
-      } finally {
+      })
+      .finally(() => {
         // Reset the input so the same file can be selected again
         event.target.value = "";
-      }
-    };
-    reader.onerror = function () {
-      alert(translate("failed_to_read_file_alert"));
-      window.loadingCode = false;
-      event.target.value = ""; // Reset the input
-    };
-    reader.readAsText(file);
+      });
   });
 }
 
@@ -995,18 +992,7 @@ export async function openFile(workspace, executeCallback) {
         ],
       });
       const file = await fileHandle.getFile();
-      if (file.size > 5 * 1024 * 1024) {
-        alert(translate("file_too_large_alert"));
-        return;
-      }
-      const text = await file.text();
-      if (text.length > 4 * 1024 * 1024) {
-        throw new Error("File content is too large");
-      }
-      const json = JSON.parse(text);
-      if (!isValidProjectFileJson(json)) {
-        throw new Error("Invalid Blockly project file structure");
-      }
+      const json = await readProjectFile(file);
       window.loadingCode = true;
       document.getElementById("projectName").value =
         getSafeImportedFileBaseName(file.name);
@@ -1015,11 +1001,7 @@ export async function openFile(workspace, executeCallback) {
     } catch (e) {
       if (e.name === "AbortError") return;
       console.error("Error opening file:", e);
-      if (e.message === "File content is too large") {
-        alert(translate("file_too_large_alert"));
-      } else {
-        alert(translate("invalid_project_alert"));
-      }
+      alert(translate(alertKeyForProjectError(e)));
       window.loadingCode = false;
     }
   } else {
