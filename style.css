@@ -2055,6 +2055,19 @@ body.color-picker-open #renderCanvas {
   }
 }
 
+/* A narrow canvas panel has no grey margin beside the tiles to hold the
+   chevrons, and #canvasArea would clip them, so bring them back inside. */
+@media (min-width: 601px) {
+  @container (max-width: 440px) {
+    .scrollable-container .scroll-button.left {
+      left: 0;
+    }
+    .scrollable-container .scroll-button.right {
+      right: 0;
+    }
+  }
+}
+
 /* Landscape: open rightward from the plus button, across the rest of the
    toolbar and the grey space beyond it, so the canvas stays clear. #shape-menu
    goes static so the popup resolves against #gizmoButtons, whose left edge is
