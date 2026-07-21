@@ -542,9 +542,7 @@ button {
   background: transparent;
   color: #ffffff;
   cursor: pointer;
-  transition:
-    transform 0.12s ease,
-    color 0.12s ease;
+  transition: transform 0.12s ease, color 0.12s ease;
 }
 
 .canvas-stopped-overlay__play .icon,
@@ -589,7 +587,6 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  container-type: inline-size;
 }
 
 #codePanel {
@@ -774,8 +771,15 @@ button {
   background-color: var(--color-focus);
 }
 
-/* Compact gizmos on small screens */
-@container (max-width: 440px) {
+/* On phone widths the toolbar no longer fits on one line. Force a
+   deliberate 5-per-row grid (2 tidy rows for the current 10 buttons)
+   rather than letting flex-wrap overflow unevenly. Columns are sized to
+   content (not 1fr) and the group is centred, so the buttons stay packed
+   together instead of spreading across the full width. Shared by portrait
+   phones and phones in landscape (docked beside the canvas, see below);
+   tablets still fit one row in either orientation. */
+@media (max-width: 600px),
+  (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
   .gizmo-buttons-inner {
     display: grid;
     grid-template-columns: repeat(5, auto);
@@ -787,22 +791,14 @@ button {
   .gizmo-buttons-inner #shape-menu {
     margin-left: 0;
   }
+}
+
+/* Too narrow for the longest prompts on one line, so give the status two. */
+@media (max-width: 600px) {
   .gizmo-status {
     height: 3.2em;
     white-space: normal;
     text-align: center;
-  }
-}
-
-@media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
-  .gizmo-buttons-inner {
-    display: grid;
-    grid-template-columns: repeat(5, auto);
-    justify-content: center;
-    gap: 5px;
-  }
-  .gizmo-buttons-inner #shape-menu {
-    margin-left: 0;
   }
 }
 
@@ -1472,7 +1468,7 @@ button {
   background-color: var(--color-button-bg-hover);
 }
 
-.example-tab[aria-selected='true'] {
+.example-tab[aria-selected="true"] {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-text-on-primary);
@@ -1993,7 +1989,7 @@ body.color-picker-open #renderCanvas {
   list-style: none;
 }
 
-/* Once the toolbar is a 2-row grid the shape button is centred in it, so the
+/* On phones the shape button is centred in the 2-row gizmo grid, so the
    popup's old anchor (bottom-left of that button) ran partway off the right
    edge. Instead anchor it to the whole gizmo bar and span full width,
    dropping straight down into the space below the toolbar (its height is
@@ -2001,7 +1997,7 @@ body.color-picker-open #renderCanvas {
    stretched to fill the full width so there's no empty grey band on the
    right, and the tiles are shrunk to suit the smaller screen. Placed after
    the desktop rules above so these overrides win on source order. */
-@container (max-width: 440px) {
+@media (max-width: 600px) {
   #gizmoButtons {
     position: relative;
   }
@@ -2052,19 +2048,6 @@ body.color-picker-open #renderCanvas {
   }
   .scrollable-container .scroll-button.right {
     right: -34px;
-  }
-}
-
-/* A narrow canvas panel has no grey margin beside the tiles to hold the
-   chevrons, and #canvasArea would clip them, so bring them back inside. */
-@media (min-width: 601px) {
-  @container (max-width: 440px) {
-    .scrollable-container .scroll-button.left {
-      left: 0;
-    }
-    .scrollable-container .scroll-button.right {
-      right: 0;
-    }
   }
 }
 

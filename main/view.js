@@ -160,14 +160,6 @@ function resizeCanvas() {
       areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
     } else {
       areaHeight -= 60; //Gizmos visible
-      // Second row of buttons, once the toolbar is narrow enough to wrap.
-      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
-      const firstButton = row?.querySelector('.gizmo-button');
-      if (row && firstButton) {
-        const extraRows =
-          row.getBoundingClientRect().height - firstButton.getBoundingClientRect().height;
-        if (extraRows > 0) areaHeight = Math.max(1, areaHeight - Math.round(extraRows));
-      }
       const status = document.getElementById('gizmoStatus');
       if (status) {
         const statusStyle = getComputedStyle(status);
@@ -771,7 +763,8 @@ class PanelResizer {
     this.startX = 0;
     this.startCanvasWidth = 0;
     this.startCodeWidth = 0;
-    // Floor for either panel.
+    // Floor for either panel; the canvas side is additionally clamped to the
+    // gizmo toolbar's natural width so its buttons never wrap onto a second row.
     this.minPanelFloor = 300;
     this.minCanvasWidth = this.minPanelFloor;
     this.touchActivationPointerId = null;
@@ -836,6 +829,7 @@ class PanelResizer {
     this.startCanvasWidth = canvasRect.width;
     this.startCodeWidth = codeRect.width;
 
+    // Cache the gizmo-based minimum once per drag (button set is stable mid-drag).
     this.minCanvasWidth = this.getMinCanvasWidth();
 
     // Add visual feedback
@@ -924,7 +918,7 @@ class PanelResizer {
     const newCanvasWidth = this.startCanvasWidth + deltaX;
     const newCodeWidth = this.startCodeWidth - deltaX;
 
-    // Ensure minimum widths
+    // Ensure minimum widths (canvas side must keep the gizmo row on one line)
     if (newCanvasWidth >= this.minCanvasWidth && newCodeWidth >= this.minPanelFloor) {
       const totalWidth = mainRect.width;
       const canvasFlexBasis = (newCanvasWidth / totalWidth) * 100;
@@ -995,10 +989,43 @@ class PanelResizer {
     e.preventDefault();
   }
 
-  // Below 440px the toolbar drops to a 5-per-row grid (style.css container
-  // query), which fits well inside the floor.
+  // Smallest canvas-panel width that still fits the gizmo toolbar on one line.
+  // Sums the toolbar buttons (plus gaps and horizontal padding) so the result is
+  // the single-line row width regardless of current wrapping. Reading each
+  // button's own width avoids counting the absolutely-positioned shape-menu
+  // dropdown nested inside #shape-menu, which would otherwise inflate the min.
+  // The buttons live in an inner wrapper (.gizmo-buttons-inner) that carries the
+  // flex layout + gap; #gizmoButtons itself carries the horizontal padding.
   getMinCanvasWidth() {
-    return this.minPanelFloor;
+    const gizmo = document.getElementById('gizmoButtons');
+    if (!gizmo) return this.minPanelFloor;
+
+    const row = gizmo.querySelector('.gizmo-buttons-inner') || gizmo;
+
+    const paddingStyle = window.getComputedStyle(gizmo);
+    const paddingX =
+      (parseFloat(paddingStyle.paddingLeft) || 0) +
+      (parseFloat(paddingStyle.paddingRight) || 0);
+
+    const rowStyle = window.getComputedStyle(row);
+    const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+
+    let total = paddingX;
+    let visibleChildren = 0;
+    for (const child of row.children) {
+      const childStyle = window.getComputedStyle(child);
+      if (childStyle.display === 'none') continue;
+      // getBoundingClientRect excludes margins, so add them explicitly.
+      total +=
+        child.getBoundingClientRect().width +
+        (parseFloat(childStyle.marginLeft) || 0) +
+        (parseFloat(childStyle.marginRight) || 0);
+      visibleChildren += 1;
+    }
+    if (visibleChildren > 1) total += gap * (visibleChildren - 1);
+
+    // +1 guards against sub-pixel rounding tipping the last icon onto a new row.
+    return Math.max(this.minPanelFloor, Math.ceil(total) + 1);
   }
 
   // A focusable role="separator" needs a value: the canvas panel's share of the split.
