@@ -13,18 +13,9 @@ let flock;
 //let fontFamily = "Asap";
 let fontFamily = 'Atkinson Hyperlegible Next';
 
-// On-screen UI font sizing for canvas-painted GUI text (printText, subtitles).
-//
-// Babylon renders GUI text into the WebGL canvas, so the browser's font
-// preferences (default size, *minimum* size) never apply to it the way they do
-// for DOM text — and the minimum-font-size setting isn't exposed by any API.
-// We approximate "respect the user's font size" by reading the root font-size
-// (the browser's "Default font size" preference) and scaling captions in
-// proportion: a user who raises their default to 20px gets larger captions.
-//
-// `baseCssPx` is the intended on-screen size at the standard 16px root (so 16
-// ≈ 1em). The dpr factor keeps text crisp at native resolution without changing
-// apparent size (the engine renders at devicePixelRatio via setHardwareScalingLevel).
+// Canvas-painted GUI text can't inherit the browser's font-size preferences,
+// so approximate them from the root font-size. baseCssPx is the size at a 16px
+// root.
 function uiFontSizePx(baseCssPx = 16) {
   const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
   let rootPx = 16;
@@ -34,8 +25,8 @@ function uiFontSizePx(baseCssPx = 16) {
   } catch {
     /* non-DOM env (e.g. tests) — fall back to the 16px default */
   }
-  // Floor at 1× so we never render below the bumped 16px baseline; cap at 2× so
-  // an extreme preference can't blow out the caption layout.
+  // Clamped to 1×–2×: small preferences must not shrink captions, extreme ones
+  // must not blow out the layout.
   const prefScale = Math.min(2, Math.max(1, rootPx / 16));
   return Math.round(baseCssPx * prefScale * dpr);
 }
@@ -620,6 +611,8 @@ export const flockUI = {
     }
 
     if (actions === 'YES') flock.createButtonControls(color);
+
+    window.__flockSizeDebug?.sample('controls-created');
   },
   canvasControls(setting) {
     flock._canvasControlsEnabled = !!setting;

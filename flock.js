@@ -1364,8 +1364,7 @@ export const flock = {
       // for replugs. No-op where WebUSB is unavailable.
       microbitManager.init();
     }
-    const displayScale = (window.devicePixelRatio || 1) * 0.75; // Get the device pixel ratio, default to 1 if not available
-    flock.displayScale = displayScale;
+    flock.displayScale = (window.devicePixelRatio || 1) * 0.75;
     flock.BABYLON.Database.IDBStorageEnabled = true;
     flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
     await flock.document.fonts.ready; // Wait for all fonts to be loaded
@@ -2186,6 +2185,12 @@ export const flock = {
     if (kbInput) {
       kbInput.keysUpward = toKeyCodes([...getBoundKeys('BUTTON1'), 'PageUp']);
       kbInput.keysDownward = toKeyCodes([...getBoundKeys('BUTTON3'), 'PageDown']);
+    }
+
+    // An engine created while the canvas was hidden keeps a 1x buffer until
+    // something resizes it.
+    if (flock.canvas?.clientWidth > 0 && flock.canvas?.clientHeight > 0) {
+      flock.engine.resize();
     }
 
     // Start the render loop now that a camera exists

@@ -17,6 +17,7 @@
     "docs:matrix": "node scripts/test-coverage-matrix.mjs",
     "validate:api-docs": "node scripts/validate-api-docs.mjs",
     "test:csp-smoke": "node scripts/csp-smoke.mjs",
+    "test:canvas-buffer": "node scripts/canvas-buffer-check.mjs",
     "format:check": "prettier --check .",
     "format": "prettier --write ."
   },

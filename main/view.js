@@ -59,6 +59,19 @@ export function onResize(mode) {
   });
 }
 
+// onResize skips the engine while the canvas is hidden, so repair the buffer
+// when it regains a box. Never resize at zero size: that collapses it.
+if (typeof ResizeObserver !== 'undefined') {
+  const canvas = document.getElementById('renderCanvas');
+  if (canvas) {
+    new ResizeObserver(() => {
+      if (flock.engine && canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+        flock.engine.resize();
+      }
+    }).observe(canvas);
+  }
+}
+
 let resizeTimer;
 const handleWindowResize = () => {
   clearTimeout(resizeTimer);
