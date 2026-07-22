@@ -3,6 +3,8 @@ const _twins = new Map(); // id → { elements: HTMLElement[], cleanup: () => vo
 // Off-screen position container — holds invisible but screen-reader-accessible elements
 let _srRoot = null;
 let _canvasTabHandler = null;
+// Above the canvas and its gizmo buttons, below the app chrome (menus start at 1000)
+const TWIN_Z_INDEX = 90;
 
 export function initUIAccessibility(canvas) {
   if (_canvas === canvas && _srRoot) return;
@@ -112,7 +114,7 @@ function _attachFocusBehavior(el, posParams) {
   // Floating focus-indicator div that appears over the canvas control
   const indicator = document.createElement('div');
   indicator.style.cssText =
-    'display:none;position:fixed;pointer-events:none;z-index:9999;' +
+    `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
     'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
   document.body.appendChild(indicator);
 
@@ -261,7 +263,7 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
       `width:${rect.width}px;height:${rect.height}px;` +
       `background:${bg};color:${fg};font-size:${fs};` +
       `border:${border};border-radius:3px;` +
-      'z-index:9999;box-sizing:border-box;padding:0 8px;';
+      `z-index:${TWIN_Z_INDEX};box-sizing:border-box;padding:0 8px;`;
   };
 
   // Show immediately so text is visible from the start
@@ -353,7 +355,7 @@ export function registerUIText(id, text, posParams) {
   if (posParams) {
     indicator = document.createElement('div');
     indicator.style.cssText =
-      'display:none;position:fixed;pointer-events:none;z-index:9999;' +
+      `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
       'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
     document.body.appendChild(indicator);
 
