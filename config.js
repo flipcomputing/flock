@@ -330,6 +330,7 @@ export const modelAnimationNames = [
   "Flock_Santa.glb",
   "rhino.glb",
   "lion.glb",
+  "airplane.glb",
   //"Seagull.glb",
 ];
 
