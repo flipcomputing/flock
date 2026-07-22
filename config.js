@@ -297,7 +297,6 @@ export const objectColours = {
 
 export const modelNames = [
   "Flock.glb",
-  //"Flock_Santa.glb",
   "lion.glb",
   "rhino.glb",
 ];
@@ -316,7 +315,6 @@ export const blockNames = [
 
 export const modelAnimationNames = [
   "Flock.glb",
-  "Flock_Santa.glb",
   "rhino.glb",
   "lion.glb",
   "airplane.glb",
