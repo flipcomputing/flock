@@ -894,7 +894,10 @@ export const flockMesh = {
             resolve();
             return;
           }
-          {
+          // Re-attach must not overwrite the rotation drop restores.
+          const alreadyAttached = !!meshToAttachInstance.metadata?._attachedTargetName;
+
+          if (!alreadyAttached) {
             const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
             const scale = new flock.BABYLON.Vector3();
             const rotation = new flock.BABYLON.Quaternion();
@@ -903,7 +906,11 @@ export const flockMesh = {
             (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation = rotation.clone();
           }
 
-          if (meshToAttachInstance.physics && meshToAttachInstance.physics._pluginData) {
+          if (
+            !alreadyAttached &&
+            meshToAttachInstance.physics &&
+            meshToAttachInstance.physics._pluginData
+          ) {
             flock.hk._hknp.HP_World_RemoveBody(
               flock.hk.world,
               meshToAttachInstance.physics._pluginData.hpBodyId
@@ -976,6 +983,15 @@ export const flockMesh = {
 
         mesh.detachFromBone?.();
         mesh.parent = null;
+
+        // A later attach must re-capture rotation and re-remove the body below.
+        if (mesh.metadata) {
+          delete mesh.metadata._attachedTargetName;
+          delete mesh.metadata._attachedBoneName;
+          delete mesh.metadata._attachedOffset;
+          delete mesh.metadata._preAttachWorldRotation;
+        }
+
         mesh.rotationQuaternion = restoreRotation.clone();
         mesh.scaling = scale;
         mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));

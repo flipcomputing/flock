@@ -410,6 +410,147 @@ export function runMeshHierarchyTests(flock) {
         expect(flock.scene.getMeshByName(treeId).position.y).to.equal(0.25);
       });
 
+      it("replaying attach should restore the bone offset after the tree is moved", async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        treeMesh.position.set(1, 2, 3);
+
+        const md = treeMesh.metadata;
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, md._attachedTargetName, {
+            boneName: md._attachedBoneName,
+            x: md._attachedOffset.x,
+            y: md._attachedOffset.y,
+            z: md._attachedOffset.z,
+          }),
+        );
+
+        expect(treeMesh.position.x).to.equal(0);
+        expect(treeMesh.position.y).to.equal(0.25);
+        expect(treeMesh.position.z).to.equal(0);
+      });
+
+      it("replaying attach should keep the original pre-attach rotation for drop", async function () {
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        delete treeMesh.metadata?._attachedTargetName;
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+        const firstPreAttach =
+          treeMesh.metadata._preAttachWorldRotation.clone();
+
+        // Rotate Liz, or a re-capture would be indistinguishable
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        lizMesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
+          0,
+          1,
+          0,
+        );
+        flock.scene.render();
+
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+
+        const after = treeMesh.metadata._preAttachWorldRotation;
+        expect(after.x).to.be.closeTo(firstPreAttach.x, 1e-6);
+        expect(after.y).to.be.closeTo(firstPreAttach.y, 1e-6);
+        expect(after.z).to.be.closeTo(firstPreAttach.z, 1e-6);
+        expect(after.w).to.be.closeTo(firstPreAttach.w, 1e-6);
+
+        lizMesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+        flock.scene.render();
+      });
+
+      it("live model swap on an attached object should land where a re-run does", async function () {
+        this.timeout(60000);
+        const { updateMeshFromBlock } = await import("../ui/blockmesh.js");
+
+        const attachOpts = { boneName: "Head", x: 0, y: 0.25, z: 0 };
+        // The wrapper's geometry is stale after a swap
+        const renderedBoundsOf = (id) => {
+          const min = new flock.BABYLON.Vector3(1e9, 1e9, 1e9);
+          const max = new flock.BABYLON.Vector3(-1e9, -1e9, -1e9);
+          const visit = (node) => {
+            if (node.getClassName?.() === "Mesh" && node.getTotalVertices?.()) {
+              node.computeWorldMatrix(true);
+              node.refreshBoundingInfo?.();
+              const bbox = node.getBoundingInfo().boundingBox;
+              min.minimizeInPlace(bbox.minimumWorld);
+              max.maximizeInPlace(bbox.maximumWorld);
+            }
+            (node.getChildren?.() || []).forEach(visit);
+          };
+          (flock.scene.getMeshByName(id).getChildren() || []).forEach(visit);
+          return { min, max, centre: min.add(max).scale(0.5) };
+        };
+        const loadAndAttach = async (modelName, modelId) => {
+          const id = flock.createObject({
+            modelName,
+            modelId,
+            position: { x: 0, y: 0, z: 0 },
+          });
+          meshIds.push(id);
+          await pumpAnimation(flock, waitForModel(flock, id));
+          await pumpAnimation(flock, flock.attach(id, lizId, attachOpts));
+          flock.scene.render();
+          return id;
+        };
+
+        const rerunId = await loadAndAttach("Heart.glb", "swapRerunHeart");
+        const rerunCentre = renderedBoundsOf(rerunId).centre;
+
+        // Undefined ids keep updateMeshFromBlock off getMainWorkspace()
+        const liveId = await loadAndAttach("starboppers.glb", "swapLiveHeart");
+        const block = {
+          type: "load_object",
+          getFieldValue: (name) => (name === "MODELS" ? "Heart.glb" : null),
+          getInput: () => null,
+          getInputTargetBlock: () => null,
+          inputList: [],
+          getParent: () => null,
+        };
+        const changeEvent = {
+          type: "change",
+          element: "field",
+          name: "MODELS",
+        };
+
+        updateMeshFromBlock(
+          flock.scene.getMeshByName(liveId),
+          block,
+          changeEvent,
+        );
+        await pumpAnimation(
+          flock,
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        );
+
+        const liveCentre = renderedBoundsOf(liveId).centre;
+        expect(liveCentre.y).to.be.closeTo(rerunCentre.y, 0.01);
+        expect(liveCentre.x).to.be.closeTo(rerunCentre.x, 0.01);
+        expect(liveCentre.z).to.be.closeTo(rerunCentre.z, 0.01);
+      });
+
+      it("drop should clear the attachment record so a later attach starts fresh", async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+        await pumpAnimation(flock, flock.drop(treeId));
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        expect(treeMesh.metadata._attachedTargetName).to.be.undefined;
+        expect(treeMesh.metadata._preAttachWorldRotation).to.be.undefined;
+      });
+
       it("drop should detach the tree so it no longer follows Liz", async function () {
         await pumpAnimation(
           flock,

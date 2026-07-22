@@ -1182,6 +1182,23 @@ function getXYZFromBlock(block) {
   };
 }
 
+function isBoneAttached(mesh) {
+  return !!mesh?.metadata?._attachedTargetName;
+}
+
+// attach overwrites position with the bone offset, so live edits that move an
+// attached object must replay it.
+function reattachToBone(mesh) {
+  const md = mesh?.metadata;
+  if (!md?._attachedTargetName) return;
+  flock.attach(mesh.name, md._attachedTargetName, {
+    boneName: md._attachedBoneName,
+    x: md._attachedOffset?.x ?? 0,
+    y: md._attachedOffset?.y ?? 0,
+    z: md._attachedOffset?.z ?? 0,
+  });
+}
+
 // Pending deferred position applies for parented child objects: mesh -> block.
 const _pendingChildPositionApply = new Map();
 
@@ -1407,9 +1424,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
 
   if (block.type.startsWith("load_") && changed === "SCALE") {
-    meshes.forEach((mesh) =>
-      updateLoadBlockScaleFromEvent(mesh, block, changeEvent),
-    );
+    meshes.forEach((mesh) => {
+      updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
+      reattachToBone(mesh);
+    });
   }
 
   // Handle load_* blocks (models and character colours)
@@ -1473,6 +1491,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       meshes.forEach((mesh) => {
         flock.resize(mesh.name, resizeOptions);
         if (flock.meshDebug) console.log("After resize", mesh);
+        reattachToBone(mesh);
       });
       return;
     }
@@ -1507,6 +1526,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     const position = getXYZFromBlock(block);
     if (flock.meshDebug) console.log("Position", position, block.type);
     meshes.forEach((mesh) => {
+      // attach discards the block's X/Y/Z, and setParent below ignores
+      // _transformToBoneReferal.
+      if (isBoneAttached(mesh)) return;
       // Child object (parented mesh): defer the apply so the parent has settled
       // first (see scheduleChildPositionApply) — then unparent/move/reparent.
       if (mesh.parent) {
@@ -2039,6 +2061,20 @@ function replaceMeshModel(currentMesh, block) {
     try {
       const newChild = firstRenderable(loadedMesh) || loadedMesh;
 
+      // The pivot a re-run produces. Via world matrices: newChild can sit
+      // under __root__.
+      let freshLocalPosition = null;
+      try {
+        loadedMesh.computeWorldMatrix(true);
+        newChild.computeWorldMatrix(true);
+        freshLocalPosition = flock.BABYLON.Vector3.TransformCoordinates(
+          newChild.getAbsolutePosition(),
+          flock.BABYLON.Matrix.Invert(loadedMesh.getWorldMatrix()),
+        );
+      } catch (error) {
+        warnSuppressed("captureFreshLocalPosition", error);
+      }
+
       // Colors to reapply for non-characters
       let nonCharacterColors = null;
       if (!isCharacter) {
@@ -2157,8 +2193,10 @@ function replaceMeshModel(currentMesh, block) {
         }
       }
 
-      // Base alignment (world) uses updated bounds
-      if (oldBaseY != null) {
+      // Bone-attached keeps its own pivot; grounded keeps its base.
+      if (isBoneAttached(currentMesh)) {
+        if (freshLocalPosition) newChild.position.copyFrom(freshLocalPosition);
+      } else if (oldBaseY != null) {
         try {
           newChild.computeWorldMatrix(true);
           newChild.refreshBoundingInfo?.();
@@ -2172,26 +2210,7 @@ function replaceMeshModel(currentMesh, block) {
             );
           }
         } catch (error) {
-          warnSuppressed("baseAlignmentPrimary:setAbsolutePosition", error);
-        }
-      }
-
-      // Base alignment (world)
-      if (oldBaseY != null) {
-        try {
-          newChild.computeWorldMatrix(true);
-          newChild.refreshBoundingInfo?.();
-          const newBaseY =
-            newChild.getBoundingInfo().boundingBox.minimumWorld.y;
-          if (isFinite(newBaseY)) {
-            const dy = oldBaseY - newBaseY;
-            const abs = newChild.getAbsolutePosition();
-            newChild.setAbsolutePosition(
-              new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z),
-            );
-          }
-        } catch (error) {
-          warnSuppressed("baseAlignmentSecondary:setAbsolutePosition", error);
+          warnSuppressed("baseAlignment:setAbsolutePosition", error);
         }
       }
 
