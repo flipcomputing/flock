@@ -119,6 +119,7 @@ export const multiObjectNames = [
   "skateboard.glb",
   "humped.glb",
   "jetty.glb",
+  "boardwalk_straight.glb",
   "flower.glb",
   "flower2.glb",
   //"stones_straight.glb",
