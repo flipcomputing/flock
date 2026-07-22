@@ -328,6 +328,7 @@ const codeToggleBtn = document.getElementById('codeToggleBtn');
 
 let savedView = 'canvas';
 let savedShortcutsVisible = false;
+let savedPanelFlex = null;
 
 function addButtonListener() {
   if (canvasToggleBtn) canvasToggleBtn.addEventListener('click', showCanvasView);
@@ -555,6 +556,11 @@ export function togglePlayMode() {
     flockLink.style.display = 'none';
     if (infoPanel) infoPanel.style.display = 'none';
     if (resizer) resizer.style.display = 'none';
+    if (!isNarrowScreen()) {
+      savedPanelFlex = { canvas: canvasArea.style.flex, code: blocklyArea.style.flex };
+      canvasArea.style.width = '0';
+      canvasArea.style.flex = '1 1 0';
+    }
     document.documentElement.style.setProperty('--dynamic-offset', '40px');
   } else {
     if (flock.scene) flock.scene.debugLayer.hide();
@@ -581,6 +587,11 @@ export function togglePlayMode() {
     } else {
       // On wide screens, restore the flex layout
       switchView('both');
+      if (savedPanelFlex) {
+        canvasArea.style.flex = savedPanelFlex.canvas;
+        blocklyArea.style.flex = savedPanelFlex.code;
+      }
+      savedPanelFlex = null;
     }
   }
 
