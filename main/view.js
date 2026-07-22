@@ -97,7 +97,8 @@ function resizeCanvas() {
     canvas.style.maxWidth = '100%';
     canvas.style.maxHeight = '100%';
 
-    if (canvas.width !== fittedWidth || canvas.height !== fittedHeight) {
+    // Buffer left to engine.resize() once it exists.
+    if (!flock.engine && (canvas.width !== fittedWidth || canvas.height !== fittedHeight)) {
       canvas.width = fittedWidth;
       canvas.height = fittedHeight;
     }
@@ -195,6 +196,9 @@ function resizeCanvas() {
   canvas.style.width = `${Math.round(newWidth)}px`;
   canvas.style.height = `${Math.round(newHeight)}px`;
 
+  // The engine owns the buffer and renders at devicePixelRatio; sizing it to
+  // CSS px here leaves it 1x until engine.resize(), drawing GUI px oversized.
+  if (flock.engine) return;
   const width = canvas.clientWidth;
   const height = canvas.clientHeight;
   if (canvas.width !== width || canvas.height !== height) {

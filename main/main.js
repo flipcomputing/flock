@@ -1035,6 +1035,10 @@ window.onload = async function () {
 
   setupInput();
 
+  if (flock.isDebugLoggingEnabled()) {
+    import('../ui/sizedebug.js').then((m) => m.initSizeDebug());
+  }
+
   loadWorkspace(workspace, executeCode);
   updateSaveButtonState();
 };
