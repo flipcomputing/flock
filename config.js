@@ -93,10 +93,6 @@ export const characterNames = [
   "Liz4.glb",
   "Liz5.glb",
   "Liz6.glb",
-  /*"Character1.glb",
-        "Character2.glb",
-        "Character3.glb",
-        "Character4.glb",*/
 ];
 
 export const multiObjectNames = [
@@ -122,8 +118,6 @@ export const multiObjectNames = [
   "boardwalk_straight.glb",
   "flower.glb",
   "flower2.glb",
-  //"stones_straight.glb",
-  //"stones_curve.glb",
 ];
 
 export const objectNames = [
@@ -299,19 +293,13 @@ export const objectColours = {
   "jetty.glb": ["#FFA869", "#7E5024", "#E76F31"],
   "flower.glb": ["#E73F9F", "#4AB700", "#E7D535"],
   "flower2.glb": ["#7C38E7", "#4AB700", "#E7D535"],
-  //"stones_straight.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
-  //"stones_curve.glb": ["#E73F9F", "#4AB700", "#E7D535","#dce0d9", "#fbf6ef", "#ead7c3"],
 };
 
 export const modelNames = [
   "Flock.glb",
   //"Flock_Santa.glb",
-  //"Character.glb",
-  //"bird.glb",
-  //"boat.glb",
   "lion.glb",
   "rhino.glb",
-  //"Seagull.glb",
 ];
 
 export const blockNames = [
@@ -324,7 +312,6 @@ export const blockNames = [
   "Character.glb",
   "lion.glb",
   "rhino.glb",
-  //"Seagull.glb",
 ];
 
 export const modelAnimationNames = [
@@ -334,7 +321,6 @@ export const modelAnimationNames = [
   "lion.glb",
   "airplane.glb",
   "airplane2.glb",
-  //"Seagull.glb",
 ];
 
 export function mapNames() {
