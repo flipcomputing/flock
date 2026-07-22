@@ -61,9 +61,12 @@ const MODEL_BLOCK_TYPES = new Set([
 window.selectedColor = '#ffffff'; // Default color
 let colorPicker = null;
 
-// 3D text scale gizmo axis tracking
-let textScaleAxis = null;
+// Which scale gizmo handle is being dragged ('x' | 'y' | 'z' | 'uniform')
+let scaleDragAxis = null;
 let textOrigScaleZ = 1;
+
+// Round shapes have a single horizontal dimension: X and Z always match.
+const RADIAL_BLOCK_TYPES = new Set(['create_capsule', 'create_cylinder']);
 
 // Track state
 let cameraMode = 'play';
@@ -1114,7 +1117,16 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
     }
   }
 
+  const isRadial = RADIAL_BLOCK_TYPES.has(creationBlock?.type);
+
   const onMove = (dx, dy, dz) => {
+    // Round shapes scale their diameter: either horizontal button changes both.
+    if (isRadial) {
+      const diameterStep = dx || dz;
+      dx = diameterStep;
+      dz = diameterStep;
+    }
+
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
     const bottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
@@ -1868,14 +1880,14 @@ function handleScaleGizmo() {
   }
   {
     const sg = gizmoManager.gizmos.scaleGizmo;
-    if (!sg._textAxisObserversRegistered) {
-      sg.xGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'x'));
-      sg.yGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'y'));
-      sg.zGizmo.dragBehavior.onDragStartObservable.add(() => (textScaleAxis = 'z'));
+    if (!sg._scaleAxisObserversRegistered) {
+      sg.xGizmo.dragBehavior.onDragStartObservable.add(() => (scaleDragAxis = 'x'));
+      sg.yGizmo.dragBehavior.onDragStartObservable.add(() => (scaleDragAxis = 'y'));
+      sg.zGizmo.dragBehavior.onDragStartObservable.add(() => (scaleDragAxis = 'z'));
       sg.uniformScaleGizmo.dragBehavior.onDragStartObservable.add(
-        () => (textScaleAxis = 'uniform')
+        () => (scaleDragAxis = 'uniform')
       );
-      sg._textAxisObserversRegistered = true;
+      sg._scaleAxisObserversRegistered = true;
     }
   }
 
@@ -1937,19 +1949,24 @@ function handleScaleGizmo() {
     if (gizmoManager.scaleGizmoEnabled) {
       switch (block?.type) {
         case 'create_capsule':
-        case 'create_cylinder':
-          mesh.scaling.z = mesh.scaling.x;
+        case 'create_cylinder': {
+          // Babylon has no independent depth here, so whichever horizontal
+          // handle was dragged drives both X and Z.
+          const diameter = scaleDragAxis === 'z' ? mesh.scaling.z : mesh.scaling.x;
+          mesh.scaling.x = diameter;
+          mesh.scaling.z = diameter;
           break;
+        }
         case 'create_3d_text':
-          if (textScaleAxis === 'z') {
+          if (scaleDragAxis === 'z') {
             // Z handle: depth only — lock X and Y
             mesh.scaling.x = 1;
             mesh.scaling.y = 1;
-          } else if (textScaleAxis === 'x' || textScaleAxis === 'uniform') {
+          } else if (scaleDragAxis === 'x' || scaleDragAxis === 'uniform') {
             // X or uniform: size only — keep Y = X, lock Z
             mesh.scaling.y = mesh.scaling.x;
             mesh.scaling.z = textOrigScaleZ;
-          } else if (textScaleAxis === 'y') {
+          } else if (scaleDragAxis === 'y') {
             // Y handle: size only — keep X = Y, lock Z
             mesh.scaling.x = mesh.scaling.y;
             mesh.scaling.z = textOrigScaleZ;
@@ -1983,7 +2000,7 @@ function handleScaleGizmo() {
     mesh.refreshBoundingInfo();
     originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
     textOrigScaleZ = mesh.scaling.z;
-    textScaleAxis = null;
+    scaleDragAxis = null;
 
     const motionType = isBodyAlive(mesh.physics) ? mesh.physics.getMotionType() : undefined;
     mesh.savedMotionType = motionType;
@@ -2012,7 +2029,7 @@ function handleScaleGizmo() {
 
   const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
-    textScaleAxis = null;
+    scaleDragAxis = null;
 
     if (mesh.savedMotionType != null && isBodyAlive(mesh.physics)) {
       mesh.physics.setMotionType(mesh.savedMotionType);
@@ -2622,8 +2639,6 @@ export function setGizmoManager(value) {
       if (block && gizmoManager.scaleGizmoEnabled) {
         switch (block.type) {
           case 'create_plane':
-          case 'create_capsule':
-          case 'create_cylinder':
             gizmoManager.gizmos.scaleGizmo.zGizmo.isEnabled = false;
 
             break;
