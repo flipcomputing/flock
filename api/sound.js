@@ -958,6 +958,7 @@ export const flockSound = {
             "zira",
             "james",
             // macOS/iOS
+            "nathan",
             "alex",
             "daniel",
             "fred",
@@ -977,6 +978,7 @@ export const flockSound = {
             "susan",
             "allison",
             "ava",
+            "zoe",
             "karen",
             "moira",
             "tessa",
@@ -995,7 +997,7 @@ export const flockSound = {
             // macOS/iOS
             "daniel",
             "oliver",
-            "serena",
+            "jamie",
             // Android/Chrome
             "male",
             "man",
@@ -1013,6 +1015,34 @@ export const flockSound = {
             "woman",
           ],
         },
+        "es-ES": {
+          male: [
+            // macOS/iOS
+            "jorge",
+            "juan",
+            "diego",
+            "carlos",
+            "eddy",
+            "grandpa",
+            "reed",
+            "rocko",
+          ],
+          female: [
+            // macOS/iOS
+            "marisol",
+            "paulina",
+            "isabela",
+            "francisca",
+            "jimena",
+            "soledad",
+            "angelica",
+            "monica",
+            "flo",
+            "grandma",
+            "sandy",
+            "shelly",
+          ],
+        }
       };
 
       // Filter voices by requested language
@@ -1068,6 +1098,19 @@ export const flockSound = {
             "victoria",
             "stephanie",
             "serena",
+            "marisol",
+            "paulina",
+            "isabela",
+            "francisca",
+            "jimena",
+            "soledad",
+            "angelica",
+            "monica",
+            "flo",
+            "grandma",
+            "sandy",
+            "shelly",
+            "zoe",
           ];
           selectedVoice = languageVoices.find(
             (v) =>
@@ -1096,6 +1139,15 @@ export const flockSound = {
             "jorge",
             "james",
             "oliver",
+            "eddy",
+            "nathan",
+            "jamie",
+            "juan",
+            "diego",
+            "carlos",
+            "grandpa",
+            "reed",
+            "rocko",
           ];
           selectedVoice = languageVoices.find(
             (v) =>
@@ -1103,6 +1155,7 @@ export const flockSound = {
                 v.name.toLowerCase().includes(term.toLowerCase()),
               ),
           );
+          console.log(selectedVoice);
         }
 
         // 5. Fallback to first voice in the language
