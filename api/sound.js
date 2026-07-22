@@ -1155,7 +1155,6 @@ export const flockSound = {
                 v.name.toLowerCase().includes(term.toLowerCase()),
               ),
           );
-          console.log(selectedVoice);
         }
 
         // 5. Fallback to first voice in the language
