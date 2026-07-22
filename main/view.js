@@ -675,7 +675,7 @@ const scrollEditingBlockIntoView = () => {
   }
 };
 
-let _lastViewportHeight = null;
+let _lastViewportKey = null;
 
 const adjustViewport = () => {
   // Under pinch/auto zoom visualViewport.height shrinks though the layout
@@ -687,9 +687,11 @@ const adjustViewport = () => {
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
   // iOS fires visualViewport resize alone, so nothing else re-sizes the canvas
-  // to match its --app-height-driven box.
-  if (viewportHeight !== _lastViewportHeight) {
-    _lastViewportHeight = viewportHeight;
+  // to match its --app-height-driven box. Key on layout size too: mid-rotation
+  // iOS can report a height matching the settled one.
+  const viewportKey = `${Math.round(viewportHeight)}:${window.innerWidth}:${window.innerHeight}`;
+  if (viewportKey !== _lastViewportKey) {
+    _lastViewportKey = viewportKey;
     handleWindowResize();
   }
   const keyboardOpen =
@@ -713,11 +715,26 @@ Blockly.FieldNumber.prototype.widgetCreate_ = function () {
   return input;
 };
 
+// iOS layout metrics are stale mid-rotation, so re-run once it settles.
+const adjustViewportAfterRotation = () => {
+  adjustViewport();
+  setTimeout(() => {
+    adjustViewport();
+    onResize();
+  }, 300);
+  setTimeout(onResize, 700);
+};
+
 // Adjust viewport on page load and resize
 window.addEventListener('load', adjustViewport);
 window.addEventListener('resize', adjustViewport);
-window.addEventListener('orientationchange', adjustViewport);
+window.addEventListener('orientationchange', adjustViewportAfterRotation);
 document.addEventListener('fullscreenchange', adjustViewport);
+
+// orientationchange is unreliable on newer iOS Safari.
+window
+  .matchMedia('(orientation: portrait)')
+  .addEventListener('change', adjustViewportAfterRotation);
 
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', adjustViewport);
