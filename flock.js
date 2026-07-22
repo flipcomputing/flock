@@ -125,6 +125,8 @@ export const flock = {
   shadowLight: null,
   shadowGenerator: null,
   shadowCasters: new Set(),
+  xrFramebufferScale: 1.2,
+  xrFixedFoveation: 0.5,
   hk: null,
   havokInstance: null,
   initialClearColor: null,
@@ -2274,13 +2276,30 @@ export const flock = {
     // Reset XR helper
     flock.xrHelper = null;
   },
+  _xrCanvasOptions() {
+    // Babylon's default framebufferScaleFactor is 1, which means the browser's
+    // *recommended* buffer size. On Quest that sits below the panel's native
+    // resolution, so the default looks soft. Native is around 1.3x recommended;
+    // going past that just pays for pixels the compositor downsamples away.
+    const defaults = flock.BABYLON.WebXRManagedOutputCanvasOptions.GetDefaults(flock.engine);
+    return {
+      ...defaults,
+      canvasOptions: {
+        ...defaults.canvasOptions,
+        framebufferScaleFactor: flock.xrFramebufferScale,
+      },
+    };
+  },
   async initializeXR(mode) {
     if (flock.xrHelper) return; // Avoid reinitializing
 
     if (mode === 'VR') {
-      flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync();
+      flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+        outputCanvasOptions: flock._xrCanvasOptions(),
+      });
     } else if (mode === 'AR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+        outputCanvasOptions: flock._xrCanvasOptions(),
         uiOptions: {
           sessionMode: 'immersive-ar',
         },
@@ -2333,6 +2352,12 @@ export const flock = {
         flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
         flock.advancedTexture.isVisible = false; // Hide fullscreen UI
+      } else if (state === flock.BABYLON.WebXRState.IN_XR) {
+        // Only settable once the session's base layer exists, which is after
+        // ENTERING_XR. Shading the periphery at a lower rate buys back most of
+        // what the supersampled framebuffer above costs. No-ops where the
+        // headset doesn't support it.
+        flock.xrHelper.baseExperience.sessionManager.fixedFoveation = flock.xrFixedFoveation;
       } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
         flock._xrSource?.stop();
         flock.meshTexture.removeControl(flock.stackPanel);
