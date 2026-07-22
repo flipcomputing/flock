@@ -467,7 +467,7 @@ export const attachMixamoMapping = {
   LeftHand: "mixamorig:RightHand",
   Hold: "mixamorig:RightHand",
   RightHand: "mixamorig:LeftHand",
-  Head: "mixamorig:Head",
+  Head: "mixamorig:HeadTop_End",
   Hips: "mixamorig:Hips",
   Spine: "mixamorig:Spine",
   Spine1: "mixamorig:Spine1",

@@ -337,9 +337,9 @@ export function runMeshHierarchyTests(flock) {
         );
 
         const treeMesh = flock.scene.getMeshByName(treeId);
-        // attachToBone sets parent to the skeleton mesh and _transformToBoneReferal
-        expect(treeMesh.parent, "tree should be parented to Liz's skeleton mesh").to.exist;
-        expect(treeMesh._transformToBoneReferal, "tree should record bone attachment").to.exist;
+        // attachToBone parents to the bone and refers transforms via the mesh
+        expect(treeMesh.parent, "tree should be parented to a bone").to.exist;
+        expect(treeMesh._transformToBoneReferal, "tree should refer to Liz's skeleton mesh").to.exist;
       });
 
       it("attached mesh should follow Liz when she moves", async function () {
@@ -356,6 +356,58 @@ export function runMeshHierarchyTests(flock) {
           .getMeshByName(treeId)
           .getAbsolutePosition();
         expect(treeWorldPos.x).to.be.closeTo(10, 2);
+      });
+
+      it("attach to Head should use the crown bone, not the skull joint", async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head" }),
+        );
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        const skeleton = treeMesh._transformToBoneReferal.skeleton;
+        expect(skeleton.bones.indexOf(treeMesh.parent)).to.equal(
+          skeleton.getBoneIndexByName("mixamorig:HeadTop_End"),
+        );
+      });
+
+      it("attach to Head should apply the given offsets exactly", async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        expect(treeMesh.position.x).to.equal(0);
+        expect(treeMesh.position.y).to.equal(0.25);
+        expect(treeMesh.position.z).to.equal(0);
+      });
+
+      it("attach should record the raw offset for model-switch re-attachment", async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+        );
+
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        const entry = lizMesh.metadata._boneAttachments.find(
+          (e) => e.meshName === treeId,
+        );
+        expect(entry.boneName).to.equal("Head");
+        expect(entry.offset).to.deep.equal({ x: 0, y: 0.25, z: 0 });
+
+        // Replaying the tracked offset (what a live model change does) must
+        // land in the same place as the original attach.
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, {
+            boneName: entry.boneName,
+            x: entry.offset.x,
+            y: entry.offset.y,
+            z: entry.offset.z,
+          }),
+        );
+        expect(flock.scene.getMeshByName(treeId).position.y).to.equal(0.25);
       });
 
       it("drop should detach the tree so it no longer follows Liz", async function () {

@@ -939,44 +939,6 @@ export const flockMesh = {
                 offset: { x, y, z },
               });
 
-              if (logicalBoneName === 'Head') {
-                let estimatedLength = 0.1;
-                if (bone.children.length > 0) {
-                  const headWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                    flock.BABYLON.Vector3.Zero(),
-                    bone.getWorldMatrix()
-                  );
-                  const childWorld = flock.BABYLON.Vector3.TransformCoordinates(
-                    flock.BABYLON.Vector3.Zero(),
-                    bone.children[0].getWorldMatrix()
-                  );
-                  estimatedLength = childWorld.subtract(headWorld).length();
-                } else {
-                  const meshes = targetWithSkeleton.getChildMeshes?.() || [targetWithSkeleton];
-                  const minYVals = [];
-                  const maxYVals = [];
-                  for (const m of meshes) {
-                    const info = m.getBoundingInfo?.();
-                    if (!info) continue;
-                    const minY = info.boundingBox.minimumWorld.y;
-                    const maxY = info.boundingBox.maximumWorld.y;
-                    if (isFinite(minY) && isFinite(maxY)) {
-                      minYVals.push(minY);
-                      maxYVals.push(maxY);
-                    }
-                  }
-                  let modelHeight = 1;
-                  if (minYVals.length && maxYVals.length) {
-                    const allMinY = Math.min(...minYVals);
-                    const allMaxY = Math.max(...maxYVals);
-                    modelHeight = allMaxY - allMinY;
-                  }
-                  const defaultHeadOffset = 1.3;
-                  estimatedLength = defaultHeadOffset * Math.max(modelHeight, 1);
-                }
-                y += estimatedLength;
-              }
-
               meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
             }
           }
