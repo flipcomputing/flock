@@ -284,9 +284,9 @@ export const objectColours = {
     "#E711CD",
   ],
 
-  "airplane.glb": ["#E75D43", "#6A6A6A", "#E7C777"],
+  "airplane.glb": ["#E75D43", "#6A6A6A", "#E7C777", "#979797"],
 
-  "airplane2.glb": ["#6A6A6A", "#E75D43", "#E7C777"],
+  "airplane2.glb": ["#6A6A6A", "#E75D43", "#E7C777", "#979797"],
 
   "skateboard.glb": ["#E769D3", "#484848", "#251BE7"],
 
