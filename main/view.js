@@ -623,10 +623,8 @@ function prepareCanvasForRecording() {
   }
 }
 
-// The inspector forces validate=true on every glTF plugin it sees, which
-// fetches a validator from cdn.babylonjs.com that our CSP blocks and that is
-// unavailable offline. Its loader hook re-registers after ours, so stub the
-// validator itself rather than racing the observer order.
+// The inspector forces glTF validate=true, and the validator is a CDN fetch
+// our CSP blocks. Leaves _LastResults null, so its pane says nothing ran.
 async function disableGltfValidation() {
   const { GLTFValidation } = await import('@babylonjs/loaders');
   GLTFValidation.ValidateAsync = () =>
