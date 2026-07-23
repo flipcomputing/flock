@@ -14,6 +14,11 @@ const CSP_META_POLICY =
   "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
 
+// Chunk basenames reachable only through design mode's dynamic import of the
+// inspector. Computed during the build by the plugin below and read afterwards
+// by the service worker's manifestTransforms.
+const inspectorOnlyChunks = new Set();
+
 // Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
 const CSP_DEV_POLICY =
   "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: ws: https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'; frame-ancestors 'self'";
@@ -120,8 +125,16 @@ export default {
         // The Babylon inspector (design mode) is used by a minority of users,
         // so it is cached on first use by the runtime script cache instead of
         // being precached. toggleDesignMode() shows a banner if the chunk
-        // can't be fetched offline.
-        globIgnores: ['**/babylon.inspector.bundle-*.js'],
+        // can't be fetched offline. The chunk names are unpredictable, so the
+        // find-inspector-chunks plugin identifies them and they are dropped
+        // here rather than by a globIgnores pattern.
+        manifestTransforms: [
+          (entries) => ({
+            manifest: entries.filter(
+              (entry) => !inspectorOnlyChunks.has(entry.url.split('/').pop()),
+            ),
+          }),
+        ],
         navigateFallback: `${BASE_URL}index.html`,
         navigateFallbackAllowlist: [new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)],
         globPatterns: [
@@ -221,13 +234,61 @@ export default {
       },
     }),
 
+    // Works out which chunks exist only to serve design mode. Inspector v2
+    // ships unbundled, so it arrives as a spray of anonymous chunks (React,
+    // FluentUI and their transitive deps) whose names can't be predicted --
+    // walking the import graph avoids hard-coding a package list that would
+    // silently rot the next time Babylon changes its dependencies.
+    {
+      name: 'find-inspector-chunks',
+      generateBundle(_options, bundle) {
+        const chunks = Object.entries(bundle).filter(([, c]) => c.type === 'chunk');
+        const edges = (file) => {
+          const chunk = bundle[file];
+          return chunk ? [...chunk.imports, ...chunk.dynamicImports] : [];
+        };
+        const walk = (roots, skip = new Set()) => {
+          const seen = new Set();
+          const queue = [...roots];
+          while (queue.length) {
+            const file = queue.pop();
+            if (seen.has(file) || skip.has(file)) continue;
+            seen.add(file);
+            queue.push(...edges(file));
+          }
+          return seen;
+        };
+
+        const inspectorRoots = chunks
+          .filter(([, c]) => (c.moduleIds ?? []).some((id) => id.includes('@babylonjs/inspector')))
+          .map(([file]) => file);
+        if (!inspectorRoots.length) {
+          this.warn('no inspector chunk found; the whole bundle will be precached');
+          return;
+        }
+
+        const rootSet = new Set(inspectorRoots);
+        const appEntries = chunks.filter(([, c]) => c.isEntry).map(([file]) => file);
+        const reachableWithoutInspector = walk(appEntries, rootSet);
+
+        inspectorOnlyChunks.clear();
+        for (const file of walk(inspectorRoots)) {
+          if (!reachableWithoutInspector.has(file)) {
+            inspectorOnlyChunks.add(file.split('/').pop());
+          }
+        }
+      },
+    },
+
     // Build-time proxy that generates a stable 'flock.js' re-export
     {
       name: 'create-flock-proxy',
       writeBundle(options, bundle) {
         let hashedFileName;
         for (const fileName in bundle) {
-          if (fileName.startsWith('assets/index-') && fileName.endsWith('.js')) {
+          // isEntry matters: the inspector's own chunk is also called
+          // assets/index-*, so a name check alone can pick the wrong one.
+          if (bundle[fileName].isEntry && fileName.startsWith('assets/index-')) {
             hashedFileName = fileName;
             break;
           }
