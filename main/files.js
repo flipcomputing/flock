@@ -401,6 +401,10 @@ function parseProjectJsonResponse(response) {
 }
 
 export function fetchProjectJson(projectPath) {
+  const url = new URL(projectPath, window.location.href);
+  if (url.origin !== window.location.origin && url.protocol !== "https:") {
+    throw new Error("External project URLs must use HTTPS");
+  }
   return fetch(projectPath).then(parseProjectJsonResponse);
 }
 
