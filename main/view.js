@@ -623,6 +623,18 @@ function prepareCanvasForRecording() {
   }
 }
 
+// The inspector forces validate=true on every glTF plugin it sees, which
+// fetches a validator from cdn.babylonjs.com that our CSP blocks and that is
+// unavailable offline. Its loader hook re-registers after ours, so stub the
+// validator itself rather than racing the observer order.
+async function disableGltfValidation() {
+  const { GLTFValidation } = await import('@babylonjs/loaders');
+  GLTFValidation.ValidateAsync = () =>
+    Promise.resolve({
+      issues: { numErrors: 0, numWarnings: 0, numInfos: 0, numHints: 0, messages: [] },
+    });
+}
+
 export async function toggleDesignMode() {
   if (!flock.scene) return;
 
@@ -637,6 +649,7 @@ export async function toggleDesignMode() {
     });
     return;
   }
+
 
   const blocklyArea = document.getElementById('codePanel');
   const canvasArea = document.getElementById('canvasArea');
@@ -672,6 +685,8 @@ export async function toggleDesignMode() {
       enableClose: false,
       enablePopup: false,
     });
+
+    disableGltfValidation();
 
     canvasArea.style.flex = '1 1 0';
 
