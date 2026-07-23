@@ -116,6 +116,7 @@ export const multiObjectNames = [
   "humped.glb",
   "jetty.glb",
   "boardwalk_straight.glb",
+  "boardwalk_curved.glb",
   "flower.glb",
   "flower2.glb",
 ];
@@ -290,6 +291,7 @@ export const objectColours = {
 
   "humped.glb": ["#FFA869", "#E76F31", "#7E5024"],
   "boardwalk_straight.glb": ["#7E5024", "#7E5024", "#7E5024"],
+  "boardwalk_curved.glb": ["#7E5024", "#7E5024", "#7E5024"],
   "jetty.glb": ["#FFA869", "#7E5024", "#E76F31"],
   "flower.glb": ["#E73F9F", "#4AB700", "#E7D535"],
   "flower2.glb": ["#7C38E7", "#4AB700", "#E7D535"],
