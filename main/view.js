@@ -650,7 +650,6 @@ export async function toggleDesignMode() {
     return;
   }
 
-
   const blocklyArea = document.getElementById('codePanel');
   const canvasArea = document.getElementById('canvasArea');
   const gizmoButtons = document.getElementById('gizmoButtons');
@@ -686,7 +685,7 @@ export async function toggleDesignMode() {
       enablePopup: false,
     });
 
-    disableGltfValidation();
+    await disableGltfValidation();
 
     canvasArea.style.flex = '1 1 0';
 
