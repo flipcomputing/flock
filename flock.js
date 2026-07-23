@@ -2276,17 +2276,25 @@ export const flock = {
     // Reset XR helper
     flock.xrHelper = null;
   },
+  _xrTuning(param, fallback, min, max) {
+    let raw = null;
+    try {
+      raw = new URLSearchParams(window.location.search).get(param);
+    } catch {
+      // No location (tests, workers): use the default.
+    }
+    if (raw === null || raw.trim() === '') return fallback;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) return fallback;
+    return Math.min(max, Math.max(min, value));
+  },
   _xrCanvasOptions() {
-    // Babylon's default framebufferScaleFactor is 1, which means the browser's
-    // *recommended* buffer size. On Quest that sits below the panel's native
-    // resolution, so the default looks soft. Native is around 1.3x recommended;
-    // going past that just pays for pixels the compositor downsamples away.
     const defaults = flock.BABYLON.WebXRManagedOutputCanvasOptions.GetDefaults(flock.engine);
     return {
       ...defaults,
       canvasOptions: {
         ...defaults.canvasOptions,
-        framebufferScaleFactor: flock.xrFramebufferScale,
+        framebufferScaleFactor: flock._xrTuning('xs', flock.xrFramebufferScale, 0.5, 2),
       },
     };
   },
@@ -2353,11 +2361,13 @@ export const flock = {
 
         flock.advancedTexture.isVisible = false; // Hide fullscreen UI
       } else if (state === flock.BABYLON.WebXRState.IN_XR) {
-        // Only settable once the session's base layer exists, which is after
-        // ENTERING_XR. Shading the periphery at a lower rate buys back most of
-        // what the supersampled framebuffer above costs. No-ops where the
-        // headset doesn't support it.
-        flock.xrHelper.baseExperience.sessionManager.fixedFoveation = flock.xrFixedFoveation;
+        // Base layer only exists once IN_XR; setting it at ENTERING_XR no-ops.
+        flock.xrHelper.baseExperience.sessionManager.fixedFoveation = flock._xrTuning(
+          'xf',
+          flock.xrFixedFoveation,
+          0,
+          1
+        );
       } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
         flock._xrSource?.stop();
         flock.meshTexture.removeControl(flock.stackPanel);
