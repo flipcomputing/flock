@@ -56,6 +56,7 @@ export function onResize(mode) {
         });
       }
     }
+    window.dispatchEvent(new Event('flock:canvas-resize-done'));
   });
 }
 

@@ -791,9 +791,13 @@ export function initContextMenus(workspace) {
     // it — same offset as the gizmo-menu badges.
     function renderBadges() {
       badgeOverlay.replaceChildren();
+      const toolboxRight = getToolboxRightEdge();
+      const clipAt = toolboxRight != null && toolboxRight > 0 ? toolboxRight : null;
+      badgeOverlay.style.clipPath = clipAt != null ? `inset(0 0 0 ${clipAt}px)` : '';
       for (const [btn, labelSpec] of buttonShortcuts) {
         if (btn.style.display === 'none' || btn.offsetParent === null) continue;
         const rect = btn.getBoundingClientRect();
+        if (clipAt != null && rect.right <= clipAt) continue;
         const badge = document.createElement('div');
         badge.className = 'fc-toolbar-key-badge';
         badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
@@ -853,7 +857,7 @@ export function initContextMenus(workspace) {
       { capture: true }
     );
 
-    window.addEventListener('flock:canvas-resize', () => {
+    window.addEventListener('flock:canvas-resize-done', () => {
       if (toolbarBlock) positionBlockToolbar();
     });
 
@@ -895,7 +899,8 @@ export function initContextMenus(workspace) {
 
     function getToolboxRightEdge() {
       let right = -Infinity;
-      for (const el of document.querySelectorAll('.blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout')) {
+      const sel = '.blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout';
+      for (const el of document.querySelectorAll(sel)) {
         const r = el.getBoundingClientRect();
         if (r.width > 0 && r.height > 0) right = Math.max(right, r.right);
       }
