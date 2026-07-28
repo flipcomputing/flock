@@ -1,15 +1,12 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 import {
   MicrobitManager,
   VariableStatus,
   BoardState,
   setMicrobitManagerForTests,
-} from "../../microbit/manager.js";
+} from '../../microbit/manager.js';
 import { PROTOCOL_VERSION } from '../../microbit/protocol.js';
-import {
-  flockMicrobit,
-  setFlockReference as setMicrobitFlock,
-} from "../../api/microbit.js";
+import { flockMicrobit, setFlockReference as setMicrobitFlock } from '../../api/microbit.js';
 
 // A test double for usbTransport.js: the test drives serial lines in and
 // records lines out. `onWrite` lets a test script the board's replies (e.g.
@@ -89,7 +86,7 @@ function respondingTransport(deviceId, options = {}) {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function runMicrobitManagerTests() {
-  describe("micro:bit manager @microbit", function () {
+  describe('micro:bit manager @microbit', function () {
     this.timeout(5000);
 
     function makeManager({ transports = [], storage, usb, ...rest } = {}) {
@@ -99,12 +96,12 @@ export function runMicrobitManagerTests() {
         createTransport: async (options) => {
           createCalls.push(options);
           const transport = transports[call++];
-          if (!transport) throw new Error("no more test transports");
+          if (!transport) throw new Error('no more test transports');
           return transport;
         },
         storage: storage ?? new TestStorage(),
         usb: usb ?? null,
-        fetchFirmware: async () => ":FAKEHEX",
+        fetchFirmware: async () => ':FAKEHEX',
         probeTimeoutMs: 20,
         heartbeatTimeoutMs: 60,
         ...rest,
@@ -114,70 +111,64 @@ export function runMicrobitManagerTests() {
       return manager;
     }
 
-    describe("addMicrobit", function () {
-      it("rejects invalid channels before updating the manager", function () {
+    describe('addMicrobit', function () {
+      it('rejects invalid channels before updating the manager', function () {
         const manager = makeManager({ transports: [] });
         setMicrobitManagerForTests(manager);
-        let warned = "";
+        let warned = '';
         const originalWarn = console.warn;
         console.warn = (message) => {
           warned = message;
         };
 
         try {
-          flockMicrobit.addMicrobit("microbit1", 9999);
-          expect(manager.getVariableChannel("microbit1")).to.equal(1);
-          expect(warned).to.equal(
-            "addMicrobit: channel must be an integer between 0 and 255",
-          );
+          flockMicrobit.addMicrobit('microbit1', 9999);
+          expect(manager.getVariableChannel('microbit1')).to.equal(1);
+          expect(warned).to.equal('addMicrobit: channel must be an integer between 0 and 255');
         } finally {
           console.warn = originalWarn;
         }
       });
     });
 
-    describe("connect flow", function () {
-      it("binds a responding board: probe, channel, name scroll, persist", async function () {
+    describe('connect flow', function () {
+      it('binds a responding board: probe, channel, name scroll, persist', async function () {
         const storage = new TestStorage();
-        const transport = respondingTransport("111");
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport], storage });
         const seenStates = [];
         manager.onStatusChange(() =>
-          seenStates.push(manager.getStatusForVariable("microbit1").state),
+          seenStates.push(manager.getStatusForVariable('microbit1').state)
         );
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
-        expect(manager.getStatusForVariable("microbit1")).to.deep.equal({
+        expect(manager.getStatusForVariable('microbit1')).to.deep.equal({
           state: VariableStatus.TETHERED,
         });
         expect(seenStates).to.include(VariableStatus.BUSY);
-        expect(transport.written).to.deep.equal([
-          "P\n",
-          "G:1\n",
-          "S:microbit1\n",
-        ]);
-        const stored = JSON.parse(storage.getItem("flockMicrobitBindings"));
-        expect(stored["111"].variable).to.equal("microbit1");
+        expect(transport.written).to.deep.equal(['P\n', 'G:1\n', 'S:microbit1\n']);
+        const stored = JSON.parse(storage.getItem('flockMicrobitBindings'));
+        expect(stored['111'].variable).to.equal('microbit1');
         expect(manager._createCalls[0]).to.deep.equal({ silent: false });
       });
 
-      it("reports connecting/probing as busy with the board state", async function () {
-        const transport = respondingTransport("111");
+      it('reports connecting/probing as busy with the board state', async function () {
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
         const boardStates = [];
         manager.onStatusChange(() => {
-          const status = manager.getStatusForVariable("microbit1");
+          const status = manager.getStatusForVariable('microbit1');
           if (status.state === VariableStatus.BUSY) {
             boardStates.push(status.boardState);
           }
         });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         expect(boardStates).to.include(BoardState.CONNECTING);
         expect(boardStates).to.include(BoardState.PROBING);
       });
 
-      it("times out the probe, retries once, then asks before flashing; cancel disconnects", async function () {
+      it('times out the probe, retries once, then asks before flashing; cancel disconnects', async function () {
         const transport = new TestTransport(); // never answers
         const manager = makeManager({ transports: [transport] });
         let confirmations = 0;
@@ -186,23 +177,21 @@ export function runMicrobitManagerTests() {
           return Promise.resolve(false);
         };
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
         // Initial probe + one retry, nothing else.
-        expect(transport.written).to.deep.equal(["P\n", "P\n"]);
+        expect(transport.written).to.deep.equal(['P\n', 'P\n']);
         expect(confirmations).to.equal(1);
         expect(transport.flashed).to.deep.equal([]);
         expect(transport.disconnected).to.equal(true);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
       });
 
-      it("flashes after confirmation, reprobes, and binds", async function () {
+      it('flashes after confirmation, reprobes, and binds', async function () {
         // Silent until flashed, then behaves like a Flock board.
         const transport = new TestTransport({
           onWrite: (line, t) => {
-            if (line === "P\n" && t.flashed.length > 0) {
+            if (line === 'P\n' && t.flashed.length > 0) {
               t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
             }
           },
@@ -210,16 +199,14 @@ export function runMicrobitManagerTests() {
         const manager = makeManager({ transports: [transport] });
         manager.confirmFlash = () => Promise.resolve(true);
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
-        expect(transport.flashed).to.deep.equal([":FAKEHEX"]);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
-        expect(transport.written).to.include("S:microbit1\n");
+        expect(transport.flashed).to.deep.equal([':FAKEHEX']);
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
+        expect(transport.written).to.include('S:microbit1\n');
       });
 
-      it("binds via the spontaneous boot HELLO after flashing", async function () {
+      it('binds via the spontaneous boot HELLO after flashing', async function () {
         // Never answers probes after the flash, but announces itself on
         // reboot — as the real board does. The boot HELLO arrives before the
         // post-flash probing starts.
@@ -232,21 +219,19 @@ export function runMicrobitManagerTests() {
         const manager = makeManager({ transports: [transport] });
         manager.confirmFlash = () => Promise.resolve(true);
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
-        expect(manager.boundDeviceId("microbit1")).to.equal("222");
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
+        expect(manager.boundDeviceId('microbit1')).to.equal('222');
       });
 
-      it("keeps probing while the board reboots after flashing", async function () {
+      it('keeps probing while the board reboots after flashing', async function () {
         // Ignores probes until ~2.5 probe-timeouts after the flash — longer
         // than the pre-flash retry budget, shorter than the post-flash one.
         let bootedAt = null;
         const transport = new TestTransport({
           onWrite: (line, t) => {
-            if (line !== "P\n" || bootedAt === null) return;
+            if (line !== 'P\n' || bootedAt === null) return;
             if (Date.now() >= bootedAt) t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
           },
         });
@@ -257,21 +242,19 @@ export function runMicrobitManagerTests() {
         const manager = makeManager({ transports: [transport] });
         manager.confirmFlash = () => Promise.resolve(true);
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
       });
 
-      it("patches the channel sentinel into the hex it flashes", async function () {
+      it('patches the channel sentinel into the hex it flashes', async function () {
         // One valid record containing "FLKCH:001;"; channel 5 rewrites the
         // digits to 005 and fixes the checksum.
-        const sentinelHex = ":0A000000464C4B43483A3030313B88";
-        const patchedHex = ":0A000000464C4B43483A3030353B84";
+        const sentinelHex = ':0A000000464C4B43483A3030313B88';
+        const patchedHex = ':0A000000464C4B43483A3030353B84';
         const transport = new TestTransport({
           onWrite: (line, t) => {
-            if (line === "P\n" && t.flashed.length > 0) {
+            if (line === 'P\n' && t.flashed.length > 0) {
               t.emitLine(`HELLO flock ${PROTOCOL_VERSION} 222`);
             }
           },
@@ -281,17 +264,17 @@ export function runMicrobitManagerTests() {
           fetchFirmware: async () => sentinelHex,
         });
         manager.confirmFlash = () => Promise.resolve(true);
-        manager.setVariableChannel("microbit1", 5);
+        manager.setVariableChannel('microbit1', 5);
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
         expect(transport.flashed).to.deep.equal([patchedHex]);
       });
 
-      it("treats a stale protocol version as needs-flash", async function () {
+      it('treats a stale protocol version as needs-flash', async function () {
         const transport = new TestTransport({
           onWrite: (line, t) => {
-            if (line !== "P\n") return;
+            if (line !== 'P\n') return;
             t.emitLine(
               t.flashed.length > 0
                 ? `HELLO flock ${PROTOCOL_VERSION} 222`
@@ -302,71 +285,61 @@ export function runMicrobitManagerTests() {
         const manager = makeManager({ transports: [transport] });
         manager.confirmFlash = () => Promise.resolve(true);
 
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
 
         expect(transport.flashed.length).to.equal(1);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
       });
 
-      it("propagates connect failures and cleans up", async function () {
+      it('propagates connect failures and cleans up', async function () {
         const transport = new TestTransport({
           connectImpl: async () => {
-            throw new Error("no device selected");
+            throw new Error('no device selected');
           },
         });
         const manager = makeManager({ transports: [transport] });
         let error = null;
         try {
-          await manager.bindFromPicker("microbit1");
+          await manager.bindFromPicker('microbit1');
         } catch (e) {
           error = e;
         }
-        expect(error).to.be.an("error");
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(error).to.be.an('error');
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
       });
 
-      it("moves a board picked for another variable; the old variable goes grey", async function () {
+      it('moves a board picked for another variable; the old variable goes grey', async function () {
         const manager = makeManager({
-          transports: [respondingTransport("111"), respondingTransport("111")],
+          transports: [respondingTransport('111'), respondingTransport('111')],
         });
-        await manager.bindFromPicker("microbit1");
-        await manager.bindFromPicker("microbit2");
+        await manager.bindFromPicker('microbit1');
+        await manager.bindFromPicker('microbit2');
 
-        expect(manager.getStatusForVariable("microbit2").state).to.equal(
-          VariableStatus.TETHERED,
-        );
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
-        expect(manager.boundDeviceId("microbit2")).to.equal("111");
-        expect(manager.boundDeviceId("microbit1")).to.equal(null);
+        expect(manager.getStatusForVariable('microbit2').state).to.equal(VariableStatus.TETHERED);
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
+        expect(manager.boundDeviceId('microbit2')).to.equal('111');
+        expect(manager.boundDeviceId('microbit1')).to.equal(null);
       });
 
-      it("goes grey and disposes the transport when the board unplugs", async function () {
-        const transport = respondingTransport("111");
+      it('goes grey and disposes the transport when the board unplugs', async function () {
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         transport.emitDisconnect();
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
         // The stale connection must be torn down, or it auto-reconnects on
         // tab focus and fights the next connection for the DAPLink interface.
         expect(transport.disconnected).to.equal(true);
       });
 
-      it("silently reclaims a still-present board after the link drops", async function () {
+      it('silently reclaims a still-present board after the link drops', async function () {
         // e.g. the library disconnects the tab while it is hidden.
-        const first = respondingTransport("111", { usbSerialNumber: "USB1" });
-        const second = respondingTransport("111", { usbSerialNumber: "USB1" });
+        const first = respondingTransport('111', { usbSerialNumber: 'USB1' });
+        const second = respondingTransport('111', { usbSerialNumber: 'USB1' });
         const usb = {
           addEventListener() {},
           async getDevices() {
-            return [{ serialNumber: "USB1" }];
+            return [{ serialNumber: 'USB1' }];
           },
         };
         const manager = makeManager({
@@ -374,22 +347,18 @@ export function runMicrobitManagerTests() {
           usb,
           reconnectDelaysMs: [10, 20],
         });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         first.emitDisconnect();
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
 
         await sleep(40);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
         expect(manager._createCalls[1]).to.deep.equal({ silent: true });
       });
 
-      it("does not try to reconnect a board that was unplugged", async function () {
-        const transport = respondingTransport("111", {
-          usbSerialNumber: "USB1",
+      it('does not try to reconnect a board that was unplugged', async function () {
+        const transport = respondingTransport('111', {
+          usbSerialNumber: 'USB1',
         });
         const usb = {
           addEventListener() {},
@@ -402,37 +371,35 @@ export function runMicrobitManagerTests() {
           usb,
           reconnectDelaysMs: [10],
         });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         transport.emitDisconnect();
         await sleep(40);
         expect(manager._createCalls.length).to.equal(1);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.UNBOUND);
       });
     });
 
-    describe("bindings", function () {
-      it("ignores (but keeps) bindings whose variable is missing from the project", async function () {
+    describe('bindings', function () {
+      it('ignores (but keeps) bindings whose variable is missing from the project', async function () {
         const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
-            111: { variable: "microbit1", usbSerialNumber: "USB1" },
+            111: { variable: 'microbit1', usbSerialNumber: 'USB1' },
           }),
         });
         const manager = makeManager({ storage });
         manager.variableExists = () => false;
-        expect(manager.boundDeviceId("microbit1")).to.equal(null);
+        expect(manager.boundDeviceId('microbit1')).to.equal(null);
 
         // Binding is not deleted: it is honoured again once the variable exists.
         manager.variableExists = () => true;
-        expect(manager.boundDeviceId("microbit1")).to.equal("111");
-        expect(
-          JSON.parse(storage.getItem("flockMicrobitBindings"))["111"].variable,
-        ).to.equal("microbit1");
+        expect(manager.boundDeviceId('microbit1')).to.equal('111');
+        expect(JSON.parse(storage.getItem('flockMicrobitBindings'))['111'].variable).to.equal(
+          'microbit1'
+        );
       });
     });
 
-    describe("silent reconnect", function () {
+    describe('silent reconnect', function () {
       function makeUsb(devices) {
         return {
           listeners: {},
@@ -445,92 +412,88 @@ export function runMicrobitManagerTests() {
         };
       }
 
-      it("reconnects known boards from getDevices without scrolling the name", async function () {
+      it('reconnects known boards from getDevices without scrolling the name', async function () {
         const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
-            111: { variable: "microbit1", usbSerialNumber: "USB1" },
+            111: { variable: 'microbit1', usbSerialNumber: 'USB1' },
           }),
         });
-        const transport = respondingTransport("111", {
-          usbSerialNumber: "USB1",
+        const transport = respondingTransport('111', {
+          usbSerialNumber: 'USB1',
         });
-        const usb = makeUsb([{ serialNumber: "USB1" }]);
+        const usb = makeUsb([{ serialNumber: 'USB1' }]);
         const manager = makeManager({ transports: [transport], storage, usb });
 
         await manager.init();
         await sleep(10); // reconnect runs fire-and-forget
 
         expect(manager._createCalls[0]).to.deep.equal({ silent: true });
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
-        expect(transport.written).to.include("G:1\n");
-        expect(transport.written.join("")).to.not.include("S:");
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
+        expect(transport.written).to.include('G:1\n');
+        expect(transport.written.join('')).to.not.include('S:');
       });
 
-      it("ignores unknown devices on getDevices and connect events", async function () {
-        const usb = makeUsb([{ serialNumber: "STRANGER" }]);
+      it('ignores unknown devices on getDevices and connect events', async function () {
+        const usb = makeUsb([{ serialNumber: 'STRANGER' }]);
         const manager = makeManager({ transports: [], usb });
         await manager.init();
-        usb.listeners.connect({ device: { serialNumber: "STRANGER2" } });
+        usb.listeners.connect({ device: { serialNumber: 'STRANGER2' } });
         await sleep(10);
         expect(manager._createCalls).to.deep.equal([]);
       });
 
-      it("reconnects when a known board is replugged", async function () {
+      it('reconnects when a known board is replugged', async function () {
         const storage = new TestStorage({
           flockMicrobitBindings: JSON.stringify({
-            111: { variable: "microbit1", usbSerialNumber: "USB1" },
+            111: { variable: 'microbit1', usbSerialNumber: 'USB1' },
           }),
         });
-        const transport = respondingTransport("111", {
-          usbSerialNumber: "USB1",
+        const transport = respondingTransport('111', {
+          usbSerialNumber: 'USB1',
         });
         const usb = makeUsb([]);
         const manager = makeManager({ transports: [transport], storage, usb });
         await manager.init();
-        usb.listeners.connect({ device: { serialNumber: "USB1" } });
+        usb.listeners.connect({ device: { serialNumber: 'USB1' } });
         await sleep(10);
-        expect(manager.getStatusForVariable("microbit1").state).to.equal(
-          VariableStatus.TETHERED,
-        );
+        expect(manager.getStatusForVariable('microbit1').state).to.equal(VariableStatus.TETHERED);
       });
     });
 
-    describe("channel", function () {
-      it("pushes on change, not on repeat; addMicrobit forces a push", async function () {
-        const transport = respondingTransport("111");
+    describe('channel', function () {
+      it('pushes on change, not on repeat; addMicrobit forces a push', async function () {
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         transport.written.length = 0;
 
-        manager.setVariableChannel("microbit1", 5);
+        manager.setVariableChannel('microbit1', 5);
         await sleep(0); // channel pushes go through the session write queue
-        expect(transport.written).to.deep.equal(["G:5\n"]);
+        expect(transport.written).to.deep.equal(['G:5\n']);
 
-        manager.setVariableChannel("microbit1", 5);
+        manager.setVariableChannel('microbit1', 5);
         await sleep(0);
-        expect(transport.written).to.deep.equal(["G:5\n"]);
+        expect(transport.written).to.deep.equal(['G:5\n']);
 
-        manager.setVariableChannel("microbit1", 5, { forcePush: true });
+        manager.setVariableChannel('microbit1', 5, { forcePush: true });
         await sleep(0);
-        expect(transport.written).to.deep.equal(["G:5\n", "G:5\n"]);
+        expect(transport.written).to.deep.equal(['G:5\n', 'G:5\n']);
       });
 
-      it("binds with the pre-registered channel", async function () {
-        const transport = respondingTransport("111");
+      it('binds with the pre-registered channel', async function () {
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
-        manager.setVariableChannel("microbit1", 7);
-        await manager.bindFromPicker("microbit1");
-        expect(transport.written).to.include("G:7\n");
+        manager.setVariableChannel('microbit1', 7);
+        await manager.bindFromPicker('microbit1');
+        expect(transport.written).to.include('G:7\n');
       });
 
-      it("knows which channels have a tethered listener", async function () {
-        const transport = respondingTransport("111");
+      it('knows which channels have a tethered listener', async function () {
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
-        manager.setVariableChannel("microbit1", 7);
+        manager.setVariableChannel('microbit1', 7);
         expect(manager.hasTetheredOnChannel(7)).to.equal(false);
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         expect(manager.hasTetheredOnChannel(7)).to.equal(true);
         expect(manager.hasTetheredOnChannel(8)).to.equal(false);
       });
@@ -540,13 +503,7 @@ export function runMicrobitManagerTests() {
       const SUN = '9090909990999990999090909';
       // One short line per LED row — a single 25-digit line overflows the
       // firmware's <20-byte serial receive buffer.
-      const SUN_LINES = [
-        'I:090909\n',
-        'I:109990\n',
-        'I:299999\n',
-        'I:309990\n',
-        'I:490909\n',
-      ];
+      const SUN_LINES = ['I:090909\n', 'I:109990\n', 'I:299999\n', 'I:309990\n', 'I:490909\n'];
 
       it("writes the five row lines to the named variable's tethered session", async function () {
         const transport = respondingTransport('111');
@@ -574,11 +531,7 @@ export function runMicrobitManagerTests() {
           await sleep(0);
           expect(transport.written).to.deep.equal(SUN_LINES);
           for (const line of SUN_LINES) {
-            expect(debugCalls).to.deep.include([
-              'micro:bit:',
-              'write:',
-              line.trimEnd(),
-            ]);
+            expect(debugCalls).to.deep.include(['micro:bit:', 'write:', line.trimEnd()]);
           }
         } finally {
           console.debug = originalDebug;
@@ -623,11 +576,7 @@ export function runMicrobitManagerTests() {
         manager.scrollText('microbit1', 'Hi');
         manager.showImage('microbit1', SUN);
         await sleep(0);
-        expect(transport.written).to.deep.equal([
-          ...SUN_LINES,
-          'S:Hi\n',
-          ...SUN_LINES,
-        ]);
+        expect(transport.written).to.deep.equal([...SUN_LINES, 'S:Hi\n', ...SUN_LINES]);
       });
 
       it('drops the session and stops writing when a row write fails', async function () {
@@ -793,35 +742,35 @@ export function runMicrobitManagerTests() {
       });
     });
 
-    describe("events and radio", function () {
+    describe('events and radio', function () {
       async function tetheredManager() {
-        const transport = respondingTransport("111");
+        const transport = respondingTransport('111');
         const manager = makeManager({ transports: [transport] });
-        await manager.bindFromPicker("microbit1");
+        await manager.bindFromPicker('microbit1');
         return { manager, transport };
       }
 
       it("fans out the tethered board's own events to its variable", async function () {
         const { manager, transport } = await tetheredManager();
         const received = [];
-        manager.subscribe("microbit1", (char) => received.push(char));
-        transport.emitLine("E:SH");
-        transport.emitLine("E:A");
-        transport.emitLine("garbage line");
-        expect(received).to.deep.equal(["i", " "]);
+        manager.subscribe('microbit1', (char) => received.push(char));
+        transport.emitLine('E:SH');
+        transport.emitLine('E:A');
+        transport.emitLine('garbage line');
+        expect(received).to.deep.equal(['i', ' ']);
       });
 
-      it("delivers relayed events to the bound variable and dedups on (deviceId, seq)", async function () {
+      it('delivers relayed events to the bound variable and dedups on (deviceId, seq)', async function () {
         const manager = makeManager({
-          transports: [respondingTransport("111"), respondingTransport("333")],
+          transports: [respondingTransport('111'), respondingTransport('333')],
         });
-        await manager.bindFromPicker("microbit1");
-        await manager.bindFromPicker("microbit2");
+        await manager.bindFromPicker('microbit1');
+        await manager.bindFromPicker('microbit2');
         // Radio board 222 is bound to microbit3 from an earlier tether.
-        manager._bindings.set("222", { variable: "microbit3" });
+        manager._bindings.set('222', { variable: 'microbit3' });
 
         const received = [];
-        manager.subscribe("microbit3", (char) => received.push(char));
+        manager.subscribe('microbit3', (char) => received.push(char));
         const anyChars = [];
         manager.onAnyEvent((char) => anyChars.push(char));
 
@@ -829,57 +778,51 @@ export function runMicrobitManagerTests() {
         const t1 = sessions[0].transport;
         const t2 = sessions[1].transport;
         // Both tethered boards relay the same packet; only one delivery.
-        t1.emitLine("R:222:5:TL");
-        t2.emitLine("R:222:5:TL");
-        t1.emitLine("R:222:6:TR");
+        t1.emitLine('R:222:5:TL');
+        t2.emitLine('R:222:5:TL');
+        t1.emitLine('R:222:6:TR');
 
-        expect(received).to.deep.equal(["a", "d"]);
-        expect(anyChars).to.deep.equal(["a", "d"]);
+        expect(received).to.deep.equal(['a', 'd']);
+        expect(anyChars).to.deep.equal(['a', 'd']);
       });
 
-      it("feeds every event to the any-event sink, even from unbound boards", async function () {
+      it('feeds every event to the any-event sink, even from unbound boards', async function () {
         const { manager, transport } = await tetheredManager();
         const anyChars = [];
         manager.onAnyEvent((char) => anyChars.push(char));
-        transport.emitLine("R:999:1:FF"); // unknown board
-        expect(anyChars).to.deep.equal(["t"]);
+        transport.emitLine('R:999:1:FF'); // unknown board
+        expect(anyChars).to.deep.equal(['t']);
       });
 
-      it("subscribing to an unbound variable is valid and silent", async function () {
+      it('subscribing to an unbound variable is valid and silent', async function () {
         const { manager, transport } = await tetheredManager();
         const received = [];
-        manager.subscribe("microbit9", (char) => received.push(char));
-        transport.emitLine("E:SH");
+        manager.subscribe('microbit9', (char) => received.push(char));
+        transport.emitLine('E:SH');
         expect(received).to.deep.equal([]);
       });
 
-      it("shows green waves while heartbeats arrive, grey after they stop", async function () {
+      it('shows green waves while heartbeats arrive, grey after they stop', async function () {
         const { manager, transport } = await tetheredManager();
-        manager._bindings.set("222", { variable: "microbit2" });
+        manager._bindings.set('222', { variable: 'microbit2' });
 
-        expect(manager.getStatusForVariable("microbit2").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
-        transport.emitLine("R:222:1:HB");
-        expect(manager.getStatusForVariable("microbit2").state).to.equal(
-          VariableStatus.RADIO,
-        );
-        expect(manager.isVariableOnRadio("microbit2")).to.equal(true);
+        expect(manager.getStatusForVariable('microbit2').state).to.equal(VariableStatus.UNBOUND);
+        transport.emitLine('R:222:1:HB');
+        expect(manager.getStatusForVariable('microbit2').state).to.equal(VariableStatus.RADIO);
+        expect(manager.isVariableOnRadio('microbit2')).to.equal(true);
 
         // heartbeatTimeoutMs is 60 in these tests.
         await sleep(90);
-        expect(manager.getStatusForVariable("microbit2").state).to.equal(
-          VariableStatus.UNBOUND,
-        );
+        expect(manager.getStatusForVariable('microbit2').state).to.equal(VariableStatus.UNBOUND);
         await manager.dispose();
       });
 
-      it("does not deliver to variables missing from the project", async function () {
+      it('does not deliver to variables missing from the project', async function () {
         const { manager, transport } = await tetheredManager();
         const received = [];
-        manager.subscribe("microbit1", (char) => received.push(char));
-        manager.variableExists = (name) => name !== "microbit1";
-        transport.emitLine("E:SH");
+        manager.subscribe('microbit1', (char) => received.push(char));
+        manager.variableExists = (name) => name !== 'microbit1';
+        transport.emitLine('E:SH');
         expect(received).to.deep.equal([]);
       });
     });

@@ -1,18 +1,13 @@
-import * as Blockly from "blockly";
-import { categoryColours } from "../toolbox.js";
+import * as Blockly from 'blockly';
+import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
   addToggleButton,
   mutationToDom,
   domToMutation,
   updateShape,
-} from "./blocks.js";
-import {
-  translate,
-  getTooltip,
-  getDropdownOption,
-  getOption,
-} from "../main/translation.js";
+} from './blocks.js';
+import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import {
   makeStartIcon,
   makeRepeatIcon,
@@ -26,70 +21,58 @@ import {
   BLOCK_ICON_FIELD_NAME,
   TOGGLE_BUTTON_FIELD_NAME,
   DecorativeFieldImage,
-} from "./blockIcons.js";
+} from './blockIcons.js';
 
 export function defineEventsBlocks() {
-  Blockly.Blocks["start"] = {
+  Blockly.Blocks['start'] = {
     init: function () {
       this.jsonInit({
-        type: "start",
-        message0: translate("start"),
-        message1: "%1",
+        type: 'start',
+        message0: translate('start'),
+        message1: '%1',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
+        colour: categoryColours['Events'],
         inputsInline: true,
-        tooltip: getTooltip("start"),
+        tooltip: getTooltip('start'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeStartIcon(getCurrentIconColor()),
-          18,
-          18,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeStartIcon(getCurrentIconColor()), 18, 18, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
     },
   };
 
   // Define the forever block
-  Blockly.Blocks["forever"] = {
+  Blockly.Blocks['forever'] = {
     init: function () {
       this.jsonInit({
-        type: "forever",
-        message0: translate("forever"),
+        type: 'forever',
+        message0: translate('forever'),
         args0: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
             check: null,
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("forever"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('forever'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       this.isInline = false;
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeRepeatIcon(getCurrentIconColor()),
-          32,
-          32,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeRepeatIcon(getCurrentIconColor()), 32, 32, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
       addToggleButton(this);
     },
@@ -112,37 +95,35 @@ export function defineEventsBlocks() {
       this.updateShape_(isInline);
 
       // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
   };
 
-  Blockly.Blocks["when_clicked"] = {
+  Blockly.Blocks['when_clicked'] = {
     init: function () {
       this.jsonInit({
-        type: "when_clicked",
-        message0: translate("when_clicked"),
+        type: 'when_clicked',
+        message0: translate('when_clicked'),
         args0: [
           {
-            type: "field_variable",
-            name: "MODEL_VAR",
+            type: 'field_variable',
+            name: 'MODEL_VAR',
             variable: window.currentMesh,
           },
           {
-            type: "field_dropdown",
-            name: "TRIGGER",
+            type: 'field_dropdown',
+            name: 'TRIGGER',
             options: [
-              getDropdownOption("OnPickTrigger"),
-              getDropdownOption("OnLeftPickTrigger"),
-              getDropdownOption("OnDoublePickTrigger"),
-              getDropdownOption("OnPickDownTrigger"),
-              getDropdownOption("OnPickUpTrigger"),
+              getDropdownOption('OnPickTrigger'),
+              getDropdownOption('OnLeftPickTrigger'),
+              getDropdownOption('OnDoublePickTrigger'),
+              getDropdownOption('OnPickDownTrigger'),
+              getDropdownOption('OnPickUpTrigger'),
             ],
           },
           /*{
@@ -155,44 +136,38 @@ export function defineEventsBlocks() {
                                                         ],
                                                 },*/
         ],
-        message1: "%1",
-        implicitAlign1: "LEFT",
+        message1: '%1',
+        implicitAlign1: 'LEFT',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("when_clicked"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('when_clicked'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       // Default to top-level mode
       this.isInline = false;
       this.setPreviousStatement(false);
       this.setNextStatement(false);
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeClickIcon(getCurrentIconColor()),
-          22,
-          22,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeClickIcon(getCurrentIconColor()), 22, 22, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
 
       // Add inline toggle button
       const toggleButton = new Blockly.FieldImage(
-        makeInlineIcon("white"),
+        makeInlineIcon('white'),
         30,
         30,
-        "toggle inline blocks",
+        'toggle inline blocks',
         () => {
           this.toggleDoBlock();
-        },
+        }
       );
 
       // Add toggle button to a separate input
@@ -202,13 +177,13 @@ export function defineEventsBlocks() {
     },
 
     mutationToDom: function () {
-      const container = document.createElement("mutation");
-      container.setAttribute("inline", this.isInline);
+      const container = document.createElement('mutation');
+      container.setAttribute('inline', this.isInline);
       return container;
     },
 
     domToMutation: function (xmlElement) {
-      const isInline = xmlElement.getAttribute("inline") === "true" || false;
+      const isInline = xmlElement.getAttribute('inline') === 'true' || false;
       this.updateShape_(isInline);
     },
 
@@ -233,79 +208,71 @@ export function defineEventsBlocks() {
 
       this.updateShape_(isInline);
 
-      if (this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
 
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
   };
 
-  Blockly.Blocks["on_collision"] = {
+  Blockly.Blocks['on_collision'] = {
     init: function () {
       this.jsonInit({
-        type: "when_touches",
-        message0: translate("on_collision"),
+        type: 'when_touches',
+        message0: translate('on_collision'),
         args0: [
           {
-            type: "field_variable",
-            name: "MODEL_VAR",
+            type: 'field_variable',
+            name: 'MODEL_VAR',
             variable: window.currentMesh,
           },
           {
-            type: "field_dropdown",
-            name: "TRIGGER",
+            type: 'field_dropdown',
+            name: 'TRIGGER',
             options: [
-              getDropdownOption("OnIntersectionEnterTrigger"),
-              getDropdownOption("OnIntersectionExitTrigger"),
+              getDropdownOption('OnIntersectionEnterTrigger'),
+              getDropdownOption('OnIntersectionExitTrigger'),
             ],
           },
           {
-            type: "field_variable",
-            name: "OTHER_MODEL_VAR",
-            variable: "object2",
+            type: 'field_variable',
+            name: 'OTHER_MODEL_VAR',
+            variable: 'object2',
           },
         ],
-        message1: "%1",
+        message1: '%1',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("on_collision"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('on_collision'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       // Set default state to top-level block
       this.isInline = false;
       this.callbackVar2Id = null;
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeCollisionIcon(getCurrentIconColor()),
-          24,
-          24,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeCollisionIcon(getCurrentIconColor()), 24, 24, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
 
       // Add the toggle button
       const toggleButton = new Blockly.FieldImage(
-        makeInlineIcon("white"),
+        makeInlineIcon('white'),
         30,
         30,
-        "toggle inline blocks",
+        'toggle inline blocks',
         () => {
           this.toggleDoBlock();
-        },
+        }
       );
 
       // Append the toggle button to the block
@@ -316,8 +283,8 @@ export function defineEventsBlocks() {
     onchange: function () {
       if (!this.workspace || this.isInFlyout) return;
 
-      const modelVarId = this.getFieldValue("MODEL_VAR");
-      const otherModelVarId = this.getFieldValue("OTHER_MODEL_VAR");
+      const modelVarId = this.getFieldValue('MODEL_VAR');
+      const otherModelVarId = this.getFieldValue('OTHER_MODEL_VAR');
 
       if (!modelVarId || !otherModelVarId) return;
 
@@ -338,17 +305,17 @@ export function defineEventsBlocks() {
       }
     },
     mutationToDom: function () {
-      const container = document.createElement("mutation");
-      container.setAttribute("inline", this.isInline);
+      const container = document.createElement('mutation');
+      container.setAttribute('inline', this.isInline);
       if (this.callbackVar2Id) {
-        container.setAttribute("callback_var_2", this.callbackVar2Id);
+        container.setAttribute('callback_var_2', this.callbackVar2Id);
       }
       return container;
     },
     domToMutation: function (xmlElement) {
-      const isInline = xmlElement.getAttribute("inline") === "true";
+      const isInline = xmlElement.getAttribute('inline') === 'true';
       this.updateShape_(isInline);
-      this.callbackVar2Id = xmlElement.getAttribute("callback_var_2") || null;
+      this.callbackVar2Id = xmlElement.getAttribute('callback_var_2') || null;
     },
     updateShape_: function (isInline) {
       this.isInline = isInline;
@@ -370,108 +337,97 @@ export function defineEventsBlocks() {
       this.updateShape_(isInline);
 
       // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
   };
 
   // For backward compatibility
-  Blockly.Blocks["when_touches"] = Blockly.Blocks["on_collision"];
+  Blockly.Blocks['when_touches'] = Blockly.Blocks['on_collision'];
 
-  Blockly.Blocks["when_key_event"] = {
+  Blockly.Blocks['when_key_event'] = {
     init: function () {
       this.jsonInit({
-        type: "when_key_event",
-        message0: translate("when_key_event"),
+        type: 'when_key_event',
+        message0: translate('when_key_event'),
         args0: [
           {
-            type: "field_grid_dropdown",
-            name: "KEY",
+            type: 'field_grid_dropdown',
+            name: 'KEY',
             columns: 10,
             options: [
-              getDropdownOption("0"),
-              getDropdownOption("1"),
-              getDropdownOption("2"),
-              getDropdownOption("3"),
-              getDropdownOption("4"),
-              getDropdownOption("5"),
-              getDropdownOption("6"),
-              getDropdownOption("7"),
-              getDropdownOption("8"),
-              getDropdownOption("9"),
-              getDropdownOption("a"),
-              getDropdownOption("b"),
-              getDropdownOption("c"),
-              getDropdownOption("d"),
-              getDropdownOption("e"),
-              getDropdownOption("f"),
-              getDropdownOption("g"),
-              getDropdownOption("h"),
-              getDropdownOption("i"),
-              getDropdownOption("j"),
-              getDropdownOption("k"),
-              getDropdownOption("l"),
-              getDropdownOption("m"),
-              getDropdownOption("n"),
-              getDropdownOption("o"),
-              getDropdownOption("p"),
-              getDropdownOption("q"),
-              getDropdownOption("r"),
-              getDropdownOption("s"),
-              getDropdownOption("t"),
-              getDropdownOption("u"),
-              getDropdownOption("v"),
-              getDropdownOption("w"),
-              getDropdownOption("x"),
-              getDropdownOption("y"),
-              getDropdownOption("z"),
-              getDropdownOption(" "),
-              getDropdownOption(","),
-              getDropdownOption("."),
-              getDropdownOption("/"),
-              getDropdownOption("ArrowLeft"),
-              getDropdownOption("ArrowUp"),
-              getDropdownOption("ArrowRight"),
-              getDropdownOption("ArrowDown"),
+              getDropdownOption('0'),
+              getDropdownOption('1'),
+              getDropdownOption('2'),
+              getDropdownOption('3'),
+              getDropdownOption('4'),
+              getDropdownOption('5'),
+              getDropdownOption('6'),
+              getDropdownOption('7'),
+              getDropdownOption('8'),
+              getDropdownOption('9'),
+              getDropdownOption('a'),
+              getDropdownOption('b'),
+              getDropdownOption('c'),
+              getDropdownOption('d'),
+              getDropdownOption('e'),
+              getDropdownOption('f'),
+              getDropdownOption('g'),
+              getDropdownOption('h'),
+              getDropdownOption('i'),
+              getDropdownOption('j'),
+              getDropdownOption('k'),
+              getDropdownOption('l'),
+              getDropdownOption('m'),
+              getDropdownOption('n'),
+              getDropdownOption('o'),
+              getDropdownOption('p'),
+              getDropdownOption('q'),
+              getDropdownOption('r'),
+              getDropdownOption('s'),
+              getDropdownOption('t'),
+              getDropdownOption('u'),
+              getDropdownOption('v'),
+              getDropdownOption('w'),
+              getDropdownOption('x'),
+              getDropdownOption('y'),
+              getDropdownOption('z'),
+              getDropdownOption(' '),
+              getDropdownOption(','),
+              getDropdownOption('.'),
+              getDropdownOption('/'),
+              getDropdownOption('ArrowLeft'),
+              getDropdownOption('ArrowUp'),
+              getDropdownOption('ArrowRight'),
+              getDropdownOption('ArrowDown'),
             ],
           },
           {
-            type: "field_dropdown",
-            name: "EVENT",
-            options: [
-              getDropdownOption("pressed"),
-              getDropdownOption("released"),
-            ],
+            type: 'field_dropdown',
+            name: 'EVENT',
+            options: [getDropdownOption('pressed'), getDropdownOption('released')],
           },
         ],
-        message1: "%1",
+        message1: '%1',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("when_key_event"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('when_key_event'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeKeyboardIcon(getCurrentIconColor()),
-          36,
-          36,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeKeyboardIcon(getCurrentIconColor()), 36, 36, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
       addToggleButton(this);
     },
@@ -494,68 +450,57 @@ export function defineEventsBlocks() {
       this.updateShape_(isInline);
 
       // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
   };
 
-  Blockly.Blocks["when_action_event"] = {
+  Blockly.Blocks['when_action_event'] = {
     init: function () {
       this.jsonInit({
-        type: "when_action_event",
-        message0: translate("when_action_event"),
+        type: 'when_action_event',
+        message0: translate('when_action_event'),
         args0: [
           {
-            type: "field_dropdown",
-            name: "ACTION",
+            type: 'field_dropdown',
+            name: 'ACTION',
             options: [
-              [getOption("ACTION_FORWARD"), "FORWARD"],
-              [getOption("ACTION_BACKWARD"), "BACKWARD"],
-              [getOption("ACTION_LEFT"), "LEFT"],
-              [getOption("ACTION_RIGHT"), "RIGHT"],
-              [getOption("ACTION_BUTTON1"), "BUTTON1"],
-              [getOption("ACTION_BUTTON2"), "BUTTON2"],
-              [getOption("ACTION_BUTTON3"), "BUTTON3"],
-              [getOption("ACTION_BUTTON4"), "BUTTON4"],
+              [getOption('ACTION_FORWARD'), 'FORWARD'],
+              [getOption('ACTION_BACKWARD'), 'BACKWARD'],
+              [getOption('ACTION_LEFT'), 'LEFT'],
+              [getOption('ACTION_RIGHT'), 'RIGHT'],
+              [getOption('ACTION_BUTTON1'), 'BUTTON1'],
+              [getOption('ACTION_BUTTON2'), 'BUTTON2'],
+              [getOption('ACTION_BUTTON3'), 'BUTTON3'],
+              [getOption('ACTION_BUTTON4'), 'BUTTON4'],
             ],
           },
           {
-            type: "field_dropdown",
-            name: "EVENT",
-            options: [
-              getDropdownOption("pressed"),
-              getDropdownOption("released"),
-            ],
+            type: 'field_dropdown',
+            name: 'EVENT',
+            options: [getDropdownOption('pressed'), getDropdownOption('released')],
           },
         ],
-        message1: "%1",
+        message1: '%1',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("when_action_event"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('when_action_event'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makePressIcon(getCurrentIconColor()),
-          32,
-          32,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makePressIcon(getCurrentIconColor()), 32, 32, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
       addToggleButton(this);
     },
@@ -578,76 +523,67 @@ export function defineEventsBlocks() {
       this.updateShape_(isInline);
 
       // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
   };
 
   function getEventNameValidationError(name) {
-    if (!name || typeof name !== "string") {
-      return "Event name must be a valid string.";
+    if (!name || typeof name !== 'string') {
+      return 'Event name must be a valid string.';
     }
 
     if (name.length > 30) {
-      return "Event name must be 30 characters or fewer.";
+      return 'Event name must be 30 characters or fewer.';
     }
 
     const lower = name.toLowerCase();
-    const reservedPrefixes = [
-      "_",
-      "on",
-      "system",
-      "internal",
-      "babylon",
-      "flock",
-    ];
+    const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
     if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
       return "Event name must not start with reserved words like 'on', 'system', or 'flock'.";
     }
 
     const disallowedChars = /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
     if (disallowedChars.test(name)) {
-      return "Event name must not include punctuation or special characters.";
+      return 'Event name must not include punctuation or special characters.';
     }
 
     return null; // valid
   }
 
-  Blockly.Blocks["broadcast_event"] = {
+  Blockly.Blocks['broadcast_event'] = {
     init: function () {
       this.jsonInit({
-        type: "broadcast_event",
-        message0: translate("broadcast_event"),
+        type: 'broadcast_event',
+        message0: translate('broadcast_event'),
         args0: [
           {
-            type: "input_value",
-            name: "EVENT_NAME",
-            check: "String",
+            type: 'input_value',
+            name: 'EVENT_NAME',
+            check: 'String',
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("broadcast_event"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('broadcast_event'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
     },
 
     /** Called whenever anything changes */
     onchange: function () {
       if (!this.workspace || this.isInFlyout) return;
 
-      const inputBlock = this.getInputTargetBlock("EVENT_NAME");
+      const inputBlock = this.getInputTargetBlock('EVENT_NAME');
 
-      if (inputBlock && inputBlock.type === "text") {
-        const value = inputBlock.getFieldValue("TEXT");
+      if (inputBlock && inputBlock.type === 'text') {
+        const value = inputBlock.getFieldValue('TEXT');
         const error = getEventNameValidationError(value);
 
         if (error) {
@@ -661,40 +597,34 @@ export function defineEventsBlocks() {
     },
   };
 
-  Blockly.Blocks["on_event"] = {
+  Blockly.Blocks['on_event'] = {
     init: function () {
       this.jsonInit({
-        type: "on_event",
-        message0: translate("on_event"),
+        type: 'on_event',
+        message0: translate('on_event'),
         args0: [
           {
-            type: "input_value",
-            name: "EVENT_NAME",
-            check: "String",
+            type: 'input_value',
+            name: 'EVENT_NAME',
+            check: 'String',
           },
         ],
-        message1: "%1",
+        message1: '%1',
         args1: [
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
-        colour: categoryColours["Events"],
-        tooltip: getTooltip("on_event"),
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('on_event'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("events_blocks");
+      this.setStyle('events_blocks');
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(
-          makeOnEventIcon(getCurrentIconColor()),
-          28,
-          28,
-          "",
-          null,
-        ),
-        BLOCK_ICON_FIELD_NAME,
+        new DecorativeFieldImage(makeOnEventIcon(getCurrentIconColor()), 28, 28, '', null),
+        BLOCK_ICON_FIELD_NAME
       );
       addToggleButton(this);
     },
@@ -717,22 +647,20 @@ export function defineEventsBlocks() {
       this.updateShape_(isInline);
 
       // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason("ORPHANED_BLOCK")) {
-        this.setDisabledReason(false, "ORPHANED_BLOCK");
+      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
+        this.setDisabledReason(false, 'ORPHANED_BLOCK');
       }
 
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, "mutation", null, "", ""),
-      );
+      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       Blockly.Events.fire(new Blockly.Events.BlockMove(this));
     },
     onchange: function () {
       if (!this.workspace || this.isInFlyout) return;
 
-      const inputBlock = this.getInputTargetBlock("EVENT_NAME");
+      const inputBlock = this.getInputTargetBlock('EVENT_NAME');
 
-      if (inputBlock && inputBlock.type === "text") {
-        const value = inputBlock.getFieldValue("TEXT");
+      if (inputBlock && inputBlock.type === 'text') {
+        const value = inputBlock.getFieldValue('TEXT');
         const error = getEventNameValidationError(value);
 
         if (error) {

@@ -1,7 +1,7 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runPhysicsTests(flock) {
-  describe("onTrigger @physics", function () {
+  describe('onTrigger @physics', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -15,8 +15,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should call callback on trigger", async function () {
-      const boxId = "boxTriggerTest";
+    it('should call callback on trigger', async function () {
+      const boxId = 'boxTriggerTest';
       await flock.createBox(boxId, {
         width: 1,
         height: 1,
@@ -28,7 +28,7 @@ export function runPhysicsTests(flock) {
       let triggered = false;
 
       flock.onTrigger(boxId, {
-        trigger: "OnPickTrigger",
+        trigger: 'OnPickTrigger',
         callback: () => {
           triggered = true;
         },
@@ -37,15 +37,13 @@ export function runPhysicsTests(flock) {
       // Simulate trigger
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh).to.exist;
-      mesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnPickTrigger,
-      );
+      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
 
       expect(triggered).to.be.true;
     });
 
     it("should only call callback once when mode is 'once'", async function () {
-      const boxId = "boxTriggerOnce";
+      const boxId = 'boxTriggerOnce';
       await flock.createBox(boxId, {
         width: 1,
         height: 1,
@@ -57,28 +55,24 @@ export function runPhysicsTests(flock) {
       let count = 0;
 
       flock.onTrigger(boxId, {
-        trigger: "OnPickTrigger",
+        trigger: 'OnPickTrigger',
         callback: () => {
           count++;
         },
-        mode: "once",
+        mode: 'once',
       });
 
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh).to.exist;
 
-      mesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnPickTrigger,
-      );
-      mesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnPickTrigger,
-      );
+      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
 
       expect(count).to.equal(1);
     });
   });
 
-  describe("onIntersect @physics", function () {
+  describe('onIntersect @physics', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -92,9 +86,9 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should call callback on intersection", async function () {
-      const box1 = "boxIntersect1";
-      const box2 = "boxIntersect2";
+    it('should call callback on intersection', async function () {
+      const box1 = 'boxIntersect1';
+      const box2 = 'boxIntersect2';
 
       await flock.createBox(box1, {
         width: 1,
@@ -113,7 +107,7 @@ export function runPhysicsTests(flock) {
       let intersected = false;
 
       await flock.onIntersect(box1, box2, {
-        trigger: "OnIntersectionEnterTrigger",
+        trigger: 'OnIntersectionEnterTrigger',
         callback: () => {
           intersected = true;
         },
@@ -124,18 +118,17 @@ export function runPhysicsTests(flock) {
       expect(mesh).to.exist;
       expect(otherMesh).to.exist;
 
-      mesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherMesh },
-      );
+      mesh.actionManager.processTrigger(flock.BABYLON.ActionManager.OnIntersectionEnterTrigger, {
+        mesh: otherMesh,
+      });
 
       expect(intersected).to.be.true;
     });
 
-    it("should register intersections for all matching right-hand group meshes", async function () {
-      const source = "colliderSource_1";
-      const groupA = "groupTarget_1";
-      const groupB = "groupTarget_2";
+    it('should register intersections for all matching right-hand group meshes', async function () {
+      const source = 'colliderSource_1';
+      const groupA = 'groupTarget_1';
+      const groupB = 'groupTarget_2';
 
       await flock.createBox(source, {
         width: 1,
@@ -159,7 +152,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, groupA, {
-        trigger: "OnIntersectionEnterTrigger",
+        trigger: 'OnIntersectionEnterTrigger',
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -175,19 +168,19 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA },
+        { mesh: otherA }
       );
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB },
+        { mesh: otherB }
       );
 
       expect(count).to.equal(2);
     });
 
-    it("should skip self-pair when expanding right-hand collision group", async function () {
-      const source = "selfPair_1";
-      const other = "selfPair_2";
+    it('should skip self-pair when expanding right-hand collision group', async function () {
+      const source = 'selfPair_1';
+      const other = 'selfPair_2';
 
       await flock.createBox(source, {
         width: 1,
@@ -205,7 +198,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, source, {
-        trigger: "OnIntersectionEnterTrigger",
+        trigger: 'OnIntersectionEnterTrigger',
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -219,16 +212,16 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherMesh },
+        { mesh: otherMesh }
       );
 
       expect(count).to.equal(1);
     });
 
-    it("should apply right-hand group intersections when targets are created later", async function () {
-      const source = "lateSource_1";
-      const futureGroupSeed = "lateTarget_1";
-      const futureGroupOther = "lateTarget_2";
+    it('should apply right-hand group intersections when targets are created later', async function () {
+      const source = 'lateSource_1';
+      const futureGroupSeed = 'lateTarget_1';
+      const futureGroupOther = 'lateTarget_2';
 
       await flock.createBox(source, {
         width: 1,
@@ -240,7 +233,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, futureGroupSeed, {
-        trigger: "OnIntersectionEnterTrigger",
+        trigger: 'OnIntersectionEnterTrigger',
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -270,21 +263,21 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA },
+        { mesh: otherA }
       );
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB },
+        { mesh: otherB }
       );
 
       expect(count).to.equal(2);
     });
 
-    it("should canonicalize unsanitized RHS names for pending group registration", async function () {
-      const source = "canonSource_1";
-      const unsanitizedAlias = "canon target !@#";
-      const normalizedAlias = "canontarget";
-      const createdTarget = "canontarget_1";
+    it('should canonicalize unsanitized RHS names for pending group registration', async function () {
+      const source = 'canonSource_1';
+      const unsanitizedAlias = 'canon target !@#';
+      const normalizedAlias = 'canontarget';
+      const createdTarget = 'canontarget_1';
 
       await flock.createBox(source, {
         width: 1,
@@ -300,7 +293,7 @@ export function runPhysicsTests(flock) {
 
       let count = 0;
       await flock.onIntersect(source, unsanitizedAlias, {
-        trigger: "OnIntersectionEnterTrigger",
+        trigger: 'OnIntersectionEnterTrigger',
         applyToGroupOther: true,
         callback: () => {
           count++;
@@ -322,7 +315,7 @@ export function runPhysicsTests(flock) {
 
       sourceMesh.actionManager.processTrigger(
         flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: targetMesh },
+        { mesh: targetMesh }
       );
 
       expect(count).to.equal(1);
@@ -330,7 +323,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("applyForce method @physics", function () {
+  describe('applyForce method @physics', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -344,8 +337,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should apply force to a mesh with default values (no movement) @slow", async function () {
-      const id = "boxApplyForceDefault";
+    it('should apply force to a mesh with default values (no movement) @slow', async function () {
+      const id = 'boxApplyForceDefault';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -370,15 +363,15 @@ export function runPhysicsTests(flock) {
       expect(finalVelocity.z).to.be.closeTo(initialVelocity.z, 0.01);
     });
 
-    it("should apply specific forces to a mesh", async function () {
-      const id = "boxApplyForce";
+    it('should apply specific forces to a mesh', async function () {
+      const id = 'boxApplyForce';
       await flock.createBox(id, {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
 
       boxIds.push(id);
 
@@ -399,8 +392,8 @@ export function runPhysicsTests(flock) {
       expect(velocity.z).to.be.lessThan(0);
     });
 
-    it("should handle missing physics gracefully", async function () {
-      const id = "boxNoPhysics";
+    it('should handle missing physics gracefully', async function () {
+      const id = 'boxNoPhysics';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -431,7 +424,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("setSpeed method @physics", function () {
+  describe('setSpeed method @physics', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -447,11 +440,16 @@ export function runPhysicsTests(flock) {
 
     // Create a static ground plus a dynamic box resting on it, ready to drive.
     async function makeGroundAndBox(groundId, boxId) {
-      await flock.createBox(groundId, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(groundId, "STATIC");
+      await flock.createBox(groundId, {
+        width: 100,
+        height: 1,
+        depth: 100,
+        position: [0, -0.5, 0],
+      });
+      await flock.setPhysics(groundId, 'STATIC');
       boxIds.push(groundId);
       await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(boxId, "DYNAMIC");
+      await flock.setPhysics(boxId, 'DYNAMIC');
       boxIds.push(boxId);
       // Let it settle so the ground check sees it as grounded.
       await new Promise((r) => setTimeout(r, 200));
@@ -473,9 +471,9 @@ export function runPhysicsTests(flock) {
 
     it("drives along the object's local direction when grounded", async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndBox("velGndA", "boxSetVelocity");
+      const mesh = await makeGroundAndBox('velGndA', 'boxSetVelocity');
       // Unrotated box: local "forward" is -Z (the glide-direction convention).
-      flock.setSpeed("boxSetVelocity", "forward", 5);
+      flock.setSpeed('boxSetVelocity', 'forward', 5);
       await new Promise((r) => setTimeout(r, 200));
 
       const v = mesh.physics.getLinearVelocity();
@@ -483,12 +481,12 @@ export function runPhysicsTests(flock) {
       expect(v.z).to.be.closeTo(-5, 0.5);
     });
 
-    it("combines forward and sideways into one heading", async function () {
+    it('combines forward and sideways into one heading', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndBox("velGndB", "boxSetVelocityCombine");
+      const mesh = await makeGroundAndBox('velGndB', 'boxSetVelocityCombine');
       // forward -> -Z, sideways -> -X for an unrotated box.
-      flock.setSpeed("boxSetVelocityCombine", "forward", 5);
-      flock.setSpeed("boxSetVelocityCombine", "sideways", 3);
+      flock.setSpeed('boxSetVelocityCombine', 'forward', 5);
+      flock.setSpeed('boxSetVelocityCombine', 'sideways', 3);
       await new Promise((r) => setTimeout(r, 200));
 
       const v = mesh.physics.getLinearVelocity();
@@ -496,22 +494,22 @@ export function runPhysicsTests(flock) {
       expect(v.z).to.be.closeTo(-5, 0.5);
     });
 
-    it("moves the object across the ground", async function () {
+    it('moves the object across the ground', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndBox("velGndC", "boxSetVelocityMoves");
+      const mesh = await makeGroundAndBox('velGndC', 'boxSetVelocityMoves');
       const start = mesh.position.clone();
 
-      flock.setSpeed("boxSetVelocityMoves", "forward", 8);
+      flock.setSpeed('boxSetVelocityMoves', 'forward', 8);
       await new Promise((r) => setTimeout(r, 400));
 
       expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.greaterThan(1);
     });
 
-    it("maintains the speed on a ground instead of friction stopping it", async function () {
+    it('maintains the speed on a ground instead of friction stopping it', async function () {
       this.timeout(10000);
-      const id = "velDriver";
-      const mesh = await makeGroundAndBox("velGround", id);
-      flock.setSpeed(id, "forward", 5);
+      const id = 'velDriver';
+      const mesh = await makeGroundAndBox('velGround', id);
+      flock.setSpeed(id, 'forward', 5);
 
       // After well over a second on the ground, a one-shot would have stopped.
       // The maintained speed should still be moving at ~5 (forward = -Z).
@@ -519,27 +517,27 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-5, 0.5);
 
       // Setting it to 0 stops it.
-      flock.setSpeed(id, "forward", 0);
+      flock.setSpeed(id, 'forward', 0);
       await new Promise((r) => setTimeout(r, 600));
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(0, 0.5);
     });
 
-    it("maintains a world axis (x) on a ground", async function () {
+    it('maintains a world axis (x) on a ground', async function () {
       this.timeout(10000);
-      const id = "velDriverX";
-      const mesh = await makeGroundAndBox("velGroundX", id);
-      flock.setSpeed(id, "x_coordinate", 5); // world +X
+      const id = 'velDriverX';
+      const mesh = await makeGroundAndBox('velGroundX', id);
+      flock.setSpeed(id, 'x_coordinate', 5); // world +X
 
       await new Promise((r) => setTimeout(r, 1500));
       expect(mesh.physics.getLinearVelocity().x).to.be.closeTo(5, 0.5);
     });
 
-    it("keeps a driven object upright (like move forward)", async function () {
+    it('keeps a driven object upright (like move forward)', async function () {
       this.timeout(10000);
-      const id = "velUpright";
-      const mesh = await makeGroundAndBox("velGroundUp", id);
+      const id = 'velUpright';
+      const mesh = await makeGroundAndBox('velGroundUp', id);
       const B = flock.BABYLON;
-      flock.setSpeed(id, "forward", 5);
+      flock.setSpeed(id, 'forward', 5);
 
       // Try to tip it over (pitch + roll, plus a tumbling spin).
       mesh.rotationQuaternion = B.Quaternion.RotationAxis(B.Axis.X, 0.9);
@@ -555,9 +553,9 @@ export function runPhysicsTests(flock) {
 
     it("clamps vertical speed so a slope can't launch it", async function () {
       this.timeout(10000);
-      const id = "velClamp";
-      const mesh = await makeGroundAndBox("velGroundClamp", id);
-      flock.setSpeed(id, "forward", 5); // horizontal drive, no vertical set
+      const id = 'velClamp';
+      const mesh = await makeGroundAndBox('velGroundClamp', id);
+      flock.setSpeed(id, 'forward', 5); // horizontal drive, no vertical set
 
       // Simulate a ramp kicking it sharply upward.
       mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, 12, -5));
@@ -567,32 +565,32 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().y).to.be.at.most(3.1);
     });
 
-    it("does not clamp an explicit vertical (up) drive", async function () {
+    it('does not clamp an explicit vertical (up) drive', async function () {
       this.timeout(8000);
-      const id = "velUpDrive";
+      const id = 'velUpDrive';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
-      flock.setSpeed(id, "up", 10); // explicit vertical drive
+      flock.setSpeed(id, 'up', 10); // explicit vertical drive
 
       await new Promise((r) => setTimeout(r, 300));
       // Explicitly driven vertical is respected, not capped at 3.
       expect(mesh.physics.getLinearVelocity().y).to.be.greaterThan(8);
     });
 
-    it("assigns a physics capsule like move forward", async function () {
-      const id = "velCapsule";
+    it('assigns a physics capsule like move forward', async function () {
+      const id = 'velCapsule';
       // 2 x 4 x 6 box: capsule radius = min(2,6)/2 = 1, height = 4 - 0.01.
       await flock.createBox(id, { width: 2, height: 4, depth: 6, position: [0, 2, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.metadata.physicsCapsule).to.be.undefined; // none yet
 
-      flock.setSpeed(id, "forward", 5);
+      flock.setSpeed(id, 'forward', 5);
 
       const cap = mesh.metadata.physicsCapsule;
       expect(cap).to.exist;
@@ -603,9 +601,9 @@ export function runPhysicsTests(flock) {
 
     it("'all' to 0 is a full stop that lets physics resume", async function () {
       this.timeout(8000);
-      const id = "boxSetVelocityAll";
-      const mesh = await makeGroundAndBox("velGroundAll", id);
-      flock.setSpeed(id, "forward", 6);
+      const id = 'boxSetVelocityAll';
+      const mesh = await makeGroundAndBox('velGroundAll', id);
+      flock.setSpeed(id, 'forward', 6);
 
       // Forward is -Z for an unrotated box, and the drive applies immediately.
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-6, 0.5);
@@ -640,8 +638,8 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-4, 0.5);
     });
 
-    it("should handle missing physics gracefully", async function () {
-      const id = "boxSetVelocityNoPhysics";
+    it('should handle missing physics gracefully', async function () {
+      const id = 'boxSetVelocityNoPhysics';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       boxIds.push(id);
 
@@ -651,16 +649,18 @@ export function runPhysicsTests(flock) {
 
       let errorLogged = false;
       const originalConsoleError = console.error;
-      console.error = () => { errorLogged = true; };
+      console.error = () => {
+        errorLogged = true;
+      };
 
-      flock.setSpeed(id, "forward", 1);
+      flock.setSpeed(id, 'forward', 1);
 
       console.error = originalConsoleError;
       expect(errorLogged).to.be.true;
     });
   });
 
-  describe("setBounciness method @physics", function () {
+  describe('setBounciness method @physics', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -675,9 +675,9 @@ export function runPhysicsTests(flock) {
     });
 
     it("sets restitution on the body's shape material", async function () {
-      const id = "boxBounciness";
+      const id = 'boxBounciness';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       flock.setBounciness(id, 0.9);
@@ -687,24 +687,24 @@ export function runPhysicsTests(flock) {
       expect(mesh.metadata.bounciness).to.be.closeTo(0.9, 1e-6);
     });
 
-    it("forces MAXIMUM restitution combine so the bounciest surface wins", async function () {
-      const id = "boxBouncinessCombine";
+    it('forces MAXIMUM restitution combine so the bounciest surface wins', async function () {
+      const id = 'boxBouncinessCombine';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       flock.setBounciness(id, 0.5);
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.physics.shape.material.restitutionCombine).to.equal(
-        flock.BABYLON.PhysicsMaterialCombineMode.MAXIMUM,
+        flock.BABYLON.PhysicsMaterialCombineMode.MAXIMUM
       );
     });
 
-    it("preserves the existing friction when changing bounciness", async function () {
-      const id = "boxBouncinessFriction";
+    it('preserves the existing friction when changing bounciness', async function () {
+      const id = 'boxBouncinessFriction';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
@@ -716,10 +716,10 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.shape.material.friction).to.be.closeTo(0.42, 1e-6);
     });
 
-    it("clamps the value to the 0..1 range", async function () {
-      const id = "boxBouncinessClamp";
+    it('clamps the value to the 0..1 range', async function () {
+      const id = 'boxBouncinessClamp';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
@@ -731,49 +731,49 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.shape.material.restitution).to.equal(0);
     });
 
-    it("defaults a fresh body to no bounce (restitution 0)", async function () {
-      const id = "boxBouncinessDefault";
+    it('defaults a fresh body to no bounce (restitution 0)', async function () {
+      const id = 'boxBouncinessDefault';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.physics.shape.material.restitution).to.equal(0);
     });
 
-    it("keeps bounciness through a physics shape (capsule) swap", async function () {
-      const id = "boxBouncinessCapsule";
+    it('keeps bounciness through a physics shape (capsule) swap', async function () {
+      const id = 'boxBouncinessCapsule';
       await flock.createBox(id, { width: 1, height: 2, depth: 1, position: [0, 1, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       flock.setBounciness(id, 0.6);
-      await flock.setPhysicsShape(id, "CAPSULE");
+      await flock.setPhysicsShape(id, 'CAPSULE');
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.metadata.physicsShapeType).to.equal("CAPSULE");
+      expect(mesh.metadata.physicsShapeType).to.equal('CAPSULE');
       expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.6, 1e-6);
     });
 
-    it("re-applies the stored bounciness after a physics rebuild", async function () {
-      const id = "boxBouncinessRebuild";
+    it('re-applies the stored bounciness after a physics rebuild', async function () {
+      const id = 'boxBouncinessRebuild';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       flock.setBounciness(id, 0.8);
 
       // Drop physics and re-add it — the new shape starts with the default
       // material, so without re-application the bounciness would be lost.
-      await flock.setPhysics(id, "NONE");
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'NONE');
+      await flock.setPhysics(id, 'DYNAMIC');
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.physics.shape.material.restitution).to.be.closeTo(0.8, 1e-6);
     });
 
-    it("should handle missing physics gracefully", async function () {
-      const id = "boxBouncinessNoPhysics";
+    it('should handle missing physics gracefully', async function () {
+      const id = 'boxBouncinessNoPhysics';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       boxIds.push(id);
 
@@ -783,7 +783,9 @@ export function runPhysicsTests(flock) {
 
       let errorLogged = false;
       const originalConsoleError = console.error;
-      console.error = () => { errorLogged = true; };
+      console.error = () => {
+        errorLogged = true;
+      };
 
       flock.setBounciness(id, 0.5);
 
@@ -792,7 +794,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("meshExists @physics", function () {
+  describe('meshExists @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -802,8 +804,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should return true for an existing mesh", async function () {
-      const id = "boxMeshExists";
+    it('should return true for an existing mesh', async function () {
+      const id = 'boxMeshExists';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -815,12 +817,12 @@ export function runPhysicsTests(flock) {
       expect(flock.meshExists(id)).to.be.true;
     });
 
-    it("should return false for a non-existent mesh", function () {
-      expect(flock.meshExists("doesNotExist")).to.be.false;
+    it('should return false for a non-existent mesh', function () {
+      expect(flock.meshExists('doesNotExist')).to.be.false;
     });
   });
 
-  describe("checkMeshesTouching @physics", function () {
+  describe('checkMeshesTouching @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -830,9 +832,9 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should return true when two meshes overlap", async function () {
-      const id1 = "boxTouching1";
-      const id2 = "boxTouching2";
+    it('should return true when two meshes overlap', async function () {
+      const id1 = 'boxTouching1';
+      const id2 = 'boxTouching2';
       await flock.createBox(id1, {
         width: 1,
         height: 1,
@@ -850,9 +852,9 @@ export function runPhysicsTests(flock) {
       expect(flock.checkMeshesTouching(id1, id2)).to.be.true;
     });
 
-    it("should return false when meshes do not overlap", async function () {
-      const id1 = "boxNotTouching1";
-      const id2 = "boxNotTouching2";
+    it('should return false when meshes do not overlap', async function () {
+      const id1 = 'boxNotTouching1';
+      const id2 = 'boxNotTouching2';
       await flock.createBox(id1, {
         width: 1,
         height: 1,
@@ -871,7 +873,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("up method @physics", function () {
+  describe('up method @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -881,15 +883,15 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should apply upward impulse to a dynamic mesh @slow", async function () {
-      const id = "boxUp";
+    it('should apply upward impulse to a dynamic mesh @slow', async function () {
+      const id = 'boxUp';
       await flock.createBox(id, {
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
@@ -903,7 +905,7 @@ export function runPhysicsTests(flock) {
       expect(velocity.y).to.be.greaterThan(0);
     });
 
-    it("should log when mesh not found", function () {
+    it('should log when mesh not found', function () {
       let logged = false;
       const originalConsoleLog = console.log;
       console.log = (...args) => {
@@ -911,7 +913,7 @@ export function runPhysicsTests(flock) {
         originalConsoleLog(...args);
       };
 
-      flock.up("nonExistentMesh", 5);
+      flock.up('nonExistentMesh', 5);
 
       console.log = originalConsoleLog;
 
@@ -919,7 +921,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("setPhysics @physics", function () {
+  describe('setPhysics @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -929,8 +931,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should set motion type to STATIC", async function () {
-      const id = "boxSetPhysicsStatic";
+    it('should set motion type to STATIC', async function () {
+      const id = 'boxSetPhysicsStatic';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -939,16 +941,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, "STATIC");
+      await flock.setPhysics(id, 'STATIC');
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.physics.getMotionType()).to.equal(
-        flock.BABYLON.PhysicsMotionType.STATIC,
-      );
+      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.STATIC);
     });
 
-    it("should set motion type to DYNAMIC", async function () {
-      const id = "boxSetPhysicsDynamic";
+    it('should set motion type to DYNAMIC', async function () {
+      const id = 'boxSetPhysicsDynamic';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -957,16 +957,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.physics.getMotionType()).to.equal(
-        flock.BABYLON.PhysicsMotionType.DYNAMIC,
-      );
+      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.DYNAMIC);
     });
 
-    it("should dispose physics body when set to NONE", async function () {
-      const id = "boxSetPhysicsNone";
+    it('should dispose physics body when set to NONE', async function () {
+      const id = 'boxSetPhysicsNone';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -975,14 +973,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysics(id, "NONE");
+      await flock.setPhysics(id, 'NONE');
 
       const mesh = flock.scene.getMeshByName(id);
       expect(mesh.physics).to.be.null;
     });
   });
 
-  describe("isTouchingSurface @physics", function () {
+  describe('isTouchingSurface @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -992,8 +990,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should return false when mesh is in the air", async function () {
-      const id = "boxInAir";
+    it('should return false when mesh is in the air', async function () {
+      const id = 'boxInAir';
       await flock.createBox(id, {
         width: 1,
         height: 1,
@@ -1005,7 +1003,7 @@ export function runPhysicsTests(flock) {
       expect(flock.isTouchingSurface(id)).to.be.false;
     });
 
-    it("should return false and log when mesh does not exist", function () {
+    it('should return false and log when mesh does not exist', function () {
       let logged = false;
       const originalConsoleLog = console.log;
       console.log = (...args) => {
@@ -1013,7 +1011,7 @@ export function runPhysicsTests(flock) {
         originalConsoleLog(...args);
       };
 
-      const result = flock.isTouchingSurface("nonExistentMesh");
+      const result = flock.isTouchingSurface('nonExistentMesh');
 
       console.log = originalConsoleLog;
 
@@ -1022,7 +1020,7 @@ export function runPhysicsTests(flock) {
     });
   });
 
-  describe("setPhysicsShape @physics", function () {
+  describe('setPhysicsShape @physics', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -1036,8 +1034,8 @@ export function runPhysicsTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should set physicsShapeType to CAPSULE on the mesh metadata", async function () {
-      const id = "physicsShapeBox1";
+    it('should set physicsShapeType to CAPSULE on the mesh metadata', async function () {
+      const id = 'physicsShapeBox1';
       flock.createBox(id, {
         width: 1,
         height: 2,
@@ -1046,14 +1044,14 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysicsShape(id, "CAPSULE");
+      await flock.setPhysicsShape(id, 'CAPSULE');
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.metadata.physicsShapeType).to.equal("CAPSULE");
+      expect(mesh.metadata.physicsShapeType).to.equal('CAPSULE');
     });
 
-    it("should set physicsShapeType to MESH on the mesh metadata", async function () {
-      const id = "physicsShapeBox2";
+    it('should set physicsShapeType to MESH on the mesh metadata', async function () {
+      const id = 'physicsShapeBox2';
       flock.createBox(id, {
         width: 1,
         height: 1,
@@ -1062,24 +1060,24 @@ export function runPhysicsTests(flock) {
       });
       boxIds.push(id);
 
-      await flock.setPhysicsShape(id, "MESH");
+      await flock.setPhysicsShape(id, 'MESH');
 
       const mesh = flock.scene.getMeshByName(id);
-      expect(mesh.metadata.physicsShapeType).to.equal("MESH");
+      expect(mesh.metadata.physicsShapeType).to.equal('MESH');
     });
   });
 
-  describe("showPhysics @physics", function () {
-    it("should not throw when called", function () {
+  describe('showPhysics @physics', function () {
+    it('should not throw when called', function () {
       expect(() => flock.showPhysics()).to.not.throw();
     });
 
-    it("should not throw when called with false", function () {
+    it('should not throw when called with false', function () {
       expect(() => flock.showPhysics(false)).to.not.throw();
     });
   });
 
-  describe("jump method @physics", function () {
+  describe('jump method @physics', function () {
     const ids = [];
     const V3 = (x, y, z) => new flock.BABYLON.Vector3(x, y, z);
     const G = 9.81;
@@ -1096,56 +1094,61 @@ export function runPhysicsTests(flock) {
     // Static ground + a dynamic 1x1x1 character resting on it, settled so the
     // ground check reports it grounded.
     async function makeGroundAndChar(groundId, charId, pos = [0, 0.5, 0]) {
-      await flock.createBox(groundId, { width: 100, height: 1, depth: 100, position: [0, -0.5, 0] });
-      await flock.setPhysics(groundId, "STATIC");
+      await flock.createBox(groundId, {
+        width: 100,
+        height: 1,
+        depth: 100,
+        position: [0, -0.5, 0],
+      });
+      await flock.setPhysics(groundId, 'STATIC');
       ids.push(groundId);
       await flock.createBox(charId, { width: 1, height: 1, depth: 1, position: pos });
-      await flock.setPhysics(charId, "DYNAMIC");
+      await flock.setPhysics(charId, 'DYNAMIC');
       ids.push(charId);
       await new Promise((r) => setTimeout(r, 250));
       return flock.scene.getMeshByName(charId);
     }
 
-    it("sets an upward takeoff velocity for the requested height (v = sqrt(2gh))", async function () {
+    it('sets an upward takeoff velocity for the requested height (v = sqrt(2gh))', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndChar("jGndHeight", "jCharHeight");
-      flock.jump("jCharHeight", { jumpHeight: 1.5 });
+      const mesh = await makeGroundAndChar('jGndHeight', 'jCharHeight');
+      flock.jump('jCharHeight', { jumpHeight: 1.5 });
       // Sample immediately — the takeoff velocity is what we assert, not the arc.
       const v = mesh.physics.getLinearVelocity();
       expect(v.y).to.be.closeTo(Math.sqrt(2 * G * 1.5), 0.4);
     });
 
-    it("preserves horizontal velocity (carries run speed as momentum)", async function () {
+    it('preserves horizontal velocity (carries run speed as momentum)', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndChar("jGndMom", "jCharMom");
+      const mesh = await makeGroundAndChar('jGndMom', 'jCharMom');
       mesh.physics.setLinearVelocity(V3(4, 0, -2));
-      flock.jump("jCharMom", { jumpHeight: 1.5 });
+      flock.jump('jCharMom', { jumpHeight: 1.5 });
       const v = mesh.physics.getLinearVelocity();
       expect(v.x).to.be.closeTo(4, 0.05);
       expect(v.z).to.be.closeTo(-2, 0.05);
       expect(v.y).to.be.greaterThan(4);
     });
 
-    it("carries movement momentum into the jump", async function () {
+    it('carries movement momentum into the jump', async function () {
       this.timeout(10000);
-      const mesh = await makeGroundAndChar("jGndMove", "jCharMove");
+      const mesh = await makeGroundAndChar('jGndMove', 'jCharMove');
       // Drive it horizontally through the shared movement core (same path the
       // move blocks use), so the body has real movement velocity.
-      flock.setSpeed("jCharMove", "x_coordinate", 5); // world +X
+      flock.setSpeed('jCharMove', 'x_coordinate', 5); // world +X
       await new Promise((r) => setTimeout(r, 800));
       const vBefore = mesh.physics.getLinearVelocity();
       expect(vBefore.x).to.be.closeTo(5, 1); // actually moving
 
-      flock.jump("jCharMove", { jumpHeight: 1.5 });
+      flock.jump('jCharMove', { jumpHeight: 1.5 });
       const vAfter = mesh.physics.getLinearVelocity();
       expect(vAfter.x).to.be.closeTo(vBefore.x, 0.6); // horizontal momentum carried
       expect(vAfter.y).to.be.greaterThan(4); // and it took off
     });
 
-    it("jump velocity survives a following movement update (clamp exemption)", async function () {
+    it('jump velocity survives a following movement update (clamp exemption)', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndChar("jGndClamp", "jCharClamp");
-      flock.jump("jCharClamp", { jumpHeight: 2.0 }); // v ~ 6.26, above the 3 m/s clamp
+      const mesh = await makeGroundAndChar('jGndClamp', 'jCharClamp');
+      flock.jump('jCharClamp', { jumpHeight: 2.0 }); // v ~ 6.26, above the 3 m/s clamp
       const vJump = mesh.physics.getLinearVelocity().y;
       expect(vJump).to.be.greaterThan(3.5);
       // A normal movement frame clamps vertical to <= 3 to stop ramp-launching;
@@ -1154,9 +1157,9 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().y).to.be.greaterThan(3.5);
     });
 
-    it("air control converges the same amount regardless of frame rate", async function () {
+    it('air control converges the same amount regardless of frame rate', async function () {
       this.timeout(8000);
-      const mesh = await makeGroundAndChar("jGndFps", "jCharFps");
+      const mesh = await makeGroundAndChar('jGndFps', 'jCharFps');
 
       // Drive the airborne air-control path at two frame granularities over the
       // same total simulated time; the dt-normalised formulas should converge to
@@ -1170,9 +1173,10 @@ export function runPhysicsTests(flock) {
         mesh.physics.setLinearVelocity(V3(5, 0, 0)); // initial momentum along +x
         for (let i = 0; i < steps; i++) {
           // Pretend the previous movement frame was dtMs ago.
-          mesh._lastMoveForwardMs = (typeof performance !== "undefined" && performance.now
-            ? performance.now()
-            : Date.now()) - dtMs;
+          mesh._lastMoveForwardMs =
+            (typeof performance !== 'undefined' && performance.now
+              ? performance.now()
+              : Date.now()) - dtMs;
           flock.applyGroundedMovement(mesh, V3(0, 0, 5)); // steer toward +z
         }
         return mesh.physics.getLinearVelocity().clone();
@@ -1188,8 +1192,8 @@ export function runPhysicsTests(flock) {
       expect(fine.z).to.be.closeTo(coarse.z, 0.4);
     });
 
-    it("does nothing when the mesh does not exist", function () {
-      expect(() => flock.jump("nonExistentJumpMesh", { jumpHeight: 1 })).to.not.throw();
+    it('does nothing when the mesh does not exist', function () {
+      expect(() => flock.jump('nonExistentJumpMesh', { jumpHeight: 1 })).to.not.throw();
     });
   });
 }

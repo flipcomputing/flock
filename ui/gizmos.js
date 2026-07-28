@@ -133,11 +133,31 @@ function createAdaptiveInput({
   }
 
   function buildHud(initialAxis) {
-    return createGizmoMobileHud({ onMove, stepNormal, stepFast, mode, showUniform, stepLabels, onAxisChange: onHudAxisChange, stepLabelsByAxis, getValues, initialAxis });
+    return createGizmoMobileHud({
+      onMove,
+      stepNormal,
+      stepFast,
+      mode,
+      showUniform,
+      stepLabels,
+      onAxisChange: onHudAxisChange,
+      stepLabelsByAxis,
+      getValues,
+      initialAxis,
+    });
   }
 
   hud = buildHud(initialHudAxis ?? initialKeyboardAxis);
-  keyboard = createAxisKeyboardHandler({ onMove, onConfirm, onCancel, stepNormal, stepFast, onAxisChange: onKbAxisChange, initialAxis: initialKeyboardAxis, allowUniform: showUniform });
+  keyboard = createAxisKeyboardHandler({
+    onMove,
+    onConfirm,
+    onCancel,
+    stepNormal,
+    stepFast,
+    onAxisChange: onKbAxisChange,
+    initialAxis: initialKeyboardAxis,
+    allowUniform: showUniform,
+  });
   const startAxis = initialKeyboardAxis ?? initialHudAxis;
   if (startAxis) onAxisChange?.(startAxis);
   flock.canvas?.focus();
@@ -178,7 +198,11 @@ function registerBindings() {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
   // Focus on mesh with V or F key
-  KeyboardDispatcher.on('GIZMO', 'KeyF', noMod(() => focusCameraOnMesh()));
+  KeyboardDispatcher.on(
+    'GIZMO',
+    'KeyF',
+    noMod(() => focusCameraOnMesh())
+  );
   KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
@@ -420,9 +444,13 @@ function showNotAllowedCursor() {
 // Tools that mutate a mesh and must be refused on locked objects (transform,
 // colour, delete). Select / view / duplicate stay allowed.
 function blockedToolActive() {
-  return ['positionButton', 'rotationButton', 'scaleButton', 'colorPickerButton', 'deleteButton'].some(
-    (id) => document.getElementById(id)?.classList.contains('active')
-  );
+  return [
+    'positionButton',
+    'rotationButton',
+    'scaleButton',
+    'colorPickerButton',
+    'deleteButton',
+  ].some((id) => document.getElementById(id)?.classList.contains('active'));
 }
 
 // If the currently attached mesh is locked, detach it (so a transform gizmo
@@ -889,11 +917,7 @@ function getScaledSize(mesh) {
 function retilePrimitiveUVsForScale(mesh) {
   if (!mesh) return;
   const size = getScaledSize(mesh); // world dimensions = local size * scaling
-  flock.retilePrimitiveUVs(
-    mesh,
-    { width: size.x, height: size.y, depth: size.z },
-    mesh.scaling
-  );
+  flock.retilePrimitiveUVs(mesh, { width: size.x, height: size.y, depth: size.z }, mesh.scaling);
 }
 
 // Clean up gizmo state if aborted
@@ -2322,14 +2346,18 @@ function handleDuplicateGizmo() {
 
   // Check if mesh already selected, if not prompt to select
   if (!gizmoManager.attachedMesh) {
-    pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === 'ground') {
-        exitGizmoState();
-        return;
-      }
-      attachMeshForActiveTool(pickedMesh);
-      startDuplicatePlacement();
-    }, false, translate('select_mesh_duplicate_prompt'));
+    pickMeshFromScene(
+      (pickedMesh) => {
+        if (!pickedMesh || pickedMesh.name === 'ground') {
+          exitGizmoState();
+          return;
+        }
+        attachMeshForActiveTool(pickedMesh);
+        startDuplicatePlacement();
+      },
+      false,
+      translate('select_mesh_duplicate_prompt')
+    );
     return;
   }
 

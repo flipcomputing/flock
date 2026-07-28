@@ -7,8 +7,8 @@ import {
   createWebUSBConnection,
   createUniversalHexFlashDataSource,
   ConnectionStatus,
-} from "@microbit/microbit-connection";
-import { LineSplitter } from "./protocol.js";
+} from '@microbit/microbit-connection';
+import { LineSplitter } from './protocol.js';
 
 export class MicrobitUsbTransport {
   #connection;
@@ -20,12 +20,12 @@ export class MicrobitUsbTransport {
   constructor({ connection } = {}) {
     this.#connection = connection ?? createWebUSBConnection();
 
-    this.#connection.addEventListener("serialdata", (event) => {
+    this.#connection.addEventListener('serialdata', (event) => {
       for (const line of this.#splitter.push(event.data)) {
         for (const listener of this.#lineListeners) listener(line);
       }
     });
-    this.#connection.addEventListener("status", (event) => {
+    this.#connection.addEventListener('status', (event) => {
       if (
         this.#connected &&
         (event.status === ConnectionStatus.DISCONNECTED ||

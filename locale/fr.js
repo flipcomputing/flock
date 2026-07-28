@@ -516,7 +516,8 @@ export default {
     'Définit la touche qui déclenche une action spécifique (avant, arrière, gauche, droite ou boutons).',
   meshes_touching_tooltip:
     'Renvoie vrai si les deux objets sélectionnés se touchent.\nMot-clé: istouching',
-  time_tooltip: 'Renvoie le temps écoulé. Se met en pause quand l\'onglet est masqué, idéal pour les minuteurs et comptes à rebours.', // ai
+  time_tooltip:
+    "Renvoie le temps écoulé. Se met en pause quand l'onglet est masqué, idéal pour les minuteurs et comptes à rebours.", // ai
   ground_level_tooltip: 'Renvoie la hauteur du sol à la position x/z actuelle.',
   distance_to_tooltip: 'Calcule la distance entre deux objets.',
   touching_surface_tooltip: "Vérifie si l'objet touche une surface.\nMot-clé: surface",
@@ -571,7 +572,8 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Une ligne de commentaire pour aider à comprendre le code.',
   print_text_tooltip: 'Affiche un texte dans le panneau de sortie.\nMot-clé: print',
-  subtitle_tooltip: 'Affiche le texte en sous-titre à l’écran. 0 seconde reste jusqu’au suivant.\nMot-clé: subtitle', // ai
+  subtitle_tooltip:
+    'Affiche le texte en sous-titre à l’écran. 0 seconde reste jusqu’au suivant.\nMot-clé: subtitle', // ai
   say_tooltip: 'Affiche un texte comme bulle de dialogue sur un objet.\nMot-clé: say',
   describe_tooltip:
     "Définir le nom d'affichage d'un objet. Met à jour les métadonnées pour l'accessibilité.\nMot-clé: describe",
@@ -1018,43 +1020,42 @@ export default {
   sit_down_ui: '🪑 Assieds-toi',
 
   main_menu_ui: "Ouvrir le menu pour plus d'options",
-  menu_button_sr_label_ui: "Menu",
-  project_submenu_ui: "Projet",
-  project_new_ui: "Nouveau",
-  project_open_ui: "Ouvrir",
-  project_save_ui: "Enregistrer",
-  language_submenu_ui: "Langue",
-  about_submenu_ui: "À propos",
-  hub_submenu_ui: "Hub",
+  menu_button_sr_label_ui: 'Menu',
+  project_submenu_ui: 'Projet',
+  project_new_ui: 'Nouveau',
+  project_open_ui: 'Ouvrir',
+  project_save_ui: 'Enregistrer',
+  language_submenu_ui: 'Langue',
+  about_submenu_ui: 'À propos',
+  hub_submenu_ui: 'Hub',
 
-  theme_submenu_ui: "Thème",
-  light_theme_ui: "Clair",
-  dark_theme_ui: "Sombre",
-  contrast_theme_ui: "Contraste",
-  low_vision_theme_ui: "Basse vision",
+  theme_submenu_ui: 'Thème',
+  light_theme_ui: 'Clair',
+  dark_theme_ui: 'Sombre',
+  contrast_theme_ui: 'Contraste',
+  low_vision_theme_ui: 'Basse vision',
 
-  run_code_button_ui: "Exécuter votre code",
-  stop_code_button_ui: "Arrêter votre code",
-  canvas_overlay_play_ui: "Appuyez sur Lecture pour démarrer", // ai
-  open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
-  open_file_input_label_ui: "Sélectionnez le fichier projet à ouvrir",
-  export_code_button_ui:
-    "Enregistrer ce projet dans un fichier sur votre ordinateur.",
-  example_select_ui: "Choisir un projet exemple à charger",
-  demo_heading_ui: "Démos", // ai
-  close_demos_ui: "Fermer les démos", // ai
-  examples_cat_start_ui: "Démarrer", // ai
-  examples_cat_games_ui: "Jeux", // ai
-  examples_cat_physics_ui: "Physique", // ai
-  examples_cat_worlds_ui: "Mondes", // ai
-  examples_cat_create_ui: "Créatif", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Exécuter votre code',
+  stop_code_button_ui: 'Arrêter votre code',
+  canvas_overlay_play_ui: 'Appuyez sur Lecture pour démarrer', // ai
+  open_button_ui: 'Ouvrir un projet depuis un fichier sur votre ordinateur',
+  open_file_input_label_ui: 'Sélectionnez le fichier projet à ouvrir',
+  export_code_button_ui: 'Enregistrer ce projet dans un fichier sur votre ordinateur.',
+  example_select_ui: 'Choisir un projet exemple à charger',
+  demo_heading_ui: 'Démos', // ai
+  close_demos_ui: 'Fermer les démos', // ai
+  examples_cat_start_ui: 'Démarrer', // ai
+  examples_cat_games_ui: 'Jeux', // ai
+  examples_cat_physics_ui: 'Physique', // ai
+  examples_cat_worlds_ui: 'Mondes', // ai
+  examples_cat_create_ui: 'Créatif', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Concevez votre projet",
-  toggle_play_ui: "Utilisez votre projet",
-  fullscreen_toggle_ui: "Basculer entre les vues plein écran et normale.",
+  toggle_design_ui: 'Concevez votre projet',
+  toggle_play_ui: 'Utilisez votre projet',
+  fullscreen_toggle_ui: 'Basculer entre les vues plein écran et normale.',
 
-  show_shapes_button_ui: "Ajouter des formes et des modèles",
+  show_shapes_button_ui: 'Ajouter des formes et des modèles',
   color_picker_button_ui: "Changer la couleur de l'objet",
   position_button_ui: "Positionner l'objet",
   rotation_button_ui: "Faire pivoter l'objet",
@@ -1170,7 +1171,7 @@ export default {
   select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
   select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
   place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
-  select_mesh_eye_prompt: "ℹ️ Cliquez sur un objet pour orbiter autour de lui.",
+  select_mesh_eye_prompt: 'ℹ️ Cliquez sur un objet pour orbiter autour de lui.',
   place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

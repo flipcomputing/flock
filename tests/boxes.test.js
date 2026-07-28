@@ -1,18 +1,11 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 // Stress test for handling many boxes with dynamic inputs
 export function runStressTests(flock) {
-  describe("Stress test for many boxes @slow", function () {
+  describe('Stress test for many boxes @slow', function () {
     const boxCount = 50; // Number of boxes to create
     const boxIds = [];
-    const boxColors = [
-      "#FF0000",
-      "#00FF00",
-      "#0000FF",
-      "#FFFF00",
-      "#FF00FF",
-      "#00FFFF",
-    ];
+    const boxColors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
     const maxPosition = 10; // Maximum position range for x, y, z
 
     // Set up the scene before each test
@@ -24,10 +17,8 @@ export function runStressTests(flock) {
     afterEach(function () {
       // Dispose of all boxes to avoid memory leaks
       boxIds.forEach((boxId) => {
-        if (typeof boxId !== "string") {
-          throw new Error(
-            `Invalid ID: Expected a string, but got ${typeof boxId}`,
-          );
+        if (typeof boxId !== 'string') {
+          throw new Error(`Invalid ID: Expected a string, but got ${typeof boxId}`);
         }
 
         console.log(`Cleaning up box with ID: ${boxId}`);
@@ -39,7 +30,7 @@ export function runStressTests(flock) {
       validateSceneCleanup();
     });
 
-    it("should handle many boxes with dynamic inputs", function (done) {
+    it('should handle many boxes with dynamic inputs', function (done) {
       this.timeout(20000); // Increase the timeout for this test
 
       // Create multiple boxes with random properties
@@ -63,10 +54,8 @@ export function runStressTests(flock) {
         });
 
         // Validate that createBox returns a string ID
-        if (typeof returnedId !== "string") {
-          throw new Error(
-            `createBox did not return a valid string ID. Got: ${returnedId}`,
-          );
+        if (typeof returnedId !== 'string') {
+          throw new Error(`createBox did not return a valid string ID. Got: ${returnedId}`);
         }
 
         // Store the ID in the array
@@ -80,10 +69,8 @@ export function runStressTests(flock) {
       const intervalId = setInterval(() => {
         boxIds.forEach((boxId, index) => {
           // Validate that the ID is a string
-          if (typeof boxId !== "string") {
-            throw new Error(
-              `Invalid ID: Expected a string, but got ${typeof boxId}`,
-            );
+          if (typeof boxId !== 'string') {
+            throw new Error(`Invalid ID: Expected a string, but got ${typeof boxId}`);
           }
 
           // Log the ID for debugging
@@ -122,17 +109,13 @@ export function runStressTests(flock) {
 
               // Validate that the box exists
               if (!box) {
-                throw new Error(
-                  `Box with ID '${boxId}' not found in the scene.`,
-                );
+                throw new Error(`Box with ID '${boxId}' not found in the scene.`);
               }
 
               // Check visibility (deterministic based on index)
               const isVisible = index % 2 === 0;
               console.log(
-                `Expecting box with ID '${boxId}' to be ${
-                  isVisible ? "visible" : "hidden"
-                }`,
+                `Expecting box with ID '${boxId}' to be ${isVisible ? 'visible' : 'hidden'}`
               );
               if (isVisible) {
                 expect(box.isEnabled()).to.be.true;
@@ -157,36 +140,28 @@ export function runStressTests(flock) {
      */
     function validateSceneCleanup() {
       // Check for remaining meshes
-      const remainingMeshes = flock.scene.meshes.filter((mesh) =>
-        mesh.id.startsWith("box"),
-      );
+      const remainingMeshes = flock.scene.meshes.filter((mesh) => mesh.id.startsWith('box'));
       if (remainingMeshes.length > 0) {
         console.error(
-          "Remaining meshes:",
-          remainingMeshes.map((mesh) => mesh.id),
+          'Remaining meshes:',
+          remainingMeshes.map((mesh) => mesh.id)
         );
-        throw new Error(
-          `${remainingMeshes.length} meshes were not disposed of.`,
-        );
+        throw new Error(`${remainingMeshes.length} meshes were not disposed of.`);
       }
 
       // Check for remaining materials
       const remainingMaterials = flock.scene.materials.filter((material) =>
-        material.name.startsWith("material"),
+        material.name.startsWith('material')
       );
       if (remainingMaterials.length > 0) {
         console.error(
-          "Remaining materials:",
-          remainingMaterials.map((material) => material.name),
+          'Remaining materials:',
+          remainingMaterials.map((material) => material.name)
         );
-        throw new Error(
-          `${remainingMaterials.length} materials were not disposed of.`,
-        );
+        throw new Error(`${remainingMaterials.length} materials were not disposed of.`);
       }
 
-      console.log(
-        "All meshes and materials have been successfully cleaned up.",
-      );
+      console.log('All meshes and materials have been successfully cleaned up.');
     }
   });
 }

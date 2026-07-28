@@ -16,9 +16,8 @@ const isMobile = () => {
 // Phones in landscape dock the gizmo toolbar beside the canvas rather than
 // below it. Must match the media query of the same shape in style.css.
 const gizmosBesideCanvas = () =>
-  window.matchMedia(
-    '(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)',
-  ).matches;
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)')
+    .matches;
 
 let pendingScrollBlockId = null;
 
@@ -169,8 +168,7 @@ function resizeCanvas() {
       const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
       const barStyle = getComputedStyle(gizmoButtons);
       const padding =
-        (parseFloat(barStyle.paddingLeft) || 0) +
-        (parseFloat(barStyle.paddingRight) || 0);
+        (parseFloat(barStyle.paddingLeft) || 0) + (parseFloat(barStyle.paddingRight) || 0);
       const buttons = row ? row.getBoundingClientRect().width : 0;
       areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
     } else {
@@ -1050,8 +1048,7 @@ class PanelResizer {
 
     const paddingStyle = window.getComputedStyle(gizmo);
     const paddingX =
-      (parseFloat(paddingStyle.paddingLeft) || 0) +
-      (parseFloat(paddingStyle.paddingRight) || 0);
+      (parseFloat(paddingStyle.paddingLeft) || 0) + (parseFloat(paddingStyle.paddingRight) || 0);
 
     const rowStyle = window.getComputedStyle(row);
     const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;

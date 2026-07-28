@@ -1,4 +1,4 @@
-import { getMicrobitManager } from "../microbit/manager.js";
+import { getMicrobitManager } from '../microbit/manager.js';
 
 let flock;
 
@@ -12,15 +12,15 @@ export const flockEvents = {
   */
 
   onEvent(eventName, handler, once = false) {
-    if (typeof handler !== "function") {
-      flock.reportBlockError({ key: "invalid_callback", api: "onEvent" });
+    if (typeof handler !== 'function') {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'onEvent' });
       return;
     }
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
       flock.reportBlockError({
-        key: "event_name_reserved",
-        api: "onEvent",
+        key: 'event_name_reserved',
+        api: 'onEvent',
         values: { event: eventName },
       });
       return;
@@ -43,19 +43,19 @@ export const flockEvents = {
     }
 
     signal?.addEventListener(
-      "abort",
+      'abort',
       () => {
         flock.events[eventName]?.remove(observer);
       },
-      { once: true },
+      { once: true }
     );
   },
   broadcastEvent(eventName, data) {
     eventName = flock.sanitizeEventName(eventName);
     if (!flock.isAllowedEventName(eventName)) {
       flock.reportBlockError({
-        key: "event_name_reserved",
-        api: "broadcastEvent",
+        key: 'event_name_reserved',
+        api: 'broadcastEvent',
         values: { event: eventName },
       });
       return;
@@ -65,8 +65,8 @@ export const flockEvents = {
     }
   },
   whenActionEvent(action, callback, isReleased = false) {
-    if (typeof callback !== "function") {
-      flock.reportBlockError({ key: "invalid_callback", api: "whenActionEvent" });
+    if (typeof callback !== 'function') {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'whenActionEvent' });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -79,7 +79,7 @@ export const flockEvents = {
     if (isReleased) {
       const upObs = flock.inputManager.onActionUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(observer), {
+      signal?.addEventListener('abort', () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -90,29 +90,31 @@ export const flockEvents = {
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           downObs.remove(downObserver);
           repeatObs.remove(repeatObserver);
         },
-        { once: true },
+        { once: true }
       );
     }
   },
   whenKeyEvent(key, callback, isReleased = false) {
-    if (typeof callback !== "function") {
-      flock.reportBlockError({ key: "invalid_callback", api: "whenKeyEvent" });
+    if (typeof callback !== 'function') {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'whenKeyEvent' });
       return;
     }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    const handler = (k) => { if (k === key) callback(); };
+    const handler = (k) => {
+      if (k === key) callback();
+    };
 
     if (isReleased) {
       const upObs = flock.inputManager.onKeyUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener("abort", () => upObs.remove(observer), {
+      signal?.addEventListener('abort', () => upObs.remove(observer), {
         once: true,
       });
     } else {
@@ -123,18 +125,18 @@ export const flockEvents = {
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           downObs.remove(downObserver);
           repeatObs.remove(repeatObserver);
         },
-        { once: true },
+        { once: true }
       );
     }
   },
   onMicrobitEvent(variableName, eventChar, callback) {
-    if (typeof callback !== "function") {
-      flock.reportBlockError({ key: "invalid_callback", api: "onMicrobitEvent" });
+    if (typeof callback !== 'function') {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'onMicrobitEvent' });
       return;
     }
     const signal = flock.abortController?.signal;
@@ -145,7 +147,7 @@ export const flockEvents = {
     const unsubscribe = getMicrobitManager().subscribe(variableName, (char) => {
       if (char === eventChar) callback();
     });
-    signal?.addEventListener("abort", unsubscribe, { once: true });
+    signal?.addEventListener('abort', unsubscribe, { once: true });
   },
   start(action) {
     flock.scene.onBeforeRenderObservable.addOnce(action);
@@ -157,7 +159,7 @@ export const flockEvents = {
     // Function to run the action
     const runAction = async () => {
       if (isDisposed) {
-        console.log("Scene is disposed. Exiting action.");
+        console.log('Scene is disposed. Exiting action.');
         return; // Exit if the scene is disposed
       }
 
@@ -174,8 +176,8 @@ export const flockEvents = {
         await action();
       } catch (error) {
         flock.reportBlockError({
-          key: "forever_block_failed",
-          api: "forever",
+          key: 'forever_block_failed',
+          api: 'forever',
           error,
         });
       } finally {
@@ -199,7 +201,7 @@ export const flockEvents = {
     flock.scene.onDisposeObservable.addOnce(disposeHandler);
   },
   isAllowedEventName(eventName) {
-    if (!eventName || typeof eventName !== "string") {
+    if (!eventName || typeof eventName !== 'string') {
       return false;
     }
 
@@ -208,14 +210,7 @@ export const flockEvents = {
     }
 
     const lower = eventName.toLowerCase();
-    const reservedPrefixes = [
-      "_",
-      "on",
-      "system",
-      "internal",
-      "babylon",
-      "flock",
-    ];
+    const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
     if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
       return false;
     }
@@ -228,15 +223,12 @@ export const flockEvents = {
     return true;
   },
   sanitizeEventName(eventName) {
-    if (typeof eventName !== "string") {
-      return "";
+    if (typeof eventName !== 'string') {
+      return '';
     }
     // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
     // This allows everything except common punctuation and control characters
-    const clean = eventName.replace(
-      /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g,
-      "",
-    );
+    const clean = eventName.replace(/[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g, '');
     return clean.substring(0, 50);
   },
 };

@@ -40,9 +40,7 @@ function sceneGravityMagnitude() {
 }
 
 function nowMs() {
-  return typeof performance !== 'undefined' && performance.now
-    ? performance.now()
-    : Date.now();
+  return typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
 }
 
 export const flockMovement = {

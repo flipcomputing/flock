@@ -53,7 +53,10 @@ import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
 import { flockCamera, setFlockReference as setFlockCamera } from './api/camera';
 import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
 import { flockMicrobit, setFlockReference as setFlockMicrobit } from './api/microbit';
-import { getMicrobitManager, setFlockReference as setFlockMicrobitManager } from './microbit/manager.js';
+import {
+  getMicrobitManager,
+  setFlockReference as setFlockMicrobitManager,
+} from './microbit/manager.js';
 import { flockMath, setFlockReference as setFlockMath } from './api/math';
 import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
 import { translate } from './main/translation.js';
@@ -190,8 +193,7 @@ export const flock = {
   isDebugLoggingEnabled() {
     if (flock._debugLogging === undefined) {
       try {
-        flock._debugLogging =
-          new URLSearchParams(window.location.search).get('debug') !== 'false';
+        flock._debugLogging = new URLSearchParams(window.location.search).get('debug') !== 'false';
       } catch {
         flock._debugLogging = true;
       }
@@ -246,11 +248,8 @@ export const flock = {
     };
     // A thrown primitive (e.g. `throw "bad input"`) has no .message, so use the
     // value itself rather than losing the text.
-    const isPrimitive =
-      error == null || (typeof error !== 'object' && typeof error !== 'function');
-    const safe = new Error(
-      isPrimitive ? read(() => error) : read(() => error?.message)
-    );
+    const isPrimitive = error == null || (typeof error !== 'object' && typeof error !== 'function');
+    const safe = new Error(isPrimitive ? read(() => error) : read(() => error?.message));
     safe.name = isPrimitive ? 'Error' : read(() => error?.name) || 'Error';
     safe.stack = isPrimitive ? '' : read(() => error?.stack);
     return safe;
@@ -833,8 +832,7 @@ export const flock = {
       // `.constructor` (sandbox escape). Must run before lockdown.
       const wrapScript = doc.createElement('script');
       wrapScript.type = 'text/javascript';
-      wrapScript.text =
-        'window.__flockWrapHostFn = (fn) => (...args) => fn(...args);';
+      wrapScript.text = 'window.__flockWrapHostFn = (fn) => (...args) => fn(...args);';
       doc.head.appendChild(wrapScript);
 
       // Lock down the iframe realm. Disable SES's own unhandled-rejection
@@ -894,7 +892,7 @@ export const flock = {
       // Wrapped so the endowment carries no host `.constructor`.
       const hostRequestAnimationFrame = window.requestAnimationFrame.bind(window);
       endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
-        hostRequestAnimationFrame(guard(callback)),
+        hostRequestAnimationFrame(guard(callback))
       );
 
       endowments.Date = new win.Object();

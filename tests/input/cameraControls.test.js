@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import { InputManager } from "../../input/inputManager.js";
-import { CameraControls } from "../../input/cameraControls.js";
+import { expect } from 'chai';
+import { InputManager } from '../../input/inputManager.js';
+import { CameraControls } from '../../input/cameraControls.js';
 
 class StubVector3 {
   constructor(x = 0, y = 0, z = 0) {
@@ -42,7 +42,7 @@ function makeFreeCamera() {
     rotation: { x: 0, y: 0 },
     position: new StubVector3(0, 0, 0),
     getDirection: (v) => new StubVector3(v.x, v.y, v.z),
-    getClassName: () => "FreeCamera",
+    getClassName: () => 'FreeCamera',
   };
 }
 
@@ -51,7 +51,7 @@ function makeArcRotateCamera() {
     alpha: 1,
     beta: 1,
     position: new StubVector3(0, 0, 0),
-    getClassName: () => "ArcRotateCamera",
+    getClassName: () => 'ArcRotateCamera',
   };
 }
 
@@ -72,7 +72,7 @@ function makeFlock() {
 }
 
 export function runCameraControlsTests() {
-  describe("CameraControls @camera @input", function () {
+  describe('CameraControls @camera @input', function () {
     let flock, controls;
 
     beforeEach(function () {
@@ -85,60 +85,60 @@ export function runCameraControlsTests() {
       controls.stop();
     });
 
-    describe("lifecycle", function () {
-      it("start() adds one observer, stop() removes it", function () {
+    describe('lifecycle', function () {
+      it('start() adds one observer, stop() removes it', function () {
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(1);
         controls.stop();
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(0);
       });
 
-      it("double start() does not add a second observer", function () {
+      it('double start() does not add a second observer', function () {
         controls.start();
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(1);
       });
     });
 
-    describe("movement sources", function () {
-      it("MOVE axes fly a free camera", function () {
-        flock.inputManager._setAxis("MOVE_Y", -1);
+    describe('movement sources', function () {
+      it('MOVE axes fly a free camera', function () {
+        flock.inputManager._setAxis('MOVE_Y', -1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("joystick getMove() flies the camera when MOVE axes are zero", function () {
+      it('joystick getMove() flies the camera when MOVE axes are zero', function () {
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("joystick x strafes the camera", function () {
+      it('joystick x strafes the camera', function () {
         flock._joystickSource = { getMove: () => ({ x: 1, y: 0 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.x).to.be.greaterThan(0);
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
 
-      it("MOVE axes take precedence over the joystick", function () {
-        flock.inputManager._setAxis("MOVE_Y", 1);
+      it('MOVE axes take precedence over the joystick', function () {
+        flock.inputManager._setAxis('MOVE_Y', 1);
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.lessThan(0);
       });
 
-      it("physical WASD flies the camera when axes and joystick are idle", function () {
+      it('physical WASD flies the camera when axes and joystick are idle', function () {
         flock._joystickSource = { getMove: () => ({ x: 0, y: 0 }) };
-        flock._keyboardSource = { isKeyDown: (k) => k === "w" };
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("no input → camera untouched", function () {
+      it('no input → camera untouched', function () {
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
         expect(flock.scene.activeCamera.rotation.y).to.equal(0);
       });
 
-      it("blocked when canvas controls are disabled", function () {
+      it('blocked when canvas controls are disabled', function () {
         flock._canvasControlsEnabled = false;
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
@@ -146,24 +146,24 @@ export function runCameraControlsTests() {
       });
     });
 
-    describe("look input", function () {
-      it("LOOK_X yaws a free camera", function () {
-        flock.inputManager._setAxis("LOOK_X", 1);
+    describe('look input', function () {
+      it('LOOK_X yaws a free camera', function () {
+        flock.inputManager._setAxis('LOOK_X', 1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.rotation.y).to.be.greaterThan(0);
       });
 
-      it("LOOK axes adjust ArcRotateCamera alpha/beta without moving it", function () {
+      it('LOOK axes adjust ArcRotateCamera alpha/beta without moving it', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
-        flock.inputManager._setAxis("LOOK_X", 1);
-        flock.inputManager._setAxis("LOOK_Y", 1);
+        flock.inputManager._setAxis('LOOK_X', 1);
+        flock.inputManager._setAxis('LOOK_Y', 1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
         expect(flock.scene.activeCamera.beta).to.be.lessThan(1);
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
 
-      it("joystick does not move an ArcRotateCamera", function () {
+      it('joystick does not move an ArcRotateCamera', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();

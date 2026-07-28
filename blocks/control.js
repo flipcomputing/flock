@@ -1,155 +1,152 @@
-import * as Blockly from "blockly";
-import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor, applyInputAriaLabels } from "./blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+import * as Blockly from 'blockly';
+import { categoryColours } from '../toolbox.js';
+import { getHelpUrlFor, applyInputAriaLabels } from './blocks.js';
+import { translate, getTooltip } from '../main/translation.js';
 
 export function defineControlBlocks() {
-  Blockly.Blocks["wait"] = {
+  Blockly.Blocks['wait'] = {
     init: function () {
       this.jsonInit({
-        type: "wait",
-        message0: translate("wait"),
+        type: 'wait',
+        message0: translate('wait'),
         args0: [
           {
-            type: "input_value",
-            name: "DURATION",
-            check: "Number",
+            type: 'input_value',
+            name: 'DURATION',
+            check: 'Number',
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Control"],
-        tooltip: getTooltip("wait"),
+        colour: categoryColours['Control'],
+        tooltip: getTooltip('wait'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
     },
   };
 
-  Blockly.Blocks["wait_seconds"] = {
+  Blockly.Blocks['wait_seconds'] = {
     init: function () {
       this.jsonInit({
-        type: "wait",
-        message0: translate("wait_seconds"),
+        type: 'wait',
+        message0: translate('wait_seconds'),
         args0: [
           {
-            type: "input_value",
-            name: "DURATION",
-            check: "Number",
+            type: 'input_value',
+            name: 'DURATION',
+            check: 'Number',
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Control"],
-        tooltip: getTooltip("wait_seconds"),
+        colour: categoryColours['Control'],
+        tooltip: getTooltip('wait_seconds'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
     },
   };
 
-  Blockly.Blocks["wait_until"] = {
+  Blockly.Blocks['wait_until'] = {
     init: function () {
       this.jsonInit({
-        type: "wait_until",
-        message0: translate("wait_until"),
+        type: 'wait_until',
+        message0: translate('wait_until'),
         args0: [
           {
-            type: "input_value",
-            name: "CONDITION",
-            check: "Boolean",
+            type: 'input_value',
+            name: 'CONDITION',
+            check: 'Boolean',
           },
         ],
         previousStatement: null,
         nextStatement: null,
         //colour: categoryColours["Control"],
-        tooltip: getTooltip("wait_until"),
+        tooltip: getTooltip('wait_until'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
     },
   };
 
-  Blockly.Blocks["local_variable"] = {
+  Blockly.Blocks['local_variable'] = {
     init: function () {
       this.jsonInit({
-        type: "local_variable",
-        message0: translate("local_variable"),
+        type: 'local_variable',
+        message0: translate('local_variable'),
         args0: [
           {
-            type: "field_variable",
-            name: "VAR",
-            variable: "item", // default variable name
+            type: 'field_variable',
+            name: 'VAR',
+            variable: 'item', // default variable name
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Control"],
-        tooltip: getTooltip("local_variable"),
+        colour: categoryColours['Control'],
+        tooltip: getTooltip('local_variable'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
     },
   };
 
-  Blockly.Blocks["for_loop"] = {
+  Blockly.Blocks['for_loop'] = {
     init: function () {
       this.jsonInit({
-        type: "for_loop",
-        message0: translate("for_loop"),
+        type: 'for_loop',
+        message0: translate('for_loop'),
         args0: [
           {
-            type: "field_lexical_variable",
-            name: "VAR",
-            text: "count", // Default variable name is "count"
-            options: [["count", "count"]],
+            type: 'field_lexical_variable',
+            name: 'VAR',
+            text: 'count', // Default variable name is "count"
+            options: [['count', 'count']],
           },
           {
-            type: "input_value",
-            name: "FROM",
-            check: "Number",
+            type: 'input_value',
+            name: 'FROM',
+            check: 'Number',
           },
           {
-            type: "input_value",
-            name: "TO",
-            check: "Number",
+            type: 'input_value',
+            name: 'TO',
+            check: 'Number',
           },
           {
-            type: "input_value",
-            name: "BY",
-            check: "Number",
+            type: 'input_value',
+            name: 'BY',
+            check: 'Number',
           },
           {
-            type: "input_statement",
-            name: "DO",
+            type: 'input_statement',
+            name: 'DO',
           },
         ],
         previousStatement: null,
         nextStatement: null,
         //colour: categoryColours["Control"],
         inputsInline: true,
-        tooltip: getTooltip("for_loop"),
+        tooltip: getTooltip('for_loop'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
     },
 
     // Returns an array of local variable names.
     getLexicalVariables: function () {
-      return [this.getFieldValue("VAR")];
+      return [this.getFieldValue('VAR')];
     },
 
     // Update the variable name on this block.
     setLexicalVariable: function (newName) {
-      this.setFieldValue(String(newName), "VAR");
+      this.setFieldValue(String(newName), 'VAR');
     },
 
     onchange: function (event) {
-      if (
-        event.type === Blockly.Events.BLOCK_CREATE &&
-        event.ids.includes(this.id)
-      ) {
-        const field = this.getField("VAR");
+      if (event.type === Blockly.Events.BLOCK_CREATE && event.ids.includes(this.id)) {
+        const field = this.getField('VAR');
         if (field && field.variableId_) {
           const oldId = field.variableId_;
           const newId = Blockly.utils.idGenerator.genUid();
@@ -157,17 +154,14 @@ export function defineControlBlocks() {
 
           // Recursively update nested getter blocks.
           const updateNestedBlocks = (block) => {
-            if (
-              block.type === "get_lexical_variable" &&
-              block.variableSourceId === oldId
-            ) {
+            if (block.type === 'get_lexical_variable' && block.variableSourceId === oldId) {
               block.variableSourceId = newId;
             }
             block.getChildren(false).forEach(updateNestedBlocks);
           };
 
           // Update getter blocks inside the DO input.
-          const doConnection = this.getInput("DO")?.connection;
+          const doConnection = this.getInput('DO')?.connection;
           if (doConnection && doConnection.targetBlock()) {
             updateNestedBlocks(doConnection.targetBlock());
           }
@@ -177,31 +171,31 @@ export function defineControlBlocks() {
 
     // Save the current variable name and its unique id in a mutation.
     mutationToDom: function () {
-      const container = document.createElement("mutation");
-      const field = this.getField("VAR");
+      const container = document.createElement('mutation');
+      const field = this.getField('VAR');
 
       if (field && field.saveExtraState) {
         const extraState = field.saveExtraState();
-        container.setAttribute("var", extraState.value);
-        container.setAttribute("variableid", extraState.variableId);
+        container.setAttribute('var', extraState.value);
+        container.setAttribute('variableid', extraState.variableId);
       } else {
-        container.setAttribute("var", this.getFieldValue("VAR"));
+        container.setAttribute('var', this.getFieldValue('VAR'));
       }
       return container;
     },
 
     // Restore the variable name and unique id from the mutation.
     domToMutation: function (xmlElement) {
-      const varName = xmlElement.getAttribute("var");
-      const variableId = xmlElement.getAttribute("variableid");
-      const field = this.getField("VAR");
+      const varName = xmlElement.getAttribute('var');
+      const variableId = xmlElement.getAttribute('variableid');
+      const field = this.getField('VAR');
       if (field && field.loadExtraState) {
         field.loadExtraState({
           value: varName,
           variableId: variableId,
         });
       } else {
-        this.setFieldValue(varName, "VAR");
+        this.setFieldValue(varName, 'VAR');
       }
     },
   };
@@ -209,8 +203,8 @@ export function defineControlBlocks() {
   class FieldLexicalVariable extends Blockly.FieldDropdown {
     constructor(opt_value, opt_validator) {
       // Force a default value of "count" if none is provided.
-      if (opt_value === null || opt_value === undefined || opt_value === "") {
-        opt_value = "count";
+      if (opt_value === null || opt_value === undefined || opt_value === '') {
+        opt_value = 'count';
       }
       super(opt_value, opt_validator);
       // Always use our custom options generator.
@@ -222,7 +216,7 @@ export function defineControlBlocks() {
 
       // Ensure that the value is set (if somehow still null).
       if (!this.getValue()) {
-        super.setValue("count");
+        super.setValue('count');
       }
     }
 
@@ -230,16 +224,16 @@ export function defineControlBlocks() {
     computeOptions() {
       // If the field's value is null-ish, force it to "count".
       let current = super.getValue();
-      if (current === null || current === undefined || current === "") {
-        current = "count";
+      if (current === null || current === undefined || current === '') {
+        current = 'count';
         super.setValue(current);
       } else {
         current = String(current);
       }
       return [
         [current, current],
-        ["Rename variable…", "__RENAME__"],
-        ["Get variable", "__GET__"],
+        ['Rename variable…', '__RENAME__'],
+        ['Get variable', '__GET__'],
       ];
     }
 
@@ -263,27 +257,24 @@ export function defineControlBlocks() {
     }
 
     getAriaTypeName() {
-      return "variable";
+      return 'variable';
     }
 
     setValue(value) {
-      if (value === "__RENAME__") {
+      if (value === '__RENAME__') {
         setTimeout(() => {
           const currentName = String(super.getValue());
 
-          const newName = window.prompt("Rename variable", currentName);
+          const newName = window.prompt('Rename variable', currentName);
           if (newName && newName !== currentName) {
-            if (
-              this.sourceBlock_ &&
-              typeof this.sourceBlock_.setLexicalVariable === "function"
-            ) {
+            if (this.sourceBlock_ && typeof this.sourceBlock_.setLexicalVariable === 'function') {
               this.sourceBlock_.setLexicalVariable(String(newName));
             }
             // Recompute and "lock in" our options with the new variable.
             this.cachedOptions_ = [
               [String(newName), String(newName)],
-              ["Rename variable…", "__RENAME__"],
-              ["Get variable", "__GET__"],
+              ['Rename variable…', '__RENAME__'],
+              ['Get variable', '__GET__'],
             ];
             // Force our generator to return the updated options.
             this.menuGenerator_ = () => this.cachedOptions_;
@@ -293,13 +284,13 @@ export function defineControlBlocks() {
               const allBlocks = workspace.getAllBlocks(false);
               allBlocks.forEach((block) => {
                 if (
-                  block.type === "get_lexical_variable" &&
+                  block.type === 'get_lexical_variable' &&
                   block.variableSourceId === this.variableId_
                 ) {
-                  if (typeof block.updateVariable === "function") {
+                  if (typeof block.updateVariable === 'function') {
                     block.updateVariable(newName);
                   } else {
-                    block.setFieldValue(String(newName), "VAR");
+                    block.setFieldValue(String(newName), 'VAR');
                   }
                 }
               });
@@ -312,14 +303,14 @@ export function defineControlBlocks() {
           }
         }, 0);
         return null;
-      } else if (value === "__GET__") {
+      } else if (value === '__GET__') {
         setTimeout(() => {
           const variableName = String(super.getValue());
           const workspace = this.sourceBlock_.workspace;
-          const newBlock = workspace.newBlock("get_lexical_variable");
+          const newBlock = workspace.newBlock('get_lexical_variable');
           newBlock.initSvg();
           newBlock.render();
-          newBlock.setFieldValue(String(variableName), "VAR");
+          newBlock.setFieldValue(String(variableName), 'VAR');
           newBlock.variableSourceId = this.variableId_;
 
           const xy = this.sourceBlock_.getRelativeToSurfaceXY();
@@ -347,63 +338,60 @@ export function defineControlBlocks() {
       super.setValue(state.value);
       this.cachedOptions_ = [
         [state.value, state.value],
-        ["Rename variable…", "__RENAME__"],
-        ["Get variable", "__GET__"],
+        ['Rename variable…', '__RENAME__'],
+        ['Get variable', '__GET__'],
       ];
       this.menuGenerator_ = () => this.cachedOptions_;
     }
   }
 
-  Blockly.fieldRegistry.register(
-    "field_lexical_variable",
-    FieldLexicalVariable,
-  );
+  Blockly.fieldRegistry.register('field_lexical_variable', FieldLexicalVariable);
 
-  Blockly.Blocks["get_lexical_variable"] = {
+  Blockly.Blocks['get_lexical_variable'] = {
     init: function () {
       this.jsonInit({
-        message0: translate("get_lexical_variable"),
+        message0: translate('get_lexical_variable'),
         args0: [
           {
-            type: "field_label",
-            name: "VAR",
-            text: "count",
+            type: 'field_label',
+            name: 'VAR',
+            text: 'count',
           },
         ],
         output: null,
-        colour: categoryColours["Variables"],
-        tooltip: getTooltip("get_lexical_variable"),
+        colour: categoryColours['Variables'],
+        tooltip: getTooltip('get_lexical_variable'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("control_blocks");
+      this.setStyle('control_blocks');
 
       // Initialize with a null variable source ID.
       this.variableSourceId = null;
     },
     updateVariable: function (newName) {
-      this.setFieldValue(String(newName), "VAR");
+      this.setFieldValue(String(newName), 'VAR');
     },
     // Save the current variable name and source ID to the XML mutation.
     mutationToDom: function () {
-      const container = document.createElement("mutation");
-      container.setAttribute("var", this.getFieldValue("VAR"));
+      const container = document.createElement('mutation');
+      container.setAttribute('var', this.getFieldValue('VAR'));
       if (this.variableSourceId) {
-        container.setAttribute("sourceid", this.variableSourceId);
+        container.setAttribute('sourceid', this.variableSourceId);
       }
       return container;
     },
     // Restore the variable name and source ID from the XML mutation.
     domToMutation: function (xmlElement) {
-      const variableName = xmlElement.getAttribute("var");
-      this.setFieldValue(variableName, "VAR");
-      const sourceId = xmlElement.getAttribute("sourceid");
+      const variableName = xmlElement.getAttribute('var');
+      this.setFieldValue(variableName, 'VAR');
+      const sourceId = xmlElement.getAttribute('sourceid');
       if (sourceId) {
         this.variableSourceId = sourceId;
       }
     },
   };
 
-  Blockly.Blocks["get_lexical_variable"].onchange = function (event) {
+  Blockly.Blocks['get_lexical_variable'].onchange = function (event) {
     // Only process if this is a move, create, or similar event that might affect scoping
     if (
       event.type === Blockly.Events.BLOCK_MOVE ||
@@ -412,19 +400,19 @@ export function defineControlBlocks() {
     ) {
       if (!this.workspace) return; // Skip if no workspace
 
-      const variableName = this.getFieldValue("VAR");
+      const variableName = this.getFieldValue('VAR');
       let currentBlock = this;
       let found = false;
 
       // Traverse up the block hierarchy to find the closest for_loop with matching variable
       while ((currentBlock = currentBlock.getParent())) {
-        if (currentBlock.type === "for_loop") {
-          const loopVarName = currentBlock.getFieldValue("VAR");
-          const field = currentBlock.getField("VAR");
+        if (currentBlock.type === 'for_loop') {
+          const loopVarName = currentBlock.getFieldValue('VAR');
+          const field = currentBlock.getField('VAR');
 
           if (loopVarName === variableName && field) {
             // Found a matching for_loop parent
-            const variableId = field.variableId_ || "";
+            const variableId = field.variableId_ || '';
 
             // Update this getter's source ID
             this.variableSourceId = variableId;
@@ -444,12 +432,12 @@ export function defineControlBlocks() {
     }
   };
 
-  const MODE = { IF: "IF", ELSEIF: "ELSEIF", ELSE: "ELSE" };
-  const INVALID_IF_STACK_REASON = "INVALID_IF_STACK";
+  const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
+  const INVALID_IF_STACK_REASON = 'INVALID_IF_STACK';
 
-  Blockly.Blocks["if_clause"] = {
+  Blockly.Blocks['if_clause'] = {
     init: function () {
-      this.setStyle("logic_blocks");
+      this.setStyle('logic_blocks');
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setInputsInline(true);
@@ -459,29 +447,29 @@ export function defineControlBlocks() {
       // True while Blockly is constructing/rehydrating the block graph.
       this._isRestoring = true;
 
-      this.appendDummyInput("HEAD").appendField(
+      this.appendDummyInput('HEAD').appendField(
         new Blockly.FieldDropdown(
           [
-            ["%{BKY_CONTROLS_IF_MSG_IF}", MODE.IF],
-            ["%{BKY_CONTROLS_IF_MSG_ELSEIF}", MODE.ELSEIF],
-            ["%{BKY_CONTROLS_IF_MSG_ELSE}", MODE.ELSE],
+            ['%{BKY_CONTROLS_IF_MSG_IF}', MODE.IF],
+            ['%{BKY_CONTROLS_IF_MSG_ELSEIF}', MODE.ELSEIF],
+            ['%{BKY_CONTROLS_IF_MSG_ELSE}', MODE.ELSE],
           ],
           (newValue) => {
             this.updateShape_(newValue);
             return newValue;
-          },
+          }
         ),
-        "MODE",
+        'MODE'
       );
 
-      this.appendValueInput("COND").setCheck("Boolean");
-      this.appendStatementInput("DO");
+      this.appendValueInput('COND').setCheck('Boolean');
+      this.appendStatementInput('DO');
 
-      this.updateShape_(this.getFieldValue("MODE") ?? MODE.IF);
+      this.updateShape_(this.getFieldValue('MODE') ?? MODE.IF);
 
       // COND's context is the MODE dropdown (not a label field), so it can't be
       // auto-derived — give it an explicit ARIA label.
-      applyInputAriaLabels(this, { COND: "condition" });
+      applyInputAriaLabels(this, { COND: 'condition' });
 
       // Clear restore flag after Blockly has had a chance to reconnect blocks.
       setTimeout(() => {
@@ -492,7 +480,7 @@ export function defineControlBlocks() {
 
     saveExtraState: function () {
       return {
-        mode: this.getFieldValue("MODE"),
+        mode: this.getFieldValue('MODE'),
         stashedCondState: this._stashedCondState ?? null,
       };
     },
@@ -504,7 +492,7 @@ export function defineControlBlocks() {
       this._stashedCondState = state?.stashedCondState ?? null;
 
       const mode = state?.mode ?? MODE.IF;
-      this.setFieldValue(mode, "MODE");
+      this.setFieldValue(mode, 'MODE');
 
       // Only show/hide here; no dispose/restore while restoring.
       this.updateShape_(mode);
@@ -518,7 +506,7 @@ export function defineControlBlocks() {
     updateShape_: function (mode) {
       const wantsCond = mode !== MODE.ELSE;
 
-      const condInput = this.getInput("COND");
+      const condInput = this.getInput('COND');
       if (!condInput) return;
 
       // During restore: never stash/dispose/append; only toggle visibility.
@@ -560,7 +548,7 @@ export function defineControlBlocks() {
           const restored = Blockly.serialization.blocks.append(
             this._stashedCondState,
             this.workspace,
-            { recordUndo: false },
+            { recordUndo: false }
           );
 
           if (restored?.outputConnection && condInput.connection) {
@@ -596,10 +584,7 @@ export function defineControlBlocks() {
       }
 
       // Ignore block-level disabled toggles to avoid event loops and undo noise.
-      if (
-        event.type === Blockly.Events.BLOCK_CHANGE &&
-        event.element === "disabled"
-      ) {
+      if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'disabled') {
         return;
       }
 
@@ -610,7 +595,7 @@ export function defineControlBlocks() {
       const maybeTarget = connection?.targetBlock?.();
       if (
         maybeTarget &&
-        typeof maybeTarget.isInsertionMarker === "function" &&
+        typeof maybeTarget.isInsertionMarker === 'function' &&
         maybeTarget.isInsertionMarker()
       ) {
         return null;
@@ -621,7 +606,7 @@ export function defineControlBlocks() {
     getIfClauseChainHead_: function () {
       let head = this;
       let prev = this.getRealTargetBlock_(head.previousConnection);
-      while (prev?.type === "if_clause") {
+      while (prev?.type === 'if_clause') {
         head = prev;
         prev = this.getRealTargetBlock_(head.previousConnection);
       }
@@ -632,7 +617,7 @@ export function defineControlBlocks() {
       const chain = [];
       let current = head;
 
-      while (current?.type === "if_clause") {
+      while (current?.type === 'if_clause') {
         chain.push(current);
         current = this.getRealTargetBlock_(current.nextConnection);
       }
@@ -655,7 +640,7 @@ export function defineControlBlocks() {
 
       try {
         for (const block of chain) {
-          const mode = block.getFieldValue("MODE");
+          const mode = block.getFieldValue('MODE');
           let isValid = false;
 
           if (mode === MODE.IF) {
@@ -683,13 +668,13 @@ export function defineControlBlocks() {
 }
 
 const builtInControlBlocks = [
-  "controls_if",
-  "controls_ifelse",
-  "controls_repeat_ext",
-  "controls_whileUntil",
-  "controls_for",
-  "controls_flow_statements",
-  "controls_forEach",
+  'controls_if',
+  'controls_ifelse',
+  'controls_repeat_ext',
+  'controls_whileUntil',
+  'controls_for',
+  'controls_flow_statements',
+  'controls_forEach',
 ];
 
 builtInControlBlocks.forEach((typeName) => {
@@ -699,6 +684,6 @@ builtInControlBlocks.forEach((typeName) => {
 
   blockDef.init = function (...args) {
     originalInit.apply(this, args);
-    this.setStyle("control_blocks");
+    this.setStyle('control_blocks');
   };
 });

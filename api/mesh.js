@@ -654,8 +654,7 @@ export const flockMesh = {
   // double-tile them). Returns true if the mesh was a recognised primitive.
   retilePrimitiveUVs(mesh, { width, height, depth }, scale = null, texturePhysicalSize = 4) {
     if (!mesh) return false;
-    const shape =
-      mesh.metadata?.shapeType || (mesh.metadata?.shape === 'plane' ? 'Plane' : null);
+    const shape = mesh.metadata?.shapeType || (mesh.metadata?.shape === 'plane' ? 'Plane' : null);
     switch (shape) {
       case 'Box':
         flock.setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize, scale);

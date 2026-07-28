@@ -512,7 +512,8 @@ export default {
     'Ustawia klawisz, który wyzwala określoną akcję (do przodu, do tyłu, w lewo, w prawo lub przyciski).',
   meshes_touching_tooltip:
     'Zwraca true, jeśli dwie wybrane obiekty się stykają.\nSłowo kluczowe: istouching',
-  time_tooltip: 'Zwraca czas, który upłynął. Zatrzymuje się, gdy karta jest ukryta – idealny do liczników i odliczania w grach.', // ai
+  time_tooltip:
+    'Zwraca czas, który upłynął. Zatrzymuje się, gdy karta jest ukryta – idealny do liczników i odliczania w grach.', // ai
   ground_level_tooltip: 'Zwraca wysokość gruntu w bieżącej pozycji x/z.',
   distance_to_tooltip: 'Oblicz odległość między obiektami %1 i %2.',
   touching_surface_tooltip: 'Sprawdź, czy obiekt %1 dotyka powierzchni.\nSłowo kluczowe: surface',
@@ -568,7 +569,8 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Linia komentarza, by pomóc zrozumieć kod.',
   print_text_tooltip: 'Wyświetl tekst na panelu wyjścia.\nSłowo kluczowe: print',
-  subtitle_tooltip: 'Pokazuje tekst jako napis na ekranie. 0 sekund pozostaje do następnego.\nSłowo kluczowe: subtitle', // ai
+  subtitle_tooltip:
+    'Pokazuje tekst jako napis na ekranie. 0 sekund pozostaje do następnego.\nSłowo kluczowe: subtitle', // ai
   say_tooltip: 'Pokaż tekst w dymku mówionym nad obiektem.\nSłowo kluczowe: say',
   describe_tooltip:
     'Ustaw nazwę wyświetlaną obiekty. Aktualizuje metadane dla dostępności.\nSłowo kluczowe: describe',
@@ -979,99 +981,99 @@ export default {
   Climb_rope_option: 'Wspinaj się po linie',
 
   // HTML translations
-  loading_ui: "Ładowanie Flock XR…",
-  loading_success_ui: "Flock XR został pomyślnie załadowany",
-  canvas_accessible_name_ui: "3D scene",
-  loading_title_ui: "Ładowanie Flock XR",
-  import_project_file_ui: "Importuj plik projektu",
+  loading_ui: 'Ładowanie Flock XR…',
+  loading_success_ui: 'Flock XR został pomyślnie załadowany',
+  canvas_accessible_name_ui: '3D scene',
+  loading_title_ui: 'Ładowanie Flock XR',
+  import_project_file_ui: 'Importuj plik projektu',
 
-  demo_ui: "Demo",
-  new_ui: "Nowy",
-  starter_ui: "👋🏽 Starter",
-  controller_starter_ui: "🎮 Controller Starter",
-  snow_globe_ui: "❄️ Kula śnieżna",
-  forest_base_ui: "🌲 Baza leśna",
-  character_animation_ui: "🎥 Animacja postaci",
-  cube_art_ui: "🎨 Sztuka sześcianu",
-  physics_fun_ui: "👆🏾 Fizyka zabawa",
-  collect_the_gems_ui: "💎 Zbierz klejnoty",
-  water_map_ui: "💧 Mapa wodna",
-  skittles_ui: "🎳 Skittles",
-  beetle_ui: "🎲 Żuk",
-  roominator_ui: "🛋️ Roominator",
-  ball_pit_ui: "🟠 Basen z kulkami",
-  ur_enough_ui: "💗 Jesteś wystarczający!",
-  tallest_buildings_ui: "📊 Najwyższe budynki",
-  candy_dash_ui: "🎃 Candy dash",
-  flockenspiel_ui: "🎵 Flockenspiel",
-  pendant_ui: "📿 Zawieszka 3D do druku",
-  tent_lights_ui: "⛺ Światełka namiotu",
-  my_place_ui: "🏠 Moje miejsce",
-  microbit_monkey_ui: "🐵 małpa micro:bit",
-  tree_jump_ui: "🌳 Skok z drzewa",
-  shape_push_ui: "🔶 Pchnięcie kształtu",
-  alien_planet_ui: "👽 Obca planeta",
-  boat_trip_ui: "⛵ Boat trip",
-  character_designer_ui: "👚 Kreator postaci",
-  sit_down_ui: "🪑 Usiądź",
+  demo_ui: 'Demo',
+  new_ui: 'Nowy',
+  starter_ui: '👋🏽 Starter',
+  controller_starter_ui: '🎮 Controller Starter',
+  snow_globe_ui: '❄️ Kula śnieżna',
+  forest_base_ui: '🌲 Baza leśna',
+  character_animation_ui: '🎥 Animacja postaci',
+  cube_art_ui: '🎨 Sztuka sześcianu',
+  physics_fun_ui: '👆🏾 Fizyka zabawa',
+  collect_the_gems_ui: '💎 Zbierz klejnoty',
+  water_map_ui: '💧 Mapa wodna',
+  skittles_ui: '🎳 Skittles',
+  beetle_ui: '🎲 Żuk',
+  roominator_ui: '🛋️ Roominator',
+  ball_pit_ui: '🟠 Basen z kulkami',
+  ur_enough_ui: '💗 Jesteś wystarczający!',
+  tallest_buildings_ui: '📊 Najwyższe budynki',
+  candy_dash_ui: '🎃 Candy dash',
+  flockenspiel_ui: '🎵 Flockenspiel',
+  pendant_ui: '📿 Zawieszka 3D do druku',
+  tent_lights_ui: '⛺ Światełka namiotu',
+  my_place_ui: '🏠 Moje miejsce',
+  microbit_monkey_ui: '🐵 małpa micro:bit',
+  tree_jump_ui: '🌳 Skok z drzewa',
+  shape_push_ui: '🔶 Pchnięcie kształtu',
+  alien_planet_ui: '👽 Obca planeta',
+  boat_trip_ui: '⛵ Boat trip',
+  character_designer_ui: '👚 Kreator postaci',
+  sit_down_ui: '🪑 Usiądź',
 
-  main_menu_ui: "Menu główne",
-  menu_button_sr_label_ui: "Menu",
-  project_submenu_ui: "Projekt",
-  project_new_ui: "Nowy",
-  project_open_ui: "Otwórz",
-  project_save_ui: "Zapisz",
-  language_submenu_ui: "Język",
-  about_submenu_ui: "O programie",
-  hub_submenu_ui: "Hub",
+  main_menu_ui: 'Menu główne',
+  menu_button_sr_label_ui: 'Menu',
+  project_submenu_ui: 'Projekt',
+  project_new_ui: 'Nowy',
+  project_open_ui: 'Otwórz',
+  project_save_ui: 'Zapisz',
+  language_submenu_ui: 'Język',
+  about_submenu_ui: 'O programie',
+  hub_submenu_ui: 'Hub',
 
-  theme_submenu_ui: "Motyw",
-  light_theme_ui: "Jasny",
-  dark_theme_ui: "Ciemny",
-  contrast_theme_ui: "Kontrast",
-  low_vision_theme_ui: "Słabe widzenie",
+  theme_submenu_ui: 'Motyw',
+  light_theme_ui: 'Jasny',
+  dark_theme_ui: 'Ciemny',
+  contrast_theme_ui: 'Kontrast',
+  low_vision_theme_ui: 'Słabe widzenie',
 
-  run_code_button_ui: "Uruchom kod",
-  stop_code_button_ui: "Zatrzymaj kod",
-  canvas_overlay_play_ui: "Naciśnij Play, aby rozpocząć", // ai
-  open_button_ui: "Otwórz projekt z pliku na komputerze",
-  open_file_input_label_ui: "Wybierz plik projektu do otwarcia",
-  export_code_button_ui: "Zapisz projekt do pliku na komputerze",
-  example_select_ui: "Wybierz przykład do załadowania",
-  demo_heading_ui: "Dema", // ai
-  close_demos_ui: "Zamknij dema", // ai
-  examples_cat_start_ui: "Start", // ai
-  examples_cat_games_ui: "Gry", // ai
-  examples_cat_physics_ui: "Fizyka", // ai
-  examples_cat_worlds_ui: "Światy", // ai
-  examples_cat_create_ui: "Kreatywne", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Uruchom kod',
+  stop_code_button_ui: 'Zatrzymaj kod',
+  canvas_overlay_play_ui: 'Naciśnij Play, aby rozpocząć', // ai
+  open_button_ui: 'Otwórz projekt z pliku na komputerze',
+  open_file_input_label_ui: 'Wybierz plik projektu do otwarcia',
+  export_code_button_ui: 'Zapisz projekt do pliku na komputerze',
+  example_select_ui: 'Wybierz przykład do załadowania',
+  demo_heading_ui: 'Dema', // ai
+  close_demos_ui: 'Zamknij dema', // ai
+  examples_cat_start_ui: 'Start', // ai
+  examples_cat_games_ui: 'Gry', // ai
+  examples_cat_physics_ui: 'Fizyka', // ai
+  examples_cat_worlds_ui: 'Światy', // ai
+  examples_cat_create_ui: 'Kreatywne', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Projektuj projekt",
-  toggle_play_ui: "Użyj projektu",
-  fullscreen_toggle_ui: "Przełącz między pełnym ekranem a normalnym widokiem",
+  toggle_design_ui: 'Projektuj projekt',
+  toggle_play_ui: 'Użyj projektu',
+  fullscreen_toggle_ui: 'Przełącz między pełnym ekranem a normalnym widokiem',
 
-  show_shapes_button_ui: "Dodaj kształty i modele",
-  color_picker_button_ui: "Zmień kolor obiektu",
-  position_button_ui: "Ustaw pozycję obiektu",
-  rotation_button_ui: "Obróć obiekt",
-  scale_button_ui: "Zmień skalę obiektu",
-  select_button_ui: "Wybierz obiekt",
-  duplicate_button_ui: "Duplikuj wybrany obiekt",
-  delete_button_ui: "Usuń wybrany obiekt",
-  camera_button_ui: "Kontrola kamery",
-  eye_button_ui: "Obracaj wokół wybranego obiektu",
+  show_shapes_button_ui: 'Dodaj kształty i modele',
+  color_picker_button_ui: 'Zmień kolor obiektu',
+  position_button_ui: 'Ustaw pozycję obiektu',
+  rotation_button_ui: 'Obróć obiekt',
+  scale_button_ui: 'Zmień skalę obiektu',
+  select_button_ui: 'Wybierz obiekt',
+  duplicate_button_ui: 'Duplikuj wybrany obiekt',
+  delete_button_ui: 'Usuń wybrany obiekt',
+  camera_button_ui: 'Kontrola kamery',
+  eye_button_ui: 'Obracaj wokół wybranego obiektu',
 
-  info_panel_link_ui: "Odwiedź stronę Flock XR (otwiera się w nowej karcie)",
-  skip_to_scene_ui: "Przejdź do sceny 3D", // ai
+  info_panel_link_ui: 'Odwiedź stronę Flock XR (otwiera się w nowej karcie)',
+  skip_to_scene_ui: 'Przejdź do sceny 3D', // ai
 
-  project_name_ui: "Nazwa projektu",
+  project_name_ui: 'Nazwa projektu',
 
-  about_heading_ui: "O Flock XR",
-  about_description_intro_ui: "Flock XR to ",
-  about_description_prototype_ui: "prototyp",
-  about_description_made_by_ui: " stworzony przez ",
-  about_description_company_ui: "Flip Computing",
+  about_heading_ui: 'O Flock XR',
+  about_description_intro_ui: 'Flock XR to ',
+  about_description_prototype_ui: 'prototyp',
+  about_description_made_by_ui: ' stworzony przez ',
+  about_description_company_ui: 'Flip Computing',
   about_description_disclaimer_ui:
     ' Wypróbuj go, ale miej na uwadze, że rzeczy mogą się zmieniać i niektóre funkcje nie są jeszcze ukończone. Aktualnie poszukujemy wsparcia, aby Flock XR mógł stać się stabilny.',
   about_run_intro_ui:
@@ -1169,8 +1171,7 @@ export default {
   select_mesh_eye_prompt: 'ℹ️ Kliknij obiekt, aby go okrążyć.',
   place_object_prompt: 'ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
-  eyedropper_not_supported_alert:
-    'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai
+  eyedropper_not_supported_alert: 'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai
   blocks_copied_alert: 'Bloki skopiowane do pamięci lokalnej!',
   no_blocks_to_copy_alert: 'Brak bloków do skopiowania.',
   copy_blocks_failed_alert: 'Nie udało się skopiować bloków.',

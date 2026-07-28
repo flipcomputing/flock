@@ -1573,8 +1573,7 @@ function installShadowNavigationPatch(ws) {
               !ws.isReadOnly?.()
             );
           },
-          callback: (ws, _event, _shortcut, scope) =>
-            duplicateViaClipboard(ws, scope?.focusedNode),
+          callback: (ws, _event, _shortcut, scope) => duplicateViaClipboard(ws, scope?.focusedNode),
         },
         /* allowOverrides= */ true
       );

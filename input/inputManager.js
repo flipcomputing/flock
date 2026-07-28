@@ -1,9 +1,9 @@
-import { DEFAULT_BINDINGS } from "./bindings.js";
-import { normaliseKey } from "./normaliseKey.js";
+import { DEFAULT_BINDINGS } from './bindings.js';
+import { normaliseKey } from './normaliseKey.js';
 
 // Reverse maps built from DEFAULT_BINDINGS (static — overrides not reflected here).
 const ACTION_KEYS = new Map(
-  Object.entries(DEFAULT_BINDINGS).map(([action, keys]) => [action, keys]),
+  Object.entries(DEFAULT_BINDINGS).map(([action, keys]) => [action, keys])
 );
 
 const KEY_TO_ACTIONS = new Map();
@@ -41,8 +41,8 @@ export class InputManager {
   #keys = new Map();
   #axes = new Map();
   #actionOverrides = new Map();
-  #lastKeyRepeatTime = new Map();  // key → timestamp of last repeat
-  #lastActionRepeatTime = new Map();  // action → timestamp of last repeat
+  #lastKeyRepeatTime = new Map(); // key → timestamp of last repeat
+  #lastActionRepeatTime = new Map(); // action → timestamp of last repeat
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
@@ -69,7 +69,7 @@ export class InputManager {
       const next = count - 1;
       if (next === 0) {
         this.#keys.delete(key);
-        this.#lastKeyRepeatTime.delete(key);  // Clean up repeat timestamp
+        this.#lastKeyRepeatTime.delete(key); // Clean up repeat timestamp
         this.onKeyUpObservable.notifyObservers(key);
         this._notifyActionUp(key);
       } else {
@@ -100,7 +100,7 @@ export class InputManager {
   _notifyActionDown(key) {
     for (const action of this._getActionsForKey(key)) {
       const wasAlreadyActive = this._getActionKeys(action).some(
-        (k) => k !== key && (this.#keys.get(k) ?? 0) > 0,
+        (k) => k !== key && (this.#keys.get(k) ?? 0) > 0
       );
       if (!wasAlreadyActive) {
         this.onActionDownObservable.notifyObservers(action);
@@ -110,11 +110,9 @@ export class InputManager {
 
   _notifyActionUp(key) {
     for (const action of this._getActionsForKey(key)) {
-      const stillActive = this._getActionKeys(action).some(
-        (k) => (this.#keys.get(k) ?? 0) > 0,
-      );
+      const stillActive = this._getActionKeys(action).some((k) => (this.#keys.get(k) ?? 0) > 0);
       if (!stillActive) {
-        this.#lastActionRepeatTime.delete(action);  // Clean up repeat timestamp
+        this.#lastActionRepeatTime.delete(action); // Clean up repeat timestamp
         this.onActionUpObservable.notifyObservers(action);
       }
     }
@@ -122,10 +120,7 @@ export class InputManager {
 
   // Case-insensitive: stored keys are already canonical (lowercase single chars).
   isKeyDown(key) {
-    return (
-      (this.#keys.get(key) ?? 0) > 0 ||
-      (this.#keys.get(key.toLowerCase()) ?? 0) > 0
-    );
+    return (this.#keys.get(key) ?? 0) > 0 || (this.#keys.get(key.toLowerCase()) ?? 0) > 0;
   }
 
   isActionDown(action) {

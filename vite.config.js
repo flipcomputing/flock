@@ -1,13 +1,13 @@
-import { VitePWA } from "vite-plugin-pwa";
-import { viteStaticCopy } from "vite-plugin-static-copy";
-import { copyFileSync } from "fs";
-import { resolve } from "path";
-import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
-import { writeFileSync } from "fs";
+import { VitePWA } from 'vite-plugin-pwa';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { copyFileSync } from 'fs';
+import { resolve } from 'path';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+import { writeFileSync } from 'fs';
 
 // Determine if we are in production mode
-const isProduction = process.env.NODE_ENV === "production";
-const BASE_URL = process.env.VITE_BASE_URL || "/";
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = process.env.VITE_BASE_URL || '/';
 
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
 const CSP_META_POLICY =

@@ -72,7 +72,7 @@ function toFinite(v, fallback = 0) {
 // Exactly ±90° pitch makes a camera's look-at up vector degenerate; screen
 // roll then depends on platform libm rounding and can render upside down.
 function clampCameraPitchDegrees(x) {
-  const wrapped = ((x % 360) + 540) % 360 - 180;
+  const wrapped = (((x % 360) + 540) % 360) - 180;
   if (Math.abs(Math.abs(wrapped) - 90) < 0.05) {
     return Math.sign(wrapped) * (Math.abs(wrapped) > 90 ? 90.05 : 89.95);
   }
@@ -500,10 +500,7 @@ export const flockTransform = {
           resolve();
           return;
         }
-        if (
-          !(mesh instanceof flock.BABYLON.AbstractMesh) &&
-          mesh.name !== 'hemisphericLight'
-        ) {
+        if (!(mesh instanceof flock.BABYLON.AbstractMesh) && mesh.name !== 'hemisphericLight') {
           flock.reportBlockError({
             key: 'target_not_a_mesh',
             api: 'rotateTo',

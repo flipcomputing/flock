@@ -393,7 +393,13 @@ export const flockAnimate = {
           // interrupted final frame) can't leave the mesh slightly off: the target for a
           // one-way glide, or back at the start for a reverse (there-and-back) glide.
           if (!loop) mesh.position = (reverse ? startPosition : endPosition).clone();
-          if (isPhysicsActive && originalMotionType !== null && !loop && !reverse && isBodyAlive(mesh.physics)) {
+          if (
+            isPhysicsActive &&
+            originalMotionType !== null &&
+            !loop &&
+            !reverse &&
+            isBodyAlive(mesh.physics)
+          ) {
             mesh.physics.setMotionType(originalMotionType);
           }
           resolve();

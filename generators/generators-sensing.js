@@ -1,5 +1,5 @@
-import * as Blockly from "blockly";
-import { getFieldValue } from "./generators-utilities.js";
+import * as Blockly from 'blockly';
+import { getFieldValue } from './generators-utilities.js';
 
 export function registerSensingGenerators(javascriptGenerator) {
   // -------------------------------

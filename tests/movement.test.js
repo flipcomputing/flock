@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 async function driveForward(flock, id, speed, durationMs, callIntervalMs) {
   const mesh = flock.scene.getMeshByName(id);
@@ -13,7 +13,7 @@ async function driveForward(flock, id, speed, durationMs, callIntervalMs) {
 }
 
 export function runMovementTests(flock) {
-  describe("moveForward @movement", function () {
+  describe('moveForward @movement', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -21,14 +21,14 @@ export function runMovementTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should do nothing when mesh does not exist", function () {
-      expect(() => flock.moveForward("nonExistentMesh", 5)).to.not.throw();
+    it('should do nothing when mesh does not exist', function () {
+      expect(() => flock.moveForward('nonExistentMesh', 5)).to.not.throw();
     });
 
-    it("should do nothing when speed is 0", async function () {
-      const id = "boxMoveForwardZeroSpeed";
+    it('should do nothing when speed is 0', async function () {
+      const id = 'boxMoveForwardZeroSpeed';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -36,10 +36,10 @@ export function runMovementTests(flock) {
       expect(() => flock.moveForward(id, 0)).to.not.throw();
     });
 
-    it("should do nothing when physicsCapsule metadata is missing", async function () {
-      const id = "boxMoveForwardNoCapsule";
+    it('should do nothing when physicsCapsule metadata is missing', async function () {
+      const id = 'boxMoveForwardNoCapsule';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -56,23 +56,32 @@ export function runMovementTests(flock) {
       expect(velAfter.z).to.be.closeTo(velBefore.z, 0.001);
     });
 
-    it("ground walking distance is independent of call rate @slow", async function () {
+    it('ground walking distance is independent of call rate @slow', async function () {
       this.timeout(5000);
 
-      const groundId = "boxGroundWalkGround";
-      await flock.createBox(groundId, { width: 100, height: 0.5, depth: 100, position: [0, -0.25, 0] });
-      await flock.setPhysics(groundId, "STATIC");
+      const groundId = 'boxGroundWalkGround';
+      await flock.createBox(groundId, {
+        width: 100,
+        height: 0.5,
+        depth: 100,
+        position: [0, -0.25, 0],
+      });
+      await flock.setPhysics(groundId, 'STATIC');
       boxIds.push(groundId);
 
-      const id = "boxGroundWalkRate";
+      const id = 'boxGroundWalkRate';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0.5, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.constraint = true; // skip stabiliser so velocity persists between physics steps
-      mesh.metadata.physicsCapsule = { radius: 0.5, height: 0.9, localCenter: { x: 0, y: 0, z: 0 } };
+      mesh.metadata.physicsCapsule = {
+        radius: 0.5,
+        height: 0.9,
+        localCenter: { x: 0, y: 0, z: 0 },
+      };
 
       await new Promise((r) => setTimeout(r, 300));
 
@@ -98,17 +107,21 @@ export function runMovementTests(flock) {
       expect(d30 / d165).to.be.within(0.9, 1.1);
     });
 
-    it("airborne horizontal distance is independent of call rate @slow", async function () {
+    it('airborne horizontal distance is independent of call rate @slow', async function () {
       this.timeout(5000);
-      const id = "boxAirborneRate";
+      const id = 'boxAirborneRate';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 10, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.constraint = true; // skip stabiliser so velocity persists between physics steps
-      mesh.metadata.physicsCapsule = { radius: 0.5, height: 0.9, localCenter: { x: 0, y: 0, z: 0 } };
+      mesh.metadata.physicsCapsule = {
+        radius: 0.5,
+        height: 0.9,
+        localCenter: { x: 0, y: 0, z: 0 },
+      };
 
       const B = flock.BABYLON;
       const speed = 5;
@@ -141,17 +154,21 @@ export function runMovementTests(flock) {
       expect(d30 / d165).to.be.within(0.75, 1.25);
     });
 
-    it("air drag decays horizontal velocity while airborne @slow", async function () {
+    it('air drag decays horizontal velocity while airborne @slow', async function () {
       this.timeout(5000);
-      const id = "boxAirdragDecay";
+      const id = 'boxAirdragDecay';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 10, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.constraint = true; // skip stabiliser so velocity persists between physics steps
-      mesh.metadata.physicsCapsule = { radius: 0.5, height: 0.9, localCenter: { x: 0, y: 0, z: 0 } };
+      mesh.metadata.physicsCapsule = {
+        radius: 0.5,
+        height: 0.9,
+        localCenter: { x: 0, y: 0, z: 0 },
+      };
 
       const B = flock.BABYLON;
       const speed = 5;
@@ -184,17 +201,21 @@ export function runMovementTests(flock) {
       expect(sample2).to.be.lessThan(sample1);
     });
 
-    it("a long single frame does not collapse airborne velocity to zero @slow", async function () {
+    it('a long single frame does not collapse airborne velocity to zero @slow', async function () {
       this.timeout(5000);
-      const id = "boxLongFrame";
+      const id = 'boxLongFrame';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 10, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       const mesh = flock.scene.getMeshByName(id);
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.constraint = true; // skip stabiliser so velocity persists between physics steps
-      mesh.metadata.physicsCapsule = { radius: 0.5, height: 0.9, localCenter: { x: 0, y: 0, z: 0 } };
+      mesh.metadata.physicsCapsule = {
+        radius: 0.5,
+        height: 0.9,
+        localCenter: { x: 0, y: 0, z: 0 },
+      };
 
       const B = flock.BABYLON;
       const speed = 5;
@@ -209,7 +230,8 @@ export function runMovementTests(flock) {
       await new Promise((r) => setTimeout(r, 150));
 
       // Simulate a 5 s gap since last call — should clamp to 1/15 s max drag
-      mesh._lastMoveForwardMs = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - 5000;
+      mesh._lastMoveForwardMs =
+        (typeof performance !== 'undefined' ? performance.now() : Date.now()) - 5000;
       flock.moveForward(id, speed);
 
       const vel = mesh.physics.getLinearVelocity();
@@ -218,7 +240,7 @@ export function runMovementTests(flock) {
     });
   });
 
-  describe("moveSideways @movement", function () {
+  describe('moveSideways @movement', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -226,14 +248,14 @@ export function runMovementTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should do nothing when mesh does not exist", function () {
-      expect(() => flock.moveSideways("nonExistentMesh", 5)).to.not.throw();
+    it('should do nothing when mesh does not exist', function () {
+      expect(() => flock.moveSideways('nonExistentMesh', 5)).to.not.throw();
     });
 
-    it("should do nothing when speed is 0", async function () {
-      const id = "boxMoveSidewaysZeroSpeed";
+    it('should do nothing when speed is 0', async function () {
+      const id = 'boxMoveSidewaysZeroSpeed';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -241,11 +263,11 @@ export function runMovementTests(flock) {
       expect(() => flock.moveSideways(id, 0)).to.not.throw();
     });
 
-    it("should set non-zero horizontal linear velocity when called with positive speed @slow", async function () {
+    it('should set non-zero horizontal linear velocity when called with positive speed @slow', async function () {
       this.timeout(3000);
-      const id = "boxMoveSidewaysPositive";
+      const id = 'boxMoveSidewaysPositive';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -258,11 +280,11 @@ export function runMovementTests(flock) {
       expect(horizontalSpeed).to.be.greaterThan(0);
     });
 
-    it("should preserve existing Y velocity when called @slow", async function () {
+    it('should preserve existing Y velocity when called @slow', async function () {
       this.timeout(3000);
-      const id = "boxMoveSidewaysPreserveY";
+      const id = 'boxMoveSidewaysPreserveY';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -276,7 +298,7 @@ export function runMovementTests(flock) {
     });
   });
 
-  describe("strafe @movement", function () {
+  describe('strafe @movement', function () {
     const boxIds = [];
 
     afterEach(function () {
@@ -284,14 +306,14 @@ export function runMovementTests(flock) {
       boxIds.length = 0;
     });
 
-    it("should do nothing when mesh does not exist", function () {
-      expect(() => flock.strafe("nonExistentMesh", 5)).to.not.throw();
+    it('should do nothing when mesh does not exist', function () {
+      expect(() => flock.strafe('nonExistentMesh', 5)).to.not.throw();
     });
 
-    it("should do nothing when speed is 0", async function () {
-      const id = "boxStrafeZeroSpeed";
+    it('should do nothing when speed is 0', async function () {
+      const id = 'boxStrafeZeroSpeed';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));
@@ -299,11 +321,11 @@ export function runMovementTests(flock) {
       expect(() => flock.strafe(id, 0)).to.not.throw();
     });
 
-    it("should set non-zero horizontal linear velocity when called with positive speed @slow", async function () {
+    it('should set non-zero horizontal linear velocity when called with positive speed @slow', async function () {
       this.timeout(3000);
-      const id = "boxStrafePositive";
+      const id = 'boxStrafePositive';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-      await flock.setPhysics(id, "DYNAMIC");
+      await flock.setPhysics(id, 'DYNAMIC');
       boxIds.push(id);
 
       await new Promise((r) => setTimeout(r, 200));

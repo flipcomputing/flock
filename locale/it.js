@@ -521,7 +521,8 @@ export default {
     "Imposta il tasto che attiva un'azione specifica (avanti, indietro, sinistra, destra o pulsanti).",
   meshes_touching_tooltip:
     'Restituisce vero se le due oggetto selezionate si toccano.\nParola chiave: istouching',
-  time_tooltip: 'Restituisce il tempo trascorso. Si mette in pausa quando la scheda è nascosta, ideale per timer e conti alla rovescia.', // ai
+  time_tooltip:
+    'Restituisce il tempo trascorso. Si mette in pausa quando la scheda è nascosta, ideale per timer e conti alla rovescia.', // ai
   ground_level_tooltip: "Restituisce l'altezza del suolo alla posizione x/z attuale.",
   distance_to_tooltip: 'Calcola la distanza tra due oggetto.',
   touching_surface_tooltip: "Controlla se l'oggetto tocca una superficie.\nParola chiave: surface",
@@ -577,7 +578,8 @@ export default {
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una riga di commento per aiutare a capire il codice.',
   print_text_tooltip: 'Testo verso il pannello di output.\nParola chiave: print',
-  subtitle_tooltip: 'Mostra il testo come sottotitolo sullo schermo. 0 secondi resta fino al successivo.\nParola chiave: subtitle', // ai
+  subtitle_tooltip:
+    'Mostra il testo come sottotitolo sullo schermo. 0 secondi resta fino al successivo.\nParola chiave: subtitle', // ai
   say_tooltip: 'Mostra un fumetto di testo su un oggetto.\nParola chiave: say',
   describe_tooltip:
     "Imposta il nome visualizzato di un oggetto. Aggiorna i metadati per l'accessibilità.\nParola chiave: describe",
@@ -1021,51 +1023,51 @@ export default {
   my_place_ui: '🏠 Il mio posto',
   microbit_monkey_ui: '🐵 micro:bit scimmia',
   tree_jump_ui: "🌳 Salto dall'albero",
-  shape_push_ui: "🔶 Spinta forma",
-  alien_planet_ui: "👽 Pianeta alieno",
-  boat_trip_ui: "⛵ Boat trip",
+  shape_push_ui: '🔶 Spinta forma',
+  alien_planet_ui: '👽 Pianeta alieno',
+  boat_trip_ui: '⛵ Boat trip',
 
-  main_menu_ui: "Menu principale",
-  menu_button_sr_label_ui: "Menu",
-  project_submenu_ui: "Progetto",
-  project_new_ui: "Nuovo",
-  project_open_ui: "Apri",
-  project_save_ui: "Salva",
-  language_submenu_ui: "Lingua",
-  about_submenu_ui: "Informazioni",
-  hub_submenu_ui: "Hub",
+  main_menu_ui: 'Menu principale',
+  menu_button_sr_label_ui: 'Menu',
+  project_submenu_ui: 'Progetto',
+  project_new_ui: 'Nuovo',
+  project_open_ui: 'Apri',
+  project_save_ui: 'Salva',
+  language_submenu_ui: 'Lingua',
+  about_submenu_ui: 'Informazioni',
+  hub_submenu_ui: 'Hub',
 
-  theme_submenu_ui: "Tema",
-  light_theme_ui: "Chiaro",
-  dark_theme_ui: "Scuro 2",
-  dark_contrast_theme_ui: "Scuro",
-  low_vision_theme_ui: "Ipovisione",
-  contrast_theme_ui: "Contrasto",
+  theme_submenu_ui: 'Tema',
+  light_theme_ui: 'Chiaro',
+  dark_theme_ui: 'Scuro 2',
+  dark_contrast_theme_ui: 'Scuro',
+  low_vision_theme_ui: 'Ipovisione',
+  contrast_theme_ui: 'Contrasto',
 
-  run_code_button_ui: "Esegui il tuo codice",
-  stop_code_button_ui: "Ferma il tuo codice",
-  canvas_overlay_play_ui: "Premi Play per iniziare", // ai
-  open_button_ui: "Apri un progetto da un file sul tuo computer",
-  open_file_input_label_ui: "Seleziona il file di progetto da aprire",
-  export_code_button_ui: "Salva questo progetto in un file sul tuo computer.",
-  example_select_ui: "Scegli un progetto di esempio da caricare",
-  demo_heading_ui: "Demo", // ai
-  close_demos_ui: "Chiudi demo", // ai
-  examples_cat_start_ui: "Inizio", // ai
-  examples_cat_games_ui: "Giochi", // ai
-  examples_cat_physics_ui: "Fisica", // ai
-  examples_cat_worlds_ui: "Mondi", // ai
-  examples_cat_create_ui: "Creativo", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Esegui il tuo codice',
+  stop_code_button_ui: 'Ferma il tuo codice',
+  canvas_overlay_play_ui: 'Premi Play per iniziare', // ai
+  open_button_ui: 'Apri un progetto da un file sul tuo computer',
+  open_file_input_label_ui: 'Seleziona il file di progetto da aprire',
+  export_code_button_ui: 'Salva questo progetto in un file sul tuo computer.',
+  example_select_ui: 'Scegli un progetto di esempio da caricare',
+  demo_heading_ui: 'Demo', // ai
+  close_demos_ui: 'Chiudi demo', // ai
+  examples_cat_start_ui: 'Inizio', // ai
+  examples_cat_games_ui: 'Giochi', // ai
+  examples_cat_physics_ui: 'Fisica', // ai
+  examples_cat_worlds_ui: 'Mondi', // ai
+  examples_cat_create_ui: 'Creativo', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Progetta il tuo progetto",
-  toggle_play_ui: "Usa il tuo progetto",
-  fullscreen_toggle_ui: "Passa tra schermo intero e visuale normale.",
+  toggle_design_ui: 'Progetta il tuo progetto',
+  toggle_play_ui: 'Usa il tuo progetto',
+  fullscreen_toggle_ui: 'Passa tra schermo intero e visuale normale.',
 
-  show_shapes_button_ui: "Aggiungi forme e modelli",
-  color_picker_button_ui: "Scegli un colore",
-  position_button_ui: "Posiziona oggetto",
-  rotation_button_ui: "Ruota oggetto",
+  show_shapes_button_ui: 'Aggiungi forme e modelli',
+  color_picker_button_ui: 'Scegli un colore',
+  position_button_ui: 'Posiziona oggetto',
+  rotation_button_ui: 'Ruota oggetto',
   scale_button_ui: "Scal'oggetto",
   select_button_ui: 'Seleziona oggetto',
   duplicate_button_ui: 'Duplica oggetto selezionato',
