@@ -15,7 +15,6 @@ const __dirname = path.dirname(__filename);
  */
 
 // Available test suites (from tests/tests.html)
-// Note: 228 tests total are registered, but most are tagged
 const AVAILABLE_SUITES = [
   {
     id: '@notslow',

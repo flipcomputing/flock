@@ -1489,14 +1489,8 @@ function installShadowNavigationPatch(ws) {
     return skipBlock(origPrev(node));
   };
 
-  // The built-in DISCONNECT shortcut (X key) checks that the focused node is
-  // a Block instance, which fails when focus is on a skippable block's field
-  // (because we skip the block stop). Register an additional shortcut for the
-  // same key that fires only when a skippable field is focused.
-  // The built-in DISCONNECT (X), DUPLICATE (D), and DELETE shortcuts check
-  // that the focused node is a Block instance, which fails when focus is on a
-  // skippable block's field. Register additional shortcuts for the same keys
-  // that fire only when a skippable field is focused.
+  // Built-in DISCONNECT (X), DUPLICATE (D) and DELETE check the focused node is a Block,
+  // which fails on a skippable block's field — re-register the same keys for that case.
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
 
   const skippableFieldBlock = () => {
@@ -1747,16 +1741,8 @@ export function createBlocklyWorkspace() {
 
   workspace = Blockly.inject('blocklyDiv', options);
 
-  // Stop trashcan flyout from covering the whole workspace on small screens when it has wide blocks in it
-  // The trashcan flyout is as wide as its widest deleted block, so a wide block
-  // can make it cover the whole workspace with nothing left to click to dismiss
-  // it. Cap its rendered width to the visible workspace minus a small gap.
-  // Blockly keeps the flyout right-aligned, so the right edge (and its vertical
-  // scrollbar) stay pinned to the workspace edge while the left edge can never
-  // cross the gap; wider blocks overflow to the right. Recomputed from live
-  // metrics on every position() call, so it tracks the panel resizer; the gap
-  // is capped to a fraction of the visible workspace so it stays sensible on
-  // narrow panels.
+  // Stop trashcan flyout from covering the whole workspace on small
+  // screens when it has wide blocks in it
   const trashcan = workspace.trashcan;
   const trashcanFlyout = trashcan?.flyout;
   if (trashcan && trashcanFlyout) {
@@ -1768,13 +1754,8 @@ export function createBlocklyWorkspace() {
       return Math.min(this.width_, viewWidth - gap);
     };
 
-    // The flyout is a separate, higher z-index SVG that would otherwise hide the
-    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
-    // that shares the workspace's coordinate space, so it stays in place but
-    // The flyout is a separate, higher z-index SVG that would otherwise hide the
-    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
-    // that shares the workspace's coordinate space, so it stays in place but
-    // renders on top; clicking the lifted icon then closes the flyout.
+    // Lift the trashcan icon into an overlay SVG while the flyout is open — the
+    // higher z-index flyout would otherwise hide it.
     const injectionDiv = workspace.getInjectionDiv();
     let trashIcon = null;
     try {
