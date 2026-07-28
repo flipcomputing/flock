@@ -1196,9 +1196,22 @@ export function initializeWorkspace() {
       workspaceSearch.preserveSelected
     );
   });
+  // Up/Down step through matches without leaving the search box; the plugin only binds Enter
+  const wsSearchArrowKeys = (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!workspaceSearch.blocks?.length) return;
+    if (e.key === 'ArrowDown') workspaceSearch.next();
+    else workspaceSearch.previous();
+  };
+
+  workspaceSearch.inputElement?.addEventListener('keydown', wsSearchArrowKeys);
+
   wsMobileInput.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') workspaceSearch.close();
     else if (e.key === 'Enter') e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
+    else wsSearchArrowKeys(e);
   });
   wsMobilePrev.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobilePrev.addEventListener('click', () => workspaceSearch.previous());
@@ -1256,19 +1269,23 @@ export function initializeWorkspace() {
       block.getSvgRoot()?.classList.remove('ws-search-fade');
     });
   };
+  // The current match is just the selected block, so Blockly renders it correctly for every block shape
   workspaceSearch.highlightCurrentSelection = function (block) {
-    const svg = block.getSvgRoot();
-    if (svg) {
-      svg.classList.add('ws-search-current');
-      let top = block;
-      while (top.getSurroundParent()) top = top.getSurroundParent();
-      const topSvg = top.getSvgRoot();
-      if (topSvg) topSvg.parentNode?.appendChild(topSvg);
-    }
+    block.select?.();
   };
   workspaceSearch.unhighlightCurrentSelection = function (block) {
-    block.getSvgRoot()?.classList.remove('ws-search-current');
+    block.unselect?.();
   };
+
+  // Selecting a matched block makes it the current result, so search and selection stay in step
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.SELECTED || !event.newElementId) return;
+    if (!blocklyDiv?.classList.contains('blockly-search-active')) return;
+    const index = workspaceSearch.blocks?.findIndex((b) => b.id === event.newElementId) ?? -1;
+    if (index >= 0 && index !== workspaceSearch.currentBlockIndex) {
+      workspaceSearch.setCurrentBlock(index);
+    }
+  });
 
   // Override the workspace centering for workspace search as it jumps all over the place by default!
   const originalCenter = workspace.centerOnBlock.bind(workspace);

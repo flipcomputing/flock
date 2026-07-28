@@ -246,9 +246,10 @@ body[data-theme='low-vision'] {
   transition: opacity 0.15s ease;
 }
 
-/* Non-current matches get a pale yellow background (desktop only) */
+/* Matches get a pale yellow background (desktop only); the current match is the selected block.
+   .blocklyPathSelected shares the blocklyPath class; filling it makes the selection glow filter flood the block. */
 @media (min-width: 769px) {
-  #blocklyDiv.blockly-search-active .ws-search-match:not(.ws-search-current) > path.blocklyPath {
+  #blocklyDiv.blockly-search-active .ws-search-match > path.blocklyPath:not(.blocklyPathSelected) {
     fill: rgba(255, 242, 0, 0.3) !important;
   }
 }
@@ -256,25 +257,13 @@ body[data-theme='low-vision'] {
 /* Low-vision: replace fill with a dashed white stroke for better contrast */
 [data-theme='low-vision']
   #blocklyDiv.blockly-search-active
-  .ws-search-match:not(.ws-search-current)
-  > path.blocklyPath {
+  .ws-search-match
+  > path.blocklyPath:not(.blocklyPathSelected) {
   fill: revert !important;
   stroke: #ffffff !important;
   stroke-width: 10px !important;
   stroke-dasharray: 8 4;
   paint-order: stroke fill;
-}
-
-/* Current match gets a yellow outline */
-#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPath {
-  stroke: var(--block-outline-focus) !important;
-  stroke-width: 10px !important;
-  paint-order: stroke fill;
-}
-
-/* Suppress the Zelos selection glow path when the search outline is already showing */
-#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPathSelected {
-  display: none;
 }
 
 @media (min-width: 769px) {
