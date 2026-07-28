@@ -791,9 +791,13 @@ export function initContextMenus(workspace) {
     // it — same offset as the gizmo-menu badges.
     function renderBadges() {
       badgeOverlay.replaceChildren();
+      const toolboxRight = getToolboxRightEdge();
+      const clipAt = toolboxRight != null && toolboxRight > 0 ? toolboxRight : null;
+      badgeOverlay.style.clipPath = clipAt != null ? `inset(0 0 0 ${clipAt}px)` : '';
       for (const [btn, labelSpec] of buttonShortcuts) {
         if (btn.style.display === 'none' || btn.offsetParent === null) continue;
         const rect = btn.getBoundingClientRect();
+        if (clipAt != null && rect.right <= clipAt) continue;
         const badge = document.createElement('div');
         badge.className = 'fc-toolbar-key-badge';
         badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
@@ -853,6 +857,10 @@ export function initContextMenus(workspace) {
       { capture: true }
     );
 
+    window.addEventListener('flock:canvas-resize-done', () => {
+      if (toolbarBlock) positionBlockToolbar();
+    });
+
     const isDetachable = (block) =>
       !!block?.getParent() ||
       !!block?.previousConnection?.targetConnection ||
@@ -889,6 +897,16 @@ export function initContextMenus(workspace) {
       return !!div && div.clientWidth > 0 && div.clientHeight > 0;
     };
 
+    function getToolboxRightEdge() {
+      let right = -Infinity;
+      const sel = '.blocklyToolboxDiv, .blocklyToolbox, .blocklyFlyout';
+      for (const el of document.querySelectorAll(sel)) {
+        const r = el.getBoundingClientRect();
+        if (r.width > 0 && r.height > 0) right = Math.max(right, r.right);
+      }
+      return right === -Infinity ? null : right;
+    }
+
     function positionBlockToolbar() {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
@@ -902,8 +920,8 @@ export function initContextMenus(workspace) {
       blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
       blockToolbar.style.removeProperty('--caret-shift');
+      blockToolbar.style.clipPath = '';
 
-      // Clamp to viewport; shift caret opposite so it still points at the block
       const margin = 8;
       const tbRect = blockToolbar.getBoundingClientRect();
       let adj = 0;
@@ -914,18 +932,18 @@ export function initContextMenus(workspace) {
         blockToolbar.style.left = `${blockCenterX + adj}px`;
         blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
       }
+
+      const toolboxRight = getToolboxRightEdge();
+      if (toolboxRight != null) {
+        const finalRect = blockToolbar.getBoundingClientRect();
+        const overlap = toolboxRight - finalRect.left;
+        if (overlap > 0) blockToolbar.style.clipPath = `inset(0 0 0 ${overlap}px)`;
+      }
       // Badges are positioned off the buttons, so they must follow the toolbar.
       if (toolbarKeyboardMode) renderBadges();
     }
 
-    // A block that COULD attach to something (has a previous/output
-    // connection) but currently isn't — freshly duplicated, just detached,
-    // etc. — is "in transit": duplicate/comment don't apply until it's placed
-    // somewhere, so the toolbar simplifies down to just Move (as a
-    // keyboard-only hint) and Delete. Hat/event blocks (e.g. "start") have
-    // neither connection, so they're always "unattached" without ever being
-    // in transit — exclude them, or every hat block would permanently show
-    // the simplified toolbar.
+    // Deal with blocks that COULD attach to something but currently free
     const isLooseAndMovable = (block) =>
       !!block &&
       !isBlockLocked(block) &&
