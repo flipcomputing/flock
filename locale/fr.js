@@ -1281,6 +1281,9 @@ export default {
   shortcut_lock_transform: 'Verrouiller la transformation sur un axe',
   shortcut_transform_3d: 'Transformer en 3D',
   shortcut_focus_camera: "Centrer la caméra sur l'objet",
+  shortcut_toggle_hud: "Afficher/masquer les commandes à l'écran", // machine
+  hud_hidden: "Commandes à l'écran masquées", // machine
+  hud_shown: "Commandes à l'écran affichées", // machine
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 

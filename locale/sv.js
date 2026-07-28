@@ -1260,6 +1260,9 @@ export default {
   shortcut_lock_transform: 'Lås transformering till axel',
   shortcut_transform_3d: 'Transformera i 3D',
   shortcut_focus_camera: 'Rikta kameran mot objekt',
+  shortcut_toggle_hud: 'Visa/dölj skärmkontroller', // machine
+  hud_hidden: 'Skärmkontroller dolda', // machine
+  hud_shown: 'Skärmkontroller visas', // machine
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

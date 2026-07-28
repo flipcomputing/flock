@@ -1283,6 +1283,9 @@ export default {
   shortcut_lock_transform: "Blocca trasformazione sull'asse",
   shortcut_transform_3d: 'Trasforma in 3D',
   shortcut_focus_camera: "Centra la telecamera sull'oggetto",
+  shortcut_toggle_hud: 'Mostra/nascondi i comandi a schermo', // machine
+  hud_hidden: 'Comandi a schermo nascosti', // machine
+  hud_shown: 'Comandi a schermo visibili', // machine
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 

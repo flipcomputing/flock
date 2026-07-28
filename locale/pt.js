@@ -1285,6 +1285,9 @@ export default {
   shortcut_lock_transform: 'Bloquear transformação no eixo',
   shortcut_transform_3d: 'Transformar em 3D',
   shortcut_focus_camera: 'Focar câmara no objeto',
+  shortcut_toggle_hud: 'Mostrar/ocultar controlos no ecrã', // machine
+  hud_hidden: 'Controlos no ecrã ocultos', // machine
+  hud_shown: 'Controlos no ecrã visíveis', // machine
   shortcut_quick_colour: 'Uso rápido de cor no seletor de cores',
   shortcut_delete_object: 'Eliminar objeto',
 
