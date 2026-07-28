@@ -21,9 +21,6 @@ let sayAnnounceSeq = 0;
 // Helps avoid repeating the same click announcement too many times in a row
 let lastInteractionKey = '';
 let lastInteractionTime = 0;
-
-// Two persistent assertive regions that alternate so each announce writes to whichever
-// was previously empty — guarantees the reader sees a genuine "" → text change every time.
 let _interactRegions = null;
 let _interactRegionIdx = 0;
 
@@ -121,8 +118,6 @@ export function announce(message, options = {}) {
   lastAnnouncedAt = now;
 
   if (noDedup) {
-    // Alternate between two pre-registered assertive regions. Each press writes to the
-    // one that was previously empty, so the reader always sees a genuine "" → text change.
     // Freshly-created assertive elements have a registration delay; pre-registered ones don't.
     if (!_interactRegions) {
       const root = createA11yRoot();

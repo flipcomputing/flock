@@ -45,9 +45,7 @@ import {
 } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
-// Persist locked blocks as part of the workspace serialization. Lower priority
-// than the built-in 'blocks' serializer (20) so the target blocks already exist
-// when we re-apply the lock on load.
+// Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   Blockly.serialization.registry.register('flockLock', {
     priority: 0,
@@ -59,10 +57,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
       return ids.length ? ids : undefined;
     },
     load(state, ws) {
-      // Apply lock state per saved block (every locked block was recorded), not
-      // by re-cascading from a root — the tree may have gained blocks (e.g. a
-      // duplicate connected after a locked block) since it was locked, and those
-      // must not be swept into the lock on reload.
+      // Apply per block rather than re-cascading from a root: the tree may have gained
+      // blocks since locking (e.g. a duplicate), and those must not be swept into the lock.
       for (const id of state || []) {
         const b = ws.getBlockById(id);
         if (b) applyBlockLockState(b, true);
@@ -104,10 +100,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
     };
 }
 
-// After jsonInit builds a block's inputs, give its value/statement inputs ARIA
-// labels so screen readers announce each input's context on focus. A block can
-// supply an `ariaLabels` map (keyed by input name) in its definition to
-// override or suppress individual labels; the key is ignored by jsonInit.
+// Blocks may carry an `ariaLabels` map (keyed by input name) in their jsonInit definition to
+// override or suppress per-input labels; jsonInit itself ignores the key.
 {
   const originalJsonInit = Blockly.Block.prototype.jsonInit;
   Blockly.Block.prototype.jsonInit = function (json) {
@@ -116,18 +110,10 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   };
 }
 
-// A "simple reporter" (e.g. a number plugged into scale's X slot) announces
-// only its field's value, with no per-input context. We prepend the parent
-// input's ARIA label ("x") to the field's announced element so navigating onto
-// it reads "x, number: 0". This is done in recomputeAriaContext (which sets the
-// element's aria-label), NOT computeAriaLabel: the parent block composes its own
-// readout from each child's computeAriaLabel, so prefixing there would make the
-// block say the slot label twice (once as its field-row label, once via the
-// child). The element-only prefix keeps the block readout clean.
+// Prefix a simple reporter's field with its parent slot label ("x, number: 0") in
+// recomputeAriaContext, NOT computeAriaLabel — the parent would then say the slot twice.
 {
-  // The slot label and whether to set one at all (sibling-disambiguation,
-  // overrides) are decided in applyInputAriaLabels; here we just surface
-  // whatever provider the parent input carries.
+  // Which label, and whether to set one at all, is decided in applyInputAriaLabels.
   const parentSlotLabel = (field) => {
     const block = field.getSourceBlock?.();
     if (!block || !block.isSimpleReporter?.() || block.getFullBlockField?.() !== field) {
@@ -137,11 +123,9 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
       block.outputConnection?.targetConnection ?? block.previousConnection?.targetConnection;
     return conn?.getParentInput?.()?.getAriaLabelText?.() ?? null;
   };
-  // Several field types define their own recomputeAriaContext, each calling
-  // super: Field, FieldInput (base of FieldTextInput/FieldNumber; not exported,
-  // so reached via the prototype chain), FieldDropdown (→ FieldVariable) and
-  // FieldCheckbox. Wrap every prototype that owns the method; a per-instance
-  // re-entrancy guard ensures the slot is prepended once, to the final label.
+  // Wrap every prototype owning recomputeAriaContext: Field, FieldInput (base of
+  // FieldTextInput/FieldNumber, not exported — hence the prototype-chain hop), FieldDropdown
+  // (→ FieldVariable), FieldCheckbox. They chain to super, hence the re-entrancy guard below.
   const textInputProto = Blockly.FieldTextInput?.prototype;
   const candidateProtos = [
     Blockly.Field?.prototype,
@@ -165,9 +149,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
           const el = this.getFocusableElement?.();
           const current = el?.getAttribute?.('aria-label');
           const prefix = `${slot}, `;
-          // v13.1.0 added native full-block field label prefixing, which can
-          // already have set this prefix before we get here — guard so we
-          // don't double it up ("hair, hair, color: Red").
+          // v13.1.0 may already have applied this prefix natively — guard against
+          // doubling it ("hair, hair, color: Red").
           if (el && current && !current.startsWith(prefix)) {
             el.setAttribute('aria-label', `${prefix}${current}`);
           }
@@ -392,16 +375,15 @@ function initializeIfClauseConnectionChecker(workspace) {
         return true;
       }
 
+      // Reject while dragging (visual feedback); otherwise allow the connection and let
+      // validateIfClausePositions disable the block in-place (healing, undo/redo, field change).
       if (connectingToNext) {
         // Moving block is connecting AFTER target
 
         if (targetIsIfClause) {
           const targetMode = targetBlock.getFieldValue('MODE');
 
-          // Rule 1: Nothing can connect after ELSE.
-          // During drag-and-drop reject to give visual feedback.
-          // During healing / field-changes (not dragging) allow the connection;
-          // validateIfClausePositions will disable the block in-place.
+          // Rule 1: nothing can connect after ELSE.
           if (targetMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
@@ -411,18 +393,13 @@ function initializeIfClauseConnectionChecker(workspace) {
             return false;
           }
 
-          // Rule 3: ELSE cannot be inserted in middle of chain (drag only).
-          // When not dragging (e.g. a MODE field change), keep the connection
-          // and let validateIfClausePositions disable the block in-place.
+          // Rule 3: ELSE cannot be inserted mid-chain.
           const targetHasNext = realNext(targetBlock);
           if (targetHasNext && targetHasNext.type === 'if_clause' && movingMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
         } else {
-          // Target is NOT if_clause.
-          // During drag-and-drop reject to give visual feedback.
-          // During healing / undo-redo (not dragging) allow the connection;
-          // validateIfClausePositions will disable the block in-place.
+          // Target is NOT if_clause: ELSEIF/ELSE need an if_clause predecessor.
           if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
@@ -475,9 +452,7 @@ function initializeIfClauseConnectionChecker(workspace) {
         // Otherwise it's fine - connecting at the end of the chain
         return true;
       } else {
-        // Non-if_clause connecting before if_clause
-        // Only allow before IF (which can start a new chain)
-        // Don't allow before ELSEIF or ELSE
+        // Non-if_clause may only go before IF, which can start a new chain.
         if (targetMode === MODE.ELSEIF || targetMode === MODE.ELSE) {
           return false;
         }
@@ -491,9 +466,7 @@ function initializeIfClauseConnectionChecker(workspace) {
   // connected but in an invalid position (e.g. ELSEIF after a regular block).
   const INVALID_IF_CLAUSE_REASON = 'INVALID_IF_CLAUSE_POSITION';
 
-  // Scan all if_clause blocks and disable/enable them based on whether their
-  // predecessor is a valid if_clause.  Runs with events disabled so the
-  // enable/disable state is derived (not recorded in the undo stack).
+  // Events disabled so the derived enable/disable state never enters the undo stack.
   function validateIfClausePositions() {
     Blockly.Events.disable();
     try {
@@ -528,9 +501,7 @@ function initializeIfClauseConnectionChecker(workspace) {
     }
   }
 
-  // Re-validate after any structural change so that if_clause blocks that
-  // land in an invalid position are disabled immediately, and those that
-  // become valid again are re-enabled.
+  // Re-validate on structural change so invalid clauses disable and valid ones re-enable.
   workspace.addChangeListener(function (event) {
     if (
       !event.isUiEvent &&
@@ -840,10 +811,8 @@ export function initializeWorkspace() {
       );
     };
 
-    // Desktop flyout search is handled by Blockly's native matchBlocks via the
-    // blockSearcher.blockTypesMatching override in overrideSearchPlugin. The
-    // mobile overlay below reuses that same searcher (blockTypesMatching) so
-    // desktop and mobile stay consistent.
+    // The mobile overlay reuses blockSearcher.blockTypesMatching (overridden in
+    // overrideSearchPlugin) so it stays consistent with the desktop flyout.
 
     // Build overlay bar
     const overlay = document.createElement('div');
@@ -1071,11 +1040,8 @@ export function initializeWorkspace() {
         if (resultsPanel.isConnected) {
           updateResults();
         } else {
-          // The toolbox-search plugin runs matchBlocks() from the field's
-          // keydown handler, which fires before the pressed key reaches
-          // input.value — so the flyout query always lagged one character
-          // behind (typing "map" searched "ma" and showed nothing until a
-          // further edit). Re-run the search here, when the value is current.
+          // The plugin calls matchBlocks() from keydown, before input.value updates, so the
+          // query lagged a character ("map" searched "ma"). Re-run it where the value is current.
           searchCategory?.matchBlocks?.();
         }
       });
@@ -1327,9 +1293,7 @@ export function initializeWorkspace() {
         const leftMargin = 10;
         const buffer = 5;
 
-        // 1. HORIZONTAL LOGIC:
-        // Only move X if the block's left edge is hidden or too far right.
-        // We ignore the specific row's internal X offset to keep it stable.
+        // Horizontal: move X only if the left edge is hidden; ignore row X offset for stability.
         let finalScrollX = this.scrollX;
         const isHorizontallyVisible =
           currentBlockX >= leftMargin - buffer && currentBlockX + blockWidth <= viewportWidth;
@@ -1338,8 +1302,7 @@ export function initializeWorkspace() {
           finalScrollX = -blockXY.x * scale + leftMargin;
         }
 
-        // 2. VERTICAL LOGIC:
-        // Strict check for the specific row (y + yOffset)
+        // Vertical: strict check for the specific row (y + yOffset).
         const currentRowY = currentBlockY + yOffset * scale;
         const isRowVisible =
           currentRowY >= searchBarHeight + buffer &&
@@ -1350,7 +1313,6 @@ export function initializeWorkspace() {
           finalScrollY = -(blockXY.y + yOffset) * scale + 50;
         }
 
-        // 3. EXECUTION:
         if (finalScrollX === this.scrollX && finalScrollY === this.scrollY) {
           return;
         }
@@ -1369,16 +1331,9 @@ export function initializeWorkspace() {
   return workspace;
 }
 
-// Patch the workspace Navigator so keyboard navigation skips redundant stops
-// on value blocks whose only interactive content is a text-input field.
-//
-// Applies to two cases:
-//   Shadow blocks  — e.g. the " " text block inside print_text's TEXT input.
-//   Standalone text-input reporters — e.g. `text` and `colour_from_string`.
-//
-// In all cases: right-arrow and left-arrow skip the block entirely and land
-// on the field (right) or the parent (left). Up/down navigate as if standing
-// on the block itself.
+// Patch the Navigator so keyboard navigation skips the redundant block stop on value blocks
+// whose only interactive content is a text-input field — shadow (" " in print_text) and
+// standalone (`text`, `colour_from_string`) alike.
 function installShadowNavigationPatch(ws) {
   const nav = ws.getNavigator?.();
   if (!nav) return;
@@ -1400,45 +1355,29 @@ function installShadowNavigationPatch(ws) {
     return null;
   };
 
-  // A shadow value block whose primary field is *separately* navigable, which
-  // creates a redundant block+field double-stop during keyboard navigation
-  // (e.g. the " " `text` block in print_text's TEXT input).
-  //
-  // Simple reporters (single field + output, e.g. `math_number`) are excluded:
-  // Blockly already makes their full-block field non-navigable and treats the
-  // block itself as the single stop (Enter edits it directly), so there is no
-  // redundant stop to skip — and redirecting to their non-navigable field
-  // would break navigation.
+  // Simple reporters are excluded: Blockly already makes their full-block field
+  // non-navigable, so redirecting to it would break navigation.
   const isSkippableShadow = (node) =>
     typeof node?.isShadow === 'function' &&
     node.isShadow() &&
     !!node.outputConnection &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter());
 
-  // A standalone (non-shadow) reporter block whose sole interactive content is
-  // a text-input field, e.g. `text` (" ") or `colour_from_string` (# hex).
-  // These create the same redundant block+field double-stop as skippable shadows.
-  //
-  // Variable/dropdown reporters are excluded because their primary field is a
-  // FieldDropdown/FieldVariable, not a FieldTextInput.
-  // Simple reporters are excluded for the same reason as isSkippableShadow.
+  // Variable/dropdown reporters are excluded (their primary field isn't a FieldTextInput),
+  // simple reporters for the same reason as isSkippableShadow.
   const isSkippableStandalone = (node) =>
     !!node?.outputConnection &&
     !node.isShadow?.() &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter()) &&
     getPrimaryEditableField(node) != null;
 
-  // If node is a skippable block (shadow or standalone), return its primary
-  // field instead.
   const skipBlock = (node) => {
     if (!isSkippableShadow(node) && !isSkippableStandalone(node)) return node;
     return getPrimaryEditableField(node) ?? node;
   };
 
-  // The shortcut handler calls getInNode/getOutNode/getNextNode/getPreviousNode
-  // with no arguments, relying on the focused node. A skippable block's
-  // full-block field resolves back to its block via getFocusedNode(), so we
-  // read document.activeElement to recover the field that actually owns focus.
+  // getFocusedNode() resolves a full-block field back to its block, so recover the field
+  // that actually owns focus from document.activeElement.
   const getFocusedSkippableField = () => {
     const el = document.activeElement;
     if (!el?.id) return null;
@@ -1459,16 +1398,14 @@ function installShadowNavigationPatch(ws) {
   const origNext = nav.getNextNode.bind(nav);
   const origPrev = nav.getPreviousNode.bind(nav);
 
-  // Right-arrow: if the target is a skippable block, land on its field instead
-  // of the redundant block stop. From a skippable field, pass the field
-  // explicitly so the traversal bubbles up to the next inline sibling.
+  // Right-arrow: land on the field, not the redundant block stop. From a skippable field,
+  // pass the field explicitly so traversal bubbles to the next inline sibling.
   nav.getInNode = function (node) {
     const field = getFocusedSkippableField();
     return skipBlock(field ? origIn(field) : origIn(node));
   };
 
-  // Left-arrow: from a skippable block's field, go to the block's parent
-  // (skip the block itself in both the shadow and standalone cases).
+  // Left-arrow: from a skippable field, go to the block's parent, skipping the block.
   nav.getOutNode = function (node) {
     const field = getFocusedSkippableField();
     if (field) return skipBlock(origOut(field.getSourceBlock()));
@@ -1529,10 +1466,8 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
-  // Shared duplicate: copy the block and paste it, stripping lock state so a
-  // copy of a locked block comes out editable/movable. Always returns true so
-  // dispatch stops here (a falsy return would let another D-bound shortcut fire
-  // and paste a second time).
+  // Strips lock state so a copy of a locked block is editable. Returns true to stop
+  // dispatch — a falsy return lets another D-bound shortcut paste a second time.
   const duplicateViaClipboard = (ws, block) => {
     const copyData = block?.toCopyData?.();
     if (!copyData) return false;
@@ -1587,18 +1522,13 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
-  // Comment shortcuts. 'K' toggles the comment bubble open/closed (creating one
-  // and focusing it when none exists); 'Shift+K' deletes the comment. (N — the
-  // natural mnemonic for "note" — is already Blockly's next_stack nav key.)
-  // Comment has no built-in Blockly shortcut, so unlike X/D/Delete these must
-  // resolve the target themselves — from the focused block (scope.focusedNode),
-  // or a focused field's source block, falling back to the skippable-field
-  // resolver.
+  // K toggles the comment bubble, Shift+K deletes it (N, the natural mnemonic, is already
+  // Blockly's next_stack key). No built-in shortcut exists, so unlike X/D/Delete these
+  // resolve their own target.
   {
     const commentTargetBlock = (scope) => {
       const node = scope?.focusedNode;
-      // A focused block exposes getCommentText; a focused field exposes
-      // getSourceBlock and unwraps to the block that owns it.
+      // A focused block exposes getCommentText; a focused field unwraps via getSourceBlock.
       if (node) {
         if (typeof node.getCommentText === 'function') return node;
         if (typeof node.getSourceBlock === 'function') {
@@ -1626,9 +1556,8 @@ function installShadowNavigationPatch(ws) {
         // triggered this lands in the comment editor we're about to focus.
         event?.preventDefault?.();
         Blockly.Events.setGroup('comment_shortcut');
-        // The undoable create runs synchronously inside toggleCommentBubble
-        // before it awaits, so it lands in this group; the bubble open/focus
-        // that follows is UI state and needn't be grouped.
+        // The undoable create runs synchronously before toggleCommentBubble awaits, so it
+        // lands in this group; the bubble open/focus that follows is UI state.
         toggleCommentBubble(block);
         Blockly.Events.setGroup(false);
         return true;
@@ -1703,9 +1632,7 @@ export function createBlocklyWorkspace() {
       }
     }
 
-    // Accordion behaviour: navigating to a category collapses every other
-    // expandable category, keeping only the selected item and its ancestors
-    // open.
+    // Accordion behaviour: keep only the selected item and its ancestors expanded.
     collapseUnrelatedCategories_(selectedItem) {
       if (!selectedItem) return;
       const keepOpen = new Set();
@@ -1779,9 +1706,7 @@ export function createBlocklyWorkspace() {
       });
       injectionDiv.appendChild(iconOverlay);
 
-      // pointer-events is inherited, so the overlay's `none` (which lets clicks
-      // pass through its empty area to the flyout) would also disable the icon.
-      // Force the icon itself back to clickable so it can close the flyout.
+      // pointer-events is inherited, so the overlay's `none` would disable the icon too.
       trashIcon.style.pointerEvents = 'auto';
 
       // Clicking the lifted icon closes the flyout. The icon's own pointerup
@@ -1792,10 +1717,8 @@ export function createBlocklyWorkspace() {
         if (Date.now() < suppressOpenUntil) return;
         originalOpenFlyout();
       };
-      // Move keyboard focus into the flyout the instant its blocks render. openFlyout()
-      // renders on a deferred timeout and fires TRASHCAN_OPEN before the blocks exist,
-      // so instead of polling, hook show() — the call that builds the blocks. Right
-      // after it, getTopBlocks() is populated.
+      // TRASHCAN_OPEN fires before the deferred render, so hook show() instead — it is the
+      // call that builds the blocks, and getTopBlocks() is populated right after it.
       const originalFlyoutShow = trashcanFlyout.show.bind(trashcanFlyout);
       trashcanFlyout.show = function (contents) {
         originalFlyoutShow(contents);
@@ -2508,12 +2431,9 @@ export function overrideSearchPlugin(workspace) {
   }
 
   SearchCategory.prototype.initBlockSearcher = function () {
-    // Deliberately skip the plugin's default trigram indexing here: Flock
-    // searches its own rich index (workspace.flockSearchIndexedBlocks, built by
-    // buildSearchIndex) for both the desktop flyout and the mobile overlay,
-    // which also covers author keyword synonyms the trigram index lacks. Not
-    // building the trigram index avoids instantiating every block twice at
-    // startup. this.blockSearcher is already created by the plugin constructor.
+    // Deliberately skip the plugin's trigram indexing: Flock searches its own index
+    // (flockSearchIndexedBlocks), which also covers keyword synonyms, and skipping avoids
+    // instantiating every block twice at startup.
     const blockSearcher = this.blockSearcher;
 
     const rebuildSearchIndex = () => {
@@ -2531,11 +2451,8 @@ export function overrideSearchPlugin(workspace) {
     this.blockSearcher.indexBlocks = rebuildSearchIndex;
     blockSearcher.indexedBlocks_ = workspace.flockSearchIndexedBlocks || null;
 
-    // Override only the search primitive: substring-match Flock's rich index
-    // (keyword synonyms, block labels, dropdown alt text, shadow defaults),
-    // relevance-sorted and de-duplicated by type. Blockly's native matchBlocks
-    // consumes this, so Blockly keeps handling flyout rendering, the screen
-    // reader announcement, and the empty / no-match labels.
+    // Override only the search primitive — Blockly's native matchBlocks consumes it, so
+    // flyout rendering, screen-reader announcements and no-match labels stay upstream.
     blockSearcher.blockTypesMatching = (rawQuery) => {
       const q = (rawQuery || '').toLowerCase().trim();
       if (!q) return [];
@@ -2784,11 +2701,8 @@ export function overrideSearchPlugin(workspace) {
     searchToolboxItem.initBlockSearcher();
   }
 
-  // Keep Blockly's native matchBlocks: it calls our blockSearcher.blockTypesMatching
-  // override for results and retains ownership of flyout rendering and the
-  // screen-reader announcement. Wrap it thinly only to localise the placeholder
-  // labels the plugin hard-codes in English ("Type to search for blocks" when the
-  // query is empty, "No matching blocks found" when a query matches nothing).
+  // Wrap native matchBlocks only to localise the placeholder labels the plugin hard-codes
+  // in English ("Type to search for blocks", "No matching blocks found").
   const nativeMatchBlocks = SearchCategory.prototype.matchBlocks;
   SearchCategory.prototype.matchBlocks = function () {
     nativeMatchBlocks.call(this);
