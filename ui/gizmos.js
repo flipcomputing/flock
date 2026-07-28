@@ -189,6 +189,7 @@ function createAdaptiveInput({
     onAxisChange?.(axis);
   };
   stop.getAxis = () => keyboard?.getAxis?.() ?? null;
+  stop.toggleHud = () => hud?.toggleCollapsed?.();
   return stop;
 }
 
@@ -218,6 +219,20 @@ function registerBindings() {
       if (!mesh || mesh.name === 'ground') return;
       attachMeshForActiveTool(mesh);
       toggleGizmo('eye');
+    })
+  );
+  // Show/hide the on-screen transform controls with O
+  KeyboardDispatcher.on(
+    'GIZMO',
+    'KeyO',
+    noMod((e) => {
+      if (!stopAxisKeyboard?.toggleHud) return;
+      e.preventDefault();
+      const collapsed = stopAxisKeyboard.toggleHud();
+      showStatus(translate(collapsed ? 'hud_hidden' : 'hud_shown'), {
+        duration: 3,
+        owner: 'hud',
+      });
     })
   );
   // Delete selected mesh with Del key

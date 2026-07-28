@@ -627,6 +627,11 @@ function getShortcuts() {
       category: translate('shortcut_category_gizmos'),
     },
     {
+      label: translate('shortcut_toggle_hud'),
+      keys: `O`,
+      category: translate('shortcut_category_gizmos'),
+    },
+    {
       label: translate('shortcut_quick_colour'),
       keys: `C`,
       category: translate('shortcut_category_gizmos'),

@@ -1342,6 +1342,9 @@ export default {
   shortcut_lock_transform: 'Bloquear transformación en eje',
   shortcut_transform_3d: 'Transformar en 3D',
   shortcut_focus_camera: 'Enfocar cámara en objeto',
+  shortcut_toggle_hud: 'Mostrar/ocultar controles en pantalla', // machine
+  hud_hidden: 'Controles en pantalla ocultos', // machine
+  hud_shown: 'Controles en pantalla visibles', // machine
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 

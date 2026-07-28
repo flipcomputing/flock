@@ -1397,6 +1397,9 @@ export default {
   shortcut_lock_transform: 'Lock transform to axis',
   shortcut_transform_3d: 'Transform in 3D',
   shortcut_focus_camera: 'Focus camera on object',
+  shortcut_toggle_hud: 'Show/hide on-screen controls',
+  hud_hidden: 'On-screen controls hidden',
+  hud_shown: 'On-screen controls shown',
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
 

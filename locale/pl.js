@@ -1274,6 +1274,9 @@ export default {
   shortcut_lock_transform: 'Zablokuj transformację na osi',
   shortcut_transform_3d: 'Transformuj w 3D',
   shortcut_focus_camera: 'Skieruj kamerę na obiekt',
+  shortcut_toggle_hud: 'Pokaż/ukryj sterowanie ekranowe', // machine
+  hud_hidden: 'Sterowanie ekranowe ukryte', // machine
+  hud_shown: 'Sterowanie ekranowe widoczne', // machine
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 

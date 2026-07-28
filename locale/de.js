@@ -1274,6 +1274,9 @@ export default {
   shortcut_lock_transform: 'Transformation auf Achse einschränken',
   shortcut_transform_3d: 'In 3D transformieren',
   shortcut_focus_camera: 'Kamera auf Objekt ausrichten',
+  shortcut_toggle_hud: 'Bildschirmsteuerung ein-/ausblenden', // machine
+  hud_hidden: 'Bildschirmsteuerung ausgeblendet', // machine
+  hud_shown: 'Bildschirmsteuerung eingeblendet', // machine
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 
