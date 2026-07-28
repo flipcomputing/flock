@@ -1,4 +1,4 @@
-import { getMicrobitManager } from "../microbit/manager.js";
+import { getMicrobitManager } from '../microbit/manager.js';
 
 // Kept for consistency with the other api modules; addMicrobit itself only
 // needs the manager.
@@ -20,19 +20,18 @@ export const flockMicrobit = {
    * tethers.
    */
   addMicrobit(variableName, channel = 1) {
-    if (typeof variableName !== "string" || variableName === "") {
-      console.warn("addMicrobit: variableName must be a non-empty string");
+    if (typeof variableName !== 'string' || variableName === '') {
+      console.warn('addMicrobit: variableName must be a non-empty string');
       return;
     }
-    const channelValue =
-      typeof channel === "string" ? Number(channel) : channel;
+    const channelValue = typeof channel === 'string' ? Number(channel) : channel;
     if (
-      typeof channelValue !== "number" ||
+      typeof channelValue !== 'number' ||
       !Number.isSafeInteger(channelValue) ||
       channelValue < 0 ||
       channelValue > 255
     ) {
-      console.warn("addMicrobit: channel must be an integer between 0 and 255");
+      console.warn('addMicrobit: channel must be an integer between 0 and 255');
       return;
     }
     getMicrobitManager().setVariableChannel(variableName, channelValue, {
@@ -47,24 +46,24 @@ export const flockMicrobit = {
    * are a silent no-op — images can only be sent over USB.
    */
   microbitShowImage(deviceName, pattern) {
-    if (typeof deviceName !== "string") {
-      console.warn("microbitShowImage: deviceName must be a string");
+    if (typeof deviceName !== 'string') {
+      console.warn('microbitShowImage: deviceName must be a string');
       return;
     }
-    if (typeof pattern !== "string") {
-      console.warn("microbitShowImage: pattern must be a string");
+    if (typeof pattern !== 'string') {
+      console.warn('microbitShowImage: pattern must be a string');
       return;
     }
     const manager = getMicrobitManager();
-    if (deviceName !== "" && !manager.isMicrobitVariable(deviceName)) {
+    if (deviceName !== '' && !manager.isMicrobitVariable(deviceName)) {
       _flock?.reportBlockError?.({
-        key: "not_a_microbit",
-        api: "microbitShowImage",
+        key: 'not_a_microbit',
+        api: 'microbitShowImage',
         values: { object: deviceName },
       });
       return;
     }
-    manager.showImage(deviceName === "" ? null : deviceName, pattern);
+    manager.showImage(deviceName === '' ? null : deviceName, pattern);
   },
 
   /**
@@ -75,23 +74,23 @@ export const flockMicrobit = {
    * are a silent no-op — text can only be sent over USB.
    */
   microbitScrollText(deviceName, text) {
-    if (typeof deviceName !== "string") {
-      console.warn("microbitScrollText: deviceName must be a string");
+    if (typeof deviceName !== 'string') {
+      console.warn('microbitScrollText: deviceName must be a string');
       return;
     }
-    if (typeof text !== "string" && typeof text !== "number") {
-      console.warn("microbitScrollText: text must be a string");
+    if (typeof text !== 'string' && typeof text !== 'number') {
+      console.warn('microbitScrollText: text must be a string');
       return;
     }
     const manager = getMicrobitManager();
-    if (deviceName !== "" && !manager.isMicrobitVariable(deviceName)) {
+    if (deviceName !== '' && !manager.isMicrobitVariable(deviceName)) {
       _flock?.reportBlockError?.({
-        key: "not_a_microbit",
-        api: "microbitScrollText",
+        key: 'not_a_microbit',
+        api: 'microbitScrollText',
         values: { object: deviceName },
       });
       return;
     }
-    manager.scrollText(deviceName === "" ? null : deviceName, String(text));
+    manager.scrollText(deviceName === '' ? null : deviceName, String(text));
   },
 };

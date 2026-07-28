@@ -72,7 +72,9 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
 7. **Create a Pull Request** on GitHub
 
 ### Deploying your fork to GitHub Pages
+
 1. **Push your fork to GitHub**:
+
    ```bash
    git push origin main
    ```

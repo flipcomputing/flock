@@ -1,4 +1,4 @@
-import { normaliseKey } from "./normaliseKey.js";
+import { normaliseKey } from './normaliseKey.js';
 
 export class KeyboardSource {
   #inputManager;
@@ -25,7 +25,7 @@ export class KeyboardSource {
       // Don't feed scene/input events to the running project while the user is
       // interacting with an open modal dialog (e.g. navigating the demo picker
       // with arrow keys) — the focused control, not the scene, owns the key.
-      if (event.target?.closest?.(".modal:not(.hidden)")) return;
+      if (event.target?.closest?.('.modal:not(.hidden)')) return;
       this.#inputManager._notifyRawKeyDown(event);
     };
 
@@ -52,7 +52,7 @@ export class KeyboardSource {
       if (event.__flockSynthetic) return;
       // macOS browsers suppress keyup for keys released while ⌘ is held, so
       // anything still tracked when ⌘ comes up would be stuck down forever.
-      if (event.key === "Meta") {
+      if (event.key === 'Meta') {
         this.#releaseAll();
         return;
       }
@@ -106,20 +106,20 @@ export class KeyboardSource {
   start() {
     if (this.#started) return;
     this.#started = true;
-    document.addEventListener("keydown", this.#onDocKeyDown, true);
-    this.#target.addEventListener("keydown", this.#onKeyDown);
-    this.#target.addEventListener("keyup", this.#onKeyUp);
-    this.#target.addEventListener("blur", this.#onTargetBlur);
-    window.addEventListener("blur", this.#onWindowBlur);
+    document.addEventListener('keydown', this.#onDocKeyDown, true);
+    this.#target.addEventListener('keydown', this.#onKeyDown);
+    this.#target.addEventListener('keyup', this.#onKeyUp);
+    this.#target.addEventListener('blur', this.#onTargetBlur);
+    window.addEventListener('blur', this.#onWindowBlur);
   }
 
   stop() {
     if (!this.#started) return;
     this.#started = false;
-    document.removeEventListener("keydown", this.#onDocKeyDown, true);
-    this.#target.removeEventListener("keydown", this.#onKeyDown);
-    this.#target.removeEventListener("keyup", this.#onKeyUp);
-    this.#target.removeEventListener("blur", this.#onTargetBlur);
-    window.removeEventListener("blur", this.#onWindowBlur);
+    document.removeEventListener('keydown', this.#onDocKeyDown, true);
+    this.#target.removeEventListener('keydown', this.#onKeyDown);
+    this.#target.removeEventListener('keyup', this.#onKeyUp);
+    this.#target.removeEventListener('blur', this.#onTargetBlur);
+    window.removeEventListener('blur', this.#onWindowBlur);
   }
 }

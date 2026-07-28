@@ -22,25 +22,25 @@ import {
 } from './protocol.js';
 
 export const BoardState = Object.freeze({
-  DISCONNECTED: "disconnected",
-  CONNECTING: "connecting",
-  PROBING: "probing",
-  NEEDS_FLASH: "needs-flash",
-  FLASHING: "flashing",
-  CONNECTED: "connected",
+  DISCONNECTED: 'disconnected',
+  CONNECTING: 'connecting',
+  PROBING: 'probing',
+  NEEDS_FLASH: 'needs-flash',
+  FLASHING: 'flashing',
+  CONNECTED: 'connected',
 });
 
 // Icon states surfaced to the add_microbit block.
 export const VariableStatus = Object.freeze({
-  UNBOUND: "unbound", // grey — no board bound (or bound board silent)
-  BUSY: "busy", // amber — connecting or flashing
-  TETHERED: "tethered", // green + plug — connected over USB and responding
-  RADIO: "radio", // green + waves — untethered, heartbeats arriving
+  UNBOUND: 'unbound', // grey — no board bound (or bound board silent)
+  BUSY: 'busy', // amber — connecting or flashing
+  TETHERED: 'tethered', // green + plug — connected over USB and responding
+  RADIO: 'radio', // green + waves — untethered, heartbeats arriving
 });
 
-export const FIRMWARE_HEX_URL = "util/microbit-flockusb.hex";
+export const FIRMWARE_HEX_URL = 'util/microbit-flockusb.hex';
 export const FLASH_CONFIRM_MESSAGE =
-  "This will replace the program on your micro:bit with the Flock program.";
+  'This will replace the program on your micro:bit with the Flock program.';
 
 // Opt-in diagnostics (raw serial lines and the connection library's status
 // chatter): set `flock.microbitDebug = true` — like flock.memoryDebug — or
@@ -53,11 +53,11 @@ export function setFlockReference(ref) {
 
 const debugLog = (...args) => {
   if (flockRef?.microbitDebug || globalThis.__microbitDebug) {
-    console.debug("micro:bit:", ...args);
+    console.debug('micro:bit:', ...args);
   }
 };
 
-const STORAGE_KEY = "flockMicrobitBindings";
+const STORAGE_KEY = 'flockMicrobitBindings';
 const DEFAULT_CHANNEL = 1;
 const PROBE_TIMEOUT_MS = 1000;
 const PROBE_ATTEMPTS = 2; // initial probe + one retry
@@ -73,10 +73,9 @@ const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
 async function defaultCreateTransport({ silent = false } = {}) {
   // Imported lazily so environments without WebUSB (node test runners) never
   // load @microbit/microbit-connection.
-  const { MicrobitUsbTransport } = await import("./usbTransport.js");
-  const { createWebUSBConnection, DeviceSelectionMode } = await import(
-    "@microbit/microbit-connection"
-  );
+  const { MicrobitUsbTransport } = await import('./usbTransport.js');
+  const { createWebUSBConnection, DeviceSelectionMode } =
+    await import('@microbit/microbit-connection');
   return new MicrobitUsbTransport({
     connection: createWebUSBConnection({
       deviceSelectionMode: silent
@@ -100,12 +99,12 @@ async function defaultFetchFirmware() {
     response = await fetch(FIRMWARE_HEX_URL);
   } catch (error) {
     throw new Error(
-      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`,
+      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`
     );
   }
   if (!response.ok) {
     throw new Error(
-      `Flock micro:bit firmware is missing (${FIRMWARE_HEX_URL}, HTTP ${response.status}).`,
+      `Flock micro:bit firmware is missing (${FIRMWARE_HEX_URL}, HTTP ${response.status}).`
     );
   }
   return response.text();
@@ -206,10 +205,7 @@ export class MicrobitManager {
   /** True if the name is a declared micro:bit (via add_microbit) or currently
    * bound to a tethered board. A declared board that is unplugged still counts. */
   isMicrobitVariable(variableName) {
-    return (
-      this._variables.has(variableName) ||
-      this._tetheredSessionFor(variableName) !== null
-    );
+    return this._variables.has(variableName) || this._tetheredSessionFor(variableName) !== null;
   }
 
   /**

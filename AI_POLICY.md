@@ -4,15 +4,15 @@ AI is a tool to support human creativity and responsibility, not replace it.
 
 ## Our overall goals are:
 
-- Open source principles  
-- Efficiency, particularly when funded with public money and adding accessibility features  
-- Quality and maintainability of code  
-- Consider workload on maintainers and contributors and avoiding barriers to contribution  
-- Humans are responsible for code and other assets, AI is a tool  
+- Open source principles
+- Efficiency, particularly when funded with public money and adding accessibility features
+- Quality and maintainability of code
+- Consider workload on maintainers and contributors and avoiding barriers to contribution
+- Humans are responsible for code and other assets, AI is a tool
 
 ## Contribution expectations
 
-The world has changed. We believe that open source projects need to be able to benefit from generative AI tools that have largely been trained on open source content. We need to do this in a way that is aligned with the goals of the project. 
+The world has changed. We believe that open source projects need to be able to benefit from generative AI tools that have largely been trained on open source content. We need to do this in a way that is aligned with the goals of the project.
 
 At this point we are not able to accept large contributions from fully automated contributors or contributors who are not known to the project.
 

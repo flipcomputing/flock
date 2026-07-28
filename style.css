@@ -542,7 +542,9 @@ button {
   background: transparent;
   color: #ffffff;
   cursor: pointer;
-  transition: transform 0.12s ease, color 0.12s ease;
+  transition:
+    transform 0.12s ease,
+    color 0.12s ease;
 }
 
 .canvas-stopped-overlay__play .icon,
@@ -1468,7 +1470,7 @@ button {
   background-color: var(--color-button-bg-hover);
 }
 
-.example-tab[aria-selected="true"] {
+.example-tab[aria-selected='true'] {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-text-on-primary);

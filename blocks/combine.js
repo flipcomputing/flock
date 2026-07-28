@@ -1,43 +1,42 @@
-import * as Blockly from "blockly";
-import { categoryColours } from "../toolbox.js";
+import * as Blockly from 'blockly';
+import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
   nextVariableIndexes,
   handleBlockCreateEvent,
   registerBlockHandler,
-} from "./blocks.js";
-import { translate, getTooltip } from "../main/translation.js";
+} from './blocks.js';
+import { translate, getTooltip } from '../main/translation.js';
 
 export function defineCombineBlocks() {
-  Blockly.Blocks["merge_meshes"] = {
+  Blockly.Blocks['merge_meshes'] = {
     init: function () {
-      const variableNamePrefix = "merged";
-      const nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableNamePrefix = 'merged';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
       this.jsonInit({
-        type: "merge_meshes",
-        message0: translate("merge_meshes"),
+        type: 'merge_meshes',
+        message0: translate('merge_meshes'),
         args0: [
           {
-            type: "field_variable",
-            name: "RESULT_VAR",
+            type: 'field_variable',
+            name: 'RESULT_VAR',
             variable: nextVariableName,
           },
           {
-            type: "input_value",
-            name: "MESH_LIST",
-            check: "Array",
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
           },
         ],
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("merge_meshes"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('merge_meshes'),
         previousStatement: null,
         nextStatement: null,
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
@@ -45,46 +44,45 @@ export function defineCombineBlocks() {
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          "RESULT_VAR",
-        ),
+          'RESULT_VAR'
+        )
       );
     },
   };
 
-  Blockly.Blocks["subtract_meshes"] = {
+  Blockly.Blocks['subtract_meshes'] = {
     init: function () {
-      const variableNamePrefix = "subtracted";
-      const nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableNamePrefix = 'subtracted';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
       this.jsonInit({
-        type: "subtract_meshes",
-        message0: translate("subtract_meshes"),
+        type: 'subtract_meshes',
+        message0: translate('subtract_meshes'),
         args0: [
           {
-            type: "field_variable",
-            name: "RESULT_VAR",
+            type: 'field_variable',
+            name: 'RESULT_VAR',
             variable: nextVariableName,
           },
           {
-            type: "field_variable",
-            name: "BASE_MESH",
-            variable: "object",
+            type: 'field_variable',
+            name: 'BASE_MESH',
+            variable: 'object',
           },
           {
-            type: "input_value",
-            name: "MESH_LIST",
-            check: "Array",
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
           },
         ],
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("subtract_meshes"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('subtract_meshes'),
         previousStatement: null,
         nextStatement: null,
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
@@ -92,41 +90,40 @@ export function defineCombineBlocks() {
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          "RESULT_VAR",
-        ),
+          'RESULT_VAR'
+        )
       );
     },
   };
 
-  Blockly.Blocks["intersection_meshes"] = {
+  Blockly.Blocks['intersection_meshes'] = {
     init: function () {
-      const variableNamePrefix = "intersection";
-      const nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableNamePrefix = 'intersection';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
       this.jsonInit({
-        type: "intersection_meshes",
-        message0: translate("intersection_meshes"),
+        type: 'intersection_meshes',
+        message0: translate('intersection_meshes'),
         args0: [
           {
-            type: "field_variable",
-            name: "RESULT_VAR",
+            type: 'field_variable',
+            name: 'RESULT_VAR',
             variable: nextVariableName,
           },
           {
-            type: "input_value",
-            name: "MESH_LIST",
-            check: "Array",
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
           },
         ],
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("intersection_meshes"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('intersection_meshes'),
         previousStatement: null,
         nextStatement: null,
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
@@ -134,41 +131,40 @@ export function defineCombineBlocks() {
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          "RESULT_VAR",
-        ),
+          'RESULT_VAR'
+        )
       );
     },
   };
 
-  Blockly.Blocks["hull_meshes"] = {
+  Blockly.Blocks['hull_meshes'] = {
     init: function () {
-      const variableNamePrefix = "hull";
-      const nextVariableName =
-        variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableNamePrefix = 'hull';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
 
       this.jsonInit({
-        type: "hull_meshes",
-        message0: translate("hull_meshes"),
+        type: 'hull_meshes',
+        message0: translate('hull_meshes'),
         args0: [
           {
-            type: "field_variable",
-            name: "RESULT_VAR",
+            type: 'field_variable',
+            name: 'RESULT_VAR',
             variable: nextVariableName,
           },
           {
-            type: "input_value",
-            name: "MESH_LIST",
-            check: "Array",
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
           },
         ],
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("hull_meshes"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('hull_meshes'),
         previousStatement: null,
         nextStatement: null,
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockCreateEvent(
@@ -176,8 +172,8 @@ export function defineCombineBlocks() {
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
-          "RESULT_VAR",
-        ),
+          'RESULT_VAR'
+        )
       );
     },
   };

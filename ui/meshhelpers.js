@@ -1,4 +1,4 @@
-import { flock } from "../flock.js";
+import { flock } from '../flock.js';
 
 export function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
@@ -26,7 +26,7 @@ export function roundVectorToFixed(vector, decimals) {
   return new vector.constructor(
     parseFloat(vector.x.toFixed(decimals)),
     parseFloat(vector.y.toFixed(decimals)),
-    parseFloat(vector.z.toFixed(decimals)),
+    parseFloat(vector.z.toFixed(decimals))
   );
 }
 
@@ -35,8 +35,7 @@ const PICK_OK = (m) => m && m.isPickable !== false;
 function isLeafMesh(m) {
   if (!m || m.isDisposed?.()) return false;
   const hasKids = (m.getChildren?.().length ?? 0) > 0;
-  const hasGeom =
-    typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
+  const hasGeom = typeof m.getTotalVertices === 'function' && m.getTotalVertices() > 0;
   return !hasKids && hasGeom;
 }
 
@@ -65,7 +64,7 @@ export function pickLeafFromRay(ray, scene) {
     scene.multiPickWithRay(
       ray2,
       (m) => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
-      false,
+      false
     ) || [];
 
   if (hits.length) {

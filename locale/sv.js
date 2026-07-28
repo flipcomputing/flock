@@ -505,7 +505,8 @@ export default {
     'Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).',
   meshes_touching_tooltip:
     'Returnerar sant om de två valda objekten rör vid varandra.\nKeyword: istouching',
-  time_tooltip: 'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
+  time_tooltip:
+    'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
   ground_level_tooltip: 'Returnerar markhöjden vid aktuell x/z-position.',
   distance_to_tooltip: 'Beräkna avståndet mellan två objekt.',
   touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.\nKeyword: surface',
@@ -550,13 +551,13 @@ export default {
   instrument_tooltip: 'Välj ett instrument att använda för att spela noter.',
   speak_tooltip:
     'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.\nKeyword: speak',
-  enable_subtitles_tooltip:
-    'Visa undertexter på skärmen för talad text.\nKeyword: subtitles', // ai
+  enable_subtitles_tooltip: 'Visa undertexter på skärmen för talad text.\nKeyword: subtitles', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'En kommentarsrad för att hjälpa andra att förstå din kod.',
   print_text_tooltip: 'Skriv ut text till utmatningspanelen.\nKeyword: print',
-  subtitle_tooltip: 'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.\nKeyword: subtitle', // ai
+  subtitle_tooltip:
+    'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.\nKeyword: subtitle', // ai
   say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.\nKeyword: say',
   describe_tooltip:
     'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe',
@@ -968,99 +969,99 @@ export default {
   Climb_rope_option: 'Klättra rep',
 
   // HTML translations
-  loading_ui: "Laddar Flock XR...",
-  loading_success_ui: "Flock XR laddades framgångsrikt",
-  canvas_accessible_name_ui: "3D scene",
-  loading_title_ui: "Laddar Flock XR",
-  import_project_file_ui: "Importera projektfil",
+  loading_ui: 'Laddar Flock XR...',
+  loading_success_ui: 'Flock XR laddades framgångsrikt',
+  canvas_accessible_name_ui: '3D scene',
+  loading_title_ui: 'Laddar Flock XR',
+  import_project_file_ui: 'Importera projektfil',
 
-  demo_ui: "Demo",
-  new_ui: "Ny",
-  starter_ui: "👋🏽 Start",
-  controller_starter_ui: "🎮 Kontrollstart",
-  snow_globe_ui: "❄️ Snöglob",
-  forest_base_ui: "🌲 Skogsbas",
-  character_animation_ui: "🎥 Karaktärsanimation",
-  cube_art_ui: "🎨 Kubkonst",
-  physics_fun_ui: "👆🏾 Fysiklek",
-  collect_the_gems_ui: "💎 Samla ädelstenarna",
-  water_map_ui: "💧 Vattenkarta",
-  skittles_ui: "🎳 Käglor",
-  beetle_ui: "🎲 Skalbagge",
-  roominator_ui: "🛋️ Rumsdesign",
-  ball_pit_ui: "🟠 Bollhav",
-  ur_enough_ui: "💗 Du är nog!",
-  tallest_buildings_ui: "📊 Högsta byggnaderna",
-  candy_dash_ui: "🎃 Godisjakt",
-  flockenspiel_ui: "🎵 Flockenspiel",
-  pendant_ui: "📿 3D-utskrivbart hänge",
-  tent_lights_ui: "⛺ Festivaltält",
-  my_place_ui: "🏠 Mitt ställe",
-  microbit_monkey_ui: "🐵 micro:bit-apa",
-  tree_jump_ui: "🌳 Träd-hopp",
-  shape_push_ui: "🔶 Skjuta form",
-  alien_planet_ui: "👽 Alienplanet",
-  boat_trip_ui: "⛵ Boat trip",
-  character_designer_ui: "👚 Karaktärsdesign",
-  sit_down_ui: "🪑 Sätt dig",
+  demo_ui: 'Demo',
+  new_ui: 'Ny',
+  starter_ui: '👋🏽 Start',
+  controller_starter_ui: '🎮 Kontrollstart',
+  snow_globe_ui: '❄️ Snöglob',
+  forest_base_ui: '🌲 Skogsbas',
+  character_animation_ui: '🎥 Karaktärsanimation',
+  cube_art_ui: '🎨 Kubkonst',
+  physics_fun_ui: '👆🏾 Fysiklek',
+  collect_the_gems_ui: '💎 Samla ädelstenarna',
+  water_map_ui: '💧 Vattenkarta',
+  skittles_ui: '🎳 Käglor',
+  beetle_ui: '🎲 Skalbagge',
+  roominator_ui: '🛋️ Rumsdesign',
+  ball_pit_ui: '🟠 Bollhav',
+  ur_enough_ui: '💗 Du är nog!',
+  tallest_buildings_ui: '📊 Högsta byggnaderna',
+  candy_dash_ui: '🎃 Godisjakt',
+  flockenspiel_ui: '🎵 Flockenspiel',
+  pendant_ui: '📿 3D-utskrivbart hänge',
+  tent_lights_ui: '⛺ Festivaltält',
+  my_place_ui: '🏠 Mitt ställe',
+  microbit_monkey_ui: '🐵 micro:bit-apa',
+  tree_jump_ui: '🌳 Träd-hopp',
+  shape_push_ui: '🔶 Skjuta form',
+  alien_planet_ui: '👽 Alienplanet',
+  boat_trip_ui: '⛵ Boat trip',
+  character_designer_ui: '👚 Karaktärsdesign',
+  sit_down_ui: '🪑 Sätt dig',
 
-  main_menu_ui: "Huvudmeny",
-  menu_button_sr_label_ui: "Meny",
-  project_submenu_ui: "Projekt",
-  project_new_ui: "Nytt",
-  project_open_ui: "Öppna",
-  project_save_ui: "Spara",
-  language_submenu_ui: "Språk",
-  about_submenu_ui: "Om",
-  hub_submenu_ui: "Nav",
+  main_menu_ui: 'Huvudmeny',
+  menu_button_sr_label_ui: 'Meny',
+  project_submenu_ui: 'Projekt',
+  project_new_ui: 'Nytt',
+  project_open_ui: 'Öppna',
+  project_save_ui: 'Spara',
+  language_submenu_ui: 'Språk',
+  about_submenu_ui: 'Om',
+  hub_submenu_ui: 'Nav',
 
-  theme_submenu_ui: "Tema",
-  light_theme_ui: "Ljust",
-  dark_theme_ui: "Mörkt",
-  contrast_theme_ui: "Kontrast",
-  low_vision_theme_ui: "Nedsatt syn",
+  theme_submenu_ui: 'Tema',
+  light_theme_ui: 'Ljust',
+  dark_theme_ui: 'Mörkt',
+  contrast_theme_ui: 'Kontrast',
+  low_vision_theme_ui: 'Nedsatt syn',
 
-  run_code_button_ui: "Kör din kod",
-  stop_code_button_ui: "Stoppa din kod",
-  canvas_overlay_play_ui: "Tryck på Spela för att börja", // ai
-  open_button_ui: "Öppna ett projekt från en fil på din dator",
-  open_file_input_label_ui: "Välj projektfil att öppna",
-  export_code_button_ui: "Spara detta projekt till en fil på din dator.",
-  example_select_ui: "Välj ett exempelprojekt att ladda",
-  demo_heading_ui: "Demos", // ai
-  close_demos_ui: "Stäng demos", // ai
-  examples_cat_start_ui: "Start", // ai
-  examples_cat_games_ui: "Spel", // ai
-  examples_cat_physics_ui: "Fysik", // ai
-  examples_cat_worlds_ui: "Världar", // ai
-  examples_cat_create_ui: "Kreativt", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Kör din kod',
+  stop_code_button_ui: 'Stoppa din kod',
+  canvas_overlay_play_ui: 'Tryck på Spela för att börja', // ai
+  open_button_ui: 'Öppna ett projekt från en fil på din dator',
+  open_file_input_label_ui: 'Välj projektfil att öppna',
+  export_code_button_ui: 'Spara detta projekt till en fil på din dator.',
+  example_select_ui: 'Välj ett exempelprojekt att ladda',
+  demo_heading_ui: 'Demos', // ai
+  close_demos_ui: 'Stäng demos', // ai
+  examples_cat_start_ui: 'Start', // ai
+  examples_cat_games_ui: 'Spel', // ai
+  examples_cat_physics_ui: 'Fysik', // ai
+  examples_cat_worlds_ui: 'Världar', // ai
+  examples_cat_create_ui: 'Kreativt', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Designa ditt projekt",
-  toggle_play_ui: "Använd ditt projekt",
-  fullscreen_toggle_ui: "Växla mellan helskärm och normalvy.",
+  toggle_design_ui: 'Designa ditt projekt',
+  toggle_play_ui: 'Använd ditt projekt',
+  fullscreen_toggle_ui: 'Växla mellan helskärm och normalvy.',
 
-  show_shapes_button_ui: "Lägg till former och modeller",
-  color_picker_button_ui: "Ändra objektfärg",
-  position_button_ui: "Positionera objekt",
-  rotation_button_ui: "Rotera objekt",
-  scale_button_ui: "Skala objekt-storlek",
-  select_button_ui: "Välj objekt",
-  duplicate_button_ui: "Duplicera valt objekt",
-  delete_button_ui: "Radera valt objekt",
-  camera_button_ui: "Kamerakontroller",
-  eye_button_ui: "Kretsa runt valt objekt",
+  show_shapes_button_ui: 'Lägg till former och modeller',
+  color_picker_button_ui: 'Ändra objektfärg',
+  position_button_ui: 'Positionera objekt',
+  rotation_button_ui: 'Rotera objekt',
+  scale_button_ui: 'Skala objekt-storlek',
+  select_button_ui: 'Välj objekt',
+  duplicate_button_ui: 'Duplicera valt objekt',
+  delete_button_ui: 'Radera valt objekt',
+  camera_button_ui: 'Kamerakontroller',
+  eye_button_ui: 'Kretsa runt valt objekt',
 
-  info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
-  skip_to_scene_ui: "Hoppa till 3D-scenen", // ai
+  info_panel_link_ui: 'Besök Flock XR:s webbplats (öppnas i ny flik)',
+  skip_to_scene_ui: 'Hoppa till 3D-scenen', // ai
 
-  project_name_ui: "Projektnamn",
+  project_name_ui: 'Projektnamn',
 
-  about_heading_ui: "Om Flock XR",
-  about_description_intro_ui: "Flock XR är ett ",
-  about_description_prototype_ui: "prototyp",
-  about_description_made_by_ui: " utvecklat av ",
-  about_description_company_ui: "Flip Computing",
+  about_heading_ui: 'Om Flock XR',
+  about_description_intro_ui: 'Flock XR är ett ',
+  about_description_prototype_ui: 'prototyp',
+  about_description_made_by_ui: ' utvecklat av ',
+  about_description_company_ui: 'Flip Computing',
   about_description_disclaimer_ui:
     ' Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.',
   about_run_intro_ui:
@@ -1139,8 +1140,7 @@ export default {
     'Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.', // AI-generated; needs validation
   runtime_error_message: 'Fel: {message}',
   error_audio: 'Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.', // Google translate
-  error_speech:
-    'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
+  error_speech: 'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
   error_physics_unsupported:
     'Den här webbläsaren är för gammal för att köra Flock XR:s fysik. Uppdatera din webbläsare om det går.', // ai
   error_physics_unsupported_ios:
@@ -1157,8 +1157,7 @@ export default {
   select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
-  eyedropper_not_supported_alert:
-    'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
+  eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
   blocks_copied_alert: 'Block kopierade till lokal lagring!',
   no_blocks_to_copy_alert: 'Inga block att kopiera.',
   copy_blocks_failed_alert: 'Det gick inte att kopiera blocken.',

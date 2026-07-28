@@ -1,7 +1,7 @@
-import * as Blockly from "blockly";
-import { importSnippet } from "./files.js";
-import { getSnippetOption, translate } from "./translation.js";
-import w500 from "@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2";
+import * as Blockly from 'blockly';
+import { importSnippet } from './files.js';
+import { getSnippetOption, translate } from './translation.js';
+import w500 from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2';
 
 async function exportBlockSnippet(block) {
   try {
@@ -12,17 +12,17 @@ async function exportBlockSnippet(block) {
     const jsonString = JSON.stringify(blockJson, null, 2);
 
     // Custom extension + MIME for Flock snippets
-    const FLOCK_SNIP_EXT = ".fsnip";
-    const FLOCK_SNIP_MIME = "application/vnd.flock-snippet+json";
+    const FLOCK_SNIP_EXT = '.fsnip';
+    const FLOCK_SNIP_MIME = 'application/vnd.flock-snippet+json';
 
     // Check if the File System Access API is available
-    if ("showSaveFilePicker" in window) {
+    if ('showSaveFilePicker' in window) {
       // Define the options for the file picker
       const options = {
         suggestedName: `flock_snippet${FLOCK_SNIP_EXT}`,
         types: [
           {
-            description: translate("snippet_file_description"),
+            description: translate('snippet_file_description'),
             accept: {
               [FLOCK_SNIP_MIME]: [FLOCK_SNIP_EXT],
             },
@@ -44,22 +44,20 @@ async function exportBlockSnippet(block) {
     } else {
       // Fallback for browsers that don't support the File System Access API
       const rawFilename =
-        prompt(translate("snippet_filename_prompt"), "blockly_snippet") ||
-        "blockly_snippet";
+        prompt(translate('snippet_filename_prompt'), 'blockly_snippet') || 'blockly_snippet';
 
       // Sanitize the filename: keep only safe characters
       const filename =
-        rawFilename.replace(/[^a-zA-Z0-9_.-]/g, "_").substring(0, 50) ||
-        "blockly_snippet";
+        rawFilename.replace(/[^a-zA-Z0-9_.-]/g, '_').substring(0, 50) || 'blockly_snippet';
 
       const blob = new Blob([jsonString], { type: FLOCK_SNIP_MIME });
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `${filename}${FLOCK_SNIP_EXT}`;
       link.click();
     }
   } catch (e) {
-    console.error("Error exporting block:", e);
+    console.error('Error exporting block:', e);
   }
 }
 
@@ -71,13 +69,13 @@ export function addExportContextMenuOptions() {
 
 function addExportContextMenuOption() {
   Blockly.ContextMenuRegistry.registry.register({
-    id: "exportBlock",
+    id: 'exportBlock',
     weight: 200,
     displayText: function () {
-      return getSnippetOption("export_JSON");
+      return getSnippetOption('export_JSON');
     },
     preconditionFn: function (scope) {
-      return scope.block ? "enabled" : "hidden";
+      return scope.block ? 'enabled' : 'hidden';
     },
     callback: function (scope) {
       exportBlockSnippet(scope.block);
@@ -90,13 +88,13 @@ function addExportContextMenuOption() {
 // Extend Blockly with custom context menu for importing snippets in the workspace
 function addImportContextMenuOption() {
   Blockly.ContextMenuRegistry.registry.register({
-    id: "importSnippet",
+    id: 'importSnippet',
     weight: 100,
     displayText: function () {
-      return getSnippetOption("import");
+      return getSnippetOption('import');
     },
     preconditionFn: function (_scope) {
-      return "enabled";
+      return 'enabled';
     },
     callback: function (_scope) {
       importSnippet();
@@ -108,13 +106,13 @@ function addImportContextMenuOption() {
 
 function addExportPNGContextMenuOption() {
   Blockly.ContextMenuRegistry.registry.register({
-    id: "exportPNG",
+    id: 'exportPNG',
     weight: 100,
     displayText: function () {
-      return getSnippetOption("export_PNG");
+      return getSnippetOption('export_PNG');
     },
     preconditionFn: function (_scope) {
-      return "enabled";
+      return 'enabled';
     },
     callback: function (scope) {
       if (scope.block) {
@@ -129,7 +127,7 @@ function addExportPNGContextMenuOption() {
 }
 
 async function urlToDataURL(url) {
-  if (url.startsWith("data:")) return url;
+  if (url.startsWith('data:')) return url;
   const response = await fetch(url);
   const blob = await response.blob();
   return new Promise((resolve, reject) => {
@@ -141,31 +139,29 @@ async function urlToDataURL(url) {
 }
 
 async function inlineSVGImages(svgElement) {
-  const images = svgElement.querySelectorAll("image");
+  const images = svgElement.querySelectorAll('image');
   await Promise.all(
     Array.from(images).map(async (img) => {
-      const href = img.getAttribute("href") || img.getAttribute("xlink:href");
-      if (!href || href.startsWith("data:")) return;
+      const href = img.getAttribute('href') || img.getAttribute('xlink:href');
+      if (!href || href.startsWith('data:')) return;
       try {
         const dataUrl = await urlToDataURL(href);
-        img.setAttribute("href", dataUrl);
-        img.removeAttribute("xlink:href");
+        img.setAttribute('href', dataUrl);
+        img.removeAttribute('xlink:href');
       } catch (e) {
-        console.warn("Could not inline SVG image:", href, e);
+        console.warn('Could not inline SVG image:', href, e);
       }
-    }),
+    })
   );
 }
 
 async function convertFontToBase64(fontUrl) {
   // Vite may inline the font as a data URL — extract base64 directly to avoid
   // a fetch() call that would be blocked by connect-src CSP.
-  if (fontUrl.startsWith("data:")) {
-    const commaIndex = fontUrl.indexOf(",");
-    if (commaIndex === -1 || !fontUrl.includes(";base64,")) {
-      throw new Error(
-        `Invalid base64 data URL for font: ${fontUrl.slice(0, 64)}`,
-      );
+  if (fontUrl.startsWith('data:')) {
+    const commaIndex = fontUrl.indexOf(',');
+    if (commaIndex === -1 || !fontUrl.includes(';base64,')) {
+      throw new Error(`Invalid base64 data URL for font: ${fontUrl.slice(0, 64)}`);
     }
     return fontUrl.slice(commaIndex + 1);
   }
@@ -176,7 +172,7 @@ async function convertFontToBase64(fontUrl) {
 
   return new Promise((resolve, reject) => {
     reader.onloadend = () => {
-      const base64Data = reader.result.split(",")[1]; // Remove the data URL prefix
+      const base64Data = reader.result.split(',')[1]; // Remove the data URL prefix
       resolve(base64Data);
     };
     reader.onerror = reject;
@@ -191,26 +187,20 @@ const FONT_UPSCALE_FACTOR = 20;
 
 function keepTextTrueSize(svgBlock, fontSizePt) {
   const k = FONT_UPSCALE_FACTOR;
-  svgBlock.querySelectorAll("text.blocklyText").forEach((textEl) => {
+  svgBlock.querySelectorAll('text.blocklyText').forEach((textEl) => {
     textEl.style.fontSize = `${fontSizePt * k}pt`;
 
-    const x = parseFloat(textEl.getAttribute("x")) || 0;
-    const y = parseFloat(textEl.getAttribute("y")) || 0;
+    const x = parseFloat(textEl.getAttribute('x')) || 0;
+    const y = parseFloat(textEl.getAttribute('y')) || 0;
     const counter = `translate(${x} ${y}) scale(${1 / k}) translate(${-x} ${-y})`;
-    const existing = textEl.getAttribute("transform");
-    textEl.setAttribute(
-      "transform",
-      existing ? `${existing} ${counter}` : counter,
-    );
+    const existing = textEl.getAttribute('transform');
+    textEl.setAttribute('transform', existing ? `${existing} ${counter}` : counter);
   });
 }
 
 function getFieldTextFontSizePt(block) {
-  const size = block.workspace?.getRenderer?.().getConstants?.()
-    .FIELD_TEXT_FONTSIZE;
-  return typeof size === "number" && size > 0
-    ? size
-    : DEFAULT_FIELD_TEXT_FONTSIZE;
+  const size = block.workspace?.getRenderer?.().getConstants?.().FIELD_TEXT_FONTSIZE;
+  return typeof size === 'number' && size > 0 ? size : DEFAULT_FIELD_TEXT_FONTSIZE;
 }
 
 async function generateSVG(block, { rasterSafe = false } = {}) {
@@ -218,80 +208,74 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
 
   // Blank selection/highlight overlays so they don't cover text.
   svgBlock
-    .querySelectorAll(
-      ".blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath",
-    )
+    .querySelectorAll('.blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath')
     .forEach((el) => {
-      el.setAttribute("fill", "none");
-      if (!el.getAttribute("stroke")) el.setAttribute("stroke", "#999");
-      el.setAttribute("stroke-width", "1");
+      el.setAttribute('fill', 'none');
+      if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
+      el.setAttribute('stroke-width', '1');
     });
 
-  svgBlock.querySelectorAll(".blocklyActiveFocus").forEach((el) => {
-    el.classList.remove("blocklyActiveFocus");
+  svgBlock.querySelectorAll('.blocklyActiveFocus').forEach((el) => {
+    el.classList.remove('blocklyActiveFocus');
   });
 
   // Keep each block's base path filled; blank later overlay paths.
-  svgBlock.querySelectorAll("g.blocklyBlock, g.start").forEach((g) => {
-    const paths = g.querySelectorAll(":scope > path.blocklyPath");
+  svgBlock.querySelectorAll('g.blocklyBlock, g.start').forEach((g) => {
+    const paths = g.querySelectorAll(':scope > path.blocklyPath');
     paths.forEach((p, i) => {
       if (i > 0) {
-        p.setAttribute("fill", "none");
-        if (!p.getAttribute("stroke")) p.setAttribute("stroke", "#999");
-        p.setAttribute("stroke-width", "1");
+        p.setAttribute('fill', 'none');
+        if (!p.getAttribute('stroke')) p.setAttribute('stroke', '#999');
+        p.setAttribute('stroke-width', '1');
       }
     });
   });
 
-  const axisExportColors = { X: "#1A9EE0", Y: "#00CC96", Z: "#F07020" };
+  const axisExportColors = { X: '#1A9EE0', Y: '#00CC96', Z: '#F07020' };
   for (const [axis, color] of Object.entries(axisExportColors)) {
-    svgBlock
-      .querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`)
-      .forEach((path) => {
-        path.setAttribute("stroke", color);
-        path.setAttribute("stroke-width", "2");
-      });
+    svgBlock.querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`).forEach((path) => {
+      path.setAttribute('stroke', color);
+      path.setAttribute('stroke-width', '2');
+    });
   }
 
   const serializer = new XMLSerializer();
 
-  svgBlock.removeAttribute("transform");
+  svgBlock.removeAttribute('transform');
 
   const bbox = block.getSvgRoot().getBBox();
 
-  const uiElements = svgBlock.querySelectorAll("rect.blocklyFieldRect");
+  const uiElements = svgBlock.querySelectorAll('rect.blocklyFieldRect');
   uiElements.forEach((rect) => {
-    const parentBlock = rect.closest(".blocklyDraggable");
+    const parentBlock = rect.closest('.blocklyDraggable');
 
-    if (rect.classList.contains("blocklyDropdownRect")) {
-      const blockFill = parentBlock
-        ?.querySelector(".blocklyPath")
-        ?.getAttribute("fill");
-      if (blockFill) rect.setAttribute("fill", blockFill);
-      rect.setAttribute("stroke", "#999999");
-      rect.setAttribute("stroke-width", "1px");
+    if (rect.classList.contains('blocklyDropdownRect')) {
+      const blockFill = parentBlock?.querySelector('.blocklyPath')?.getAttribute('fill');
+      if (blockFill) rect.setAttribute('fill', blockFill);
+      rect.setAttribute('stroke', '#999999');
+      rect.setAttribute('stroke-width', '1px');
       return;
     }
 
     // v12: checkbox background is typically just a fieldRect (no checkbox class),
     // so default all field rects to a white background for export.
-    rect.setAttribute("fill", "#ffffff");
-    rect.setAttribute("stroke", "#999999");
-    rect.setAttribute("stroke-width", "1px");
+    rect.setAttribute('fill', '#ffffff');
+    rect.setAttribute('stroke', '#999999');
+    rect.setAttribute('stroke-width', '1px');
   });
 
-  const uiTexts = svgBlock.querySelectorAll("text.blocklyText");
+  const uiTexts = svgBlock.querySelectorAll('text.blocklyText');
   uiTexts.forEach((textElement) => {
-    const isCheckbox = textElement.classList.contains("blocklyCheckbox");
+    const isCheckbox = textElement.classList.contains('blocklyCheckbox');
 
-    textElement.style.fill = "#000000";
+    textElement.style.fill = '#000000';
 
     if (isCheckbox) {
       return;
     }
 
-    textElement.style.stroke = "none";
-    textElement.style.fontWeight = "500";
+    textElement.style.stroke = 'none';
+    textElement.style.fontWeight = '500';
   });
 
   if (rasterSafe) {
@@ -302,7 +286,7 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
 
   const fontBase64 = await convertFontToBase64(w500);
 
-  const style = document.createElementNS("http://www.w3.org/2000/svg", "style");
+  const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
   style.textContent = `
 	@font-face {
 	  font-family: "Atkinson Hyperlegible Next";
@@ -323,23 +307,14 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
-  const wrapperSVG = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "svg",
-  );
-  wrapperSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  wrapperSVG.setAttribute("width", bbox.width);
-  wrapperSVG.setAttribute("height", bbox.height);
-  wrapperSVG.setAttribute("viewBox", `0 0 ${bbox.width} ${bbox.height}`);
+  const wrapperSVG = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  wrapperSVG.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  wrapperSVG.setAttribute('width', bbox.width);
+  wrapperSVG.setAttribute('height', bbox.height);
+  wrapperSVG.setAttribute('viewBox', `0 0 ${bbox.width} ${bbox.height}`);
 
-  const translationGroup = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "g",
-  );
-  translationGroup.setAttribute(
-    "transform",
-    `translate(${-bbox.x}, ${-bbox.y})`,
-  );
+  const translationGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+  translationGroup.setAttribute('transform', `translate(${-bbox.x}, ${-bbox.y})`);
   translationGroup.appendChild(svgBlock);
 
   wrapperSVG.appendChild(translationGroup);
@@ -349,10 +324,7 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
   const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
 
   // Embed the JSON in a <metadata> tag inside the SVG
-  const metadata = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "metadata",
-  );
+  const metadata = document.createElementNS('http://www.w3.org/2000/svg', 'metadata');
   metadata.textContent = `{"blockJson": "${encodedJson}"}`;
   wrapperSVG.appendChild(metadata);
 
@@ -364,7 +336,7 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
   return finalSVG;
 }
 
-import { addMetadata } from "meta-png";
+import { addMetadata } from 'meta-png';
 
 async function exportBlockAsPNG(block) {
   const finalSVG = await generateSVG(block, { rasterSafe: true });
@@ -372,56 +344,52 @@ async function exportBlockAsPNG(block) {
   const encodedJson = encodeURIComponent(blockJson);
 
   const img = new Image();
-  const svgBlob = new Blob([finalSVG], { type: "image/svg+xml" });
+  const svgBlob = new Blob([finalSVG], { type: 'image/svg+xml' });
   const svgUrl = URL.createObjectURL(svgBlob);
 
   const scale = 2; // Adjust for higher resolution
 
   img.onload = () => {
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     const scaledWidth = img.width * scale;
     const scaledHeight = img.height * scale;
     canvas.width = scaledWidth;
     canvas.height = scaledHeight;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
 
     // Improve image quality by setting a higher resolution
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = 'high';
 
     // Draw at a higher resolution
     ctx.drawImage(img, 0, 0, scaledWidth, scaledHeight);
 
     canvas.toBlob(async (pngBlob) => {
       if (!pngBlob) {
-        console.error("Failed to create PNG blob");
+        console.error('Failed to create PNG blob');
         return;
       }
 
       const arrayBuffer = await pngBlob.arrayBuffer();
-      const updatedPngBuffer = addMetadata(
-        new Uint8Array(arrayBuffer),
-        "blockJson",
-        encodedJson,
-      );
+      const updatedPngBuffer = addMetadata(new Uint8Array(arrayBuffer), 'blockJson', encodedJson);
 
       const updatedBlob = new Blob([updatedPngBuffer], {
-        type: "image/png",
+        type: 'image/png',
       });
       const updatedUrl = URL.createObjectURL(updatedBlob);
 
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.download = `${block.type}.png`;
       link.href = updatedUrl;
       link.click();
 
       URL.revokeObjectURL(svgUrl);
       URL.revokeObjectURL(updatedUrl);
-    }, "image/png");
+    }, 'image/png');
   };
 
   img.onerror = (error) => {
-    console.error("Failed to load SVG image:", error);
+    console.error('Failed to load SVG image:', error);
   };
 
   img.src = svgUrl;

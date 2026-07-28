@@ -1,8 +1,8 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 function configureDraco(BABYLON) {
-  const base = import.meta?.env?.BASE_URL ?? "/";
-  const root = base.endsWith("/") ? base : `${base}/`;
+  const base = import.meta?.env?.BASE_URL ?? '/';
+  const root = base.endsWith('/') ? base : `${base}/`;
 
   BABYLON.DracoCompression.DefaultNumWorkers = 0;
   BABYLON.DracoCompression.Configuration = {
@@ -32,7 +32,7 @@ function waitForModel(flock, meshId) {
 }
 
 export function runMeshHierarchyTests(flock) {
-  describe("Mesh Hierarchy API @meshhierarchy", function () {
+  describe('Mesh Hierarchy API @meshhierarchy', function () {
     const meshIds = [];
 
     afterEach(function () {
@@ -46,10 +46,10 @@ export function runMeshHierarchyTests(flock) {
       meshIds.length = 0;
     });
 
-    describe("parentChild", function () {
-      it("should set the child mesh parent to the parent mesh", async function () {
-        const parentId = "hierarchyParent1";
-        const childId = "hierarchyChild1";
+    describe('parentChild', function () {
+      it('should set the child mesh parent to the parent mesh', async function () {
+        const parentId = 'hierarchyParent1';
+        const childId = 'hierarchyChild1';
 
         await flock.createBox(parentId, {
           width: 1,
@@ -72,8 +72,8 @@ export function runMeshHierarchyTests(flock) {
         expect(childMesh.parent).to.equal(parentMesh);
       });
 
-      it("should ignore parenting to a non-mesh target", async function () {
-        const childId = "hierarchyChildNonMesh";
+      it('should ignore parenting to a non-mesh target', async function () {
+        const childId = 'hierarchyChildNonMesh';
         await flock.createBox(childId, {
           width: 0.5,
           height: 0.5,
@@ -82,30 +82,27 @@ export function runMeshHierarchyTests(flock) {
         });
         meshIds.push(childId);
 
-        const group = new flock.BABYLON.AnimationGroup(
-          "parentNonMeshGroup",
-          flock.scene,
-        );
+        const group = new flock.BABYLON.AnimationGroup('parentNonMeshGroup', flock.scene);
 
         const reported = [];
         const previousOnBlockError = flock.onBlockError;
         flock.onBlockError = (info) => reported.push(info);
         try {
-          await flock.parentChild("parentNonMeshGroup", childId);
+          await flock.parentChild('parentNonMeshGroup', childId);
 
           const childMesh = flock.scene.getMeshByName(childId);
           expect(childMesh.parent).to.not.equal(group);
           expect(reported).to.have.lengthOf(1);
-          expect(reported[0].key).to.equal("target_not_a_mesh");
+          expect(reported[0].key).to.equal('target_not_a_mesh');
         } finally {
           flock.onBlockError = previousOnBlockError;
           group.dispose();
         }
       });
 
-      it("should apply position offsets to the child", async function () {
-        const parentId = "hierarchyParent2";
-        const childId = "hierarchyChild2";
+      it('should apply position offsets to the child', async function () {
+        const parentId = 'hierarchyParent2';
+        const childId = 'hierarchyChild2';
 
         await flock.createBox(parentId, {
           width: 1,
@@ -132,10 +129,10 @@ export function runMeshHierarchyTests(flock) {
       });
     });
 
-    describe("removeParent", function () {
-      it("should remove the parent from the child mesh", async function () {
-        const parentId = "hierarchyParent3";
-        const childId = "hierarchyChild3";
+    describe('removeParent', function () {
+      it('should remove the parent from the child mesh', async function () {
+        const parentId = 'hierarchyParent3';
+        const childId = 'hierarchyChild3';
 
         await flock.createBox(parentId, {
           width: 1,
@@ -161,9 +158,9 @@ export function runMeshHierarchyTests(flock) {
         expect(childMesh.parent).to.be.null;
       });
 
-      it("should preserve world position after removing parent", async function () {
-        const parentId = "hierarchyParent4";
-        const childId = "hierarchyChild4";
+      it('should preserve world position after removing parent', async function () {
+        const parentId = 'hierarchyParent4';
+        const childId = 'hierarchyChild4';
 
         await flock.createBox(parentId, {
           width: 1,
@@ -192,10 +189,10 @@ export function runMeshHierarchyTests(flock) {
       });
     });
 
-    describe("makeFollow and stopFollow", function () {
-      it("should set a _followObserver on the follower mesh", async function () {
-        const followerId = "follower1";
-        const targetId = "followTarget1";
+    describe('makeFollow and stopFollow', function () {
+      it('should set a _followObserver on the follower mesh', async function () {
+        const followerId = 'follower1';
+        const targetId = 'followTarget1';
 
         await flock.createBox(followerId, {
           width: 1,
@@ -211,15 +208,15 @@ export function runMeshHierarchyTests(flock) {
         });
         meshIds.push(followerId, targetId);
 
-        await flock.makeFollow(followerId, targetId, "CENTER");
+        await flock.makeFollow(followerId, targetId, 'CENTER');
 
         const followerMesh = flock.scene.getMeshByName(followerId);
         expect(followerMesh._followObserver).to.exist;
       });
 
-      it("should clear the _followObserver when stopFollow is called", async function () {
-        const followerId = "follower2";
-        const targetId = "followTarget2";
+      it('should clear the _followObserver when stopFollow is called', async function () {
+        const followerId = 'follower2';
+        const targetId = 'followTarget2';
 
         await flock.createBox(followerId, {
           width: 1,
@@ -235,7 +232,7 @@ export function runMeshHierarchyTests(flock) {
         });
         meshIds.push(followerId, targetId);
 
-        await flock.makeFollow(followerId, targetId, "CENTER");
+        await flock.makeFollow(followerId, targetId, 'CENTER');
         await flock.stopFollow(followerId);
 
         const followerMesh = flock.scene.getMeshByName(followerId);
@@ -243,7 +240,7 @@ export function runMeshHierarchyTests(flock) {
       });
     });
 
-    describe("hold, attach, and drop @slow", function () {
+    describe('hold, attach, and drop @slow', function () {
       this.timeout(30000);
 
       let lizId, treeId;
@@ -255,14 +252,10 @@ export function runMeshHierarchyTests(flock) {
         flock.scene = new flock.BABYLON.Scene(flock.engine);
         flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
 
-        new flock.BABYLON.FreeCamera(
-          "testCamera",
-          flock.BABYLON.Vector3.Zero(),
-          flock.scene,
-        );
+        new flock.BABYLON.FreeCamera('testCamera', flock.BABYLON.Vector3.Zero(), flock.scene);
 
         const baseMock = {
-          name: "MockPhysics",
+          name: 'MockPhysics',
           getPluginVersion: () => 2,
           isInitialized: () => true,
           _checkIsReady: () => true,
@@ -278,30 +271,24 @@ export function runMeshHierarchyTests(flock) {
           get: (target, prop) => (prop in target ? target[prop] : () => {}),
         });
 
-        flock.scene.enablePhysics(
-          new flock.BABYLON.Vector3(0, -9.81, 0),
-          physicsMock,
-        );
+        flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
         configureDraco(flock.BABYLON);
 
         lizId = flock.createCharacter({
-          modelName: "Liz3.glb",
-          modelId: "holdTestLiz",
+          modelName: 'Liz3.glb',
+          modelId: 'holdTestLiz',
           position: { x: 0, y: 0, z: 0 },
         });
 
         treeId = flock.createObject({
-          modelName: "tree.glb",
-          modelId: "holdTestTree",
+          modelName: 'tree.glb',
+          modelId: 'holdTestTree',
           position: { x: 0, y: 0, z: 0 },
         });
 
         await pumpAnimation(
           flock,
-          Promise.all([
-            waitForModel(flock, lizId),
-            waitForModel(flock, treeId),
-          ]),
+          Promise.all([waitForModel(flock, lizId), waitForModel(flock, treeId)])
         );
       });
 
@@ -322,7 +309,7 @@ export function runMeshHierarchyTests(flock) {
       // hold uses the bone name "Hold" directly (no mapping). Liz3.glb is a
       // mixamo model — its left-hand bone is "mixamorig:LeftHand", not "Hold".
       // hold therefore resolves without attaching; use attach for mixamo models.
-      it("hold should resolve without error even when character has no matching Hold bone", async function () {
+      it('hold should resolve without error even when character has no matching Hold bone', async function () {
         await pumpAnimation(flock, flock.hold(treeId, lizId));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
@@ -330,51 +317,41 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.parent).to.be.null;
       });
 
-      it("attach should parent the tree to the skeleton mesh on Liz", async function () {
-        await pumpAnimation(
-          flock,
-          flock.attach(treeId, lizId, { boneName: "Hold" }),
-        );
+      it('attach should parent the tree to the skeleton mesh on Liz', async function () {
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
         // attachToBone parents to the bone and refers transforms via the mesh
-        expect(treeMesh.parent, "tree should be parented to a bone").to.exist;
-        expect(treeMesh._transformToBoneReferal, "tree should refer to Liz's skeleton mesh").to.exist;
+        expect(treeMesh.parent, 'tree should be parented to a bone').to.exist;
+        expect(treeMesh._transformToBoneReferal, "tree should refer to Liz's skeleton mesh").to
+          .exist;
       });
 
-      it("attached mesh should follow Liz when she moves", async function () {
-        await pumpAnimation(
-          flock,
-          flock.attach(treeId, lizId, { boneName: "Hold" }),
-        );
+      it('attached mesh should follow Liz when she moves', async function () {
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
 
         const lizMesh = flock.scene.getMeshByName(lizId);
         lizMesh.position.x = 10;
         flock.scene.render();
 
-        const treeWorldPos = flock.scene
-          .getMeshByName(treeId)
-          .getAbsolutePosition();
+        const treeWorldPos = flock.scene.getMeshByName(treeId).getAbsolutePosition();
         expect(treeWorldPos.x).to.be.closeTo(10, 2);
       });
 
-      it("attach to Head should use the crown bone, not the skull joint", async function () {
-        await pumpAnimation(
-          flock,
-          flock.attach(treeId, lizId, { boneName: "Head" }),
-        );
+      it('attach to Head should use the crown bone, not the skull joint', async function () {
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
         const skeleton = treeMesh._transformToBoneReferal.skeleton;
         expect(skeleton.bones.indexOf(treeMesh.parent)).to.equal(
-          skeleton.getBoneIndexByName("mixamorig:HeadTop_End"),
+          skeleton.getBoneIndexByName('mixamorig:HeadTop_End')
         );
       });
 
-      it("attach to Head should apply the given offsets exactly", async function () {
+      it('attach to Head should apply the given offsets exactly', async function () {
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
 
         const treeMesh = flock.scene.getMeshByName(treeId);
@@ -383,17 +360,15 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.position.z).to.equal(0);
       });
 
-      it("attach should record the raw offset for model-switch re-attachment", async function () {
+      it('attach should record the raw offset for model-switch re-attachment', async function () {
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
 
         const lizMesh = flock.scene.getMeshByName(lizId);
-        const entry = lizMesh.metadata._boneAttachments.find(
-          (e) => e.meshName === treeId,
-        );
-        expect(entry.boneName).to.equal("Head");
+        const entry = lizMesh.metadata._boneAttachments.find((e) => e.meshName === treeId);
+        expect(entry.boneName).to.equal('Head');
         expect(entry.offset).to.deep.equal({ x: 0, y: 0.25, z: 0 });
 
         // Replaying the tracked offset (what a live model change does) must
@@ -405,15 +380,15 @@ export function runMeshHierarchyTests(flock) {
             x: entry.offset.x,
             y: entry.offset.y,
             z: entry.offset.z,
-          }),
+          })
         );
         expect(flock.scene.getMeshByName(treeId).position.y).to.equal(0.25);
       });
 
-      it("replaying attach should restore the bone offset after the tree is moved", async function () {
+      it('replaying attach should restore the bone offset after the tree is moved', async function () {
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
 
         const treeMesh = flock.scene.getMeshByName(treeId);
@@ -427,7 +402,7 @@ export function runMeshHierarchyTests(flock) {
             x: md._attachedOffset.x,
             y: md._attachedOffset.y,
             z: md._attachedOffset.z,
-          }),
+          })
         );
 
         expect(treeMesh.position.x).to.equal(0);
@@ -435,28 +410,23 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.position.z).to.equal(0);
       });
 
-      it("replaying attach should keep the original pre-attach rotation for drop", async function () {
+      it('replaying attach should keep the original pre-attach rotation for drop', async function () {
         const treeMesh = flock.scene.getMeshByName(treeId);
         delete treeMesh.metadata?._attachedTargetName;
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
-        const firstPreAttach =
-          treeMesh.metadata._preAttachWorldRotation.clone();
+        const firstPreAttach = treeMesh.metadata._preAttachWorldRotation.clone();
 
         // Rotate Liz, or a re-capture would be indistinguishable
         const lizMesh = flock.scene.getMeshByName(lizId);
-        lizMesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(
-          0,
-          1,
-          0,
-        );
+        lizMesh.rotationQuaternion = flock.BABYLON.Quaternion.FromEulerAngles(0, 1, 0);
         flock.scene.render();
 
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
 
         const after = treeMesh.metadata._preAttachWorldRotation;
@@ -469,17 +439,17 @@ export function runMeshHierarchyTests(flock) {
         flock.scene.render();
       });
 
-      it("live model swap on an attached object should land where a re-run does", async function () {
+      it('live model swap on an attached object should land where a re-run does', async function () {
         this.timeout(60000);
-        const { updateMeshFromBlock } = await import("../ui/blockmesh.js");
+        const { updateMeshFromBlock } = await import('../ui/blockmesh.js');
 
-        const attachOpts = { boneName: "Head", x: 0, y: 0.25, z: 0 };
+        const attachOpts = { boneName: 'Head', x: 0, y: 0.25, z: 0 };
         // The wrapper's geometry is stale after a swap
         const renderedBoundsOf = (id) => {
           const min = new flock.BABYLON.Vector3(1e9, 1e9, 1e9);
           const max = new flock.BABYLON.Vector3(-1e9, -1e9, -1e9);
           const visit = (node) => {
-            if (node.getClassName?.() === "Mesh" && node.getTotalVertices?.()) {
+            if (node.getClassName?.() === 'Mesh' && node.getTotalVertices?.()) {
               node.computeWorldMatrix(true);
               node.refreshBoundingInfo?.();
               const bbox = node.getBoundingInfo().boundingBox;
@@ -504,34 +474,27 @@ export function runMeshHierarchyTests(flock) {
           return id;
         };
 
-        const rerunId = await loadAndAttach("Heart.glb", "swapRerunHeart");
+        const rerunId = await loadAndAttach('Heart.glb', 'swapRerunHeart');
         const rerunCentre = renderedBoundsOf(rerunId).centre;
 
         // Undefined ids keep updateMeshFromBlock off getMainWorkspace()
-        const liveId = await loadAndAttach("starboppers.glb", "swapLiveHeart");
+        const liveId = await loadAndAttach('starboppers.glb', 'swapLiveHeart');
         const block = {
-          type: "load_object",
-          getFieldValue: (name) => (name === "MODELS" ? "Heart.glb" : null),
+          type: 'load_object',
+          getFieldValue: (name) => (name === 'MODELS' ? 'Heart.glb' : null),
           getInput: () => null,
           getInputTargetBlock: () => null,
           inputList: [],
           getParent: () => null,
         };
         const changeEvent = {
-          type: "change",
-          element: "field",
-          name: "MODELS",
+          type: 'change',
+          element: 'field',
+          name: 'MODELS',
         };
 
-        updateMeshFromBlock(
-          flock.scene.getMeshByName(liveId),
-          block,
-          changeEvent,
-        );
-        await pumpAnimation(
-          flock,
-          new Promise((resolve) => setTimeout(resolve, 2000)),
-        );
+        updateMeshFromBlock(flock.scene.getMeshByName(liveId), block, changeEvent);
+        await pumpAnimation(flock, new Promise((resolve) => setTimeout(resolve, 2000)));
 
         const liveCentre = renderedBoundsOf(liveId).centre;
         expect(liveCentre.y).to.be.closeTo(rerunCentre.y, 0.01);
@@ -539,10 +502,10 @@ export function runMeshHierarchyTests(flock) {
         expect(liveCentre.z).to.be.closeTo(rerunCentre.z, 0.01);
       });
 
-      it("drop should clear the attachment record so a later attach starts fresh", async function () {
+      it('drop should clear the attachment record so a later attach starts fresh', async function () {
         await pumpAnimation(
           flock,
-          flock.attach(treeId, lizId, { boneName: "Head", x: 0, y: 0.25, z: 0 }),
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
         await pumpAnimation(flock, flock.drop(treeId));
 
@@ -551,11 +514,8 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.metadata._preAttachWorldRotation).to.be.undefined;
       });
 
-      it("drop should detach the tree so it no longer follows Liz", async function () {
-        await pumpAnimation(
-          flock,
-          flock.attach(treeId, lizId, { boneName: "Hold" }),
-        );
+      it('drop should detach the tree so it no longer follows Liz', async function () {
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
         await pumpAnimation(flock, flock.drop(treeId));
 
         const treeMesh = flock.scene.getMeshByName(treeId);

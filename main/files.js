@@ -1,8 +1,8 @@
-import * as Blockly from "blockly";
-import { workspace } from "./blocklyinit.js";
-import { translate } from "./translation.js";
-import { getMetadata } from "meta-png";
-import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from "../config.js";
+import * as Blockly from 'blockly';
+import { workspace } from './blocklyinit.js';
+import { translate } from './translation.js';
+import { getMetadata } from 'meta-png';
+import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -11,22 +11,22 @@ const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
 // Typed so callers can pick the right alert without matching message strings.
 class ProjectTooLargeError extends Error {
   constructor() {
-    super("File content is too large");
-    this.name = "ProjectTooLargeError";
+    super('File content is too large');
+    this.name = 'ProjectTooLargeError';
   }
 }
 
 class ProjectReadError extends Error {
   constructor(options) {
-    super("Failed to read project file", options);
-    this.name = "ProjectReadError";
+    super('Failed to read project file', options);
+    this.name = 'ProjectReadError';
   }
 }
 
 function alertKeyForProjectError(error) {
-  if (error instanceof ProjectTooLargeError) return "file_too_large_alert";
-  if (error instanceof ProjectReadError) return "failed_to_read_file_alert";
-  return "invalid_project_alert";
+  if (error instanceof ProjectTooLargeError) return 'file_too_large_alert';
+  if (error instanceof ProjectReadError) return 'failed_to_read_file_alert';
+  return 'invalid_project_alert';
 }
 
 // Function to save the current workspace state
@@ -39,7 +39,7 @@ export function saveWorkspace(workspace) {
     if (!state || !state.blocks || !state.blocks.blocks?.length) return;
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
   } catch (error) {
-    console.warn("Autosave failed; keeping previous saved state.", error);
+    console.warn('Autosave failed; keeping previous saved state.', error);
   }
 }
 
@@ -47,34 +47,34 @@ function validateBlocklyJson(json) {
   // 1. Parse JSON safely
   let data;
   try {
-    data = typeof json === "string" ? JSON.parse(json) : json;
+    data = typeof json === 'string' ? JSON.parse(json) : json;
   } catch {
-    throw new Error("Invalid JSON format");
+    throw new Error('Invalid JSON format');
   }
 
   // 2. Check for dangerous properties that could execute code
   const dangerousKeys = [
-    "__proto__",
-    "constructor",
-    "prototype",
-    "eval",
-    "Function",
-    "setTimeout",
-    "setInterval",
-    "innerHTML",
-    "outerHTML",
-    "onclick",
-    "onerror",
-    "onload",
+    '__proto__',
+    'constructor',
+    'prototype',
+    'eval',
+    'Function',
+    'setTimeout',
+    'setInterval',
+    'innerHTML',
+    'outerHTML',
+    'onclick',
+    'onerror',
+    'onload',
   ];
 
-  function checkForDangerousContent(obj, path = "") {
+  function checkForDangerousContent(obj, path = '') {
     if (obj === null || obj === undefined) return;
 
     // Check primitive values for suspicious patterns
-    if (typeof obj === "string") {
+    if (typeof obj === 'string') {
       // Skip validation for block IDs - they can contain random characters
-      if (path.endsWith(".id") || path.endsWith(".ID_VAR.id")) {
+      if (path.endsWith('.id') || path.endsWith('.ID_VAR.id')) {
         return;
       }
 
@@ -82,19 +82,17 @@ function validateBlocklyJson(json) {
       // - extraState (for Blockly mutation XML)
       // - comment text (for block comments and workspace comments)
       const allowNewlines =
-        path.includes("extraState") ||
-        path.includes("icons.comment") ||
-        path.includes("workspaceComments");
+        path.includes('extraState') ||
+        path.includes('icons.comment') ||
+        path.includes('workspaceComments');
 
       // Block newlines everywhere else as they could be code
       if (/[\r\n]/.test(obj) && !allowNewlines) {
-        throw new Error(
-          `Newline characters not allowed at ${path}: potential code injection`,
-        );
+        throw new Error(`Newline characters not allowed at ${path}: potential code injection`);
       }
 
       // Normalize string by removing/reducing whitespace for pattern matching
-      const normalized = obj.replace(/\s+/g, " ").trim();
+      const normalized = obj.replace(/\s+/g, ' ').trim();
 
       // Look for script tags, event handlers, or javascript: protocol
       const suspiciousPatterns = [
@@ -127,7 +125,7 @@ function validateBlocklyJson(json) {
 
       if (suspiciousPatterns.some((pattern) => pattern.test(normalized))) {
         throw new Error(
-          `Suspicious content found at ${path}: potential code injection. Content: "${obj.substring(0, 50)}${obj.length > 50 ? "..." : ""}"`,
+          `Suspicious content found at ${path}: potential code injection. Content: "${obj.substring(0, 50)}${obj.length > 50 ? '...' : ''}"`
         );
       }
 
@@ -141,15 +139,13 @@ function validateBlocklyJson(json) {
 
       // Flag any obfuscation pattern - legitimate Blockly field values should not
       // contain escape sequences, HTML entities, or URL-encoded characters.
-      const suspiciousCount = obfuscationPatterns.filter((pattern) =>
-        pattern.test(obj),
-      ).length;
+      const suspiciousCount = obfuscationPatterns.filter((pattern) => pattern.test(obj)).length;
       if (suspiciousCount >= 1) {
         throw new Error(`Potential obfuscation detected at ${path}`);
       }
     }
 
-    if (typeof obj === "object") {
+    if (typeof obj === 'object') {
       // Check for dangerous keys
       for (const key of Object.keys(obj)) {
         if (dangerousKeys.includes(key)) {
@@ -161,7 +157,7 @@ function validateBlocklyJson(json) {
   }
 
   function upgradeAnimationInputs(block) {
-    if (!block || typeof block !== "object") return;
+    if (!block || typeof block !== 'object') return;
 
     const legacyAnimationName = block.fields?.ANIMATION_NAME;
     const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
@@ -169,12 +165,12 @@ function validateBlocklyJson(json) {
     if (
       legacyAnimationName &&
       !hasNewAnimationInput &&
-      (block.type === "play_animation" || block.type === "switch_animation")
+      (block.type === 'play_animation' || block.type === 'switch_animation')
     ) {
       block.inputs = block.inputs || {};
       block.inputs.ANIMATION_NAME = {
         shadow: {
-          type: "animation_name",
+          type: 'animation_name',
           fields: { ANIMATION_NAME: legacyAnimationName },
         },
       };
@@ -205,18 +201,12 @@ function validateBlocklyJson(json) {
 
     // Blockly workspace JSON should have specific structure
     // Check if data.blocks exists and is a non-null object (not an array)
-    if (
-      !data.blocks ||
-      typeof data.blocks !== "object" ||
-      Array.isArray(data.blocks)
-    ) {
-      throw new Error(
-        "Invalid Blockly structure: missing or invalid blocks object",
-      );
+    if (!data.blocks || typeof data.blocks !== 'object' || Array.isArray(data.blocks)) {
+      throw new Error('Invalid Blockly structure: missing or invalid blocks object');
     }
 
     // Whitelist allowed properties at root level
-    const allowedRootKeys = ["blocks", "variables", "workspaceComments"];
+    const allowedRootKeys = ['blocks', 'variables', 'workspaceComments'];
     const rootKeys = Object.keys(data);
 
     for (const key of rootKeys) {
@@ -226,7 +216,7 @@ function validateBlocklyJson(json) {
     }
 
     // Whitelist allowed properties in blocks object
-    const allowedBlocksKeys = ["languageVersion", "blocks"];
+    const allowedBlocksKeys = ['languageVersion', 'blocks'];
     if (data.blocks) {
       for (const key of Object.keys(data.blocks)) {
         if (!allowedBlocksKeys.includes(key)) {
@@ -238,9 +228,7 @@ function validateBlocklyJson(json) {
     // Validate blocks array if present
     if (data.blocks.blocks) {
       if (!Array.isArray(data.blocks.blocks)) {
-        throw new Error(
-          "Invalid Blockly structure: blocks.blocks must be an array",
-        );
+        throw new Error('Invalid Blockly structure: blocks.blocks must be an array');
       }
       data.blocks.blocks.forEach((block, index) => {
         validateBlock(block, `blocks.blocks[${index}]`);
@@ -250,15 +238,11 @@ function validateBlocklyJson(json) {
     // Validate variables if present
     if (data.variables) {
       if (!Array.isArray(data.variables)) {
-        throw new Error(
-          "Invalid Blockly structure: variables must be an array",
-        );
+        throw new Error('Invalid Blockly structure: variables must be an array');
       }
       data.variables.forEach((variable, index) => {
         if (!variable.name || !variable.id) {
-          throw new Error(
-            `Invalid variable at variables[${index}]: must have name and id`,
-          );
+          throw new Error(`Invalid variable at variables[${index}]: must have name and id`);
         }
       });
     }
@@ -266,30 +250,30 @@ function validateBlocklyJson(json) {
 
   // 4. Validate individual block structure
   function validateBlock(block, path) {
-    if (!block || typeof block !== "object") {
+    if (!block || typeof block !== 'object') {
       throw new Error(`Invalid block at ${path}`);
     }
 
     // Whitelist allowed block properties
     const allowedBlockKeys = [
-      "type",
-      "id",
-      "x",
-      "y",
-      "collapsed",
-      "disabled",
-      "deletable",
-      "movable",
-      "editable",
-      "inline",
-      "data",
-      "extraState",
-      "icons",
-      "fields",
-      "inputs",
-      "next",
-      "shadow",
-      "disabledReasons",
+      'type',
+      'id',
+      'x',
+      'y',
+      'collapsed',
+      'disabled',
+      'deletable',
+      'movable',
+      'editable',
+      'inline',
+      'data',
+      'extraState',
+      'icons',
+      'fields',
+      'inputs',
+      'next',
+      'shadow',
+      'disabledReasons',
     ];
 
     for (const key of Object.keys(block)) {
@@ -301,12 +285,12 @@ function validateBlocklyJson(json) {
     // Validate field values
     if (block.fields) {
       Object.entries(block.fields).forEach(([fieldName, fieldValue]) => {
-        if (fieldValue && typeof fieldValue === "object") {
+        if (fieldValue && typeof fieldValue === 'object') {
           // Field values can be objects with 'id' property for variables
           if (!fieldValue.id) {
             checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
           }
-        } else if (typeof fieldValue === "string") {
+        } else if (typeof fieldValue === 'string') {
           // Check string field values for dangerous content
           checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
         }
@@ -343,7 +327,7 @@ function validateBlocklyJson(json) {
 
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   if (!workspace || !json) {
-    throw new Error("Invalid workspace or json data.");
+    throw new Error('Invalid workspace or json data.');
   }
 
   // Validation failures propagate to the caller; the catch below is only for a
@@ -356,14 +340,14 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas: false });
   } catch (error) {
-    console.error("Failed to load workspace:", error);
+    console.error('Failed to load workspace:', error);
 
     // Handle corruption errors
-    if (error.message.includes("isDeadOrDying")) {
-      console.warn("Workspace might be corrupted, attempting reset.");
+    if (error.message.includes('isDeadOrDying')) {
+      console.warn('Workspace might be corrupted, attempting reset.');
       workspace.clear();
       // Note: localStorage usage - be aware this won't work in Claude artifacts
-      if (typeof localStorage !== "undefined") {
+      if (typeof localStorage !== 'undefined') {
         localStorage.removeItem(AUTOSAVE_KEY);
       }
     }
@@ -372,30 +356,24 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
 function parseProjectJsonResponse(response) {
   if (!response.ok) {
-    throw new Error(
-      `Failed to load project (${response.status} ${response.statusText})`,
-    );
+    throw new Error(`Failed to load project (${response.status} ${response.statusText})`);
   }
 
-  const contentType = (
-    response.headers.get("content-type") || ""
-  ).toLowerCase();
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
 
   return response.text().then((projectText) => {
     const trimmedProjectText = projectText.trim();
 
     if (
-      contentType.includes("text/html") ||
-      trimmedProjectText.startsWith("<!doctype html") ||
-      trimmedProjectText.startsWith("<html")
+      contentType.includes('text/html') ||
+      trimmedProjectText.startsWith('<!doctype html') ||
+      trimmedProjectText.startsWith('<html')
     ) {
-      throw new Error(
-        `Expected JSON project data but received ${contentType || "text/html"}`,
-      );
+      throw new Error(`Expected JSON project data but received ${contentType || 'text/html'}`);
     }
 
     return parseProjectText(projectText, {
-      describeParseError: `Failed to parse project JSON from ${contentType || "unknown content type"}`,
+      describeParseError: `Failed to parse project JSON from ${contentType || 'unknown content type'}`,
     });
   });
 }
@@ -407,8 +385,8 @@ export function fetchProjectJson(projectPath) {
 // Parses project text into validated Blockly JSON: enforces the size limit,
 // parses, and checks the structure. Throws on any failure.
 function parseProjectText(text, { describeParseError } = {}) {
-  if (typeof text !== "string") {
-    throw new Error("File content is invalid (not a string)");
+  if (typeof text !== 'string') {
+    throw new Error('File content is invalid (not a string)');
   }
   if (text.length > MAX_PROJECT_TEXT_LENGTH) {
     throw new ProjectTooLargeError();
@@ -418,13 +396,11 @@ function parseProjectText(text, { describeParseError } = {}) {
   try {
     json = JSON.parse(text);
   } catch (error) {
-    throw describeParseError
-      ? new Error(describeParseError, { cause: error })
-      : error;
+    throw describeParseError ? new Error(describeParseError, { cause: error }) : error;
   }
 
   if (!isValidProjectFileJson(json)) {
-    throw new Error("Invalid Blockly project file structure");
+    throw new Error('Invalid Blockly project file structure');
   }
 
   return json;
@@ -451,12 +427,12 @@ async function readProjectFile(file) {
 // Function to load workspace from various sources
 export function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
-  const projectUrl = urlParams.get("project");
-  const reset = urlParams.get("reset");
-  const autoplay = urlParams.get("autoplay") !== "false";
+  const projectUrl = urlParams.get('project');
+  const reset = urlParams.get('reset');
+  const autoplay = urlParams.get('autoplay') !== 'false';
   const effectiveCallback = autoplay ? executeCallback : () => {};
   const savedState = localStorage.getItem(AUTOSAVE_KEY);
-  const starter = "examples/starter.flock";
+  const starter = 'examples/starter.flock';
 
   function loadStarter() {
     fetchProjectJson(starter)
@@ -464,12 +440,12 @@ export function loadWorkspace(workspace, executeCallback) {
         loadWorkspaceAndExecute(json, workspace, effectiveCallback);
       })
       .catch((error) => {
-        console.error("Error loading starter example:", error);
+        console.error('Error loading starter example:', error);
       });
   }
 
   if (reset) {
-    console.warn("Resetting workspace and clearing local storage.");
+    console.warn('Resetting workspace and clearing local storage.');
     workspace.clear();
     localStorage.removeItem(AUTOSAVE_KEY);
     loadStarter();
@@ -477,30 +453,30 @@ export function loadWorkspace(workspace, executeCallback) {
   }
 
   if (projectUrl) {
-    if (projectUrl === "starter") {
+    if (projectUrl === 'starter') {
       loadStarter();
-    } else if (projectUrl === "new") {
-      fetchProjectJson("examples/new.flock")
+    } else if (projectUrl === 'new') {
+      fetchProjectJson('examples/new.flock')
         .then((json) => {
           loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
-          console.error("Error loading new project:", error);
+          console.error('Error loading new project:', error);
           loadStarter();
         });
     } else {
       let validatedUrl;
       try {
         validatedUrl = new URL(projectUrl, window.location.href);
-        if (!["http:", "https:"].includes(validatedUrl.protocol)) {
-          throw new Error("Project URL must use http or https protocol");
+        if (!['http:', 'https:'].includes(validatedUrl.protocol)) {
+          throw new Error('Project URL must use http or https protocol');
         }
         const path = validatedUrl.pathname.toLowerCase();
-        if (!path.endsWith(".json") && !path.endsWith(".flock")) {
-          throw new Error("Project URL must point to a .json or .flock file");
+        if (!path.endsWith('.json') && !path.endsWith('.flock')) {
+          throw new Error('Project URL must point to a .json or .flock file');
         }
       } catch (error) {
-        console.error("Invalid project URL:", error);
+        console.error('Invalid project URL:', error);
         loadStarter();
         return;
       }
@@ -510,19 +486,15 @@ export function loadWorkspace(workspace, executeCallback) {
           loadWorkspaceAndExecute(json, workspace, effectiveCallback);
         })
         .catch((error) => {
-          console.error("Error loading project from URL:", error);
+          console.error('Error loading project from URL:', error);
           loadStarter();
         });
     }
   } else if (savedState) {
     try {
-      loadWorkspaceAndExecute(
-        parseProjectText(savedState),
-        workspace,
-        effectiveCallback,
-      );
+      loadWorkspaceAndExecute(parseProjectText(savedState), workspace, effectiveCallback);
     } catch (error) {
-      console.error("Error loading autosaved project:", error);
+      console.error('Error loading autosaved project:', error);
       loadStarter();
     }
   } else {
@@ -532,11 +504,8 @@ export function loadWorkspace(workspace, executeCallback) {
 
 // Function to strip filename from path
 export function stripFilename(inputString) {
-  const removeEnd = inputString.replace(/\(\d+\)/g, "");
-  let lastIndex = Math.max(
-    removeEnd.lastIndexOf("/"),
-    removeEnd.lastIndexOf("\\"),
-  );
+  const removeEnd = inputString.replace(/\(\d+\)/g, '');
+  let lastIndex = Math.max(removeEnd.lastIndexOf('/'), removeEnd.lastIndexOf('\\'));
 
   if (lastIndex === -1) {
     return removeEnd.trim();
@@ -548,16 +517,16 @@ export function stripFilename(inputString) {
 // Preserve user-facing imported filename characters (including spaces and
 // punctuation) while still stripping potentially unsafe invisible chars.
 function getSafeImportedFileBaseName(fileName) {
-  const rawName = String(fileName || "untitled");
+  const rawName = String(fileName || 'untitled');
   const cleanedName = rawName
-    .replace(/\p{Cc}/gu, "")
-    .replace(/[\u200B-\u200F\u2060-\u206F\uFEFF]/g, "")
-    .replace(/[\u202A-\u202E\u2066-\u2069]/g, "");
+    .replace(/\p{Cc}/gu, '')
+    .replace(/[\u200B-\u200F\u2060-\u206F\uFEFF]/g, '')
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, '');
 
-  const withoutExtension = cleanedName.replace(/\.(json|flock)$/i, "");
+  const withoutExtension = cleanedName.replace(/\.(json|flock)$/i, '');
   const baseName = stripFilename(withoutExtension).trim();
 
-  return baseName.substring(0, 50) || "untitled";
+  return baseName.substring(0, 50) || 'untitled';
 }
 
 // Holds the FileSystemFileHandle from the last explicit save (File System Access API)
@@ -565,11 +534,8 @@ let currentFileHandle = null;
 
 export function updateSaveButtonState() {
   document
-    .getElementById("exportCodeButton")
-    ?.classList.toggle(
-      "no-autosave",
-      AUTOSAVE_TO_FILE_ENABLED && !currentFileHandle,
-    );
+    .getElementById('exportCodeButton')
+    ?.classList.toggle('no-autosave', AUTOSAVE_TO_FILE_ENABLED && !currentFileHandle);
 }
 
 // Clears the stored file handle (call whenever a new project is loaded)
@@ -579,31 +545,27 @@ export function clearFileHandle() {
 }
 
 function isFileAutosavePermissionError(error) {
-  const name = error?.name || "";
-  if (name === "AbortError" || name === "NotAllowedError") return true;
+  const name = error?.name || '';
+  if (name === 'AbortError' || name === 'NotAllowedError') return true;
 
-  const message = String(error?.message || "").toLowerCase();
+  const message = String(error?.message || '').toLowerCase();
   return (
-    message.includes("permission") ||
-    message.includes("denied") ||
-    message.includes("aborted") ||
-    message.includes("cancel")
+    message.includes('permission') ||
+    message.includes('denied') ||
+    message.includes('aborted') ||
+    message.includes('cancel')
   );
 }
 
 // Function to export project code
 export async function exportCode(workspace) {
   try {
-    const projectName =
-      document.getElementById("projectName").value || "default_project";
+    const projectName = document.getElementById('projectName').value || 'default_project';
 
     // Ensure we have a valid workspace
-    const ws =
-      workspace && workspace.getAllBlocks
-        ? workspace
-        : Blockly.getMainWorkspace();
+    const ws = workspace && workspace.getAllBlocks ? workspace : Blockly.getMainWorkspace();
     if (!ws || !ws.getAllBlocks) {
-      throw new Error("No valid workspace found");
+      throw new Error('No valid workspace found');
     }
 
     let usedModels = Blockly.Variables.allUsedVarModels(ws);
@@ -618,15 +580,15 @@ export async function exportCode(workspace) {
     const jsonString = JSON.stringify(json, null, 2);
 
     // Custom MIME type for Flock project files
-    const FLOCK_MIME = "application/vnd.flock+json";
-    const FLOCK_EXT = ".flock";
+    const FLOCK_MIME = 'application/vnd.flock+json';
+    const FLOCK_EXT = '.flock';
 
-    if ("showSaveFilePicker" in window) {
+    if ('showSaveFilePicker' in window) {
       const options = {
         suggestedName: `${projectName}${FLOCK_EXT}`,
         types: [
           {
-            description: translate("project_file_description"),
+            description: translate('project_file_description'),
             accept: {
               [FLOCK_MIME]: [FLOCK_EXT],
             },
@@ -640,11 +602,10 @@ export async function exportCode(workspace) {
       await writable.close();
       currentFileHandle = fileHandle;
       updateSaveButtonState();
-      document.getElementById("projectName").value =
-        getSafeImportedFileBaseName(fileHandle.name);
+      document.getElementById('projectName').value = getSafeImportedFileBaseName(fileHandle.name);
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = `${projectName}${FLOCK_EXT}`;
       document.body.appendChild(link);
@@ -652,7 +613,7 @@ export async function exportCode(workspace) {
       document.body.removeChild(link);
     }
   } catch (e) {
-    console.error("Error exporting project:", e);
+    console.error('Error exporting project:', e);
   }
 }
 
@@ -660,22 +621,19 @@ export async function exportCode(workspace) {
 export async function autoSaveToFile(workspace) {
   if (!currentFileHandle) return;
   try {
-    if (typeof currentFileHandle.queryPermission === "function") {
+    if (typeof currentFileHandle.queryPermission === 'function') {
       const permission = await currentFileHandle.queryPermission({
-        mode: "readwrite",
+        mode: 'readwrite',
       });
-      if (permission !== "granted") {
-        if (permission === "denied") {
+      if (permission !== 'granted') {
+        if (permission === 'denied') {
           clearFileHandle();
         }
         return;
       }
     }
 
-    const ws =
-      workspace && workspace.getAllBlocks
-        ? workspace
-        : Blockly.getMainWorkspace();
+    const ws = workspace && workspace.getAllBlocks ? workspace : Blockly.getMainWorkspace();
     if (!ws || !ws.getAllBlocks) return;
 
     const json = Blockly.serialization.workspaces.save(ws);
@@ -687,13 +645,13 @@ export async function autoSaveToFile(workspace) {
     if (isFileAutosavePermissionError(e)) {
       clearFileHandle();
     }
-    console.error("Error during file autosave:", e);
+    console.error('Error during file autosave:', e);
   }
 }
 
 // Function to import snippet from file
 export function importSnippet() {
-  const fileInput = document.getElementById("importFile");
+  const fileInput = document.getElementById('importFile');
   fileInput.click();
 
   fileInput.onchange = (event) => {
@@ -702,8 +660,8 @@ export function importSnippet() {
 
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-      console.error("Snippet file is too large:", file.size);
-      event.target.value = "";
+      console.error('Snippet file is too large:', file.size);
+      event.target.value = '';
       return;
     }
 
@@ -711,31 +669,31 @@ export function importSnippet() {
     const fileName = file.name.toLowerCase();
 
     // Custom MIME for Flock snippets (matches exportBlockSnippet)
-    const FLOCK_SNIP_MIME = "application/vnd.flock-snippet+json";
+    const FLOCK_SNIP_MIME = 'application/vnd.flock-snippet+json';
 
     const reader = new FileReader();
 
     reader.onload = () => {
       const content = reader.result;
 
-      if (fileType === "image/png") {
+      if (fileType === 'image/png') {
         handlePNGImport(content);
       } else if (
-        fileType === "application/json" ||
+        fileType === 'application/json' ||
         fileType === FLOCK_SNIP_MIME ||
-        fileName.endsWith(".fsnip")
+        fileName.endsWith('.fsnip')
       ) {
         // Treat .fsnip the same as JSON snippets
         handleJSONImport(content);
       } else {
-        console.error("Unsupported file type:", fileType || "(none)");
+        console.error('Unsupported file type:', fileType || '(none)');
       }
 
       // Allow re-selecting the same file
-      event.target.value = "";
+      event.target.value = '';
     };
 
-    if (fileType === "image/png") {
+    if (fileType === 'image/png') {
       reader.readAsArrayBuffer(file);
     } else {
       reader.readAsText(file);
@@ -747,17 +705,17 @@ export function importSnippet() {
 function handlePNGImport(content) {
   try {
     const arrayBuffer = new Uint8Array(content);
-    const encodedMetadata = getMetadata(arrayBuffer, "blockJson");
+    const encodedMetadata = getMetadata(arrayBuffer, 'blockJson');
 
     if (!encodedMetadata) {
-      console.error("No metadata found in the PNG file.");
+      console.error('No metadata found in the PNG file.');
       return;
     }
 
     const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
     appendSnippetAtViewport(Blockly.getMainWorkspace(), decodedMetadata);
   } catch (error) {
-    console.error("Error processing PNG metadata:", error);
+    console.error('Error processing PNG metadata:', error);
   }
 }
 
@@ -767,7 +725,7 @@ function handleJSONImport(content) {
     const blockJson = JSON.parse(content);
     appendSnippetAtViewport(Blockly.getMainWorkspace(), blockJson);
   } catch (error) {
-    console.error("Error processing JSON file:", error);
+    console.error('Error processing JSON file:', error);
   }
 }
 
@@ -775,13 +733,12 @@ function handleJSONImport(content) {
 // unvalidated blocks isn't reachable through a wrong-helper call.
 function appendSnippetAtViewport(workspace, snippetData) {
   if (!snippetData) {
-    throw new Error("Snippet data is empty or undefined");
+    throw new Error('Snippet data is empty or undefined');
   }
 
   // Support both raw block JSON and wrapped workspace snippets
   const blocks =
-    snippetData?.blocks?.blocks ??
-    (Array.isArray(snippetData) ? snippetData : [snippetData]);
+    snippetData?.blocks?.blocks ?? (Array.isArray(snippetData) ? snippetData : [snippetData]);
 
   const validated = validateBlocklyJson({ blocks: { blocks } });
   const blocksJson = validated.blocks.blocks;
@@ -793,9 +750,7 @@ function appendSnippetAtViewport(workspace, snippetData) {
   blocksJson.forEach((b) => Blockly.serialization.blocks.append(b, workspace));
 
   // Collect the newly created top blocks
-  const created = workspace
-    .getTopBlocks(false)
-    .filter((b) => !before.has(b.id));
+  const created = workspace.getTopBlocks(false).filter((b) => !before.has(b.id));
   if (!created.length) return;
 
   // Place them near the current viewport top-left, with a stagger.
@@ -811,7 +766,7 @@ function appendSnippetAtViewport(workspace, snippetData) {
 }
 
 function isValidProjectFileJson(json) {
-  if (!json || typeof json !== "object") {
+  if (!json || typeof json !== 'object') {
     return false;
   }
 
@@ -821,7 +776,7 @@ function isValidProjectFileJson(json) {
 
   return (
     !!json.blocks &&
-    typeof json.blocks === "object" &&
+    typeof json.blocks === 'object' &&
     !!json.blocks.blocks &&
     Array.isArray(json.blocks.blocks)
   );
@@ -830,21 +785,20 @@ function isValidProjectFileJson(json) {
 // Private helper: process a project file (used by file input and drag-and-drop)
 function processProjectFileDrop(file, workspace, executeCallback) {
   const lowerName = file.name.toLowerCase();
-  if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
-    alert(translate("invalid_filetype_alert"));
+  if (!lowerName.endsWith('.json') && !lowerName.endsWith('.flock')) {
+    alert(translate('invalid_filetype_alert'));
     return;
   }
 
   window.loadingCode = true;
   readProjectFile(file)
     .then((json) => {
-      document.getElementById("projectName").value =
-        getSafeImportedFileBaseName(file.name);
+      document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     })
     .catch((error) => {
-      console.error("Error loading Blockly project:", error);
+      console.error('Error loading Blockly project:', error);
       alert(translate(alertKeyForProjectError(error)));
       window.loadingCode = false;
     });
@@ -855,13 +809,13 @@ function processSnippetFileDrop(file) {
   const reader = new FileReader();
   reader.onload = () => {
     const content = reader.result;
-    if (file.type === "image/png") {
+    if (file.type === 'image/png') {
       handlePNGImport(content);
     } else {
       handleJSONImport(content);
     }
   };
-  if (file.type === "image/png") {
+  if (file.type === 'image/png') {
     reader.readAsArrayBuffer(file);
   } else {
     reader.readAsText(file);
@@ -871,54 +825,51 @@ function processSnippetFileDrop(file) {
 // Set up drag-and-drop for .flock, .json, .fsnip, and .png files
 export function setupDragAndDrop(workspace, executeCallback) {
   // Create the drop overlay
-  const overlay = document.createElement("div");
-  overlay.id = "drag-drop-overlay";
-  overlay.setAttribute("aria-hidden", "true");
-  overlay.textContent = translate("drag_drop_hint");
+  const overlay = document.createElement('div');
+  overlay.id = 'drag-drop-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.textContent = translate('drag_drop_hint');
   document.body.appendChild(overlay);
 
   let dragCounter = 0;
   let isDraggingFromPage = false;
 
-  document.addEventListener("dragstart", () => {
+  document.addEventListener('dragstart', () => {
     isDraggingFromPage = true;
   });
-  document.addEventListener("dragend", () => {
+  document.addEventListener('dragend', () => {
     isDraggingFromPage = false;
   });
 
   function isFileDrag(e) {
     if (isDraggingFromPage) return false;
-    return (
-      e.dataTransfer?.types &&
-      Array.from(e.dataTransfer.types).includes("Files")
-    );
+    return e.dataTransfer?.types && Array.from(e.dataTransfer.types).includes('Files');
   }
 
-  document.addEventListener("dragenter", (e) => {
+  document.addEventListener('dragenter', (e) => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
     dragCounter++;
-    overlay.classList.add("visible");
+    overlay.classList.add('visible');
   });
 
-  document.addEventListener("dragover", (e) => {
+  document.addEventListener('dragover', (e) => {
     if (!isFileDrag(e)) return;
     e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
+    e.dataTransfer.dropEffect = 'copy';
   });
 
-  document.addEventListener("dragleave", (e) => {
+  document.addEventListener('dragleave', (e) => {
     if (!isFileDrag(e)) return;
     dragCounter = Math.max(0, dragCounter - 1);
     if (dragCounter === 0) {
-      overlay.classList.remove("visible");
+      overlay.classList.remove('visible');
     }
   });
 
-  document.addEventListener("drop", (e) => {
+  document.addEventListener('drop', (e) => {
     dragCounter = 0;
-    overlay.classList.remove("visible");
+    overlay.classList.remove('visible');
 
     const files = e.dataTransfer?.files;
     if (!files || files.length === 0) return;
@@ -929,64 +880,63 @@ export function setupDragAndDrop(workspace, executeCallback) {
     const file = files[0];
     const lowerName = file.name.toLowerCase();
 
-    if (lowerName.endsWith(".flock") || lowerName.endsWith(".json")) {
+    if (lowerName.endsWith('.flock') || lowerName.endsWith('.json')) {
       processProjectFileDrop(file, workspace, executeCallback);
-    } else if (lowerName.endsWith(".fsnip") || file.type === "image/png") {
+    } else if (lowerName.endsWith('.fsnip') || file.type === 'image/png') {
       processSnippetFileDrop(file);
     } else {
-      alert(translate("drop_unsupported_file_alert"));
+      alert(translate('drop_unsupported_file_alert'));
     }
   });
 }
 
 // Function to set up file input handler
 export function setupFileInput(workspace, executeCallback) {
-  const fileInput = document.getElementById("fileInput");
+  const fileInput = document.getElementById('fileInput');
 
-  fileInput.addEventListener("change", function (event) {
+  fileInput.addEventListener('change', function (event) {
     const file = event.target.files[0];
     if (!file) return;
 
     const lowerName = file.name.toLowerCase();
-    if (!lowerName.endsWith(".json") && !lowerName.endsWith(".flock")) {
-      alert(translate("invalid_filetype_alert"));
-      event.target.value = ""; // Reset the input
+    if (!lowerName.endsWith('.json') && !lowerName.endsWith('.flock')) {
+      alert(translate('invalid_filetype_alert'));
+      event.target.value = ''; // Reset the input
       return;
     }
 
     window.loadingCode = true;
     readProjectFile(file)
       .then((json) => {
-        document.getElementById("projectName").value =
-          getSafeImportedFileBaseName(file.name);
+        document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
         loadWorkspaceAndExecute(json, workspace, executeCallback);
       })
       .catch((error) => {
-        console.error("Error loading Blockly project:", error);
+        console.error('Error loading Blockly project:', error);
         alert(translate(alertKeyForProjectError(error)));
         window.loadingCode = false;
       })
       .finally(() => {
         // Reset the input so the same file can be selected again
-        event.target.value = "";
+        event.target.value = '';
       });
   });
 }
 
 // Open a file using showOpenFilePicker (Chrome/Edge/Safari) with <input> fallback
 export async function openFile(workspace, executeCallback) {
-  if ("showOpenFilePicker" in window) {
+  if ('showOpenFilePicker' in window) {
     try {
       const [fileHandle] = await window.showOpenFilePicker({
-        mode: "readwrite",
+        mode: 'readwrite',
         types: [
           {
-            description: translate("project_file_description"),
+            description: translate('project_file_description'),
             accept: {
-              "application/vnd.flock+json": [".flock"],
-              "application/json": [".json"],
+              'application/vnd.flock+json': ['.flock'],
+              'application/json': ['.json'],
             },
           },
         ],
@@ -994,18 +944,17 @@ export async function openFile(workspace, executeCallback) {
       const file = await fileHandle.getFile();
       const json = await readProjectFile(file);
       window.loadingCode = true;
-      document.getElementById("projectName").value =
-        getSafeImportedFileBaseName(file.name);
+      document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     } catch (e) {
-      if (e.name === "AbortError") return;
-      console.error("Error opening file:", e);
+      if (e.name === 'AbortError') return;
+      console.error('Error opening file:', e);
       alert(translate(alertKeyForProjectError(e)));
       window.loadingCode = false;
     }
   } else {
-    document.getElementById("fileInput").click();
+    document.getElementById('fileInput').click();
   }
 }
 
@@ -1016,19 +965,19 @@ export function loadExample(file, name, executeCallback = window.executeCode) {
 
   window.loadingCode = true;
 
-  const projectNameElement = document.getElementById("projectName");
+  const projectNameElement = document.getElementById('projectName');
   if (projectNameElement && name) {
     projectNameElement.value = name;
   }
 
   fetchProjectJson(file)
     .then((json) => {
-      console.log("Loading:", name || file);
+      console.log('Loading:', name || file);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
     })
     .catch((error) => {
-      console.error("Error loading example:", error);
+      console.error('Error loading example:', error);
       // Clear the loading flag so a failed load doesn't wedge later actions.
       window.loadingCode = false;
     });
@@ -1037,19 +986,19 @@ window.loadExample = loadExample;
 
 export function newProject() {
   // Set project name
-  const projectNameElement = document.getElementById("projectName");
+  const projectNameElement = document.getElementById('projectName');
   if (projectNameElement) {
-    projectNameElement.value = "New";
+    projectNameElement.value = 'New';
   }
 
   // Load the empty project template
-  fetchProjectJson("examples/new.flock")
+  fetchProjectJson('examples/new.flock')
     .then((json) => {
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, window.executeCode);
     })
     .catch((error) => {
-      console.error("Error loading new project:", error);
+      console.error('Error loading new project:', error);
     });
 }
 

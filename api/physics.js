@@ -793,8 +793,8 @@ export const flockPhysics = {
             currentIndex = (currentIndex + 1) % callbacks.length;
           } catch (e) {
             flock.reportBlockError({
-              key: "trigger_block_failed",
-              api: "onTrigger",
+              key: 'trigger_block_failed',
+              api: 'onTrigger',
               error: e,
             });
           } finally {

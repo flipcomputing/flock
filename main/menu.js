@@ -1,8 +1,8 @@
-const menuBtn = document.getElementById("menuBtn");
-const openAbout = document.getElementById("about-menu-item");
-const hubMenuItem = document.getElementById("hub-menu-item");
-const infoModal = document.getElementById("infoModal");
-const closeInfoModal = document.getElementById("closeInfoModal");
+const menuBtn = document.getElementById('menuBtn');
+const openAbout = document.getElementById('about-menu-item');
+const hubMenuItem = document.getElementById('hub-menu-item');
+const infoModal = document.getElementById('infoModal');
+const closeInfoModal = document.getElementById('closeInfoModal');
 let previouslyFocused = null;
 
 function canRestoreFocus(element) {
@@ -13,7 +13,7 @@ function canRestoreFocus(element) {
   let currentElement = element;
   while (currentElement) {
     const style = window.getComputedStyle(currentElement);
-    if (style.display === "none" || style.visibility === "hidden") {
+    if (style.display === 'none' || style.visibility === 'hidden') {
       return false;
     }
     currentElement = currentElement.parentElement;
@@ -28,9 +28,9 @@ function openInfoModal() {
     return;
   }
   previouslyFocused = document.activeElement;
-  infoModal.classList.remove("hidden");
-  infoModal.setAttribute("aria-hidden", "false");
-  infoModal.setAttribute("aria-modal", "true");
+  infoModal.classList.remove('hidden');
+  infoModal.setAttribute('aria-hidden', 'false');
+  infoModal.setAttribute('aria-modal', 'true');
 
   setTimeout(() => {
     closeInfoModal.focus();
@@ -41,9 +41,9 @@ function hideInfoModal() {
   if (!infoModal) {
     return;
   }
-  infoModal.classList.add("hidden");
-  infoModal.setAttribute("aria-hidden", "true");
-  infoModal.removeAttribute("aria-modal");
+  infoModal.classList.add('hidden');
+  infoModal.setAttribute('aria-hidden', 'true');
+  infoModal.removeAttribute('aria-modal');
 
   if (canRestoreFocus(previouslyFocused)) {
     previouslyFocused.focus();
@@ -56,8 +56,8 @@ function hideInfoModal() {
 
 class AccessibleFlyoutMenu {
   constructor() {
-    this.menuButton = document.getElementById("menuBtn");
-    this.menuDropdown = document.getElementById("menuDropdown");
+    this.menuButton = document.getElementById('menuBtn');
+    this.menuDropdown = document.getElementById('menuDropdown');
     this.menuItems = [];
     this.isMenuOpen = false;
     this.currentFocus = -1;
@@ -67,28 +67,28 @@ class AccessibleFlyoutMenu {
       return;
     }
 
-    this.menuItems = this.menuDropdown.querySelectorAll(".menu-item");
+    this.menuItems = this.menuDropdown.querySelectorAll('.menu-item');
     this.init();
   }
 
   init() {
     // Main menu button events
-    this.menuButton.addEventListener("click", (e) => {
+    this.menuButton.addEventListener('click', (e) => {
       e.preventDefault();
       this.toggleMainMenu();
     });
 
-    this.menuButton.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+    this.menuButton.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         this.openMainMenu();
         this.focusFirstMenuItem();
-      } else if (e.key === "Tab" && this.isMenuOpen) {
+      } else if (e.key === 'Tab' && this.isMenuOpen) {
         this.closeAllMenus();
       }
     });
 
-    this.menuDropdown.addEventListener("focusout", () => {
+    this.menuDropdown.addEventListener('focusout', () => {
       window.requestAnimationFrame(() => {
         const activeElement = document.activeElement;
         if (
@@ -104,33 +104,33 @@ class AccessibleFlyoutMenu {
     // Menu item events
     this.menuItems.forEach((item, index) => {
       // Mouse events (preserve existing functionality)
-      item.addEventListener("mouseenter", () => {
+      item.addEventListener('mouseenter', () => {
         this.handleMouseEnter(item);
       });
 
-      item.addEventListener("mouseleave", () => {
+      item.addEventListener('mouseleave', () => {
         this.handleMouseLeave(item);
       });
 
       // Keyboard events
-      item.addEventListener("keydown", (e) => {
+      item.addEventListener('keydown', (e) => {
         this.handleMenuItemKeydown(e, item, index);
       });
 
-      item.addEventListener("click", (e) => {
+      item.addEventListener('click', (e) => {
         this.handleMenuItemClick(e, item);
       });
 
       // Submenu events
-      const submenu = item.querySelector(".submenu");
+      const submenu = item.querySelector('.submenu');
       if (submenu) {
-        const submenuItems = submenu.querySelectorAll("a");
+        const submenuItems = submenu.querySelectorAll('a');
         submenuItems.forEach((subItem, subIndex) => {
-          subItem.addEventListener("keydown", (e) => {
+          subItem.addEventListener('keydown', (e) => {
             this.handleSubmenuKeydown(e, subItem, submenuItems, subIndex, item);
           });
 
-          subItem.addEventListener("click", (e) => {
+          subItem.addEventListener('click', (e) => {
             e.stopPropagation();
             this.closeAllMenus();
           });
@@ -139,26 +139,23 @@ class AccessibleFlyoutMenu {
     });
 
     // Close menu when clicking outside
-    document.addEventListener("click", (e) => {
-      if (
-        !this.menuButton.contains(e.target) &&
-        !this.menuDropdown.contains(e.target)
-      ) {
+    document.addEventListener('click', (e) => {
+      if (!this.menuButton.contains(e.target) && !this.menuDropdown.contains(e.target)) {
         this.closeAllMenus();
       }
     });
 
     // Close menu on Escape
     window.addEventListener(
-      "keydown",
+      'keydown',
       (e) => {
-        if (e.key !== "Escape") {
+        if (e.key !== 'Escape') {
           return;
         }
 
         let handled = false;
 
-        if (infoModal && !infoModal.classList.contains("hidden")) {
+        if (infoModal && !infoModal.classList.contains('hidden')) {
           hideInfoModal();
           handled = true;
         }
@@ -174,7 +171,7 @@ class AccessibleFlyoutMenu {
           e.stopImmediatePropagation();
         }
       },
-      true,
+      true
     ); // Fire before blockly handles escape
   }
 
@@ -188,25 +185,25 @@ class AccessibleFlyoutMenu {
 
   openMainMenu() {
     this.isMenuOpen = true;
-    this.menuDropdown.classList.remove("hidden");
-    this.menuButton.setAttribute("aria-expanded", "true");
+    this.menuDropdown.classList.remove('hidden');
+    this.menuButton.setAttribute('aria-expanded', 'true');
     this.currentFocus = -1;
   }
 
   closeAllMenus() {
     this.isMenuOpen = false;
-    this.menuDropdown.classList.add("hidden");
-    this.menuButton.setAttribute("aria-expanded", "false");
+    this.menuDropdown.classList.add('hidden');
+    this.menuButton.setAttribute('aria-expanded', 'false');
     this.closeAllSubmenus();
     this.currentFocus = -1;
   }
 
   closeAllSubmenus() {
     this.menuItems.forEach((item) => {
-      const submenu = item.querySelector(".submenu");
+      const submenu = item.querySelector('.submenu');
       if (submenu) {
         submenu.hidden = true;
-        item.setAttribute("aria-expanded", "false");
+        item.setAttribute('aria-expanded', 'false');
       }
     });
     this.currentOpenSubmenu = null;
@@ -232,10 +229,10 @@ class AccessibleFlyoutMenu {
     this.closeAllSubmenus();
 
     // Open this submenu if it has one
-    const submenu = item.querySelector(".submenu");
+    const submenu = item.querySelector('.submenu');
     if (submenu) {
       submenu.hidden = false;
-      item.setAttribute("aria-expanded", "true");
+      item.setAttribute('aria-expanded', 'true');
       this.currentOpenSubmenu = item;
     }
   }
@@ -246,16 +243,16 @@ class AccessibleFlyoutMenu {
   }
 
   handleMenuItemClick(e, item) {
-    const submenu = item.querySelector(".submenu");
+    const submenu = item.querySelector('.submenu');
     if (submenu) {
       e.preventDefault();
       this.toggleSubmenu(item);
     } else {
       // For leaf menu items (like "About"), trigger the actual click event
       // This will fire any existing click handlers you have attached
-      if (e.type === "keydown") {
+      if (e.type === 'keydown') {
         // If this was triggered by keyboard, create a synthetic click event
-        const clickEvent = new MouseEvent("click", {
+        const clickEvent = new MouseEvent('click', {
           bubbles: true,
           cancelable: true,
         });
@@ -267,54 +264,54 @@ class AccessibleFlyoutMenu {
   }
 
   toggleSubmenu(item) {
-    const submenu = item.querySelector(".submenu");
+    const submenu = item.querySelector('.submenu');
     const isOpen = !submenu.hidden;
 
     this.closeAllSubmenus();
 
     if (!isOpen) {
       submenu.hidden = false;
-      item.setAttribute("aria-expanded", "true");
+      item.setAttribute('aria-expanded', 'true');
       this.currentOpenSubmenu = item;
     }
   }
 
   handleMenuItemKeydown(e, item, index) {
-    const submenu = item.querySelector(".submenu");
+    const submenu = item.querySelector('.submenu');
 
     switch (e.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         e.preventDefault();
         this.focusMenuItem((index + 1) % this.menuItems.length);
         break;
 
-      case "ArrowUp":
+      case 'ArrowUp':
         e.preventDefault();
         this.focusMenuItem(index === 0 ? this.menuItems.length - 1 : index - 1);
         break;
 
-      case "ArrowRight":
+      case 'ArrowRight':
         if (submenu) {
           e.preventDefault();
           this.showSubmenu(item);
-          const firstSubmenuItem = submenu.querySelector("a");
+          const firstSubmenuItem = submenu.querySelector('a');
           if (firstSubmenuItem) {
             firstSubmenuItem.focus();
           }
         }
         break;
 
-      case "Enter":
-      case " ":
+      case 'Enter':
+      case ' ':
         e.preventDefault();
         this.handleMenuItemClick(e, item);
         break;
 
-      case "Tab":
+      case 'Tab':
         this.closeAllMenus();
         break;
 
-      case "Escape":
+      case 'Escape':
         this.closeAllMenus();
         this.menuButton.focus();
         break;
@@ -323,54 +320,53 @@ class AccessibleFlyoutMenu {
 
   showSubmenu(item) {
     this.closeAllSubmenus();
-    const submenu = item.querySelector(".submenu");
+    const submenu = item.querySelector('.submenu');
     if (submenu) {
       submenu.hidden = false;
-      item.setAttribute("aria-expanded", "true");
+      item.setAttribute('aria-expanded', 'true');
       this.currentOpenSubmenu = item;
     }
   }
 
   handleSubmenuKeydown(e, subItem, submenuItems, subIndex, parentItem) {
     switch (e.key) {
-      case "ArrowDown": {
+      case 'ArrowDown': {
         e.preventDefault();
         e.stopPropagation();
         const nextIndex = (subIndex + 1) % submenuItems.length;
         submenuItems[nextIndex].focus();
         break;
       }
-      case "ArrowUp": {
+      case 'ArrowUp': {
         e.preventDefault();
         e.stopPropagation();
-        const prevIndex =
-          subIndex === 0 ? submenuItems.length - 1 : subIndex - 1;
+        const prevIndex = subIndex === 0 ? submenuItems.length - 1 : subIndex - 1;
         submenuItems[prevIndex].focus();
         break;
       }
-      case "ArrowLeft": {
+      case 'ArrowLeft': {
         e.preventDefault();
         e.stopPropagation();
         parentItem.focus();
-        const submenu = parentItem.querySelector(".submenu");
+        const submenu = parentItem.querySelector('.submenu');
         if (submenu) {
           submenu.hidden = true;
-          parentItem.setAttribute("aria-expanded", "false");
+          parentItem.setAttribute('aria-expanded', 'false');
         }
         break;
       }
-      case "Enter":
-      case " ":
+      case 'Enter':
+      case ' ':
         e.preventDefault();
         e.stopPropagation();
         subItem.click();
         break;
 
-      case "Tab":
+      case 'Tab':
         this.closeAllMenus();
         break;
 
-      case "Escape":
+      case 'Escape':
         e.preventDefault();
         e.stopPropagation();
         this.closeAllMenus();
@@ -382,19 +378,19 @@ class AccessibleFlyoutMenu {
 
 // Initialize the menu when DOM is loaded
 let menuFlyout;
-document.addEventListener("DOMContentLoaded", () => {
-  if (!menuBtn || !document.getElementById("menuDropdown")) {
+document.addEventListener('DOMContentLoaded', () => {
+  if (!menuBtn || !document.getElementById('menuDropdown')) {
     return;
   }
   menuFlyout = new AccessibleFlyoutMenu();
 });
 
 if (hubMenuItem) {
-  hubMenuItem.addEventListener("click", (e) => {
+  hubMenuItem.addEventListener('click', (e) => {
     e.preventDefault();
     menuFlyout?.closeAllMenus();
     menuBtn?.focus();
-    window.open("https://hub.flockxr.com/", "_blank", "noopener,noreferrer");
+    window.open('https://hub.flockxr.com/', '_blank', 'noopener,noreferrer');
   });
 }
 
@@ -402,7 +398,7 @@ if (hubMenuItem) {
 
 // Open modal when About is clicked
 if (openAbout) {
-  openAbout.addEventListener("click", (e) => {
+  openAbout.addEventListener('click', (e) => {
     e.preventDefault();
     menuFlyout?.closeAllMenus();
     openInfoModal();
@@ -411,22 +407,22 @@ if (openAbout) {
 
 // Close modal on close button
 if (closeInfoModal) {
-  closeInfoModal.addEventListener("click", () => {
+  closeInfoModal.addEventListener('click', () => {
     hideInfoModal();
   });
 }
 
 // Handle keyboard events for modal
 if (infoModal) {
-  infoModal.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
+  infoModal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
       hideInfoModal();
-    } else if (e.key === "Tab") {
+    } else if (e.key === 'Tab') {
       // Trap focus within modal
       const focusableElements = infoModal.querySelectorAll(
-        'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
+        'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
       );
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
@@ -441,7 +437,7 @@ if (infoModal) {
     }
   });
 
-  window.addEventListener("click", (e) => {
+  window.addEventListener('click', (e) => {
     if (e.target === infoModal) {
       hideInfoModal();
     }
