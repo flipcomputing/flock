@@ -214,7 +214,7 @@ export const flock = {
       key = 'recursion_too_deep';
     }
     // One fault can fire in a burst (stack-overflow cascade, per-frame loop error), so
-    // collapse identical reports within a short window.
+    // collapse within a short window when key, API and message match (`values` is not compared).
     const now = Date.now();
     const sig = `${key}\0${api ?? ''}\0${safe?.message ?? ''}`;
     if (sig === flock._lastErrorSig && now - flock._lastErrorAt < 1000) {

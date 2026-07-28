@@ -375,8 +375,8 @@ function initializeIfClauseConnectionChecker(workspace) {
         return true;
       }
 
-      // Reject while dragging (visual feedback); otherwise allow the connection and let
-      // validateIfClausePositions disable the block in-place (healing, undo/redo, field change).
+      // Where a rule checks isDragging(), it rejects only mid-drag (visual feedback) and lets
+      // validateIfClausePositions disable the block in-place instead; other rules reject outright.
       if (connectingToNext) {
         // Moving block is connecting AFTER target
 
@@ -1332,8 +1332,8 @@ export function initializeWorkspace() {
 }
 
 // Patch the Navigator so keyboard navigation skips the redundant block stop on value blocks
-// whose only interactive content is a text-input field — shadow (" " in print_text) and
-// standalone (`text`, `colour_from_string`) alike.
+// with their own focusable field — shadow (" " in print_text) and standalone (`text`,
+// `colour_from_string`) alike. Simple reporters are excluded; see the predicates below.
 function installShadowNavigationPatch(ws) {
   const nav = ws.getNavigator?.();
   if (!nav) return;
@@ -1363,8 +1363,8 @@ function installShadowNavigationPatch(ws) {
     !!node.outputConnection &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter());
 
-  // Variable/dropdown reporters are excluded (their primary field isn't a FieldTextInput),
-  // simple reporters for the same reason as isSkippableShadow.
+  // Excluded via isSimpleReporter (output + exactly one field) — same reason as
+  // isSkippableShadow. That is a field-count test, not a field-type one.
   const isSkippableStandalone = (node) =>
     !!node?.outputConnection &&
     !node.isShadow?.() &&
@@ -2451,8 +2451,9 @@ export function overrideSearchPlugin(workspace) {
     this.blockSearcher.indexBlocks = rebuildSearchIndex;
     blockSearcher.indexedBlocks_ = workspace.flockSearchIndexedBlocks || null;
 
-    // Override only the search primitive — Blockly's native matchBlocks consumes it, so
-    // flyout rendering, screen-reader announcements and no-match labels stay upstream.
+    // Override only the search primitive — native matchBlocks consumes it, so flyout rendering
+    // and screen-reader announcements stay upstream; matchBlocks is wrapped below to localise
+    // the placeholder and no-match labels.
     blockSearcher.blockTypesMatching = (rawQuery) => {
       const q = (rawQuery || '').toLowerCase().trim();
       if (!q) return [];
