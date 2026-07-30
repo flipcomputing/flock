@@ -612,7 +612,7 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
   }
 
   if (pickedMesh && pickedMesh.name === 'ground') {
-    showStatus(positionStatus(pickedPoint), { duration: 10 });
+    showStatus(positionStatus(pickedPoint), { duration: 10, owner: 'position-readout' });
   }
   if (gizmoManager.attachedMesh) {
     resetChildMeshesOfAttachedMesh();
@@ -962,6 +962,8 @@ export function exitGizmoState() {
   stopAxisKeyboard = null;
   clearStatus('axis');
   clearStatus('camera');
+  // The readout belongs to the tool that took it; the next tool doesn't move it.
+  clearStatus('position-readout');
 
   // Run all queued cleanup functions
   runCleanups();
@@ -2346,7 +2348,10 @@ function handleSelectGizmo() {
     // A pick can land on a child; the attached mesh is the root owning the block.
     const attached = gizmoManager.attachedMesh;
     if (attached) {
-      showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), { duration: 10 });
+      showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), {
+        duration: 10,
+        owner: 'position-readout',
+      });
     }
     setTimeout(() => {
       if (!getCanvasCircle()) document.body.style.cursor = 'crosshair';

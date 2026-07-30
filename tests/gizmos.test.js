@@ -13,6 +13,7 @@ import {
   toggleGizmo,
   enableGizmos,
 } from '../ui/gizmos.js';
+import { showStatus, clearStatus } from '../ui/status.js';
 
 export function runGizmoTests(flock) {
   const BABYLON = flock.BABYLON;
@@ -252,6 +253,20 @@ export function runGizmoTests(flock) {
         mgr.positionGizmoEnabled = true;
         exitGizmoState();
         expect(mgr.positionGizmoEnabled).to.be.false;
+      });
+
+      it('clears the position readout, which the next tool would not update', function () {
+        const status = document.createElement('p');
+        status.id = 'gizmoStatus';
+        document.body.appendChild(status);
+        try {
+          showStatus('Position: x: 0.6 y: 1.2 z: 0', { owner: 'position-readout' });
+          exitGizmoState();
+          expect(status.textContent).to.equal('');
+        } finally {
+          clearStatus();
+          status.remove();
+        }
       });
     });
 
