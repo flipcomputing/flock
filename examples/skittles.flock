@@ -110,7 +110,7 @@
                     "type": "text",
                     "id": "tu226(eQzlW@;(uN)]~=",
                     "fields": {
-                      "TEXT": "🎳 A - left; D - right; SPACE  (4) - launch"
+                      "TEXT": "🎳 A/D or◁/▷ to move, Space/④ to launch"
                     }
                   }
                 },

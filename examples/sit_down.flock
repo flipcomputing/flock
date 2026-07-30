@@ -272,7 +272,7 @@
                                         "type": "text",
                                         "id": "dJc6LI4EGx*5S46FH16x",
                                         "fields": {
-                                          "TEXT": "👇🏾Click to sit 👇🏾"
+                                          "TEXT": "👇🏾Click/tap or E to sit 👇🏾"
                                         }
                                       }
                                     },
@@ -901,7 +901,7 @@
                             "type": "text",
                             "id": "=L-/-1HT`]edbp63Mo8Q",
                             "fields": {
-                              "TEXT": "Hold left mouse button down to look around"
+                              "TEXT": "Drag to look around"
                             }
                           }
                         },
@@ -934,7 +934,7 @@
                                 "type": "text",
                                 "id": "rDKLD?S[.4^HZ(g*vX^y",
                                 "fields": {
-                                  "TEXT": "W - forward; S backward; Space - Jump"
+                                  "TEXT": "W/S or △▽ to move; Space or ④ to jump"
                                 }
                               }
                             },

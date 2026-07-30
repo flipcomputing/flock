@@ -395,7 +395,7 @@
                     "type": "text",
                     "id": "Z2g^Bt(0*TmNc}^nbNZe",
                     "fields": {
-                      "TEXT": "Hold left mouse button down to look around"
+                      "TEXT": "Drag to look around"
                     }
                   }
                 },
@@ -428,7 +428,7 @@
                         "type": "text",
                         "id": "~?E$MF%owP=H8id=32=Z",
                         "fields": {
-                          "TEXT": "W - forward; S - backward; Space - Jump"
+                          "TEXT": "W/S or △▽ to move; Space or ④ to jump"
                         }
                       }
                     },
@@ -461,7 +461,7 @@
                             "type": "text",
                             "id": "3RA3-2iiSB%|d;5z7jEX",
                             "fields": {
-                              "TEXT": "Click on the musicbox to play music"
+                              "TEXT": "Click or tap the musicbox to play music"
                             }
                           }
                         },

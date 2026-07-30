@@ -292,7 +292,7 @@
                     "type": "text",
                     "id": ",RmOh]r6cN`Zy0pE[!@L",
                     "fields": {
-                      "TEXT": "Hold left mouse button down to look around"
+                      "TEXT": "Drag to look around"
                     }
                   }
                 },
@@ -325,7 +325,7 @@
                         "type": "text",
                         "id": "V8;_4T!B,V:$GY2AWQ*t",
                         "fields": {
-                          "TEXT": "W - forward; S - backward"
+                          "TEXT": "W/S or the △▽ pad to move"
                         }
                       }
                     },

@@ -1597,7 +1597,7 @@
                             "type": "text",
                             "id": "u,9!XafV3W,d!SW-*A{V",
                             "fields": {
-                              "TEXT": "Press space to board"
+                              "TEXT": "Press space or ④ to board"
                             }
                           }
                         },
@@ -1878,7 +1878,7 @@
                                                                     "type": "text",
                                                                     "id": "00YArH^y9!.NPet*ajJ6",
                                                                     "fields": {
-                                                                      "TEXT": "Find my home. Use WASD to move and drag mouse to pan."
+                                                                      "TEXT": "Find my home. WASD or △▽ to move; drag to pan."
                                                                     }
                                                                   }
                                                                 },
