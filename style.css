@@ -1112,19 +1112,36 @@ button {
   }
 }
 
-/* Narrow AND short: landscape at low resolutions (e.g. small laptop/tablet
-   windows) where there's no room beside the canvas to dock the info panel's
-   shortcuts panel. Portrait phones are narrow too, but tall enough that the
-   docked panel still fits, so this is scoped to landscape only. In this mode:
-   shortcuts open as a modal (.shortcuts-modal), the flock link moves into the
-   bottom bar, and Ctrl+B "area 5" drops out on its own (renderHighlights skips
-   0-size nodes). Selector is `aside#info-panel` (not just `#info-panel`) so it
-   out-specifies the base `#info-panel` rule, declared later in the file, which
-   would otherwise win the cascade. Must match the JS breakpoint used by
-   `isNarrowLayout()` in accessibility/keyboardui.js. */
+/* Landscape-only: at low resolutions there's no room beside the canvas to dock
+   the info panel (portrait is narrow too but tall enough to stay docked). Both
+   panels become modal and the flock link moves to the bottom bar. Must match
+   `isNarrowLayout()` in accessibility/keyboardui.js. `aside#info-panel`, not
+   `#info-panel`, is needed to out-specify the base rule further down the file. */
 @media (max-width: 1024px) and (orientation: landscape) {
+  /* contents, not none: children (the tab bar) still need to render, but shouldn't take a column in #canvasArea's row layout. */
   aside#info-panel {
+    display: contents;
+  }
+
+  #info-panel-body {
     display: none;
+  }
+
+  /* Fixed in the dead space below the gizmo block and above the bottom bar, so the canvas keeps its full height; ancestor-qualified for the same cascade reason as above. */
+  aside#info-panel #info-panel-tabs {
+    position: fixed;
+    /* Spans the canvas strip published as --canvas-width by resizeCanvas(); falls back to hugging the right edge before the first resize. */
+    left: var(--canvas-width, auto);
+    right: 0;
+    bottom: calc(52px + max(0px, env(safe-area-inset-bottom, 0px)));
+    z-index: 1001;
+    margin-bottom: 0;
+    justify-content: flex-end;
+  }
+
+  /* #bottombar-flocklink is the visible copy here (index.html); !important overrides the inline display showCanvasView() sets in main/view.js. */
+  #info-panel-tabs #flocklink {
+    display: none !important;
   }
 
   .bottombar-flocklink {

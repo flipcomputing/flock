@@ -5,12 +5,21 @@ import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 
-// Matches the CSS `(max-width: 1024px) and (orientation: landscape)` breakpoint
-// where the info panel is hidden and its shortcuts panel must be shown as a
-// modal instead of docked (see style.css). Portrait phones are narrow too but
-// tall enough for the docked panel to still fit, so landscape is required.
+// Must match the CSS breakpoint in style.css that hides the docked info panel.
 const isNarrowLayout = () =>
   window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
+
+// Measured: ~65px chrome plus ~40px per em per row; below 2 rows the modal reads better than a docked scroll.
+const MIN_DOCKED_ROWS = 2;
+const PANEL_CHROME_HEIGHT = 65;
+const ROW_HEIGHT_PER_EM = 40;
+
+// offsetHeight is 0 both when too short and when unmeasurable (hidden/jsdom); isNarrowLayout() already handles the hidden case.
+const isDockedAreaTooShort = (fontSize) => {
+  const height = document.getElementById('info-panel-body')?.offsetHeight ?? 0;
+  const needed = PANEL_CHROME_HEIGHT + MIN_DOCKED_ROWS * ROW_HEIGHT_PER_EM * fontSize;
+  return height > 0 && height < needed;
+};
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -675,7 +684,8 @@ const InfoPanel = {
     this._body = document.getElementById('info-panel-body');
   },
 
-  register(id, label) {
+  // owner.toggle(), not activate()/deactivate(), so the tab gets the same docked/modal logic as every other entry point.
+  register(id, label, owner) {
     const btn = document.createElement('button');
     btn.id = `info-tab-btn-${id}`;
     btn.className = 'info-tab-btn bigbutton';
@@ -683,7 +693,7 @@ const InfoPanel = {
     btn.setAttribute('aria-selected', 'false');
     btn.setAttribute('aria-controls', `info-tab-panel-${id}`);
     btn.textContent = label;
-    btn.addEventListener('click', () => this.toggle(id));
+    btn.addEventListener('click', () => (owner ? owner.toggle() : this.toggle(id)));
     this._tablist.appendChild(btn);
     const divider = document.createElement('div');
     divider.className = 'toolbar-divider';
@@ -715,6 +725,9 @@ const InfoPanel = {
     tab.btn.setAttribute('aria-selected', 'true');
     tab.btn.classList.add('active');
     tab.panel.classList.remove('hidden');
+    // All tab panels share this scroll container, so switching tabs must
+    // reset it or the new tab opens pre-scrolled to the old tab's position.
+    this._body.scrollTop = 0;
     tab.panel.focus();
   },
 
@@ -738,30 +751,166 @@ const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
 const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
+// Modal presentation shared by info-panel tabs; mixers must set _modalTitleId, _tabBtnId, _closeLabelKey.
+const ModalPanelBehaviour = {
+  shouldBeModal() {
+    return isNarrowLayout() || isDockedAreaTooShort(this.fontSize);
+  },
+
+  // Resize listener catches the media-query flip; ResizeObserver catches docked-area size changes without a window resize (e.g. play mode).
+  watchDockedSpace() {
+    const reevaluate = () => {
+      if (this.panel.classList.contains('hidden')) return;
+      if (this.shouldBeModal()) this.enterModal();
+      else if (this._modalActive) {
+        // exitModal() reparents the panel, which blurs whatever was focused even if that element survives the move; refocus it in place rather than jumping to previousFocus, which is only for the removed close button.
+        const active = document.activeElement;
+        const activeSurvives = this.panel.contains(active) && active !== this._closeBtn;
+        this.exitModal();
+        if (activeSurvives) {
+          active.focus();
+        } else {
+          this.previousFocus?.focus();
+          this.previousFocus = null;
+        }
+      }
+    };
+
+    window.addEventListener('resize', reevaluate);
+
+    const dockedArea = document.getElementById('info-panel-body');
+    if (dockedArea && typeof ResizeObserver !== 'undefined') {
+      // rAF-deferred: mutating the DOM inside the callback (enterModal reparents) trips "ResizeObserver loop completed with undelivered notifications".
+      new ResizeObserver(() => requestAnimationFrame(reevaluate)).observe(dockedArea);
+    }
+  },
+
+  // Reparent the panel to <body>, mark it a dialog, inert the rest of the page
+  // and trap focus. Reparenting is required so it escapes the info panel (which
+  // is display:none in narrow mode) and the canvas area's overflow clipping.
+  enterModal() {
+    if (this._modalActive) return;
+    this._modalActive = true;
+    const panel = this.panel;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'shortcuts-modal-backdrop';
+    backdrop.addEventListener('pointerdown', () => this.hide());
+    document.body.appendChild(backdrop);
+    this._backdrop = backdrop;
+
+    // Remember the docked location so we can put it back on close.
+    this._panelHome = panel.parentNode;
+    this._panelNextSibling = panel.nextSibling;
+    document.body.appendChild(panel);
+
+    panel.classList.add('shortcuts-modal');
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-labelledby', this._modalTitleId);
+
+    // Visible close control — there's no tab to click shut in modal mode, and
+    // Escape/backdrop aren't discoverable (and Escape isn't available on touch).
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'bigbutton shortcuts-modal-close';
+    closeBtn.setAttribute('aria-label', translate(this._closeLabelKey));
+    closeBtn.setAttribute('title', translate(this._closeLabelKey));
+    closeBtn.innerHTML = '<span aria-hidden="true">X</span>';
+    closeBtn.addEventListener('click', () => this.hide());
+    panel.querySelector('.shortcuts-panel-controls')?.appendChild(closeBtn);
+    this._closeBtn = closeBtn;
+
+    // Make everything else inert so SR/keyboard focus can't leave the dialog.
+    this._inertStates = new Map();
+    document.querySelectorAll('body > *').forEach((el) => {
+      if (el === panel || el === backdrop) return;
+      this._inertStates.set(el, el.inert);
+      el.inert = true;
+    });
+
+    this._trapHandler = (e) => this.trapFocus(e);
+    panel.addEventListener('keydown', this._trapHandler);
+
+    requestAnimationFrame(() => panel.focus());
+  },
+
+  exitModal() {
+    if (!this._modalActive) return;
+    this._modalActive = false;
+    const panel = this.panel;
+
+    panel.removeEventListener('keydown', this._trapHandler);
+    this._trapHandler = null;
+
+    this._inertStates?.forEach((wasInert, el) => (el.inert = wasInert));
+    this._inertStates = null;
+
+    panel.classList.remove('shortcuts-modal');
+    panel.setAttribute('role', 'tabpanel');
+    panel.removeAttribute('aria-modal');
+    panel.setAttribute('aria-labelledby', this._tabBtnId);
+
+    this._closeBtn?.remove();
+    this._closeBtn = null;
+
+    // Dock the panel back where it came from.
+    if (this._panelHome) {
+      this._panelHome.insertBefore(panel, this._panelNextSibling);
+      this._panelHome = null;
+      this._panelNextSibling = null;
+    }
+
+    this._backdrop?.remove();
+    this._backdrop = null;
+  },
+
+  focusableElements() {
+    return [
+      ...this.panel.querySelectorAll(
+        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      ),
+    ].filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0);
+  },
+
+  trapFocus(e) {
+    if (e.key !== 'Tab') return;
+    // Keep the app-level Tab manager (input.js) out of the dialog.
+    e.stopPropagation();
+    const focusables = this.focusableElements();
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (!first) {
+      e.preventDefault();
+      this.panel.focus();
+      return;
+    }
+    if (e.shiftKey && (active === first || active === this.panel)) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  },
+};
+
 const ShortcutsPanel = {
+  ...ModalPanelBehaviour,
   panel: null,
   previousFocus: null,
+  _modalTitleId: 'shortcuts-panel-title',
+  _tabBtnId: 'info-tab-btn-shortcuts',
+  _closeLabelKey: 'shortcut_panel_close',
   fontSize:
     parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
     this.setupListeners();
+    this.watchDockedSpace();
     window.flockShortcutsPanel = this;
-
-    // If the viewport crosses the breakpoint while the panel is open, switch it
-    // between docked and modal so it never ends up docked in a hidden panel.
-    window.addEventListener('resize', () => {
-      if (this.panel.classList.contains('hidden')) return;
-      if (isNarrowLayout() && !this._modalActive) this.enterModal();
-      else if (!isNarrowLayout() && this._modalActive) {
-        // exitModal() itself doesn't restore focus (unlike hide(), which calls
-        // it and then does this) — without it, closing the modal this way (e.g.
-        // rotating the device) can leave focus on the just-removed close button.
-        this.exitModal();
-        this.previousFocus?.focus();
-      }
-    });
   },
 
   adjustFontSize(delta) {
@@ -777,7 +926,7 @@ const ShortcutsPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('shortcuts', translate('shortcut_panel_title'));
+    const panel = InfoPanel.register('shortcuts', translate('shortcut_panel_title'), this);
     const btn = document.getElementById('info-tab-btn-shortcuts');
     btn.setAttribute('aria-label', translate('shortcut_panel_title'));
     btn.setAttribute('title', translate('shortcut_panel_title'));
@@ -836,7 +985,7 @@ const ShortcutsPanel = {
     this.previousFocus = document.activeElement;
     InfoPanel.activate('shortcuts');
     document.getElementById('shortcutsBtn')?.classList.add('active');
-    if (isNarrowLayout()) this.enterModal();
+    if (this.shouldBeModal()) this.enterModal();
   },
 
   refreshTranslations() {
@@ -855,121 +1004,13 @@ const ShortcutsPanel = {
     this.panel.classList.contains('hidden') ? this.show() : this.hide();
   },
 
-  // --- Modal presentation (narrow layouts where the docked panel has no room) ---
-
-  // Reparent the panel to <body>, mark it a dialog, inert the rest of the page
-  // and trap focus. Reparenting is required so it escapes the info panel (which
-  // is display:none in narrow mode) and the canvas area's overflow clipping.
-  enterModal() {
-    if (this._modalActive) return;
-    this._modalActive = true;
-    const panel = this.panel;
-
-    const backdrop = document.createElement('div');
-    backdrop.className = 'shortcuts-modal-backdrop';
-    backdrop.addEventListener('pointerdown', () => this.hide());
-    document.body.appendChild(backdrop);
-    this._backdrop = backdrop;
-
-    // Remember the docked location so we can put it back on close.
-    this._panelHome = panel.parentNode;
-    this._panelNextSibling = panel.nextSibling;
-    document.body.appendChild(panel);
-
-    panel.classList.add('shortcuts-modal');
-    panel.setAttribute('role', 'dialog');
-    panel.setAttribute('aria-modal', 'true');
-    panel.setAttribute('aria-labelledby', 'shortcuts-panel-title');
-
-    // Visible close control — there's no tab to click shut in modal mode, and
-    // Escape/backdrop aren't discoverable (and Escape isn't available on touch).
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'bigbutton shortcuts-modal-close';
-    closeBtn.setAttribute('aria-label', translate('shortcut_panel_close'));
-    closeBtn.setAttribute('title', translate('shortcut_panel_close'));
-    closeBtn.innerHTML = '<span aria-hidden="true">X</span>';
-    closeBtn.addEventListener('click', () => this.hide());
-    panel.querySelector('.shortcuts-panel-controls')?.appendChild(closeBtn);
-    this._closeBtn = closeBtn;
-
-    // Make everything else inert so SR/keyboard focus can't leave the dialog.
-    this._inertStates = new Map();
-    document.querySelectorAll('body > *').forEach((el) => {
-      if (el === panel || el === backdrop) return;
-      this._inertStates.set(el, el.inert);
-      el.inert = true;
-    });
-
-    this._trapHandler = (e) => this.trapFocus(e);
-    panel.addEventListener('keydown', this._trapHandler);
-
-    requestAnimationFrame(() => panel.focus());
-  },
-
-  exitModal() {
-    if (!this._modalActive) return;
-    this._modalActive = false;
-    const panel = this.panel;
-
-    panel.removeEventListener('keydown', this._trapHandler);
-    this._trapHandler = null;
-
-    this._inertStates?.forEach((wasInert, el) => (el.inert = wasInert));
-    this._inertStates = null;
-
-    panel.classList.remove('shortcuts-modal');
-    panel.setAttribute('role', 'tabpanel');
-    panel.removeAttribute('aria-modal');
-    panel.setAttribute('aria-labelledby', 'info-tab-btn-shortcuts');
-
-    this._closeBtn?.remove();
-    this._closeBtn = null;
-
-    // Dock the panel back where it came from.
-    if (this._panelHome) {
-      this._panelHome.insertBefore(panel, this._panelNextSibling);
-      this._panelHome = null;
-      this._panelNextSibling = null;
-    }
-
-    this._backdrop?.remove();
-    this._backdrop = null;
-  },
-
-  focusableElements() {
-    return [
-      ...this.panel.querySelectorAll(
-        'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      ),
-    ].filter((el) => el.offsetWidth > 0 || el.offsetHeight > 0);
-  },
-
-  trapFocus(e) {
-    if (e.key !== 'Tab') return;
-    // Keep the app-level Tab manager (input.js) out of the dialog.
-    e.stopPropagation();
-    const focusables = this.focusableElements();
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    const active = document.activeElement;
-    if (!first) {
-      e.preventDefault();
-      this.panel.focus();
-      return;
-    }
-    if (e.shiftKey && (active === first || active === this.panel)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  },
-
   setupListeners() {
     this.panel.addEventListener('keydown', (e) => {
-      const scroller = document.getElementById('info-panel-body');
+      // Modal mode reparents the panel to <body> and makes it the scroll
+      // container itself; #info-panel-body only scrolls in docked mode.
+      const scroller = this._modalActive
+        ? this.panel
+        : document.getElementById('info-panel-body');
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         scroller?.scrollBy({ top: -100, behavior: 'instant' });
@@ -1097,28 +1138,25 @@ function getPlayerControls() {
 }
 
 // On-screen and gamepad counterpart to ShortcutsPanel: a second info panel tab.
-// Docked-only — narrow landscape hides #info-panel outright (along with this
-// tab), so there's no modal counterpart to fall back to.
 const PlayerPanel = {
+  ...ModalPanelBehaviour,
   panel: null,
   previousFocus: null,
+  _modalTitleId: 'player-panel-title',
+  _tabBtnId: 'info-tab-btn-player',
+  _closeLabelKey: 'close',
   fontSize:
     parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
     this.setupListeners();
+    this.watchDockedSpace();
     window.flockPlayerPanel = this;
-
-    // Rotating into narrow landscape hides the info panel mid-view, which would
-    // leave this panel marked active but invisible.
-    window.addEventListener('resize', () => {
-      if (isNarrowLayout() && !this.panel.classList.contains('hidden')) this.hide();
-    });
   },
 
   createPanel() {
-    const panel = InfoPanel.register('player', translate('player_section_onscreen'));
+    const panel = InfoPanel.register('player', translate('player_section_onscreen'), this);
     const btn = document.getElementById('info-tab-btn-player');
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
     panel.innerHTML = `
@@ -1201,6 +1239,7 @@ const PlayerPanel = {
     this.renderContent();
     this.previousFocus = document.activeElement;
     InfoPanel.activate('player');
+    if (this.shouldBeModal()) this.enterModal();
   },
 
   refreshTranslations() {
@@ -1208,6 +1247,7 @@ const PlayerPanel = {
   },
 
   hide() {
+    this.exitModal();
     this.previousFocus?.focus();
     this.previousFocus = null;
     InfoPanel.deactivate('player');
@@ -1219,11 +1259,26 @@ const PlayerPanel = {
 
   setupListeners() {
     this.panel.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
-      e.preventDefault();
-      e.stopPropagation();
-      this.hide();
-      document.getElementById('info-tab-btn-player')?.focus();
+      // Modal mode reparents the panel to <body> and makes it the scroll
+      // container itself; #info-panel-body only scrolls in docked mode.
+      const scroller = this._modalActive
+        ? this.panel
+        : document.getElementById('info-panel-body');
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        scroller?.scrollBy({ top: -100, behavior: 'instant' });
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        scroller?.scrollBy({ top: 100, behavior: 'instant' });
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hide();
+        const tabBtn = document.getElementById('info-tab-btn-player');
+        if (tabBtn?.offsetParent) tabBtn.focus();
+      }
     });
   },
 };
