@@ -61,7 +61,7 @@
                         "type": "text",
                         "id": "q#2HdQVy5|iCa}/7.qj4",
                         "fields": {
-                          "TEXT": "Hold left mouse button down to look around"
+                          "TEXT": "Drag to look around"
                         }
                       }
                     },
@@ -94,7 +94,7 @@
                             "type": "text",
                             "id": "_~xhmp6j9|RPs_!8A|8z",
                             "fields": {
-                              "TEXT": "W: Forward, S: Backward, Space: Jump"
+                              "TEXT": "W/S or △▽ to move; Space or ④ to jump"
                             }
                           }
                         },
