@@ -1747,7 +1747,6 @@ class CustomColorPicker {
     return brightness > 128 ? '#000000' : '#ffffff';
   }
 
-  // Keep the indicator fully inside the wheel (accounts for its own size + outline)
   // Keep the indicator fully inside the ring (accounts for its size & border)
   _indicatorPad() {
     const el = this.colorWheelIndicator;

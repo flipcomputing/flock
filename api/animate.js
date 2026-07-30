@@ -1443,9 +1443,7 @@ export const flockAnimate = {
       previousGroup !== retargetedGroup &&
       mesh._animationEverPlayed;
     if (shouldBlend) {
-      // Always stop the outgoing animation immediately and freeze its pose as a
-      // snapshot. Letting a live animation continue to drive bones (e.g.
-      // oscillating antennae) during the weight fade causes jitter.
+      // Always stop the outgoing animation immediately and freeze its pose
       if (outgoingGroup) {
         outgoingGroup.stop();
       }
@@ -1780,9 +1778,6 @@ export const flockAnimate = {
       previousGroup !== targetAnimationGroup &&
       skeletonMesh?._animationEverPlayed;
     if (shouldBlend) {
-      // Always stop the outgoing animation immediately and freeze its pose as a
-      // snapshot. Letting a live animation continue to drive bones (e.g.
-      // oscillating antennae) during the weight fade causes jitter.
       if (outgoingGroup) {
         outgoingGroup.stop();
       }

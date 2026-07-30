@@ -213,9 +213,8 @@ export const flock = {
     ) {
       key = 'recursion_too_deep';
     }
-    // One fault can fire in a burst — a stack-overflow cascade surfaces several
-    // times, and a per-frame loop error repeats endlessly. Collapse identical
-    // reports within a short window.
+    // One fault can fire in a burst (stack-overflow cascade, per-frame loop error), so
+    // collapse within a short window when key, API and message match (`values` is not compared).
     const now = Date.now();
     const sig = `${key}\0${api ?? ''}\0${safe?.message ?? ''}`;
     if (sig === flock._lastErrorSig && now - flock._lastErrorAt < 1000) {
@@ -232,11 +231,9 @@ export const flock = {
       // a broken listener must not break the swallow path
     }
   },
-  // User code can throw any value, including an object whose name/message/stack
-  // getters throw or return non-strings. Read each once, defensively, into a
-  // plain Error so host handlers touch only safe primitives. (A getter that
-  // hangs rather than throws can't be defended against — that's a self-inflicted
-  // hang, like any infinite loop in user code.)
+  // User code can throw any value, including one whose name/message/stack getters throw or
+  // return non-strings. Read each once into a plain Error so host handlers see only safe
+  // primitives. A getter that hangs is undefendable — that's user code hanging itself.
   sanitizeError(error) {
     const read = (get) => {
       try {
@@ -301,9 +298,7 @@ export const flock = {
 
     return errorContext;
   },
-  // Prune disposed entries and auto-recycle the oldest live instance
-  // when the per-key cap is hit. Used by all mesh creation paths.
-  // Only active when flock.meshRecyclingEnabled is true.
+  // Used by all mesh creation paths; inert unless flock.meshRecyclingEnabled.
   _recycleOldestByKey(key) {
     if (!flock.meshRecyclingEnabled) return;
     if (!flock._modelInstances) flock._modelInstances = Object.create(null);
@@ -2383,20 +2378,12 @@ export const flock = {
   },
   removeEventListeners() {},
   whenModelReady(id, callback) {
-    // Capture the current run's abort signal now. Guards must check this
-    // captured signal, never flock.abortController re-read at settle time:
-    // stopping a run aborts and replaces the controller, so a late-settling
-    // promise from the old run would see the new run's (unaborted) signal
-    // and run its stale callback into the new scene.
+    // Capture the signal now, never re-read flock.abortController at settle time: stopping a
+    // run replaces the controller, so a late promise would see the new run's unaborted signal.
     const signal = flock.abortController?.signal;
 
-    // --- Registry fast path ---
-    // Steady-state O(1): once a name has resolved to a live mesh it is
-    // cached in _liveNameCache (by announceMeshReady or a previous call
-    // here). A miss — or a stale entry whose mesh was disposed — falls
-    // through to the full lookup below, so worst case is the existing
-    // behaviour. Sentinel ids (__active_camera__/__main_light__) are never
-    // cached, so they take the normal path.
+    // Fast path: _liveNameCache. A miss, or a stale entry whose mesh was disposed, falls
+    // through to the full lookup. Sentinel ids are never cached, so they take the normal path.
     const cached = flock._ambiguousLiveNames?.has(id) ? null : flock._liveNameCache.get(id);
     if (cached) {
       if (cached.isDisposed()) {
@@ -2428,20 +2415,13 @@ export const flock = {
       rejectP = reject;
     });
 
-    // The callback often does async setup (e.g. awaiting materials,
-    // loading textures, or chaining other whenModelReady calls).
-    // Await it so the readiness promise only resolves once that
-    // user-provided async work is finished.
     const settle = async (val) => {
       if (settled) return;
       settled = true;
       try {
-        // Cache the resolved target (meshes only) so subsequent lookups of
-        // this id — including pre-sanitization aliases — skip the scans
-        // below and take the registry fast path.
+        // Cache the resolved target (meshes only) so later lookups take the fast path.
         flock._registerLiveName(id, val);
-        // Await the callback so the readiness promise doesn't resolve
-        // before user async work completes (premature resolution).
+        // Await the callback so the promise doesn't resolve before user async work completes.
         if (typeof callback === 'function') await callback(val);
         resolveP(val);
       } catch (error) {
@@ -2465,21 +2445,16 @@ export const flock = {
       return t ?? null;
     };
 
-    // --- Fast paths ---
-    // Runs at call time and again when a late-arriving scene appears (the
-    // rAF wait below), since the target may already be present by then.
+    // Runs at call time and again when a late-arriving scene appears (the rAF wait below).
     // Returns true when a path claimed the lookup and will settle.
     const tryFastPaths = () => {
-      // Check if there's a pending promise for this mesh first
-      // This ensures we wait for geometry to be attached before returning
+      // Prefer a pending promise, so we wait for geometry to be attached.
       if (flock.modelReadyPromises.has(id)) {
         const pendingPromise = flock.modelReadyPromises.get(id);
         pendingPromise
           .then((resolvedMesh) => {
-            // Re-locate after promise resolves to get mesh with geometry.
-            // Fall back to the resolved mesh value for alias lookups where
-            // id is the pre-sanitization name (e.g. "dimnnd monkey") but
-            // the actual mesh is named differently ("dimnndmonkey").
+            // Re-locate for geometry; fall back to the resolved mesh for alias lookups where
+            // id is the pre-sanitization name ("dimnnd monkey" vs "dimnndmonkey").
             const meshWithGeometry = locate() ?? resolvedMesh ?? null;
             if (!signal?.aborted) void settle(meshWithGeometry);
           })
@@ -2499,14 +2474,9 @@ export const flock = {
         }
       }
 
-      // --- Normalize-as-fallback for createCharacter/createObject names ---
-      // createCharacter and createObject strip special characters from names
-      // (e.g. "dimnnd monkey" → "dimnndmonkey"). createBox/createSphere etc.
-      // do NOT sanitize, so "centre platform" stays "centre platform". We must
-      // NOT apply normalization upfront or those box lookups break.
-      // Instead: only redirect to the normalized id when the exact id is absent
-      // but the normalized form IS present in modelReadyPromises or the scene.
-      // This also handles the stale-alias case (after the 5s TTL cleanup).
+      // createCharacter/createObject strip special characters but createBox etc. do not, so
+      // normalizing upfront would break box lookups ("centre platform" stays as typed). Only
+      // redirect to the normalized id when the exact one is absent.
       if (id && !id.startsWith('__')) {
         let norm = id.includes('__') ? id.split('__')[0] : id;
         norm = norm.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -2585,10 +2555,9 @@ export const flock = {
         return;
       }
 
-      // main light — a plain flock property with no assignment event, so
-      // check per frame until it appears (mirrors the attachGui pattern).
-      // Mesh/GUI observers below could never match a light, so without
-      // this a waiter would pend until scene dispose.
+      // main light — a plain property with no assignment event, so poll per frame. The
+      // mesh/GUI observers below can never match a light, so without this a waiter pends
+      // until scene dispose.
       if (id === '__main_light__') {
         const lightNow = flock.mainLight;
         if (lightNow) {
@@ -2619,14 +2588,8 @@ export const flock = {
             finish(mesh);
             return;
           }
-          // Handle the case where this observer was set up before
-          // createCharacter ran. createCharacter registers the
-          // pre-sanitization name (e.g. "dimnnd monkey") in
-          // modelReadyPromises pointing to the same promise as the
-          // sanitized name ("dimnndmonkey"). When any mesh is added
-          // to the scene (triggering this callback), check whether id
-          // is now in modelReadyPromises and if so switch to waiting
-          // for that promise instead.
+          // This observer may predate createCharacter registering id's pre-sanitization
+          // alias, so re-check modelReadyPromises and switch to that promise if it appeared.
           if (flock.modelReadyPromises?.has(id)) {
             done = true;
             while (disposers.length) {
