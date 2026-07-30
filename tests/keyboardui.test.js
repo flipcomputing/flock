@@ -493,6 +493,7 @@ export function runKeyboardUiTests(flock) {
           const closeBtn = ShortcutsPanel.panel.querySelector('.shortcuts-modal-close');
           closeBtn.focus();
           expect(document.activeElement).to.equal(closeBtn);
+          const expectedFocus = ShortcutsPanel.previousFocus;
 
           window.matchMedia = () => ({ matches: false });
           try {
@@ -501,7 +502,32 @@ export function runKeyboardUiTests(flock) {
             window.matchMedia = saved;
           }
           expect(ShortcutsPanel._modalActive).to.equal(false);
-          expect(document.activeElement).to.equal(ShortcutsPanel.previousFocus);
+          expect(document.activeElement).to.equal(expectedFocus);
+          expect(ShortcutsPanel.previousFocus).to.equal(null);
+        });
+
+        it('leaves focus on a surviving control when exiting modal on resize', function () {
+          const saved = window.matchMedia;
+          window.matchMedia = () => ({ matches: true });
+          try {
+            ShortcutsPanel.show();
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(true);
+          const increaseBtn = ShortcutsPanel.panel.querySelector('.shortcuts-increase-btn');
+          increaseBtn.focus();
+          expect(document.activeElement).to.equal(increaseBtn);
+
+          window.matchMedia = () => ({ matches: false });
+          try {
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(false);
+          expect(document.activeElement).to.equal(increaseBtn);
         });
       });
 

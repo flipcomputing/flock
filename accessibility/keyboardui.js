@@ -5,24 +5,16 @@ import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 
-// Matches the CSS `(max-width: 1024px) and (orientation: landscape)` breakpoint
-// where the info panel is hidden and its shortcuts panel must be shown as a
-// modal instead of docked (see style.css).
+// Must match the CSS breakpoint in style.css that hides the docked info panel.
 const isNarrowLayout = () =>
   window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
 
-// Docking is only worth it if a couple of control rows fit; below that the panel
-// scrolls one entry at a time (an iPhone SE in portrait leaves ~130px) and the
-// modal reads better. Measured row height is ~40px per em of the panel's
-// font-size control, on top of its 1em padding and header.
+// Measured: ~65px chrome plus ~40px per em per row; below 2 rows the modal reads better than a docked scroll.
 const MIN_DOCKED_ROWS = 2;
 const PANEL_CHROME_HEIGHT = 65;
 const ROW_HEIGHT_PER_EM = 40;
 
-// #info-panel-body is `flex: 1`, so this measures the space the layout allots it
-// rather than its content, and stays valid while a panel is reparented out to
-// modal. Height 0 means unmeasurable (display:none, jsdom) — isNarrowLayout()
-// already covers the hidden case, so don't treat it as short here.
+// offsetHeight is 0 both when too short and when unmeasurable (hidden/jsdom); isNarrowLayout() already handles the hidden case.
 const isDockedAreaTooShort = (fontSize) => {
   const height = document.getElementById('info-panel-body')?.offsetHeight ?? 0;
   const needed = PANEL_CHROME_HEIGHT + MIN_DOCKED_ROWS * ROW_HEIGHT_PER_EM * fontSize;
@@ -692,9 +684,7 @@ const InfoPanel = {
     this._body = document.getElementById('info-panel-body');
   },
 
-  // `owner` is the panel object. Route the tab through its toggle() so clicking
-  // the tab gets the same presentation logic (docked vs modal) as every other
-  // entry point; activate()/deactivate() alone only swap DOM classes.
+  // owner.toggle(), not activate()/deactivate(), so the tab gets the same docked/modal logic as every other entry point.
   register(id, label, owner) {
     const btn = document.createElement('button');
     btn.id = `info-tab-btn-${id}`;
@@ -735,6 +725,9 @@ const InfoPanel = {
     tab.btn.setAttribute('aria-selected', 'true');
     tab.btn.classList.add('active');
     tab.panel.classList.remove('hidden');
+    // All tab panels share this scroll container, so switching tabs must
+    // reset it or the new tab opens pre-scrolled to the old tab's position.
+    this._body.scrollTop = 0;
     tab.panel.focus();
   },
 
@@ -758,29 +751,28 @@ const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
 const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
-// Modal presentation shared by the info-panel tabs. Mixing panels must set
-// _modalTitleId, _tabBtnId and _closeLabelKey.
+// Modal presentation shared by info-panel tabs; mixers must set _modalTitleId, _tabBtnId, _closeLabelKey.
 const ModalPanelBehaviour = {
   shouldBeModal() {
     return isNarrowLayout() || isDockedAreaTooShort(this.fontSize);
   },
 
-  // Keep an open panel on the right side of the breakpoint so it never ends up
-  // docked in an info panel that is hidden or too short to read it in. The
-  // docked area also changes without a window resize — play mode hides the
-  // gizmo bar, the Canvas/Code toggle, the splitter — so observe the element
-  // itself, and keep the resize listener for the media-query flip (a panel
-  // going display:none has no box for ResizeObserver to report on).
+  // Resize listener catches the media-query flip; ResizeObserver catches docked-area size changes without a window resize (e.g. play mode).
   watchDockedSpace() {
     const reevaluate = () => {
       if (this.panel.classList.contains('hidden')) return;
       if (this.shouldBeModal()) this.enterModal();
       else if (this._modalActive) {
-        // exitModal() itself doesn't restore focus (unlike hide(), which calls
-        // it and then does this) — without it, closing the modal this way (e.g.
-        // rotating the device) can leave focus on the just-removed close button.
+        // exitModal() reparents the panel, which blurs whatever was focused even if that element survives the move; refocus it in place rather than jumping to previousFocus, which is only for the removed close button.
+        const active = document.activeElement;
+        const activeSurvives = this.panel.contains(active) && active !== this._closeBtn;
         this.exitModal();
-        this.previousFocus?.focus();
+        if (activeSurvives) {
+          active.focus();
+        } else {
+          this.previousFocus?.focus();
+          this.previousFocus = null;
+        }
       }
     };
 
@@ -788,9 +780,7 @@ const ModalPanelBehaviour = {
 
     const dockedArea = document.getElementById('info-panel-body');
     if (dockedArea && typeof ResizeObserver !== 'undefined') {
-      // Deferred: enterModal() reparents the panel, and mutating the DOM inside
-      // the callback trips "ResizeObserver loop completed with undelivered
-      // notifications".
+      // rAF-deferred: mutating the DOM inside the callback (enterModal reparents) trips "ResizeObserver loop completed with undelivered notifications".
       new ResizeObserver(() => requestAnimationFrame(reevaluate)).observe(dockedArea);
     }
   },
@@ -1016,7 +1006,11 @@ const ShortcutsPanel = {
 
   setupListeners() {
     this.panel.addEventListener('keydown', (e) => {
-      const scroller = document.getElementById('info-panel-body');
+      // Modal mode reparents the panel to <body> and makes it the scroll
+      // container itself; #info-panel-body only scrolls in docked mode.
+      const scroller = this._modalActive
+        ? this.panel
+        : document.getElementById('info-panel-body');
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         scroller?.scrollBy({ top: -100, behavior: 'instant' });
@@ -1265,7 +1259,11 @@ const PlayerPanel = {
 
   setupListeners() {
     this.panel.addEventListener('keydown', (e) => {
-      const scroller = document.getElementById('info-panel-body');
+      // Modal mode reparents the panel to <body> and makes it the scroll
+      // container itself; #info-panel-body only scrolls in docked mode.
+      const scroller = this._modalActive
+        ? this.panel
+        : document.getElementById('info-panel-body');
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         scroller?.scrollBy({ top: -100, behavior: 'instant' });

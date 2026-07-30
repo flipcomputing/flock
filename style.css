@@ -1112,19 +1112,13 @@ button {
   }
 }
 
-/* Narrow AND short: landscape at low resolutions (e.g. small laptop/tablet
-   windows) where there's no room beside the canvas to dock the info panel's
-   shortcuts panel. Portrait phones are narrow too, but tall enough that the
-   docked panel still fits, so this is scoped to landscape only. In this mode
-   both panels open as a modal (.shortcuts-modal) and the flock link moves into
-   the bottom bar. Selector is `aside#info-panel` (not just `#info-panel`) so it
-   out-specifies the base `#info-panel` rule, declared later in the file, which
-   would otherwise win the cascade. Must match the JS breakpoint used by
-   `isNarrowLayout()` in accessibility/keyboardui.js. */
+/* Landscape-only: at low resolutions there's no room beside the canvas to dock
+   the info panel (portrait is narrow too but tall enough to stay docked). Both
+   panels become modal and the flock link moves to the bottom bar. Must match
+   `isNarrowLayout()` in accessibility/keyboardui.js. `aside#info-panel`, not
+   `#info-panel`, is needed to out-specify the base rule further down the file. */
 @media (max-width: 1024px) and (orientation: landscape) {
-  /* `contents`, not `none`: the tab bar is the only way to open either panel
-     here, so the panel must keep rendering its children — but must not take a
-     column of its own in #canvasArea's row layout. */
+  /* contents, not none: children (the tab bar) still need to render, but shouldn't take a column in #canvasArea's row layout. */
   aside#info-panel {
     display: contents;
   }
@@ -1133,14 +1127,10 @@ button {
     display: none;
   }
 
-  /* Park the tabs in the dead space below the docked gizmo block and above the
-     bottom bar. Fixed, so the height-bound canvas gives up nothing for them.
-     Qualified with the ancestor for the same cascade reason as above: the base
-     #info-panel-tabs rule sets background/border-top further down the file. */
+  /* Fixed in the dead space below the gizmo block and above the bottom bar, so the canvas keeps its full height; ancestor-qualified for the same cascade reason as above. */
   aside#info-panel #info-panel-tabs {
     position: fixed;
-    /* Spans the strip beside the canvas, whose edge resizeCanvas() publishes as
-       --canvas-width. Falls back to hugging the right before the first resize. */
+    /* Spans the canvas strip published as --canvas-width by resizeCanvas(); falls back to hugging the right edge before the first resize. */
     left: var(--canvas-width, auto);
     right: 0;
     bottom: calc(52px + max(0px, env(safe-area-inset-bottom, 0px)));
@@ -1149,9 +1139,7 @@ button {
     justify-content: flex-end;
   }
 
-  /* #bottombar-flocklink is the visible copy in this layout (see index.html),
-     so keep this one out of the a11y tree rather than showing it twice.
-     !important because showCanvasView() in main/view.js sets display inline. */
+  /* #bottombar-flocklink is the visible copy here (index.html); !important overrides the inline display showCanvasView() sets in main/view.js. */
   #info-panel-tabs #flocklink {
     display: none !important;
   }
