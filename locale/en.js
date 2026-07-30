@@ -1344,6 +1344,9 @@ export default {
   toolbar_redo_ui: 'Redo',
   toolbar_zoom_out_ui: 'Zoom out',
   toolbar_zoom_in_ui: 'Zoom in',
+  // Touch controls panel
+  touch_panel_title: 'Touch Controls',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Keyboard Controls',
   shortcut_panel_close: 'Close keyboard shortcuts',

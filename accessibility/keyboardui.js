@@ -781,7 +781,7 @@ const ShortcutsPanel = {
     const btn = document.getElementById('info-tab-btn-shortcuts');
     btn.setAttribute('aria-label', translate('shortcut_panel_title'));
     btn.setAttribute('title', translate('shortcut_panel_title'));
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zM175.1 224l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zm-72 32c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm128 0c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16l16 0c8.8 0 16 7.2 16 16l0 16zm72-32l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16zM80 336c0-8.8 7.2-16 16-16l288 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-288 0c-8.8 0-16-7.2-16-16l0-16zm336-16l16 0c8.8 0 16 7.2 16 16l0 16c0 8.8-7.2 16-16 16l-16 0c-8.8 0-16-7.2-16-16l0-16c0-8.8 7.2-16 16-16z"/></svg></div>`;
+    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zm16 64l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80-176c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM160 336c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16l0-32zM272 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM256 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM368 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM352 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM464 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="shortcuts-panel-title" class="shortcuts-panel-title"></h2>
@@ -991,12 +991,84 @@ const ShortcutsPanel = {
   },
 };
 
+// Touch equivalent of ShortcutsPanel: a second info panel tab. Docked-only —
+// narrow landscape hides #info-panel outright (along with this tab), so there's
+// no modal counterpart to fall back to.
+const TouchPanel = {
+  panel: null,
+
+  init() {
+    this.createPanel();
+    this.setupListeners();
+    window.flockTouchPanel = this;
+
+    // Rotating into narrow landscape hides the info panel mid-view, which would
+    // leave this panel marked active but invisible.
+    window.addEventListener('resize', () => {
+      if (isNarrowLayout() && !this.panel.classList.contains('hidden')) this.hide();
+    });
+  },
+
+  createPanel() {
+    const panel = InfoPanel.register('touch', translate('touch_panel_title'));
+    const btn = document.getElementById('info-tab-btn-touch');
+    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
+    panel.innerHTML = `
+        <div class="shortcuts-panel-header">
+          <h2 id="touch-panel-title" class="shortcuts-panel-title"></h2>
+        </div>
+        <div id="touch-list"></div>
+      `;
+    this.panel = panel;
+    this.renderContent();
+  },
+
+  renderContent() {
+    const title = translate('touch_panel_title');
+    const btn = document.getElementById('info-tab-btn-touch');
+    btn.setAttribute('aria-label', title);
+    btn.setAttribute('title', title);
+    this.panel.querySelector('#touch-panel-title').textContent = title;
+  },
+
+  show() {
+    this.renderContent();
+    this.previousFocus = document.activeElement;
+    InfoPanel.activate('touch');
+  },
+
+  refreshTranslations() {
+    this.renderContent();
+  },
+
+  hide() {
+    this.previousFocus?.focus();
+    this.previousFocus = null;
+    InfoPanel.deactivate('touch');
+  },
+
+  toggle() {
+    this.panel.classList.contains('hidden') ? this.show() : this.hide();
+  },
+
+  setupListeners() {
+    this.panel.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      this.hide();
+      document.getElementById('info-tab-btn-touch')?.focus();
+    });
+  },
+};
+
 // Start it up
 AreaManager.init();
 GizmoMenuManager.init();
 if (document.getElementById('info-panel-tabs')) {
   InfoPanel.init();
   ShortcutsPanel.init();
+  TouchPanel.init();
 }
 
-export { InfoPanel, ShortcutsPanel, GizmoMenuManager, AreaManager };
+export { InfoPanel, ShortcutsPanel, TouchPanel, GizmoMenuManager, AreaManager };
