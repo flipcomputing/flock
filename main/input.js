@@ -83,6 +83,15 @@ export function setupInput() {
         pushUnique(shortcutsTabPanel);
         shortcutsTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
+
+      pushUnique(document.querySelector('#info-tab-btn-player'));
+
+      const playerTabPanel = document.getElementById('info-tab-panel-player');
+      if (playerTabPanel && !playerTabPanel.classList.contains('hidden')) {
+        pushUnique(playerTabPanel);
+        playerTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
+
       pushUnique(document.querySelector('#info-panel-link'));
 
       // View toggle in canvas mode — after the logo link, before the resizer
