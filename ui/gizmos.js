@@ -1344,9 +1344,14 @@ function positionStatus(position) {
   const [before = '', after = ''] = translate('position_readout').split('{position}');
   const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
     { text: i ? ' ' : '' },
-    { text: axis, bold: true },
-    { text: ': ' },
-    { text: String(roundToOneDecimal(position?.[axis] ?? 0)), borderColor: AXIS_HEX[axis] },
+    {
+      barColor: AXIS_HEX[axis],
+      parts: [
+        { text: axis, bold: true },
+        { text: ': ' },
+        { text: String(roundToOneDecimal(position?.[axis] ?? 0)) },
+      ],
+    },
   ]);
   return [{ text: before }, ...axes, { text: after }];
 }

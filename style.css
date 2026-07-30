@@ -717,29 +717,24 @@ button {
   font-weight: bold;
 }
 
-/* One coordinate, styled like the value field on a block. Border colour is set
-   inline, from AXIS_HEX. */
-.gizmo-status__pill {
+.gizmo-status__reading {
   display: inline-block;
-  padding: 0 5px;
-  border: 2px solid;
-  border-radius: 999px;
-  /* Digits are cap-height against the labels' x-height, so they read bigger at
-     a matching size. */
-  font-size: 0.9em;
-  line-height: 1.25;
-  background: var(--color-bg);
-  color: var(--color-text);
-  /* Steady size and digit width, so 0.6 -> 0 doesn't shift the pills beside it. */
-  box-sizing: border-box;
-  min-width: 2.75rem;
-  text-align: center;
+  /* Steady width and digit width, so 1.2 -> 0 doesn't shift the axis beside it. */
+  min-width: 4.5rem;
   font-variant-numeric: tabular-nums;
 }
 
-/* Separate from #gizmoButtons's own display (toggled directly via inline
-   style in view.js for show/hide) so the mobile layout below can safely
-   switch this to a grid without an inline style winning the cascade. */
+/* --axis-color is set inline, from AXIS_HEX. */
+.gizmo-status__reading::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 0.95em;
+  margin-right: 6px;
+  vertical-align: -0.12em;
+  background: var(--axis-color);
+}
+
 .gizmo-buttons-inner {
   display: flex;
   flex-wrap: wrap;

@@ -95,28 +95,24 @@ export function runStatusTests() {
       expect(element.textContent).to.equal('Later');
     });
 
-    it('applies the axis and pill classes and the inline border colour', function () {
+    it('groups a reading behind its rule and keeps the axis bold', function () {
       showStatus([
         { text: 'Position: ' },
-        { text: 'x', bold: true },
-        { text: ': ' },
-        { text: '-5.3', borderColor: '#0072B2' },
+        {
+          barColor: '#0072B2',
+          parts: [{ text: 'x', bold: true }, { text: ': ' }, { text: '-5.3' }],
+        },
       ]);
       expect(element.textContent).to.equal('Position: x: -5.3');
 
-      const axis = element.querySelector('.gizmo-status__axis');
+      const reading = element.querySelector('.gizmo-status__reading');
+      expect(reading).to.exist;
+      expect(reading.textContent).to.equal('x: -5.3');
+      expect(reading.style.getPropertyValue('--axis-color')).to.equal('#0072B2');
+
+      const axis = reading.querySelector('.gizmo-status__axis');
       expect(axis).to.exist;
       expect(axis.textContent).to.equal('x');
-
-      const pill = element.querySelector('.gizmo-status__pill');
-      expect(pill).to.exist;
-      expect(pill.textContent).to.equal('-5.3');
-
-      // Compare against a probe so the assertion survives the browser
-      // normalising the hex to rgb().
-      const probe = document.createElement('span');
-      probe.style.borderColor = '#0072B2';
-      expect(pill.style.borderColor).to.equal(probe.style.borderColor);
     });
 
     it('leaves plain segments as text nodes', function () {

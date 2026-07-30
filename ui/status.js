@@ -14,24 +14,30 @@ function cancelHide() {
   }
 }
 
+// A segment is either a leaf ({ text, bold }) or a group ({ parts, barColor })
+// whose parts sit behind a coloured rule.
+function toNode({ text, bold, barColor, parts }) {
+  if (parts) {
+    const group = document.createElement('span');
+    group.classList.add('gizmo-status__reading');
+    // The rule is a ::before, so its colour has to travel as a custom property.
+    if (barColor) group.style.setProperty('--axis-color', barColor);
+    group.append(...parts.map(toNode));
+    return group;
+  }
+  if (!bold) return document.createTextNode(text);
+  const span = document.createElement('span');
+  span.textContent = text;
+  span.classList.add('gizmo-status__axis');
+  return span;
+}
+
 function render(element, content) {
   if (typeof content === 'string') {
     element.textContent = content;
     return;
   }
-  element.replaceChildren(
-    ...content.map(({ text, bold, borderColor }) => {
-      if (!bold && !borderColor) return document.createTextNode(text);
-      const span = document.createElement('span');
-      span.textContent = text;
-      if (bold) span.classList.add('gizmo-status__axis');
-      if (borderColor) {
-        span.classList.add('gizmo-status__pill');
-        span.style.borderColor = borderColor;
-      }
-      return span;
-    })
-  );
+  element.replaceChildren(...content.map(toNode));
 }
 
 // duration 0 keeps the message up until something replaces or clears it.
