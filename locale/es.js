@@ -1293,6 +1293,41 @@ export default {
   shortcut_panel_close: 'Cerrar atajos de teclado',
   shortcut_panel_help_link: 'Abrir enlace de ayuda de controles de teclado',
 
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Controles del jugador',
+  player_section_onscreen: 'Controles en pantalla',
+  player_section_gamepad: 'Controlador de juego',
+  player_section_sr: 'Lector de pantalla con controlador de juego',
+  player_action_move: 'Mover',
+  player_action_look: 'Mirar alrededor',
+  player_action_turn: 'Girar izquierda / derecha',
+  player_action_camera_up: 'Cámara arriba',
+  player_action_interact: 'Interactuar',
+  player_action_camera_down: 'Cámara abajo',
+  player_action_spare: 'Acción general',
+  player_control_arrows: 'Flechas',
+  player_control_button: 'Botón %1',
+  player_control_dpad_note: 'En controles sin palanca izquierda, el D-pad se mueve en su lugar.',
+  player_control_dpad_up: 'Resumen de la escena',
+  player_control_dpad_down: 'Objeto adelante',
+  player_control_dpad_left: 'Objeto más cercano',
+
+  // Player panel controls
+  player_decrease_font_size: 'Reducir tamaño de texto',
+  player_increase_font_size: 'Aumentar tamaño de texto',
+
+  // Player control key labels
+  gamepad_left_stick: 'Palanca izquierda',
+  gamepad_right_stick: 'Palanca derecha',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triángulo / Y',
+  gamepad_square_x: 'Cuadrado / X',
+  gamepad_circle_b: 'Círculo / B',
+  gamepad_cross_a: 'Cruz / A',
+  dpad_up: 'Arriba',
+  dpad_down: 'Abajo',
+  dpad_left: 'Izquierda',
+
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: 'Mostrar/ocultar atajos de teclado',
   shortcut_move_between_areas: 'Moverse entre menús, canvas y editor',

@@ -1348,6 +1348,7 @@ export default {
   player_panel_title: 'Player Controls',
   player_section_onscreen: 'On-screen controls',
   player_section_gamepad: 'Game controller',
+  player_section_sr: 'Screen reader with Game Controller',
   player_action_move: 'Move',
   player_action_look: 'Look around',
   player_action_turn: 'Turn left / right',
@@ -1366,6 +1367,22 @@ export default {
   shortcut_panel_title: 'Keyboard Controls',
   shortcut_panel_close: 'Close keyboard shortcuts',
   shortcut_panel_help_link: 'Open keyboard controls help link',
+
+  // Player panel controls
+  player_decrease_font_size: 'Decrease text size',
+  player_increase_font_size: 'Increase text size',
+
+  // Player control key labels
+  gamepad_left_stick: 'Left stick',
+  gamepad_right_stick: 'Right stick',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangle / Y',
+  gamepad_square_x: 'Square / X',
+  gamepad_circle_b: 'Circle / B',
+  gamepad_cross_a: 'Cross / A',
+  dpad_up: 'Up',
+  dpad_down: 'Down',
+  dpad_left: 'Left',
 
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: 'Show/hide shortcut help',

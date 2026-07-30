@@ -2248,7 +2248,7 @@ body.color-picker-open #renderCanvas {
 
 .shortcuts-entry {
   display: grid;
-  grid-template-columns: 33% 1fr;
+  grid-template-columns: 45% 1fr;
 }
 
 .shortcuts-entry dt,

@@ -786,8 +786,8 @@ const ShortcutsPanel = {
         <div class="shortcuts-panel-header">
           <h2 id="shortcuts-panel-title" class="shortcuts-panel-title"></h2>
           <div class="shortcuts-panel-controls">
-            <button class="bigbutton shortcuts-decrease-btn" aria-label="Decrease text size" title="Decrease text size"><span aria-hidden="true">A</span></button>
-            <button class="bigbutton shortcuts-increase-btn" aria-label="Increase text size" title="Increase text size"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton shortcuts-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton shortcuts-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>
             <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate('shortcut_panel_help_link')}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
           </div>
         </div>
@@ -1013,6 +1013,7 @@ function getPlayerControls() {
   return [
     {
       section: 'player_section_onscreen',
+      hideHeader: true,
       entries: [
         {
           action: 'player_action_move',
@@ -1047,43 +1048,48 @@ function getPlayerControls() {
       entries: [
         {
           action: 'player_action_move',
-          keys: '"Left stick"',
+          keys: `"${translate('gamepad_left_stick')}"`,
         },
         {
           action: 'player_action_look',
-          keys: '"Right stick"',
+          keys: `"${translate('gamepad_right_stick')}"`,
         },
         {
           action: 'player_action_turn',
-          keys: 'L1 / R1',
+          keys: translate('gamepad_l1_r1'),
         },
         {
           action: 'player_action_camera_up',
-          keys: 'Triangle / Y',
+          keys: translate('gamepad_triangle_y'),
         },
         {
           action: 'player_action_camera_down',
-          keys: 'Square / X',
+          keys: translate('gamepad_square_x'),
         },
         {
           action: 'player_action_interact',
-          keys: 'Circle / B',
+          keys: translate('gamepad_circle_b'),
         },
         {
           action: 'player_action_spare',
-          keys: 'Cross / A',
+          keys: translate('gamepad_cross_a'),
         },
+      ],
+    },
+    {
+      section: 'player_section_sr',
+      entries: [
         {
           action: 'player_control_dpad_up',
-          keys: 'D-pad Up',
+          keys: translate('dpad_up'),
         },
         {
           action: 'player_control_dpad_down',
-          keys: 'D-pad Down',
+          keys: translate('dpad_down'),
         },
         {
           action: 'player_control_dpad_left',
-          keys: 'D-pad Left',
+          keys: translate('dpad_left'),
         },
       ],
     },
@@ -1096,7 +1102,8 @@ function getPlayerControls() {
 const PlayerPanel = {
   panel: null,
   previousFocus: null,
-  fontSize: parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+  fontSize:
+    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
@@ -1111,15 +1118,15 @@ const PlayerPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('player', translate('player_panel_title'));
+    const panel = InfoPanel.register('player', translate('player_section_onscreen'));
     const btn = document.getElementById('info-tab-btn-player');
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="player-panel-title" class="shortcuts-panel-title"></h2>
           <div class="shortcuts-panel-controls">
-            <button class="bigbutton player-decrease-btn" aria-label="Decrease text size" title="Decrease text size"><span aria-hidden="true">A</span></button>
-            <button class="bigbutton player-increase-btn" aria-label="Increase text size" title="Increase text size"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton player-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton player-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>
           </div>
         </div>
         <div id="player-list"></div>
@@ -1149,7 +1156,7 @@ const PlayerPanel = {
   },
 
   renderContent() {
-    const title = translate('player_panel_title');
+    const title = translate('player_section_onscreen');
     const btn = document.getElementById('info-tab-btn-player');
     btn.setAttribute('aria-label', title);
     btn.setAttribute('title', title);
@@ -1166,8 +1173,8 @@ const PlayerPanel = {
 
     const sections = getPlayerControls()
       .map(
-        ({ section, entries }) => `
-      <h3 class="shortcuts-category">${translate(section)}</h3>
+        ({ section, entries, hideHeader }) => `
+      ${hideHeader ? '' : `<h3 class="shortcuts-category">${translate(section)}</h3>`}
       <dl class="shortcuts-group">
         ${entries
           .map(
