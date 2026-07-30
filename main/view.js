@@ -208,6 +208,10 @@ function resizeCanvas() {
   canvas.style.width = `${Math.round(newWidth)}px`;
   canvas.style.height = `${Math.round(newHeight)}px`;
 
+  // Landscape parks the info-panel tabs in the strip beside the canvas; they're
+  // position:fixed and so can't measure it, hence publishing the edge here.
+  document.documentElement.style.setProperty('--canvas-width', `${Math.round(newWidth)}px`);
+
   // The engine owns the buffer and renders at devicePixelRatio; sizing it to
   // CSS px here leaves it 1x until engine.resize(), drawing GUI px oversized.
   if (flock.engine) return;
