@@ -991,16 +991,117 @@ const ShortcutsPanel = {
   },
 };
 
-// Touch equivalent of ShortcutsPanel: a second info panel tab. Docked-only —
-// narrow landscape hides #info-panel outright (along with this tab), so there's
-// no modal counterpart to fall back to.
-const TouchPanel = {
+const CONTROL_MARKS = {
+  up: '<path d="M12 5 20 18 4 18Z"/>',
+  down: '<path d="M12 19 4 6 20 6Z"/>',
+  left: '<path d="M5 12 18 4 18 20Z"/>',
+  right: '<path d="M19 12 6 20 6 4Z"/>',
+  triangle: '<path d="M12 4 21 19 3 19Z"/>',
+  circle: '<circle cx="12" cy="12" r="8"/>',
+  square: '<rect x="4.5" y="4.5" width="15" height="15" rx="1"/>',
+  cross: '<path d="M5 5 19 19M19 5 5 19"/>',
+  stick: '<circle cx="12" cy="8.5" r="4.5"/><path d="M12 13v4M7 20h10"/>',
+};
+
+const svgMark = (name) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${CONTROL_MARKS[name]}</svg>`;
+
+const svgRingedChar = (char) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><text x="12" y="12" text-anchor="middle" dominant-baseline="central" font-size="13" fill="currentColor" stroke="none">${char}</text></svg>`;
+
+function getPlayerControls() {
+  return [
+    {
+      section: 'player_section_onscreen',
+      entries: [
+        {
+          action: 'player_action_move',
+          marks: ['up', 'left', 'down', 'right'].map(svgMark),
+          layout: 'dpad',
+          label: translate('player_control_arrows'),
+        },
+        {
+          action: 'player_action_camera_up',
+          marks: [svgRingedChar(1)],
+          label: translate('player_control_button').replace('%1', 1),
+        },
+        {
+          action: 'player_action_camera_down',
+          marks: [svgRingedChar(3)],
+          label: translate('player_control_button').replace('%1', 3),
+        },
+        {
+          action: 'player_action_interact',
+          marks: [svgRingedChar(2)],
+          label: translate('player_control_button').replace('%1', 2),
+        },
+        {
+          action: 'player_action_spare',
+          marks: [svgRingedChar(4)],
+          label: translate('player_control_button').replace('%1', 4),
+        },
+      ],
+    },
+    {
+      section: 'player_section_gamepad',
+      entries: [
+        {
+          action: 'player_action_move',
+          keys: '"Left stick"',
+        },
+        {
+          action: 'player_action_look',
+          keys: '"Right stick"',
+        },
+        {
+          action: 'player_action_turn',
+          keys: 'L1 / R1',
+        },
+        {
+          action: 'player_action_camera_up',
+          keys: 'Triangle / Y',
+        },
+        {
+          action: 'player_action_camera_down',
+          keys: 'Square / X',
+        },
+        {
+          action: 'player_action_interact',
+          keys: 'Circle / B',
+        },
+        {
+          action: 'player_action_spare',
+          keys: 'Cross / A',
+        },
+        {
+          action: 'player_control_dpad_up',
+          keys: 'D-pad Up',
+        },
+        {
+          action: 'player_control_dpad_down',
+          keys: 'D-pad Down',
+        },
+        {
+          action: 'player_control_dpad_left',
+          keys: 'D-pad Left',
+        },
+      ],
+    },
+  ];
+}
+
+// On-screen and gamepad counterpart to ShortcutsPanel: a second info panel tab.
+// Docked-only — narrow landscape hides #info-panel outright (along with this
+// tab), so there's no modal counterpart to fall back to.
+const PlayerPanel = {
   panel: null,
+  previousFocus: null,
+  fontSize: parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
   init() {
     this.createPanel();
     this.setupListeners();
-    window.flockTouchPanel = this;
+    window.flockPlayerPanel = this;
 
     // Rotating into narrow landscape hides the info panel mid-view, which would
     // leave this panel marked active but invisible.
@@ -1010,31 +1111,89 @@ const TouchPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('touch', translate('touch_panel_title'));
-    const btn = document.getElementById('info-tab-btn-touch');
+    const panel = InfoPanel.register('player', translate('player_panel_title'));
+    const btn = document.getElementById('info-tab-btn-player');
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
-          <h2 id="touch-panel-title" class="shortcuts-panel-title"></h2>
+          <h2 id="player-panel-title" class="shortcuts-panel-title"></h2>
+          <div class="shortcuts-panel-controls">
+            <button class="bigbutton player-decrease-btn" aria-label="Decrease text size" title="Decrease text size"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton player-increase-btn" aria-label="Increase text size" title="Increase text size"><span aria-hidden="true">A</span></button>
+          </div>
         </div>
-        <div id="touch-list"></div>
+        <div id="player-list"></div>
       `;
     this.panel = panel;
+    const sizes = SHORTCUTS_FONT_SIZES;
+    const decreaseBtn = panel.querySelector('.player-decrease-btn');
+    const increaseBtn = panel.querySelector('.player-increase-btn');
+    decreaseBtn.disabled = this.fontSize === sizes[0];
+    increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
+    decreaseBtn.addEventListener('click', () => this.adjustFontSize(-1));
+    increaseBtn.addEventListener('click', () => this.adjustFontSize(1));
+    panel.querySelector('#player-list').style.fontSize = this.fontSize + 'em';
     this.renderContent();
   },
 
+  adjustFontSize(delta) {
+    const sizes = SHORTCUTS_FONT_SIZES;
+    const idx = sizes.indexOf(this.fontSize);
+    const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
+    if (next === this.fontSize) return;
+    this.fontSize = next;
+    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
+    this.panel.querySelector('#player-list').style.fontSize = next + 'em';
+    this.panel.querySelector('.player-decrease-btn').disabled = next === sizes[0];
+    this.panel.querySelector('.player-increase-btn').disabled = next === sizes[sizes.length - 1];
+  },
+
   renderContent() {
-    const title = translate('touch_panel_title');
-    const btn = document.getElementById('info-tab-btn-touch');
+    const title = translate('player_panel_title');
+    const btn = document.getElementById('info-tab-btn-player');
     btn.setAttribute('aria-label', title);
     btn.setAttribute('title', title);
-    this.panel.querySelector('#touch-panel-title').textContent = title;
+    this.panel.querySelector('#player-panel-title').textContent = title;
+
+    const renderControl = (entry) => {
+      if (entry.marks) {
+        return `<span class="pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}" aria-hidden="true">${entry.marks
+          .map((m) => `<span class="pc-chip">${m}</span>`)
+          .join('')}</span><span class="sr-only">${entry.label}</span>`;
+      }
+      return formatKeys(entry.keys);
+    };
+
+    const sections = getPlayerControls()
+      .map(
+        ({ section, entries }) => `
+      <h3 class="shortcuts-category">${translate(section)}</h3>
+      <dl class="shortcuts-group">
+        ${entries
+          .map(
+            (entry) => `
+        <div class="shortcuts-entry">
+          <dt>${translate(entry.action)}</dt>
+          <dd>${renderControl(entry)}</dd>
+        </div>`
+          )
+          .join('')}
+      </dl>`
+      )
+      .join('');
+
+    const playerList = this.panel.querySelector('#player-list');
+    playerList.innerHTML = `
+        ${sections}
+        <p class="player-controls-note">${translate('player_control_dpad_note')}</p>
+      `;
+    playerList.style.fontSize = this.fontSize + 'em';
   },
 
   show() {
     this.renderContent();
     this.previousFocus = document.activeElement;
-    InfoPanel.activate('touch');
+    InfoPanel.activate('player');
   },
 
   refreshTranslations() {
@@ -1044,7 +1203,7 @@ const TouchPanel = {
   hide() {
     this.previousFocus?.focus();
     this.previousFocus = null;
-    InfoPanel.deactivate('touch');
+    InfoPanel.deactivate('player');
   },
 
   toggle() {
@@ -1057,7 +1216,7 @@ const TouchPanel = {
       e.preventDefault();
       e.stopPropagation();
       this.hide();
-      document.getElementById('info-tab-btn-touch')?.focus();
+      document.getElementById('info-tab-btn-player')?.focus();
     });
   },
 };
@@ -1068,7 +1227,7 @@ GizmoMenuManager.init();
 if (document.getElementById('info-panel-tabs')) {
   InfoPanel.init();
   ShortcutsPanel.init();
-  TouchPanel.init();
+  PlayerPanel.init();
 }
 
-export { InfoPanel, ShortcutsPanel, TouchPanel, GizmoMenuManager, AreaManager };
+export { InfoPanel, ShortcutsPanel, PlayerPanel, GizmoMenuManager, AreaManager };

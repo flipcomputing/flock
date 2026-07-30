@@ -2380,11 +2380,13 @@ kbd {
   margin-left: 0;
 }
 
-.shortcuts-decrease-btn span {
+.shortcuts-decrease-btn span,
+.player-decrease-btn span {
   font-size: 0.75em;
 }
 
-.shortcuts-increase-btn span {
+.shortcuts-increase-btn span,
+.player-increase-btn span {
   font-size: 1.1em;
 }
 
@@ -2403,10 +2405,61 @@ kbd {
   margin-bottom: 1.5em;
 }
 
-#touch-list {
+#player-list {
   font-size: 1.2em;
   user-select: text;
   margin-bottom: 1.5em;
+}
+
+.pc-keys {
+  display: flex;
+  gap: 3px;
+}
+
+/* Mirrors the on-screen pad: up centred above left / down / right. Placement is
+   explicit because auto-flow would put `left` beside `up` on the first row. */
+.pc-keys--dpad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  width: max-content;
+}
+
+.pc-keys--dpad .pc-chip:nth-child(1) {
+  grid-area: 1 / 2;
+}
+
+.pc-keys--dpad .pc-chip:nth-child(2) {
+  grid-area: 2 / 1;
+}
+
+.pc-keys--dpad .pc-chip:nth-child(3) {
+  grid-area: 2 / 2;
+}
+
+.pc-keys--dpad .pc-chip:nth-child(4) {
+  grid-area: 2 / 3;
+}
+
+.pc-chip {
+  display: grid;
+  place-items: center;
+  width: 1.4em;
+  height: 1.4em;
+  border: 1px solid currentcolor;
+  border-radius: 4px;
+}
+
+.pc-chip svg {
+  display: block;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.player-controls-note {
+  margin: 1em 0 0;
+  font-size: 0.85em;
+  color: var(--color-muted);
 }
 
 /* Error notification banner */

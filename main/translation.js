@@ -133,9 +133,9 @@ export async function setLanguage(language) {
     window.flockShortcutsPanel.refreshTranslations();
   }
 
-  // Update touch controls panel if open
-  if (window.flockTouchPanel?.refreshTranslations) {
-    window.flockTouchPanel.refreshTranslations();
+  // Update player controls panel if open
+  if (window.flockPlayerPanel?.refreshTranslations) {
+    window.flockPlayerPanel.refreshTranslations();
   }
 
   // Refresh the workspace to show updated language

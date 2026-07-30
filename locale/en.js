@@ -1344,8 +1344,23 @@ export default {
   toolbar_redo_ui: 'Redo',
   toolbar_zoom_out_ui: 'Zoom out',
   toolbar_zoom_in_ui: 'Zoom in',
-  // Touch controls panel
-  touch_panel_title: 'Touch Controls',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Player Controls',
+  player_section_onscreen: 'On-screen controls',
+  player_section_gamepad: 'Game controller',
+  player_action_move: 'Move',
+  player_action_look: 'Look around',
+  player_action_turn: 'Turn left / right',
+  player_action_camera_up: 'Camera up',
+  player_action_interact: 'Interact',
+  player_action_camera_down: 'Camera down',
+  player_action_spare: 'General action',
+  player_control_arrows: 'Arrows',
+  player_control_button: 'Button %1',
+  player_control_dpad_note: 'On controllers without a left stick, the D-pad moves instead.',
+  player_control_dpad_up: 'Scene summary',
+  player_control_dpad_down: 'Object ahead',
+  player_control_dpad_left: 'Nearest object',
 
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Keyboard Controls',
