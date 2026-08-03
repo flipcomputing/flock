@@ -91,7 +91,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
   // Hex colour -------------------------------------------------
   javascriptGenerator.forBlock["colour_from_string"] = function (block) {
     const colourValue = block.getFieldValue("COLOR") || "#000000";
-    return [`"${colourValue}"`, javascriptGenerator.ORDER_ATOMIC];
+    return [JSON.stringify(colourValue), javascriptGenerator.ORDER_ATOMIC];
   };
 
   // Set material of object -------------------------------------
