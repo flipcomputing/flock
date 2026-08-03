@@ -127,6 +127,30 @@ export function runWasmSimdTests(flock) {
           flock.havokInstance = previousInstance;
         }
       });
+
+      it('discards a load whose promise was reset mid-flight (OOM)', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        flock.havokInstance = null;
+        const stale = { havok: 'stale' };
+        let release;
+        const loadHavok = () => new Promise((resolve) => (release = () => resolve(stale)));
+
+        try {
+          const pending = flock.ensurePhysicsInstance(loadHavok);
+          // handlePhysicsOutOfMemory clears these while the load is in flight.
+          flock.havokInstance = null;
+          flock._havokInstancePromise = undefined;
+          release();
+          const result = await pending;
+
+          expect(flock.havokInstance).to.equal(null);
+          expect(result).to.equal(null);
+        } finally {
+          flock.havokInstance = previousInstance;
+          flock._havokInstancePromise = undefined;
+        }
+      });
     });
 
     describe('abort classification', function () {

@@ -514,11 +514,18 @@ export const flock = {
     // Callers that arrive together share one in-flight load, so a second
     // caller can't start a duplicate wasm instance and leak the loser.
     if (!flock.havokInstance) {
-      flock._havokInstancePromise ??= loadHavok();
+      const pending = (flock._havokInstancePromise ??= loadHavok());
       try {
-        flock.havokInstance = await flock._havokInstancePromise;
+        const instance = await pending;
+        // Commit/clear only our own load: a mid-await reset (OOM) must not
+        // restore a stale instance, and a rejection must still allow a retry.
+        if (flock._havokInstancePromise === pending) {
+          flock.havokInstance = instance;
+        }
       } finally {
-        flock._havokInstancePromise = undefined;
+        if (flock._havokInstancePromise === pending) {
+          flock._havokInstancePromise = undefined;
+        }
       }
     }
 
@@ -548,6 +555,11 @@ export const flock = {
     } catch (e) {
       console.log('Failed to dispose Havok instance during physics OOM handling:', e);
     }
+
+    // Clear the instance so the next run reloads a fresh one.
+    flock.hk = null;
+    flock.havokInstance = null;
+    flock._havokInstancePromise = undefined;
 
     handleError(error, { source: 'physics-oom', fatal: true });
   },
