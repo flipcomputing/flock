@@ -16,6 +16,9 @@ export async function executeCode(options = {}) {
   // Set the flag to indicate the function is running
   isExecuting = true;
 
+  // Remove the "press play" overlay now that the scene is starting
+  hideStoppedOverlay();
+
   // Utility function for delay
   const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -74,12 +77,63 @@ export async function executeCode(options = {}) {
   isExecuting = false;
 }
 
+function getStoppedOverlay() {
+  return document.getElementById("canvasStoppedOverlay");
+}
+
+let overlayResizeHandler = null;
+
+// Size the overlay to the rendered canvas box so it covers only the Babylon
+// canvas, not the surrounding canvas area or the (hidden) gizmo buttons.
+function positionStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  const canvas = document.getElementById("renderCanvas");
+  if (!overlay || !canvas) return;
+  overlay.style.left = `${canvas.offsetLeft}px`;
+  overlay.style.top = `${canvas.offsetTop}px`;
+  overlay.style.width = `${canvas.offsetWidth}px`;
+  overlay.style.height = `${canvas.offsetHeight}px`;
+}
+
+function showStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  if (!overlay) return;
+  // Hides the gizmo buttons (via CSS) and covers the canvas; the canvas is made
+  // inert below so screen reader and keyboard users skip the frozen scene.
+  document.getElementById("canvasArea")?.classList.add("is-stopped");
+  const canvas = document.getElementById("renderCanvas");
+  if (canvas) canvas.inert = true;
+  positionStoppedOverlay();
+  overlay.hidden = false;
+  // Move keyboard focus to the play button so it can be triggered immediately
+  overlay.querySelector("#overlayPlayButton")?.focus({ preventScroll: true });
+  if (!overlayResizeHandler) {
+    overlayResizeHandler = () => positionStoppedOverlay();
+    window.addEventListener("resize", overlayResizeHandler);
+  }
+}
+
+function hideStoppedOverlay() {
+  const overlay = getStoppedOverlay();
+  if (overlay) overlay.hidden = true;
+  document.getElementById("canvasArea")?.classList.remove("is-stopped");
+  const canvas = document.getElementById("renderCanvas");
+  if (canvas) canvas.inert = false;
+  if (overlayResizeHandler) {
+    window.removeEventListener("resize", overlayResizeHandler);
+    overlayResizeHandler = null;
+  }
+}
+
 export function stopCode() {
   flock.stopAllSounds();
 
   // Stop rendering
   flock.engine.stopRenderLoop();
   //console.log("Render loop stopped.");
+
+  // Show the "press play" overlay over the (now frozen) canvas
+  showStoppedOverlay();
 
   // Remove event listeners
   flock.removeEventListeners();
