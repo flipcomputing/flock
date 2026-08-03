@@ -377,6 +377,10 @@ function parseProjectJsonResponse(response) {
       );
     }
 
+    if (projectText.length > 4 * 1024 * 1024) {
+      throw new Error("File content is too large");
+    }
+
     try {
       return JSON.parse(projectText);
     } catch (error) {

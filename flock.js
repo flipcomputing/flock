@@ -95,6 +95,7 @@ export const flock = {
   callbackMode: true,
   separateAnimations: true,
   memoryDebug: false,
+  showErrorBanners: false,
   memoryMonitorInterval: 5000,
   materialsDebug: false,
   meshDebug: false,
@@ -422,14 +423,14 @@ export const flock = {
     banner.style.left = "0";
     banner.style.right = "0";
     banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
+    banner.style.background = "#511d91";
+    banner.style.color = "#ffffff";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
     banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
+    banner.style.borderBottom = "2px solid #3a1568";
     doc.body.prepend(banner);
   },
   handlePhysicsOutOfMemory(error) {
@@ -696,6 +697,10 @@ export const flock = {
     });
   },
   showRuntimeErrorBanner(message) {
+    if (!flock.showErrorBanners) {
+      flock.console?.error?.(message);
+      return;
+    }
     const doc = flock.document ?? globalThis.document;
     if (!doc?.body) return;
     const bannerId = "runtime-error-banner";
@@ -708,14 +713,14 @@ export const flock = {
     banner.style.left = "0";
     banner.style.right = "0";
     banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
+    banner.style.background = "#511d91";
+    banner.style.color = "#ffffff";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
     banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
+    banner.style.borderBottom = "2px solid #3a1568";
     banner.style.cursor = "pointer";
     banner.title = "Click to dismiss";
     banner.addEventListener("click", () => banner.remove());
@@ -769,6 +774,15 @@ export const flock = {
       sesScript.text = sesText;
       doc.head.appendChild(sesScript);
 
+      // Re-wraps a host-realm fn into this realm; lockdown only tames this
+      // realm, so a raw host fn would leak the untamed Function via
+      // `.constructor` (sandbox escape). Must run before lockdown.
+      const wrapScript = doc.createElement("script");
+      wrapScript.type = "text/javascript";
+      wrapScript.text =
+        "window.__flockWrapHostFn = (fn) => (...args) => fn(...args);";
+      doc.head.appendChild(wrapScript);
+
       // lockdown the iframe realm
       win.lockdown();
 
@@ -801,8 +815,9 @@ export const flock = {
       for (const [key, value] of Object.entries(whitelist)) {
         const t = typeof value;
         if (t === "function") {
-          // Bind to null so we don't leak host `this`
-          endowments[key] = value.bind(null);
+          // Wrap into the iframe realm: a host-realm fn leaks the untamed host
+          // Function via `.constructor` (sandbox escape). bind(null) drops host `this`.
+          endowments[key] = win.__flockWrapHostFn(value.bind(null));
         } else if (value == null || (t !== "object" && t !== "symbol")) {
           // primitives only
           endowments[key] = value;
@@ -811,13 +826,15 @@ export const flock = {
         }
       }
 
-      endowments.performance = {
-        now: win.performance.now.bind(win.performance),
-      };
+      // win.Object, not a host `{}`: a host literal leaks host Function via
+      // obj.constructor.constructor.
+      endowments.performance = new win.Object();
+      endowments.performance.now = win.performance.now.bind(win.performance);
 
       endowments.requestAnimationFrame = win.requestAnimationFrame.bind(win);
 
-      endowments.Date = { now: win.Date.now.bind(win.Date) };
+      endowments.Date = new win.Object();
+      endowments.Date.now = win.Date.now.bind(win.Date);
 
       // Undefine unwanted globals
       // --- shadow unsafe / unneeded globals ---
@@ -1323,6 +1340,10 @@ export const flock = {
     );
 
     flock.canvas.addEventListener("keydown", function (event) {
+      // Shortcut chords (Ctrl+Z undo, ⌘S…) belong to the app/browser, not
+      // gameplay — without this, undo on a focused canvas walks the player
+      // ("z"/"q" are bound to FORWARD/LEFT for AZERTY keyboards).
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       flock.canvas.currentKeyPressed = event.key;
       flock.canvas.pressedKeys.add(event.key);
     });
@@ -1348,6 +1369,16 @@ export const flock = {
 
     window.addEventListener("pointerup", () => {
       flock._hardResetCameraControls(flock.scene?.activeCamera);
+    });
+
+    // macOS suppresses keyup for keys released while ⌘ is held, so both
+    // Babylon's camera keyboard input (_keys) and our pressedKeys set would
+    // keep them held until the next blur. Clear both when ⌘ comes up.
+    flock.canvas.addEventListener("keyup", (e) => {
+      if (e.key !== "Meta") return;
+      const kb = flock.scene?.activeCamera?.inputs?.attached?.keyboard;
+      if (kb?._keys) kb._keys.length = 0;
+      flock.canvas.pressedKeys?.clear();
     });
 
     flock.engineReady = true;
