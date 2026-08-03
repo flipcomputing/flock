@@ -204,6 +204,9 @@ export const flockMaterial = {
   },
   glowMesh(mesh, glowColor = null) {
     const applyGlow = (m) => {
+      // Don't glow the say plane.
+      if (m.name === "textPlane" || m.metadata?.isTextPlane) return;
+
       m.metadata = m.metadata || {};
       m.metadata.glow = true;
 
