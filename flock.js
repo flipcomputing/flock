@@ -95,6 +95,7 @@ export const flock = {
   callbackMode: true,
   separateAnimations: true,
   memoryDebug: false,
+  showErrorBanners: false,
   memoryMonitorInterval: 5000,
   materialsDebug: false,
   meshDebug: false,
@@ -696,6 +697,10 @@ export const flock = {
     });
   },
   showRuntimeErrorBanner(message) {
+    if (!flock.showErrorBanners) {
+      flock.console?.error?.(message);
+      return;
+    }
     const doc = flock.document ?? globalThis.document;
     if (!doc?.body) return;
     const bannerId = "runtime-error-banner";
