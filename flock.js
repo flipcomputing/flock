@@ -422,14 +422,14 @@ export const flock = {
     banner.style.left = "0";
     banner.style.right = "0";
     banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
+    banner.style.background = "#511d91";
+    banner.style.color = "#ffffff";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
     banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
+    banner.style.borderBottom = "2px solid #3a1568";
     doc.body.prepend(banner);
   },
   handlePhysicsOutOfMemory(error) {
@@ -708,14 +708,14 @@ export const flock = {
     banner.style.left = "0";
     banner.style.right = "0";
     banner.style.padding = "12px";
-    banner.style.background = "#3b0b0b";
-    banner.style.color = "#ffb3b3";
+    banner.style.background = "#511d91";
+    banner.style.color = "#ffffff";
     banner.style.fontSize = "16px";
     banner.style.fontFamily = "'Asap', sans-serif";
     banner.style.zIndex = "20000";
     banner.style.textAlign = "center";
     banner.style.boxShadow = "0 2px 4px rgba(0, 0, 0, 0.4)";
-    banner.style.borderBottom = "2px solid #d33";
+    banner.style.borderBottom = "2px solid #3a1568";
     banner.style.cursor = "pointer";
     banner.title = "Click to dismiss";
     banner.addEventListener("click", () => banner.remove());
