@@ -1340,6 +1340,10 @@ export const flock = {
     );
 
     flock.canvas.addEventListener("keydown", function (event) {
+      // Shortcut chords (Ctrl+Z undo, ⌘S…) belong to the app/browser, not
+      // gameplay — without this, undo on a focused canvas walks the player
+      // ("z"/"q" are bound to FORWARD/LEFT for AZERTY keyboards).
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
       flock.canvas.currentKeyPressed = event.key;
       flock.canvas.pressedKeys.add(event.key);
     });
@@ -1365,6 +1369,16 @@ export const flock = {
 
     window.addEventListener("pointerup", () => {
       flock._hardResetCameraControls(flock.scene?.activeCamera);
+    });
+
+    // macOS suppresses keyup for keys released while ⌘ is held, so both
+    // Babylon's camera keyboard input (_keys) and our pressedKeys set would
+    // keep them held until the next blur. Clear both when ⌘ comes up.
+    flock.canvas.addEventListener("keyup", (e) => {
+      if (e.key !== "Meta") return;
+      const kb = flock.scene?.activeCamera?.inputs?.attached?.keyboard;
+      if (kb?._keys) kb._keys.length = 0;
+      flock.canvas.pressedKeys?.clear();
     });
 
     flock.engineReady = true;

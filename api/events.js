@@ -178,6 +178,15 @@ export const flockEvents = {
 
     const kbHandler = (kbInfo) => {
       if (kbInfo.type === eventType && kbInfo.event.key.toLowerCase() === key) {
+        // Shortcut chords (Ctrl+Z undo, ⌘S…) belong to the app/browser, not
+        // gameplay — without this, undo on a focused canvas walks the player
+        // ("z" is bound to FORWARD for AZERTY keyboards). Releases still fire
+        // so a key held before a chord can't get stuck.
+        if (
+          !isReleased &&
+          (kbInfo.event.ctrlKey || kbInfo.event.metaKey || kbInfo.event.altKey)
+        )
+          return;
         callback();
       }
     };
