@@ -882,6 +882,8 @@ export function initContextMenus(workspace) {
       return {
         left: topLeft.x,
         top: topLeft.y,
+        right: bottomRight.x,
+        bottom: bottomRight.y,
         width: bottomRight.x - topLeft.x,
         height: bottomRight.y - topLeft.y,
       };
@@ -903,6 +905,26 @@ export function initContextMenus(workspace) {
       return right === -Infinity ? null : right;
     }
 
+    function getWorkspaceTopEdge() {
+      const div = workspace.getInjectionDiv?.();
+      if (!div) return null;
+      const r = div.getBoundingClientRect();
+      return r.height > 0 ? r.top : null;
+    }
+
+    // Get the position of the jaw start for a hat block to display the context menu
+    function getHatJawTopScreenY(block) {
+      if (block.previousConnection) return null;
+      const jawInput = block.inputList?.find((input) => input.type === Blockly.NEXT_STATEMENT);
+      const connection = jawInput?.connection;
+      if (!connection) return null;
+      const screen = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(connection.x, connection.y)
+      );
+      return screen.y;
+    }
+
     function positionBlockToolbar() {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
@@ -914,13 +936,24 @@ export function initContextMenus(workspace) {
       const rect = getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
       const blockCenterX = Math.round(rect.left + rect.width / 2);
       blockToolbar.style.left = `${blockCenterX}px`;
-      blockToolbar.style.top = `${Math.round(rect.top)}px`;
       blockToolbar.style.removeProperty('--caret-shift');
+
+      const margin = 8;
+      const workspaceTop = getWorkspaceTopEdge();
+      const minTop = workspaceTop != null ? workspaceTop + margin : margin;
+
+      // Push the context bar below the block if it would be outside the top of the workspace
+      blockToolbar.style.top = `${Math.round(rect.top)}px`;
+      blockToolbar.classList.remove('below');
+      if (blockToolbar.getBoundingClientRect().top < minTop) {
+        blockToolbar.classList.add('below');
+        const jawTop = getHatJawTopScreenY(toolbarBlock);
+        blockToolbar.style.top = `${Math.round(jawTop ?? rect.bottom)}px`;
+      }
 
       // Clamp to viewport, and to the right of the toolbox/flyout so the
       // toolbar is never tucked behind it. Shift the caret opposite so it
       // still points at the block.
-      const margin = 8;
       const toolboxRight = getToolboxRightEdge();
       const minLeft = toolboxRight != null ? Math.max(margin, toolboxRight + margin) : margin;
       const tbRect = blockToolbar.getBoundingClientRect();

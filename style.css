@@ -2668,6 +2668,26 @@ svg.blocklyTrashcanFlyout {
   z-index: 1;
 }
 
+/* Flipped below the block (see positionBlockToolbar): the toolbar renders
+   under the block instead of above it, so the caret triangles point up. */
+.fc-block-toolbar.below {
+  transform: translate(-50%, 7px);
+}
+
+.fc-block-toolbar.below::after {
+  top: -7px;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 7px solid var(--color-border, #ddd);
+}
+
+.fc-block-toolbar.below::before {
+  top: -5px;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 5px solid var(--color-menu, #f9f9f9);
+}
+
 .fc-block-toolbar.visible {
   opacity: 1;
   pointer-events: auto;
