@@ -238,6 +238,81 @@ try {
   }
   check(escClosed, 'Escape closes the trashcan flyout');
 
+  // Closing the trash with Escape returns to the block you came from, not the
+  // workspace surface (same tracking as Shift+Tab).
+  await fresh();
+  const blockPoint = () =>
+    page.evaluate(() => {
+      const g = [...document.querySelectorAll('g.blocklyDraggable')].find((el) =>
+        el.querySelector('path.blocklyPath')
+      );
+      if (!g) return null;
+      const r = g.querySelector('path.blocklyPath').getBoundingClientRect();
+      return { x: r.x + 20, y: r.y + 10 };
+    });
+  const focusedBlockId = () =>
+    page.evaluate(
+      () => document.activeElement?.closest?.('g.blocklyDraggable')?.getAttribute('data-id') || null
+    );
+  let escReturnedToBlock = false;
+  const del = await blockPoint();
+  if (del) {
+    await page.mouse.click(del.x, del.y);
+    await sleep(300);
+    await page.keyboard.press('Delete');
+    await sleep(400);
+    const bpt = await blockPoint();
+    await page.mouse.click(bpt.x, bpt.y);
+    await sleep(300);
+    const blockId = await focusedBlockId();
+    let onIcon = false;
+    for (let i = 0; i < 3 && !onIcon; i++) {
+      await page.keyboard.press('Tab');
+      await sleep(250);
+      onIcon = await page.evaluate(() => !!document.activeElement?.closest?.('g.blocklyTrash'));
+    }
+    if (onIcon) {
+      await page.keyboard.press('Enter');
+      await sleep(600);
+      await page.keyboard.press('Escape');
+      await sleep(400);
+      escReturnedToBlock = !!blockId && (await focusedBlockId()) === blockId;
+    }
+  }
+  check(escReturnedToBlock, 'Escape from the trashcan returns focus to the block you came from');
+
+  // With the trash flyout open, Escape from another overlay must reach that
+  // overlay — the trash handler is scoped to the injection div, not global.
+  await fresh();
+  let overlayGotEscape = false;
+  if (dp) {
+    await page.mouse.click(dp.x, dp.y);
+    await sleep(300);
+    await page.keyboard.press('Delete');
+    await sleep(400);
+    const tb = await page.evaluate(() => {
+      const t = document.querySelector('g.blocklyTrash');
+      const r = t.getBoundingClientRect();
+      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    });
+    await page.mouse.click(tb.x, tb.y);
+    await sleep(500);
+    await page.keyboard.press('Control+b');
+    await sleep(400);
+    const overlayOpen = () =>
+      page.evaluate(
+        () => !document.getElementById('area-menu-overlay')?.classList.contains('hidden')
+      );
+    const opened = (await overlayOpen()) && (await trashOpen());
+    await page.keyboard.press('Escape');
+    await sleep(400);
+    overlayGotEscape = opened && !(await overlayOpen());
+  }
+  check(
+    overlayGotEscape,
+    'Escape reaches the area-menu overlay when the trash flyout is also open'
+  );
+
   console.log('');
   if (failures.length) {
     console.error(`❌ ${failures.length} check(s) failed:`);

@@ -1,6 +1,13 @@
 import * as Blockly from 'blockly';
 import { translate } from './translation.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
+import {
+  isRestorableWorkspaceNode,
+  rememberWorkspaceFocus,
+  focusRememberedWorkspaceNode,
+} from './workspaceFocus.js';
+
+const BLOCKS_WORKSPACE_LABEL = 'Blocks workspace';
 
 export function setupInput() {
   // Get the canvas element
@@ -153,7 +160,7 @@ export function setupInput() {
         // Force tabIndex=0 — Blockly's focus manager may have set it to -1
         workspaceGroup.setAttribute('tabindex', '0');
         workspaceGroup.setAttribute('role', 'group');
-        workspaceGroup.setAttribute('aria-label', 'Blocks workspace');
+        workspaceGroup.setAttribute('aria-label', BLOCKS_WORKSPACE_LABEL);
         pushUnique(workspaceGroup);
       }
 
@@ -241,15 +248,6 @@ export function setupInput() {
       return rect.width > 0 && rect.height > 0;
     }
 
-    // The trashcan shares the workspace's focus tree, so moving to it doesn't
-    // leave the block passively focused. Track the last block/comment so Tab
-    // back into the workspace returns there instead of the workspace surface.
-    let lastWorkspaceFocusNode = null;
-    const isRestorableWorkspaceNode = (node) => {
-      const el = node?.getFocusableElement?.();
-      return !!el?.isConnected && !!el.closest?.('g.blocklyDraggable, g.blocklyComment');
-    };
-
     document.addEventListener('keydown', (e) => {
       if (
         document.activeElement.id === 'resizer' &&
@@ -306,10 +304,7 @@ export function setupInput() {
       }
 
       const focusManager = Blockly.getFocusManager?.();
-      const focusedNode = focusManager?.getFocusedNode?.();
-      if (isRestorableWorkspaceNode(focusedNode)) {
-        lastWorkspaceFocusNode = focusedNode;
-      }
+      rememberWorkspaceFocus();
 
       const nextElement = focusableElements[nextIndex];
       if (nextElement) {
@@ -322,13 +317,10 @@ export function setupInput() {
             // Blockly restores the passive block when Tab arrives from another
             // tree, but not from the trashcan (same tree) — fall back then.
             if (
-              nextElement.getAttribute('aria-label') === 'Blocks workspace' &&
-              focusManager &&
-              !isRestorableWorkspaceNode(focusManager.getFocusedNode?.()) &&
-              isRestorableWorkspaceNode(lastWorkspaceFocusNode)
+              nextElement.getAttribute('aria-label') === BLOCKS_WORKSPACE_LABEL &&
+              !isRestorableWorkspaceNode(focusManager?.getFocusedNode?.())
             ) {
-              Blockly.keyboardNavigationController?.setIsActive?.(true);
-              focusManager.focusNode(lastWorkspaceFocusNode);
+              focusRememberedWorkspaceNode();
             }
           }
 
@@ -342,7 +334,7 @@ export function setupInput() {
               translate('design_tool_label');
             const focusedMessage = translate('focused_element_suffix').replace('{name}', label);
             announceToScreenReader(focusedMessage);
-          } else if (nextElement.getAttribute('aria-label') === 'Blocks workspace') {
+          } else if (nextElement.getAttribute('aria-label') === BLOCKS_WORKSPACE_LABEL) {
             announceToScreenReader(translate('code_workspace_focused'));
           } else if (nextElement.tagName === 'BUTTON' || nextElement.tagName === 'LABEL') {
             const text =

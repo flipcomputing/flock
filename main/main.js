@@ -452,10 +452,20 @@ function registerBlocklyPlayShortcut() {
   });
 }
 
-function registerTopBlockReorderShortcuts() {
+// Replace a registered shortcut's callback, passing the original as the last arg.
+function wrapShortcut(name, handler) {
   const registry = Blockly.ShortcutRegistry.registry;
-  const origRegistry = registry.getRegistry?.() ?? {};
+  const existing = registry.getRegistry?.()?.[name];
+  if (!existing) return;
+  const orig = existing.callback;
+  registry.unregister(name);
+  registry.register({
+    ...existing,
+    callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
+  });
+}
 
+function registerTopBlockReorderShortcuts() {
   // Active move session, set on start_move / start_move_stack.
   // snapshot: Map<block, originalY> for all top blocks at session start,
   // so abort_move can restore everything we displaced.
@@ -537,17 +547,6 @@ function registerTopBlockReorderShortcuts() {
     return true;
   }
 
-  function wrap(name, handler) {
-    const existing = origRegistry[name];
-    if (!existing) return;
-    const orig = existing.callback;
-    registry.unregister(name);
-    registry.register({
-      ...existing,
-      callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
-    });
-  }
-
   function openSession(ws) {
     session = null;
     const block = focusedBlock();
@@ -560,32 +559,32 @@ function registerTopBlockReorderShortcuts() {
     session = { block, snapshot };
   }
 
-  wrap('start_move', (ws, e, s, orig) => {
+  wrapShortcut('start_move', (ws, e, s, orig) => {
     const r = orig(ws, e, s);
     openSession(ws);
     return r;
   });
-  wrap('start_move_stack', (ws, e, s, orig) => {
+  wrapShortcut('start_move_stack', (ws, e, s, orig) => {
     const r = orig(ws, e, s);
     openSession(ws);
     return r;
   });
 
-  wrap('move_up', (ws, e, s, orig) => {
+  wrapShortcut('move_up', (ws, e, s, orig) => {
     if (session && isTopBlock(session.block)) return swap('up', ws);
     return orig(ws, e, s);
   });
-  wrap('move_down', (ws, e, s, orig) => {
+  wrapShortcut('move_down', (ws, e, s, orig) => {
     if (session && isTopBlock(session.block)) return swap('down', ws);
     return orig(ws, e, s);
   });
 
-  wrap('finish_move', (ws, e, s, orig) => {
+  wrapShortcut('finish_move', (ws, e, s, orig) => {
     session = null;
     return orig(ws, e, s);
   });
 
-  wrap('abort_move', (ws, e, s, orig) => {
+  wrapShortcut('abort_move', (ws, e, s, orig) => {
     if (session) {
       const focused = session.block;
       const focusedOrigY = session.snapshot.get(focused);
@@ -616,22 +615,14 @@ function registerTopBlockReorderShortcuts() {
 // Blockly's "menu" shortcut opens nothing when the bare workspace is focused —
 // its focus-target node has no showContextMenu. Fall back to the workspace menu.
 function registerWorkspaceContextMenuFallback() {
-  const registry = Blockly.ShortcutRegistry.registry;
-  const existing = registry.getRegistry?.()?.['menu'];
-  if (!existing) return;
-  const orig = existing.callback;
-  registry.unregister('menu');
-  registry.register({
-    ...existing,
-    callback: (ws, event, shortcut) => {
-      if (orig?.(ws, event, shortcut)) return true;
-      const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
-      if (focusedTree === ws && typeof ws.showContextMenu === 'function') {
-        ws.showContextMenu(event);
-        return true;
-      }
-      return false;
-    },
+  wrapShortcut('menu', (ws, event, shortcut, orig) => {
+    if (orig?.(ws, event, shortcut)) return true;
+    const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
+    if (focusedTree === ws && typeof ws.showContextMenu === 'function') {
+      ws.showContextMenu(event);
+      return true;
+    }
+    return false;
   });
 }
 
