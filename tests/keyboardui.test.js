@@ -217,6 +217,36 @@ export function runKeyboardUiTests(flock) {
         expect(AreaManager.overlay.classList.contains('hidden')).to.equal(true);
       });
 
+      it('Digit8 (Code editor) focuses the workspace surface, not a stray tabbable child (e.g. trashcan)', function () {
+        // Trashcan sits before the workspace group in the SVG; focus must still
+        // land on the workspace surface.
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'blocklySvg');
+        const trash = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        trash.setAttribute('class', 'blocklyTrash');
+        trash.setAttribute('tabindex', '0');
+        const surface = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        surface.setAttribute('class', 'blocklyWorkspace');
+        surface.setAttribute('tabindex', '0');
+        svg.append(trash, surface);
+        document.body.appendChild(svg);
+
+        let trashFocused = false;
+        let surfaceFocused = false;
+        trash.focus = () => (trashFocused = true);
+        surface.focus = () => (surfaceFocused = true);
+
+        try {
+          AreaManager.toggle(true);
+          KeyboardDispatcher._registry['OVERLAY:Digit8']({ preventDefault() {} });
+          expect(surfaceFocused, 'workspace surface focused').to.equal(true);
+          expect(trashFocused, 'trashcan not focused').to.equal(false);
+          expect(AreaManager.overlay.classList.contains('hidden')).to.equal(true);
+        } finally {
+          svg.remove();
+        }
+      });
+
       describe('effectiveAreas', function () {
         afterEach(function () {
           document.getElementById('info-panel-tabs')?.remove();

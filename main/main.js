@@ -613,6 +613,28 @@ function registerTopBlockReorderShortcuts() {
   });
 }
 
+// Blockly's "menu" shortcut opens nothing when the bare workspace is focused —
+// its focus-target node has no showContextMenu. Fall back to the workspace menu.
+function registerWorkspaceContextMenuFallback() {
+  const registry = Blockly.ShortcutRegistry.registry;
+  const existing = registry.getRegistry?.()?.['menu'];
+  if (!existing) return;
+  const orig = existing.callback;
+  registry.unregister('menu');
+  registry.register({
+    ...existing,
+    callback: (ws, event, shortcut) => {
+      if (orig?.(ws, event, shortcut)) return true;
+      const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
+      if (focusedTree === ws && typeof ws.showContextMenu === 'function') {
+        ws.showContextMenu(event);
+        return true;
+      }
+      return false;
+    },
+  });
+}
+
 function initializeApp() {
   //console.log("Initializing Flock XR ...");
 
@@ -972,6 +994,7 @@ window.onload = async function () {
 
   registerBlocklyPlayShortcut();
   registerTopBlockReorderShortcuts();
+  registerWorkspaceContextMenuFallback();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();

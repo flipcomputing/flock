@@ -1,3 +1,4 @@
+import * as Blockly from 'blockly';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { ContextManager } from '../main/context.js';
 import { translate } from '../main/translation.js';
@@ -175,6 +176,22 @@ const AreaManager = {
       // would land on the toolbox search input and wipe that memory.
       focusToolboxRestoringCategory();
       return;
+    }
+    if (area.selector === 'svg.blocklySvg') {
+      // Focus the workspace through the FocusManager, not the generic child
+      // lookup below (which can grab the trashcan or zoom controls). setIsActive
+      // gates the focus highlight and Blockly's nav shortcuts.
+      const workspace = Blockly.getMainWorkspace?.();
+      if (workspace) {
+        Blockly.keyboardNavigationController?.setIsActive?.(true);
+        Blockly.getFocusManager?.()?.focusTree?.(workspace);
+        return;
+      }
+      const surface = document.querySelector('svg.blocklySvg g.blocklyWorkspace');
+      if (surface) {
+        surface.focus();
+        return;
+      }
     }
     const el = document.querySelector(area.selector);
     const childFocusable =

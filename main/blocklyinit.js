@@ -1744,6 +1744,21 @@ export function createBlocklyWorkspace() {
         }
       });
 
+      // Blockly's Escape (hideChaff) is gated on a non-read-only workspace, so it
+      // never fires while focus is inside the read-only trash flyout. Capture it
+      // before the flyout's own key handling swallows the event.
+      document.addEventListener(
+        'keydown',
+        (e) => {
+          if (e.key !== 'Escape' || !trashcan.contentsIsOpen()) return;
+          e.preventDefault();
+          e.stopPropagation();
+          trashcan.closeFlyout();
+          returnFocusToWorkspace();
+        },
+        true
+      );
+
       workspace.addChangeListener((e) => {
         // Dragging a block out of the trash restores it (BLOCK_CREATE); close the
         // flyout so it doesn't linger over the workspace.

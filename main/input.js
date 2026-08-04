@@ -157,16 +157,10 @@ export function setupInput() {
         pushUnique(workspaceGroup);
       }
 
-      // 6a) Workspace comments and block comment icons
-      document.querySelectorAll('g.blocklyComment').forEach((el) => {
-        if (!el.hasAttribute('tabindex') || el.tabIndex < 0) el.setAttribute('tabindex', '0');
-        if (!el.getAttribute('role')) el.setAttribute('role', 'group');
-        if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', 'Workspace comment');
-        pushUnique(el);
-      });
-      document.querySelectorAll('textarea.blocklyCommentText').forEach(pushUnique);
+      // Workspace comments are deliberately not tab stops — Blockly's B/N stack
+      // navigation reaches them and supplies their ARIA.
 
-      // 6b) Trashcan + its flyout. The bin icon is ALWAYS a stop (Enter opens it when
+      // Trashcan + its flyout. The bin icon is ALWAYS a stop (Enter opens it when
       // closed, closes it when open). When the flyout is open, add its contents JUST
       // BEFORE the icon, so shift+tab off the icon drops into the code blocks and
       // tabbing forward into this region lands on the blocks, then the icon.
@@ -190,7 +184,7 @@ export function setupInput() {
         trashEl.setAttribute('tabindex', '0'); // focus manager may have set it to -1
         pushUnique(trashEl);
       }
-      // 6c) Shortcuts panel (when visible), then undo/redo/zoom
+      // Shortcuts panel (when visible), then undo/redo/zoom
 
       const shortcutsPanel = document.getElementById('shortcutsPanel');
       pushUnique(shortcutsPanel);
@@ -247,6 +241,15 @@ export function setupInput() {
       return rect.width > 0 && rect.height > 0;
     }
 
+    // The trashcan shares the workspace's focus tree, so moving to it doesn't
+    // leave the block passively focused. Track the last block/comment so Tab
+    // back into the workspace returns there instead of the workspace surface.
+    let lastWorkspaceFocusNode = null;
+    const isRestorableWorkspaceNode = (node) => {
+      const el = node?.getFocusableElement?.();
+      return !!el?.isConnected && !!el.closest?.('g.blocklyDraggable, g.blocklyComment');
+    };
+
     document.addEventListener('keydown', (e) => {
       if (
         document.activeElement.id === 'resizer' &&
@@ -302,6 +305,12 @@ export function setupInput() {
         nextIndex = currentIndex === focusableElements.length - 1 ? 0 : currentIndex + 1;
       }
 
+      const focusManager = Blockly.getFocusManager?.();
+      const focusedNode = focusManager?.getFocusedNode?.();
+      if (isRestorableWorkspaceNode(focusedNode)) {
+        lastWorkspaceFocusNode = focusedNode;
+      }
+
       const nextElement = focusableElements[nextIndex];
       if (nextElement) {
         // Ensure element is still focusable before focusing
@@ -310,6 +319,17 @@ export function setupInput() {
             focusToolboxRestoringCategory();
           } else {
             nextElement.focus();
+            // Blockly restores the passive block when Tab arrives from another
+            // tree, but not from the trashcan (same tree) — fall back then.
+            if (
+              nextElement.getAttribute('aria-label') === 'Blocks workspace' &&
+              focusManager &&
+              !isRestorableWorkspaceNode(focusManager.getFocusedNode?.()) &&
+              isRestorableWorkspaceNode(lastWorkspaceFocusNode)
+            ) {
+              Blockly.keyboardNavigationController?.setIsActive?.(true);
+              focusManager.focusNode(lastWorkspaceFocusNode);
+            }
           }
 
           // Announce for screen readers
