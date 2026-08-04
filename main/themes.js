@@ -263,6 +263,7 @@ function setIconImage(htmlCollectionIcons, imageURL) {
   for (const icon of htmlCollectionIcons) {
     for (const image of icon.getElementsByTagName('image')) {
       image.setAttribute('xlink:href', imageURL);
+      image.setAttribute('href', imageURL);
     }
   }
 }
@@ -278,7 +279,7 @@ function setBinAndZoomIcons(themeName) {
   const zoomIcons = document.getElementsByClassName('blocklyZoom');
 
   if (themeName === 'contrast') {
-    const iconsURL = './images/blocklywhitesprites.svg';
+    const iconsURL = './images/blocklywhitesprites.png';
     setIconImage(binIcon, iconsURL);
     setIconImage(zoomIcons, iconsURL);
   } else {

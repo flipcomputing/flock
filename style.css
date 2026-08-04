@@ -1482,6 +1482,10 @@ button {
   background-color: var(--color-button-bg-hover);
 }
 
+[data-theme='contrast'] .example-tab {
+  color: var(--color-bg);
+}
+
 .example-tab[aria-selected='true'] {
   background-color: var(--color-primary);
   border-color: var(--color-primary);
@@ -1889,10 +1893,6 @@ body.color-picker-open #renderCanvas {
   height: 10px;
 }
 
-[data-theme='contrast'] .menu-item[aria-haspopup='true']:hover .menu-arrow {
-  color: black;
-}
-
 #examples {
   min-width: 100px;
   flex-grow: 1;
@@ -1915,18 +1915,6 @@ body.color-picker-open #renderCanvas {
 
 .menu-item:hover {
   background-color: var(--color-menu-hover);
-}
-
-[data-theme='contrast'] .menu-item:hover .menu-label {
-  color: black;
-}
-
-[data-theme='contrast'] #main-menu a:hover {
-  color: black;
-}
-
-[data-theme='contrast'] .menu-item:hover .menu-icon svg {
-  fill: black;
 }
 
 .menu-icon {
@@ -2678,6 +2666,26 @@ svg.blocklyTrashcanFlyout {
   border-top-color: var(--color-menu, #f9f9f9);
   border-bottom: 0;
   z-index: 1;
+}
+
+/* Flipped below the block (see positionBlockToolbar): the toolbar renders
+   under the block instead of above it, so the caret triangles point up. */
+.fc-block-toolbar.below {
+  transform: translate(-50%, 7px);
+}
+
+.fc-block-toolbar.below::after {
+  top: -7px;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 7px solid var(--color-border, #ddd);
+}
+
+.fc-block-toolbar.below::before {
+  top: -5px;
+  bottom: auto;
+  border-top: 0;
+  border-bottom: 5px solid var(--color-menu, #f9f9f9);
 }
 
 .fc-block-toolbar.visible {
