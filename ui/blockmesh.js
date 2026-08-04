@@ -28,6 +28,113 @@ let _meshIndexDirty = true;
 let _meshRemovedHandle = null;
 let _meshAddedHandle = null;
 
+// Live edits to mesh-creating blocks during a run, block id → { colour, events }.
+// Meshes spawned after an edit reconcile to the block's current values. Colour is
+// a flag not a stored event: its source is a swappable child whose id goes stale
+// on drag-out, so we re-resolve current colour instead. Cleared each run.
+const liveEditsByBlock = new Map();
+
+// 1:1 block-key → mesh types, so an edit replays onto one fresh mesh unambiguously.
+// Model/character loads are multi-mesh/async — a follow-up.
+const LATE_BOUND_CREATE_TYPES = new Set([
+  'create_box',
+  'create_sphere',
+  'create_cylinder',
+  'create_capsule',
+  'create_plane',
+]);
+
+export function resetLiveEditsForRun() {
+  liveEditsByBlock.clear();
+}
+
+// CREATE included so colour-source removal is caught: drag-out detaches the moved
+// block (its MOVE won't route back), but the respawning shadow fires a CREATE.
+const RECORDED_EDIT_TYPES = new Set([
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_MOVE,
+  Blockly.Events.BLOCK_CREATE,
+]);
+
+// True when the change touches the colour input (value, drag in/out, or material
+// subtree). Flags colour reconcile without pinning to the child id.
+function isColourEdit(block, changeEvent) {
+  if (!block?.getInputTargetBlock) return false;
+  const names = block.type === 'load_multi_object' ? ['COLORS'] : ['COLOR'];
+
+  if (names.includes(changeEvent.newInputName) || names.includes(changeEvent.oldInputName)) {
+    return true;
+  }
+  if (['COLOR', 'COLOUR', 'COLORS', 'BASE_COLOR'].includes(changeEvent.name)) return true;
+
+  for (const name of names) {
+    const input = block.getInputTargetBlock(name);
+    if (!input) continue;
+    if (changeEvent.blockId === input.id) return true;
+    if (
+      isBlockIdDescendantOf(input, changeEvent.blockId) ||
+      isBlockIdDescendantOf(input, changeEvent.newParentId) ||
+      isBlockIdDescendantOf(input, changeEvent.oldParentId)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function recordLiveEdit(block, changeEvent) {
+  if (!block || !RECORDED_EDIT_TYPES.has(changeEvent?.type)) return;
+  if (!LATE_BOUND_CREATE_TYPES.has(block.type)) return;
+
+  let rec = liveEditsByBlock.get(block.id);
+  if (!rec) {
+    rec = { colour: false, events: new Map() };
+    liveEditsByBlock.set(block.id, rec);
+  }
+
+  // Flag colour rather than store a child-id event that goes stale on swap.
+  if (isColourEdit(block, changeEvent)) {
+    rec.colour = true;
+    return;
+  }
+
+  const sig = `${changeEvent.blockId ?? ''}:${changeEvent.element ?? ''}:${changeEvent.name ?? ''}`;
+  // Detached copy: Blockly reuses/mutates the live event object after dispatch.
+  rec.events.set(sig, {
+    type: changeEvent.type,
+    element: changeEvent.element,
+    name: changeEvent.name,
+    blockId: changeEvent.blockId,
+    newParentId: changeEvent.newParentId,
+    oldParentId: changeEvent.oldParentId,
+  });
+}
+
+// Applies the block's current colour to one mesh; random re-rolls per call.
+function applyBlockColourToMesh(block, mesh) {
+  const changed = block.type === 'load_multi_object' ? 'COLORS' : 'COLOR';
+  const { color, materialInfo } = resolveColorAndMaterialForBlock(block);
+  handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
+}
+
+export function reconcileSpawnedMesh(mesh) {
+  const blockKey = mesh?.metadata?.blockKey;
+  if (!blockKey) return;
+
+  const rec = liveEditsByBlock.get(blockKey);
+  if (!rec) return;
+
+  const block = meshMap[blockKey] || Blockly.getMainWorkspace()?.getBlockById(blockKey);
+  if (!block || block.disposed) return;
+
+  if (rec.colour) {
+    applyBlockColourToMesh(block, mesh);
+  }
+  for (const event of rec.events.values()) {
+    updateMeshFromBlock(mesh, block, event);
+  }
+}
+
 function ensureMeshIndex() {
   const scene = flock.scene;
   if (!scene) return;
@@ -44,7 +151,7 @@ function ensureMeshIndex() {
       const key = mesh.metadata?.blockKey;
       if (key) blockKeyToMeshes.get(key)?.delete(mesh);
     });
-    _meshAddedHandle = scene.onNewMeshAddedObservable?.add(() => {
+    _meshAddedHandle = scene.onNewMeshAddedObservable?.add((mesh) => {
       _meshIndexDirty = true;
       // A mesh is added to the scene by its constructor, but the shape/model APIs
       // set metadata.blockKey *after* that. If anything rebuilds the index in
@@ -52,9 +159,11 @@ function ensureMeshIndex() {
       // the still-keyless mesh is skipped and the dirty flag is cleared — leaving
       // the mesh permanently unindexed. Re-assert dirty once the current
       // synchronous work (including the key assignment) has finished, so the next
-      // lookup rebuilds with the key present.
+      // lookup rebuilds with the key present. Same deferral lets us read the
+      // blockKey to reconcile a post-edit spawn.
       queueMicrotask(() => {
         _meshIndexDirty = true;
+        reconcileSpawnedMesh(mesh);
       });
     });
   }
@@ -463,6 +572,10 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
   if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
+
+  // Record so meshes spawned later in a loop/event pick the edit up too.
+  recordLiveEdit(block, changeEvent);
+
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate || isConnectedMove)) {
     if (sceneControllerTypes.includes(block.type)) {
@@ -768,6 +881,28 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   block.__mapRetry = false;
 
   flock.createMap(mapName, mapArg);
+}
+
+// True when a colour input resolves to a random value (directly, inside a list,
+// or as a material's base colour) — meaning it must be rolled per mesh.
+function inputSubtreeHasRandomColour(target) {
+  if (!target) return false;
+  if (target.type === 'random_colour') return true;
+  if (target.type === 'lists_create_with') {
+    return target.inputList.some(
+      (input) => input.connection?.targetBlock()?.type === 'random_colour'
+    );
+  }
+  if (target.type === 'material') {
+    return inputSubtreeHasRandomColour(target.getInputTargetBlock?.('BASE_COLOR'));
+  }
+  return false;
+}
+
+export function colourSourceIsRandom(block) {
+  if (!block?.getInputTargetBlock) return false;
+  const inputName = block.type === 'load_multi_object' ? 'COLORS' : 'COLOR';
+  return inputSubtreeHasRandomColour(block.getInputTargetBlock(inputName));
 }
 
 function resolveColorAndMaterialForBlock(block) {
@@ -1245,10 +1380,14 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
+  const colourIsRandom = colourSourceIsRandom(block);
+
+  // Random sources roll per mesh in the loop; resolving here would waste a roll.
   let color;
   let materialInfo = null;
-
-  ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
+  if (!colourIsRandom) {
+    ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
+  }
 
   if (block.type.startsWith('load_') && changed === 'SCALE') {
     meshes.forEach((mesh) => {
@@ -1263,11 +1402,16 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   meshes.forEach((mesh) => {
-    // Handle primitive geometry updates (box, sphere, etc.)
     handlePrimitiveGeometryChange(mesh, block, changed);
 
-    // Handle material/color changes
-    handleMaterialOrColorChange(mesh, block, changed, color, materialInfo);
+    // Random colour rolls per mesh; resolving once would paint all copies alike.
+    let meshColour = color;
+    let meshMaterial = materialInfo;
+    if (colourIsRandom) {
+      ({ color: meshColour, materialInfo: meshMaterial } = resolveColorAndMaterialForBlock(block));
+    }
+
+    handleMaterialOrColorChange(mesh, block, changed, meshColour, meshMaterial);
   });
 
   if (['X', 'Y', 'Z'].includes(changed)) {

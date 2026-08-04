@@ -2,6 +2,7 @@ import { flock } from '../flock.js';
 import { currentView, isNarrowScreen, showCanvasView } from './view.js';
 import { handleError, isBenignAbort, isReported } from '../ui/notifications.js';
 import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
+import { resetLiveEditsForRun } from '../ui/blockmesh.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
 
@@ -59,6 +60,8 @@ export async function executeCode(options = {}) {
 
     try {
       // Inside the try: a generator throw would escape with gizmos already disposed.
+      // The code we're about to generate bakes current block values — nothing stale.
+      resetLiveEditsForRun();
       const code = javascriptGenerator.workspaceToCode(workspace);
       await flock.runCode(code, options);
     } catch (error) {
