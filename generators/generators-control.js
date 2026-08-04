@@ -15,7 +15,7 @@ function budgetYield(generator, label) {
     decl: `let ${timingVar} = performance.now();\nlet ${countVar} = 0;\n`,
     tick:
       `if ((${countVar}++ & 15) === 0 && performance.now() - ${timingVar} > 16) {\n` +
-      `  await new Promise(resolve => requestAnimationFrame(resolve));\n` +
+      `  await new Promise(resolve => __flockLoopYield(resolve));\n` +
       `  ${timingVar} = performance.now();\n` +
       `}\n`,
   };

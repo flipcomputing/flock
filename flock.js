@@ -563,6 +563,18 @@ export const flock = {
 
     handleError(error, { source: 'physics-oom', fatal: true });
   },
+  // Counted-loop yield: scheduler.yield() resumes when the browser is free (not
+  // at the next paint); fall back to rAF where unavailable. Guarded like rAF so
+  // a stopped run never resumes.
+  makeLoopYield(guard) {
+    const schedulerYield = window.scheduler?.yield?.bind(window.scheduler) ?? null;
+    const requestAnimationFrame = window.requestAnimationFrame.bind(window);
+    return (callback) => {
+      const settle = guard(callback);
+      if (schedulerYield) schedulerYield().then(settle, settle);
+      else requestAnimationFrame(settle);
+    };
+  },
   validateCode(code) {
     if (typeof code !== 'string') {
       throw new Error('Code must be a string');
@@ -901,6 +913,7 @@ export const flock = {
       endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
         hostRequestAnimationFrame(guard(callback))
       );
+      endowments.__flockLoopYield = win.__flockWrapHostFn(flock.makeLoopYield(guard));
 
       endowments.Date = new win.Object();
       endowments.Date.now = win.Date.now.bind(win.Date);

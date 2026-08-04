@@ -22,7 +22,7 @@ export function runControlGeneratorTests() {
     // assert real behaviour (yields fire from inside the loop, the clock is read
     // only inside the gate) rather than source-text order.
     async function run(code, { now, scope = {} }) {
-      let rafCount = 0;
+      let yieldCount = 0;
       let nowCount = 0;
       const performance = {
         now: () => {
@@ -30,16 +30,16 @@ export function runControlGeneratorTests() {
           return now(nowCount);
         },
       };
-      const requestAnimationFrame = (cb) => {
-        rafCount += 1;
+      const __flockLoopYield = (cb) => {
+        yieldCount += 1;
         cb();
         return 0;
       };
-      const names = ['performance', 'requestAnimationFrame', ...Object.keys(scope)];
-      const values = [performance, requestAnimationFrame, ...Object.values(scope)];
+      const names = ['performance', '__flockLoopYield', ...Object.keys(scope)];
+      const values = [performance, __flockLoopYield, ...Object.values(scope)];
       const fn = new Function(names.join(','), `return (async () => {\n${code}\n})();`);
       await fn(...values);
-      return { rafCount, nowCount };
+      return { yieldCount, nowCount };
     }
 
     const ITERS = 160;
@@ -67,16 +67,16 @@ export function runControlGeneratorTests() {
     // of the body), and it must fire repeatedly from inside the loop — a pre-loop
     // yield would fire once, an end-of-body one never.
     it('controls_for yields from inside the loop even when the body continues', async function () {
-      const { rafCount } = await run(forCode('  continue;\n'), { now: (n) => n * 100 });
-      expect(rafCount).to.be.greaterThan(1);
+      const { yieldCount } = await run(forCode('  continue;\n'), { now: (n) => n * 100 });
+      expect(yieldCount).to.be.greaterThan(1);
     });
 
     it('controls_forEach yields from inside the loop even when the body continues', async function () {
-      const { rafCount } = await run(forEachCode('  continue;\n'), {
+      const { yieldCount } = await run(forEachCode('  continue;\n'), {
         now: (n) => n * 100,
         scope: { lst },
       });
-      expect(rafCount).to.be.greaterThan(1);
+      expect(yieldCount).to.be.greaterThan(1);
     });
 
     it('controls_repeat_ext pauses every iteration even when the body continues', async function () {

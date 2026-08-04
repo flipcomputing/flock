@@ -51,5 +51,64 @@ export function runControlTests(flock) {
         expect(calls).to.be.empty;
       });
     });
+
+    describe('makeLoopYield', function () {
+      const identityGuard = (cb) => cb;
+
+      it('uses scheduler.yield when available', async function () {
+        const prev = window.scheduler;
+        let used = false;
+        window.scheduler = {
+          yield: () => {
+            used = true;
+            return Promise.resolve();
+          },
+        };
+        try {
+          const yieldFn = flock.makeLoopYield(identityGuard);
+          await new Promise((resolve) => yieldFn(resolve));
+          expect(used).to.equal(true);
+        } finally {
+          window.scheduler = prev;
+        }
+      });
+
+      it('falls back to requestAnimationFrame when scheduler.yield is unavailable', async function () {
+        const prevScheduler = window.scheduler;
+        const prevRaf = window.requestAnimationFrame;
+        let usedRaf = false;
+        delete window.scheduler;
+        window.requestAnimationFrame = (cb) => {
+          usedRaf = true;
+          cb();
+          return 0;
+        };
+        try {
+          const yieldFn = flock.makeLoopYield(identityGuard);
+          await new Promise((resolve) => yieldFn(resolve));
+          expect(usedRaf).to.equal(true);
+        } finally {
+          window.scheduler = prevScheduler;
+          window.requestAnimationFrame = prevRaf;
+        }
+      });
+
+      it('never resumes when the guard blocks it (stopped run)', async function () {
+        const prev = window.scheduler;
+        window.scheduler = { yield: () => Promise.resolve() };
+        try {
+          // Guard returns a no-op, standing in for an aborted run.
+          const yieldFn = flock.makeLoopYield(() => () => {});
+          let resumed = false;
+          yieldFn(() => {
+            resumed = true;
+          });
+          await new Promise((r) => setTimeout(r, 10));
+          expect(resumed).to.equal(false);
+        } finally {
+          window.scheduler = prev;
+        }
+      });
+    });
   });
 }
