@@ -962,6 +962,7 @@ export function exitGizmoState() {
   stopAxisKeyboard = null;
   clearStatus('axis');
   clearStatus('camera');
+  clearStatus('eye-gizmo');
   // The readout belongs to the tool that took it; the next tool doesn't move it.
   clearStatus('position-readout');
 
