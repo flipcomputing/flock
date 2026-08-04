@@ -1250,6 +1250,22 @@ export default {
   player_control_dpad_down: 'Oggetto davanti',
   player_control_dpad_left: 'Oggetto più vicino',
 
+  // Player panel controls
+  player_decrease_font_size: 'Riduci dimensione testo',
+  player_increase_font_size: 'Aumenta dimensione testo',
+
+  // Player control key labels
+  gamepad_left_stick: 'Levetta sinistra',
+  gamepad_right_stick: 'Levetta destra',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangolo / Y',
+  gamepad_square_x: 'Quadrato / X',
+  gamepad_circle_b: 'Cerchio / B',
+  gamepad_cross_a: 'Croce / A',
+  dpad_up: 'Su',
+  dpad_down: 'Giù',
+  dpad_left: 'Sinistra',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Controlli da tastiera',
   shortcut_panel_close: 'Chiudi le scorciatoie da tastiera',

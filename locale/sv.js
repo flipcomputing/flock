@@ -1227,6 +1227,22 @@ export default {
   player_control_dpad_down: 'Objekt framför',
   player_control_dpad_left: 'Närmaste objekt',
 
+  // Player panel controls
+  player_decrease_font_size: 'Minska textstorlek',
+  player_increase_font_size: 'Öka textstorlek',
+
+  // Player control key labels
+  gamepad_left_stick: 'Vänster spak',
+  gamepad_right_stick: 'Höger spak',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangel / Y',
+  gamepad_square_x: 'Kvadrat / X',
+  gamepad_circle_b: 'Cirkel / B',
+  gamepad_cross_a: 'Kryss / A',
+  dpad_up: 'Up',
+  dpad_down: 'Ner',
+  dpad_left: 'Vänster',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Tangentbordskontroller',
   shortcut_panel_close: 'Stäng tangentbordsgenvägar',

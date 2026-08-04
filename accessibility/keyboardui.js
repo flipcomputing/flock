@@ -1205,9 +1205,10 @@ const PlayerPanel = {
     const renderControl = (entry) => {
       if (entry.marks) {
         const keys = entry.keys ? `<span class="pc-sep"> / </span>${formatKeys(entry.keys)}` : '';
+        const srText = entry.keys ? `${entry.label} ${formatKeys(entry.keys)}` : entry.label;
         return `<span class="pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}" aria-hidden="true">${entry.marks
           .map((m) => `<span class="pc-chip">${m}</span>`)
-          .join('')}${keys}</span><span class="sr-only">${entry.label}</span>`;
+          .join('')}${keys}</span><span class="sr-only">${srText}</span>`;
       }
       return formatKeys(entry.keys);
     };
