@@ -398,6 +398,7 @@ function isMac() {
 // List of shortcuts to show in the panel, with categories for grouping
 function getShortcuts() {
   const mod = isMac() ? '⌘' : 'Ctrl';
+  const pgUpDn = isMac() ? 'Fn + ↑ ↓' : 'PgUp PgDn';
   return [
     {
       label: translate('shortcut_show_hide_help'),
@@ -627,7 +628,7 @@ function getShortcuts() {
     },
     {
       label: translate('shortcut_transform_3d'),
-      keys: `↑ ↓ ← → PgUp PgDn`,
+      keys: `↑ ↓ ← → ${pgUpDn}`,
       category: translate('shortcut_category_gizmos'),
     },
     {
