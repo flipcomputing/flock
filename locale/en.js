@@ -1244,6 +1244,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate.',
   place_duplicate_prompt: 'ℹ️ Click to place a copy.',
   select_mesh_eye_prompt: 'ℹ️ Click an object to orbit around it.',
+  orbit_mesh_info: 'ℹ️ Drag to move the camera around the object',
   place_object_prompt: 'ℹ️ Click on a surface to place the object.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Color picking is available in Chrome/Edge on desktop.',

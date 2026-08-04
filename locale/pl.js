@@ -1169,6 +1169,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'ℹ️ Kliknij, aby umieścić kopię.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Kliknij obiekt, aby go okrążyć.',
+  orbit_mesh_info: 'ℹ️ Przeciągnij, aby przesunąć kamerę wokół obiektu',
   place_object_prompt: 'ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
   eyedropper_not_supported_alert: 'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai

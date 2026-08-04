@@ -2540,6 +2540,7 @@ function handleEyeGizmo() {
   const mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name !== 'ground') {
     attachOrbitView(mesh);
+    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
     return;
   }
 
@@ -2551,6 +2552,7 @@ function handleEyeGizmo() {
       }
       attachMeshForActiveTool(pickedMesh);
       attachOrbitView(pickedMesh);
+      showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
     },
     false,
     translate('select_mesh_eye_prompt')

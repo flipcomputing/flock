@@ -1155,6 +1155,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
+  orbit_mesh_info: 'ℹ️ Dra för att flytta kameran runt objektet',
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai

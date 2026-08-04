@@ -1161,6 +1161,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Wähle ein Objekt zum Duplizieren aus.',
   place_duplicate_prompt: 'ℹ️ Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu umkreisen.',
+  orbit_mesh_info: 'ℹ️ Ziehe, um die Kamera um das Objekt zu bewegen',
   place_object_prompt: 'ℹ️ Klicke auf eine Fläche, um das Objekt zu platzieren.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Die Farbauswahl ist in Chrome/Edge auf dem Desktop verfügbar.', // ai

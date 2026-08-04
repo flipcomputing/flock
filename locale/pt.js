@@ -1179,6 +1179,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Selecione um objeto para duplicar.',
   place_duplicate_prompt: 'ℹ️ Clique para posicionar uma cópia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Clique em um objeto para orbitar ao redor dele.',
+  orbit_mesh_info: 'ℹ️ Arraste para mover a câmera ao redor do objeto',
   place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
   eyedropper_not_supported_alert:
