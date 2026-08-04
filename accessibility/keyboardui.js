@@ -1009,9 +1009,7 @@ const ShortcutsPanel = {
     this.panel.addEventListener('keydown', (e) => {
       // Modal mode reparents the panel to <body> and makes it the scroll
       // container itself; #info-panel-body only scrolls in docked mode.
-      const scroller = this._modalActive
-        ? this.panel
-        : document.getElementById('info-panel-body');
+      const scroller = this._modalActive ? this.panel : document.getElementById('info-panel-body');
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         scroller?.scrollBy({ top: -100, behavior: 'instant' });
@@ -1055,7 +1053,6 @@ function getPlayerControls() {
   return [
     {
       section: 'player_section_onscreen',
-      hideHeader: true,
       entries: [
         {
           action: 'player_action_move',
@@ -1066,21 +1063,25 @@ function getPlayerControls() {
         {
           action: 'player_action_camera_up',
           marks: [svgRingedChar(1)],
+          keys: 'R',
           label: translate('player_control_button').replace('%1', 1),
-        },
-        {
-          action: 'player_action_camera_down',
-          marks: [svgRingedChar(3)],
-          label: translate('player_control_button').replace('%1', 3),
         },
         {
           action: 'player_action_interact',
           marks: [svgRingedChar(2)],
+          keys: 'E',
           label: translate('player_control_button').replace('%1', 2),
+        },
+        {
+          action: 'player_action_camera_down',
+          marks: [svgRingedChar(3)],
+          keys: 'F',
+          label: translate('player_control_button').replace('%1', 3),
         },
         {
           action: 'player_action_spare',
           marks: [svgRingedChar(4)],
+          keys: 'Space',
           label: translate('player_control_button').replace('%1', 4),
         },
       ],
@@ -1157,7 +1158,7 @@ const PlayerPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('player', translate('player_section_onscreen'), this);
+    const panel = InfoPanel.register('player', translate('player_panel_title'), this);
     const btn = document.getElementById('info-tab-btn-player');
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
     panel.innerHTML = `
@@ -1195,7 +1196,7 @@ const PlayerPanel = {
   },
 
   renderContent() {
-    const title = translate('player_section_onscreen');
+    const title = translate('player_panel_title');
     const btn = document.getElementById('info-tab-btn-player');
     btn.setAttribute('aria-label', title);
     btn.setAttribute('title', title);
@@ -1203,9 +1204,10 @@ const PlayerPanel = {
 
     const renderControl = (entry) => {
       if (entry.marks) {
+        const keys = entry.keys ? `<span class="pc-sep"> / </span>${formatKeys(entry.keys)}` : '';
         return `<span class="pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}" aria-hidden="true">${entry.marks
           .map((m) => `<span class="pc-chip">${m}</span>`)
-          .join('')}</span><span class="sr-only">${entry.label}</span>`;
+          .join('')}${keys}</span><span class="sr-only">${entry.label}</span>`;
       }
       return formatKeys(entry.keys);
     };
@@ -1262,9 +1264,7 @@ const PlayerPanel = {
     this.panel.addEventListener('keydown', (e) => {
       // Modal mode reparents the panel to <body> and makes it the scroll
       // container itself; #info-panel-body only scrolls in docked mode.
-      const scroller = this._modalActive
-        ? this.panel
-        : document.getElementById('info-panel-body');
+      const scroller = this._modalActive ? this.panel : document.getElementById('info-panel-body');
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         scroller?.scrollBy({ top: -100, behavior: 'instant' });

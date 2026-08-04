@@ -1229,6 +1229,26 @@ export default {
   toolbar_redo_ui: 'Ripeti',
   toolbar_zoom_out_ui: 'Riduci zoom',
   toolbar_zoom_in_ui: 'Aumenta zoom',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Controlli del giocatore',
+  player_section_onscreen: 'Controlli su schermo',
+  player_section_gamepad: 'Controller di gioco',
+  player_section_sr: 'Screen reader con controller di gioco',
+  player_action_move: 'Muovi',
+  player_action_look: 'Guarda intorno',
+  player_action_turn: 'Gira a sinistra / destra',
+  player_action_camera_up: 'Camera su / Pulsante 1',
+  player_action_interact: 'Interagisci / Pulsante 2',
+  player_action_camera_down: 'Camera giù / Pulsante 3',
+  player_action_spare: 'Azione generale / Pulsante 4',
+  player_control_arrows: 'Frecce',
+  player_control_button: 'Pulsante %1',
+  player_control_dpad_note:
+    'Sui controller senza levetta sinistra, il D-pad si muove al suo posto.',
+  player_control_dpad_up: 'Riepilogo scena',
+  player_control_dpad_down: 'Oggetto davanti',
+  player_control_dpad_left: 'Oggetto più vicino',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Controlli da tastiera',
   shortcut_panel_close: 'Chiudi le scorciatoie da tastiera',

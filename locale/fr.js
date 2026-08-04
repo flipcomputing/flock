@@ -1227,6 +1227,26 @@ export default {
   toolbar_redo_ui: 'Rétablir',
   toolbar_zoom_out_ui: 'Dézoomer',
   toolbar_zoom_in_ui: 'Zoomer',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Commandes du joueur',
+  player_section_onscreen: "Commandes à l'écran",
+  player_section_gamepad: 'Manette de jeu',
+  player_section_sr: "Lecteur d'écran avec manette de jeu",
+  player_action_move: 'Se déplacer',
+  player_action_look: 'Regarder autour',
+  player_action_turn: 'Tourner à gauche / droite',
+  player_action_camera_up: 'Caméra vers le haut / Bouton 1',
+  player_action_interact: 'Interagir / Bouton 2',
+  player_action_camera_down: 'Caméra vers le bas / Bouton 3',
+  player_action_spare: 'Action générale / Bouton 4',
+  player_control_arrows: 'Flèches',
+  player_control_button: 'Bouton %1',
+  player_control_dpad_note:
+    'Sur les manettes sans joystick gauche, la croix directionnelle permet de se déplacer à la place.',
+  player_control_dpad_up: 'Résumé de la scène',
+  player_control_dpad_down: 'Objet devant',
+  player_control_dpad_left: 'Objet le plus proche',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Commandes clavier',
   shortcut_panel_close: 'Fermer les raccourcis clavier',

@@ -2430,6 +2430,7 @@ kbd {
 
 .pc-keys {
   display: flex;
+  align-items: center;
   gap: 3px;
 }
 
@@ -2471,6 +2472,16 @@ kbd {
   display: block;
   width: 1.1em;
   height: 1.1em;
+}
+
+.pc-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: calc(1.4em + 2px);
+  padding: 0 5px;
+  font-size: 1em;
 }
 
 .player-controls-note {

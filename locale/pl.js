@@ -1221,6 +1221,26 @@ export default {
   toolbar_redo_ui: 'Ponów',
   toolbar_zoom_out_ui: 'Oddal',
   toolbar_zoom_in_ui: 'Przybliż',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Sterowanie gracza',
+  player_section_onscreen: 'Sterowanie ekranowe',
+  player_section_gamepad: 'Kontroler do gier',
+  player_section_sr: 'Czytnik ekranu z kontrolerem do gier',
+  player_action_move: 'Ruch',
+  player_action_look: 'Rozglądanie się',
+  player_action_turn: 'Obrót w lewo / prawo',
+  player_action_camera_up: 'Kamera w górę / Przycisk 1',
+  player_action_interact: 'Interakcja / Przycisk 2',
+  player_action_camera_down: 'Kamera w dół / Przycisk 3',
+  player_action_spare: 'Akcja ogólna / Przycisk 4',
+  player_control_arrows: 'Strzałki',
+  player_control_button: 'Przycisk %1',
+  player_control_dpad_note:
+    'W kontrolerach bez lewej gałki, zamiast tego ruch obsługuje krzyżak (D-pad).',
+  player_control_dpad_up: 'Podsumowanie sceny',
+  player_control_dpad_down: 'Obiekt z przodu',
+  player_control_dpad_left: 'Najbliższy obiekt',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Sterowanie klawiaturą',
   shortcut_panel_close: 'Zamknij skróty klawiaturowe',
