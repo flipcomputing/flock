@@ -962,6 +962,7 @@ export function exitGizmoState() {
   stopAxisKeyboard = null;
   clearStatus('axis');
   clearStatus('camera');
+  clearStatus('eye-gizmo');
   // The readout belongs to the tool that took it; the next tool doesn't move it.
   clearStatus('position-readout');
 
@@ -2540,6 +2541,7 @@ function handleEyeGizmo() {
   const mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name !== 'ground') {
     attachOrbitView(mesh);
+    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
     return;
   }
 
@@ -2551,6 +2553,7 @@ function handleEyeGizmo() {
       }
       attachMeshForActiveTool(pickedMesh);
       attachOrbitView(pickedMesh);
+      showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
     },
     false,
     translate('select_mesh_eye_prompt')

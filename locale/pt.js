@@ -1172,13 +1172,14 @@ export default {
   error_design_mode_offline:
     'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',
-  fly_camera_instructions: 'ℹ️ Câmera de voo, use as setas e Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Olhe ao redor com as setas e Page Up/Down ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Câmera de voo, use os controles na tela e arraste para olhar em volta',
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',
   select_mesh_duplicate_prompt: 'ℹ️ Selecione um objeto para duplicar.',
   place_duplicate_prompt: 'ℹ️ Clique para posicionar uma cópia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Clique em um objeto para orbitar ao redor dele.',
+  orbit_mesh_info: 'ℹ️ Arraste para mover a câmera ao redor do objeto',
   place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
   eyedropper_not_supported_alert:
@@ -1232,6 +1233,41 @@ export default {
   toolbar_redo_ui: 'Refazer',
   toolbar_zoom_out_ui: 'Reduzir zoom',
   toolbar_zoom_in_ui: 'Aumentar zoom',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Controlos do jogador',
+  player_section_onscreen: 'Controlos no ecrã',
+  player_section_gamepad: 'Comando de jogo',
+  player_section_sr: 'Leitor de ecrã com comando de jogo',
+  player_action_move: 'Mover',
+  player_action_look: 'Olhar em redor',
+  player_action_turn: 'Virar à esquerda / direita',
+  player_action_camera_up: 'Câmara para cima / Botão 1',
+  player_action_interact: 'Interagir / Botão 2',
+  player_action_camera_down: 'Câmara para baixo / Botão 3',
+  player_action_spare: 'Ação geral / Botão 4',
+  player_control_arrows: 'Setas',
+  player_control_button: 'Botão %1',
+  player_control_dpad_note: 'Em comandos sem manípulo esquerdo, a cruzeta move-se em vez disso.',
+  player_control_dpad_up: 'Resumo da cena',
+  player_control_dpad_down: 'Objeto à frente',
+  player_control_dpad_left: 'Objeto mais próximo',
+
+  // Player panel controls
+  player_decrease_font_size: 'Reduzir tamanho do texto',
+  player_increase_font_size: 'Aumentar tamanho do texto',
+
+  // Player control key labels
+  gamepad_left_stick: 'Manípulo esquerdo',
+  gamepad_right_stick: 'Manípulo direito',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triângulo / Y',
+  gamepad_square_x: 'Quadrado / X',
+  gamepad_circle_b: 'Círculo / B',
+  gamepad_cross_a: 'Cruz / A',
+  dpad_up: 'Cima',
+  dpad_down: 'Baixo',
+  dpad_left: 'Esquerda',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Controlos de teclado',
   shortcut_panel_close: 'Fechar atalhos de teclado',

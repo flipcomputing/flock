@@ -1162,13 +1162,14 @@ export default {
   error_design_mode_offline:
     'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',
-  fly_camera_instructions: 'ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',
   select_mesh_duplicate_prompt: 'ℹ️ Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'ℹ️ Kliknij, aby umieścić kopię.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Kliknij obiekt, aby go okrążyć.',
+  orbit_mesh_info: 'ℹ️ Przeciągnij, aby przesunąć kamerę wokół obiektu',
   place_object_prompt: 'ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
   eyedropper_not_supported_alert: 'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai
@@ -1221,6 +1222,42 @@ export default {
   toolbar_redo_ui: 'Ponów',
   toolbar_zoom_out_ui: 'Oddal',
   toolbar_zoom_in_ui: 'Przybliż',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Sterowanie gracza',
+  player_section_onscreen: 'Sterowanie ekranowe',
+  player_section_gamepad: 'Kontroler do gier',
+  player_section_sr: 'Czytnik ekranu z kontrolerem do gier',
+  player_action_move: 'Ruch',
+  player_action_look: 'Rozglądanie się',
+  player_action_turn: 'Obrót w lewo / prawo',
+  player_action_camera_up: 'Kamera w górę / Przycisk 1',
+  player_action_interact: 'Interakcja / Przycisk 2',
+  player_action_camera_down: 'Kamera w dół / Przycisk 3',
+  player_action_spare: 'Akcja ogólna / Przycisk 4',
+  player_control_arrows: 'Strzałki',
+  player_control_button: 'Przycisk %1',
+  player_control_dpad_note:
+    'W kontrolerach bez lewej gałki, zamiast tego ruch obsługuje krzyżak (D-pad).',
+  player_control_dpad_up: 'Podsumowanie sceny',
+  player_control_dpad_down: 'Obiekt z przodu',
+  player_control_dpad_left: 'Najbliższy obiekt',
+
+  // Player panel controls
+  player_decrease_font_size: 'Zmniejsz rozmiar tekstu',
+  player_increase_font_size: 'Zwiększ rozmiar tekstu',
+
+  // Player control key labels
+  gamepad_left_stick: 'Lewa gałka',
+  gamepad_right_stick: 'Prawa gałka',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Trójkąt / Y',
+  gamepad_square_x: 'Kwadrat / X',
+  gamepad_circle_b: 'Koło / B',
+  gamepad_cross_a: 'Krzyż / A',
+  dpad_up: 'W górę',
+  dpad_down: 'W dół',
+  dpad_left: 'W lewo',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Sterowanie klawiaturą',
   shortcut_panel_close: 'Zamknij skróty klawiaturowe',

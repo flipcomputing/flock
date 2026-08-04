@@ -1148,13 +1148,14 @@ export default {
   error_design_mode_offline:
     'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',
-  fly_camera_instructions: 'ℹ️ Flygkamera, använd piltangenterna och Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
   select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
+  orbit_mesh_info: 'ℹ️ Dra för att flytta kameran runt objektet',
   place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
@@ -1207,6 +1208,41 @@ export default {
   toolbar_redo_ui: 'Gör om',
   toolbar_zoom_out_ui: 'Zooma ut',
   toolbar_zoom_in_ui: 'Zooma in',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Spelarkontroller',
+  player_section_onscreen: 'Skärmkontroller',
+  player_section_gamepad: 'Handkontroll',
+  player_section_sr: 'Skärmläsare med handkontroll',
+  player_action_move: 'Flytta',
+  player_action_look: 'Se dig omkring',
+  player_action_turn: 'Sväng vänster / höger',
+  player_action_camera_up: 'Kamera upp / Knapp 1',
+  player_action_interact: 'Interagera / Knapp 2',
+  player_action_camera_down: 'Kamera ner / Knapp 3',
+  player_action_spare: 'Allmän åtgärd / Knapp 4',
+  player_control_arrows: 'Pilar',
+  player_control_button: 'Knapp %1',
+  player_control_dpad_note: 'På handkontroller utan vänster spak används styrkorset istället.',
+  player_control_dpad_up: 'Scensammanfattning',
+  player_control_dpad_down: 'Objekt framför',
+  player_control_dpad_left: 'Närmaste objekt',
+
+  // Player panel controls
+  player_decrease_font_size: 'Minska textstorlek',
+  player_increase_font_size: 'Öka textstorlek',
+
+  // Player control key labels
+  gamepad_left_stick: 'Vänster spak',
+  gamepad_right_stick: 'Höger spak',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangel / Y',
+  gamepad_square_x: 'Kvadrat / X',
+  gamepad_circle_b: 'Cirkel / B',
+  gamepad_cross_a: 'Kryss / A',
+  dpad_up: 'Up',
+  dpad_down: 'Ner',
+  dpad_left: 'Vänster',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Tangentbordskontroller',
   shortcut_panel_close: 'Stäng tangentbordsgenvägar',

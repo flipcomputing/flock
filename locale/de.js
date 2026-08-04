@@ -1154,13 +1154,14 @@ export default {
   error_design_mode_offline:
     'Der Design-Modus benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   xr_mode_message: 'XR-Modus!',
-  fly_camera_instructions: 'ℹ️ Flugkamera, nutze Pfeiltasten und Bild auf/ab',
+  fly_camera_instructions: 'ℹ️ Schau dich um mit Pfeiltasten und Bild auf/ab oder Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
   select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',
   select_mesh_duplicate_prompt: 'ℹ️ Wähle ein Objekt zum Duplizieren aus.',
   place_duplicate_prompt: 'ℹ️ Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu umkreisen.',
+  orbit_mesh_info: 'ℹ️ Ziehe, um die Kamera um das Objekt zu bewegen',
   place_object_prompt: 'ℹ️ Klicke auf eine Fläche, um das Objekt zu platzieren.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Die Farbauswahl ist in Chrome/Edge auf dem Desktop verfügbar.', // ai
@@ -1220,6 +1221,41 @@ export default {
   toolbar_redo_ui: 'Wiederholen',
   toolbar_zoom_out_ui: 'Verkleinern',
   toolbar_zoom_in_ui: 'Vergrößern',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Spielersteuerung',
+  player_section_onscreen: 'Bildschirmsteuerung',
+  player_section_gamepad: 'Gamecontroller',
+  player_section_sr: 'Screenreader mit Gamecontroller',
+  player_action_move: 'Bewegen',
+  player_action_look: 'Umsehen',
+  player_action_turn: 'Links / rechts drehen',
+  player_action_camera_up: 'Kamera hoch / Taste 1',
+  player_action_interact: 'Interagieren / Taste 2',
+  player_action_camera_down: 'Kamera runter / Taste 3',
+  player_action_spare: 'Allgemeine Aktion / Taste 4',
+  player_control_arrows: 'Pfeiltasten',
+  player_control_button: 'Taste %1',
+  player_control_dpad_note: 'Bei Controllern ohne linken Stick bewegt stattdessen das Steuerkreuz.',
+  player_control_dpad_up: 'Szenenübersicht',
+  player_control_dpad_down: 'Objekt voraus',
+  player_control_dpad_left: 'Nächstes Objekt',
+
+  // Player panel controls
+  player_decrease_font_size: 'Textgröße verringern',
+  player_increase_font_size: 'Textgröße erhöhen',
+
+  // Player control key labels
+  gamepad_left_stick: 'Linker Stick',
+  gamepad_right_stick: 'Rechter Stick',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Dreieck / Y',
+  gamepad_square_x: 'Quadrat / X',
+  gamepad_circle_b: 'Kreis / B',
+  gamepad_cross_a: 'Kreuz / A',
+  dpad_up: 'Oben',
+  dpad_down: 'Unten',
+  dpad_left: 'Links',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Tastatursteuerung',
   shortcut_panel_close: 'Tastaturkürzel schließen',

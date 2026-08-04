@@ -1165,13 +1165,14 @@ export default {
   error_design_mode_offline:
     'Le mode conception nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   xr_mode_message: 'Mode XR !',
-  fly_camera_instructions: 'ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas',
+  fly_camera_instructions: 'ℹ️ Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
     "ℹ️ Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
   select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
   select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
   place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Cliquez sur un objet pour orbiter autour de lui.',
+  orbit_mesh_info: 'ℹ️ Glissez pour déplacer la caméra autour de l\'objet',
   place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
@@ -1227,6 +1228,42 @@ export default {
   toolbar_redo_ui: 'Rétablir',
   toolbar_zoom_out_ui: 'Dézoomer',
   toolbar_zoom_in_ui: 'Zoomer',
+  // Player controls panel — title, sections and control names
+  player_panel_title: 'Commandes du joueur',
+  player_section_onscreen: "Commandes à l'écran",
+  player_section_gamepad: 'Manette de jeu',
+  player_section_sr: "Lecteur d'écran avec manette de jeu",
+  player_action_move: 'Se déplacer',
+  player_action_look: 'Regarder autour',
+  player_action_turn: 'Tourner à gauche / droite',
+  player_action_camera_up: 'Caméra vers le haut / Bouton 1',
+  player_action_interact: 'Interagir / Bouton 2',
+  player_action_camera_down: 'Caméra vers le bas / Bouton 3',
+  player_action_spare: 'Action générale / Bouton 4',
+  player_control_arrows: 'Flèches',
+  player_control_button: 'Bouton %1',
+  player_control_dpad_note:
+    'Sur les manettes sans joystick gauche, la croix directionnelle permet de se déplacer à la place.',
+  player_control_dpad_up: 'Résumé de la scène',
+  player_control_dpad_down: 'Objet devant',
+  player_control_dpad_left: 'Objet le plus proche',
+
+  // Player panel controls
+  player_decrease_font_size: 'Réduire la taille du texte',
+  player_increase_font_size: 'Augmenter la taille du texte',
+
+  // Player control key labels
+  gamepad_left_stick: 'Joystick gauche',
+  gamepad_right_stick: 'Joystick droit',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangle / Y',
+  gamepad_square_x: 'Carré / X',
+  gamepad_circle_b: 'Cercle / B',
+  gamepad_cross_a: 'Croix / A',
+  dpad_up: 'Haut',
+  dpad_down: 'Bas',
+  dpad_left: 'Gauche',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Commandes clavier',
   shortcut_panel_close: 'Fermer les raccourcis clavier',

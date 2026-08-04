@@ -1228,13 +1228,14 @@ export default {
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
-  fly_camera_instructions: 'ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down', // human
+  fly_camera_instructions: 'ℹ️ Mira alrededor con las flechas y Page Up/Down o Fn + ↑ ↓', // human
   fly_camera_instructions_touch:
     'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
   select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
   select_mesh_duplicate_prompt: 'ℹ️ Selecciona un objeto para duplicar.', // Google (had to update it)
   place_duplicate_prompt: 'ℹ️ Haz clic para colocar una copia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Haz clic en un objeto para orbitar alrededor de él.',
+  orbit_mesh_info: 'ℹ️ Arrastra para mover la cámara alrededor del objeto',
   place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:
@@ -1301,10 +1302,10 @@ export default {
   player_action_move: 'Mover',
   player_action_look: 'Mirar alrededor',
   player_action_turn: 'Girar izquierda / derecha',
-  player_action_camera_up: 'Cámara arriba',
-  player_action_interact: 'Interactuar',
-  player_action_camera_down: 'Cámara abajo',
-  player_action_spare: 'Acción general',
+  player_action_camera_up: 'Cámara arriba / Botón 1',
+  player_action_interact: 'Interactuar / Botón 2',
+  player_action_camera_down: 'Cámara abajo / Botón 3',
+  player_action_spare: 'Acción general / Botón 4',
   player_control_arrows: 'Flechas',
   player_control_button: 'Botón %1',
   player_control_dpad_note: 'En controles sin palanca izquierda, el D-pad se mueve en su lugar.',
