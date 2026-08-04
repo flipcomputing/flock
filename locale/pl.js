@@ -1162,7 +1162,7 @@ export default {
   error_design_mode_offline:
     'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',
-  fly_camera_instructions: 'ℹ️ Kamera lotu, użyj klawiszy strzałek i Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',

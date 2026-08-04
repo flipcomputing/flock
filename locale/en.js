@@ -1237,7 +1237,7 @@ export default {
   banner_reload: 'Reload',
   banner_dismiss: 'Dismiss',
   xr_mode_message: 'XR Mode!',
-  fly_camera_instructions: 'ℹ️ Fly camera, use arrow keys and page up/down',
+  fly_camera_instructions: 'ℹ️ Look around with arrow keys and Pg Up/Pg Down or Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Fly camera, use the on-screen controls and drag to look around',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',

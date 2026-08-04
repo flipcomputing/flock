@@ -1172,7 +1172,7 @@ export default {
   error_design_mode_offline:
     'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',
-  fly_camera_instructions: 'ℹ️ Câmera de voo, use as setas e Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Olhe ao redor com as setas e Page Up/Down ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Câmera de voo, use os controles na tela e arraste para olhar em volta',
   select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',

@@ -1175,7 +1175,7 @@ export default {
   error_design_mode_offline:
     'La modalità progettazione richiede una connessione a internet la prima volta che la usi. Connettiti e riprova.', // ai
   xr_mode_message: 'Modalità XR!',
-  fly_camera_instructions: 'ℹ️ Telecamera volante, usa le frecce e Pag su/giù',
+  fly_camera_instructions: 'ℹ️ Guarda intorno con le frecce e Pag su/giù o Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
   select_mesh_delete_prompt: 'ℹ️ Clicca su un oggetto per eliminarlo.',

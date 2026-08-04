@@ -1148,7 +1148,7 @@ export default {
   error_design_mode_offline:
     'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',
-  fly_camera_instructions: 'ℹ️ Flygkamera, använd piltangenterna och Page Up/Down',
+  fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
