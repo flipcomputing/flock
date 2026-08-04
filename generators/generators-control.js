@@ -1,5 +1,26 @@
 import * as Blockly from 'blockly';
 
+function budgetYield(generator, label) {
+  const timingVar = generator.nameDB_.getDistinctName(
+    `${label}_yield`,
+    Blockly.Names.DEVELOPER_VARIABLE_TYPE
+  );
+  const countVar = generator.nameDB_.getDistinctName(
+    `${label}_yield_n`,
+    Blockly.Names.DEVELOPER_VARIABLE_TYPE
+  );
+  // Read the clock only every 16th iteration; per-iteration performance.now()
+  // dominates a cheap loop body (~40ns vs ~1ns).
+  return {
+    decl: `let ${timingVar} = performance.now();\nlet ${countVar} = 0;\n`,
+    tick:
+      `if ((${countVar}++ & 15) === 0 && performance.now() - ${timingVar} > 16) {\n` +
+      `  await new Promise(resolve => requestAnimationFrame(resolve));\n` +
+      `  ${timingVar} = performance.now();\n` +
+      `}\n`,
+  };
+}
+
 export function registerControlGenerators(javascriptGenerator) {
   // -------------------------------
   // CONTROL
@@ -96,29 +117,15 @@ export function registerControlGenerators(javascriptGenerator) {
 
     const branch = generator.statementToCode(block, 'DO');
 
-    // Timing and iteration counter variables
-    const timingVar = generator.nameDB_.getDistinctName(
-      `${variable0}_timing`,
-      Blockly.Names.DEVELOPER_VARIABLE_TYPE
+    const y = budgetYield(generator, variable0);
+    // tick at the top of the body so a `continue` in the body can't skip it.
+    return (
+      y.decl +
+      `for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {\n` +
+      y.tick +
+      branch +
+      '}\n'
     );
-
-    const counterVar = generator.nameDB_.getDistinctName(
-      `${variable0}_counter`,
-      Blockly.Names.DEVELOPER_VARIABLE_TYPE
-    );
-
-    return `
-                  let ${timingVar} = performance.now();
-                  let ${counterVar} = 0;
-                  for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
-                          ${branch}
-                          ${counterVar}++;
-                          if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
-                                  await new Promise(resolve => requestAnimationFrame(resolve));
-                                  ${timingVar} = performance.now();
-                          }
-                  }
-          `;
   };
 
   // For each loop iterating over list
@@ -146,11 +153,21 @@ export function registerControlGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    // Construct the loop body
-    branch = generator.INDENT + variable0 + ' = ' + listVar + '[' + indexVar + '];\n' + branch;
+    const assignment = generator.INDENT + variable0 + ' = ' + listVar + '[' + indexVar + '];\n';
 
+    const y = budgetYield(generator, variable0 + '_each');
+    // tick after the item assignment so a `continue` in the body can't skip it.
     code +=
-      'for (var ' + indexVar + ' in ' + listVar + ') {\n' + branch + '\n  await wait(0);\n' + '}\n';
+      y.decl +
+      'for (var ' +
+      indexVar +
+      ' in ' +
+      listVar +
+      ') {\n' +
+      assignment +
+      y.tick +
+      branch +
+      '}\n';
 
     return code;
   };
