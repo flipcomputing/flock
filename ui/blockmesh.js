@@ -846,9 +846,12 @@ function resolveColorAndMaterialForBlock(block) {
 function handlePrimitiveGeometryChange(mesh, block, changed) {
   if (!mesh || !block) return;
 
+  // Re-pin to this mesh's own anchor, not the block's authored position, so
+  // loop-spawned copies aren't all yanked together. Capture before resizing.
+  const anchor = flock.getBlockPositionFromMesh(mesh);
+
   const repositionPrimitiveFromBlock = () => {
-    const { x, y, z } = getXYZFromBlock(block);
-    flock.positionAt(mesh.name, { x, y, z, useY: true });
+    flock.positionAt(mesh.name, { ...anchor, useY: true });
   };
 
   const applyPrimitiveUVTiling = (shapeType, dims) => {
