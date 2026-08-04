@@ -62,6 +62,8 @@ export function registerControlGenerators(javascriptGenerator) {
       code += 'let ' + endVar + ' = ' + repeats + ';\n';
     }
 
+    // repeat keeps a small per-iteration pause (unlike for/forEach), at the top
+    // of the body so a continue can't skip it.
     code +=
       'for (let ' +
       loopVar +
@@ -72,8 +74,8 @@ export function registerControlGenerators(javascriptGenerator) {
       '; ' +
       loopVar +
       '++) {\n' +
+      'await wait(0.005);\n' +
       branch +
-      'await wait(0);\n' +
       '}\n';
 
     return code;

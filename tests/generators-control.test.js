@@ -57,6 +57,12 @@ export function runControlGeneratorTests() {
         stubGenerator(body, { LIST: 'lst' })
       );
 
+    const repeatCode = (body) =>
+      javascriptGenerator.forBlock['controls_repeat_ext'](
+        { getField: () => true, getFieldValue: () => String(ITERS) },
+        stubGenerator(body)
+      );
+
     // A body that always continues must still reach the yield (it sits at the top
     // of the body), and it must fire repeatedly from inside the loop — a pre-loop
     // yield would fire once, an end-of-body one never.
@@ -71,6 +77,20 @@ export function runControlGeneratorTests() {
         scope: { lst },
       });
       expect(rafCount).to.be.greaterThan(1);
+    });
+
+    it('controls_repeat_ext pauses every iteration even when the body continues', async function () {
+      let waits = 0;
+      await run(repeatCode('  continue;\n'), {
+        now: () => 1000,
+        scope: {
+          wait: () => {
+            waits += 1;
+            return Promise.resolve();
+          },
+        },
+      });
+      expect(waits).to.equal(ITERS);
     });
 
     // With the clock pinned under budget, the number of performance.now() reads
@@ -94,6 +114,21 @@ export function runControlGeneratorTests() {
       });
       expect(ran).to.equal(ITERS);
       expect(nowCount).to.be.below(ITERS / 4);
+    });
+
+    it('controls_repeat_ext pauses ~5ms per iteration', async function () {
+      const durations = [];
+      await run(repeatCode('  ;\n'), {
+        now: () => 1000,
+        scope: {
+          wait: (d) => {
+            durations.push(d);
+            return Promise.resolve();
+          },
+        },
+      });
+      expect(durations).to.have.lengthOf(ITERS);
+      expect(durations.every((d) => d === 0.005)).to.equal(true);
     });
   });
 }
