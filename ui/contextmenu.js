@@ -791,13 +791,9 @@ export function initContextMenus(workspace) {
     // it — same offset as the gizmo-menu badges.
     function renderBadges() {
       badgeOverlay.replaceChildren();
-      const toolboxRight = getToolboxRightEdge();
-      const clipAt = toolboxRight != null && toolboxRight > 0 ? toolboxRight : null;
-      badgeOverlay.style.clipPath = clipAt != null ? `inset(0 0 0 ${clipAt}px)` : '';
       for (const [btn, labelSpec] of buttonShortcuts) {
         if (btn.style.display === 'none' || btn.offsetParent === null) continue;
         const rect = btn.getBoundingClientRect();
-        if (clipAt != null && rect.right <= clipAt) continue;
         const badge = document.createElement('div');
         badge.className = 'fc-toolbar-key-badge';
         badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
@@ -920,24 +916,26 @@ export function initContextMenus(workspace) {
       blockToolbar.style.left = `${blockCenterX}px`;
       blockToolbar.style.top = `${Math.round(rect.top)}px`;
       blockToolbar.style.removeProperty('--caret-shift');
-      blockToolbar.style.clipPath = '';
 
+      // Clamp to viewport, and to the right of the toolbox/flyout so the
+      // toolbar is never tucked behind it. Shift the caret opposite so it
+      // still points at the block.
       const margin = 8;
+      const toolboxRight = getToolboxRightEdge();
+      const minLeft = toolboxRight != null ? Math.max(margin, toolboxRight + margin) : margin;
       const tbRect = blockToolbar.getBoundingClientRect();
       let adj = 0;
-      if (tbRect.left < margin) adj = margin - tbRect.left;
+      if (tbRect.left < minLeft) adj = minLeft - tbRect.left;
       else if (tbRect.right > window.innerWidth - margin)
-        adj = window.innerWidth - margin - tbRect.right;
+        adj = Math.max(window.innerWidth - margin - tbRect.right, minLeft - tbRect.left);
       if (adj !== 0) {
         blockToolbar.style.left = `${blockCenterX + adj}px`;
-        blockToolbar.style.setProperty('--caret-shift', `${-adj}px`);
-      }
-
-      const toolboxRight = getToolboxRightEdge();
-      if (toolboxRight != null) {
-        const finalRect = blockToolbar.getBoundingClientRect();
-        const overlap = toolboxRight - finalRect.left;
-        if (overlap > 0) blockToolbar.style.clipPath = `inset(0 0 0 ${overlap}px)`;
+        // A big shift would otherwise push the caret off the toolbar's ends.
+        const caretLimit = Math.max(0, tbRect.width / 2 - 12);
+        blockToolbar.style.setProperty(
+          '--caret-shift',
+          `${Math.max(-caretLimit, Math.min(caretLimit, -adj))}px`
+        );
       }
       // Badges are positioned off the buttons, so they must follow the toolbar.
       if (toolbarKeyboardMode) renderBadges();
