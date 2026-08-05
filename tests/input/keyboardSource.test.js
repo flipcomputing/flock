@@ -148,13 +148,14 @@ export function runKeyboardSourceTests() {
         source.start();
         const repeated = [];
         manager.onKeyRepeatObservable.add((k) => repeated.push(k));
-        // _repeatKey is rate-limited (REPEAT_INTERVAL_MS), so stub the clock and
-        // advance past the window between ticks to exercise distinct repeats.
+        // First repeat waits out the initial typematic delay; subsequent ones are
+        // rate-limited (REPEAT_INTERVAL_MS). Stub the clock to cross both windows.
         const realNow = Date.now;
         let clock = realNow.call(Date);
         Date.now = () => clock;
         try {
           keydown(target, 'w');
+          clock += 600;
           keydown_repeat(target, 'w');
           clock += 200;
           keydown_repeat(target, 'w');

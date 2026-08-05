@@ -206,6 +206,59 @@ export function runInputManagerTests() {
       });
     });
 
+    describe('repeat timing', function () {
+      let realNow;
+      let clock;
+
+      beforeEach(function () {
+        realNow = Date.now;
+        clock = realNow.call(Date);
+        Date.now = () => clock;
+      });
+
+      afterEach(function () {
+        Date.now = realNow;
+      });
+
+      it('a quick tap fires no repeat (frame-driven _repeatKey within the initial delay)', function () {
+        const keyRepeats = [];
+        const actionRepeats = [];
+        manager.onKeyRepeatObservable.add((k) => keyRepeats.push(k));
+        manager.onActionRepeatObservable.add((a) => actionRepeats.push(a));
+        manager._setKey('r', true);
+        clock += 16;
+        manager._repeatKey('r');
+        clock += 100;
+        manager._repeatKey('r');
+        manager._setKey('r', false);
+        expect(keyRepeats).to.have.lengthOf(0);
+        expect(actionRepeats).to.have.lengthOf(0);
+      });
+
+      it('a held key repeats only after the initial typematic delay', function () {
+        const actionRepeats = [];
+        manager.onActionRepeatObservable.add((a) => actionRepeats.push(a));
+        manager._setKey('r', true);
+        clock += 600;
+        manager._repeatKey('r');
+        clock += 100;
+        manager._repeatKey('r');
+        expect(actionRepeats).to.eql(['BUTTON1', 'BUTTON1']);
+      });
+
+      it('releasing then re-pressing restarts the initial delay', function () {
+        const actionRepeats = [];
+        manager.onActionRepeatObservable.add((a) => actionRepeats.push(a));
+        manager._setKey('r', true);
+        clock += 600;
+        manager._setKey('r', false);
+        manager._setKey('r', true);
+        clock += 16;
+        manager._repeatKey('r');
+        expect(actionRepeats).to.have.lengthOf(0);
+      });
+    });
+
     describe('setActionKey normalisation', function () {
       it("uppercase key is normalised: setActionKey('FORWARD', 'X') → isActionDown true when 'x' pressed", function () {
         manager.setActionKey('FORWARD', 'X');
