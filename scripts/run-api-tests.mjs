@@ -1005,8 +1005,17 @@ async function runAllBatched() {
   const ownedBySuite = {};
   const trimmedSuites = {};
   for (const id of concreteIds) {
+    const prevGrep = await probe.page.evaluate(
+      () => window.mocha?.options?.grep?.toString() ?? null
+    );
     await probe.page.selectOption('#testSelect', id);
-    await probe.page.waitForTimeout(30);
+    await probe.page
+      .waitForFunction(
+        (prev) => (window.mocha?.options?.grep?.toString() ?? null) !== prev,
+        prevGrep,
+        { timeout: 5000 }
+      )
+      .catch(() => {});
     const titles = await probe.page.evaluate(() => {
       const grep = window.mocha?.options?.grep;
       const out = [];
@@ -1037,12 +1046,14 @@ async function runAllBatched() {
   const wallStart = Date.now();
 
   for (const id of runnableIds) {
-    const { page, context } = await loadTestPage();
     // Only override grep when overlap was trimmed; otherwise keep the suite's
     // own pattern to stay closest to a plain single-suite run.
     const restrict = trimmedSuites[id] ? ownedBySuite[id] : null;
+    let context = null;
     try {
-      const r = await runSuiteOnPage(page, id, restrict);
+      const loaded = await loadTestPage();
+      context = loaded.context;
+      const r = await runSuiteOnPage(loaded.page, id, restrict);
       agg.passes += r.passes;
       agg.failures += r.failures;
       agg.pending += r.pending;
@@ -1059,7 +1070,7 @@ async function runAllBatched() {
       });
       console.log(`  ▸ ${id.padEnd(20)} ⚠️  suite errored: ${error.message}`);
     } finally {
-      await context.close();
+      if (context) await context.close();
     }
   }
 
