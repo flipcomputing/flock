@@ -274,12 +274,6 @@ export function initializeBlockHandling() {
       });
       return;
     }
-
-    if ((event.ctrlKey || event.metaKey) && event.key === '.') {
-      event.preventDefault();
-
-      createKeywordBlockAtViewportCenter('keyword_block');
-    }
   });
 
   // Handle Enter key for adding new blocks

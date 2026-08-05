@@ -1,9 +1,19 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
+import { parse } from 'acorn';
 import { initializeBlocks } from '../../main/blocklyinit.js';
 
 initializeBlocks(); // registers all Flock custom blocks + generators
+
+// Assert the code is a single expression statement and return its expression,
+// so the payload can be checked structurally rather than by executing it.
+function soleExpression(code) {
+  const program = parse(code, { ecmaVersion: 'latest' });
+  expect(program.body).to.have.lengthOf(1);
+  expect(program.body[0].type).to.equal('ExpressionStatement');
+  return program.body[0].expression;
+}
 
 function classifyField(field) {
   if (field instanceof Blockly.FieldVariable) return 'variable-name';
@@ -39,6 +49,7 @@ const TESTED_TEXT_FIELDS = [
   'colour_from_string.COLOR',
   'procedures_defnoreturn.NAME',
   'procedures_defreturn.NAME',
+  'procedures_mutatorarg.NAME',
   'text_prompt.TEXT',
   'play_tune.ABC_TEXT',
   'keyword.KEYWORD',
@@ -82,7 +93,9 @@ export function runTextFieldValidationTests() {
         },
         workspace
       );
-      expect(generate(block)).to.equal(JSON.stringify(payload));
+      const expression = soleExpression(generate(block));
+      expect(expression.type).to.equal('Literal');
+      expect(expression.value).to.equal(payload);
     });
 
     it('fixes name of procedure without return', function () {
@@ -109,6 +122,18 @@ export function runTextFieldValidationTests() {
       expect(generate(block)).not.to.include(payload);
     });
 
+    it('sanitizes a procedure argument name', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'procedures_defnoreturn',
+          extraState: { params: [{ name: payload, id: 'arg1' }] },
+          fields: { NAME: 'safe' },
+        },
+        workspace
+      );
+      expect(generate(block)).not.to.include(payload);
+    });
+
     it('stringifies text prompt input', function () {
       const block = Blockly.serialization.blocks.append(
         {
@@ -117,7 +142,15 @@ export function runTextFieldValidationTests() {
         },
         workspace
       );
-      expect(generate(block)).to.equal("window.prompt('" + JSON.stringify(payload) + "')");
+      const call = soleExpression(generate(block));
+      expect(call.type).to.equal('CallExpression');
+      expect(call.callee.type).to.equal('MemberExpression');
+      expect(call.callee.computed).to.equal(false);
+      expect(call.callee.object.name).to.equal('window');
+      expect(call.callee.property.name).to.equal('prompt');
+      expect(call.arguments).to.have.lengthOf(1);
+      expect(call.arguments[0].type).to.equal('Literal');
+      expect(call.arguments[0].value).to.equal(payload);
     });
 
     it('the play tune block generates an empty string', function () {

@@ -2,11 +2,6 @@ import * as Blockly from 'blockly';
 import { getFieldValue } from './generators-utilities.js';
 
 export function registerDeprecatedGenerators(javascriptGenerator) {
-  javascriptGenerator.forBlock['keyword_block'] = function (_block) {
-    // Since this block is replaced with another block, we return an empty string.
-    return '';
-  };
-
   javascriptGenerator.forBlock['rotate_camera'] = function (block) {
     const degrees =
       javascriptGenerator.valueToCode(block, 'DEGREES', javascriptGenerator.ORDER_ATOMIC) || '0';

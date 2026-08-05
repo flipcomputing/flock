@@ -1599,7 +1599,7 @@ export function defineBlocks() {
     },
   };
 
-  Blockly.Blocks['keyword_block'] = {
+  Blockly.Blocks['keyword'] = {
     init: function () {
       this.appendDummyInput().appendField(
         new Blockly.FieldTextInput('type a keyword to add a block'),
@@ -1607,6 +1607,8 @@ export function defineBlocks() {
       );
       this.setTooltip('Type a keyword to change this block.');
       this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setPreviousStatement(true);
+      this.setNextStatement(true);
 
       this.setOnChange(function () {
         // Prevent infinite loops or multiple replacements.
@@ -1660,16 +1662,6 @@ export function defineBlocks() {
           setTimeout(() => Blockly.getFocusManager().focusNode(newBlock), 0);
         }
       });
-    },
-  };
-
-  Blockly.Blocks['keyword'] = {
-    init: function () {
-      // Call the original keyword_block init method.
-      Blockly.Blocks['keyword_block'].init.call(this);
-      // Add chaining connections.
-      this.setPreviousStatement(true);
-      this.setNextStatement(true);
     },
   };
 
