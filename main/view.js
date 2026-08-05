@@ -631,6 +631,58 @@ function prepareCanvasForRecording() {
   }
 }
 
+// The inspector forces glTF validate=true, and the validator is a CDN fetch
+// our CSP blocks, so every model load would raise a banner.
+async function disableGltfValidation() {
+  const { GLTFValidation } = await import('@babylonjs/loaders');
+  GLTFValidation.ValidateAsync = () =>
+    Promise.resolve({
+      issues: { numErrors: 0, numWarnings: 0, numInfos: 0, numHints: 0, messages: [] },
+    });
+}
+
+// The inspector's welcome popups persist a "seen" flag per toolbar item id; seeding
+// them as seen keeps them from ever appearing.
+const INSPECTOR_SEEN_POPUPS = [
+  'Babylon/Inspector/TeachingMoments/Bar/bottom/right/User Feedback',
+  'Babylon/Inspector/TeachingMoments/Bar/top/right/ExtensionList',
+];
+
+// Hide the Babylon community forum and extensions from our users: suppress the
+// welcome popups, drop the two toolbar buttons, and block the forum URL as a
+// backstop if Babylon ever renames the feedback button.
+function hideInspectorExtras() {
+  try {
+    for (const key of INSPECTOR_SEEN_POPUPS) localStorage.setItem(key, 'true');
+  } catch {
+    // localStorage unavailable — the popups are only cosmetic
+  }
+
+  if (!window.__flockForumBlocked) {
+    window.__flockForumBlocked = true;
+    const nativeOpen = window.open.bind(window);
+    window.open = (url, ...rest) =>
+      typeof url === 'string' && url.includes('forum.babylonjs.com')
+        ? null
+        : nativeOpen(url, ...rest);
+  }
+
+  const removeButtons = () => {
+    document.querySelector('[aria-label="Manage Extensions"]')?.closest('button')?.remove();
+    const tip = [...document.querySelectorAll('[id^="tooltip-"]')].find((el) =>
+      el.textContent.includes('Give Feedback on Inspector v2'),
+    );
+    if (tip) {
+      document.querySelector(`[aria-describedby="${CSS.escape(tip.id)}"]`)?.closest('button')?.remove();
+    }
+  };
+
+  removeButtons();
+  const observer = new MutationObserver(removeButtons);
+  observer.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => observer.disconnect(), 10000);
+}
+
 export async function toggleDesignMode() {
   if (!flock.scene) return;
 
@@ -675,11 +727,15 @@ export async function toggleDesignMode() {
     infoPanel.style.display = 'none';
     if (resizer) resizer.style.display = 'none';
 
+    hideInspectorExtras();
+
     flock.scene.debugLayer.show({
       embedMode: true,
       enableClose: false,
       enablePopup: false,
     });
+
+    await disableGltfValidation();
 
     canvasArea.style.flex = '1 1 0';
 

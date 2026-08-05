@@ -991,8 +991,7 @@ button {
     overflow-x: auto;
   }
 
-  #scene-explorer-host,
-  #inspector-host,
+  #babylon-inspector-container,
   #toggleDesign {
     display: none !important;
   }
@@ -1830,7 +1829,7 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Override Flock UI colours so that Babylon.js can use its own */
-#sceneExplorer .icon {
+#babylon-inspector-container .icon {
   color: unset;
 }
 
