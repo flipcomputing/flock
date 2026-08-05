@@ -445,18 +445,7 @@ async function startServer() {
 /**
  * Run tests in headless browser
  */
-async function runTests(suiteId = 'all') {
-  console.log('🌐 Launching headless browser...');
-
-  browser = await chromium.launch({
-    headless: false, // must be false to use --headless=old
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--headless=old', // old headless mode retains WebGL support (new headless shell drops it)
-    ],
-  });
-
+async function loadTestPage() {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 720 },
   });
@@ -563,6 +552,15 @@ async function runTests(suiteId = 'all') {
     throw error;
   }
 
+  return { page, context };
+}
+
+/**
+ * Resolve, select, run, and collect results for one suite on a loaded page.
+ * When restrictTitles is given, the run is narrowed to exactly those test
+ * fullTitles so tests shared across suites (tag overlap) run only once.
+ */
+async function runSuiteOnPage(page, suiteId, restrictTitles = null) {
   // Resolve the requested suite against the dropdown's actual options. The
   // dropdown in tests.html fills incrementally (loadAllTests awaits each
   // suite's import()), so a one-shot read may miss entries near the end of
@@ -615,6 +613,16 @@ async function runTests(suiteId = 'all') {
 
   // Wait for the selection to register and grep filter to be applied
   await page.waitForTimeout(1000);
+
+  // Narrow to owned titles (overlap dedupe) by replacing the suite's grep with
+  // an anchored alternation of exact fullTitles.
+  if (restrictTitles) {
+    await page.evaluate((titles) => {
+      const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(titles.map((t) => '^' + esc(t) + '$').join('|'));
+      window.mocha.grep(re);
+    }, restrictTitles);
+  }
 
   // Wait for mocha to update its test count after grep is applied
   let matchedTests = 0;
@@ -770,41 +778,55 @@ async function runTests(suiteId = 'all') {
     }
   }
 
-  // Set up test execution logging BEFORE clicking run
-  if (logTests || logAll) {
-    await page.evaluate(() => {
-      // Mocha is in the main window, not the iframe
-      if (window.mocha) {
-        // Wrap mocha.run() to intercept the runner
-        const originalRun = window.mocha.run.bind(window.mocha);
-        window.mocha.run = function (...args) {
-          const runner = originalRun(...args);
+  // The runner 'end' event is the completion signal: the DOM stats bar exposes
+  // only passes + failures, so pending/skipped tests keep a count-vs-total poll
+  // from ever converging. runner.stats includes pending, so snapshot it here.
+  await page.evaluate((wantLogging) => {
+    // Mocha is in the main window, not the iframe
+    if (!window.mocha) return;
 
-          // Attach our logging hooks to the runner
-          runner.on('test', function (test) {
-            window.testExecutionLog.push(`▶ START: ${test.fullTitle()}`);
-          });
+    window.__flockRunComplete = false;
+    window.__flockRunStats = null;
 
-          runner.on('pass', function (test) {
-            window.testExecutionLog.push(`  ✅ PASS: ${test.fullTitle()} (${test.duration}ms)`);
-          });
+    const originalRun = window.mocha.run.bind(window.mocha);
+    window.mocha.run = function (...args) {
+      const runner = originalRun(...args);
 
-          runner.on('fail', function (test, err) {
-            window.testExecutionLog.push(`  ❌ FAIL: ${test.fullTitle()}`);
-            window.testExecutionLog.push(`     Error: ${err.message}`);
-          });
+      if (wantLogging) {
+        runner.on('test', function (test) {
+          window.testExecutionLog.push(`▶ START: ${test.fullTitle()}`);
+        });
 
-          runner.on('end', function () {
-            window.testExecutionLog.push('');
-            window.testExecutionLog.push('=== Test Execution Complete ===');
-            window.testExecutionLog.push(`Completed: ${new Date().toISOString()}`);
-          });
+        runner.on('pass', function (test) {
+          window.testExecutionLog.push(`  ✅ PASS: ${test.fullTitle()} (${test.duration}ms)`);
+        });
 
-          return runner;
-        };
+        runner.on('fail', function (test, err) {
+          window.testExecutionLog.push(`  ❌ FAIL: ${test.fullTitle()}`);
+          window.testExecutionLog.push(`     Error: ${err.message}`);
+        });
       }
-    });
-  }
+
+      runner.on('end', function () {
+        const s = runner.stats || {};
+        window.__flockRunStats = {
+          passes: s.passes || 0,
+          failures: s.failures || 0,
+          pending: s.pending || 0,
+          durationMs: s.duration || 0,
+        };
+        window.__flockRunComplete = true;
+
+        if (wantLogging) {
+          window.testExecutionLog.push('');
+          window.testExecutionLog.push('=== Test Execution Complete ===');
+          window.testExecutionLog.push(`Completed: ${new Date().toISOString()}`);
+        }
+      });
+
+      return runner;
+    };
+  }, logTests || logAll);
 
   // Click run button
   await page.click('#runTestBtn');
@@ -816,24 +838,11 @@ async function runTests(suiteId = 'all') {
   console.log('⏳ Running tests...\n');
 
   const results = await page.waitForFunction(
-    (expectedCount) => {
-      const stats = document.querySelector('#mocha-stats');
-      if (!stats) return null;
+    () => {
+      if (!window.__flockRunComplete || !window.__flockRunStats) return null;
 
-      const duration = stats.querySelector('.duration em');
-      if (!duration || duration.textContent === '') return null;
+      const { passes, failures, pending, durationMs } = window.__flockRunStats;
 
-      // Tests are complete
-      const passes = parseInt(stats.querySelector('.passes em').textContent) || 0;
-      const failures = parseInt(stats.querySelector('.failures em').textContent) || 0;
-      const total = passes + failures;
-
-      // Only return results if all expected tests have completed
-      if (total < expectedCount) {
-        return null; // Keep waiting
-      }
-
-      // Get failure details
       const failureElements = Array.from(document.querySelectorAll('.test.fail'));
       const failureDetails = failureElements.map((el) => {
         const titleEl = el.querySelector('h2');
@@ -848,37 +857,17 @@ async function runTests(suiteId = 'all') {
       return {
         passes,
         failures,
-        total,
-        duration: duration.textContent,
+        pending,
+        total: passes + failures + pending,
+        duration: `${(durationMs / 1000).toFixed(2)}s`,
         failureDetails,
       };
     },
-    matchedTests,
+    undefined,
     { timeout: 120000 }
-  ); // Pass expected test count as arg, 2 minute timeout
+  );
 
   const testResults = await results.jsonValue();
-
-  // Print results
-  console.log('┌─────────────────────────────────────────┐');
-  console.log('│              Test Results               │');
-  console.log('└─────────────────────────────────────────┘\n');
-
-  console.log(`  Total Tests:     ${testResults.total}`);
-  console.log(`  ✅ Passing:      ${testResults.passes}`);
-  console.log(`  ❌ Failing:      ${testResults.failures}`);
-  console.log(`  ⏱️  Duration:     ${testResults.duration}\n`);
-
-  if (testResults.failures > 0) {
-    console.log('┌─────────────────────────────────────────┐');
-    console.log('│              Failed Tests               │');
-    console.log('└─────────────────────────────────────────┘\n');
-
-    testResults.failureDetails.forEach((failure, index) => {
-      console.log(`  ${index + 1}. ${failure.title}`);
-      console.log(`     Error: ${failure.error}\n`);
-    });
-  }
 
   // Retrieve and save logs if logging was enabled
   if (logTests || logAll) {
@@ -941,12 +930,164 @@ async function runTests(suiteId = 'all') {
     }
   }
 
-  await browser.close();
+  return testResults;
+}
 
-  return {
-    success: testResults.failures === 0,
-    stats: testResults,
+function printSummary(stats) {
+  console.log('┌─────────────────────────────────────────┐');
+  console.log('│              Test Results               │');
+  console.log('└─────────────────────────────────────────┘\n');
+
+  console.log(`  Total Tests:     ${stats.total}`);
+  console.log(`  ✅ Passing:      ${stats.passes}`);
+  console.log(`  ❌ Failing:      ${stats.failures}`);
+  console.log(`  ⏭️  Pending:      ${stats.pending}`);
+  console.log(`  ⏱️  Duration:     ${stats.duration}\n`);
+
+  if (stats.failures > 0) {
+    console.log('┌─────────────────────────────────────────┐');
+    console.log('│              Failed Tests               │');
+    console.log('└─────────────────────────────────────────┘\n');
+
+    stats.failureDetails.forEach((failure, index) => {
+      const suiteTag = failure.suite ? `[${failure.suite}] ` : '';
+      console.log(`  ${index + 1}. ${suiteTag}${failure.title}`);
+      console.log(`     Error: ${failure.error}\n`);
+    });
+  }
+}
+
+/**
+ * Launch the browser and run either a single suite, or (for "all") every
+ * concrete suite in its own fresh page. Isolating each suite stops engine and
+ * WebGL state accumulating across the whole run, which otherwise slows late
+ * tests past their timeouts and degrades the GPU context.
+ */
+async function runTests(suiteId = 'all') {
+  console.log('🌐 Launching headless browser...');
+
+  browser = await chromium.launch({
+    headless: false, // must be false to use --headless=old
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--headless=old', // old headless mode retains WebGL support (new headless shell drops it)
+    ],
+  });
+
+  try {
+    if (suiteId === 'all') {
+      return await runAllBatched();
+    }
+
+    const { page, context } = await loadTestPage();
+    const stats = await runSuiteOnPage(page, suiteId);
+    printSummary(stats);
+    await context.close();
+    return { success: stats.failures === 0, stats };
+  } finally {
+    if (browser) await browser.close().catch(() => {});
+  }
+}
+
+async function runAllBatched() {
+  const probe = await loadTestPage();
+  const concreteIds = await probe.page.evaluate(() =>
+    Array.from(document.getElementById('testSelect').options)
+      .map((o) => o.value)
+      .filter((v) => v && v !== 'all' && !v.startsWith('@'))
+  );
+  const fullTotal = await probe.page.evaluate(() => window.mocha?.suite?.total() || 0);
+
+  // Collect each suite's matching test fullTitles, then assign every title to
+  // the first suite that claims it so tag-overlap tests aren't run twice.
+  const seen = new Set();
+  const ownedBySuite = {};
+  const trimmedSuites = {};
+  for (const id of concreteIds) {
+    await probe.page.selectOption('#testSelect', id);
+    await probe.page.waitForTimeout(30);
+    const titles = await probe.page.evaluate(() => {
+      const grep = window.mocha?.options?.grep;
+      const out = [];
+      const walk = (suite) => {
+        suite.tests.forEach((t) => {
+          const title = t.fullTitle();
+          if (!grep || grep.test(title)) out.push(title);
+        });
+        suite.suites.forEach(walk);
+      };
+      if (window.mocha?.suite) walk(window.mocha.suite);
+      return out;
+    });
+    const owned = titles.filter((t) => !seen.has(t));
+    owned.forEach((t) => seen.add(t));
+    ownedBySuite[id] = owned;
+    trimmedSuites[id] = owned.length < titles.length;
+  }
+  await probe.context.close();
+
+  const runnableIds = concreteIds.filter((id) => ownedBySuite[id].length > 0);
+  console.log(
+    `\n📦 Batched run: ${runnableIds.length} suites in fresh pages ` +
+      `(${fullTotal} tests, ${seen.size} after de-duping overlap)\n`
+  );
+
+  const agg = { passes: 0, failures: 0, pending: 0, failureDetails: [] };
+  const wallStart = Date.now();
+
+  for (const id of runnableIds) {
+    const { page, context } = await loadTestPage();
+    // Only override grep when overlap was trimmed; otherwise keep the suite's
+    // own pattern to stay closest to a plain single-suite run.
+    const restrict = trimmedSuites[id] ? ownedBySuite[id] : null;
+    try {
+      const r = await runSuiteOnPage(page, id, restrict);
+      agg.passes += r.passes;
+      agg.failures += r.failures;
+      agg.pending += r.pending;
+      r.failureDetails.forEach((f) => agg.failureDetails.push({ ...f, suite: id }));
+      console.log(
+        `  ▸ ${id.padEnd(20)} ${r.passes}✅  ${r.failures}❌  ${r.pending}⏭   (${r.duration})`
+      );
+    } catch (error) {
+      agg.failures += 1;
+      agg.failureDetails.push({
+        suite: id,
+        title: `suite "${id}" did not complete`,
+        error: error.message,
+      });
+      console.log(`  ▸ ${id.padEnd(20)} ⚠️  suite errored: ${error.message}`);
+    } finally {
+      await context.close();
+    }
+  }
+
+  const ran = agg.passes + agg.failures + agg.pending;
+  const stats = {
+    passes: agg.passes,
+    failures: agg.failures,
+    pending: agg.pending,
+    total: ran,
+    duration: `${((Date.now() - wallStart) / 1000).toFixed(2)}s`,
+    failureDetails: agg.failureDetails,
   };
+
+  printSummary(stats);
+
+  if (seen.size < fullTotal) {
+    console.log(
+      `  ⚠️  Coverage: ${fullTotal - seen.size} of ${fullTotal} registered tests match no suite.\n`
+    );
+  }
+  if (ran < seen.size) {
+    console.log(
+      `  ⚠️  Coverage: ran ${ran} of ${seen.size} de-duped tests ` +
+        `(${seen.size - ran} owned tests did not run).\n`
+    );
+  }
+
+  return { success: agg.failures === 0, stats };
 }
 
 /**

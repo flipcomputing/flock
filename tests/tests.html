@@ -542,6 +542,16 @@
       window.__flockForLogging = flock; // Expose for test runner API logging
       flock.modelPath = '../models/';
 
+      // Absolute Draco URLs: flock.js uses relative './draco/', which resolves
+      // to the non-existent /tests/draco/ from this page.
+      flock.BABYLON.DracoCompression.Configuration = {
+        decoder: {
+          wasmUrl: '/draco/draco_wasm_wrapper_gltf.js',
+          wasmBinaryUrl: '/draco/draco_decoder_gltf.wasm',
+          fallbackUrl: '/draco/draco_decoder_gltf.js',
+        },
+      };
+
       await flock.initialize();
 
       // use standard mocha HTML reporter – note that paramaterised access to grep is turned off for this, as it conflicts with dropdown selection and cna leave tests confusingly not executing
