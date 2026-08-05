@@ -90,6 +90,7 @@ export const flock = {
   materialsDebug: false,
   meshDebug: false,
   performanceOverlay: false,
+  hideProjectName: true, // input stays in DOM; save/export still reads its value
   maxMeshes: 5000,
   maxClonesPerSource: 500,
   meshLimitEnabled: false,

@@ -332,12 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
   }
 
-  // The Demo button sizes to its label (which varies by language, e.g. the
-  // Spanish "Demostración"), so it isn't forced to a fixed width here.
-  const projectName = document.getElementById('projectName');
-  if (projectName) {
-    //projectName.style.minWidth = "5px";
-    //projectName.style.maxWidth = "80px";
+  if (flock.hideProjectName) {
+    for (const id of ['projectName', 'project-name-desc']) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+    const projectNameLabel = document.querySelector('label[for="projectName"]');
+    if (projectNameLabel) projectNameLabel.style.display = 'none';
   }
 });
 
