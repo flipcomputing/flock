@@ -1586,6 +1586,41 @@ function installShadowNavigationPatch(ws) {
       },
     });
   }
+
+  // No built-in shortcut exists for this, so it resolves its own target like K above.
+  {
+    const enableTargetBlock = (scope) => {
+      const node = scope?.focusedNode;
+      if (node) {
+        if (typeof node.hasDisabledReason === 'function') return node;
+        if (typeof node.getSourceBlock === 'function') {
+          const block = node.getSourceBlock();
+          if (block) return block;
+        }
+      }
+      return skippableFieldBlock();
+    };
+    const enableEditable = (ws, block) =>
+      !!block &&
+      !ws.isDragging?.() &&
+      !ws.isReadOnly?.() &&
+      !block.isShadow?.() &&
+      !isBlockLocked(block);
+
+    shortcutRegistry.register({
+      name: 'toggle_block_enabled',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.L)],
+      preconditionFn: (ws, scope) => enableEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, _event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!enableEditable(ws, block)) return false;
+        Blockly.Events.setGroup('toolbar_disable');
+        block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
+        Blockly.Events.setGroup(false);
+        return true;
+      },
+    });
+  }
 }
 
 export function createBlocklyWorkspace() {

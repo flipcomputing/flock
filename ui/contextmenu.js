@@ -781,6 +781,7 @@ export function initContextMenus(workspace) {
       // Match the comment button's icon: '⇧K' (Shift+K, delete) when the block
       // already has a comment, 'K' (show/hide) when it doesn't.
       [commentBtn, () => (toolbarBlock?.getCommentText?.() != null ? '⇧K' : 'K')],
+      [enableBtn, 'L'],
       [viewBtn, 'V'],
       [deleteBtn, 'Del'],
     ];
