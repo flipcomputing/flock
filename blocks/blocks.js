@@ -33,6 +33,18 @@ const normaliseHexColour = (value) => {
 // When using keyboard navigation, when the colour in a block isn't one of those in the grid this makes the editor start with the container selected so you can use arrow keys to navigate to the swatches.
 const flockFocusPatchKey = Symbol.for('flock.fieldColourFocusPatch');
 const fieldColourPrototype = FieldColour.prototype;
+
+// Blockly 13.2 may apply colour before initializing the border rectangle.
+const flockApplyColourPatchKey = Symbol.for('flock.fieldColourApplyColourPatch');
+if (!fieldColourPrototype[flockApplyColourPatchKey]) {
+  const originalApplyColour = fieldColourPrototype.applyColour;
+  fieldColourPrototype.applyColour = function () {
+    if (this.fieldGroup_ && !this.borderRect_ && !this.isFullBlockField()) return;
+    return originalApplyColour.call(this);
+  };
+  fieldColourPrototype[flockApplyColourPatchKey] = true;
+}
+
 if (!fieldColourPrototype[flockFocusPatchKey]) {
   const originalShowEditor = fieldColourPrototype.showEditor_;
   fieldColourPrototype.showEditor_ = function (e) {
