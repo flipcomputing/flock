@@ -1611,9 +1611,10 @@ function installShadowNavigationPatch(ws) {
       name: 'toggle_block_enabled',
       keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.L)],
       preconditionFn: (ws, scope) => enableEditable(ws, enableTargetBlock(scope)),
-      callback: (ws, _event, _shortcut, scope) => {
+      callback: (ws, event, _shortcut, scope) => {
         const block = enableTargetBlock(scope);
         if (!enableEditable(ws, block)) return false;
+        event?.preventDefault?.();
         Blockly.Events.setGroup('toolbar_disable');
         block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
         Blockly.Events.setGroup(false);
