@@ -817,7 +817,9 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     margin: 0;
     box-sizing: border-box;
   }
+}
 
+@media (max-width: 768px), (max-width: 899px) and (pointer: coarse) {
   /* Expanded search overlay — appended to body so it escapes toolbox overflow/transforms */
   .mobile-search-overlay::before {
     content: '';
@@ -894,7 +896,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 
   .mobile-search-empty {
     padding: 24px 16px;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     opacity: 0.6;
     font-size: 15px;
     text-align: center;
@@ -922,7 +924,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 
   .mobile-search-result-name {
     font-size: 16px;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     flex: 1;
   }
 
@@ -957,7 +959,8 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 }
 
-@media (min-width: 481px) and (max-width: 768px) {
+@media (min-width: 481px) and (max-width: 768px),
+  (min-width: 481px) and (max-width: 899px) and (pointer: coarse) {
   .mobile-search-overlay.expanding {
     animation: mobile-search-expand 0.2s ease-out forwards;
   }
@@ -966,7 +969,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px), (max-width: 899px) and (pointer: coarse) {
   .ws-search-mobile-bar::before {
     content: '';
     position: absolute;
@@ -1001,7 +1004,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     border-radius: 4px;
     outline: none;
     padding: 0 8px;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     background: var(--color-bg);
   }
 
@@ -1012,7 +1015,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 
   .ws-search-mobile-count {
     font-size: 13px;
-    color: var(--color-text);
+    color: var(--color-text-primary);
     opacity: 0.7;
     min-width: 36px;
     text-align: center;

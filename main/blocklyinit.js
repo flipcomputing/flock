@@ -46,6 +46,9 @@ import {
 } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 
+const mobileSearchMediaQuery = '(max-width: 768px), (max-width: 899px) and (pointer: coarse)';
+const isMobileSearchLayout = () => window.matchMedia(mobileSearchMediaQuery).matches;
+
 // Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   Blockly.serialization.registry.register('flockLock', {
@@ -762,7 +765,7 @@ export function initializeWorkspace() {
     searchInput.placeholder = translate('toolbox_search_placeholder');
 
     let originalParent = searchInput.parentElement;
-    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+    const isMobile = isMobileSearchLayout;
     const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category (used to override matchBlocks and to
@@ -1074,8 +1077,7 @@ export function initializeWorkspace() {
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
 
-    // Close search overlay if screen resizes above tablet size (768px)
-    window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
+    window.matchMedia(mobileSearchMediaQuery).addEventListener('change', (e) => {
       if (!e.matches && overlay.isConnected) closeOverlay();
     });
 
@@ -1117,8 +1119,7 @@ export function initializeWorkspace() {
   const originalOpen = workspaceSearch.open.bind(workspaceSearch);
   const originalClose = workspaceSearch.close.bind(workspaceSearch);
 
-  // Mobile workspace search bar (≤480px): full-width fixed bar with prev/next
-  const isMobileWS = () => window.matchMedia('(max-width: 768px)').matches;
+  const isMobileWS = isMobileSearchLayout;
 
   const wsMobileBar = document.createElement('div');
   wsMobileBar.className = 'ws-search-mobile-bar';
@@ -1207,7 +1208,7 @@ export function initializeWorkspace() {
   wsMobileClose.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobileClose.addEventListener('click', () => workspaceSearch.close());
 
-  window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
+  window.matchMedia(mobileSearchMediaQuery).addEventListener('change', (e) => {
     if (!e.matches && wsMobileBar.isConnected) workspaceSearch.close();
   });
 
