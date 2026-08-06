@@ -180,6 +180,21 @@ function installWorkspaceJumpDebug(workspace) {
     }
   });
 
+  // Also treat a direct tap on the canvas as a field interaction, so the jump is
+  // suppressed on the tap that opens a field editor, not just after it closes.
+  let lastCanvasPointerDown = null;
+  const parentSvg = workspace.getParentSvg?.();
+  if (parentSvg) {
+    parentSvg.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (e.target.closest?.('.blocklyFlyout, .blocklyToolboxDiv')) return;
+        lastCanvasPointerDown = { timestamp: performance.now() };
+      },
+      true
+    );
+  }
+
   const workspaceScroll = workspace.scroll?.bind(workspace);
   if (workspaceScroll) {
     workspace.scroll = function (...args) {
@@ -193,18 +208,19 @@ function installWorkspaceJumpDebug(workspace) {
       const msSinceFieldEdit = lastFieldEdit
         ? Math.round(performance.now() - lastFieldEdit.timestamp)
         : null;
+      const msSinceCanvasPointerDown = lastCanvasPointerDown
+        ? Math.round(performance.now() - lastCanvasPointerDown.timestamp)
+        : null;
       const fromFocusScroll = stack.some(
         (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
       );
       const largeHorizontalJump =
         typeof requestedX === 'number' && Math.abs(requestedX - beforeX) > 100;
+      const recentFieldInteraction =
+        (typeof msSinceFieldEdit === 'number' && msSinceFieldEdit < 1500) ||
+        (typeof msSinceCanvasPointerDown === 'number' && msSinceCanvasPointerDown < 800);
 
-      if (
-        fromFocusScroll &&
-        typeof msSinceFieldEdit === 'number' &&
-        msSinceFieldEdit < 1500 &&
-        largeHorizontalJump
-      ) {
+      if (fromFocusScroll && recentFieldInteraction && largeHorizontalJump) {
         return;
       }
 
