@@ -81,6 +81,45 @@ const handleWindowResize = () => {
 window.addEventListener('resize', handleWindowResize);
 
 // Function to maintain a 16:9 aspect ratio for the canvas
+function getCanvasAvailableSize(canvasArea) {
+  const areaRect = canvasArea.getBoundingClientRect();
+  let areaWidth = Math.max(1, Math.round(areaRect.width));
+  let areaHeight = Math.max(1, Math.round(areaRect.height));
+  let horizontalChromeWidth = 0;
+
+  const gizmoButtons = document.getElementById('gizmoButtons');
+  if (gizmoButtons && getComputedStyle(gizmoButtons).display !== 'none') {
+    if (gizmosBesideCanvas()) {
+      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
+      const barStyle = getComputedStyle(gizmoButtons);
+      const padding =
+        (parseFloat(barStyle.paddingLeft) || 0) + (parseFloat(barStyle.paddingRight) || 0);
+      const buttons = row ? row.getBoundingClientRect().width : 0;
+      horizontalChromeWidth = Math.round(buttons + padding);
+      areaWidth = Math.max(1, areaWidth - horizontalChromeWidth);
+    } else {
+      areaHeight = Math.max(1, areaHeight - Math.ceil(gizmoButtons.scrollHeight));
+    }
+  }
+
+  const infoPanelTabs = document.getElementById('info-panel-tabs');
+  if (infoPanelTabs) {
+    const tabsRect = infoPanelTabs.getBoundingClientRect();
+    const tabsStyle = getComputedStyle(infoPanelTabs);
+    if (tabsRect.height > 0 && tabsStyle.position !== 'fixed') {
+      areaHeight = Math.max(1, areaHeight - Math.ceil(tabsRect.height));
+    }
+  }
+
+  const bottomBar = document.getElementById('bottomBar');
+  if (bottomBar && getComputedStyle(bottomBar).display !== 'none') {
+    const overlap = areaRect.bottom - bottomBar.getBoundingClientRect().top;
+    if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
+  }
+
+  return { areaRect, areaWidth, areaHeight, horizontalChromeWidth };
+}
+
 function resizeCanvas() {
   const canvasArea = document.getElementById('canvasArea');
   const canvas = document.getElementById('renderCanvas');
@@ -90,10 +129,10 @@ function resizeCanvas() {
   // Hidden or collapsed (e.g. display:none in narrow-screen code view). Skip so
   // the buffer isn't shrunk to near-minimum; visibility paths re-resize.
   if (areaRect.width <= 0 || areaRect.height <= 0) return;
-  let areaWidth = Math.max(1, Math.round(areaRect.width));
-  let areaHeight = Math.max(1, Math.round(areaRect.height));
 
   if (flock.embedMode) {
+    let areaWidth = Math.max(1, Math.round(areaRect.width));
+    let areaHeight = Math.max(1, Math.round(areaRect.height));
     const aspectRatio = 16 / 9;
 
     const availableHeight = Math.max(1, areaHeight - 4);
@@ -160,39 +199,7 @@ function resizeCanvas() {
     return;
   }
 
-  const gizmoButtons = document.getElementById('gizmoButtons');
-  if (gizmoButtons && gizmoButtons.style.display != 'none') {
-    if (gizmosBesideCanvas()) {
-      // Docked to the right, so it costs width and the canvas keeps the full
-      // height. Measure the buttons rather than #gizmoButtons itself, which
-      // grows to fill whatever the canvas leaves and so can't size it.
-      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
-      const barStyle = getComputedStyle(gizmoButtons);
-      const padding =
-        (parseFloat(barStyle.paddingLeft) || 0) + (parseFloat(barStyle.paddingRight) || 0);
-      const buttons = row ? row.getBoundingClientRect().width : 0;
-      areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
-    } else {
-      areaHeight -= 60; //Gizmos visible
-      const status = document.getElementById('gizmoStatus');
-      if (status) {
-        const statusStyle = getComputedStyle(status);
-        const statusHeight =
-          status.getBoundingClientRect().height + (parseFloat(statusStyle.marginTop) || 0);
-        areaHeight = Math.max(1, areaHeight - Math.round(statusHeight));
-      }
-    }
-  }
-
-  // The bottom bar is position:fixed and #canvasArea is sized to the viewport,
-  // so the bar overlaps canvasArea's lower edge rather than pushing it up. On
-  // short viewports that overlap eats into the gizmo strip, hiding the buttons.
-  // Subtract however much the bar intrudes so the canvas + gizmos sit above it.
-  const bottomBar = document.getElementById('bottomBar');
-  if (bottomBar && getComputedStyle(bottomBar).display !== 'none') {
-    const overlap = areaRect.bottom - bottomBar.getBoundingClientRect().top;
-    if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
-  }
+  const { areaWidth, areaHeight } = getCanvasAvailableSize(canvasArea);
 
   const aspectRatio = 16 / 9;
 
@@ -995,6 +1002,7 @@ class PanelResizer {
     // gizmo toolbar's natural width so its buttons never wrap onto a second row.
     this.minPanelFloor = 300;
     this.minCanvasWidth = this.minPanelFloor;
+    this.maxCanvasWidth = Infinity;
     this.touchActivationPointerId = null;
     this.touchActivationStartX = 0;
     this.touchActivationStartY = 0;
@@ -1059,6 +1067,7 @@ class PanelResizer {
 
     // Cache the gizmo-based minimum once per drag (button set is stable mid-drag).
     this.minCanvasWidth = this.getMinCanvasWidth();
+    this.maxCanvasWidth = Math.max(this.startCanvasWidth, this.getMaxCanvasWidth());
 
     // Add visual feedback
     document.body.style.cursor = 'col-resize';
@@ -1143,21 +1152,19 @@ class PanelResizer {
 
     const mainRect = this.mainContent.getBoundingClientRect();
 
-    const newCanvasWidth = this.startCanvasWidth + deltaX;
-    const newCodeWidth = this.startCodeWidth - deltaX;
+    const panelWidth = this.startCanvasWidth + this.startCodeWidth;
+    const maxCanvasWidth = Math.min(this.maxCanvasWidth, panelWidth - this.minPanelFloor);
+    const newCanvasWidth = Math.min(
+      maxCanvasWidth,
+      Math.max(this.minCanvasWidth, this.startCanvasWidth + deltaX)
+    );
+    const newCodeWidth = panelWidth - newCanvasWidth;
+    const totalWidth = mainRect.width;
 
-    // Ensure minimum widths (canvas side must keep the gizmo row on one line)
-    if (newCanvasWidth >= this.minCanvasWidth && newCodeWidth >= this.minPanelFloor) {
-      const totalWidth = mainRect.width;
-      const canvasFlexBasis = (newCanvasWidth / totalWidth) * 100;
-      const codeFlexBasis = (newCodeWidth / totalWidth) * 100;
+    this.canvasArea.style.flex = `0 0 ${(newCanvasWidth / totalWidth) * 100}%`;
+    this.codePanel.style.flex = `0 0 ${(newCodeWidth / totalWidth) * 100}%`;
 
-      this.canvasArea.style.flex = `0 0 ${canvasFlexBasis}%`;
-      this.codePanel.style.flex = `0 0 ${codeFlexBasis}%`;
-
-      // Trigger resize for canvas and Blockly
-      this.triggerContentResize();
-    }
+    this.triggerContentResize();
 
     if (e.cancelable) e.preventDefault();
   }
@@ -1196,13 +1203,18 @@ class PanelResizer {
     const currentCanvasWidth = this.canvasArea.offsetWidth;
     const currentCodeWidth = this.codePanel.offsetWidth;
     const minCanvasWidth = this.getMinCanvasWidth();
+    const maxCanvasWidth = this.getMaxCanvasWidth();
 
     // Calculate new widths
     const newCanvasWidth = currentCanvasWidth + deltaX;
     const newCodeWidth = currentCodeWidth - deltaX;
 
     // Check minimum width constraint
-    if (newCanvasWidth < minCanvasWidth || newCodeWidth < this.minPanelFloor) {
+    if (
+      newCanvasWidth < minCanvasWidth ||
+      newCanvasWidth > maxCanvasWidth ||
+      newCodeWidth < this.minPanelFloor
+    ) {
       e.preventDefault();
       return; // Just return without changing anything
     }
@@ -1253,6 +1265,11 @@ class PanelResizer {
 
     // +1 guards against sub-pixel rounding tipping the last icon onto a new row.
     return Math.max(this.minPanelFloor, Math.ceil(total) + 1);
+  }
+
+  getMaxCanvasWidth() {
+    const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(this.canvasArea);
+    return Math.round((areaHeight * 16) / 9) + horizontalChromeWidth;
   }
 
   // A focusable role="separator" needs a value: the canvas panel's share of the split.
