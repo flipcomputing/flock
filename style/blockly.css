@@ -164,6 +164,18 @@ textarea.blocklyCommentText::placeholder {
   color: #000 !important;
 }
 
+.blocklySelected .blocklyCommentHighlight,
+.blocklyCollapsed.blocklySelected .blocklyCommentTopbarBackground {
+  stroke: #511d91 !important;
+  stroke-width: 5px !important;
+  vector-effect: non-scaling-stroke !important;
+  filter:
+    drop-shadow(2px 0 0 #fff)
+    drop-shadow(-2px 0 0 #fff)
+    drop-shadow(0 2px 0 #fff)
+    drop-shadow(0 -2px 0 #fff) !important;
+}
+
 .blocklyTreeRow {
   border-left: none !important;
 }
