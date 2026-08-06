@@ -729,6 +729,17 @@ export function collapseInspector({ preserveFocus = true } = {}) {
   return true;
 }
 
+export function isInspectorCollapsed() {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return false;
+
+  const visibleButtons = [...inspector.querySelectorAll('button')].filter((button) => {
+    const rect = button.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+  return visibleButtons.length === 1;
+}
+
 document.addEventListener('flock-inspector-escape-request', (event) => {
   const inspector = document.getElementById('babylon-inspector-container');
   if (!inspector) return;
@@ -844,7 +855,7 @@ export function hideInspector() {
   onResize('reset');
 }
 
-export async function showInspector({ focus = false } = {}) {
+export async function showInspector({ focus = false, collapsed = false } = {}) {
   if (!flock.scene || isNarrowScreen()) return false;
 
   // The inspector chunk is excluded from the service worker precache and
@@ -874,6 +885,22 @@ export async function showInspector({ focus = false } = {}) {
   if (inspector) preserveInspectorToggleFocus(inspector);
 
   await disableGltfValidation();
+
+  if (collapsed && inspector) {
+    inspector.style.visibility = 'hidden';
+    try {
+      let collapseTriggered = false;
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        if (!collapseTriggered) {
+          collapseTriggered = collapseInspector({ preserveFocus: false });
+        }
+        if (collapseTriggered && isInspectorCollapsed()) break;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    } finally {
+      inspector.style.visibility = '';
+    }
+  }
 
   if (focus) {
     for (let attempt = 0; attempt < 10; attempt += 1) {

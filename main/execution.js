@@ -2,6 +2,7 @@ import { flock } from '../flock.js';
 import {
   currentView,
   hideInspector,
+  isInspectorCollapsed,
   isNarrowScreen,
   showCanvasView,
   showInspector,
@@ -58,7 +59,8 @@ export async function executeCode(options = {}) {
 
     disposeGizmoManager();
 
-    let showDebug = flock.scene?.debugLayer?.isVisible();
+    const showDebug = flock.scene?.debugLayer?.isVisible();
+    const inspectorWasCollapsed = showDebug && isInspectorCollapsed();
 
     if (showDebug) {
       hideInspector();
@@ -85,7 +87,7 @@ export async function executeCode(options = {}) {
 
     if (showDebug) {
       try {
-        await showInspector();
+        await showInspector({ collapsed: inspectorWasCollapsed });
       } catch (error) {
         console.error('Error showing debug layer:', error);
       }
