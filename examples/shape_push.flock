@@ -4,6 +4,23 @@
     "blocks": [
       {
         "type": "start",
+        "id": "shapePushCanvasStart",
+        "x": 320,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "canvas_controls",
+              "id": "shapePushCanvasControls",
+              "fields": {
+                "CONTROLS": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
         "id": "m/unI3g/rHBBhym`JU1=",
         "x": 10,
         "y": 10,

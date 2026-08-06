@@ -564,6 +564,15 @@
                                             }
                                           }
                                         }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "canvas_controls",
+                                          "id": "treeJumpCanvasControls",
+                                          "fields": {
+                                            "CONTROLS": false
+                                          }
+                                        }
                                       }
                                     }
                                   }
@@ -1128,6 +1137,59 @@
                     }
                   }
                 }
+              },
+              "next": {
+                "block": {
+                  "type": "glide_to_seconds",
+                  "id": "@nL*nr,#C}5v^LYl[T,i",
+                  "fields": {
+                    "MESH_VAR": {
+                      "id": ":bv:zF29BkdOY/7+}WH%"
+                    },
+                    "MODE": "AWAIT",
+                    "REVERSE": false,
+                    "LOOP": true,
+                    "EASING": "Linear"
+                  },
+                  "inputs": {
+                    "X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "VzYY$Rz-^,5RIavM-*yT",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    },
+                    "Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "IRz!1g}=*6+t$CkdrJzX",
+                        "fields": {
+                          "NUM": 0.5
+                        }
+                      }
+                    },
+                    "Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "._#FvUNcCUaU)kXYM(GQ",
+                        "fields": {
+                          "NUM": 8
+                        }
+                      }
+                    },
+                    "DURATION": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "^d3O(+P@9jW!d$9%O]49",
+                        "fields": {
+                          "NUM": 4
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -1292,68 +1354,6 @@
                           }
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "type": "forever",
-        "id": "9/1PX3?Ug_{riW6G9r1-",
-        "x": 10,
-        "y": 3042,
-        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
-        "inputs": {
-          "DO": {
-            "block": {
-              "type": "glide_to_seconds",
-              "id": "@nL*nr,#C}5v^LYl[T,i",
-              "fields": {
-                "MESH_VAR": {
-                  "id": ":bv:zF29BkdOY/7+}WH%"
-                },
-                "MODE": "AWAIT",
-                "REVERSE": false,
-                "LOOP": true,
-                "EASING": "Linear"
-              },
-              "inputs": {
-                "X": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "VzYY$Rz-^,5RIavM-*yT",
-                    "fields": {
-                      "NUM": 0
-                    }
-                  }
-                },
-                "Y": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "IRz!1g}=*6+t$CkdrJzX",
-                    "fields": {
-                      "NUM": 0.5
-                    }
-                  }
-                },
-                "Z": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "._#FvUNcCUaU)kXYM(GQ",
-                    "fields": {
-                      "NUM": 8
-                    }
-                  }
-                },
-                "DURATION": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "^d3O(+P@9jW!d$9%O]49",
-                    "fields": {
-                      "NUM": 4
                     }
                   }
                 }

@@ -4,6 +4,23 @@
     "blocks": [
       {
         "type": "start",
+        "id": "beetleCanvasStart",
+        "x": 320,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "canvas_controls",
+              "id": "beetleCanvasControls",
+              "fields": {
+                "CONTROLS": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
         "id": "`%A%3p6Q7${r^CA9^u@f",
         "x": 10,
         "y": 10,
