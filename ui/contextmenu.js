@@ -1006,6 +1006,17 @@ export function initContextMenus(workspace) {
       !!block.isMovable?.() &&
       (!!block.previousConnection || !!block.outputConnection);
 
+    function scheduleViewMeshRecheck() {
+      clearTimeout(viewMeshRecheckTimer);
+      const recheckBlock = toolbarBlock;
+      viewMeshRecheckTimer = setTimeout(() => {
+        viewMeshRecheckTimer = null;
+        if (toolbarBlock !== recheckBlock) return;
+        updateSimplifiedToolbar();
+        if (toolbarKeyboardMode) renderBadges();
+      }, 400);
+    }
+
     function updateSimplifiedToolbar() {
       const block = toolbarBlock;
       if (!block) return;
@@ -1174,19 +1185,7 @@ export function initContextMenus(workspace) {
         // re-rendering badges.
         if (e.type === Blockly.Events.BLOCK_MOVE) {
           updateSimplifiedToolbar();
-          // Reattaching can create a mesh (detaching destroys one), but that
-          // happens via debounced code re-execution — it may not have landed
-          // yet. Check again shortly after so View catches up.
-          clearTimeout(viewMeshRecheckTimer);
-          const recheckBlock = toolbarBlock;
-          viewMeshRecheckTimer = setTimeout(() => {
-            viewMeshRecheckTimer = null;
-            if (toolbarBlock !== recheckBlock) return;
-            updateSimplifiedToolbar();
-            // viewBtn's visibility may have just changed; the badge overlay
-            // was last drawn against the old state, so refresh it too.
-            if (toolbarKeyboardMode) renderBadges();
-          }, 400);
+          scheduleViewMeshRecheck();
         }
         positionBlockToolbar();
       } else if (
@@ -1206,6 +1205,8 @@ export function initContextMenus(workspace) {
         e.blockId === toolbarBlock.id
       ) {
         updateEnableButton(toolbarBlock);
+        updateSimplifiedToolbar();
+        scheduleViewMeshRecheck();
       } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
         // A keyboard-initiated move (M) fires this the same as a pointer
         // drag; flag the block so the SELECTED handler above ignores the
