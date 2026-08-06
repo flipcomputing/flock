@@ -1306,6 +1306,7 @@ export default {
   shortcut_detach_block: 'Desconectar bloco',
   shortcut_comment_block: 'Mostrar/ocultar comentário',
   shortcut_delete_comment: 'Excluir comentário',
+  shortcut_enable_disable_block: 'Ativar/desativar bloco',
   shortcut_start_move_block: 'Mover bloco',
   shortcut_move_arrows: 'Mover: para ligação',
   shortcut_move_anywhere: 'Mover: para qualquer lugar',

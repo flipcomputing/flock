@@ -1297,6 +1297,7 @@ export default {
   shortcut_detach_block: 'Odłącz blok',
   shortcut_comment_block: 'Pokaż/ukryj komentarz',
   shortcut_delete_comment: 'Usuń komentarz',
+  shortcut_enable_disable_block: 'Włącz/wyłącz blok',
   shortcut_start_move_block: 'Przesuń blok',
   shortcut_move_arrows: 'Przesuń: do połączenia',
   shortcut_move_anywhere: 'Przesuń: gdziekolwiek',

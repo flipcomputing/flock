@@ -1363,6 +1363,7 @@ export default {
   shortcut_detach_block: 'Desconectar bloque',
   shortcut_comment_block: 'Mostrar/ocultar comentario',
   shortcut_delete_comment: 'Eliminar comentario',
+  shortcut_enable_disable_block: 'Habilitar/deshabilitar bloque',
   shortcut_start_move_block: 'Mover bloque',
   shortcut_move_arrows: 'Mover: a conexión',
   shortcut_move_anywhere: 'Mover: a cualquier lugar',
