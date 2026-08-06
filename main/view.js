@@ -732,6 +732,9 @@ window.addEventListener(
   (event) => {
     if (
       event.key !== 'Escape' ||
+      // Only claim Escape when focus is inside the inspector; otherwise an open
+      // modal (About, Shortcuts panel) must handle it first.
+      !document.activeElement?.closest?.('#babylon-inspector-container') ||
       !document.querySelector(
         '#babylon-inspector-container button[id^="splitButton-"][id$="__primaryActionButton"]'
       )
