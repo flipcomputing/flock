@@ -1078,6 +1078,8 @@ export default {
   project_new_ui: 'Nuevo', // human
   project_open_ui: 'Abrir', // human
   project_save_ui: 'Guardar', // human
+  tools_submenu_ui: 'Herramientas', // ai
+  inspector_tool_ui: 'Inspector', // ai
   language_submenu_ui: 'Idioma', // human
   about_submenu_ui: 'Sobre nosotros', // human
   hub_submenu_ui: 'Centro', // human
@@ -1104,7 +1106,6 @@ export default {
   examples_cat_create_ui: 'Creativo', // ai
   examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: 'Diseña tu proyecto', // human
   toggle_play_ui: 'Usa tu proyecto', // human
   fullscreen_toggle_ui: 'Cambiar entre vista de pantalla completa y vista normal.', // human
 
@@ -1169,7 +1170,7 @@ export default {
   unlock_block_option: 'Desbloquear',
   canvas_focus_navigation: 'Lienzo 3D enfocado. Usa las flechas o WASD para navegar.', // human
   design_tool_label: 'Herramienta de diseño', // human
-  focused_element_suffix: '{nombre} enfocado', // human
+  focused_element_suffix: '{name} enfocado', // human
   search_toolbox_focused: 'Búsqueda de la caja de herramientas enfocada', // human
   toolbox_search_placeholder: 'Buscar',
   workspace_search_placeholder: 'Buscar en el espacio',
@@ -1223,8 +1224,8 @@ export default {
     'Este navegador es demasiado antiguo para ejecutar la física de Flock XR. Actualiza tu navegador si es posible.', // ai
   error_physics_unsupported_ios:
     'Flock XR necesita iOS 16.4 o posterior en este dispositivo. Actualiza tu iPhone o iPad si es posible.', // ai
-  error_design_mode_offline:
-    'El modo diseño necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
+  error_inspector_offline:
+    'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human

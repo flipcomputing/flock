@@ -152,6 +152,9 @@ class AccessibleFlyoutMenu {
         if (e.key !== 'Escape') {
           return;
         }
+        if (document.activeElement?.closest?.('#babylon-inspector-container')) {
+          return;
+        }
 
         let handled = false;
 

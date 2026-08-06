@@ -107,7 +107,6 @@ function checkWindowOpen(filePath) {
 
 checkBlankLinks('index.html');
 checkWindowOpen('index.html');
-checkWindowOpen('ui/designview.js');
 
 if (violations.length > 0) {
   console.error('❌ Link security checks failed:\n');

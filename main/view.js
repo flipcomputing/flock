@@ -4,6 +4,7 @@ import { flock } from '../flock.js';
 import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
 import { showBanner } from '../ui/notifications.js';
 import { translate } from './translation.js';
+import { disableGltfValidation } from './gltfvalidation.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -233,7 +234,7 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
-  if (flock.scene) flock.scene.debugLayer.hide();
+  hideInspector();
   const blocklyArea = document.getElementById('codePanel');
   const canvasArea = document.getElementById('canvasArea');
   const flockLink = document.getElementById('flocklink');
@@ -569,7 +570,7 @@ export function togglePlayMode() {
     }
 
     showCanvasView();
-    if (flock.scene) flock.scene.debugLayer.hide();
+    hideInspector();
     savedShortcutsVisible = !(
       window.flockShortcutsPanel?.panel?.classList.contains('hidden') ?? true
     );
@@ -588,7 +589,7 @@ export function togglePlayMode() {
     }
     document.documentElement.style.setProperty('--dynamic-offset', '40px');
   } else {
-    if (flock.scene) flock.scene.debugLayer.hide();
+    hideInspector();
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';
     gizmoButtons.style.display = 'flex';
@@ -631,26 +632,126 @@ function prepareCanvasForRecording() {
   }
 }
 
-// The inspector forces glTF validate=true, and the validator is a CDN fetch
-// our CSP blocks, so every model load would raise a banner.
-async function disableGltfValidation() {
-  const { GLTFValidation } = await import('@babylonjs/loaders');
-  GLTFValidation.ValidateAsync = () =>
-    Promise.resolve({
-      issues: { numErrors: 0, numWarnings: 0, numInfos: 0, numHints: 0, messages: [] },
-    });
-}
-
-// The inspector's welcome popups persist a "seen" flag per toolbar item id; seeding
-// them as seen keeps them from ever appearing.
+// Seed Babylon's persisted flags so Inspector welcome popups stay hidden.
 const INSPECTOR_SEEN_POPUPS = [
   'Babylon/Inspector/TeachingMoments/Bar/bottom/right/User Feedback',
   'Babylon/Inspector/TeachingMoments/Bar/top/right/ExtensionList',
 ];
+let inspectorExtrasObserver = null;
+let inspectorExtrasFrame = null;
+const INSPECTOR_FOCUSABLE_SELECTOR =
+  'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
 
-// Hide the Babylon community forum and extensions from our users: suppress the
-// welcome popups, drop the two toolbar buttons, and block the forum URL as a
-// backstop if Babylon ever renames the feedback button.
+export function focusInspector() {
+  const inspector = document.getElementById('babylon-inspector-container');
+  const firstFocusable = inspector
+    ? [...inspector.querySelectorAll(INSPECTOR_FOCUSABLE_SELECTOR)].find((element) => {
+        const rect = element.getBoundingClientRect();
+        return element.tabIndex >= 0 && !element.disabled && rect.width > 0 && rect.height > 0;
+      })
+    : null;
+  firstFocusable?.focus();
+  return Boolean(firstFocusable);
+}
+
+function preserveInspectorToggleFocus(inspector) {
+  if (inspector.dataset.focusReplacementReady === 'true') return;
+  inspector.dataset.focusReplacementReady = 'true';
+
+  inspector.addEventListener(
+    'click',
+    (event) => {
+      const button = event.target.closest?.('button');
+      if (!button || !inspector.contains(button)) return;
+
+      const visibleButtons = [...inspector.querySelectorAll('button')].filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+      const inspectorRect = inspector.getBoundingClientRect();
+      const isCollapseButton =
+        button.id.startsWith('splitButton-') &&
+        button.id.endsWith('__primaryActionButton') &&
+        button.getBoundingClientRect().right > inspectorRect.right - 40;
+      const isReopenButton = visibleButtons.length === 1 && visibleButtons[0] === button;
+      if (!isCollapseButton && !isReopenButton) return;
+
+      inspector.dataset.focusTransition = 'true';
+      setTimeout(
+        () => {
+          if (inspector.dataset.focusToggleDestination !== 'external') focusInspector();
+          delete inspector.dataset.focusTransition;
+          delete inspector.dataset.focusToggleDestination;
+        },
+        isReopenButton ? 500 : 300
+      );
+    },
+    true
+  );
+}
+
+export function collapseInspector({ preserveFocus = true } = {}) {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return false;
+
+  const collapseButton = [
+    ...inspector.querySelectorAll('button[id^="splitButton-"][id$="__primaryActionButton"]'),
+  ]
+    .filter((button) => {
+      const rect = button.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    })
+    .at(-1);
+  if (!collapseButton) return false;
+
+  if (!preserveFocus) inspector.dataset.focusToggleDestination = 'external';
+  collapseButton.click();
+  return true;
+}
+
+document.addEventListener('flock-inspector-escape-request', (event) => {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return;
+
+  const hasOpenLayer = [
+    ...inspector.querySelectorAll(
+      '[aria-haspopup][aria-expanded="true"], [role="combobox"][aria-expanded="true"]'
+    ),
+  ].some((control) => {
+    const rect = control.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+  if (hasOpenLayer || !collapseInspector({ preserveFocus: false })) return;
+
+  event.preventDefault();
+  document.dispatchEvent(new CustomEvent('flock-inspector-collapsed-by-escape'));
+});
+
+window.addEventListener(
+  'keydown',
+  (event) => {
+    if (
+      event.key !== 'Escape' ||
+      !document.querySelector(
+        '#babylon-inspector-container button[id^="splitButton-"][id$="__primaryActionButton"]'
+      )
+    ) {
+      return;
+    }
+
+    const inspectorEscape = new CustomEvent('flock-inspector-escape-request', {
+      cancelable: true,
+    });
+    document.dispatchEvent(inspectorEscape);
+    if (!inspectorEscape.defaultPrevented) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },
+  true
+);
+
+// Keep Babylon's extensions and community links out of the embedded Inspector.
 function hideInspectorExtras() {
   try {
     for (const key of INSPECTOR_SEEN_POPUPS) localStorage.setItem(key, 'true');
@@ -668,82 +769,97 @@ function hideInspectorExtras() {
   }
 
   const removeButtons = () => {
-    document.querySelector('[aria-label="Manage Extensions"]')?.closest('button')?.remove();
-    const tip = [...document.querySelectorAll('[id^="tooltip-"]')].find((el) =>
-      el.textContent.includes('Give Feedback on Inspector v2'),
-    );
-    if (tip) {
-      document.querySelector(`[aria-describedby="${CSS.escape(tip.id)}"]`)?.closest('button')?.remove();
+    const inspector = document.getElementById('babylon-inspector-container');
+    inspector?.querySelectorAll('button').forEach((button) => {
+      const tooltipId = button.getAttribute('aria-describedby');
+      const tooltip = tooltipId ? document.getElementById(tooltipId)?.textContent : '';
+      const label = [button.getAttribute('aria-label'), button.title, tooltip]
+        .filter(Boolean)
+        .join(' ');
+      if (/extensions|forum|give feedback on inspector/i.test(label)) button.remove();
+    });
+
+    for (const tooltip of document.querySelectorAll('[id^="tooltip-"]')) {
+      if (!/extensions|forum|give feedback on inspector/i.test(tooltip.textContent)) continue;
+      inspector
+        ?.querySelector(`[aria-describedby="${CSS.escape(tooltip.id)}"]`)
+        ?.closest('button')
+        ?.remove();
     }
   };
 
+  inspectorExtrasObserver?.disconnect();
+  if (inspectorExtrasFrame !== null) cancelAnimationFrame(inspectorExtrasFrame);
+  inspectorExtrasFrame = null;
   removeButtons();
-  const observer = new MutationObserver(removeButtons);
-  observer.observe(document.body, { childList: true, subtree: true });
-  setTimeout(() => observer.disconnect(), 10000);
+  inspectorExtrasObserver = new MutationObserver(() => {
+    if (inspectorExtrasFrame !== null) return;
+    inspectorExtrasFrame = requestAnimationFrame(() => {
+      inspectorExtrasFrame = null;
+      removeButtons();
+    });
+  });
+  inspectorExtrasObserver.observe(document.body, { childList: true, subtree: true });
 }
 
-export async function toggleDesignMode() {
-  if (!flock.scene) return;
+export function hideInspector() {
+  flock.scene?.debugLayer?.hide();
+  inspectorExtrasObserver?.disconnect();
+  inspectorExtrasObserver = null;
+  if (inspectorExtrasFrame !== null) cancelAnimationFrame(inspectorExtrasFrame);
+  inspectorExtrasFrame = null;
+  onResize('reset');
+}
+
+export async function showInspector({ focus = false } = {}) {
+  if (!flock.scene || isNarrowScreen()) return false;
 
   // The inspector chunk is excluded from the service worker precache and
   // cached on first use instead, so loading it can fail offline.
   try {
     await import('@babylonjs/inspector');
   } catch (error) {
-    console.error('[flock] design mode inspector load failed:', error);
-    showBanner('design-mode-offline', {
-      message: translate('error_design_mode_offline'),
+    console.error('[flock] inspector load failed:', error);
+    showBanner('inspector-offline', {
+      message: translate('error_inspector_offline'),
     });
-    return;
+    return false;
   }
 
-  const blocklyArea = document.getElementById('codePanel');
-  const canvasArea = document.getElementById('canvasArea');
-  const gizmoButtons = document.getElementById('gizmoButtons');
-  const flockLink = document.getElementById('flocklink');
-  const infoPanel = document.getElementById('info-panel');
-  const resizer = document.getElementById('resizer');
-  if (!blocklyArea || !canvasArea || !gizmoButtons || !flockLink || !infoPanel) {
-    return;
+  hideInspectorExtras();
+  const codePanel = document.getElementById('codePanel');
+  if (!codePanel) return false;
+
+  await flock.scene.debugLayer.show({
+    overlay: true,
+    embedMode: true,
+    globalRoot: codePanel,
+    enablePopup: false,
+  });
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (inspector) preserveInspectorToggleFocus(inspector);
+
+  await disableGltfValidation();
+
+  if (focus) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (focusInspector()) break;
+    }
   }
 
-  if (flock.scene.debugLayer.isVisible()) {
-    canvasArea.style.flexDirection = '';
-    switchView('both');
-    flock.scene.debugLayer.hide();
-    flockLink.style.display = 'block';
-    // Defer to the stylesheet (flex on wide, hidden in narrow mode) rather than
-    // forcing inline flex, which would re-show the panel behind the pill bar.
-    infoPanel.style.display = '';
-  } else {
-    blocklyArea.style.display = 'none';
-    codeMode = 'none';
-    canvasArea.style.display = '';
-    canvasArea.style.flexDirection = 'row';
-    canvasArea.style.width = '0';
-    gizmoButtons.style.display = 'flex';
-    flockLink.style.display = 'none';
-    infoPanel.style.display = 'none';
-    if (resizer) resizer.style.display = 'none';
-
-    hideInspectorExtras();
-
-    flock.scene.debugLayer.show({
-      embedMode: true,
-      enableClose: false,
-      enablePopup: false,
-    });
-
-    await disableGltfValidation();
-
-    canvasArea.style.flex = '1 1 0';
-
-    // Prepare canvas for potential recording
-    setTimeout(prepareCanvasForRecording, 100);
-  }
-
+  setTimeout(prepareCanvasForRecording, 100);
   onResize('reset');
+  return true;
+}
+
+export async function toggleInspector({ focus = false } = {}) {
+  if (flock.scene?.debugLayer?.isVisible()) {
+    hideInspector();
+    return false;
+  } else {
+    return showInspector({ focus });
+  }
 }
 
 let _keyboardWasOpen = false;

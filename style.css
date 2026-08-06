@@ -992,7 +992,7 @@ button {
   }
 
   #babylon-inspector-container,
-  #toggleDesign {
+  #menuDropdown #tools-menu-item {
     display: none !important;
   }
 
@@ -1831,6 +1831,10 @@ body.color-picker-open #renderCanvas {
 /* Override Flock UI colours so that Babylon.js can use its own */
 #babylon-inspector-container .icon {
   color: unset;
+}
+
+#codePanel > #babylon-inspector-container {
+  z-index: 100001;
 }
 
 .bigbutton .icon {

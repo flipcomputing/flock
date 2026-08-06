@@ -1033,6 +1033,8 @@ export default {
   project_new_ui: 'Novo',
   project_open_ui: 'Abrir',
   project_save_ui: 'Guardar',
+  tools_submenu_ui: 'Ferramentas',
+  inspector_tool_ui: 'Inspetor',
   language_submenu_ui: 'Idioma',
   about_submenu_ui: 'Sobre',
   hub_submenu_ui: 'Hub',
@@ -1059,7 +1061,6 @@ export default {
   examples_cat_create_ui: 'Criativo', // ai
   examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: 'Desenha o teu projeto',
   toggle_play_ui: 'Utiliza o teu projeto',
   fullscreen_toggle_ui: 'Alternar entre ecrã inteiro e vista normal.',
 
@@ -1169,8 +1170,8 @@ export default {
     'Este navegador é demasiado antigo para executar a física do Flock XR. Atualize o seu navegador, se possível.', // ai
   error_physics_unsupported_ios:
     'O Flock XR precisa do iOS 16.4 ou posterior neste dispositivo. Atualize o seu iPhone ou iPad, se possível.', // ai
-  error_design_mode_offline:
-    'O modo de design precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
+  error_inspector_offline:
+    'O inspetor precisa de uma ligação à internet na primeira utilização. Ligue-se à internet e tente novamente.', // ai
   xr_mode_message: 'Modo XR!',
   fly_camera_instructions: 'ℹ️ Olhe ao redor com as setas e Page Up/Down ou Fn + ↑ ↓',
   fly_camera_instructions_touch:

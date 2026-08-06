@@ -1084,6 +1084,8 @@ export default {
   project_new_ui: 'New',
   project_open_ui: 'Open',
   project_save_ui: 'Save',
+  tools_submenu_ui: 'Tools',
+  inspector_tool_ui: 'Inspector',
   language_submenu_ui: 'Language',
   about_submenu_ui: 'About',
   hub_submenu_ui: 'Hub',
@@ -1111,7 +1113,6 @@ export default {
   examples_cat_create_ui: 'Creative',
   examples_cat_xr_ui: 'XR',
 
-  toggle_design_ui: 'Design your project',
   toggle_play_ui: 'Use your project',
   fullscreen_toggle_ui: 'Switch between fullscreen and normal views.',
 
@@ -1226,8 +1227,8 @@ export default {
     "This browser is too old to run Flock XR's physics. Please update your browser if possible.",
   error_physics_unsupported_ios:
     'Flock XR needs iOS 16.4 or later on this device. Please update your iPhone or iPad if possible.',
-  error_design_mode_offline:
-    'Design mode needs an internet connection the first time you use it. Connect and try again.',
+  error_inspector_offline:
+    'The inspector needs an internet connection the first time you use it. Connect and try again.',
   // Block error messages (onBlockError key → text). Keys match the `key`
   // passed to flock.reportBlockError so a handler can look them up directly.
   recursion_too_deep:

@@ -110,7 +110,6 @@ Understanding the codebase – key files:
 - **`index.html`** - Main HTML file that defines the application structure, UI layout (menu, canvas, code panel), and loads all necessary scripts and stylesheets
 - **`main/main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
 - **`flock.js`** - Main Flock engine
-- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
 - **`blocks.js`** - Block definitions
 - **`generators.js`** - Blockly JavaScript generators for blocks
 - **`toolbox.js`** - Blockly toolbox configuration

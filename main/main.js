@@ -31,11 +31,11 @@ import {
   updateSaveButtonState,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
-import { onResize, toggleDesignMode, togglePlayMode, initializeUI, switchView } from './view.js';
+import { onResize, toggleInspector, togglePlayMode, initializeUI, switchView } from './view.js';
 import { hideLoadingScreen } from './loading.js';
 //import "./debug.js";
 import { initializeBlockHandling } from './blockhandling.js';
-import { setupInput } from './input.js';
+import { announceToScreenReader, setupInput } from './input.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
 import {
@@ -728,7 +728,7 @@ function initializeApp() {
   });
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
-  const toggleDesignButton = document.getElementById('toggleDesign');
+  const inspectorMenuItem = document.getElementById('inspector-menu-item');
   const togglePlayButton = document.getElementById('togglePlay');
   const stopCodeButton = document.getElementById('stopCodeButton');
   const fileInput = document.getElementById('fileInput');
@@ -826,9 +826,18 @@ function initializeApp() {
       focusToolboxRestoringCategory(workspace);
     }, 0);
   });
-  if (toggleDesignButton) {
-    toggleDesignButton.addEventListener('click', toggleDesignMode);
-  }
+  inspectorMenuItem?.addEventListener('click', async (event) => {
+    event.preventDefault();
+    const opened = await toggleInspector({ focus: true });
+    const inspector = document.getElementById('babylon-inspector-container');
+    if (opened && inspector?.contains(document.activeElement)) {
+      const focusedMessage = translate('focused_element_suffix').replace(
+        '{name}',
+        translate('inspector_tool_ui')
+      );
+      announceToScreenReader(focusedMessage, { requireCanvasFocus: false });
+    }
+  });
 
   if (togglePlayButton) {
     togglePlayButton.addEventListener('click', togglePlayMode);

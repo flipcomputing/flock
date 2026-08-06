@@ -537,6 +537,11 @@
       import * as flockmodule from '../flock.js';
       import '@babylonjs/core/Debug/debugLayer';
       import '@babylonjs/inspector';
+      import { disableGltfValidation } from '../main/gltfvalidation.js';
+
+      // Importing the inspector forces glTF validation, whose validator is a
+      // CSP-blocked CDN fetch; stub it before any model loads, as the app does.
+      await disableGltfValidation();
 
       const flock = flockmodule.flock;
       window.__flockForLogging = flock; // Expose for test runner API logging

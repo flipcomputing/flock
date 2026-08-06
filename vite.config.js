@@ -9,9 +9,8 @@ import { writeFileSync } from 'fs';
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
 
-// Chunk basenames reachable only through design mode's dynamic import of the
-// inspector, computed by the find-inspector-chunks plugin and read afterwards
-// by the service worker's manifestTransforms.
+// Chunk basenames reachable only through the Inspector's dynamic import. The
+// find-inspector-chunks plugin computes these for the service worker manifest.
 const inspectorOnlyChunks = new Set();
 
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
@@ -122,16 +121,12 @@ export default {
 
       workbox: {
         maximumFileSizeToCacheInBytes: 25_000_000,
-        // The Babylon inspector (design mode) is used by a minority of users,
-        // so it is cached on first use by the runtime script cache instead of
-        // being precached. toggleDesignMode() shows a banner if the chunk
-        // can't be fetched offline. The chunk names are unpredictable, so the
-        // find-inspector-chunks plugin identifies them and they are dropped
-        // here rather than by a globIgnores pattern.
+        // Cache the optional Inspector on first use. Its generated chunk names
+        // are unpredictable, so the plugin below removes them from precache.
         manifestTransforms: [
           (entries) => ({
             manifest: entries.filter(
-              (entry) => !inspectorOnlyChunks.has(entry.url.split('/').pop()),
+              (entry) => !inspectorOnlyChunks.has(entry.url.split('/').pop())
             ),
           }),
         ],
@@ -234,7 +229,7 @@ export default {
       },
     }),
 
-    // Works out which chunks exist only to serve design mode. Inspector v2
+    // Works out which chunks exist only to serve the Inspector. Inspector v2
     // ships unbundled, so it arrives as a spray of anonymous chunks (React,
     // FluentUI and their transitive deps) whose names can't be predicted --
     // walking the import graph avoids hard-coding a package list that would

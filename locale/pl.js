@@ -1023,6 +1023,8 @@ export default {
   project_new_ui: 'Nowy',
   project_open_ui: 'Otwórz',
   project_save_ui: 'Zapisz',
+  tools_submenu_ui: 'Narzędzia',
+  inspector_tool_ui: 'Inspektor',
   language_submenu_ui: 'Język',
   about_submenu_ui: 'O programie',
   hub_submenu_ui: 'Hub',
@@ -1049,7 +1051,6 @@ export default {
   examples_cat_create_ui: 'Kreatywne', // ai
   examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: 'Projektuj projekt',
   toggle_play_ui: 'Użyj projektu',
   fullscreen_toggle_ui: 'Przełącz między pełnym ekranem a normalnym widokiem',
 
@@ -1159,10 +1160,11 @@ export default {
     'Ta przeglądarka jest zbyt stara, aby uruchomić fizykę Flock XR. Zaktualizuj przeglądarkę, jeśli to możliwe.', // ai
   error_physics_unsupported_ios:
     'Flock XR wymaga systemu iOS 16.4 lub nowszego na tym urządzeniu. Zaktualizuj iPhone’a lub iPada, jeśli to możliwe.', // ai
-  error_design_mode_offline:
-    'Tryb projektowania wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
+  error_inspector_offline:
+    'Inspektor wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   xr_mode_message: 'Tryb XR!',
-  fly_camera_instructions: 'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
+  fly_camera_instructions:
+    'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',

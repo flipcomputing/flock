@@ -1,5 +1,11 @@
 import { flock } from '../flock.js';
-import { currentView, isNarrowScreen, showCanvasView } from './view.js';
+import {
+  currentView,
+  hideInspector,
+  isNarrowScreen,
+  showCanvasView,
+  showInspector,
+} from './view.js';
 import { handleError, isBenignAbort, isReported } from '../ui/notifications.js';
 import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
 import { resetLiveEditsForRun } from '../ui/blockmesh.js';
@@ -55,7 +61,7 @@ export async function executeCode(options = {}) {
     let showDebug = flock.scene?.debugLayer?.isVisible();
 
     if (showDebug) {
-      flock.scene.debugLayer.hide();
+      hideInspector();
     }
 
     try {
@@ -79,12 +85,7 @@ export async function executeCode(options = {}) {
 
     if (showDebug) {
       try {
-        await import('@babylonjs/inspector');
-        await flock.scene.debugLayer.show({
-          embedMode: true,
-          enableClose: false,
-          enablePopup: false,
-        });
+        await showInspector();
       } catch (error) {
         console.error('Error showing debug layer:', error);
       }

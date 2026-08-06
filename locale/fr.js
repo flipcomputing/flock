@@ -1025,6 +1025,8 @@ export default {
   project_new_ui: 'Nouveau',
   project_open_ui: 'Ouvrir',
   project_save_ui: 'Enregistrer',
+  tools_submenu_ui: 'Outils',
+  inspector_tool_ui: 'Inspecteur',
   language_submenu_ui: 'Langue',
   about_submenu_ui: 'À propos',
   hub_submenu_ui: 'Hub',
@@ -1051,7 +1053,6 @@ export default {
   examples_cat_create_ui: 'Créatif', // ai
   examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: 'Concevez votre projet',
   toggle_play_ui: 'Utilisez votre projet',
   fullscreen_toggle_ui: 'Basculer entre les vues plein écran et normale.',
 
@@ -1162,8 +1163,8 @@ export default {
     'Ce navigateur est trop ancien pour exécuter la physique de Flock XR. Mettez à jour votre navigateur si possible.', // ai
   error_physics_unsupported_ios:
     'Flock XR nécessite iOS 16.4 ou une version ultérieure sur cet appareil. Mettez à jour votre iPhone ou iPad si possible.', // ai
-  error_design_mode_offline:
-    'Le mode conception nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
+  error_inspector_offline:
+    'L’inspecteur nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   xr_mode_message: 'Mode XR !',
   fly_camera_instructions: 'ℹ️ Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
@@ -1172,7 +1173,7 @@ export default {
   select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
   place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'ℹ️ Cliquez sur un objet pour orbiter autour de lui.',
-  orbit_mesh_info: 'ℹ️ Glissez pour déplacer la caméra autour de l\'objet',
+  orbit_mesh_info: "ℹ️ Glissez pour déplacer la caméra autour de l'objet",
   place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:

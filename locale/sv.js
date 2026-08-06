@@ -1011,6 +1011,8 @@ export default {
   project_new_ui: 'Nytt',
   project_open_ui: 'Öppna',
   project_save_ui: 'Spara',
+  tools_submenu_ui: 'Verktyg',
+  inspector_tool_ui: 'Inspektör',
   language_submenu_ui: 'Språk',
   about_submenu_ui: 'Om',
   hub_submenu_ui: 'Nav',
@@ -1037,7 +1039,6 @@ export default {
   examples_cat_create_ui: 'Kreativt', // ai
   examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: 'Designa ditt projekt',
   toggle_play_ui: 'Använd ditt projekt',
   fullscreen_toggle_ui: 'Växla mellan helskärm och normalvy.',
 
@@ -1145,8 +1146,8 @@ export default {
     'Den här webbläsaren är för gammal för att köra Flock XR:s fysik. Uppdatera din webbläsare om det går.', // ai
   error_physics_unsupported_ios:
     'Flock XR behöver iOS 16.4 eller senare på den här enheten. Uppdatera din iPhone eller iPad om det går.', // ai
-  error_design_mode_offline:
-    'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
+  error_inspector_offline:
+    'Inspektören behöver en internetanslutning första gången du använder den. Anslut till internet och försök igen.', // ai
   xr_mode_message: 'XR-läge!',
   fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:

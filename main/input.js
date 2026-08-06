@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { translate } from './translation.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
+import { hideInspector } from './view.js';
 import {
   isRestorableWorkspaceNode,
   rememberWorkspaceFocus,
@@ -63,6 +64,22 @@ export function setupInput() {
   }
 
   function setupTabOrder() {
+    const inspectorFocusableSelector =
+      'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
+
+    function getInspectorFocusableElements() {
+      const inspector = document.getElementById('babylon-inspector-container');
+      if (!inspector) return [];
+
+      return Array.from(inspector.querySelectorAll(inspectorFocusableSelector)).filter(
+        (element) =>
+          element.tabIndex >= 0 &&
+          !element.disabled &&
+          element.getAttribute('aria-hidden') !== 'true' &&
+          isElementVisible(element)
+      );
+    }
+
     function getFocusableElements() {
       const elements = [];
 
@@ -164,6 +181,10 @@ export function setupInput() {
         pushUnique(workspaceGroup);
       }
 
+      // Treat the inspector as a managed region immediately after the Blockly
+      // workspace. Babylon handles Tab navigation within the region itself.
+      pushUnique(getInspectorFocusableElements()[0]);
+
       // Workspace comments are deliberately not tab stops — Blockly's B/N stack
       // navigation reaches them and supplies their ARIA.
 
@@ -220,7 +241,6 @@ export function setupInput() {
         '#projectName',
         '#exportCodeButton',
         '#exampleButton',
-        '#toggleDesign',
         '#togglePlay',
         '#fullscreenToggle',
       ].forEach((sel) => pushUnique(document.querySelector(sel)));
@@ -248,6 +268,94 @@ export function setupInput() {
       return rect.width > 0 && rect.height > 0;
     }
 
+    function monitorInspectorFocus(inspector) {
+      const focusableElements = getFocusableElements();
+      const firstInspectorElement = getInspectorFocusableElements()[0];
+      const inspectorIndex = focusableElements.indexOf(firstInspectorElement);
+      const workspaceElement = document.querySelector(
+        'svg.blocklySvg g.blocklyWorkspace[aria-label="Blocks workspace"]'
+      );
+      const nextElement = focusableElements[inspectorIndex + 1];
+      const controller = new AbortController();
+      let checkQueued = false;
+
+      const stopMonitoring = () => controller.abort();
+      const checkFocus = () => {
+        checkQueued = false;
+        if (controller.signal.aborted) return;
+        if (!inspector.isConnected) {
+          stopMonitoring();
+          return;
+        }
+        if (inspector.dataset.focusTransition === 'true') return;
+
+        const focusedElement = document.activeElement;
+        if (inspector.contains(focusedElement)) return;
+
+        stopMonitoring();
+        const movedBackToWorkspace = focusedElement?.closest?.('svg.blocklySvg');
+        const movedForwardOnWorkspace = focusedElement?.closest?.('#blocklyDiv, .fc-block-toolbar');
+        if (!movedBackToWorkspace && !movedForwardOnWorkspace) return;
+
+        hideInspector();
+        const destination = movedBackToWorkspace ? workspaceElement : nextElement;
+        requestAnimationFrame(() => {
+          if (!destination || !isElementVisible(destination)) return;
+          destination.focus();
+          if (
+            destination === workspaceElement &&
+            !isRestorableWorkspaceNode(Blockly.getFocusManager?.()?.getFocusedNode?.())
+          ) {
+            focusRememberedWorkspaceNode();
+          }
+        });
+      };
+      const queueFocusCheck = () => {
+        if (checkQueued) return;
+        checkQueued = true;
+        requestAnimationFrame(checkFocus);
+      };
+
+      inspector.addEventListener('focusout', queueFocusCheck, { signal: controller.signal });
+      document.addEventListener('flock-inspector-collapsed-by-escape', stopMonitoring, {
+        once: true,
+        signal: controller.signal,
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.key !== 'Tab' || !e.shiftKey) return;
+
+        const firstInspectorElement = getInspectorFocusableElements()[0];
+        if (!firstInspectorElement || document.activeElement !== firstInspectorElement) return;
+
+        e.preventDefault();
+        hideInspector();
+        requestAnimationFrame(() => {
+          const workspaceElement = document.querySelector(
+            'svg.blocklySvg g.blocklyWorkspace[aria-label="Blocks workspace"]'
+          );
+          workspaceElement?.focus();
+          if (!isRestorableWorkspaceNode(Blockly.getFocusManager?.()?.getFocusedNode?.())) {
+            focusRememberedWorkspaceNode();
+          }
+        });
+      },
+      true
+    );
+
+    document.addEventListener('flock-inspector-collapsed-by-escape', () => {
+      setTimeout(() => {
+        document.querySelector('svg.blocklySvg g.blocklyWorkspace')?.focus();
+        focusRememberedWorkspaceNode();
+        announceToScreenReader(translate('code_workspace_focused'), {
+          requireCanvasFocus: false,
+        });
+      }, 350);
+    });
+
     document.addEventListener('keydown', (e) => {
       if (
         document.activeElement.id === 'resizer' &&
@@ -258,6 +366,12 @@ export function setupInput() {
 
       if (e.key !== 'Tab') return;
       const activeElement = document.activeElement;
+
+      const inspector = activeElement?.closest?.('#babylon-inspector-container');
+      if (inspector) {
+        // Babylon owns navigation between controls inside the inspector.
+        return;
+      }
 
       // Let workspace search handle tabs when focussed
       if (activeElement?.closest?.('.blockly-ws-search, .ws-search-mobile-bar')) {
@@ -314,6 +428,8 @@ export function setupInput() {
             focusToolboxRestoringCategory();
           } else {
             nextElement.focus();
+            const inspector = nextElement.closest?.('#babylon-inspector-container');
+            if (inspector) monitorInspectorFocus(inspector);
             // Blockly restores the passive block when Tab arrives from another
             // tree, but not from the trashcan (same tree) — fall back then.
             if (
@@ -327,6 +443,12 @@ export function setupInput() {
           // Announce for screen readers
           if (nextElement.id === 'renderCanvas') {
             announceToScreenReader(translate('canvas_focus_navigation'));
+          } else if (nextElement.closest('#babylon-inspector-container')) {
+            const focusedMessage = translate('focused_element_suffix').replace(
+              '{name}',
+              translate('inspector_tool_ui')
+            );
+            announceToScreenReader(focusedMessage);
           } else if (nextElement.closest('#gizmoButtons')) {
             const label =
               nextElement.getAttribute('aria-label') ||
