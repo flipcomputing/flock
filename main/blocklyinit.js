@@ -167,7 +167,7 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
 let workspace = null;
 export { workspace };
 
-function installWorkspaceJumpDebug(workspace) {
+export function installWorkspaceJumpDebug(workspace) {
   if (!workspace || workspace.__jumpDebugInstalled) return;
   workspace.__jumpDebugInstalled = true;
 
@@ -179,6 +179,21 @@ function installWorkspaceJumpDebug(workspace) {
       };
     }
   });
+
+  // Also treat a direct tap on the canvas as a field interaction, so the jump is
+  // suppressed on the tap that opens a field editor, not just after it closes.
+  let lastCanvasPointerDown = null;
+  const parentSvg = workspace.getParentSvg?.();
+  if (parentSvg) {
+    parentSvg.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (e.target.closest?.('.blocklyFlyout, .blocklyToolboxDiv')) return;
+        lastCanvasPointerDown = { timestamp: performance.now() };
+      },
+      true
+    );
+  }
 
   const workspaceScroll = workspace.scroll?.bind(workspace);
   if (workspaceScroll) {
@@ -193,19 +208,24 @@ function installWorkspaceJumpDebug(workspace) {
       const msSinceFieldEdit = lastFieldEdit
         ? Math.round(performance.now() - lastFieldEdit.timestamp)
         : null;
+      const msSinceCanvasPointerDown = lastCanvasPointerDown
+        ? Math.round(performance.now() - lastCanvasPointerDown.timestamp)
+        : null;
       const fromFocusScroll = stack.some(
         (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
       );
       const largeHorizontalJump =
         typeof requestedX === 'number' && Math.abs(requestedX - beforeX) > 100;
+      const recentFieldInteraction =
+        (typeof msSinceFieldEdit === 'number' && msSinceFieldEdit < 1500) ||
+        (typeof msSinceCanvasPointerDown === 'number' && msSinceCanvasPointerDown < 800);
 
-      if (
-        fromFocusScroll &&
-        typeof msSinceFieldEdit === 'number' &&
-        msSinceFieldEdit < 1500 &&
-        largeHorizontalJump
-      ) {
-        return;
+      if (fromFocusScroll && recentFieldInteraction && largeHorizontalJump) {
+        // Keep X pinned (suppress the unwanted jump) but still apply Y —
+        // scrollBoundsIntoView bundles both into one call, and a wanted
+        // vertical correction shouldn't be dropped along with the horizontal one.
+        const requestedY = args[1];
+        return workspaceScroll(beforeX, typeof requestedY === 'number' ? requestedY : this.scrollY);
       }
 
       return workspaceScroll(...args);
