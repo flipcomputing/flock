@@ -532,6 +532,13 @@
           importFn: 'runSecurityTests',
           pattern: '@security',
         },
+        {
+          id: 'blocklyinit',
+          name: 'Blockly Init Tests',
+          importPath: './blocklyinit.test.js',
+          importFn: 'runBlocklyInitTests',
+          pattern: 'main/blocklyinit',
+        },
       ];
 
       import * as flockmodule from '../flock.js';

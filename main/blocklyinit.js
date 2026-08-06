@@ -167,7 +167,7 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
 let workspace = null;
 export { workspace };
 
-function installWorkspaceJumpDebug(workspace) {
+export function installWorkspaceJumpDebug(workspace) {
   if (!workspace || workspace.__jumpDebugInstalled) return;
   workspace.__jumpDebugInstalled = true;
 
@@ -221,7 +221,11 @@ function installWorkspaceJumpDebug(workspace) {
         (typeof msSinceCanvasPointerDown === 'number' && msSinceCanvasPointerDown < 800);
 
       if (fromFocusScroll && recentFieldInteraction && largeHorizontalJump) {
-        return;
+        // Keep X pinned (suppress the unwanted jump) but still apply Y —
+        // scrollBoundsIntoView bundles both into one call, and a wanted
+        // vertical correction shouldn't be dropped along with the horizontal one.
+        const requestedY = args[1];
+        return workspaceScroll(beforeX, typeof requestedY === 'number' ? requestedY : this.scrollY);
       }
 
       return workspaceScroll(...args);
