@@ -1295,6 +1295,7 @@ export default {
   shortcut_detach_block: 'Block trennen',
   shortcut_comment_block: 'Kommentar ein-/ausblenden',
   shortcut_delete_comment: 'Kommentar löschen',
+  shortcut_enable_disable_block: 'Block aktivieren/deaktivieren',
   shortcut_start_move_block: 'Block verschieben',
   shortcut_move_arrows: 'Verschieben: zur Verbindung',
   shortcut_move_anywhere: 'Verschieben: überall',

@@ -668,8 +668,9 @@ export function initContextMenus(workspace) {
     badgeOverlay.className = 'fc-toolbar-badges';
     document.body.appendChild(badgeOverlay);
 
-    // Icon paths: Font Awesome Free 6.7.2 by @fontawesome — https://fontawesome.com
-    // License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
+    // Icon paths below are Font Awesome Free 6.7.2 solid-style icons (each call
+    // site names the icon it draws) by @fontawesome — https://fontawesome.com
+    // License: https://fontawesome.com/license/free  Copyright 2024 Fonticons, Inc.
     const mkFaSvg = (path, vw = '0 0 448 512') =>
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
 
@@ -683,6 +684,7 @@ export function initContextMenus(workspace) {
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
     duplicateBtn.setAttribute('aria-label', getToolbarLabel('duplicate_button_ui', 'Duplicate'));
+    // fa-copy
     duplicateBtn.innerHTML = mkFaSvg(
       '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
     );
@@ -691,6 +693,7 @@ export function initContextMenus(workspace) {
     deleteBtn.type = 'button';
     deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
     deleteBtn.setAttribute('aria-label', getToolbarLabel('delete_button_ui', 'Delete'));
+    // fa-trash
     deleteBtn.innerHTML = mkFaSvg(
       '<path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>'
     );
@@ -699,6 +702,7 @@ export function initContextMenus(workspace) {
     detachBtn.type = 'button';
     detachBtn.className = 'fc-block-toolbar-btn';
     detachBtn.setAttribute('aria-label', getToolbarLabel('shortcut_detach_block', 'Detach'));
+    // fa-link-slash
     detachBtn.innerHTML = mkFaSvg(
       '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L489.3 358.2l90.5-90.5c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114l-96 96-31.9-25C430.9 239.6 420.1 175.1 377 132c-52.2-52.3-134.5-56.2-191.3-11.7L38.8 5.1zM239 162c30.1-14.9 67.7-9.9 92.8 15.3c20 20 27.5 48.3 21.7 74.5L239 162zM406.6 416.4L220.9 270c-2.1 39.8 12.2 80.1 42.2 110c38.9 38.9 94.4 51 143.6 36.3zm-290-228.5L60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5l61.8-61.8-50.6-39.9z"/>',
       '0 0 640 512'
@@ -710,6 +714,7 @@ export function initContextMenus(workspace) {
     const moveHint = document.createElement('span');
     moveHint.className = 'fc-block-toolbar-btn fc-block-toolbar-hint';
     moveHint.setAttribute('aria-hidden', 'true');
+    // fa-up-down-left-right
     moveHint.innerHTML = mkFaSvg(
       '<path d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/>',
       '0 0 512 512'
@@ -719,20 +724,38 @@ export function initContextMenus(workspace) {
     commentBtn.type = 'button';
     commentBtn.className = 'fc-block-toolbar-btn';
     commentBtn.setAttribute('aria-label', getToolbarLabel('add_comment', 'Add comment'));
+    // fa-comment (pre-6.7 path revision; same rendered glyph as current fa-comment)
     const commentAddSvg = mkFaSvg(
       '<path d="M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 49.6 21.4 95 57 130.7C44.5 421.1 2.7 466 2.2 466.5c-2.2 2.4-2.8 5.7-1.5 8.7S4.8 480 8 480c66.3 0 116-31.8 140.6-51.4C169.2 433.6 212.3 448 256 448z"/>',
       '0 0 512 512'
     );
+    // fa-comment-slash
     const commentDeleteSvg = mkFaSvg(
       '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L512.9 376.7C552.2 340.2 576 292.3 576 240C576 125.1 461.4 32 320 32c-67.7 0-129.3 21.4-175.1 56.3L38.8 5.1zm385.2 425L82.9 161.3C70.7 185.6 64 212.2 64 240c0 45.1 17.7 86.8 47.7 120.9c-1.9 24.5-11.4 46.3-21.4 62.9c-5.5 9.2-11.1 16.6-15.2 21.6c-2.1 2.5-3.7 4.4-4.9 5.7c-.6 .6-1 1.1-1.3 1.4l-.3 .3c0 0 0 0 0 0c0 0 0 0 0 0s0 0 0 0s0 0 0 0c-4.6 4.6-5.9 11.4-3.4 17.4c2.5 6 8.3 9.9 14.8 9.9c28.7 0 57.6-8.9 81.6-19.3c22.9-10 42.4-21.9 54.3-30.6c31.8 11.5 67 17.9 104.1 17.9c37 0 72.3-6.4 104.1-17.9z"/>',
       '0 0 640 512'
     );
     commentBtn.innerHTML = commentAddSvg;
 
+    const enableBtn = document.createElement('button');
+    enableBtn.type = 'button';
+    enableBtn.className = 'fc-block-toolbar-btn';
+    // fa-ban — shown when the block is currently disabled.
+    const blockDisableSvg = mkFaSvg(
+      '<path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/>',
+      '0 0 512 512'
+    );
+    // fa-circle-check — shown when the block is currently enabled.
+    const blockEnableSvg = mkFaSvg(
+      '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>',
+      '0 0 512 512'
+    );
+
+    // fa-eye
     const viewEnterSvg = mkFaSvg(
       '<path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>',
       '0 0 576 512'
     );
+    // fa-eye-slash
     const viewExitSvg = mkFaSvg(
       '<path d="M45.6 32C20.4 32 0 52.4 0 77.6L0 434.4C0 459.6 20.4 480 45.6 480c5.1 0 10-.8 14.7-2.4C74.6 472.8 177.6 440 320 440s245.4 32.8 259.6 37.6c4.7 1.6 9.7 2.4 14.7 2.4c25.2 0 45.6-20.4 45.6-45.6l0-356.7C640 52.4 619.6 32 594.4 32c-5 0-10 .8-14.7 2.4C565.4 39.2 462.4 72 320 72S74.6 39.2 60.4 34.4C55.6 32.8 50.7 32 45.6 32zM96 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm272 0c7.9 0 15.4 3.9 19.8 10.5L512.3 353c5.4 8 5.6 18.4 .4 26.5s-14.7 12.3-24.2 10.7C442.7 382.4 385.2 376 320 376c-65.6 0-123.4 6.5-169.3 14.4c-9.8 1.7-19.7-2.9-24.7-11.5s-4.3-19.4 1.9-27.2L197.3 265c4.6-5.7 11.4-9 18.7-9s14.2 3.3 18.7 9l26.4 33.1 87-127.6c4.5-6.6 11.9-10.5 19.8-10.5z"/>',
       '0 0 640 512'
@@ -744,7 +767,7 @@ export function initContextMenus(workspace) {
     viewBtn.setAttribute('aria-label', getToolbarLabel('view_in_canvas', 'View in canvas'));
     viewBtn.innerHTML = viewEnterSvg;
 
-    blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, viewBtn, deleteBtn);
+    blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, enableBtn, viewBtn, deleteBtn);
 
     // The keyboard shortcut that each toolbar button mirrors. The overlay shows
     // these as a passive legend — the keys themselves are bound elsewhere
@@ -758,6 +781,7 @@ export function initContextMenus(workspace) {
       // Match the comment button's icon: '⇧K' (Shift+K, delete) when the block
       // already has a comment, 'K' (show/hide) when it doesn't.
       [commentBtn, () => (toolbarBlock?.getCommentText?.() != null ? '⇧K' : 'K')],
+      [enableBtn, 'L'],
       [viewBtn, 'V'],
       [deleteBtn, 'Del'],
     ];
@@ -1017,17 +1041,28 @@ export function initContextMenus(workspace) {
       commentBtn.innerHTML = hasComment ? commentDeleteSvg : commentAddSvg;
     }
 
+    function updateEnableButton(block) {
+      const disabled = block.hasDisabledReason('MANUALLY_DISABLED');
+      enableBtn.setAttribute(
+        'aria-label',
+        disabled ? getToolbarLabel('context_enable_option', 'Enable') : getToolbarLabel('context_disable_option', 'Disable')
+      );
+      enableBtn.innerHTML = disabled ? blockDisableSvg : blockEnableSvg;
+    }
+
     function showBlockToolbar(block, { keyboard = false } = {}) {
       toolbarBlock = block;
       toolbarKeyboardMode = keyboard;
 
       // Locked blocks can't be edited: hide the mutating buttons (detach,
-      // comment, delete), leaving duplicate and view-in-canvas available.
+      // comment, enable/disable, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
       deleteBtn.style.display = locked ? 'none' : '';
+      enableBtn.style.display = locked ? 'none' : '';
       updateSimplifiedToolbar();
       updateCommentButton(block);
+      updateEnableButton(block);
       let mesh = null;
       try {
         mesh = getMeshFromBlock(block);
@@ -1164,6 +1199,13 @@ export function initContextMenus(workspace) {
         // refresh the button icon and, in keyboard mode, its badge (K ⇄ ⇧K).
         updateCommentButton(toolbarBlock);
         if (toolbarKeyboardMode) renderBadges();
+      } else if (
+        e.type === Blockly.Events.BLOCK_CHANGE &&
+        e.element === 'disabled' &&
+        toolbarBlock &&
+        e.blockId === toolbarBlock.id
+      ) {
+        updateEnableButton(toolbarBlock);
       } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
         // A keyboard-initiated move (M) fires this the same as a pointer
         // drag; flag the block so the SELECTED handler above ignores the
@@ -1260,6 +1302,18 @@ export function initContextMenus(workspace) {
       if (!toolbarBlock) return;
       toggleBlockComment(toolbarBlock);
       hideBlockToolbar();
+    });
+
+    enableBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!toolbarBlock) return;
+      const block = toolbarBlock;
+      Blockly.Events.setGroup('toolbar_disable');
+      block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
+      Blockly.Events.setGroup(false);
+      updateEnableButton(block);
+      if (toolbarKeyboardMode) renderBadges();
     });
 
     viewBtn.addEventListener('pointerdown', async (e) => {
