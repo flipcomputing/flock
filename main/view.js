@@ -644,10 +644,23 @@ const INSPECTOR_SEEN_POPUPS = [
   'Babylon/Inspector/TeachingMoments/Bar/bottom/right/User Feedback',
   'Babylon/Inspector/TeachingMoments/Bar/top/right/ExtensionList',
 ];
+const INSPECTOR_THEME_STORAGE_KEY = 'Babylon/Inspector/ThemeMode';
+const INSPECTOR_THEME_ICON_PATH_PREFIXES = ['M15.5 13.5A6.98', 'M10 2c.28 0 .5.22.5.5'];
 let inspectorExtrasObserver = null;
 let inspectorExtrasFrame = null;
 const INSPECTOR_FOCUSABLE_SELECTOR =
   'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
+
+export const getInspectorThemeMode = (themeName = document.body.dataset.theme) =>
+  themeName === 'light' ? 'light' : 'dark';
+
+function syncInspectorTheme() {
+  try {
+    localStorage.setItem(INSPECTOR_THEME_STORAGE_KEY, JSON.stringify(getInspectorThemeMode()));
+  } catch {
+    // The Inspector can use its default when storage is unavailable.
+  }
+}
 
 export function focusInspector() {
   const inspector = document.getElementById('babylon-inspector-container');
@@ -786,11 +799,21 @@ function hideInspectorExtras() {
       const label = [button.getAttribute('aria-label'), button.title, tooltip]
         .filter(Boolean)
         .join(' ');
-      if (/extensions|forum|give feedback on inspector/i.test(label)) button.remove();
+      const iconPath = button.querySelector('svg path')?.getAttribute('d') ?? '';
+      const isThemeControl = INSPECTOR_THEME_ICON_PATH_PREFIXES.some((prefix) =>
+        iconPath.startsWith(prefix)
+      );
+      if (isThemeControl) {
+        (button.closest('.fui-SplitButton') ?? button).remove();
+      } else if (/extensions|forum|give feedback on inspector|select theme/i.test(label)) {
+        button.remove();
+      }
     });
 
     for (const tooltip of document.querySelectorAll('[id^="tooltip-"]')) {
-      if (!/extensions|forum|give feedback on inspector/i.test(tooltip.textContent)) continue;
+      if (!/extensions|forum|give feedback on inspector|select theme/i.test(tooltip.textContent)) {
+        continue;
+      }
       inspector
         ?.querySelector(`[aria-describedby="${CSS.escape(tooltip.id)}"]`)
         ?.closest('button')
@@ -837,6 +860,7 @@ export async function showInspector({ focus = false } = {}) {
   }
 
   hideInspectorExtras();
+  syncInspectorTheme();
   const codePanel = document.getElementById('codePanel');
   if (!codePanel) return false;
 
@@ -862,6 +886,16 @@ export async function showInspector({ focus = false } = {}) {
   onResize('reset');
   return true;
 }
+
+document.addEventListener('flock-theme-changed', async (event) => {
+  if (!flock.scene?.debugLayer?.isVisible()) return;
+  if (getInspectorThemeMode(event.detail?.previousThemeName) === getInspectorThemeMode()) return;
+
+  const inspector = document.getElementById('babylon-inspector-container');
+  const restoreFocus = inspector?.contains(document.activeElement) ?? false;
+  hideInspector();
+  await showInspector({ focus: restoreFocus });
+});
 
 export async function toggleInspector({ focus = false } = {}) {
   if (flock.scene?.debugLayer?.isVisible()) {

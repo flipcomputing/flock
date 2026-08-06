@@ -304,7 +304,11 @@ export function getIconColorForTheme(themeName) {
 
 // Function to call when switching themes
 function switchTheme(themeName) {
+  const previousThemeName = document.body.dataset.theme;
   document.body.setAttribute('data-theme', themeName);
+  document.dispatchEvent(
+    new CustomEvent('flock-theme-changed', { detail: { previousThemeName, themeName } })
+  );
 
   const workspace = Blockly.getMainWorkspace();
 
