@@ -752,17 +752,20 @@ function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
 function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS, createdIds = null) {
   if (!fromVarId || !toVarId || fromVarId === toVarId) return 0;
 
-  // Get descendants but ONLY through input connections, not next/previous
+  // Get descendants but ONLY through input connections, not the root's own next/previous
   const descendants = [];
 
   function collectInputDescendants(block) {
     for (const input of block.inputList || []) {
       if (input.connection && input.connection.targetBlock()) {
-        const childBlock = input.connection.targetBlock();
-        // Only include if it was created in the same event (if createdIds is provided)
-        if (!createdIds || createdIds.has(childBlock.id)) {
-          descendants.push(childBlock);
-          collectInputDescendants(childBlock);
+        let childBlock = input.connection.targetBlock();
+        while (childBlock) {
+          // Only include if it was created in the same event (if createdIds is provided)
+          if (!createdIds || createdIds.has(childBlock.id)) {
+            descendants.push(childBlock);
+            collectInputDescendants(childBlock);
+          }
+          childBlock = childBlock.getNextBlock();
         }
       }
     }
@@ -834,9 +837,10 @@ function adoptIsolatedDefaultVarsTo(
     const descendants = [];
     for (const input of block.inputList || []) {
       if (input.connection && input.connection.targetBlock()) {
-        const childBlock = input.connection.targetBlock();
-        descendants.push(childBlock);
-        descendants.push(...collectInputDescendants(childBlock));
+        for (let childBlock = input.connection.targetBlock(); childBlock; childBlock = childBlock.getNextBlock()) {
+          descendants.push(childBlock);
+          descendants.push(...collectInputDescendants(childBlock));
+        }
       }
     }
     return descendants;
