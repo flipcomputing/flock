@@ -19,6 +19,7 @@
     "test:csp-smoke": "node scripts/csp-smoke.mjs",
     "test:context-menu": "node scripts/context-menu-keyboard-check.mjs",
     "test:canvas-buffer": "node scripts/canvas-buffer-check.mjs",
+    "test:xr-teleport": "node scripts/xr-teleport-check.mjs",
     "format:check": "prettier --check .",
     "format": "prettier --write ."
   },
@@ -70,6 +71,7 @@
     "eslint": "^10.0.3",
     "ffmpeg": "^0.0.4",
     "globals": "^16.5.0",
+    "iwer": "^2.3.0",
     "lodash": "^4.17.23",
     "meta-png": "^1.0.6",
     "mocha": "^11.3.0",

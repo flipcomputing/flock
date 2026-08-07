@@ -30,6 +30,24 @@ function wireMicrobitDeviceBlock(block) {
 }
 
 export function defineXRBlocks() {
+  if (!Blockly.Extensions.isRegistered('teleport_target_dropdown')) {
+    Blockly.Extensions.register('teleport_target_dropdown', function () {
+      const dropdown = new Blockly.FieldDropdown(function () {
+        const options = [
+          [translate('all_option'), 'all'],
+          [translate('ground_option'), 'ground'],
+        ];
+        const workspace = this.sourceBlock_?.workspace;
+        workspace
+          ?.getVariableMap()
+          .getAllVariables()
+          .forEach((variable) => options.push([variable.name, variable.name]));
+        return options;
+      });
+      this.getInput('TARGET_INPUT').appendField(dropdown, 'TARGET');
+    });
+  }
+
   Blockly.Blocks['microbit_show_image'] = {
     init: function () {
       this.jsonInit({
@@ -133,6 +151,50 @@ export function defineXRBlocks() {
       this.setStyle('scene_blocks');
     },
   };
+
+  Blockly.Blocks['set_locomotion_mode'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_locomotion_mode',
+        message0: translate('set_locomotion_mode'),
+        args0: [
+          {
+            type: 'field_dropdown',
+            name: 'MODE',
+            options: [getDropdownOption('none'), getDropdownOption('teleport')],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('set_locomotion_mode'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
+  for (const [type, messageKey] of [
+    ['add_teleport_target', 'add_teleport_target'],
+    ['remove_teleport_target', 'remove_teleport_target'],
+  ]) {
+    Blockly.Blocks[type] = {
+      init: function () {
+        this.jsonInit({
+          type,
+          message0: translate(messageKey),
+          args0: [{ type: 'input_dummy', name: 'TARGET_INPUT' }],
+          previousStatement: null,
+          nextStatement: null,
+          colour: categoryColours['Scene'],
+          tooltip: getTooltip(messageKey),
+          extensions: ['teleport_target_dropdown'],
+        });
+        this.setHelpUrl(getHelpUrlFor(this.type));
+        this.setStyle('scene_blocks');
+      },
+    };
+  }
 
   Blockly.Blocks['play_rumble_pattern'] = {
     init: function () {

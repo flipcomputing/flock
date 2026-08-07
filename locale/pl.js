@@ -334,6 +334,9 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'użyj kamery urządzenia %1 jako tło',
   set_xr_mode: 'ustaw tryb XR na %1',
+  set_locomotion_mode: 'ustaw tryb poruszania na %1',
+  add_teleport_target: 'dodaj cel teleportacji %1',
+  remove_teleport_target: 'usuń cel teleportacji %1',
   play_rumble_pattern: 'odtwórz wzór wibracji %1',
   controller_rumble: 'wibruj silnik %1 z siłą %2 przez %3 ms',
   controller_rumble_pattern: 'wibruj silnik %1 siła %2 włączony %3 ms wyłączony %4 ms %5 razy',
@@ -781,6 +784,7 @@ export default {
 
   ANY_option: 'dowolny',
   all_option: 'wszystkie',
+  ground_option: 'podłoże',
   objectGrab_option: 'chwytanie',
   objectDrop_option: 'upuszczenie',
   smallCollision_option: 'małe uderzenie',

@@ -5,6 +5,7 @@ import { initializeVariableIndexes } from '../../blocks/blocks.js';
 import { defineSensingBlocks } from '../../blocks/sensing.js';
 import { defineXRBlocks } from '../../blocks/xr.js';
 import { registerSensingGenerators } from '../../generators/generators-sensing.js';
+import { registerSceneGenerators } from '../../generators/generators-scene.js';
 import { MICROBIT_IMAGE_PRESETS } from '../../blocks/microbitImagePattern.js';
 
 export function runMicrobitGeneratorTests() {
@@ -22,6 +23,20 @@ export function runMicrobitGeneratorTests() {
         defineXRBlocks();
       }
       registerSensingGenerators(javascriptGenerator);
+      registerSceneGenerators(javascriptGenerator);
+    });
+
+    it('teleport blocks generate their XR API calls', function () {
+      const mode = Blockly.serialization.blocks.append(
+        { type: 'set_locomotion_mode', fields: { MODE: 'teleport' } },
+        workspace
+      );
+      const add = Blockly.serialization.blocks.append(
+        { type: 'add_teleport_target', fields: { TARGET: 'ground' } },
+        workspace
+      );
+      expect(generate(mode)).to.equal('setLocomotionMode("teleport");\n');
+      expect(generate(add)).to.equal('addTeleportTarget("ground");\n');
     });
 
     beforeEach(function () {

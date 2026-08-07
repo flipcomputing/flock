@@ -46,6 +46,50 @@ export const flockXR = {
       color: 'white',
     });
   },
+  setLocomotionMode(mode) {
+    if (mode !== 'none' && mode !== 'teleport') return;
+    flock._locomotionMode = mode;
+    if (flock._xrMode === 'VR') flock._xrSource?.setLocomotionMode(mode);
+    flock._applyTeleportationState?.();
+  },
+  addTeleportTarget(target) {
+    flock._ensureTeleportationState?.();
+    if (target === 'all') {
+      flock._teleportAllTargets = true;
+      flock.scene?.meshes?.forEach((mesh) => flock._syncTeleportMesh?.(mesh));
+      return;
+    }
+    if (target === 'ground') {
+      flock._teleportGroundTarget = true;
+      flock._syncTeleportMeshHierarchy?.(flock.ground);
+      return;
+    }
+    const isNamedTarget = typeof target === 'string';
+    if (isNamedTarget) flock._teleportExplicitTargetNames.add(target);
+    else if (target) flock._teleportExplicitTargetMeshes.add(target);
+    else return;
+    const mesh = isNamedTarget ? flock.scene?.getMeshByName?.(target) : target;
+    flock._syncTeleportMeshHierarchy?.(mesh);
+  },
+  removeTeleportTarget(target) {
+    flock._ensureTeleportationState?.();
+    if (target === 'all') {
+      flock._teleportAllTargets = false;
+      flock.scene?.meshes?.forEach((mesh) => flock._syncTeleportMesh?.(mesh));
+      return;
+    }
+    if (target === 'ground') {
+      flock._teleportGroundTarget = false;
+      flock._syncTeleportMeshHierarchy?.(flock.ground);
+      return;
+    }
+    const isNamedTarget = typeof target === 'string';
+    if (isNamedTarget) flock._teleportExplicitTargetNames.delete(target);
+    else if (target) flock._teleportExplicitTargetMeshes.delete(target);
+    else return;
+    const mesh = isNamedTarget ? flock.scene?.getMeshByName?.(target) : target;
+    flock._syncTeleportMeshHierarchy?.(mesh);
+  },
   exportMesh(meshName, format) {
     //meshName = "scene";
 

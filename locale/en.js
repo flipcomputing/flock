@@ -371,6 +371,9 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'use %1 camera as background',
   set_xr_mode: 'set XR mode to %1',
+  set_locomotion_mode: 'set locomotion mode to %1',
+  add_teleport_target: 'add teleport target %1',
+  remove_teleport_target: 'remove teleport target %1',
   play_rumble_pattern: 'play rumble pattern %1',
   controller_rumble: 'rumble %1 motor at strength %2 for %3 ms',
   controller_rumble_pattern: 'rumble %1 motor strength %2 on %3 ms off %4 ms %5 times',
@@ -669,6 +672,9 @@ export default {
   device_camera_background_tooltip:
     'Use the device camera as the background for the scene. Works on both mobile and desktop.',
   set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
+  set_locomotion_mode_tooltip: 'Choose observer or teleport locomotion in VR.',
+  add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',
+  remove_teleport_target_tooltip: 'Stop allowing teleportation onto the ground, one object, or all objects.',
   play_rumble_pattern_tooltip:
     'Play a preset haptic rumble pattern on all connected controllers.\nKeyword: rumble preset',
   controller_rumble_tooltip:
@@ -836,6 +842,7 @@ export default {
 
   ANY_option: 'any',
   all_option: 'all',
+  ground_option: 'ground',
   objectGrab_option: 'grab',
   objectDrop_option: 'drop',
   smallCollision_option: 'small bump',

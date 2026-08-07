@@ -577,6 +577,18 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `await setXRMode("${mode}");\n`;
   };
 
+  javascriptGenerator.forBlock['set_locomotion_mode'] = function (block) {
+    return `setLocomotionMode(${JSON.stringify(block.getFieldValue('MODE'))});\n`;
+  };
+
+  javascriptGenerator.forBlock['add_teleport_target'] = function (block) {
+    return `addTeleportTarget(${JSON.stringify(block.getFieldValue('TARGET'))});\n`;
+  };
+
+  javascriptGenerator.forBlock['remove_teleport_target'] = function (block) {
+    return `removeTeleportTarget(${JSON.stringify(block.getFieldValue('TARGET'))});\n`;
+  };
+
   // Export object as -----------------------------------------------
   javascriptGenerator.forBlock['export_mesh'] = function (block) {
     const meshVar = javascriptGenerator.nameDB_.getName(

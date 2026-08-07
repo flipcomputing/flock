@@ -604,6 +604,21 @@ const toolboxSceneXR = {
     },
     {
       kind: 'block',
+      type: 'set_locomotion_mode',
+      keyword: 'locomotion teleport',
+    },
+    {
+      kind: 'block',
+      type: 'add_teleport_target',
+      keyword: 'teleport target',
+    },
+    {
+      kind: 'block',
+      type: 'remove_teleport_target',
+      keyword: 'teleport target',
+    },
+    {
+      kind: 'block',
       type: 'export_mesh',
       keyword: 'export',
     },

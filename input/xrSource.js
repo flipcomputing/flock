@@ -33,6 +33,7 @@ export class XRSource {
   #controllerState = new Map();
   #thumbstickHeld = new Set();
   #allHeldKeys = new Set(); // Union of all held keys across buttons and thumbsticks
+  #movementEnabled = true;
 
   constructor(inputManager, { xrHelper, scene }) {
     this.#inputManager = inputManager;
@@ -61,6 +62,13 @@ export class XRSource {
     });
   }
 
+  setLocomotionMode(mode) {
+    const movementEnabled = mode === undefined || mode === null;
+    if (this.#movementEnabled === movementEnabled) return;
+    this.#movementEnabled = movementEnabled;
+    if (!movementEnabled) this.#clearThumbstickMovement();
+  }
+
   stop() {
     if (!this.#started) return;
     this.#started = false;
@@ -85,16 +93,18 @@ export class XRSource {
     }
     this.#controllerState.clear();
 
+    this.#clearThumbstickMovement();
+    this.#allHeldKeys.clear();
+  }
+
+  #clearThumbstickMovement() {
     for (const key of this.#thumbstickHeld) {
       this.#inputManager._setKey(key, false);
+      this.#allHeldKeys.delete(key);
     }
     this.#thumbstickHeld.clear();
-    this.#allHeldKeys.clear();
-
     for (const { axes } of Object.values(XR_AXES)) {
-      for (const { name } of axes) {
-        this.#inputManager._setAxis(name, 0);
-      }
+      for (const { name } of axes) this.#inputManager._setAxis(name, 0);
     }
   }
 
@@ -184,6 +194,10 @@ export class XRSource {
   }
 
   #pollThumbsticks() {
+    if (!this.#movementEnabled) {
+      this.#clearThumbstickMovement();
+      return;
+    }
     let mc = null;
     for (const [, state] of this.#controllerState) {
       if (state.handedness === 'left' && state.motionController) {

@@ -331,6 +331,9 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'använd %1 kamera som bakgrund',
   set_xr_mode: 'ställ in XR-läge till %1',
+  set_locomotion_mode: 'ställ in förflyttningsläge till %1',
+  add_teleport_target: 'lägg till teleporteringsmål %1',
+  remove_teleport_target: 'ta bort teleporteringsmål %1',
   play_rumble_pattern: 'spela vibrationsmönster %1',
   controller_rumble: 'vibrera %1 motor med styrka %2 i %3 ms',
   controller_rumble_pattern: 'vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger',
@@ -775,6 +778,7 @@ export default {
 
   ANY_option: 'vilken som helst',
   all_option: 'alla',
+  ground_option: 'mark',
   objectGrab_option: 'ta tag',
   objectDrop_option: 'släppa',
   smallCollision_option: 'liten stöt',

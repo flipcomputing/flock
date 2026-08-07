@@ -363,6 +363,7 @@ export default {
   DESCRIPTION_option: 'Beschreibung',
   ANY_option: 'beliebig',
   all_option: 'alle',
+  ground_option: 'Boden',
   objectGrab_option: 'greifen',
   objectDrop_option: 'fallen lassen',
   smallCollision_option: 'kleiner Stoß',
@@ -479,6 +480,9 @@ export default {
   // XR blocks
   device_camera_background: 'verwende %1 Kamera als Hintergrund',
   set_xr_mode: 'XR‑Modus auf %1 setzen',
+  set_locomotion_mode: 'Fortbewegungsmodus auf %1 setzen',
+  add_teleport_target: 'Teleportationsziel %1 hinzufügen',
+  remove_teleport_target: 'Teleportationsziel %1 entfernen',
   play_rumble_pattern: 'Vibrationsmuster abspielen %1',
   controller_rumble: 'Controller %1 Motor mit Stärke %2 für %3 ms vibrieren',
   controller_rumble_pattern: 'Controller %1 Motor Stärke %2 an %3 ms aus %4 ms %5 mal',

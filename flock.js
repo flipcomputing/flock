@@ -68,6 +68,7 @@ import { OnScreenSource } from './input/onScreenSource.js';
 import { GamepadSource } from './input/gamepadSource.js';
 import { CameraControls } from './input/cameraControls.js';
 import { XRSource } from './input/xrSource.js';
+import { patchEmulatorOffsetReferenceSpace } from './input/xrEmulatorShim.js';
 import { getBoundKeys } from './input/bindings.js';
 
 import {
@@ -166,6 +167,14 @@ export const flock = {
   microbitDebug: false,
   lastFrameTime: 0,
   savedCamera: null,
+  _locomotionMode: undefined,
+  _xrMode: undefined,
+  _teleportAllTargets: false,
+  _teleportGroundTarget: true,
+  _teleportExplicitTargetNames: new Set(),
+  _teleportExplicitTargetMeshes: new Set(),
+  _teleportFloorMeshes: new Set(),
+  _teleportBlockerMeshes: new Set(),
   ...flockCSG,
   ...flockAnimate,
   ...flockSound,
@@ -1101,6 +1110,9 @@ export const flock = {
       cameraControl: this.cameraControl?.bind(this),
       setCameraBackground: this.setCameraBackground?.bind(this),
       setXRMode: this.setXRMode?.bind(this),
+      setLocomotionMode: this.setLocomotionMode?.bind(this),
+      addTeleportTarget: this.addTeleportTarget?.bind(this),
+      removeTeleportTarget: this.removeTeleportTarget?.bind(this),
       applyForce: this.applyForce?.bind(this),
       setSpeed: this.setSpeed?.bind(this),
       setBounciness: this.setBounciness?.bind(this),
@@ -1227,6 +1239,9 @@ export const flock = {
       'setSky',
       'setFog',
       'setCameraBackground',
+      'setLocomotionMode',
+      'addTeleportTarget',
+      'removeTeleportTarget',
       'lightIntensity',
       'lightColor',
       'enableShadows',
@@ -2294,6 +2309,14 @@ export const flock = {
 
     // Reset XR helper
     flock.xrHelper = null;
+    flock._xrMode = undefined;
+    flock._locomotionMode = undefined;
+    flock._teleportAllTargets = false;
+    flock._teleportGroundTarget = true;
+    flock._teleportExplicitTargetNames = new Set();
+    flock._teleportExplicitTargetMeshes = new Set();
+    flock._teleportFloorMeshes = new Set();
+    flock._teleportBlockerMeshes = new Set();
   },
   _xrTuning(param, fallback, min, max) {
     let raw = null;
@@ -2317,8 +2340,93 @@ export const flock = {
       },
     };
   },
+  _ensureTeleportationState() {
+    flock._teleportExplicitTargetNames ??= new Set();
+    flock._teleportExplicitTargetMeshes ??= new Set();
+    flock._teleportFloorMeshes ??= new Set();
+    flock._teleportBlockerMeshes ??= new Set();
+    if (flock._teleportGroundTarget === undefined) flock._teleportGroundTarget = true;
+    if (flock._teleportAllTargets === undefined) flock._teleportAllTargets = false;
+  },
+  _isTeleportTarget(mesh) {
+    if (!mesh || mesh.isDisposed?.()) return false;
+    for (let current = mesh; current; current = current.parent) {
+      if (current === flock.ground && flock._teleportGroundTarget) return true;
+      if (
+        flock._teleportExplicitTargetMeshes.has(current) ||
+        flock._teleportExplicitTargetNames.has(current.name)
+      ) {
+        return true;
+      }
+      if (
+        flock._teleportAllTargets &&
+        (!!current.metadata?.blockKey || flock._nameRegistry?.has(current.name))
+      ) {
+        return true;
+      }
+    }
+    return false;
+  },
+  _hasTeleportBlockingPhysics(mesh) {
+    for (let current = mesh; current; current = current.parent) {
+      if (current.physics) return true;
+    }
+    return false;
+  },
+  _syncTeleportMeshHierarchy(mesh) {
+    if (!mesh) return;
+    flock._syncTeleportMesh(mesh);
+    mesh.getChildMeshes?.(false)?.forEach((child) => flock._syncTeleportMesh(child));
+  },
+  _unregisterTeleportMesh(mesh) {
+    const teleportation = flock.xrHelper?.teleportation;
+    if (flock._teleportFloorMeshes.has(mesh)) teleportation?.removeFloorMesh(mesh);
+    if (flock._teleportBlockerMeshes.has(mesh)) teleportation?.removeBlockerMesh(mesh);
+    flock._teleportFloorMeshes.delete(mesh);
+    flock._teleportBlockerMeshes.delete(mesh);
+    flock._teleportExplicitTargetMeshes.delete(mesh);
+  },
+  _syncTeleportMesh(mesh) {
+    if (flock._xrMode !== 'VR') return;
+    const teleportation = flock.xrHelper?.teleportation;
+    if (!teleportation || !mesh) return;
+    flock._ensureTeleportationState();
+    const isTarget = flock._isTeleportTarget(mesh);
+    const isFloor = flock._teleportFloorMeshes.has(mesh);
+    const isBlocker = flock._teleportBlockerMeshes.has(mesh);
+    if (isTarget && !isFloor) {
+      teleportation.addFloorMesh(mesh);
+      flock._teleportFloorMeshes.add(mesh);
+    } else if (!isTarget && isFloor) {
+      teleportation.removeFloorMesh(mesh);
+      flock._teleportFloorMeshes.delete(mesh);
+    }
+    const shouldBlock = flock._hasTeleportBlockingPhysics(mesh) && !isTarget;
+    if (shouldBlock && !isBlocker) {
+      teleportation.addBlockerMesh(mesh);
+      flock._teleportBlockerMeshes.add(mesh);
+    } else if (!shouldBlock && isBlocker) {
+      teleportation.removeBlockerMesh(mesh);
+      flock._teleportBlockerMeshes.delete(mesh);
+    }
+  },
+  _applyTeleportationState() {
+    const teleportation = flock.xrHelper?.teleportation;
+    if (!teleportation) return;
+    if (flock._xrMode !== 'VR') {
+      teleportation.detach();
+      return;
+    }
+    flock._ensureTeleportationState();
+    flock.scene.meshes.forEach((mesh) => flock._syncTeleportMesh(mesh));
+    if (flock._locomotionMode === 'teleport') teleportation.attach();
+    else teleportation.detach();
+  },
   async initializeXR(mode) {
     if (flock.xrHelper) return; // Avoid reinitializing
+
+    patchEmulatorOffsetReferenceSpace();
+    flock._xrMode = mode;
 
     if (mode === 'VR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
@@ -2364,7 +2472,18 @@ export const flock = {
       xrHelper: flock.xrHelper,
       scene: flock.scene,
     });
+    flock._xrSource.setLocomotionMode(mode === 'VR' ? flock._locomotionMode : undefined);
     flock._xrSource.start();
+
+    flock._teleportFloorMeshes = new Set();
+    flock._teleportBlockerMeshes = new Set();
+    flock.scene.onNewMeshAddedObservable.add((mesh) => {
+      queueMicrotask(() => flock._syncTeleportMesh(mesh));
+    });
+    flock.scene.onMeshRemovedObservable.add((mesh) => {
+      flock._unregisterTeleportMesh(mesh);
+    });
+    flock._applyTeleportationState();
 
     // Handle XR state changes
     flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {

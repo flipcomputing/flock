@@ -510,6 +510,7 @@ export const flockPhysics = {
         break;
     }
 
+    flock._syncTeleportMeshHierarchy?.(mesh);
     return mesh;
   },
   async setPhysics(meshName, physicsType) {

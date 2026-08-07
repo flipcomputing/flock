@@ -209,6 +209,38 @@ export function runXRSourceTests() {
         scene.tick();
         expect(manager.isKeyDown('a')).to.be.false;
       });
+
+      it('none mode suppresses thumbstick movement', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        source.setLocomotionMode('none');
+        mc.components['xr-standard-thumbstick'].axes.x = -0.9;
+        scene.tick();
+        expect(manager.getAxis('XR_MOVE_X')).to.equal(0);
+        expect(manager.isKeyDown('a')).to.be.false;
+      });
+
+      it('switching to teleport clears active thumbstick movement immediately', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        mc.components['xr-standard-thumbstick'].axes.x = -0.9;
+        scene.tick();
+        expect(manager.isKeyDown('a')).to.be.true;
+        source.setLocomotionMode('teleport');
+        expect(manager.getAxis('XR_MOVE_X')).to.equal(0);
+        expect(manager.isKeyDown('a')).to.be.false;
+      });
+
+      it('unset mode restores the existing thumbstick mapping', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        source.setLocomotionMode('teleport');
+        source.setLocomotionMode(undefined);
+        mc.components['xr-standard-thumbstick'].axes.y = -0.9;
+        scene.tick();
+        expect(manager.getAxis('XR_MOVE_Y')).to.equal(-0.9);
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
     });
 
     describe('controller removal', function () {
