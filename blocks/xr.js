@@ -152,22 +152,51 @@ export function defineXRBlocks() {
     },
   };
 
-  Blockly.Blocks['set_locomotion_mode'] = {
+  Blockly.Blocks['set_xr_view_mode'] = {
     init: function () {
+      const watchMotionOptions = [
+        getDropdownOption('none'),
+        getDropdownOption('comfort'),
+        getDropdownOption('smooth'),
+      ];
+      const embodyMotionOptions = [
+        getDropdownOption('none'),
+        getDropdownOption('teleport'),
+        getDropdownOption('smooth'),
+      ];
       this.jsonInit({
-        type: 'set_locomotion_mode',
-        message0: translate('set_locomotion_mode'),
+        type: 'set_xr_view_mode',
+        message0: translate('set_xr_view_mode'),
         args0: [
           {
             type: 'field_dropdown',
-            name: 'MODE',
-            options: [getDropdownOption('none'), getDropdownOption('teleport')],
+            name: 'VIEW',
+            options: [getDropdownOption('watch'), getDropdownOption('embody')],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'MOTION',
+            options: watchMotionOptions,
           },
         ],
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Scene'],
-        tooltip: getTooltip('set_locomotion_mode'),
+        tooltip: getTooltip('set_xr_view_mode'),
+      });
+      const motionField = this.getField('MOTION');
+      const viewField = this.getField('VIEW');
+      motionField.menuGenerator_ = () =>
+        this.getFieldValue('VIEW') === 'embody' ? embodyMotionOptions : watchMotionOptions;
+      viewField.setValidator((view) => {
+        const options = view === 'embody' ? embodyMotionOptions : watchMotionOptions;
+        motionField.menuGenerator_ = options;
+        const motion = motionField.getValue();
+        const values = options.map(([, value]) => value);
+        if (!values.includes(motion)) {
+          motionField.setValue(view === 'embody' ? 'teleport' : 'comfort');
+        }
+        return view;
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');

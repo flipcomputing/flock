@@ -365,7 +365,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'usar cámara %1 como fondo', // human
   set_xr_mode: 'establecer modo XR a %1', // human
-  set_locomotion_mode: 'establecer modo de locomoción a %1',
+  set_xr_view_mode: 'establecer vista de RV a %1 con movimiento de cámara %2',
   add_teleport_target: 'añadir destino de teletransporte %1',
   remove_teleport_target: 'eliminar destino de teletransporte %1',
   play_rumble_pattern: 'reproducir patrón de vibración %1', // human
@@ -675,9 +675,10 @@ export default {
   device_camera_background_tooltip:
     'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.', // human
   set_xr_mode_tooltip: 'Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.', // human
-  set_locomotion_mode_tooltip: 'Elige locomoción de observador o teletransporte en RV.',
-  add_teleport_target_tooltip: 'Permite teletransportarse al suelo, a un objeto o a todos los objetos.',
-  remove_teleport_target_tooltip: 'Impide teletransportarse al suelo, a un objeto o a todos los objetos.',
+  add_teleport_target_tooltip:
+    'Permite teletransportarse al suelo, a un objeto o a todos los objetos.',
+  remove_teleport_target_tooltip:
+    'Impide teletransportarse al suelo, a un objeto o a todos los objetos.',
   play_rumble_pattern_tooltip:
     'Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset', // human
   controller_rumble_tooltip:
@@ -858,6 +859,10 @@ export default {
   machineRunning_option: 'máquina', // human
   explosion_option: 'explosión', // human
   teleport_option: 'teletransportar', // human
+  watch_option: 'observar',
+  embody_option: 'encarnar',
+  smooth_option: 'suave',
+  comfort_option: 'confort',
   space_infinity_option: 'espacio ❖', // human
   q_icon_option: 'Q ■', // human
   e_icon_option: 'E ✿', // human

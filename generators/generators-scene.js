@@ -577,8 +577,8 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `await setXRMode("${mode}");\n`;
   };
 
-  javascriptGenerator.forBlock['set_locomotion_mode'] = function (block) {
-    return `setLocomotionMode(${JSON.stringify(block.getFieldValue('MODE'))});\n`;
+  javascriptGenerator.forBlock['set_xr_view_mode'] = function (block) {
+    return `setXRViewMode(${JSON.stringify(block.getFieldValue('VIEW'))});\nsetXRCameraMotionMode(${JSON.stringify(block.getFieldValue('MOTION'))});\n`;
   };
 
   javascriptGenerator.forBlock['add_teleport_target'] = function (block) {

@@ -371,7 +371,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'use %1 camera as background',
   set_xr_mode: 'set XR mode to %1',
-  set_locomotion_mode: 'set locomotion mode to %1',
+  set_xr_view_mode: 'set VR view to %1 with camera motion %2',
   add_teleport_target: 'add teleport target %1',
   remove_teleport_target: 'remove teleport target %1',
   play_rumble_pattern: 'play rumble pattern %1',
@@ -672,9 +672,11 @@ export default {
   device_camera_background_tooltip:
     'Use the device camera as the background for the scene. Works on both mobile and desktop.',
   set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
-  set_locomotion_mode_tooltip: 'Choose observer or teleport locomotion in VR.',
+  set_xr_view_mode_tooltip:
+    'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',
-  remove_teleport_target_tooltip: 'Stop allowing teleportation onto the ground, one object, or all objects.',
+  remove_teleport_target_tooltip:
+    'Stop allowing teleportation onto the ground, one object, or all objects.',
   play_rumble_pattern_tooltip:
     'Play a preset haptic rumble pattern on all connected controllers.\nKeyword: rumble preset',
   controller_rumble_tooltip:
@@ -855,6 +857,10 @@ export default {
   machineRunning_option: 'machine',
   explosion_option: 'explosion',
   teleport_option: 'teleport',
+  watch_option: 'watch',
+  embody_option: 'embody',
+  smooth_option: 'smooth',
+  comfort_option: 'comfort',
   space_infinity_option: 'space ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q
   e_icon_option: 'E ✿', // Duplicate key e

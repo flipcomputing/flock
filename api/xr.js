@@ -46,11 +46,29 @@ export const flockXR = {
       color: 'white',
     });
   },
-  setLocomotionMode(mode) {
-    if (mode !== 'none' && mode !== 'teleport') return;
-    flock._locomotionMode = mode;
-    if (flock._xrMode === 'VR') flock._xrSource?.setLocomotionMode(mode);
+  setXRViewMode(mode) {
+    if (mode !== 'watch' && mode !== 'embody') return;
+    flock._xrViewMode = mode;
+    if (mode === 'watch' && flock._xrCameraMotionMode === 'teleport') {
+      flock._xrCameraMotionMode = 'comfort';
+    } else if (mode === 'embody' && flock._xrCameraMotionMode === 'comfort') {
+      flock._xrCameraMotionMode = 'teleport';
+    }
+    flock._applyXRInputState?.();
     flock._applyTeleportationState?.();
+    flock._resetXRViewTracking?.({ reposition: true });
+    flock._applyXRViewVisibility?.();
+  },
+  setXRCameraMotionMode(mode) {
+    const validModes =
+      flock._xrViewMode === 'embody'
+        ? ['none', 'teleport', 'smooth']
+        : ['none', 'comfort', 'smooth'];
+    if (!validModes.includes(mode)) return;
+    flock._xrCameraMotionMode = mode;
+    flock._applyXRInputState?.();
+    flock._applyTeleportationState?.();
+    flock._resetXRViewTracking?.();
   },
   addTeleportTarget(target) {
     flock._ensureTeleportationState?.();

@@ -42,7 +42,8 @@ async function runTeleportSession(page) {
     const teleportation = helper?.teleportation;
     if (!teleportation) throw new Error('Default XR experience exposed no teleportation feature');
 
-    flock.setLocomotionMode('teleport');
+    flock.setXRViewMode('embody');
+    flock.setXRCameraMotionMode('teleport');
     await helper.baseExperience.enterXRAsync('immersive-vr', 'local-floor', helper.renderTarget);
 
     const frames = (count) =>
@@ -89,9 +90,37 @@ async function runTeleportSession(page) {
 
     result.teleport = await aimAndRelease();
 
-    flock.setLocomotionMode('none');
+    flock.setXRCameraMotionMode('none');
     await frames(5);
     result.locomotionNone = await aimAndRelease();
+
+    const followTarget = new flock.BABYLON.TransformNode('xr-follow-check', flock.scene);
+    flock._xrFollowTarget = followTarget;
+    flock.setXRViewMode('watch');
+    flock.setXRCameraMotionMode('comfort');
+    await frames(5);
+    const followStart = pos(camera.position);
+    followTarget.position.x += 3;
+    await frames(1);
+    const followWhileMoving = pos(camera.position);
+    await frames(20);
+    const followSettled = pos(camera.position);
+    const embodiedMesh = flock.BABYLON.MeshBuilder.CreateBox(
+      'xr-embody-check',
+      { size: 1 },
+      flock.scene
+    );
+    embodiedMesh.parent = followTarget;
+    flock.setXRViewMode('embody');
+    await frames(2);
+    const hiddenWhileEmbodied = !embodiedMesh.isVisible;
+    flock.setXRViewMode('watch');
+    await frames(2);
+    const restoredAfterWatch = embodiedMesh.isVisible;
+    embodiedMesh.dispose();
+    followTarget.dispose();
+    result.follow = { start: followStart, whileMoving: followWhileMoving, settled: followSettled };
+    result.embody = { hiddenWhileEmbodied, restoredAfterWatch };
 
     return result;
   });
@@ -137,6 +166,28 @@ function assertDidNotTeleport({ before, ringVisible, settled }) {
   if (moved > 0.05) {
     throw new Error(
       `Camera moved with locomotion mode none: ${JSON.stringify(before)} -> ${JSON.stringify(settled)}`
+    );
+  }
+}
+
+function assertComfortFollow({ start, whileMoving, settled }) {
+  if (Math.hypot(whileMoving.x - start.x, whileMoving.z - start.z) > 0.05) {
+    throw new Error(
+      `Follow camera moved before the target stopped: ${JSON.stringify({ start, whileMoving })}`
+    );
+  }
+  const moved = Math.hypot(settled.x - start.x, settled.z - start.z);
+  if (moved < 2.9) {
+    throw new Error(
+      `Follow camera did not catch up after the target stopped: ${JSON.stringify({ start, settled })}`
+    );
+  }
+}
+
+function assertEmbodiedVisibility({ hiddenWhileEmbodied, restoredAfterWatch }) {
+  if (!hiddenWhileEmbodied || !restoredAfterWatch) {
+    throw new Error(
+      `Embodied visibility was not reversible: ${JSON.stringify({ hiddenWhileEmbodied, restoredAfterWatch })}`
     );
   }
 }
@@ -195,6 +246,8 @@ try {
     }
     assertTeleported(result.teleport);
     assertDidNotTeleport(result.locomotionNone);
+    assertComfortFollow(result.follow);
+    assertEmbodiedVisibility(result.embody);
   } catch (error) {
     console.error(JSON.stringify(result, null, 2));
     throw error;

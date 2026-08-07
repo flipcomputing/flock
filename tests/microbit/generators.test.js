@@ -27,16 +27,50 @@ export function runMicrobitGeneratorTests() {
     });
 
     it('teleport blocks generate their XR API calls', function () {
-      const mode = Blockly.serialization.blocks.append(
-        { type: 'set_locomotion_mode', fields: { MODE: 'teleport' } },
-        workspace
-      );
       const add = Blockly.serialization.blocks.append(
         { type: 'add_teleport_target', fields: { TARGET: 'ground' } },
         workspace
       );
-      expect(generate(mode)).to.equal('setLocomotionMode("teleport");\n');
+      const view = Blockly.serialization.blocks.append(
+        { type: 'set_xr_view_mode', fields: { VIEW: 'watch', MOTION: 'comfort' } },
+        workspace
+      );
       expect(generate(add)).to.equal('addTeleportTarget("ground");\n');
+      expect(generate(view)).to.equal(
+        'setXRViewMode("watch");\nsetXRCameraMotionMode("comfort");\n'
+      );
+    });
+
+    it('changes the available motion options with the view', function () {
+      const block = Blockly.serialization.blocks.append(
+        { type: 'set_xr_view_mode', fields: { VIEW: 'watch', MOTION: 'comfort' } },
+        workspace
+      );
+      expect(
+        block
+          .getField('MOTION')
+          .getOptions(false)
+          .map(([, value]) => value)
+      ).to.deep.equal(['none', 'comfort', 'smooth']);
+
+      block.setFieldValue('embody', 'VIEW');
+      expect(block.getFieldValue('MOTION')).to.equal('teleport');
+      expect(
+        block
+          .getField('MOTION')
+          .getOptions(false)
+          .map(([, value]) => value)
+      ).to.deep.equal(['none', 'teleport', 'smooth']);
+    });
+
+    it('generates both choices from the combined VR block', function () {
+      const view = Blockly.serialization.blocks.append(
+        { type: 'set_xr_view_mode', fields: { VIEW: 'embody', MOTION: 'smooth' } },
+        workspace
+      );
+      expect(generate(view)).to.equal(
+        'setXRViewMode("embody");\nsetXRCameraMotionMode("smooth");\n'
+      );
     });
 
     beforeEach(function () {

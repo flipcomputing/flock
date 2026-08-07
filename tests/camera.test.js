@@ -37,10 +37,11 @@ export function runCameraTests(flock) {
 
     describe('attachCamera', function () {
       const boxIds = [];
-      let savedCamera;
+      let savedCamera, savedXRFollowTarget;
 
       beforeEach(function () {
         savedCamera = flock.scene.activeCamera;
+        savedXRFollowTarget = flock._xrFollowTarget;
       });
 
       afterEach(function () {
@@ -53,6 +54,7 @@ export function runCameraTests(flock) {
         });
         boxIds.length = 0;
         flock.scene.activeCamera = savedCamera;
+        flock._xrFollowTarget = savedXRFollowTarget;
       });
 
       it('should set scene.activeCamera to an ArcRotateCamera following the mesh', async function () {
@@ -70,6 +72,7 @@ export function runCameraTests(flock) {
         expect(flock.scene.activeCamera).to.exist;
         expect(flock.scene.activeCamera.metadata.following).to.exist;
         expect(flock.scene.activeCamera.metadata.following.name).to.equal(id);
+        expect(flock._xrFollowTarget).to.equal(flock.scene.activeCamera.metadata.following);
       });
     });
 

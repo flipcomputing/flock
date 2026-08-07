@@ -604,8 +604,8 @@ const toolboxSceneXR = {
     },
     {
       kind: 'block',
-      type: 'set_locomotion_mode',
-      keyword: 'locomotion teleport',
+      type: 'set_xr_view_mode',
+      keyword: 'vr view watch embody camera motion none comfort teleport smooth',
     },
     {
       kind: 'block',

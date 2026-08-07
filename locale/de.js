@@ -376,6 +376,10 @@ export default {
   machineRunning_option: 'Maschine',
   explosion_option: 'Explosion',
   teleport_option: 'teleportieren',
+  watch_option: 'ansehen',
+  embody_option: 'verkörpern',
+  smooth_option: 'fließend',
+  comfort_option: 'Komfort',
 
   a_option: 'A',
   b_option: 'B',
@@ -480,7 +484,7 @@ export default {
   // XR blocks
   device_camera_background: 'verwende %1 Kamera als Hintergrund',
   set_xr_mode: 'XR‑Modus auf %1 setzen',
-  set_locomotion_mode: 'Fortbewegungsmodus auf %1 setzen',
+  set_xr_view_mode: 'VR-Ansicht auf %1 mit Kamerabewegung %2 setzen',
   add_teleport_target: 'Teleportationsziel %1 hinzufügen',
   remove_teleport_target: 'Teleportationsziel %1 entfernen',
   play_rumble_pattern: 'Vibrationsmuster abspielen %1',

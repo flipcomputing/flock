@@ -338,7 +338,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'usa la %1 del dispositivo come sfondo',
   set_xr_mode: 'imposta modalità XR su %1',
-  set_locomotion_mode: 'imposta modalità di locomozione su %1',
+  set_xr_view_mode: 'imposta vista VR su %1 con movimento della camera %2',
   add_teleport_target: 'aggiungi destinazione teletrasporto %1',
   remove_teleport_target: 'rimuovi destinazione teletrasporto %1',
   play_rumble_pattern: 'riproduci motivo di vibrazione %1',
@@ -810,6 +810,10 @@ export default {
   machineRunning_option: 'macchina',
   explosion_option: 'esplosione',
   teleport_option: 'teletrasporto',
+  watch_option: 'osserva',
+  embody_option: 'incarna',
+  smooth_option: 'fluido',
+  comfort_option: 'comfort',
   space_infinity_option: 'spazio ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q
   e_icon_option: 'E ✿', // Duplicate key e

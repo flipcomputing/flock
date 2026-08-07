@@ -12,8 +12,8 @@ const XR_BUTTON_KEYS = {
 const XR_AXES = {
   thumbstick: {
     axes: [
-      { axisIndex: 0, name: 'XR_MOVE_X', shimKeys: { neg: 'a', pos: 'd' } },
-      { axisIndex: 1, name: 'XR_MOVE_Y', shimKeys: { neg: 'w', pos: 's' } },
+      { axisIndex: 0, name: 'XR_MOVE_X', shimActions: { neg: 'LEFT', pos: 'RIGHT' } },
+      { axisIndex: 1, name: 'XR_MOVE_Y', shimActions: { neg: 'FORWARD', pos: 'BACKWARD' } },
     ],
   },
 };
@@ -34,6 +34,7 @@ export class XRSource {
   #thumbstickHeld = new Set();
   #allHeldKeys = new Set(); // Union of all held keys across buttons and thumbsticks
   #movementEnabled = true;
+  #shimEnabled = true;
 
   constructor(inputManager, { xrHelper, scene }) {
     this.#inputManager = inputManager;
@@ -62,11 +63,14 @@ export class XRSource {
     });
   }
 
-  setLocomotionMode(mode) {
-    const movementEnabled = mode === undefined || mode === null;
-    if (this.#movementEnabled === movementEnabled) return;
+  setInputMode(mode) {
+    const movementEnabled = mode === 'project' || mode === 'smooth';
+    const shimEnabled = mode === 'project';
+    if (this.#movementEnabled === movementEnabled && this.#shimEnabled === shimEnabled) return;
     this.#movementEnabled = movementEnabled;
+    this.#shimEnabled = shimEnabled;
     if (!movementEnabled) this.#clearThumbstickMovement();
+    else if (!shimEnabled) this.#clearThumbstickShims();
   }
 
   stop() {
@@ -98,14 +102,18 @@ export class XRSource {
   }
 
   #clearThumbstickMovement() {
+    this.#clearThumbstickShims();
+    for (const { axes } of Object.values(XR_AXES)) {
+      for (const { name } of axes) this.#inputManager._setAxis(name, 0);
+    }
+  }
+
+  #clearThumbstickShims() {
     for (const key of this.#thumbstickHeld) {
       this.#inputManager._setKey(key, false);
       this.#allHeldKeys.delete(key);
     }
     this.#thumbstickHeld.clear();
-    for (const { axes } of Object.values(XR_AXES)) {
-      for (const { name } of axes) this.#inputManager._setAxis(name, 0);
-    }
   }
 
   #releaseControllerKeys(state) {
@@ -227,12 +235,15 @@ export class XRSource {
     const wantedShims = new Set();
 
     for (const { axes } of Object.values(XR_AXES)) {
-      for (const { axisIndex, name, shimKeys } of axes) {
+      for (const { axisIndex, name, shimActions } of axes) {
         const raw = rawValues[axisIndex] ?? 0;
         this.#inputManager._setAxis(name, Math.abs(raw) > DEAD_ZONE ? raw : 0);
-        if (shimKeys) {
-          if (raw < -SHIM_THRESHOLD) wantedShims.add(shimKeys.neg);
-          else if (raw > SHIM_THRESHOLD) wantedShims.add(shimKeys.pos);
+        if (shimActions && this.#shimEnabled) {
+          const action =
+            raw < -SHIM_THRESHOLD ? shimActions.neg : raw > SHIM_THRESHOLD ? shimActions.pos : null;
+          if (action) {
+            for (const key of this.#inputManager._getActionKeys(action)) wantedShims.add(key);
+          }
         }
       }
     }

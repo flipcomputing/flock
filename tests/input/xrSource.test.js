@@ -210,36 +210,57 @@ export function runXRSourceTests() {
         expect(manager.isKeyDown('a')).to.be.false;
       });
 
-      it('none mode suppresses thumbstick movement', function () {
+      it('disabled input mode suppresses thumbstick movement', function () {
         const controller = makeController('left');
         const mc = addController(controller);
-        source.setLocomotionMode('none');
+        source.setInputMode('disabled');
         mc.components['xr-standard-thumbstick'].axes.x = -0.9;
         scene.tick();
         expect(manager.getAxis('XR_MOVE_X')).to.equal(0);
         expect(manager.isKeyDown('a')).to.be.false;
       });
 
-      it('switching to teleport clears active thumbstick movement immediately', function () {
+      it('disabling input clears active thumbstick movement immediately', function () {
         const controller = makeController('left');
         const mc = addController(controller);
         mc.components['xr-standard-thumbstick'].axes.x = -0.9;
         scene.tick();
         expect(manager.isKeyDown('a')).to.be.true;
-        source.setLocomotionMode('teleport');
+        source.setInputMode('disabled');
         expect(manager.getAxis('XR_MOVE_X')).to.equal(0);
         expect(manager.isKeyDown('a')).to.be.false;
       });
 
-      it('unset mode restores the existing thumbstick mapping', function () {
+      it('project input mode restores the existing thumbstick mapping', function () {
         const controller = makeController('left');
         const mc = addController(controller);
-        source.setLocomotionMode('teleport');
-        source.setLocomotionMode(undefined);
+        source.setInputMode('disabled');
+        source.setInputMode('project');
         mc.components['xr-standard-thumbstick'].axes.y = -0.9;
         scene.tick();
         expect(manager.getAxis('XR_MOVE_Y')).to.equal(-0.9);
         expect(manager.isKeyDown('w')).to.be.true;
+      });
+
+      it('smooth input keeps analogue axes without emitting movement actions', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        source.setInputMode('smooth');
+        mc.components['xr-standard-thumbstick'].axes.y = -0.9;
+        scene.tick();
+        expect(manager.getAxis('XR_MOVE_Y')).to.equal(-0.9);
+        expect(manager.isActionDown('FORWARD')).to.be.false;
+      });
+
+      it('project input respects movement action overrides', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        manager.setActionKey('FORWARD', 'x');
+        mc.components['xr-standard-thumbstick'].axes.y = -0.9;
+        scene.tick();
+        expect(manager.isKeyDown('x')).to.be.true;
+        expect(manager.isKeyDown('w')).to.be.false;
+        expect(manager.isActionDown('FORWARD')).to.be.true;
       });
     });
 

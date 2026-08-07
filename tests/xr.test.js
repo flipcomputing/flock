@@ -4,9 +4,209 @@ export function runXRTests(flock) {
   describe('XR API @xr', function () {
     it('exposes teleport APIs to generated user code', function () {
       const api = flock.createWhitelist({ guard: (fn) => fn });
-      expect(api.setLocomotionMode).to.be.a('function');
+      expect(api.setXRViewMode).to.be.a('function');
+      expect(api.setXRCameraMotionMode).to.be.a('function');
       expect(api.addTeleportTarget).to.be.a('function');
       expect(api.removeTeleportTarget).to.be.a('function');
+    });
+
+    describe('VR view mode', function () {
+      let originalState;
+
+      beforeEach(function () {
+        originalState = {
+          mode: flock._xrViewMode,
+          helper: flock.xrHelper,
+          target: flock._xrFollowTarget,
+          xrMode: flock._xrMode,
+          sessionActive: flock._xrSessionActive,
+          lastPosition: flock._xrFollowLastPosition,
+          settledPosition: flock._xrFollowSettledPosition,
+          lastMovedAt: flock._xrFollowLastMovedAt,
+          watchPosition: flock._xrWatchPosition,
+          embodiedVisibility: flock._xrEmbodiedVisibility,
+          cameraMotionMode: flock._xrCameraMotionMode,
+          engine: flock.engine,
+        };
+      });
+
+      afterEach(function () {
+        flock._restoreXREmbodiedVisibility();
+        flock._xrViewMode = originalState.mode;
+        flock.xrHelper = originalState.helper;
+        flock._xrFollowTarget = originalState.target;
+        flock._xrMode = originalState.xrMode;
+        flock._xrSessionActive = originalState.sessionActive;
+        flock._xrFollowLastPosition = originalState.lastPosition;
+        flock._xrFollowSettledPosition = originalState.settledPosition;
+        flock._xrFollowLastMovedAt = originalState.lastMovedAt;
+        flock._xrWatchPosition = originalState.watchPosition;
+        flock._xrEmbodiedVisibility = originalState.embodiedVisibility;
+        flock._xrCameraMotionMode = originalState.cameraMotionMode;
+        flock.engine = originalState.engine;
+        flock.inputManager._setAxis('XR_MOVE_X', 0);
+        flock.inputManager._setAxis('XR_MOVE_Y', 0);
+      });
+
+      it('sets view and camera motion independently in either order', function () {
+        flock.setXRViewMode('embody');
+        flock.setXRCameraMotionMode('smooth');
+        expect(flock._xrViewMode).to.equal('embody');
+        expect(flock._xrCameraMotionMode).to.equal('smooth');
+
+        flock.setXRCameraMotionMode('teleport');
+        flock.setXRViewMode('watch');
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
+      });
+
+      it('ignores an unknown view mode', function () {
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'smooth';
+        flock.setXRViewMode('unknown');
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('smooth');
+      });
+
+      it('ignores an unknown camera motion mode', function () {
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'none';
+        flock.setXRCameraMotionMode('unknown');
+        expect(flock._xrViewMode).to.equal('embody');
+        expect(flock._xrCameraMotionMode).to.equal('none');
+      });
+
+      it('rejects camera motion modes that do not apply to the current view', function () {
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock.setXRCameraMotionMode('teleport');
+        expect(flock._xrCameraMotionMode).to.equal('none');
+
+        flock._xrViewMode = 'embody';
+        flock.setXRCameraMotionMode('comfort');
+        expect(flock._xrCameraMotionMode).to.equal('none');
+      });
+
+      it('comfort holds the camera while moving, then catches up after movement stops', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'comfort';
+        flock._resetXRViewTracking();
+
+        target.position.x = 3;
+        flock._updateXRView();
+        expect(camera.position.x).to.equal(0);
+
+        flock._xrFollowLastMovedAt -= 300;
+        flock._updateXRView();
+        expect(camera.position.x).to.equal(3);
+      });
+
+      it('watch never inherits movement from the follow target', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock._resetXRViewTracking();
+        target.position.x = 3;
+        flock._updateXRView();
+        expect(camera.position.x).to.equal(0);
+      });
+
+      it('restores the watch position without a follow target', function () {
+        const camera = { position: new flock.BABYLON.Vector3(4, 1, 2) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = null;
+        flock._xrWatchPosition = new flock.BABYLON.Vector3(0, 2, -7);
+        flock._xrViewMode = 'embody';
+
+        flock.setXRViewMode('watch');
+
+        expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
+      });
+
+      it('watch with smooth motion continuously follows the target', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'smooth';
+        flock._resetXRViewTracking();
+        target.position.x = 3;
+        flock._updateXRView();
+        expect(camera.position.x).to.equal(3);
+      });
+
+      it('embodied smooth locomotion moves the XR origin without project action shims', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          getDirectionToRef(direction, result) {
+            result.copyFrom(direction);
+          },
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock.engine = { getDeltaTime: () => 16 };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'smooth';
+        flock.inputManager._setAxis('XR_MOVE_Y', -1);
+        flock._updateXRView();
+        expect(camera.position.z).to.be.closeTo(0.032, 0.000001);
+      });
+
+      it('embody hides the followed hierarchy and restores its previous visibility', function () {
+        const child = { isVisible: true, isDisposed: () => false };
+        const alreadyHidden = { isVisible: false, isDisposed: () => false };
+        const target = {
+          isVisible: true,
+          isDisposed: () => false,
+          getChildMeshes: () => [child, alreadyHidden],
+        };
+        flock._xrFollowTarget = target;
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._applyXRViewVisibility();
+
+        expect(target.isVisible).to.be.false;
+        expect(child.isVisible).to.be.false;
+        expect(alreadyHidden.isVisible).to.be.false;
+
+        flock._xrViewMode = 'watch';
+        flock._applyXRViewVisibility();
+        expect(target.isVisible).to.be.true;
+        expect(child.isVisible).to.be.true;
+        expect(alreadyHidden.isVisible).to.be.false;
+      });
+
+      it('leaving XR restores an embodied hierarchy', function () {
+        const target = {
+          isVisible: true,
+          isDisposed: () => false,
+          getChildMeshes: () => [],
+        };
+        flock._xrFollowTarget = target;
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._applyXRViewVisibility();
+        expect(target.isVisible).to.be.false;
+
+        flock._xrSessionActive = false;
+        flock._applyXRViewVisibility();
+        expect(target.isVisible).to.be.true;
+      });
     });
 
     describe('setCameraBackground', function () {
@@ -61,7 +261,8 @@ export function runXRTests(flock) {
         originalGround = flock.ground;
         originalXRMode = flock._xrMode;
         originalTeleportState = {
-          locomotionMode: flock._locomotionMode,
+          cameraMotionMode: flock._xrCameraMotionMode,
+          viewMode: flock._xrViewMode,
           allTargets: flock._teleportAllTargets,
           groundTarget: flock._teleportGroundTarget,
           explicitTargetNames: flock._teleportExplicitTargetNames,
@@ -73,10 +274,18 @@ export function runXRTests(flock) {
         const teleportation = {
           attach() {},
           detach() {},
-          addFloorMesh(mesh) { calls.addFloor.push(mesh); },
-          removeFloorMesh(mesh) { calls.removeFloor.push(mesh); },
-          addBlockerMesh(mesh) { calls.addBlocker.push(mesh); },
-          removeBlockerMesh(mesh) { calls.removeBlocker.push(mesh); },
+          addFloorMesh(mesh) {
+            calls.addFloor.push(mesh);
+          },
+          removeFloorMesh(mesh) {
+            calls.removeFloor.push(mesh);
+          },
+          addBlockerMesh(mesh) {
+            calls.addBlocker.push(mesh);
+          },
+          removeBlockerMesh(mesh) {
+            calls.removeBlocker.push(mesh);
+          },
         };
         flock.xrHelper = { teleportation };
         flock._xrMode = 'VR';
@@ -93,7 +302,8 @@ export function runXRTests(flock) {
         flock.scene = originalScene;
         flock.ground = originalGround;
         flock._xrMode = originalXRMode;
-        flock._locomotionMode = originalTeleportState.locomotionMode;
+        flock._xrCameraMotionMode = originalTeleportState.cameraMotionMode;
+        flock._xrViewMode = originalTeleportState.viewMode;
         flock._teleportAllTargets = originalTeleportState.allTargets;
         flock._teleportGroundTarget = originalTeleportState.groundTarget;
         flock._teleportExplicitTargetNames = originalTeleportState.explicitTargetNames;
@@ -106,7 +316,8 @@ export function runXRTests(flock) {
         const ground = { name: 'ground' };
         flock.ground = ground;
         flock.scene = { meshes: [ground] };
-        flock.setLocomotionMode('teleport');
+        flock.setXRViewMode('embody');
+        flock.setXRCameraMotionMode('teleport');
         expect(calls.addFloor).to.deep.equal([ground]);
       });
 

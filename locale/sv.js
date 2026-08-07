@@ -331,7 +331,7 @@ export default {
   // Custom block translations - XR blocks
   device_camera_background: 'använd %1 kamera som bakgrund',
   set_xr_mode: 'ställ in XR-läge till %1',
-  set_locomotion_mode: 'ställ in förflyttningsläge till %1',
+  set_xr_view_mode: 'ställ in VR-vy till %1 med kamerarörelse %2',
   add_teleport_target: 'lägg till teleporteringsmål %1',
   remove_teleport_target: 'ta bort teleporteringsmål %1',
   play_rumble_pattern: 'spela vibrationsmönster %1',
@@ -791,6 +791,10 @@ export default {
   machineRunning_option: 'maskin',
   explosion_option: 'explosion',
   teleport_option: 'teleporterar',
+  watch_option: 'titta',
+  embody_option: 'förkroppsliga',
+  smooth_option: 'mjuk',
+  comfort_option: 'komfort',
   space_infinity_option: 'rymd ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q
   e_icon_option: 'E ✿', // Duplicate key e
