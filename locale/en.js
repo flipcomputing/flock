@@ -1126,6 +1126,7 @@ export default {
   examples_cat_physics_ui: 'Physics',
   examples_cat_worlds_ui: 'Worlds',
   examples_cat_create_ui: 'Creative',
+  examples_cat_data_ui: 'Data',
   examples_cat_xr_ui: 'XR',
 
   toggle_play_ui: 'Use your project',

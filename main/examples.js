@@ -14,6 +14,7 @@ export const CATEGORIES = [
   { id: 'games', i18nKey: 'examples_cat_games' },
   { id: 'physics', i18nKey: 'examples_cat_physics' },
   { id: 'create', i18nKey: 'examples_cat_create' },
+  { id: 'data', i18nKey: 'examples_cat_data' },
   { id: 'xr', i18nKey: 'examples_cat_xr' },
 ];
 
@@ -57,7 +58,7 @@ export const EXAMPLES = [
     i18nKey: 'tallest_buildings',
     file: 'examples/tallest_buildings.flock',
     emoji: '📊',
-    category: 'create',
+    category: 'data',
   },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', emoji: '📿', category: 'xr' },
   {

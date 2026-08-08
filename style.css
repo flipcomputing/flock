@@ -1436,7 +1436,7 @@ button {
      global box-sizing reset in this project), otherwise the panel is ~50px
      wider than the calc and overflows. */
   box-sizing: border-box;
-  width: min(560px, calc(100vw - 16px));
+  width: min(800px, calc(100vw - 16px));
   max-width: none;
   max-height: 70vh;
   overflow-x: hidden;

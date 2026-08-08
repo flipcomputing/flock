@@ -1118,6 +1118,7 @@ export default {
   examples_cat_physics_ui: 'Física', // ai
   examples_cat_worlds_ui: 'Mundos', // ai
   examples_cat_create_ui: 'Creativo', // ai
+  examples_cat_data_ui: 'Datos', // ai
   examples_cat_xr_ui: 'XR', // ai
 
   toggle_play_ui: 'Usa tu proyecto', // human

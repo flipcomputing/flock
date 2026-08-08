@@ -1070,6 +1070,7 @@ export default {
   examples_cat_physics_ui: 'Physik', // ai
   examples_cat_worlds_ui: 'Welten', // ai
   examples_cat_create_ui: 'Kreativ', // ai
+  examples_cat_data_ui: 'Daten', // ai
   examples_cat_xr_ui: 'XR', // ai
   toggle_play_ui: 'Projekt nutzen',
   fullscreen_toggle_ui: 'Vollbild umschalten',
