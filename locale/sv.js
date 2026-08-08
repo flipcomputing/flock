@@ -1006,6 +1006,8 @@ export default {
   tent_lights_ui: '⛺ Festivaltält',
   my_place_ui: '🏠 Mitt ställe',
   microbit_monkey_ui: '🐵 micro:bit-apa',
+  ar_demo_ui: '📱 AR-demo',
+  vr_demo_ui: '🥽 VR-demo',
   tree_jump_ui: '🌳 Träd-hopp',
   shape_push_ui: '🔶 Skjuta form',
   alien_planet_ui: '👽 Alienplanet',

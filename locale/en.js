@@ -1087,6 +1087,8 @@ export default {
   tent_lights_ui: '⛺ Festival tent',
   my_place_ui: '🏠 My place',
   microbit_monkey_ui: '🐵 micro:bit monkey',
+  ar_demo_ui: '📱 AR Demo',
+  vr_demo_ui: '🥽 VR Demo',
   tree_jump_ui: '🌳 Tree jump',
   shape_push_ui: '🔶 Shape push',
   alien_planet_ui: '👽 Alien planet',

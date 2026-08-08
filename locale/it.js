@@ -1030,6 +1030,8 @@ export default {
   tent_lights_ui: '⛺ Tenda festival',
   my_place_ui: '🏠 Il mio posto',
   microbit_monkey_ui: '🐵 micro:bit scimmia',
+  ar_demo_ui: '📱 Demo AR',
+  vr_demo_ui: '🥽 Demo VR',
   tree_jump_ui: "🌳 Salto dall'albero",
   shape_push_ui: '🔶 Spinta forma',
   alien_planet_ui: '👽 Pianeta alieno',

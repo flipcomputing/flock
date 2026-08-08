@@ -1018,6 +1018,8 @@ export default {
   tent_lights_ui: '⛺ Światełka namiotu',
   my_place_ui: '🏠 Moje miejsce',
   microbit_monkey_ui: '🐵 małpa micro:bit',
+  ar_demo_ui: '📱 Demo AR',
+  vr_demo_ui: '🥽 Demo VR',
   tree_jump_ui: '🌳 Skok z drzewa',
   shape_push_ui: '🔶 Pchnięcie kształtu',
   alien_planet_ui: '👽 Obca planeta',

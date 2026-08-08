@@ -66,6 +66,8 @@ export const EXAMPLES = [
     emoji: '🐵',
     category: 'xr',
   },
+  { i18nKey: 'ar_demo', file: 'examples/ardemo.flock', emoji: '📱', category: 'xr' },
+  { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', emoji: '🥽', category: 'xr' },
 ];
 
 let previouslyFocused = null;

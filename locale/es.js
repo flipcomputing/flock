@@ -1077,6 +1077,8 @@ export default {
   tent_lights_ui: '⛺ Carpa de Festival', // human
   my_place_ui: '🏠 Mi Lugar', // human
   microbit_monkey_ui: '🐵 Mono micro:bit', // human
+  ar_demo_ui: '📱 Demo de RA', // ai
+  vr_demo_ui: '🥽 Demo de RV', // ai
   tree_jump_ui: '🌳 Salto de árbol', // human
   shape_push_ui: '🔶 Empujar forma', // human
   alien_planet_ui: '👽 Planeta alienígena', // human
