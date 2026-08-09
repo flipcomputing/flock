@@ -680,7 +680,11 @@ export const flockUI = {
             originalPlaneColor: plane.material?.diffuseColor?.toHexString?.() || '#ffffff',
           };
         } else {
-          plane = targetMesh.getDescendants().find((child) => child.name === 'textPlane');
+          plane = flock.scene.meshes.find(
+            (child) =>
+              child.name === 'textPlane' &&
+              (child.parent === targetMesh || child.metadata?.sayTarget === targetMesh)
+          );
         }
 
         if (!plane) {
@@ -694,6 +698,7 @@ export const flockUI = {
           plane.metadata = {
             ...(plane.metadata || {}),
             isTextPlane: true,
+            sayTarget: targetMesh,
           };
           plane.checkCollisions = false;
           plane.isPickable = false;
@@ -706,6 +711,20 @@ export const flockUI = {
               plane.dispose();
               return;
             }
+            const xrCamera = flock.xrHelper?.baseExperience?.camera;
+            if (flock._isXREmbodiedTarget?.(targetMesh) && xrCamera) {
+              plane.metadata.isXREmbodiedHUD = true;
+              if (plane.parent !== xrCamera) plane.parent = xrCamera;
+              plane.billboardMode = 0;
+              plane.position.set(0, -0.35, 2);
+              plane.rotation?.set?.(0, 0, 0);
+              plane.scaling.set(0.22, 0.22, 0.22);
+              plane.isVisible = true;
+              return;
+            }
+            plane.metadata.isXREmbodiedHUD = false;
+            if (plane.parent !== targetMesh) plane.parent = targetMesh;
+            plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
             const boundingInfo = targetMesh.getBoundingInfo();
             const parentScale = targetMesh.scaling;
             plane.scaling.set(1 / parentScale.x, 1 / parentScale.y, 1 / parentScale.z);

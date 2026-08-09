@@ -122,6 +122,51 @@ async function runTeleportSession(page) {
     result.follow = { start: followStart, whileMoving: followWhileMoving, settled: followSettled };
     result.embody = { hiddenWhileEmbodied, restoredAfterWatch };
 
+    const collisionPlayer = flock.BABYLON.MeshBuilder.CreateBox(
+      'xr-collision-player',
+      { size: 1 },
+      flock.scene
+    );
+    collisionPlayer.position.copyFrom(camera.position);
+    collisionPlayer.position.y = 0.5;
+    const candy = flock.BABYLON.MeshBuilder.CreateSphere(
+      'xr-collision-candy',
+      { diameter: 0.5 },
+      flock.scene
+    );
+    candy.position.copyFrom(collisionPlayer.position);
+    candy.position.x += 3;
+    let collected = false;
+    await flock.onIntersect(collisionPlayer.name, candy.name, {
+      trigger: 'OnIntersectionEnterTrigger',
+      callback: async () => {
+        collected = true;
+      },
+    });
+    flock._xrFollowTarget = collisionPlayer;
+    flock.setXRViewMode('embody');
+    await frames(2);
+    candy.position.copyFrom(collisionPlayer.position);
+    candy.computeWorldMatrix(true);
+    await flock.say(collisionPlayer.name, { text: 'Yum!', duration: 0 });
+    await frames(3);
+    const sayPlane = flock.scene.meshes.find(
+      (mesh) => mesh.metadata?.sayTarget === collisionPlayer
+    );
+    result.embodiedInteraction = {
+      collected,
+      playerAtCamera:
+        Math.hypot(
+          collisionPlayer.position.x - camera.position.x,
+          collisionPlayer.position.z - camera.position.z
+        ) < 0.05,
+      sayVisible: !!sayPlane?.isVisible,
+      sayHeadLocked: sayPlane?.parent === camera,
+    };
+    sayPlane?.dispose();
+    candy.dispose();
+    collisionPlayer.dispose();
+
     return result;
   });
 }
@@ -181,6 +226,14 @@ function assertComfortFollow({ start, whileMoving, settled }) {
     throw new Error(
       `Follow camera did not catch up after the target stopped: ${JSON.stringify({ start, settled })}`
     );
+  }
+}
+
+function assertEmbodiedInteraction(result) {
+  if (!result.playerAtCamera) throw new Error('Embodied player did not follow the XR camera');
+  if (!result.collected) throw new Error('Embodied player did not trigger the candy collision');
+  if (!result.sayVisible || !result.sayHeadLocked) {
+    throw new Error(`Embodied say text was not a visible head-locked HUD: ${JSON.stringify(result)}`);
   }
 }
 
@@ -248,6 +301,7 @@ try {
     assertDidNotTeleport(result.locomotionNone);
     assertComfortFollow(result.follow);
     assertEmbodiedVisibility(result.embody);
+    assertEmbodiedInteraction(result.embodiedInteraction);
   } catch (error) {
     console.error(JSON.stringify(result, null, 2));
     throw error;
