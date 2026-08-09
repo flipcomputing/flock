@@ -46,7 +46,7 @@ import { flockTransform, setFlockReference as setFlockTransform } from './api/tr
 import { flockMaterial, setFlockReference as setFlockMaterial } from './api/material';
 import { flockEffects, setFlockReference as setFlockEffects } from './api/effects';
 import { flockPhysics, setFlockReference as setFlockPhysics } from './api/physics';
-import { flockXR, flockXRState, setFlockReference as setFlockXR } from './api/xr';
+import { createFlockXRState, flockXR, setFlockReference as setFlockXR } from './api/xr';
 import { flockControl, setFlockReference as setFlockControl } from './api/control';
 import { flockScene, setFlockReference as setFlockScene } from './api/scene';
 import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
@@ -165,7 +165,7 @@ export const flock = {
   microbitDebug: false,
   lastFrameTime: 0,
   savedCamera: null,
-  ...flockXRState,
+  ...createFlockXRState(),
   ...flockCSG,
   ...flockAnimate,
   ...flockSound,
@@ -1646,9 +1646,10 @@ export const flock = {
         flock._xrSource?.stop();
         flock._xrSource = null;
         flock._restoreXREmbodiedVisibility?.();
-        if (flock._xrViewObserver && flock.scene) {
-          flock.scene.onBeforeRenderObservable.remove(flock._xrViewObserver);
+        if (flock._xrViewObserver && flock._xrViewObserverScene) {
+          flock._xrViewObserverScene.onBeforeRenderObservable.remove(flock._xrViewObserver);
           flock._xrViewObserver = null;
+          flock._xrViewObserverScene = null;
         }
         try {
           flock.xrHelper?.dispose?.();

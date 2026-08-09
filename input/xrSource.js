@@ -1,11 +1,11 @@
 const XR_BUTTON_KEYS = {
   left: {
     'x-button': ['f'], // BUTTON3
-    'y-button': ['e'], // BUTTON2
+    'y-button': ['r'], // BUTTON1
   },
   right: {
     'a-button': [' '], // BUTTON4
-    'b-button': ['r'], // BUTTON1
+    'b-button': ['e'], // BUTTON2
   },
 };
 
@@ -35,6 +35,7 @@ export class XRSource {
   #allHeldKeys = new Set(); // Union of all held keys across buttons and thumbsticks
   #movementEnabled = true;
   #shimEnabled = true;
+  #flyMode = false;
 
   constructor(inputManager, { xrHelper, scene }) {
     this.#inputManager = inputManager;
@@ -64,13 +65,28 @@ export class XRSource {
   }
 
   setInputMode(mode) {
-    const movementEnabled = mode === 'project' || mode === 'smooth';
+    const movementEnabled = mode === 'project' || mode === 'smooth' || mode === 'fly';
     const shimEnabled = mode === 'project';
-    if (this.#movementEnabled === movementEnabled && this.#shimEnabled === shimEnabled) return;
+    const flyMode = mode === 'fly';
+    if (
+      this.#movementEnabled === movementEnabled &&
+      this.#shimEnabled === shimEnabled &&
+      this.#flyMode === flyMode
+    ) {
+      return;
+    }
+    if (flyMode !== this.#flyMode) {
+      for (const [, state] of this.#controllerState) {
+        for (const key of state.heldKeys) this.#allHeldKeys.delete(key);
+        this.#releaseControllerKeys(state);
+      }
+    }
     this.#movementEnabled = movementEnabled;
     this.#shimEnabled = shimEnabled;
+    this.#flyMode = flyMode;
     if (!movementEnabled) this.#clearThumbstickMovement();
     else if (!shimEnabled) this.#clearThumbstickShims();
+    if (!flyMode) this.#inputManager._setAxis('XR_MOVE_VERTICAL', 0);
   }
 
   stop() {
@@ -106,6 +122,7 @@ export class XRSource {
     for (const { axes } of Object.values(XR_AXES)) {
       for (const { name } of axes) this.#inputManager._setAxis(name, 0);
     }
+    this.#inputManager._setAxis('XR_MOVE_VERTICAL', 0);
   }
 
   #clearThumbstickShims() {
@@ -148,6 +165,14 @@ export class XRSource {
 
         let lastPressedState = false;
         const btnObserver = component.onButtonStateChangedObservable.add(() => {
+          if (
+            this.#flyMode &&
+            handedness === 'left' &&
+            (componentId === 'x-button' || componentId === 'y-button')
+          ) {
+            lastPressedState = component.pressed;
+            return;
+          }
           const isPressed = component.pressed;
           if (isPressed === lastPressedState) return;
           lastPressedState = isPressed;
@@ -215,17 +240,16 @@ export class XRSource {
     }
 
     if (!mc) {
-      for (const key of this.#thumbstickHeld) {
-        this.#inputManager._setKey(key, false);
-        this.#allHeldKeys.delete(key);
-      }
-      this.#thumbstickHeld.clear();
-      for (const { axes } of Object.values(XR_AXES)) {
-        for (const { name } of axes) {
-          this.#inputManager._setAxis(name, 0);
-        }
-      }
+      this.#clearThumbstickMovement();
       return;
+    }
+
+    if (this.#flyMode) {
+      const up = mc.getComponent('y-button')?.pressed ? 1 : 0;
+      const down = mc.getComponent('x-button')?.pressed ? 1 : 0;
+      this.#inputManager._setAxis('XR_MOVE_VERTICAL', up - down);
+    } else {
+      this.#inputManager._setAxis('XR_MOVE_VERTICAL', 0);
     }
 
     const thumbstick = mc.getComponent('xr-standard-thumbstick');

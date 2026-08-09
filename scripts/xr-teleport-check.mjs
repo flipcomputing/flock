@@ -163,6 +163,7 @@ async function runTeleportSession(page) {
       sayVisible: !!sayPlane?.isVisible,
       sayHeadLocked: sayPlane?.parent === camera,
     };
+    flock._xrFollowTarget = null;
     sayPlane?.dispose();
     candy.dispose();
     collisionPlayer.dispose();
@@ -233,7 +234,9 @@ function assertEmbodiedInteraction(result) {
   if (!result.playerAtCamera) throw new Error('Embodied player did not follow the XR camera');
   if (!result.collected) throw new Error('Embodied player did not trigger the candy collision');
   if (!result.sayVisible || !result.sayHeadLocked) {
-    throw new Error(`Embodied say text was not a visible head-locked HUD: ${JSON.stringify(result)}`);
+    throw new Error(
+      `Embodied say text was not a visible head-locked HUD: ${JSON.stringify(result)}`
+    );
   }
 }
 

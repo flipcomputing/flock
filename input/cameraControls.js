@@ -5,7 +5,7 @@
 
 const YAW_SPEED = 2.5;
 const PITCH_SPEED = 2.0;
-const FLY_SPEED = 3.0;
+export const FLY_SPEED = 3.0;
 
 export class CameraControls {
   #flock;

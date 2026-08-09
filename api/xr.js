@@ -1,6 +1,7 @@
 import { translate } from '../main/translation.js';
 import { XRSource } from '../input/xrSource.js';
 import { patchEmulatorOffsetReferenceSpace } from '../input/xrEmulatorShim.js';
+import { FLY_SPEED } from '../input/cameraControls.js';
 
 let flock;
 
@@ -8,7 +9,7 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
-export const flockXRState = {
+export const createFlockXRState = () => ({
   _xrCameraMotionMode: 'none',
   _xrViewMode: 'watch',
   _xrFollowTarget: null,
@@ -25,17 +26,36 @@ export const flockXRState = {
   _teleportFloorMeshes: new Set(),
   _teleportBlockerMeshes: new Set(),
   _xrViewObserver: null,
+  _xrViewObserverScene: null,
+  _xrMeshAddedObserver: null,
+  _xrMeshRemovedObserver: null,
+  _xrMeshObserverScene: null,
+  _xrVisibilitySyncQueued: false,
+  _xrMoveForward: null,
+  _xrMoveRight: null,
+  _xrMoveDelta: null,
+  _xrForwardBasis: null,
+  _xrRightBasis: null,
   _xrSessionActive: false,
-};
+});
 
 export const flockXR = {
   _resetXRState() {
-    flock.xrHelper = null;
-    for (const [key, value] of Object.entries(flockXRState)) {
-      if (value instanceof Map) flock[key] = new Map();
-      else if (value instanceof Set) flock[key] = new Set();
-      else flock[key] = value;
+    flock._xrSource?.stop?.();
+    flock._xrSource = null;
+    if (flock._xrViewObserver && flock._xrViewObserverScene) {
+      flock._xrViewObserverScene.onBeforeRenderObservable?.remove?.(flock._xrViewObserver);
     }
+    if (flock._xrMeshObserverScene) {
+      if (flock._xrMeshAddedObserver) {
+        flock._xrMeshObserverScene.onNewMeshAddedObservable?.remove?.(flock._xrMeshAddedObserver);
+      }
+      if (flock._xrMeshRemovedObserver) {
+        flock._xrMeshObserverScene.onMeshRemovedObservable?.remove?.(flock._xrMeshRemovedObserver);
+      }
+    }
+    flock.xrHelper = null;
+    Object.assign(flock, createFlockXRState());
   },
   _xrTuning(param, fallback, min, max) {
     let raw = null;
@@ -58,6 +78,17 @@ export const flockXR = {
         framebufferScaleFactor: flock._xrTuning('xs', flock.xrFramebufferScale, 0.5, 2),
       },
     };
+  },
+  _applyXRDefaults(mode) {
+    if (
+      mode === 'VR' &&
+      !flock._xrTargetPosition() &&
+      flock._xrViewMode === 'watch' &&
+      flock._xrCameraMotionMode === 'none'
+    ) {
+      flock._xrViewMode = 'embody';
+      flock._xrCameraMotionMode = 'smooth';
+    }
   },
   _ensureTeleportationState() {
     flock._teleportExplicitTargetNames ??= new Set();
@@ -138,16 +169,73 @@ export const flockXR = {
     }
     flock._ensureTeleportationState();
     flock.scene.meshes.forEach((mesh) => flock._syncTeleportMesh(mesh));
-    if (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'teleport') {
+    if (
+      flock._canvasControlsEnabled !== false &&
+      flock._xrViewMode === 'embody' &&
+      flock._xrCameraMotionMode === 'teleport'
+    ) {
       teleportation.attach();
     } else teleportation.detach();
   },
   _applyXRInputState() {
+    const hasFollowTarget = !!flock._xrTargetPosition();
+    if (
+      !hasFollowTarget &&
+      flock._xrCameraMotionMode === 'smooth' &&
+      flock._canvasControlsEnabled !== false
+    ) {
+      flock._xrSource?.setInputMode('fly');
+      return;
+    }
     const projectControls =
-      flock._xrViewMode === 'watch' ||
-      (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth');
+      hasFollowTarget &&
+      (flock._xrViewMode === 'watch' ||
+        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth'));
     const inputMode = projectControls ? 'project' : 'disabled';
     flock._xrSource?.setInputMode(inputMode);
+  },
+  _handleXRStateChange(state) {
+    if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+      flock._xrSource?.start();
+      const stackPanel = flock.stackPanel;
+      if (stackPanel) {
+        flock.advancedTexture?.removeControl?.(stackPanel);
+        flock.meshTexture?.addControl?.(stackPanel);
+        stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      }
+      if (flock.uiPlane) flock.uiPlane.isVisible = true;
+      if (flock.advancedTexture) flock.advancedTexture.isVisible = false;
+    } else if (state === flock.BABYLON.WebXRState.IN_XR) {
+      const baseExperience = flock.xrHelper?.baseExperience;
+      if (!baseExperience) return;
+      flock._xrSessionActive = true;
+      baseExperience.sessionManager.fixedFoveation = flock._xrTuning(
+        'xf',
+        flock.xrFixedFoveation,
+        0,
+        1
+      );
+      flock._xrWatchPosition = baseExperience.camera.position.clone();
+      flock._resetXRViewTracking({ reposition: true });
+      flock._applyXRViewVisibility();
+    } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+      flock._xrSessionActive = false;
+      flock._applyXRViewVisibility();
+      flock._xrSource?.stop();
+      const stackPanel = flock.stackPanel;
+      if (stackPanel) {
+        flock.meshTexture?.removeControl?.(stackPanel);
+        flock.advancedTexture?.addControl?.(stackPanel);
+        stackPanel.width = '100%';
+        stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      }
+      if (flock.uiPlane) flock.uiPlane.isVisible = false;
+      if (flock.advancedTexture?.rootContainer) {
+        flock.advancedTexture.rootContainer.isVisible = true;
+      }
+    }
   },
   _xrTargetPosition() {
     const target = flock._xrFollowTarget;
@@ -181,9 +269,14 @@ export const flockXR = {
   _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
     const target = camera?.lockedTarget ?? camera?.metadata?.following;
     if (!target) return;
+    flock._setXRFollowTarget(target);
+  },
+  _setXRFollowTarget(target) {
     if (flock._xrFollowTarget !== target) flock._restoreXREmbodiedVisibility();
     flock._xrFollowTarget = target;
     flock._resetXRViewTracking();
+    flock._applyXRViewVisibility();
+    flock._applyXRInputState();
   },
   _restoreXREmbodiedVisibility() {
     for (const [mesh, isVisible] of flock._xrEmbodiedVisibility) {
@@ -244,6 +337,39 @@ export const flockXR = {
     const xrCamera = flock.xrHelper?.baseExperience?.camera;
     if (!xrCamera?.position) return;
 
+    const position = flock._xrTargetPosition();
+    if (!position) {
+      if (flock._xrCameraMotionMode !== 'smooth' || flock._canvasControlsEnabled === false) {
+        return;
+      }
+      const moveX = flock.inputManager.getAxis('XR_MOVE_X');
+      const moveZ = flock.inputManager.getAxis('XR_MOVE_Y');
+      const moveY = flock.inputManager.getAxis('XR_MOVE_VERTICAL');
+      if (!moveX && !moveY && !moveZ) return;
+
+      const B = flock.BABYLON;
+      flock._xrMoveForward ??= new B.Vector3();
+      flock._xrMoveRight ??= new B.Vector3();
+      flock._xrMoveDelta ??= new B.Vector3();
+      flock._xrForwardBasis ??= B.Vector3.Forward();
+      flock._xrRightBasis ??= B.Vector3.Right();
+      xrCamera.getDirectionToRef(flock._xrForwardBasis, flock._xrMoveForward);
+      flock._xrMoveForward.y = 0;
+      flock._xrMoveForward.normalize();
+      xrCamera.getDirectionToRef(flock._xrRightBasis, flock._xrMoveRight);
+      flock._xrMoveRight.y = 0;
+      flock._xrMoveRight.normalize();
+      flock._xrMoveForward.scaleToRef(-moveZ, flock._xrMoveDelta);
+      flock._xrMoveRight.scaleAndAddToRef(moveX, flock._xrMoveDelta);
+      flock._xrMoveDelta.y = moveY;
+      const length = flock._xrMoveDelta.length();
+      if (length > 1) flock._xrMoveDelta.scaleInPlace(1 / length);
+      const seconds = Math.min(0.05, (flock.engine?.getDeltaTime?.() ?? 16) / 1000);
+      flock._xrMoveDelta.scaleInPlace(FLY_SPEED * seconds);
+      xrCamera.position.addInPlace(flock._xrMoveDelta);
+      return;
+    }
+
     if (flock._xrViewMode === 'embody') {
       if (flock._xrCameraMotionMode === 'teleport') {
         flock._syncXREmbodiedTarget();
@@ -253,8 +379,6 @@ export const flockXR = {
     }
 
     if (flock._xrViewMode === 'watch' && flock._xrCameraMotionMode === 'none') return;
-    const position = flock._xrTargetPosition();
-    if (!position) return;
     if (!flock._xrFollowLastPosition || !flock._xrFollowSettledPosition) {
       flock._resetXRViewTracking();
       return;
@@ -286,6 +410,7 @@ export const flockXR = {
     patchEmulatorOffsetReferenceSpace();
     flock._xrMode = mode;
     flock._syncXRFollowTargetFromCamera();
+    flock._applyXRDefaults(mode);
 
     if (mode === 'VR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
@@ -335,62 +460,33 @@ export const flockXR = {
     flock._applyXRInputState();
     flock._xrSource.start();
     flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => flock._updateXRView());
+    flock._xrViewObserverScene = flock.scene;
 
     flock._teleportFloorMeshes = new Set();
     flock._teleportBlockerMeshes = new Set();
-    flock.scene.onNewMeshAddedObservable.add((mesh) => {
+    const observerScene = flock.scene;
+    flock._xrMeshObserverScene = observerScene;
+    flock._xrMeshAddedObserver = observerScene.onNewMeshAddedObservable.add((mesh) => {
       queueMicrotask(() => {
+        if (flock._xrMeshObserverScene !== observerScene) return;
         flock._syncTeleportMesh(mesh);
-        flock._applyXRViewVisibility();
+        if (flock._xrVisibilitySyncQueued) return;
+        flock._xrVisibilitySyncQueued = true;
+        queueMicrotask(() => {
+          if (flock._xrMeshObserverScene !== observerScene) return;
+          flock._xrVisibilitySyncQueued = false;
+          flock._applyXRViewVisibility();
+        });
       });
     });
-    flock.scene.onMeshRemovedObservable.add((mesh) => {
+    flock._xrMeshRemovedObserver = observerScene.onMeshRemovedObservable.add((mesh) => {
       flock._unregisterTeleportMesh(mesh);
       flock._xrEmbodiedVisibility.delete(mesh);
     });
     flock._applyTeleportationState();
 
     // Handle XR state changes
-    flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-      if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
-        flock._xrSource?.start();
-        flock.advancedTexture.removeControl(flock.stackPanel);
-        flock.meshTexture.addControl(flock.stackPanel);
-        flock.uiPlane.isVisible = true;
-
-        // Update alignment for wrist UI
-        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
-        flock.advancedTexture.isVisible = false; // Hide fullscreen UI
-      } else if (state === flock.BABYLON.WebXRState.IN_XR) {
-        flock._xrSessionActive = true;
-        // Base layer only exists once IN_XR; setting it at ENTERING_XR no-ops.
-        flock.xrHelper.baseExperience.sessionManager.fixedFoveation = flock._xrTuning(
-          'xf',
-          flock.xrFixedFoveation,
-          0,
-          1
-        );
-        flock._xrWatchPosition = flock.xrHelper.baseExperience.camera.position.clone();
-        flock._resetXRViewTracking({ reposition: true });
-        flock._applyXRViewVisibility();
-      } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
-        flock._xrSessionActive = false;
-        flock._applyXRViewVisibility();
-        flock._xrSource?.stop();
-        flock.meshTexture.removeControl(flock.stackPanel);
-        flock.advancedTexture.addControl(flock.stackPanel);
-        flock.uiPlane.isVisible = false;
-
-        // Restore alignment for non-XR
-        flock.stackPanel.width = '100%';
-        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
-        flock.advancedTexture.rootContainer.isVisible = true;
-      }
-    });
+    flock.xrHelper.baseExperience.onStateChangedObservable.add(flock._handleXRStateChange);
   },
   /* 
           Category: Scene>XR

@@ -60,6 +60,8 @@ On controllers with a left analogue stick, the D-pad is reserved for accessibili
 - **Triangle (PS4)** — Action / camera up
 - **Square (PS4)** — Action / camera down
 
+Meta Quest face buttons match the 2×2 on-screen action-button layout: left **Y** is button 1 (top-left), right **B** is button 2 (top-right), left **X** is button 3 (bottom-left), and right **A** is button 4 (bottom-right).
+
 On controllers without a left analogue stick the D-pad controls movement instead of accessibility commands which are still available from the keyboard.
 
 ### Scene and object descriptions

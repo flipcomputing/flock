@@ -24,10 +24,7 @@ export const flockCamera = {
           resolve();
           return;
         }
-        if (flock._xrFollowTarget !== mesh) flock._restoreXREmbodiedVisibility?.();
-        flock._xrFollowTarget = mesh;
-        flock._resetXRViewTracking?.();
-        flock._applyXRViewVisibility?.();
+        flock._setXRFollowTarget(mesh);
         flock.ensureVerticalConstraint(mesh);
 
         const existingCamera = flock.scene.activeCamera;

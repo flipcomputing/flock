@@ -540,6 +540,15 @@ Checks if a movement or action input is active across keyboard, touch, or XR con
 
 - `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
 
+The four action buttons use the same 2×2 spatial layout across the on-screen controls, keyboard shortcuts, conventional gamepads, and Meta Quest controllers:
+
+| Position     | Action    | On-screen | Keyboard   | Gamepad | Meta Quest |
+| ------------ | --------- | --------- | ---------- | ------- | ---------- |
+| Top-left     | `BUTTON1` | Button 1  | R or 1     | Y       | Left Y     |
+| Top-right    | `BUTTON2` | Button 2  | E or 2     | B       | Right B    |
+| Bottom-left  | `BUTTON3` | Button 3  | F or 3     | X       | Left X     |
+| Bottom-right | `BUTTON4` | Button 4  | Space or 4 | A       | Right A    |
+
 **Example:**
 
 ```javascript
@@ -562,7 +571,7 @@ Run a callback when the chosen action is pressed or released across keyboard, to
 
 ```javascript
 whenActionEvent('BUTTON1', async () => {
-  // Respond to the action button, regardless of whether it came from E, touch, or XR
+  // Respond to R/1, on-screen button 1, or the left Meta Quest Y button
 });
 ```
 

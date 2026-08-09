@@ -141,13 +141,13 @@ export function runXRSourceTests() {
         expect(manager.isKeyDown('f')).to.be.false;
       });
 
-      it("left y-button pressed → isKeyDown('e') true; isActionDown('BUTTON2') true", function () {
+      it("left y-button pressed → isKeyDown('r') true; isActionDown('BUTTON1') true", function () {
         const controller = makeController('left');
         const mc = addController(controller);
         mc.components['y-button'].pressed = true;
         mc.components['y-button'].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown('e')).to.be.true;
-        expect(manager.isActionDown('BUTTON2')).to.be.true;
+        expect(manager.isKeyDown('r')).to.be.true;
+        expect(manager.isActionDown('BUTTON1')).to.be.true;
       });
     });
 
@@ -161,13 +161,13 @@ export function runXRSourceTests() {
         expect(manager.isActionDown('BUTTON4')).to.be.true;
       });
 
-      it("right b-button pressed → isKeyDown('r') true; isActionDown('BUTTON1') true", function () {
+      it("right b-button pressed → isKeyDown('e') true; isActionDown('BUTTON2') true", function () {
         const controller = makeController('right');
         const mc = addController(controller);
         mc.components['b-button'].pressed = true;
         mc.components['b-button'].onButtonStateChangedObservable.notify();
-        expect(manager.isKeyDown('r')).to.be.true;
-        expect(manager.isActionDown('BUTTON1')).to.be.true;
+        expect(manager.isKeyDown('e')).to.be.true;
+        expect(manager.isActionDown('BUTTON2')).to.be.true;
       });
     });
 
@@ -250,6 +250,49 @@ export function runXRSourceTests() {
         scene.tick();
         expect(manager.getAxis('XR_MOVE_Y')).to.equal(-0.9);
         expect(manager.isActionDown('FORWARD')).to.be.false;
+      });
+
+      it('fly input uses Y/X as vertical camera movement without project actions', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        source.setInputMode('fly');
+        mc.components['y-button'].pressed = true;
+        mc.components['y-button'].onButtonStateChangedObservable.notify();
+        scene.tick();
+        expect(manager.getAxis('XR_MOVE_VERTICAL')).to.equal(1);
+        expect(manager.isActionDown('BUTTON1')).to.be.false;
+
+        mc.components['y-button'].pressed = false;
+        mc.components['x-button'].pressed = true;
+        scene.tick();
+        expect(manager.getAxis('XR_MOVE_VERTICAL')).to.equal(-1);
+        expect(manager.isActionDown('BUTTON3')).to.be.false;
+      });
+
+      it('fly input leaves right-hand project buttons available', function () {
+        const controller = makeController('right');
+        const mc = addController(controller);
+        source.setInputMode('fly');
+        mc.components['b-button'].pressed = true;
+        mc.components['b-button'].onButtonStateChangedObservable.notify();
+        expect(manager.isActionDown('BUTTON2')).to.be.true;
+      });
+
+      it('restores a left action after its button state changed in fly mode', function () {
+        const controller = makeController('left');
+        const mc = addController(controller);
+        source.setInputMode('fly');
+        mc.components['y-button'].pressed = true;
+        mc.components['y-button'].onButtonStateChangedObservable.notify();
+        expect(manager.isActionDown('BUTTON1')).to.be.false;
+
+        source.setInputMode('project');
+        mc.components['y-button'].pressed = false;
+        mc.components['y-button'].onButtonStateChangedObservable.notify();
+        mc.components['y-button'].pressed = true;
+        mc.components['y-button'].onButtonStateChangedObservable.notify();
+
+        expect(manager.isActionDown('BUTTON1')).to.be.true;
       });
 
       it('project input respects movement action overrides', function () {

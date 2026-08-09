@@ -616,6 +616,8 @@ export const flockUI = {
   },
   canvasControls(setting) {
     flock._canvasControlsEnabled = !!setting;
+    flock._applyXRInputState?.();
+    flock._applyTeleportationState?.();
     if (setting) {
       flock.scene.activeCamera.attachControl(flock.canvas, false);
     } else {
@@ -680,11 +682,15 @@ export const flockUI = {
             originalPlaneColor: plane.material?.diffuseColor?.toHexString?.() || '#ffffff',
           };
         } else {
-          plane = flock.scene.meshes.find(
-            (child) =>
-              child.name === 'textPlane' &&
-              (child.parent === targetMesh || child.metadata?.sayTarget === targetMesh)
-          );
+          const cachedPlane = targetMesh.metadata?.sayPlane;
+          plane = cachedPlane && !cachedPlane.isDisposed?.() ? cachedPlane : null;
+          if (!plane) {
+            plane = flock.scene.meshes.find(
+              (child) =>
+                child.name === 'textPlane' &&
+                (child.parent === targetMesh || child.metadata?.sayTarget === targetMesh)
+            );
+          }
         }
 
         if (!plane) {
@@ -699,6 +705,7 @@ export const flockUI = {
             ...(plane.metadata || {}),
             isTextPlane: true,
             sayTarget: targetMesh,
+            isXREmbodiedHUD: flock._isXREmbodiedTarget?.(targetMesh) ?? false,
           };
           plane.checkCollisions = false;
           plane.isPickable = false;
@@ -714,6 +721,7 @@ export const flockUI = {
             const xrCamera = flock.xrHelper?.baseExperience?.camera;
             if (flock._isXREmbodiedTarget?.(targetMesh) && xrCamera) {
               plane.metadata.isXREmbodiedHUD = true;
+              flock._xrEmbodiedVisibility?.delete(plane);
               if (plane.parent !== xrCamera) plane.parent = xrCamera;
               plane.billboardMode = 0;
               plane.position.set(0, -0.35, 2);
@@ -733,7 +741,14 @@ export const flockUI = {
 
           plane.onDisposeObservable.add(() => {
             flock.scene.onBeforeRenderObservable.remove(observer);
+            if (targetMesh.metadata?.sayPlane === plane) {
+              targetMesh.metadata.sayPlane = null;
+            }
           });
+        }
+
+        if (plane !== targetMesh) {
+          targetMesh.metadata = { ...(targetMesh.metadata || {}), sayPlane: plane };
         }
 
         let advancedTexture;
