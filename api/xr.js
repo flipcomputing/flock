@@ -1,4 +1,6 @@
 import { translate } from '../main/translation.js';
+import { XRSource } from '../input/xrSource.js';
+import { patchEmulatorOffsetReferenceSpace } from '../input/xrEmulatorShim.js';
 
 let flock;
 
@@ -6,7 +8,390 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+export const flockXRState = {
+  _xrCameraMotionMode: 'none',
+  _xrViewMode: 'watch',
+  _xrFollowTarget: null,
+  _xrFollowLastPosition: null,
+  _xrFollowSettledPosition: null,
+  _xrFollowLastMovedAt: 0,
+  _xrWatchPosition: null,
+  _xrEmbodiedVisibility: new Map(),
+  _xrMode: undefined,
+  _teleportAllTargets: false,
+  _teleportGroundTarget: true,
+  _teleportExplicitTargetNames: new Set(),
+  _teleportExplicitTargetMeshes: new Set(),
+  _teleportFloorMeshes: new Set(),
+  _teleportBlockerMeshes: new Set(),
+  _xrViewObserver: null,
+  _xrSessionActive: false,
+};
+
 export const flockXR = {
+  _resetXRState() {
+    flock.xrHelper = null;
+    for (const [key, value] of Object.entries(flockXRState)) {
+      if (value instanceof Map) flock[key] = new Map();
+      else if (value instanceof Set) flock[key] = new Set();
+      else flock[key] = value;
+    }
+  },
+  _xrTuning(param, fallback, min, max) {
+    let raw = null;
+    try {
+      raw = new URLSearchParams(window.location.search).get(param);
+    } catch {
+      // No location (tests, workers): use the default.
+    }
+    if (raw === null || raw.trim() === '') return fallback;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) return fallback;
+    return Math.min(max, Math.max(min, value));
+  },
+  _xrCanvasOptions() {
+    const defaults = flock.BABYLON.WebXRManagedOutputCanvasOptions.GetDefaults(flock.engine);
+    return {
+      ...defaults,
+      canvasOptions: {
+        ...defaults.canvasOptions,
+        framebufferScaleFactor: flock._xrTuning('xs', flock.xrFramebufferScale, 0.5, 2),
+      },
+    };
+  },
+  _ensureTeleportationState() {
+    flock._teleportExplicitTargetNames ??= new Set();
+    flock._teleportExplicitTargetMeshes ??= new Set();
+    flock._teleportFloorMeshes ??= new Set();
+    flock._teleportBlockerMeshes ??= new Set();
+    if (flock._teleportGroundTarget === undefined) flock._teleportGroundTarget = true;
+    if (flock._teleportAllTargets === undefined) flock._teleportAllTargets = false;
+  },
+  _isTeleportTarget(mesh) {
+    if (!mesh || mesh.isDisposed?.()) return false;
+    for (let current = mesh; current; current = current.parent) {
+      if (current === flock.ground && flock._teleportGroundTarget) return true;
+      if (
+        flock._teleportExplicitTargetMeshes.has(current) ||
+        flock._teleportExplicitTargetNames.has(current.name)
+      ) {
+        return true;
+      }
+      if (
+        flock._teleportAllTargets &&
+        (!!current.metadata?.blockKey || flock._nameRegistry?.has(current.name))
+      ) {
+        return true;
+      }
+    }
+    return false;
+  },
+  _hasTeleportBlockingPhysics(mesh) {
+    for (let current = mesh; current; current = current.parent) {
+      if (current.physics) return true;
+    }
+    return false;
+  },
+  _syncTeleportMeshHierarchy(mesh) {
+    if (!mesh) return;
+    flock._syncTeleportMesh(mesh);
+    mesh.getChildMeshes?.(false)?.forEach((child) => flock._syncTeleportMesh(child));
+  },
+  _unregisterTeleportMesh(mesh) {
+    const teleportation = flock.xrHelper?.teleportation;
+    if (flock._teleportFloorMeshes.has(mesh)) teleportation?.removeFloorMesh(mesh);
+    if (flock._teleportBlockerMeshes.has(mesh)) teleportation?.removeBlockerMesh(mesh);
+    flock._teleportFloorMeshes.delete(mesh);
+    flock._teleportBlockerMeshes.delete(mesh);
+    flock._teleportExplicitTargetMeshes.delete(mesh);
+  },
+  _syncTeleportMesh(mesh) {
+    if (flock._xrMode !== 'VR') return;
+    const teleportation = flock.xrHelper?.teleportation;
+    if (!teleportation || !mesh) return;
+    flock._ensureTeleportationState();
+    const isTarget = flock._isTeleportTarget(mesh);
+    const isFloor = flock._teleportFloorMeshes.has(mesh);
+    const isBlocker = flock._teleportBlockerMeshes.has(mesh);
+    if (isTarget && !isFloor) {
+      teleportation.addFloorMesh(mesh);
+      flock._teleportFloorMeshes.add(mesh);
+    } else if (!isTarget && isFloor) {
+      teleportation.removeFloorMesh(mesh);
+      flock._teleportFloorMeshes.delete(mesh);
+    }
+    const shouldBlock = flock._hasTeleportBlockingPhysics(mesh) && !isTarget;
+    if (shouldBlock && !isBlocker) {
+      teleportation.addBlockerMesh(mesh);
+      flock._teleportBlockerMeshes.add(mesh);
+    } else if (!shouldBlock && isBlocker) {
+      teleportation.removeBlockerMesh(mesh);
+      flock._teleportBlockerMeshes.delete(mesh);
+    }
+  },
+  _applyTeleportationState() {
+    const teleportation = flock.xrHelper?.teleportation;
+    if (!teleportation) return;
+    if (flock._xrMode !== 'VR') {
+      teleportation.detach();
+      return;
+    }
+    flock._ensureTeleportationState();
+    flock.scene.meshes.forEach((mesh) => flock._syncTeleportMesh(mesh));
+    if (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'teleport') {
+      teleportation.attach();
+    } else teleportation.detach();
+  },
+  _applyXRInputState() {
+    const projectControls =
+      flock._xrViewMode === 'watch' ||
+      (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth');
+    const inputMode = projectControls ? 'project' : 'disabled';
+    flock._xrSource?.setInputMode(inputMode);
+  },
+  _xrTargetPosition() {
+    const target = flock._xrFollowTarget;
+    if (!target || target.isDisposed?.()) return null;
+    return target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
+  },
+  _resetXRViewTracking({ reposition = false } = {}) {
+    const targetPosition = flock._xrTargetPosition();
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (
+      reposition &&
+      xrCamera?.position &&
+      flock._xrViewMode === 'watch' &&
+      flock._xrWatchPosition
+    ) {
+      xrCamera.position.copyFrom(flock._xrWatchPosition);
+    }
+    if (!targetPosition) return;
+
+    flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
+    flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
+    flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
+
+    if (!reposition || !xrCamera?.position) return;
+    if (flock._xrViewMode === 'embody') {
+      if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
+      xrCamera.position.x = targetPosition.x;
+      xrCamera.position.z = targetPosition.z;
+    }
+  },
+  _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
+    const target = camera?.lockedTarget ?? camera?.metadata?.following;
+    if (!target) return;
+    if (flock._xrFollowTarget !== target) flock._restoreXREmbodiedVisibility();
+    flock._xrFollowTarget = target;
+    flock._resetXRViewTracking();
+  },
+  _restoreXREmbodiedVisibility() {
+    for (const [mesh, isVisible] of flock._xrEmbodiedVisibility) {
+      if (!mesh.isDisposed?.()) mesh.isVisible = isVisible;
+    }
+    flock._xrEmbodiedVisibility.clear();
+  },
+  _applyXRViewVisibility() {
+    const shouldHide = flock._xrSessionActive && flock._xrViewMode === 'embody';
+    if (!shouldHide) {
+      flock._restoreXREmbodiedVisibility();
+      return;
+    }
+
+    const target = flock._xrFollowTarget;
+    if (!target || target.isDisposed?.()) return;
+    const hierarchy = [target, ...(target.getChildMeshes?.(false) ?? [])];
+    for (const mesh of hierarchy) {
+      if (mesh.metadata?.isXREmbodiedHUD) continue;
+      if (!('isVisible' in mesh) || flock._xrEmbodiedVisibility.has(mesh)) continue;
+      flock._xrEmbodiedVisibility.set(mesh, mesh.isVisible);
+      mesh.isVisible = false;
+    }
+  },
+  _isXREmbodiedTarget(target) {
+    return (
+      !!target &&
+      flock._xrMode === 'VR' &&
+      flock._xrSessionActive &&
+      flock._xrViewMode === 'embody' &&
+      flock._xrFollowTarget === target
+    );
+  },
+  _syncXREmbodiedTarget() {
+    const target = flock._xrFollowTarget;
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!flock._isXREmbodiedTarget(target) || !xrCamera?.position || target.isDisposed?.()) return;
+
+    const current =
+      target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
+    if (!current) return;
+    const next = current.clone?.() ?? new flock.BABYLON.Vector3(current.x, current.y, current.z);
+    next.x = xrCamera.position.x;
+    next.z = xrCamera.position.z;
+
+    if (target.setAbsolutePosition) target.setAbsolutePosition(next);
+    else {
+      target.position.x = next.x;
+      target.position.z = next.z;
+    }
+    target.physics?.setTargetTransform?.(
+      target.getAbsolutePosition?.() ?? next,
+      target.rotationQuaternion
+    );
+  },
+  _updateXRView() {
+    if (flock._xrMode !== 'VR' || !flock._xrSessionActive) return;
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.position) return;
+
+    if (flock._xrViewMode === 'embody') {
+      if (flock._xrCameraMotionMode === 'teleport') {
+        flock._syncXREmbodiedTarget();
+        return;
+      }
+      if (flock._xrCameraMotionMode !== 'smooth') return;
+    }
+
+    if (flock._xrViewMode === 'watch' && flock._xrCameraMotionMode === 'none') return;
+    const position = flock._xrTargetPosition();
+    if (!position) return;
+    if (!flock._xrFollowLastPosition || !flock._xrFollowSettledPosition) {
+      flock._resetXRViewTracking();
+      return;
+    }
+
+    const now = performance.now?.() ?? Date.now();
+    if (flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001) {
+      const delta = position.subtract(flock._xrFollowLastPosition);
+      if (flock._xrViewMode === 'embody') delta.y = 0;
+      flock._xrFollowLastMovedAt = now;
+      flock._xrFollowLastPosition.copyFrom(position);
+      if (flock._xrCameraMotionMode === 'smooth') {
+        xrCamera.position.addInPlace(delta);
+        flock._xrFollowSettledPosition.copyFrom(position);
+      }
+      return;
+    }
+    if (flock._xrCameraMotionMode !== 'comfort') return;
+    if (now - flock._xrFollowLastMovedAt < 250) return;
+
+    const delta = position.subtract(flock._xrFollowSettledPosition);
+    if (delta.lengthSquared() <= 0.000001) return;
+    xrCamera.position.addInPlace(delta);
+    flock._xrFollowSettledPosition.copyFrom(position);
+  },
+  async initializeXR(mode) {
+    if (flock.xrHelper) return; // Avoid reinitializing
+
+    patchEmulatorOffsetReferenceSpace();
+    flock._xrMode = mode;
+    flock._syncXRFollowTargetFromCamera();
+
+    if (mode === 'VR') {
+      flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+        outputCanvasOptions: flock._xrCanvasOptions(),
+      });
+    } else if (mode === 'AR') {
+      flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+        outputCanvasOptions: flock._xrCanvasOptions(),
+        uiOptions: {
+          sessionMode: 'immersive-ar',
+        },
+      });
+    } else if (mode === 'MAGIC_WINDOW') {
+      let camera = flock.scene.activeCamera;
+      if (!camera.inputs.attached.deviceOrientation) {
+        camera.inputs.addDeviceOrientation();
+      }
+      return;
+    }
+
+    // Create a UI plane for the wrist
+    flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane('uiPlane', { size: 0.4 }, flock.scene); // Smaller size for wrist UI
+    flock.uiPlane.isVisible = false; // Start hidden
+
+    const planeMaterial = new flock.BABYLON.StandardMaterial('uiPlaneMaterial', flock.scene);
+    planeMaterial.disableDepthWrite = true;
+    flock.uiPlane.material = planeMaterial;
+
+    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
+
+    // Ensure the UI plane follows the wrist (using a controller or camera offset)
+    flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
+      if (controller.inputSource.handedness === 'left') {
+        // Attach the UI plane to the left-hand controller
+        flock.uiPlane.parent = controller.grip || controller.pointer;
+
+        // Position the UI plane to simulate a watch
+        flock.uiPlane.position.set(0.1, -0.05, 0); // Slightly to the side, closer to the wrist
+        flock.uiPlane.rotation.set(Math.PI / 2, 0, 0); // Rotate to face the user
+      }
+    });
+
+    flock._xrSource = new XRSource(flock.inputManager, {
+      xrHelper: flock.xrHelper,
+      scene: flock.scene,
+    });
+    flock._applyXRInputState();
+    flock._xrSource.start();
+    flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => flock._updateXRView());
+
+    flock._teleportFloorMeshes = new Set();
+    flock._teleportBlockerMeshes = new Set();
+    flock.scene.onNewMeshAddedObservable.add((mesh) => {
+      queueMicrotask(() => {
+        flock._syncTeleportMesh(mesh);
+        flock._applyXRViewVisibility();
+      });
+    });
+    flock.scene.onMeshRemovedObservable.add((mesh) => {
+      flock._unregisterTeleportMesh(mesh);
+      flock._xrEmbodiedVisibility.delete(mesh);
+    });
+    flock._applyTeleportationState();
+
+    // Handle XR state changes
+    flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
+      if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+        flock._xrSource?.start();
+        flock.advancedTexture.removeControl(flock.stackPanel);
+        flock.meshTexture.addControl(flock.stackPanel);
+        flock.uiPlane.isVisible = true;
+
+        // Update alignment for wrist UI
+        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+        flock.advancedTexture.isVisible = false; // Hide fullscreen UI
+      } else if (state === flock.BABYLON.WebXRState.IN_XR) {
+        flock._xrSessionActive = true;
+        // Base layer only exists once IN_XR; setting it at ENTERING_XR no-ops.
+        flock.xrHelper.baseExperience.sessionManager.fixedFoveation = flock._xrTuning(
+          'xf',
+          flock.xrFixedFoveation,
+          0,
+          1
+        );
+        flock._xrWatchPosition = flock.xrHelper.baseExperience.camera.position.clone();
+        flock._resetXRViewTracking({ reposition: true });
+        flock._applyXRViewVisibility();
+      } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+        flock._xrSessionActive = false;
+        flock._applyXRViewVisibility();
+        flock._xrSource?.stop();
+        flock.meshTexture.removeControl(flock.stackPanel);
+        flock.advancedTexture.addControl(flock.stackPanel);
+        flock.uiPlane.isVisible = false;
+
+        // Restore alignment for non-XR
+        flock.stackPanel.width = '100%';
+        flock.stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+        flock.stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+
+        flock.advancedTexture.rootContainer.isVisible = true;
+      }
+    });
+  },
   /* 
           Category: Scene>XR
   */

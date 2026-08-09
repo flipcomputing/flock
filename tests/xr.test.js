@@ -150,6 +150,18 @@ export function runXRTests(flock) {
         expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
       });
 
+      it('preserves headset height when entering embody mode', function () {
+        const camera = { position: new flock.BABYLON.Vector3(4, 1.7, 2) };
+        const target = { position: new flock.BABYLON.Vector3(8, 0.5, -6) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrViewMode = 'watch';
+
+        flock.setXRViewMode('embody');
+
+        expect(camera.position.asArray()).to.deep.equal([8, 1.7, -6]);
+      });
+
       it('watch with smooth motion continuously follows the target', function () {
         const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
         const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
@@ -338,6 +350,49 @@ export function runXRTests(flock) {
 
       it('should not throw for AR mode', async function () {
         await flock.setXRMode('AR');
+      });
+    });
+
+    describe('Magic Window initialization', function () {
+      let originalHelper;
+      let originalScene;
+      let originalUIPlane;
+
+      beforeEach(function () {
+        originalHelper = flock.xrHelper;
+        originalScene = flock.scene;
+        originalUIPlane = flock.uiPlane;
+      });
+
+      afterEach(function () {
+        flock.xrHelper = originalHelper;
+        flock.scene = originalScene;
+        flock.uiPlane = originalUIPlane;
+      });
+
+      it('configures device orientation without creating XR wrist UI', async function () {
+        let addCalls = 0;
+        const deviceOrientation = {};
+        flock.xrHelper = null;
+        flock.uiPlane = null;
+        flock.scene = {
+          activeCamera: {
+            inputs: {
+              attached: {},
+              addDeviceOrientation() {
+                addCalls++;
+                this.attached.deviceOrientation = deviceOrientation;
+              },
+            },
+          },
+        };
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock.initializeXR('MAGIC_WINDOW');
+
+        expect(addCalls).to.equal(1);
+        expect(flock.xrHelper).to.equal(null);
+        expect(flock.uiPlane).to.equal(null);
       });
     });
 
