@@ -79,6 +79,38 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.controlsTexture).to.not.equal(first);
       });
 
+      it('should not rebuild controls for a resize at the same hardware scaling', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
+        const first = flock.controlsTexture;
+
+        flock.engine.onResizeObservable.notifyObservers(flock.engine);
+
+        expect(flock.controlsTexture).to.equal(first);
+      });
+
+      it('should resize controls for hardware scaling changes and restore them afterwards', function () {
+        const originalHardwareScaling = flock.engine.getHardwareScalingLevel();
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        try {
+          flock.engine.setHardwareScalingLevel(originalHardwareScaling * 2);
+          const scaledButton = flock.controlsTexture
+            .getDescendants()
+            .find((control) => control.textBlock?.text === '△');
+          expect(scaledButton.width).to.equal('35px');
+
+          flock.engine.setHardwareScalingLevel(originalHardwareScaling);
+          const restoredButton = flock.controlsTexture
+            .getDescendants()
+            .find((control) => control.textBlock?.text === '△');
+          expect(restoredButton.width).to.equal('70px');
+        } finally {
+          if (flock.engine.getHardwareScalingLevel() !== originalHardwareScaling) {
+            flock.engine.setHardwareScalingLevel(originalHardwareScaling);
+          }
+        }
+      });
+
       it('should show no controls when movement is "NONE" and actions is "NO"', function () {
         flock.onScreenControls('NONE', 'NO', 'ENABLED');
         expect(flock.controlsTexture).to.exist;

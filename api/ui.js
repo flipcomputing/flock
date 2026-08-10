@@ -31,6 +31,69 @@ function uiFontSizePx(baseCssPx = 16) {
   return Math.round(baseCssPx * prefScale * dpr);
 }
 
+function renderControls(layout, scale) {
+  flock._onScreenSource?.releaseAll();
+  if (flock._joystickSource) {
+    flock._joystickSource.stop();
+    flock._joystickSource = null;
+  }
+  flock.controlsTexture?.dispose();
+  flock.controlsTexture = null;
+  if (!layout?.shouldShow) return;
+
+  const previousDisplayScale = flock.displayScale;
+  flock.displayScale = scale;
+  try {
+    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      'VirtualControls',
+      true,
+      flock.scene
+    );
+
+    if (layout.kind === 'buttons') {
+      if (layout.control === 'ARROWS' || layout.control === 'BOTH') {
+        flock.createArrowControls(layout.color);
+      }
+      if (layout.control === 'ACTIONS' || layout.control === 'BOTH') {
+        flock.createButtonControls(layout.color);
+      }
+      return;
+    }
+
+    if (layout.movement === 'ARROWS') {
+      flock.createArrowControls(layout.color);
+    } else if (layout.movement === 'JOYSTICK') {
+      flock._joystickSource = flock.createJoystickControls(layout.color);
+      flock._joystickSource?.start();
+    }
+    if (layout.actions === 'YES') flock.createButtonControls(layout.color);
+  } finally {
+    flock.displayScale = previousDisplayScale;
+  }
+}
+
+function configureControlsResizeHandling() {
+  const engine = flock.engine;
+  if (!engine || flock._controlsResizeEngine === engine) return;
+
+  if (flock._controlsResizeEngine && flock._controlsResizeObserver) {
+    flock._controlsResizeEngine.onResizeObservable.remove(flock._controlsResizeObserver);
+  }
+
+  flock._controlsResizeEngine = engine;
+  flock._controlsBaseHardwareScaling = engine.getHardwareScalingLevel();
+  flock._controlsLastHardwareScaling = flock._controlsBaseHardwareScaling;
+  flock._controlsResizeObserver = engine.onResizeObservable.add(() => {
+    const hardwareScaling = engine.getHardwareScalingLevel();
+    if (hardwareScaling === flock._controlsLastHardwareScaling) return;
+
+    flock._controlsLastHardwareScaling = hardwareScaling;
+    const scale =
+      flock._controlsBaseDisplayScale * (flock._controlsBaseHardwareScaling / hardwareScaling);
+    renderControls(flock._controlsLayout, scale);
+  });
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -519,26 +582,13 @@ export const flockUI = {
 
     const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
 
-    if (!shouldShow) {
-      if (flock.controlsTexture) {
-        flock.controlsTexture.dispose();
-        flock.controlsTexture = null;
-      }
-      return;
-    }
-
-    // Clean restart
-    if (flock.controlsTexture) flock.controlsTexture.dispose();
-
-    // Attach to the scene so it receives input
-    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      'VirtualControls',
-      true,
-      flock.scene
-    );
-
-    if (control === 'ARROWS' || control === 'BOTH') flock.createArrowControls(color);
-    if (control === 'ACTIONS' || control === 'BOTH') flock.createButtonControls(color);
+    configureControlsResizeHandling();
+    flock._controlsBaseDisplayScale = flock.displayScale;
+    flock._controlsLayout = { kind: 'buttons', control, color, shouldShow };
+    const scale =
+      flock._controlsBaseDisplayScale *
+      (flock._controlsBaseHardwareScaling / flock.engine.getHardwareScalingLevel());
+    renderControls(flock._controlsLayout, scale);
   },
   createJoystickControls(color) {
     if (!flock.controlsTexture) return;
@@ -582,35 +632,13 @@ export const flockUI = {
 
     const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
 
-    if (flock._joystickSource) {
-      flock._joystickSource.stop();
-      flock._joystickSource = null;
-    }
-
-    if (!shouldShow) {
-      if (flock.controlsTexture) {
-        flock.controlsTexture.dispose();
-        flock.controlsTexture = null;
-      }
-      return;
-    }
-
-    if (flock.controlsTexture) flock.controlsTexture.dispose();
-
-    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      'VirtualControls',
-      true,
-      flock.scene
-    );
-
-    if (movement === 'ARROWS') {
-      flock.createArrowControls(color);
-    } else if (movement === 'JOYSTICK') {
-      flock._joystickSource = flock.createJoystickControls(color);
-      flock._joystickSource?.start();
-    }
-
-    if (actions === 'YES') flock.createButtonControls(color);
+    configureControlsResizeHandling();
+    flock._controlsBaseDisplayScale = flock.displayScale;
+    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, shouldShow };
+    const scale =
+      flock._controlsBaseDisplayScale *
+      (flock._controlsBaseHardwareScaling / flock.engine.getHardwareScalingLevel());
+    renderControls(flock._controlsLayout, scale);
 
     window.__flockSizeDebug?.sample('controls-created');
   },
