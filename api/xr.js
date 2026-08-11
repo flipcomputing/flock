@@ -261,6 +261,7 @@ export const flockXR = {
   },
   _handleXRStateChange(state) {
     if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+      flock._syncXRFollowTargetFromCamera();
       flock._xrSource?.start();
       flock._enterXRHUD();
       const stackPanel = flock.stackPanel;
@@ -333,18 +334,23 @@ export const flockXR = {
       xrCamera.position.z = targetPosition.z;
     }
   },
-  _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
+  // Must be read as XR is entered: the project camera can be replaced or orbited afterwards.
+  _captureXRWatchFraming(camera = flock.scene?.activeCamera) {
     const target = camera?.lockedTarget ?? camera?.metadata?.following;
-    if (!target) return;
-    const targetPosition =
-      target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
+    const targetPosition = target
+      ? (target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null)
+      : null;
     const offset =
-      camera.position && targetPosition ? camera.position.subtract(targetPosition) : null;
-    flock._xrFollowCameraVerticalOffset = offset?.y ?? null;
+      camera?.position && targetPosition ? camera.position.subtract(targetPosition) : null;
+    flock._xrNonXRCameraPosition = camera?.position?.clone?.() ?? null;
+    flock._xrFollowCameraVerticalOffset = offset ? offset.y : null;
     if (offset) offset.y = 0;
     flock._xrFollowCameraDirection = offset?.lengthSquared() ? offset.normalize() : null;
-    flock._xrFollowCameraRadius = Number.isFinite(camera.radius) ? camera.radius : null;
-    flock._setXRFollowTarget(target);
+    flock._xrFollowCameraRadius = Number.isFinite(camera?.radius) ? camera.radius : null;
+    return target;
+  },
+  _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
+    flock._setXRFollowTarget(flock._captureXRWatchFraming(camera) ?? null);
   },
   _positionXRWatchCamera() {
     const xrCamera = flock.xrHelper?.baseExperience?.camera;
@@ -356,16 +362,20 @@ export const flockXR = {
     const followRadius = flock._xrFollowCameraRadius;
     const verticalOffset = flock._xrFollowCameraVerticalOffset;
     flock._xrWatchPosition = flock._xrNonXRCameraPosition?.clone?.() ?? headsetPosition;
-    if (!targetPosition || !followDirection || followRadius === null || verticalOffset === null)
-      return xrCamera.position.copyFrom(flock._xrWatchPosition);
 
-    const horizontalDistance = Math.sqrt(
-      Math.max(0, followRadius * followRadius - verticalOffset * verticalOffset)
-    );
-    flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
-    flock._xrWatchPosition.y = targetPosition.y + verticalOffset;
-    flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
+    if (targetPosition && followDirection && followRadius !== null && verticalOffset !== null) {
+      const horizontalDistance = Math.sqrt(
+        Math.max(0, followRadius * followRadius - verticalOffset * verticalOffset)
+      );
+      flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
+      flock._xrWatchPosition.y = targetPosition.y + verticalOffset;
+      flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
+    }
+
+    // Embody mode places the headset on the target itself, at its own eye height.
+    if (flock._xrViewMode !== 'watch') return;
     xrCamera.position.copyFrom(flock._xrWatchPosition);
+    if (targetPosition) xrCamera.setTarget?.(targetPosition);
   },
   _setXRFollowTarget(target) {
     if (flock._xrFollowTarget !== target) flock._restoreXREmbodiedVisibility();
@@ -505,7 +515,6 @@ export const flockXR = {
 
     patchEmulatorOffsetReferenceSpace();
     flock._xrMode = mode;
-    flock._xrNonXRCameraPosition = flock.scene?.activeCamera?.position?.clone?.() ?? null;
     flock._syncXRFollowTargetFromCamera();
     flock._applyXRDefaults(mode);
 
