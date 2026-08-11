@@ -1035,6 +1035,8 @@ export default {
   project_save_ui: 'Zapisz',
   tools_submenu_ui: 'Narzędzia',
   inspector_tool_ui: 'Inspektor',
+  show_block_hints_ui: 'Pokaż podpowiedzi bloków',
+  hide_block_hints_ui: 'Ukryj podpowiedzi bloków',
   language_submenu_ui: 'Język',
   about_submenu_ui: 'O programie',
   hub_submenu_ui: 'Hub',

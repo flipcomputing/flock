@@ -1023,6 +1023,8 @@ export default {
   project_save_ui: 'Spara',
   tools_submenu_ui: 'Verktyg',
   inspector_tool_ui: 'Inspektör',
+  show_block_hints_ui: 'Visa blocktips',
+  hide_block_hints_ui: 'Dölj blocktips',
   language_submenu_ui: 'Språk',
   about_submenu_ui: 'Om',
   hub_submenu_ui: 'Nav',

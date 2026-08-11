@@ -1021,7 +1021,7 @@ button {
   }
 
   #babylon-inspector-container,
-  #menuDropdown #tools-menu-item {
+  #menuDropdown #inspector-menu-item {
     display: none !important;
   }
 

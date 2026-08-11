@@ -1045,6 +1045,8 @@ export default {
   project_save_ui: 'Salva',
   tools_submenu_ui: 'Strumenti',
   inspector_tool_ui: 'Ispettore',
+  show_block_hints_ui: 'Mostra suggerimenti dei blocchi',
+  hide_block_hints_ui: 'Nascondi suggerimenti dei blocchi',
   language_submenu_ui: 'Lingua',
   about_submenu_ui: 'Informazioni',
   hub_submenu_ui: 'Hub',

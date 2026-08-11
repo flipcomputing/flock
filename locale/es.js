@@ -1094,6 +1094,8 @@ export default {
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
   inspector_tool_ui: 'Inspector', // ai
+  show_block_hints_ui: 'Mostrar sugerencias de bloques',
+  hide_block_hints_ui: 'Ocultar sugerencias de bloques',
   language_submenu_ui: 'Idioma', // human
   about_submenu_ui: 'Sobre nosotros', // human
   hub_submenu_ui: 'Centro', // human

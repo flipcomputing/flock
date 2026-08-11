@@ -13,7 +13,14 @@ function getTextElement() {
 // front as "[key emoji]word - rest of the description".
 const KEYWORD_RE = /Keyword:\s*(\S+)/;
 
-let enabled = true;
+// Matches the app's mobile breakpoint (style.css: @media (max-width: 1024px)):
+// hints default off there, since screen space is tight, but stay toggleable
+// from the Tools menu.
+function isMobileLayout() {
+  return typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 1024px)').matches;
+}
+
+let enabled = !isMobileLayout();
 
 export function areBlockHintsEnabled() {
   return enabled;
