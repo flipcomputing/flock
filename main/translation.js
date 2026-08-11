@@ -200,7 +200,7 @@ export function getBlocklyMessage(key) {
 
 const keywordHintLabels = {
   en: 'Keyword',
-  es: 'Palabra clave',
+  es: 'Keyword',
 };
 
 function getTooltipKeywordLabel() {

@@ -500,7 +500,7 @@ export default {
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    'Run the blocks inside whenthe project starts. You can have multiple start blocks. \nKeyword: start',
+    'Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start',
   forever_tooltip:
     'Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever',
   when_clicked_tooltip: 'Run the blocks inside when the object trigger occurs.\nKeyword: click',
@@ -544,9 +544,9 @@ export default {
     'Add a physics shape to the object. Options are object or capsule.\nKeyword:physics',
   apply_force_tooltip: 'Apply a force to an object in XYZ directions.\nKeyword: force',
   jump_tooltip:
-    'Make a character jump to a height (in blocks). Keeps your current running speed, so you leap forwards with momentum like in platform games. Needs physics.\nKeyword: jump hop leap',
+    'Make a character jump to a height (in blocks). Keeps your current running speed. Needs physics.\nKeyword: jump hop leap',
   set_speed_tooltip:
-    'Keep an object moving at a set speed in a direction. It moves just like a player does with "move" — riding up slopes, stepping over small ledges and stopping at walls, staying upright — but relative to the object or the world instead of the camera. It holds that speed until you change it. Pick a direction relative to the object (forward, sideways, up) or a world axis (x, y, z); use "look at" to aim, then drive forward. Choose "all" and 0 to stop.\nKeyword: speed',
+    'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.\nKeyword: speed',
   set_bounciness_tooltip:
     'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.\nKeyword: bouncy restitution',
   show_physics_tooltip:
@@ -1101,6 +1101,8 @@ export default {
   project_save_ui: 'Save',
   tools_submenu_ui: 'Tools',
   inspector_tool_ui: 'Inspector',
+  show_block_hints_ui: 'Show block hints',
+  hide_block_hints_ui: 'Hide block hints',
   language_submenu_ui: 'Language',
   about_submenu_ui: 'About',
   hub_submenu_ui: 'Hub',

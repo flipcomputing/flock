@@ -627,6 +627,16 @@
                         >Inspector</a
                       >
                     </li>
+                    <li role="none">
+                      <a
+                        href="#"
+                        id="block-hints-menu-item"
+                        data-i18n="hide_block_hints"
+                        role="menuitem"
+                        tabindex="-1"
+                        >Hide block hints</a
+                      >
+                    </li>
                   </ul>
                 </li>
                 <!-- About menu item -->
@@ -1267,6 +1277,9 @@
             <div id="blockly-desc" class="sr-only">
               Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate
               and interact with blocks.
+            </div>
+            <div id="blockHint" class="block-hint" hidden>
+              <p id="blockHintText" class="block-hint__text" role="status"></p>
             </div>
             <div id="blocklyZoomControls" role="toolbar" aria-label="Workspace controls">
               <button
