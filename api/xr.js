@@ -15,10 +15,12 @@ export const createFlockXRState = () => ({
   _xrFollowTarget: null,
   _xrFollowCameraDirection: null,
   _xrFollowCameraRadius: null,
+  _xrFollowCameraVerticalOffset: null,
   _xrFollowLastPosition: null,
   _xrFollowSettledPosition: null,
   _xrFollowLastMovedAt: 0,
   _xrWatchPosition: null,
+  _xrNonXRCameraPosition: null,
   _xrEmbodiedVisibility: new Map(),
   _xrMode: undefined,
   _teleportAllTargets: false,
@@ -273,7 +275,9 @@ export const flockXR = {
     if (!target) return;
     const targetPosition =
       target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
-    const offset = camera.position && targetPosition ? camera.position.subtract(targetPosition) : null;
+    const offset =
+      camera.position && targetPosition ? camera.position.subtract(targetPosition) : null;
+    flock._xrFollowCameraVerticalOffset = offset?.y ?? null;
     if (offset) offset.y = 0;
     flock._xrFollowCameraDirection = offset?.lengthSquared() ? offset.normalize() : null;
     flock._xrFollowCameraRadius = Number.isFinite(camera.radius) ? camera.radius : null;
@@ -287,14 +291,16 @@ export const flockXR = {
     const targetPosition = flock._xrTargetPosition();
     const followDirection = flock._xrFollowCameraDirection;
     const followRadius = flock._xrFollowCameraRadius;
-    flock._xrWatchPosition = headsetPosition;
-    if (!targetPosition || !followDirection || followRadius === null) return;
+    const verticalOffset = flock._xrFollowCameraVerticalOffset;
+    flock._xrWatchPosition = flock._xrNonXRCameraPosition?.clone?.() ?? headsetPosition;
+    if (!targetPosition || !followDirection || followRadius === null || verticalOffset === null)
+      return xrCamera.position.copyFrom(flock._xrWatchPosition);
 
     const horizontalDistance = Math.sqrt(
-      Math.max(0, followRadius * followRadius - headsetPosition.y * headsetPosition.y)
+      Math.max(0, followRadius * followRadius - verticalOffset * verticalOffset)
     );
     flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
-    flock._xrWatchPosition.y = targetPosition.y + headsetPosition.y;
+    flock._xrWatchPosition.y = targetPosition.y + verticalOffset;
     flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
     xrCamera.position.copyFrom(flock._xrWatchPosition);
   },
@@ -436,6 +442,7 @@ export const flockXR = {
 
     patchEmulatorOffsetReferenceSpace();
     flock._xrMode = mode;
+    flock._xrNonXRCameraPosition = flock.scene?.activeCamera?.position?.clone?.() ?? null;
     flock._syncXRFollowTargetFromCamera();
     flock._applyXRDefaults(mode);
 

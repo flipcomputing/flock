@@ -113,12 +113,14 @@ export function runXRTests(flock) {
           target: flock._xrFollowTarget,
           followCameraDirection: flock._xrFollowCameraDirection,
           followCameraRadius: flock._xrFollowCameraRadius,
+          followCameraVerticalOffset: flock._xrFollowCameraVerticalOffset,
           xrMode: flock._xrMode,
           sessionActive: flock._xrSessionActive,
           lastPosition: flock._xrFollowLastPosition,
           settledPosition: flock._xrFollowSettledPosition,
           lastMovedAt: flock._xrFollowLastMovedAt,
           watchPosition: flock._xrWatchPosition,
+          nonXRCameraPosition: flock._xrNonXRCameraPosition,
           embodiedVisibility: flock._xrEmbodiedVisibility,
           cameraMotionMode: flock._xrCameraMotionMode,
           canvasControlsEnabled: flock._canvasControlsEnabled,
@@ -133,12 +135,14 @@ export function runXRTests(flock) {
         flock._xrFollowTarget = originalState.target;
         flock._xrFollowCameraDirection = originalState.followCameraDirection;
         flock._xrFollowCameraRadius = originalState.followCameraRadius;
+        flock._xrFollowCameraVerticalOffset = originalState.followCameraVerticalOffset;
         flock._xrMode = originalState.xrMode;
         flock._xrSessionActive = originalState.sessionActive;
         flock._xrFollowLastPosition = originalState.lastPosition;
         flock._xrFollowSettledPosition = originalState.settledPosition;
         flock._xrFollowLastMovedAt = originalState.lastMovedAt;
         flock._xrWatchPosition = originalState.watchPosition;
+        flock._xrNonXRCameraPosition = originalState.nonXRCameraPosition;
         flock._xrEmbodiedVisibility = originalState.embodiedVisibility;
         flock._xrCameraMotionMode = originalState.cameraMotionMode;
         flock._canvasControlsEnabled = originalState.canvasControlsEnabled;
@@ -321,32 +325,47 @@ export function runXRTests(flock) {
         expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
       });
 
-      it('positions watch mode using the project radius and headset height', function () {
+      it('positions watch mode at the non-XR camera position without a follow target', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = null;
+        flock._xrNonXRCameraPosition = new flock.BABYLON.Vector3(0, 3, -10);
+
+        flock._positionXRWatchCamera();
+
+        expect(camera.position.asArray()).to.deep.equal([0, 3, -10]);
+        expect(flock._xrWatchPosition.asArray()).to.deep.equal([0, 3, -10]);
+      });
+
+      it('positions watch mode using the non-XR camera height', function () {
         const camera = { position: new flock.BABYLON.Vector3(0.2, 1.7, -0.1) };
         flock.xrHelper = { baseExperience: { camera } };
         flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(4, 0.5, 6) };
         flock._xrFollowCameraDirection = new flock.BABYLON.Vector3(0, 0, -1);
         flock._xrFollowCameraRadius = 8;
+        flock._xrFollowCameraVerticalOffset = 3;
 
         flock._positionXRWatchCamera();
 
         expect(camera.position.x).to.equal(4);
-        expect(camera.position.y).to.equal(2.2);
-        expect(camera.position.z).to.be.closeTo(6 - Math.sqrt(8 * 8 - 1.7 * 1.7), 0.000001);
-        expect(flock.BABYLON.Vector3.Distance(camera.position, flock._xrFollowTarget.position)).to.be
-          .closeTo(8, 0.000001);
+        expect(camera.position.y).to.equal(3.5);
+        expect(camera.position.z).to.be.closeTo(6 - Math.sqrt(8 * 8 - 3 * 3), 0.000001);
+        expect(
+          flock.BABYLON.Vector3.Distance(camera.position, flock._xrFollowTarget.position)
+        ).to.be.closeTo(8, 0.000001);
       });
 
-      it('preserves headset height when it exceeds the project radius', function () {
+      it('preserves the non-XR camera height when it exceeds the project radius', function () {
         const camera = { position: new flock.BABYLON.Vector3(0, 2, 0) };
         flock.xrHelper = { baseExperience: { camera } };
         flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(4, 0.5, 6) };
         flock._xrFollowCameraDirection = new flock.BABYLON.Vector3(0, 0, -1);
         flock._xrFollowCameraRadius = 1;
+        flock._xrFollowCameraVerticalOffset = 2.5;
 
         flock._positionXRWatchCamera();
 
-        expect(camera.position.asArray()).to.deep.equal([4, 2.5, 6]);
+        expect(camera.position.asArray()).to.deep.equal([4, 3, 6]);
       });
 
       it('captures the project follow camera direction and radius', function () {
@@ -361,6 +380,7 @@ export function runXRTests(flock) {
 
         expect(flock._xrFollowCameraDirection.asArray()).to.deep.equal([0, 0, -1]);
         expect(flock._xrFollowCameraRadius).to.equal(12);
+        expect(flock._xrFollowCameraVerticalOffset).to.equal(3);
         expect(flock._xrFollowTarget).to.equal(target);
       });
 
