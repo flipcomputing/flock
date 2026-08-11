@@ -41,10 +41,71 @@ export const createFlockXRState = () => ({
   _xrForwardBasis: null,
   _xrRightBasis: null,
   _xrSessionActive: false,
+  _xrDesktopUITexture: null,
+  _xrVirtualKeyboard: null,
 });
 
 export const flockXR = {
+  _moveUIControls(source, target) {
+    if (!source?.rootContainer || !target?.addControl) return;
+    const controls = [...(source.rootContainer.children ?? [])];
+    for (const control of controls) {
+      if (control === flock._xrVirtualKeyboard) continue;
+      source.removeControl?.(control);
+      target.addControl(control);
+    }
+  },
+  _showXRKeyboardForInput(input, onSubmit) {
+    if (!flock._xrSessionActive || !input || !flock.meshTexture) return;
+
+    if (!flock._xrVirtualKeyboard) {
+      const keyboard = flock.GUI.VirtualKeyboard.CreateDefaultLayout('xrVirtualKeyboard');
+      keyboard.width = '720px';
+      keyboard.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      keyboard.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+      keyboard.isVisible = false;
+      keyboard.onKeyPressObservable.add((key) => {
+        if (key !== '\u21b5') return;
+        const submit = keyboard._flockSubmit;
+        queueMicrotask(() => submit?.());
+      });
+      flock.meshTexture.addControl(keyboard);
+      flock._xrVirtualKeyboard = keyboard;
+    }
+
+    flock._xrVirtualKeyboard.disconnect();
+    flock._xrVirtualKeyboard.connect(input);
+    flock._xrVirtualKeyboard._flockSubmit = onSubmit;
+    flock._xrVirtualKeyboard.isVisible = true;
+  },
+  _enterXRHUD() {
+    if (!flock.meshTexture || !flock.scene) return;
+    const desktopTexture =
+      flock.scene.UITexture ??
+      flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI', true, flock.scene);
+    if (desktopTexture !== flock.meshTexture) {
+      flock._xrDesktopUITexture = desktopTexture;
+      flock._moveUIControls(desktopTexture, flock.meshTexture);
+      flock.scene.UITexture = flock.meshTexture;
+    }
+  },
+  _exitXRHUD() {
+    const desktopTexture = flock._xrDesktopUITexture;
+    if (flock._xrVirtualKeyboard) {
+      flock._xrVirtualKeyboard.disconnect();
+      flock.meshTexture?.removeControl?.(flock._xrVirtualKeyboard);
+      flock._xrVirtualKeyboard.dispose();
+      flock._xrVirtualKeyboard = null;
+    }
+
+    if (!desktopTexture || !flock.scene) return;
+
+    flock._moveUIControls(flock.meshTexture, desktopTexture);
+    flock.scene.UITexture = desktopTexture;
+    flock._xrDesktopUITexture = null;
+  },
   _resetXRState() {
+    flock._exitXRHUD?.();
     flock._xrSource?.stop?.();
     flock._xrSource = null;
     if (flock._xrViewObserver && flock._xrViewObserverScene) {
@@ -201,6 +262,7 @@ export const flockXR = {
   _handleXRStateChange(state) {
     if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
       flock._xrSource?.start();
+      flock._enterXRHUD();
       const stackPanel = flock.stackPanel;
       if (stackPanel) {
         flock.advancedTexture?.removeControl?.(stackPanel);
@@ -236,6 +298,7 @@ export const flockXR = {
         stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       }
       if (flock.uiPlane) flock.uiPlane.isVisible = false;
+      flock._exitXRHUD();
       if (flock.advancedTexture?.rootContainer) {
         flock.advancedTexture.rootContainer.isVisible = true;
       }
@@ -465,27 +528,25 @@ export const flockXR = {
       return;
     }
 
-    // Create a UI plane for the wrist
-    flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane('uiPlane', { size: 0.4 }, flock.scene); // Smaller size for wrist UI
-    flock.uiPlane.isVisible = false; // Start hidden
+    // Keep the application UI at a stable, readable position in the viewer's field of view.
+    flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane(
+      'xrHUDPlane',
+      { width: 1.2, height: 0.675 },
+      flock.scene
+    );
+    flock.uiPlane.isVisible = false;
+    flock.uiPlane.isPickable = true;
+    flock.uiPlane.parent = flock.xrHelper.baseExperience.camera;
+    flock.uiPlane.position.set(0, 0, 1.5);
 
-    const planeMaterial = new flock.BABYLON.StandardMaterial('uiPlaneMaterial', flock.scene);
-    planeMaterial.disableDepthWrite = true;
-    flock.uiPlane.material = planeMaterial;
-
-    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(flock.uiPlane);
-
-    // Ensure the UI plane follows the wrist (using a controller or camera offset)
-    flock.xrHelper.input.onControllerAddedObservable.add((controller) => {
-      if (controller.inputSource.handedness === 'left') {
-        // Attach the UI plane to the left-hand controller
-        flock.uiPlane.parent = controller.grip || controller.pointer;
-
-        // Position the UI plane to simulate a watch
-        flock.uiPlane.position.set(0.1, -0.05, 0); // Slightly to the side, closer to the wrist
-        flock.uiPlane.rotation.set(Math.PI / 2, 0, 0); // Rotate to face the user
-      }
-    });
+    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+      flock.uiPlane,
+      1280,
+      720,
+      true
+    );
+    flock.uiPlane.material.disableDepthWrite = true;
+    flock.uiPlane.material.disableLighting = true;
 
     flock._xrSource = new XRSource(flock.inputManager, {
       xrHelper: flock.xrHelper,

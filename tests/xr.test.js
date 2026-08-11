@@ -66,7 +66,7 @@ export function runXRTests(flock) {
       }
     });
 
-    it('handles XR entry and exit after the wrist UI is disposed', function () {
+    it('handles XR entry and exit after the HUD is disposed', function () {
       const original = {
         advancedTexture: flock.advancedTexture,
         meshTexture: flock.meshTexture,
@@ -100,6 +100,48 @@ export function runXRTests(flock) {
         flock.uiPlane = original.uiPlane;
         flock._xrSource = original.source;
         flock._applyXRViewVisibility = original.applyVisibility;
+      }
+    });
+
+    it('moves application controls to the XR HUD and restores them on exit', function () {
+      const originalTexture = flock.scene.UITexture;
+      const originalMeshTexture = flock.meshTexture;
+      const originalDesktopTexture = flock._xrDesktopUITexture;
+      const control = { name: 'testControl' };
+      const makeTexture = (controls = []) => ({
+        rootContainer: { children: controls },
+        addControl(value) {
+          this.rootContainer.children.push(value);
+        },
+        removeControl(value) {
+          this.rootContainer.children = this.rootContainer.children.filter(
+            (item) => item !== value
+          );
+        },
+      });
+      const desktopTexture = makeTexture([control]);
+      const hudTexture = makeTexture();
+
+      try {
+        flock.scene.UITexture = desktopTexture;
+        flock.meshTexture = hudTexture;
+        flock._xrDesktopUITexture = null;
+
+        flock._enterXRHUD();
+
+        expect(flock.scene.UITexture).to.equal(hudTexture);
+        expect(desktopTexture.rootContainer.children).not.to.include(control);
+        expect(hudTexture.rootContainer.children).to.include(control);
+
+        flock._exitXRHUD();
+
+        expect(flock.scene.UITexture).to.equal(desktopTexture);
+        expect(hudTexture.rootContainer.children).not.to.include(control);
+        expect(desktopTexture.rootContainer.children).to.include(control);
+      } finally {
+        flock.scene.UITexture = originalTexture;
+        flock.meshTexture = originalMeshTexture;
+        flock._xrDesktopUITexture = originalDesktopTexture;
       }
     });
 

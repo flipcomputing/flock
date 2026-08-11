@@ -396,16 +396,21 @@ export const flockUI = {
     );
 
     if (mode === 'START') {
+      input.onFocusObservable.add(() => flock._showXRKeyboardForInput?.(input));
       return inputId;
     }
 
     return new Promise((resolve) => {
+      let settled = false;
       const submit = () => {
+        if (settled) return;
+        settled = true;
         const cleanValue = sanitize(input.text);
         input.dispose();
         button.dispose();
         resolve(cleanValue);
       };
+      input.onFocusObservable.add(() => flock._showXRKeyboardForInput?.(input, submit));
       button.onPointerUpObservable.add(submit);
       input.onKeyboardEventProcessedObservable.add((event) => {
         if (event.type === 'keydown' && event.key === 'Enter') {
