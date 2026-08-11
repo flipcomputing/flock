@@ -21,6 +21,7 @@ function isMobileLayout() {
 }
 
 let enabled = !isMobileLayout();
+let lastHintText = '';
 
 export function areBlockHintsEnabled() {
   return enabled;
@@ -28,7 +29,11 @@ export function areBlockHintsEnabled() {
 
 export function setBlockHintsEnabled(value) {
   enabled = value;
-  if (!enabled) hideBlockHint();
+  if (!enabled) {
+    hideBlockHint();
+  } else {
+    renderBlockHint(lastHintText);
+  }
 }
 
 function renderBlockHint(text) {
@@ -50,6 +55,7 @@ function renderBlockHint(text) {
 }
 
 export function showBlockHint(text) {
+  lastHintText = text || '';
   renderBlockHint(enabled ? text : '');
 }
 

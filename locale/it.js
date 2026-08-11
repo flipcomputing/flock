@@ -1047,6 +1047,7 @@ export default {
   inspector_tool_ui: 'Ispettore',
   show_block_hints_ui: 'Mostra suggerimenti dei blocchi',
   hide_block_hints_ui: 'Nascondi suggerimenti dei blocchi',
+  block_hints_menu_location_ui: 'Fai clic su Menu > Strumenti',
   language_submenu_ui: 'Lingua',
   about_submenu_ui: 'Informazioni',
   hub_submenu_ui: 'Hub',

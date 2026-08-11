@@ -1039,6 +1039,7 @@ export default {
   inspector_tool_ui: 'Inspecteur',
   show_block_hints_ui: 'Afficher les astuces des blocs',
   hide_block_hints_ui: 'Masquer les astuces des blocs',
+  block_hints_menu_location_ui: 'Cliquez sur Menu > Outils',
   language_submenu_ui: 'Langue',
   about_submenu_ui: 'À propos',
   hub_submenu_ui: 'Hub',

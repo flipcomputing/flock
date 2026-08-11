@@ -628,6 +628,7 @@ button {
   border-radius: 8px;
   z-index: 90;
   text-align: left;
+  pointer-events: none;
 }
 
 .block-hint[hidden] {
