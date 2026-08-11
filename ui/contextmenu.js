@@ -1021,8 +1021,9 @@ export function initContextMenus(workspace) {
       const block = toolbarBlock;
       if (!block) return;
       const simplified = isLooseAndMovable(block);
-      duplicateBtn.style.display = simplified ? 'none' : '';
-      commentBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
+      duplicateBtn.style.display = '';
+      commentBtn.style.display = isBlockLocked(block) ? 'none' : '';
+      enableBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
       moveHint.style.display = toolbarKeyboardMode && simplified ? '' : 'none';
       // Loose blocks never show View, regardless of mesh state — no point
       // waiting on a mesh check for a block that isn't placed anywhere yet.
@@ -1070,7 +1071,6 @@ export function initContextMenus(workspace) {
       const locked = isBlockLocked(block);
       detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
       deleteBtn.style.display = locked ? 'none' : '';
-      enableBtn.style.display = locked ? 'none' : '';
       updateSimplifiedToolbar();
       updateCommentButton(block);
       updateEnableButton(block);
