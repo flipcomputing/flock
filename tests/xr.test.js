@@ -111,6 +111,8 @@ export function runXRTests(flock) {
           mode: flock._xrViewMode,
           helper: flock.xrHelper,
           target: flock._xrFollowTarget,
+          followCameraDirection: flock._xrFollowCameraDirection,
+          followCameraRadius: flock._xrFollowCameraRadius,
           xrMode: flock._xrMode,
           sessionActive: flock._xrSessionActive,
           lastPosition: flock._xrFollowLastPosition,
@@ -129,6 +131,8 @@ export function runXRTests(flock) {
         flock._xrViewMode = originalState.mode;
         flock.xrHelper = originalState.helper;
         flock._xrFollowTarget = originalState.target;
+        flock._xrFollowCameraDirection = originalState.followCameraDirection;
+        flock._xrFollowCameraRadius = originalState.followCameraRadius;
         flock._xrMode = originalState.xrMode;
         flock._xrSessionActive = originalState.sessionActive;
         flock._xrFollowLastPosition = originalState.lastPosition;
@@ -315,6 +319,49 @@ export function runXRTests(flock) {
         flock.setXRViewMode('watch');
 
         expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
+      });
+
+      it('positions watch mode using the project radius and headset height', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0.2, 1.7, -0.1) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(4, 0.5, 6) };
+        flock._xrFollowCameraDirection = new flock.BABYLON.Vector3(0, 0, -1);
+        flock._xrFollowCameraRadius = 8;
+
+        flock._positionXRWatchCamera();
+
+        expect(camera.position.x).to.equal(4);
+        expect(camera.position.y).to.equal(2.2);
+        expect(camera.position.z).to.be.closeTo(6 - Math.sqrt(8 * 8 - 1.7 * 1.7), 0.000001);
+        expect(flock.BABYLON.Vector3.Distance(camera.position, flock._xrFollowTarget.position)).to.be
+          .closeTo(8, 0.000001);
+      });
+
+      it('preserves headset height when it exceeds the project radius', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(4, 0.5, 6) };
+        flock._xrFollowCameraDirection = new flock.BABYLON.Vector3(0, 0, -1);
+        flock._xrFollowCameraRadius = 1;
+
+        flock._positionXRWatchCamera();
+
+        expect(camera.position.asArray()).to.deep.equal([4, 2.5, 6]);
+      });
+
+      it('captures the project follow camera direction and radius', function () {
+        const target = { position: new flock.BABYLON.Vector3(2, 1, 5) };
+        const camera = {
+          position: new flock.BABYLON.Vector3(2, 4, -3),
+          radius: 12,
+          lockedTarget: target,
+        };
+
+        flock._syncXRFollowTargetFromCamera(camera);
+
+        expect(flock._xrFollowCameraDirection.asArray()).to.deep.equal([0, 0, -1]);
+        expect(flock._xrFollowCameraRadius).to.equal(12);
+        expect(flock._xrFollowTarget).to.equal(target);
       });
 
       it('preserves headset height when entering embody mode', function () {

@@ -13,6 +13,8 @@ export const createFlockXRState = () => ({
   _xrCameraMotionMode: 'none',
   _xrViewMode: 'watch',
   _xrFollowTarget: null,
+  _xrFollowCameraDirection: null,
+  _xrFollowCameraRadius: null,
   _xrFollowLastPosition: null,
   _xrFollowSettledPosition: null,
   _xrFollowLastMovedAt: 0,
@@ -216,7 +218,7 @@ export const flockXR = {
         0,
         1
       );
-      flock._xrWatchPosition = baseExperience.camera.position.clone();
+      flock._positionXRWatchCamera();
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
@@ -269,7 +271,32 @@ export const flockXR = {
   _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
     const target = camera?.lockedTarget ?? camera?.metadata?.following;
     if (!target) return;
+    const targetPosition =
+      target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
+    const offset = camera.position && targetPosition ? camera.position.subtract(targetPosition) : null;
+    if (offset) offset.y = 0;
+    flock._xrFollowCameraDirection = offset?.lengthSquared() ? offset.normalize() : null;
+    flock._xrFollowCameraRadius = Number.isFinite(camera.radius) ? camera.radius : null;
     flock._setXRFollowTarget(target);
+  },
+  _positionXRWatchCamera() {
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.position) return;
+
+    const headsetPosition = xrCamera.position.clone();
+    const targetPosition = flock._xrTargetPosition();
+    const followDirection = flock._xrFollowCameraDirection;
+    const followRadius = flock._xrFollowCameraRadius;
+    flock._xrWatchPosition = headsetPosition;
+    if (!targetPosition || !followDirection || followRadius === null) return;
+
+    const horizontalDistance = Math.sqrt(
+      Math.max(0, followRadius * followRadius - headsetPosition.y * headsetPosition.y)
+    );
+    flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
+    flock._xrWatchPosition.y = targetPosition.y + headsetPosition.y;
+    flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
+    xrCamera.position.copyFrom(flock._xrWatchPosition);
   },
   _setXRFollowTarget(target) {
     if (flock._xrFollowTarget !== target) flock._restoreXREmbodiedVisibility();

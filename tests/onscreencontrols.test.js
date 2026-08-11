@@ -11,6 +11,12 @@ export function runOnScreenControlsTests(flock) {
         flock._joystickSource.stop();
         flock._joystickSource = null;
       }
+      if (flock._controlsResizeEngine && flock._controlsResizeObserver) {
+        flock._controlsResizeEngine.onResizeObservable.remove(flock._controlsResizeObserver);
+      }
+      flock._controlsResizeEngine = null;
+      flock._controlsResizeObserver = null;
+      flock._controlsLayout = null;
       if (flock.controlsTexture) {
         flock.controlsTexture.dispose();
         flock.controlsTexture = null;
