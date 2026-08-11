@@ -341,10 +341,11 @@ export const flockXR = {
       flock._xrSource?.setInputMode('fly');
       return;
     }
-    const projectControls =
-      hasFollowTarget &&
-      (flock._xrViewMode === 'watch' ||
-        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth'));
+    // Teleport steers with the thumbstick; otherwise the project's own movement gets it.
+    const projectControls = hasFollowTarget
+      ? flock._xrViewMode === 'watch' ||
+        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth')
+      : flock._xrCameraMotionMode !== 'teleport';
     const inputMode = projectControls ? 'project' : 'disabled';
     flock._xrSource?.setInputMode(inputMode);
   },
@@ -466,8 +467,8 @@ export const flockXR = {
       flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
     }
 
-    // Embody mode places the headset on the target itself, at its own eye height.
-    if (flock._xrViewMode !== 'watch') return;
+    // Embodying a target places the headset on that target, at its own eye height.
+    if (targetPosition && flock._xrViewMode !== 'watch') return;
     xrCamera.position.copyFrom(flock._xrWatchPosition);
     if (targetPosition) xrCamera.setTarget?.(targetPosition);
   },

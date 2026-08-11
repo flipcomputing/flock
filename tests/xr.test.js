@@ -552,14 +552,32 @@ export function runXRTests(flock) {
           flock._xrSource = originalSource;
           flock._canvasControlsEnabled = undefined;
         }
-        expect(modes).to.deep.equal(['fly', 'disabled']);
+        expect(modes).to.deep.equal(['fly', 'project']);
+      });
+
+      it('routes the thumbstick to project controls when nothing else moves the camera', function () {
+        const originalSource = flock._xrSource;
+        const modes = [];
+        flock._xrSource = { setInputMode: (mode) => modes.push(mode) };
+        try {
+          flock._xrFollowTarget = null;
+          flock._xrViewMode = 'watch';
+          flock._xrCameraMotionMode = 'none';
+          flock._applyXRInputState();
+          flock._xrViewMode = 'embody';
+          flock._xrCameraMotionMode = 'teleport';
+          flock._applyXRInputState();
+        } finally {
+          flock._xrSource = originalSource;
+        }
+        expect(modes).to.deep.equal(['project', 'disabled']);
       });
 
       for (const { viewMode, motionMode, initialMode } of [
-        { viewMode: 'watch', motionMode: 'comfort', initialMode: 'disabled' },
+        { viewMode: 'watch', motionMode: 'comfort', initialMode: 'project' },
         { viewMode: 'embody', motionMode: 'smooth', initialMode: 'fly' },
       ]) {
-        it(`switches late follow-camera input to project mode in ${viewMode}`, function () {
+        it(`applies project mode to a late follow camera in ${viewMode}`, function () {
           const originalSource = flock._xrSource;
           const modes = [];
           flock._xrSource = { setInputMode: (mode) => modes.push(mode) };
@@ -662,6 +680,18 @@ export function runXRTests(flock) {
 
         expect(camera.position.asArray()).to.deep.equal([0, 3, -10]);
         expect(flock._xrWatchPosition.asArray()).to.deep.equal([0, 3, -10]);
+      });
+
+      it('positions embody mode at the non-XR camera position without a follow target', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrViewMode = 'embody';
+        flock._xrFollowTarget = null;
+        flock._xrNonXRCameraPosition = new flock.BABYLON.Vector3(0, 20, -3);
+
+        flock._positionXRWatchCamera();
+
+        expect(camera.position.asArray()).to.deep.equal([0, 20, -3]);
       });
 
       it('positions watch mode using the non-XR camera height', function () {
@@ -1197,6 +1227,27 @@ export function runXRTests(flock) {
         flock.scene = { meshes: [ground] };
         flock.setXRViewMode('embody');
         flock.setXRCameraMotionMode('teleport');
+        expect(calls.addFloor).to.deep.equal([ground]);
+      });
+
+      it('teleports a free camera that has no follow target', function () {
+        const ground = { name: 'ground' };
+        const originalTarget = flock._xrFollowTarget;
+        const teleportCalls = [];
+        flock.ground = ground;
+        flock.scene = { meshes: [ground] };
+        flock._xrFollowTarget = null;
+        flock.xrHelper.teleportation.attach = () => teleportCalls.push('attach');
+        flock.xrHelper.teleportation.detach = () => teleportCalls.push('detach');
+
+        try {
+          flock.setXRViewMode('embody');
+          flock.setXRCameraMotionMode('teleport');
+        } finally {
+          flock._xrFollowTarget = originalTarget;
+        }
+
+        expect(teleportCalls.at(-1)).to.equal('attach');
         expect(calls.addFloor).to.deep.equal([ground]);
       });
 
