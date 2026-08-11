@@ -9,9 +9,9 @@ function getTextElement() {
   return typeof document === 'undefined' ? null : document.getElementById('blockHintText');
 }
 
-// Matches "Keyword: word" (or "Keyword:word") so it can be pulled out to the
-// front as "[key emoji]word - rest of the description".
-const KEYWORD_RE = /Keyword:\s*(\S+)/;
+// Strips the "Keyword: word" suffix — that's a toolbox search term, only
+// useful before a block is placed, not for a hint about one already selected.
+const KEYWORD_RE = /\s*Keyword:\s*\S+/;
 
 // Matches the app's mobile breakpoint (style.css: @media (max-width: 1024px)):
 // hints default off there, since screen space is tight, but stay toggleable
@@ -44,20 +44,7 @@ export function showBlockHint(text) {
   }
 
   element.replaceChildren();
-  const match = KEYWORD_RE.exec(content);
-  if (!match) {
-    element.append(content);
-  } else {
-    const description = (
-      content.slice(0, match.index) + content.slice(match.index + match[0].length)
-    ).trim();
-
-    const word = document.createElement('span');
-    word.className = 'block-hint__keyword';
-    word.textContent = match[1];
-    element.append('🔑', word);
-    if (description) element.append(` - ${description}`);
-  }
+  element.append(content.replace(KEYWORD_RE, '').trim());
 
   container.hidden = false;
 }

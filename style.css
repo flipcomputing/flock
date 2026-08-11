@@ -638,10 +638,6 @@ button {
   margin: 0;
 }
 
-.block-hint__keyword {
-  font-weight: bold;
-}
-
 #blocklyZoomControls .toolbar-divider,
 #info-panel-tabs .toolbar-divider {
   width: 1px;

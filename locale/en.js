@@ -481,6 +481,8 @@ export default {
   export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB.\nKeyword: export',
 
   // Tooltip translations - Control blocks
+  if_clause_tooltip:
+    'Run the attached blocks if the condition is true. Switch the dropdown to "else if" or "else", and connect another if block below to build if / else if / else chains.',
   wait_tooltip: 'Wait for a specified time in milliseconds.\nKeyword: milli',
   wait_seconds_tooltip: 'Wait for a specified time in seconds.\nKeyword: wait',
   wait_until_tooltip: 'Wait until the condition is true.\nKeyword:until',
@@ -656,8 +658,7 @@ export default {
     'Resize an object to the given x, y, and z and controls the origin of scaling. \nKeyword: scale',
   resize_tooltip:
     'Resize an object to the given x, y, and z and controls the origin of scaling.\nKeyword: resize',
-  rotate_model_xyz_tooltip:
-    'Rotate the object by the given x, y, z values.\nKeyword: rotate\nKeyword: rotateby',
+  rotate_model_xyz_tooltip: 'Rotate the object by the given x, y, z values.\nKeyword: rotateby',
   rotate_to_tooltip: 'Rotate the object to point towards the  coordinates.\nKeyword: rotateto',
   look_at_tooltip:
     'Rotate the first object towards the position of the second object.\nKeyword: look',
