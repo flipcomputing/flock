@@ -479,6 +479,8 @@ export default {
   export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.\nKeyword: exporta', // human
 
   // Tooltip translations - Control blocks
+  if_clause_tooltip:
+    'Ejecuta los bloques conectados si la condición es verdadera. Cambia el menú desplegable a "sino si" o "sino", y conecta otro bloque si debajo para crear cadenas de si / sino si / sino.', // ai
   wait_tooltip: 'Espera un tiempo especificado en milisegundos.\nKeyword: mili', // human
   wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.\nKeyword: espera', // human
   wait_until_tooltip: 'Espera hasta que la condición sea verdadera.\nKeyword: hasta', // human

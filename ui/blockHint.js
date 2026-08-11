@@ -31,12 +31,12 @@ export function setBlockHintsEnabled(value) {
   if (!enabled) hideBlockHint();
 }
 
-export function showBlockHint(text) {
+function renderBlockHint(text) {
   const container = getContainer();
   const element = getTextElement();
   if (!container || !element) return;
 
-  const content = enabled ? text || '' : '';
+  const content = text || '';
   if (!content) {
     container.hidden = true;
     element.replaceChildren();
@@ -45,6 +45,41 @@ export function showBlockHint(text) {
 
   element.replaceChildren();
   element.append(content.replace(KEYWORD_RE, '').trim());
+
+  container.hidden = false;
+}
+
+export function showBlockHint(text) {
+  renderBlockHint(enabled ? text : '');
+}
+
+// Shows a one-off message in the same box regardless of the enabled/disabled
+// toggle — e.g. the startup tip, which needs to appear even when hints are
+// off (that's exactly when it's telling the user how to turn them on).
+// boldPart, if given and found in text, renders as <strong> instead of plain text.
+export function showBlockHintMessage(text, { boldPart } = {}) {
+  const container = getContainer();
+  const element = getTextElement();
+  if (!container || !element) return;
+
+  const content = text || '';
+  if (!content) {
+    container.hidden = true;
+    element.replaceChildren();
+    return;
+  }
+
+  element.replaceChildren();
+  const boldIndex = boldPart ? content.indexOf(boldPart) : -1;
+  if (boldIndex === -1) {
+    element.append(content);
+  } else {
+    const before = content.slice(0, boldIndex);
+    const after = content.slice(boldIndex + boldPart.length);
+    const strong = document.createElement('strong');
+    strong.textContent = boldPart;
+    element.append(before, strong, after);
+  }
 
   container.hidden = false;
 }

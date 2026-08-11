@@ -1104,6 +1104,7 @@ export default {
   inspector_tool_ui: 'Inspector',
   show_block_hints_ui: 'Show block hints',
   hide_block_hints_ui: 'Hide block hints',
+  block_hints_menu_location_ui: 'Click Menu > Tools',
   language_submenu_ui: 'Language',
   about_submenu_ui: 'About',
   hub_submenu_ui: 'Hub',

@@ -1,4 +1,5 @@
 import { translate } from './translation.js';
+import { areBlockHintsEnabled, showBlockHintMessage } from '../ui/blockHint.js';
 
 // Function to hide loading screen
 export function hideLoadingScreen() {
@@ -17,6 +18,12 @@ export function hideLoadingScreen() {
         announcements.textContent = translate('loading_success_ui');
       }, 20);
     }
+
+    const hintsLabelKey = areBlockHintsEnabled() ? 'hide_block_hints_ui' : 'show_block_hints_ui';
+    const hintsLabel = translate(hintsLabelKey);
+    showBlockHintMessage(`ℹ️ ${hintsLabel}: ${translate('block_hints_menu_location_ui')}`, {
+      boldPart: hintsLabel,
+    });
 
     // Then show main content after a brief delay
     setTimeout(() => {
