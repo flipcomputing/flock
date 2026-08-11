@@ -46,9 +46,20 @@ export const createFlockXRState = () => ({
   _xrUIPlacement: 'hud',
   _xrUIControllerObserver: null,
   _xrUIControllerRemovedObserver: null,
+  _xrHUDActive: false,
 });
 
-const XR_WRIST_SCALE = 0.35;
+// The panel spans about 56 degrees at this distance.
+const XR_HUD_WIDTH = 1.6;
+const XR_HUD_HEIGHT = 0.9;
+const XR_HUD_DISTANCE = 1.5;
+const XR_HUD_TEXTURE_WIDTH = 1536;
+const XR_HUD_TEXTURE_HEIGHT = 864;
+// Canvas-pixel UI resolves to well under a degree here, so every pixel measure is scaled
+// up. Offsets scale too, so controls placed far from their edge can fall off the panel.
+const XR_HUD_MAGNIFICATION = 2.5;
+// Holds the wrist panel at the size it had with the smaller HUD plane.
+const XR_WRIST_SCALE = 0.26;
 
 export const flockXR = {
   _moveUIControls(source, target) {
@@ -92,6 +103,20 @@ export const flockXR = {
     // Control.dispose() clears onBlurObservable without firing it.
     input.onDisposeObservable?.addOnce?.(() => flock._hideXRKeyboard(input));
   },
+  _createXRHUDTexture(plane) {
+    const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+      plane,
+      XR_HUD_TEXTURE_WIDTH,
+      XR_HUD_TEXTURE_HEIGHT,
+      true
+    );
+    texture.idealWidth = Math.round(
+      XR_HUD_TEXTURE_WIDTH / flock._xrTuning('xu', XR_HUD_MAGNIFICATION, 1, 4)
+    );
+    // Mip filtering softens glyph edges, and a head-locked panel barely moves against the eye.
+    texture.updateSamplingMode(flock.BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+    return texture;
+  },
   _xrWristParent() {
     const left = (flock.xrHelper?.input?.controllers ?? []).find(
       (controller) => controller.inputSource?.handedness === 'left'
@@ -112,7 +137,7 @@ export const flockXR = {
     }
 
     plane.parent = flock.xrHelper?.baseExperience?.camera ?? null;
-    plane.position.set(0, 0, 1.5);
+    plane.position.set(0, 0, XR_HUD_DISTANCE);
     plane.rotation.set(0, 0, 0);
     plane.scaling.setAll(1);
   },
@@ -131,6 +156,7 @@ export const flockXR = {
   },
   _enterXRHUD() {
     if (!flock.meshTexture || !flock.scene) return;
+    flock._xrHUDActive = true;
     const desktopTexture =
       flock.scene.UITexture ??
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI', true, flock.scene);
@@ -139,8 +165,11 @@ export const flockXR = {
       flock._moveUIControls(desktopTexture, flock.meshTexture);
       flock.scene.UITexture = flock.meshTexture;
     }
+    flock._refreshOnScreenControls?.();
   },
   _exitXRHUD() {
+    const wasActive = flock._xrHUDActive;
+    flock._xrHUDActive = false;
     const desktopTexture = flock._xrDesktopUITexture;
     if (flock._xrVirtualKeyboard) {
       flock._xrVirtualKeyboard.disconnect();
@@ -148,6 +177,7 @@ export const flockXR = {
       flock._xrVirtualKeyboard.dispose();
       flock._xrVirtualKeyboard = null;
     }
+    if (wasActive) flock._refreshOnScreenControls?.();
 
     if (!desktopTexture || !flock.scene) return;
 
@@ -604,19 +634,14 @@ export const flockXR = {
     // Keep the application UI at a stable, readable position in the viewer's field of view.
     flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       'xrHUDPlane',
-      { width: 1.2, height: 0.675 },
+      { width: XR_HUD_WIDTH, height: XR_HUD_HEIGHT },
       flock.scene
     );
     flock.uiPlane.isVisible = false;
     flock.uiPlane.isPickable = false;
     flock.uiPlane.metadata = { isXRHUD: true };
 
-    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-      flock.uiPlane,
-      1280,
-      720,
-      true
-    );
+    flock.meshTexture = flock._createXRHUDTexture(flock.uiPlane);
     flock.uiPlane.material.disableDepthWrite = true;
     flock.uiPlane.material.disableLighting = true;
 

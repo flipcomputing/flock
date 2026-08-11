@@ -138,6 +138,7 @@ export const flock = {
   GUI: null,
   EXPORT: null,
   controlsTexture: null,
+  _xrHUDControlRoots: [],
   inputManager: null,
   canvas: null,
   abortController: null,
@@ -1718,6 +1719,7 @@ export const flock = {
         // Dispose UI elements
         flock.controlsTexture?.dispose();
         flock.controlsTexture = null;
+        flock._xrHUDControlRoots = [];
 
         // Clear main UI texture and all its controls
         if (flock.scene.UITexture) {

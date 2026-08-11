@@ -145,6 +145,65 @@ export function runXRTests(flock) {
       }
     });
 
+    it('magnifies pixel-sized controls on the HUD texture', function () {
+      const plane = flock.BABYLON.MeshBuilder.CreatePlane('hudScaleTest', {}, flock.scene);
+      const texture = flock._createXRHUDTexture(plane);
+      try {
+        const button = flock.GUI.Button.CreateSimpleButton('hudScaleButton', 'Hi');
+        button.width = '100px';
+        button.fontSize = '20px';
+        texture.addControl(button);
+
+        const magnification = texture.getSize().width / texture.idealWidth;
+        expect(magnification).to.be.greaterThan(1);
+        expect(button.widthInPixels).to.equal(Math.ceil(100 * magnification));
+        expect(button.fontSizeInPixels).to.equal(Math.ceil(20 * magnification));
+      } finally {
+        texture.dispose();
+        plane.dispose();
+      }
+    });
+
+    it('rebuilds the on-screen controls as the HUD opens and closes', function () {
+      const original = {
+        uiTexture: flock.scene.UITexture,
+        meshTexture: flock.meshTexture,
+        desktopTexture: flock._xrDesktopUITexture,
+        hudActive: flock._xrHUDActive,
+        refresh: flock._refreshOnScreenControls,
+      };
+      const hudStates = [];
+      const texture = () => ({
+        rootContainer: { children: [] },
+        addControl() {},
+        removeControl() {},
+      });
+
+      try {
+        flock.scene.UITexture = texture();
+        flock.meshTexture = texture();
+        flock._xrDesktopUITexture = null;
+        flock._xrHUDActive = false;
+        flock._refreshOnScreenControls = () => hudStates.push(flock._xrHUDActive);
+
+        flock._enterXRHUD();
+        expect(flock._xrHUDActive).to.equal(true);
+
+        flock._exitXRHUD();
+        expect(flock._xrHUDActive).to.equal(false);
+        expect(hudStates).to.deep.equal([true, false]);
+
+        flock._exitXRHUD();
+        expect(hudStates).to.deep.equal([true, false]);
+      } finally {
+        flock.scene.UITexture = original.uiTexture;
+        flock.meshTexture = original.meshTexture;
+        flock._xrDesktopUITexture = original.desktopTexture;
+        flock._xrHUDActive = original.hudActive;
+        flock._refreshOnScreenControls = original.refresh;
+      }
+    });
+
     describe('VR UI placement', function () {
       let originalState;
 
