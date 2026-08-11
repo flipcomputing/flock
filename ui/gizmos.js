@@ -965,6 +965,7 @@ export function exitGizmoState() {
   clearStatus('eye-gizmo');
   // The readout belongs to the tool that took it; the next tool doesn't move it.
   clearStatus('position-readout');
+  clearStatus('gizmo-controls-hint');
 
   // Run all queued cleanup functions
   runCleanups();
@@ -1948,14 +1949,19 @@ function handleScaleGizmo() {
     startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
+    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
   } else {
-    pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === 'ground') {
-        exitGizmoState();
-        return;
-      }
-      attachMeshForActiveTool(pickedMesh);
-    });
+    pickMeshFromScene(
+      (pickedMesh) => {
+        if (!pickedMesh || pickedMesh.name === 'ground') {
+          exitGizmoState();
+          return;
+        }
+        attachMeshForActiveTool(pickedMesh);
+      },
+      false,
+      translate('select_mesh_prompt')
+    );
   }
 
   let lastScaledMesh = gizmoManager.attachedMesh;
@@ -1971,6 +1977,7 @@ function handleScaleGizmo() {
     startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
+    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(scaleObs));
@@ -2130,14 +2137,19 @@ function handleRotationGizmo() {
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
+    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
   } else {
-    pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === 'ground') {
-        exitGizmoState();
-        return;
-      }
-      attachMeshForActiveTool(pickedMesh);
-    });
+    pickMeshFromScene(
+      (pickedMesh) => {
+        if (!pickedMesh || pickedMesh.name === 'ground') {
+          exitGizmoState();
+          return;
+        }
+        attachMeshForActiveTool(pickedMesh);
+      },
+      false,
+      translate('select_mesh_prompt')
+    );
   }
 
   let lastRotatedMesh = gizmoManager.attachedMesh;
@@ -2152,6 +2164,7 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
+    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
@@ -2225,6 +2238,7 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
+    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
     startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
@@ -2246,16 +2260,20 @@ function handlePositionGizmo() {
   if (mesh) {
     activatePositionKeyboardForMesh(mesh);
   } else {
-    pickMeshFromScene((pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === 'ground') {
-        exitGizmoState();
-        return;
-      }
-      if (pickedMesh.parent) {
-        pickedMesh = getRootMesh(pickedMesh.parent);
-      }
-      gizmoManager.attachToMesh(pickedMesh);
-    });
+    pickMeshFromScene(
+      (pickedMesh) => {
+        if (!pickedMesh || pickedMesh.name === 'ground') {
+          exitGizmoState();
+          return;
+        }
+        if (pickedMesh.parent) {
+          pickedMesh = getRootMesh(pickedMesh.parent);
+        }
+        gizmoManager.attachToMesh(pickedMesh);
+      },
+      false,
+      translate('select_mesh_prompt')
+    );
   }
 
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
@@ -2360,7 +2378,7 @@ function handleSelectGizmo() {
   }
 
   // Use helper function to pick the mesh
-  pickMeshFromScene(applySelection, true);
+  pickMeshFromScene(applySelection, true, translate('select_mesh_prompt'));
 }
 
 // Duplicate: Create a copy of the selected mesh and its corresponding block,

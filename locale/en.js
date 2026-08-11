@@ -1265,6 +1265,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Look around with arrow keys and Pg Up/Pg Down or Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Fly camera, use the on-screen controls and drag to look around',
+  select_mesh_prompt: 'ℹ️ Select an object, or use arrow keys to move the cursor.',
   select_mesh_delete_prompt: 'ℹ️ Click an object to delete it.',
   select_mesh_duplicate_prompt: 'ℹ️ Select an object to duplicate.',
   place_duplicate_prompt: 'ℹ️ Click to place a copy.',
@@ -1462,6 +1463,7 @@ export default {
   shortcut_toggle_hud: 'Show/hide on-screen controls',
   hud_hidden: 'On-screen controls hidden',
   hud_shown: 'On-screen controls shown',
+  gizmo_controls_hint: 'ℹ️ Click the cog button to show/hide the controls.',
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
 
