@@ -145,6 +145,231 @@ export function runXRTests(flock) {
       }
     });
 
+    describe('VR UI placement', function () {
+      let originalState;
+
+      const makePlane = () => ({
+        parent: null,
+        position: {
+          x: 0,
+          y: 0,
+          z: 0,
+          set(x, y, z) {
+            Object.assign(this, { x, y, z });
+          },
+        },
+        rotation: {
+          x: 0,
+          y: 0,
+          z: 0,
+          set(x, y, z) {
+            Object.assign(this, { x, y, z });
+          },
+        },
+        scaling: {
+          x: 1,
+          setAll(value) {
+            this.x = value;
+          },
+        },
+      });
+
+      beforeEach(function () {
+        originalState = {
+          placement: flock._xrUIPlacement,
+          plane: flock.uiPlane,
+          helper: flock.xrHelper,
+        };
+      });
+
+      afterEach(function () {
+        flock._xrUIPlacement = originalState.placement;
+        flock.uiPlane = originalState.plane;
+        flock.xrHelper = originalState.helper;
+      });
+
+      it('exposes the placement API to generated user code', function () {
+        const api = flock.createWhitelist({ guard: (fn) => fn });
+        expect(api.setXRUIPlacement).to.be.a('function');
+      });
+
+      it('releases both controller observers on reset', function () {
+        const stateKeys = Object.keys(createFlockXRState());
+        const saved = Object.fromEntries(stateKeys.map((key) => [key, flock[key]]));
+        const savedHelper = flock.xrHelper;
+        const added = { name: 'addedObserver' };
+        const removedObserver = { name: 'removedObserver' };
+        const releasedFrom = { added: [], removed: [] };
+        try {
+          flock._xrUIControllerObserver = added;
+          flock._xrUIControllerRemovedObserver = removedObserver;
+          flock.xrHelper = {
+            input: {
+              onControllerAddedObservable: {
+                remove: (value) => releasedFrom.added.push(value),
+              },
+              onControllerRemovedObservable: {
+                remove: (value) => releasedFrom.removed.push(value),
+              },
+            },
+          };
+
+          flock._resetXRState();
+
+          expect(releasedFrom.added).to.deep.equal([added]);
+          expect(releasedFrom.removed).to.deep.equal([removedObserver]);
+          expect(flock._xrUIControllerObserver).to.equal(null);
+          expect(flock._xrUIControllerRemovedObserver).to.equal(null);
+        } finally {
+          Object.assign(flock, saved);
+          flock.xrHelper = savedHelper;
+        }
+      });
+
+      it('ignores unknown placements', function () {
+        flock._xrUIPlacement = 'hud';
+        flock.setXRUIPlacement('elbow');
+        expect(flock._xrUIPlacement).to.equal('hud');
+      });
+
+      it('head-locks the panel for hud placement', function () {
+        const camera = { name: 'xrCamera' };
+        const plane = makePlane();
+        flock.uiPlane = plane;
+        flock.xrHelper = { baseExperience: { camera }, input: { controllers: [] } };
+
+        flock.setXRUIPlacement('hud');
+
+        expect(flock._xrUIPlacement).to.equal('hud');
+        expect(plane.parent).to.equal(camera);
+        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
+        expect(plane.rotation).to.include({ x: 0, y: 0, z: 0 });
+        expect(plane.scaling.x).to.equal(1);
+      });
+
+      it('attaches the panel to the left controller grip for wrist placement', function () {
+        const grip = { name: 'leftGrip' };
+        const plane = makePlane();
+        flock.uiPlane = plane;
+        flock.xrHelper = {
+          baseExperience: { camera: { name: 'xrCamera' } },
+          input: {
+            controllers: [
+              { inputSource: { handedness: 'right' }, grip: { name: 'rightGrip' } },
+              { inputSource: { handedness: 'left' }, grip },
+            ],
+          },
+        };
+
+        flock.setXRUIPlacement('wrist');
+
+        expect(plane.parent).to.equal(grip);
+        expect(plane.position).to.include({ x: 0.1, y: -0.05, z: 0 });
+        expect(plane.rotation.x).to.be.closeTo(Math.PI / 2, 1e-9);
+        expect(plane.scaling.x).to.be.lessThan(1);
+      });
+
+      it('falls back to the head-locked panel while no left controller is connected', function () {
+        const camera = { name: 'xrCamera' };
+        const plane = makePlane();
+        flock.uiPlane = plane;
+        flock.xrHelper = {
+          baseExperience: { camera },
+          input: { controllers: [{ inputSource: { handedness: 'right' }, grip: {} }] },
+        };
+
+        flock.setXRUIPlacement('wrist');
+
+        expect(flock._xrUIPlacement).to.equal('wrist');
+        expect(plane.parent).to.equal(camera);
+        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
+      });
+
+      it('falls back to the head-locked panel when the left controller disconnects', function () {
+        const camera = { name: 'xrCamera' };
+        const grip = { name: 'leftGrip' };
+        const plane = makePlane();
+        const controllers = [{ inputSource: { handedness: 'left' }, grip }];
+        flock.uiPlane = plane;
+        flock.xrHelper = { baseExperience: { camera }, input: { controllers } };
+
+        flock.setXRUIPlacement('wrist');
+        expect(plane.parent).to.equal(grip);
+
+        controllers.length = 0;
+        flock._applyXRUIPlacement();
+
+        expect(plane.parent).to.equal(camera);
+        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
+        expect(plane.scaling.x).to.equal(1);
+      });
+
+      it('picks up a left controller that connects after the placement is set', function () {
+        const camera = { name: 'xrCamera' };
+        const grip = { name: 'leftGrip' };
+        const plane = makePlane();
+        const controllers = [];
+        flock.uiPlane = plane;
+        flock.xrHelper = { baseExperience: { camera }, input: { controllers } };
+
+        flock.setXRUIPlacement('wrist');
+        expect(plane.parent).to.equal(camera);
+
+        controllers.push({ inputSource: { handedness: 'left' }, grip });
+        flock._applyXRUIPlacement();
+
+        expect(plane.parent).to.equal(grip);
+      });
+    });
+
+    describe('XR HUD picking', function () {
+      let originalPlane;
+      let originalTexture;
+
+      beforeEach(function () {
+        originalPlane = flock.uiPlane;
+        originalTexture = flock.meshTexture;
+      });
+
+      afterEach(function () {
+        flock.uiPlane = originalPlane;
+        flock.meshTexture = originalTexture;
+      });
+
+      it('leaves the panel unpickable while it carries nothing to press', function () {
+        flock.uiPlane = { isPickable: true };
+        flock.meshTexture = { rootContainer: { children: [{ isPointerBlocker: false }] } };
+
+        flock._syncXRHUDPicking();
+
+        expect(flock.uiPlane.isPickable).to.equal(false);
+      });
+
+      it('makes the panel pickable for a nested interactive control', function () {
+        flock.uiPlane = { isPickable: false };
+        flock.meshTexture = {
+          rootContainer: {
+            children: [{ isPointerBlocker: false, children: [{ isPointerBlocker: true }] }],
+          },
+        };
+
+        flock._syncXRHUDPicking();
+
+        expect(flock.uiPlane.isPickable).to.equal(true);
+      });
+
+      it('ignores hidden controls', function () {
+        flock.uiPlane = { isPickable: true };
+        flock.meshTexture = {
+          rootContainer: { children: [{ isVisible: false, isPointerBlocker: true }] },
+        };
+
+        flock._syncXRHUDPicking();
+
+        expect(flock.uiPlane.isPickable).to.equal(false);
+      });
+    });
+
     describe('VR view mode', function () {
       let originalState;
 

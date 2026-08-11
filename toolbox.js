@@ -609,6 +609,11 @@ const toolboxSceneXR = {
     },
     {
       kind: 'block',
+      type: 'set_xr_ui_placement',
+      keyword: 'vr ui hud wrist heads up display controls',
+    },
+    {
+      kind: 'block',
       type: 'add_teleport_target',
       keyword: 'teleport target',
     },

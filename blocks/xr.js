@@ -203,6 +203,28 @@ export function defineXRBlocks() {
     },
   };
 
+  Blockly.Blocks['set_xr_ui_placement'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_xr_ui_placement',
+        message0: translate('set_xr_ui_placement'),
+        args0: [
+          {
+            type: 'field_dropdown',
+            name: 'PLACEMENT',
+            options: [getDropdownOption('hud'), getDropdownOption('wrist')],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('set_xr_ui_placement'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
   for (const [type, messageKey] of [
     ['add_teleport_target', 'add_teleport_target'],
     ['remove_teleport_target', 'remove_teleport_target'],

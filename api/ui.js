@@ -115,8 +115,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     const textBlockId = id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -228,8 +227,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     if (!buttonId || typeof buttonId !== 'string') {
@@ -288,8 +286,8 @@ export const flockUI = {
     registerUIButton(buttonId, text, button, {
       x,
       y,
-      w: parseInt(size.width),
-      h: parseInt(size.height),
+      w: scaledWidth,
+      h: scaledHeight,
     });
 
     return buttonId;
@@ -311,8 +309,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     const sanitize = (val, { maxLen = 500 } = {}) => {
@@ -424,13 +421,11 @@ export const flockUI = {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
 
-    if (!flock.scene.UITexture) {
-      flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-        'UI',
-        true,
-        flock.scene
-      );
-    }
+    flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      'UI',
+      true,
+      flock.scene
+    );
 
     const existing = flock.scene.UITexture.getControlByName(id);
     if (existing) existing.dispose();
@@ -442,6 +437,8 @@ export const flockUI = {
     };
 
     const resolvedSize = sliderSizes[(size || 'MEDIUM').toUpperCase()] || sliderSizes.MEDIUM;
+    const scaledWidth = Math.round(parseInt(resolvedSize.width) * flock.displayScale);
+    const scaledHeight = Math.round(parseInt(resolvedSize.height) * flock.displayScale);
 
     const slider = new flock.GUI.Slider(id);
     slider.minimum = min;
@@ -452,13 +449,13 @@ export const flockUI = {
     slider.borderColor = 'transparent';
 
     slider.isPointerBlocker = true;
-    slider.thumbWidth = '20px';
+    slider.thumbWidth = `${Math.round(20 * flock.displayScale)}px`;
     slider.isFocusLinker = true;
 
     slider.color = textColor || '#000000'; // Color of the "filled" part and thumb
     slider.background = backgroundColor || '#ffffff'; // Color of the "empty" track
-    slider.height = resolvedSize.height;
-    slider.width = resolvedSize.width;
+    slider.height = `${scaledHeight}px`;
+    slider.width = `${scaledWidth}px`;
 
     slider.left = `${x}px`;
     slider.top = `${y}px`;
@@ -478,8 +475,8 @@ export const flockUI = {
     registerUISlider(id, slider, {
       x,
       y,
-      w: parseInt(resolvedSize.width),
-      h: parseInt(resolvedSize.height),
+      w: scaledWidth,
+      h: scaledHeight,
     });
 
     return slider;

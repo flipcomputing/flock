@@ -43,17 +43,29 @@ export const createFlockXRState = () => ({
   _xrSessionActive: false,
   _xrDesktopUITexture: null,
   _xrVirtualKeyboard: null,
+  _xrUIPlacement: 'hud',
+  _xrUIControllerObserver: null,
+  _xrUIControllerRemovedObserver: null,
 });
+
+const XR_WRIST_SCALE = 0.35;
 
 export const flockXR = {
   _moveUIControls(source, target) {
     if (!source?.rootContainer || !target?.addControl) return;
     const controls = [...(source.rootContainer.children ?? [])];
     for (const control of controls) {
-      if (control === flock._xrVirtualKeyboard) continue;
       source.removeControl?.(control);
       target.addControl(control);
     }
+  },
+  _hideXRKeyboard(input) {
+    const keyboard = flock._xrVirtualKeyboard;
+    if (!keyboard) return;
+    keyboard.disconnect(input);
+    if (keyboard.connectedInputText) return;
+    keyboard._flockSubmit = null;
+    keyboard.isVisible = false;
   },
   _showXRKeyboardForInput(input, onSubmit) {
     if (!flock._xrSessionActive || !input || !flock.meshTexture) return;
@@ -77,6 +89,45 @@ export const flockXR = {
     flock._xrVirtualKeyboard.connect(input);
     flock._xrVirtualKeyboard._flockSubmit = onSubmit;
     flock._xrVirtualKeyboard.isVisible = true;
+    // Control.dispose() clears onBlurObservable without firing it.
+    input.onDisposeObservable?.addOnce?.(() => flock._hideXRKeyboard(input));
+  },
+  _xrWristParent() {
+    const left = (flock.xrHelper?.input?.controllers ?? []).find(
+      (controller) => controller.inputSource?.handedness === 'left'
+    );
+    return left?.grip ?? left?.pointer ?? null;
+  },
+  _applyXRUIPlacement() {
+    const plane = flock.uiPlane;
+    if (!plane) return;
+
+    const wristParent = flock._xrUIPlacement === 'wrist' ? flock._xrWristParent() : null;
+    if (wristParent) {
+      plane.parent = wristParent;
+      plane.position.set(0.1, -0.05, 0);
+      plane.rotation.set(Math.PI / 2, 0, 0);
+      plane.scaling.setAll(XR_WRIST_SCALE);
+      return;
+    }
+
+    plane.parent = flock.xrHelper?.baseExperience?.camera ?? null;
+    plane.position.set(0, 0, 1.5);
+    plane.rotation.set(0, 0, 0);
+    plane.scaling.setAll(1);
+  },
+  _hudHasInteractiveControls(container) {
+    for (const child of container?.children ?? []) {
+      if (child.isVisible === false) continue;
+      if (child.isPointerBlocker) return true;
+      if (flock._hudHasInteractiveControls(child)) return true;
+    }
+    return false;
+  },
+  // The panel sits between viewer and scene, so it must only swallow rays when pressable.
+  _syncXRHUDPicking() {
+    if (!flock.uiPlane) return;
+    flock.uiPlane.isPickable = flock._hudHasInteractiveControls(flock.meshTexture?.rootContainer);
   },
   _enterXRHUD() {
     if (!flock.meshTexture || !flock.scene) return;
@@ -110,6 +161,14 @@ export const flockXR = {
     flock._xrSource = null;
     if (flock._xrViewObserver && flock._xrViewObserverScene) {
       flock._xrViewObserverScene.onBeforeRenderObservable?.remove?.(flock._xrViewObserver);
+    }
+    if (flock._xrUIControllerObserver) {
+      flock.xrHelper?.input?.onControllerAddedObservable?.remove?.(flock._xrUIControllerObserver);
+    }
+    if (flock._xrUIControllerRemovedObserver) {
+      flock.xrHelper?.input?.onControllerRemovedObservable?.remove?.(
+        flock._xrUIControllerRemovedObserver
+      );
     }
     if (flock._xrMeshObserverScene) {
       if (flock._xrMeshAddedObserver) {
@@ -271,8 +330,13 @@ export const flockXR = {
         stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
         stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       }
-      if (flock.uiPlane) flock.uiPlane.isVisible = true;
-      if (flock.advancedTexture) flock.advancedTexture.isVisible = false;
+      if (flock.uiPlane) {
+        flock.uiPlane.isVisible = true;
+        flock._applyXRUIPlacement();
+      }
+      if (flock.advancedTexture?.rootContainer) {
+        flock.advancedTexture.rootContainer.isVisible = false;
+      }
     } else if (state === flock.BABYLON.WebXRState.IN_XR) {
       const baseExperience = flock.xrHelper?.baseExperience;
       if (!baseExperience) return;
@@ -544,9 +608,8 @@ export const flockXR = {
       flock.scene
     );
     flock.uiPlane.isVisible = false;
-    flock.uiPlane.isPickable = true;
-    flock.uiPlane.parent = flock.xrHelper.baseExperience.camera;
-    flock.uiPlane.position.set(0, 0, 1.5);
+    flock.uiPlane.isPickable = false;
+    flock.uiPlane.metadata = { isXRHUD: true };
 
     flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
       flock.uiPlane,
@@ -557,13 +620,25 @@ export const flockXR = {
     flock.uiPlane.material.disableDepthWrite = true;
     flock.uiPlane.material.disableLighting = true;
 
+    // Removal fires before the grip is disposed, so reparenting here is safe.
+    flock._xrUIControllerObserver = flock.xrHelper.input.onControllerAddedObservable.add(() =>
+      flock._applyXRUIPlacement()
+    );
+    flock._xrUIControllerRemovedObserver = flock.xrHelper.input.onControllerRemovedObservable.add(
+      () => flock._applyXRUIPlacement()
+    );
+    flock._applyXRUIPlacement();
+
     flock._xrSource = new XRSource(flock.inputManager, {
       xrHelper: flock.xrHelper,
       scene: flock.scene,
     });
     flock._applyXRInputState();
     flock._xrSource.start();
-    flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => flock._updateXRView());
+    flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => {
+      flock._syncXRHUDPicking();
+      flock._updateXRView();
+    });
     flock._xrViewObserverScene = flock.scene;
 
     flock._teleportFloorMeshes = new Set();
@@ -643,6 +718,11 @@ export const flockXR = {
     flock._applyTeleportationState?.();
     flock._resetXRViewTracking?.({ reposition: true });
     flock._applyXRViewVisibility?.();
+  },
+  setXRUIPlacement(placement) {
+    if (placement !== 'hud' && placement !== 'wrist') return;
+    flock._xrUIPlacement = placement;
+    flock._applyXRUIPlacement();
   },
   setXRCameraMotionMode(mode) {
     const validModes =
