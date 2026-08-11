@@ -1255,6 +1255,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Mira alrededor con las flechas y Page Up/Down o Fn + ↑ ↓', // human
   fly_camera_instructions_touch:
     'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
+  select_mesh_prompt: 'ℹ️ Selecciona un objeto, o usa las flechas para mover el cursor.',
   select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
   select_mesh_duplicate_prompt: 'ℹ️ Selecciona un objeto para duplicar.', // Google (had to update it)
   place_duplicate_prompt: 'ℹ️ Haz clic para colocar una copia.', // AI-generated; needs validation
@@ -1406,6 +1407,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controles en pantalla', // machine
   hud_hidden: 'Controles en pantalla ocultos', // machine
   hud_shown: 'Controles en pantalla visibles', // machine
+  gizmo_controls_hint: 'ℹ️ Haz clic en el botón del engranaje para mostrar/ocultar los controles.', // machine
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 

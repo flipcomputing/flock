@@ -1188,6 +1188,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
     "ℹ️ Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
+  select_mesh_prompt: 'ℹ️ Sélectionnez un objet, ou utilisez les flèches pour déplacer le curseur.',
   select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
   select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
   place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
@@ -1342,6 +1343,7 @@ export default {
   shortcut_toggle_hud: "Afficher/masquer les commandes à l'écran", // machine
   hud_hidden: "Commandes à l'écran masquées", // machine
   hud_shown: "Commandes à l'écran affichées", // machine
+  gizmo_controls_hint: "ℹ️ Cliquez sur le bouton en forme d'engrenage pour afficher/masquer les commandes.", // machine
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 

@@ -1186,6 +1186,7 @@ export default {
     'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
+  select_mesh_prompt: 'ℹ️ Wybierz obiekt lub użyj klawiszy strzałek, aby przesunąć kursor.',
   select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',
   select_mesh_duplicate_prompt: 'ℹ️ Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'ℹ️ Kliknij, aby umieścić kopię.', // AI-generated; needs validation
@@ -1336,6 +1337,7 @@ export default {
   shortcut_toggle_hud: 'Pokaż/ukryj sterowanie ekranowe', // machine
   hud_hidden: 'Sterowanie ekranowe ukryte', // machine
   hud_shown: 'Sterowanie ekranowe widoczne', // machine
+  gizmo_controls_hint: 'ℹ️ Kliknij przycisk trybika, aby pokazać/ukryć sterowanie.', // machine
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 

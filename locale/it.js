@@ -1198,6 +1198,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Guarda intorno con le frecce e Pag su/giù o Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
+  select_mesh_prompt: 'ℹ️ Seleziona un oggetto, oppure usa le frecce per spostare il cursore.',
   select_mesh_delete_prompt: 'ℹ️ Clicca su un oggetto per eliminarlo.',
   select_mesh_duplicate_prompt: 'ℹ️ Seleziona un oggetto da duplicare.',
   place_duplicate_prompt: 'ℹ️ Fai clic per posizionare una copia.', // AI-generated; needs validation
@@ -1344,6 +1345,7 @@ export default {
   shortcut_toggle_hud: 'Mostra/nascondi i comandi a schermo', // machine
   hud_hidden: 'Comandi a schermo nascosti', // machine
   hud_shown: 'Comandi a schermo visibili', // machine
+  gizmo_controls_hint: 'ℹ️ Clicca sul pulsante a forma di ingranaggio per mostrare/nascondere i comandi.', // machine
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 

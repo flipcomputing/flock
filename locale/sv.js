@@ -1171,6 +1171,7 @@ export default {
   fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
+  select_mesh_prompt: 'ℹ️ Välj ett objekt, eller använd piltangenterna för att flytta kursorn.',
   select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
   select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
@@ -1320,6 +1321,7 @@ export default {
   shortcut_toggle_hud: 'Visa/dölj skärmkontroller', // machine
   hud_hidden: 'Skärmkontroller dolda', // machine
   hud_shown: 'Skärmkontroller visas', // machine
+  gizmo_controls_hint: 'ℹ️ Klicka på kugghjulsknappen för att visa/dölja kontrollerna.', // machine
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 
