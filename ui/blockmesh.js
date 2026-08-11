@@ -1515,13 +1515,30 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
   mesh.rotation = flock.BABYLON.Vector3.Zero();
+  // rotationQuaternion takes priority over rotation when set, so it must be
+  // cleared too or callers that bake the transform into vertices (e.g.
+  // setAbsoluteSize) will bake in the old rotation as well.
+  mesh.rotationQuaternion = null;
   return mesh;
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
   flock.ensureUniqueGeometry(mesh);
-  const boundingInfo = mesh.getBoundingInfo();
-  const originalSize = boundingInfo.boundingBox.extendSize;
+
+  // Anchor to the true original geometry (captured once), like flock.resize().
+  mesh.metadata = mesh.metadata || {};
+  if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
+    const bi = mesh.getBoundingInfo();
+    mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+    mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+  }
+  const origMin = mesh.metadata.originalMin;
+  const origMax = mesh.metadata.originalMax;
+  const originalSize = {
+    x: (origMax.x - origMin.x) / 2,
+    y: (origMax.y - origMin.y) / 2,
+    z: (origMax.z - origMin.z) / 2,
+  };
 
   // Store the current world matrix and decompose it
   const worldMatrix = mesh.computeWorldMatrix(true);
