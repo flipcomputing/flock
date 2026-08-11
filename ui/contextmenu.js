@@ -680,10 +680,16 @@ export function initContextMenus(workspace) {
       return result === key ? fallback : result;
     };
 
+    // Helper: set both the a11y label and the native hover tooltip together,
+    // so toolbar buttons always show hover text like the rest of the app.
+    const setToolbarLabel = (el, label) => {
+      el.setAttribute('aria-label', label);
+      el.title = label;
+    };
+
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
-    duplicateBtn.setAttribute('aria-label', getToolbarLabel('duplicate_button_ui', 'Duplicate'));
     // fa-copy
     duplicateBtn.innerHTML = mkFaSvg(
       '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
@@ -692,7 +698,6 @@ export function initContextMenus(workspace) {
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
-    deleteBtn.setAttribute('aria-label', getToolbarLabel('delete_button_ui', 'Delete'));
     // fa-trash
     deleteBtn.innerHTML = mkFaSvg(
       '<path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>'
@@ -701,12 +706,20 @@ export function initContextMenus(workspace) {
     const detachBtn = document.createElement('button');
     detachBtn.type = 'button';
     detachBtn.className = 'fc-block-toolbar-btn';
-    detachBtn.setAttribute('aria-label', getToolbarLabel('shortcut_detach_block', 'Detach'));
     // fa-link-slash
     detachBtn.innerHTML = mkFaSvg(
       '<path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L489.3 358.2l90.5-90.5c56.5-56.5 56.5-148 0-204.5c-50-50-128.8-56.5-186.3-15.4l-1.6 1.1c-14.4 10.3-17.7 30.3-7.4 44.6s30.3 17.7 44.6 7.4l1.6-1.1c32.1-22.9 76-19.3 103.8 8.6c31.5 31.5 31.5 82.5 0 114l-96 96-31.9-25C430.9 239.6 420.1 175.1 377 132c-52.2-52.3-134.5-56.2-191.3-11.7L38.8 5.1zM239 162c30.1-14.9 67.7-9.9 92.8 15.3c20 20 27.5 48.3 21.7 74.5L239 162zM406.6 416.4L220.9 270c-2.1 39.8 12.2 80.1 42.2 110c38.9 38.9 94.4 51 143.6 36.3zm-290-228.5L60.2 244.3c-56.5 56.5-56.5 148 0 204.5c50 50 128.8 56.5 186.3 15.4l1.6-1.1c14.4-10.3 17.7-30.3 7.4-44.6s-30.3-17.7-44.6-7.4l-1.6 1.1c-32.1 22.9-76 19.3-103.8-8.6C74 372 74 321 105.5 289.5l61.8-61.8-50.6-39.9z"/>',
       '0 0 640 512'
     );
+
+    // duplicate/delete/detach labels don't change per-block, so nothing else
+    // re-applies them after creation — without this, switching language after
+    // the toolbar first renders would leave them stuck in the old language.
+    function refreshStaticToolbarLabels() {
+      setToolbarLabel(duplicateBtn, getToolbarLabel('duplicate_block_button_ui', 'Duplicate block'));
+      setToolbarLabel(deleteBtn, getToolbarLabel('delete_block_button_ui', 'Delete block'));
+      setToolbarLabel(detachBtn, getToolbarLabel('shortcut_detach_block', 'Detach'));
+    }
 
     // Passive "press M to move" hint. Looks like a toolbar button but is inert
     // (pointer-events: none): it exists purely so keyboard users see the move
@@ -723,7 +736,7 @@ export function initContextMenus(workspace) {
     const commentBtn = document.createElement('button');
     commentBtn.type = 'button';
     commentBtn.className = 'fc-block-toolbar-btn';
-    commentBtn.setAttribute('aria-label', getToolbarLabel('add_comment', 'Add comment'));
+    setToolbarLabel(commentBtn, getToolbarLabel('add_comment', 'Add comment'));
     // fa-comment (pre-6.7 path revision; same rendered glyph as current fa-comment)
     const commentAddSvg = mkFaSvg(
       '<path d="M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 49.6 21.4 95 57 130.7C44.5 421.1 2.7 466 2.2 466.5c-2.2 2.4-2.8 5.7-1.5 8.7S4.8 480 8 480c66.3 0 116-31.8 140.6-51.4C169.2 433.6 212.3 448 256 448z"/>',
@@ -739,12 +752,12 @@ export function initContextMenus(workspace) {
     const enableBtn = document.createElement('button');
     enableBtn.type = 'button';
     enableBtn.className = 'fc-block-toolbar-btn';
-    // fa-ban — shown when the block is currently disabled.
+    // fa-ban — shown when the block is currently enabled (click to disable).
     const blockDisableSvg = mkFaSvg(
       '<path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/>',
       '0 0 512 512'
     );
-    // fa-circle-check — shown when the block is currently enabled.
+    // fa-circle-check — shown when the block is currently disabled (click to enable).
     const blockEnableSvg = mkFaSvg(
       '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>',
       '0 0 512 512'
@@ -764,7 +777,7 @@ export function initContextMenus(workspace) {
     const viewBtn = document.createElement('button');
     viewBtn.type = 'button';
     viewBtn.className = 'fc-block-toolbar-btn';
-    viewBtn.setAttribute('aria-label', getToolbarLabel('view_in_canvas', 'View in canvas'));
+    setToolbarLabel(viewBtn, getToolbarLabel('view_in_canvas', 'View in canvas'));
     viewBtn.innerHTML = viewEnterSvg;
 
     blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, enableBtn, viewBtn, deleteBtn);
@@ -1021,8 +1034,11 @@ export function initContextMenus(workspace) {
       const block = toolbarBlock;
       if (!block) return;
       const simplified = isLooseAndMovable(block);
-      duplicateBtn.style.display = simplified ? 'none' : '';
-      commentBtn.style.display = isBlockLocked(block) || simplified ? 'none' : '';
+      const locked = isBlockLocked(block);
+      duplicateBtn.style.display = '';
+      commentBtn.style.display = locked ? 'none' : '';
+      detachBtn.style.display = locked || !isDetachable(block) ? 'none' : '';
+      enableBtn.style.display = locked || simplified ? 'none' : '';
       moveHint.style.display = toolbarKeyboardMode && simplified ? '' : 'none';
       // Loose blocks never show View, regardless of mesh state — no point
       // waiting on a mesh check for a block that isn't placed anywhere yet.
@@ -1043,8 +1059,8 @@ export function initContextMenus(workspace) {
     // crossed-out "delete" icon when it does, plain "add" icon when it doesn't.
     function updateCommentButton(block) {
       const hasComment = block.getCommentText() !== null;
-      commentBtn.setAttribute(
-        'aria-label',
+      setToolbarLabel(
+        commentBtn,
         hasComment
           ? getToolbarLabel('delete_comment', 'Delete comment')
           : getToolbarLabel('add_comment', 'Add comment')
@@ -1054,11 +1070,11 @@ export function initContextMenus(workspace) {
 
     function updateEnableButton(block) {
       const disabled = block.hasDisabledReason('MANUALLY_DISABLED');
-      enableBtn.setAttribute(
-        'aria-label',
+      setToolbarLabel(
+        enableBtn,
         disabled ? getToolbarLabel('context_enable_option', 'Enable') : getToolbarLabel('context_disable_option', 'Disable')
       );
-      enableBtn.innerHTML = disabled ? blockDisableSvg : blockEnableSvg;
+      enableBtn.innerHTML = disabled ? blockEnableSvg : blockDisableSvg;
     }
 
     function showBlockToolbar(block, { keyboard = false } = {}) {
@@ -1068,9 +1084,8 @@ export function initContextMenus(workspace) {
       // Locked blocks can't be edited: hide the mutating buttons (detach,
       // comment, enable/disable, delete), leaving duplicate and view-in-canvas available.
       const locked = isBlockLocked(block);
-      detachBtn.style.display = !locked && isDetachable(block) ? '' : 'none';
       deleteBtn.style.display = locked ? 'none' : '';
-      enableBtn.style.display = locked ? 'none' : '';
+      refreshStaticToolbarLabels();
       updateSimplifiedToolbar();
       updateCommentButton(block);
       updateEnableButton(block);
@@ -1086,10 +1101,10 @@ export function initContextMenus(workspace) {
         !!window.orbitViewActive &&
         (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
       viewBtn.innerHTML = exitMode ? viewExitSvg : viewEnterSvg;
-      viewBtn.setAttribute(
-        'aria-label',
+      setToolbarLabel(
+        viewBtn,
         exitMode
-          ? getToolbarLabel('exit_canvas_view', 'Exit canvas view')
+          ? getToolbarLabel('exit_canvas_view', 'Stop orbiting object')
           : getToolbarLabel('view_in_canvas', 'View in canvas')
       );
       blockToolbar.classList.add('visible');

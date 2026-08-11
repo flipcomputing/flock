@@ -1132,6 +1132,8 @@ export default {
   select_button_ui: 'Seleccionar objeto', // human
   duplicate_button_ui: 'Duplicar objeto seleccionado', // human
   delete_button_ui: 'Eliminar objeto seleccionado', // human
+  delete_block_button_ui: 'Eliminar bloque',
+  duplicate_block_button_ui: 'Duplicar bloque',
   camera_button_ui: 'Controles de cámara', // human
   eye_button_ui: 'Orbitar alrededor del objeto seleccionado',
 
@@ -1178,6 +1180,12 @@ export default {
   context_expand_all_option: 'Expandir todo',
   context_disable_option: 'Deshabilitar',
   context_enable_option: 'Habilitar',
+  add_comment: 'Añadir comentario',
+  delete_comment: 'Eliminar comentario',
+  view_in_canvas: 'Ver en el lienzo',
+  exit_canvas_view: 'Dejar de orbitar el objeto',
+  detach_block_option: 'Desconectar',
+  view_in_canvas_option: 'Ver en el lienzo',
   context_copy_option: 'Copiar', // human
   context_paste_option: 'Pegar', // human
   context_cut_option: 'Cortar', // human
