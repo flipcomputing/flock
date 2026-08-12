@@ -1219,12 +1219,106 @@ export function runXRTests(flock) {
     });
 
     describe('setCameraBackground', function () {
+      const keys = [
+        '_cameraBackgroundLayer',
+        '_cameraBackgroundTexture',
+        '_cameraBackgroundFacing',
+        '_xrMirror',
+        '_xrSessionActive',
+        '_xrMode',
+      ];
+      let saved;
+      let savedHelper;
+
+      beforeEach(function () {
+        saved = Object.fromEntries(keys.map((key) => [key, flock[key]]));
+        savedHelper = flock.xrHelper;
+      });
+
+      afterEach(function () {
+        flock._disposeCameraBackground();
+        Object.assign(flock, saved);
+        flock.xrHelper = savedHelper;
+      });
+
+      const startFeed = (facing) => {
+        const texture = new flock.BABYLON.DynamicTexture(
+          'cameraBackgroundTest',
+          { width: 64, height: 48 },
+          flock.scene
+        );
+        flock._cameraBackgroundTexture = texture;
+        flock._cameraBackgroundFacing = facing;
+        flock._applyCameraBackground();
+        return texture;
+      };
+
+      const enterVR = (position, forward) => {
+        flock.xrHelper = {
+          baseExperience: {
+            camera: { position, getDirection: () => forward.clone() },
+          },
+        };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+      };
+
       it("should not throw when called with 'user'", function () {
         expect(() => flock.setCameraBackground('user')).to.not.throw();
       });
 
       it("should not throw when called with 'environment'", function () {
         expect(() => flock.setCameraBackground('environment')).to.not.throw();
+      });
+
+      it('swaps the flat layer for a mirror facing the viewer when a VR session starts', function () {
+        const texture = startFeed('user');
+        expect(flock._cameraBackgroundLayer).to.not.equal(null);
+
+        enterVR(new flock.BABYLON.Vector3(1, 1.6, 2), new flock.BABYLON.Vector3(1, 0, 0));
+        flock._applyCameraBackground();
+
+        expect(flock._cameraBackgroundLayer).to.equal(null);
+        const mirror = flock._xrMirror;
+        expect(mirror).to.not.equal(null);
+        // Disposing the layer must not take the shared feed with it.
+        expect(texture.isDisposed?.() ?? false).to.equal(false);
+        expect(mirror.material.emissiveTexture).to.equal(texture);
+
+        expect(mirror.position.x).to.be.closeTo(3.5, 1e-6);
+        expect(mirror.position.y).to.be.closeTo(1.6, 1e-6);
+        expect(mirror.position.z).to.be.closeTo(2, 1e-6);
+
+        mirror.computeWorldMatrix(true);
+        const facing = flock.BABYLON.Vector3.TransformNormal(
+          new flock.BABYLON.Vector3(0, 0, -1),
+          mirror.getWorldMatrix()
+        );
+        expect(facing.x).to.be.closeTo(-1, 1e-6);
+        expect(facing.y).to.be.closeTo(0, 1e-6);
+        expect(facing.z).to.be.closeTo(0, 1e-6);
+      });
+
+      it('puts the flat layer back when the VR session ends', function () {
+        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
+        const texture = startFeed('user');
+        const mirror = flock._xrMirror;
+        expect(mirror).to.not.equal(null);
+
+        flock._xrSessionActive = false;
+        flock._applyCameraBackground();
+
+        expect(flock._xrMirror).to.equal(null);
+        expect(mirror.isDisposed()).to.equal(true);
+        expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
+      });
+
+      it('leaves the world-facing camera on the flat layer in VR', function () {
+        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
+        const texture = startFeed('environment');
+
+        expect(flock._xrMirror).to.equal(null);
+        expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
       });
     });
 

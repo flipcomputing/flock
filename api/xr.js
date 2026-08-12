@@ -53,6 +53,11 @@ export const createFlockXRState = () => ({
   _xrUIControllerObserver: null,
   _xrUIControllerRemovedObserver: null,
   _xrHUDActive: false,
+  _cameraBackgroundLayer: null,
+  _cameraBackgroundTexture: null,
+  _cameraBackgroundFacing: null,
+  _cameraBackgroundRequest: 0,
+  _xrMirror: null,
 });
 
 // The panel spans about 56 degrees at this distance.
@@ -66,6 +71,11 @@ const XR_HUD_TEXTURE_HEIGHT = 864;
 const XR_HUD_MAGNIFICATION = 2.5;
 // Holds the wrist panel at the size it had with the smaller HUD plane.
 const XR_WRIST_SCALE = 0.26;
+
+// The mirror spans about 44 degrees of the view at this distance.
+const XR_MIRROR_DISTANCE = 2.5;
+const XR_MIRROR_WIDTH = 2;
+const XR_MIRROR_ASPECT = 4 / 3;
 
 const SNAP_TURN_ANGLE = Math.PI / 6;
 const SNAP_TURN_PRESS = 0.7;
@@ -394,9 +404,11 @@ export const flockXR = {
       flock._positionXRWatchCamera();
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
+      flock._applyCameraBackground();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       flock._xrSessionActive = false;
       flock._applyXRViewVisibility();
+      flock._applyCameraBackground();
       flock._xrSource?.stop();
       const stackPanel = flock.stackPanel;
       if (stackPanel) {
@@ -830,7 +842,97 @@ export const flockXR = {
     // Handle XR state changes
     flock.xrHelper.baseExperience.onStateChangedObservable.add(flock._handleXRStateChange);
   },
-  /* 
+  _cameraBackgroundNeedsMirror() {
+    return (
+      flock._xrSessionActive && flock._xrMode === 'VR' && flock._cameraBackgroundFacing === 'user'
+    );
+  },
+  _disposeCameraBackgroundLayer() {
+    const layer = flock._cameraBackgroundLayer;
+    if (!layer) return;
+    flock._cameraBackgroundLayer = null;
+    // Layer.dispose() takes its texture with it, and the mirror may be about to adopt it.
+    layer.texture = null;
+    layer.dispose();
+  },
+  _disposeXRMirror() {
+    const mirror = flock._xrMirror;
+    if (!mirror) return;
+    flock._xrMirror = null;
+    mirror.material?.dispose();
+    mirror.dispose();
+  },
+  _disposeCameraBackground() {
+    // Strands any webcam request still starting up.
+    flock._cameraBackgroundRequest = (flock._cameraBackgroundRequest ?? 0) + 1;
+    flock._disposeCameraBackgroundLayer();
+    flock._disposeXRMirror();
+    // Disposing the texture is what releases the webcam.
+    flock._cameraBackgroundTexture?.dispose();
+    flock._cameraBackgroundTexture = null;
+    flock._cameraBackgroundFacing = null;
+  },
+  _showCameraBackgroundLayer(texture) {
+    if (flock._cameraBackgroundLayer || !flock.scene) return;
+    const layer = new flock.BABYLON.Layer('videoLayer', null, flock.scene, true);
+    layer.texture = texture;
+    flock._cameraBackgroundLayer = layer;
+  },
+  // A background layer is screen space, so both eyes get identical pixels and the feed has no
+  // stereo depth at all: in VR it reads as pressed against the face. A plane in the scene doesn't.
+  _showXRMirror(texture) {
+    if (flock._xrMirror || !flock.scene) return;
+
+    const size = texture.getSize?.();
+    const aspect = size?.width && size?.height ? size.width / size.height : XR_MIRROR_ASPECT;
+    const mirror = flock.BABYLON.MeshBuilder.CreatePlane(
+      'xrCameraMirror',
+      { width: XR_MIRROR_WIDTH, height: XR_MIRROR_WIDTH / aspect },
+      flock.scene
+    );
+    const material = new flock.BABYLON.StandardMaterial('xrCameraMirrorMaterial', flock.scene);
+    material.disableLighting = true;
+    material.emissiveTexture = texture;
+    mirror.material = material;
+    mirror.isPickable = false;
+    mirror.applyFog = false;
+    flock.glowLayer?.addExcludedMesh?.(mirror);
+
+    flock._xrMirror = mirror;
+    flock._positionXRMirror();
+  },
+  // World-locked once placed, so the viewer can turn away from it like a mirror on a wall.
+  _positionXRMirror() {
+    const mirror = flock._xrMirror;
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!mirror || !xrCamera?.position) return;
+
+    const forward = xrCamera.getDirection(flock.BABYLON.Vector3.Forward());
+    forward.y = 0;
+    if (forward.lengthSquared() < 1e-6) forward.copyFrom(flock.BABYLON.Vector3.Forward());
+    forward.normalize();
+
+    const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 0.5, 10);
+    mirror.position.set(
+      xrCamera.position.x + forward.x * distance,
+      xrCamera.position.y,
+      xrCamera.position.z + forward.z * distance
+    );
+    // A plane faces down its own -Z, so matching the viewer's heading turns it back on them.
+    mirror.rotation.set(0, Math.atan2(forward.x, forward.z), 0);
+  },
+  _applyCameraBackground() {
+    const texture = flock._cameraBackgroundTexture;
+    if (!texture) return;
+    if (flock._cameraBackgroundNeedsMirror()) {
+      flock._disposeCameraBackgroundLayer();
+      flock._showXRMirror(texture);
+    } else {
+      flock._disposeXRMirror();
+      flock._showCameraBackgroundLayer(texture);
+    }
+  },
+  /*
           Category: Scene>XR
   */
 
@@ -842,14 +944,24 @@ export const flockXR = {
       return;
     }
 
-    const videoLayer = new flock.BABYLON.Layer('videoLayer', null, flock.scene, true);
+    flock._disposeCameraBackground();
+    flock._cameraBackgroundFacing = cameraType;
+    // Captured now: a later call, or a stop, has to be able to strand this request.
+    const request = (flock._cameraBackgroundRequest ?? 0) + 1;
+    flock._cameraBackgroundRequest = request;
+    const signal = flock.abortController?.signal;
 
     flock.BABYLON.VideoTexture.CreateFromWebCam(
       flock.scene,
       (videoTexture) => {
+        if (request !== flock._cameraBackgroundRequest || signal?.aborted || !flock.scene) {
+          videoTexture.dispose();
+          return;
+        }
         videoTexture._invertY = false; // Correct orientation
         videoTexture.uScale = -1; // Flip horizontally for mirror effect
-        videoLayer.texture = videoTexture; // Assign the video feed to the layer
+        flock._cameraBackgroundTexture = videoTexture;
+        flock._applyCameraBackground();
       },
       {
         facingMode: cameraType, // "user" for front, "environment" for back
