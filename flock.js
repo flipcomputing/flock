@@ -1883,6 +1883,7 @@ export const flock = {
         // Clear all scene observables
         flock.scene.onActiveCameraChanged?.remove(flock._audioListenerObserver);
         flock._audioListenerObserver = null;
+        flock._audioListenerTickObserver = null;
         flock.scene.onBeforeRenderObservable?.clear();
         flock.scene.onAfterRenderObservable?.clear();
         flock.scene.onBeforeAnimationsObservable?.clear();
@@ -2008,9 +2009,11 @@ export const flock = {
         // cleanup ran (set audioEnginePromise to null) or a new scene replaced
         // it before this async init resolved — and dispose the stale engine.
         let enginePromise;
+        // listenerAutoUpdate ticks on window rAF, which stops in an immersive XR
+        // session. Driven from the scene render loop below so VR keeps distance falloff.
         enginePromise = flock.BABYLON.CreateAudioEngineAsync({
           volume: 1,
-          listenerAutoUpdate: true,
+          listenerAutoUpdate: false,
           listenerEnabled: true,
           resumeOnInteraction: true,
         })
@@ -2034,6 +2037,10 @@ export const flock = {
               if (flock.scene?.activeCamera) {
                 audioEngine.listener.attach(flock.scene.activeCamera);
               }
+            });
+            flock._audioListenerTickObserver = flock.scene?.onBeforeRenderObservable?.add(() => {
+              if (flock.audioEngine !== audioEngine) return;
+              audioEngine.listener.update();
             });
           })
           .catch((err) => {
