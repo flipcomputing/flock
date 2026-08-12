@@ -64,6 +64,7 @@ function makeMotionController(handedness) {
   } else if (handedness === 'right') {
     components['a-button'] = makeComponent();
     components['b-button'] = makeComponent();
+    components['xr-standard-thumbstick'] = makeComponent();
   }
   return {
     components,
@@ -208,6 +209,40 @@ export function runXRSourceTests() {
         mc.components['xr-standard-thumbstick'].axes.x = 0;
         scene.tick();
         expect(manager.isKeyDown('a')).to.be.false;
+      });
+
+      it("right thumbstick x = 0.9 → getAxis('XR_TURN_X') === 0.9", function () {
+        const controller = makeController('right');
+        const mc = addController(controller);
+        mc.components['xr-standard-thumbstick'].axes.x = 0.9;
+        scene.tick();
+        expect(manager.getAxis('XR_TURN_X')).to.equal(0.9);
+      });
+
+      it("right thumbstick x = 0.1 → getAxis('XR_TURN_X') === 0 (dead-zone)", function () {
+        const controller = makeController('right');
+        const mc = addController(controller);
+        mc.components['xr-standard-thumbstick'].axes.x = 0.1;
+        scene.tick();
+        expect(manager.getAxis('XR_TURN_X')).to.equal(0);
+      });
+
+      it('right thumbstick still turns while project movement is disabled', function () {
+        const controller = makeController('right');
+        const mc = addController(controller);
+        source.setInputMode('disabled');
+        mc.components['xr-standard-thumbstick'].axes.x = -0.9;
+        scene.tick();
+        expect(manager.getAxis('XR_TURN_X')).to.equal(-0.9);
+      });
+
+      it('removing the right controller clears the turn axis before the next frame', function () {
+        const controller = makeController('right');
+        const mc = addController(controller);
+        mc.components['xr-standard-thumbstick'].axes.x = 0.9;
+        scene.tick();
+        removeController(controller);
+        expect(manager.getAxis('XR_TURN_X')).to.equal(0);
       });
 
       it('disabled input mode suppresses thumbstick movement', function () {

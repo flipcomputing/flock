@@ -445,6 +445,12 @@ export function runXRTests(flock) {
           lastPosition: flock._xrFollowLastPosition,
           settledPosition: flock._xrFollowSettledPosition,
           lastMovedAt: flock._xrFollowLastMovedAt,
+          lastHeading: flock._xrFollowLastHeading,
+          watchYawOffset: flock._xrWatchYawOffset,
+          watchAnchorYaw: flock._xrWatchAnchorYaw,
+          watchAnchorPosition: flock._xrWatchAnchorPosition,
+          watchAnchorTarget: flock._xrWatchAnchorTarget,
+          snapTurnHeld: flock._xrSnapTurnHeld,
           watchPosition: flock._xrWatchPosition,
           nonXRCameraPosition: flock._xrNonXRCameraPosition,
           embodiedVisibility: flock._xrEmbodiedVisibility,
@@ -467,6 +473,12 @@ export function runXRTests(flock) {
         flock._xrFollowLastPosition = originalState.lastPosition;
         flock._xrFollowSettledPosition = originalState.settledPosition;
         flock._xrFollowLastMovedAt = originalState.lastMovedAt;
+        flock._xrFollowLastHeading = originalState.lastHeading;
+        flock._xrWatchYawOffset = originalState.watchYawOffset;
+        flock._xrWatchAnchorYaw = originalState.watchAnchorYaw;
+        flock._xrWatchAnchorPosition = originalState.watchAnchorPosition;
+        flock._xrWatchAnchorTarget = originalState.watchAnchorTarget;
+        flock._xrSnapTurnHeld = originalState.snapTurnHeld;
         flock._xrWatchPosition = originalState.watchPosition;
         flock._xrNonXRCameraPosition = originalState.nonXRCameraPosition;
         flock._xrEmbodiedVisibility = originalState.embodiedVisibility;
@@ -476,6 +488,7 @@ export function runXRTests(flock) {
         flock.inputManager._setAxis('XR_MOVE_X', 0);
         flock.inputManager._setAxis('XR_MOVE_Y', 0);
         flock.inputManager._setAxis('XR_MOVE_VERTICAL', 0);
+        flock.inputManager._setAxis('XR_TURN_X', 0);
       });
 
       it('sets view and camera motion independently in either order', function () {
@@ -642,6 +655,52 @@ export function runXRTests(flock) {
         expect(camera.position.x).to.equal(3);
       });
 
+      it('watch with smooth motion swings behind a turning character', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          rotation: new flock.BABYLON.Vector3(0, 0, 0),
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'smooth';
+        flock._resetXRViewTracking();
+
+        target.rotation.y = Math.PI / 2;
+        flock._updateXRView();
+
+        expect(camera.position.x).to.be.closeTo(-7, 0.000001);
+        expect(camera.position.y).to.equal(2);
+        expect(camera.position.z).to.be.closeTo(0, 0.000001);
+      });
+
+      it('comfort holds the view until a turning character stops', function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          rotation: new flock.BABYLON.Vector3(0, 0, 0),
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'comfort';
+        flock._resetXRViewTracking();
+
+        target.rotation.y = Math.PI / 2;
+        flock._updateXRView();
+        expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
+
+        flock._xrFollowLastMovedAt -= 300;
+        flock._updateXRView();
+        expect(camera.position.x).to.be.closeTo(-7, 0.000001);
+        expect(camera.position.z).to.be.closeTo(0, 0.000001);
+      });
+
       it('watch never inherits movement from the follow target', function () {
         const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
         const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
@@ -655,6 +714,94 @@ export function runXRTests(flock) {
         target.position.x = 3;
         flock._updateXRView();
         expect(camera.position.x).to.equal(0);
+      });
+
+      it('snap turns the embodied view once per thumbstick push', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 1.7, 0),
+          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = null;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'smooth';
+        flock._xrSnapTurnHeld = false;
+
+        flock.inputManager._setAxis('XR_TURN_X', 0.9);
+        flock._updateXRSnapTurn();
+        flock._updateXRSnapTurn();
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.be.closeTo(Math.PI / 6, 0.000001);
+
+        flock.inputManager._setAxis('XR_TURN_X', 0);
+        flock._updateXRSnapTurn();
+        flock.inputManager._setAxis('XR_TURN_X', -0.9);
+        flock._updateXRSnapTurn();
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.be.closeTo(0, 0.000001);
+      });
+
+      it('snap turn swings the watch camera around the character', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 2, -7),
+          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+        };
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrFollowTarget = target;
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'comfort';
+        flock._resetXRViewTracking();
+        flock._xrSnapTurnHeld = false;
+
+        flock.inputManager._setAxis('XR_TURN_X', 0.9);
+        flock._updateXRSnapTurn();
+
+        expect(camera.position.x).to.be.closeTo(-7 * Math.sin(Math.PI / 6), 0.000001);
+        expect(camera.position.z).to.be.closeTo(-7 * Math.cos(Math.PI / 6), 0.000001);
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.be.closeTo(Math.PI / 6, 0.000001);
+        expect(flock.BABYLON.Vector3.Distance(camera.position, target.position)).to.be.closeTo(
+          Math.sqrt(7 * 7 + 4),
+          0.000001
+        );
+      });
+
+      it('does not snap turn when canvas controls are disabled', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 1.7, 0),
+          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._canvasControlsEnabled = false;
+        flock._xrSnapTurnHeld = false;
+
+        flock.inputManager._setAxis('XR_TURN_X', 0.9);
+        flock._updateXRSnapTurn();
+
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.equal(0);
+      });
+
+      it('leaves snap turning to teleport steering', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 1.7, 0),
+          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+        };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'teleport';
+        flock._xrSnapTurnHeld = false;
+
+        flock.inputManager._setAxis('XR_TURN_X', 0.9);
+        flock._updateXRSnapTurn();
+
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.equal(0);
       });
 
       it('restores the watch position without a follow target', function () {

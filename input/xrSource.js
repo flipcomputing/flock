@@ -56,6 +56,7 @@ export class XRSource {
     );
 
     this.#frameObserver = this.#scene.onBeforeRenderObservable.add(() => {
+      this.#pollTurnStick();
       this.#pollThumbsticks();
       // Emit repeat ticks for all held keys (buttons and thumbstick shims)
       for (const key of this.#allHeldKeys) {
@@ -114,6 +115,7 @@ export class XRSource {
     this.#controllerState.clear();
 
     this.#clearThumbstickMovement();
+    this.#inputManager._setAxis('XR_TURN_X', 0);
     this.#allHeldKeys.clear();
   }
 
@@ -123,6 +125,20 @@ export class XRSource {
       for (const { name } of axes) this.#inputManager._setAxis(name, 0);
     }
     this.#inputManager._setAxis('XR_MOVE_VERTICAL', 0);
+  }
+
+  #motionController(handedness) {
+    for (const [, state] of this.#controllerState) {
+      if (state.handedness === handedness && state.motionController) return state.motionController;
+    }
+    return null;
+  }
+
+  // Turning stays live in every input mode: the view owns it, not the project.
+  #pollTurnStick() {
+    const thumbstick = this.#motionController('right')?.getComponent('xr-standard-thumbstick');
+    const raw = thumbstick?.axes?.x ?? 0;
+    this.#inputManager._setAxis('XR_TURN_X', Math.abs(raw) > DEAD_ZONE ? raw : 0);
   }
 
   #clearThumbstickShims() {
@@ -221,6 +237,8 @@ export class XRSource {
           this.#inputManager._setAxis(name, 0);
         }
       }
+    } else if (state.handedness === 'right') {
+      this.#inputManager._setAxis('XR_TURN_X', 0);
     }
 
     this.#controllerState.delete(controller.inputSource);
@@ -231,14 +249,7 @@ export class XRSource {
       this.#clearThumbstickMovement();
       return;
     }
-    let mc = null;
-    for (const [, state] of this.#controllerState) {
-      if (state.handedness === 'left' && state.motionController) {
-        mc = state.motionController;
-        break;
-      }
-    }
-
+    const mc = this.#motionController('left');
     if (!mc) {
       this.#clearThumbstickMovement();
       return;

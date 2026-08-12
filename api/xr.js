@@ -18,7 +18,13 @@ export const createFlockXRState = () => ({
   _xrFollowCameraVerticalOffset: null,
   _xrFollowLastPosition: null,
   _xrFollowSettledPosition: null,
+  _xrFollowLastHeading: null,
   _xrFollowLastMovedAt: 0,
+  _xrWatchYawOffset: null,
+  _xrWatchAnchorYaw: null,
+  _xrWatchAnchorPosition: null,
+  _xrWatchAnchorTarget: null,
+  _xrSnapTurnHeld: false,
   _xrWatchPosition: null,
   _xrNonXRCameraPosition: null,
   _xrEmbodiedVisibility: new Map(),
@@ -60,6 +66,13 @@ const XR_HUD_TEXTURE_HEIGHT = 864;
 const XR_HUD_MAGNIFICATION = 2.5;
 // Holds the wrist panel at the size it had with the smaller HUD plane.
 const XR_WRIST_SCALE = 0.26;
+
+const SNAP_TURN_ANGLE = Math.PI / 6;
+const SNAP_TURN_PRESS = 0.7;
+const SNAP_TURN_RELEASE = 0.3;
+// Comfort waits for the character to hold still before the view catches up.
+const COMFORT_SETTLE_MS = 250;
+const HEADING_EPSILON = 0.01;
 
 export const flockXR = {
   _moveUIControls(source, target) {
@@ -416,18 +429,125 @@ export const flockXR = {
     ) {
       xrCamera.position.copyFrom(flock._xrWatchPosition);
     }
-    if (!targetPosition) return;
+    if (targetPosition) {
+      flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
+      flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
+      flock._xrFollowLastHeading = flock._xrTargetHeading();
+      flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
 
-    flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
-    flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
-    flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
-
-    if (!reposition || !xrCamera?.position) return;
-    if (flock._xrViewMode === 'embody') {
-      if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
-      xrCamera.position.x = targetPosition.x;
-      xrCamera.position.z = targetPosition.z;
+      if (reposition && xrCamera?.position && flock._xrViewMode === 'embody') {
+        if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
+        xrCamera.position.x = targetPosition.x;
+        xrCamera.position.z = targetPosition.z;
+      }
     }
+    flock._syncXRWatchTrail(xrCamera?.position);
+  },
+  _xrTargetHeading() {
+    const target = flock._xrFollowTarget;
+    if (!target || target.isDisposed?.()) return null;
+    const quaternion = target.rotationQuaternion;
+    if (typeof quaternion?.toEulerAngles === 'function') return quaternion.toEulerAngles().y;
+    const heading = target.rotation?.y;
+    return Number.isFinite(heading) ? heading : null;
+  },
+  // The framing the watch camera keeps as the character walks and turns: where it sits
+  // relative to the character's own heading, so it trails the same shoulder throughout.
+  _syncXRWatchTrail(cameraPosition) {
+    flock._xrWatchYawOffset = null;
+    flock._xrWatchAnchorYaw = null;
+    flock._xrWatchAnchorPosition = null;
+    flock._xrWatchAnchorTarget = null;
+
+    const targetPosition = flock._xrTargetPosition();
+    if (!targetPosition || !cameraPosition || flock._xrViewMode !== 'watch') return;
+
+    const offsetX = cameraPosition.x - targetPosition.x;
+    const offsetZ = cameraPosition.z - targetPosition.z;
+    const horizontal = Math.hypot(offsetX, offsetZ);
+    if (horizontal < 0.001) return;
+
+    const yaw = Math.atan2(offsetX, offsetZ);
+    flock._xrWatchYawOffset = yaw - (flock._xrTargetHeading() ?? 0);
+    flock._xrWatchAnchorYaw = yaw;
+    flock._xrWatchAnchorPosition = cameraPosition.clone();
+    flock._xrWatchAnchorTarget = targetPosition.clone?.() ?? { ...targetPosition };
+  },
+  _wrapAngle(angle) {
+    return Math.atan2(Math.sin(angle), Math.cos(angle));
+  },
+  // Rotates the play space, so the headset keeps whatever offset the wearer is looking at.
+  _rotateXRCameraYaw(radians) {
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.rotationQuaternion || !radians) return;
+    const yaw = flock.BABYLON.Quaternion.FromEulerAngles(0, radians, 0);
+    yaw.multiplyToRef(xrCamera.rotationQuaternion, xrCamera.rotationQuaternion);
+  },
+  // Carries the camera to `pivot`, turning it `angle` around that pivot on the way, so
+  // the wearer keeps both their own head offset and their view of the character.
+  _placeXRWatchCamera(pivot, angle) {
+    const anchor = flock._xrWatchAnchorPosition;
+    const base = flock._xrWatchAnchorTarget;
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!anchor || !base || !pivot || !xrCamera?.position) return false;
+
+    const offsetX = anchor.x - base.x;
+    const offsetY = anchor.y - base.y;
+    const offsetZ = anchor.z - base.z;
+    const sin = Math.sin(angle);
+    const cos = Math.cos(angle);
+    const desired = new flock.BABYLON.Vector3(
+      pivot.x + offsetX * cos + offsetZ * sin,
+      pivot.y + offsetY,
+      pivot.z + offsetZ * cos - offsetX * sin
+    );
+
+    xrCamera.position.addInPlace(desired.subtract(anchor));
+    flock._rotateXRCameraYaw(angle);
+    flock._xrWatchAnchorPosition = desired;
+    flock._xrWatchAnchorYaw += angle;
+    flock._xrWatchAnchorTarget = pivot.clone?.() ?? { ...pivot };
+    return true;
+  },
+  _applyXRWatchTrail() {
+    const targetPosition = flock._xrTargetPosition();
+    if (!targetPosition || flock._xrWatchYawOffset === null) return false;
+    const yaw = (flock._xrTargetHeading() ?? 0) + flock._xrWatchYawOffset;
+    return flock._placeXRWatchCamera(
+      targetPosition,
+      flock._wrapAngle(yaw - flock._xrWatchAnchorYaw)
+    );
+  },
+  // Watch swings around the character so they stay in view; embodied turns on the spot.
+  _applyXRSnapTurn(angle) {
+    if (
+      flock._xrViewMode === 'watch' &&
+      flock._placeXRWatchCamera(flock._xrWatchAnchorTarget, angle)
+    ) {
+      flock._xrWatchYawOffset += angle;
+      return;
+    }
+    flock._rotateXRCameraYaw(angle);
+  },
+  _updateXRSnapTurn() {
+    if (flock._xrMode !== 'VR' || !flock._xrSessionActive) return;
+    // Teleport steering snap turns through Babylon's own teleportation feature.
+    if (
+      flock._canvasControlsEnabled === false ||
+      (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'teleport')
+    ) {
+      flock._xrSnapTurnHeld = false;
+      return;
+    }
+
+    const turn = flock.inputManager.getAxis('XR_TURN_X');
+    if (Math.abs(turn) < SNAP_TURN_RELEASE) {
+      flock._xrSnapTurnHeld = false;
+      return;
+    }
+    if (flock._xrSnapTurnHeld || Math.abs(turn) < SNAP_TURN_PRESS) return;
+    flock._xrSnapTurnHeld = true;
+    flock._applyXRSnapTurn(turn > 0 ? SNAP_TURN_ANGLE : -SNAP_TURN_ANGLE);
   },
   // Must be read as XR is entered: the project camera can be replaced or orbited afterwards.
   _captureXRWatchFraming(camera = flock.scene?.activeCamera) {
@@ -586,20 +706,36 @@ export const flockXR = {
     }
 
     const now = performance.now?.() ?? Date.now();
-    if (flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001) {
+    const isWatch = flock._xrViewMode === 'watch';
+    const heading = flock._xrTargetHeading();
+    const turned =
+      isWatch &&
+      heading !== null &&
+      flock._xrFollowLastHeading !== null &&
+      Math.abs(flock._wrapAngle(heading - flock._xrFollowLastHeading)) > HEADING_EPSILON;
+
+    if (
+      flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001 ||
+      turned
+    ) {
       const delta = position.subtract(flock._xrFollowLastPosition);
-      if (flock._xrViewMode === 'embody') delta.y = 0;
+      if (!isWatch) delta.y = 0;
       flock._xrFollowLastMovedAt = now;
       flock._xrFollowLastPosition.copyFrom(position);
+      flock._xrFollowLastHeading = heading;
       if (flock._xrCameraMotionMode === 'smooth') {
-        xrCamera.position.addInPlace(delta);
+        if (!isWatch || !flock._applyXRWatchTrail()) xrCamera.position.addInPlace(delta);
         flock._xrFollowSettledPosition.copyFrom(position);
       }
       return;
     }
     if (flock._xrCameraMotionMode !== 'comfort') return;
-    if (now - flock._xrFollowLastMovedAt < 250) return;
+    if (now - flock._xrFollowLastMovedAt < COMFORT_SETTLE_MS) return;
 
+    if (flock._applyXRWatchTrail()) {
+      flock._xrFollowSettledPosition.copyFrom(position);
+      return;
+    }
     const delta = position.subtract(flock._xrFollowSettledPosition);
     if (delta.lengthSquared() <= 0.000001) return;
     xrCamera.position.addInPlace(delta);
@@ -663,6 +799,7 @@ export const flockXR = {
     flock._xrSource.start();
     flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => {
       flock._syncXRHUDPicking();
+      flock._updateXRSnapTurn();
       flock._updateXRView();
     });
     flock._xrViewObserverScene = flock.scene;
