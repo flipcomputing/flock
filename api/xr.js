@@ -51,7 +51,7 @@ export const createFlockXRState = () => ({
   _xrSessionActive: false,
   _xrDesktopUITexture: null,
   _xrVirtualKeyboard: null,
-  _xrUIPlacement: 'hud',
+  _xrUIPlacement: 'wrist',
   _xrUIControllerObserver: null,
   _xrUIControllerRemovedObserver: null,
   _xrHUDActive: false,
@@ -289,15 +289,16 @@ export const flockXR = {
     };
   },
   _applyXRDefaults(mode) {
-    if (
-      mode === 'VR' &&
-      !flock._xrTargetPosition() &&
-      flock._xrViewMode === 'watch' &&
-      flock._xrCameraMotionMode === 'none'
-    ) {
-      flock._xrViewMode = 'embody';
-      flock._xrCameraMotionMode = 'smooth';
+    // The starting state doubles as "the project never said": leave anything else alone.
+    if (mode !== 'VR' || flock._xrViewMode !== 'watch' || flock._xrCameraMotionMode !== 'none') {
+      return;
     }
+    if (flock._xrTargetPosition()) {
+      flock._xrCameraMotionMode = 'comfort';
+      return;
+    }
+    flock._xrViewMode = 'embody';
+    flock._xrCameraMotionMode = 'teleport';
   },
   _ensureTeleportationState() {
     flock._teleportExplicitTargetNames ??= new Set();

@@ -654,7 +654,7 @@ export function runXRTests(flock) {
         });
       }
 
-      it('defaults VR without a follow target to embodied smooth movement', function () {
+      it('defaults VR without a follow target to embodied teleport movement', function () {
         flock._xrFollowTarget = null;
         flock._xrViewMode = 'watch';
         flock._xrCameraMotionMode = 'none';
@@ -662,7 +662,21 @@ export function runXRTests(flock) {
         flock._applyXRDefaults('VR');
 
         expect(flock._xrViewMode).to.equal('embody');
-        expect(flock._xrCameraMotionMode).to.equal('smooth');
+        expect(flock._xrCameraMotionMode).to.equal('teleport');
+      });
+
+      it('defaults VR with a follow target to watching with comfort movement', function () {
+        flock._xrFollowTarget = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          isDisposed: () => false,
+        };
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+
+        flock._applyXRDefaults('VR');
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
       });
 
       it('preserves an explicit no-follow locomotion mode', function () {
@@ -1730,6 +1744,32 @@ export function runXRTests(flock) {
 
         expect(teleportCalls.at(-1)).to.equal('attach');
         expect(calls.addFloor).to.deep.equal([ground]);
+      });
+
+      it('stops free camera teleporting while canvas controls are off', function () {
+        const ground = { name: 'ground' };
+        const originalTarget = flock._xrFollowTarget;
+        const originalControls = flock._canvasControlsEnabled;
+        const teleportCalls = [];
+        flock.ground = ground;
+        flock.scene = { meshes: [ground] };
+        flock._xrFollowTarget = null;
+        flock.xrHelper.teleportation.attach = () => teleportCalls.push('attach');
+        flock.xrHelper.teleportation.detach = () => teleportCalls.push('detach');
+
+        try {
+          flock.setXRViewMode('embody');
+          flock.setXRCameraMotionMode('teleport');
+          expect(teleportCalls.at(-1)).to.equal('attach');
+
+          flock._canvasControlsEnabled = false;
+          flock._applyTeleportationState();
+        } finally {
+          flock._xrFollowTarget = originalTarget;
+          flock._canvasControlsEnabled = originalControls;
+        }
+
+        expect(teleportCalls.at(-1)).to.equal('detach');
       });
 
       it('makes an explicit physics target a floor instead of a blocker', function () {
