@@ -209,28 +209,35 @@ export function runXRTests(flock) {
 
       const makePlane = () => ({
         parent: null,
-        position: {
-          x: 0,
-          y: 0,
-          z: 0,
-          set(x, y, z) {
-            Object.assign(this, { x, y, z });
-          },
-        },
-        rotation: {
-          x: 0,
-          y: 0,
-          z: 0,
-          set(x, y, z) {
-            Object.assign(this, { x, y, z });
-          },
-        },
-        scaling: {
-          x: 1,
-          setAll(value) {
-            this.x = value;
-          },
-        },
+        isVisible: true,
+        rotationQuaternion: null,
+        position: new flock.BABYLON.Vector3(),
+        rotation: new flock.BABYLON.Vector3(),
+        scaling: new flock.BABYLON.Vector3(1, 1, 1),
+      });
+
+      // The rig cameras are the eyes: pose-driven, and untouched by writes to the XR camera.
+      const makeRig = (x, y, z, yaw = 0) => {
+        const rotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(yaw, 0, 0);
+        const world = flock.BABYLON.Matrix.Compose(
+          flock.BABYLON.Vector3.One(),
+          rotation,
+          new flock.BABYLON.Vector3(x, y, z)
+        );
+        return {
+          globalPosition: new flock.BABYLON.Vector3(x, y, z),
+          absoluteRotation: rotation,
+          getWorldMatrix: () => world,
+          getDirectionToRef: (axis, result) =>
+            flock.BABYLON.Vector3.TransformNormalToRef(axis, world, result),
+        };
+      };
+
+      const makeHeadset = (yaw = 0) => ({
+        name: 'xrCamera',
+        position: new flock.BABYLON.Vector3(0, 1.6, 0),
+        rotationQuaternion: flock.BABYLON.Quaternion.RotationYawPitchRoll(yaw, 0, 0),
+        rigCameras: [makeRig(-0.03, 1.6, 0, yaw), makeRig(0.03, 1.6, 0, yaw)],
       });
 
       beforeEach(function () {
@@ -292,7 +299,7 @@ export function runXRTests(flock) {
       });
 
       it('head-locks the panel for hud placement', function () {
-        const camera = { name: 'xrCamera' };
+        const camera = makeHeadset();
         const plane = makePlane();
         flock.uiPlane = plane;
         flock.xrHelper = { baseExperience: { camera }, input: { controllers: [] } };
@@ -300,10 +307,43 @@ export function runXRTests(flock) {
         flock.setXRUIPlacement('hud');
 
         expect(flock._xrUIPlacement).to.equal('hud');
-        expect(plane.parent).to.equal(camera);
-        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
-        expect(plane.rotation).to.include({ x: 0, y: 0, z: 0 });
+        expect(plane.parent).to.equal(null);
+        expect(plane.position.x).to.be.closeTo(0, 1e-6);
+        expect(plane.position.y).to.be.closeTo(1.6, 1e-6);
+        expect(plane.position.z).to.be.closeTo(1.5, 1e-6);
+        expect(plane.rotationQuaternion.y).to.be.closeTo(0, 1e-6);
         expect(plane.scaling.x).to.equal(1);
+      });
+
+      it('turns the panel with the eyes rather than the headset the wearer is facing', function () {
+        const camera = makeHeadset(Math.PI / 2);
+        const plane = makePlane();
+        flock.uiPlane = plane;
+        flock.xrHelper = { baseExperience: { camera }, input: { controllers: [] } };
+
+        flock.setXRUIPlacement('hud');
+
+        expect(plane.position.x).to.be.closeTo(1.5, 1e-6);
+        expect(plane.position.z).to.be.closeTo(0, 1e-6);
+        expect(plane.rotationQuaternion.y).to.be.closeTo(Math.sin(Math.PI / 4), 1e-6);
+      });
+
+      // Snap turn, watch trailing and teleport all move the XR camera after the frame's pose
+      // has been read. The eyes only catch up next frame, and the panel has to wait with them.
+      it('ignores an XR camera moved after the frame opened', function () {
+        const camera = makeHeadset();
+        const plane = makePlane();
+        flock.uiPlane = plane;
+        flock.xrHelper = { baseExperience: { camera }, input: { controllers: [] } };
+        flock.setXRUIPlacement('hud');
+
+        camera.position.set(10, 1.6, 10);
+        flock._rotateXRCameraYaw(Math.PI / 6);
+        flock._syncXRHUDPose();
+
+        expect(plane.position.x).to.be.closeTo(0, 1e-6);
+        expect(plane.position.z).to.be.closeTo(1.5, 1e-6);
+        expect(plane.rotationQuaternion.y).to.be.closeTo(0, 1e-6);
       });
 
       it('attaches the panel to the left controller grip for wrist placement', function () {
@@ -311,7 +351,7 @@ export function runXRTests(flock) {
         const plane = makePlane();
         flock.uiPlane = plane;
         flock.xrHelper = {
-          baseExperience: { camera: { name: 'xrCamera' } },
+          baseExperience: { camera: makeHeadset() },
           input: {
             controllers: [
               { inputSource: { handedness: 'right' }, grip: { name: 'rightGrip' } },
@@ -329,7 +369,7 @@ export function runXRTests(flock) {
       });
 
       it('falls back to the head-locked panel while no left controller is connected', function () {
-        const camera = { name: 'xrCamera' };
+        const camera = makeHeadset();
         const plane = makePlane();
         flock.uiPlane = plane;
         flock.xrHelper = {
@@ -340,12 +380,13 @@ export function runXRTests(flock) {
         flock.setXRUIPlacement('wrist');
 
         expect(flock._xrUIPlacement).to.equal('wrist');
-        expect(plane.parent).to.equal(camera);
-        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
+        expect(plane.parent).to.equal(null);
+        expect(plane.position.y).to.be.closeTo(1.6, 1e-6);
+        expect(plane.position.z).to.be.closeTo(1.5, 1e-6);
       });
 
       it('falls back to the head-locked panel when the left controller disconnects', function () {
-        const camera = { name: 'xrCamera' };
+        const camera = makeHeadset();
         const grip = { name: 'leftGrip' };
         const plane = makePlane();
         const controllers = [{ inputSource: { handedness: 'left' }, grip }];
@@ -358,13 +399,13 @@ export function runXRTests(flock) {
         controllers.length = 0;
         flock._applyXRUIPlacement();
 
-        expect(plane.parent).to.equal(camera);
-        expect(plane.position).to.include({ x: 0, y: 0, z: 1.5 });
+        expect(plane.parent).to.equal(null);
+        expect(plane.position.z).to.be.closeTo(1.5, 1e-6);
         expect(plane.scaling.x).to.equal(1);
       });
 
       it('picks up a left controller that connects after the placement is set', function () {
-        const camera = { name: 'xrCamera' };
+        const camera = makeHeadset();
         const grip = { name: 'leftGrip' };
         const plane = makePlane();
         const controllers = [];
@@ -372,7 +413,7 @@ export function runXRTests(flock) {
         flock.xrHelper = { baseExperience: { camera }, input: { controllers } };
 
         flock.setXRUIPlacement('wrist');
-        expect(plane.parent).to.equal(camera);
+        expect(plane.parent).to.equal(null);
 
         controllers.push({ inputSource: { handedness: 'left' }, grip });
         flock._applyXRUIPlacement();

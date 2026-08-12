@@ -46,6 +46,8 @@ export const createFlockXRState = () => ({
   _xrMoveDelta: null,
   _xrForwardBasis: null,
   _xrRightBasis: null,
+  _xrHUDCenter: null,
+  _xrHUDForward: null,
   _xrSessionActive: false,
   _xrDesktopUITexture: null,
   _xrVirtualKeyboard: null,
@@ -153,16 +155,46 @@ export const flockXR = {
     const wristParent = flock._xrUIPlacement === 'wrist' ? flock._xrWristParent() : null;
     if (wristParent) {
       plane.parent = wristParent;
+      // A rotationQuaternion, once set, is what the node rotates by.
+      plane.rotationQuaternion = null;
       plane.position.set(0.1, -0.05, 0);
       plane.rotation.set(Math.PI / 2, 0, 0);
       plane.scaling.setAll(XR_WRIST_SCALE);
       return;
     }
 
-    plane.parent = flock.xrHelper?.baseExperience?.camera ?? null;
-    plane.position.set(0, 0, XR_HUD_DISTANCE);
-    plane.rotation.set(0, 0, 0);
+    plane.parent = null;
     plane.scaling.setAll(1);
+    flock._syncXRHUDPose();
+  },
+  // The eyes render from the rig cameras, which hold the pose the frame opened with. Moving
+  // the XR camera later in the frame — snap turn, watch trail, teleport — reaches its children
+  // but not the rig cameras, so a head-locked child would spend that frame off where the eyes
+  // are not looking. Following the rig cameras keeps the panel with the view.
+  _syncXRHUDPose() {
+    const plane = flock.uiPlane;
+    // Wrist placement rides a controller grip, which the pose update moves with the eyes.
+    if (!plane || plane.parent || !plane.isVisible) return;
+    const rigs = flock.xrHelper?.baseExperience?.camera?.rigCameras;
+    if (!rigs?.length) return;
+
+    const B = flock.BABYLON;
+    flock._xrHUDCenter ??= new B.Vector3();
+    flock._xrHUDForward ??= new B.Vector3();
+    flock._xrForwardBasis ??= B.Vector3.Forward();
+
+    const center = flock._xrHUDCenter.copyFromFloats(0, 0, 0);
+    for (const rig of rigs) {
+      // globalPosition is only refreshed alongside the world matrix.
+      rig.getWorldMatrix();
+      center.addInPlace(rig.globalPosition);
+    }
+    center.scaleInPlace(1 / rigs.length);
+
+    rigs[0].getDirectionToRef(flock._xrForwardBasis, flock._xrHUDForward);
+    plane.position.copyFrom(center).addInPlace(flock._xrHUDForward.scaleInPlace(XR_HUD_DISTANCE));
+    plane.rotationQuaternion ??= new B.Quaternion();
+    plane.rotationQuaternion.copyFrom(rigs[0].absoluteRotation);
   },
   _hudHasInteractiveControls(container) {
     for (const child of container?.children ?? []) {
@@ -839,6 +871,7 @@ export const flockXR = {
       flock._syncXRHUDPicking();
       flock._updateXRSnapTurn();
       flock._updateXRView();
+      flock._syncXRHUDPose();
     });
     flock._xrViewObserverScene = flock.scene;
 
