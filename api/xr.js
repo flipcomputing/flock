@@ -74,9 +74,10 @@ const XR_HUD_MAGNIFICATION = 2.5;
 // Holds the wrist panel at the size it had with the smaller HUD plane.
 const XR_WRIST_SCALE = 0.26;
 
-// The mirror spans about 44 degrees of the view at this distance.
-const XR_MIRROR_DISTANCE = 2.5;
-const XR_MIRROR_WIDTH = 2;
+// Out with the sky, well beyond anything a project builds, so the feed reads as a backdrop
+// behind the scene. Inside the sky sphere's 500 radius, corners included.
+const XR_MIRROR_DISTANCE = 200;
+const XR_MIRROR_FOV = Math.PI / 3;
 const XR_MIRROR_ASPECT = 4 / 3;
 
 const SNAP_TURN_ANGLE = Math.PI / 6;
@@ -487,6 +488,7 @@ export const flockXR = {
       }
     }
     flock._syncXRWatchTrail(xrCamera?.position);
+    if (reposition) flock._positionXRMirror();
   },
   _xrTargetHeading() {
     const target = flock._xrFollowTarget;
@@ -964,11 +966,9 @@ export const flockXR = {
   _showXRMirror(texture) {
     if (flock._xrMirror || !flock.scene) return;
 
-    const size = texture.getSize?.();
-    const aspect = size?.width && size?.height ? size.width / size.height : XR_MIRROR_ASPECT;
     const mirror = flock.BABYLON.MeshBuilder.CreatePlane(
       'xrCameraMirror',
-      { width: XR_MIRROR_WIDTH, height: XR_MIRROR_WIDTH / aspect },
+      { width: 1, height: 1 },
       flock.scene
     );
     const material = new flock.BABYLON.StandardMaterial('xrCameraMirrorMaterial', flock.scene);
@@ -977,12 +977,14 @@ export const flockXR = {
     mirror.material = material;
     mirror.isPickable = false;
     mirror.applyFog = false;
+    // Rides with the viewer like the sky: never nearer, never larger.
+    mirror.infiniteDistance = true;
     flock.glowLayer?.addExcludedMesh?.(mirror);
 
     flock._xrMirror = mirror;
     flock._positionXRMirror();
   },
-  // World-locked once placed, so the viewer can turn away from it like a mirror on a wall.
+  // Faces the viewer's heading at the moment it is anchored, and holds that heading after.
   _positionXRMirror() {
     const mirror = flock._xrMirror;
     const xrCamera = flock.xrHelper?.baseExperience?.camera;
@@ -993,12 +995,14 @@ export const flockXR = {
     if (forward.lengthSquared() < 1e-6) forward.copyFrom(flock.BABYLON.Vector3.Forward());
     forward.normalize();
 
-    const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 0.5, 10);
-    mirror.position.set(
-      xrCamera.position.x + forward.x * distance,
-      xrCamera.position.y,
-      xrCamera.position.z + forward.z * distance
-    );
+    const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 1, 400);
+    const size = flock._cameraBackgroundTexture?.getSize?.();
+    const aspect = size?.width && size?.height ? size.width / size.height : XR_MIRROR_ASPECT;
+    const width = 2 * distance * Math.tan(XR_MIRROR_FOV / 2);
+    mirror.scaling.set(width, width / aspect, 1);
+
+    // infiniteDistance adds the camera's own position, so this is the offset it keeps.
+    mirror.position.set(forward.x * distance, 0, forward.z * distance);
     // A plane faces down its own -Z, so matching the viewer's heading turns it back on them.
     mirror.rotation.set(0, Math.atan2(forward.x, forward.z), 0);
   },
