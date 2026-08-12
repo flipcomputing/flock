@@ -1255,6 +1255,77 @@ export function runXRTests(flock) {
         expect(hud.isVisible).to.be.true;
       });
 
+      it('embody hides bone attachments, which are not child meshes', function () {
+        const gem = { isVisible: true, isDisposed: () => false, getChildMeshes: () => [] };
+        const bandTrim = { isVisible: true, isDisposed: () => false, getChildMeshes: () => [] };
+        const headband = {
+          isVisible: true,
+          isDisposed: () => false,
+          getChildMeshes: () => [bandTrim],
+        };
+        const attachments = { headband, gem };
+        const target = {
+          isVisible: true,
+          isDisposed: () => false,
+          getChildMeshes: () => [],
+          metadata: {
+            _boneAttachments: [
+              { meshName: 'headband', boneName: 'Head' },
+              { meshName: 'gem', boneName: 'Hold' },
+              { meshName: 'dropped', boneName: 'Head' },
+            ],
+          },
+        };
+        const originalGetMeshByName = flock.scene.getMeshByName;
+        try {
+          flock.scene.getMeshByName = (name) => attachments[name] ?? null;
+          flock._xrFollowTarget = target;
+          flock._xrSessionActive = true;
+          flock._xrViewMode = 'embody';
+
+          flock._applyXRViewVisibility();
+          expect(headband.isVisible).to.be.false;
+          expect(bandTrim.isVisible).to.be.false;
+          expect(gem.isVisible).to.be.false;
+
+          flock._xrViewMode = 'watch';
+          flock._applyXRViewVisibility();
+          expect(headband.isVisible).to.be.true;
+          expect(bandTrim.isVisible).to.be.true;
+          expect(gem.isVisible).to.be.true;
+        } finally {
+          flock.scene.getMeshByName = originalGetMeshByName;
+        }
+      });
+
+      it('dropping an attachment while embodied makes it visible again', function () {
+        const gem = { isVisible: true, isDisposed: () => false, getChildMeshes: () => [] };
+        const target = {
+          isVisible: true,
+          isDisposed: () => false,
+          getChildMeshes: () => [],
+          metadata: { _boneAttachments: [{ meshName: 'gem', boneName: 'Hold' }] },
+        };
+        const originalGetMeshByName = flock.scene.getMeshByName;
+        try {
+          flock.scene.getMeshByName = (name) => (name === 'gem' ? gem : null);
+          flock._xrFollowTarget = target;
+          flock._xrSessionActive = true;
+          flock._xrViewMode = 'embody';
+          flock._applyXRViewVisibility();
+          expect(gem.isVisible).to.be.false;
+
+          target.metadata._boneAttachments = [];
+          flock._restoreXREmbodiedMesh(gem);
+
+          expect(gem.isVisible).to.be.true;
+          expect(flock._xrEmbodiedVisibility.has(gem)).to.be.false;
+          expect(target.isVisible).to.be.false;
+        } finally {
+          flock.scene.getMeshByName = originalGetMeshByName;
+        }
+      });
+
       it('leaving XR restores an embodied hierarchy', function () {
         const target = {
           isVisible: true,

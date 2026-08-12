@@ -650,6 +650,23 @@ export const flockXR = {
     }
     flock._xrEmbodiedVisibility.clear();
   },
+  _restoreXREmbodiedMesh(mesh) {
+    if (!mesh) return;
+    for (const part of [mesh, ...(mesh.getChildMeshes?.(false) ?? [])]) {
+      if (!flock._xrEmbodiedVisibility.has(part)) continue;
+      if (!part.isDisposed?.()) part.isVisible = flock._xrEmbodiedVisibility.get(part);
+      flock._xrEmbodiedVisibility.delete(part);
+    }
+  },
+  _xrEmbodiedAttachments(target) {
+    // Bone-attached meshes are parented to a Bone, so they never show up in the
+    // target's child meshes; the tracking list is the only route to them.
+    return (target.metadata?._boneAttachments ?? []).flatMap((entry) => {
+      const mesh = flock.scene?.getMeshByName?.(entry.meshName);
+      if (!mesh || mesh.isDisposed?.()) return [];
+      return [mesh, ...(mesh.getChildMeshes?.(false) ?? [])];
+    });
+  },
   _applyXRViewVisibility() {
     const shouldHide = flock._xrSessionActive && flock._xrViewMode === 'embody';
     if (!shouldHide) {
@@ -659,7 +676,11 @@ export const flockXR = {
 
     const target = flock._xrFollowTarget;
     if (!target || target.isDisposed?.()) return;
-    const hierarchy = [target, ...(target.getChildMeshes?.(false) ?? [])];
+    const hierarchy = [
+      target,
+      ...(target.getChildMeshes?.(false) ?? []),
+      ...flock._xrEmbodiedAttachments(target),
+    ];
     for (const mesh of hierarchy) {
       if (mesh.metadata?.isXREmbodiedHUD) continue;
       if (!('isVisible' in mesh) || flock._xrEmbodiedVisibility.has(mesh)) continue;
