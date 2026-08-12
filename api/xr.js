@@ -753,6 +753,32 @@ export const flockXR = {
     xrCamera.position.addInPlace(delta);
     flock._xrFollowSettledPosition.copyFrom(position);
   },
+  async _immersiveVRSupported() {
+    try {
+      return (await navigator.xr?.isSessionSupported?.('immersive-vr')) === true;
+    } catch {
+      // No WebXR, or an insecure or permissions-blocked context.
+      return false;
+    }
+  },
+  // Phones do Cardboard-style immersive VR as well, so support alone can't tell them from a
+  // headset. A headset browser missing from this list just falls back to the XR block.
+  _isHeadsetBrowser() {
+    const agent = navigator.userAgent ?? '';
+    if (/OculusBrowser|Quest|Pico|Wolvic|Vision ?OS|Mobile VR/i.test(agent)) return true;
+    return !/Android|iPhone|iPad|iPod/i.test(agent);
+  },
+  // Entering stays the wearer's click either way: a session needs a user gesture.
+  async _showXRButtonOnHeadset() {
+    if (flock.xrHelper || flock._xrMode !== undefined) return false;
+    if (!flock._isHeadsetBrowser()) return false;
+    const signal = flock.abortController?.signal;
+    if (!(await flock._immersiveVRSupported())) return false;
+    // The project may have set its own mode, or been stopped, while we were asking.
+    if (signal?.aborted || flock.xrHelper || flock._xrMode !== undefined) return false;
+    await flock.initializeXR('VR');
+    return true;
+  },
   async initializeXR(mode) {
     if (flock.xrHelper) return; // Avoid reinitializing
 

@@ -1350,6 +1350,205 @@ export function runXRTests(flock) {
       });
     });
 
+    describe('enter-VR button on headsets', function () {
+      let originalInitializeXR;
+      let originalSupported;
+      let originalHeadsetBrowser;
+      let originalHelper;
+      let originalXRMode;
+      let originalAbortController;
+      let initCalls;
+
+      beforeEach(function () {
+        originalInitializeXR = flock.initializeXR;
+        originalSupported = flock._immersiveVRSupported;
+        originalHeadsetBrowser = flock._isHeadsetBrowser;
+        originalHelper = flock.xrHelper;
+        originalXRMode = flock._xrMode;
+        originalAbortController = flock.abortController;
+        initCalls = [];
+        flock.initializeXR = async (mode) => {
+          initCalls.push(mode);
+        };
+        flock._immersiveVRSupported = async () => true;
+        flock._isHeadsetBrowser = () => true;
+        flock.xrHelper = null;
+        flock._xrMode = undefined;
+        flock.abortController = new AbortController();
+      });
+
+      afterEach(function () {
+        flock.initializeXR = originalInitializeXR;
+        flock._immersiveVRSupported = originalSupported;
+        flock._isHeadsetBrowser = originalHeadsetBrowser;
+        flock.xrHelper = originalHelper;
+        flock._xrMode = originalXRMode;
+        flock.abortController = originalAbortController;
+      });
+
+      it('initializes VR so the enter button appears without an XR block', async function () {
+        expect(await flock._showXRButtonOnHeadset()).to.equal(true);
+        expect(initCalls).to.deep.equal(['VR']);
+      });
+
+      it('does nothing when the browser reports no immersive-vr support', async function () {
+        flock._immersiveVRSupported = async () => false;
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
+      });
+
+      it('leaves phones to the XR block even though they support immersive-vr', async function () {
+        flock._isHeadsetBrowser = () => false;
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
+      });
+
+      it('leaves a mode chosen by the project alone', async function () {
+        flock._xrMode = 'MAGIC_WINDOW';
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
+      });
+
+      it('gives up when the project sets its own mode while detecting', async function () {
+        flock._immersiveVRSupported = async () => {
+          flock._xrMode = 'AR';
+          return true;
+        };
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
+      });
+
+      it('gives up when the run is stopped while detecting', async function () {
+        const controller = flock.abortController;
+        flock._immersiveVRSupported = async () => {
+          controller.abort();
+          return true;
+        };
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
+      });
+
+      describe('_immersiveVRSupported', function () {
+        let hadOwnXR;
+        let originalOwnXR;
+
+        beforeEach(function () {
+          flock._immersiveVRSupported = originalSupported;
+          hadOwnXR = Object.prototype.hasOwnProperty.call(navigator, 'xr');
+          originalOwnXR = navigator.xr;
+        });
+
+        afterEach(function () {
+          if (hadOwnXR) {
+            Object.defineProperty(navigator, 'xr', {
+              value: originalOwnXR,
+              configurable: true,
+              writable: true,
+            });
+          } else {
+            delete navigator.xr;
+          }
+        });
+
+        const stubXR = (xr) => {
+          Object.defineProperty(navigator, 'xr', {
+            value: xr,
+            configurable: true,
+            writable: true,
+          });
+        };
+
+        it('reports support when the browser offers immersive-vr', async function () {
+          const modes = [];
+          stubXR({
+            isSessionSupported: async (mode) => {
+              modes.push(mode);
+              return true;
+            },
+          });
+
+          expect(await flock._immersiveVRSupported()).to.equal(true);
+          expect(modes).to.deep.equal(['immersive-vr']);
+        });
+
+        it('reports no support without WebXR', async function () {
+          stubXR(undefined);
+
+          expect(await flock._immersiveVRSupported()).to.equal(false);
+        });
+
+        it('reports no support when the check rejects', async function () {
+          stubXR({
+            isSessionSupported: async () => {
+              throw new Error('blocked');
+            },
+          });
+
+          expect(await flock._immersiveVRSupported()).to.equal(false);
+        });
+      });
+
+      describe('_isHeadsetBrowser', function () {
+        let hadOwnAgent;
+        let originalOwnAgent;
+
+        beforeEach(function () {
+          flock._isHeadsetBrowser = originalHeadsetBrowser;
+          hadOwnAgent = Object.prototype.hasOwnProperty.call(navigator, 'userAgent');
+          originalOwnAgent = navigator.userAgent;
+        });
+
+        afterEach(function () {
+          if (hadOwnAgent) {
+            Object.defineProperty(navigator, 'userAgent', {
+              value: originalOwnAgent,
+              configurable: true,
+              writable: true,
+            });
+          } else {
+            delete navigator.userAgent;
+          }
+        });
+
+        const stubAgent = (agent) => {
+          Object.defineProperty(navigator, 'userAgent', {
+            value: agent,
+            configurable: true,
+            writable: true,
+          });
+        };
+
+        it('recognises a headset browser', function () {
+          stubAgent(
+            'Mozilla/5.0 (X11; Linux x86_64; Quest 3) AppleWebKit/537.36 OculusBrowser/33.0 Mobile VR Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(true);
+        });
+
+        it('does not treat a Cardboard-capable phone as a headset', function () {
+          stubAgent(
+            'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/126.0.0.0 Mobile Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(false);
+        });
+
+        it('treats a desktop reporting immersive-vr as a tethered headset', function () {
+          stubAgent(
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(true);
+        });
+      });
+    });
+
     describe('Magic Window initialization', function () {
       let originalHelper;
       let originalScene;

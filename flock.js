@@ -1029,6 +1029,12 @@ export const flock = {
         // focus canvas if present
         (document.getElementById('renderCanvas') || doc.getElementById('renderCanvas'))?.focus();
       }
+
+      try {
+        await this._showXRButtonOnHeadset?.();
+      } catch (xrError) {
+        console.error('XR button setup failed:', xrError);
+      }
     } catch (error) {
       // Read the (possibly user-thrown) error through safe primitives here;
       // re-throw the original so downstream identity checks (e.g. isBenignAbort's
