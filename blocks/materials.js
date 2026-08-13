@@ -30,7 +30,7 @@ export function defineMaterialsBlocks() {
           {
             type: 'input_value',
             name: 'COLOR',
-            check: ['Colour', 'Array'], // Accepts either Colour or Array
+            check: ['Colour', 'Array', 'Gradient'], // Accepts a Colour, an Array or a Gradient
           },
         ],
         inputsInline: true,
@@ -688,6 +688,8 @@ export function defineMaterialsBlocks() {
             type: 'input_value',
             name: 'BASE_COLOR',
             colour: '#ffffff', // Default to white
+            // No Gradient: a texture and a gradient can't share one material.
+            check: ['Colour', 'Array'],
           },
           {
             type: 'input_value',
@@ -718,7 +720,7 @@ export function defineMaterialsBlocks() {
             type: 'input_value',
             name: 'COLOR',
             colour: '#6495ED',
-            check: ['Colour', 'Array'],
+            check: ['Colour', 'Array', 'Gradient'],
           },
           {
             type: 'input_value',
@@ -733,6 +735,36 @@ export function defineMaterialsBlocks() {
         inputsInline: true,
         colour: categoryColours['Materials'],
         tooltip: getTooltip('gradient_material'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('materials_blocks');
+    },
+  };
+
+  Blockly.Blocks['gradient_colour'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'gradient_colour',
+        message0: translate('gradient_colour'),
+        args0: [
+          {
+            type: 'input_value',
+            name: 'COLORS',
+            check: 'Array',
+          },
+          {
+            type: 'field_number',
+            name: 'DIRECTION',
+            value: 0,
+            min: 0,
+            max: 360,
+            precision: 1,
+          },
+        ],
+        output: ['Gradient', 'Material'],
+        inputsInline: true,
+        colour: categoryColours['Materials'],
+        tooltip: getTooltip('gradient_colour'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');

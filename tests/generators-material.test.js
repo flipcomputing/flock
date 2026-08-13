@@ -35,5 +35,35 @@ export function runMaterialGeneratorTests() {
     it('falls back to black for invalid input', function () {
       expect(colourFromString('notacolour')).to.equal('#000000');
     });
+
+    // The colour list arrives through valueToCode, so stub it rather than
+    // building a workspace just to hold a lists_create_with block.
+    function gradientColour(colorsCode, direction) {
+      const originalValueToCode = javascriptGenerator.valueToCode;
+      javascriptGenerator.valueToCode = () => colorsCode;
+      try {
+        const block = { getFieldValue: () => direction };
+        const [code] = javascriptGenerator.forBlock['gradient_colour'](block);
+        return code;
+      } finally {
+        javascriptGenerator.valueToCode = originalValueToCode;
+      }
+    }
+
+    it('emits a flat material descriptor carrying the direction', function () {
+      expect(gradientColour('["#ff5733", "#fdfd96"]', 45)).to.equal(
+        '{ color: ["#ff5733", "#fdfd96"], materialName: "none.png", direction: 45 }'
+      );
+    });
+
+    it('omits alpha so the surrounding block keeps control of it', function () {
+      expect(gradientColour('["#ff5733", "#fdfd96"]', 0)).to.not.include('alpha');
+    });
+
+    it('defaults to an empty list and zero degrees', function () {
+      expect(gradientColour('', undefined)).to.equal(
+        '{ color: [], materialName: "none.png", direction: 0 }'
+      );
+    });
   });
 }

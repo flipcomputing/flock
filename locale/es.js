@@ -238,6 +238,7 @@ export default {
   random_colour: 'color aleatorio', // human
   material: 'material %1 %2 alfa %3', // human
   gradient_material: 'material %1 alfa %2', // human
+  gradient_colour: 'degradado %1 dirección %2°', // ai
   set_material: 'establecer material de %1 a %2', // human
 
   // Custom block translations - Physics blocks
@@ -539,6 +540,8 @@ export default {
   random_colour_tooltip: 'Genera un color aleatorio.\nPalabra clave: color aleatorio', // human
   material_tooltip: 'Define propiedades del material', // human
   gradient_material_tooltip: 'Define propiedades del material (gradiente)', // human
+  gradient_colour_tooltip:
+    'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.\nPalabra clave: degradado', // ai
   set_material_tooltip: 'Establecer el material especificado al objeto indicado.', // human
 
   // Tooltip translations - Physics blocks
