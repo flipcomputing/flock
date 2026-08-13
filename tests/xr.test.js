@@ -1349,7 +1349,6 @@ export function runXRTests(flock) {
         '_cameraBackgroundLayer',
         '_cameraBackgroundTexture',
         '_cameraBackgroundFacing',
-        '_xrMirror',
         '_xrSessionActive',
         '_xrMode',
       ];
@@ -1397,98 +1396,50 @@ export function runXRTests(flock) {
         expect(() => flock.setCameraBackground('environment')).to.not.throw();
       });
 
-      it('swaps the flat layer for a backdrop down world +Z when a VR session starts', function () {
-        const texture = startFeed('user');
-        expect(flock._cameraBackgroundLayer).to.not.equal(null);
-
-        enterVR(new flock.BABYLON.Vector3(1, 1.6, 2), new flock.BABYLON.Vector3(1, 0, 0));
-        flock._applyCameraBackground();
-
-        expect(flock._cameraBackgroundLayer).to.equal(null);
-        const mirror = flock._xrMirror;
-        expect(mirror).to.not.equal(null);
-        // Disposing the layer must not take the shared feed with it.
-        expect(texture.isDisposed?.() ?? false).to.equal(false);
-        expect(mirror.material.emissiveTexture).to.equal(texture);
-
-        // Sits far off down +Z, as an offset from the viewer rather than a world point.
-        expect(mirror.infiniteDistance).to.equal(true);
-        expect(mirror.position.x).to.be.closeTo(0, 1e-6);
-        expect(mirror.position.y).to.be.closeTo(0, 1e-6);
-        expect(mirror.position.z).to.be.closeTo(200, 1e-6);
-
-        // The 64x48 feed must not be stretched to fill the plane.
-        expect(mirror.scaling.x / mirror.scaling.y).to.be.closeTo(4 / 3, 1e-6);
-        expect(mirror.scaling.x).to.be.closeTo(2 * 200 * Math.tan(Math.PI / 6), 1e-6);
-
-        mirror.computeWorldMatrix(true);
-        const facing = flock.BABYLON.Vector3.TransformNormal(
-          new flock.BABYLON.Vector3(0, 0, -1),
-          mirror.getWorldMatrix()
-        );
-        expect(facing.x).to.be.closeTo(0, 1e-6);
-        expect(facing.y).to.be.closeTo(0, 1e-6);
-        expect(facing.z).to.be.closeTo(-1, 1e-6);
-      });
-
-      it('keeps the backdrop on +Z whichever way the headset is turned', function () {
-        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(-1, 0, 0));
-        startFeed('user');
-        const mirror = flock._xrMirror;
-
-        const camera = flock.xrHelper.baseExperience.camera;
-        camera.getDirection = () => new flock.BABYLON.Vector3(0, 0, -1);
-        flock._positionXRMirror();
-
-        expect(mirror.position.x).to.be.closeTo(0, 1e-6);
-        expect(mirror.position.z).to.be.closeTo(200, 1e-6);
-        expect(mirror.rotation.y).to.be.closeTo(0, 1e-6);
-      });
-
-      it('re-requests the feed once inside a VR session, but only for the mirror', function () {
-        const savedRequest = flock.setCameraBackground;
-        const asked = [];
-        try {
-          flock.setCameraBackground = (facing) => asked.push(facing);
-
-          startFeed('user');
-          flock._restartCameraBackgroundForXR();
-          expect(asked).to.deep.equal([]);
+      it('shows nothing while a session is running, whichever camera it is', function () {
+        for (const facing of ['user', 'environment']) {
+          const texture = startFeed(facing);
+          expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
 
           enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
-          flock._restartCameraBackgroundForXR();
-          expect(asked).to.deep.equal(['user']);
+          flock._applyCameraBackground();
+          expect(flock._cameraBackgroundLayer).to.equal(null);
+          // The feed outlives the layer, so leaving the session can put it straight back.
+          expect(texture.isDisposed?.() ?? false).to.equal(false);
 
-          // The back camera keeps the flat layer, which never went stale.
-          flock._cameraBackgroundFacing = 'environment';
-          flock._restartCameraBackgroundForXR();
-          expect(asked).to.deep.equal(['user']);
-        } finally {
-          flock.setCameraBackground = savedRequest;
+          flock._xrSessionActive = false;
+          flock._applyCameraBackground();
+          expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
+
+          flock._disposeCameraBackground();
         }
       });
 
-      it('puts the flat layer back when the VR session ends', function () {
-        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
-        const texture = startFeed('user');
-        const mirror = flock._xrMirror;
-        expect(mirror).to.not.equal(null);
+      it('clears the sky and the clear colour for passthrough, then restores them', function () {
+        const scene = flock.scene;
+        const savedSky = flock.sky;
+        const savedClear = scene.clearColor;
+        try {
+          let enabled = true;
+          flock.sky = { isEnabled: () => enabled, setEnabled: (value) => (enabled = value) };
+          scene.clearColor = new flock.BABYLON.Color4(0.2, 0.4, 0.6, 1);
 
-        flock._xrSessionActive = false;
-        flock._applyCameraBackground();
+          flock._showPassthroughBackground(true);
+          expect(enabled).to.equal(false);
+          expect(scene.clearColor.a).to.equal(0);
 
-        expect(flock._xrMirror).to.equal(null);
-        expect(mirror.isDisposed()).to.equal(true);
-        expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
+          flock._showPassthroughBackground(false);
+          expect(enabled).to.equal(true);
+          expect(scene.clearColor.r).to.be.closeTo(0.2, 1e-6);
+          expect(scene.clearColor.a).to.equal(1);
+        } finally {
+          flock.sky = savedSky;
+          scene.clearColor = savedClear;
+          flock._xrSavedClearColor = null;
+          flock._xrSavedSkyEnabled = null;
+        }
       });
 
-      it('leaves the world-facing camera on the flat layer in VR', function () {
-        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
-        const texture = startFeed('environment');
-
-        expect(flock._xrMirror).to.equal(null);
-        expect(flock._cameraBackgroundLayer?.texture).to.equal(texture);
-      });
     });
 
     describe('setXRMode', function () {

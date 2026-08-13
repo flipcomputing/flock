@@ -59,7 +59,8 @@ export const createFlockXRState = () => ({
   _cameraBackgroundTexture: null,
   _cameraBackgroundFacing: null,
   _cameraBackgroundRequest: 0,
-  _xrMirror: null,
+  _xrSavedClearColor: null,
+  _xrSavedSkyEnabled: null,
 });
 
 // The panel spans about 56 degrees at this distance.
@@ -73,12 +74,6 @@ const XR_HUD_TEXTURE_HEIGHT = 864;
 const XR_HUD_MAGNIFICATION = 2.5;
 // Holds the wrist panel at the size it had with the smaller HUD plane.
 const XR_WRIST_SCALE = 0.26;
-
-// Out with the sky, well beyond anything a project builds, so the feed reads as a backdrop
-// behind the scene. Inside the sky sphere's 500 radius, corners included.
-const XR_MIRROR_DISTANCE = 200;
-const XR_MIRROR_FOV = Math.PI / 3;
-const XR_MIRROR_ASPECT = 4 / 3;
 
 const SNAP_TURN_ANGLE = Math.PI / 6;
 const SNAP_TURN_PRESS = 0.7;
@@ -438,11 +433,12 @@ export const flockXR = {
       flock._positionXRWatchCamera();
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
+      if (flock._xrMode === 'AR') flock._showPassthroughBackground(true);
       flock._applyCameraBackground();
-      flock._restartCameraBackgroundForXR();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       flock._xrSessionActive = false;
       flock._applyXRViewVisibility();
+      flock._showPassthroughBackground(false);
       flock._applyCameraBackground();
       flock._xrSource?.stop();
       const stackPanel = flock.stackPanel;
@@ -925,31 +921,39 @@ export const flockXR = {
     // Handle XR state changes
     flock.xrHelper.baseExperience.onStateChangedObservable.add(flock._handleXRStateChange);
   },
-  _cameraBackgroundNeedsMirror() {
-    return (
-      flock._xrSessionActive && flock._xrMode === 'VR' && flock._cameraBackgroundFacing === 'user'
-    );
+  // An AR session draws the scene over passthrough, so the opaque things behind it — the clear
+  // colour and the sky — are what stand between the wearer and their room.
+  _showPassthroughBackground(visible) {
+    const scene = flock.scene;
+    if (!scene) return;
+    if (visible) {
+      flock._xrSavedClearColor ??= scene.clearColor?.clone?.() ?? null;
+      scene.clearColor = new flock.BABYLON.Color4(0, 0, 0, 0);
+      if (flock.sky) {
+        flock._xrSavedSkyEnabled = flock.sky.isEnabled?.() ?? true;
+        flock.sky.setEnabled?.(false);
+      }
+      return;
+    }
+    if (flock._xrSavedClearColor) scene.clearColor = flock._xrSavedClearColor;
+    flock._xrSavedClearColor = null;
+    if (flock.sky && flock._xrSavedSkyEnabled !== null) {
+      flock.sky.setEnabled?.(flock._xrSavedSkyEnabled);
+      flock._xrSavedSkyEnabled = null;
+    }
   },
   _disposeCameraBackgroundLayer() {
     const layer = flock._cameraBackgroundLayer;
     if (!layer) return;
     flock._cameraBackgroundLayer = null;
-    // Layer.dispose() takes its texture with it, and the mirror may be about to adopt it.
+    // Layer.dispose() takes its texture with it, and the feed outlives the layer.
     layer.texture = null;
     layer.dispose();
-  },
-  _disposeXRMirror() {
-    const mirror = flock._xrMirror;
-    if (!mirror) return;
-    flock._xrMirror = null;
-    mirror.material?.dispose();
-    mirror.dispose();
   },
   _disposeCameraBackground() {
     // Strands any webcam request still starting up.
     flock._cameraBackgroundRequest = (flock._cameraBackgroundRequest ?? 0) + 1;
     flock._disposeCameraBackgroundLayer();
-    flock._disposeXRMirror();
     // Disposing the texture is what releases the webcam.
     flock._cameraBackgroundTexture?.dispose();
     flock._cameraBackgroundTexture = null;
@@ -961,63 +965,16 @@ export const flockXR = {
     layer.texture = texture;
     flock._cameraBackgroundLayer = layer;
   },
-  // A background layer is screen space, so both eyes get identical pixels and the feed has no
-  // stereo depth at all: in VR it reads as pressed against the face. A plane in the scene doesn't.
-  _showXRMirror(texture) {
-    if (flock._xrMirror || !flock.scene) return;
-
-    const mirror = flock.BABYLON.MeshBuilder.CreatePlane(
-      'xrCameraMirror',
-      { width: 1, height: 1 },
-      flock.scene
-    );
-    const material = new flock.BABYLON.StandardMaterial('xrCameraMirrorMaterial', flock.scene);
-    material.disableLighting = true;
-    material.emissiveTexture = texture;
-    mirror.material = material;
-    mirror.isPickable = false;
-    mirror.applyFog = false;
-    // Rides with the viewer like the sky: never nearer, never larger.
-    mirror.infiniteDistance = true;
-    flock.glowLayer?.addExcludedMesh?.(mirror);
-
-    flock._xrMirror = mirror;
-    flock._positionXRMirror();
-  },
-  // Locked to world +Z: taking the heading from the headset pins the backdrop to wherever the
-  // wearer happened to be looking when the feed started.
-  _positionXRMirror() {
-    const mirror = flock._xrMirror;
-    if (!mirror) return;
-
-    const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 1, 400);
-    const size = flock._cameraBackgroundTexture?.getSize?.();
-    const aspect = size?.width && size?.height ? size.width / size.height : XR_MIRROR_ASPECT;
-    const width = 2 * distance * Math.tan(XR_MIRROR_FOV / 2);
-    mirror.scaling.set(width, width / aspect, 1);
-
-    // infiniteDistance adds the camera's own position, so this is the offset it keeps.
-    mirror.position.set(0, 0, distance);
-    // A plane faces down its own -Z, so out on +Z an unrotated plane faces back at the scene.
-    mirror.rotation.set(0, 0, 0);
-  },
-  // Horizon OS's virtual selfie camera holds whatever frame it had when the session opened, so
-  // ask it for a fresh capture from inside the session.
-  _restartCameraBackgroundForXR() {
-    const facing = flock._cameraBackgroundFacing;
-    if (!facing || !flock._cameraBackgroundNeedsMirror()) return;
-    flock.setCameraBackground(facing);
-  },
+  // A headset gives the page no camera it can show in a session: the selfie feed freezes and
+  // passthrough is the XR mode's business, not the background's. The feed waits for the flat view.
   _applyCameraBackground() {
     const texture = flock._cameraBackgroundTexture;
     if (!texture) return;
-    if (flock._cameraBackgroundNeedsMirror()) {
+    if (flock._xrSessionActive) {
       flock._disposeCameraBackgroundLayer();
-      flock._showXRMirror(texture);
-    } else {
-      flock._disposeXRMirror();
-      flock._showCameraBackgroundLayer(texture);
+      return;
     }
+    flock._showCameraBackgroundLayer(texture);
   },
   /*
           Category: Scene>XR
