@@ -121,6 +121,7 @@ export async function setLanguage(language) {
 
   // Update workspace search placeholder and toolbar button
   window.flockWorkspaceSearch?.setSearchPlaceholder?.(translate('workspace_search_placeholder'));
+  window.flockWorkspaceSearch?.inputElement?.setAttribute('aria-label', translate('workspace_search_placeholder'));
   const wsSearchBtn = document.getElementById('workspaceSearchBtn');
   if (wsSearchBtn) {
     const label = translate('workspace_search_placeholder');

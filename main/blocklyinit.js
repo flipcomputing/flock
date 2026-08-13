@@ -753,16 +753,57 @@ export function initializeWorkspace() {
   }
   workspaceSearch.init();
   workspaceSearch.setSearchPlaceholder(translate('workspace_search_placeholder'));
+  // @blockly/plugin-workspace-search's createTextInput() only sets a
+  // placeholder, never an accessible name.
+  workspaceSearch.inputElement?.setAttribute('aria-label', translate('workspace_search_placeholder'));
   window.flockWorkspaceSearch = workspaceSearch;
+
+  // Comment textareas (block-comment bubbles and standalone workspace
+  // comments both render a <textarea class="blocklyCommentText">) only ever
+  // get a placeholder from Blockly core, never an accessible name, and are
+  // created on demand whenever a comment is opened/added.
+  const labelCommentTextarea = (el) => {
+    if (el.tagName === 'TEXTAREA' && el.classList.contains('blocklyCommentText')) {
+      el.setAttribute('aria-label', translate('comment_text_label'));
+    }
+  };
+  workspace
+    .getInjectionDiv()
+    .querySelectorAll('textarea.blocklyCommentText')
+    .forEach(labelCommentTextarea);
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        labelCommentTextarea(node);
+        node.querySelectorAll?.('textarea.blocklyCommentText').forEach(labelCommentTextarea);
+      }
+    }
+  }).observe(workspace.getInjectionDiv(), { childList: true, subtree: true });
 
   // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
   workspace.flockBlockLabelMap ??= new Map();
+
+  // @blockly/toolbox-search's createDom_() wipes the category row's label
+  // span via replaceChildren(), leaving the treeitem's aria-labelledby
+  // pointing at an id that no longer exists, and never gives the <input>
+  // itself an accessible name (placeholder alone doesn't count).
+  const fixSearchCategoryAria = (input) => {
+    const label = translate('toolbox_search_placeholder');
+    const treeItem = input.closest('[role="treeitem"]');
+    if (treeItem?.getAttribute('aria-labelledby') === 'toolbox-search-input.label') {
+      treeItem.removeAttribute('aria-labelledby');
+      treeItem.setAttribute('aria-label', label);
+    }
+    input.setAttribute('aria-label', label);
+  };
 
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
     searchInput.placeholder = translate('toolbox_search_placeholder');
+    fixSearchCategoryAria(searchInput);
 
     let originalParent = searchInput.parentElement;
     const isMobile = isMobileSearchLayout;
@@ -1102,6 +1143,7 @@ export function initializeWorkspace() {
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
         newInput.placeholder = translate('toolbox_search_placeholder');
+        fixSearchCategoryAria(newInput);
         searchInput = newInput;
         originalParent = newInput.parentElement;
         searchCategory = workspace
