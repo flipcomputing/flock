@@ -875,6 +875,7 @@ export const flockMesh = {
                 boneName: 'LeftHand',
                 offset: { x: xOffset, y: yOffset, z: zOffset },
               });
+              flock._applyXRViewVisibility?.();
             }
           }
           resolve();
@@ -946,6 +947,7 @@ export const flockMesh = {
               });
 
               meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+              flock._applyXRViewVisibility?.();
             }
           }
           resolve();
@@ -982,6 +984,7 @@ export const flockMesh = {
 
         mesh.detachFromBone?.();
         mesh.parent = null;
+        flock._restoreXREmbodiedMesh?.(mesh);
 
         // A later attach must re-capture rotation and re-remove the body below.
         if (mesh.metadata) {

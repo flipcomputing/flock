@@ -105,6 +105,37 @@ async function runTeleportSession(page) {
     const followWhileMoving = pos(camera.position);
     await frames(20);
     const followSettled = pos(camera.position);
+
+    const bearing = () =>
+      Math.atan2(
+        camera.position.x - followTarget.position.x,
+        camera.position.z - followTarget.position.z
+      );
+    const distance = () =>
+      Math.hypot(
+        camera.position.x - followTarget.position.x,
+        camera.position.z - followTarget.position.z
+      );
+    const yaw = () => camera.rotationQuaternion?.toEulerAngles().y;
+
+    const turnBefore = { bearing: bearing(), distance: distance(), yaw: yaw() };
+    controller.updateAxes('thumbstick', 1, 0);
+    await frames(6);
+    controller.updateAxes('thumbstick', 0, 0);
+    await frames(6);
+    result.snapTurn = {
+      before: turnBefore,
+      after: { bearing: bearing(), distance: distance(), yaw: yaw() },
+    };
+
+    const trailBefore = { bearing: bearing(), distance: distance(), yaw: yaw() };
+    followTarget.rotation.y += Math.PI / 2;
+    await frames(40);
+    result.trail = {
+      before: trailBefore,
+      after: { bearing: bearing(), distance: distance(), yaw: yaw() },
+    };
+
     const embodiedMesh = flock.BABYLON.MeshBuilder.CreateBox(
       'xr-embody-check',
       { size: 1 },
@@ -230,6 +261,24 @@ function assertComfortFollow({ start, whileMoving, settled }) {
   }
 }
 
+function assertTurnedBy({ before, after }, angle, label) {
+  const wrap = (value) => Math.atan2(Math.sin(value), Math.cos(value));
+  const turned = wrap(after.bearing - before.bearing);
+  if (Math.abs(turned - angle) > 0.05) {
+    throw new Error(`${label} turned ${turned.toFixed(3)} rad, expected ${angle.toFixed(3)}`);
+  }
+  if (Math.abs(after.distance - before.distance) > 0.05) {
+    throw new Error(
+      `${label} changed its distance to the character: ${before.distance.toFixed(3)} -> ${after.distance.toFixed(3)}`
+    );
+  }
+  if (before.yaw === undefined || after.yaw === undefined) return;
+  const looked = wrap(after.yaw - before.yaw);
+  if (Math.abs(looked - angle) > 0.05) {
+    throw new Error(`${label} looked ${looked.toFixed(3)} rad, expected ${angle.toFixed(3)}`);
+  }
+}
+
 function assertEmbodiedInteraction(result) {
   if (!result.playerAtCamera) throw new Error('Embodied player did not follow the XR camera');
   if (!result.collected) throw new Error('Embodied player did not trigger the candy collision');
@@ -303,6 +352,8 @@ try {
     assertTeleported(result.teleport);
     assertDidNotTeleport(result.locomotionNone);
     assertComfortFollow(result.follow);
+    assertTurnedBy(result.snapTurn, Math.PI / 6, 'Snap turn');
+    assertTurnedBy(result.trail, Math.PI / 2, 'Watch camera');
     assertEmbodiedVisibility(result.embody);
     assertEmbodiedInteraction(result.embodiedInteraction);
   } catch (error) {

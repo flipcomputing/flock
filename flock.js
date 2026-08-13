@@ -138,6 +138,7 @@ export const flock = {
   GUI: null,
   EXPORT: null,
   controlsTexture: null,
+  _xrHUDControlRoots: [],
   inputManager: null,
   canvas: null,
   abortController: null,
@@ -1028,6 +1029,12 @@ export const flock = {
         // focus canvas if present
         (document.getElementById('renderCanvas') || doc.getElementById('renderCanvas'))?.focus();
       }
+
+      try {
+        await this._showXRButtonOnHeadset?.();
+      } catch (xrError) {
+        console.error('XR button setup failed:', xrError);
+      }
     } catch (error) {
       // Read the (possibly user-thrown) error through safe primitives here;
       // re-throw the original so downstream identity checks (e.g. isBenignAbort's
@@ -1103,6 +1110,7 @@ export const flock = {
       setXRMode: this.setXRMode?.bind(this),
       setXRViewMode: this.setXRViewMode?.bind(this),
       setXRCameraMotionMode: this.setXRCameraMotionMode?.bind(this),
+      setXRUIPlacement: this.setXRUIPlacement?.bind(this),
       addTeleportTarget: this.addTeleportTarget?.bind(this),
       removeTeleportTarget: this.removeTeleportTarget?.bind(this),
       applyForce: this.applyForce?.bind(this),
@@ -1233,6 +1241,7 @@ export const flock = {
       'setCameraBackground',
       'setXRViewMode',
       'setXRCameraMotionMode',
+      'setXRUIPlacement',
       'addTeleportTarget',
       'removeTeleportTarget',
       'lightIntensity',
@@ -1716,6 +1725,7 @@ export const flock = {
         // Dispose UI elements
         flock.controlsTexture?.dispose();
         flock.controlsTexture = null;
+        flock._xrHUDControlRoots = [];
 
         // Clear main UI texture and all its controls
         if (flock.scene.UITexture) {
@@ -1873,6 +1883,7 @@ export const flock = {
         // Clear all scene observables
         flock.scene.onActiveCameraChanged?.remove(flock._audioListenerObserver);
         flock._audioListenerObserver = null;
+        flock._audioListenerTickObserver = null;
         flock.scene.onBeforeRenderObservable?.clear();
         flock.scene.onAfterRenderObservable?.clear();
         flock.scene.onBeforeAnimationsObservable?.clear();
@@ -1998,9 +2009,11 @@ export const flock = {
         // cleanup ran (set audioEnginePromise to null) or a new scene replaced
         // it before this async init resolved — and dispose the stale engine.
         let enginePromise;
+        // listenerAutoUpdate ticks on window rAF, which stops in an immersive XR
+        // session. Driven from the scene render loop below so VR keeps distance falloff.
         enginePromise = flock.BABYLON.CreateAudioEngineAsync({
           volume: 1,
-          listenerAutoUpdate: true,
+          listenerAutoUpdate: false,
           listenerEnabled: true,
           resumeOnInteraction: true,
         })
@@ -2024,6 +2037,10 @@ export const flock = {
               if (flock.scene?.activeCamera) {
                 audioEngine.listener.attach(flock.scene.activeCamera);
               }
+            });
+            flock._audioListenerTickObserver = flock.scene?.onBeforeRenderObservable?.add(() => {
+              if (flock.audioEngine !== audioEngine) return;
+              audioEngine.listener.update();
             });
           })
           .catch((err) => {

@@ -461,6 +461,29 @@ export function runSoundTests(flock) {
   describe('Audio lifecycle @sound @slow', function () {
     this.timeout(10000);
 
+    // The listener must ride the scene render loop, not window rAF: rAF stops
+    // inside an immersive XR session, which freezes distance falloff in headsets.
+    it('follows the camera on a scene render tick', async function () {
+      await flock.ensureAudio();
+      const engine = flock.audioEngine;
+      const camera = flock.scene?.activeCamera;
+      if (!engine || !camera) this.skip();
+
+      const original = camera.position.clone();
+      try {
+        engine.listener.attach(camera);
+        camera.position.set(original.x + 25, original.y, original.z);
+        camera.computeWorldMatrix(true);
+        // Synchronous: no rAF can have run between the move and the assertion.
+        flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
+        expect(engine.listener.position.x).to.be.closeTo(original.x + 25, 0.001);
+      } finally {
+        camera.position.copyFrom(original);
+        camera.computeWorldMatrix(true);
+        flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
+      }
+    });
+
     // audioTimer defers cleanup while a context is parked on this premise; if a
     // platform kept the clock running, that deferral would become a hang.
     it('audio time does not advance while the context is suspended', async function () {

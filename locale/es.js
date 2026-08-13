@@ -366,6 +366,7 @@ export default {
   device_camera_background: 'usar cámara %1 como fondo', // human
   set_xr_mode: 'establecer modo XR a %1', // human
   set_xr_view_mode: 'establecer vista de RV a %1 con movimiento de cámara %2',
+  set_xr_ui_placement: 'mostrar interfaz de RV en %1', // ai
   add_teleport_target: 'añadir destino de teletransporte %1',
   remove_teleport_target: 'eliminar destino de teletransporte %1',
   play_rumble_pattern: 'reproducir patrón de vibración %1', // human
@@ -861,6 +862,8 @@ export default {
   teleport_option: 'teletransportar', // human
   watch_option: 'observar',
   embody_option: 'encarnar',
+  hud_option: 'pantalla frontal', // ai
+  wrist_option: 'muñeca', // ai
   smooth_option: 'suave',
   comfort_option: 'confort',
   space_infinity_option: 'espacio ❖', // human

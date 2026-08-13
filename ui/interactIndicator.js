@@ -162,6 +162,8 @@ export function attachInteractIndicator(scene, inputManager) {
   };
   _losPredicate = (m) => {
     if (m === _icon || !m.isVisible || !m.isPickable) return false;
+    // The XR UI panel is head- or wrist-locked, so it always sits on the ray.
+    if (m.metadata?.isXRHUD) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
     return true;
   };

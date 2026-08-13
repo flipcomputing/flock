@@ -31,14 +31,39 @@ function uiFontSizePx(baseCssPx = 16) {
   return Math.round(baseCssPx * prefScale * dpr);
 }
 
+// A fullscreen GUI layer is not rendered inside an immersive session, so the controls
+// ride on the XR HUD plane instead while one is running.
+function controlsHost() {
+  return flock._xrHUDActive && flock.meshTexture ? flock.meshTexture : flock.controlsTexture;
+}
+
+function addControlsRoot(control) {
+  const host = controlsHost();
+  host.addControl(control);
+  if (host !== flock.controlsTexture) flock._xrHUDControlRoots.push(control);
+}
+
+function disposeControls() {
+  flock._xrHUDControlRoots.forEach((control) => control.dispose());
+  flock._xrHUDControlRoots = [];
+  flock.controlsTexture?.dispose();
+  flock.controlsTexture = null;
+}
+
+function currentControlsScale() {
+  const baseDisplayScale = flock._controlsBaseDisplayScale ?? flock.displayScale;
+  const baseHardwareScaling = flock._controlsBaseHardwareScaling ?? 1;
+  const hardwareScaling = flock.engine?.getHardwareScalingLevel?.() ?? baseHardwareScaling;
+  return baseDisplayScale * (baseHardwareScaling / hardwareScaling);
+}
+
 function renderControls(layout, scale) {
   flock._onScreenSource?.releaseAll();
   if (flock._joystickSource) {
     flock._joystickSource.stop();
     flock._joystickSource = null;
   }
-  flock.controlsTexture?.dispose();
-  flock.controlsTexture = null;
+  disposeControls();
   if (!layout?.shouldShow) return;
 
   const previousDisplayScale = flock.displayScale;
@@ -60,9 +85,12 @@ function renderControls(layout, scale) {
       return;
     }
 
-    if (layout.movement === 'ARROWS') {
+    // The joystick tracks canvas pointer events, which an immersive session never delivers.
+    const onXRHUD = controlsHost() !== flock.controlsTexture;
+    const movement = onXRHUD && layout.movement === 'JOYSTICK' ? 'ARROWS' : layout.movement;
+    if (movement === 'ARROWS') {
       flock.createArrowControls(layout.color);
-    } else if (layout.movement === 'JOYSTICK') {
+    } else if (movement === 'JOYSTICK') {
       flock._joystickSource = flock.createJoystickControls(layout.color);
       flock._joystickSource?.start();
     }
@@ -115,8 +143,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     const textBlockId = id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -228,8 +255,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     if (!buttonId || typeof buttonId !== 'string') {
@@ -288,8 +314,8 @@ export const flockUI = {
     registerUIButton(buttonId, text, button, {
       x,
       y,
-      w: parseInt(size.width),
-      h: parseInt(size.height),
+      w: scaledWidth,
+      h: scaledHeight,
     });
 
     return buttonId;
@@ -311,8 +337,7 @@ export const flockUI = {
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     const sanitize = (val, { maxLen = 500 } = {}) => {
@@ -424,13 +449,11 @@ export const flockUI = {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
 
-    if (!flock.scene.UITexture) {
-      flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-        'UI',
-        true,
-        flock.scene
-      );
-    }
+    flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      'UI',
+      true,
+      flock.scene
+    );
 
     const existing = flock.scene.UITexture.getControlByName(id);
     if (existing) existing.dispose();
@@ -442,6 +465,8 @@ export const flockUI = {
     };
 
     const resolvedSize = sliderSizes[(size || 'MEDIUM').toUpperCase()] || sliderSizes.MEDIUM;
+    const scaledWidth = Math.round(parseInt(resolvedSize.width) * flock.displayScale);
+    const scaledHeight = Math.round(parseInt(resolvedSize.height) * flock.displayScale);
 
     const slider = new flock.GUI.Slider(id);
     slider.minimum = min;
@@ -452,13 +477,13 @@ export const flockUI = {
     slider.borderColor = 'transparent';
 
     slider.isPointerBlocker = true;
-    slider.thumbWidth = '20px';
+    slider.thumbWidth = `${Math.round(20 * flock.displayScale)}px`;
     slider.isFocusLinker = true;
 
     slider.color = textColor || '#000000'; // Color of the "filled" part and thumb
     slider.background = backgroundColor || '#ffffff'; // Color of the "empty" track
-    slider.height = resolvedSize.height;
-    slider.width = resolvedSize.width;
+    slider.height = `${scaledHeight}px`;
+    slider.width = `${scaledWidth}px`;
 
     slider.left = `${x}px`;
     slider.top = `${y}px`;
@@ -478,8 +503,8 @@ export const flockUI = {
     registerUISlider(id, slider, {
       x,
       y,
-      w: parseInt(resolvedSize.width),
-      h: parseInt(resolvedSize.height),
+      w: scaledWidth,
+      h: scaledHeight,
     });
 
     return slider;
@@ -541,7 +566,7 @@ export const flockUI = {
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
 
-    flock.controlsTexture.addControl(grid);
+    addControlsRoot(grid);
 
     const upButton = flock.createSmallButton('△', ['w', 'ArrowUp'], color);
     const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color);
@@ -566,7 +591,7 @@ export const flockUI = {
     rightGrid.addColumnDefinition(1);
     rightGrid.addColumnDefinition(1);
 
-    flock.controlsTexture.addControl(rightGrid);
+    addControlsRoot(rightGrid);
 
     const button1 = flock.createSmallButton('①', [...getBoundKeys('BUTTON1'), 'PageUp'], color);
     const button2 = flock.createSmallButton('②', getBoundKeys('BUTTON2'), color);
@@ -590,10 +615,7 @@ export const flockUI = {
     configureControlsResizeHandling();
     flock._controlsBaseDisplayScale = flock.displayScale;
     flock._controlsLayout = { kind: 'buttons', control, color, shouldShow };
-    const scale =
-      flock._controlsBaseDisplayScale *
-      (flock._controlsBaseHardwareScaling / flock.engine.getHardwareScalingLevel());
-    renderControls(flock._controlsLayout, scale);
+    renderControls(flock._controlsLayout, currentControlsScale());
   },
   createJoystickControls(color) {
     if (!flock.controlsTexture) return;
@@ -618,7 +640,7 @@ export const flockUI = {
     thumb.thickness = 0;
 
     base.addControl(thumb);
-    flock.controlsTexture.addControl(base);
+    addControlsRoot(base);
 
     return new JoystickSource(flock.inputManager, flock._onScreenSource, {
       canvas: flock.canvas,
@@ -640,12 +662,14 @@ export const flockUI = {
     configureControlsResizeHandling();
     flock._controlsBaseDisplayScale = flock.displayScale;
     flock._controlsLayout = { kind: 'onscreen', movement, actions, color, shouldShow };
-    const scale =
-      flock._controlsBaseDisplayScale *
-      (flock._controlsBaseHardwareScaling / flock.engine.getHardwareScalingLevel());
-    renderControls(flock._controlsLayout, scale);
+    renderControls(flock._controlsLayout, currentControlsScale());
 
     window.__flockSizeDebug?.sample('controls-created');
+  },
+  // XR entry and exit swap the texture the controls live on, so they have to be rebuilt.
+  _refreshOnScreenControls() {
+    if (!flock._controlsLayout) return;
+    renderControls(flock._controlsLayout, currentControlsScale());
   },
   canvasControls(setting) {
     flock._canvasControlsEnabled = !!setting;

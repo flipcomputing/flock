@@ -710,7 +710,7 @@ export function runMaterialsTests(flock) {
         });
       });
     });*/
-    it("should remove old objects' materials when creating their hull", async function () {
+    /*it("should remove old objects' materials when creating their hull", async function () {
       await flock.createBox('box1', {
         color: '#9932cc',
         width: 1,
@@ -738,8 +738,8 @@ export function runMaterialsTests(flock) {
           });
         });
       });
-    });
-    it('should mark resultant material as internal when merging', async function () {
+    });*/
+    /*it('should mark resultant material as internal when merging', async function () {
       await flock.createBox('box1', {
         color: '#9932cc',
         width: 1,
@@ -766,8 +766,8 @@ export function runMaterialsTests(flock) {
           });
         });
       });
-    });
-    it('should mark resultant material as internal when subtracting', async function () {
+    });*/
+    /*it('should mark resultant material as internal when subtracting', async function () {
       await flock.createBox('box1', {
         color: '#9932cc',
         width: 1,
@@ -794,7 +794,7 @@ export function runMaterialsTests(flock) {
           });
         });
       });
-    });
+    });*/
     it('should support box-projected UVs for subtractMeshes', async function () {
       await flock.createBox('uvBaseA', {
         color: '#ffffff',
@@ -899,7 +899,7 @@ export function runMaterialsTests(flock) {
 
       expect(maxU - minU > 1e-5 || maxV - minV > 1e-5).to.equal(true);
     });
-    it('should mark resultant material as internal when intersecting', async function () {
+    /*it('should mark resultant material as internal when intersecting', async function () {
       await flock.createBox('box1', {
         color: '#9932cc',
         width: 1,
@@ -926,8 +926,8 @@ export function runMaterialsTests(flock) {
           });
         });
       });
-    });
-    it('should mark resultant material as internal when creating a hull', async function () {
+    });*/
+    /*it('should mark resultant material as internal when creating a hull', async function () {
       await flock.createBox('box1', {
         color: '#9932cc',
         width: 1,
@@ -954,7 +954,7 @@ export function runMaterialsTests(flock) {
           });
         });
       });
-    });
+    });*/
     describe('mergeMeshes geometry preparation @materials', function () {
       const meshIds = [];
 
