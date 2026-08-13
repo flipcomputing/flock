@@ -15,13 +15,25 @@ export const flockScene = {
 
     let color = input;
 
+    // The gradient colour block hands over a descriptor. Unwrap to its colours
+    // before the material conversion below, so the sky builds its own gradient
+    // and sizes minMax to the sky sphere; the sky only does bottom to top, so
+    // the direction is ignored.
+    if (color && typeof color === 'object' && !Array.isArray(color) && Array.isArray(color.color)) {
+      // Only for an untextured descriptor: with a texture the colour list means
+      // palette replacement, which the material conversion has to handle.
+      const texName = color.materialName || color.textureSet || 'none.png';
+      if (texName === 'none.png') color = color.color;
+    }
+
     // Convert object input to a material (handles texture + colors)
     if (
-      typeof input === 'object' &&
-      !(input instanceof flock.BABYLON.Material) &&
-      !Array.isArray(input)
+      color &&
+      typeof color === 'object' &&
+      !(color instanceof flock.BABYLON.Material) &&
+      !Array.isArray(color)
     ) {
-      color = flock.createMaterial(input);
+      color = flock.createMaterial(color);
     }
 
     if (!color) return;
@@ -81,12 +93,6 @@ export const flockScene = {
       color.backFaceCulling = false;
       skySphere.material = color;
       return;
-    }
-
-    // The gradient colour block hands over a descriptor; the sky only does
-    // bottom-to-top, so use its colours and ignore the direction.
-    if (color && typeof color === 'object' && !Array.isArray(color) && color.color) {
-      color = color.color;
     }
 
     if (Array.isArray(color) && color.length === 1) color = color[0];
