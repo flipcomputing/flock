@@ -767,10 +767,15 @@ export function initializeWorkspace() {
       el.setAttribute('aria-label', translate('comment_text_label'));
     }
   };
-  workspace
-    .getInjectionDiv()
-    .querySelectorAll('textarea.blocklyCommentText')
-    .forEach(labelCommentTextarea);
+  const refreshCommentTextareaLabels = () =>
+    workspace
+      .getInjectionDiv()
+      .querySelectorAll('textarea.blocklyCommentText')
+      .forEach(labelCommentTextarea);
+  refreshCommentTextareaLabels();
+  // Re-applies comment_text_label to textareas already mounted when the
+  // language changes; new ones are covered by the MutationObserver below.
+  window.flockRefreshCommentTextareaLabels = refreshCommentTextareaLabels;
   new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
@@ -1169,7 +1174,6 @@ export function initializeWorkspace() {
   const wsMobileInput = document.createElement('input');
   wsMobileInput.type = 'text';
   wsMobileInput.className = 'ws-search-mobile-input';
-  wsMobileInput.placeholder = translate('workspace_search_placeholder');
   wsMobileInput.setAttribute('autocomplete', 'one-time-code');
 
   const wsMobileCount = document.createElement('span');
@@ -1179,22 +1183,30 @@ export function initializeWorkspace() {
   const wsMobilePrev = document.createElement('button');
   wsMobilePrev.type = 'button';
   wsMobilePrev.className = 'ws-search-mobile-btn';
-  wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
   wsMobilePrev.textContent = '▲';
 
   const wsMobileNext = document.createElement('button');
   wsMobileNext.type = 'button';
   wsMobileNext.className = 'ws-search-mobile-btn';
-  wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
   wsMobileNext.textContent = '▼';
 
   const wsMobileClose = document.createElement('button');
   wsMobileClose.type = 'button';
   wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
-  wsMobileClose.setAttribute('aria-label', translate('close'));
   wsMobileClose.textContent = '×';
 
   wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
+
+  const refreshWsMobileSearchLabels = () => {
+    const searchLabel = translate('workspace_search_placeholder');
+    wsMobileInput.placeholder = searchLabel;
+    wsMobileInput.setAttribute('aria-label', searchLabel);
+    wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
+    wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
+    wsMobileClose.setAttribute('aria-label', translate('close'));
+  };
+  refreshWsMobileSearchLabels();
+  window.flockRefreshMobileWorkspaceSearchLabels = refreshWsMobileSearchLabels;
 
   const updateWsMobileCount = () => {
     const total = workspaceSearch.blocks?.length ?? 0;
