@@ -480,6 +480,8 @@ export default {
   export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.\nPalabra clave: exporta', // human
 
   // Tooltip translations - Control blocks
+  if_clause_tooltip:
+    'Ejecuta los bloques conectados si la condición es verdadera. Cambia el menú desplegable a "sino si" o "sino", y conecta otro bloque si debajo para crear cadenas de si / sino si / sino.', // ai
   wait_tooltip: 'Espera un tiempo especificado en milisegundos.\nPalabra clave: mili', // human
   wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.\nPalabra clave: espera', // human
   wait_until_tooltip: 'Espera hasta que la condición sea verdadera.\nPalabra clave: hasta', // human
@@ -546,7 +548,7 @@ export default {
     'Añade una forma física al objeto. Opciones: objeto o cápsula.\nPalabra clave: física', // human
   apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.\nPalabra clave: fuerza', // human
   jump_tooltip:
-    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual, así que saltas hacia adelante con impulso como en los juegos de plataformas. Necesita física.\nPalabra clave: saltar brincar', // ai
+    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual. Necesita física.\nKeyword: saltar brincar', // ai
   show_physics_tooltip:
     'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física', // human
 
@@ -659,7 +661,7 @@ export default {
   resize_tooltip:
     'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona', // human
   rotate_model_xyz_tooltip:
-    'Rota el objeto por los valores x, y, z indicados.\nPalabra clave: rota\nKeyword: rotapor', // human
+    'Rota el objeto por los valores x, y, z indicados.\nPalabra clave: rota\nPalabra clave: rotapor', // human
   rotate_to_tooltip: 'Rota el objeto para q apunte hacia las coordenadas.\nPalabra clave: rotaa', // human
   look_at_tooltip: 'Rota el primer objeto hacia la posición de la segunda.\nPalabra clave: mira', // human
   move_forward_tooltip:
@@ -1097,6 +1099,9 @@ export default {
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
   inspector_tool_ui: 'Inspector', // ai
+  show_block_hints_ui: 'Mostrar sugerencias de bloques',
+  hide_block_hints_ui: 'Ocultar sugerencias de bloques',
+  block_hints_menu_location_ui: 'Haz clic en Menú > Herramientas',
   language_submenu_ui: 'Idioma', // human
   about_submenu_ui: 'Sobre nosotros', // human
   hub_submenu_ui: 'Centro', // human

@@ -47,6 +47,7 @@ import {
 import { ShortcutsPanel } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from './keyboardDispatcher.js';
 import { ContextManager } from './context.js';
+import { areBlockHintsEnabled, setBlockHintsEnabled } from '../ui/blockHint.js';
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get('embed');
@@ -729,6 +730,7 @@ function initializeApp() {
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
   const inspectorMenuItem = document.getElementById('inspector-menu-item');
+  const blockHintsMenuItem = document.getElementById('block-hints-menu-item');
   const togglePlayButton = document.getElementById('togglePlay');
   const stopCodeButton = document.getElementById('stopCodeButton');
   const fileInput = document.getElementById('fileInput');
@@ -837,6 +839,19 @@ function initializeApp() {
       );
       announceToScreenReader(focusedMessage, { requireCanvasFocus: false });
     }
+  });
+
+  const updateBlockHintsMenuLabel = () => {
+    if (!blockHintsMenuItem) return;
+    const key = areBlockHintsEnabled() ? 'hide_block_hints' : 'show_block_hints';
+    blockHintsMenuItem.dataset.i18n = key;
+    blockHintsMenuItem.textContent = translate(`${key}_ui`);
+  };
+  updateBlockHintsMenuLabel();
+  blockHintsMenuItem?.addEventListener('click', (event) => {
+    event.preventDefault();
+    setBlockHintsEnabled(!areBlockHintsEnabled());
+    updateBlockHintsMenuLabel();
   });
 
   if (togglePlayButton) {

@@ -441,6 +441,7 @@ export function defineControlBlocks() {
       this.setPreviousStatement(true);
       this.setNextStatement(true);
       this.setInputsInline(true);
+      this.setTooltip(getTooltip('if_clause'));
 
       this._stashedCondState = null;
 

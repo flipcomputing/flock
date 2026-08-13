@@ -4,6 +4,7 @@ import { translate } from './translation.js';
 import { blockHandlerRegistry, refreshReporterAriaLabels } from '../blocks/blocks.js';
 import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
+import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -323,6 +324,11 @@ export function initializeBlockHandling() {
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId ? workspace.getBlockById(event.newElementId) : null;
+      if (window.currentBlock) {
+        showBlockHint(Blockly.Tooltip.getTooltipOfObject(window.currentBlock));
+      } else {
+        clearBlockHint();
+      }
     }
 
     // Workaround for Blockly not checking for orphans on key
