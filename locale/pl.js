@@ -335,6 +335,7 @@ export default {
   device_camera_background: 'użyj kamery urządzenia %1 jako tło',
   set_xr_mode: 'ustaw tryb XR na %1',
   set_xr_view_mode: 'ustaw widok VR na %1 z ruchem kamery %2',
+  set_xr_ui_placement: 'pokaż interfejs VR na %1', // ai
   add_teleport_target: 'dodaj cel teleportacji %1',
   remove_teleport_target: 'usuń cel teleportacji %1',
   play_rumble_pattern: 'odtwórz wzór wibracji %1',
@@ -799,6 +800,8 @@ export default {
   teleport_option: 'teleportacja',
   watch_option: 'obserwuj',
   embody_option: 'wciel się',
+  hud_option: 'wyświetlacz przezierny', // ai
+  wrist_option: 'nadgarstek', // ai
   smooth_option: 'płynnie',
   comfort_option: 'komfort',
   space_infinity_option: 'przestrzeń ❖',

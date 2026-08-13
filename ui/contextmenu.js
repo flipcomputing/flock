@@ -661,6 +661,8 @@ export function initContextMenus(workspace) {
     const blockToolbar = document.createElement('div');
     blockToolbar.className = 'fc-block-toolbar';
     blockToolbar.setAttribute('role', 'toolbar');
+    blockToolbar.setAttribute('aria-hidden', 'true');
+    blockToolbar.inert = true;
     document.body.appendChild(blockToolbar);
 
     // Keyboard-only overlay of shortcut-letter badges, one per visible button.
@@ -1108,6 +1110,8 @@ export function initContextMenus(workspace) {
           : getToolbarLabel('view_in_canvas', 'View in canvas')
       );
       blockToolbar.classList.add('visible');
+      blockToolbar.removeAttribute('aria-hidden');
+      blockToolbar.inert = false;
       // Clear any stale badges from a previous keyboard selection; in keyboard
       // mode positionBlockToolbar() draws fresh ones (it also re-runs on block
       // move / viewport change to keep them aligned with the buttons).
@@ -1124,6 +1128,8 @@ export function initContextMenus(workspace) {
       toolbarBlock = null;
       toolbarKeyboardMode = false;
       blockToolbar.classList.remove('visible');
+      blockToolbar.setAttribute('aria-hidden', 'true');
+      blockToolbar.inert = true;
       clearBadges();
     }
 

@@ -124,6 +124,70 @@ export function runOnScreenControlsTests(flock) {
       });
     });
 
+    describe('XR HUD hosting', function () {
+      let hudTexture;
+      let originalMeshTexture;
+
+      const arrowCount = (texture) =>
+        texture.getDescendants().filter((control) => control.textBlock?.text === '△').length;
+
+      beforeEach(function () {
+        originalMeshTexture = flock.meshTexture;
+        hudTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestXRHUD',
+          true,
+          flock.scene
+        );
+        flock.meshTexture = hudTexture;
+        flock._xrHUDActive = true;
+      });
+
+      afterEach(function () {
+        flock.onScreenControls('NONE', 'NO', 'DISABLED');
+        flock._xrHUDActive = false;
+        flock.meshTexture = originalMeshTexture;
+        hudTexture.dispose();
+      });
+
+      it('adds the controls to the HUD texture rather than the fullscreen one', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+        expect(flock.controlsTexture.getDescendants().length).to.equal(0);
+      });
+
+      it('falls back to arrows for joystick movement', function () {
+        flock.onScreenControls('JOYSTICK', 'NO', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+        expect(flock._joystickSource).to.not.exist;
+      });
+
+      it('replaces the HUD controls instead of stacking them up', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+      });
+
+      it('removes the HUD controls when the controls are disabled', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        flock.onScreenControls('ARROWS', 'NO', 'DISABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(0);
+      });
+
+      it('rebuilds the controls on the fullscreen texture once the HUD closes', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        flock._xrHUDActive = false;
+        flock._refreshOnScreenControls();
+
+        expect(arrowCount(hudTexture)).to.equal(0);
+        expect(arrowCount(flock.controlsTexture)).to.equal(1);
+      });
+    });
+
     // createSmallButton tests (unchanged — shared with button controls)
     describe('createSmallButton function tests', function () {
       beforeEach(function () {

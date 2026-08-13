@@ -273,8 +273,9 @@ export function runUITests(flock) {
           y: 100,
         });
 
-        expect(slider.width).to.equal('200px');
-        expect(slider.height).to.equal('30px');
+        // MEDIUM size (200x30) scaled by displayScale
+        expect(slider.width).to.equal(`${Math.round(200 * flock.displayScale)}px`);
+        expect(slider.height).to.equal(`${Math.round(30 * flock.displayScale)}px`);
       });
 
       it('should use SMALL dimensions when specified', function () {
@@ -288,8 +289,9 @@ export function runUITests(flock) {
           size: 'SMALL',
         });
 
-        expect(slider.width).to.equal('100px');
-        expect(slider.height).to.equal('20px');
+        // SMALL size (100x20) scaled by displayScale
+        expect(slider.width).to.equal(`${Math.round(100 * flock.displayScale)}px`);
+        expect(slider.height).to.equal(`${Math.round(20 * flock.displayScale)}px`);
       });
 
       it('should apply the specified colors', function () {

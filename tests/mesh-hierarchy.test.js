@@ -530,6 +530,37 @@ export function runMeshHierarchyTests(flock) {
         const posAfterMove = treeMesh.getAbsolutePosition();
         expect(posAfterMove.x).to.be.closeTo(posBeforeMove.x, 0.5);
       });
+
+      it('attaching to an embodied player in VR should hide the attachment', async function () {
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        const xrState = {
+          mode: flock._xrViewMode,
+          xrMode: flock._xrMode,
+          sessionActive: flock._xrSessionActive,
+          target: flock._xrFollowTarget,
+        };
+        try {
+          flock._xrMode = 'VR';
+          flock._xrSessionActive = true;
+          flock._xrViewMode = 'embody';
+          flock._xrFollowTarget = lizMesh;
+
+          await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+
+          const treeMesh = flock.scene.getMeshByName(treeId);
+          const treeParts = [treeMesh, ...treeMesh.getChildMeshes(false)];
+          expect(treeParts.every((part) => part.isVisible === false)).to.be.true;
+
+          await pumpAnimation(flock, flock.drop(treeId));
+          expect(treeParts.every((part) => part.isVisible === true)).to.be.true;
+        } finally {
+          flock._restoreXREmbodiedVisibility();
+          flock._xrViewMode = xrState.mode;
+          flock._xrMode = xrState.xrMode;
+          flock._xrSessionActive = xrState.sessionActive;
+          flock._xrFollowTarget = xrState.target;
+        }
+      });
     });
   });
 }

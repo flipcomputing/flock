@@ -334,6 +334,7 @@ export default {
   device_camera_background: 'utiliser la caméra %1 comme arrière-plan',
   set_xr_mode: 'définir le mode XR sur %1',
   set_xr_view_mode: 'définir la vue RV sur %1 avec mouvement de caméra %2',
+  set_xr_ui_placement: "afficher l'interface RV sur %1", // ai
   add_teleport_target: 'ajouter la cible de téléportation %1',
   remove_teleport_target: 'retirer la cible de téléportation %1',
   play_rumble_pattern: 'jouer le motif de vibration %1',
@@ -805,6 +806,8 @@ export default {
   teleport_option: 'téléporter',
   watch_option: 'observer',
   embody_option: 'incarner',
+  hud_option: 'affichage tête haute', // ai
+  wrist_option: 'poignet', // ai
   smooth_option: 'fluide',
   comfort_option: 'confort',
   space_infinity_option: 'espace ❖',

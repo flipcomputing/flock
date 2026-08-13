@@ -372,6 +372,7 @@ export default {
   device_camera_background: 'use %1 camera as background',
   set_xr_mode: 'set XR mode to %1',
   set_xr_view_mode: 'set VR view to %1 with camera motion %2',
+  set_xr_ui_placement: 'show VR UI on %1',
   add_teleport_target: 'add teleport target %1',
   remove_teleport_target: 'remove teleport target %1',
   play_rumble_pattern: 'play rumble pattern %1',
@@ -675,6 +676,8 @@ export default {
   set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
+  set_xr_ui_placement_tooltip:
+    'Choose where buttons, sliders and text appear in VR. The heads-up display floats in front of you; the wrist attaches them to your left controller like a watch.',
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',
   remove_teleport_target_tooltip:
     'Stop allowing teleportation onto the ground, one object, or all objects.',
@@ -860,6 +863,8 @@ export default {
   teleport_option: 'teleport',
   watch_option: 'watch',
   embody_option: 'embody',
+  hud_option: 'heads-up display',
+  wrist_option: 'wrist',
   smooth_option: 'smooth',
   comfort_option: 'comfort',
   space_infinity_option: 'space ❖', // Duplicate key space
@@ -1193,6 +1198,7 @@ export default {
   context_enable_option: 'Enable',
   add_comment: 'Add comment',
   delete_comment: 'Delete comment',
+  comment_text_label: 'Comment text',
   view_in_canvas: 'View in canvas',
   exit_canvas_view: 'Stop orbiting object',
   detach_block_option: 'Detach',

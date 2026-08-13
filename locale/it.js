@@ -339,6 +339,7 @@ export default {
   device_camera_background: 'usa la %1 del dispositivo come sfondo',
   set_xr_mode: 'imposta modalità XR su %1',
   set_xr_view_mode: 'imposta vista VR su %1 con movimento della camera %2',
+  set_xr_ui_placement: 'mostra interfaccia VR su %1', // ai
   add_teleport_target: 'aggiungi destinazione teletrasporto %1',
   remove_teleport_target: 'rimuovi destinazione teletrasporto %1',
   play_rumble_pattern: 'riproduci motivo di vibrazione %1',
@@ -812,6 +813,8 @@ export default {
   teleport_option: 'teletrasporto',
   watch_option: 'osserva',
   embody_option: 'incarna',
+  hud_option: 'display frontale', // ai
+  wrist_option: 'polso', // ai
   smooth_option: 'fluido',
   comfort_option: 'comfort',
   space_infinity_option: 'spazio ❖', // Duplicate key space

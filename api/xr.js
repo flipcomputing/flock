@@ -18,7 +18,13 @@ export const createFlockXRState = () => ({
   _xrFollowCameraVerticalOffset: null,
   _xrFollowLastPosition: null,
   _xrFollowSettledPosition: null,
+  _xrFollowLastHeading: null,
   _xrFollowLastMovedAt: 0,
+  _xrWatchYawOffset: null,
+  _xrWatchAnchorYaw: null,
+  _xrWatchAnchorPosition: null,
+  _xrWatchAnchorTarget: null,
+  _xrSnapTurnHeld: false,
   _xrWatchPosition: null,
   _xrNonXRCameraPosition: null,
   _xrEmbodiedVisibility: new Map(),
@@ -40,20 +46,63 @@ export const createFlockXRState = () => ({
   _xrMoveDelta: null,
   _xrForwardBasis: null,
   _xrRightBasis: null,
+  _xrHUDCenter: null,
+  _xrHUDForward: null,
   _xrSessionActive: false,
   _xrDesktopUITexture: null,
   _xrVirtualKeyboard: null,
+  _xrUIPlacement: 'wrist',
+  _xrUIControllerObserver: null,
+  _xrUIControllerRemovedObserver: null,
+  _xrHUDActive: false,
+  _cameraBackgroundLayer: null,
+  _cameraBackgroundTexture: null,
+  _cameraBackgroundFacing: null,
+  _cameraBackgroundRequest: 0,
+  _xrMirror: null,
 });
+
+// The panel spans about 56 degrees at this distance.
+const XR_HUD_WIDTH = 1.6;
+const XR_HUD_HEIGHT = 0.9;
+const XR_HUD_DISTANCE = 1.5;
+const XR_HUD_TEXTURE_WIDTH = 1536;
+const XR_HUD_TEXTURE_HEIGHT = 864;
+// Canvas-pixel UI resolves to well under a degree here, so every pixel measure is scaled
+// up. Offsets scale too, so controls placed far from their edge can fall off the panel.
+const XR_HUD_MAGNIFICATION = 2.5;
+// Holds the wrist panel at the size it had with the smaller HUD plane.
+const XR_WRIST_SCALE = 0.26;
+
+// Out with the sky, well beyond anything a project builds, so the feed reads as a backdrop
+// behind the scene. Inside the sky sphere's 500 radius, corners included.
+const XR_MIRROR_DISTANCE = 200;
+const XR_MIRROR_FOV = Math.PI / 3;
+const XR_MIRROR_ASPECT = 4 / 3;
+
+const SNAP_TURN_ANGLE = Math.PI / 6;
+const SNAP_TURN_PRESS = 0.7;
+const SNAP_TURN_RELEASE = 0.3;
+// Comfort waits for the character to hold still before the view catches up.
+const COMFORT_SETTLE_MS = 250;
+const HEADING_EPSILON = 0.01;
 
 export const flockXR = {
   _moveUIControls(source, target) {
     if (!source?.rootContainer || !target?.addControl) return;
     const controls = [...(source.rootContainer.children ?? [])];
     for (const control of controls) {
-      if (control === flock._xrVirtualKeyboard) continue;
       source.removeControl?.(control);
       target.addControl(control);
     }
+  },
+  _hideXRKeyboard(input) {
+    const keyboard = flock._xrVirtualKeyboard;
+    if (!keyboard) return;
+    keyboard.disconnect(input);
+    if (keyboard.connectedInputText) return;
+    keyboard._flockSubmit = null;
+    keyboard.isVisible = false;
   },
   _showXRKeyboardForInput(input, onSubmit) {
     if (!flock._xrSessionActive || !input || !flock.meshTexture) return;
@@ -77,9 +126,93 @@ export const flockXR = {
     flock._xrVirtualKeyboard.connect(input);
     flock._xrVirtualKeyboard._flockSubmit = onSubmit;
     flock._xrVirtualKeyboard.isVisible = true;
+    // Control.dispose() clears onBlurObservable without firing it.
+    input.onDisposeObservable?.addOnce?.(() => flock._hideXRKeyboard(input));
+  },
+  _createXRHUDTexture(plane) {
+    const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
+      plane,
+      XR_HUD_TEXTURE_WIDTH,
+      XR_HUD_TEXTURE_HEIGHT,
+      true
+    );
+    texture.idealWidth = Math.round(
+      XR_HUD_TEXTURE_WIDTH / flock._xrTuning('xu', XR_HUD_MAGNIFICATION, 1, 4)
+    );
+    // Mip filtering softens glyph edges, and a head-locked panel barely moves against the eye.
+    texture.updateSamplingMode(flock.BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+    return texture;
+  },
+  _xrWristParent() {
+    const left = (flock.xrHelper?.input?.controllers ?? []).find(
+      (controller) => controller.inputSource?.handedness === 'left'
+    );
+    return left?.grip ?? left?.pointer ?? null;
+  },
+  _applyXRUIPlacement() {
+    const plane = flock.uiPlane;
+    if (!plane) return;
+
+    const wristParent = flock._xrUIPlacement === 'wrist' ? flock._xrWristParent() : null;
+    if (wristParent) {
+      plane.parent = wristParent;
+      // A rotationQuaternion, once set, is what the node rotates by.
+      plane.rotationQuaternion = null;
+      plane.position.set(0.1, -0.05, 0);
+      plane.rotation.set(Math.PI / 2, 0, 0);
+      plane.scaling.setAll(XR_WRIST_SCALE);
+      return;
+    }
+
+    plane.parent = null;
+    plane.scaling.setAll(1);
+    flock._syncXRHUDPose();
+  },
+  // The eyes render from the rig cameras, which hold the pose the frame opened with. Moving
+  // the XR camera later in the frame — snap turn, watch trail, teleport — reaches its children
+  // but not the rig cameras, so a head-locked child would spend that frame off where the eyes
+  // are not looking. Following the rig cameras keeps the panel with the view.
+  _syncXRHUDPose() {
+    const plane = flock.uiPlane;
+    // Wrist placement rides a controller grip, which the pose update moves with the eyes.
+    if (!plane || plane.parent || !plane.isVisible) return;
+    const rigs = flock.xrHelper?.baseExperience?.camera?.rigCameras;
+    if (!rigs?.length) return;
+
+    const B = flock.BABYLON;
+    flock._xrHUDCenter ??= new B.Vector3();
+    flock._xrHUDForward ??= new B.Vector3();
+    flock._xrForwardBasis ??= B.Vector3.Forward();
+
+    const center = flock._xrHUDCenter.copyFromFloats(0, 0, 0);
+    for (const rig of rigs) {
+      // globalPosition is only refreshed alongside the world matrix.
+      rig.getWorldMatrix();
+      center.addInPlace(rig.globalPosition);
+    }
+    center.scaleInPlace(1 / rigs.length);
+
+    rigs[0].getDirectionToRef(flock._xrForwardBasis, flock._xrHUDForward);
+    plane.position.copyFrom(center).addInPlace(flock._xrHUDForward.scaleInPlace(XR_HUD_DISTANCE));
+    plane.rotationQuaternion ??= new B.Quaternion();
+    plane.rotationQuaternion.copyFrom(rigs[0].absoluteRotation);
+  },
+  _hudHasInteractiveControls(container) {
+    for (const child of container?.children ?? []) {
+      if (child.isVisible === false) continue;
+      if (child.isPointerBlocker) return true;
+      if (flock._hudHasInteractiveControls(child)) return true;
+    }
+    return false;
+  },
+  // The panel sits between viewer and scene, so it must only swallow rays when pressable.
+  _syncXRHUDPicking() {
+    if (!flock.uiPlane) return;
+    flock.uiPlane.isPickable = flock._hudHasInteractiveControls(flock.meshTexture?.rootContainer);
   },
   _enterXRHUD() {
     if (!flock.meshTexture || !flock.scene) return;
+    flock._xrHUDActive = true;
     const desktopTexture =
       flock.scene.UITexture ??
       flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI', true, flock.scene);
@@ -88,8 +221,11 @@ export const flockXR = {
       flock._moveUIControls(desktopTexture, flock.meshTexture);
       flock.scene.UITexture = flock.meshTexture;
     }
+    flock._refreshOnScreenControls?.();
   },
   _exitXRHUD() {
+    const wasActive = flock._xrHUDActive;
+    flock._xrHUDActive = false;
     const desktopTexture = flock._xrDesktopUITexture;
     if (flock._xrVirtualKeyboard) {
       flock._xrVirtualKeyboard.disconnect();
@@ -97,6 +233,7 @@ export const flockXR = {
       flock._xrVirtualKeyboard.dispose();
       flock._xrVirtualKeyboard = null;
     }
+    if (wasActive) flock._refreshOnScreenControls?.();
 
     if (!desktopTexture || !flock.scene) return;
 
@@ -110,6 +247,14 @@ export const flockXR = {
     flock._xrSource = null;
     if (flock._xrViewObserver && flock._xrViewObserverScene) {
       flock._xrViewObserverScene.onBeforeRenderObservable?.remove?.(flock._xrViewObserver);
+    }
+    if (flock._xrUIControllerObserver) {
+      flock.xrHelper?.input?.onControllerAddedObservable?.remove?.(flock._xrUIControllerObserver);
+    }
+    if (flock._xrUIControllerRemovedObserver) {
+      flock.xrHelper?.input?.onControllerRemovedObservable?.remove?.(
+        flock._xrUIControllerRemovedObserver
+      );
     }
     if (flock._xrMeshObserverScene) {
       if (flock._xrMeshAddedObserver) {
@@ -145,15 +290,16 @@ export const flockXR = {
     };
   },
   _applyXRDefaults(mode) {
-    if (
-      mode === 'VR' &&
-      !flock._xrTargetPosition() &&
-      flock._xrViewMode === 'watch' &&
-      flock._xrCameraMotionMode === 'none'
-    ) {
-      flock._xrViewMode = 'embody';
-      flock._xrCameraMotionMode = 'smooth';
+    // The starting state doubles as "the project never said": leave anything else alone.
+    if (mode !== 'VR' || flock._xrViewMode !== 'watch' || flock._xrCameraMotionMode !== 'none') {
+      return;
     }
+    if (flock._xrTargetPosition()) {
+      flock._xrCameraMotionMode = 'comfort';
+      return;
+    }
+    flock._xrViewMode = 'embody';
+    flock._xrCameraMotionMode = 'teleport';
   },
   _ensureTeleportationState() {
     flock._teleportExplicitTargetNames ??= new Set();
@@ -252,15 +398,17 @@ export const flockXR = {
       flock._xrSource?.setInputMode('fly');
       return;
     }
-    const projectControls =
-      hasFollowTarget &&
-      (flock._xrViewMode === 'watch' ||
-        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth'));
+    // Teleport steers with the thumbstick; otherwise the project's own movement gets it.
+    const projectControls = hasFollowTarget
+      ? flock._xrViewMode === 'watch' ||
+        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth')
+      : flock._xrCameraMotionMode !== 'teleport';
     const inputMode = projectControls ? 'project' : 'disabled';
     flock._xrSource?.setInputMode(inputMode);
   },
   _handleXRStateChange(state) {
     if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
+      flock._syncXRFollowTargetFromCamera();
       flock._xrSource?.start();
       flock._enterXRHUD();
       const stackPanel = flock.stackPanel;
@@ -270,8 +418,13 @@ export const flockXR = {
         stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
         stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       }
-      if (flock.uiPlane) flock.uiPlane.isVisible = true;
-      if (flock.advancedTexture) flock.advancedTexture.isVisible = false;
+      if (flock.uiPlane) {
+        flock.uiPlane.isVisible = true;
+        flock._applyXRUIPlacement();
+      }
+      if (flock.advancedTexture?.rootContainer) {
+        flock.advancedTexture.rootContainer.isVisible = false;
+      }
     } else if (state === flock.BABYLON.WebXRState.IN_XR) {
       const baseExperience = flock.xrHelper?.baseExperience;
       if (!baseExperience) return;
@@ -285,9 +438,12 @@ export const flockXR = {
       flock._positionXRWatchCamera();
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
+      flock._applyCameraBackground();
+      flock._restartCameraBackgroundForXR();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       flock._xrSessionActive = false;
       flock._applyXRViewVisibility();
+      flock._applyCameraBackground();
       flock._xrSource?.stop();
       const stackPanel = flock.stackPanel;
       if (stackPanel) {
@@ -320,31 +476,143 @@ export const flockXR = {
     ) {
       xrCamera.position.copyFrom(flock._xrWatchPosition);
     }
-    if (!targetPosition) return;
+    if (targetPosition) {
+      flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
+      flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
+      flock._xrFollowLastHeading = flock._xrTargetHeading();
+      flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
 
-    flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
-    flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
-    flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
-
-    if (!reposition || !xrCamera?.position) return;
-    if (flock._xrViewMode === 'embody') {
-      if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
-      xrCamera.position.x = targetPosition.x;
-      xrCamera.position.z = targetPosition.z;
+      if (reposition && xrCamera?.position && flock._xrViewMode === 'embody') {
+        if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
+        xrCamera.position.x = targetPosition.x;
+        xrCamera.position.z = targetPosition.z;
+      }
     }
+    flock._syncXRWatchTrail(xrCamera?.position);
   },
-  _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
+  _xrTargetHeading() {
+    const target = flock._xrFollowTarget;
+    if (!target || target.isDisposed?.()) return null;
+    const quaternion = target.rotationQuaternion;
+    if (typeof quaternion?.toEulerAngles === 'function') return quaternion.toEulerAngles().y;
+    const heading = target.rotation?.y;
+    return Number.isFinite(heading) ? heading : null;
+  },
+  // The framing the watch camera keeps as the character walks and turns: where it sits
+  // relative to the character's own heading, so it trails the same shoulder throughout.
+  _syncXRWatchTrail(cameraPosition) {
+    flock._xrWatchYawOffset = null;
+    flock._xrWatchAnchorYaw = null;
+    flock._xrWatchAnchorPosition = null;
+    flock._xrWatchAnchorTarget = null;
+
+    const targetPosition = flock._xrTargetPosition();
+    if (!targetPosition || !cameraPosition || flock._xrViewMode !== 'watch') return;
+
+    const offsetX = cameraPosition.x - targetPosition.x;
+    const offsetZ = cameraPosition.z - targetPosition.z;
+    const horizontal = Math.hypot(offsetX, offsetZ);
+    if (horizontal < 0.001) return;
+
+    const yaw = Math.atan2(offsetX, offsetZ);
+    flock._xrWatchYawOffset = yaw - (flock._xrTargetHeading() ?? 0);
+    flock._xrWatchAnchorYaw = yaw;
+    flock._xrWatchAnchorPosition = cameraPosition.clone();
+    flock._xrWatchAnchorTarget = targetPosition.clone?.() ?? { ...targetPosition };
+  },
+  _wrapAngle(angle) {
+    return Math.atan2(Math.sin(angle), Math.cos(angle));
+  },
+  // Rotates the play space, so the headset keeps whatever offset the wearer is looking at.
+  _rotateXRCameraYaw(radians) {
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.rotationQuaternion || !radians) return;
+    const yaw = flock.BABYLON.Quaternion.FromEulerAngles(0, radians, 0);
+    yaw.multiplyToRef(xrCamera.rotationQuaternion, xrCamera.rotationQuaternion);
+  },
+  // Carries the camera to `pivot`, turning it `angle` around that pivot on the way, so
+  // the wearer keeps both their own head offset and their view of the character.
+  _placeXRWatchCamera(pivot, angle) {
+    const anchor = flock._xrWatchAnchorPosition;
+    const base = flock._xrWatchAnchorTarget;
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!anchor || !base || !pivot || !xrCamera?.position) return false;
+
+    const offsetX = anchor.x - base.x;
+    const offsetY = anchor.y - base.y;
+    const offsetZ = anchor.z - base.z;
+    const sin = Math.sin(angle);
+    const cos = Math.cos(angle);
+    const desired = new flock.BABYLON.Vector3(
+      pivot.x + offsetX * cos + offsetZ * sin,
+      pivot.y + offsetY,
+      pivot.z + offsetZ * cos - offsetX * sin
+    );
+
+    xrCamera.position.addInPlace(desired.subtract(anchor));
+    flock._rotateXRCameraYaw(angle);
+    flock._xrWatchAnchorPosition = desired;
+    flock._xrWatchAnchorYaw += angle;
+    flock._xrWatchAnchorTarget = pivot.clone?.() ?? { ...pivot };
+    return true;
+  },
+  _applyXRWatchTrail() {
+    const targetPosition = flock._xrTargetPosition();
+    if (!targetPosition || flock._xrWatchYawOffset === null) return false;
+    const yaw = (flock._xrTargetHeading() ?? 0) + flock._xrWatchYawOffset;
+    return flock._placeXRWatchCamera(
+      targetPosition,
+      flock._wrapAngle(yaw - flock._xrWatchAnchorYaw)
+    );
+  },
+  // Watch swings around the character so they stay in view; embodied turns on the spot.
+  _applyXRSnapTurn(angle) {
+    if (
+      flock._xrViewMode === 'watch' &&
+      flock._placeXRWatchCamera(flock._xrWatchAnchorTarget, angle)
+    ) {
+      flock._xrWatchYawOffset += angle;
+      return;
+    }
+    flock._rotateXRCameraYaw(angle);
+  },
+  _updateXRSnapTurn() {
+    if (flock._xrMode !== 'VR' || !flock._xrSessionActive) return;
+    // Teleport steering snap turns through Babylon's own teleportation feature.
+    if (
+      flock._canvasControlsEnabled === false ||
+      (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'teleport')
+    ) {
+      flock._xrSnapTurnHeld = false;
+      return;
+    }
+
+    const turn = flock.inputManager.getAxis('XR_TURN_X');
+    if (Math.abs(turn) < SNAP_TURN_RELEASE) {
+      flock._xrSnapTurnHeld = false;
+      return;
+    }
+    if (flock._xrSnapTurnHeld || Math.abs(turn) < SNAP_TURN_PRESS) return;
+    flock._xrSnapTurnHeld = true;
+    flock._applyXRSnapTurn(turn > 0 ? SNAP_TURN_ANGLE : -SNAP_TURN_ANGLE);
+  },
+  // Must be read as XR is entered: the project camera can be replaced or orbited afterwards.
+  _captureXRWatchFraming(camera = flock.scene?.activeCamera) {
     const target = camera?.lockedTarget ?? camera?.metadata?.following;
-    if (!target) return;
-    const targetPosition =
-      target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null;
+    const targetPosition = target
+      ? (target.getAbsolutePosition?.() ?? target.absolutePosition ?? target.position ?? null)
+      : null;
     const offset =
-      camera.position && targetPosition ? camera.position.subtract(targetPosition) : null;
-    flock._xrFollowCameraVerticalOffset = offset?.y ?? null;
+      camera?.position && targetPosition ? camera.position.subtract(targetPosition) : null;
+    flock._xrNonXRCameraPosition = camera?.position?.clone?.() ?? null;
+    flock._xrFollowCameraVerticalOffset = offset ? offset.y : null;
     if (offset) offset.y = 0;
     flock._xrFollowCameraDirection = offset?.lengthSquared() ? offset.normalize() : null;
-    flock._xrFollowCameraRadius = Number.isFinite(camera.radius) ? camera.radius : null;
-    flock._setXRFollowTarget(target);
+    flock._xrFollowCameraRadius = Number.isFinite(camera?.radius) ? camera.radius : null;
+    return target;
+  },
+  _syncXRFollowTargetFromCamera(camera = flock.scene?.activeCamera) {
+    flock._setXRFollowTarget(flock._captureXRWatchFraming(camera) ?? null);
   },
   _positionXRWatchCamera() {
     const xrCamera = flock.xrHelper?.baseExperience?.camera;
@@ -356,16 +624,20 @@ export const flockXR = {
     const followRadius = flock._xrFollowCameraRadius;
     const verticalOffset = flock._xrFollowCameraVerticalOffset;
     flock._xrWatchPosition = flock._xrNonXRCameraPosition?.clone?.() ?? headsetPosition;
-    if (!targetPosition || !followDirection || followRadius === null || verticalOffset === null)
-      return xrCamera.position.copyFrom(flock._xrWatchPosition);
 
-    const horizontalDistance = Math.sqrt(
-      Math.max(0, followRadius * followRadius - verticalOffset * verticalOffset)
-    );
-    flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
-    flock._xrWatchPosition.y = targetPosition.y + verticalOffset;
-    flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
+    if (targetPosition && followDirection && followRadius !== null && verticalOffset !== null) {
+      const horizontalDistance = Math.sqrt(
+        Math.max(0, followRadius * followRadius - verticalOffset * verticalOffset)
+      );
+      flock._xrWatchPosition.x = targetPosition.x + followDirection.x * horizontalDistance;
+      flock._xrWatchPosition.y = targetPosition.y + verticalOffset;
+      flock._xrWatchPosition.z = targetPosition.z + followDirection.z * horizontalDistance;
+    }
+
+    // Embodying a target places the headset on that target, at its own eye height.
+    if (targetPosition && flock._xrViewMode !== 'watch') return;
     xrCamera.position.copyFrom(flock._xrWatchPosition);
+    if (targetPosition) xrCamera.setTarget?.(targetPosition);
   },
   _setXRFollowTarget(target) {
     if (flock._xrFollowTarget !== target) flock._restoreXREmbodiedVisibility();
@@ -380,6 +652,23 @@ export const flockXR = {
     }
     flock._xrEmbodiedVisibility.clear();
   },
+  _restoreXREmbodiedMesh(mesh) {
+    if (!mesh) return;
+    for (const part of [mesh, ...(mesh.getChildMeshes?.(false) ?? [])]) {
+      if (!flock._xrEmbodiedVisibility.has(part)) continue;
+      if (!part.isDisposed?.()) part.isVisible = flock._xrEmbodiedVisibility.get(part);
+      flock._xrEmbodiedVisibility.delete(part);
+    }
+  },
+  _xrEmbodiedAttachments(target) {
+    // Bone-attached meshes are parented to a Bone, so they never show up in the
+    // target's child meshes; the tracking list is the only route to them.
+    return (target.metadata?._boneAttachments ?? []).flatMap((entry) => {
+      const mesh = flock.scene?.getMeshByName?.(entry.meshName);
+      if (!mesh || mesh.isDisposed?.()) return [];
+      return [mesh, ...(mesh.getChildMeshes?.(false) ?? [])];
+    });
+  },
   _applyXRViewVisibility() {
     const shouldHide = flock._xrSessionActive && flock._xrViewMode === 'embody';
     if (!shouldHide) {
@@ -389,7 +678,11 @@ export const flockXR = {
 
     const target = flock._xrFollowTarget;
     if (!target || target.isDisposed?.()) return;
-    const hierarchy = [target, ...(target.getChildMeshes?.(false) ?? [])];
+    const hierarchy = [
+      target,
+      ...(target.getChildMeshes?.(false) ?? []),
+      ...flock._xrEmbodiedAttachments(target),
+    ];
     for (const mesh of hierarchy) {
       if (mesh.metadata?.isXREmbodiedHUD) continue;
       if (!('isVisible' in mesh) || flock._xrEmbodiedVisibility.has(mesh)) continue;
@@ -481,31 +774,72 @@ export const flockXR = {
     }
 
     const now = performance.now?.() ?? Date.now();
-    if (flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001) {
+    const isWatch = flock._xrViewMode === 'watch';
+    const heading = flock._xrTargetHeading();
+    const turned =
+      isWatch &&
+      heading !== null &&
+      flock._xrFollowLastHeading !== null &&
+      Math.abs(flock._wrapAngle(heading - flock._xrFollowLastHeading)) > HEADING_EPSILON;
+
+    if (
+      flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001 ||
+      turned
+    ) {
       const delta = position.subtract(flock._xrFollowLastPosition);
-      if (flock._xrViewMode === 'embody') delta.y = 0;
+      if (!isWatch) delta.y = 0;
       flock._xrFollowLastMovedAt = now;
       flock._xrFollowLastPosition.copyFrom(position);
+      flock._xrFollowLastHeading = heading;
       if (flock._xrCameraMotionMode === 'smooth') {
-        xrCamera.position.addInPlace(delta);
+        if (!isWatch || !flock._applyXRWatchTrail()) xrCamera.position.addInPlace(delta);
         flock._xrFollowSettledPosition.copyFrom(position);
       }
       return;
     }
     if (flock._xrCameraMotionMode !== 'comfort') return;
-    if (now - flock._xrFollowLastMovedAt < 250) return;
+    if (now - flock._xrFollowLastMovedAt < COMFORT_SETTLE_MS) return;
 
+    if (flock._applyXRWatchTrail()) {
+      flock._xrFollowSettledPosition.copyFrom(position);
+      return;
+    }
     const delta = position.subtract(flock._xrFollowSettledPosition);
     if (delta.lengthSquared() <= 0.000001) return;
     xrCamera.position.addInPlace(delta);
     flock._xrFollowSettledPosition.copyFrom(position);
+  },
+  async _immersiveVRSupported() {
+    try {
+      return (await navigator.xr?.isSessionSupported?.('immersive-vr')) === true;
+    } catch {
+      // No WebXR, or an insecure or permissions-blocked context.
+      return false;
+    }
+  },
+  // Phones do Cardboard-style immersive VR as well, so support alone can't tell them from a
+  // headset. A headset browser missing from this list just falls back to the XR block.
+  _isHeadsetBrowser() {
+    const agent = navigator.userAgent ?? '';
+    if (/OculusBrowser|Quest|Pico|Wolvic|Vision ?OS|Mobile VR/i.test(agent)) return true;
+    return !/Android|iPhone|iPad|iPod/i.test(agent);
+  },
+  // Entering stays the wearer's click either way: a session needs a user gesture.
+  async _showXRButtonOnHeadset() {
+    if (flock.xrHelper || flock._xrMode !== undefined) return false;
+    if (!flock._isHeadsetBrowser()) return false;
+    const signal = flock.abortController?.signal;
+    if (!(await flock._immersiveVRSupported())) return false;
+    // The project may have set its own mode, or been stopped, while we were asking.
+    if (signal?.aborted || flock.xrHelper || flock._xrMode !== undefined) return false;
+    await flock.initializeXR('VR');
+    return true;
   },
   async initializeXR(mode) {
     if (flock.xrHelper) return; // Avoid reinitializing
 
     patchEmulatorOffsetReferenceSpace();
     flock._xrMode = mode;
-    flock._xrNonXRCameraPosition = flock.scene?.activeCamera?.position?.clone?.() ?? null;
     flock._syncXRFollowTargetFromCamera();
     flock._applyXRDefaults(mode);
 
@@ -531,22 +865,25 @@ export const flockXR = {
     // Keep the application UI at a stable, readable position in the viewer's field of view.
     flock.uiPlane = flock.BABYLON.MeshBuilder.CreatePlane(
       'xrHUDPlane',
-      { width: 1.2, height: 0.675 },
+      { width: XR_HUD_WIDTH, height: XR_HUD_HEIGHT },
       flock.scene
     );
     flock.uiPlane.isVisible = false;
-    flock.uiPlane.isPickable = true;
-    flock.uiPlane.parent = flock.xrHelper.baseExperience.camera;
-    flock.uiPlane.position.set(0, 0, 1.5);
+    flock.uiPlane.isPickable = false;
+    flock.uiPlane.metadata = { isXRHUD: true };
 
-    flock.meshTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-      flock.uiPlane,
-      1280,
-      720,
-      true
-    );
+    flock.meshTexture = flock._createXRHUDTexture(flock.uiPlane);
     flock.uiPlane.material.disableDepthWrite = true;
     flock.uiPlane.material.disableLighting = true;
+
+    // Removal fires before the grip is disposed, so reparenting here is safe.
+    flock._xrUIControllerObserver = flock.xrHelper.input.onControllerAddedObservable.add(() =>
+      flock._applyXRUIPlacement()
+    );
+    flock._xrUIControllerRemovedObserver = flock.xrHelper.input.onControllerRemovedObservable.add(
+      () => flock._applyXRUIPlacement()
+    );
+    flock._applyXRUIPlacement();
 
     flock._xrSource = new XRSource(flock.inputManager, {
       xrHelper: flock.xrHelper,
@@ -554,7 +891,12 @@ export const flockXR = {
     });
     flock._applyXRInputState();
     flock._xrSource.start();
-    flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => flock._updateXRView());
+    flock._xrViewObserver = flock.scene.onBeforeRenderObservable.add(() => {
+      flock._syncXRHUDPicking();
+      flock._updateXRSnapTurn();
+      flock._updateXRView();
+      flock._syncXRHUDPose();
+    });
     flock._xrViewObserverScene = flock.scene;
 
     flock._teleportFloorMeshes = new Set();
@@ -583,7 +925,101 @@ export const flockXR = {
     // Handle XR state changes
     flock.xrHelper.baseExperience.onStateChangedObservable.add(flock._handleXRStateChange);
   },
-  /* 
+  _cameraBackgroundNeedsMirror() {
+    return (
+      flock._xrSessionActive && flock._xrMode === 'VR' && flock._cameraBackgroundFacing === 'user'
+    );
+  },
+  _disposeCameraBackgroundLayer() {
+    const layer = flock._cameraBackgroundLayer;
+    if (!layer) return;
+    flock._cameraBackgroundLayer = null;
+    // Layer.dispose() takes its texture with it, and the mirror may be about to adopt it.
+    layer.texture = null;
+    layer.dispose();
+  },
+  _disposeXRMirror() {
+    const mirror = flock._xrMirror;
+    if (!mirror) return;
+    flock._xrMirror = null;
+    mirror.material?.dispose();
+    mirror.dispose();
+  },
+  _disposeCameraBackground() {
+    // Strands any webcam request still starting up.
+    flock._cameraBackgroundRequest = (flock._cameraBackgroundRequest ?? 0) + 1;
+    flock._disposeCameraBackgroundLayer();
+    flock._disposeXRMirror();
+    // Disposing the texture is what releases the webcam.
+    flock._cameraBackgroundTexture?.dispose();
+    flock._cameraBackgroundTexture = null;
+    flock._cameraBackgroundFacing = null;
+  },
+  _showCameraBackgroundLayer(texture) {
+    if (flock._cameraBackgroundLayer || !flock.scene) return;
+    const layer = new flock.BABYLON.Layer('videoLayer', null, flock.scene, true);
+    layer.texture = texture;
+    flock._cameraBackgroundLayer = layer;
+  },
+  // A background layer is screen space, so both eyes get identical pixels and the feed has no
+  // stereo depth at all: in VR it reads as pressed against the face. A plane in the scene doesn't.
+  _showXRMirror(texture) {
+    if (flock._xrMirror || !flock.scene) return;
+
+    const mirror = flock.BABYLON.MeshBuilder.CreatePlane(
+      'xrCameraMirror',
+      { width: 1, height: 1 },
+      flock.scene
+    );
+    const material = new flock.BABYLON.StandardMaterial('xrCameraMirrorMaterial', flock.scene);
+    material.disableLighting = true;
+    material.emissiveTexture = texture;
+    mirror.material = material;
+    mirror.isPickable = false;
+    mirror.applyFog = false;
+    // Rides with the viewer like the sky: never nearer, never larger.
+    mirror.infiniteDistance = true;
+    flock.glowLayer?.addExcludedMesh?.(mirror);
+
+    flock._xrMirror = mirror;
+    flock._positionXRMirror();
+  },
+  // Locked to world +Z: taking the heading from the headset pins the backdrop to wherever the
+  // wearer happened to be looking when the feed started.
+  _positionXRMirror() {
+    const mirror = flock._xrMirror;
+    if (!mirror) return;
+
+    const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 1, 400);
+    const size = flock._cameraBackgroundTexture?.getSize?.();
+    const aspect = size?.width && size?.height ? size.width / size.height : XR_MIRROR_ASPECT;
+    const width = 2 * distance * Math.tan(XR_MIRROR_FOV / 2);
+    mirror.scaling.set(width, width / aspect, 1);
+
+    // infiniteDistance adds the camera's own position, so this is the offset it keeps.
+    mirror.position.set(0, 0, distance);
+    // A plane faces down its own -Z, so out on +Z an unrotated plane faces back at the scene.
+    mirror.rotation.set(0, 0, 0);
+  },
+  // Horizon OS's virtual selfie camera holds whatever frame it had when the session opened, so
+  // ask it for a fresh capture from inside the session.
+  _restartCameraBackgroundForXR() {
+    const facing = flock._cameraBackgroundFacing;
+    if (!facing || !flock._cameraBackgroundNeedsMirror()) return;
+    flock.setCameraBackground(facing);
+  },
+  _applyCameraBackground() {
+    const texture = flock._cameraBackgroundTexture;
+    if (!texture) return;
+    if (flock._cameraBackgroundNeedsMirror()) {
+      flock._disposeCameraBackgroundLayer();
+      flock._showXRMirror(texture);
+    } else {
+      flock._disposeXRMirror();
+      flock._showCameraBackgroundLayer(texture);
+    }
+  },
+  /*
           Category: Scene>XR
   */
 
@@ -595,14 +1031,24 @@ export const flockXR = {
       return;
     }
 
-    const videoLayer = new flock.BABYLON.Layer('videoLayer', null, flock.scene, true);
+    flock._disposeCameraBackground();
+    flock._cameraBackgroundFacing = cameraType;
+    // Captured now: a later call, or a stop, has to be able to strand this request.
+    const request = (flock._cameraBackgroundRequest ?? 0) + 1;
+    flock._cameraBackgroundRequest = request;
+    const signal = flock.abortController?.signal;
 
     flock.BABYLON.VideoTexture.CreateFromWebCam(
       flock.scene,
       (videoTexture) => {
+        if (request !== flock._cameraBackgroundRequest || signal?.aborted || !flock.scene) {
+          videoTexture.dispose();
+          return;
+        }
         videoTexture._invertY = false; // Correct orientation
         videoTexture.uScale = -1; // Flip horizontally for mirror effect
-        videoLayer.texture = videoTexture; // Assign the video feed to the layer
+        flock._cameraBackgroundTexture = videoTexture;
+        flock._applyCameraBackground();
       },
       {
         facingMode: cameraType, // "user" for front, "environment" for back
@@ -634,6 +1080,11 @@ export const flockXR = {
     flock._applyTeleportationState?.();
     flock._resetXRViewTracking?.({ reposition: true });
     flock._applyXRViewVisibility?.();
+  },
+  setXRUIPlacement(placement) {
+    if (placement !== 'hud' && placement !== 'wrist') return;
+    flock._xrUIPlacement = placement;
+    flock._applyXRUIPlacement();
   },
   setXRCameraMotionMode(mode) {
     const validModes =
