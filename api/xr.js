@@ -439,6 +439,7 @@ export const flockXR = {
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
       flock._applyCameraBackground();
+      flock._restartCameraBackgroundForXR();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       flock._xrSessionActive = false;
       flock._applyXRViewVisibility();
@@ -843,12 +844,8 @@ export const flockXR = {
     flock._applyXRDefaults(mode);
 
     if (mode === 'VR') {
-      // TEMPORARY: ?xh=1 asks the session for hand tracking, to test whether the frozen avatar
-      // camera is Horizon OS withholding tracking-derived pose from a site without that grant.
-      const askForTracking = flock._xrTuning('xh', 0, 0, 1) === 1;
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
         outputCanvasOptions: flock._xrCanvasOptions(),
-        ...(askForTracking ? { optionalFeatures: ['hand-tracking'] } : {}),
       });
     } else if (mode === 'AR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
@@ -899,8 +896,6 @@ export const flockXR = {
       flock._updateXRSnapTurn();
       flock._updateXRView();
       flock._syncXRHUDPose();
-      flock._pumpXRMirrorFeed();
-      flock._updateXRFeedDebug();
     });
     flock._xrViewObserverScene = flock.scene;
 
@@ -944,11 +939,6 @@ export const flockXR = {
     layer.dispose();
   },
   _disposeXRMirror() {
-    if (flock._xrFeedDebugText) {
-      flock.meshTexture?.removeControl?.(flock._xrFeedDebugText);
-      flock._xrFeedDebugText.dispose?.();
-      flock._xrFeedDebugText = null;
-    }
     const mirror = flock._xrMirror;
     if (!mirror) return;
     flock._xrMirror = null;
@@ -1011,93 +1001,12 @@ export const flockXR = {
     // A plane faces down its own -Z, so out on +Z an unrotated plane faces back at the scene.
     mirror.rotation.set(0, 0, 0);
   },
-  // An immersive session can suspend the page's media pipeline, and Babylon stops uploading
-  // frames from a paused video, so the feed freezes part-way into VR.
-  _pumpXRMirrorFeed() {
-    const texture = flock._cameraBackgroundTexture;
-    if (!flock._xrMirror || !texture) return;
-    const video = texture.video;
-    if (video?.paused) {
-      video.play?.().catch(() => {
-        // A stream the browser has taken back cannot be restarted from here.
-      });
-    }
-    texture.update?.();
-  },
-  // TEMPORARY diagnostic: shows on the XR HUD whether the virtual selfie camera is still
-  // delivering frames while the session owns tracking. Remove once the freeze is understood.
-  _updateXRFeedDebug() {
-    const texture = flock._cameraBackgroundTexture;
-    const hud = flock.meshTexture;
-    if (!flock._xrMirror || !texture || !hud || !flock.GUI?.TextBlock) return;
-
-    const video = texture.video;
-    const time = video?.currentTime ?? 0;
-    if (flock._xrFeedDebugTime !== time) {
-      flock._xrFeedDebugTime = time;
-      flock._xrFeedDebugAdvances = (flock._xrFeedDebugAdvances ?? 0) + 1;
-      flock._xrFeedDebugLastAdvance = performance.now?.() ?? Date.now();
-    }
-
-    let text = flock._xrFeedDebugText;
-    if (!text) {
-      text = new flock.GUI.TextBlock('xrFeedDebug');
-      text.color = 'white';
-      text.fontSize = 22;
-      text.outlineWidth = 5;
-      text.outlineColor = 'black';
-      text.resizeToFit = true;
-      text.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      text.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-      text.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-      text.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-      hud.addControl(text);
-      flock._xrFeedDebugText = text;
-    }
-
-    const track = video?.srcObject?.getVideoTracks?.()?.[0];
-    const now = performance.now?.() ?? Date.now();
-    const stalledFor = ((now - (flock._xrFeedDebugLastAdvance ?? now)) / 1000).toFixed(1);
-    const checksum = flock._xrFeedChecksum(video, now);
-    text.text = [
-      `feed t=${time.toFixed(3)} advances=${flock._xrFeedDebugAdvances ?? 0} stalled=${stalledFor}s`,
-      `video paused=${video?.paused} readyState=${video?.readyState} size=${video?.videoWidth}x${video?.videoHeight}`,
-      `track state=${track?.readyState} muted=${track?.muted} enabled=${track?.enabled}`,
-      `upload texFrame=${texture._frameId} sceneFrame=${flock.scene?.getFrameId?.()}`,
-      `pixels sum=${checksum.sum} changes=${checksum.changes} static=${checksum.staticFor}s`,
-    ].join('\n');
-  },
-  // Whether the frames themselves differ, not just the decode clock: a synthetic camera can keep
-  // its timeline running while it emits the same picture.
-  _xrFeedChecksum(video, now) {
-    const state = (flock._xrFeedDebugPixels ??= { sum: 0, changes: 0, lastChange: now, at: 0 });
-    if (!video?.videoWidth || now - state.at < 500) {
-      return { ...state, staticFor: ((now - state.lastChange) / 1000).toFixed(1) };
-    }
-    state.at = now;
-
-    const canvas = (flock._xrFeedDebugCanvas ??= Object.assign(document.createElement('canvas'), {
-      width: 8,
-      height: 8,
-    }));
-    const context = (flock._xrFeedDebugContext ??= canvas.getContext('2d', {
-      willReadFrequently: true,
-    }));
-    let sum = 0;
-    try {
-      context.drawImage(video, 0, 0, 8, 8);
-      const { data } = context.getImageData(0, 0, 8, 8);
-      for (let i = 0; i < data.length; i++) sum = (sum + data[i] * (i + 1)) % 1000000;
-    } catch {
-      // A frame the browser will not hand to a canvas cannot be checksummed.
-      sum = -1;
-    }
-    if (sum !== state.sum) {
-      state.sum = sum;
-      state.changes += 1;
-      state.lastChange = now;
-    }
-    return { ...state, staticFor: ((now - state.lastChange) / 1000).toFixed(1) };
+  // Horizon OS's virtual selfie camera holds whatever frame it had when the session opened, so
+  // ask it for a fresh capture from inside the session.
+  _restartCameraBackgroundForXR() {
+    const facing = flock._cameraBackgroundFacing;
+    if (!facing || !flock._cameraBackgroundNeedsMirror()) return;
+    flock.setCameraBackground(facing);
   },
   _applyCameraBackground() {
     const texture = flock._cameraBackgroundTexture;

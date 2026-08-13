@@ -1445,32 +1445,27 @@ export function runXRTests(flock) {
         expect(mirror.rotation.y).to.be.closeTo(0, 1e-6);
       });
 
-      it('keeps pumping the feed while the mirror is up', function () {
-        enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
-        const texture = startFeed('user');
-        let updates = 0;
-        let plays = 0;
-        texture.update = () => updates++;
-        texture.video = {
-          paused: true,
-          play: () => {
-            plays++;
-            return Promise.resolve();
-          },
-        };
+      it('re-requests the feed once inside a VR session, but only for the mirror', function () {
+        const savedRequest = flock.setCameraBackground;
+        const asked = [];
+        try {
+          flock.setCameraBackground = (facing) => asked.push(facing);
 
-        flock._pumpXRMirrorFeed();
-        expect(updates).to.equal(1);
-        expect(plays).to.equal(1);
+          startFeed('user');
+          flock._restartCameraBackgroundForXR();
+          expect(asked).to.deep.equal([]);
 
-        texture.video.paused = false;
-        flock._pumpXRMirrorFeed();
-        expect(updates).to.equal(2);
-        expect(plays).to.equal(1);
+          enterVR(new flock.BABYLON.Vector3(0, 1.6, 0), new flock.BABYLON.Vector3(0, 0, 1));
+          flock._restartCameraBackgroundForXR();
+          expect(asked).to.deep.equal(['user']);
 
-        flock._disposeXRMirror();
-        flock._pumpXRMirrorFeed();
-        expect(updates).to.equal(2);
+          // The back camera keeps the flat layer, which never went stale.
+          flock._cameraBackgroundFacing = 'environment';
+          flock._restartCameraBackgroundForXR();
+          expect(asked).to.deep.equal(['user']);
+        } finally {
+          flock.setCameraBackground = savedRequest;
+        }
       });
 
       it('puts the flat layer back when the VR session ends', function () {
