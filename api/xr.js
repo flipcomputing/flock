@@ -843,8 +843,12 @@ export const flockXR = {
     flock._applyXRDefaults(mode);
 
     if (mode === 'VR') {
+      // TEMPORARY: ?xh=1 asks the session for hand tracking, to test whether the frozen avatar
+      // camera is Horizon OS withholding tracking-derived pose from a site without that grant.
+      const askForTracking = flock._xrTuning('xh', 0, 0, 1) === 1;
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
         outputCanvasOptions: flock._xrCanvasOptions(),
+        ...(askForTracking ? { optionalFeatures: ['hand-tracking'] } : {}),
       });
     } else if (mode === 'AR') {
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
@@ -1054,12 +1058,46 @@ export const flockXR = {
     const track = video?.srcObject?.getVideoTracks?.()?.[0];
     const now = performance.now?.() ?? Date.now();
     const stalledFor = ((now - (flock._xrFeedDebugLastAdvance ?? now)) / 1000).toFixed(1);
+    const checksum = flock._xrFeedChecksum(video, now);
     text.text = [
       `feed t=${time.toFixed(3)} advances=${flock._xrFeedDebugAdvances ?? 0} stalled=${stalledFor}s`,
       `video paused=${video?.paused} readyState=${video?.readyState} size=${video?.videoWidth}x${video?.videoHeight}`,
       `track state=${track?.readyState} muted=${track?.muted} enabled=${track?.enabled}`,
       `upload texFrame=${texture._frameId} sceneFrame=${flock.scene?.getFrameId?.()}`,
+      `pixels sum=${checksum.sum} changes=${checksum.changes} static=${checksum.staticFor}s`,
     ].join('\n');
+  },
+  // Whether the frames themselves differ, not just the decode clock: a synthetic camera can keep
+  // its timeline running while it emits the same picture.
+  _xrFeedChecksum(video, now) {
+    const state = (flock._xrFeedDebugPixels ??= { sum: 0, changes: 0, lastChange: now, at: 0 });
+    if (!video?.videoWidth || now - state.at < 500) {
+      return { ...state, staticFor: ((now - state.lastChange) / 1000).toFixed(1) };
+    }
+    state.at = now;
+
+    const canvas = (flock._xrFeedDebugCanvas ??= Object.assign(document.createElement('canvas'), {
+      width: 8,
+      height: 8,
+    }));
+    const context = (flock._xrFeedDebugContext ??= canvas.getContext('2d', {
+      willReadFrequently: true,
+    }));
+    let sum = 0;
+    try {
+      context.drawImage(video, 0, 0, 8, 8);
+      const { data } = context.getImageData(0, 0, 8, 8);
+      for (let i = 0; i < data.length; i++) sum = (sum + data[i] * (i + 1)) % 1000000;
+    } catch {
+      // A frame the browser will not hand to a canvas cannot be checksummed.
+      sum = -1;
+    }
+    if (sum !== state.sum) {
+      state.sum = sum;
+      state.changes += 1;
+      state.lastChange = now;
+    }
+    return { ...state, staticFor: ((now - state.lastChange) / 1000).toFixed(1) };
   },
   _applyCameraBackground() {
     const texture = flock._cameraBackgroundTexture;
