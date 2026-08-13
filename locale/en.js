@@ -244,6 +244,7 @@ export default {
   random_colour: 'random color',
   material: 'material %1 %2 alpha %3',
   gradient_material: 'material %1 alpha %2',
+  gradient_colour: 'gradient %1 direction %2°',
   set_material: 'set material of %1 to %2',
 
   // Custom block translations - Physics blocks
@@ -538,6 +539,8 @@ export default {
   random_colour_tooltip: 'Generate a random color.\nKeyword: randcol',
   material_tooltip: 'Define material properties',
   gradient_material_tooltip: 'Define material properties',
+  gradient_colour_tooltip:
+    'Blend between two or more colors. Direction is in degrees: 0 is bottom to top, 90 is left to right.\nKeyword: gradient',
   set_material_tooltip: 'Set the specified material on the given object.',
 
   // Tooltip translations - Physics blocks

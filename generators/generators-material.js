@@ -176,4 +176,15 @@ export function registerMaterialGenerators(javascriptGenerator) {
     const code = `{ color: ${color}, materialName: "none.png", alpha: ${alpha} }`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
+
+  // Gradient colour ----------------------------------------------
+  javascriptGenerator.forBlock['gradient_colour'] = function (block) {
+    const colors =
+      javascriptGenerator.valueToCode(block, 'COLORS', javascriptGenerator.ORDER_ATOMIC) || '[]';
+    const direction = Number(block.getFieldValue('DIRECTION')) || 0;
+
+    // No alpha key, so the surrounding block's alpha still applies.
+    const code = `{ color: ${colors}, materialName: "none.png", direction: ${direction} }`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
 }

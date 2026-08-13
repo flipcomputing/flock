@@ -4,6 +4,23 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Gradient direction follows CSS linear-gradient: 0 is bottom to top, increasing
+// clockwise, rotating within the object's local XY plane.
+function gradientAxisFor(direction) {
+  const radians = ((Number(direction) || 0) * Math.PI) / 180;
+  return { x: Math.sin(radians), y: Math.cos(radians) };
+}
+
+// The angle is part of a gradient's identity, so it has to reach the material cache key.
+function withGradientDirection(colorKey, direction) {
+  return Number.isFinite(direction) ? `${colorKey}@${direction}` : colorKey;
+}
+
+function readGradientDirection(value) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  return Number.isFinite(value.direction) ? value.direction : undefined;
+}
+
 export const flockMaterial = {
   adjustMaterialTilingToMesh(mesh, material, _unitsPerTile = null) {
     return; // Don't scale textures - need to change the mesh UVs instead
@@ -47,6 +64,17 @@ export const flockMaterial = {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   getColorFromString(colourString) {
+    // A colour list or a material/gradient descriptor can reach solid-colour APIs
+    // such as tint and highlight; fall back to the first colour rather than black.
+    if (Array.isArray(colourString)) {
+      return flock.getColorFromString(colourString[0]);
+    }
+
+    if (typeof colourString === 'object' && colourString !== null) {
+      const inner = colourString.color ?? colourString.baseColor;
+      return inner === undefined ? '#000000' : flock.getColorFromString(inner);
+    }
+
     if (typeof colourString !== 'string') {
       return '#000000';
     }
@@ -193,11 +221,13 @@ export const flockMaterial = {
       const parts = mat.metadata.cacheKey.split('_');
       const lastPart = parts[parts.length - 1];
       const hasGlowPart = lastPart === 'glow' || lastPart === 'noglow';
-      const colorPart = parts[1];
+      const [colorPart, directionPart] = parts[1].split('@');
       const color = colorPart.includes('-') ? colorPart.split('-') : colorPart;
+      const parsedDirection = parseFloat(directionPart);
       const parsedAlpha = parseFloat(parts[2]);
       return {
         color,
+        ...(Number.isFinite(parsedDirection) ? { direction: parsedDirection } : {}),
         materialName:
           mat.metadata.texName ||
           parts.slice(3, hasGlowPart ? -1 : parts.length).join('_') ||
@@ -504,6 +534,14 @@ export const flockMaterial = {
   changeColorMesh(mesh, color) {
     if (!mesh) {
       flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      return;
+    }
+
+    // A gradient is one material spanning the object, not a colour per sub-mesh,
+    // so it goes straight to the material pipeline.
+    if (readGradientDirection(color) !== undefined) {
+      flock.applyMaterialToHierarchy(mesh, color, { applyColor: true });
+      if (mesh.metadata?.glow) flock.glowMesh(mesh);
       return;
     }
 
@@ -878,7 +916,7 @@ export const flockMaterial = {
       });
     });
   },
-  createMaterial({ color, materialName, alpha, glow = false } = {}) {
+  createMaterial({ color, materialName, alpha, glow = false, direction } = {}) {
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
     const texturePath = flock.texturePath + materialName;
@@ -896,7 +934,12 @@ export const flockMaterial = {
     if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === 'none.png') {
-        if (color.length === 2) {
+        if (Number.isFinite(direction)) {
+          // An angled gradient needs the shader path even for two colours;
+          // GradientMaterial only runs bottom to top.
+          material = flock.createMultiColorGradientMaterial(materialName, color, direction);
+          material.backFaceCulling = false;
+        } else if (color.length === 2) {
           material = new flock.GradientMaterial(materialName, flock.scene);
           material.bottomColor = flock.BABYLON.Color3.FromHexString(
             flock.getColorFromString(color[0])
@@ -961,7 +1004,7 @@ export const flockMaterial = {
     if (flock.materialsDebug) console.log(`Created the material: ${material.name}`);
     return material;
   },
-  createMultiColorGradientMaterial(name, colors) {
+  createMultiColorGradientMaterial(name, colors, direction = 0) {
     if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader']) {
       flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader'] = `
         precision highp float;
@@ -970,6 +1013,7 @@ export const flockMaterial = {
         uniform mat4 world;
         uniform mat4 view;
         uniform vec2 minMax;
+        uniform vec2 gradientAxis;
         varying float vGradient;
         varying vec3 vFogPosition;
 
@@ -977,7 +1021,7 @@ export const flockMaterial = {
           vec4 worldPosition = world * vec4(position, 1.0);
           vec4 viewPosition = view * worldPosition;
           gl_Position = worldViewProjection * vec4(position, 1.0);
-          vGradient = (position.y - minMax.x) / (minMax.y - minMax.x);
+          vGradient = (dot(position.xy, gradientAxis) - minMax.x) / max(1e-5, minMax.y - minMax.x);
           vFogPosition = viewPosition.xyz;
         }
       `;
@@ -1050,6 +1094,7 @@ export const flockMaterial = {
           'colors',
           'alpha',
           'minMax',
+          'gradientAxis',
           'fogColor',
           'fogDensity',
           'fogStart',
@@ -1074,10 +1119,18 @@ export const flockMaterial = {
       console.log('Color array:', color3Array);
     }
 
+    const axis = gradientAxisFor(direction);
+
     shaderMaterial.setInt('colorCount', Math.min(colors.length, 16));
     shaderMaterial.setArray3('colors', color3Array);
     shaderMaterial.setFloat('alpha', 1.0);
     shaderMaterial.setVector2('minMax', new flock.BABYLON.Vector2(-1, 1));
+    shaderMaterial.setVector2('gradientAxis', new flock.BABYLON.Vector2(axis.x, axis.y));
+
+    shaderMaterial.metadata = {
+      ...(shaderMaterial.metadata || {}),
+      gradientDirection: Number(direction) || 0,
+    };
 
     flock.registerFogAwareShaderMaterial(shaderMaterial);
     flock.updateFogUniformsForShaderMaterial(shaderMaterial);
@@ -1436,6 +1489,7 @@ export const flockMaterial = {
     let texName = 'none.png';
     let finalAlpha = alpha;
     let finalGlow = false;
+    let finalDirection;
 
     if (isObject) {
       const inner = colorInput.color || colorInput.baseColor;
@@ -1456,17 +1510,22 @@ export const flockMaterial = {
               ? colorInput.alpha
               : alpha;
         finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
+        finalDirection = readGradientDirection(inner) ?? readGradientDirection(colorInput);
       } else {
         rawColor = inner || '#ffffff';
         texName = colorInput.materialName || colorInput.textureSet || 'none.png';
         finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
         finalGlow = colorInput.glow ?? false;
+        finalDirection = readGradientDirection(colorInput);
       }
     } else {
       rawColor = colorInput || '#ffffff';
     }
 
-    const colorKey = Array.isArray(rawColor) ? rawColor.join('-') : rawColor;
+    const colorKey = withGradientDirection(
+      Array.isArray(rawColor) ? rawColor.join('-') : rawColor,
+      finalDirection
+    );
     const alphaKey = parseFloat(finalAlpha).toFixed(2);
     const glowKey = finalGlow ? 'glow' : 'noglow';
     const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
@@ -1479,6 +1538,7 @@ export const flockMaterial = {
       materialName: texName,
       alpha: finalAlpha,
       glow: finalGlow,
+      ...(Number.isFinite(finalDirection) ? { direction: finalDirection } : {}),
     };
 
     const newMat = flock.createMaterial(materialParams);
@@ -1536,9 +1596,12 @@ export const flockMaterial = {
 
     const makeTargetCacheKey = (v) => {
       const rawColor = getRawColor(v);
-      const colorKey = Array.isArray(rawColor)
-        ? rawColor.join('-')
-        : flock.getColorFromString(rawColor) || '#ffffff';
+      const colorKey = withGradientDirection(
+        Array.isArray(rawColor)
+          ? rawColor.join('-')
+          : flock.getColorFromString(rawColor) || '#ffffff',
+        readGradientDirection(v)
+      );
       const texName = String(getTexName(v));
       const alphaKey = parseFloat(getAlpha(v)).toFixed(2);
       const glow =
@@ -1572,7 +1635,17 @@ export const flockMaterial = {
           const mat = m.material;
           mat.metadata._minMaxObserver = mat.onBindObservable.add((boundMesh) => {
             const bb = boundMesh.getBoundingInfo().boundingBox;
-            mat.setVector2('minMax', new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y));
+            const axis = gradientAxisFor(mat.metadata?.gradientDirection ?? 0);
+            let low = Infinity;
+            let high = -Infinity;
+            for (const x of [bb.minimum.x, bb.maximum.x]) {
+              for (const y of [bb.minimum.y, bb.maximum.y]) {
+                const projected = x * axis.x + y * axis.y;
+                low = Math.min(low, projected);
+                high = Math.max(high, projected);
+              }
+            }
+            mat.setVector2('minMax', new flock.BABYLON.Vector2(low, high));
           });
         }
       }

@@ -83,6 +83,12 @@ export const flockScene = {
       return;
     }
 
+    // The gradient colour block hands over a descriptor; the sky only does
+    // bottom-to-top, so use its colours and ignore the direction.
+    if (color && typeof color === 'object' && !Array.isArray(color) && color.color) {
+      color = color.color;
+    }
+
     if (Array.isArray(color) && color.length === 1) color = color[0];
 
     if (Array.isArray(color) && color.length >= 2) {

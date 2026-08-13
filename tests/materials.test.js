@@ -1293,4 +1293,146 @@ export function runMaterialsTests(flock) {
       expect(matAfterFirst).to.equal(matAfterSecond);
     });
   });
+
+  describe('gradient direction @materials', function () {
+    const boxIds = [];
+
+    beforeEach(async function () {
+      flock.scene ??= {};
+    });
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    async function createDirectedGradientBox(id, colors, direction) {
+      await flock.createBox(id, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        color: { color: colors, materialName: 'none.png', direction },
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+    }
+
+    function getTarget(id) {
+      const mesh = flock.scene.getMeshByName(id);
+      const children = mesh
+        .getDescendants(false)
+        .filter((n) => n.getTotalVertices && n.getTotalVertices() > 0);
+      return children.length ? children[0] : mesh;
+    }
+
+    it('should use the shader for a 2-colour gradient with a direction', function () {
+      const material = flock.createMaterial({
+        color: ['#ff0000', '#0000ff'],
+        materialName: 'none.png',
+        alpha: 1,
+        direction: 45,
+      });
+
+      expect(material.getClassName()).to.equal('ShaderMaterial');
+      expect(material.metadata.gradientDirection).to.equal(45);
+      material.dispose();
+    });
+
+    it('should still use GradientMaterial for 2 colours with no direction', function () {
+      const material = flock.createMaterial({
+        color: ['#ff0000', '#0000ff'],
+        materialName: 'none.png',
+        alpha: 1,
+      });
+
+      expect(material.getClassName()).to.equal('GradientMaterial');
+      material.dispose();
+    });
+
+    it('should point the gradient axis up at 0 degrees and right at 90', function () {
+      const up = flock.createMaterial({
+        color: ['#ff0000', '#0000ff'],
+        materialName: 'none.png',
+        alpha: 1,
+        direction: 0,
+      });
+      const right = flock.createMaterial({
+        color: ['#ff0000', '#0000ff'],
+        materialName: 'none.png',
+        alpha: 1,
+        direction: 90,
+      });
+
+      expect(up._vectors2.gradientAxis.x).to.be.closeTo(0, 1e-6);
+      expect(up._vectors2.gradientAxis.y).to.be.closeTo(1, 1e-6);
+      expect(right._vectors2.gradientAxis.x).to.be.closeTo(1, 1e-6);
+      expect(right._vectors2.gradientAxis.y).to.be.closeTo(0, 1e-6);
+
+      up.dispose();
+      right.dispose();
+    });
+
+    it('should compile the directed gradient shader', async function () {
+      await createDirectedGradientBox('gradDirCompile', ['#ff0000', '#0000ff'], 45);
+      const target = getTarget('gradDirCompile');
+      const material = target.material;
+
+      const deadline = Date.now() + 5000;
+      while (!material.isReady(target) && Date.now() < deadline) {
+        flock.scene.render();
+        await new Promise((resolve) => setTimeout(resolve, 16));
+      }
+
+      const compilationError = material.getEffect()?.getCompilationError?.() || '';
+      expect(compilationError).to.equal('');
+      expect(material.isReady(target)).to.equal(true);
+    });
+
+    it('should cache gradients of different directions separately', async function () {
+      await createDirectedGradientBox('gradDir0', ['#ff0000', '#0000ff'], 0);
+      await createDirectedGradientBox('gradDir90', ['#ff0000', '#0000ff'], 90);
+
+      const flat = getTarget('gradDir0').material;
+      const angled = getTarget('gradDir90').material;
+
+      expect(flat).to.not.equal(angled);
+      expect(flat.metadata.gradientDirection).to.equal(0);
+      expect(angled.metadata.gradientDirection).to.equal(90);
+    });
+
+    it('should preserve the direction through setAlpha and clearEffects', async function () {
+      await createDirectedGradientBox('gradDirEffects', ['#ff0000', '#0000ff'], 45);
+
+      await flock.setAlpha('gradDirEffects', { value: 0.5 });
+      let target = getTarget('gradDirEffects');
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(target.material.metadata.gradientDirection).to.equal(45);
+
+      await flock.glow('gradDirEffects');
+      await flock.clearEffects('gradDirEffects');
+      target = getTarget('gradDirEffects');
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(target.material.metadata.gradientDirection).to.equal(45);
+    });
+
+    it('should apply a directed gradient through changeColor', async function () {
+      const id = 'gradDirChangeColor';
+      await flock.createBox(id, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        color: '#ffffff',
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+
+      await flock.changeColor(id, {
+        color: { color: ['#ff0000', '#0000ff'], materialName: 'none.png', direction: 30 },
+      });
+
+      const target = getTarget(id);
+      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(target.material.metadata.gradientDirection).to.equal(30);
+    });
+  });
 }

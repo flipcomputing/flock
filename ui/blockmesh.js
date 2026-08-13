@@ -433,6 +433,21 @@ export function readColourValue(block) {
     return { value: c, kind: 'single' };
   }
 
+  if (block.type === 'gradient_colour') {
+    const colors = readColourValue(block.getInputTargetBlock('COLORS'));
+    const list = Array.isArray(colors.value) ? colors.value : colors.value ? [colors.value] : [];
+    if (!list.length) return { value: null, kind: 'none' };
+
+    return {
+      value: {
+        color: list,
+        materialName: 'none.png',
+        direction: Number(safeGetFieldValue(block, 'DIRECTION')) || 0,
+      },
+      kind: 'gradient',
+    };
+  }
+
   const single = safeGetFieldValue(block, 'COLOR') ?? safeGetFieldValue(block, 'COLOUR') ?? null;
 
   return { value: single, kind: single ? 'single' : 'none' };
