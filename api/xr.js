@@ -488,7 +488,6 @@ export const flockXR = {
       }
     }
     flock._syncXRWatchTrail(xrCamera?.position);
-    if (reposition) flock._positionXRMirror();
   },
   _xrTargetHeading() {
     const target = flock._xrFollowTarget;
@@ -896,6 +895,8 @@ export const flockXR = {
       flock._updateXRSnapTurn();
       flock._updateXRView();
       flock._syncXRHUDPose();
+      flock._pumpXRMirrorFeed();
+      flock._updateXRFeedDebug();
     });
     flock._xrViewObserverScene = flock.scene;
 
@@ -939,6 +940,11 @@ export const flockXR = {
     layer.dispose();
   },
   _disposeXRMirror() {
+    if (flock._xrFeedDebugText) {
+      flock.meshTexture?.removeControl?.(flock._xrFeedDebugText);
+      flock._xrFeedDebugText.dispose?.();
+      flock._xrFeedDebugText = null;
+    }
     const mirror = flock._xrMirror;
     if (!mirror) return;
     flock._xrMirror = null;
@@ -984,16 +990,11 @@ export const flockXR = {
     flock._xrMirror = mirror;
     flock._positionXRMirror();
   },
-  // Faces the viewer's heading at the moment it is anchored, and holds that heading after.
+  // Locked to world +Z: taking the heading from the headset pins the backdrop to wherever the
+  // wearer happened to be looking when the feed started.
   _positionXRMirror() {
     const mirror = flock._xrMirror;
-    const xrCamera = flock.xrHelper?.baseExperience?.camera;
-    if (!mirror || !xrCamera?.position) return;
-
-    const forward = xrCamera.getDirection(flock.BABYLON.Vector3.Forward());
-    forward.y = 0;
-    if (forward.lengthSquared() < 1e-6) forward.copyFrom(flock.BABYLON.Vector3.Forward());
-    forward.normalize();
+    if (!mirror) return;
 
     const distance = flock._xrTuning('xm', XR_MIRROR_DISTANCE, 1, 400);
     const size = flock._cameraBackgroundTexture?.getSize?.();
@@ -1002,9 +1003,63 @@ export const flockXR = {
     mirror.scaling.set(width, width / aspect, 1);
 
     // infiniteDistance adds the camera's own position, so this is the offset it keeps.
-    mirror.position.set(forward.x * distance, 0, forward.z * distance);
-    // A plane faces down its own -Z, so matching the viewer's heading turns it back on them.
-    mirror.rotation.set(0, Math.atan2(forward.x, forward.z), 0);
+    mirror.position.set(0, 0, distance);
+    // A plane faces down its own -Z, so out on +Z an unrotated plane faces back at the scene.
+    mirror.rotation.set(0, 0, 0);
+  },
+  // An immersive session can suspend the page's media pipeline, and Babylon stops uploading
+  // frames from a paused video, so the feed freezes part-way into VR.
+  _pumpXRMirrorFeed() {
+    const texture = flock._cameraBackgroundTexture;
+    if (!flock._xrMirror || !texture) return;
+    const video = texture.video;
+    if (video?.paused) {
+      video.play?.().catch(() => {
+        // A stream the browser has taken back cannot be restarted from here.
+      });
+    }
+    texture.update?.();
+  },
+  // TEMPORARY diagnostic: shows on the XR HUD whether the virtual selfie camera is still
+  // delivering frames while the session owns tracking. Remove once the freeze is understood.
+  _updateXRFeedDebug() {
+    const texture = flock._cameraBackgroundTexture;
+    const hud = flock.meshTexture;
+    if (!flock._xrMirror || !texture || !hud || !flock.GUI?.TextBlock) return;
+
+    const video = texture.video;
+    const time = video?.currentTime ?? 0;
+    if (flock._xrFeedDebugTime !== time) {
+      flock._xrFeedDebugTime = time;
+      flock._xrFeedDebugAdvances = (flock._xrFeedDebugAdvances ?? 0) + 1;
+      flock._xrFeedDebugLastAdvance = performance.now?.() ?? Date.now();
+    }
+
+    let text = flock._xrFeedDebugText;
+    if (!text) {
+      text = new flock.GUI.TextBlock('xrFeedDebug');
+      text.color = 'white';
+      text.fontSize = 22;
+      text.outlineWidth = 5;
+      text.outlineColor = 'black';
+      text.resizeToFit = true;
+      text.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      text.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      text.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+      text.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+      hud.addControl(text);
+      flock._xrFeedDebugText = text;
+    }
+
+    const track = video?.srcObject?.getVideoTracks?.()?.[0];
+    const now = performance.now?.() ?? Date.now();
+    const stalledFor = ((now - (flock._xrFeedDebugLastAdvance ?? now)) / 1000).toFixed(1);
+    text.text = [
+      `feed t=${time.toFixed(3)} advances=${flock._xrFeedDebugAdvances ?? 0} stalled=${stalledFor}s`,
+      `video paused=${video?.paused} readyState=${video?.readyState} size=${video?.videoWidth}x${video?.videoHeight}`,
+      `track state=${track?.readyState} muted=${track?.muted} enabled=${track?.enabled}`,
+      `upload texFrame=${texture._frameId} sceneFrame=${flock.scene?.getFrameId?.()}`,
+    ].join('\n');
   },
   _applyCameraBackground() {
     const texture = flock._cameraBackgroundTexture;
