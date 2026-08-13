@@ -1194,6 +1194,7 @@ export default {
   context_enable_option: 'Enable',
   add_comment: 'Add comment',
   delete_comment: 'Delete comment',
+  comment_text_label: 'Comment text',
   view_in_canvas: 'View in canvas',
   exit_canvas_view: 'Stop orbiting object',
   detach_block_option: 'Detach',

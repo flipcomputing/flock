@@ -753,16 +753,62 @@ export function initializeWorkspace() {
   }
   workspaceSearch.init();
   workspaceSearch.setSearchPlaceholder(translate('workspace_search_placeholder'));
+  // @blockly/plugin-workspace-search's createTextInput() only sets a
+  // placeholder, never an accessible name.
+  workspaceSearch.inputElement?.setAttribute('aria-label', translate('workspace_search_placeholder'));
   window.flockWorkspaceSearch = workspaceSearch;
+
+  // Comment textareas (block-comment bubbles and standalone workspace
+  // comments both render a <textarea class="blocklyCommentText">) only ever
+  // get a placeholder from Blockly core, never an accessible name, and are
+  // created on demand whenever a comment is opened/added.
+  const labelCommentTextarea = (el) => {
+    if (el.tagName === 'TEXTAREA' && el.classList.contains('blocklyCommentText')) {
+      el.setAttribute('aria-label', translate('comment_text_label'));
+    }
+  };
+  const refreshCommentTextareaLabels = () =>
+    workspace
+      .getInjectionDiv()
+      .querySelectorAll('textarea.blocklyCommentText')
+      .forEach(labelCommentTextarea);
+  refreshCommentTextareaLabels();
+  // Re-applies comment_text_label to textareas already mounted when the
+  // language changes; new ones are covered by the MutationObserver below.
+  window.flockRefreshCommentTextareaLabels = refreshCommentTextareaLabels;
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        labelCommentTextarea(node);
+        node.querySelectorAll?.('textarea.blocklyCommentText').forEach(labelCommentTextarea);
+      }
+    }
+  }).observe(workspace.getInjectionDiv(), { childList: true, subtree: true });
 
   // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
   workspace.flockBlockLabelMap ??= new Map();
+
+  // @blockly/toolbox-search's createDom_() wipes the category row's label
+  // span via replaceChildren(), leaving the treeitem's aria-labelledby
+  // pointing at an id that no longer exists, and never gives the <input>
+  // itself an accessible name (placeholder alone doesn't count).
+  const fixSearchCategoryAria = (input) => {
+    const label = translate('toolbox_search_placeholder');
+    const treeItem = input.closest('[role="treeitem"]');
+    if (treeItem?.getAttribute('aria-labelledby') === 'toolbox-search-input.label') {
+      treeItem.removeAttribute('aria-labelledby');
+      treeItem.setAttribute('aria-label', label);
+    }
+    input.setAttribute('aria-label', label);
+  };
 
   // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
   requestAnimationFrame(() => {
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
     searchInput.placeholder = translate('toolbox_search_placeholder');
+    fixSearchCategoryAria(searchInput);
 
     let originalParent = searchInput.parentElement;
     const isMobile = isMobileSearchLayout;
@@ -1102,6 +1148,7 @@ export function initializeWorkspace() {
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
         newInput.placeholder = translate('toolbox_search_placeholder');
+        fixSearchCategoryAria(newInput);
         searchInput = newInput;
         originalParent = newInput.parentElement;
         searchCategory = workspace
@@ -1127,7 +1174,6 @@ export function initializeWorkspace() {
   const wsMobileInput = document.createElement('input');
   wsMobileInput.type = 'text';
   wsMobileInput.className = 'ws-search-mobile-input';
-  wsMobileInput.placeholder = translate('workspace_search_placeholder');
   wsMobileInput.setAttribute('autocomplete', 'one-time-code');
 
   const wsMobileCount = document.createElement('span');
@@ -1137,22 +1183,30 @@ export function initializeWorkspace() {
   const wsMobilePrev = document.createElement('button');
   wsMobilePrev.type = 'button';
   wsMobilePrev.className = 'ws-search-mobile-btn';
-  wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
   wsMobilePrev.textContent = '▲';
 
   const wsMobileNext = document.createElement('button');
   wsMobileNext.type = 'button';
   wsMobileNext.className = 'ws-search-mobile-btn';
-  wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
   wsMobileNext.textContent = '▼';
 
   const wsMobileClose = document.createElement('button');
   wsMobileClose.type = 'button';
   wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
-  wsMobileClose.setAttribute('aria-label', translate('close'));
   wsMobileClose.textContent = '×';
 
   wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
+
+  const refreshWsMobileSearchLabels = () => {
+    const searchLabel = translate('workspace_search_placeholder');
+    wsMobileInput.placeholder = searchLabel;
+    wsMobileInput.setAttribute('aria-label', searchLabel);
+    wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
+    wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
+    wsMobileClose.setAttribute('aria-label', translate('close'));
+  };
+  refreshWsMobileSearchLabels();
+  window.flockRefreshMobileWorkspaceSearchLabels = refreshWsMobileSearchLabels;
 
   const updateWsMobileCount = () => {
     const total = workspaceSearch.blocks?.length ?? 0;
