@@ -679,7 +679,7 @@ export default {
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
-    'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.', // human
+    'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora. En unas gafas de RV la escena aparece en tu habitación.', // ai
   set_xr_mode_tooltip: 'Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.', // human
   add_teleport_target_tooltip:
     'Permite teletransportarse al suelo, a un objeto o a todos los objetos.',

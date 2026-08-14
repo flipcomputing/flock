@@ -675,7 +675,7 @@ export default {
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
-    'Use the device camera as the background for the scene. Works on both mobile and desktop.',
+    'Use the device camera as the background for the scene. Works on both mobile and desktop. In a headset the scene appears in your room instead.',
   set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',

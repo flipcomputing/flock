@@ -1439,7 +1439,155 @@ export function runXRTests(flock) {
           flock._xrSavedSkyEnabled = null;
         }
       });
+    });
 
+    describe('passthrough for a camera background', function () {
+      const keys = [
+        '_xrMode',
+        '_cameraBackgroundFacing',
+        '_xrSessionActive',
+        '_xrViewMode',
+        '_xrFollowTarget',
+        '_xrHelperAutoCreated',
+      ];
+      let saved;
+      let savedHelper;
+      let savedHeadsetBrowser;
+      let savedARSupported;
+
+      beforeEach(function () {
+        saved = Object.fromEntries(keys.map((key) => [key, flock[key]]));
+        savedHelper = flock.xrHelper;
+        savedHeadsetBrowser = flock._isHeadsetBrowser;
+        savedARSupported = flock._immersiveARSupported;
+        flock._isHeadsetBrowser = () => true;
+        flock._immersiveARSupported = async () => true;
+        flock._xrMode = 'VR';
+        flock._cameraBackgroundFacing = null;
+        flock._xrSessionActive = false;
+        flock.xrHelper = null;
+      });
+
+      afterEach(function () {
+        Object.assign(flock, saved);
+        flock.xrHelper = savedHelper;
+        flock._isHeadsetBrowser = savedHeadsetBrowser;
+        flock._immersiveARSupported = savedARSupported;
+      });
+
+      it('opens an AR session so the background shows the room', async function () {
+        flock._cameraBackgroundFacing = 'environment';
+
+        expect(await flock._xrSessionMode()).to.equal('immersive-ar');
+      });
+
+      it('stays in VR with no camera background', async function () {
+        expect(await flock._xrSessionMode()).to.equal('immersive-vr');
+      });
+
+      it('stays in VR on a headset with no passthrough of its own', async function () {
+        flock._cameraBackgroundFacing = 'user';
+        flock._immersiveARSupported = async () => false;
+
+        expect(await flock._xrSessionMode()).to.equal('immersive-vr');
+      });
+
+      it('leaves phones in VR, where the feed itself shows', async function () {
+        flock._cameraBackgroundFacing = 'user';
+        flock._isHeadsetBrowser = () => false;
+
+        expect(await flock._xrSessionMode()).to.equal('immersive-vr');
+      });
+
+      it('keeps an AR mode in AR whatever the browser reports', async function () {
+        flock._xrMode = 'AR';
+        flock._immersiveARSupported = async () => false;
+
+        expect(await flock._xrSessionMode()).to.equal('immersive-ar');
+      });
+
+      it('re-points the waiting enter button at a background set after XR started', async function () {
+        const button = { sessionMode: 'immersive-vr' };
+        flock.xrHelper = { enterExitUI: { _buttons: [button] } };
+        flock._cameraBackgroundFacing = 'user';
+
+        await flock._syncPendingXRSessionMode();
+        expect(button.sessionMode).to.equal('immersive-ar');
+      });
+
+      it('hands an auto-opened headset button to the mode the project asks for', async function () {
+        const button = { sessionMode: 'immersive-vr' };
+        flock.xrHelper = { enterExitUI: { _buttons: [button] } };
+        flock._xrHelperAutoCreated = true;
+
+        await flock.initializeXR('AR');
+
+        expect(flock._xrMode).to.equal('AR');
+        expect(button.sessionMode).to.equal('immersive-ar');
+        expect(flock._xrHelperAutoCreated).to.equal(false);
+      });
+
+      it('leaves a project-built experience alone', async function () {
+        const button = { sessionMode: 'immersive-vr' };
+        flock.xrHelper = { enterExitUI: { _buttons: [button] } };
+        flock._xrHelperAutoCreated = false;
+
+        await flock.initializeXR('AR');
+
+        expect(flock._xrMode).to.equal('VR');
+        expect(button.sessionMode).to.equal('immersive-vr');
+      });
+
+      it('leaves the button alone once a session is running', async function () {
+        const button = { sessionMode: 'immersive-vr' };
+        flock.xrHelper = { enterExitUI: { _buttons: [button] } };
+        flock._cameraBackgroundFacing = 'user';
+        flock._xrSessionActive = true;
+
+        await flock._syncPendingXRSessionMode();
+        expect(button.sessionMode).to.equal('immersive-vr');
+      });
+
+      it('reads passthrough off the session rather than the XR mode', function () {
+        const session = { environmentBlendMode: 'opaque' };
+        flock.xrHelper = { baseExperience: { sessionManager: { session } } };
+        expect(flock._isPassthroughSession()).to.equal(false);
+
+        session.environmentBlendMode = 'alpha-blend';
+        expect(flock._isPassthroughSession()).to.equal(true);
+
+        session.environmentBlendMode = 'additive';
+        expect(flock._isPassthroughSession()).to.equal(true);
+      });
+
+      it('clears the sky entering a VR session that blends in the room', function () {
+        const scene = flock.scene;
+        const savedSky = flock.sky;
+        const savedClear = scene.clearColor;
+        try {
+          let enabled = true;
+          flock.sky = { isEnabled: () => enabled, setEnabled: (value) => (enabled = value) };
+          scene.clearColor = new flock.BABYLON.Color4(0.2, 0.4, 0.6, 1);
+          flock._xrViewMode = 'watch';
+          flock._xrFollowTarget = null;
+          flock.xrHelper = {
+            baseExperience: {
+              camera: { position: new flock.BABYLON.Vector3(0, 1.6, 0) },
+              sessionManager: { session: { environmentBlendMode: 'alpha-blend' } },
+            },
+          };
+
+          flock._handleXRStateChange(flock.BABYLON.WebXRState.IN_XR);
+          expect(enabled).to.equal(false);
+          expect(scene.clearColor.a).to.equal(0);
+        } finally {
+          flock._showPassthroughBackground(false);
+          flock.sky = savedSky;
+          scene.clearColor = savedClear;
+          flock._xrSavedClearColor = null;
+          flock._xrSavedSkyEnabled = null;
+        }
+      });
     });
 
     describe('setXRMode', function () {
@@ -1674,12 +1822,46 @@ export function runXRTests(flock) {
       let originalScene;
       let originalUIPlane;
       let originalXRMode;
+      let originalSensor;
+      let originalHeadsetCheck;
+      let originalVRSupported;
+      let originalSetCameraBackground;
+      let originalFacing;
+      let originalFallback;
+
+      const freeCameraScene = () => {
+        const attached = {};
+        return {
+          render() {},
+          activeCamera: {
+            inputs: {
+              attached,
+              addDeviceOrientation() {
+                attached.deviceOrientation = {};
+              },
+            },
+          },
+        };
+      };
 
       beforeEach(function () {
         originalHelper = flock.xrHelper;
         originalScene = flock.scene;
         originalUIPlane = flock.uiPlane;
         originalXRMode = flock._xrMode;
+        originalSensor = flock._sensorOrientationAvailable;
+        originalHeadsetCheck = flock._isHeadsetBrowser;
+        originalVRSupported = flock._immersiveVRSupported;
+        originalSetCameraBackground = flock.setCameraBackground;
+        originalFacing = flock._cameraBackgroundFacing;
+        originalFallback = flock._magicWindowFallback;
+
+        flock.xrHelper = null;
+        flock.uiPlane = null;
+        flock._cameraBackgroundFacing = null;
+        flock._magicWindowFallback = false;
+        flock._isHeadsetBrowser = () => false;
+        flock._sensorOrientationAvailable = async () => true;
       });
 
       afterEach(function () {
@@ -1687,6 +1869,99 @@ export function runXRTests(flock) {
         flock.scene = originalScene;
         flock.uiPlane = originalUIPlane;
         flock._xrMode = originalXRMode;
+        flock._sensorOrientationAvailable = originalSensor;
+        flock._isHeadsetBrowser = originalHeadsetCheck;
+        flock._immersiveVRSupported = originalVRSupported;
+        flock.setCameraBackground = originalSetCameraBackground;
+        flock._cameraBackgroundFacing = originalFacing;
+        flock._magicWindowFallback = originalFallback;
+      });
+
+      it('leaves the background alone when the sensor answers', async function () {
+        flock.scene = freeCameraScene();
+        let backgroundCalls = 0;
+        flock.setCameraBackground = () => backgroundCalls++;
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock._magicWindowReady;
+
+        expect(flock.scene.activeCamera.inputs.attached.deviceOrientation).to.not.equal(undefined);
+        expect(backgroundCalls).to.equal(0);
+        expect(flock._magicWindowFallback).to.equal(false);
+      });
+
+      it('falls back to the rear camera background without a sensor', async function () {
+        flock.scene = freeCameraScene();
+        flock._sensorOrientationAvailable = async () => false;
+        const facings = [];
+        flock.setCameraBackground = (facing) => facings.push(facing);
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock._magicWindowReady;
+
+        expect(facings).to.deep.equal(['environment']);
+        expect(flock._magicWindowFallback).to.equal(true);
+      });
+
+      it('does not reach for the webcam on a desktop', async function () {
+        flock.scene = freeCameraScene();
+        flock._isHeadsetBrowser = () => true;
+        flock._immersiveVRSupported = async () => false;
+        flock._sensorOrientationAvailable = async () => false;
+        let backgroundCalls = 0;
+        flock.setCameraBackground = () => backgroundCalls++;
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock._magicWindowReady;
+
+        expect(backgroundCalls).to.equal(0);
+        expect(flock._magicWindowFallback).to.equal(false);
+        expect(flock.scene.activeCamera.inputs.attached.deviceOrientation).to.equal(undefined);
+      });
+
+      it('keeps a facing the project already chose', async function () {
+        flock.scene = freeCameraScene();
+        flock._sensorOrientationAvailable = async () => false;
+        flock._cameraBackgroundFacing = 'user';
+        const facings = [];
+        flock.setCameraBackground = (facing) => facings.push(facing);
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock._magicWindowReady;
+
+        expect(facings).to.deep.equal([]);
+      });
+
+      it('survives a camera with no orientation input', async function () {
+        flock.scene = { render() {}, activeCamera: { inputs: { attached: {} } } };
+        flock._sensorOrientationAvailable = async () => false;
+        let backgroundCalls = 0;
+        flock.setCameraBackground = () => backgroundCalls++;
+
+        await flock.initializeXR('MAGIC_WINDOW');
+        await flock._magicWindowReady;
+
+        expect(flock._xrMode).to.equal('MAGIC_WINDOW');
+        expect(backgroundCalls).to.equal(0);
+      });
+
+      it('opens a session rather than looking around on a headset', async function () {
+        const scene = freeCameraScene();
+        scene.createDefaultXRExperienceAsync = async () => {
+          throw new Error('stubbed VR path');
+        };
+        flock.scene = scene;
+        flock._isHeadsetBrowser = () => true;
+        flock._immersiveVRSupported = async () => true;
+
+        try {
+          await flock.initializeXR('MAGIC_WINDOW');
+        } catch {
+          // The VR branch is stubbed out; only the mode decision matters here.
+        }
+
+        expect(flock._xrMode).to.equal('VR');
+        expect(scene.activeCamera.inputs.attached.deviceOrientation).to.equal(undefined);
       });
 
       it('configures device orientation without creating XR wrist UI', async function () {
@@ -1708,7 +1983,10 @@ export function runXRTests(flock) {
         };
 
         await flock.initializeXR('MAGIC_WINDOW');
+        const firstReady = flock._magicWindowReady;
         await flock.initializeXR('MAGIC_WINDOW');
+        await firstReady;
+        await flock._magicWindowReady;
 
         expect(addCalls).to.equal(1);
         expect(flock.xrHelper).to.equal(null);
