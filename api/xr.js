@@ -1247,14 +1247,18 @@ export const flockXR = {
   },
   _applyARSceneScale() {
     const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
-    if (!sessionManager || flock._xrMode !== 'AR' || !flock._xrSessionActive) return;
+    if (!sessionManager || !flock._xrSessionActive) return;
 
-    const scale = flock._arWorldScaleFor(flock._arSceneSizeCentimetres(), flock._arSceneBounds());
+    // A session that ended while scaled leaves its factor behind, so every session sets one.
+    const isAR = flock._xrMode === 'AR';
+    const scale = isAR
+      ? flock._arWorldScaleFor(flock._arSceneSizeCentimetres(), flock._arSceneBounds())
+      : 1;
     flock._arWorldScale = scale;
     sessionManager.worldScalingFactor = scale;
     flock._syncARGround();
     // A headset at life size already stands where the project put it.
-    const placing = scale !== 1 || flock._isHandheldXRSession();
+    const placing = isAR && (scale !== 1 || flock._isHandheldXRSession());
     flock._arPlacementFrames = placing ? AR_PLACEMENT_SETTLE_FRAMES : 0;
   },
   // The session's first frame has an identity rotation, and placement needs the facing.
@@ -1347,7 +1351,9 @@ export const flockXR = {
   },
   _resetARScene() {
     const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
-    if (sessionManager) sessionManager.worldScalingFactor = 1;
+    // Babylon pushes the depth range back through the session on this write, and a session the
+    // headset itself ended is already gone by the time the exit runs.
+    if (sessionManager?.inXRSession) sessionManager.worldScalingFactor = 1;
     flock._arWorldScale = 1;
     flock._arPlacementFrames = 0;
     flock._restoreARGround();

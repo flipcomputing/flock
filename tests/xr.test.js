@@ -2349,7 +2349,11 @@ export function runXRTests(flock) {
       };
 
       const makeSession = ({ camera = makeARCamera(), interactionMode = 'screen-space' } = {}) => {
-        const sessionManager = { worldScalingFactor: 1, session: { interactionMode } };
+        const sessionManager = {
+          worldScalingFactor: 1,
+          inXRSession: true,
+          session: { interactionMode },
+        };
         flock.xrHelper = { baseExperience: { camera, sessionManager } };
         flock._xrMode = 'AR';
         flock._xrSessionActive = true;
@@ -2557,6 +2561,43 @@ export function runXRTests(flock) {
         flock._resetARScene();
         expect(ground.isVisible).to.be.true;
         expect(ground.material).to.equal(material);
+      });
+
+      it('gives the scene back when the headset ends the session itself', function () {
+        const ground = addBox('arEndedGround', { size: 100 });
+        ground.metadata = { heightMapImage: 'NONE' };
+        flock.ground = ground;
+        addBox('arEndedBox', { size: 20, position: [0, 10, 0] });
+        const sessionManager = makeSession();
+        flock.shadowGenerator = null;
+        flock.setARSceneSize(80);
+
+        // Exiting from the headset's own menu ends the session before the exit runs, and
+        // Babylon reaches through it on a scale write.
+        sessionManager.inXRSession = false;
+        Object.defineProperty(sessionManager, 'worldScalingFactor', {
+          get: () => 25,
+          set() {
+            throw new Error('XRSession has already ended.');
+          },
+        });
+        flock._xrSessionActive = false;
+
+        expect(() => flock._resetARScene()).not.to.throw();
+        expect(flock._arWorldScale).to.equal(1);
+        expect(ground.isVisible).to.be.true;
+      });
+
+      it('clears a scale the previous session left behind', function () {
+        const sessionManager = makeSession();
+        sessionManager.worldScalingFactor = 25;
+        flock._xrMode = 'VR';
+
+        flock._applyARSceneScale();
+
+        expect(sessionManager.worldScalingFactor).to.equal(1);
+        expect(flock._arWorldScale).to.equal(1);
+        expect(flock._arPlacementFrames).to.equal(0);
       });
 
       it('catches the diorama shadow on the room floor when shadows are on', function () {
