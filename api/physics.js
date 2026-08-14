@@ -812,30 +812,26 @@ export const flockPhysics = {
 
           // XR case
           if (flock.xrHelper && flock.xrHelper.baseExperience) {
+            let stopHitTest = null;
             const xrObs = flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-              if (
-                state === flock.BABYLON.WebXRState.IN_XR &&
-                flock.xrHelper.baseExperience.sessionManager.sessionMode === 'immersive-ar'
-              ) {
-                flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                  flock.BABYLON.WebXRHitTest.Name,
-                  'latest',
-                  {
-                    onHitTestResultObservable: (results) => {
-                      if (results.length > 0) {
-                        const position = results[0].transformationMatrix.getTranslation();
-                        target.position.copyFrom(position);
-                        target.isVisible = true;
-                      }
-                    },
-                  }
-                );
-                // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+              if (state === flock.BABYLON.WebXRState.IN_XR) {
+                // `position` carries the session's world scale; the raw matrix is in metres.
+                stopHitTest ??= flock._onARHitTest((results) => {
+                  if (!results.length) return;
+                  target.position.copyFrom(results[0].position);
+                  target.isVisible = true;
+                });
+              } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+                stopHitTest?.();
+                stopHitTest = null;
               }
             });
             flock.abortController?.signal?.addEventListener(
               'abort',
-              () => flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(xrObs),
+              () => {
+                stopHitTest?.();
+                flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(xrObs);
+              },
               { once: true }
             );
           }

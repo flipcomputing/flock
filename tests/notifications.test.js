@@ -58,13 +58,15 @@ export function runNotificationTests() {
       expect(document.querySelector('.flock-banner__action')).to.not.exist;
     });
 
-    it('never leaks the raw error detail to the banner', function () {
+    // TEMPORARY (Aug 2026): the banner carries the raw detail so errors can be read on a
+    // phone. Restore "never leaks the raw error detail to the banner" when that comes out.
+    it('shows the raw error detail on the banner', function () {
       handleError(new Error('SECRET_STACK_DETAIL'), {
         source: 'project-run',
         fatal: false,
       });
       const banner = document.querySelector('.flock-banner');
-      expect(banner.textContent).to.not.contain('SECRET_STACK_DETAIL');
+      expect(banner.textContent).to.contain('SECRET_STACK_DETAIL');
     });
 
     it('treats AbortError and plain aborts as benign', function () {

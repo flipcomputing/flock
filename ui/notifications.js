@@ -95,6 +95,21 @@ export function showBanner(id, { message, action } = {}) {
   }
 }
 
+// TEMPORARY (Aug 2026): raw detail on the banner so errors can be read on a phone,
+// where there is no console. Remove this and the two call sites below.
+function debugDetail(error) {
+  try {
+    if (!error) return '';
+    const name = `${error.name ?? ''}`;
+    const message = `${error.message ?? error}`;
+    const frame = `${error.stack ?? ''}`.split('\n')[1]?.trim() ?? '';
+    const head = name && name !== 'Error' ? `${name}: ${message}` : message;
+    return [head, frame].filter(Boolean).join(' — ');
+  } catch {
+    return '';
+  }
+}
+
 // Single funnel: logs developer detail to the console, dedupes by source,
 // and shows one friendly banner. fatal === true adds a Reload action.
 export function handleError(error, { source, fatal = false } = {}) {
@@ -106,8 +121,10 @@ export function handleError(error, { source, fatal = false } = {}) {
     messageKey = 'error_physics_unsupported_ios';
   }
 
+  const detail = debugDetail(error);
+
   showBanner(id, {
-    message: translate(messageKey),
+    message: detail ? `${translate(messageKey)} — ${detail}` : translate(messageKey),
     action: fatal
       ? {
           label: translate('banner_reload'),

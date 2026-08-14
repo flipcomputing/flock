@@ -2674,5 +2674,99 @@ export function runXRTests(flock) {
         }
       });
     });
+
+    describe('AR hit test', function () {
+      let originalState;
+
+      const makeARSession = ({ sessionMode = 'immersive-ar' } = {}) => {
+        const enabled = [];
+        const featuresManager = {
+          enableFeature(name, version, options, attachIfPossible, required) {
+            enabled.push({ name, version, required });
+            return {
+              onHitTestResultObservable: new flock.BABYLON.Observable(),
+            };
+          },
+        };
+        flock.xrHelper = { baseExperience: { sessionManager: { sessionMode }, featuresManager } };
+        return enabled;
+      };
+
+      beforeEach(function () {
+        originalState = { helper: flock.xrHelper, hitTest: flock._arHitTest };
+        flock._arHitTest = null;
+      });
+
+      afterEach(function () {
+        flock.xrHelper = originalState.helper;
+        flock._arHitTest = originalState.hitTest;
+      });
+
+      it('asks for hit test as an optional session feature', async function () {
+        const scene = { render() {} };
+        let uiOptions = null;
+        scene.createDefaultXRExperienceAsync = async (options) => {
+          uiOptions = options.uiOptions;
+          throw new Error('stubbed');
+        };
+        const original = {
+          scene: flock.scene,
+          helper: flock.xrHelper,
+          mode: flock._xrMode,
+          supported: flock._immersiveARSupported,
+        };
+        flock.scene = scene;
+        flock.xrHelper = null;
+        flock._xrMode = undefined;
+        flock._immersiveARSupported = async () => true;
+        try {
+          await flock.initializeXR('AR').catch(() => {});
+        } finally {
+          flock.scene = original.scene;
+          flock.xrHelper = original.helper;
+          flock._xrMode = original.mode;
+          flock._immersiveARSupported = original.supported;
+        }
+
+        expect(uiOptions?.sessionMode).to.equal('immersive-ar');
+        expect(uiOptions?.optionalFeatures).to.include('hit-test');
+      });
+
+      it('reports hit test results and stops on request', function () {
+        makeARSession();
+        const seen = [];
+        const stop = flock._onARHitTest((results) => seen.push(results));
+
+        flock._arHitTest.onHitTestResultObservable.notifyObservers(['first']);
+        stop();
+        flock._arHitTest.onHitTestResultObservable.notifyObservers(['second']);
+
+        expect(seen).to.deep.equal([['first']]);
+      });
+
+      // Enabling the feature again disposes the previous one, taking every listener with it.
+      it('shares one feature between listeners', function () {
+        const enabled = makeARSession();
+        const seen = [];
+        flock._onARHitTest(() => seen.push('a'));
+        flock._onARHitTest(() => seen.push('b'));
+
+        flock._arHitTest.onHitTestResultObservable.notifyObservers([]);
+
+        expect(enabled).to.have.lengthOf(1);
+        expect(enabled[0].required).to.equal(false);
+        expect(seen).to.deep.equal(['a', 'b']);
+      });
+
+      it('does nothing outside an AR session', function () {
+        const enabled = makeARSession({ sessionMode: 'immersive-vr' });
+        const stop = flock._onARHitTest(() => {});
+
+        expect(enabled).to.have.lengthOf(0);
+        expect(flock._arHitTest).to.equal(null);
+        expect(stop).to.be.a('function');
+        stop();
+      });
+    });
   });
 }

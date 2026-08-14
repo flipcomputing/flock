@@ -66,6 +66,7 @@ export const createFlockXRState = () => ({
   _arPlacementFrames: 0,
   _arGroundState: null,
   _arShadowMaterial: null,
+  _arHitTest: null,
   _xrHUDViewAspect: null,
 });
 
@@ -1052,6 +1053,9 @@ export const flockXR = {
         outputCanvasOptions: flock._xrCanvasOptions(),
         uiOptions: {
           sessionMode: await flock._xrSessionMode(),
+          // A session that was not asked for hit test can never be granted it, and the mode
+          // can still be repointed after this.
+          optionalFeatures: ['hit-test'],
         },
       });
 
@@ -1348,6 +1352,29 @@ export const flockXR = {
     }
     flock._arShadowMaterial?.dispose();
     flock._arShadowMaterial = null;
+  },
+  // Enabling the feature again disposes the previous one and its observers, so every listener
+  // shares one. Returns a function that stops listening.
+  _onARHitTest(callback) {
+    const baseExperience = flock.xrHelper?.baseExperience;
+    if (baseExperience?.sessionManager?.sessionMode !== 'immersive-ar') return () => {};
+    if (!flock._arHitTest) {
+      try {
+        flock._arHitTest = baseExperience.featuresManager.enableFeature(
+          flock.BABYLON.WebXRHitTest.Name,
+          'latest',
+          {},
+          true,
+          false
+        );
+      } catch {
+        // No hit test here: the mesh stays where the project put it.
+        return () => {};
+      }
+    }
+    const feature = flock._arHitTest;
+    const observer = feature.onHitTestResultObservable.add(callback);
+    return () => feature.onHitTestResultObservable.remove(observer);
   },
   _resetARScene() {
     const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
