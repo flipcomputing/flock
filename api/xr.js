@@ -89,8 +89,8 @@ const XR_HANDHELD_HUD_RENDERING_GROUP = 1;
 // Below this a rebuild would be rounding noise, not a turned phone.
 const XR_HUD_ASPECT_TOLERANCE = 0.05;
 
-// A diorama a child can reach across.
-const AR_DEFAULT_SCENE_SIZE_CM = 80;
+// Big enough to fill about half a phone screen from where the look-down limit stands the viewer.
+const AR_DEFAULT_SCENE_SIZE_CM = 150;
 const AR_SCENE_SIZE_MIN_CM = 1;
 const AR_SCENE_SIZE_MAX_CM = 100000;
 // Far enough back to see all of it, never closer than arm's length.
@@ -98,6 +98,10 @@ const AR_DIORAMA_DISTANCE_FACTOR = 1.5;
 const AR_MIN_DIORAMA_DISTANCE_M = 1;
 // A landscape diorama is metres wide; standing back by its full width would leave the room.
 const AR_MAX_DIORAMA_DISTANCE_M = 2;
+// How far below the screen's centre a handheld diorama is allowed to sit, and how far back
+// that is ever allowed to stand the viewer if the reported eye height is wild.
+const AR_MAX_LOOK_DOWN = Math.PI / 6;
+const AR_MAX_HANDHELD_DISTANCE_M = 3.5;
 const AR_PLACEMENT_SETTLE_FRAMES = 3;
 // Babylon's pointer visuals, not scene content.
 const XR_HELPER_MESH_NAMES = new Set(['laserPointer', 'gazeTracker']);
@@ -1288,12 +1292,23 @@ export const flockXR = {
     else forward.normalize();
 
     const sizeMetres = bounds.width / flock._arWorldScale;
-    const distance =
+    let distance =
       Math.min(
         AR_MAX_DIORAMA_DISTANCE_M,
         Math.max(AR_MIN_DIORAMA_DISTANCE_M, AR_DIORAMA_DISTANCE_FACTOR * sizeMetres)
       ) * flock._arWorldScale;
     const eyeHeight = camera.realWorldHeight || XR_FALLBACK_EYE_HEIGHT_M * flock._arWorldScale;
+
+    // A wearer looks down as freely as they turn; a phone points where it is held, so a diorama
+    // at arm's length sits below the screen entirely. Standing back trades size for being seen.
+    if (flock._isHandheldXRSession()) {
+      const drop = bounds.min.y + eyeHeight - bounds.centre.y;
+      const backOff = drop > 0 ? drop / Math.tan(AR_MAX_LOOK_DOWN) : 0;
+      distance = Math.max(
+        distance,
+        Math.min(backOff, AR_MAX_HANDHELD_DISTANCE_M * flock._arWorldScale)
+      );
+    }
 
     // Moving the play space moves the diorama: stand the viewer that far back from it.
     camera.position.set(

@@ -2465,7 +2465,7 @@ export function runXRTests(flock) {
 
       it('starts a phone at a diorama and a headset at life size', function () {
         makeSession({ interactionMode: 'screen-space' });
-        expect(flock._arSceneSizeCentimetres()).to.equal(80);
+        expect(flock._arSceneSizeCentimetres()).to.equal(150);
 
         makeSession({ interactionMode: 'world-space' });
         expect(flock._arSceneSizeCentimetres()).to.equal(0);
@@ -2508,7 +2508,7 @@ export function runXRTests(flock) {
       it('stands the viewer back from the diorama and on the room floor', function () {
         addBox('arPlaceBox', { size: 20, position: [0, 10, 0] });
         const camera = makeARCamera({ height: 1.5, scale: 25 });
-        makeSession({ camera });
+        makeSession({ camera, interactionMode: 'world-space' });
 
         flock.setARSceneSize(80);
         for (let frame = 0; frame < 4; frame++) flock._placeARScene();
@@ -2521,10 +2521,26 @@ export function runXRTests(flock) {
         expect(flock._arPlacementFrames).to.equal(0);
       });
 
+      // A phone points where it is held, so the diorama has to be within a glance of straight
+      // ahead rather than at the wearer's feet.
+      it('stands a phone back far enough to keep the diorama on screen', function () {
+        addBox('arHandheldBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, interactionMode: 'screen-space' });
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        const back = -camera.position.z;
+        const lookDown = Math.atan2(camera.position.y - 10, back);
+        expect(back).to.be.greaterThan(30);
+        expect(lookDown).to.be.closeTo(Math.PI / 6, 1e-6);
+      });
+
       it('places the diorama wherever the viewer is facing', function () {
         addBox('arFacingBox', { size: 20, position: [0, 10, 0] });
         const camera = makeARCamera({ yaw: Math.PI / 2, height: 1.5, scale: 25 });
-        makeSession({ camera });
+        makeSession({ camera, interactionMode: 'world-space' });
 
         flock.setARSceneSize(80);
         for (let frame = 0; frame < 4; frame++) flock._placeARScene();
