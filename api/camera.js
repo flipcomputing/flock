@@ -24,7 +24,6 @@ export const flockCamera = {
           resolve();
           return;
         }
-        flock._setXRFollowTarget(mesh);
         flock.ensureVerticalConstraint(mesh);
 
         const existingCamera = flock.scene.activeCamera;
@@ -93,7 +92,9 @@ export const flockCamera = {
           camera = new flock.BABYLON.ArcRotateCamera(
             'camera',
             Math.PI / 2,
-            Math.PI,
+            // Where the beta limit below clamps it anyway, and XR reads this camera's position
+            // without ever rendering it.
+            Math.PI / 2,
             radius,
             mesh.position,
             flock.scene
@@ -123,6 +124,8 @@ export const flockCamera = {
 
           flockCamera._reapplyCameraBindings(camera);
         }
+
+        flock._frameXRFromProjectCamera(camera);
         resolve();
       });
     });

@@ -37,11 +37,21 @@ export function runCameraTests(flock) {
 
     describe('attachCamera', function () {
       const boxIds = [];
-      let savedCamera, savedXRFollowTarget;
+      let savedCamera, savedXRState;
 
       beforeEach(function () {
         savedCamera = flock.scene.activeCamera;
-        savedXRFollowTarget = flock._xrFollowTarget;
+        savedXRState = {
+          followTarget: flock._xrFollowTarget,
+          followCameraRadius: flock._xrFollowCameraRadius,
+          followCameraDirection: flock._xrFollowCameraDirection,
+          followCameraVerticalOffset: flock._xrFollowCameraVerticalOffset,
+          helper: flock.xrHelper,
+          sessionActive: flock._xrSessionActive,
+          mode: flock._xrMode,
+          viewMode: flock._xrViewMode,
+          watchPosition: flock._xrWatchPosition,
+        };
       });
 
       afterEach(function () {
@@ -54,7 +64,15 @@ export function runCameraTests(flock) {
         });
         boxIds.length = 0;
         flock.scene.activeCamera = savedCamera;
-        flock._xrFollowTarget = savedXRFollowTarget;
+        flock._xrFollowTarget = savedXRState.followTarget;
+        flock._xrFollowCameraRadius = savedXRState.followCameraRadius;
+        flock._xrFollowCameraDirection = savedXRState.followCameraDirection;
+        flock._xrFollowCameraVerticalOffset = savedXRState.followCameraVerticalOffset;
+        flock.xrHelper = savedXRState.helper;
+        flock._xrSessionActive = savedXRState.sessionActive;
+        flock._xrMode = savedXRState.mode;
+        flock._xrViewMode = savedXRState.viewMode;
+        flock._xrWatchPosition = savedXRState.watchPosition;
       });
 
       it('should set scene.activeCamera to an ArcRotateCamera following the mesh', async function () {
@@ -73,6 +91,38 @@ export function runCameraTests(flock) {
         expect(flock.scene.activeCamera.metadata.following).to.exist;
         expect(flock.scene.activeCamera.metadata.following.name).to.equal(id);
         expect(flock._xrFollowTarget).to.equal(flock.scene.activeCamera.metadata.following);
+      });
+
+      it('should hand the XR watch framing the radius it was attached with', async function () {
+        const id = 'cameraFramingBox';
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        await flock.attachCamera(id, { radius: 12 });
+
+        expect(flock._xrFollowCameraRadius).to.be.closeTo(12, 0.000001);
+        expect(flock._xrFollowCameraVerticalOffset).to.be.closeTo(0, 0.000001);
+        expect(flock._xrFollowCameraDirection.y).to.equal(0);
+      });
+
+      it('should reframe a running VR session when a camera is attached', async function () {
+        const id = 'cameraSessionBox';
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        const xrCamera = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+        flock.xrHelper = { baseExperience: { camera: xrCamera } };
+        flock._xrSessionActive = true;
+        flock._xrMode = 'VR';
+        flock._xrViewMode = 'watch';
+
+        await flock.attachCamera(id, { radius: 12 });
+
+        const target = flock._xrFollowTarget.getAbsolutePosition();
+        expect(xrCamera.position.y).to.be.closeTo(target.y + 1.5, 0.000001);
+        expect(
+          Math.hypot(xrCamera.position.x - target.x, xrCamera.position.z - target.z)
+        ).to.be.closeTo(12, 0.000001);
       });
     });
 

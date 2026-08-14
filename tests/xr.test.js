@@ -486,9 +486,6 @@ export function runXRTests(flock) {
           lastPosition: flock._xrFollowLastPosition,
           settledPosition: flock._xrFollowSettledPosition,
           lastMovedAt: flock._xrFollowLastMovedAt,
-          lastHeading: flock._xrFollowLastHeading,
-          watchYawOffset: flock._xrWatchYawOffset,
-          watchAnchorYaw: flock._xrWatchAnchorYaw,
           watchAnchorPosition: flock._xrWatchAnchorPosition,
           watchAnchorTarget: flock._xrWatchAnchorTarget,
           snapTurnHeld: flock._xrSnapTurnHeld,
@@ -514,9 +511,6 @@ export function runXRTests(flock) {
         flock._xrFollowLastPosition = originalState.lastPosition;
         flock._xrFollowSettledPosition = originalState.settledPosition;
         flock._xrFollowLastMovedAt = originalState.lastMovedAt;
-        flock._xrFollowLastHeading = originalState.lastHeading;
-        flock._xrWatchYawOffset = originalState.watchYawOffset;
-        flock._xrWatchAnchorYaw = originalState.watchAnchorYaw;
         flock._xrWatchAnchorPosition = originalState.watchAnchorPosition;
         flock._xrWatchAnchorTarget = originalState.watchAnchorTarget;
         flock._xrSnapTurnHeld = originalState.snapTurnHeld;
@@ -710,8 +704,39 @@ export function runXRTests(flock) {
         expect(camera.position.x).to.equal(3);
       });
 
-      it('watch with smooth motion swings behind a turning character', function () {
-        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+      it('leaves the view alone when a character turns on the spot', function () {
+        for (const motion of ['smooth', 'comfort']) {
+          const camera = {
+            position: new flock.BABYLON.Vector3(0, 2, -7),
+            rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+          };
+          const target = {
+            position: new flock.BABYLON.Vector3(0, 0, 0),
+            rotation: new flock.BABYLON.Vector3(0, 0, 0),
+          };
+          flock.xrHelper = { baseExperience: { camera } };
+          flock._xrFollowTarget = target;
+          flock._xrMode = 'VR';
+          flock._xrSessionActive = true;
+          flock._xrViewMode = 'watch';
+          flock._xrCameraMotionMode = motion;
+          flock._resetXRViewTracking();
+
+          target.rotation.y = Math.PI / 2;
+          flock._updateXRView();
+          flock._xrFollowLastMovedAt -= 300;
+          flock._updateXRView();
+
+          expect(camera.position.asArray(), motion).to.deep.equal([0, 2, -7]);
+          expect(camera.rotationQuaternion.toEulerAngles().y, motion).to.equal(0);
+        }
+      });
+
+      it('carries the watch camera along without turning it as a character walks', function () {
+        const camera = {
+          position: new flock.BABYLON.Vector3(0, 2, -7),
+          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
+        };
         const target = {
           position: new flock.BABYLON.Vector3(0, 0, 0),
           rotation: new flock.BABYLON.Vector3(0, 0, 0),
@@ -724,36 +749,13 @@ export function runXRTests(flock) {
         flock._xrCameraMotionMode = 'smooth';
         flock._resetXRViewTracking();
 
+        // Walking sideways turns the character to face the way it travels.
+        target.position.x = 3;
         target.rotation.y = Math.PI / 2;
         flock._updateXRView();
 
-        expect(camera.position.x).to.be.closeTo(-7, 0.000001);
-        expect(camera.position.y).to.equal(2);
-        expect(camera.position.z).to.be.closeTo(0, 0.000001);
-      });
-
-      it('comfort holds the view until a turning character stops', function () {
-        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
-        const target = {
-          position: new flock.BABYLON.Vector3(0, 0, 0),
-          rotation: new flock.BABYLON.Vector3(0, 0, 0),
-        };
-        flock.xrHelper = { baseExperience: { camera } };
-        flock._xrFollowTarget = target;
-        flock._xrMode = 'VR';
-        flock._xrSessionActive = true;
-        flock._xrViewMode = 'watch';
-        flock._xrCameraMotionMode = 'comfort';
-        flock._resetXRViewTracking();
-
-        target.rotation.y = Math.PI / 2;
-        flock._updateXRView();
-        expect(camera.position.asArray()).to.deep.equal([0, 2, -7]);
-
-        flock._xrFollowLastMovedAt -= 300;
-        flock._updateXRView();
-        expect(camera.position.x).to.be.closeTo(-7, 0.000001);
-        expect(camera.position.z).to.be.closeTo(0, 0.000001);
+        expect(camera.position.asArray()).to.deep.equal([3, 2, -7]);
+        expect(camera.rotationQuaternion.toEulerAngles().y).to.equal(0);
       });
 
       it('watch never inherits movement from the follow target', function () {
@@ -896,7 +898,7 @@ export function runXRTests(flock) {
         expect(camera.position.asArray()).to.deep.equal([0, 20, -3]);
       });
 
-      it('positions watch mode using the non-XR camera height', function () {
+      it('stands the wearer at the project camera height and radius', function () {
         const camera = { position: new flock.BABYLON.Vector3(0.2, 1.7, -0.1) };
         flock.xrHelper = { baseExperience: { camera } };
         flock._xrViewMode = 'watch';
@@ -908,11 +910,23 @@ export function runXRTests(flock) {
         flock._positionXRWatchCamera();
 
         expect(camera.position.x).to.equal(4);
-        expect(camera.position.y).to.equal(3.5);
+        expect(camera.position.y).to.equal(0.5 + 3 + 1.5);
         expect(camera.position.z).to.be.closeTo(6 - Math.sqrt(8 * 8 - 3 * 3), 0.000001);
-        expect(
-          flock.BABYLON.Vector3.Distance(camera.position, flock._xrFollowTarget.position)
-        ).to.be.closeTo(8, 0.000001);
+      });
+
+      it("raises the watch camera by the wearer's own height when the session reports it", function () {
+        const camera = { position: new flock.BABYLON.Vector3(0, 0, 0), realWorldHeight: 1.9 };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrViewMode = 'watch';
+        flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(4, 0.5, 6) };
+        flock._xrFollowCameraDirection = new flock.BABYLON.Vector3(0, 0, -1);
+        flock._xrFollowCameraRadius = 8;
+        flock._xrFollowCameraVerticalOffset = 0;
+
+        flock._positionXRWatchCamera();
+
+        expect(camera.position.y).to.equal(0.5 + 1.9);
+        expect(camera.position.z).to.be.closeTo(6 - 8, 0.000001);
       });
 
       it('preserves the non-XR camera height when it exceeds the project radius', function () {
@@ -926,7 +940,7 @@ export function runXRTests(flock) {
 
         flock._positionXRWatchCamera();
 
-        expect(camera.position.asArray()).to.deep.equal([4, 3, 6]);
+        expect(camera.position.asArray()).to.deep.equal([4, 0.5 + 2.5 + 1.5, 6]);
       });
 
       it('faces the follow target when watch mode positions the camera', function () {
@@ -961,7 +975,7 @@ export function runXRTests(flock) {
         flock._positionXRWatchCamera();
 
         expect(camera.position.asArray()).to.deep.equal([0.2, 1.7, -0.1]);
-        expect(flock._xrWatchPosition.y).to.equal(3.5);
+        expect(flock._xrWatchPosition.y).to.equal(0.5 + 3 + 1.5);
       });
 
       it('captures the project follow camera direction and radius', function () {
