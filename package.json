@@ -20,6 +20,7 @@
     "test:context-menu": "node scripts/context-menu-keyboard-check.mjs",
     "test:canvas-buffer": "node scripts/canvas-buffer-check.mjs",
     "test:xr-teleport": "node scripts/xr-teleport-check.mjs",
+    "test:xr-diorama": "node scripts/xr-diorama-check.mjs",
     "format:check": "prettier --check .",
     "format": "prettier --write ."
   },

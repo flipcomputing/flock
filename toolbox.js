@@ -609,6 +609,21 @@ const toolboxSceneXR = {
     },
     {
       kind: 'block',
+      type: 'set_ar_scene_size',
+      keyword: 'ar diorama scale size life size',
+      inputs: {
+        SIZE: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 80,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'set_xr_ui_placement',
       keyword: 'vr ui hud wrist heads up display controls',
     },

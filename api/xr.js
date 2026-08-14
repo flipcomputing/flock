@@ -64,6 +64,12 @@ export const createFlockXRState = () => ({
   _magicWindowReady: null,
   _magicWindowFallback: false,
   _xrHelperAutoCreated: false,
+  _arSceneSizeCm: null,
+  _arWorldScale: 1,
+  _arPlacementFrames: 0,
+  _arGroundState: null,
+  _arShadowMaterial: null,
+  _xrHUDViewAspect: null,
 });
 
 // The panel spans about 56 degrees at this distance.
@@ -77,6 +83,27 @@ const XR_HUD_TEXTURE_HEIGHT = 864;
 const XR_HUD_MAGNIFICATION = 2.5;
 // Holds the wrist panel at the size it had with the smaller HUD plane.
 const XR_WRIST_SCALE = 0.26;
+
+// A phone's panel is fitted to the view instead, in front of the scene.
+const XR_HANDHELD_HUD_DISTANCE_M = 0.5;
+const XR_HANDHELD_HUD_TEXTURE_MAX = 2048;
+const XR_HANDHELD_HUD_RENDERING_GROUP = 1;
+// Below this a rebuild would be rounding noise, not a turned phone.
+const XR_HUD_ASPECT_TOLERANCE = 0.05;
+
+// A diorama a child can reach across.
+const AR_DEFAULT_SCENE_SIZE_CM = 80;
+const AR_SCENE_SIZE_MIN_CM = 1;
+const AR_SCENE_SIZE_MAX_CM = 100000;
+// Far enough back to see all of it, never closer than arm's length.
+const AR_DIORAMA_DISTANCE_FACTOR = 1.5;
+const AR_MIN_DIORAMA_DISTANCE_M = 1;
+// A landscape diorama is metres wide; standing back by its full width would leave the room.
+const AR_MAX_DIORAMA_DISTANCE_M = 2;
+const AR_FALLBACK_EYE_HEIGHT_M = 1.5;
+const AR_PLACEMENT_SETTLE_FRAMES = 3;
+// Babylon's pointer visuals, not scene content.
+const XR_HELPER_MESH_NAMES = new Set(['laserPointer', 'gazeTracker']);
 
 const SNAP_TURN_ANGLE = Math.PI / 6;
 const SNAP_TURN_PRESS = 0.7;
@@ -131,19 +158,87 @@ export const flockXR = {
     // Control.dispose() clears onBlurObservable without firing it.
     input.onDisposeObservable?.addOnce?.(() => flock._hideXRKeyboard(input));
   },
-  _createXRHUDTexture(plane) {
-    const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
-      plane,
-      XR_HUD_TEXTURE_WIDTH,
-      XR_HUD_TEXTURE_HEIGHT,
-      true
-    );
-    texture.idealWidth = Math.round(
-      XR_HUD_TEXTURE_WIDTH / flock._xrTuning('xu', XR_HUD_MAGNIFICATION, 1, 4)
-    );
+  _createXRHUDTexture(
+    plane,
+    {
+      width = XR_HUD_TEXTURE_WIDTH,
+      height = XR_HUD_TEXTURE_HEIGHT,
+      magnification = flock._xrTuning('xu', XR_HUD_MAGNIFICATION, 1, 4),
+    } = {}
+  ) {
+    const texture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(plane, width, height, true);
+    texture.idealWidth = Math.round(width / magnification);
     // Mip filtering softens glyph edges, and a head-locked panel barely moves against the eye.
     texture.updateSamplingMode(flock.BABYLON.Texture.BILINEAR_SAMPLINGMODE);
+    plane.material.disableDepthWrite = true;
+    plane.material.disableLighting = true;
     return texture;
+  },
+  // The texture has to match the panel's shape, or every control on it is skewed.
+  _rebuildXRHUDTexture(width, height) {
+    const plane = flock.uiPlane;
+    if (!plane || !flock.GUI) return;
+    const previousTexture = flock.meshTexture;
+    const previousMaterial = plane.material;
+    const texture = flock._createXRHUDTexture(plane, { width, height, magnification: 1 });
+    flock.meshTexture = texture;
+    if (previousTexture) {
+      flock._moveUIControls(previousTexture, texture);
+      if (flock.scene?.UITexture === previousTexture) flock.scene.UITexture = texture;
+      previousTexture.dispose();
+    }
+    // CreateForMesh leaves the old material behind.
+    if (previousMaterial && previousMaterial !== plane.material) previousMaterial.dispose();
+    flock._refreshOnScreenControls?.();
+  },
+  // The view's own frustum, whatever field of view the device renders with.
+  _xrHUDFrustum(rig, distance) {
+    const projection = rig?.getProjectionMatrix?.()?.m;
+    if (!projection?.[0] || !projection?.[5]) return null;
+    return {
+      width: (2 * distance) / projection[0],
+      height: (2 * distance) / projection[5],
+    };
+  },
+  _xrHUDDistance() {
+    const scale = flock.xrHelper?.baseExperience?.sessionManager?.worldScalingFactor || 1;
+    const distance = flock._isHandheldXRSession() ? XR_HANDHELD_HUD_DISTANCE_M : XR_HUD_DISTANCE;
+    return distance * scale;
+  },
+  _handheldHUDTextureSize(aspect) {
+    const canvasWidth = flock.engine?.getRenderWidth?.() || XR_HUD_TEXTURE_WIDTH;
+    let width = Math.min(XR_HANDHELD_HUD_TEXTURE_MAX, Math.max(512, Math.round(canvasWidth)));
+    let height = Math.round(width / aspect);
+    if (height > XR_HANDHELD_HUD_TEXTURE_MAX) {
+      height = XR_HANDHELD_HUD_TEXTURE_MAX;
+      width = Math.round(height * aspect);
+    }
+    return { width, height };
+  },
+  _fitXRHUDToView(rig, distance) {
+    const plane = flock.uiPlane;
+    const frustum = flock._xrHUDFrustum(rig, distance);
+    if (!plane || !frustum) return;
+    plane.scaling.set(frustum.width / XR_HUD_WIDTH, frustum.height / XR_HUD_HEIGHT, 1);
+
+    const aspect = frustum.width / frustum.height;
+    if (!Number.isFinite(aspect) || aspect <= 0) return;
+    const current = flock._xrHUDViewAspect;
+    if (current && Math.abs(aspect - current) / current < XR_HUD_ASPECT_TOLERANCE) return;
+    flock._xrHUDViewAspect = aspect;
+    const { width, height } = flock._handheldHUDTextureSize(aspect);
+    flock._rebuildXRHUDTexture(width, height);
+  },
+  // No controllers to hang the panel from, and each tap's laser would cross the room.
+  _applyHandheldXRSession() {
+    if (!flock._isHandheldXRSession()) return;
+    const pointerSelection = flock.xrHelper?.pointerSelection;
+    if (pointerSelection) {
+      pointerSelection.displayLaserPointer = false;
+      pointerSelection.displaySelectionMesh = false;
+    }
+    if (flock.uiPlane) flock.uiPlane.renderingGroupId = XR_HANDHELD_HUD_RENDERING_GROUP;
+    flock._applyXRUIPlacement();
   },
   _xrWristParent() {
     const left = (flock.xrHelper?.input?.controllers ?? []).find(
@@ -155,7 +250,10 @@ export const flockXR = {
     const plane = flock.uiPlane;
     if (!plane) return;
 
-    const wristParent = flock._xrUIPlacement === 'wrist' ? flock._xrWristParent() : null;
+    const wristParent =
+      flock._xrUIPlacement === 'wrist' && !flock._isHandheldXRSession()
+        ? flock._xrWristParent()
+        : null;
     if (wristParent) {
       plane.parent = wristParent;
       // A rotationQuaternion, once set, is what the node rotates by.
@@ -194,10 +292,12 @@ export const flockXR = {
     }
     center.scaleInPlace(1 / rigs.length);
 
+    const distance = flock._xrHUDDistance();
     rigs[0].getDirectionToRef(flock._xrForwardBasis, flock._xrHUDForward);
-    plane.position.copyFrom(center).addInPlace(flock._xrHUDForward.scaleInPlace(XR_HUD_DISTANCE));
+    plane.position.copyFrom(center).addInPlace(flock._xrHUDForward.scaleInPlace(distance));
     plane.rotationQuaternion ??= new B.Quaternion();
     plane.rotationQuaternion.copyFrom(rigs[0].absoluteRotation);
+    if (flock._isHandheldXRSession()) flock._fitXRHUDToView(rigs[0], distance);
   },
   _hudHasInteractiveControls(container) {
     for (const child of container?.children ?? []) {
@@ -245,6 +345,7 @@ export const flockXR = {
   },
   _resetXRState() {
     flock._exitXRHUD?.();
+    flock._restoreARGround?.();
     flock._xrSource?.stop?.();
     flock._xrSource = null;
     if (flock._xrViewObserver && flock._xrViewObserverScene) {
@@ -454,8 +555,11 @@ export const flockXR = {
       flock._applyXRViewVisibility();
       if (flock._isPassthroughSession()) flock._showPassthroughBackground(true);
       flock._applyCameraBackground();
+      flock._applyHandheldXRSession();
+      flock._applyARSceneScale();
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       flock._xrSessionActive = false;
+      flock._resetARScene();
       flock._applyXRViewVisibility();
       flock._showPassthroughBackground(false);
       flock._applyCameraBackground();
@@ -468,7 +572,10 @@ export const flockXR = {
         stackPanel.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
         stackPanel.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       }
-      if (flock.uiPlane) flock.uiPlane.isVisible = false;
+      if (flock.uiPlane) {
+        flock.uiPlane.isVisible = false;
+        flock.uiPlane.renderingGroupId = 0;
+      }
       flock._exitXRHUD();
       if (flock.advancedTexture?.rootContainer) {
         flock.advancedTexture.rootContainer.isVisible = true;
@@ -954,12 +1061,26 @@ export const flockXR = {
     flock._applyXRDefaults(mode);
 
     if (mode === 'VR' || mode === 'AR') {
+      // No AR session to enter: a button that opens nothing is worse than the camera feed.
+      if (mode === 'AR' && !(await flock._immersiveARSupported())) {
+        mode = 'MAGIC_WINDOW';
+        flock._xrMode = mode;
+        flock._magicWindowReady = flock._startMagicWindow();
+        return;
+      }
+
       flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
         outputCanvasOptions: flock._xrCanvasOptions(),
         uiOptions: {
           sessionMode: await flock._xrSessionMode(),
         },
       });
+
+      // Babylon swallows a failed init and returns a helper with nothing on it.
+      if (!flock.xrHelper?.baseExperience) {
+        flock.xrHelper = null;
+        return;
+      }
     } else if (mode === 'MAGIC_WINDOW') {
       // Not awaited: the sensor check waits out a permission iOS never grants here, and the
       // rest of the project should not wait with it.
@@ -978,8 +1099,6 @@ export const flockXR = {
     flock.uiPlane.metadata = { isXRHUD: true };
 
     flock.meshTexture = flock._createXRHUDTexture(flock.uiPlane);
-    flock.uiPlane.material.disableDepthWrite = true;
-    flock.uiPlane.material.disableLighting = true;
 
     // Removal fires before the grip is disposed, so reparenting here is safe.
     flock._xrUIControllerObserver = flock.xrHelper.input.onControllerAddedObservable.add(() =>
@@ -1000,6 +1119,7 @@ export const flockXR = {
       flock._syncXRHUDPicking();
       flock._updateXRSnapTurn();
       flock._updateXRView();
+      flock._placeARScene();
       flock._syncXRHUDPose();
     });
     flock._xrViewObserverScene = flock.scene;
@@ -1093,6 +1213,167 @@ export const flockXR = {
     }
     flock._showCameraBackgroundLayer(texture);
   },
+  // One view, and taps rather than controllers.
+  _isHandheldXRSession() {
+    const baseExperience = flock.xrHelper?.baseExperience;
+    const interactionMode = baseExperience?.sessionManager?.session?.interactionMode;
+    if (interactionMode) return interactionMode === 'screen-space';
+    const views = baseExperience?.camera?.rigCameras?.length;
+    if (views) return views === 1;
+    return !flock._isHeadsetBrowser();
+  },
+  // Terrain is scenery; the flat ground is a floor the room already has. Metadata
+  // arrives with onReady, so a ground without any is terrain still loading.
+  _isTerrainGround() {
+    const ground = flock.ground;
+    if (!ground || ground.isDisposed?.()) return false;
+    return ground.metadata?.heightMapImage !== 'NONE';
+  },
+  _isARSceneContent(mesh) {
+    if (!mesh || mesh.isDisposed?.() || mesh === flock.sky || mesh === flock.uiPlane) return false;
+    if (mesh === flock.ground) return flock._isTerrainGround();
+    if (mesh.metadata?.isXRHUD || XR_HELPER_MESH_NAMES.has(mesh.name)) return false;
+    if (mesh.isEnabled?.() === false || mesh.isVisible === false) return false;
+    return (mesh.getTotalVertices?.() ?? 0) > 0;
+  },
+  _arSceneBounds() {
+    const B = flock.BABYLON;
+    let min = null;
+    let max = null;
+    for (const mesh of flock.scene?.meshes ?? []) {
+      if (!flock._isARSceneContent(mesh)) continue;
+      mesh.computeWorldMatrix?.(true);
+      const box = mesh.getBoundingInfo?.()?.boundingBox;
+      if (!box) continue;
+      min = min ? B.Vector3.Minimize(min, box.minimumWorld) : box.minimumWorld.clone();
+      max = max ? B.Vector3.Maximize(max, box.maximumWorld) : box.maximumWorld.clone();
+    }
+    if (!min || !max) return null;
+    return {
+      min,
+      max,
+      centre: min.add(max).scale(0.5),
+      width: Math.max(max.x - min.x, max.z - min.z),
+    };
+  },
+  // A phone sees only a slice of a life-size scene; a headset stands in it.
+  _arSceneSizeCentimetres() {
+    if (Number.isFinite(flock._arSceneSizeCm)) return flock._arSceneSizeCm;
+    return flock._isHandheldXRSession() ? AR_DEFAULT_SCENE_SIZE_CM : 0;
+  },
+  _arWorldScaleFor(sizeCm, bounds) {
+    if (!sizeCm || !bounds || !(bounds.width > 0)) return 1;
+    const scale = bounds.width / (sizeCm / 100);
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+  },
+  _applyARSceneScale() {
+    const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
+    if (!sessionManager || flock._xrMode !== 'AR' || !flock._xrSessionActive) return;
+
+    const scale = flock._arWorldScaleFor(flock._arSceneSizeCentimetres(), flock._arSceneBounds());
+    flock._arWorldScale = scale;
+    sessionManager.worldScalingFactor = scale;
+    flock._syncARGround();
+    // A headset at life size already stands where the project put it.
+    const placing = scale !== 1 || flock._isHandheldXRSession();
+    flock._arPlacementFrames = placing ? AR_PLACEMENT_SETTLE_FRAMES : 0;
+  },
+  // The session's first frame has an identity rotation, and placement needs the facing.
+  _placeARScene() {
+    if (!flock._arPlacementFrames || flock._xrMode !== 'AR' || !flock._xrSessionActive) return;
+    const camera = flock.xrHelper?.baseExperience?.camera;
+    if (!camera?.position || !camera.rigCameras?.length) return;
+    if (--flock._arPlacementFrames > 0) return;
+
+    if (flock._arWorldScale === 1) {
+      flock._positionXRARCamera(camera);
+      return;
+    }
+
+    const bounds = flock._arSceneBounds();
+    if (!bounds) return;
+
+    const B = flock.BABYLON;
+    const forward = new B.Vector3();
+    camera.getDirectionToRef(B.Vector3.Forward(), forward);
+    forward.y = 0;
+    if (forward.lengthSquared() < 0.000001) forward.set(0, 0, 1);
+    else forward.normalize();
+
+    const sizeMetres = bounds.width / flock._arWorldScale;
+    const distance =
+      Math.min(
+        AR_MAX_DIORAMA_DISTANCE_M,
+        Math.max(AR_MIN_DIORAMA_DISTANCE_M, AR_DIORAMA_DISTANCE_FACTOR * sizeMetres)
+      ) * flock._arWorldScale;
+    const eyeHeight = camera.realWorldHeight || AR_FALLBACK_EYE_HEIGHT_M * flock._arWorldScale;
+
+    // Moving the play space moves the diorama: stand the viewer that far back from it.
+    camera.position.set(
+      bounds.centre.x - forward.x * distance,
+      bounds.min.y + eyeHeight,
+      bounds.centre.z - forward.z * distance
+    );
+  },
+  // Life size: stand where the project camera looked from, on the ground not at its height.
+  _positionXRARCamera(camera = flock.xrHelper?.baseExperience?.camera) {
+    if (!camera?.position) return;
+    const source = flock._xrTargetPosition() ?? flock._xrNonXRCameraPosition;
+    if (!source) return;
+    const groundLevel = flock.getGroundLevelAt?.(source.x, source.z) ?? 0;
+    const eyeHeight = camera.realWorldHeight || AR_FALLBACK_EYE_HEIGHT_M;
+    camera.position.set(source.x, groundLevel + eyeHeight, source.z);
+  },
+  _arShadowCatcher() {
+    if (flock._arShadowMaterial) return flock._arShadowMaterial;
+    if (!flock.ShadowOnlyMaterial || !flock.scene) return null;
+    const material = new flock.ShadowOnlyMaterial('arGroundShadow', flock.scene);
+    material.activeLight = flock.shadowLight;
+    flock._arShadowMaterial = material;
+    return material;
+  },
+  // A shrunken scene sits on the room's floor, so the project's floor gets out of the way.
+  _syncARGround() {
+    const ground = flock.ground;
+    const scaled =
+      flock._xrSessionActive && flock._xrMode === 'AR' && flock._arWorldScale !== 1 && !!ground;
+    if (!scaled || flock._isTerrainGround()) {
+      flock._restoreARGround();
+      return;
+    }
+
+    flock._arGroundState ??= {
+      mesh: ground,
+      isVisible: ground.isVisible,
+      material: ground.material,
+    };
+    const catcher = flock.shadowGenerator ? flock._arShadowCatcher() : null;
+    if (catcher) {
+      ground.material = catcher;
+      ground.receiveShadows = true;
+      ground.isVisible = true;
+      return;
+    }
+    ground.material = flock._arGroundState.material;
+    ground.isVisible = false;
+  },
+  _restoreARGround() {
+    const state = flock._arGroundState;
+    flock._arGroundState = null;
+    if (state && !state.mesh.isDisposed?.()) {
+      state.mesh.isVisible = state.isVisible;
+      state.mesh.material = state.material;
+    }
+    flock._arShadowMaterial?.dispose();
+    flock._arShadowMaterial = null;
+  },
+  _resetARScene() {
+    const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
+    if (sessionManager) sessionManager.worldScalingFactor = 1;
+    flock._arWorldScale = 1;
+    flock._arPlacementFrames = 0;
+    flock._restoreARGround();
+  },
   /*
           Category: Scene>XR
   */
@@ -1155,6 +1436,14 @@ export const flockXR = {
     flock._applyTeleportationState?.();
     flock._resetXRViewTracking?.({ reposition: true });
     flock._applyXRViewVisibility?.();
+  },
+  // 0 asks for life size: the viewer stands in the scene.
+  setARSceneSize(centimetres) {
+    const size = Number(centimetres);
+    if (!Number.isFinite(size) || size < 0) return;
+    flock._arSceneSizeCm =
+      size === 0 ? 0 : Math.min(AR_SCENE_SIZE_MAX_CM, Math.max(AR_SCENE_SIZE_MIN_CM, size));
+    flock._applyARSceneScale();
   },
   setXRUIPlacement(placement) {
     if (placement !== 'hud' && placement !== 'wrist') return;

@@ -339,6 +339,7 @@ export default {
   device_camera_background: 'usa la %1 del dispositivo come sfondo',
   set_xr_mode: 'imposta modalità XR su %1',
   set_xr_view_mode: 'imposta vista VR su %1 con movimento della camera %2',
+  set_ar_scene_size: 'imposta dimensione scena AR a %1 cm', // ai
   set_xr_ui_placement: 'mostra interfaccia VR su %1', // ai
   add_teleport_target: 'aggiungi destinazione teletrasporto %1',
   remove_teleport_target: 'rimuovi destinazione teletrasporto %1',

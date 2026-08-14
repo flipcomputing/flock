@@ -373,6 +373,7 @@ export default {
   device_camera_background: 'use %1 camera as background',
   set_xr_mode: 'set XR mode to %1',
   set_xr_view_mode: 'set VR view to %1 with camera motion %2',
+  set_ar_scene_size: 'set AR scene size to %1 cm',
   set_xr_ui_placement: 'show VR UI on %1',
   add_teleport_target: 'add teleport target %1',
   remove_teleport_target: 'remove teleport target %1',
@@ -679,6 +680,8 @@ export default {
   set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
+  set_ar_scene_size_tooltip:
+    'How wide the whole scene appears in the real room in AR. A phone starts at 80 cm, so the scene sits on the floor in front of you like a model. Use 0 for life size, where you stand inside the scene instead.\nKeyword: diorama',
   set_xr_ui_placement_tooltip:
     'Choose where buttons, sliders and text appear in VR. The heads-up display floats in front of you; the wrist attaches them to your left controller like a watch.',
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',

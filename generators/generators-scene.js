@@ -581,6 +581,12 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `setXRViewMode(${JSON.stringify(block.getFieldValue('VIEW'))});\nsetXRCameraMotionMode(${JSON.stringify(block.getFieldValue('MOTION'))});\n`;
   };
 
+  javascriptGenerator.forBlock['set_ar_scene_size'] = function (block) {
+    const size =
+      javascriptGenerator.valueToCode(block, 'SIZE', javascriptGenerator.ORDER_ATOMIC) || '80';
+    return `setARSceneSize(${size});\n`;
+  };
+
   javascriptGenerator.forBlock['set_xr_ui_placement'] = function (block) {
     return `setXRUIPlacement(${JSON.stringify(block.getFieldValue('PLACEMENT'))});\n`;
   };

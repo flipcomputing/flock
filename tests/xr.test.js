@@ -2289,5 +2289,314 @@ export function runXRTests(flock) {
         expect(flock._teleportExplicitTargetMeshes).to.be.empty;
       });
     });
+
+    describe('AR scene size', function () {
+      let originalState;
+      const created = [];
+
+      // Enough of the XR camera for placement: a pose-driven position, a facing, and the
+      // viewer's height above the room's floor.
+      const makeARCamera = ({ yaw = 0, height = 1.5, scale = 1 } = {}) => {
+        const rotation = flock.BABYLON.Quaternion.RotationYawPitchRoll(yaw, 0, 0);
+        const world = flock.BABYLON.Matrix.Compose(
+          flock.BABYLON.Vector3.One(),
+          rotation,
+          new flock.BABYLON.Vector3(0, height * scale, 0)
+        );
+        return {
+          position: new flock.BABYLON.Vector3(0, height * scale, 0),
+          rotationQuaternion: rotation,
+          realWorldHeight: height * scale,
+          rigCameras: [{ name: 'view' }],
+          getDirectionToRef: (axis, result) =>
+            flock.BABYLON.Vector3.TransformNormalToRef(axis, world, result),
+        };
+      };
+
+      const makeSession = ({ camera = makeARCamera(), interactionMode = 'screen-space' } = {}) => {
+        const sessionManager = { worldScalingFactor: 1, session: { interactionMode } };
+        flock.xrHelper = { baseExperience: { camera, sessionManager } };
+        flock._xrMode = 'AR';
+        flock._xrSessionActive = true;
+        return sessionManager;
+      };
+
+      const addBox = (name, { size = 1, position = [0, 0, 0] } = {}) => {
+        const box = flock.BABYLON.MeshBuilder.CreateBox(name, { size }, flock.scene);
+        box.position.set(...position);
+        box.computeWorldMatrix(true);
+        created.push(box);
+        return box;
+      };
+
+      beforeEach(function () {
+        originalState = {
+          helper: flock.xrHelper,
+          mode: flock._xrMode,
+          active: flock._xrSessionActive,
+          sizeCm: flock._arSceneSizeCm,
+          scale: flock._arWorldScale,
+          frames: flock._arPlacementFrames,
+          ground: flock.ground,
+          groundState: flock._arGroundState,
+          shadowMaterial: flock._arShadowMaterial,
+          shadowGenerator: flock.shadowGenerator,
+          nonXRPosition: flock._xrNonXRCameraPosition,
+          followTarget: flock._xrFollowTarget,
+          hudAspect: flock._xrHUDViewAspect,
+        };
+        flock._arSceneSizeCm = null;
+        flock._arWorldScale = 1;
+        flock._arPlacementFrames = 0;
+        flock._arGroundState = null;
+        flock._arShadowMaterial = null;
+        flock._xrFollowTarget = null;
+        flock.ground = null;
+      });
+
+      afterEach(function () {
+        flock._restoreARGround();
+        created.forEach((mesh) => mesh.dispose());
+        created.length = 0;
+        flock.xrHelper = originalState.helper;
+        flock._xrMode = originalState.mode;
+        flock._xrSessionActive = originalState.active;
+        flock._arSceneSizeCm = originalState.sizeCm;
+        flock._arWorldScale = originalState.scale;
+        flock._arPlacementFrames = originalState.frames;
+        flock.ground = originalState.ground;
+        flock._arGroundState = originalState.groundState;
+        flock._arShadowMaterial = originalState.shadowMaterial;
+        flock.shadowGenerator = originalState.shadowGenerator;
+        flock._xrNonXRCameraPosition = originalState.nonXRPosition;
+        flock._xrFollowTarget = originalState.followTarget;
+        flock._xrHUDViewAspect = originalState.hudAspect;
+      });
+
+      it('exposes the scene size API to generated user code', function () {
+        const api = flock.createWhitelist({ guard: (fn) => fn });
+        expect(api.setARSceneSize).to.be.a('function');
+      });
+
+      it('reads the session before the user agent to tell a phone from a headset', function () {
+        makeSession({ interactionMode: 'screen-space' });
+        expect(flock._isHandheldXRSession()).to.be.true;
+
+        makeSession({ interactionMode: 'world-space' });
+        expect(flock._isHandheldXRSession()).to.be.false;
+      });
+
+      it('falls back to the view count when the session does not say', function () {
+        const sessionManager = makeSession();
+        delete sessionManager.session.interactionMode;
+        expect(flock._isHandheldXRSession()).to.be.true;
+
+        flock.xrHelper.baseExperience.camera.rigCameras = [{ name: 'left' }, { name: 'right' }];
+        expect(flock._isHandheldXRSession()).to.be.false;
+      });
+
+      it('measures the scene without the flat ground it replaces', function () {
+        addBox('arContentBox', { size: 2, position: [0, 1, 0] });
+        const ground = addBox('arFlatGround', { size: 100 });
+        ground.metadata = { heightMapImage: 'NONE' };
+        flock.ground = ground;
+
+        const bounds = flock._arSceneBounds();
+
+        expect(bounds.width).to.be.closeTo(2, 1e-6);
+        expect(bounds.min.y).to.be.closeTo(0, 1e-6);
+      });
+
+      it('counts a heightmap ground as part of the scene', function () {
+        addBox('arTerrainBox', { size: 2, position: [0, 1, 0] });
+        const ground = addBox('arTerrainGround', { size: 20 });
+        ground.metadata = { heightMapImage: 'valley.png' };
+        flock.ground = ground;
+
+        expect(flock._arSceneBounds().width).to.be.closeTo(20, 1e-6);
+      });
+
+      it('fits the measured scene into the requested size', function () {
+        const bounds = { width: 20 };
+        expect(flock._arWorldScaleFor(80, bounds)).to.be.closeTo(25, 1e-6);
+        expect(flock._arWorldScaleFor(200, bounds)).to.be.closeTo(10, 1e-6);
+        expect(flock._arWorldScaleFor(0, bounds)).to.equal(1);
+        expect(flock._arWorldScaleFor(80, null)).to.equal(1);
+      });
+
+      it('starts a phone at a diorama and a headset at life size', function () {
+        makeSession({ interactionMode: 'screen-space' });
+        expect(flock._arSceneSizeCentimetres()).to.equal(80);
+
+        makeSession({ interactionMode: 'world-space' });
+        expect(flock._arSceneSizeCentimetres()).to.equal(0);
+
+        flock._arSceneSizeCm = 30;
+        expect(flock._arSceneSizeCentimetres()).to.equal(30);
+      });
+
+      it('ignores a size that is not a usable measurement', function () {
+        flock._arSceneSizeCm = 50;
+        flock.setARSceneSize('big');
+        flock.setARSceneSize(-10);
+        expect(flock._arSceneSizeCm).to.equal(50);
+
+        flock.setARSceneSize(0);
+        expect(flock._arSceneSizeCm).to.equal(0);
+      });
+
+      it('scales the session to the requested size', function () {
+        addBox('arScaleBox', { size: 20, position: [0, 10, 0] });
+        const sessionManager = makeSession();
+
+        flock.setARSceneSize(80);
+
+        expect(sessionManager.worldScalingFactor).to.be.closeTo(25, 1e-6);
+        expect(flock._arWorldScale).to.be.closeTo(25, 1e-6);
+        expect(flock._arPlacementFrames).to.be.greaterThan(0);
+      });
+
+      it('leaves a headset at life size where the project put it', function () {
+        addBox('arHeadsetBox', { size: 20, position: [0, 10, 0] });
+        const sessionManager = makeSession({ interactionMode: 'world-space' });
+
+        flock._applyARSceneScale();
+
+        expect(sessionManager.worldScalingFactor).to.equal(1);
+        expect(flock._arPlacementFrames).to.equal(0);
+      });
+
+      it('stands the viewer back from the diorama and on the room floor', function () {
+        addBox('arPlaceBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera });
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        // 80 cm across, so 1.2 m back: 30 world units at this scale, with the scene's base
+        // on the floor the viewer is standing on.
+        expect(camera.position.z).to.be.closeTo(-30, 1e-4);
+        expect(camera.position.x).to.be.closeTo(0, 1e-4);
+        expect(camera.position.y).to.be.closeTo(0 + 1.5 * 25, 1e-4);
+        expect(flock._arPlacementFrames).to.equal(0);
+      });
+
+      it('places the diorama wherever the viewer is facing', function () {
+        addBox('arFacingBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ yaw: Math.PI / 2, height: 1.5, scale: 25 });
+        makeSession({ camera });
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        expect(camera.position.x).to.be.closeTo(-30, 1e-4);
+        expect(camera.position.z).to.be.closeTo(0, 1e-4);
+      });
+
+      it('stands the viewer in the scene at life size', function () {
+        const camera = makeARCamera({ height: 1.5 });
+        makeSession({ camera });
+        flock._xrNonXRCameraPosition = new flock.BABYLON.Vector3(4, 9, -6);
+
+        flock.setARSceneSize(0);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        expect(camera.position.x).to.be.closeTo(4, 1e-6);
+        expect(camera.position.z).to.be.closeTo(-6, 1e-6);
+        expect(camera.position.y).to.be.closeTo(1.5, 1e-6);
+      });
+
+      it('hides the flat ground under a diorama and gives it back on exit', function () {
+        const ground = addBox('arHideGround', { size: 100 });
+        ground.metadata = { heightMapImage: 'NONE' };
+        const material = ground.material;
+        flock.ground = ground;
+        addBox('arHideBox', { size: 20, position: [0, 10, 0] });
+        makeSession();
+        flock.shadowGenerator = null;
+
+        flock.setARSceneSize(80);
+        expect(ground.isVisible).to.be.false;
+
+        flock._resetARScene();
+        expect(ground.isVisible).to.be.true;
+        expect(ground.material).to.equal(material);
+      });
+
+      it('catches the diorama shadow on the room floor when shadows are on', function () {
+        const ground = addBox('arShadowGround', { size: 100 });
+        ground.metadata = { heightMapImage: 'NONE' };
+        const material = ground.material;
+        flock.ground = ground;
+        addBox('arShadowBox', { size: 20, position: [0, 10, 0] });
+        makeSession();
+        flock.shadowGenerator = { name: 'generator' };
+
+        flock.setARSceneSize(80);
+
+        expect(ground.isVisible).to.be.true;
+        expect(ground.material).to.be.instanceOf(flock.ShadowOnlyMaterial);
+        expect(ground.receiveShadows).to.be.true;
+
+        flock._resetARScene();
+        expect(ground.material).to.equal(material);
+      });
+
+      it('leaves a heightmap ground alone in a diorama', function () {
+        const ground = addBox('arKeepGround', { size: 20 });
+        ground.metadata = { heightMapImage: 'valley.png' };
+        flock.ground = ground;
+        makeSession();
+
+        flock.setARSceneSize(80);
+
+        expect(ground.isVisible).to.be.true;
+        expect(flock._arGroundState).to.equal(null);
+      });
+
+      it('fits the handheld panel to the view and moves it out with the scale', function () {
+        const projection = flock.BABYLON.Matrix.PerspectiveFovLH(Math.PI / 3, 0.5, 0.1, 1000);
+        const rig = { getProjectionMatrix: () => projection };
+        const frustum = flock._xrHUDFrustum(rig, 2);
+
+        const expectedHeight = 2 * 2 * Math.tan(Math.PI / 6);
+        expect(frustum.height).to.be.closeTo(expectedHeight, 1e-6);
+        expect(frustum.width / frustum.height).to.be.closeTo(0.5, 1e-6);
+
+        const sessionManager = makeSession();
+        expect(flock._xrHUDDistance()).to.be.closeTo(0.5, 1e-6);
+        sessionManager.worldScalingFactor = 25;
+        expect(flock._xrHUDDistance()).to.be.closeTo(12.5, 1e-6);
+      });
+
+      it('rebuilds the panel texture only when the view changes shape', function () {
+        const original = { plane: flock.uiPlane, rebuild: flock._rebuildXRHUDTexture };
+        const rebuilds = [];
+        let projection = flock.BABYLON.Matrix.PerspectiveFovLH(Math.PI / 3, 0.5, 0.1, 1000);
+        const rig = { getProjectionMatrix: () => projection };
+        try {
+          flock.uiPlane = { scaling: new flock.BABYLON.Vector3(1, 1, 1) };
+          flock._rebuildXRHUDTexture = (width, height) => rebuilds.push({ width, height });
+          flock._xrHUDViewAspect = null;
+
+          flock._fitXRHUDToView(rig, 2);
+          const fitted = flock.uiPlane.scaling.x / flock.uiPlane.scaling.y;
+          expect(fitted).to.be.closeTo(0.5 * (0.9 / 1.6), 1e-6);
+          expect(rebuilds).to.have.lengthOf(1);
+          expect(rebuilds[0].width / rebuilds[0].height).to.be.closeTo(0.5, 0.01);
+
+          flock._fitXRHUDToView(rig, 2);
+          expect(rebuilds).to.have.lengthOf(1);
+
+          projection = flock.BABYLON.Matrix.PerspectiveFovLH(Math.PI / 3, 2, 0.1, 1000);
+          flock._fitXRHUDToView(rig, 2);
+          expect(rebuilds).to.have.lengthOf(2);
+        } finally {
+          flock.uiPlane = original.plane;
+          flock._rebuildXRHUDTexture = original.rebuild;
+        }
+      });
+    });
   });
 }

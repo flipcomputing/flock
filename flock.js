@@ -8,7 +8,7 @@ import HavokPhysics from '@babylonjs/havok';
 import * as BABYLON from '@babylonjs/core';
 import * as BABYLON_GUI from '@babylonjs/gui/2D/index.js';
 import * as BABYLON_LOADER from '@babylonjs/loaders';
-import { GradientMaterial } from '@babylonjs/materials';
+import { GradientMaterial, ShadowOnlyMaterial } from '@babylonjs/materials';
 import * as BABYLON_EXPORT from '@babylonjs/serializers';
 
 // Point Babylon’s Draco loader at local folder for offline use
@@ -121,6 +121,7 @@ export const flock = {
   BABYLON: BABYLON,
   BABYLON_LOADER: BABYLON_LOADER,
   GradientMaterial: GradientMaterial,
+  ShadowOnlyMaterial: ShadowOnlyMaterial,
   scene: null,
   highlighter: null,
   glowLayer: null,
@@ -1111,6 +1112,7 @@ export const flock = {
       setXRViewMode: this.setXRViewMode?.bind(this),
       setXRCameraMotionMode: this.setXRCameraMotionMode?.bind(this),
       setXRUIPlacement: this.setXRUIPlacement?.bind(this),
+      setARSceneSize: this.setARSceneSize?.bind(this),
       addTeleportTarget: this.addTeleportTarget?.bind(this),
       removeTeleportTarget: this.removeTeleportTarget?.bind(this),
       applyForce: this.applyForce?.bind(this),
@@ -1242,6 +1244,7 @@ export const flock = {
       'setXRViewMode',
       'setXRCameraMotionMode',
       'setXRUIPlacement',
+      'setARSceneSize',
       'addTeleportTarget',
       'removeTeleportTarget',
       'lightIntensity',

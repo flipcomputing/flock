@@ -203,6 +203,28 @@ export function defineXRBlocks() {
     },
   };
 
+  Blockly.Blocks['set_ar_scene_size'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_ar_scene_size',
+        message0: translate('set_ar_scene_size'),
+        args0: [
+          {
+            type: 'input_value',
+            name: 'SIZE',
+            check: 'Number',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('set_ar_scene_size'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
   Blockly.Blocks['set_xr_ui_placement'] = {
     init: function () {
       this.jsonInit({

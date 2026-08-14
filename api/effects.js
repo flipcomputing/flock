@@ -45,6 +45,8 @@ export const flockEffects = {
       flock.shadowCasters.forEach((m) => {
         if (!m.isDisposed()) flock.shadowGenerator.addShadowCaster(m);
       });
+      // A scaled-down AR scene catches its shadow on the room's floor instead.
+      flock._syncARGround?.();
     } else {
       // Turn the directional light back off so the scene returns to its
       // flat hemispheric look (no shading, no cast shadows). Marked casters
@@ -54,6 +56,7 @@ export const flockEffects = {
         flock.shadowGenerator.dispose();
         flock.shadowGenerator = null;
       }
+      flock._syncARGround?.();
     }
   },
   setShadow(meshName, { cast = true } = {}) {
