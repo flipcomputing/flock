@@ -2016,6 +2016,7 @@ export function runXRTests(flock) {
           explicitTargetMeshes: flock._teleportExplicitTargetMeshes,
           floorMeshes: flock._teleportFloorMeshes,
           blockerMeshes: flock._teleportBlockerMeshes,
+          followTarget: flock._xrFollowTarget,
         };
         calls = { addFloor: [], removeFloor: [], addBlocker: [], removeBlocker: [] };
         const teleportation = {
@@ -2057,6 +2058,7 @@ export function runXRTests(flock) {
         flock._teleportExplicitTargetMeshes = originalTeleportState.explicitTargetMeshes;
         flock._teleportFloorMeshes = originalTeleportState.floorMeshes;
         flock._teleportBlockerMeshes = originalTeleportState.blockerMeshes;
+        flock._xrFollowTarget = originalTeleportState.followTarget;
       });
 
       it('registers ground by default', function () {
@@ -2129,6 +2131,48 @@ export function runXRTests(flock) {
         flock.scene = { meshes: [object, helper] };
         flock.addTeleportTarget('all');
         expect(calls.addFloor).to.deep.equal([object]);
+      });
+
+      it('never targets or blocks the player mesh', function () {
+        const player = { name: 'player', metadata: { blockKey: 'block' }, physics: {} };
+        const playerPart = { name: 'player-arm', metadata: { blockKey: 'block' } };
+        playerPart.parent = player;
+        const object = { name: 'box', metadata: { blockKey: 'block' } };
+        flock._xrFollowTarget = player;
+        flock.scene = { meshes: [player, playerPart, object] };
+
+        flock.addTeleportTarget('all');
+
+        expect(calls.addFloor).to.deep.equal([object]);
+        expect(calls.addBlocker).to.be.empty;
+      });
+
+      it('never targets meshes attached to the player', function () {
+        const player = { name: 'player', metadata: { blockKey: 'block' } };
+        const sword = {
+          name: 'sword',
+          metadata: { blockKey: 'block', _attachedTargetName: 'player' },
+        };
+        flock._xrFollowTarget = player;
+        flock.scene = { meshes: [player, sword] };
+
+        flock.addTeleportTarget('all');
+
+        expect(calls.addFloor).to.be.empty;
+      });
+
+      it('re-registers meshes when the player mesh changes', function () {
+        const player = { name: 'player', metadata: { blockKey: 'block' } };
+        const other = { name: 'other', metadata: { blockKey: 'block' } };
+        flock._xrFollowTarget = player;
+        flock.scene = { meshes: [player, other] };
+        flock.addTeleportTarget('all');
+        expect(calls.addFloor).to.deep.equal([other]);
+
+        flock._setXRFollowTarget(other);
+
+        expect(calls.addFloor).to.deep.equal([other, player]);
+        expect(calls.removeFloor).to.deep.equal([other]);
       });
 
       it('applies an explicit target to its descendants only', function () {

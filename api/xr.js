@@ -330,6 +330,17 @@ export const flockXR = {
     }
     return false;
   },
+  // The teleport ray starts at the player, so their own body and anything they carry
+  // must be neither a landing spot nor a blocker.
+  _isXRPlayerPart(mesh) {
+    const target = flock._xrFollowTarget;
+    if (!target || !mesh) return false;
+    for (let current = mesh; current; current = current.parent) {
+      if (current === target) return true;
+      if (current.metadata?._attachedTargetName === target.name) return true;
+    }
+    return false;
+  },
   _hasTeleportBlockingPhysics(mesh) {
     for (let current = mesh; current; current = current.parent) {
       if (current.physics) return true;
@@ -354,7 +365,8 @@ export const flockXR = {
     const teleportation = flock.xrHelper?.teleportation;
     if (!teleportation || !mesh) return;
     flock._ensureTeleportationState();
-    const isTarget = flock._isTeleportTarget(mesh);
+    const isPlayerPart = flock._isXRPlayerPart(mesh);
+    const isTarget = !isPlayerPart && flock._isTeleportTarget(mesh);
     const isFloor = flock._teleportFloorMeshes.has(mesh);
     const isBlocker = flock._teleportBlockerMeshes.has(mesh);
     if (isTarget && !isFloor) {
@@ -364,7 +376,7 @@ export const flockXR = {
       teleportation.removeFloorMesh(mesh);
       flock._teleportFloorMeshes.delete(mesh);
     }
-    const shouldBlock = flock._hasTeleportBlockingPhysics(mesh) && !isTarget;
+    const shouldBlock = !isPlayerPart && flock._hasTeleportBlockingPhysics(mesh) && !isTarget;
     if (shouldBlock && !isBlocker) {
       teleportation.addBlockerMesh(mesh);
       flock._teleportBlockerMeshes.add(mesh);
@@ -648,6 +660,7 @@ export const flockXR = {
     flock._resetXRViewTracking();
     flock._applyXRViewVisibility();
     flock._applyXRInputState();
+    flock._applyTeleportationState();
   },
   _restoreXREmbodiedVisibility() {
     for (const [mesh, isVisible] of flock._xrEmbodiedVisibility) {

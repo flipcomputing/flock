@@ -876,6 +876,7 @@ export const flockMesh = {
                 offset: { x: xOffset, y: yOffset, z: zOffset },
               });
               flock._applyXRViewVisibility?.();
+              flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
             }
           }
           resolve();
@@ -948,6 +949,7 @@ export const flockMesh = {
 
               meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
               flock._applyXRViewVisibility?.();
+              flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
             }
           }
           resolve();
@@ -993,6 +995,7 @@ export const flockMesh = {
           delete mesh.metadata._attachedOffset;
           delete mesh.metadata._preAttachWorldRotation;
         }
+        flock._syncTeleportMeshHierarchy?.(mesh);
 
         mesh.rotationQuaternion = restoreRotation.clone();
         mesh.scaling = scale;
