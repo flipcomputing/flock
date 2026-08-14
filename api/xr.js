@@ -511,10 +511,13 @@ export const flockXR = {
       return;
     }
     // Teleport steers with the thumbstick; otherwise the project's own movement gets it.
-    const projectControls = hasFollowTarget
-      ? flock._xrViewMode === 'watch' ||
-        (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth')
-      : flock._xrCameraMotionMode !== 'teleport';
+    // Canvas controls off stands every built-in camera motion down, teleport included.
+    const projectControls =
+      flock._canvasControlsEnabled === false ||
+      (hasFollowTarget
+        ? flock._xrViewMode === 'watch' ||
+          (flock._xrViewMode === 'embody' && flock._xrCameraMotionMode === 'smooth')
+        : flock._xrCameraMotionMode !== 'teleport');
     const inputMode = projectControls ? 'project' : 'disabled';
     flock._xrSource?.setInputMode(inputMode);
   },

@@ -621,6 +621,27 @@ export function runXRTests(flock) {
         expect(modes).to.deep.equal(['project', 'disabled']);
       });
 
+      it('gives the thumbstick to the project when canvas controls are off', function () {
+        const originalSource = flock._xrSource;
+        const modes = [];
+        flock._xrSource = { setInputMode: (mode) => modes.push(mode) };
+        try {
+          flock._xrViewMode = 'embody';
+          flock._xrCameraMotionMode = 'teleport';
+          flock._xrFollowTarget = null;
+          flock._canvasControlsEnabled = false;
+          flock._applyXRInputState();
+          flock._xrFollowTarget = { position: new flock.BABYLON.Vector3(0, 0, 0) };
+          flock._applyXRInputState();
+          flock._canvasControlsEnabled = true;
+          flock._applyXRInputState();
+        } finally {
+          flock._xrSource = originalSource;
+          flock._canvasControlsEnabled = undefined;
+        }
+        expect(modes).to.deep.equal(['project', 'project', 'disabled']);
+      });
+
       for (const { viewMode, motionMode, initialMode } of [
         { viewMode: 'watch', motionMode: 'comfort', initialMode: 'project' },
         { viewMode: 'embody', motionMode: 'smooth', initialMode: 'fly' },
