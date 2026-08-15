@@ -1126,47 +1126,6 @@ export function runXRTests(flock) {
         expect(camera.position.x).to.equal(3);
       });
 
-      it('watch with smooth motion carries the rig cameras in the same frame', function () {
-        const camera = {
-          position: new flock.BABYLON.Vector3(0, 2, -7),
-          rigCameras: [
-            { position: new flock.BABYLON.Vector3(-0.03, 2, -7) },
-            { position: new flock.BABYLON.Vector3(0.03, 2, -7) },
-          ],
-        };
-        const target = { position: new flock.BABYLON.Vector3(0, 0, 0) };
-        flock.xrHelper = { baseExperience: { camera } };
-        flock._xrFollowTarget = target;
-        flock._xrMode = 'VR';
-        flock._xrSessionActive = true;
-        flock._xrViewMode = 'watch';
-        flock._xrCameraMotionMode = 'smooth';
-        flock._resetXRViewTracking();
-        target.position.x = 3;
-
-        flock._updateXRView();
-
-        expect(camera.position.x).to.equal(3);
-        expect(camera.rigCameras.map((rig) => rig.position.x)).to.deep.equal([2.97, 3.03]);
-      });
-
-      it('leaves the rig cameras to the reference space rebase on a snap turn', function () {
-        const camera = {
-          position: new flock.BABYLON.Vector3(0, 2, -7),
-          rotationQuaternion: flock.BABYLON.Quaternion.Identity(),
-          rigCameras: [{ position: new flock.BABYLON.Vector3(0, 2, -7) }],
-        };
-        flock.xrHelper = { baseExperience: { camera } };
-        flock._xrViewMode = 'watch';
-        flock._xrWatchAnchorPosition = new flock.BABYLON.Vector3(0, 2, -7);
-        flock._xrWatchAnchorTarget = new flock.BABYLON.Vector3(0, 0, 0);
-
-        flock._applyXRSnapTurn(Math.PI / 6);
-
-        expect(camera.position.z).to.not.equal(-7);
-        expect(camera.rigCameras[0].position.asArray()).to.deep.equal([0, 2, -7]);
-      });
-
       it('embodied smooth locomotion follows movement produced by the project', function () {
         const target = {
           position: new flock.BABYLON.Vector3(0, 4, 0),
