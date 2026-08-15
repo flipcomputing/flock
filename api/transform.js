@@ -146,7 +146,11 @@ export const flockTransform = {
         }
 
         if (mesh.physics) {
-          if (mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+          const mt = mesh.physics.getMotionType();
+          if (
+            mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+            mt !== flock.BABYLON.PhysicsMotionType.ANIMATED
+          ) {
             mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
           }
         }
@@ -545,8 +549,9 @@ export const flockTransform = {
 
     // Camera special case: Babylon camera API already handles this well.
     if (meshName === '__active_camera__' && typeof mesh1.setTarget === 'function') {
-      const camPos = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
-      const tgtPos = (mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition).clone();
+      // Cameras expose globalPosition; meshes expose absolutePosition.
+      const camPos = mesh1.globalPosition ?? mesh1.position;
+      const tgtPos = (mesh2.absolutePosition ?? mesh2.globalPosition ?? mesh2.position).clone();
       if (!useY) tgtPos.y = mesh1.target?.y ?? camPos.y;
       mesh1.setTarget(tgtPos);
       await new Promise((resolve) => {
@@ -570,6 +575,8 @@ export const flockTransform = {
 
     // If the body isn't fully dynamic, drive it as ANIMATED (kinematic-like) so we can set
     // orientation. Re-setting it when it already holds is a Havok call per frame in a loop.
+    // The promotion is permanent: unlike moveTo/moveByVector this never restores, because
+    // lookAt is usually called every frame and restoring would reinstate that churn.
     if (mesh1.physics) {
       const mt = mesh1.physics.getMotionType();
       if (
@@ -580,10 +587,8 @@ export const flockTransform = {
       }
     }
 
-    // Cached world positions: forcing a recompute here rebuilds the target's hierarchy
-    // mid-frame, which splits the eyes in XR. Creation and positioning already compute it.
-    const p1 = mesh1.absolutePosition ?? mesh1.getAbsolutePosition?.();
-    const p2 = mesh2.absolutePosition ?? mesh2.getAbsolutePosition?.();
+    const p1 = mesh1.absolutePosition;
+    const p2 = mesh2.absolutePosition;
     const dir = p2.subtract(p1);
     if (!useY) dir.y = 0;
     if (dir.lengthSquared() === 0) return; // already at target horizontally
