@@ -568,10 +568,14 @@ export const flockTransform = {
       return;
     }
 
-    // If the body isn't fully dynamic, drive it as ANIMATED (kinematic-like) so we can set orientation.
+    // If the body isn't fully dynamic, drive it as ANIMATED (kinematic-like) so we can set
+    // orientation. Re-setting it when it already holds is a Havok call per frame in a loop.
     if (mesh1.physics) {
       const mt = mesh1.physics.getMotionType();
-      if (mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
+      if (
+        mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+        mt !== flock.BABYLON.PhysicsMotionType.ANIMATED
+      ) {
         mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
       }
     }
@@ -591,24 +595,19 @@ export const flockTransform = {
 
     await this.rotateTo(meshName, flock.quatToEulerDegrees(q));
 
+    // The kinematic target is already set, so nothing needs waiting for. Resuming on
+    // onAfterPhysicsObservable instead re-armed a calling loop mid-physics-phase, which
+    // dragged the XR watch camera's follow out of step with the frame.
+    if (mesh1.physics) return;
+
     // Wait one tick so transforms "stick" before returning.
-    if (mesh1.physics) {
-      await new Promise((resolve) => {
-        const cb = () => {
-          scene.onAfterPhysicsObservable.removeCallback(cb);
-          resolve();
-        };
-        scene.onAfterPhysicsObservable.add(cb);
-      });
-    } else {
-      await new Promise((resolve) => {
-        const cb = () => {
-          scene.onAfterRenderObservable.removeCallback(cb);
-          resolve();
-        };
-        scene.onAfterRenderObservable.add(cb);
-      });
-    }
+    await new Promise((resolve) => {
+      const cb = () => {
+        scene.onAfterRenderObservable.removeCallback(cb);
+        resolve();
+      };
+      scene.onAfterRenderObservable.add(cb);
+    });
   },
   scale(
     meshName,
