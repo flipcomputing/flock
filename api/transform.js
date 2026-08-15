@@ -522,7 +522,6 @@ export const flockTransform = {
           mesh.physics.disablePreStep = false;
           mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
         }
-        mesh.computeWorldMatrix(true);
         resolve();
       });
     });
@@ -609,7 +608,6 @@ export const flockTransform = {
         scene.onAfterRenderObservable.add(cb);
       });
     }
-    mesh1.computeWorldMatrix(true);
   },
   scale(
     meshName,

@@ -633,6 +633,13 @@ export const flockXR = {
     flock._xrWatchAnchorPosition = cameraPosition.clone();
     flock._xrWatchAnchorTarget = targetPosition.clone?.() ?? { ...targetPosition };
   },
+  // The eyes render from the rig cameras, so a move written mid-frame must reach them too.
+  _translateXRCamera(delta) {
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.position) return;
+    xrCamera.position.addInPlace(delta);
+    for (const rig of xrCamera.rigCameras ?? []) rig.position?.addInPlace(delta);
+  },
   // Rotates the play space, so the headset keeps whatever offset the wearer is looking at.
   _rotateXRCameraYaw(radians) {
     const xrCamera = flock.xrHelper?.baseExperience?.camera;
@@ -660,7 +667,9 @@ export const flockXR = {
       pivot.z + offsetZ * cos - offsetX * sin
     );
 
-    xrCamera.position.addInPlace(desired.subtract(anchor));
+    const shift = desired.subtract(anchor);
+    if (angle) xrCamera.position.addInPlace(shift);
+    else flock._translateXRCamera(shift);
     flock._rotateXRCameraYaw(angle);
     flock._xrWatchAnchorPosition = desired;
     flock._xrWatchAnchorTarget = pivot.clone?.() ?? { ...pivot };
@@ -870,7 +879,7 @@ export const flockXR = {
       if (length > 1) flock._xrMoveDelta.scaleInPlace(1 / length);
       const seconds = Math.min(0.05, (flock.engine?.getDeltaTime?.() ?? 16) / 1000);
       flock._xrMoveDelta.scaleInPlace(FLY_SPEED * seconds);
-      xrCamera.position.addInPlace(flock._xrMoveDelta);
+      flock._translateXRCamera(flock._xrMoveDelta);
       return;
     }
 
@@ -898,7 +907,7 @@ export const flockXR = {
       flock._xrFollowLastPosition.copyFrom(position);
       if (flock._xrCameraMotionMode === 'smooth') {
         if (!isWatch || !flock._placeXRWatchCamera(position, 0)) {
-          xrCamera.position.addInPlace(delta);
+          flock._translateXRCamera(delta);
         }
         flock._xrFollowSettledPosition.copyFrom(position);
       }
@@ -913,7 +922,7 @@ export const flockXR = {
     }
     const delta = position.subtract(flock._xrFollowSettledPosition);
     if (delta.lengthSquared() <= 0.000001) return;
-    xrCamera.position.addInPlace(delta);
+    flock._translateXRCamera(delta);
     flock._xrFollowSettledPosition.copyFrom(position);
   },
   async _immersiveVRSupported() {
