@@ -93,7 +93,7 @@ export class JoystickSource {
   pause() {
     if (this.#paused) return;
     this.#paused = true;
-    this.#onScreenSource.pause();
+    this.#onScreenSource.pause('joystick');
     this.#inputManager._setAxis('MOVE_X', 0);
     this.#inputManager._setAxis('MOVE_Y', 0);
   }
@@ -105,7 +105,7 @@ export class JoystickSource {
     this.#heldBackward = false;
     this.#heldLeft = false;
     this.#heldRight = false;
-    this.#onScreenSource.resume();
+    this.#onScreenSource.resume('joystick');
   }
 
   // Raw stick state for engine reads; zero while paused or in the dead zone.

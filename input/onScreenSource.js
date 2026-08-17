@@ -31,9 +31,13 @@ export class OnScreenSource {
   #inputManager;
   #pressedKeys = new Map(); // normalized key -> press count
   #target;
-  #paused = false;
+  #pausedBy = new Set();
   #scene = null;
   #repeatObserver = null;
+
+  get #paused() {
+    return this.#pausedBy.size > 0;
+  }
 
   constructor(inputManager, { target, scene } = {}) {
     this.#inputManager = inputManager;
@@ -62,19 +66,22 @@ export class OnScreenSource {
     this.#repeatObserver = null;
   }
 
-  // Suspend InputManager updates while still dispatching DOM events (fly camera mode).
-  pause() {
-    if (this.#paused) return;
-    this.#paused = true;
+  // Suspend InputManager updates while still dispatching DOM events. Owners
+  // (fly camera, mobile gizmo HUD) pause independently, so input only resumes
+  // once every owner has released.
+  pause(owner = 'default') {
+    const wasPaused = this.#paused;
+    this.#pausedBy.add(owner);
+    if (wasPaused) return;
     for (const [key, count] of this.#pressedKeys) {
       for (let i = 0; i < count; i++) this.#inputManager._setKey(key, false);
     }
   }
 
-  // Resume InputManager updates; releases any keys held during the paused period.
-  resume() {
-    if (!this.#paused) return;
-    this.#paused = false;
+  // Releases any keys held during the paused period.
+  resume(owner = 'default') {
+    if (!this.#pausedBy.delete(owner)) return;
+    if (this.#paused) return;
     this.releaseAll();
   }
 

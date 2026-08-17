@@ -253,8 +253,7 @@ function registerBindings() {
     'Escape',
     noMod(() => {
       try {
-        const cameraButton = document.getElementById('cameraButton');
-        if (cameraButton?.classList.contains('active')) handleCameraGizmo();
+        if (cameraMode === 'fly') handleCameraGizmo();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
@@ -782,6 +781,9 @@ export function viewMeshWithCamera(block) {
 function attachOrbitView(mesh) {
   const BABYLON = flock.BABYLON;
   const scene = flock.scene;
+  // Orbit owns the camera, so drop out of fly mode before capturing the
+  // camera to orbit from — otherwise it would orbit from the fly camera.
+  if (cameraMode === 'fly') handleCameraGizmo();
   const freeCamera = scene.activeCamera;
   if (!freeCamera) return;
 
@@ -972,6 +974,9 @@ export function exitGizmoState() {
 
   // Remove active class from all buttons
   document.querySelectorAll('.gizmo-button').forEach((btn) => setGizmoButtonActive(btn, false));
+  // The fly camera is a mode, not a tool: it stays on alongside whichever tool
+  // is picked next, so its button keeps reporting that.
+  setGizmoButtonActive(document.getElementById('cameraButton'), cameraMode === 'fly');
   disableGizmos();
   document.body.style.cursor = 'default';
 }
@@ -2462,7 +2467,7 @@ function handleCameraGizmo() {
 
   if (cameraMode === 'play') {
     cameraMode = 'fly';
-    flock._onScreenSource?.pause();
+    flock._onScreenSource?.pause('flyCamera');
     flock._gamepadSource?.setFlyMode(true);
     flock._keyboardSource?.setFlyMode(true);
     showStatus(
@@ -2472,7 +2477,7 @@ function handleCameraGizmo() {
     setGizmoButtonActive(cameraButton, true);
   } else {
     cameraMode = 'play';
-    flock._onScreenSource?.resume();
+    flock._onScreenSource?.resume('flyCamera');
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
     setGizmoButtonActive(cameraButton, false);
@@ -2790,7 +2795,7 @@ export function disposeGizmoManager() {
   exitGizmoState(); // Clear up gizmo state and event listeners
   if (cameraMode === 'fly') {
     cameraMode = 'play';
-    flock._onScreenSource?.resume();
+    flock._onScreenSource?.resume('flyCamera');
     flock._gamepadSource?.setFlyMode(false);
     flock._keyboardSource?.setFlyMode(false);
     setGizmoButtonActive(document.getElementById('cameraButton'), false);

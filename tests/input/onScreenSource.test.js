@@ -323,5 +323,39 @@ export function runOnScreenSourceTests() {
         expect(manager.isKeyDown('w')).to.be.true;
       });
     });
+
+    describe('pause / resume with independent owners', function () {
+      it('one owner resuming does not lift another owner pause', function () {
+        source.pause('flyCamera');
+        source.pause('joystick');
+        source.resume('joystick');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('resumes once every owner has released, whatever the order', function () {
+        source.pause('joystick');
+        source.pause('flyCamera');
+        source.resume('joystick');
+        source.resume('flyCamera');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
+
+      it('resume() for an owner that never paused is a no-op', function () {
+        source.pause('flyCamera');
+        source.resume('joystick');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('repeated pause by the same owner needs only one resume', function () {
+        source.pause('flyCamera');
+        source.pause('flyCamera');
+        source.resume('flyCamera');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
+    });
   });
 }
