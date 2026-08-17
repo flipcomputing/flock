@@ -1180,11 +1180,14 @@ export default {
     'Flock XR benötigt auf diesem Gerät iOS 16.4 oder neuer. Aktualisiere dein iPhone oder iPad, wenn möglich.', // ai
   error_inspector_offline:
     'Der Inspektor benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
+  error_xr_models_offline:
+    'Stelle eine Internetverbindung her, um die Controller- und Handmodelle zu laden (optional). XR funktioniert auch ohne sie.', // ai
   xr_mode_message: 'XR-Modus!',
   fly_camera_instructions: 'ℹ️ Schau dich um mit Pfeiltasten und Bild auf/ab oder Fn + ↑ ↓',
   fly_camera_instructions_touch:
     'ℹ️ Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
-  select_mesh_prompt: 'ℹ️ Wähle ein Objekt aus, oder nutze die Pfeiltasten, um den Cursor zu bewegen.',
+  select_mesh_prompt:
+    'ℹ️ Wähle ein Objekt aus, oder nutze die Pfeiltasten, um den Cursor zu bewegen.',
   select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',
   select_mesh_duplicate_prompt: 'ℹ️ Wähle ein Objekt zum Duplizieren aus.',
   place_duplicate_prompt: 'ℹ️ Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
@@ -1342,7 +1345,8 @@ export default {
   shortcut_toggle_hud: 'Bildschirmsteuerung ein-/ausblenden', // machine
   hud_hidden: 'Bildschirmsteuerung ausgeblendet', // machine
   hud_shown: 'Bildschirmsteuerung eingeblendet', // machine
-  gizmo_controls_hint: 'ℹ️ Klicke auf die Zahnrad-Schaltfläche, um die Steuerung ein-/auszublenden.', // machine
+  gizmo_controls_hint:
+    'ℹ️ Klicke auf die Zahnrad-Schaltfläche, um die Steuerung ein-/auszublenden.', // machine
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 

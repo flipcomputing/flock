@@ -1261,6 +1261,8 @@ export default {
     'Flock XR necesita iOS 16.4 o posterior en este dispositivo. Actualiza tu iPhone o iPad si es posible.', // ai
   error_inspector_offline:
     'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
+  error_xr_models_offline:
+    'Conéctate a internet para cargar los modelos de los mandos y las manos (opcionales). La XR funciona igual sin ellos.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human

@@ -158,6 +158,37 @@ export default {
             },
           },
           {
+            // The profile index must be able to learn about hardware released after this build.
+            urlPattern: ({ url }) =>
+              url.origin === 'https://immersive-web.github.io' &&
+              url.pathname.endsWith('/profilesList.json'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'xr-profiles-index',
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // XR input models, cached on first use (see dev-docs/INPUT.md). Babylon fetches
+            // them by XHR, whose empty `destination` the rule below cannot match; status 0
+            // keeps an opaque response cacheable.
+            urlPattern: ({ url }) =>
+              (url.origin === 'https://immersive-web.github.io' &&
+                url.pathname.startsWith('/webxr-input-profiles/')) ||
+              (url.origin === 'https://assets.babylonjs.com' &&
+                url.pathname.startsWith('/core/HandMeshes/')) ||
+              url.origin === 'https://controllers.babylonjs.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'xr-input-models',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // Static assets by destination
             urlPattern: ({ request }) =>
               ['script', 'style', 'image', 'font', 'audio', 'video', 'worker'].includes(

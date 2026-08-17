@@ -1,5 +1,12 @@
 import { expect } from 'chai';
-import { showBanner, dismissBanner, handleError, isBenignAbort } from '../ui/notifications.js';
+import {
+  showBanner,
+  dismissBanner,
+  handleError,
+  isBenignAbort,
+  isXRAssetFetch,
+  reportXRModelUnavailable,
+} from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
 
 export function runNotificationTests() {
@@ -81,6 +88,48 @@ export function runNotificationTests() {
 
     it('does not treat ordinary errors as benign', function () {
       expect(isBenignAbort(new Error('something else broke'))).to.equal(false);
+    });
+
+    it('treats a failed XR model fetch as an asset fetch, however it is reported', function () {
+      expect(
+        isXRAssetFetch(
+          'Unable to load from https://immersive-web.github.io/webxr-input-profiles/packages/viewer/dist/profiles/meta-quest-touch-plus/left.glb'
+        )
+      ).to.equal(true);
+      expect(
+        isXRAssetFetch(
+          new Error(
+            'Unable to load from https://assets.babylonjs.com/core/HandMeshes/r_hand_rhs.glb'
+          )
+        )
+      ).to.equal(true);
+      expect(
+        isXRAssetFetch({
+          request: { responseURL: 'https://controllers.babylonjs.com/oculus/left.glb' },
+        })
+      ).to.equal(true);
+    });
+
+    it('does not treat an ordinary model load failure as an XR asset fetch', function () {
+      expect(isXRAssetFetch(new Error('Unable to load from /models/Block1.glb'))).to.equal(false);
+      expect(isXRAssetFetch(null)).to.equal(false);
+    });
+
+    it('reports a missing XR model as a dismissable notice, not a project crash', function () {
+      reportXRModelUnavailable(new Error('Unable to load from https://controllers.babylonjs.com/'));
+      const banner = document.querySelector('.flock-banner');
+      expect(banner).to.exist;
+      expect(banner.textContent).to.contain(translate('error_xr_models_offline'));
+      expect(banner.textContent).to.not.contain(translate('error_project_crash'));
+      // Reloading offline cannot fetch the model.
+      expect(banner.querySelector('.flock-banner__close')).to.exist;
+      expect(banner.querySelector('.flock-banner__action')).to.not.exist;
+    });
+
+    it('shows one XR model notice however many controllers fail', function () {
+      reportXRModelUnavailable(new Error('left'));
+      reportXRModelUnavailable(new Error('right'));
+      expect(document.querySelectorAll('.flock-banner').length).to.equal(1);
     });
 
     it('shows a translated unsupported-physics banner with no reload action', function () {

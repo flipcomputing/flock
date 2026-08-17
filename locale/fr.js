@@ -1191,6 +1191,8 @@ export default {
     'Flock XR nécessite iOS 16.4 ou une version ultérieure sur cet appareil. Mettez à jour votre iPhone ou iPad si possible.', // ai
   error_inspector_offline:
     'L’inspecteur nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
+  error_xr_models_offline:
+    'Connectez-vous à Internet pour charger les modèles des manettes et des mains (facultatifs). La XR fonctionne quand même sans eux.', // ai
   xr_mode_message: 'Mode XR !',
   fly_camera_instructions: 'ℹ️ Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
@@ -1350,7 +1352,8 @@ export default {
   shortcut_toggle_hud: "Afficher/masquer les commandes à l'écran", // machine
   hud_hidden: "Commandes à l'écran masquées", // machine
   hud_shown: "Commandes à l'écran affichées", // machine
-  gizmo_controls_hint: "ℹ️ Cliquez sur le bouton en forme d'engrenage pour afficher/masquer les commandes.", // machine
+  gizmo_controls_hint:
+    "ℹ️ Cliquez sur le bouton en forme d'engrenage pour afficher/masquer les commandes.", // machine
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 

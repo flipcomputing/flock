@@ -1174,6 +1174,8 @@ export default {
     'Flock XR behöver iOS 16.4 eller senare på den här enheten. Uppdatera din iPhone eller iPad om det går.', // ai
   error_inspector_offline:
     'Inspektören behöver en internetanslutning första gången du använder den. Anslut till internet och försök igen.', // ai
+  error_xr_models_offline:
+    'Anslut till internet för att ladda modellerna för handkontrollerna och händerna (valfria). XR fungerar ändå utan dem.', // ai
   xr_mode_message: 'XR-läge!',
   fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:

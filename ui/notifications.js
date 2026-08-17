@@ -159,6 +159,26 @@ export function isBenignAbort(error) {
   return message.includes('aborted') || message === 'abort';
 }
 
+const XR_MODEL_HOSTS = [
+  'immersive-web.github.io/webxr-input-profiles',
+  'assets.babylonjs.com/core/HandMeshes',
+  'controllers.babylonjs.com',
+];
+
+// Babylon rejects these into promises it never catches, so they arrive as unhandled
+// rejections the generic handler would otherwise blame on the project.
+export function isXRAssetFetch(error) {
+  if (!error) return false;
+  const text = `${error?.message ?? ''} ${error?.request?.responseURL ?? ''} ${error}`;
+  return XR_MODEL_HOSTS.some((host) => text.includes(host));
+}
+
+// XR input comes from the runtime, so a missing model costs only the picture.
+export function reportXRModelUnavailable(error) {
+  console.warn('[flock] XR input model unavailable:', error);
+  showBanner('xr-models-offline', { message: translate('error_xr_models_offline') });
+}
+
 let globalHandlersInstalled = false;
 
 export function installGlobalErrorHandlers() {
@@ -167,6 +187,10 @@ export function installGlobalErrorHandlers() {
 
   window.addEventListener('error', (event) => {
     if (isBenignAbort(event.error) || isReported(event.error)) return;
+    if (isXRAssetFetch(event.error) || isXRAssetFetch(event.message)) {
+      reportXRModelUnavailable(event.error ?? event.message);
+      return;
+    }
     handleError(event.error || new Error(event.message), {
       source: 'project-run',
     });
@@ -174,6 +198,10 @@ export function installGlobalErrorHandlers() {
 
   window.addEventListener('unhandledrejection', (event) => {
     if (isBenignAbort(event.reason) || isReported(event.reason)) return;
+    if (isXRAssetFetch(event.reason)) {
+      reportXRModelUnavailable(event.reason);
+      return;
+    }
     handleError(event.reason, { source: 'project-run' });
   });
 }
