@@ -37,7 +37,8 @@ const TOUCHPAD_BUTTON = 17;
 const DEAD_ZONE = 0.2;
 const SHIM_THRESHOLD = 0.5;
 
-const FLY_MODE_ALLOWED_KEYS = new Set(['PageUp', 'PageDown']);
+// Babylon's camera keyboard input drives height from these.
+const CAMERA_ONLY_KEYS = new Set(['PageUp', 'PageDown']);
 
 export class GamepadSource {
   #inputManager;
@@ -51,7 +52,13 @@ export class GamepadSource {
   #lastTouchpadPressed = false;
   #lastPointerClientX = 0;
   #lastPointerClientY = 0;
-  #flyMode = false;
+  #ownerObserver = null;
+
+  // An editor camera owns input: axes still feed the camera, but only the
+  // camera's own keys are delivered to InputManager.
+  get #editorOwned() {
+    return this.#inputManager.inputOwner === 'editor';
+  }
 
   constructor(
     inputManager,
@@ -66,6 +73,12 @@ export class GamepadSource {
   start() {
     if (this.#started) return;
     this.#started = true;
+    this.#ownerObserver = this.#inputManager.onInputOwnerChangedObservable.add((owner) => {
+      // Handing back: keys held meanwhile were never reported, so forget them
+      // and let the next poll register them cleanly.
+      if (owner === 'editor') this.releaseAllKeys();
+      else this.#heldKeys.clear();
+    });
 
     const rect = this.#canvas.getBoundingClientRect?.() ?? {
       left: 0,
@@ -88,6 +101,8 @@ export class GamepadSource {
   stop() {
     if (!this.#started) return;
     this.#started = false;
+    this.#inputManager.onInputOwnerChangedObservable.remove(this.#ownerObserver);
+    this.#ownerObserver = null;
     this.releaseAllKeys();
     for (const { name } of Object.values(AXES)) {
       this.#inputManager._setAxis(name, 0);
@@ -108,11 +123,6 @@ export class GamepadSource {
       this.#inputManager._setKey(key, false);
     }
     this.#heldKeys.clear();
-  }
-
-  setFlyMode(enabled) {
-    this.#flyMode = !!enabled;
-    if (this.#flyMode) this.releaseAllKeys();
   }
 
   #poll() {
@@ -151,27 +161,29 @@ export class GamepadSource {
       }
     }
 
-    // In fly-camera mode keep only camera-control keys; block everything else
-    // so player movement actions are not triggered.
-    if (this.#flyMode) {
+    // While the editor owns input only the camera's own keys survive, and they
+    // go to the camera's DOM path alone: InputManager must stay empty so the
+    // project can't observe them (keyPressed('ANY'), an action override…).
+    const reportToProject = !this.#editorOwned;
+    if (!reportToProject) {
       for (const k of wantedKeys) {
-        if (!FLY_MODE_ALLOWED_KEYS.has(k)) wantedKeys.delete(k);
+        if (!CAMERA_ONLY_KEYS.has(k)) wantedKeys.delete(k);
       }
     }
 
     // Diff against currently held keys.
     for (const key of wantedKeys) {
       if (!this.#heldKeys.has(key)) {
-        this.#inputManager._setKey(key, true);
+        if (reportToProject) this.#inputManager._setKey(key, true);
         this.#dispatchDOMKey('keydown', key);
-      } else {
+      } else if (reportToProject) {
         // Key was already held; emit repeat tick for continuous "while held" behavior.
         this.#inputManager._repeatKey(key);
       }
     }
     for (const key of this.#heldKeys) {
       if (!wantedKeys.has(key)) {
-        this.#inputManager._setKey(key, false);
+        if (reportToProject) this.#inputManager._setKey(key, false);
         this.#dispatchDOMKey('keyup', key);
       }
     }

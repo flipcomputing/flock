@@ -24,6 +24,7 @@ class SimpleObservable {
   }
 
   remove(observer) {
+    if (!observer) return;
     this.#listeners = this.#listeners.filter((l) => l !== observer._callback);
   }
 
@@ -31,6 +32,10 @@ class SimpleObservable {
     for (const l of this.#listeners) l(data);
   }
 }
+
+// Who input is being delivered to. 'editor' means an editor camera owns it:
+// sources keep feeding the camera but stop delivering to the running project.
+const INPUT_OWNERS = new Set(['project', 'editor']);
 
 // Rate limit for "while held" repeats: fire at most once per this interval (ms)
 const REPEAT_INTERVAL_MS = 100;
@@ -46,6 +51,7 @@ export class InputManager {
   #lastKeyRepeatTime = new Map(); // key → timestamp of last repeat
   #lastActionRepeatTime = new Map(); // action → timestamp of last repeat
   #keyPressTime = new Map(); // key → timestamp of down edge (for initial repeat delay)
+  #inputOwner = 'project';
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
@@ -56,6 +62,17 @@ export class InputManager {
   // observables, which stay edge-only (refcount/movement/a11y/interaction).
   onKeyRepeatObservable = new SimpleObservable();
   onActionRepeatObservable = new SimpleObservable();
+  onInputOwnerChangedObservable = new SimpleObservable();
+
+  get inputOwner() {
+    return this.#inputOwner;
+  }
+
+  setInputOwner(owner) {
+    if (!INPUT_OWNERS.has(owner) || owner === this.#inputOwner) return;
+    this.#inputOwner = owner;
+    this.onInputOwnerChangedObservable.notifyObservers(owner);
+  }
 
   _setKey(key, pressed) {
     const count = this.#keys.get(key) ?? 0;

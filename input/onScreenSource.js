@@ -35,14 +35,33 @@ export class OnScreenSource {
   #scene = null;
   #repeatObserver = null;
 
-  get #paused() {
-    return this.#pausedBy.size > 0;
+  // Two independent reasons to stop feeding InputManager: an editor camera
+  // owns input, or a caller paused this source (the mobile gizmo HUD, via the
+  // joystick). Either alone is enough, and neither clears the other.
+  get #suspended() {
+    return this.#inputManager.inputOwner === 'editor' || this.#pausedBy.size > 0;
+  }
+
+  #syncSuspension(wasSuspended) {
+    if (this.#suspended === wasSuspended) return;
+    if (this.#suspended) {
+      for (const [key, count] of this.#pressedKeys) {
+        for (let i = 0; i < count; i++) this.#inputManager._setKey(key, false);
+      }
+    } else {
+      this.releaseAll();
+    }
   }
 
   constructor(inputManager, { target, scene } = {}) {
     this.#inputManager = inputManager;
     this.#target = target ?? (typeof document !== 'undefined' ? document : null);
     this.#scene = scene;
+    // Subscribed for the life of the instance, not per start(): this source
+    // survives stop() and still accepts press()/release() afterwards.
+    this.#inputManager.onInputOwnerChangedObservable.add((owner) => {
+      this.#syncSuspension(owner === 'editor' ? this.#pausedBy.size > 0 : true);
+    });
   }
 
   start(scene = null) {
@@ -51,7 +70,7 @@ export class OnScreenSource {
     this.#scene = scene ?? this.#scene;
     if (!this.#scene) return;
     this.#repeatObserver = this.#scene.onBeforeRenderObservable.add(() => {
-      if (!this.#paused) {
+      if (!this.#suspended) {
         for (const key of this.#pressedKeys.keys()) {
           this.#inputManager._repeatKey(key);
         }
@@ -66,23 +85,19 @@ export class OnScreenSource {
     this.#repeatObserver = null;
   }
 
-  // Suspend InputManager updates while still dispatching DOM events. Owners
-  // (fly camera, mobile gizmo HUD) pause independently, so input only resumes
-  // once every owner has released.
+  // Suspends InputManager updates while still dispatching DOM events, so the
+  // camera keeps responding. Callers pause independently by name.
   pause(owner = 'default') {
-    const wasPaused = this.#paused;
+    const wasSuspended = this.#suspended;
     this.#pausedBy.add(owner);
-    if (wasPaused) return;
-    for (const [key, count] of this.#pressedKeys) {
-      for (let i = 0; i < count; i++) this.#inputManager._setKey(key, false);
-    }
+    this.#syncSuspension(wasSuspended);
   }
 
   // Releases any keys held during the paused period.
   resume(owner = 'default') {
+    const wasSuspended = this.#suspended;
     if (!this.#pausedBy.delete(owner)) return;
-    if (this.#paused) return;
-    this.releaseAll();
+    this.#syncSuspension(wasSuspended);
   }
 
   #dispatchKey(type, normalizedKey) {
@@ -104,7 +119,7 @@ export class OnScreenSource {
     const normalized = normaliseKey(key);
     const count = this.#pressedKeys.get(normalized) ?? 0;
     this.#pressedKeys.set(normalized, count + 1);
-    if (!this.#paused) this.#inputManager._setKey(normalized, true);
+    if (!this.#suspended) this.#inputManager._setKey(normalized, true);
     if (count === 0) {
       this.#dispatchKey('keydown', normalized);
     }
@@ -120,7 +135,7 @@ export class OnScreenSource {
       } else {
         this.#pressedKeys.set(normalized, next);
       }
-      if (!this.#paused) this.#inputManager._setKey(normalized, false);
+      if (!this.#suspended) this.#inputManager._setKey(normalized, false);
       if (next === 0) {
         this.#dispatchKey('keyup', normalized);
       }

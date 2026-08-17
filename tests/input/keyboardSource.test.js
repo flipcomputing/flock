@@ -245,60 +245,60 @@ export function runKeyboardSourceTests() {
       });
     });
 
-    describe('setFlyMode (camera gizmo fly mode)', function () {
-      it('setFlyMode(true) immediately releases held movement keys', function () {
+    describe('editor input owner (camera gizmo fly mode)', function () {
+      it('handover to the editor immediately releases held movement keys', function () {
         source.start();
         keydown(target, 'w');
         expect(manager.isKeyDown('w')).to.be.true;
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('keydown in fly mode does not reach InputManager', function () {
+      it('keydown while the editor owns input does not reach InputManager', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         keydown(target, 'w');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('keyup in fly mode does not reach InputManager', function () {
+      it('keyup while the editor owns input does not reach InputManager', function () {
         source.start();
         keydown(target, 'w');
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         keyup(target, 'w');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('setFlyMode(false) re-enables key reporting', function () {
+      it('handing input back re-enables key reporting', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         keydown(target, 'w');
         expect(manager.isKeyDown('w')).to.be.false;
-        source.setFlyMode(false);
+        manager.setInputOwner('project');
         keydown(target, 'w');
         expect(manager.isKeyDown('w')).to.be.true;
       });
 
-      it('keys held during fly mode do not stick after setFlyMode(false)', function () {
+      it('keys held during the handover do not stick afterwards', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         keydown(target, 'w');
-        source.setFlyMode(false);
+        manager.setInputOwner('project');
         // 'w' is still physically held but InputManager was never told — it should be absent
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('setFlyMode(true) is idempotent', function () {
+      it('repeating the handover is idempotent', function () {
         source.start();
         keydown(target, 'w');
-        source.setFlyMode(true);
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
+        manager.setInputOwner('editor');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('⌘ keyup in fly mode does not release the same key held by another source', function () {
+      it('⌘ keyup while the editor owns input does not release a key held by another source', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         manager._setKey('w', true); // simulate another source (e.g. gamepad)
         keydown(target, 'w'); // tracked physically, never reported to InputManager
         keyup(target, 'Meta');
@@ -309,7 +309,7 @@ export function runKeyboardSourceTests() {
 
       it('blur in fly mode does not release the same key held by another source', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         manager._setKey('w', true); // simulate another source (e.g. gamepad)
         keydown(target, 'w');
         target.dispatchEvent(new Event('blur'));
@@ -319,7 +319,7 @@ export function runKeyboardSourceTests() {
 
       it('isKeyDown() reflects physical key state even in fly mode (camera can still read it)', function () {
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         keydown(target, 'w');
         expect(manager.isKeyDown('w')).to.be.false; // user code sees nothing
         expect(source.isKeyDown('w')).to.be.true; // camera engine can still read it

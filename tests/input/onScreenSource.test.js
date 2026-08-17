@@ -2,6 +2,15 @@ import { expect } from 'chai';
 import { InputManager } from '../../input/inputManager.js';
 import { OnScreenSource } from '../../input/onScreenSource.js';
 
+function makeScene() {
+  return {
+    onBeforeRenderObservable: {
+      add: (cb) => cb,
+      remove: () => {},
+    },
+  };
+}
+
 export function runOnScreenSourceTests() {
   describe('OnScreenSource @onscreensource @input', function () {
     let manager, source;
@@ -324,35 +333,102 @@ export function runOnScreenSourceTests() {
       });
     });
 
-    describe('pause / resume with independent owners', function () {
-      it('one owner resuming does not lift another owner pause', function () {
-        source.pause('flyCamera');
+    describe('pause / resume with independent callers', function () {
+      it('one caller resuming does not lift another caller pause', function () {
         source.pause('joystick');
+        source.pause('hud');
         source.resume('joystick');
         source.press('w');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('resumes once every owner has released, whatever the order', function () {
+      it('resumes once every caller has released, whatever the order', function () {
+        source.pause('hud');
         source.pause('joystick');
-        source.pause('flyCamera');
+        source.resume('hud');
         source.resume('joystick');
-        source.resume('flyCamera');
         source.press('w');
         expect(manager.isKeyDown('w')).to.be.true;
       });
 
-      it('resume() for an owner that never paused is a no-op', function () {
-        source.pause('flyCamera');
+      it('resume() for a caller that never paused is a no-op', function () {
+        source.pause('joystick');
+        source.resume('hud');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('repeated pause by the same caller needs only one resume', function () {
+        source.pause('joystick');
+        source.pause('joystick');
+        source.resume('joystick');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+      });
+    });
+
+    describe('editor input owner', function () {
+      it('press while the editor owns input does not reach InputManager', function () {
+        manager.setInputOwner('editor');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('handover releases keys already held', function () {
+        source.start(makeScene());
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        manager.setInputOwner('editor');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('handover releases keys held by a source that was never started', function () {
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        manager.setInputOwner('editor');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('handover still releases keys after stop() — the source outlives it', function () {
+        source.start(makeScene());
+        source.stop();
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        manager.setInputOwner('editor');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('stop() before start(), and repeated stop(), do not throw', function () {
+        expect(() => source.stop()).to.not.throw();
+        source.start(makeScene());
+        source.stop();
+        expect(() => source.stop()).to.not.throw();
+      });
+
+      it('a joystick resume does not lift the editor handover', function () {
+        source.start(makeScene());
+        manager.setInputOwner('editor');
+        source.pause('joystick');
         source.resume('joystick');
         source.press('w');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('repeated pause by the same owner needs only one resume', function () {
-        source.pause('flyCamera');
-        source.pause('flyCamera');
-        source.resume('flyCamera');
+      it('handing input back does not lift a live joystick pause', function () {
+        source.start(makeScene());
+        source.pause('joystick');
+        manager.setInputOwner('editor');
+        manager.setInputOwner('project');
+        source.press('w');
+        expect(manager.isKeyDown('w')).to.be.false;
+      });
+
+      it('press works again once the editor and the joystick have both released', function () {
+        source.start(makeScene());
+        source.pause('joystick');
+        manager.setInputOwner('editor');
+        manager.setInputOwner('project');
+        source.resume('joystick');
         source.press('w');
         expect(manager.isKeyDown('w')).to.be.true;
       });

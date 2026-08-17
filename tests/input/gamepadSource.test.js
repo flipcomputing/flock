@@ -331,8 +331,8 @@ export function runGamepadSourceTests() {
       });
     });
 
-    describe('setFlyMode (camera gizmo fly mode)', function () {
-      it('setFlyMode(true) immediately releases held movement keys', function () {
+    describe('editor input owner (camera gizmo fly mode)', function () {
+      it('handover to the editor immediately releases held movement keys', function () {
         makeSource(() => [
           makeGamepad({
             buttons: Array(13)
@@ -343,56 +343,87 @@ export function runGamepadSourceTests() {
         source.start();
         scene.tick();
         expect(manager.isKeyDown('w')).to.be.true;
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('fly mode: movement shim keys are blocked (left stick forward)', function () {
+      it('editor owns input: movement shim keys are blocked (left stick forward)', function () {
         makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         scene.tick();
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('fly mode: MOVE_Y axis is still set (camera observer can read it)', function () {
+      it('editor owns input: MOVE_Y axis is still set (camera observer can read it)', function () {
         makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         scene.tick();
         expect(manager.getAxis('MOVE_Y')).to.be.lessThan(0);
       });
 
-      it("fly mode: PageUp still goes to InputManager and dispatches DOM event; 'r' is blocked", function () {
+      it("editor owns input: PageUp reaches the camera DOM path only; 'r' is blocked", function () {
         makeSource(() => [makeGamepad({ buttons: [null, null, null, makeButton(true)] })]);
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         scene.tick();
-        expect(manager.isKeyDown('PageUp')).to.be.true;
-        expect(manager.isKeyDown('r')).to.be.false;
         const domEvents = canvas.dispatched.filter(
           (e) => e.type === 'keydown' && e.key === 'PageUp'
         );
         expect(domEvents).to.have.lengthOf(1);
+        expect(manager.isKeyDown('PageUp')).to.be.false;
+        expect(manager.isKeyDown('r')).to.be.false;
       });
 
-      it('fly mode: D-pad does not set movement keys', function () {
+      it("editor owns input: the project sees no held keys at all (keyPressed('ANY'))", function () {
+        makeSource(() => [makeGamepad({ buttons: [null, null, null, makeButton(true)] })]);
+        source.start();
+        manager.setInputOwner('editor');
+        scene.tick();
+        expect(manager.heldKeyCount()).to.equal(0);
+      });
+
+      it('editor owns input: an action bound to PageUp does not fire', function () {
+        const actions = [];
+        manager.onActionDownObservable.add((a) => actions.push(a));
+        manager.setActionKey('BUTTON1', 'PageUp');
+        makeSource(() => [makeGamepad({ buttons: [null, null, null, makeButton(true)] })]);
+        source.start();
+        manager.setInputOwner('editor');
+        scene.tick();
+        expect(actions).to.deep.equal([]);
+        expect(manager.isActionDown('BUTTON1')).to.be.false;
+      });
+
+      it('handing input back re-registers a still-held camera key for the project', function () {
+        makeSource(() => [makeGamepad({ buttons: [null, null, null, makeButton(true)] })]);
+        source.start();
+        manager.setInputOwner('editor');
+        scene.tick();
+        expect(manager.isKeyDown('PageUp')).to.be.false;
+        manager.setInputOwner('project');
+        scene.tick();
+        expect(manager.isKeyDown('PageUp')).to.be.true;
+      });
+
+      it('editor owns input: D-pad does not set movement keys', function () {
         const btns = Array(13).fill(null);
         btns[12] = makeButton(true);
         makeSource(() => [makeGamepad({ buttons: btns })]);
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         scene.tick();
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it('setFlyMode(false) re-enables movement keys on next tick', function () {
+      it('handing input back re-enables movement keys on next tick', function () {
         makeSource(() => [makeGamepad({ axes: [0, -0.9, 0, 0] })]);
         source.start();
-        source.setFlyMode(true);
+        manager.setInputOwner('editor');
         scene.tick();
         expect(manager.isKeyDown('w')).to.be.false;
-        source.setFlyMode(false);
+        manager.setInputOwner('project');
         scene.tick();
         expect(manager.isKeyDown('w')).to.be.true;
       });

@@ -2467,9 +2467,7 @@ function handleCameraGizmo() {
 
   if (cameraMode === 'play') {
     cameraMode = 'fly';
-    flock._onScreenSource?.pause('flyCamera');
-    flock._gamepadSource?.setFlyMode(true);
-    flock._keyboardSource?.setFlyMode(true);
+    flock.inputManager?.setInputOwner('editor');
     showStatus(
       translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
       { duration: 15, owner: 'camera' }
@@ -2477,9 +2475,7 @@ function handleCameraGizmo() {
     setGizmoButtonActive(cameraButton, true);
   } else {
     cameraMode = 'play';
-    flock._onScreenSource?.resume('flyCamera');
-    flock._gamepadSource?.setFlyMode(false);
-    flock._keyboardSource?.setFlyMode(false);
+    flock.inputManager?.setInputOwner('project');
     setGizmoButtonActive(cameraButton, false);
   }
 
@@ -2795,9 +2791,7 @@ export function disposeGizmoManager() {
   exitGizmoState(); // Clear up gizmo state and event listeners
   if (cameraMode === 'fly') {
     cameraMode = 'play';
-    flock._onScreenSource?.resume('flyCamera');
-    flock._gamepadSource?.setFlyMode(false);
-    flock._keyboardSource?.setFlyMode(false);
+    flock.inputManager?.setInputOwner('project');
     setGizmoButtonActive(document.getElementById('cameraButton'), false);
   }
   if (gizmoManager) {
