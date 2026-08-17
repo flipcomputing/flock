@@ -122,6 +122,7 @@ Directories:
 - **`examples/`** - Example project JSON files including those featured in the Demo dropdown
 - **`fonts/`** - Fonts used in UI and 3D text generation
 - **`images/`** - Images used in UI
+- **`input/`** - Player input: keyboard, gamepad, on-screen controls and XR controllers, all feeding a single input manager (see [INPUT.md](dev-docs/INPUT.md))
 - **`locale/`** - localisation / translation
 - **`main/`** - application file to support flock engine
 - **`models/`** - 3D models (.glb files)

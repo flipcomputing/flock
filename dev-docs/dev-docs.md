@@ -2,6 +2,8 @@
 
 Details of the FlockXR API and its methods are in [API.md](../API.md).
 
+How player input (keyboard, gamepad, touch, XR) reaches the API is in [INPUT.md](INPUT.md).
+
 ## Synchronisation between Blockly blocks and Babylon.js canvas
 
 The blocks are defined in either `blocks.js` or `blocks/` for each mesh, transformation (such as rotation) and other characteristic and operation. Those in `blocks/` typically store block definitions in multiple files depending on their purpose. For example:
