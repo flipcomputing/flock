@@ -1,3 +1,5 @@
+import { hideFromInspector } from '../ui/inspectorVisibility.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -120,6 +122,7 @@ export const flockCamera = {
       constraintBox.metadata.blockKey = constraintBox.name;
       constraintBox.name = constraintBox.name + '_' + constraintBox.uniqueId;
       constraintBox.isVisible = false;
+      hideFromInspector(constraintBox);
       constraintBox.material =
         constraintBox.material || new flock.BABYLON.StandardMaterial('staticMaterial', scene);
 

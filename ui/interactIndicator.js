@@ -9,6 +9,7 @@ import {
   ActionEvent,
   Ray,
 } from '@babylonjs/core';
+import { hideFromInspector } from './inspectorVisibility.js';
 
 const ICON_MESH_NAME = '__flock_interact_indicator';
 const ICON_SIZE_PX = 24;
@@ -116,6 +117,7 @@ export function attachInteractIndicator(scene, inputManager) {
   _icon.isPickable = false;
   _icon.checkCollisions = false;
   _icon.isVisible = false;
+  hideFromInspector(_icon);
 
   const mat = new StandardMaterial(ICON_MESH_NAME + '_mat', scene);
   _texture = new DynamicTexture(ICON_MESH_NAME + '_tex', TEX_SIZE, scene, false);

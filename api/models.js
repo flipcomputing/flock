@@ -1,3 +1,5 @@
+import { hideFromInspector } from '../ui/inspectorVisibility.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -295,6 +297,7 @@ export const flockModels = {
     };
 
     const setTemplateFlags = (node, tag) => {
+      hideFromInspector(node);
       const list = [node, ...node.getDescendants(false)];
       list.forEach((m) => {
         m.metadata = m.metadata || {};

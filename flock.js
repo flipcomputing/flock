@@ -62,6 +62,7 @@ import { flockSensing, setFlockReference as setFlockSensing } from './api/sensin
 import { translate } from './main/translation.js';
 import { handleError, dismissBanner, showBanner, markReported } from './ui/notifications.js';
 import { attachInteractIndicator, detachInteractIndicator } from './ui/interactIndicator.js';
+import { getShowInternalNodes, setShowInternalNodes } from './ui/inspectorVisibility.js';
 import { InputManager } from './input/inputManager.js';
 import { KeyboardSource } from './input/keyboardSource.js';
 import { OnScreenSource } from './input/onScreenSource.js';
@@ -89,6 +90,12 @@ export const flock = {
   materialsDebug: false,
   meshDebug: false,
   performanceOverlay: false,
+  get showInternalNodes() {
+    return getShowInternalNodes();
+  },
+  set showInternalNodes(show) {
+    setShowInternalNodes(show, this.scene);
+  },
   hideProjectName: true, // input stays in DOM; save/export still reads its value
   maxMeshes: 5000,
   maxClonesPerSource: 500,
