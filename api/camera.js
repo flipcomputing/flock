@@ -27,108 +27,71 @@ export const flockCamera = {
         flock.ensureVerticalConstraint(mesh);
 
         const existingCamera = flock.scene.activeCamera;
-        if (existingCamera instanceof flock.BABYLON.ArcRotateCamera) {
-          existingCamera.detachControl();
-          existingCamera.dispose();
-        } else {
-          existingCamera?.detachControl();
+        const disposedFollowCamera = existingCamera instanceof flock.BABYLON.ArcRotateCamera;
+        existingCamera?.detachControl();
+        if (disposedFollowCamera) existingCamera.dispose();
+
+        const facing = flockCamera._followFacing(mesh);
+        const anchor = mesh.getAbsolutePosition().clone();
+
+        // savedCamera is the fly camera the gizmo toggles back to, so a follow camera
+        // we just replaced must not take its place.
+        if (!front && !disposedFollowCamera) {
+          flock.savedCamera = existingCamera;
         }
 
-        let camera;
+        const camera = new flock.BABYLON.ArcRotateCamera(
+          'camera',
+          Math.PI / 2,
+          // Where the beta limit below clamps it anyway, and XR reads this camera's position
+          // without ever rendering it.
+          Math.PI / 2,
+          radius,
+          anchor,
+          flock.scene
+        );
 
-        if (front) {
-          // Original attachCamera behavior - start in front then move behind
-          // Calculate direction character is facing
-          const forward = new flock.BABYLON.Vector3(
-            Math.sin(mesh.rotation.y),
-            0,
-            Math.cos(mesh.rotation.y)
-          );
+        if (!front) camera.checkCollisions = true;
+        camera.lowerBetaLimit = Math.PI / 3;
+        camera.upperBetaLimit = Math.PI / 2;
+        camera.lowerRadiusLimit = radius * 0.6;
+        camera.upperRadiusLimit = radius * 1.6;
+        camera.angularSensibilityX = 2000;
+        camera.angularSensibilityY = 2000;
+        camera.panningSensibility = 0;
+        camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
 
-          // STEP 1: Place camera IN FRONT of character (facing them)
-          camera = new flock.BABYLON.ArcRotateCamera(
-            'camera',
-            Math.PI / 2,
-            Math.PI,
-            radius,
-            mesh.position.add(forward.scale(3)), // in front
-            flock.scene
-          );
+        camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
+        camera.inputs.attached.pointers.multiTouchPanning = false;
+        camera.inputs.attached.pointers.pinchZoom = false;
+        camera.inputs.attached.pointers.pinchInwards = false;
+        camera.inputs.attached.pointers.useNaturalPinchZoom = false;
 
-          camera.lockedTarget = mesh;
-          camera.attachControl(flock.canvas, false);
-          flock.scene.activeCamera = camera;
+        camera.lockedTarget = mesh;
+        // front looks the character in the face, otherwise sit over its shoulder.
+        camera.setPosition(anchor.add(facing.scale(front ? radius : -radius)));
 
-          // Set camera controls and limits
-          camera.lowerBetaLimit = Math.PI / 3;
-          camera.upperBetaLimit = Math.PI / 2;
-          camera.lowerRadiusLimit = radius * 0.6;
-          camera.upperRadiusLimit = radius * 1.6;
-          camera.angularSensibilityX = 2000;
-          camera.angularSensibilityY = 2000;
-          camera.panningSensibility = 0;
-          camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
+        camera.metadata = camera.metadata || {};
+        camera.metadata.following = mesh;
+        camera.attachControl(flock.canvas, false);
+        flock.scene.activeCamera = camera;
 
-          camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-          camera.inputs.attached.pointers.multiTouchPanning = false;
-          camera.inputs.attached.pointers.pinchZoom = false;
-          camera.inputs.attached.pointers.pinchInwards = false;
-          camera.inputs.attached.pointers.useNaturalPinchZoom = false;
-
-          // Move camera behind the character
-          const behind = forward.scale(-radius);
-          camera.setPosition(mesh.position.add(behind));
-
-          camera.metadata = camera.metadata || {};
-          camera.metadata.following = mesh;
-
-          flockCamera._reapplyCameraBindings(camera);
-        } else {
-          // Original attachCamera2 behavior - position directly behind
-          let savedCamera = flock.scene.activeCamera;
-          flock.savedCamera = savedCamera;
-          savedCamera?.detachControl();
-
-          camera = new flock.BABYLON.ArcRotateCamera(
-            'camera',
-            Math.PI / 2,
-            // Where the beta limit below clamps it anyway, and XR reads this camera's position
-            // without ever rendering it.
-            Math.PI / 2,
-            radius,
-            mesh.position,
-            flock.scene
-          );
-
-          camera.checkCollisions = true;
-          camera.lowerBetaLimit = Math.PI / 3;
-          camera.upperBetaLimit = Math.PI / 2;
-          camera.lowerRadiusLimit = radius * 0.6;
-          camera.upperRadiusLimit = radius * 1.6;
-          camera.angularSensibilityX = 2000;
-          camera.angularSensibilityY = 2000;
-          camera.panningSensibility = 0;
-          camera.inputs.removeByType('ArcRotateCameraMouseWheelInput');
-
-          camera.inputs.attached.pointers.multiTouchPanAndZoom = false;
-          camera.inputs.attached.pointers.multiTouchPanning = false;
-          camera.inputs.attached.pointers.pinchZoom = false;
-          camera.inputs.attached.pointers.pinchInwards = false;
-          camera.inputs.attached.pointers.useNaturalPinchZoom = false;
-
-          camera.lockedTarget = mesh;
-          camera.metadata = camera.metadata || {};
-          camera.metadata.following = mesh;
-          camera.attachControl(flock.canvas, false);
-          flock.scene.activeCamera = camera;
-
-          flockCamera._reapplyCameraBindings(camera);
-        }
+        flockCamera._reapplyCameraBindings(camera);
 
         flock._frameXRFromProjectCamera(camera);
         resolve();
       });
     });
+  },
+  // The character's own forward, flattened. mesh.rotation stops tracking the mesh once
+  // physics or a rotate block writes a quaternion, so read the live world matrix.
+  _followFacing(mesh) {
+    mesh.computeWorldMatrix(true);
+    const facing = mesh.forward.negate();
+    facing.y = 0;
+    return facing.lengthSquared() > 1e-6
+      ? facing.normalize()
+      : new flock.BABYLON.Vector3(0, 0, -1);
   },
   ensureVerticalConstraint(mesh) {
     if (!mesh || !flock.scene) return;

@@ -37,10 +37,11 @@ export function runCameraTests(flock) {
 
     describe('attachCamera', function () {
       const boxIds = [];
-      let savedCamera, savedXRState;
+      let savedCamera, savedFlyCamera, savedXRState;
 
       beforeEach(function () {
         savedCamera = flock.scene.activeCamera;
+        savedFlyCamera = flock.savedCamera;
         savedXRState = {
           followTarget: flock._xrFollowTarget,
           followCameraRadius: flock._xrFollowCameraRadius,
@@ -63,7 +64,12 @@ export function runCameraTests(flock) {
           }
         });
         boxIds.length = 0;
+        const followCamera = flock.scene.activeCamera;
+        if (followCamera !== savedCamera && followCamera instanceof flock.BABYLON.ArcRotateCamera) {
+          followCamera.dispose();
+        }
         flock.scene.activeCamera = savedCamera;
+        flock.savedCamera = savedFlyCamera;
         flock._xrFollowTarget = savedXRState.followTarget;
         flock._xrFollowCameraRadius = savedXRState.followCameraRadius;
         flock._xrFollowCameraDirection = savedXRState.followCameraDirection;
@@ -91,6 +97,45 @@ export function runCameraTests(flock) {
         expect(flock.scene.activeCamera.metadata.following).to.exist;
         expect(flock.scene.activeCamera.metadata.following.name).to.equal(id);
         expect(flock._xrFollowTarget).to.equal(flock.scene.activeCamera.metadata.following);
+      });
+
+      it('should sit behind the facing the mesh has at attachment time', async function () {
+        const id = 'cameraBehindBox';
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        await flock.rotateTo(id, { x: 0, y: 90, z: 0 });
+        await flock.attachCamera(id, { radius: 10, front: false });
+
+        const position = flock.scene.activeCamera.position;
+        expect(position.x).to.be.closeTo(10, 0.001);
+        expect(position.z).to.be.closeTo(0, 0.001);
+      });
+
+      it('should sit in front of the facing the mesh has at attachment time', async function () {
+        const id = 'cameraFrontBox';
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        await flock.rotateTo(id, { x: 0, y: 90, z: 0 });
+        await flock.attachCamera(id, { radius: 10, front: true });
+
+        const position = flock.scene.activeCamera.position;
+        expect(position.x).to.be.closeTo(-10, 0.001);
+        expect(position.z).to.be.closeTo(0, 0.001);
+      });
+
+      it('should keep a live fly camera saved when it replaces a follow camera', async function () {
+        const id = 'cameraResaveBox';
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        await flock.attachCamera(id, { front: false });
+        const flyCamera = flock.savedCamera;
+        await flock.attachCamera(id, { front: false });
+
+        expect(flock.savedCamera).to.equal(flyCamera);
+        expect(flyCamera.isDisposed()).to.be.false;
       });
 
       it('should hand the XR watch framing the radius it was attached with', async function () {
