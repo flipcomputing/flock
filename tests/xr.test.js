@@ -1153,6 +1153,58 @@ export function runXRTests(flock) {
         expect(target.position.y).to.equal(4);
       });
 
+      it('embodied smooth locomotion carries the wearer up a step', function () {
+        const target = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          getAbsolutePosition() {
+            return this.position;
+          },
+          isDisposed: () => false,
+        };
+        const camera = { position: new flock.BABYLON.Vector3(0, 1.7, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'smooth';
+        flock._xrFollowTarget = target;
+        flock._resetXRViewTracking();
+
+        target.position.set(0, 0.5, -1);
+        flock._updateXRView();
+
+        expect(camera.position.y).to.be.closeTo(2.2, 1e-6);
+        expect(camera.position.z).to.be.closeTo(-1, 1e-6);
+      });
+
+      it('embodied smooth locomotion holds the view through small height changes until they add up', function () {
+        const target = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          getAbsolutePosition() {
+            return this.position;
+          },
+          isDisposed: () => false,
+        };
+        const camera = { position: new flock.BABYLON.Vector3(0, 1.7, 0) };
+        flock.xrHelper = { baseExperience: { camera } };
+        flock._xrMode = 'VR';
+        flock._xrSessionActive = true;
+        flock._xrViewMode = 'embody';
+        flock._xrCameraMotionMode = 'smooth';
+        flock._xrFollowTarget = target;
+        flock._resetXRViewTracking();
+
+        for (const y of [0.005, -0.005, 0.005]) {
+          target.position.set(0.02, y, 0);
+          flock._updateXRView();
+          expect(camera.position.y).to.equal(1.7);
+        }
+
+        target.position.set(0.02, 0.03, 0);
+        flock._updateXRView();
+        expect(camera.position.y).to.be.closeTo(1.73, 1e-6);
+      });
+
       it('embodied smooth locomotion stays still when the project does not move the player', function () {
         const camera = { position: new flock.BABYLON.Vector3(0, 1.7, 0) };
         const target = { position: new flock.BABYLON.Vector3(0, 4, 0) };

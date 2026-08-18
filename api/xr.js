@@ -132,6 +132,8 @@ const SNAP_TURN_PRESS = 0.7;
 const SNAP_TURN_RELEASE = 0.3;
 // Comfort waits for the character to hold still before the view catches up.
 const COMFORT_SETTLE_MS = 250;
+// Smaller height changes are the character settling, not a climb.
+const EMBODY_MIN_HEIGHT_CHANGE_M = 0.02;
 
 // A working sensor reports within a frame; this waits out iOS, where the permission needs a
 // user gesture this call never has and so never resolves either way.
@@ -917,9 +919,13 @@ export const flockXR = {
 
     if (flock.BABYLON.Vector3.DistanceSquared(position, flock._xrFollowLastPosition) > 0.0001) {
       const delta = position.subtract(flock._xrFollowLastPosition);
-      if (!isWatch) delta.y = 0;
+      const holdHeight = !isWatch && Math.abs(delta.y) < EMBODY_MIN_HEIGHT_CHANGE_M;
+      if (holdHeight) delta.y = 0;
+      const heldY = flock._xrFollowLastPosition.y;
       flock._xrFollowLastMovedAt = now;
       flock._xrFollowLastPosition.copyFrom(position);
+      // Held rather than dropped, so a slow climb still adds up to a move.
+      if (holdHeight) flock._xrFollowLastPosition.y = heldY;
       if (flock._xrCameraMotionMode === 'smooth') {
         if (!isWatch || !flock._placeXRWatchCamera(position, 0)) {
           xrCamera.position.addInPlace(delta);
