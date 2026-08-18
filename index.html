@@ -193,11 +193,8 @@
 
   <body class="loading" aria-busy="true">
     <script type="module">
-      const params = new URLSearchParams(location.search);
-      const enabled = params.has('debug')
-        ? params.get('debug') !== '0'
-        : location.hostname === 'localhost';
-      if (enabled) import('./main/debugConsole.js');
+      import { isDebugModeEnabled } from './main/debugMode.js';
+      if (isDebugModeEnabled()) import('./main/debugConsole.js');
     </script>
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen" aria-hidden="true">

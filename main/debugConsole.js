@@ -79,7 +79,7 @@ if (isDebugModeEnabled()) {
         .map((a) => {
           try {
             return typeof a === 'string' ? a : JSON.stringify(a);
-          } catch (_) {
+          } catch {
             return String(a);
           }
         })
