@@ -774,10 +774,13 @@ const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
 const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
+// Every panel that has text-size controls, so one panel's A- / A+ resizes them all.
+const FONT_SIZED_PANELS = new Set();
+
 // Modal presentation and text-size controls shared by info-panel tabs; mixers
 // must set _modalTitleId, _tabBtnId, _closeLabelKey, _listId.
 const ModalPanelBehaviour = {
-  // Spread into each panel, so every panel gets its own copy seeded from the shared stored size.
+  // Spread into each panel, so every panel starts at the shared stored size.
   fontSize:
     parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
 
@@ -792,26 +795,37 @@ const ModalPanelBehaviour = {
   },
 
   initFontControls() {
-    const sizes = SHORTCUTS_FONT_SIZES;
-    const decreaseBtn = this.panel.querySelector('.font-decrease-btn');
-    const increaseBtn = this.panel.querySelector('.font-increase-btn');
-    decreaseBtn.disabled = this.fontSize === sizes[0];
-    increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
-    decreaseBtn.addEventListener('click', () => this.adjustFontSize(-1));
-    increaseBtn.addEventListener('click', () => this.adjustFontSize(1));
-    this.panel.querySelector(this._listId).style.fontSize = this.fontSize + 'em';
+    this.panel
+      .querySelector('.font-decrease-btn')
+      .addEventListener('click', () => this.adjustFontSize(-1));
+    this.panel
+      .querySelector('.font-increase-btn')
+      .addEventListener('click', () => this.adjustFontSize(1));
+    FONT_SIZED_PANELS.add(this);
+    this.applyFontSize();
   },
 
+  // Both the list text and the panel title scale off this one property, so the
+  // h2 title stays larger than the h3 categories inside the list at every size.
+  applyFontSize() {
+    const sizes = SHORTCUTS_FONT_SIZES;
+    this.panel.style.setProperty('--panel-font-size', this.fontSize + 'em');
+    this.panel.querySelector('.font-decrease-btn').disabled = this.fontSize === sizes[0];
+    this.panel.querySelector('.font-increase-btn').disabled =
+      this.fontSize === sizes[sizes.length - 1];
+  },
+
+  // Text size is one shared setting, so resizing here resizes every other panel too.
   adjustFontSize(delta) {
     const sizes = SHORTCUTS_FONT_SIZES;
     const idx = sizes.indexOf(this.fontSize);
     const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
     if (next === this.fontSize) return;
-    this.fontSize = next;
     localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
-    this.panel.querySelector(this._listId).style.fontSize = next + 'em';
-    this.panel.querySelector('.font-decrease-btn').disabled = next === sizes[0];
-    this.panel.querySelector('.font-increase-btn').disabled = next === sizes[sizes.length - 1];
+    FONT_SIZED_PANELS.forEach((p) => {
+      p.fontSize = next;
+      p.applyFontSize();
+    });
   },
 
   // Resize listener catches the media-query flip; ResizeObserver catches docked-area size changes without a window resize (e.g. play mode).
@@ -1331,12 +1345,10 @@ const PlayerPanel = {
       )
       .join('');
 
-    const playerList = this.panel.querySelector('#player-list');
-    playerList.innerHTML = `
+    this.panel.querySelector('#player-list').innerHTML = `
         ${sections}
         <p class="player-controls-note">${translate('player_control_dpad_note')}</p>
       `;
-    playerList.style.fontSize = this.fontSize + 'em';
   },
 
   show() {

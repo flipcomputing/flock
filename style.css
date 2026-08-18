@@ -2263,8 +2263,11 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Styles for keyboard shortcuts panel */
-#shortcuts-list {
-  font-size: 1.2em;
+/* --panel-font-size is set on the panel by the A- / A+ controls (keyboardui.js). */
+#shortcuts-list,
+#player-list,
+#help-list {
+  font-size: var(--panel-font-size, 1.2em);
   user-select: text;
 }
 
@@ -2398,7 +2401,8 @@ kbd {
 }
 
 .shortcuts-panel-title {
-  font-size: 1.5em;
+  /* Stays a step above .shortcuts-category, which is 1.2x the same property. */
+  font-size: calc(var(--panel-font-size, 1.2em) * 1.5);
   font-weight: bold;
   margin: 0;
 }
@@ -2439,8 +2443,6 @@ kbd {
 }
 
 #player-list {
-  font-size: 1.2em;
-  user-select: text;
   margin-bottom: 1.5em;
 }
 
