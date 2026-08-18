@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { ContextManager } from '../main/context.js';
-import { translate } from '../main/translation.js';
+import { translate, getCurrentLanguage } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
@@ -774,10 +774,58 @@ const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
 const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
-// Modal presentation shared by info-panel tabs; mixers must set _modalTitleId, _tabBtnId, _closeLabelKey.
+// Every panel that has text-size controls, so one panel's A- / A+ resizes them all.
+const FONT_SIZED_PANELS = new Set();
+
+// Modal presentation and text-size controls shared by info-panel tabs; mixers
+// must set _modalTitleId, _tabBtnId, _closeLabelKey, _listId.
 const ModalPanelBehaviour = {
+  // Spread into each panel, so every panel starts at the shared stored size.
+  fontSize:
+    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+
   shouldBeModal() {
     return isNarrowLayout() || isDockedAreaTooShort(this.fontSize);
+  },
+
+  fontControlsHTML() {
+    return `
+            <button class="bigbutton font-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
+            <button class="bigbutton font-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>`;
+  },
+
+  initFontControls() {
+    this.panel
+      .querySelector('.font-decrease-btn')
+      .addEventListener('click', () => this.adjustFontSize(-1));
+    this.panel
+      .querySelector('.font-increase-btn')
+      .addEventListener('click', () => this.adjustFontSize(1));
+    FONT_SIZED_PANELS.add(this);
+    this.applyFontSize();
+  },
+
+  // Both the list text and the panel title scale off this one property, so the
+  // h2 title stays larger than the h3 categories inside the list at every size.
+  applyFontSize() {
+    const sizes = SHORTCUTS_FONT_SIZES;
+    this.panel.style.setProperty('--panel-font-size', this.fontSize + 'em');
+    this.panel.querySelector('.font-decrease-btn').disabled = this.fontSize === sizes[0];
+    this.panel.querySelector('.font-increase-btn').disabled =
+      this.fontSize === sizes[sizes.length - 1];
+  },
+
+  // Text size is one shared setting, so resizing here resizes every other panel too.
+  adjustFontSize(delta) {
+    const sizes = SHORTCUTS_FONT_SIZES;
+    const idx = sizes.indexOf(this.fontSize);
+    const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
+    if (next === this.fontSize) return;
+    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
+    FONT_SIZED_PANELS.forEach((p) => {
+      p.fontSize = next;
+      p.applyFontSize();
+    });
   },
 
   // Resize listener catches the media-query flip; ResizeObserver catches docked-area size changes without a window resize (e.g. play mode).
@@ -919,6 +967,126 @@ const ModalPanelBehaviour = {
   },
 };
 
+// Help text lives in docs/help/<lang>.html so it can be edited without touching code;
+// bundled at build time (?raw) rather than fetched, so it works offline in the PWA.
+const HELP_CONTENT = import.meta.glob('../docs/help/*.html', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+const helpContentFor = (lang) =>
+  HELP_CONTENT[`../docs/help/${lang}.html`] ?? HELP_CONTENT['../docs/help/en.html'] ?? '';
+
+const EXTERNAL_LINK_ICON = `<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>`;
+
+// External links in the help content are marked up automatically, so the docs
+// maintainer only ever has to write a plain <a href>. The icon sits inside the link
+// so it picks up the link colour, visited state included, from currentColor.
+function decorateExternalLinks(root) {
+  root.querySelectorAll('a[href^="http"]').forEach((link) => {
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.insertAdjacentHTML(
+      'beforeend',
+      `<span class="sr-only"> (${translate('link_opens_in_new_tab')})</span>${EXTERNAL_LINK_ICON}`
+    );
+  });
+}
+
+// First info panel tab; registered before the others so it renders leftmost.
+const HelpPanel = {
+  ...ModalPanelBehaviour,
+  panel: null,
+  previousFocus: null,
+  _modalTitleId: 'help-panel-title',
+  _tabBtnId: 'info-tab-btn-help',
+  _closeLabelKey: 'close',
+  _listId: '#help-list',
+
+  init() {
+    this.createPanel();
+    this.setupListeners();
+    this.watchDockedSpace();
+    window.flockHelpPanel = this;
+  },
+
+  createPanel() {
+    const panel = InfoPanel.register('help', translate('help_panel_title'), this);
+    const btn = document.getElementById('info-tab-btn-help');
+    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-109 -109 730 730"><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></div>`;
+    panel.innerHTML = `
+        <div class="shortcuts-panel-header">
+          <h2 id="help-panel-title" class="shortcuts-panel-title"></h2>
+          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
+          </div>
+        </div>
+        <img class="help-hero" src="./images/Hero-Image-768x348.webp" alt="" width="768" height="348" />
+        <div id="help-list"></div>
+      `;
+    this.panel = panel;
+    this.initFontControls();
+    this.renderContent();
+  },
+
+  renderContent() {
+    const title = translate('help_panel_title');
+    const btn = document.getElementById('info-tab-btn-help');
+    btn.setAttribute('aria-label', title);
+    btn.setAttribute('title', title);
+    this.panel.querySelector('#help-panel-title').textContent = title;
+
+    const list = this.panel.querySelector('#help-list');
+    list.innerHTML = helpContentFor(getCurrentLanguage());
+    decorateExternalLinks(list);
+  },
+
+  show() {
+    this.renderContent();
+    this.previousFocus = document.activeElement;
+    InfoPanel.activate('help');
+    if (this.shouldBeModal()) this.enterModal();
+  },
+
+  refreshTranslations() {
+    this.renderContent();
+  },
+
+  hide() {
+    this.exitModal();
+    this.previousFocus?.focus();
+    this.previousFocus = null;
+    InfoPanel.deactivate('help');
+  },
+
+  toggle() {
+    this.panel.classList.contains('hidden') ? this.show() : this.hide();
+  },
+
+  setupListeners() {
+    this.panel.addEventListener('keydown', (e) => {
+      // Modal mode reparents the panel to <body> and makes it the scroll
+      // container itself; #info-panel-body only scrolls in docked mode.
+      const scroller = this._modalActive ? this.panel : document.getElementById('info-panel-body');
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        scroller?.scrollBy({ top: -100, behavior: 'instant' });
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        scroller?.scrollBy({ top: 100, behavior: 'instant' });
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hide();
+        const tabBtn = document.getElementById('info-tab-btn-help');
+        if (tabBtn?.offsetParent) tabBtn.focus();
+      }
+    });
+  },
+};
+
 const ShortcutsPanel = {
   ...ModalPanelBehaviour,
   panel: null,
@@ -926,26 +1094,13 @@ const ShortcutsPanel = {
   _modalTitleId: 'shortcuts-panel-title',
   _tabBtnId: 'info-tab-btn-shortcuts',
   _closeLabelKey: 'shortcut_panel_close',
-  fontSize:
-    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+  _listId: '#shortcuts-list',
 
   init() {
     this.createPanel();
     this.setupListeners();
     this.watchDockedSpace();
     window.flockShortcutsPanel = this;
-  },
-
-  adjustFontSize(delta) {
-    const sizes = SHORTCUTS_FONT_SIZES;
-    const idx = sizes.indexOf(this.fontSize);
-    const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
-    if (next === this.fontSize) return;
-    this.fontSize = next;
-    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
-    this.panel.querySelector('#shortcuts-list').style.fontSize = next + 'em';
-    this.panel.querySelector('.shortcuts-decrease-btn').disabled = next === sizes[0];
-    this.panel.querySelector('.shortcuts-increase-btn').disabled = next === sizes[sizes.length - 1];
   },
 
   createPanel() {
@@ -957,23 +1112,14 @@ const ShortcutsPanel = {
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="shortcuts-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">
-            <button class="bigbutton shortcuts-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
-            <button class="bigbutton shortcuts-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>
+          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
             <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate('shortcut_panel_help_link')}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg></a>
           </div>
         </div>
         <div id="shortcuts-list"></div>
       `;
     this.panel = panel;
-    const sizes = SHORTCUTS_FONT_SIZES;
-    const decreaseBtn = panel.querySelector('.shortcuts-decrease-btn');
-    const increaseBtn = panel.querySelector('.shortcuts-increase-btn');
-    decreaseBtn.disabled = this.fontSize === sizes[0];
-    increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
-    decreaseBtn.addEventListener('click', () => this.adjustFontSize(-1));
-    increaseBtn.addEventListener('click', () => this.adjustFontSize(1));
-    panel.querySelector('#shortcuts-list').style.fontSize = this.fontSize + 'em';
+    this.initFontControls();
     this.renderContent();
   },
 
@@ -1169,8 +1315,7 @@ const PlayerPanel = {
   _modalTitleId: 'player-panel-title',
   _tabBtnId: 'info-tab-btn-player',
   _closeLabelKey: 'close',
-  fontSize:
-    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+  _listId: '#player-list',
 
   init() {
     this.createPanel();
@@ -1186,35 +1331,14 @@ const PlayerPanel = {
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="player-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">
-            <button class="bigbutton player-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
-            <button class="bigbutton player-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>
+          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
           </div>
         </div>
         <div id="player-list"></div>
       `;
     this.panel = panel;
-    const sizes = SHORTCUTS_FONT_SIZES;
-    const decreaseBtn = panel.querySelector('.player-decrease-btn');
-    const increaseBtn = panel.querySelector('.player-increase-btn');
-    decreaseBtn.disabled = this.fontSize === sizes[0];
-    increaseBtn.disabled = this.fontSize === sizes[sizes.length - 1];
-    decreaseBtn.addEventListener('click', () => this.adjustFontSize(-1));
-    increaseBtn.addEventListener('click', () => this.adjustFontSize(1));
-    panel.querySelector('#player-list').style.fontSize = this.fontSize + 'em';
+    this.initFontControls();
     this.renderContent();
-  },
-
-  adjustFontSize(delta) {
-    const sizes = SHORTCUTS_FONT_SIZES;
-    const idx = sizes.indexOf(this.fontSize);
-    const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
-    if (next === this.fontSize) return;
-    this.fontSize = next;
-    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
-    this.panel.querySelector('#player-list').style.fontSize = next + 'em';
-    this.panel.querySelector('.player-decrease-btn').disabled = next === sizes[0];
-    this.panel.querySelector('.player-increase-btn').disabled = next === sizes[sizes.length - 1];
   },
 
   renderContent() {
@@ -1253,12 +1377,10 @@ const PlayerPanel = {
       )
       .join('');
 
-    const playerList = this.panel.querySelector('#player-list');
-    playerList.innerHTML = `
+    this.panel.querySelector('#player-list').innerHTML = `
         ${sections}
         <p class="player-controls-note">${translate('player_control_dpad_note')}</p>
       `;
-    playerList.style.fontSize = this.fontSize + 'em';
   },
 
   show() {
@@ -1312,8 +1434,9 @@ AreaManager.init();
 GizmoMenuManager.init();
 if (document.getElementById('info-panel-tabs')) {
   InfoPanel.init();
+  HelpPanel.init();
   ShortcutsPanel.init();
   PlayerPanel.init();
 }
 
-export { InfoPanel, ShortcutsPanel, PlayerPanel, GizmoMenuManager, AreaManager };
+export { InfoPanel, HelpPanel, ShortcutsPanel, PlayerPanel, GizmoMenuManager, AreaManager };

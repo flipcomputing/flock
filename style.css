@@ -868,11 +868,15 @@ button {
   color: #f0f0f0 !important;
 }
 
-/* Make links in 'About' modal visible in dark and contrast themes */
+/* Make links in the 'About' modal and the info panel visible in dark and contrast themes */
 [data-theme='dark'] .modal-content a,
 [data-theme='dark-contrast'] .modal-content a,
 [data-theme='contrast'] .modal-content a,
-[data-theme='low-vision'] .modal-content a {
+[data-theme='low-vision'] .modal-content a,
+[data-theme='dark'] #help-list a,
+[data-theme='dark-contrast'] #help-list a,
+[data-theme='contrast'] #help-list a,
+[data-theme='low-vision'] #help-list a {
   color: var(--color-primary-light);
 }
 
@@ -2263,8 +2267,11 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Styles for keyboard shortcuts panel */
-#shortcuts-list {
-  font-size: 1.2em;
+/* --panel-font-size is set on the panel by the A- / A+ controls (keyboardui.js). */
+#shortcuts-list,
+#player-list,
+#help-list {
+  font-size: var(--panel-font-size, 1.2em);
   user-select: text;
 }
 
@@ -2398,7 +2405,8 @@ kbd {
 }
 
 .shortcuts-panel-title {
-  font-size: 1.5em;
+  /* Stays a step above .shortcuts-category, which is 1.2x the same property. */
+  font-size: calc(var(--panel-font-size, 1.2em) * 1.5);
   font-weight: bold;
   margin: 0;
 }
@@ -2409,19 +2417,17 @@ kbd {
   gap: 2px;
 }
 
-.shortcuts-decrease-btn,
-.shortcuts-increase-btn {
+.font-decrease-btn,
+.font-increase-btn {
   font-weight: bold;
   margin-left: 0;
 }
 
-.shortcuts-decrease-btn span,
-.player-decrease-btn span {
+.font-decrease-btn span {
   font-size: 0.75em;
 }
 
-.shortcuts-increase-btn span,
-.player-increase-btn span {
+.font-increase-btn span {
   font-size: 1.1em;
 }
 
@@ -2441,9 +2447,68 @@ kbd {
 }
 
 #player-list {
-  font-size: 1.2em;
-  user-select: text;
   margin-bottom: 1.5em;
+}
+
+/* Authored in docs/help/<lang>.html, so style plain elements rather than classes. */
+#help-list {
+  margin-bottom: 1.5em;
+  text-align: left;
+  line-height: 1.5;
+}
+
+#help-list h3 {
+  padding-top: 1em;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0 0 0.3em;
+}
+
+#help-list h3:first-child {
+  padding-top: 0;
+}
+
+/* Half the image's intrinsic 768px width, but still shrinks in a narrow panel. */
+.help-hero {
+  display: block;
+  width: 384px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.75em;
+}
+
+#help-list p {
+  margin: 0 0 0.75em;
+}
+
+#help-list ul,
+#help-list ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+
+#help-list li {
+  margin-bottom: 0.4em;
+}
+
+/* Colour comes from the shared 'About' modal link rule; underlined too, so the
+   link is distinguishable without relying on colour. */
+#help-list a {
+  text-decoration: underline;
+}
+
+#help-list a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Appended inside external links by decorateExternalLinks() in accessibility/keyboardui.js. */
+#help-list .external-link-icon {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.3em;
+  vertical-align: -0.05em;
 }
 
 .pc-keys {

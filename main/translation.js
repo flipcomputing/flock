@@ -131,6 +131,11 @@ export async function setLanguage(language) {
     wsSearchBtn.title = label;
   }
 
+  // Update help panel if open
+  if (window.flockHelpPanel?.refreshTranslations) {
+    window.flockHelpPanel.refreshTranslations();
+  }
+
   // Update shortcuts panel if open
   if (window.flockShortcutsPanel?.refreshTranslations) {
     window.flockShortcutsPanel.refreshTranslations();
