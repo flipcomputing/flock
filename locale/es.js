@@ -1335,6 +1335,7 @@ export default {
 
   // Player controls panel — title, sections and control names
   help_panel_title: 'Ayuda',
+  link_opens_in_new_tab: 'se abre en una pestaña nueva',
   player_panel_title: 'Controles del jugador',
   player_section_onscreen: 'Controles en pantalla',
   player_section_gamepad: 'Controlador de juego',

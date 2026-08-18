@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { ContextManager } from '../main/context.js';
-import { translate } from '../main/translation.js';
+import { translate, getCurrentLanguage } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
@@ -967,6 +967,37 @@ const ModalPanelBehaviour = {
   },
 };
 
+// Help text lives in docs/help/<lang>.html so it can be edited without touching code;
+// bundled at build time (?raw) rather than fetched, so it works offline in the PWA.
+const HELP_CONTENT = import.meta.glob('../docs/help/*.html', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+const helpContentFor = (lang) =>
+  HELP_CONTENT[`../docs/help/${lang}.html`] ?? HELP_CONTENT['../docs/help/en.html'] ?? '';
+
+const EXTERNAL_LINK_ICON = `<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>`;
+
+// External links in the help content are marked up automatically, so the docs
+// maintainer only ever has to write a plain <a href>. The icon goes at the end of
+// the list item rather than against the link, which would break mid-sentence.
+function decorateExternalLinks(root) {
+  root.querySelectorAll('a[href^="http"]').forEach((link) => {
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.insertAdjacentHTML(
+      'beforeend',
+      `<span class="sr-only"> (${translate('link_opens_in_new_tab')})</span>`
+    );
+    const host = link.closest('li') ?? link;
+    if (!host.querySelector(':scope > .external-link-icon')) {
+      host.insertAdjacentHTML('beforeend', EXTERNAL_LINK_ICON);
+    }
+  });
+}
+
 // First info panel tab; registered before the others so it renders leftmost.
 const HelpPanel = {
   ...ModalPanelBehaviour,
@@ -987,7 +1018,7 @@ const HelpPanel = {
   createPanel() {
     const panel = InfoPanel.register('help', translate('help_panel_title'), this);
     const btn = document.getElementById('info-tab-btn-help');
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></div>`;
+    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-109 -109 730 730"><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></div>`;
     panel.innerHTML = `
         <div class="shortcuts-panel-header">
           <h2 id="help-panel-title" class="shortcuts-panel-title"></h2>
@@ -1007,6 +1038,10 @@ const HelpPanel = {
     btn.setAttribute('aria-label', title);
     btn.setAttribute('title', title);
     this.panel.querySelector('#help-panel-title').textContent = title;
+
+    const list = this.panel.querySelector('#help-list');
+    list.innerHTML = helpContentFor(getCurrentLanguage());
+    decorateExternalLinks(list);
   },
 
   show() {

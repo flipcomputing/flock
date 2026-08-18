@@ -868,11 +868,15 @@ button {
   color: #f0f0f0 !important;
 }
 
-/* Make links in 'About' modal visible in dark and contrast themes */
+/* Make links in the 'About' modal and the info panel visible in dark and contrast themes */
 [data-theme='dark'] .modal-content a,
 [data-theme='dark-contrast'] .modal-content a,
 [data-theme='contrast'] .modal-content a,
-[data-theme='low-vision'] .modal-content a {
+[data-theme='low-vision'] .modal-content a,
+[data-theme='dark'] #help-list a,
+[data-theme='dark-contrast'] #help-list a,
+[data-theme='contrast'] #help-list a,
+[data-theme='low-vision'] #help-list a {
   color: var(--color-primary-light);
 }
 
@@ -2444,6 +2448,57 @@ kbd {
 
 #player-list {
   margin-bottom: 1.5em;
+}
+
+/* Authored in docs/help/<lang>.html, so style plain elements rather than classes. */
+#help-list {
+  margin-bottom: 1.5em;
+  text-align: left;
+  line-height: 1.5;
+}
+
+#help-list h3 {
+  padding-top: 1em;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0 0 0.3em;
+}
+
+#help-list h3:first-child {
+  padding-top: 0;
+}
+
+#help-list p {
+  margin: 0 0 0.75em;
+}
+
+#help-list ul,
+#help-list ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.5em;
+}
+
+#help-list li {
+  margin-bottom: 0.4em;
+}
+
+/* Colour comes from the shared 'About' modal link rule; underlined too, so the
+   link is distinguishable without relying on colour. */
+#help-list a {
+  text-decoration: underline;
+}
+
+#help-list a:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Appended by decorateExternalLinks() in accessibility/keyboardui.js. */
+#help-list .external-link-icon {
+  width: 0.75em;
+  height: 0.75em;
+  margin-left: 0.35em;
+  flex: none;
 }
 
 .pc-keys {

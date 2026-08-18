@@ -1240,6 +1240,7 @@ export default {
   toolbar_zoom_in_ui: 'Zooma in',
   // Player controls panel — title, sections and control names
   help_panel_title: 'Hjälp',
+  link_opens_in_new_tab: 'öppnas i en ny flik',
   player_panel_title: 'Spelarkontroller',
   player_section_onscreen: 'Skärmkontroller',
   player_section_gamepad: 'Handkontroll',

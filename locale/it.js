@@ -1262,6 +1262,7 @@ export default {
   toolbar_zoom_in_ui: 'Aumenta zoom',
   // Player controls panel — title, sections and control names
   help_panel_title: 'Aiuto',
+  link_opens_in_new_tab: 'si apre in una nuova scheda',
   player_panel_title: 'Controlli del giocatore',
   player_section_onscreen: 'Controlli su schermo',
   player_section_gamepad: 'Controller di gioco',

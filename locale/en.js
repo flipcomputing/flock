@@ -1389,8 +1389,9 @@ export default {
   toolbar_redo_ui: 'Redo',
   toolbar_zoom_out_ui: 'Zoom out',
   toolbar_zoom_in_ui: 'Zoom in',
-  // Help panel — title
+  // Help panel — title, and the suffix read out after every external link
   help_panel_title: 'Help',
+  link_opens_in_new_tab: 'opens in a new tab',
 
   // Player controls panel — title, sections and control names
   player_panel_title: 'Player Controls',

@@ -1,6 +1,5 @@
 const menuBtn = document.getElementById('menuBtn');
 const openAbout = document.getElementById('about-menu-item');
-const hubMenuItem = document.getElementById('hub-menu-item');
 const infoModal = document.getElementById('infoModal');
 const closeInfoModal = document.getElementById('closeInfoModal');
 let previouslyFocused = null;
@@ -387,15 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   menuFlyout = new AccessibleFlyoutMenu();
 });
-
-if (hubMenuItem) {
-  hubMenuItem.addEventListener('click', (e) => {
-    e.preventDefault();
-    menuFlyout?.closeAllMenus();
-    menuBtn?.focus();
-    window.open('https://hub.flockxr.com/', '_blank', 'noopener,noreferrer');
-  });
-}
 
 // Language menu interactions are now handled in main/translation.js
 
