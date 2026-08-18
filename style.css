@@ -2468,6 +2468,15 @@ kbd {
   padding-top: 0;
 }
 
+/* Half the image's intrinsic 768px width, but still shrinks in a narrow panel. */
+.help-hero {
+  display: block;
+  width: 384px;
+  max-width: 100%;
+  height: auto;
+  margin: 0 0 0.75em;
+}
+
 #help-list p {
   margin: 0 0 0.75em;
 }
@@ -2493,12 +2502,13 @@ kbd {
   outline-offset: 2px;
 }
 
-/* Appended by decorateExternalLinks() in accessibility/keyboardui.js. */
+/* Appended inside external links by decorateExternalLinks() in accessibility/keyboardui.js. */
 #help-list .external-link-icon {
+  display: inline-block;
   width: 0.75em;
   height: 0.75em;
-  margin-left: 0.35em;
-  flex: none;
+  margin-left: 0.3em;
+  vertical-align: -0.05em;
 }
 
 .pc-keys {

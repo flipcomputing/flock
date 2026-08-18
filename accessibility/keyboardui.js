@@ -981,20 +981,16 @@ const helpContentFor = (lang) =>
 const EXTERNAL_LINK_ICON = `<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>`;
 
 // External links in the help content are marked up automatically, so the docs
-// maintainer only ever has to write a plain <a href>. The icon goes at the end of
-// the list item rather than against the link, which would break mid-sentence.
+// maintainer only ever has to write a plain <a href>. The icon sits inside the link
+// so it picks up the link colour, visited state included, from currentColor.
 function decorateExternalLinks(root) {
   root.querySelectorAll('a[href^="http"]').forEach((link) => {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
     link.insertAdjacentHTML(
       'beforeend',
-      `<span class="sr-only"> (${translate('link_opens_in_new_tab')})</span>`
+      `<span class="sr-only"> (${translate('link_opens_in_new_tab')})</span>${EXTERNAL_LINK_ICON}`
     );
-    const host = link.closest('li') ?? link;
-    if (!host.querySelector(':scope > .external-link-icon')) {
-      host.insertAdjacentHTML('beforeend', EXTERNAL_LINK_ICON);
-    }
   });
 }
 
@@ -1025,6 +1021,7 @@ const HelpPanel = {
           <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
           </div>
         </div>
+        <img class="help-hero" src="./images/Hero-Image-768x348.webp" alt="" width="768" height="348" />
         <div id="help-list"></div>
       `;
     this.panel = panel;

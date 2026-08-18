@@ -16,9 +16,8 @@ both colour themes.
 
 A plain `<a href="https://…">` is enough for an external link. When the panel renders,
 each one gets `target="_blank"`, `rel="noopener noreferrer"`, an "opens in a new tab"
-announcement for screen reader users, and a small external-link icon — placed at the
-end of the list item when the link is inside an `<li>`, so it doesn't interrupt the
-sentence, and immediately after the link otherwise. Don't add the icon by hand.
+announcement for screen reader users, and a small external-link icon at the end of the
+link text. Don't add the icon by hand.
 
 ## Translations
 
