@@ -32,6 +32,12 @@ export const EXAMPLES = [
   },
   { i18nKey: 'candy_dash', file: 'examples/candy_dash.flock', emoji: '🎃', category: 'games' },
   { i18nKey: 'beetle', file: 'examples/beetle.flock', emoji: '🪲', category: 'games' },
+  {
+    i18nKey: 'gem_tilt_game',
+    file: 'examples/gem_tilt_game.flock',
+    emoji: '⚖️',
+    category: 'games',
+  },
   { i18nKey: 'physics_fun', file: 'examples/physics_fun.flock', emoji: '👆🏾', category: 'physics' },
   { i18nKey: 'shape_push', file: 'examples/shape_push.flock', emoji: '🔶', category: 'physics' },
   { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', emoji: '🟠', category: 'physics' },
