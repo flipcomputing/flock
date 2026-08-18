@@ -260,14 +260,6 @@ function switchView(view) {
     canvasArea.style.width = '0';
     blocklyArea.style.flex = '2 1 0'; // 2/3 of the space
     canvasArea.style.flex = '1 1 0'; // 1/3 of the space
-
-    // Reset any transforms on desktop
-    if (!isNarrowScreen()) {
-      const container = document.getElementById('maincontent');
-      if (container) {
-        container.style.transform = 'translateX(0px)';
-      }
-    }
     onResize();
   } else if (view === 'canvas') {
     viewMode = 'canvas';
@@ -354,7 +346,6 @@ let currentView = 'start'; // Start with the code view
 // Function to be called once the app has fully loaded
 export { currentView, switchView, codeMode, showCodeView };
 
-const container = document.getElementById('maincontent');
 const bottomBar = document.getElementById('bottomBar');
 const canvasToggleBtn = document.getElementById('canvasToggleBtn');
 const codeToggleBtn = document.getElementById('codeToggleBtn');
@@ -570,11 +561,6 @@ export function togglePlayMode() {
 
   if (gizmosVisible) {
     savedView = currentView;
-
-    // Clear any transforms that might be applied
-    if (isNarrowScreen()) {
-      if (container) container.style.transform = 'translateX(0px)';
-    }
 
     showCanvasView();
     hideInspector();
