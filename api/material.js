@@ -295,6 +295,7 @@ export const flockMaterial = {
           resolve();
           return;
         }
+        const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
         const allMeshes = [mesh, ...mesh.getDescendants()].filter(
           (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
         );
@@ -302,7 +303,7 @@ export const flockMaterial = {
         allMeshes.forEach((nextMesh) => {
           if (!nextMesh.material) return;
 
-          if (!nextMesh.metadata?.hasSayTexture) {
+          if (!nextMesh.metadata?.hasSayTexture && !isTextPlaneMesh(nextMesh)) {
             const params = flock.getMaterialParamsFromMesh(nextMesh);
             const materialParams = { ...params, alpha: value };
 
@@ -329,10 +330,15 @@ export const flockMaterial = {
           return;
         }
         if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
+        const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
         const removeEffects = (targetMesh) => {
           targetMesh.metadata = targetMesh.metadata || {};
 
-          if (targetMesh.material && !targetMesh.metadata.hasSayTexture) {
+          if (
+            targetMesh.material &&
+            !targetMesh.metadata.hasSayTexture &&
+            !isTextPlaneMesh(targetMesh)
+          ) {
             const params = flock.getMaterialParamsFromMesh(targetMesh);
             const materialParams = { ...params, alpha: 1, glow: false };
 
