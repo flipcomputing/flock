@@ -1253,6 +1253,7 @@ export default {
   toolbar_zoom_out_ui: 'Verkleinern',
   toolbar_zoom_in_ui: 'Vergrößern',
   // Player controls panel — title, sections and control names
+  help_panel_title: 'Hilfe',
   player_panel_title: 'Spielersteuerung',
   player_section_onscreen: 'Bildschirmsteuerung',
   player_section_gamepad: 'Gamecontroller',

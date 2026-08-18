@@ -1254,6 +1254,7 @@ export default {
   toolbar_zoom_out_ui: 'Oddal',
   toolbar_zoom_in_ui: 'Przybliż',
   // Player controls panel — title, sections and control names
+  help_panel_title: 'Pomoc',
   player_panel_title: 'Sterowanie gracza',
   player_section_onscreen: 'Sterowanie ekranowe',
   player_section_gamepad: 'Kontroler do gier',

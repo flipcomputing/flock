@@ -1259,6 +1259,7 @@ export default {
   toolbar_zoom_out_ui: 'Dézoomer',
   toolbar_zoom_in_ui: 'Zoomer',
   // Player controls panel — title, sections and control names
+  help_panel_title: 'Aide',
   player_panel_title: 'Commandes du joueur',
   player_section_onscreen: "Commandes à l'écran",
   player_section_gamepad: 'Manette de jeu',

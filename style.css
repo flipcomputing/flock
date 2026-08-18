@@ -2409,19 +2409,17 @@ kbd {
   gap: 2px;
 }
 
-.shortcuts-decrease-btn,
-.shortcuts-increase-btn {
+.font-decrease-btn,
+.font-increase-btn {
   font-weight: bold;
   margin-left: 0;
 }
 
-.shortcuts-decrease-btn span,
-.player-decrease-btn span {
+.font-decrease-btn span {
   font-size: 0.75em;
 }
 
-.shortcuts-increase-btn span,
-.player-increase-btn span {
+.font-increase-btn span {
   font-size: 1.1em;
 }
 

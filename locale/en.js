@@ -1389,6 +1389,9 @@ export default {
   toolbar_redo_ui: 'Redo',
   toolbar_zoom_out_ui: 'Zoom out',
   toolbar_zoom_in_ui: 'Zoom in',
+  // Help panel — title
+  help_panel_title: 'Help',
+
   // Player controls panel — title, sections and control names
   player_panel_title: 'Player Controls',
   player_section_onscreen: 'On-screen controls',

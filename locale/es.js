@@ -1334,6 +1334,7 @@ export default {
   shortcut_panel_help_link: 'Abrir enlace de ayuda de controles de teclado',
 
   // Player controls panel — title, sections and control names
+  help_panel_title: 'Ayuda',
   player_panel_title: 'Controles del jugador',
   player_section_onscreen: 'Controles en pantalla',
   player_section_gamepad: 'Controlador de juego',

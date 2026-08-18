@@ -1239,6 +1239,7 @@ export default {
   toolbar_zoom_out_ui: 'Zooma ut',
   toolbar_zoom_in_ui: 'Zooma in',
   // Player controls panel — title, sections and control names
+  help_panel_title: 'Hjälp',
   player_panel_title: 'Spelarkontroller',
   player_section_onscreen: 'Skärmkontroller',
   player_section_gamepad: 'Handkontroll',

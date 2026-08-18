@@ -418,7 +418,7 @@ export function runKeyboardUiTests(flock) {
             const maxed = ShortcutsPanel.fontSize;
             ShortcutsPanel.adjustFontSize(1);
             expect(ShortcutsPanel.fontSize).to.equal(maxed);
-            expect(ShortcutsPanel.panel.querySelector('.shortcuts-increase-btn').disabled).to.equal(
+            expect(ShortcutsPanel.panel.querySelector('.font-increase-btn').disabled).to.equal(
               true
             );
           } finally {
@@ -438,7 +438,7 @@ export function runKeyboardUiTests(flock) {
             const minned = ShortcutsPanel.fontSize;
             ShortcutsPanel.adjustFontSize(-1);
             expect(ShortcutsPanel.fontSize).to.equal(minned);
-            expect(ShortcutsPanel.panel.querySelector('.shortcuts-decrease-btn').disabled).to.equal(
+            expect(ShortcutsPanel.panel.querySelector('.font-decrease-btn').disabled).to.equal(
               true
             );
           } finally {
@@ -546,7 +546,7 @@ export function runKeyboardUiTests(flock) {
             window.matchMedia = saved;
           }
           expect(ShortcutsPanel._modalActive).to.equal(true);
-          const increaseBtn = ShortcutsPanel.panel.querySelector('.shortcuts-increase-btn');
+          const increaseBtn = ShortcutsPanel.panel.querySelector('.font-increase-btn');
           increaseBtn.focus();
           expect(document.activeElement).to.equal(increaseBtn);
 
