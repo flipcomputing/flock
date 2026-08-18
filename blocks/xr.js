@@ -214,6 +214,16 @@ export function defineXRBlocks() {
             name: 'SIZE',
             check: 'Number',
           },
+          {
+            type: 'input_value',
+            name: 'DISTANCE',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'HEIGHT',
+            check: 'Number',
+          },
         ],
         previousStatement: null,
         nextStatement: null,

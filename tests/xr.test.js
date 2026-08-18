@@ -2348,11 +2348,19 @@ export function runXRTests(flock) {
         };
       };
 
-      const makeSession = ({ camera = makeARCamera(), interactionMode = 'screen-space' } = {}) => {
+      const makeSession = ({
+        camera = makeARCamera(),
+        interactionMode = 'screen-space',
+        viewerPose = { transform: { position: { x: 0, y: 1.2, z: 0 } } },
+      } = {}) => {
+        const referenceSpace = { name: 'local-floor' };
         const sessionManager = {
           worldScalingFactor: 1,
           inXRSession: true,
           session: { interactionMode },
+          referenceSpace,
+          // Babylon only reconciles the camera with the pose on a frame that has one.
+          currentFrame: { getViewerPose: () => viewerPose },
         };
         flock.xrHelper = { baseExperience: { camera, sessionManager } };
         flock._xrMode = 'AR';
@@ -2513,12 +2521,50 @@ export function runXRTests(flock) {
         flock.setARSceneSize(80);
         for (let frame = 0; frame < 4; frame++) flock._placeARScene();
 
-        // 80 cm across, so 1.2 m back: 30 world units at this scale, with the scene's base
-        // on the floor the viewer is standing on.
-        expect(camera.position.z).to.be.closeTo(-30, 1e-4);
+        // 80 cm across: 40 cm to the near edge plus 30 cm clearance is 70 cm, or 17.5 units here.
+        expect(camera.position.z).to.be.closeTo(-17.5, 1e-4);
+        expect(-camera.position.z - 20 / 2).to.be.closeTo(0.3 * 25, 1e-4);
         expect(camera.position.x).to.be.closeTo(0, 1e-4);
         expect(camera.position.y).to.be.closeTo(0 + 1.5 * 25, 1e-4);
         expect(flock._arPlacementFrames).to.equal(0);
+      });
+
+      it('starts the diorama the asked-for distance from its near edge', function () {
+        addBox('arDistanceBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, interactionMode: 'world-space' });
+
+        flock.setARSceneSize(80, 60, 0);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        // 40 cm to the near edge plus 60 cm of clearance is 1 m, or 25 units at this scale.
+        expect(camera.position.z).to.be.closeTo(-25, 1e-4);
+      });
+
+      it('raises the diorama off the floor without moving the scene', function () {
+        const box = addBox('arHeightBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, interactionMode: 'world-space' });
+
+        flock.setARSceneSize(80, 30, 50);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        // Raising the scene lowers the viewer against it; the scene itself stays where it is.
+        expect(camera.position.y).to.be.closeTo(1.5 * 25 - 0.5 * 25, 1e-4);
+        expect(box.position.y).to.equal(10);
+      });
+
+      // Projects saved before the block grew these inputs call it with the scale alone.
+      it('keeps the old framing when distance and height are left out', function () {
+        addBox('arDefaultsBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, interactionMode: 'world-space' });
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 4; frame++) flock._placeARScene();
+
+        expect(camera.position.z).to.be.closeTo(-17.5, 1e-4);
+        expect(camera.position.y).to.be.closeTo(1.5 * 25, 1e-4);
       });
 
       // A phone points where it is held, so the diorama has to be within a glance of straight
@@ -2533,8 +2579,40 @@ export function runXRTests(flock) {
 
         const back = -camera.position.z;
         const lookDown = Math.atan2(camera.position.y - 10, back);
-        expect(back).to.be.greaterThan(30);
-        expect(lookDown).to.be.closeTo(Math.PI / 6, 1e-6);
+        // Back past the clearance, at a tilt a phone is comfortably held at.
+        expect(back).to.be.greaterThan(17.5);
+        expect(lookDown).to.be.closeTo(Math.PI / 4, 1e-6);
+      });
+
+      // A position written before tracking is re-applied as an offset every untracked frame.
+      it('waits for a viewer pose before moving the camera', function () {
+        addBox('arUntrackedBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, viewerPose: null });
+        const startZ = camera.position.z;
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 60; frame++) flock._placeARScene();
+
+        expect(camera.position.z).to.equal(startZ);
+      });
+
+      // Tracking that never arrives must not mean a scene that never appears.
+      it('places the diorama anyway once waiting for a pose runs out', function () {
+        addBox('arGiveUpBox', { size: 20, position: [0, 10, 0] });
+        const camera = makeARCamera({ height: 1.5, scale: 25 });
+        makeSession({ camera, viewerPose: null });
+
+        flock.setARSceneSize(80);
+        for (let frame = 0; frame < 601; frame++) flock._placeARScene();
+
+        expect(camera.position.z).to.be.lessThan(-17.5);
+
+        // Placing again on later unposed frames would re-offset the reference space.
+        camera.position.set(0, 0, 0);
+        flock._placeARScene();
+        expect(camera.position.z).to.equal(0);
+        expect(camera.position.y).to.equal(0);
       });
 
       it('places the diorama wherever the viewer is facing', function () {
@@ -2545,7 +2623,7 @@ export function runXRTests(flock) {
         flock.setARSceneSize(80);
         for (let frame = 0; frame < 4; frame++) flock._placeARScene();
 
-        expect(camera.position.x).to.be.closeTo(-30, 1e-4);
+        expect(camera.position.x).to.be.closeTo(-17.5, 1e-4);
         expect(camera.position.z).to.be.closeTo(0, 1e-4);
       });
 

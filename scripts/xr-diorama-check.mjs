@@ -127,11 +127,11 @@ function assertDiorama(result) {
   if (result.terrain.ground.isVisible !== true) {
     throw new Error('Heightmap ground was hidden in the diorama');
   }
-  // Capped at 2 m, whatever the diorama measures.
+  // Measured from the near edge, so the gap does not grow with the footprint.
   const distance = Math.hypot(result.terrain.placed.x, result.terrain.placed.z);
-  const distanceMetres = distance / result.terrain.scale;
-  if (distanceMetres > 2.01 || distanceMetres < 1) {
-    throw new Error(`Viewer stands ${distanceMetres.toFixed(2)} m from the diorama`);
+  const clearanceMetres = (distance - result.terrain.groundWidth / 2) / result.terrain.scale;
+  if (Math.abs(clearanceMetres - 0.3) > 0.01) {
+    throw new Error(`Viewer stands ${clearanceMetres.toFixed(2)} m clear of the diorama`);
   }
   if (result.flat.ground.isVisible !== false) {
     throw new Error(`Flat ground stayed visible under the diorama: ${JSON.stringify(result.flat)}`);

@@ -332,7 +332,7 @@ export default {
   device_camera_background: 'använd %1 kamera som bakgrund',
   set_xr_mode: 'ställ in XR-läge till %1',
   set_xr_view_mode: 'ställ in VR-vy till %1 med kamerarörelse %2',
-  set_ar_scene_size: 'ställ in AR-scenstorlek till %1 cm', // ai
+  set_ar_scene_size: 'AR-scen skala: %1 cm avstånd: %2 cm höjd: %3 cm', // ai
   set_xr_ui_placement: 'visa VR-gränssnitt på %1', // ai
   add_teleport_target: 'lägg till teleporteringsmål %1',
   remove_teleport_target: 'ta bort teleporteringsmål %1',

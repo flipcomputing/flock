@@ -334,7 +334,7 @@ export default {
   device_camera_background: 'utiliser la caméra %1 comme arrière-plan',
   set_xr_mode: 'définir le mode XR sur %1',
   set_xr_view_mode: 'définir la vue RV sur %1 avec mouvement de caméra %2',
-  set_ar_scene_size: 'définir la taille de la scène RA à %1 cm', // ai
+  set_ar_scene_size: 'scène RA échelle : %1 cm distance : %2 cm hauteur : %3 cm', // ai
   set_xr_ui_placement: "afficher l'interface RV sur %1", // ai
   add_teleport_target: 'ajouter la cible de téléportation %1',
   remove_teleport_target: 'retirer la cible de téléportation %1',

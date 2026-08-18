@@ -610,13 +610,29 @@ const toolboxSceneXR = {
     {
       kind: 'block',
       type: 'set_ar_scene_size',
-      keyword: 'ar diorama scale size life size',
+      keyword: 'ar diorama scale size life size distance float hover',
       inputs: {
         SIZE: {
           shadow: {
             type: 'math_number',
             fields: {
               NUM: 80,
+            },
+          },
+        },
+        DISTANCE: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 30,
+            },
+          },
+        },
+        HEIGHT: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
             },
           },
         },

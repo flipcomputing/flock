@@ -2,11 +2,25 @@ import { translate } from '../main/translation.js';
 import { XRSource } from '../input/xrSource.js';
 import { patchEmulatorOffsetReferenceSpace } from '../input/xrEmulatorShim.js';
 import { FLY_SPEED } from '../input/cameraControls.js';
+import {
+  setFlockReference as setXRDebugFlockReference,
+  xrDebugPost,
+  xrDebugTick,
+  xrDebugResetTicks,
+} from './xrdebug.js';
 
 let flock;
 
+// Left out or nonsense keeps the default rather than putting the scene somewhere surprising.
+function optionalCentimetres(value, maxCm) {
+  const centimetres = Number(value);
+  if (!Number.isFinite(centimetres) || centimetres < 0) return null;
+  return Math.min(maxCm, centimetres);
+}
+
 export function setFlockReference(ref) {
   flock = ref;
+  setXRDebugFlockReference(ref);
 }
 
 export const createFlockXRState = () => ({
@@ -24,6 +38,7 @@ export const createFlockXRState = () => ({
   _xrSnapTurnHeld: false,
   _xrWatchPosition: null,
   _xrNonXRCameraPosition: null,
+  _xrProjectCameraOrbits: false,
   _xrEmbodiedVisibility: new Map(),
   _xrMode: undefined,
   _teleportAllTargets: false,
@@ -62,8 +77,11 @@ export const createFlockXRState = () => ({
   _magicWindowFallback: false,
   _xrHelperAutoCreated: false,
   _arSceneSizeCm: null,
+  _arSceneClearanceCm: null,
+  _arSceneHeightCm: null,
   _arWorldScale: 1,
   _arPlacementFrames: 0,
+  _arPlacementWaitFrames: 0,
   _arGroundState: null,
   _arShadowMaterial: null,
   _arHitTest: null,
@@ -89,20 +107,21 @@ const XR_HANDHELD_HUD_RENDERING_GROUP = 1;
 // Below this a rebuild would be rounding noise, not a turned phone.
 const XR_HUD_ASPECT_TOLERANCE = 0.05;
 
-// Big enough to fill about half a phone screen from where the look-down limit stands the viewer.
+// Big enough to fill about half a phone screen from the clearance the viewer is stood at.
 const AR_DEFAULT_SCENE_SIZE_CM = 150;
 const AR_SCENE_SIZE_MIN_CM = 1;
 const AR_SCENE_SIZE_MAX_CM = 100000;
-// Far enough back to see all of it, never closer than arm's length.
-const AR_DIORAMA_DISTANCE_FACTOR = 1.5;
-const AR_MIN_DIORAMA_DISTANCE_M = 1;
-// A landscape diorama is metres wide; standing back by its full width would leave the room.
-const AR_MAX_DIORAMA_DISTANCE_M = 2;
+// Measured from the near edge: distance to the centre grows with the footprint.
+const AR_DIORAMA_CLEARANCE_M = 0.3;
+const AR_SCENE_DISTANCE_MAX_CM = 1000;
+const AR_SCENE_HEIGHT_MAX_CM = 1000;
 // How far below the screen's centre a handheld diorama is allowed to sit, and how far back
 // that is ever allowed to stand the viewer if the reported eye height is wild.
-const AR_MAX_LOOK_DOWN = Math.PI / 6;
+const AR_MAX_LOOK_DOWN = Math.PI / 4;
 const AR_MAX_HANDHELD_DISTANCE_M = 3.5;
 const AR_PLACEMENT_SETTLE_FRAMES = 3;
+// Tracking can take hundreds of frames to come up on a phone; place unposed rather than never.
+const AR_PLACEMENT_MAX_WAIT_FRAMES = 600;
 // Babylon's pointer visuals, not scene content.
 const XR_HELPER_MESH_NAMES = new Set(['laserPointer', 'gazeTracker']);
 
@@ -562,7 +581,10 @@ export const flockXR = {
       flock._applyCameraBackground();
       flock._applyHandheldXRSession();
       flock._applyARSceneScale();
+      xrDebugResetTicks();
+      xrDebugPost('entered session');
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+      xrDebugPost('exiting session');
       flock._xrSessionActive = false;
       flock._resetARScene();
       flock._applyXRViewVisibility();
@@ -705,6 +727,8 @@ export const flockXR = {
     const offset =
       camera?.position && targetPosition ? camera.position.subtract(targetPosition) : null;
     flock._xrNonXRCameraPosition = camera?.position?.clone?.() ?? null;
+    // The session swaps in an XR camera, so remember whether the project's own camera orbited.
+    flock._xrProjectCameraOrbits = camera?.getClassName?.() === 'ArcRotateCamera';
     flock._xrFollowCameraVerticalOffset = offset ? offset.y : null;
     if (offset) offset.y = 0;
     flock._xrFollowCameraDirection = offset?.lengthSquared() ? offset.normalize() : null;
@@ -1108,6 +1132,7 @@ export const flockXR = {
       flock._updateXRView();
       flock._placeARScene();
       flock._syncXRHUDPose();
+      if (flock._xrSessionActive) xrDebugTick();
     });
     flock._xrViewObserverScene = flock.scene;
 
@@ -1248,6 +1273,15 @@ export const flockXR = {
     if (Number.isFinite(flock._arSceneSizeCm)) return flock._arSceneSizeCm;
     return flock._isHandheldXRSession() ? AR_DEFAULT_SCENE_SIZE_CM : 0;
   },
+  _arSceneClearanceMetres() {
+    const centimetres = flock._arSceneClearanceCm;
+    return Number.isFinite(centimetres) ? centimetres / 100 : AR_DIORAMA_CLEARANCE_M;
+  },
+  // How far above the room's floor the scene sits, not how tall it is.
+  _arSceneHeightMetres() {
+    const centimetres = flock._arSceneHeightCm;
+    return Number.isFinite(centimetres) ? centimetres / 100 : 0;
+  },
   _arWorldScaleFor(sizeCm, bounds) {
     if (!sizeCm || !bounds || !(bounds.width > 0)) return 1;
     const scale = bounds.width / (sizeCm / 100);
@@ -1268,21 +1302,43 @@ export const flockXR = {
     // A headset at life size already stands where the project put it.
     const placing = isAR && (scale !== 1 || flock._isHandheldXRSession());
     flock._arPlacementFrames = placing ? AR_PLACEMENT_SETTLE_FRAMES : 0;
+    flock._arPlacementWaitFrames = placing ? AR_PLACEMENT_MAX_WAIT_FRAMES : 0;
+  },
+  // Writing camera.position before the first pose re-offsets the reference space every frame.
+  _arViewerPoseReady() {
+    const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
+    const frame = sessionManager?.currentFrame;
+    const referenceSpace = sessionManager?.referenceSpace;
+    if (!frame || !referenceSpace) return false;
+    return !!frame.getViewerPose(referenceSpace);
   },
   // The session's first frame has an identity rotation, and placement needs the facing.
   _placeARScene() {
     if (!flock._arPlacementFrames || flock._xrMode !== 'AR' || !flock._xrSessionActive) return;
     const camera = flock.xrHelper?.baseExperience?.camera;
     if (!camera?.position || !camera.rigCameras?.length) return;
-    if (--flock._arPlacementFrames > 0) return;
+    if (flock._arViewerPoseReady()) {
+      if (--flock._arPlacementFrames > 0) return;
+    } else if (--flock._arPlacementWaitFrames > 0) {
+      return;
+    } else {
+      xrDebugPost('placing without a viewer pose');
+    }
+    // Once only: a count left behind re-places, and re-offsets, on every later unposed frame.
+    flock._arPlacementFrames = 0;
+    flock._arPlacementWaitFrames = 0;
 
     if (flock._arWorldScale === 1) {
       flock._positionXRARCamera(camera);
+      xrDebugPost('placed at life size');
       return;
     }
 
     const bounds = flock._arSceneBounds();
-    if (!bounds) return;
+    if (!bounds) {
+      xrDebugPost('placement aborted: no bounds');
+      return;
+    }
 
     const B = flock.BABYLON;
     const forward = new B.Vector3();
@@ -1291,31 +1347,28 @@ export const flockXR = {
     if (forward.lengthSquared() < 0.000001) forward.set(0, 0, 1);
     else forward.normalize();
 
-    const sizeMetres = bounds.width / flock._arWorldScale;
-    let distance =
-      Math.min(
-        AR_MAX_DIORAMA_DISTANCE_M,
-        Math.max(AR_MIN_DIORAMA_DISTANCE_M, AR_DIORAMA_DISTANCE_FACTOR * sizeMetres)
-      ) * flock._arWorldScale;
-    const eyeHeight = camera.realWorldHeight || XR_FALLBACK_EYE_HEIGHT_M * flock._arWorldScale;
+    const scale = flock._arWorldScale;
+    let distance = bounds.width / 2 + flock._arSceneClearanceMetres() * scale;
+    // realWorldHeight is already in scene units, and reads 0 until the first pose.
+    const eyeHeight = camera.realWorldHeight || XR_FALLBACK_EYE_HEIGHT_M * scale;
+    // Raising the scene lowers the viewer against it; nothing in the scene itself moves.
+    const cameraY = bounds.min.y + eyeHeight - flock._arSceneHeightMetres() * scale;
 
     // A wearer looks down as freely as they turn; a phone points where it is held, so a diorama
     // at arm's length sits below the screen entirely. Standing back trades size for being seen.
     if (flock._isHandheldXRSession()) {
-      const drop = bounds.min.y + eyeHeight - bounds.centre.y;
+      const drop = cameraY - bounds.centre.y;
       const backOff = drop > 0 ? drop / Math.tan(AR_MAX_LOOK_DOWN) : 0;
-      distance = Math.max(
-        distance,
-        Math.min(backOff, AR_MAX_HANDHELD_DISTANCE_M * flock._arWorldScale)
-      );
+      distance = Math.max(distance, Math.min(backOff, AR_MAX_HANDHELD_DISTANCE_M * scale));
     }
 
     // Moving the play space moves the diorama: stand the viewer that far back from it.
     camera.position.set(
       bounds.centre.x - forward.x * distance,
-      bounds.min.y + eyeHeight,
+      cameraY,
       bounds.centre.z - forward.z * distance
     );
+    xrDebugPost(`placed at ${(distance / flock._arWorldScale).toFixed(2)}m`);
   },
   // Life size: stand where the project camera looked from, on the ground not at its height.
   _positionXRARCamera(camera = flock.xrHelper?.baseExperience?.camera) {
@@ -1398,6 +1451,7 @@ export const flockXR = {
     if (sessionManager?.inXRSession) sessionManager.worldScalingFactor = 1;
     flock._arWorldScale = 1;
     flock._arPlacementFrames = 0;
+    flock._arPlacementWaitFrames = 0;
     flock._restoreARGround();
   },
   /*
@@ -1464,11 +1518,13 @@ export const flockXR = {
     flock._applyXRViewVisibility?.();
   },
   // 0 asks for life size: the viewer stands in the scene.
-  setARSceneSize(centimetres) {
+  setARSceneSize(centimetres, distanceCm, heightCm) {
     const size = Number(centimetres);
     if (!Number.isFinite(size) || size < 0) return;
     flock._arSceneSizeCm =
       size === 0 ? 0 : Math.min(AR_SCENE_SIZE_MAX_CM, Math.max(AR_SCENE_SIZE_MIN_CM, size));
+    flock._arSceneClearanceCm = optionalCentimetres(distanceCm, AR_SCENE_DISTANCE_MAX_CM);
+    flock._arSceneHeightCm = optionalCentimetres(heightCm, AR_SCENE_HEIGHT_MAX_CM);
     flock._applyARSceneScale();
   },
   setXRUIPlacement(placement) {

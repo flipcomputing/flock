@@ -58,6 +58,11 @@ export class CameraControls {
       return;
     }
 
+    // The XR camera is never an ArcRotateCamera, so the type test below needs the project's answer.
+    if (flock._xrSessionActive && flock._xrProjectCameraOrbits) {
+      return;
+    }
+
     const camera = this.#scene.activeCamera;
 
     if (!camera) {

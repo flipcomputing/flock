@@ -111,6 +111,33 @@ export function runCameraControlsTests() {
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
+      // The XR camera is never an ArcRotateCamera, so the project's own answer decides.
+      it('leaves the camera alone in a session when the project camera orbits', function () {
+        flock._xrSessionActive = true;
+        flock._xrProjectCameraOrbits = true;
+        flock._joystickSource = { getMove: () => ({ x: 1, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.equal(0);
+        expect(flock.scene.activeCamera.position.x).to.equal(0);
+      });
+
+      // A free-camera project flies in a session as it does on the desktop.
+      it('still flies the camera in a session when the project camera is free', function () {
+        flock._xrSessionActive = true;
+        flock._xrProjectCameraOrbits = false;
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
+
+      // Outside a session the scene's own camera type decides, as it always has.
+      it('flies the camera outside a session whatever the project camera was', function () {
+        flock._xrProjectCameraOrbits = true;
+        flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
+
       it('joystick x strafes the camera', function () {
         flock._joystickSource = { getMove: () => ({ x: 1, y: 0 }) };
         flock.scene.onBeforeRenderObservable.fire();

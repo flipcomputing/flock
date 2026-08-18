@@ -36,6 +36,37 @@ export function runMovementTests(flock) {
       expect(() => flock.moveForward(id, 0)).to.not.throw();
     });
 
+    // A phone aimed down at an AR diorama leaves forward almost vertical, so its horizontal part
+    // is noise. The heading has to come from the level right vector instead.
+    it('steers by the right vector when the camera looks straight down', async function () {
+      const id = 'boxLookDownSteering';
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.setPhysics(id, 'DYNAMIC');
+      boxIds.push(id);
+      await new Promise((r) => setTimeout(r, 200));
+
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.metadata = { ...(mesh.metadata ?? {}), physicsCapsule: true };
+
+      const camera = flock.scene.activeCamera;
+      const realGetDirection = camera.getDirectionToRef.bind(camera);
+      // Aimed 85 degrees down and rolled 30 degrees. Forward's horizontal part is 0.087 long and
+      // points +Z; the level right vector puts the screen's own forward 30 degrees off that.
+      camera.getDirectionToRef = (axis, result) =>
+        axis.z === 1 ? result.set(0, -0.996, 0.0872) : result.set(0.866, 0.0436, 0.498);
+
+      try {
+        flock.moveForward(id, 5);
+      } finally {
+        camera.getDirectionToRef = realGetDirection;
+      }
+
+      // Square to that right is (-0.498, 0, 0.866). Flattening forward would have given +Z.
+      const velocity = mesh.physics.getLinearVelocity();
+      expect(velocity.x).to.be.lessThan(-1);
+      expect(velocity.z).to.be.greaterThan(1);
+    });
+
     it('should do nothing when physicsCapsule metadata is missing', async function () {
       const id = 'boxMoveForwardNoCapsule';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });

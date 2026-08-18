@@ -367,7 +367,7 @@ export default {
   device_camera_background: 'usar cámara %1 como fondo', // human
   set_xr_mode: 'establecer modo XR a %1', // human
   set_xr_view_mode: 'establecer vista de RV a %1 con movimiento de cámara %2',
-  set_ar_scene_size: 'fijar tamaño de escena AR a %1 cm', // ai
+  set_ar_scene_size: 'escena AR escala: %1 cm distancia: %2 cm altura: %3 cm', // ai
   set_xr_ui_placement: 'mostrar interfaz de RV en %1', // ai
   add_teleport_target: 'añadir destino de teletransporte %1',
   remove_teleport_target: 'eliminar destino de teletransporte %1',

@@ -584,7 +584,11 @@ export function registerSceneGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock['set_ar_scene_size'] = function (block) {
     const size =
       javascriptGenerator.valueToCode(block, 'SIZE', javascriptGenerator.ORDER_ATOMIC) || '80';
-    return `setARSceneSize(${size});\n`;
+    const distance =
+      javascriptGenerator.valueToCode(block, 'DISTANCE', javascriptGenerator.ORDER_ATOMIC) || '30';
+    const height =
+      javascriptGenerator.valueToCode(block, 'HEIGHT', javascriptGenerator.ORDER_ATOMIC) || '0';
+    return `setARSceneSize(${size}, ${distance}, ${height});\n`;
   };
 
   javascriptGenerator.forBlock['set_xr_ui_placement'] = function (block) {

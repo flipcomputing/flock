@@ -335,7 +335,7 @@ export default {
   device_camera_background: 'użyj kamery urządzenia %1 jako tło',
   set_xr_mode: 'ustaw tryb XR na %1',
   set_xr_view_mode: 'ustaw widok VR na %1 z ruchem kamery %2',
-  set_ar_scene_size: 'ustaw rozmiar sceny AR na %1 cm', // ai
+  set_ar_scene_size: 'scena AR skala: %1 cm odległość: %2 cm wysokość: %3 cm', // ai
   set_xr_ui_placement: 'pokaż interfejs VR na %1', // ai
   add_teleport_target: 'dodaj cel teleportacji %1',
   remove_teleport_target: 'usuń cel teleportacji %1',

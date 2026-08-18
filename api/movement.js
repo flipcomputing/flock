@@ -19,6 +19,8 @@ const GROUND_CHECK_DISTANCE = 0.3; // downward capsule probe length
 const COYOTE_TIME_MS = 120; // grace window to still count as grounded after a ledge
 const MAX_VERTICAL_VELOCITY = 3.0; // clamp for normal movement (anti ramp-launch)
 const STEP_HEIGHT = 0.3;
+// Below this, the camera's forward is too near vertical for its horizontal part to be a heading
+const MIN_HORIZONTAL_FORWARD_SQ = 0.05;
 const STEP_PROBE_DISTANCE = 0.6;
 const DEFAULT_GRAVITY = 9.81;
 
@@ -337,7 +339,17 @@ export const flockMovement = {
     model._mfCameraForward ??= new B.Vector3();
     model._mfDesiredHorizontal ??= new B.Vector3();
     scene.activeCamera.getDirectionToRef(model._mfForwardLocal, model._mfCameraForward);
-    model._mfDesiredHorizontal.set(model._mfCameraForward.x, 0, model._mfCameraForward.z);
+    const forward = model._mfCameraForward;
+    if (forward.x * forward.x + forward.z * forward.z > MIN_HORIZONTAL_FORWARD_SQ) {
+      model._mfDesiredHorizontal.set(forward.x, 0, forward.z);
+    } else {
+      // Aimed steeply down, forward is almost vertical. Right stays level, and forward is square
+      // to it, so a phone held over a diorama still steers where it is pointing.
+      model._mfRightLocal ??= B.Vector3.Right();
+      model._mfCameraRight ??= new B.Vector3();
+      scene.activeCamera.getDirectionToRef(model._mfRightLocal, model._mfCameraRight);
+      model._mfDesiredHorizontal.set(-model._mfCameraRight.z, 0, model._mfCameraRight.x);
+    }
     model._mfDesiredHorizontal.normalize();
     model._mfDesiredHorizontal.scaleInPlace(speed);
 
