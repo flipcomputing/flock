@@ -259,7 +259,6 @@ function applyEmbedMode() {
   }
 
   if (mainContent) {
-    mainContent.style.transform = 'translateX(0px)';
     mainContent.style.marginTop = '0';
     mainContent.style.height = 'auto';
     mainContent.tabIndex = -1;
