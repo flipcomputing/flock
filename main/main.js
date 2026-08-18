@@ -46,7 +46,7 @@ import {
 } from './translation.js';
 import { ShortcutsPanel } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from './keyboardDispatcher.js';
-import { ContextManager } from './context.js';
+import { ContextManager, toggleContextDebug } from './context.js';
 import { areBlockHintsEnabled, setBlockHintsEnabled } from '../ui/blockHint.js';
 
 function isEmbedModeEnabled() {
@@ -812,6 +812,15 @@ function initializeApp() {
   KeyboardDispatcher.on('*', 'Mod+KeyE', (e) => {
     e.preventDefault();
     Blockly.getFocusManager()?.focusTree?.(workspace);
+  });
+  KeyboardDispatcher.on('*', 'Mod+Shift+KeyD', (e) => {
+    // Desktop fallback that toggles both debug panels together: the context
+    // banner, and the console log panel normally opened with a three-finger
+    // tap on touch devices.
+    if (!window.__flockToggleDebugLog) return;
+    e.preventDefault();
+    window.__flockToggleDebugLog();
+    toggleContextDebug();
   });
   KeyboardDispatcher.on('*', 'KeyT', (e) => {
     const ctx = ContextManager.getCurrentContext();

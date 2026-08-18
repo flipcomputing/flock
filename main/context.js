@@ -2,6 +2,8 @@
  * Flock Context Manager
  * Priority-based state tracker for keyboard/mouse intent.
  */
+import { isDebugModeEnabled } from './debugMode.js';
+
 export const ContextManager = {
   // Define priority order (Top of list = most important)
   priorities: ['TYPING', 'OVERLAY', 'GIZMO', 'RESIZER', 'NAVIGATION', 'EDITOR', 'CAMERA'],
@@ -94,10 +96,29 @@ export const ContextManager = {
   },
 };
 
+let debugDiv = null;
+let debugIntervalId = null;
+
+// Toggles the top context banner. No-op if debug mode was off at load, since
+// the banner (and its update loop) was never created.
+export function toggleContextDebug() {
+  if (!debugDiv) return;
+  if (debugDiv.style.display === 'none') {
+    debugDiv.style.display = '';
+    const valueSpan = document.getElementById('ctx-value');
+    debugIntervalId = setInterval(() => {
+      valueSpan.innerText = ContextManager.getCurrentContext() + ' ' + document.activeElement.id;
+    }, 100);
+  } else {
+    debugDiv.style.display = 'none';
+    clearInterval(debugIntervalId);
+  }
+}
+
 // Inject this debug overlay into index.html
 (function injectDebugUI() {
   const start = () => {
-    if (window.location.hostname !== 'localhost') return; // Only show debug on dev
+    if (!isDebugModeEnabled()) return;
     // 1. Create Style with !important to prevent overrides
     const style = document.createElement('style');
     style.textContent = `
@@ -116,27 +137,44 @@ export const ContextManager = {
                 border-top: none !important;
                 border-radius: 0 0 6px 6px !important;
                 pointer-events: none !important;
-                width: 400px !important;
+                box-sizing: border-box !important;
+                width: 90% !important;
+                max-width: 400px !important;
                 overflow: hidden !important;
+                padding-right: 28px !important;
+            }
+            #flock-context-debug-close {
+                position: absolute !important;
+                top: 0 !important;
+                right: 4px !important;
+                background: none !important;
+                border: none !important;
+                color: #00ff00 !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+                cursor: pointer !important;
+                pointer-events: auto !important;
             }
         `;
     document.head.appendChild(style);
 
     // 2. Create the Element
-    const debugDiv = document.createElement('div');
+    debugDiv = document.createElement('div');
     debugDiv.id = 'flock-context-debug';
-    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span>`;
+    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span><button id="flock-context-debug-close" aria-label="Close debug panel" type="button">&times;</button>`;
     document.body.appendChild(debugDiv);
 
     // Update loop
     const valueSpan = document.getElementById('ctx-value');
 
-    setInterval(() => {
-      if (typeof ContextManager !== 'undefined') {
-        // Simply fetch and display the state
-        valueSpan.innerText = ContextManager.getCurrentContext() + ' ' + document.activeElement.id;
-      }
+    debugIntervalId = setInterval(() => {
+      // Simply fetch and display the state
+      valueSpan.innerText = ContextManager.getCurrentContext() + ' ' + document.activeElement.id;
     }, 100);
+
+    document
+      .getElementById('flock-context-debug-close')
+      .addEventListener('click', toggleContextDebug);
   };
 
   // Run immediately if body exists, otherwise wait for load
