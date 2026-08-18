@@ -1076,6 +1076,7 @@ export default {
   water_map_ui: '💧 Mapa de Agua', // human
   skittles_ui: '🎳 Bolos', // human
   beetle_ui: '🎲 Escarabajo', // human
+  gem_tilt_game_ui: '⚖️ Inclina la Gema', // ai
   roominator_ui: '🛋️ Habitación', // human
   ball_pit_ui: '🟠 Piscina de Pelotas', // human
   ur_enough_ui: '💗 ¡Eres Suficiente!', // human

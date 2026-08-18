@@ -1088,6 +1088,7 @@ export default {
   water_map_ui: '💧 Water map',
   skittles_ui: '🎳 Skittles',
   beetle_ui: '🎲 Beetle',
+  gem_tilt_game_ui: '⚖️ Gem tilt',
   roominator_ui: '🛋️ Roominator',
   sit_down_ui: '🪑 Sit down',
   ball_pit_ui: '🟠 Ball pit',
