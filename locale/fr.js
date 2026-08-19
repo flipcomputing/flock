@@ -279,6 +279,10 @@ export default {
   create_cylinder:
     'ajouter cylindre %1 %2 hauteur: %3 haut: %4 bas: %5 côtés: %6\nà x: %7 y: %8 z: %9',
   create_capsule: 'ajouter capsule %1 %2 diamètre: %3 hauteur: %4\nà x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'ajouter coin %1 %2 largeur: %3 hauteur: %4 profondeur: %5\nsommet: %6 le long de: %7\nà x: %8 y: %9 z: %10', // ai
   create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\nà x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -551,6 +555,8 @@ export default {
     'Crée un cylindre coloré avec des dimensions et une position spécifiées.\nMot-clé: cylinder',
   create_capsule_tooltip:
     'Crée une capsule colorée avec des dimensions et une position spécifiées.\nMot-clé: capsule',
+  create_wedge_tooltip:
+    'Ajoute un coin — un prisme triangulaire pour construire des rampes, des pentes et des toits. Change le sommet pour changer la forme : 0 donne une rampe, 0.5 un toit.\nMot-clé: wedge', // ai
   create_plane_tooltip:
     'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.\nMot-clé: plane',
 

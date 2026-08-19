@@ -250,6 +250,17 @@ Creates a cylinder geometry.
 
 Creates a capsule geometry.
 
+#### `createWedge(name, options)`
+
+Creates a wedge (triangular prism) geometry.
+
+**Options:**
+
+- `width`, `height`, `depth` (number): Bounding size
+- `axis` (`'X'` | `'Z'`): The axis `peak` moves the ridge along. The ridge itself extends along the other horizontal axis, so `axis: 'X'` gives a ridge running along Z
+- `peak` (number, 0-1): Where the ridge sits on that axis — 0 or 1 for a ramp, 0.5 for a roof
+- `color` (string), `position` (array), `alpha` (number)
+
 #### `createPlane(name, options)`
 
 Creates a plane geometry.

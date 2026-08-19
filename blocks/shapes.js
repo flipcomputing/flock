@@ -827,6 +827,83 @@ export function defineShapeBlocks() {
     },
   };
 
+  Blockly.Blocks['create_wedge'] = {
+    init: function () {
+      const variableNamePrefix = 'wedge';
+      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'create_wedge',
+        message0: translate('create_wedge'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'input_value',
+            name: 'COLOR',
+            check: ['Colour', 'Material'],
+          },
+          {
+            type: 'input_value',
+            name: 'WIDTH',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'HEIGHT',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'DEPTH',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'PEAK',
+            check: 'Number',
+          },
+          {
+            type: 'field_dropdown',
+            name: 'AXIS',
+            options: [getDropdownOption('X'), getDropdownOption('Z')],
+          },
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_wedge'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+
+      // Set up the change handler.
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockChange(this, changeEvent, variableNamePrefix)
+      );
+      // Add the mutator with toggle behaviour.
+      addDoMutatorWithToggleBehavior(this);
+    },
+  };
+
   Blockly.Blocks['create_plane'] = {
     init: function () {
       const variableNamePrefix = 'plane';

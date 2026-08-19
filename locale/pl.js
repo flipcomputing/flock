@@ -280,6 +280,10 @@ export default {
   create_cylinder:
     'dodaj cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\nw x: %7 y: %8 z: %9',
   create_capsule: 'dodaj kapsułę %1 %2 średnica: %3 wysokość: %4\nw x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'dodaj klin %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nszczyt: %6 wzdłuż: %7\nw x: %8 y: %9 z: %10', // ai
   create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\nw x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -546,6 +550,8 @@ export default {
     'Stwórz kolorowy cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\npołożenie x: %7 y: %8 z: %9\nSłowo kluczowe: cylinder',
   create_capsule_tooltip:
     'Stwórz kolorową kapsułę %1 %2 średnica: %3 wysokość: %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: capsule',
+  create_wedge_tooltip:
+    'Dodaj klin — graniastosłup trójkątny do budowania ramp, zboczy i dachów. Zmień szczyt, aby zmienić kształt: 0 tworzy rampę, 0.5 tworzy dach.\nSłowo kluczowe: wedge', // ai
   create_plane_tooltip:
     'Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7\nSłowo kluczowe: plane',
 

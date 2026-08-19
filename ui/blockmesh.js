@@ -41,6 +41,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_sphere',
   'create_cylinder',
   'create_capsule',
+  'create_wedge',
   'create_plane',
 ]);
 
@@ -1008,6 +1009,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
     const TILE_SIZE = 4;
     switch (shapeType) {
       case 'Box':
+      case 'Wedge':
         flock.setSizeBasedBoxUVs(mesh, dims.width, dims.height, dims.depth, TILE_SIZE);
         break;
       case 'Sphere':
@@ -1089,6 +1091,21 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
         updateCapsuleGeometry(mesh, d, h);
         applyPrimitiveUVTiling('Capsule', { radius: d / 2, height: h });
+        repositionPrimitiveFromBlock();
+      }
+      break;
+    }
+
+    case 'create_wedge': {
+      if (['WIDTH', 'HEIGHT', 'DEPTH', 'PEAK', 'AXIS'].includes(changed)) {
+        const w = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
+        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+        const d = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
+        const peak = block.getInput('PEAK').connection.targetBlock().getFieldValue('NUM');
+        const axis = block.getFieldValue('AXIS');
+
+        updateWedgeGeometry(mesh, w, h, d, peak, axis);
+        applyPrimitiveUVTiling('Wedge', { width: w, height: h, depth: d });
         repositionPrimitiveFromBlock();
       }
       break;
@@ -1603,6 +1620,9 @@ function setAbsoluteSize(mesh, width, height, depth) {
       case 'Capsule':
         newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
         break;
+      case 'Wedge':
+        newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
+        break;
       default:
         console.log('Unknown or unsupported physics shape type: ' + shapeType);
         break;
@@ -1739,6 +1759,71 @@ function updateCapsuleGeometry(mesh, diameter, height) {
   }
 
   // Ensure the world matrix is updated
+  mesh.computeWorldMatrix(true);
+}
+
+// Peak and axis reshape the cross-section, so this rebuilds rather than rescales.
+function updateWedgeGeometry(mesh, width, height, depth, peak, axis) {
+  // This path skips createWedge, so normalise here too.
+  const toDimension = (value, fallback) => {
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : fallback;
+  };
+  width = toDimension(width, 1);
+  height = toDimension(height, 1);
+  depth = toDimension(depth, 1);
+  peak = Math.min(1, Math.max(0, toDimension(peak, 0)));
+  axis = String(axis).toUpperCase() === 'Z' ? 'Z' : 'X';
+
+  const worldMatrix = mesh.computeWorldMatrix(true);
+  const currentScale = new flock.BABYLON.Vector3();
+  const currentRotationQuaternion = new flock.BABYLON.Quaternion();
+  const currentPosition = new flock.BABYLON.Vector3();
+  worldMatrix.decompose(currentScale, currentRotationQuaternion, currentPosition);
+
+  if (mesh.geometry) {
+    mesh.geometry.dispose();
+  }
+
+  mesh = moveMeshToOrigin(mesh);
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  const tempMesh = flock.BABYLON.MeshBuilder.CreatePolyhedron(
+    '',
+    {
+      custom: flock.wedgeGeometryData({ width, height, depth, peak, axis }),
+    },
+    mesh.getScene()
+  );
+
+  const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
+  const newGeometry = new flock.BABYLON.Geometry(
+    mesh.name + '_geometry',
+    mesh.getScene(),
+    vertexData,
+    true,
+    mesh
+  );
+  newGeometry.applyToMesh(mesh);
+  mesh.makeGeometryUnique();
+  tempMesh.dispose();
+
+  mesh.position = currentPosition;
+  mesh.rotationQuaternion = currentRotationQuaternion;
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  mesh.metadata = mesh.metadata || {};
+  mesh.metadata.wedgePeak = peak;
+  mesh.metadata.wedgeAxis = axis;
+
+  if (mesh.physics && mesh.metadata?.shapeType === 'Wedge') {
+    const newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
+    if (newShape) {
+      mesh.physics.shape?.dispose?.();
+      mesh.physics.shape = newShape;
+    }
+  }
+
   mesh.computeWorldMatrix(true);
 }
 

@@ -524,6 +524,77 @@ const toolboxSceneMeshes = {
     },
     {
       kind: 'block',
+      type: 'create_wedge',
+      keyword: 'wedge',
+      inputs: {
+        COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#996633',
+            },
+          },
+        },
+        WIDTH: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 2,
+            },
+          },
+        },
+        HEIGHT: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        DEPTH: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        PEAK: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'create_plane',
       keyword: 'plane',
       inputs: {

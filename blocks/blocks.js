@@ -1298,6 +1298,7 @@ export function initializeVariableIndexes() {
     sphere: 1,
     cylinder: 1,
     capsule: 1,
+    wedge: 1,
     plane: 1,
     wall: 1,
     text: 1,

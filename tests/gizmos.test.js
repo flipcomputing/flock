@@ -459,6 +459,8 @@ export function runGizmoTests(flock) {
         'cameraButton',
         'eyeButton',
         'showShapesButton',
+        'scrollShapesLeftButton',
+        'scrollShapesRightButton',
         'scrollModelsLeftButton',
         'scrollModelsRightButton',
         'scrollObjectsLeftButton',
@@ -525,23 +527,29 @@ export function runGizmoTests(flock) {
         }
       });
 
-      it('wires the scroll buttons to window.scrollModels/scrollObjects/scrollCharacters', function () {
+      it('wires the scroll buttons to window.scrollShapes/scrollModels/scrollObjects/scrollCharacters', function () {
         REQUIRED_IDS.forEach((id) => addButton(id));
         const calls = [];
         const saved = {
+          scrollShapes: window.scrollShapes,
           scrollModels: window.scrollModels,
           scrollObjects: window.scrollObjects,
           scrollCharacters: window.scrollCharacters,
         };
+        window.scrollShapes = (dir) => calls.push(['shapes', dir]);
         window.scrollModels = (dir) => calls.push(['models', dir]);
         window.scrollObjects = (dir) => calls.push(['objects', dir]);
         window.scrollCharacters = (dir) => calls.push(['characters', dir]);
         try {
           enableGizmos();
+          document.getElementById('scrollShapesLeftButton').click();
+          document.getElementById('scrollShapesRightButton').click();
           document.getElementById('scrollModelsLeftButton').click();
           document.getElementById('scrollObjectsRightButton').click();
           document.getElementById('scrollCharactersLeftButton').click();
           expect(calls).to.deep.equal([
+            ['shapes', -1],
+            ['shapes', 1],
             ['models', -1],
             ['objects', 1],
             ['characters', -1],

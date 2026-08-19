@@ -963,18 +963,21 @@ button {
   display: flex;
 }
 
+#shape-row,
 #model-row,
 #object-row,
 #character-row {
   scroll-snap-type: x mandatory;
 }
 
+#shape-row li,
 #model-row li,
 #object-row li,
 #character-row li {
   scroll-snap-align: start;
 }
 
+#shape-row::after,
 #model-row::after,
 #object-row::after,
 #character-row::after {
@@ -2016,15 +2019,6 @@ body.color-picker-open #renderCanvas {
   overflow: visible;
 }
 
-/* Force grid (override earlier flex rules) and remove extra ul padding */
-#shapes-dropdown > ul {
-  display: grid !important;
-  grid-template-columns: repeat(5, 60px);
-  gap: 8px;
-  overflow: visible !important; /* override old scrollbar-hiding rule */
-  list-style: none;
-}
-
 /* On phones the shape button is centred in the 2-row gizmo grid, so the
    popup's old anchor (bottom-left of that button) ran partway off the right
    edge. Instead anchor it to the whole gizmo bar and span full width,
@@ -2063,14 +2057,6 @@ body.color-picker-open #renderCanvas {
   /* Size every row to show exactly 5 tiles, then centre it, so a matching
      grey margin is left on both sides rather than a single band on the
      right. 5 * (40px img + 10px li padding) + 4 * 8px gap = 282px. */
-  #shapes-dropdown > ul {
-    grid-template-columns: repeat(5, 1fr);
-    justify-items: center;
-    width: 282px;
-    max-width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-  }
   .scrollable-container {
     width: 282px;
     max-width: 100%;
@@ -2113,20 +2099,9 @@ body.color-picker-open #renderCanvas {
     width: 36px;
     height: 36px;
   }
-  /* Fit as many 46px tiles (36px img + 5px li padding either side) as the width
-     allows, up to the 5 that the gap beside the plus button is sized for. The
-     narrowest landscape phones leave less than that — the canvas alone fills
-     their width — so the count has to drop rather than the rows overflow, which
-     #canvasArea would clip. The scrolling rows keep their chevrons either way. */
-  #shapes-dropdown > ul {
-    grid-template-columns: repeat(auto-fill, 46px);
-    justify-content: center;
-    justify-items: center;
-    width: 100%;
-    max-width: 262px;
-    margin-left: auto;
-    margin-right: auto;
-  }
+  /* Every row scrolls, so the narrowest landscape phones — where the canvas
+     alone fills the width — just show fewer tiles and reach the rest with the
+     chevrons, rather than overflowing into #canvasArea, which would clip them. */
   .scrollable-container {
     width: 100%;
     max-width: 262px;

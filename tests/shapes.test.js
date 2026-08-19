@@ -63,6 +63,197 @@ export function runShapesTests(flock) {
       });
     });
 
+    describe('createWedge', function () {
+      // Local space: createWedge bakes the size in and leaves scaling at 1.
+      const extents = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        const min = [Infinity, Infinity, Infinity];
+        const max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < positions.length; i += 3) {
+          for (let axis = 0; axis < 3; axis++) {
+            min[axis] = Math.min(min[axis], positions[i + axis]);
+            max[axis] = Math.max(max[axis], positions[i + axis]);
+          }
+        }
+        return { min, max, size: max.map((v, i) => v - min[i]) };
+      };
+
+      it('should return a string id and create the mesh in the scene', function () {
+        const id = flock.createWedge('testWedge1', {
+          color: '#ff6600',
+          width: 2,
+          height: 1,
+          depth: 3,
+          position: [0, 1, 0],
+        });
+        createdIds.push(id);
+
+        expect(id).to.be.a('string');
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+      });
+
+      it('should set blockKey and shapeType metadata', function () {
+        const id = flock.createWedge('testWedge2', { width: 1, height: 1, depth: 1 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata).to.exist;
+        expect(mesh.metadata.blockKey).to.be.a('string');
+        expect(mesh.metadata.shapeType).to.equal('Wedge');
+      });
+
+      it('should bake the requested size into the geometry', function () {
+        const id = flock.createWedge('testWedge3', {
+          width: 2,
+          height: 1,
+          depth: 3,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.closeTo(2, 0.001);
+        expect(size[1]).to.be.closeTo(1, 0.001);
+        expect(size[2]).to.be.closeTo(3, 0.001);
+        expect(mesh.scaling.x).to.equal(1);
+      });
+
+      it('should place the ridge according to peak along the X axis', function () {
+        const cases = [
+          { peak: 0, expected: -1 },
+          { peak: 0.5, expected: 0 },
+          { peak: 1, expected: 1 },
+        ];
+
+        cases.forEach(({ peak, expected }, index) => {
+          const id = flock.createWedge(`testWedgePeak${index}`, {
+            width: 2,
+            height: 1,
+            depth: 1,
+            peak,
+            position: [0, 0, 0],
+          });
+          createdIds.push(id);
+
+          const mesh = flock.scene.getMeshByName(id);
+          const positions = mesh.getVerticesData('position');
+          const { max } = extents(mesh);
+
+          // Every vertex at the top of the wedge sits on the ridge line.
+          const ridgeX = [];
+          for (let i = 0; i < positions.length; i += 3) {
+            if (Math.abs(positions[i + 1] - max[1]) < 0.001) ridgeX.push(positions[i]);
+          }
+
+          expect(ridgeX.length, `peak ${peak} ridge vertices`).to.be.greaterThan(0);
+          ridgeX.forEach((x) => expect(x, `peak ${peak}`).to.be.closeTo(expected, 0.001));
+        });
+      });
+
+      it('should run the ridge along Z when axis is Z', function () {
+        const id = flock.createWedge('testWedgeAxisZ', {
+          width: 2,
+          height: 1,
+          depth: 4,
+          peak: 0,
+          axis: 'Z',
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData('position');
+        const { max } = extents(mesh);
+
+        for (let i = 0; i < positions.length; i += 3) {
+          if (Math.abs(positions[i + 1] - max[1]) < 0.001) {
+            expect(positions[i + 2]).to.be.closeTo(-2, 0.001);
+          }
+        }
+      });
+
+      it('should clamp peak to the 0-1 range', function () {
+        const id = flock.createWedge('testWedgeClamp', {
+          width: 2,
+          height: 1,
+          depth: 1,
+          peak: 5,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData('position');
+        const { max } = extents(mesh);
+
+        for (let i = 0; i < positions.length; i += 3) {
+          if (Math.abs(positions[i + 1] - max[1]) < 0.001) {
+            expect(positions[i]).to.be.closeTo(1, 0.001);
+          }
+        }
+      });
+
+      it('should produce finite normals at every peak value', function () {
+        [0, 0.25, 0.5, 0.75, 1].forEach((peak, index) => {
+          const id = flock.createWedge(`testWedgeNormals${index}`, {
+            width: 2,
+            height: 1,
+            depth: 1,
+            peak,
+            position: [0, 0, 0],
+          });
+          createdIds.push(id);
+
+          const normals = flock.scene.getMeshByName(id).getVerticesData('normal');
+          expect(normals, `peak ${peak}`).to.exist;
+          normals.forEach((n) => expect(Number.isFinite(n), `peak ${peak}`).to.be.true);
+        });
+      });
+
+      it('should give the wedge a physics body', function () {
+        const id = flock.createWedge('testWedgePhysics', {
+          width: 2,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics).to.exist;
+        expect(mesh.physics.shape).to.exist;
+      });
+
+      it('should keep the convex hull when physics is disabled then re-enabled', async function () {
+        const id = flock.createWedge('testWedgeRePhysics', {
+          width: 2,
+          height: 1,
+          depth: 1,
+          position: [0, 1, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeConvexHull);
+
+        await flock.setPhysics(id, 'NONE');
+        await flock.setPhysics(id, 'STATIC');
+
+        expect(mesh.physics).to.exist;
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeConvexHull);
+      });
+
+      it('should avoid collisions for repeated wedge ids', function () {
+        const firstId = flock.createWedge('reserveWedge', { width: 1, height: 1, depth: 1 });
+        const secondId = flock.createWedge('reserveWedge', { width: 1, height: 1, depth: 1 });
+        createdIds.push(firstId, secondId);
+
+        expect(firstId).to.not.equal(secondId);
+      });
+    });
+
     describe('createPlane', function () {
       it('should return a string id and create the mesh in the scene', function () {
         const id = flock.createPlane('testPlane1', {

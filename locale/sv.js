@@ -278,6 +278,10 @@ export default {
   create_cylinder:
     'lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9',
   create_capsule: 'lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\nvid x: %8 y: %9 z: %10', // ai
   create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -537,6 +541,8 @@ export default {
     'Skapa en färgad cylinder med angivna dimensioner och position.\nKeyword: cylinder',
   create_capsule_tooltip:
     'Skapa en färgad kapsel med angivna dimensioner och position.\nKeyword: capsule',
+  create_wedge_tooltip:
+    'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.\nNyckelord: wedge', // ai
   create_plane_tooltip:
     'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.\nKeyword: plane',
 

@@ -282,6 +282,10 @@ export default {
   create_cylinder:
     'Zylinder hinzufügen %1 %2 Höhe: %3 oben: %4 unten: %5 Seiten: %6\nbei x: %7 y: %8 z: %9',
   create_capsule: 'Kapsel hinzufügen %1 %2 Ø: %3 Höhe: %4\nbei x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'Keil hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nSpitze: %6 entlang: %7\nbei x: %8 y: %9 z: %10', // ai
   create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7',
 
   // Sound blocks
@@ -700,6 +704,8 @@ export default {
     'Erstelle einen farbigen Zylinder mit angegebenen Maßen und Position.\nSchlüsselwort: cylinder',
   create_capsule_tooltip:
     'Erstelle eine farbige Kapsel mit angegebenen Maßen und Position.\nSchlüsselwort: capsule',
+  create_wedge_tooltip:
+    'Fügt einen Keil hinzu — ein dreieckiges Prisma für Rampen, Schrägen und Dächer. Ändere die Spitze, um die Form zu ändern: 0 ergibt eine Rampe, 0.5 ein Dach.\nSchlüsselwort: wedge', // ai
   create_plane_tooltip:
     'Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.\nSchlüsselwort: plane',
 

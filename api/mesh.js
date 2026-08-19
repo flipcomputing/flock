@@ -488,6 +488,55 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
 
+  // Quad base with a ridge line above it. The ridge stays a line at every peak,
+  // so no value in the range produces a degenerate face.
+  wedgeGeometryData({ width = 1, height = 1, depth = 1, peak = 0, axis = 'X' } = {}) {
+    const hw = width / 2;
+    const hh = height / 2;
+    const hd = depth / 2;
+    const p = Math.min(1, Math.max(0, Number(peak) || 0));
+
+    if (String(axis).toUpperCase() === 'Z') {
+      const pz = -hd + p * depth;
+      return {
+        vertex: [
+          [-hw, -hh, -hd],
+          [-hw, -hh, hd],
+          [hw, -hh, hd],
+          [hw, -hh, -hd],
+          [-hw, hh, pz],
+          [hw, hh, pz],
+        ],
+        face: [
+          [3, 2, 1, 0],
+          [1, 4, 0],
+          [5, 2, 3],
+          [4, 5, 3, 0],
+          [2, 5, 4, 1],
+        ],
+      };
+    }
+
+    const px = -hw + p * width;
+    return {
+      vertex: [
+        [-hw, -hh, -hd],
+        [hw, -hh, -hd],
+        [hw, -hh, hd],
+        [-hw, -hh, hd],
+        [px, hh, -hd],
+        [px, hh, hd],
+      ],
+      face: [
+        [0, 1, 2, 3],
+        [0, 4, 1],
+        [3, 2, 5],
+        [0, 3, 5, 4],
+        [1, 4, 5, 2],
+      ],
+    };
+  },
+
   getOrCreateGeometry(shapeType, dimensions, scene) {
     const geometryKey = `${shapeType}_${Object.values(dimensions).join('_')}`;
 
@@ -505,6 +554,12 @@ export const flockMesh = {
         initialMesh = flock.BABYLON.MeshBuilder.CreateCylinder(geometryKey, dimensions, scene);
       } else if (shapeType === 'Capsule') {
         initialMesh = flock.BABYLON.MeshBuilder.CreateCapsule(geometryKey, dimensions, scene);
+      } else if (shapeType === 'Wedge') {
+        initialMesh = flock.BABYLON.MeshBuilder.CreatePolyhedron(
+          geometryKey,
+          { custom: flock.wedgeGeometryData(dimensions) },
+          scene
+        );
       } else {
         throw new Error(`Unsupported shape type: ${shapeType}`);
       }
@@ -657,6 +712,7 @@ export const flockMesh = {
     const shape = mesh.metadata?.shapeType || (mesh.metadata?.shape === 'plane' ? 'Plane' : null);
     switch (shape) {
       case 'Box':
+      case 'Wedge':
         flock.setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize, scale);
         return true;
       case 'Sphere':

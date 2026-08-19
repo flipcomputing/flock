@@ -546,6 +546,74 @@ export const flockShapes = {
 
     return newCapsule.name;
   },
+  createWedge(
+    wedgeId,
+    {
+      width = 1,
+      height = 1,
+      depth = 1,
+      peak = 0,
+      axis = 'X',
+      color = '#9932CC',
+      position = new flock.BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    } = {}
+  ) {
+    if (!validateShapeId(wedgeId, 'createWedge')) return null;
+    width = toDim(width, 1);
+    height = toDim(height, 1);
+    depth = toDim(depth, 1);
+    peak = Math.min(1, Math.max(0, toDim(peak, 0)));
+    axis = String(axis).toUpperCase() === 'Z' ? 'Z' : 'X';
+    alpha = toAlpha(alpha);
+
+    let blockKey = wedgeId;
+
+    if (wedgeId.includes('__')) {
+      [wedgeId, blockKey] = wedgeId.split('__');
+    }
+
+    let groupName = wedgeId;
+    wedgeId = flock._reserveName(wedgeId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const dimensions = { width, height, depth, peak, axis };
+
+    const vertexData = flock.getOrCreateGeometry('Wedge', dimensions, flock.scene);
+
+    const newWedge = new flock.BABYLON.Mesh(wedgeId, flock.scene);
+    vertexData.applyToMesh(newWedge);
+
+    flock.setSizeBasedBoxUVs(newWedge, width, height, depth);
+
+    newWedge.bakeCurrentTransformIntoVertices();
+    newWedge.scaling.set(1, 1, 1);
+
+    flock.initializeMesh(newWedge, position, color, 'Wedge', alpha);
+
+    newWedge.metadata = newWedge.metadata || {};
+    newWedge.metadata.blockKey = blockKey;
+    newWedge.metadata.wedgePeak = peak;
+    newWedge.metadata.wedgeAxis = axis;
+
+    // A hull fits the slope and, unlike a mesh shape, works on a dynamic body.
+    const wedgeShape = new flock.BABYLON.PhysicsShapeConvexHull(newWedge, flock.scene);
+    flock.applyPhysics(newWedge, wedgeShape);
+    // Read back when physics is disabled then re-enabled.
+    newWedge.metadata.physicsShapeType = 'CONVEX_HULL';
+
+    flock.announceMeshReady(newWedge.name, groupName);
+    flock._registerInstance(blockKey, newWedge.name);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return newWedge.name;
+  },
   createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
     if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);

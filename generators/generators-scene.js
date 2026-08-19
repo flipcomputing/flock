@@ -309,6 +309,30 @@ export function registerSceneGenerators(javascriptGenerator) {
     return createMesh(block, 'Capsule', params, 'capsule');
   };
 
+  // Add wedge ----------------------------------------------------------
+  javascriptGenerator.forBlock['create_wedge'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const width = getFieldValue(block, 'WIDTH', '2');
+    const height = getFieldValue(block, 'HEIGHT', '1');
+    const depth = getFieldValue(block, 'DEPTH', '1');
+    const peak = getFieldValue(block, 'PEAK', '0');
+    const axis = block.getFieldValue('AXIS') === 'Z' ? 'Z' : 'X';
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `width: ${width}`,
+      `height: ${height}`,
+      `depth: ${depth}`,
+      `peak: ${peak}`,
+      `axis: ${JSON.stringify(axis)}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Wedge', params, 'wedge');
+  };
+
   // Add plane ----------------------------------------------------------
   javascriptGenerator.forBlock['create_plane'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#9932CC"');

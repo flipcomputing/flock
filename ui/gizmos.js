@@ -1531,6 +1531,7 @@ function updateScaleBlock(mesh, originalBottomY = null) {
         break;
 
       case 'create_box':
+      case 'create_wedge':
         setNumberInputs(block, { WIDTH: w, HEIGHT: h, DEPTH: d });
         break;
 
@@ -2595,6 +2596,8 @@ export function enableGizmos() {
   const colorPickerButton = document.getElementById('colorPickerButton');
   const aboutButton = document.getElementById('logo');
 
+  const scrollShapesLeftButton = document.getElementById('scrollShapesLeftButton');
+  const scrollShapesRightButton = document.getElementById('scrollShapesRightButton');
   const scrollModelsLeftButton = document.getElementById('scrollModelsLeftButton');
   const scrollModelsRightButton = document.getElementById('scrollModelsRightButton');
   const scrollObjectsLeftButton = document.getElementById('scrollObjectsLeftButton');
@@ -2616,6 +2619,8 @@ export function enableGizmos() {
     showShapesButton,
     colorPickerButton,
     aboutButton,
+    scrollShapesLeftButton,
+    scrollShapesRightButton,
     scrollModelsLeftButton,
     scrollModelsRightButton,
     scrollObjectsLeftButton,
@@ -2634,6 +2639,8 @@ export function enableGizmos() {
     cameraButton,
     eyeButton,
     showShapesButton,
+    scrollShapesLeftButton,
+    scrollShapesRightButton,
     scrollModelsLeftButton,
     scrollModelsRightButton,
     scrollObjectsLeftButton,
@@ -2657,6 +2664,8 @@ export function enableGizmos() {
     exitGizmoState(); // Unhighlight other buttons
     window.showShapes();
   });
+  scrollShapesLeftButton.addEventListener('click', () => window.scrollShapes(-1));
+  scrollShapesRightButton.addEventListener('click', () => window.scrollShapes(1));
   scrollModelsLeftButton.addEventListener('click', () => window.scrollModels(-1));
   scrollModelsRightButton.addEventListener('click', () => window.scrollModels(1));
   scrollObjectsLeftButton.addEventListener('click', () => window.scrollObjects(-1));

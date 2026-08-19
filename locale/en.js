@@ -316,6 +316,8 @@ export default {
   create_cylinder:
     'add cylinder %1 %2 height: %3 top: %4 bottom: %5 sides: %6\nat x: %7 y: %8 z: %9',
   create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \nat x: %5 y: %6 z: %7',
+  create_wedge:
+    'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\nat x: %8 y: %9 z: %10',
   create_plane: 'add plane %1 %2 width: %3 height: %4 \nat x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -602,6 +604,8 @@ export default {
     'Create a colored cylinder with specified dimensions and position.\nKeyword: cylinder',
   create_capsule_tooltip:
     'Create a colored capsule with specified dimensions and position.\nKeyword: capsule',
+  create_wedge_tooltip:
+    'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.\nKeyword: wedge',
   create_plane_tooltip:
     'Create a colored 2D plane with specified width, height, and position.\nKeyword: plane',
 
@@ -729,6 +733,8 @@ export default {
   position_option: 'position',
   rotation_option: 'rotation',
   scaling_option: 'scaling',
+  X_option: 'x',
+  Z_option: 'z',
   position_x_option: 'position.x',
   position_y_option: 'position.y',
   position_z_option: 'position.z',

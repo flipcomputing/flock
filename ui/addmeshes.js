@@ -28,6 +28,7 @@ export function createMeshOnCanvas(block) {
     'create_sphere',
     'create_cylinder',
     'create_capsule',
+    'create_wedge',
     'create_plane',
     'create_3d_text',
   ].includes(block.type);
@@ -78,6 +79,11 @@ export function createMeshOnCanvas(block) {
     diameterBottom,
     capsuleHeight,
     capsuleDiameter,
+    wedgeWidth,
+    wedgeHeight,
+    wedgeDepth,
+    wedgePeak,
+    wedgeAxis,
     planeWidth,
     planeHeight;
 
@@ -323,6 +329,29 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
+    case 'create_wedge':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      wedgeWidth = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
+      wedgeHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      wedgeDepth = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
+      wedgePeak = block.getInput('PEAK').connection.targetBlock().getFieldValue('NUM');
+      wedgeAxis = block.getFieldValue('AXIS');
+
+      meshId = `wedge__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createWedge(meshId, {
+        color,
+        width: wedgeWidth,
+        height: wedgeHeight,
+        depth: wedgeDepth,
+        peak: wedgePeak,
+        axis: wedgeAxis,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
     case 'create_plane':
       color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
       planeWidth = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
@@ -381,6 +410,11 @@ function createShapeInternal(block) {
     diameterBottom,
     capsuleHeight,
     capsuleDiameter,
+    wedgeWidth,
+    wedgeHeight,
+    wedgeDepth,
+    wedgePeak,
+    wedgeAxis,
     planeWidth,
     planeHeight;
 
@@ -511,6 +545,26 @@ function createShapeInternal(block) {
         color,
         diameter: capsuleDiameter,
         height: capsuleHeight,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_wedge':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      wedgeWidth = parseFloat(getConnectedFieldValue('WIDTH', 'NUM', '2'));
+      wedgeHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '1'));
+      wedgeDepth = parseFloat(getConnectedFieldValue('DEPTH', 'NUM', '1'));
+      wedgePeak = parseFloat(getConnectedFieldValue('PEAK', 'NUM', '0'));
+      wedgeAxis = block.getFieldValue('AXIS');
+
+      newMesh = flock.createWedge(`wedge__${block.id}`, {
+        color,
+        width: wedgeWidth,
+        height: wedgeHeight,
+        depth: wedgeDepth,
+        peak: wedgePeak,
+        axis: wedgeAxis,
         position: [position.x, position.y, position.z],
         alpha,
       });

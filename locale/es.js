@@ -313,6 +313,10 @@ export default {
   create_cylinder:
     'añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\nen x: %7 y: %8 z: %9', // human
   create_capsule: 'añadir cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7', // human
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\nen x: %8 y: %9 z: %10', // ai
   create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7', // human
 
   // Custom block translations - Sound blocks
@@ -605,6 +609,8 @@ export default {
     'Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cilindro', // human
   create_capsule_tooltip:
     'Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: cápsula', // human
+  create_wedge_tooltip:
+    'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.\nPalabra clave: wedge', // ai
   create_plane_tooltip:
     'Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano', // human
 

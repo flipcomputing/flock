@@ -127,6 +127,10 @@ const __CREATE_SPEC = {
     defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
     inputs: ['COLOR', 'DIAMETER', 'HEIGHT'],
   },
+  create_wedge: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 1, DEPTH: 1, PEAK: 0 }),
+    inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH', 'PEAK'],
+  },
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
@@ -748,6 +752,9 @@ function scrollRowWithWrap(row, direction, step = 68) {
   row.scrollTo({ left: next, behavior: 'smooth' });
 }
 
+function scrollShapes(direction) {
+  scrollRowWithWrap(document.getElementById('shape-row'), direction, 68);
+}
 function scrollModels(direction) {
   scrollRowWithWrap(document.getElementById('model-row'), direction, 68);
 }
@@ -989,6 +996,7 @@ function handleShapeMenuKeydown(event) {
                 sphere: 'create_sphere',
                 cylinder: 'create_cylinder',
                 capsule: 'create_capsule',
+                wedge: 'create_wedge',
                 plane: 'create_plane',
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
@@ -1042,6 +1050,7 @@ window.selectCharacter = selectCharacter;
 window.selectShape = selectShape;
 window.selectObject = selectObject;
 window.selectMultiObject = selectMultiObject;
+window.scrollShapes = scrollShapes;
 window.scrollObjects = scrollObjects;
 window.scrollCharacters = scrollCharacters;
 window.scrollModels = scrollModels;
