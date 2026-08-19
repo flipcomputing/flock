@@ -29,6 +29,7 @@ export function createMeshOnCanvas(block) {
     'create_cylinder',
     'create_capsule',
     'create_wedge',
+    'create_donut',
     'create_plane',
     'create_3d_text',
   ].includes(block.type);
@@ -84,6 +85,9 @@ export function createMeshOnCanvas(block) {
     wedgeDepth,
     wedgePeak,
     wedgeAxis,
+    donutDiameter,
+    donutThickness,
+    donutSides,
     planeWidth,
     planeHeight;
 
@@ -352,6 +356,25 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
+    case 'create_donut':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      donutDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      donutThickness = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
+      donutSides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
+
+      meshId = `donut__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createDonut(meshId, {
+        color,
+        diameter: donutDiameter,
+        thickness: donutThickness,
+        tessellation: donutSides,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
     case 'create_plane':
       color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
       planeWidth = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
@@ -415,6 +438,9 @@ function createShapeInternal(block) {
     wedgeDepth,
     wedgePeak,
     wedgeAxis,
+    donutDiameter,
+    donutThickness,
+    donutSides,
     planeWidth,
     planeHeight;
 
@@ -565,6 +591,22 @@ function createShapeInternal(block) {
         depth: wedgeDepth,
         peak: wedgePeak,
         axis: wedgeAxis,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_donut':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      donutDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '2'));
+      donutThickness = parseFloat(getConnectedFieldValue('THICKNESS', 'NUM', '0.5'));
+      donutSides = parseFloat(getConnectedFieldValue('SIDES', 'NUM', '24'));
+
+      newMesh = flock.createDonut(`donut__${block.id}`, {
+        color,
+        diameter: donutDiameter,
+        thickness: donutThickness,
+        tessellation: donutSides,
         position: [position.x, position.y, position.z],
         alpha,
       });

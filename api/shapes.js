@@ -614,6 +614,67 @@ export const flockShapes = {
 
     return newWedge.name;
   },
+  createDonut(
+    donutId,
+    {
+      color = '#9932CC',
+      diameter = 2,
+      thickness = 0.5,
+      tessellation = 24,
+      position = new flock.BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    } = {}
+  ) {
+    if (!validateShapeId(donutId, 'createDonut')) return null;
+    ({ diameter, thickness, tessellation } = flock.donutDimensions({
+      diameter,
+      thickness,
+      tessellation,
+    }));
+    alpha = toAlpha(alpha);
+
+    let blockKey = donutId;
+
+    if (donutId.includes('__')) {
+      [donutId, blockKey] = donutId.split('__');
+    }
+
+    let groupName = donutId;
+    donutId = flock._reserveName(donutId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const dimensions = { diameter, thickness, tessellation };
+
+    const vertexData = flock.getOrCreateGeometry('Donut', dimensions, flock.scene);
+
+    const newDonut = new flock.BABYLON.Mesh(donutId, flock.scene);
+    vertexData.applyToMesh(newDonut);
+
+    newDonut.bakeCurrentTransformIntoVertices();
+    newDonut.scaling.set(1, 1, 1);
+
+    flock.initializeMesh(newDonut, position, color, 'Donut', alpha);
+
+    newDonut.metadata = newDonut.metadata || {};
+    newDonut.metadata.blockKey = blockKey;
+    newDonut.metadata.donutThickness = thickness;
+
+    // A mesh shape leaves the hole open; a hull would fill it in.
+    const donutShape = new flock.BABYLON.PhysicsShapeMesh(newDonut, flock.scene);
+    flock.applyPhysics(newDonut, donutShape);
+
+    flock.announceMeshReady(newDonut.name, groupName);
+    flock._registerInstance(blockKey, newDonut.name);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return newDonut.name;
+  },
   createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
     if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);

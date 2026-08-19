@@ -318,6 +318,7 @@ export default {
   create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \nat x: %5 y: %6 z: %7',
   create_wedge:
     'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\nat x: %8 y: %9 z: %10',
+  create_donut: 'add donut %1 %2 diameter: %3 thickness: %4 sides: %5\nat x: %6 y: %7 z: %8',
   create_plane: 'add plane %1 %2 width: %3 height: %4 \nat x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -606,6 +607,8 @@ export default {
     'Create a colored capsule with specified dimensions and position.\nKeyword: capsule',
   create_wedge_tooltip:
     'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.\nKeyword: wedge',
+  create_donut_tooltip:
+    'Add a donut \u2014 a ring shape. Diameter sets how wide the ring is, thickness how thick the tube is, and sides how smooth it looks.\nKeyword: donut',
   create_plane_tooltip:
     'Create a colored 2D plane with specified width, height, and position.\nKeyword: plane',
 

@@ -1539,6 +1539,11 @@ function updateScaleBlock(mesh, originalBottomY = null) {
         setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
         break;
 
+      // Bounding box is (diameter + thickness) wide and thickness tall.
+      case 'create_donut':
+        setNumberInputs(block, { DIAMETER: Math.max(0, w - h), THICKNESS: h });
+        break;
+
       case 'create_cylinder': {
         const newScaledDiameter = w;
 

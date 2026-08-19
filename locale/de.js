@@ -286,6 +286,8 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'Keil hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nSpitze: %6 entlang: %7\nbei x: %8 y: %9 z: %10', // ai
+  create_donut:
+    'Donut hinzufügen %1 %2 Durchmesser: %3 Dicke: %4 Seiten: %5\nbei x: %6 y: %7 z: %8', // ai
   create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7',
 
   // Sound blocks
@@ -706,6 +708,8 @@ export default {
     'Erstelle eine farbige Kapsel mit angegebenen Maßen und Position.\nSchlüsselwort: capsule',
   create_wedge_tooltip:
     'Fügt einen Keil hinzu — ein dreieckiges Prisma für Rampen, Schrägen und Dächer. Ändere die Spitze, um die Form zu ändern: 0 ergibt eine Rampe, 0.5 ein Dach.\nSchlüsselwort: wedge', // ai
+  create_donut_tooltip:
+    'Fügt einen Donut hinzu — eine Ringform. Der Durchmesser bestimmt die Breite des Rings, die Dicke, wie dick die Röhre ist und die Seiten, wie glatt er aussieht.\nSchlüsselwort: donut', // ai
   create_plane_tooltip:
     'Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.\nSchlüsselwort: plane',
 

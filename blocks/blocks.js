@@ -837,7 +837,11 @@ function adoptIsolatedDefaultVarsTo(
     const descendants = [];
     for (const input of block.inputList || []) {
       if (input.connection && input.connection.targetBlock()) {
-        for (let childBlock = input.connection.targetBlock(); childBlock; childBlock = childBlock.getNextBlock()) {
+        for (
+          let childBlock = input.connection.targetBlock();
+          childBlock;
+          childBlock = childBlock.getNextBlock()
+        ) {
           descendants.push(childBlock);
           descendants.push(...collectInputDescendants(childBlock));
         }
@@ -1299,6 +1303,7 @@ export function initializeVariableIndexes() {
     cylinder: 1,
     capsule: 1,
     wedge: 1,
+    donut: 1,
     plane: 1,
     wall: 1,
     text: 1,

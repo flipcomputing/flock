@@ -42,6 +42,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_cylinder',
   'create_capsule',
   'create_wedge',
+  'create_donut',
   'create_plane',
 ]);
 
@@ -790,9 +791,9 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
 }
 
 function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
-  if (!(
-    ['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA'].includes(changed) || changed.startsWith?.('ADD')
-  )) {
+  if (
+    !(['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA'].includes(changed) || changed.startsWith?.('ADD'))
+  ) {
     if (flock.meshDebug) console.log('Returning');
     return mesh;
   }
@@ -1107,6 +1108,22 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
         updateWedgeGeometry(mesh, w, h, d, peak, axis);
         applyPrimitiveUVTiling('Wedge', { width: w, height: h, depth: d });
         repositionPrimitiveFromBlock();
+      }
+      break;
+    }
+
+    case 'create_donut': {
+      if (['DIAMETER', 'THICKNESS', 'SIDES'].includes(changed)) {
+        const d = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+        const t = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
+        const sides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
+
+        updateDonutGeometry(mesh, d, t, sides);
+
+        // Sides alone leaves the size unchanged, so the anchor still holds.
+        if (['DIAMETER', 'THICKNESS'].includes(changed)) {
+          repositionPrimitiveFromBlock();
+        }
       }
       break;
     }
@@ -1623,6 +1640,9 @@ function setAbsoluteSize(mesh, width, height, depth) {
       case 'Wedge':
         newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
         break;
+      case 'Donut':
+        newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+        break;
       default:
         console.log('Unknown or unsupported physics shape type: ' + shapeType);
         break;
@@ -1818,6 +1838,68 @@ function updateWedgeGeometry(mesh, width, height, depth, peak, axis) {
 
   if (mesh.physics && mesh.metadata?.shapeType === 'Wedge') {
     const newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
+    if (newShape) {
+      mesh.physics.shape?.dispose?.();
+      mesh.physics.shape = newShape;
+    }
+  }
+
+  mesh.computeWorldMatrix(true);
+}
+
+// Rebuilt rather than scaled: scaling a torus squashes the tube into an ellipse.
+function updateDonutGeometry(mesh, diameter, thickness, sides) {
+  // This path skips createDonut, so clamp the topology here too.
+  ({
+    diameter,
+    thickness,
+    tessellation: sides,
+  } = flock.donutDimensions({
+    diameter,
+    thickness,
+    tessellation: sides,
+  }));
+
+  const worldMatrix = mesh.computeWorldMatrix(true);
+  const currentScale = new flock.BABYLON.Vector3();
+  const currentRotationQuaternion = new flock.BABYLON.Quaternion();
+  const currentPosition = new flock.BABYLON.Vector3();
+  worldMatrix.decompose(currentScale, currentRotationQuaternion, currentPosition);
+
+  if (mesh.geometry) {
+    mesh.geometry.dispose();
+  }
+
+  mesh = moveMeshToOrigin(mesh);
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  const tempMesh = flock.BABYLON.MeshBuilder.CreateTorus(
+    '',
+    { diameter, thickness, tessellation: sides, updatable: true },
+    mesh.getScene()
+  );
+
+  const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
+  const newGeometry = new flock.BABYLON.Geometry(
+    mesh.name + '_geometry',
+    mesh.getScene(),
+    vertexData,
+    true,
+    mesh
+  );
+  newGeometry.applyToMesh(mesh);
+  mesh.makeGeometryUnique();
+  tempMesh.dispose();
+
+  mesh.position = currentPosition;
+  mesh.rotationQuaternion = currentRotationQuaternion;
+  mesh.scaling = flock.BABYLON.Vector3.One();
+
+  mesh.metadata = mesh.metadata || {};
+  mesh.metadata.donutThickness = thickness;
+
+  if (mesh.physics && mesh.metadata?.shapeType === 'Donut') {
+    const newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
     if (newShape) {
       mesh.physics.shape?.dispose?.();
       mesh.physics.shape = newShape;

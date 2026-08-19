@@ -904,6 +904,71 @@ export function defineShapeBlocks() {
     },
   };
 
+  Blockly.Blocks['create_donut'] = {
+    init: function () {
+      const variableNamePrefix = 'donut';
+      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'create_donut',
+        message0: translate('create_donut'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'input_value',
+            name: 'COLOR',
+            check: ['Colour', 'Material'],
+          },
+          {
+            type: 'input_value',
+            name: 'DIAMETER',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'THICKNESS',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'SIDES',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_donut'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockChange(this, changeEvent, variableNamePrefix)
+      );
+      addDoMutatorWithToggleBehavior(this);
+    },
+  };
+
   Blockly.Blocks['create_plane'] = {
     init: function () {
       const variableNamePrefix = 'plane';

@@ -537,6 +537,22 @@ export const flockMesh = {
     };
   },
 
+  // At thickness >= diameter the tube folds through the axis and closes the hole.
+  donutDimensions({ diameter, thickness, tessellation } = {}) {
+    const toDim = (value, fallback) => {
+      const n = Number(value);
+      return Number.isFinite(n) && n >= 0 ? n : fallback;
+    };
+    const MIN_SIZE = 0.01;
+    const ring = Math.max(MIN_SIZE, toDim(diameter, 2));
+
+    return {
+      diameter: ring,
+      thickness: Math.min(Math.max(MIN_SIZE, toDim(thickness, 0.5)), ring * 0.9),
+      tessellation: Math.max(3, Math.round(toDim(tessellation, 24))),
+    };
+  },
+
   getOrCreateGeometry(shapeType, dimensions, scene) {
     const geometryKey = `${shapeType}_${Object.values(dimensions).join('_')}`;
 
@@ -554,6 +570,8 @@ export const flockMesh = {
         initialMesh = flock.BABYLON.MeshBuilder.CreateCylinder(geometryKey, dimensions, scene);
       } else if (shapeType === 'Capsule') {
         initialMesh = flock.BABYLON.MeshBuilder.CreateCapsule(geometryKey, dimensions, scene);
+      } else if (shapeType === 'Donut') {
+        initialMesh = flock.BABYLON.MeshBuilder.CreateTorus(geometryKey, dimensions, scene);
       } else if (shapeType === 'Wedge') {
         initialMesh = flock.BABYLON.MeshBuilder.CreatePolyhedron(
           geometryKey,

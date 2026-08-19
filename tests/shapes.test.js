@@ -254,6 +254,152 @@ export function runShapesTests(flock) {
       });
     });
 
+    describe('createDonut', function () {
+      // Local space: createDonut bakes the size in and leaves scaling at 1.
+      const extents = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        const min = [Infinity, Infinity, Infinity];
+        const max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < positions.length; i += 3) {
+          for (let axis = 0; axis < 3; axis++) {
+            min[axis] = Math.min(min[axis], positions[i + axis]);
+            max[axis] = Math.max(max[axis], positions[i + axis]);
+          }
+        }
+        return { min, max, size: max.map((v, i) => v - min[i]) };
+      };
+
+      it('should return a string id and create the mesh in the scene', function () {
+        const id = flock.createDonut('testDonut1', {
+          color: '#ff6600',
+          diameter: 2,
+          thickness: 0.5,
+          position: [0, 1, 0],
+        });
+        createdIds.push(id);
+
+        expect(id).to.be.a('string');
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+      });
+
+      it('should set blockKey and shapeType metadata', function () {
+        const id = flock.createDonut('testDonut2', { diameter: 1, thickness: 0.25 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata).to.exist;
+        expect(mesh.metadata.blockKey).to.be.a('string');
+        expect(mesh.metadata.shapeType).to.equal('Donut');
+      });
+
+      it('should bake the requested size into the geometry', function () {
+        const id = flock.createDonut('testDonut3', {
+          diameter: 2,
+          thickness: 0.5,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        // The tube adds its own diameter across, and is the full height.
+        expect(size[0]).to.be.closeTo(2.5, 0.01);
+        expect(size[2]).to.be.closeTo(2.5, 0.01);
+        expect(size[1]).to.be.closeTo(0.5, 0.01);
+        expect(mesh.scaling.x).to.equal(1);
+      });
+
+      it('should leave a hole in the middle', function () {
+        const id = flock.createDonut('testDonutHole', {
+          diameter: 2,
+          thickness: 0.5,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const positions = flock.scene.getMeshByName(id).getVerticesData('position');
+        let closest = Infinity;
+        for (let i = 0; i < positions.length; i += 3) {
+          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
+        }
+
+        expect(closest).to.be.closeTo(0.75, 0.01);
+      });
+
+      it('should keep the hole open when thickness exceeds diameter', function () {
+        const id = flock.createDonut('testDonutFat', {
+          diameter: 2,
+          thickness: 5,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData('position');
+        let closest = Infinity;
+        for (let i = 0; i < positions.length; i += 3) {
+          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
+        }
+
+        // Thickness is capped at 90% of the diameter, leaving a 0.1 radius hole.
+        expect(closest).to.be.closeTo(0.1, 0.01);
+        expect(mesh.metadata.donutThickness).to.equal(1.8);
+      });
+
+      it('should give zero or negative sizes a positive minimum', function () {
+        const id = flock.createDonut('testDonutZero', { diameter: 0, thickness: -1 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.greaterThan(0);
+        expect(size[1]).to.be.greaterThan(0);
+        expect(mesh.physics).to.exist;
+      });
+
+      it('should use tessellation for the number of sides', function () {
+        const coarse = flock.createDonut('testDonutCoarse', { diameter: 2, tessellation: 3 });
+        const smooth = flock.createDonut('testDonutSmooth', { diameter: 2, tessellation: 24 });
+        createdIds.push(coarse, smooth);
+
+        const count = (id) => flock.scene.getMeshByName(id).getVerticesData('position').length / 3;
+        expect(count(coarse)).to.be.lessThan(count(smooth));
+      });
+
+      it('should clamp tessellation to at least 3 sides', function () {
+        const id = flock.createDonut('testDonutClamp', { diameter: 2, tessellation: 1 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+        const normals = mesh.getVerticesData('normal');
+        expect(normals).to.exist;
+        normals.forEach((n) => expect(Number.isFinite(n)).to.be.true);
+      });
+
+      it('should give the donut a mesh physics shape', function () {
+        const id = flock.createDonut('testDonutPhysics', {
+          diameter: 2,
+          thickness: 0.5,
+          position: [0, 1, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics).to.exist;
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeMesh);
+      });
+
+      it('should avoid collisions for repeated donut ids', function () {
+        const firstId = flock.createDonut('reserveDonut', { diameter: 1 });
+        const secondId = flock.createDonut('reserveDonut', { diameter: 1 });
+        createdIds.push(firstId, secondId);
+
+        expect(firstId).to.not.equal(secondId);
+      });
+    });
+
     describe('createPlane', function () {
       it('should return a string id and create the mesh in the scene', function () {
         const id = flock.createPlane('testPlane1', {

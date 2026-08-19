@@ -595,6 +595,69 @@ const toolboxSceneMeshes = {
     },
     {
       kind: 'block',
+      type: 'create_donut',
+      keyword: 'donut',
+      inputs: {
+        COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#ff99cc',
+            },
+          },
+        },
+        DIAMETER: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 2,
+            },
+          },
+        },
+        THICKNESS: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+        SIDES: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 24,
+            },
+          },
+        },
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'create_plane',
       keyword: 'plane',
       inputs: {

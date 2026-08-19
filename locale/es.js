@@ -317,6 +317,7 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\nen x: %8 y: %9 z: %10', // ai
+  create_donut: 'añadir rosquilla %1 %2 diámetro: %3 grosor: %4 lados: %5\nen x: %6 y: %7 z: %8', // ai
   create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7', // human
 
   // Custom block translations - Sound blocks
@@ -611,6 +612,8 @@ export default {
     'Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: cápsula', // human
   create_wedge_tooltip:
     'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.\nPalabra clave: wedge', // ai
+  create_donut_tooltip:
+    'Añade una rosquilla: una forma de anillo. El diámetro define lo ancho que es el anillo, el grosor lo grueso que es el tubo y los lados lo suave que se ve.\nPalabra clave: donut', // ai
   create_plane_tooltip:
     'Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano', // human
 

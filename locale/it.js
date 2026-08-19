@@ -289,6 +289,7 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'aggiungi cuneo %1 %2 larghezza: %3 altezza: %4 profondità: %5\npunta: %6 lungo: %7\na x: %8 y: %9 z: %10', // ai
+  create_donut: 'aggiungi ciambella %1 %2 diametro: %3 spessore: %4 lati: %5\na x: %6 y: %7 z: %8', // ai
   create_plane: 'aggiungi piano %1 %2 larghezza: %3 altezza: %4 \na x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -563,6 +564,8 @@ export default {
     'Crea una capsula colorata con dimensioni e posizione specificate.\nParola chiave: capsule',
   create_wedge_tooltip:
     'Aggiunge un cuneo: un prisma triangolare per costruire rampe, pendii e tetti. Cambia la punta per cambiare la forma: 0 crea una rampa, 0.5 crea un tetto.\nParola chiave: wedge', // ai
+  create_donut_tooltip:
+    'Aggiunge una ciambella: una forma ad anello. Il diametro definisce la larghezza dell’anello, lo spessore quanto è spesso il tubo e i lati quanto appare liscia.\nParola chiave: donut', // ai
   create_plane_tooltip:
     'Crea un piano 2D colorato con larghezza, altezza e posizione specificate.\nParola chiave: plane',
 

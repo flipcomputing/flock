@@ -261,6 +261,17 @@ Creates a wedge (triangular prism) geometry.
 - `peak` (number, 0-1): Where the ridge sits on that axis — 0 or 1 for a ramp, 0.5 for a roof
 - `color` (string), `position` (array), `alpha` (number)
 
+#### `createDonut(name, options)`
+
+Creates a donut (torus) geometry.
+
+**Options:**
+
+- `diameter` (number): Diameter of the ring
+- `thickness` (number): Diameter of the tube, so the donut is `diameter + thickness` across and `thickness` tall. Clamped to at most 90% of `diameter` — a thicker tube would fold through the middle and close the hole
+- `tessellation` (number): Sides around the ring — 3 gives a triangle, 24 looks smooth
+- `color` (string), `position` (array), `alpha` (number)
+
 #### `createPlane(name, options)`
 
 Creates a plane geometry.

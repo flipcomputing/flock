@@ -131,6 +131,10 @@ const __CREATE_SPEC = {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 1, DEPTH: 1, PEAK: 0 }),
     inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH', 'PEAK'],
   },
+  create_donut: {
+    defaults: ({ c }) => ({ COLOR: c, DIAMETER: 2, THICKNESS: 0.5, SIDES: 24 }),
+    inputs: ['COLOR', 'DIAMETER', 'THICKNESS', 'SIDES'],
+  },
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
@@ -997,6 +1001,7 @@ function handleShapeMenuKeydown(event) {
                 cylinder: 'create_cylinder',
                 capsule: 'create_capsule',
                 wedge: 'create_wedge',
+                donut: 'create_donut',
                 plane: 'create_plane',
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];

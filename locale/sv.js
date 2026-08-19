@@ -282,6 +282,7 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\nvid x: %8 y: %9 z: %10', // ai
+  create_donut: 'lägg till munk %1 %2 diameter: %3 tjocklek: %4 sidor: %5\nvid x: %6 y: %7 z: %8', // ai
   create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -543,6 +544,8 @@ export default {
     'Skapa en färgad kapsel med angivna dimensioner och position.\nKeyword: capsule',
   create_wedge_tooltip:
     'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.\nNyckelord: wedge', // ai
+  create_donut_tooltip:
+    'Lägger till en munk — en ringform. Diametern anger hur bred ringen är, tjockleken hur tjockt röret är och sidorna hur slät den ser ut.\nNyckelord: donut', // ai
   create_plane_tooltip:
     'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.\nKeyword: plane',
 

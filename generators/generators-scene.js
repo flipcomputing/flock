@@ -333,6 +333,26 @@ export function registerSceneGenerators(javascriptGenerator) {
     return createMesh(block, 'Wedge', params, 'wedge');
   };
 
+  // Add donut ----------------------------------------------------------
+  javascriptGenerator.forBlock['create_donut'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameter = getFieldValue(block, 'DIAMETER', '2');
+    const thickness = getFieldValue(block, 'THICKNESS', '0.5');
+    const sides = getFieldValue(block, 'SIDES', '24');
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `diameter: ${diameter}`,
+      `thickness: ${thickness}`,
+      `tessellation: ${sides}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Donut', params, 'donut');
+  };
+
   // Add plane ----------------------------------------------------------
   javascriptGenerator.forBlock['create_plane'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#9932CC"');
