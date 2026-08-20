@@ -41,7 +41,7 @@ class StubEllipse {
   top = '0px';
 }
 
-function makeSource(manager, onScreen, canvas) {
+function makeSource(manager, onScreen, canvas, edgeInset = 0) {
   const base = new StubEllipse();
   const thumb = new StubEllipse();
   const source = new JoystickSource(manager, onScreen, {
@@ -49,6 +49,7 @@ function makeSource(manager, onScreen, canvas) {
     baseEllipse: base,
     thumbEllipse: thumb,
     baseRadius: BASE_RADIUS,
+    edgeInset,
   });
   return { source, base, thumb };
 }
@@ -120,6 +121,21 @@ export function runJoystickSourceTests() {
     });
 
     describe('pointer capture', function () {
+      it('applies the visual edge inset to the touch area', function () {
+        const edgeInset = 5;
+        const { source } = makeSource(manager, onScreen, canvas, edgeInset);
+        source.start();
+        canvas.dispatchPointer('pointerdown', 1, BASE_CX + edgeInset, BASE_CY - edgeInset);
+        canvas.dispatchPointer(
+          'pointermove',
+          1,
+          BASE_CX + edgeInset + BASE_RADIUS,
+          BASE_CY - edgeInset
+        );
+        expect(manager.getAxis('MOVE_X')).to.be.closeTo(1, 0.01);
+        source.stop();
+      });
+
       it('pointerdown inside base circle starts tracking', function () {
         const { source } = makeSource(manager, onScreen, canvas);
         source.start();

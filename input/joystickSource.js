@@ -8,6 +8,7 @@ export class JoystickSource {
   #thumbEllipse;
   #baseRadius;
   #thumbRadius;
+  #edgeInset;
   #scene;
 
   #started = false;
@@ -30,7 +31,7 @@ export class JoystickSource {
   constructor(
     inputManager,
     onScreenSource,
-    { canvas, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}
+    { canvas, thumbEllipse, baseRadius, thumbRadius = 0, edgeInset = 0, scene } = {}
   ) {
     this.#inputManager = inputManager;
     this.#onScreenSource = onScreenSource;
@@ -38,6 +39,7 @@ export class JoystickSource {
     this.#thumbEllipse = thumbEllipse;
     this.#baseRadius = baseRadius;
     this.#thumbRadius = thumbRadius;
+    this.#edgeInset = edgeInset;
     this.#scene = scene ?? null;
 
     this.#boundPointerDown = this.#handlePointerDown.bind(this);
@@ -134,7 +136,8 @@ export class JoystickSource {
   #computeBaseLayout() {
     const rect = this.#canvas.getBoundingClientRect();
     const r = this.#baseRadius * (rect.width / this.#canvas.width);
-    return { cx: rect.left + r, cy: rect.bottom - r, r };
+    const inset = this.#edgeInset * (rect.width / this.#canvas.width);
+    return { cx: rect.left + r + inset, cy: rect.bottom - r - inset, r };
   }
 
   #handlePointerDown(event) {

@@ -353,6 +353,21 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
         joystick.stop();
       });
+
+      it('should inset the joystick by the same 5px gap as the arrow buttons', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        const joystick = flock.createJoystickControls('#ffffff');
+        const base = flock.controlsTexture
+          .getDescendants()
+          .find((control) => control.width === '110px');
+        expect(base.left).to.equal('5px');
+        expect(base.top).to.equal('-5px');
+        joystick.stop();
+      });
     });
   });
 }

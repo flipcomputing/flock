@@ -622,6 +622,7 @@ export const flockUI = {
 
     const baseRadius = 55 * flock.displayScale;
     const thumbRadius = 30 * flock.displayScale;
+    const edgeInset = 5 * flock.displayScale;
 
     const base = new flock.GUI.Ellipse();
     base.width = `${baseRadius * 2}px`;
@@ -631,6 +632,8 @@ export const flockUI = {
     base.background = 'transparent';
     base.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     base.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    base.left = `${edgeInset}px`;
+    base.top = `-${edgeInset}px`;
 
     const thumb = new flock.GUI.Ellipse();
     thumb.width = `${thumbRadius * 2}px`;
@@ -648,6 +651,7 @@ export const flockUI = {
       thumbEllipse: thumb,
       baseRadius,
       thumbRadius,
+      edgeInset,
       scene: flock.scene,
     });
   },
