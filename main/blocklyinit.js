@@ -756,7 +756,10 @@ export function initializeWorkspace() {
   workspaceSearch.setSearchPlaceholder(translate('workspace_search_placeholder'));
   // @blockly/plugin-workspace-search's createTextInput() only sets a
   // placeholder, never an accessible name.
-  workspaceSearch.inputElement?.setAttribute('aria-label', translate('workspace_search_placeholder'));
+  workspaceSearch.inputElement?.setAttribute(
+    'aria-label',
+    translate('workspace_search_placeholder')
+  );
   window.flockWorkspaceSearch = workspaceSearch;
 
   // Comment textareas (block-comment bubbles and standalone workspace
@@ -1093,7 +1096,14 @@ export function initializeWorkspace() {
           openRequested = false;
         }
       });
-      input.addEventListener('pointerdown', requestOpen);
+      input.addEventListener('pointerdown', (e) => {
+        requestOpen();
+        // Blockly prevents the default pointer action when the active toolbox
+        // category is clicked again, which collapses native text selection.
+        if (workspace.getToolbox()?.getSelectedItem?.() === searchCategory) {
+          e.stopPropagation();
+        }
+      });
       input.addEventListener('mousedown', requestOpen);
       input.addEventListener('touchstart', requestOpen, { passive: true });
       input.addEventListener('click', requestOpen);
