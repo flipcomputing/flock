@@ -21,6 +21,7 @@ function isMobileLayout() {
 }
 
 let enabled = !isMobileLayout();
+let suppressed = false;
 let lastHintText = '';
 
 export function areBlockHintsEnabled() {
@@ -32,7 +33,16 @@ export function setBlockHintsEnabled(value) {
   if (!enabled) {
     hideBlockHint();
   } else {
-    renderBlockHint(lastHintText);
+    renderBlockHint(suppressed ? '' : lastHintText);
+  }
+}
+
+export function setBlockHintsSuppressed(value) {
+  suppressed = value;
+  if (suppressed) {
+    hideBlockHint();
+  } else {
+    renderBlockHint(enabled ? lastHintText : '');
   }
 }
 
@@ -56,7 +66,7 @@ function renderBlockHint(text) {
 
 export function showBlockHint(text) {
   lastHintText = text || '';
-  renderBlockHint(enabled ? text : '');
+  renderBlockHint(enabled && !suppressed ? text : '');
 }
 
 // Shows a one-off message in the same box regardless of the enabled/disabled
@@ -67,6 +77,11 @@ export function showBlockHintMessage(text, { boldPart } = {}) {
   const container = getContainer();
   const element = getTextElement();
   if (!container || !element) return;
+
+  if (suppressed) {
+    container.hidden = true;
+    return;
+  }
 
   const content = text || '';
   if (!content) {

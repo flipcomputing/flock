@@ -18,8 +18,9 @@ test('workspace search button toggles search and focuses the found block when cl
   });
 
   const searchButton = page.locator('#workspaceSearchBtn');
-  await page.evaluate(() => {
-    document.getElementById('blockHint').hidden = false;
+  await page.evaluate(async () => {
+    const { showBlockHint } = await import('/ui/blockHint.js');
+    showBlockHint('Remembered block hint');
   });
   await expect(page.locator('#blockHint')).toBeVisible();
   await searchButton.click();
@@ -37,6 +38,7 @@ test('workspace search button toggles search and focuses the found block when cl
       }))
     )
     .toEqual({ count: 1, current: blockId });
+  await expect(page.locator('#blockHint')).toBeHidden();
 
   await searchButton.click();
 
@@ -50,6 +52,7 @@ test('workspace search button toggles search and focuses the found block when cl
       }, blockId)
     )
     .toBe(true);
+  await expect(page.locator('#blockHint')).toBeVisible();
   await expect
     .poll(() =>
       page.evaluate(

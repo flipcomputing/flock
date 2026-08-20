@@ -6,6 +6,7 @@ import {
   showBlockHintMessage,
   clearBlockHint,
   hideBlockHint,
+  setBlockHintsSuppressed,
 } from '../ui/blockHint.js';
 
 // blockHint.js reads `enabled` once, at module evaluation, so the mobile
@@ -47,6 +48,7 @@ export function runBlockHintTests(_flock) {
     });
 
     afterEach(function () {
+      setBlockHintsSuppressed(false);
       showBlockHint('');
       setBlockHintsEnabled(originalEnabled);
       container.remove();
@@ -163,6 +165,32 @@ export function runBlockHintTests(_flock) {
         showBlockHint('Second');
         expect(container.hidden).to.be.false;
         expect(text.textContent).to.equal('Second');
+      });
+    });
+
+    describe('temporary suppression', function () {
+      it('keeps new hints hidden until suppression ends', function () {
+        setBlockHintsSuppressed(true);
+        showBlockHint('Move the object');
+        expect(container.hidden).to.be.true;
+
+        setBlockHintsSuppressed(false);
+        expect(container.hidden).to.be.false;
+        expect(text.textContent).to.equal('Move the object');
+      });
+
+      it('keeps one-off messages hidden while suppressed', function () {
+        setBlockHintsSuppressed(true);
+        showBlockHintMessage('Tips live in the Tools menu');
+        expect(container.hidden).to.be.true;
+      });
+
+      it('remains hidden when hints are enabled during suppression', function () {
+        showBlockHint('Move the object');
+        setBlockHintsSuppressed(true);
+        setBlockHintsEnabled(false);
+        setBlockHintsEnabled(true);
+        expect(container.hidden).to.be.true;
       });
     });
 
