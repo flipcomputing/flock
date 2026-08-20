@@ -1174,10 +1174,7 @@ export function initializeWorkspace() {
 
   // Fade non-matching blocks during search
   const blocklyDiv = document.getElementById('blocklyDiv');
-  const originalOpen = workspaceSearch.open.bind(workspaceSearch);
   const originalClose = workspaceSearch.close.bind(workspaceSearch);
-
-  const isMobileWS = isMobileSearchLayout;
 
   const wsMobileBar = document.createElement('div');
   wsMobileBar.className = 'ws-search-mobile-bar';
@@ -1262,9 +1259,18 @@ export function initializeWorkspace() {
   workspaceSearch.inputElement?.addEventListener('keydown', wsSearchArrowKeys);
 
   wsMobileInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') workspaceSearch.close();
-    else if (e.key === 'Enter') e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
-    else wsSearchArrowKeys(e);
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
+    } else {
+      wsSearchArrowKeys(e);
+    }
+  });
+  wsMobileBar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    workspaceSearch.close();
   });
   wsMobilePrev.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobilePrev.addEventListener('click', () => workspaceSearch.previous());
@@ -1273,23 +1279,15 @@ export function initializeWorkspace() {
   wsMobileClose.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobileClose.addEventListener('click', () => workspaceSearch.close());
 
-  window.matchMedia(mobileSearchMediaQuery).addEventListener('change', (e) => {
-    if (!e.matches && wsMobileBar.isConnected) workspaceSearch.close();
-  });
-
   workspaceSearch.open = function () {
     setBlockHintsSuppressed(true);
-    if (isMobileWS()) {
-      document.body.appendChild(wsMobileBar);
-      wsMobileInput.value = workspaceSearch.searchText || '';
-      if (wsMobileInput.value) {
-        workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
-      }
-      updateWsMobileCount();
-      wsMobileInput.focus();
-    } else {
-      originalOpen();
+    document.body.appendChild(wsMobileBar);
+    wsMobileInput.value = workspaceSearch.searchText || '';
+    if (wsMobileInput.value) {
+      workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
     }
+    updateWsMobileCount();
+    wsMobileInput.focus();
     blocklyDiv?.classList.add('blockly-search-active');
   };
   workspaceSearch.close = function () {
@@ -1348,14 +1346,14 @@ export function initializeWorkspace() {
   const originalCenter = workspace.centerOnBlock.bind(workspace);
 
   workspace.centerOnBlock = function (blockId) {
-    if (workspaceSearch && workspaceSearch.htmlDiv.style.display !== 'none') {
+    if (blocklyDiv?.classList.contains('blockly-search-active')) {
       const block = this.getBlockById(blockId);
       if (block) {
         const scale = this.scale;
         const blockXY = block.getRelativeToSurfaceXY();
         let yOffset = 0;
 
-        const searchTerm = workspaceSearch.inputElement.value.toLowerCase();
+        const searchTerm = wsMobileInput.value.toLowerCase();
         if (searchTerm) {
           for (const input of block.inputList) {
             const match = input.fieldRow.some((f) =>
