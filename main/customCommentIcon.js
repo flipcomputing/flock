@@ -1,5 +1,8 @@
 import * as Blockly from 'blockly';
 
+export const COMMENT_ICON_PATH =
+  'M64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 213.5c0 17-6.7 33.3-18.7 45.3L322.7 461.3c-12 12-28.3 18.7-45.3 18.7L64 480zM389.5 304L296 304c-13.3 0-24 10.7-24 24l0 93.5 117.5-117.5z';
+
 export class CustomCommentIcon extends Blockly.icons.CommentIcon {
   constructor(sourceBlock) {
     super(sourceBlock);
@@ -27,7 +30,7 @@ export class CustomCommentIcon extends Blockly.icons.CommentIcon {
       Blockly.utils.Svg.PATH,
       {
         class: 'blocklyCommentIconPath',
-        d: 'M64 480c-35.3 0-64-28.7-64-64L0 96C0 60.7 28.7 32 64 32l320 0c35.3 0 64 28.7 64 64l0 213.5c0 17-6.7 33.3-18.7 45.3L322.7 461.3c-12 12-28.3 18.7-45.3 18.7L64 480zM389.5 304L296 304c-13.3 0-24 10.7-24 24l0 93.5 117.5-117.5z',
+        d: COMMENT_ICON_PATH,
         transform: 'scale(0.046) translate(1, 1)',
       },
       iconGroup
