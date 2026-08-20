@@ -109,7 +109,7 @@ carrying, is ignored either way.
 
 You only get the circle in **embody** view with **teleport** motion.
 
-### `set VR comfort tunnel vision [auto / off] strength [...] colour [...] see-through [...] %`
+### `set VR comfort tunnel vision [...] strength [...] colour [...] alpha [...]` / `overlay [...] shown [...]`
 
 Moving through a scene while your body stays still is what makes people feel unwell in VR.
 Your eyes report motion, your inner ear reports none, and the mismatch between them is what
@@ -135,8 +135,37 @@ The other three settings decide what the edges look like:
   your view, **high** leaves a narrow tunnel. **medium** to start with.
 - **colour** — what the edges are filled with. Black to start with, which is what most VR
   apps use; a colour close to your sky is less noticeable.
-- **see-through** — 0 blocks the edges out completely, 100 makes them invisible. Something in
-  between lets you keep a sense of what is around you, at the cost of some of the benefit.
+- **alpha** — how solid the edges are, from 0 to 1, the same as alpha anywhere else in Flock.
+  1 blocks them out completely; something less lets you keep a sense of what is around you, at
+  the cost of some of the benefit.
+
+#### The overlay
+
+The second row is a separate comfort aid. The **overlay** is a faint set of markers that stay
+put in your real room while the virtual scene moves. Tunnel vision works by taking motion away
+from the edges of your view; the overlay works the other way round, by adding something that is
+not moving, so part of what your eyes report agrees with your inner ear again. You can use
+either, both, or neither.
+
+- **none** — no markers. This is what you get without the block.
+- **dots** — a sparse field of small points floating around you.
+- **grid** — a wireframe on the floor of your room.
+- **horizon** — a faint level ring at eye height. It travels with you rather than staying at
+  one spot, and it stays level however you tilt your head, so it is the only one that also
+  tells you which way up you are.
+
+**shown** decides when they appear: **when moving** fades them in only while the scene is
+moving under you and out again when it stops, and **always** leaves them up the whole time.
+The published studies used markers that were always there; fading them in is gentler on the
+look of your scene. Try both.
+
+The markers are drawn over the top of your scene, so nothing in the world can hide them, and
+they hold their place in the room even if the project flies you across the world. In a phone
+holder they still stay level and hold still as you turn, but they cannot hold a spot in the
+room, because the phone can only tell which way it is pointing, not where it is.
+
+The three shapes are there to be compared. Once we know from testing which one helps most,
+this will most likely become a single on-or-off choice.
 
 Nothing happens on a flat screen or in AR, whatever you set it to.
 
@@ -147,6 +176,14 @@ Nothing happens on a flat screen or in AR, whatever you set it to.
 > [Visual Factors in Cybersickness: A Literature Survey and Meta-Analysis](https://doi.org/10.1163/22134808-bja10181),
 > Multisensory Research, pooled 97 studies and found peripheral field-of-view restriction to be
 > one of the few visual factors that reliably reduces cybersickness.
+>
+> The overlay — a *rest frame*, or independent visual background — comes from Prothero,
+> Draper, Furness, Parker and Wells (1999),
+> [The use of an independent visual background to reduce simulator side-effects](https://pubmed.ncbi.nlm.nih.gov/10102737/),
+> Aviation, Space and Environmental Medicine — a stationary background seen along with the
+> moving scene reduced the effects. It is the second visual factor the Allison and Palmisano
+> meta-analysis found to work reliably, and it is complementary to the restrictor: one takes
+> moving periphery away, the other adds a stationary reference.
 
 ### `show VR UI on [heads-up display / wrist]`
 

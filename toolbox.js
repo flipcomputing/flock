@@ -739,12 +739,12 @@ const toolboxSceneXR = {
     {
       kind: 'block',
       type: 'set_xr_view_mode',
-      keyword: 'vr view watch embody camera motion none comfort teleport smooth',
+      keyword: 'vrview',
     },
     {
       kind: 'block',
       type: 'set_ar_scene_size',
-      keyword: 'ar diorama scale size life size distance float hover',
+      keyword: 'diorama',
       inputs: {
         SIZE: {
           shadow: {
@@ -775,7 +775,7 @@ const toolboxSceneXR = {
     {
       kind: 'block',
       type: 'set_vr_comfort',
-      keyword: 'vr comfort tunnel vision tunnelling vignette motion sickness nausea',
+      keyword: 'comfort',
       inputs: {
         COLOR: {
           shadow: {
@@ -785,11 +785,11 @@ const toolboxSceneXR = {
             },
           },
         },
-        SEE_THROUGH: {
+        ALPHA: {
           shadow: {
             type: 'math_number',
             fields: {
-              NUM: 0,
+              NUM: 1,
             },
           },
         },
@@ -798,17 +798,17 @@ const toolboxSceneXR = {
     {
       kind: 'block',
       type: 'set_xr_ui_placement',
-      keyword: 'vr ui hud wrist heads up display controls',
+      keyword: 'vrui',
     },
     {
       kind: 'block',
       type: 'add_teleport_target',
-      keyword: 'teleport target',
+      keyword: 'teleport',
     },
     {
       kind: 'block',
       type: 'remove_teleport_target',
-      keyword: 'teleport target',
+      keyword: 'unteleport',
     },
     {
       kind: 'block',

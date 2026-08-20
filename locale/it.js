@@ -345,7 +345,8 @@ export default {
   set_xr_mode: 'imposta modalità XR su %1',
   set_xr_view_mode: 'imposta vista VR su %1 con movimento della camera %2',
   set_ar_scene_size: 'scena AR scala: %1 cm distanza: %2 cm altezza: %3 cm', // ai
-  set_vr_comfort: 'comfort VR visione a tunnel %1 intensità %2 colore %3 trasparenza %4 %%', // ai
+  set_vr_comfort: 'comfort VR visione a tunnel %1 intensità %2 colore %3 alpha %4', // ai
+  set_vr_comfort_overlay: 'sovrapposizione %1 mostrata %2', // ai
   set_xr_ui_placement: 'mostra interfaccia VR su %1', // ai
   add_teleport_target: 'aggiungi destinazione teletrasporto %1',
   remove_teleport_target: 'rimuovi destinazione teletrasporto %1',
@@ -829,6 +830,11 @@ export default {
   smooth_option: 'fluido',
   comfort_option: 'comfort',
   auto_option: 'automatico', // ai
+  dots_option: 'punti', // ai
+  grid_option: 'griglia', // ai
+  horizon_option: 'orizzonte', // ai
+  moving_option: 'in movimento', // ai
+  always_option: 'sempre', // ai
   low_option: 'bassa', // ai
   medium_option: 'media', // ai
   high_option: 'alta', // ai

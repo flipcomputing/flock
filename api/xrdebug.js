@@ -105,6 +105,29 @@ function snapshot(label) {
         right: round(active.getDirection(flock.BABYLON.Vector3.Right())),
       };
     }),
+    // Which branch the comfort aids took; a null pose is the one that hides the overlay.
+    comfort: {
+      tunnel: flock._xrComfortTunnel ?? null,
+      overlay: flock._xrComfortRestFrame ?? null,
+      shown: flock._xrComfortRestFrameShow ?? null,
+      pose: flock._xrComfortPoseStatus ?? null,
+      motion: safe(() => flock._xrComfortMotion),
+      fade: safe(() => flock._xrRestFrameFade),
+      restriction: safe(() => flock._xrVignetteRestriction),
+      anchor: safe(() => {
+        const anchor = flock._xrRestFrameAnchor;
+        return anchor ? [+anchor.x.toFixed(2), +anchor.z.toFixed(2)] : null;
+      }),
+      overlayLocal: safe(() => {
+        const node = flock._xrRestFrameNode;
+        if (!node) return null;
+        const q = node.rotationQuaternion;
+        return {
+          position: [+node.position.x.toFixed(2), +node.position.y.toFixed(2)],
+          yaw: Math.round((2 * Math.atan2(q?.y ?? 0, q?.w ?? 1) * 180) / Math.PI),
+        };
+      }),
+    },
     cameraY: safe(() => camera?.position?.y),
     cameraPos: safe(() =>
       camera?.position ? [+camera.position.x.toFixed(2), +camera.position.z.toFixed(2)] : null

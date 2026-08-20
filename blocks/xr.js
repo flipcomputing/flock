@@ -239,7 +239,8 @@ export function defineXRBlocks() {
     init: function () {
       this.jsonInit({
         type: 'set_vr_comfort',
-        message0: translate('set_vr_comfort'),
+        // An inline block only breaks rows at an end-row input; message1 alone rides up.
+        message0: `${translate('set_vr_comfort')} %5`,
         args0: [
           {
             type: 'field_dropdown',
@@ -262,10 +263,32 @@ export function defineXRBlocks() {
           },
           {
             type: 'input_value',
-            name: 'SEE_THROUGH',
+            name: 'ALPHA',
             check: 'Number',
           },
+          {
+            type: 'input_end_row',
+          },
         ],
+        message1: translate('set_vr_comfort_overlay'),
+        args1: [
+          {
+            type: 'field_dropdown',
+            name: 'REST_FRAME',
+            options: [
+              getDropdownOption('none'),
+              getDropdownOption('dots'),
+              getDropdownOption('grid'),
+              getDropdownOption('horizon'),
+            ],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'REST_FRAME_SHOW',
+            options: [getDropdownOption('moving'), getDropdownOption('always')],
+          },
+        ],
+        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Scene'],

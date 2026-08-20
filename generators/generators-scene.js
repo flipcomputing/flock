@@ -639,8 +639,10 @@ export function registerSceneGenerators(javascriptGenerator) {
     const tunnel = JSON.stringify(block.getFieldValue('TUNNEL'));
     const strength = JSON.stringify(block.getFieldValue('STRENGTH'));
     const color = getFieldValue(block, 'COLOR', '"#000000"');
-    const seeThrough = getFieldValue(block, 'SEE_THROUGH', '0');
-    return `setVRComfort(${tunnel}, ${strength}, ${color}, ${seeThrough});\n`;
+    const alpha = getFieldValue(block, 'ALPHA', '1');
+    const restFrame = JSON.stringify(block.getFieldValue('REST_FRAME'));
+    const restFrameShow = JSON.stringify(block.getFieldValue('REST_FRAME_SHOW'));
+    return `setVRComfort(${tunnel}, ${strength}, ${color}, ${alpha}, ${restFrame}, ${restFrameShow});\n`;
   };
 
   javascriptGenerator.forBlock['set_xr_ui_placement'] = function (block) {
