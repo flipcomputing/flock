@@ -762,15 +762,15 @@ export function initContextMenus(workspace) {
     const enableBtn = document.createElement('button');
     enableBtn.type = 'button';
     enableBtn.className = 'fc-block-toolbar-btn';
-    // fa-ban — shown when the block is currently enabled (click to disable).
-    const blockDisableSvg = mkFaSvg(
-      '<path d="M367.2 412.5L99.5 144.8C77.1 176.1 64 214.5 64 256c0 106 86 192 192 192c41.5 0 79.9-13.1 111.2-35.5zm45.3-45.3C434.9 335.9 448 297.5 448 256c0-106-86-192-192-192c-41.5 0-79.9 13.1-111.2 35.5L412.5 367.2zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256z"/>',
-      '0 0 512 512'
+    // fa-toggle-on
+    const blockEnabledSvg = mkFaSvg(
+      '<path d="M384 64c106 0 192 86 192 192s-86 192-192 192l-192 0C86 448 0 362 0 256S86 64 192 64l192 0zm0 288a96 96 0 1 0 0-192 96 96 0 1 0 0 192z"/>',
+      '0 0 576 512'
     );
-    // fa-circle-check — shown when the block is currently disabled (click to enable).
-    const blockEnableSvg = mkFaSvg(
-      '<path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>',
-      '0 0 512 512'
+    // fa-toggle-off
+    const blockDisabledSvg = mkFaSvg(
+      '<path d="M192 64C86 64 0 150 0 256S86 448 192 448l192 0c106 0 192-86 192-192S490 64 384 64L192 64zm0 288a96 96 0 1 1 0-192 96 96 0 1 1 0 192z"/>',
+      '0 0 576 512'
     );
 
     // fa-eye
@@ -1084,7 +1084,7 @@ export function initContextMenus(workspace) {
         enableBtn,
         disabled ? getToolbarLabel('context_enable_option', 'Enable') : getToolbarLabel('context_disable_option', 'Disable')
       );
-      enableBtn.innerHTML = disabled ? blockEnableSvg : blockDisableSvg;
+      enableBtn.innerHTML = disabled ? blockDisabledSvg : blockEnabledSvg;
     }
 
     function showBlockToolbar(block, { keyboard = false } = {}) {
