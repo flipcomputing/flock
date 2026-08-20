@@ -86,6 +86,22 @@ export const createFlockXRState = () => ({
   _arShadowMaterial: null,
   _arHitTest: null,
   _xrHUDViewAspect: null,
+  // Off until the block asks for it while the restrictor is being tuned on real headsets;
+  // 'auto' is where this defaults once it has earned its keep.
+  _xrComfortTunnel: 'off',
+  _xrComfortStrength: 'medium',
+  _xrComfortColour: '#000000',
+  _xrComfortSeeThrough: 0,
+  _xrVignetteMesh: null,
+  _xrVignetteMaterial: null,
+  _xrVignetteRestriction: 0,
+  _xrVignettePhysicalPosition: null,
+  _xrVignettePhysicalRotation: null,
+  _xrVignetteRenderedPosition: null,
+  _xrVignetteRenderedRotation: null,
+  _xrVignetteScratch: null,
+  _xrVignetteHasBaseline: false,
+  _xrVignetteSampledAt: 0,
 });
 
 // The panel spans about 56 degrees at this distance.
@@ -122,8 +138,9 @@ const AR_MAX_HANDHELD_DISTANCE_M = 3.5;
 const AR_PLACEMENT_SETTLE_FRAMES = 3;
 // Tracking can take hundreds of frames to come up on a phone; place unposed rather than never.
 const AR_PLACEMENT_MAX_WAIT_FRAMES = 600;
+const VIGNETTE_MESH_NAME = 'xrComfortVignette';
 // Babylon's pointer visuals, not scene content.
-const XR_HELPER_MESH_NAMES = new Set(['laserPointer', 'gazeTracker']);
+const XR_HELPER_MESH_NAMES = new Set(['laserPointer', 'gazeTracker', VIGNETTE_MESH_NAME]);
 
 // Stands in until the session reports a pose to measure the wearer against.
 const XR_FALLBACK_EYE_HEIGHT_M = 1.5;
@@ -134,6 +151,36 @@ const SNAP_TURN_RELEASE = 0.3;
 const COMFORT_SETTLE_MS = 250;
 // Smaller height changes are the character settling, not a climb.
 const EMBODY_MIN_HEIGHT_CHANGE_M = 0.02;
+
+// The comfort restrictor closes the periphery down while the view moves under the wearer
+// rather than with them. Restriction runs 0 (open) to 1 (tunnel), and stops short of 1 so
+// there is always something left to steer by.
+const VIGNETTE_MAX_RESTRICTION = 0.85;
+// The speeds that earn full restriction, and the drift below which nothing closes at all.
+const VIGNETTE_REF_SPEED_MPS = 3;
+const VIGNETTE_REF_TURN_RAD_S = Math.PI / 3;
+const VIGNETTE_DEADZONE_MPS = 0.3;
+const VIGNETTE_DEADZONE_RAD_S = 0.2;
+// Closing sooner than it opens: the periphery should be gone before the motion is felt, and
+// the rate limit is also what keeps a borderline speed from flickering the edge.
+const VIGNETTE_CLOSE_PER_S = 4;
+const VIGNETTE_OPEN_PER_S = 2;
+// A frame the browser sat on carries no usable speed, and a frame carrying more than a stride
+// is a jump rather than a speed. Both start the measurement again instead of slamming shut.
+const VIGNETTE_MAX_DT_S = 0.1;
+const VIGNETTE_JUMP_M = 0.5;
+const VIGNETTE_JUMP_RAD = Math.PI / 12;
+// Half-angles from straight ahead: open sits outside any headset's field of view, so an open
+// restrictor is not merely invisible but has nothing to draw.
+const VIGNETTE_OPEN_ANGLE = 1.6;
+// How tight the tunnel gets at full speed. Relief and immersion trade off against each other
+// differently for every wearer, which is why this is the wearer's choice rather than a constant.
+const VIGNETTE_CLOSED_ANGLES = { low: 0.61, medium: 0.35, high: 0.21 };
+const VIGNETTE_FEATHER_RAD = 0.22;
+// Far enough out that the eyes' offset from the centre is a fifth of a degree of aperture.
+const VIGNETTE_RADIUS_M = 12;
+// Drawn after the scene and after the handheld HUD's group.
+const VIGNETTE_RENDERING_GROUP = 2;
 
 // A working sensor reports within a frame; this waits out iOS, where the permission needs a
 // user gesture this call never has and so never resolves either way.
@@ -390,6 +437,7 @@ export const flockXR = {
         flock._xrMeshObserverScene.onMeshRemovedObservable?.remove?.(flock._xrMeshRemovedObserver);
       }
     }
+    flock._disposeXRVignette();
     flock.xrHelper = null;
     Object.assign(flock, createFlockXRState());
   },
@@ -577,6 +625,7 @@ export const flockXR = {
         1
       );
       flock._positionXRWatchCamera();
+      flock._resetXRVignetteBaseline();
       flock._resetXRViewTracking({ reposition: true });
       flock._applyXRViewVisibility();
       if (flock._isPassthroughSession()) flock._showPassthroughBackground(true);
@@ -588,6 +637,7 @@ export const flockXR = {
     } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
       xrDebugPost('exiting session');
       flock._xrSessionActive = false;
+      flock._setXRVignetteRestriction(0);
       flock._resetARScene();
       flock._applyXRViewVisibility();
       flock._showPassthroughBackground(false);
@@ -663,6 +713,9 @@ export const flockXR = {
     if (!xrCamera?.rotationQuaternion || !radians) return;
     const yaw = flock.BABYLON.Quaternion.FromEulerAngles(0, radians, 0);
     yaw.multiplyToRef(xrCamera.rotationQuaternion, xrCamera.rotationQuaternion);
+    // A snap turn is a jump rather than a speed: measuring across it would slam the
+    // restrictor shut on a turn taken precisely to avoid one.
+    flock._resetXRVignetteBaseline();
   },
   // Carries the camera to `pivot`, turning it `angle` around that pivot on the way, so
   // the wearer keeps both their own head offset and their view of the character. Following
@@ -946,6 +999,236 @@ export const flockXR = {
     xrCamera.position.addInPlace(delta);
     flock._xrFollowSettledPosition.copyFrom(position);
   },
+  _ensureXRVignetteShaders() {
+    const store = flock.BABYLON.Effect.ShadersStore;
+    if (store['xrVignetteVertexShader']) return;
+    store['xrVignetteVertexShader'] = `
+      precision highp float;
+      attribute vec3 position;
+      uniform mat4 worldViewProjection;
+      varying vec3 vDirection;
+      void main() {
+        vDirection = position;
+        gl_Position = worldViewProjection * vec4(position, 1.0);
+      }
+    `;
+    store['xrVignetteFragmentShader'] = `
+      precision highp float;
+      varying vec3 vDirection;
+      uniform float aperture;
+      uniform float feather;
+      uniform vec3 tint;
+      uniform float opacity;
+      void main() {
+        // Measured from the head at the centre of the sphere rather than from either eye, so
+        // both eyes are given the same aperture and there is no edge to fuse.
+        float angle = acos(clamp(normalize(vDirection).z, -1.0, 1.0));
+        float alpha = smoothstep(aperture, aperture + feather, angle) * opacity;
+        if (alpha <= 0.0) discard;
+        gl_FragColor = vec4(tint, alpha);
+      }
+    `;
+  },
+  _createXRVignette() {
+    if (flock._xrVignetteMesh || !flock.scene) return;
+    const B = flock.BABYLON;
+    const camera = flock.xrHelper?.baseExperience?.camera;
+    if (!camera) return;
+    flock._ensureXRVignetteShaders();
+
+    const material = new B.ShaderMaterial(
+      'xrComfortVignetteMaterial',
+      flock.scene,
+      { vertex: 'xrVignette', fragment: 'xrVignette' },
+      {
+        attributes: ['position'],
+        uniforms: ['worldViewProjection', 'aperture', 'feather', 'tint', 'opacity'],
+        needAlphaBlending: true,
+      }
+    );
+    // The camera sits inside the sphere, and nothing in the scene may cut a hole in the
+    // periphery, so the restrictor is drawn last and never tested against what it covers.
+    material.backFaceCulling = false;
+    material.disableDepthWrite = true;
+    material.depthFunction = B.Constants.ALWAYS;
+    material.setFloat('aperture', VIGNETTE_OPEN_ANGLE);
+    material.setFloat('feather', VIGNETTE_FEATHER_RAD);
+
+    const mesh = B.MeshBuilder.CreateSphere(
+      VIGNETTE_MESH_NAME,
+      { diameter: VIGNETTE_RADIUS_M * 2, segments: 24 },
+      flock.scene
+    );
+    mesh.material = material;
+    mesh.isPickable = false;
+    mesh.isVisible = false;
+    mesh.renderingGroupId = VIGNETTE_RENDERING_GROUP;
+    // It surrounds the camera, so testing its bounds against the frustum proves nothing.
+    mesh.alwaysSelectAsActiveMesh = true;
+    // Riding the camera node keeps the aperture centred without a per-frame placement that
+    // could land a frame behind the eyes it is drawn for.
+    mesh.parent = camera;
+
+    flock._xrVignetteMaterial = material;
+    flock._xrVignetteMesh = mesh;
+    flock._xrVignetteRestriction = 0;
+    flock._applyXRVignetteStyle();
+    flock._resetXRVignetteBaseline();
+  },
+  _disposeXRVignette() {
+    flock._xrVignetteMesh?.dispose?.();
+    flock._xrVignetteMaterial?.dispose?.();
+    flock._xrVignetteMesh = null;
+    flock._xrVignetteMaterial = null;
+    flock._xrVignetteRestriction = 0;
+  },
+  _xrVignetteClosedAngle() {
+    return VIGNETTE_CLOSED_ANGLES[flock._xrComfortStrength] ?? VIGNETTE_CLOSED_ANGLES.medium;
+  },
+  _applyXRVignetteStyle() {
+    const material = flock._xrVignetteMaterial;
+    if (!material) return;
+    const B = flock.BABYLON;
+    let tint = null;
+    try {
+      tint = B.Color3.FromHexString(flock._xrComfortColour);
+    } catch {
+      // A colour the picker never produces: keep the periphery black rather than lose it.
+    }
+    material.setColor3?.('tint', tint ?? new B.Color3(0, 0, 0));
+    material.setFloat('opacity', 1 - flock._xrComfortSeeThrough / 100);
+    // The aperture the restriction is currently at may sit at the old strength's angle.
+    flock._setXRVignetteRestriction(flock._xrVignetteRestriction);
+  },
+  _vrComfortTunnelActive() {
+    if (flock._xrComfortTunnel !== 'auto') return false;
+    // auto is what the device can do: the restrictor is rendered in an immersive VR session
+    // and nowhere else. 'on' is left unclaimed for a renderer that reaches further.
+    return flock._xrMode === 'VR' && flock._xrSessionActive;
+  },
+  _resetXRVignetteBaseline() {
+    flock._xrVignetteHasBaseline = false;
+  },
+  _setXRVignetteRestriction(restriction) {
+    const value = Math.min(VIGNETTE_MAX_RESTRICTION, Math.max(0, restriction));
+    flock._xrVignetteRestriction = value;
+    const mesh = flock._xrVignetteMesh;
+    if (!mesh || mesh.isDisposed?.()) return;
+    // Open, the aperture is wider than any headset shows: there would be nothing to draw.
+    mesh.isVisible = value > 0;
+    if (value <= 0) return;
+    flock._xrVignetteMaterial?.setFloat?.(
+      'aperture',
+      VIGNETTE_OPEN_ANGLE + (flock._xrVignetteClosedAngle() - VIGNETTE_OPEN_ANGLE) * value
+    );
+  },
+  // Saturating rather than linear, so crossing the deadzone is a hint rather than a wall and
+  // there is still somewhere left to go once the wearer is moving quickly.
+  _xrVignetteResponse(value, deadzone, reference) {
+    if (!(value > deadzone) || reference <= deadzone) return 0;
+    const t = Math.min(1, (value - deadzone) / (reference - deadzone));
+    return t * t * (3 - 2 * t);
+  },
+  // The pose the wearer's own body puts the headset in. baseReferenceSpace is fixed for the
+  // session, while referenceSpace carries the offset Babylon folds in whenever the camera is
+  // moved outside the XR loop -- a pose read against that one already has the artificial
+  // motion in it and leaves nothing to subtract.
+  _readXRPhysicalPose(position, rotation) {
+    const sessionManager = flock.xrHelper?.baseExperience?.sessionManager;
+    const frame = sessionManager?.currentFrame;
+    const space = sessionManager?.baseReferenceSpace;
+    if (!frame || !space) return false;
+    const pose = frame.getViewerPose(space);
+    // An emulated pose is a guess at where the wearer is rather than a measurement of it.
+    if (!pose?.transform || pose.emulatedPosition) return false;
+    const posePosition = pose.transform.position;
+    const orientation = pose.transform.orientation;
+    if (orientation?.x === undefined) return false;
+    const scale = sessionManager.worldScalingFactor || 1;
+    const flip = flock.scene?.useRightHandedSystem ? 1 : -1;
+    position.set(posePosition.x * scale, posePosition.y * scale, posePosition.z * scale * flip);
+    rotation.set(orientation.x, orientation.y, orientation.z * flip, orientation.w * flip);
+    return true;
+  },
+  // Restricts on the motion the wearer's inner ear cannot account for: the rendered view's
+  // motion with the wearer's own subtracted. Deliberately blind to where the rest came from,
+  // so locomotion, physics, animation and camera moves all count the same.
+  _updateXRVignette() {
+    const mesh = flock._xrVignetteMesh;
+    if (!mesh || mesh.isDisposed?.()) return;
+    if (!flock._vrComfortTunnelActive()) {
+      flock._resetXRVignetteBaseline();
+      flock._setXRVignetteRestriction(0);
+      return;
+    }
+    const xrCamera = flock.xrHelper?.baseExperience?.camera;
+    if (!xrCamera?.position || !xrCamera.rotationQuaternion) return;
+
+    const B = flock.BABYLON;
+    flock._xrVignettePhysicalPosition ??= new B.Vector3();
+    flock._xrVignettePhysicalRotation ??= new B.Quaternion();
+    flock._xrVignetteRenderedPosition ??= new B.Vector3();
+    flock._xrVignetteRenderedRotation ??= new B.Quaternion();
+    flock._xrVignetteScratch ??= {
+      position: new B.Vector3(),
+      rotation: new B.Quaternion(),
+      drift: new B.Vector3(),
+      physicalTurn: new B.Quaternion(),
+      renderedTurn: new B.Quaternion(),
+      inverse: new B.Quaternion(),
+    };
+    const scratch = flock._xrVignetteScratch;
+
+    // Tracking loss leaves nothing to subtract. Holding the wearer still credits all of the
+    // rendered motion to the scene, which errs towards restricting: the comfortable way to be
+    // wrong, and the behaviour to revisit on a headset.
+    if (!flock._readXRPhysicalPose(scratch.position, scratch.rotation)) {
+      scratch.position.copyFrom(flock._xrVignettePhysicalPosition);
+      scratch.rotation.copyFrom(flock._xrVignettePhysicalRotation);
+    }
+
+    const now = performance.now?.() ?? Date.now();
+    const elapsed = (now - flock._xrVignetteSampledAt) / 1000;
+    const hadBaseline = flock._xrVignetteHasBaseline;
+
+    scratch.drift.copyFrom(xrCamera.position).subtractInPlace(flock._xrVignetteRenderedPosition);
+    scratch.drift.addInPlace(flock._xrVignettePhysicalPosition).subtractInPlace(scratch.position);
+    const drift = scratch.drift.length();
+
+    flock._xrVignetteRenderedRotation.conjugateToRef(scratch.inverse);
+    xrCamera.rotationQuaternion.multiplyToRef(scratch.inverse, scratch.renderedTurn);
+    flock._xrVignettePhysicalRotation.conjugateToRef(scratch.inverse);
+    scratch.rotation.multiplyToRef(scratch.inverse, scratch.physicalTurn);
+    const alignment = Math.abs(B.Quaternion.Dot(scratch.renderedTurn, scratch.physicalTurn));
+    const swing = 2 * Math.acos(Math.min(1, alignment));
+
+    // Rebased before any early return: a frame that could not be measured must not be measured
+    // against on the next one either.
+    flock._xrVignetteRenderedPosition.copyFrom(xrCamera.position);
+    flock._xrVignetteRenderedRotation.copyFrom(xrCamera.rotationQuaternion);
+    flock._xrVignettePhysicalPosition.copyFrom(scratch.position);
+    flock._xrVignettePhysicalRotation.copyFrom(scratch.rotation);
+    flock._xrVignetteSampledAt = now;
+    flock._xrVignetteHasBaseline = true;
+
+    // A first sample, a frame the browser sat on, and a teleport or snap turn are all things
+    // that are not a speed. Hold the restrictor where it is rather than read one off them.
+    if (!hadBaseline || elapsed <= 0 || elapsed > VIGNETTE_MAX_DT_S) return;
+    if (drift > VIGNETTE_JUMP_M || swing > VIGNETTE_JUMP_RAD) return;
+
+    // Combined by the larger of the two: moving and turning at once is not twice as sickening,
+    // and adding them would close the aperture fully every time both happen together.
+    const target =
+      VIGNETTE_MAX_RESTRICTION *
+      Math.max(
+        flock._xrVignetteResponse(drift / elapsed, VIGNETTE_DEADZONE_MPS, VIGNETTE_REF_SPEED_MPS),
+        flock._xrVignetteResponse(swing / elapsed, VIGNETTE_DEADZONE_RAD_S, VIGNETTE_REF_TURN_RAD_S)
+      );
+
+    const current = flock._xrVignetteRestriction;
+    const step = (target > current ? VIGNETTE_CLOSE_PER_S : VIGNETTE_OPEN_PER_S) * elapsed;
+    flock._setXRVignetteRestriction(current + Math.min(step, Math.max(-step, target - current)));
+  },
   async _immersiveVRSupported() {
     try {
       return (await navigator.xr?.isSessionSupported?.('immersive-vr')) === true;
@@ -1125,6 +1408,7 @@ export const flockXR = {
       () => flock._applyXRUIPlacement()
     );
     flock._applyXRUIPlacement();
+    if (mode === 'VR') flock._createXRVignette();
 
     flock._xrSource = new XRSource(flock.inputManager, {
       xrHelper: flock.xrHelper,
@@ -1136,6 +1420,7 @@ export const flockXR = {
       flock._syncXRHUDPicking();
       flock._updateXRSnapTurn();
       flock._updateXRView();
+      flock._updateXRVignette();
       flock._placeARScene();
       flock._syncXRHUDPose();
       if (flock._xrSessionActive) xrDebugTick();
@@ -1532,6 +1817,21 @@ export const flockXR = {
     flock._arSceneClearanceCm = optionalCentimetres(distanceCm, AR_SCENE_DISTANCE_MAX_CM);
     flock._arSceneHeightCm = optionalCentimetres(heightCm, AR_SCENE_HEIGHT_MAX_CM);
     flock._applyARSceneScale();
+  },
+  setVRComfort(mode, strength, colour, seeThrough) {
+    // Each setting stands on its own: one bad value leaves the others to take effect.
+    if (mode === 'auto' || mode === 'off') flock._xrComfortTunnel = mode;
+    if (Object.hasOwn(VIGNETTE_CLOSED_ANGLES, strength)) flock._xrComfortStrength = strength;
+    if (typeof colour === 'string' && /^#[0-9a-f]{6}$/i.test(colour)) {
+      flock._xrComfortColour = colour;
+    }
+    const clarity = Number(seeThrough);
+    if (Number.isFinite(clarity)) {
+      flock._xrComfortSeeThrough = Math.min(100, Math.max(0, clarity));
+    }
+    flock._applyXRVignetteStyle();
+    flock._resetXRVignetteBaseline();
+    if (flock._xrComfortTunnel === 'off') flock._setXRVignetteRestriction(0);
   },
   setXRUIPlacement(placement) {
     if (placement !== 'hud' && placement !== 'wrist') return;

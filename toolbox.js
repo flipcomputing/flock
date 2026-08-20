@@ -774,6 +774,29 @@ const toolboxSceneXR = {
     },
     {
       kind: 'block',
+      type: 'set_vr_comfort',
+      keyword: 'vr comfort tunnel vision tunnelling vignette motion sickness nausea',
+      inputs: {
+        COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#000000',
+            },
+          },
+        },
+        SEE_THROUGH: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'set_xr_ui_placement',
       keyword: 'vr ui hud wrist heads up display controls',
     },

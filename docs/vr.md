@@ -109,6 +109,45 @@ carrying, is ignored either way.
 
 You only get the circle in **embody** view with **teleport** motion.
 
+### `set VR comfort tunnel vision [auto / off] strength [...] colour [...] see-through [...] %`
+
+Moving through a scene while your body stays still is what makes people feel unwell in VR.
+Your eyes report motion, your inner ear reports none, and the mismatch between them is what
+causes cyber-sickness. This block narrows what you can see at the edges while the scene is
+moving under you, and opens it back up once you stop.
+
+It measures how fast the view is moving and turning, subtracts your own head movement, and
+closes the edges in proportion to whatever is left over. Walking around your room, or turning
+to look at something, closes nothing — only motion your body did not make counts. Nor does it
+matter what caused that motion: the joystick, gravity, an animation or a moving camera all
+count the same.
+
+- **auto** — let the device decide. In a VR headset you get tunnel vision; on a flat screen or
+  in AR you get nothing, so the same project works everywhere without changing the block.
+- **off** — never, on any device.
+
+**You only get this if you add the block.** A project with no `set VR comfort` block has
+tunnel vision switched off, including in a headset.
+
+The other three settings decide what the edges look like:
+
+- **strength** — how far in they close when you are moving quickly. **low** leaves most of
+  your view, **high** leaves a narrow tunnel. **medium** to start with.
+- **colour** — what the edges are filled with. Black to start with, which is what most VR
+  apps use; a colour close to your sky is less noticeable.
+- **see-through** — 0 blocks the edges out completely, 100 makes them invisible. Something in
+  between lets you keep a sense of what is around you, at the cost of some of the benefit.
+
+Nothing happens on a flat screen or in AR, whatever you set it to.
+
+> The technique comes from Fernandes and Feiner (2016),
+> [Combating VR Sickness through Subtle Dynamic Field-of-View Modification](https://www.cs.columbia.edu/2016/combating-vr-sickness/images/combating-vr-sickness.pdf),
+> IEEE 3DUI — restrict the field of view while the viewer is moving, and restore it when they
+> are still. Allison and Palmisano (2025),
+> [Visual Factors in Cybersickness: A Literature Survey and Meta-Analysis](https://doi.org/10.1163/22134808-bja10181),
+> Multisensory Research, pooled 97 studies and found peripheral field-of-view restriction to be
+> one of the few visual factors that reliably reduces cybersickness.
+
 ### `show VR UI on [heads-up display / wrist]`
 
 Buttons, sliders and text panels normally sit on the screen. In VR there is no screen, so they
@@ -196,6 +235,7 @@ there is just more it can do once you can turn your head.
 
 - `set XR mode` prints a short "XR Mode!" message when it takes effect.
 - For anything fast-moving, prefer **watch + comfort**; for exploring, **embody + teleport**.
-  Both help avoid cyber-sickness, and both are chosen for you if you say nothing.
+  Both help avoid cyber-sickness, and both are chosen for you if you say nothing. If a
+  project has to move people about quickly, add `set VR comfort` on top.
 - Design your UI for VR: a wall of small text that works on a monitor is hard to read on a
   floating panel. Fewer, bigger controls work better.

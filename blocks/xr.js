@@ -235,6 +235,47 @@ export function defineXRBlocks() {
     },
   };
 
+  Blockly.Blocks['set_vr_comfort'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_vr_comfort',
+        message0: translate('set_vr_comfort'),
+        args0: [
+          {
+            type: 'field_dropdown',
+            name: 'TUNNEL',
+            options: [getDropdownOption('auto'), getDropdownOption('off')],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'STRENGTH',
+            options: [
+              getDropdownOption('low'),
+              getDropdownOption('medium'),
+              getDropdownOption('high'),
+            ],
+          },
+          {
+            type: 'input_value',
+            name: 'COLOR',
+            check: 'Colour',
+          },
+          {
+            type: 'input_value',
+            name: 'SEE_THROUGH',
+            check: 'Number',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('set_vr_comfort'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
   Blockly.Blocks['set_xr_ui_placement'] = {
     init: function () {
       this.jsonInit({
