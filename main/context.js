@@ -161,7 +161,7 @@ export function toggleContextDebug() {
     // 2. Create the Element
     debugDiv = document.createElement('div');
     debugDiv.id = 'flock-context-debug';
-    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span><button id="flock-context-debug-close" aria-label="Close debug panel" type="button">&times;</button>`;
+    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span><button class="flock-close-icon" id="flock-context-debug-close" aria-label="Close debug panel" type="button"></button>`;
     document.body.appendChild(debugDiv);
 
     // Update loop

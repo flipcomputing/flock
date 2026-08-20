@@ -77,9 +77,8 @@ export function showBanner(id, { message, action } = {}) {
 
   const closeButton = doc.createElement('button');
   closeButton.type = 'button';
-  closeButton.className = 'flock-banner__close';
+  closeButton.className = 'flock-banner__close flock-close-icon';
   closeButton.setAttribute('aria-label', translate('banner_dismiss'));
-  closeButton.textContent = '×';
   closeButton.addEventListener('click', () => dismissBanner(id));
   banner.appendChild(closeButton);
 

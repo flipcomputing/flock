@@ -894,9 +894,8 @@ export function initializeWorkspace() {
 
     const cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
-    cancelBtn.className = 'mobile-search-cancel';
+    cancelBtn.className = 'mobile-search-cancel flock-close-icon';
     cancelBtn.setAttribute('aria-label', translate('close'));
-    cancelBtn.textContent = '×';
     overlay.appendChild(cancelBtn);
 
     // Build results panel
@@ -1200,8 +1199,7 @@ export function initializeWorkspace() {
 
   const wsMobileClose = document.createElement('button');
   wsMobileClose.type = 'button';
-  wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
-  wsMobileClose.textContent = '×';
+  wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close flock-close-icon';
 
   wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
 

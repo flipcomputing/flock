@@ -56,7 +56,7 @@ if (isDebugModeEnabled()) {
   Object.assign(hint.style, { opacity: '0.6', fontSize: '11px' });
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
-  closeBtn.textContent = '×';
+  closeBtn.className = 'flock-close-icon';
   closeBtn.setAttribute('aria-label', 'Close debug console');
   Object.assign(closeBtn.style, {
     background: 'none',

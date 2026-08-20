@@ -878,6 +878,11 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     cursor: pointer;
   }
 
+  .mobile-search-cancel.flock-close-icon {
+    width: 44px;
+    height: 44px;
+  }
+
   /* Custom HTML results panel — replaces the SVG flyout on mobile */
   .mobile-search-results {
     position: fixed;
@@ -1049,8 +1054,9 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     padding: 8px;
   }
 
-  .ws-search-mobile-close {
+  .ws-search-mobile-close.flock-close-icon {
     width: 44px;
+    height: 44px;
   }
 }
 
