@@ -249,6 +249,20 @@ export function runBlockHintTests(_flock) {
         expect(container.hidden).to.be.true;
         expect(text.textContent).to.equal('');
       });
+
+      it('hides on the next click or tap', function () {
+        showBlockHintMessage('Tips live in the Tools menu');
+        document.dispatchEvent(new PointerEvent('pointerdown'));
+        expect(container.hidden).to.be.true;
+      });
+
+      it('removes the dismissal listener when a regular hint replaces it', function () {
+        showBlockHintMessage('Tips live in the Tools menu');
+        showBlockHint('Move the object');
+        document.dispatchEvent(new PointerEvent('pointerdown'));
+        expect(container.hidden).to.be.false;
+        expect(text.textContent).to.equal('Move the object');
+      });
     });
 
     describe('mobile layout default', function () {

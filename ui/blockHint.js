@@ -23,6 +23,24 @@ function isMobileLayout() {
 let enabled = !isMobileLayout();
 let suppressed = false;
 let lastHintText = '';
+let dismissMessage = null;
+
+function removeMessageDismissal() {
+  if (!dismissMessage || typeof document === 'undefined') return;
+  document.removeEventListener('pointerdown', dismissMessage, true);
+  dismissMessage = null;
+}
+
+function addMessageDismissal() {
+  removeMessageDismissal();
+  if (typeof document === 'undefined') return;
+
+  dismissMessage = () => {
+    removeMessageDismissal();
+    hideBlockHint();
+  };
+  document.addEventListener('pointerdown', dismissMessage, true);
+}
 
 export function areBlockHintsEnabled() {
   return enabled;
@@ -47,6 +65,7 @@ export function setBlockHintsSuppressed(value) {
 }
 
 function renderBlockHint(text) {
+  removeMessageDismissal();
   const container = getContainer();
   const element = getTextElement();
   if (!container || !element) return;
@@ -74,6 +93,7 @@ export function showBlockHint(text) {
 // off (that's exactly when it's telling the user how to turn them on).
 // boldPart, if given and found in text, renders as <strong> instead of plain text.
 export function showBlockHintMessage(text, { boldPart } = {}) {
+  removeMessageDismissal();
   const container = getContainer();
   const element = getTextElement();
   if (!container || !element) return;
@@ -103,15 +123,16 @@ export function showBlockHintMessage(text, { boldPart } = {}) {
   }
 
   container.hidden = false;
+  addMessageDismissal();
 }
 
 export function clearBlockHint() {
   showBlockHint('');
 }
 
-// Hides the current hint without clearing its text, so a future caller could
-// still wire this up to a dismiss control.
+// Hides the current hint without clearing its remembered block text.
 export function hideBlockHint() {
+  removeMessageDismissal();
   const container = getContainer();
   if (container) container.hidden = true;
 }
