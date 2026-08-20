@@ -1370,39 +1370,14 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(deleteBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      // Count only blocks that will actually be deleted: the block + its input
-      // descendants, but NOT the top-level next chain (which gets healed, not deleted).
-      const countDeleted = (b, followNext) => {
-        if (!b || b.isShadow()) return 0;
-        let n = 1;
-        for (const input of b.inputList) {
-          n += countDeleted(input.connection?.targetBlock(), true);
-        }
-        if (followNext) n += countDeleted(b.nextConnection?.targetBlock(), true);
-        return n;
-      };
-      const count = countDeleted(block, false);
-      if (count > 1) {
-        const msg = (Blockly.Msg['DELETE_ALL_BLOCKS'] || 'Delete all %1 blocks?').replace(
-          '%1',
-          count
-        );
-        Blockly.dialog.confirm(msg, (ok) => {
-          if (!ok) return;
-          hideBlockToolbar();
-          if (block.isDisposed?.()) return;
-          block.checkAndDelete();
-          Blockly.Toast?.show?.(workspace, {
-            message: translate('DELETE_UNDO_HINT'),
-            id: 'delete-undo-tip',
-            oncePerSession: true,
-            duration: 8,
-          });
-        });
-      } else {
-        hideBlockToolbar();
-        block.checkAndDelete();
-      }
+      hideBlockToolbar();
+      block.checkAndDelete();
+      Blockly.Toast?.show?.(workspace, {
+        message: translate('DELETE_UNDO_HINT'),
+        id: 'delete-undo-tip',
+        oncePerSession: true,
+        duration: 8,
+      });
     });
   }
 }
