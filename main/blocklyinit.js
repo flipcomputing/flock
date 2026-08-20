@@ -4,6 +4,7 @@ import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import { initializeTheme } from './themes.js';
 import { translate } from './translation.js';
 import { focusRememberedWorkspaceNode } from './workspaceFocus.js';
+import { hideBlockHint } from '../ui/blockHint.js';
 import {
   options,
   defineBlocks,
@@ -1267,6 +1268,7 @@ export function initializeWorkspace() {
   });
 
   workspaceSearch.open = function () {
+    hideBlockHint();
     if (isMobileWS()) {
       document.body.appendChild(wsMobileBar);
       wsMobileInput.value = workspaceSearch.searchText || '';
@@ -1281,12 +1283,14 @@ export function initializeWorkspace() {
     blocklyDiv?.classList.add('blockly-search-active');
   };
   workspaceSearch.close = function () {
+    const currentResult = workspaceSearch.blocks?.[workspaceSearch.currentBlockIndex];
     if (wsMobileBar.isConnected) {
       wsMobileInput.value = '';
       wsMobileBar.remove();
     }
     originalClose();
     blocklyDiv?.classList.remove('blockly-search-active');
+    if (currentResult && !currentResult.isDisposed()) currentResult.select();
   };
 
   // Override highlight methods to work at block-group level so the plugin's

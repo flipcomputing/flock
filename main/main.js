@@ -763,7 +763,15 @@ function initializeApp() {
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => zoomTopLeft(-1));
   const workspaceSearchBtn = document.getElementById('workspaceSearchBtn');
   if (workspaceSearchBtn)
-    workspaceSearchBtn.addEventListener('click', () => window.flockWorkspaceSearch?.open());
+    workspaceSearchBtn.addEventListener('click', () => {
+      const workspaceSearch = window.flockWorkspaceSearch;
+      if (!workspaceSearch) return;
+      if (document.getElementById('blocklyDiv')?.classList.contains('blockly-search-active')) {
+        workspaceSearch.close();
+      } else {
+        workspaceSearch.open();
+      }
+    });
   if (undoBtn) undoBtn.addEventListener('click', () => workspace.undo(false));
   if (redoBtn) redoBtn.addEventListener('click', () => workspace.undo(true));
   const shortcutsBtn = document.getElementById('shortcutsBtn');
