@@ -217,6 +217,14 @@ export function runOnScreenControlsTests(flock) {
         expect(button.height).to.equal('70px');
       });
 
+      it('should match the gizmo control outline and rounding without changing its size', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
+        expect(button.width).to.equal('70px');
+        expect(button.height).to.equal('70px');
+        expect(button.thickness).to.equal(3);
+        expect(button.cornerRadius).to.equal(8);
+      });
+
       it('should set font size to 40px at default displayScale', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         expect(button.fontSize).to.equal('40px');
