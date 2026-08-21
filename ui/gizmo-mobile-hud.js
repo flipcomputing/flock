@@ -63,7 +63,7 @@ export function createGizmoMobileHud({
     { key: 'x', label: 'X', color: '#0072B2' },
     { key: 'y', label: 'Y', color: '#009E73' },
     { key: 'z', label: 'Z', color: '#D55E00' },
-    ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
+    ...(showUniform ? [{ key: 'all', label: '=', color: '#aaaaaa' }] : []),
   ];
   const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
   let axis = initialAxis && AXIS_DEFS.find((d) => d.key === initialAxis) ? initialAxis : firstAxis;

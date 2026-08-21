@@ -128,7 +128,9 @@ export function runGizmoMobileHudTests(flock) {
 
       it("also creates the uniform 'all' button when showUniform is true", function () {
         make({ showUniform: true });
-        expect(findControl(flock, 'gizmo-axis-all')).to.exist;
+        const button = findControl(flock, 'gizmo-axis-all');
+        expect(button).to.exist;
+        expect(button.textBlock.text).to.equal('=');
       });
 
       it('clicking an axis button fires onAxisChange with that axis', function () {
