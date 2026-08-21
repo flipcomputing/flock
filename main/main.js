@@ -735,7 +735,7 @@ function initializeApp() {
   const fileInput = document.getElementById('fileInput');
   const exportCodeButton = document.getElementById('exportCodeButton');
   const openButton = document.getElementById('openButton');
-  const menuButton = document.getElementById('menuBtn');
+  const projectsButton = document.getElementById('exampleButton');
   if (!runCodeButton || !stopCodeButton || !exportCodeButton || !fileInput) {
     return;
   }
@@ -814,7 +814,7 @@ function initializeApp() {
   });
   KeyboardDispatcher.on('*', 'Mod+KeyM', (e) => {
     e.preventDefault();
-    if (menuButton) menuButton.focus();
+    projectsButton?.focus();
   });
   KeyboardDispatcher.on('*', 'Mod+KeyE', (e) => {
     e.preventDefault();

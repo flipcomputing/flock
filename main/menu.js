@@ -66,7 +66,7 @@ class AccessibleFlyoutMenu {
       return;
     }
 
-    this.menuItems = this.menuDropdown.querySelectorAll('.menu-item');
+    this.menuItems = this.menuDropdown.querySelectorAll('.menu-item:not(.hidden)');
     this.init();
   }
 

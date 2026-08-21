@@ -996,9 +996,9 @@ export default {
   loading_title_ui: 'Laddar Flock XR',
   import_project_file_ui: 'Importera projektfil',
 
-  demo_ui: 'Demo',
+  projects_ui: 'Projekt',
   new_ui: 'Ny',
-  starter_ui: '👋🏽 Start',
+  starter_ui: '👋🏽 Välkommen',
   controller_starter_ui: '🎮 Kontrollstart',
   snow_globe_ui: '❄️ Snöglob',
   forest_base_ui: '🌲 Skogsbas',
@@ -1056,9 +1056,7 @@ export default {
   open_file_input_label_ui: 'Välj projektfil att öppna',
   export_code_button_ui: 'Spara detta projekt till en fil på din dator.',
   example_select_ui: 'Välj ett exempelprojekt att ladda',
-  demo_heading_ui: 'Demos', // ai
-  close_demos_ui: 'Stäng demos', // ai
-  examples_cat_start_ui: 'Start', // ai
+  close_projects_ui: 'Stäng projekt', // ai
   examples_cat_games_ui: 'Spel', // ai
   examples_cat_physics_ui: 'Fysik', // ai
   examples_cat_worlds_ui: 'Världar', // ai

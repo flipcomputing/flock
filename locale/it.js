@@ -1030,9 +1030,9 @@ export default {
   loading_title_ui: 'Caricamento di Flock XR',
   import_project_file_ui: 'Importa file di progetto',
 
-  demo_ui: 'Demo',
+  projects_ui: 'Progetti',
   new_ui: 'Nuovo',
-  starter_ui: '👋🏽 Starter',
+  starter_ui: '👋🏽 Benvenuto',
   character_designer_ui: '👚 Designer personaggi',
   controller_starter_ui: '🎮 Controller starter',
   snow_globe_ui: '❄️ Palla di neve',
@@ -1091,9 +1091,7 @@ export default {
   open_file_input_label_ui: 'Seleziona il file di progetto da aprire',
   export_code_button_ui: 'Salva questo progetto in un file sul tuo computer.',
   example_select_ui: 'Scegli un progetto di esempio da caricare',
-  demo_heading_ui: 'Demo', // ai
-  close_demos_ui: 'Chiudi demo', // ai
-  examples_cat_start_ui: 'Inizio', // ai
+  close_projects_ui: 'Chiudi progetti', // ai
   examples_cat_games_ui: 'Giochi', // ai
   examples_cat_physics_ui: 'Fisica', // ai
   examples_cat_worlds_ui: 'Mondi', // ai

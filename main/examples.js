@@ -1,15 +1,11 @@
-// Example ("Demo") gallery: a tabbed, tile-based, accessible picker that
-// replaces the old <select id="exampleSelect"> dropdown. To add an example:
-// append an entry below (with its `category`), drop its .flock file in
-// /examples, and add an `<key>_ui` label in the locale files. To add a
-// category, add an entry to CATEGORIES with an `examples_cat_<id>_ui` label.
+// To add a project, add its file to /examples and register it in EXAMPLES with
+// a matching `<key>_ui` locale entry. Register new categories in CATEGORIES.
 import { applyTranslations, translate } from './translation.js';
-import { loadExample } from './files.js';
+import { loadExample, newProject } from './files.js';
 
 // Tabs, in display order. `i18nKey` maps to an `examples_cat_<…>_ui` locale
 // entry. Categories with no examples are skipped when building the tabs.
 export const CATEGORIES = [
-  { id: 'start', i18nKey: 'examples_cat_start' },
   { id: 'worlds', i18nKey: 'examples_cat_worlds' },
   { id: 'games', i18nKey: 'examples_cat_games' },
   { id: 'physics', i18nKey: 'examples_cat_physics' },
@@ -22,7 +18,7 @@ export const CATEGORIES = [
 // locale entries (which already include the leading emoji); `emoji` is kept as
 // a fallback used before translations are applied; `category` is a CATEGORIES id.
 export const EXAMPLES = [
-  { i18nKey: 'starter', file: 'examples/starter.flock', emoji: '👋🏽', category: 'start' },
+  { i18nKey: 'starter', file: 'examples/starter.flock', emoji: '👋🏽', category: 'worlds' },
   { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', emoji: '🌳', category: 'games' },
   {
     i18nKey: 'collect_the_gems',
@@ -79,6 +75,7 @@ export const EXAMPLES = [
 
 let previouslyFocused = null;
 let galleryInitialised = false;
+let lastFocusedAction = null;
 
 function canRestoreFocus(element) {
   if (!element || !element.isConnected) {
@@ -325,6 +322,35 @@ function getTabs() {
   return tablist ? Array.from(tablist.querySelectorAll('.example-tab')) : [];
 }
 
+function getActionButtons() {
+  return Array.from(document.querySelectorAll('.project-action-button'));
+}
+
+function handleActionKeydown(e) {
+  const actions = getActionButtons();
+  const index = actions.indexOf(document.activeElement);
+  if (index === -1) return false;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowLeft': {
+      e.preventDefault();
+      const dir = e.key === 'ArrowRight' ? 1 : -1;
+      actions[(index + dir + actions.length) % actions.length].focus();
+      break;
+    }
+    case 'ArrowDown': {
+      e.preventDefault();
+      const selectedTab = getTabs().find((tab) => tab.getAttribute('aria-selected') === 'true');
+      selectedTab?.focus();
+      break;
+    }
+    default:
+      return false;
+  }
+  return true;
+}
+
 // Tablist keyboard navigation (focus on a tab): Left/Right (and Home/End) move
 // between tabs with automatic activation; Down/Up moves focus into the grid.
 function handleTabKeydown(e) {
@@ -358,13 +384,17 @@ function handleTabKeydown(e) {
       if (firstTile) focusTile(firstTile);
       break;
     }
+    case 'ArrowUp':
+      e.preventDefault();
+      (lastFocusedAction || getActionButtons()[0])?.focus();
+      break;
     default:
       return false;
   }
   return true;
 }
 
-// Anchor the panel directly under the Demo button, clamped to the viewport.
+// Anchor the panel directly under the Projects button, clamped to the viewport.
 function positionPanel(modal) {
   const trigger = document.getElementById('exampleButton');
   const panel = modal.querySelector('.example-modal-content');
@@ -403,9 +433,10 @@ export function openExampleModal() {
   positionPanel(modal);
 
   setTimeout(() => {
-    const selectedTab = modal.querySelector('.example-tab[aria-selected="true"]');
-    if (selectedTab) {
-      selectedTab.focus();
+    const saveButton = document.getElementById('exportCodeButton');
+    if (saveButton) {
+      lastFocusedAction = saveButton;
+      saveButton.focus();
     } else {
       document.getElementById('closeExampleModal')?.focus();
     }
@@ -417,7 +448,7 @@ export function hideExampleModal() {
   if (!modal) return;
 
   // Remove the dialog from the a11y tree first (display:none via .hidden), then
-  // move focus, so the screen reader announces the Demo button exactly once.
+  // move focus, so the screen reader announces the Projects button exactly once.
   modal.classList.add('hidden');
 
   if (canRestoreFocus(previouslyFocused)) {
@@ -434,6 +465,9 @@ export function initExampleGallery() {
   const modal = document.getElementById('exampleModal');
   const trigger = document.getElementById('exampleButton');
   const closeButton = document.getElementById('closeExampleModal');
+  const newButton = document.getElementById('newProjectButton');
+  const openButton = document.getElementById('openButton');
+  const saveButton = document.getElementById('exportCodeButton');
   if (!modal || !trigger) return;
   // Idempotent: a second call must not stack duplicate listeners.
   if (galleryInitialised) return;
@@ -446,6 +480,17 @@ export function initExampleGallery() {
 
   trigger.addEventListener('click', openExampleModal);
   closeButton?.addEventListener('click', hideExampleModal);
+  newButton?.addEventListener('click', () => {
+    newProject();
+    hideExampleModal();
+  });
+  openButton?.addEventListener('click', hideExampleModal);
+  saveButton?.addEventListener('click', hideExampleModal);
+  modal.querySelector('.project-actions')?.addEventListener('focusin', (e) => {
+    if (e.target?.classList.contains('project-action-button')) {
+      lastFocusedAction = e.target;
+    }
+  });
 
   // Escape to close + trap Tab focus within the modal (mirrors the About modal).
   modal.addEventListener('keydown', (e) => {
@@ -453,6 +498,8 @@ export function initExampleGallery() {
       e.preventDefault();
       e.stopPropagation();
       hideExampleModal();
+    } else if (handleActionKeydown(e)) {
+      // Left / Right stays within project actions; Down moves to the tabs.
     } else if (document.activeElement?.classList.contains('example-tab') && handleTabKeydown(e)) {
       // Arrow / Home / End / Enter handled by the tablist.
     } else if (handleGridKeydown(e)) {
