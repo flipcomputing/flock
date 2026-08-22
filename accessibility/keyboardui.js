@@ -36,7 +36,7 @@ const AreaManager = {
       selector: '#info-panel-tabs',
       label: '5',
       name: 'Info panel tabs',
-      focusSelector: '#info-tab-btn-shortcuts',
+      focusSelector: '#info-tab-btn-help',
     },
     { selector: '#resizer', label: '6', pad: -3, name: 'Resizer' },
     { selector: '.blocklyToolbox', label: '7', name: 'Toolbox' },

@@ -266,6 +266,16 @@ export function runKeyboardUiTests(flock) {
           expect(area5.selector).to.equal('#viewToggle');
         });
 
+        it('focuses the help button for area 5 when the info panel tabs are visible', function () {
+          const tabs = document.createElement('div');
+          tabs.id = 'info-panel-tabs';
+          Object.defineProperty(tabs, 'offsetWidth', { value: 100 });
+          document.body.appendChild(tabs);
+
+          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
+          expect(area5.focusSelector).to.equal('#info-tab-btn-help');
+        });
+
         it('swaps area 9 for the reload button when one is connected to the DOM', function () {
           const reload = document.createElement('button');
           reload.id = 'reload-btn';

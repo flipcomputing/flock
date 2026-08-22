@@ -51,3 +51,14 @@ test('Projects precedes the main menu in tab order and is the Ctrl+M target', as
   await page.keyboard.press('Escape');
   await expect(page.locator('#exampleButton')).toBeFocused();
 });
+
+test('Help precedes the other info panel buttons in the custom tab order', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#info-tab-btn-help', { timeout: 20000 });
+
+  await page.locator('#info-tab-btn-help').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#info-tab-btn-shortcuts')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#info-tab-btn-player')).toBeFocused();
+});

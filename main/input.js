@@ -99,7 +99,8 @@ export function setupInput() {
       // 2) Gizmo buttons
       document.querySelectorAll('#gizmoButtons button, #gizmoButtons input').forEach(pushUnique);
 
-      // 4) Keyboard tab, shortcuts panel contents (if open), logo link, resizer
+      // 4) Info panel tabs and contents (if open), logo link, resizer
+      pushUnique(document.querySelector('#info-tab-btn-help'));
       pushUnique(document.querySelector('#info-tab-btn-shortcuts'));
 
       const shortcutsTabPanel = document.getElementById('info-tab-panel-shortcuts');
