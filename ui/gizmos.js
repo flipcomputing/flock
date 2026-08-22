@@ -114,13 +114,30 @@ function createAdaptiveInput({
   let hud = null;
   let keyboard = null;
 
-  let lastReportedAxis = initialKeyboardAxis ?? null;
+  let lastReportedAxis = initialKeyboardAxis ?? null; // seeds the HUD rebuilt on resize
+  let lastHighlight;
+
+  // Only dim for a lock the user can see the cause of: a keyboard axis always,
+  // the HUD's axis only while its buttons are on screen.
+  function visibleAxis() {
+    const kbAxis = keyboard?.getAxis?.() ?? null;
+    if (kbAxis) return kbAxis;
+    if (!hud || hud.isCollapsed?.()) return null;
+    return hud.getAxis?.() ?? null;
+  }
+
+  function reportAxis(axis) {
+    if (axis === lastHighlight) return;
+    lastHighlight = axis;
+    onAxisChange?.(axis);
+  }
+
   function onKbAxisChange(axis) {
-    if (axis) hud?.setAxis(axis);
-    if (axis !== lastReportedAxis) {
+    if (axis) {
+      hud?.setAxis(axis);
       lastReportedAxis = axis;
-      onAxisChange?.(axis);
     }
+    reportAxis(visibleAxis());
   }
 
   function onHudAxisChange(axis) {
@@ -129,7 +146,7 @@ function createAdaptiveInput({
     }
     keyboard?.setAxis?.(null);
     lastReportedAxis = axis;
-    onAxisChange?.(axis);
+    reportAxis(visibleAxis());
   }
 
   function buildHud(initialAxis) {
@@ -141,6 +158,7 @@ function createAdaptiveInput({
       showUniform,
       stepLabels,
       onAxisChange: onHudAxisChange,
+      onCollapsedChange: () => reportAxis(visibleAxis()),
       stepLabelsByAxis,
       getValues,
       initialAxis,
@@ -158,16 +176,12 @@ function createAdaptiveInput({
     initialAxis: initialKeyboardAxis,
     allowUniform: showUniform,
   });
-  // With no saved axis the HUD still starts on one (X), so take its choice —
-  // otherwise the gizmo handles stay unfaded while the HUD shows X selected.
-  // The HUD's axis is the normalized one; keep it, the keyboard and
-  // lastReportedAxis (which seeds the HUD rebuilt on resize) in step.
+  // The HUD lands on an axis (X by default) and normalises saved ones, so take
+  // its choice over the raw value.
   const startAxis = initialKeyboardAxis ?? hud?.getAxis?.() ?? initialHudAxis ?? null;
   lastReportedAxis = startAxis;
-  if (startAxis) {
-    hud?.setAxis?.(startAxis);
-    onAxisChange?.(startAxis);
-  }
+  if (startAxis) hud?.setAxis?.(startAxis);
+  reportAxis(visibleAxis());
   flock.canvas?.focus();
 
   // The HUD's layout is computed once at creation time from canvas.width/height,
@@ -191,10 +205,15 @@ function createAdaptiveInput({
     hud?.();
     keyboard?.();
   }
+  // A drag is its own visible lock, so it dims even with the HUD hidden.
   stop.setAxis = (axis) => {
-    if (axis) hud?.setAxis(axis);
-    lastReportedAxis = axis;
-    onAxisChange?.(axis);
+    if (axis) {
+      hud?.setAxis(axis);
+      lastReportedAxis = axis;
+      reportAxis(axis);
+    } else {
+      reportAxis(visibleAxis());
+    }
   };
   stop.getAxis = () => keyboard?.getAxis?.() ?? null;
   stop.toggleHud = () => hud?.toggleCollapsed?.();

@@ -319,6 +319,34 @@ export function runGizmoMobileHudTests(flock) {
         expect(stop.toggleCollapsed()).to.equal(false);
       });
 
+      it('reports each collapse and expand to onCollapsedChange', function () {
+        const states = [];
+        make({ onCollapsedChange: (c) => states.push(c) });
+        const handle = findControl(flock, 'gizmo-hud-toggle');
+        handle.onPointerUpObservable.notifyObservers();
+        handle.onPointerUpObservable.notifyObservers();
+        expect(states).to.deep.equal([true, false]);
+      });
+
+      it('does not report the collapsed state a HUD was built in', function () {
+        localStorage.setItem(COLLAPSED_KEY, '1');
+        const states = [];
+        make({ onCollapsedChange: (c) => states.push(c) });
+        expect(states).to.deep.equal([]);
+      });
+
+      it('exposes the current axis', function () {
+        make({ initialAxis: 'z' });
+        expect(stop.getAxis()).to.equal('z');
+        stop.setAxis('y');
+        expect(stop.getAxis()).to.equal('y');
+      });
+
+      it('falls back to X when the saved axis is not one of the buttons', function () {
+        make({ initialAxis: 'all' });
+        expect(stop.getAxis()).to.equal('x');
+      });
+
       it('persists the collapsed state to localStorage', function () {
         make();
         stop.toggleCollapsed();
