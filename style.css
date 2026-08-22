@@ -1441,7 +1441,8 @@ button {
   position: absolute;
   min-width: 200px;
   top: 100%; /* Below the button */
-  left: 0;
+  /* Anchored right: the button sits at the window edge */
+  right: 0;
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
   padding: 0.5em;
@@ -2084,7 +2085,8 @@ body.color-picker-open #renderCanvas {
 .submenu {
   display: none;
   position: absolute;
-  left: 100%;
+  /* Flies out to the left, away from the window edge */
+  right: 100%;
   top: 0;
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);

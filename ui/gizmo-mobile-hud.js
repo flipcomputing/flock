@@ -74,8 +74,8 @@ export function createGizmoMobileHud({
   const GAP = 6 * s;
   const HALF = canvas.width / 2;
   const BOTTOM_PADDING = 24 * s;
-  // Cap at the same size as the existing on-screen controls (70 * s),
-  const BTN_SIZE = Math.min(70 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
+  // Cap at the same size as the existing on-screen controls (62 * s),
+  const BTN_SIZE = Math.min(62 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
   const TOGGLE = Math.max(44 * s, Math.min(56 * s, BTN_SIZE));
   const TOTAL_H = BTN_SIZE + 2 * GAP;
 

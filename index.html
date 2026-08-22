@@ -237,6 +237,251 @@
             >
               <span data-i18n="projects">Projects</span>
             </button>
+            <div
+              id="exampleModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="exampleModalTitle"
+            >
+              <div class="modal-content example-modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeExampleModal"
+                  data-i18n="close_projects"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close projects"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="exampleModalTitle" class="sr-only" data-i18n="projects">Projects</h2>
+                <div class="project-actions">
+                  <label for="fileInput" class="sr-only" data-i18n="open_file_input_label"
+                    >Select project file to open</label
+                  >
+                  <input type="file" id="fileInput" style="display: none" disabled />
+                  <button
+                    type="button"
+                    id="exportCodeButton"
+                    class="project-action-button"
+                    data-i18n="project_save"
+                    data-i18n-attrs="title,aria-label"
+                    title="Save"
+                    aria-label="Save"
+                    aria-describedby="export-desc"
+                  >
+                    <span class="project-action-icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                        <path
+                          fill="currentColor"
+                          d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
+                        />
+                      </svg>
+                    </span>
+                    <span data-i18n="project_save">Save</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="openButton"
+                    class="project-action-button"
+                    data-i18n="project_open"
+                    data-i18n-attrs="title,aria-label"
+                    title="Open"
+                    aria-label="Open"
+                  >
+                    <span class="project-action-icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                        <path
+                          fill="currentColor"
+                          d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+                        />
+                      </svg>
+                    </span>
+                    <span data-i18n="project_open">Open</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="newProjectButton"
+                    class="project-action-button"
+                    data-i18n="project_new"
+                    data-i18n-attrs="title,aria-label"
+                    title="New"
+                    aria-label="New"
+                  >
+                    <span class="project-action-icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                        <!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc. -->
+                        <path
+                          fill="currentColor"
+                          d="M234.7 42.7L197 56.8c-3 1.1-5 4-5 7.2s2 6.1 5 7.2l37.7 14.1L248.8 123c1.1 3 4 5 7.2 5s6.1-2 7.2-5l14.1-37.7L315 71.2c3-1.1 5-4 5-7.2s-2-6.1-5-7.2L277.3 42.7 263.2 5c-1.1-3-4-5-7.2-5s-6.1 2-7.2 5L234.7 42.7zM46.1 395.4c-18.7 18.7-18.7 49.1 0 67.9l34.6 34.6c18.7 18.7 49.1 18.7 67.9 0L529.9 116.5c18.7-18.7 18.7-49.1 0-67.9L495.3 14.1c-18.7-18.7-49.1-18.7-67.9 0L46.1 395.4zM484.6 82.6l-105 105-23.3-23.3 105-105 23.3 23.3zM7.5 117.2C3 118.9 0 123.2 0 128s3 9.1 7.5 10.8L64 160l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L128 160l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L128 96 106.8 39.5C105.1 35 100.8 32 96 32s-9.1 3-10.8 7.5L64 96 7.5 117.2zm352 256c-4.5 1.7-7.5 6-7.5 10.8s3 9.1 7.5 10.8L416 416l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L480 416l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L480 352l-21.2-56.5c-1.7-4.5-6-7.5-10.8-7.5s-9.1 3-10.8 7.5L416 352l-56.5 21.2z"
+                        />
+                      </svg>
+                    </span>
+                    <span data-i18n="project_new">New</span>
+                  </button>
+                  <div id="export-desc" class="sr-only">
+                    Downloads your project to your computer
+                  </div>
+                </div>
+                <div id="exampleTabs" class="example-tabs" role="tablist"></div>
+                <div id="examplePanels"></div>
+              </div>
+            </div>
+            <div
+              id="infoModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeInfoModal"
+                  aria-label="Close information modal"
+                ></button>
+                <h2 id="modal-title" data-i18n="about_heading">About Flock XR</h2>
+
+                <div id="model-panel-content">
+                  <p>
+                    <span data-i18n="about_description_intro"></span>
+                    <strong data-i18n="about_description_prototype"></strong>
+                    <span data-i18n="about_description_made_by"></span>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://flipcomputing.com/flockxr/"
+                      data-i18n="about_description_company"
+                      >Flip Computing</a
+                    >.
+                    <span data-i18n="about_description_disclaimer"></span>
+                  </p>
+                  <div class="about-run">
+                    <span data-i18n="about_run_intro"></span>
+                    <div class="icon icon--inline" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path
+                          fill="currentColor"
+                          d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                        />
+                      </svg>
+                    </div>
+                    <span data-i18n="about_run_action"></span>
+                  </div>
+                  <p>
+                    <span data-i18n="about_links_privacy_prefix"></span>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href="https://flockxr.com/privacy-policy/"
+                      data-i18n="about_links_privacy_label"
+                      >privacy policy</a
+                    >
+                    <span data-i18n="about_links_privacy_suffix"></span>
+                    <a
+                      href="https://flipcomputing.com/contact/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="about_links_contact_label"
+                      >get in touch</a
+                    >
+                  </p>
+                </div>
+              </div>
+            </div>
+            <script type="module" src="main/menu.js"></script>
+
+            <button
+              class="bigbutton"
+              id="runCodeButton"
+              data-i18n="run_code_button"
+              title="Run your code"
+              aria-label="Run your code"
+            >
+              <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <path
+                    fill="currentColor"
+                    d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+                  />
+                </svg>
+              </div>
+            </button>
+            <button
+              class="bigbutton"
+              id="stopCodeButton"
+              data-i18n="stop_code_button"
+              title="Stop your code"
+              aria-label="Stop your code"
+            >
+              <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                  <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <path
+                    fill="currentColor"
+                    d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM192 160l128 0c17.7 0 32 14.3 32 32l0 128c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32z"
+                  />
+                </svg>
+              </div>
+            </button>
+            <label for="projectName" class="sr-only">Project name</label>
+            <input
+              type="text"
+              id="projectName"
+              data-i18n="project_name"
+              placeholder="Project name"
+              aria-describedby="project-name-desc"
+            />
+            <div id="project-name-desc" class="sr-only">
+              Enter a name for your project to use when saving or exporting
+            </div>
+          </div>
+
+          <div id="menuright">
+            <button
+              class="bigbutton"
+              id="togglePlay"
+              data-i18n="toggle_play"
+              title="Use your project"
+              aria-label="Switch to play mode"
+              aria-describedby="play-desc"
+              aria-pressed="false"
+            >
+              <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <path
+                    fill="currentColor"
+                    d="M192 64C86 64 0 150 0 256S86 448 192 448l256 0c106 0 192-86 192-192s-86-192-192-192L192 64zM496 168a40 40 0 1 1 0 80 40 40 0 1 1 0-80zM392 304a40 40 0 1 1 80 0 40 40 0 1 1 -80 0zM168 200c0-13.3 10.7-24 24-24s24 10.7 24 24l0 32 32 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-32 0 0 32c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-32-32 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l32 0 0-32z"
+                  />
+                </svg>
+              </div>
+            </button>
+            <div id="play-desc" class="sr-only">
+              Toggle play mode to interact with and test your 3D project
+            </div>
+            <button
+              class="bigbutton"
+              title="Switch between fullscreen and normal views."
+              id="fullscreenToggle"
+              data-i18n="fullscreen_toggle"
+              aria-label="Toggle fullscreen mode"
+              aria-describedby="fullscreen-desc"
+            >
+              <div class="icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <path
+                    fill="currentColor"
+                    d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22.2-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79-79 79-79 40 40c6.9 6.9 17.2 8.9 26.2 5.2s14.8-12.5 14.8-22.2l0-144c0-13.3-10.7-24-24-24L312 32c-9.7 0-18.5 5.8-22.2 14.8s-1.7 19.3 5.2 26.2l40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
+                  />
+                </svg>
+              </div>
+            </button>
             <div id="main-menu">
               <button
                 class="bigbutton"
@@ -574,251 +819,6 @@
                 </li>
               </ul>
             </div>
-            <div
-              id="exampleModal"
-              class="modal hidden"
-              role="dialog"
-              aria-labelledby="exampleModalTitle"
-            >
-              <div class="modal-content example-modal-content" tabindex="-1">
-                <button
-                  type="button"
-                  class="close-button flock-close-icon"
-                  id="closeExampleModal"
-                  data-i18n="close_projects"
-                  data-i18n-attrs="aria-label"
-                  aria-label="Close projects"
-                >
-                  <span aria-hidden="true"></span>
-                </button>
-                <h2 id="exampleModalTitle" class="sr-only" data-i18n="projects">Projects</h2>
-                <div class="project-actions">
-                  <label for="fileInput" class="sr-only" data-i18n="open_file_input_label"
-                    >Select project file to open</label
-                  >
-                  <input type="file" id="fileInput" style="display: none" disabled />
-                  <button
-                    type="button"
-                    id="exportCodeButton"
-                    class="project-action-button"
-                    data-i18n="project_save"
-                    data-i18n-attrs="title,aria-label"
-                    title="Save"
-                    aria-label="Save"
-                    aria-describedby="export-desc"
-                  >
-                    <span class="project-action-icon" aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                        <path
-                          fill="currentColor"
-                          d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
-                        />
-                      </svg>
-                    </span>
-                    <span data-i18n="project_save">Save</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="openButton"
-                    class="project-action-button"
-                    data-i18n="project_open"
-                    data-i18n-attrs="title,aria-label"
-                    title="Open"
-                    aria-label="Open"
-                  >
-                    <span class="project-action-icon" aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                        <path
-                          fill="currentColor"
-                          d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
-                        />
-                      </svg>
-                    </span>
-                    <span data-i18n="project_open">Open</span>
-                  </button>
-                  <button
-                    type="button"
-                    id="newProjectButton"
-                    class="project-action-button"
-                    data-i18n="project_new"
-                    data-i18n-attrs="title,aria-label"
-                    title="New"
-                    aria-label="New"
-                  >
-                    <span class="project-action-icon" aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                        <!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc. -->
-                        <path
-                          fill="currentColor"
-                          d="M234.7 42.7L197 56.8c-3 1.1-5 4-5 7.2s2 6.1 5 7.2l37.7 14.1L248.8 123c1.1 3 4 5 7.2 5s6.1-2 7.2-5l14.1-37.7L315 71.2c3-1.1 5-4 5-7.2s-2-6.1-5-7.2L277.3 42.7 263.2 5c-1.1-3-4-5-7.2-5s-6.1 2-7.2 5L234.7 42.7zM46.1 395.4c-18.7 18.7-18.7 49.1 0 67.9l34.6 34.6c18.7 18.7 49.1 18.7 67.9 0L529.9 116.5c18.7-18.7 18.7-49.1 0-67.9L495.3 14.1c-18.7-18.7-49.1-18.7-67.9 0L46.1 395.4zM484.6 82.6l-105 105-23.3-23.3 105-105 23.3 23.3zM7.5 117.2C3 118.9 0 123.2 0 128s3 9.1 7.5 10.8L64 160l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L128 160l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L128 96 106.8 39.5C105.1 35 100.8 32 96 32s-9.1 3-10.8 7.5L64 96 7.5 117.2zm352 256c-4.5 1.7-7.5 6-7.5 10.8s3 9.1 7.5 10.8L416 416l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L480 416l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L480 352l-21.2-56.5c-1.7-4.5-6-7.5-10.8-7.5s-9.1 3-10.8 7.5L416 352l-56.5 21.2z"
-                        />
-                      </svg>
-                    </span>
-                    <span data-i18n="project_new">New</span>
-                  </button>
-                  <div id="export-desc" class="sr-only">
-                    Downloads your project to your computer
-                  </div>
-                </div>
-                <div id="exampleTabs" class="example-tabs" role="tablist"></div>
-                <div id="examplePanels"></div>
-              </div>
-            </div>
-            <div
-              id="infoModal"
-              class="modal hidden"
-              role="dialog"
-              aria-labelledby="modal-title"
-              aria-modal="true"
-            >
-              <div class="modal-content" tabindex="-1">
-                <button
-                  type="button"
-                  class="close-button flock-close-icon"
-                  id="closeInfoModal"
-                  aria-label="Close information modal"
-                ></button>
-                <h2 id="modal-title" data-i18n="about_heading">About Flock XR</h2>
-
-                <div id="model-panel-content">
-                  <p>
-                    <span data-i18n="about_description_intro"></span>
-                    <strong data-i18n="about_description_prototype"></strong>
-                    <span data-i18n="about_description_made_by"></span>
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href="https://flipcomputing.com/flockxr/"
-                      data-i18n="about_description_company"
-                      >Flip Computing</a
-                    >.
-                    <span data-i18n="about_description_disclaimer"></span>
-                  </p>
-                  <div class="about-run">
-                    <span data-i18n="about_run_intro"></span>
-                    <div class="icon icon--inline" aria-hidden="true">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                        <path
-                          fill="currentColor"
-                          d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
-                        />
-                      </svg>
-                    </div>
-                    <span data-i18n="about_run_action"></span>
-                  </div>
-                  <p>
-                    <span data-i18n="about_links_privacy_prefix"></span>
-                    <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href="https://flockxr.com/privacy-policy/"
-                      data-i18n="about_links_privacy_label"
-                      >privacy policy</a
-                    >
-                    <span data-i18n="about_links_privacy_suffix"></span>
-                    <a
-                      href="https://flipcomputing.com/contact/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      data-i18n="about_links_contact_label"
-                      >get in touch</a
-                    >
-                  </p>
-                </div>
-              </div>
-            </div>
-            <script type="module" src="main/menu.js"></script>
-
-            <button
-              class="bigbutton"
-              id="runCodeButton"
-              data-i18n="run_code_button"
-              title="Run your code"
-              aria-label="Run your code"
-            >
-              <div class="icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <button
-              class="bigbutton"
-              id="stopCodeButton"
-              data-i18n="stop_code_button"
-              title="Stop your code"
-              aria-label="Stop your code"
-            >
-              <div class="icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM192 160l128 0c17.7 0 32 14.3 32 32l0 128c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <label for="projectName" class="sr-only">Project name</label>
-            <input
-              type="text"
-              id="projectName"
-              data-i18n="project_name"
-              placeholder="Project name"
-              aria-describedby="project-name-desc"
-            />
-            <div id="project-name-desc" class="sr-only">
-              Enter a name for your project to use when saving or exporting
-            </div>
-          </div>
-
-          <div id="menuright">
-            <button
-              class="bigbutton"
-              id="togglePlay"
-              data-i18n="toggle_play"
-              title="Use your project"
-              aria-label="Switch to play mode"
-              aria-describedby="play-desc"
-              aria-pressed="false"
-            >
-              <div class="icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M192 64C86 64 0 150 0 256S86 448 192 448l256 0c106 0 192-86 192-192s-86-192-192-192L192 64zM496 168a40 40 0 1 1 0 80 40 40 0 1 1 0-80zM392 304a40 40 0 1 1 80 0 40 40 0 1 1 -80 0zM168 200c0-13.3 10.7-24 24-24s24 10.7 24 24l0 32 32 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-32 0 0 32c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-32-32 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l32 0 0-32z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <div id="play-desc" class="sr-only">
-              Toggle play mode to interact with and test your 3D project
-            </div>
-            <button
-              class="bigbutton"
-              title="Switch between fullscreen and normal views."
-              id="fullscreenToggle"
-              data-i18n="fullscreen_toggle"
-              aria-label="Toggle fullscreen mode"
-              aria-describedby="fullscreen-desc"
-            >
-              <div class="icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M200 32L56 32C42.7 32 32 42.7 32 56l0 144c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l40-40 79 79-79 79L73 295c-6.9-6.9-17.2-8.9-26.2-5.2S32 302.3 32 312l0 144c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22.2-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79-79 79-79 40 40c6.9 6.9 17.2 8.9 26.2 5.2s14.8-12.5 14.8-22.2l0-144c0-13.3-10.7-24-24-24L312 32c-9.7 0-18.5 5.8-22.2 14.8s-1.7 19.3 5.2 26.2l40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S209.7 32 200 32z"
-                  />
-                </svg>
-              </div>
-            </button>
           </div>
         </nav>
       </header>

@@ -103,13 +103,13 @@ export function runOnScreenControlsTests(flock) {
           const scaledButton = flock.controlsTexture
             .getDescendants()
             .find((control) => control.textBlock?.text === '△');
-          expect(scaledButton.width).to.equal('35px');
+          expect(scaledButton.width).to.equal('31px');
 
           flock.engine.setHardwareScalingLevel(originalHardwareScaling);
           const restoredButton = flock.controlsTexture
             .getDescendants()
             .find((control) => control.textBlock?.text === '△');
-          expect(restoredButton.width).to.equal('70px');
+          expect(restoredButton.width).to.equal('62px');
         } finally {
           if (flock.engine.getHardwareScalingLevel() !== originalHardwareScaling) {
             flock.engine.setHardwareScalingLevel(originalHardwareScaling);
@@ -211,23 +211,23 @@ export function runOnScreenControlsTests(flock) {
         expect(button.textBlock.text).to.equal('△');
       });
 
-      it('should set width and height to 70px at default displayScale', function () {
+      it('should set width and height to 62px at default displayScale', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
-        expect(button.width).to.equal('70px');
-        expect(button.height).to.equal('70px');
+        expect(button.width).to.equal('62px');
+        expect(button.height).to.equal('62px');
       });
 
       it('should match the gizmo control outline and rounding without changing its size', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
-        expect(button.width).to.equal('70px');
-        expect(button.height).to.equal('70px');
+        expect(button.width).to.equal('62px');
+        expect(button.height).to.equal('62px');
         expect(button.thickness).to.equal(3);
         expect(button.cornerRadius).to.equal(8);
       });
 
-      it('should set font size to 40px at default displayScale', function () {
+      it('should set font size to 36px at default displayScale', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
-        expect(button.fontSize).to.equal('40px');
+        expect(button.fontSize).to.equal('36px');
       });
 
       it('should apply the specified color', function () {
@@ -362,7 +362,7 @@ export function runOnScreenControlsTests(flock) {
         joystick.stop();
       });
 
-      it('should inset the joystick by the same 5px gap as the arrow buttons', function () {
+      it('should inset the joystick by the same gap as the arrow buttons', function () {
         flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
           'TestControls',
           true,
@@ -372,8 +372,8 @@ export function runOnScreenControlsTests(flock) {
         const base = flock.controlsTexture
           .getDescendants()
           .find((control) => control.width === '110px');
-        expect(base.left).to.equal('5px');
-        expect(base.top).to.equal('-5px');
+        expect(base.left).to.equal('17px');
+        expect(base.top).to.equal('-17px');
         joystick.stop();
       });
     });

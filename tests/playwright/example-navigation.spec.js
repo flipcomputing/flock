@@ -27,16 +27,22 @@ test('Projects panel supports arrow navigation between actions, tabs, and exampl
   await expect(page.locator('#openButton')).toBeFocused();
 });
 
-test('Projects precedes the main menu in tab order and is the Ctrl+M target', async ({ page }) => {
+test('The main menu comes last in tab order and Projects is the Ctrl+M target', async ({
+  page,
+}) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#exampleButton:not([disabled])', { timeout: 20000 });
 
   const toolbarOrder = await page
-    .locator('#menuleft')
-    .evaluate((menu) => [...menu.querySelectorAll('#exampleButton, #menuBtn')].map((el) => el.id));
-  expect(toolbarOrder).toEqual(['exampleButton', 'menuBtn']);
+    .locator('#menu')
+    .evaluate((menu) =>
+      [...menu.querySelectorAll('#exampleButton, #togglePlay, #fullscreenToggle, #menuBtn')].map(
+        (el) => el.id
+      )
+    );
+  expect(toolbarOrder).toEqual(['exampleButton', 'togglePlay', 'fullscreenToggle', 'menuBtn']);
 
-  await page.locator('#exampleButton').focus();
+  await page.locator('#fullscreenToggle').focus();
   await page.keyboard.press('Tab');
   await expect(page.locator('#menuBtn')).toBeFocused();
 

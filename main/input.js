@@ -235,13 +235,13 @@ export function setupInput() {
       // 7) Main UI controls (in natural order)
       [
         '#exampleButton',
-        '#menuBtn',
         '#runCodeButton',
         '#stopCodeButton',
         '#colorPickerButton',
         '#projectName',
         '#togglePlay',
         '#fullscreenToggle',
+        '#menuBtn',
       ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
       return elements;

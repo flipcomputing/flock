@@ -13,6 +13,15 @@ let flock;
 //let fontFamily = "Asap";
 let fontFamily = 'Atkinson Hyperlegible Next';
 
+// On-screen control geometry, in unscaled px. Each grid cell holds one button
+// plus a gutter, and the whole grid is inset from the canvas edge by the margin.
+const CONTROL_BUTTON_SIZE = 62;
+const CONTROL_CELL_SIZE = 72;
+const CONTROLS_EDGE_MARGIN = 12;
+// Distance from the canvas edge to the nearest button face.
+const CONTROLS_EDGE_INSET =
+  CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;
+
 // Canvas-painted GUI text can't inherit the browser's font-size preferences,
 // so approximate them from the root font-size. baseCssPx is the size at a 16px
 // root.
@@ -518,14 +527,14 @@ export const flockUI = {
     const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
 
-    const size = 70 * flock.displayScale;
+    const size = CONTROL_BUTTON_SIZE * flock.displayScale;
     button.width = `${size}px`;
     button.height = `${size}px`;
     button.color = color;
     button.thickness = 3 * flock.displayScale;
     button.cornerRadius = 8 * flock.displayScale;
     button.background = 'transparent';
-    button.fontSize = `${40 * flock.displayScale}px`;
+    button.fontSize = `${36 * flock.displayScale}px`;
     button.fontFamily = fontFamily;
 
     const releaseKeys = () => {
@@ -558,10 +567,12 @@ export const flockUI = {
     if (!flock.controlsTexture) return;
 
     const grid = new flock.GUI.Grid();
-    grid.width = `${240 * flock.displayScale}px`;
-    grid.height = `${160 * flock.displayScale}px`;
+    grid.width = `${3 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
     grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    grid.left = `${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
     grid.addRowDefinition(1);
     grid.addRowDefinition(1);
     grid.addColumnDefinition(1);
@@ -584,10 +595,12 @@ export const flockUI = {
     if (!flock.controlsTexture) return;
 
     const rightGrid = new flock.GUI.Grid();
-    rightGrid.width = `${160 * flock.displayScale}px`;
-    rightGrid.height = `${160 * flock.displayScale}px`;
+    rightGrid.width = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    rightGrid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
     rightGrid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    rightGrid.left = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    rightGrid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
     rightGrid.addRowDefinition(1);
     rightGrid.addRowDefinition(1);
     rightGrid.addColumnDefinition(1);
@@ -624,7 +637,7 @@ export const flockUI = {
 
     const baseRadius = 55 * flock.displayScale;
     const thumbRadius = 30 * flock.displayScale;
-    const edgeInset = 5 * flock.displayScale;
+    const edgeInset = CONTROLS_EDGE_INSET * flock.displayScale;
 
     const base = new flock.GUI.Ellipse();
     base.width = `${baseRadius * 2}px`;
@@ -1039,22 +1052,22 @@ export const flockUI = {
       let captionWidth = screenWidth > 0 ? Math.min(0.8 * screenWidth, maxWidth) : maxWidth;
 
       // Position relative to the on-screen touch controls when they're visible.
-      // They sit in the bottom corners: arrows/joystick (~240px) bottom-left and
-      // action buttons (~160px) bottom-right, scaled by displayScale. If the gap
-      // between them is at least a third of the screen width, drop the caption
-      // into that gap; otherwise lift it clear above the whole control band.
+      // They sit in the bottom corners: arrows/joystick bottom-left and action
+      // buttons bottom-right. If the gap between them is at least a third of the
+      // screen width, drop the caption into that gap; otherwise lift it clear
+      // above the whole control band.
       let leftOffset = 0;
       let bottomMargin = 20 * flock.displayScale;
       if (flock.controlsTexture) {
-        const leftReserve = 240 * flock.displayScale; // arrows / joystick
-        const rightReserve = 160 * flock.displayScale; // action buttons
+        const leftReserve = (3 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN) * flock.displayScale;
+        const rightReserve = (2 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN) * flock.displayScale;
         const gap = screenWidth - leftReserve - rightReserve;
         if (screenWidth > 0 && gap >= screenWidth / 3) {
           captionWidth = Math.min(gap, maxWidth);
           // Centre the block within the gap (shift toward the narrower right).
           leftOffset = Math.round((leftReserve - rightReserve) / 2);
         } else {
-          bottomMargin = 180 * flock.displayScale;
+          bottomMargin = (2 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN + 24) * flock.displayScale;
         }
       }
 

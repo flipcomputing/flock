@@ -84,15 +84,15 @@ export function runButtonControlsTests(flock) {
         expect(button.textBlock.text).to.equal('△');
       });
 
-      it('should set width and height to 70px at default displayScale', function () {
+      it('should set width and height to 62px at default displayScale', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
-        expect(button.width).to.equal('70px');
-        expect(button.height).to.equal('70px');
+        expect(button.width).to.equal('62px');
+        expect(button.height).to.equal('62px');
       });
 
-      it('should set font size to 40px at default displayScale', function () {
+      it('should set font size to 36px at default displayScale', function () {
         const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
-        expect(button.fontSize).to.equal('40px');
+        expect(button.fontSize).to.equal('36px');
       });
 
       it('should apply the specified color', function () {
