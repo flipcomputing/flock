@@ -1003,8 +1003,15 @@ export function initContextMenus(workspace) {
       // toolbar is never tucked behind it. Shift the caret opposite so it
       // still points at the block.
       const toolboxRight = getToolboxRightEdge();
-      const minLeft = toolboxRight != null ? Math.max(margin, toolboxRight + margin) : margin;
       const tbRect = blockToolbar.getBoundingClientRect();
+      // On narrow phones the toolbar can be wider than the space left beside
+      // the toolbox: spill over the toolbox rather than off the screen edge.
+      const fitsBesideToolbox =
+        toolboxRight == null || tbRect.width <= window.innerWidth - toolboxRight - 2 * margin;
+      const minLeft =
+        toolboxRight != null && fitsBesideToolbox
+          ? Math.max(margin, toolboxRight + margin)
+          : margin;
       let adj = 0;
       if (tbRect.left < minLeft) adj = minLeft - tbRect.left;
       else if (tbRect.right > window.innerWidth - margin)
