@@ -5,6 +5,7 @@ import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.
 import { showBanner } from '../ui/notifications.js';
 import { translate } from './translation.js';
 import { disableGltfValidation } from './gltfvalidation.js';
+import { isDebugModeEnabled } from './debugMode.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -942,12 +943,73 @@ const scrollEditingBlockIntoView = () => {
 
 let _lastViewportKey = null;
 
+// iOS can report a visualViewport shorter than the box fixed elements anchor
+// to. 0 when the bar is display:none, leaving callers on the visualViewport.
+const fixedViewportBottom = () => {
+  const rect = document.getElementById('bottomBar')?.getBoundingClientRect();
+  return rect && rect.height > 0 ? rect.bottom : 0;
+};
+
+// env() can't be read back off a custom property, so measure it as padding.
+let _insetProbe = null;
+const safeAreaInsets = () => {
+  if (!document.body) return 'n/a';
+  if (!_insetProbe) {
+    _insetProbe = document.createElement('div');
+    _insetProbe.style.cssText =
+      'position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;box-sizing:content-box;width:0;height:0;' +
+      'padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);' +
+      'padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)';
+    document.body.appendChild(_insetProbe);
+  }
+  const cs = getComputedStyle(_insetProbe);
+  return `${parseFloat(cs.paddingTop)}/${parseFloat(cs.paddingRight)}/${parseFloat(cs.paddingBottom)}/${parseFloat(cs.paddingLeft)}`;
+};
+
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
+
+// Whether the focus is somewhere that would actually raise a soft keyboard.
+const editableFocused = () => {
+  const el = document.activeElement;
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return false;
+  if (el.readOnly || el.disabled) return false;
+  return el.tagName === 'TEXTAREA' || !NON_TEXT_INPUT_TYPES.has(el.type);
+};
+
+// Read off a real phone through the debug console (three-finger tap).
+const logViewport = (appHeight, keyboardOpen) => {
+  const vv = window.visualViewport;
+  const bar = document.getElementById('bottomBar')?.getBoundingClientRect();
+  console.log(
+    `viewport: app=${Math.round(appHeight)} vv=${vv ? Math.round(vv.height) : 'n/a'}x${vv?.scale ?? 'n/a'} ` +
+      `inner=${window.innerHeight} bar=${bar ? `${Math.round(bar.top)}-${Math.round(bar.bottom)}` : 'none'} ` +
+      `insets=${safeAreaInsets()} kbd=${keyboardOpen}`
+  );
+};
+
 const adjustViewport = () => {
   // Under pinch/auto zoom visualViewport.height shrinks though the layout
   // viewport hasn't; multiply by scale so --app-height doesn't collapse. At
   // scale 1 this is identical to the raw height.
   const vv = window.visualViewport;
-  const viewportHeight = vv ? vv.height * vv.scale : window.innerHeight;
+  const visualHeight = vv ? vv.height * vv.scale : window.innerHeight;
+  // Height alone can't tell a keyboard from expanded iOS browser chrome.
+  const keyboardOpen = !!vv && window.innerHeight - visualHeight > 150 && editableFocused();
+  const viewportHeight = keyboardOpen
+    ? visualHeight
+    : Math.max(visualHeight, fixedViewportBottom());
   const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
@@ -958,9 +1020,8 @@ const adjustViewport = () => {
   if (viewportKey !== _lastViewportKey) {
     _lastViewportKey = viewportKey;
     handleWindowResize();
+    if (isDebugModeEnabled()) logViewport(viewportHeight, keyboardOpen);
   }
-  const keyboardOpen =
-    window.visualViewport && window.innerHeight - window.visualViewport.height > 150;
   document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
 
   if (keyboardOpen && !_keyboardWasOpen) {
