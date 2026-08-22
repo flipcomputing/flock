@@ -524,6 +524,7 @@ export function createGizmoMobileHud({
     return collapsed;
   };
   stop.isCollapsed = () => collapsed;
+  stop.getAxis = () => axis;
   stop.setAxis = (newAxis) => {
     if (stopped) return;
     const def = AXIS_DEFS.find((d) => d.key === newAxis);

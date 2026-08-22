@@ -158,8 +158,16 @@ function createAdaptiveInput({
     initialAxis: initialKeyboardAxis,
     allowUniform: showUniform,
   });
-  const startAxis = initialKeyboardAxis ?? initialHudAxis;
-  if (startAxis) onAxisChange?.(startAxis);
+  // With no saved axis the HUD still starts on one (X), so take its choice —
+  // otherwise the gizmo handles stay unfaded while the HUD shows X selected.
+  // The HUD's axis is the normalized one; keep it, the keyboard and
+  // lastReportedAxis (which seeds the HUD rebuilt on resize) in step.
+  const startAxis = initialKeyboardAxis ?? hud?.getAxis?.() ?? initialHudAxis ?? null;
+  lastReportedAxis = startAxis;
+  if (startAxis) {
+    hud?.setAxis?.(startAxis);
+    onAxisChange?.(startAxis);
+  }
   flock.canvas?.focus();
 
   // The HUD's layout is computed once at creation time from canvas.width/height,
