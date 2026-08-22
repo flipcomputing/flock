@@ -1564,41 +1564,38 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 function moveMeshToOrigin(mesh) {
   mesh.position = flock.BABYLON.Vector3.Zero();
   mesh.rotation = flock.BABYLON.Vector3.Zero();
+  // rotationQuaternion takes priority over rotation when set, so it must be
+  // cleared too or callers that rebuild geometry at the origin (e.g.
+  // updateCylinderGeometry, updateCapsuleGeometry) will bake in the old
+  // rotation as well.
+  mesh.rotationQuaternion = null;
   return mesh;
 }
 
 function setAbsoluteSize(mesh, width, height, depth) {
   flock.ensureUniqueGeometry(mesh);
-  const boundingInfo = mesh.getBoundingInfo();
-  const originalSize = boundingInfo.boundingBox.extendSize;
 
-  // Store the current world matrix and decompose it
-  const worldMatrix = mesh.computeWorldMatrix(true);
-  const currentScale = new flock.BABYLON.Vector3();
-  const currentRotationQuaternion = new flock.BABYLON.Quaternion();
-  const currentPosition = new flock.BABYLON.Vector3();
-  worldMatrix.decompose(currentScale, currentRotationQuaternion, currentPosition);
+  // Anchor to the true original geometry (captured once), like flock.resize().
+  mesh.metadata = mesh.metadata || {};
+  if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
+    const bi = mesh.getBoundingInfo();
+    mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+    mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+  }
+  const origMin = mesh.metadata.originalMin;
+  const origMax = mesh.metadata.originalMax;
+  const originalSize = {
+    x: origMax.x - origMin.x,
+    y: origMax.y - origMin.y,
+    z: origMax.z - origMin.z,
+  };
 
-  // Temporarily move mesh to origin
-  mesh = moveMeshToOrigin(mesh);
+  const newScaleX = originalSize.x ? width / originalSize.x : 1;
+  const newScaleY = originalSize.y ? height / originalSize.y : 1;
+  const newScaleZ = depth === 0 ? 1 : originalSize.z ? depth / originalSize.z : 1;
 
-  // Calculate new scaling
-  const newScaleX = width / (originalSize.x * 2);
-  const newScaleY = height / (originalSize.y * 2);
-  const newScaleZ = depth === 0 ? 1 : depth / (originalSize.z * 2);
-
-  // Apply scaling
   mesh.scaling = new flock.BABYLON.Vector3(newScaleX, newScaleY, newScaleZ);
-
-  // Bake the scaling into the vertices
-  mesh.bakeCurrentTransformIntoVertices();
-
-  // Reset scaling to 1,1,1
-  mesh.scaling = flock.BABYLON.Vector3.One();
-
-  // Restore original position and rotation from world matrix
-  mesh.position = currentPosition;
-  mesh.rotationQuaternion = currentRotationQuaternion;
+  mesh.computeWorldMatrix(true);
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
