@@ -27,29 +27,39 @@ test('Projects panel supports arrow navigation between actions, tabs, and exampl
   await expect(page.locator('#openButton')).toBeFocused();
 });
 
-test('The main menu comes last in tab order and Projects is the Ctrl+M target', async ({
-  page,
-}) => {
+test('The main menu comes first in tab order and is the Ctrl+M target', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#exampleButton:not([disabled])', { timeout: 20000 });
 
   const toolbarOrder = await page
     .locator('#menu')
     .evaluate((menu) =>
-      [...menu.querySelectorAll('#exampleButton, #togglePlay, #fullscreenToggle, #menuBtn')].map(
+      [...menu.querySelectorAll('#menuBtn, #exampleButton, #togglePlay, #fullscreenToggle')].map(
         (el) => el.id
       )
     );
-  expect(toolbarOrder).toEqual(['exampleButton', 'togglePlay', 'fullscreenToggle', 'menuBtn']);
+  expect(toolbarOrder).toEqual(['menuBtn', 'exampleButton', 'togglePlay', 'fullscreenToggle']);
 
-  await page.locator('#fullscreenToggle').focus();
+  await page.locator('#menuBtn').focus();
   await page.keyboard.press('Tab');
-  await expect(page.locator('#menuBtn')).toBeFocused();
+  await expect(page.locator('#exampleButton')).toBeFocused();
 
   await page.locator('#renderCanvas').focus();
   await page.keyboard.press('Control+KeyM');
-  await expect(page.locator('#exampleButton')).toBeFocused();
+  await expect(page.locator('#menuBtn')).toBeFocused();
 
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#language-menu-item')).toBeFocused();
+
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#menuBtn')).toBeFocused();
+});
+
+test('Projects opens from its button and returns focus on Escape', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#exampleButton:not([disabled])', { timeout: 20000 });
+
+  await page.locator('#exampleButton').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#newProjectButton')).toBeVisible();
   await expect(page.locator('#exportCodeButton')).toBeFocused();

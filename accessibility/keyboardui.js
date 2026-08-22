@@ -460,7 +460,7 @@ function getShortcuts() {
     },
 
     {
-      label: translate('projects_ui'),
+      label: translate('main_menu_ui'),
       keys: `${mod} + M`,
       category: translate('shortcut_category_menu'),
     },
