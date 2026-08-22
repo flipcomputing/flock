@@ -729,7 +729,7 @@ function initializeApp() {
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
   const inspectorMenuItem = document.getElementById('inspector-menu-item');
-  const blockHintsMenuItem = document.getElementById('block-hints-menu-item');
+  const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
   const stopCodeButton = document.getElementById('stopCodeButton');
   const fileInput = document.getElementById('fileInput');
@@ -857,17 +857,21 @@ function initializeApp() {
     }
   });
 
-  const updateBlockHintsMenuLabel = () => {
-    if (!blockHintsMenuItem) return;
-    const key = areBlockHintsEnabled() ? 'hide_block_hints' : 'show_block_hints';
-    blockHintsMenuItem.dataset.i18n = key;
-    blockHintsMenuItem.textContent = translate(`${key}_ui`);
+  const updateBlockHintsButton = () => {
+    if (!blockHintsButton) return;
+    const expanded = areBlockHintsEnabled();
+    const key = expanded ? 'hide_block_hints' : 'show_block_hints';
+    const label = translate(`${key}_ui`);
+    blockHintsButton.dataset.i18n = key;
+    blockHintsButton.setAttribute('aria-expanded', String(expanded));
+    blockHintsButton.setAttribute('aria-label', label);
+    blockHintsButton.title = label;
+    blockHintsButton.classList.toggle('active', expanded);
   };
-  updateBlockHintsMenuLabel();
-  blockHintsMenuItem?.addEventListener('click', (event) => {
-    event.preventDefault();
+  updateBlockHintsButton();
+  blockHintsButton?.addEventListener('click', () => {
     setBlockHintsEnabled(!areBlockHintsEnabled());
-    updateBlockHintsMenuLabel();
+    updateBlockHintsButton();
   });
 
   if (togglePlayButton) {

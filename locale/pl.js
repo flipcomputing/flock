@@ -1050,7 +1050,6 @@ export default {
   inspector_tool_ui: 'Inspektor',
   show_block_hints_ui: 'Pokaż podpowiedzi bloków',
   hide_block_hints_ui: 'Ukryj podpowiedzi bloków',
-  block_hints_menu_location_ui: 'Kliknij Menu > Narzędzia',
   language_submenu_ui: 'Język',
   about_submenu_ui: 'O programie',
   hub_submenu_ui: 'Hub',

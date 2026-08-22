@@ -1038,7 +1038,6 @@ export default {
   inspector_tool_ui: 'Inspektör',
   show_block_hints_ui: 'Visa blocktips',
   hide_block_hints_ui: 'Dölj blocktips',
-  block_hints_menu_location_ui: 'Klicka på Meny > Verktyg',
   language_submenu_ui: 'Språk',
   about_submenu_ui: 'Om',
   hub_submenu_ui: 'Nav',

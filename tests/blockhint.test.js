@@ -9,19 +9,17 @@ import {
   setBlockHintsSuppressed,
 } from '../ui/blockHint.js';
 
-// blockHint.js reads `enabled` once, at module evaluation, so the mobile
+const EXPANDED_KEY = 'flock-block-hints-expanded';
+
+// blockHint.js reads `enabled` once, at module evaluation, so the startup
 // default can only be observed by re-importing with a fresh module identity.
 // The module imports nothing, so a duplicate instance is fully self-contained.
 // @vite-ignore keeps Vite's dynamic-import-vars plugin from rejecting the
 // varying query string; the browser resolves the URL itself.
-async function importWithLayout(matches) {
-  const original = window.matchMedia;
-  window.matchMedia = (query) => ({ matches, media: query });
-  try {
-    return await import(/* @vite-ignore */ `../ui/blockHint.js?blockhint-fresh=${Math.random()}`);
-  } finally {
-    window.matchMedia = original;
-  }
+async function importWithStoredState(stored) {
+  if (stored === null) localStorage.removeItem(EXPANDED_KEY);
+  else localStorage.setItem(EXPANDED_KEY, stored);
+  return await import(/* @vite-ignore */ `../ui/blockHint.js?blockhint-fresh=${Math.random()}`);
 }
 
 export function runBlockHintTests(_flock) {
@@ -66,9 +64,9 @@ export function runBlockHintTests(_flock) {
         expect(text.textContent).to.equal('Move the object.');
       });
 
-      it("keeps the 'Keyword: x' term for toolbox blocks", function () {
-        showBlockHint('Move the object.\nKeyword: move', { keepKeyword: true });
-        expect(text.textContent).to.equal('Move the object.\nKeyword: move');
+      it("keeps a 'Keyword:' that is not the trailing term", function () {
+        showBlockHint('Keyword: names the search term used by the toolbox.');
+        expect(text.textContent).to.equal('Keyword: names the search term used by the toolbox.');
       });
 
       it('trims surrounding whitespace', function () {
@@ -270,15 +268,33 @@ export function runBlockHintTests(_flock) {
       });
     });
 
-    describe('mobile layout default', function () {
-      it('defaults to disabled at the mobile breakpoint', async function () {
-        const mod = await importWithLayout(true);
+    describe('startup state', function () {
+      let storedExpanded;
+
+      beforeEach(function () {
+        storedExpanded = localStorage.getItem(EXPANDED_KEY);
+      });
+
+      afterEach(function () {
+        if (storedExpanded === null) localStorage.removeItem(EXPANDED_KEY);
+        else localStorage.setItem(EXPANDED_KEY, storedExpanded);
+      });
+
+      it('defaults to collapsed when nothing is stored', async function () {
+        const mod = await importWithStoredState(null);
         expect(mod.areBlockHintsEnabled()).to.be.false;
       });
 
-      it('defaults to enabled above the mobile breakpoint', async function () {
-        const mod = await importWithLayout(false);
-        expect(mod.areBlockHintsEnabled()).to.be.true;
+      it('a stored choice wins over the default', async function () {
+        expect((await importWithStoredState('1')).areBlockHintsEnabled()).to.be.true;
+        expect((await importWithStoredState('0')).areBlockHintsEnabled()).to.be.false;
+      });
+
+      it('setBlockHintsEnabled persists the choice', function () {
+        setBlockHintsEnabled(false);
+        expect(localStorage.getItem(EXPANDED_KEY)).to.equal('0');
+        setBlockHintsEnabled(true);
+        expect(localStorage.getItem(EXPANDED_KEY)).to.equal('1');
       });
     });
   });

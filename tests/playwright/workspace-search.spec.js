@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 test('workspace search button toggles search and focuses the found block when closing', async ({
   page,
 }) => {
+  // Hints are collapsed until the workspace toolbar's info button expands them.
+  await page.addInitScript(() => localStorage.setItem('flock-block-hints-expanded', '1'));
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.mainWorkspace && window.flockWorkspaceSearch, {
     timeout: 20000,

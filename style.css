@@ -616,10 +616,21 @@ button {
   z-index: 90;
   text-align: left;
   pointer-events: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .block-hint[hidden] {
   display: none;
+}
+
+.block-hint__icon {
+  flex: none;
+  width: 1.1em;
+  height: 1.1em;
+  margin-top: 0.1em;
+  color: var(--color-text-brand);
 }
 
 .block-hint__text {
@@ -858,6 +869,25 @@ button {
 [data-theme='low-vision'] .gizmo-button img,
 [data-theme='low-vision'] .bigbutton svg {
   color: #f0f0f0 !important;
+}
+
+/* Round, so the fill sits concentric with the circular info glyph. */
+#blockHintsBtn {
+  border-radius: 50%;
+}
+
+/* Collapsed hints invert the button, leaving expanded as the solid state.
+   The theme rules above set .icon path with !important, so this must too. */
+#blockHintsBtn:not(.active) {
+  background-color: var(--color-text-brand);
+}
+
+#blockHintsBtn:not(.active):hover {
+  opacity: 0.85;
+}
+
+#blockHintsBtn:not(.active) .icon path {
+  fill: var(--color-bg) !important;
 }
 
 /* Make links in the 'About' modal and the info panel visible in dark and contrast themes */

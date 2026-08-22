@@ -555,16 +555,6 @@
                         >Inspector</a
                       >
                     </li>
-                    <li role="none">
-                      <a
-                        href="#"
-                        id="block-hints-menu-item"
-                        data-i18n="hide_block_hints"
-                        role="menuitem"
-                        tabindex="-1"
-                        >Hide block hints</a
-                      >
-                    </li>
                   </ul>
                 </li>
                 <!-- About menu item -->
@@ -1265,9 +1255,42 @@
               and interact with blocks.
             </div>
             <div id="blockHint" class="block-hint" hidden>
+              <svg
+                class="block-hint__icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                aria-hidden="true"
+              >
+                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                <path
+                  fill="currentColor"
+                  d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
+                />
+              </svg>
               <p id="blockHintText" class="block-hint__text" role="status"></p>
             </div>
             <div id="blocklyZoomControls" role="toolbar" aria-label="Workspace controls">
+              <button
+                class="bigbutton"
+                id="blockHintsBtn"
+                aria-label="Show block hints"
+                title="Show block hints"
+                aria-expanded="false"
+                aria-controls="blockHint"
+                data-i18n="show_block_hints"
+                data-i18n-attrs="title,aria-label"
+              >
+                <div class="icon icon--sm" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <path
+                      fill="currentColor"
+                      d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
+                    />
+                  </svg>
+                </div>
+              </button>
+              <div class="toolbar-divider" aria-hidden="true"></div>
               <button
                 class="bigbutton"
                 id="workspaceSearchBtn"

@@ -9,22 +9,33 @@ function getTextElement() {
   return typeof document === 'undefined' ? null : document.getElementById('blockHintText');
 }
 
-// Strips the "Keyword: word" suffix — that's a toolbox search term, only
-// useful before a block is placed, so hints keep it for toolbox blocks
-// (keepKeyword) and drop it for one already in the workspace.
-const KEYWORD_RE = /\s*Keyword:\s*\S+/;
+// Strips the obsolete trailing "Keyword: word" some tooltips still carry.
+const KEYWORD_RE = /\s*Keyword:\s*\S+\s*$/;
 
-// Matches the app's mobile breakpoint (style.css: @media (max-width: 1024px)):
-// hints default off there, since screen space is tight, but stay toggleable
-// from the Tools menu.
-function isMobileLayout() {
-  return typeof window !== 'undefined' && !!window.matchMedia?.('(max-width: 1024px)').matches;
+const EXPANDED_KEY = 'flock-block-hints-expanded';
+
+// null means "never chosen", so the default applies.
+function readStoredExpanded() {
+  try {
+    const stored = localStorage.getItem(EXPANDED_KEY);
+    return stored === null ? null : stored === '1';
+  } catch {
+    return null; // storage disabled
+  }
 }
 
-let enabled = !isMobileLayout();
+function writeStoredExpanded(value) {
+  try {
+    localStorage.setItem(EXPANDED_KEY, value ? '1' : '0');
+  } catch {
+    /* storage disabled — the session-local flag still works */
+  }
+}
+
+// Off until the workspace toolbar's info button turns them on.
+let enabled = readStoredExpanded() ?? false;
 let suppressed = false;
 let lastHintText = '';
-let lastHintKeepKeyword = false;
 let dismissMessage = null;
 
 function removeMessageDismissal() {
@@ -50,10 +61,11 @@ export function areBlockHintsEnabled() {
 
 export function setBlockHintsEnabled(value) {
   enabled = value;
+  writeStoredExpanded(enabled);
   if (!enabled) {
     hideBlockHint();
   } else {
-    renderBlockHint(suppressed ? '' : lastHintText, lastHintKeepKeyword);
+    renderBlockHint(suppressed ? '' : lastHintText);
   }
 }
 
@@ -62,11 +74,11 @@ export function setBlockHintsSuppressed(value) {
   if (suppressed) {
     hideBlockHint();
   } else {
-    renderBlockHint(enabled ? lastHintText : '', lastHintKeepKeyword);
+    renderBlockHint(enabled ? lastHintText : '');
   }
 }
 
-function renderBlockHint(text, keepKeyword) {
+function renderBlockHint(text) {
   removeMessageDismissal();
   const container = getContainer();
   const element = getTextElement();
@@ -80,21 +92,19 @@ function renderBlockHint(text, keepKeyword) {
   }
 
   element.replaceChildren();
-  element.append((keepKeyword ? content : content.replace(KEYWORD_RE, '')).trim());
+  element.append(content.replace(KEYWORD_RE, '').trim());
 
   container.hidden = false;
 }
 
-export function showBlockHint(text, { keepKeyword = false } = {}) {
+export function showBlockHint(text) {
   lastHintText = text || '';
-  lastHintKeepKeyword = keepKeyword;
-  renderBlockHint(enabled && !suppressed ? text : '', keepKeyword);
+  renderBlockHint(enabled && !suppressed ? text : '');
 }
 
-// Shows a one-off message in the same box regardless of the enabled/disabled
-// toggle — e.g. the startup tip, which needs to appear even when hints are
-// off (that's exactly when it's telling the user how to turn them on).
-// boldPart, if given and found in text, renders as <strong> instead of plain text.
+// Shows a one-off message in the same box even while hints are collapsed, and
+// dismisses it on the next click. boldPart, if given and found in text,
+// renders as <strong> instead of plain text.
 export function showBlockHintMessage(text, { boldPart } = {}) {
   removeMessageDismissal();
   const container = getContainer();

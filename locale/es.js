@@ -1127,7 +1127,6 @@ export default {
   inspector_tool_ui: 'Inspector', // ai
   show_block_hints_ui: 'Mostrar sugerencias de bloques',
   hide_block_hints_ui: 'Ocultar sugerencias de bloques',
-  block_hints_menu_location_ui: 'Haz clic en Menú > Herramientas',
   language_submenu_ui: 'Idioma', // human
   about_submenu_ui: 'Sobre nosotros', // human
   hub_submenu_ui: 'Centro', // human

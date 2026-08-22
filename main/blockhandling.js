@@ -131,7 +131,7 @@ function initializeFlyoutHints() {
       showSelectedBlockHint();
       return;
     }
-    showBlockHint(Blockly.Tooltip.getTooltipOfObject(root), { keepKeyword: true });
+    showBlockHint(Blockly.Tooltip.getTooltipOfObject(root));
   };
 
   flyoutWorkspace.addChangeListener((event) => {
