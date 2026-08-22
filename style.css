@@ -2431,6 +2431,10 @@ kbd {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  /* Containing block for the panels' absolutely-positioned .sr-only spans.
+     Without it they resolve against #canvasArea, escaping this scroller's
+     clipping and giving #canvasArea phantom scrollable overflow. */
+  position: relative;
 }
 
 #info-panel:has(.info-tab-btn.active) #info-panel-body {

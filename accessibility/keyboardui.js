@@ -5,6 +5,7 @@ import { translate, getCurrentLanguage } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
+import { logViewport } from '../main/viewportDebug.js';
 
 // Must match the CSS breakpoint in style.css that hides the docked info panel.
 const isNarrowLayout = () =>
@@ -751,7 +752,11 @@ const InfoPanel = {
     // All tab panels share this scroll container, so switching tabs must
     // reset it or the new tab opens pre-scrolled to the old tab's position.
     this._body.scrollTop = 0;
-    tab.panel.focus();
+    // preventScroll: the panel is far taller than its scrollport, so a plain
+    // focus() scrolls every scrollable ancestor to reveal it — including
+    // #maincontent, dragging the canvas up out of view.
+    tab.panel.focus({ preventScroll: true });
+    requestAnimationFrame(() => logViewport(`tab:${id}`));
   },
 
   deactivate(id) {
@@ -839,7 +844,7 @@ const ModalPanelBehaviour = {
         const activeSurvives = this.panel.contains(active) && active !== this._closeBtn;
         this.exitModal();
         if (activeSurvives) {
-          active.focus();
+          active.focus({ preventScroll: true });
         } else {
           this.previousFocus?.focus();
           this.previousFocus = null;
