@@ -1511,7 +1511,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 0 2.5em 1em 0;
+  padding: 0 0 1em;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -1745,12 +1745,6 @@ button.flock-close-icon {
 @media (max-width: 1024px) {
   #projectName {
     display: none; /* hid the project name input box for mobile screens*/
-  }
-  #openButton {
-    display: none; /* Hide open icon on mobile screens */
-  }
-  #exportCodeButton {
-    display: none; /* Hide save icon on mobile screens */
   }
 }
 
