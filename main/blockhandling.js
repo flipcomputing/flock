@@ -94,8 +94,68 @@ function createKeywordBlockAtViewportCenter(blockType) {
   return block;
 }
 
+function showSelectedBlockHint() {
+  const selected = asBlocklyBlock(window.currentBlock);
+  if (selected && !selected.isDisposed?.()) {
+    showBlockHint(Blockly.Tooltip.getTooltipOfObject(selected));
+  } else {
+    clearBlockHint();
+  }
+}
+
+// Blockly hangs its tooltip owner (a block or a field) off the SVG elements it
+// binds, so walking up from the pointer target finds what is under the cursor.
+function blockFromPointerTarget(target) {
+  for (let node = target; node; node = node.parentNode) {
+    const owner = node.tooltip;
+    if (!owner) continue;
+    const block = asBlocklyBlock(owner) || asBlocklyBlock(owner.getSourceBlock?.());
+    if (block) return block;
+  }
+  return null;
+}
+
+// Hints for the toolbox: hovering or keyboard-focusing a flyout block describes
+// it in the hint box, which replaced Blockly's hover tooltips.
+function initializeFlyoutHints() {
+  const flyoutWorkspace = workspace.getFlyout()?.getWorkspace();
+  if (!flyoutWorkspace) return;
+
+  let hoveredBlock = null;
+
+  // A flyout item is dragged out whole, so hint about its root block rather
+  // than whichever shadow field the pointer or cursor happens to be on.
+  const showFlyoutHint = (block) => {
+    const root = block && !block.isDisposed() ? block.getRootBlock() : null;
+    if (!root) {
+      showSelectedBlockHint();
+      return;
+    }
+    showBlockHint(Blockly.Tooltip.getTooltipOfObject(root), { keepKeyword: true });
+  };
+
+  flyoutWorkspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.SELECTED) return;
+    // Deselecting (clicking a flyout block deselects it again) falls back to
+    // the block under the pointer, which is usually the one just clicked.
+    const selected = event.newElementId && flyoutWorkspace.getBlockById(event.newElementId);
+    showFlyoutHint(selected || hoveredBlock);
+  });
+
+  const flyoutSvg = flyoutWorkspace.getParentSvg();
+  flyoutSvg.addEventListener('pointerover', (event) => {
+    hoveredBlock = blockFromPointerTarget(event.target);
+    showFlyoutHint(hoveredBlock);
+  });
+  flyoutSvg.addEventListener('pointerleave', () => {
+    hoveredBlock = null;
+    showSelectedBlockHint();
+  });
+}
+
 export function initializeBlockHandling() {
   observeBlocklyInputs();
+  initializeFlyoutHints();
 
   // Refresh reporter fields' ARIA when their slot changes so a value block
   // (e.g. a number in scale's X) announces its parent input ("x, number").
@@ -328,11 +388,7 @@ export function initializeBlockHandling() {
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId ? workspace.getBlockById(event.newElementId) : null;
-      if (window.currentBlock) {
-        showBlockHint(Blockly.Tooltip.getTooltipOfObject(window.currentBlock));
-      } else {
-        clearBlockHint();
-      }
+      showSelectedBlockHint();
     }
 
     // Workaround for Blockly not checking for orphans on key

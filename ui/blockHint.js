@@ -10,7 +10,8 @@ function getTextElement() {
 }
 
 // Strips the "Keyword: word" suffix — that's a toolbox search term, only
-// useful before a block is placed, not for a hint about one already selected.
+// useful before a block is placed, so hints keep it for toolbox blocks
+// (keepKeyword) and drop it for one already in the workspace.
 const KEYWORD_RE = /\s*Keyword:\s*\S+/;
 
 // Matches the app's mobile breakpoint (style.css: @media (max-width: 1024px)):
@@ -23,6 +24,7 @@ function isMobileLayout() {
 let enabled = !isMobileLayout();
 let suppressed = false;
 let lastHintText = '';
+let lastHintKeepKeyword = false;
 let dismissMessage = null;
 
 function removeMessageDismissal() {
@@ -51,7 +53,7 @@ export function setBlockHintsEnabled(value) {
   if (!enabled) {
     hideBlockHint();
   } else {
-    renderBlockHint(suppressed ? '' : lastHintText);
+    renderBlockHint(suppressed ? '' : lastHintText, lastHintKeepKeyword);
   }
 }
 
@@ -60,11 +62,11 @@ export function setBlockHintsSuppressed(value) {
   if (suppressed) {
     hideBlockHint();
   } else {
-    renderBlockHint(enabled ? lastHintText : '');
+    renderBlockHint(enabled ? lastHintText : '', lastHintKeepKeyword);
   }
 }
 
-function renderBlockHint(text) {
+function renderBlockHint(text, keepKeyword) {
   removeMessageDismissal();
   const container = getContainer();
   const element = getTextElement();
@@ -78,14 +80,15 @@ function renderBlockHint(text) {
   }
 
   element.replaceChildren();
-  element.append(content.replace(KEYWORD_RE, '').trim());
+  element.append((keepKeyword ? content : content.replace(KEYWORD_RE, '')).trim());
 
   container.hidden = false;
 }
 
-export function showBlockHint(text) {
+export function showBlockHint(text, { keepKeyword = false } = {}) {
   lastHintText = text || '';
-  renderBlockHint(enabled && !suppressed ? text : '');
+  lastHintKeepKeyword = keepKeyword;
+  renderBlockHint(enabled && !suppressed ? text : '', keepKeyword);
 }
 
 // Shows a one-off message in the same box regardless of the enabled/disabled

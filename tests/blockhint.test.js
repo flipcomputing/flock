@@ -66,6 +66,11 @@ export function runBlockHintTests(_flock) {
         expect(text.textContent).to.equal('Move the object.');
       });
 
+      it("keeps the 'Keyword: x' term for toolbox blocks", function () {
+        showBlockHint('Move the object.\nKeyword: move', { keepKeyword: true });
+        expect(text.textContent).to.equal('Move the object.\nKeyword: move');
+      });
+
       it('trims surrounding whitespace', function () {
         showBlockHint('   Move the object   ');
         expect(text.textContent).to.equal('Move the object');

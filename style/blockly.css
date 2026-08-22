@@ -1128,6 +1128,12 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   z-index: 21;
 }
 
+/* Hover tooltips are replaced by the block hint bar, which touch users can
+   also reach. Blockly still supplies the tooltip text for the hint. */
+.blocklyTooltipDiv {
+  display: none !important;
+}
+
 /* Custom Comment Icon Styles (block comment icon only) */
 .blocklyCommentIconPath {
   fill: #fffcc7;
