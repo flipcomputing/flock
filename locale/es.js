@@ -1154,6 +1154,8 @@ export default {
 
   toggle_play_ui: 'Usa tu proyecto', // human
   fullscreen_toggle_ui: 'Cambiar entre vista de pantalla completa y vista normal.', // human
+  exit_play_mode_ui: 'Salir del modo de juego', // ai
+  exit_play_mode_hint_ui: 'Modo de juego. Pulsa Escape o el botón de salir arriba a la derecha.', // ai
 
   show_shapes_button_ui: 'añadir formas y modelos', // human
   color_picker_button_ui: 'Escoge color del objeto', // human

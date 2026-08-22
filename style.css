@@ -2943,3 +2943,58 @@ svg.blocklyTrashcanFlyout {
 .blockly-locked > .blocklyPath {
   cursor: not-allowed !important;
 }
+
+/* Play mode hides Flock's own UI only; body keeps its safe-area padding so the
+   scene never runs under the OS bars. */
+body.play-mode header {
+  display: none;
+}
+
+/* Collapse the two-panel 200vw strip: WebKit scrolls that phantom overflow on
+   the entering tap and drags the canvas half off-screen. */
+body.play-mode #maincontent {
+  width: 100vw;
+  overflow-x: hidden;
+  height: calc(var(--app-height) - env(safe-area-inset-top));
+}
+
+#exitPlayMode {
+  display: none;
+}
+
+/* The only way out besides Escape, so it never fades. */
+body.play-mode #exitPlayMode {
+  display: flex;
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 8px);
+  right: calc(env(safe-area-inset-right) + 8px);
+  z-index: 1200;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+body.play-mode #exitPlayMode svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+body.play-mode #exitPlayMode:hover,
+body.play-mode #exitPlayMode:active,
+body.play-mode #exitPlayMode:focus-visible {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+body.play-mode #exitPlayMode:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}

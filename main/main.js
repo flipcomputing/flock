@@ -952,27 +952,27 @@ function initializeApp() {
   if (exampleButton) exampleButton.removeAttribute('disabled');
 
   if (fullscreenToggle) {
-    // iOS browsers (iPad/iPhone, Safari and Chrome) drop out of fullscreen as
-    // soon as a text field is focused and the keyboard appears, so hiding the
-    // button is better than offering one that breaks. Installed PWA / standalone
-    // is already fullscreen and is handled separately.
-    const isIOSBrowser = () => {
-      const isIOS =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      const isStandalone =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches ||
-        navigator.standalone === true;
-      return isIOS && !isStandalone;
-    };
+    const isIOS = () =>
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isMobile = () => /Mobi|Android/i.test(navigator.userAgent) || isIOS();
+    const isInstalledApp = () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      navigator.standalone === true;
 
     const fullscreenSupported =
       document.documentElement.requestFullscreen ||
       document.documentElement.mozRequestFullScreen ||
       document.documentElement.webkitRequestFullscreen ||
       document.documentElement.msRequestFullscreen;
-    if (fullscreenSupported && !isIOSBrowser()) {
+
+    // iOS browsers drop out of fullscreen as soon as a text field takes focus and
+    // the keyboard appears. A home-screen app can still hide the system bars, but
+    // not for enough gain to spend a button on.
+    const fullscreenShown = fullscreenSupported && !isIOS() && !(isMobile() && isInstalledApp());
+
+    if (fullscreenShown) {
       fullscreenToggle.removeAttribute('disabled');
     } else {
       fullscreenToggle.style.display = 'none';

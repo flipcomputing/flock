@@ -3,6 +3,7 @@ import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
 import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
 import { showBanner } from '../ui/notifications.js';
+import { announce } from '../accessibility/accessibility.js';
 import { translate } from './translation.js';
 import { disableGltfValidation } from './gltfvalidation.js';
 import { logViewport } from './viewportDebug.js';
@@ -20,6 +21,10 @@ const isMobile = () => {
 const gizmosBesideCanvas = () =>
   window.matchMedia('(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)')
     .matches;
+
+// Blocks are authored against a 16:9 canvas, so play mode measures its camera
+// framing against that shape however the screen is proportioned.
+const AUTHORING_ASPECT = 16 / 9;
 
 let pendingScrollBlockId = null;
 
@@ -202,16 +207,19 @@ function resizeCanvas() {
 
   const { areaWidth, areaHeight } = getCanvasAvailableSize(canvasArea);
 
-  const aspectRatio = 16 / 9;
-
   let newWidth, newHeight;
 
-  if (areaWidth / areaHeight > aspectRatio) {
+  if (playModeActive) {
+    // Play mode gives the scene the whole area; letterboxing is an editor concern.
+    newWidth = areaWidth;
     newHeight = areaHeight;
-    newWidth = newHeight * aspectRatio;
+    applyPlayModeFov();
+  } else if (areaWidth / areaHeight > AUTHORING_ASPECT) {
+    newHeight = areaHeight;
+    newWidth = newHeight * AUTHORING_ASPECT;
   } else {
     newWidth = areaWidth;
-    newHeight = newWidth / aspectRatio;
+    newHeight = newWidth / AUTHORING_ASPECT;
   }
 
   canvas.style.width = `${Math.round(newWidth)}px`;
@@ -306,15 +314,6 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-
-  // No need to request fullscreen in PWA
-  if (isMobile() && isFullscreen) {
-    //requestFullscreen();
-    const fullscreenToggle = document.getElementById('fullscreenToggle');
-    if (fullscreenToggle) fullscreenToggle.style.display = 'none';
-  }
-
   if (window.matchMedia('(display-mode: fullscreen)').matches) {
     // Adjust layout for fullscreen mode
     adjustViewport();
@@ -354,6 +353,46 @@ const codeToggleBtn = document.getElementById('codeToggleBtn');
 let savedView = 'canvas';
 let savedShortcutsVisible = false;
 let savedPanelFlex = null;
+let playModeActive = false;
+let savedCameraFov = null;
+
+// Babylon holds the vertical FOV constant, so filling a portrait screen would
+// crop the sides off a scene composed on the 16:9 editor canvas. Pin the
+// horizontal angle instead: the framing survives and the extra height reveals
+// more of the scene rather than less.
+function applyPlayModeFov() {
+  const camera = flock.scene?.activeCamera;
+  const horizontalFixed = flock.BABYLON?.Camera?.FOVMODE_HORIZONTAL_FIXED;
+  if (!camera || horizontalFixed === undefined || typeof camera.fov !== 'number') return;
+  if (savedCameraFov?.camera === camera) return;
+
+  // Re-running the project inside play mode builds a fresh camera.
+  restoreCameraFov();
+  savedCameraFov = { camera, fov: camera.fov, fovMode: camera.fovMode };
+  camera.fov = 2 * Math.atan(Math.tan(camera.fov / 2) * AUTHORING_ASPECT);
+  camera.fovMode = horizontalFixed;
+}
+
+// Restores the camera we actually changed, which may no longer be the active one
+// if the project switched cameras mid-play.
+function restoreCameraFov() {
+  if (!savedCameraFov) return;
+  const { camera, fov, fovMode } = savedCameraFov;
+  savedCameraFov = null;
+  if (camera.isDisposed?.()) return;
+  camera.fov = fov;
+  camera.fovMode = fovMode;
+}
+
+function addPlayModeExitListeners() {
+  const exitButton = document.getElementById('exitPlayMode');
+  if (exitButton) exitButton.addEventListener('click', togglePlayMode);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !playModeActive || event.defaultPrevented) return;
+    togglePlayMode();
+  });
+}
 
 function addButtonListener() {
   if (canvasToggleBtn) canvasToggleBtn.addEventListener('click', showCanvasView);
@@ -500,6 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
 export function initializeUI() {
   addSwipeListeners(); // Add swipe event listeners (narrow screens only)
   addButtonListener(); // Add button click listener (narrow screens only)
+  addPlayModeExitListeners();
 
   // Initialize currentView based on actual DOM state on narrow screens
   if (isNarrowScreen()) {
@@ -562,6 +602,8 @@ export function togglePlayMode() {
 
   if (gizmosVisible) {
     savedView = currentView;
+    playModeActive = true;
+    document.body.classList.add('play-mode');
 
     showCanvasView();
     hideInspector();
@@ -581,8 +623,16 @@ export function togglePlayMode() {
       canvasArea.style.width = '0';
       canvasArea.style.flex = '1 1 0';
     }
-    document.documentElement.style.setProperty('--dynamic-offset', '40px');
+    // No Flock chrome left above the canvas, so it starts at the safe area.
+    document.documentElement.style.setProperty('--dynamic-offset', '0px');
+    applyPlayModeFov();
+    // Keyboard play needs the canvas focused; the exit button must not take it.
+    document.getElementById('renderCanvas')?.focus({ preventScroll: true });
+    announce(translate('exit_play_mode_hint_ui'));
   } else {
+    playModeActive = false;
+    document.body.classList.remove('play-mode');
+    restoreCameraFov();
     hideInspector();
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';
