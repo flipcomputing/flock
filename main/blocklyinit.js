@@ -6,6 +6,15 @@ import { translate } from './translation.js';
 import { focusRememberedWorkspaceNode } from './workspaceFocus.js';
 import { setBlockHintsSuppressed } from '../ui/blockHint.js';
 import {
+  matchBlockDefinitions,
+  compactSearchMediaQuery,
+  isCompactSearchLayout,
+  getBlockSearchLabel,
+  getBlockCategoryInfo,
+  indexesFieldValues,
+  rebuildBlockCategoryMap,
+} from './blocksearch.js';
+import {
   options,
   defineBlocks,
   handleBlockSelect,
@@ -46,9 +55,6 @@ import {
   deleteBlockComment,
 } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
-
-const mobileSearchMediaQuery = '(max-width: 768px), (max-width: 899px) and (pointer: coarse)';
-const isMobileSearchLayout = () => window.matchMedia(mobileSearchMediaQuery).matches;
 
 // Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
@@ -790,7 +796,7 @@ export function initializeWorkspace() {
     }
   }).observe(workspace.getInjectionDiv(), { childList: true, subtree: true });
 
-  // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
+  // Shared label map populated by buildSearchIndex (overrideSearchPlugin)
   workspace.flockBlockLabelMap ??= new Map();
 
   // @blockly/toolbox-search's createDom_() wipes the category row's label
@@ -815,7 +821,7 @@ export function initializeWorkspace() {
     fixSearchCategoryAria(searchInput);
 
     let originalParent = searchInput.parentElement;
-    const isMobile = isMobileSearchLayout;
+    const isMobile = isCompactSearchLayout;
     const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
 
     // Get the toolbox search category (used to override matchBlocks and to
@@ -825,68 +831,8 @@ export function initializeWorkspace() {
       ?.getToolboxItems?.()
       .find((item) => item.getId?.() === 'toolbox-search-input');
 
-    // Resolve a categorystyle name to a hex color via the current theme
-    const getCategoryColor = (categorystyle) => {
-      if (!categorystyle) return null;
-      let themeColour = workspace.getTheme()?.categoryStyles?.[categorystyle]?.colour;
-      if (themeColour === undefined || themeColour === null) return null;
-      // Resolve Blockly message references e.g. "%{BKY_LOOPS_HUE}"
-      if (
-        typeof themeColour === 'string' &&
-        themeColour.startsWith('%{BKY_') &&
-        themeColour.endsWith('}')
-      ) {
-        const key = themeColour.slice(6, -1);
-        themeColour = Blockly.Msg?.[key] ?? themeColour;
-      }
-      if (typeof themeColour === 'string' && themeColour.startsWith('#')) return themeColour;
-      const hue = parseFloat(themeColour);
-      if (isNaN(hue)) return null;
-      return Blockly.utils.colour.hueToHex(hue);
-    };
-
-    // Build block type → { name, color } map from the toolbox definition
-    const blockCategoryMap = new Map();
-    const buildCategoryMap = () => {
-      blockCategoryMap.clear();
-      const walk = (node, categoryName, categoryColor) => {
-        if (!node) return;
-        if (node.kind === 'block' && node.type && !blockCategoryMap.has(node.type)) {
-          blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
-        }
-        if (node.contents) {
-          let name = node.name || categoryName;
-          if (name?.startsWith('%{BKY_') && name.endsWith('}')) {
-            const key = name.slice(6, -1);
-            name =
-              Blockly.Msg?.[key] ||
-              key
-                .replace(/^CATEGORY_/, '')
-                .replace(/_/g, ' ')
-                .toLowerCase()
-                .replace(/^./, (c) => c.toUpperCase());
-          }
-          let color = categoryColor;
-          if (node.categorystyle) {
-            color = getCategoryColor(node.categorystyle) ?? categoryColor;
-          }
-          node.contents.forEach((child) => walk(child, name, color));
-        }
-      };
-      walk(toolboxDef, '', null);
-    };
+    const buildCategoryMap = () => rebuildBlockCategoryMap(workspace, toolboxDef);
     buildCategoryMap();
-
-    const getBlockLabel = (blockDef) => {
-      const type = blockDef.type;
-      return (
-        workspace.flockBlockLabelMap?.get(type) ||
-        type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
-      );
-    };
-
-    // The mobile overlay reuses blockSearcher.blockTypesMatching (overridden in
-    // overrideSearchPlugin) so it stays consistent with the desktop flyout.
 
     // Build overlay bar
     const overlay = document.createElement('div');
@@ -942,7 +888,7 @@ export function initializeWorkspace() {
         return;
       }
 
-      const filtered = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
+      const filtered = matchBlockDefinitions(workspace, query);
 
       if (filtered.length === 0) {
         resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
@@ -954,8 +900,8 @@ export function initializeWorkspace() {
         const type = blockDef.type;
         if (!type || !Blockly.Blocks[type]) return;
 
-        const label = getBlockLabel(blockDef);
-        const { name: category, color } = blockCategoryMap.get(type) ?? { name: '', color: null };
+        const label = getBlockSearchLabel(workspace, blockDef);
+        const { name: category, color } = getBlockCategoryInfo(workspace, type);
 
         const item = document.createElement('button');
         item.type = 'button';
@@ -1133,7 +1079,7 @@ export function initializeWorkspace() {
     cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
     cancelBtn.addEventListener('click', closeOverlay);
 
-    window.matchMedia(mobileSearchMediaQuery).addEventListener('change', (e) => {
+    window.matchMedia(compactSearchMediaQuery).addEventListener('change', (e) => {
       if (!e.matches && overlay.isConnected) closeOverlay();
     });
 
@@ -2591,39 +2537,13 @@ export function overrideSearchPlugin(workspace) {
     };
 
     this.blockSearcher.indexBlocks = rebuildSearchIndex;
+    workspace.flockBuildSearchIndex = rebuildSearchIndex;
     blockSearcher.indexedBlocks_ = workspace.flockSearchIndexedBlocks || null;
 
     // Override only the search primitive — native matchBlocks consumes it, so flyout rendering
     // and screen-reader announcements stay upstream; matchBlocks is wrapped below to localise
     // the placeholder and no-match labels.
-    blockSearcher.blockTypesMatching = (rawQuery) => {
-      const q = (rawQuery || '').toLowerCase().trim();
-      if (!q) return [];
-      if (!Array.isArray(blockSearcher.indexedBlocks_) && blockSearcher.indexBlocks) {
-        blockSearcher.indexBlocks();
-      }
-      const index = blockSearcher.indexedBlocks_;
-      if (!Array.isArray(index)) return [];
-
-      const labelOf = (def) =>
-        (workspace.flockBlockLabelMap?.get(def.type) || def.type.replace(/_/g, ' ')).toLowerCase();
-      const score = (def) => {
-        if (!def?.type) return 4;
-        const label = labelOf(def);
-        const type = def.type.toLowerCase();
-        if (label.startsWith(q)) return 0;
-        if (label.includes(q)) return 1;
-        if (type.includes(q)) return 2;
-        return 3;
-      };
-
-      const seenTypes = new Set();
-      return index
-        .filter((b) => b.text && b.text.includes(q))
-        .map((b) => b.full)
-        .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
-        .sort((a, b) => score(a) - score(b));
-    };
+    blockSearcher.blockTypesMatching = (rawQuery) => matchBlockDefinitions(workspace, rawQuery);
 
     if (!workspace.flockSearchIndexScheduled) {
       workspace.flockSearchIndexScheduled = true;
@@ -2725,7 +2645,7 @@ export function overrideSearchPlugin(workspace) {
             });
           }
 
-          if (field instanceof Blockly.FieldVariable) {
+          if (!indexesFieldValues(field)) {
             return;
           }
 

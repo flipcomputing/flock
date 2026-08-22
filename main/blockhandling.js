@@ -5,6 +5,7 @@ import { blockHandlerRegistry, refreshReporterAriaLabels } from '../blocks/block
 import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
+import { ensureBlockSearchIndex, isCompactSearchLayout } from './blocksearch.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -67,6 +68,9 @@ function focusBlocklyBlock(block) {
 
 function focusKeywordField(block) {
   focusBlocklyBlock(block);
+
+  // The picker needs the search index; build it now if the idle build has not run.
+  ensureBlockSearchIndex(block.workspace);
 
   const textInputField = block.getField('KEYWORD');
   if (textInputField) {
@@ -432,6 +436,12 @@ export function initializeBlockHandling() {
 
 // Function to enforce minimum font size and delay the focus to prevent zoom
 function enforceMinimumFontSize(input) {
+  // The block picker sets its own size to match the toolbox search box; on
+  // narrow screens it still takes the 16px iOS zoom guard below.
+  if (input.classList.contains('block-search-input') && !isCompactSearchLayout()) {
+    return;
+  }
+
   const currentFontSize = parseFloat(input.style.fontSize);
 
   // Set font size immediately if it's less than 16px

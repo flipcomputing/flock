@@ -53,6 +53,11 @@ export function defineGenerators() {
   // Also uncomment import if you want this
   //registerDeprecatedGenerators(javascriptGenerator);
 
+  // An unresolved block picker is a placeholder, not code: emit nothing so a
+  // project saved with one still runs. Blockly still generates the rest of the
+  // stack below it.
+  javascriptGenerator.forBlock['keyword'] = () => '';
+
   // Initialise
   javascriptGenerator.init = function (workspace) {
     clearMeshMaps();

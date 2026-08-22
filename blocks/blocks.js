@@ -16,6 +16,7 @@ import {
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { createThemeConfig } from '../main/themes.js';
 import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
+import { FieldBlockSearch } from './fieldBlockSearch.js';
 
 registerFieldColour();
 
@@ -1623,93 +1624,71 @@ export function defineBlocks() {
 
   Blockly.Blocks['keyword'] = {
     init: function () {
-      this.appendDummyInput().appendField(
-        new Blockly.FieldTextInput('type a keyword to add a block'),
-        'KEYWORD'
-      );
-      this.setTooltip('Type a keyword to change this block.');
+      this.appendDummyInput().appendField(new FieldBlockSearch(''), 'KEYWORD');
+      this.setTooltip(translate('block_search_tooltip'));
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setPreviousStatement(true);
       this.setNextStatement(true);
+    },
 
-      this.setOnChange(function () {
-        // Prevent infinite loops or multiple replacements.
-        if (this.isDisposed() || this.isReplaced) {
-          return;
-        }
-        // Get the entered keyword.
-        const keyword = this.getFieldValue('KEYWORD').trim();
-        // Lookup the exact toolbox definition based on the keyword.
-        const blockDefinition = findBlockDefinitionByKeyword(keyword);
-        if (blockDefinition?.type) {
-          // Mark the block as replaced.
-          this.isReplaced = true;
-          const workspace = this.workspace;
-          // Create the new block.
-          const newBlock = workspace.newBlock(blockDefinition.type);
+    onBlockSearchSelect: function (definition) {
+      if (this.isDisposed() || this.isReplaced || !definition?.type) {
+        return;
+      }
+      this.isReplaced = true;
 
-          newBlock.initSvg();
-          newBlock.render();
-          applyBlockDefinition(newBlock, blockDefinition);
+      const ownsGroup = !Blockly.Events.getGroup();
+      if (ownsGroup) Blockly.Events.setGroup(true);
 
-          // Position the new block where the old keyword block is.
-          const pos = this.getRelativeToSurfaceXY();
-          newBlock.moveBy(pos.x, pos.y);
+      try {
+        const workspace = this.workspace;
+        const newBlock = workspace.newBlock(definition.type);
+        newBlock.initSvg();
+        newBlock.render();
+        applyBlockDefinition(newBlock, definition);
 
-          if (this.previousConnection && this.previousConnection.isConnected()) {
-            const parentConnection = this.previousConnection.targetConnection;
-            if (parentConnection) {
-              parentConnection.disconnect();
-              parentConnection.connect(newBlock.previousConnection);
-            }
+        const pos = this.getRelativeToSurfaceXY();
+        newBlock.moveBy(pos.x, pos.y);
+
+        const parentConnection = this.previousConnection?.targetConnection ?? null;
+        const nextBlock = this.getNextBlock();
+        parentConnection?.disconnect();
+
+        // Hat blocks and value blocks have no previous connection, so they
+        // cannot take this block's place in the stack — they are left floating
+        // where the placeholder was, and the stack closes up below.
+        if (newBlock.previousConnection) {
+          parentConnection?.connect(newBlock.previousConnection);
+
+          let tailBlock = newBlock;
+          while (tailBlock.getNextBlock?.()) {
+            tailBlock = tailBlock.getNextBlock();
           }
-
-          // Reattach any block that was connected to the keyword block's next connection.
-          const nextBlock = this.getNextBlock();
-          if (nextBlock) {
-            let tailBlock = newBlock;
-            while (tailBlock.getNextBlock?.()) {
-              tailBlock = tailBlock.getNextBlock();
-            }
-
-            if (tailBlock.nextConnection) {
-              tailBlock.nextConnection.connect(nextBlock.previousConnection);
-            }
+          if (nextBlock && tailBlock.nextConnection) {
+            tailBlock.nextConnection.connect(nextBlock.previousConnection);
           }
-
-          window.currentBlock = newBlock;
-
-          // Dispose of the old keyword block.
-          this.dispose();
-          setTimeout(() => Blockly.getFocusManager().focusNode(newBlock), 0);
         }
-      });
+
+        // Whatever is still hanging below would be disposed along with this
+        // block, so put it back on the stack, or leave it as its own stack.
+        if (nextBlock && this.getNextBlock() === nextBlock) {
+          this.nextConnection.disconnect();
+          if (parentConnection && !parentConnection.isConnected()) {
+            parentConnection.connect(nextBlock.previousConnection);
+          }
+        }
+
+        window.currentBlock = newBlock;
+
+        this.dispose(true);
+        setTimeout(() => {
+          if (!newBlock.isDisposed()) Blockly.getFocusManager().focusNode(newBlock);
+        }, 0);
+      } finally {
+        if (ownsGroup) Blockly.Events.setGroup(false);
+      }
     },
   };
-
-  function findBlockDefinitionByKeyword(keyword) {
-    // Recursive helper to search through a contents array.
-    function searchContents(contents) {
-      if (!Array.isArray(contents)) {
-        return null;
-      }
-      for (const item of contents) {
-        // If this item is a block with the matching keyword, return its definition.
-        if (item.kind === 'block' && item.keyword === keyword) {
-          return item;
-        }
-        // If the item is a category with its own contents, search recursively.
-        if (item.kind === 'category' && Array.isArray(item.contents)) {
-          const result = searchContents(item.contents);
-          if (result !== null) {
-            return result;
-          }
-        }
-      }
-      return null;
-    }
-    return searchContents(toolbox.contents);
-  }
 
   function applyBlockDefinition(block, definition) {
     if (!block || !definition) {

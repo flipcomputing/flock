@@ -1220,3 +1220,96 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   stroke: var(--axis-z-color) !important;
   stroke-width: 2px !important;
 }
+
+/* Inline block picker on the keyword block (see blocks/fieldBlockSearch.js) */
+.block-search-popup {
+  position: fixed;
+  z-index: 100000;
+  max-width: min(420px, calc(100vw - 16px));
+  background: var(--color-bg);
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px var(--color-shadow);
+  overflow: hidden;
+}
+
+.block-search-listbox {
+  max-height: min(320px, 40vh);
+  overflow-y: auto;
+}
+
+.block-search-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 36px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.block-search-option.active,
+.block-search-option:hover {
+  background: rgba(128, 128, 128, 0.18);
+}
+
+.block-search-option-name {
+  font-size: 14px;
+  flex: 1;
+}
+
+.block-search-option-category {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.block-search-status {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  opacity: 0.75;
+}
+
+.block-search-status {
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.block-search-status.is-empty {
+  border-top: none;
+}
+
+.block-search-status-offscreen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.block-search-flyout {
+  z-index: 205; /* above .fc-block-toolbar (200) and its hint (201) */
+}
+
+.block-search-scrollbar {
+  z-index: 206; /* above .block-search-flyout, which it sits alongside */
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput.block-search-input {
+  text-align: left;
+  padding-left: 4px;
+  font-weight: 400 !important; /* the toolbox search box weight, not block text */
+}
+
+/* Opaque and lifted: this flyout floats over the workspace rather than docking.
+   fill is left to the theme rules above so low-vision keeps its own colour. */
+.block-search-flyout .blocklyFlyoutBackground {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
+}

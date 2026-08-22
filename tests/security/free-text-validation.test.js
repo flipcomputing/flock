@@ -163,16 +163,29 @@ export function runTextFieldValidationTests() {
       expect(generate(block)).to.equal('');
     });
 
-    it('the keyword block cannot be generated', function () {
+    it('an unresolved keyword block generates nothing, not its typed text', function () {
       const block = Blockly.serialization.blocks.append(
         {
           type: 'keyword',
+          fields: { KEYWORD: payload },
         },
         workspace
       );
-      expect(() => generate(block)).to.throw(
-        'JavaScript generator does not know how to generate code for block type "keyword"'
+      expect(generate(block)).to.equal('');
+    });
+
+    it('an unresolved keyword block does not stop the blocks below it', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'keyword',
+          fields: { KEYWORD: payload },
+          next: { block: { type: 'wait_seconds' } },
+        },
+        workspace
       );
+      const code = generate(block);
+      expect(code).not.to.include(payload);
+      expect(code).to.include('wait');
     });
   });
 }
