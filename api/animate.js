@@ -579,9 +579,6 @@ export const flockAnimate = {
           : 'material.albedoColor';
     } else if (property === 'alpha') {
       propertyToAnimate = 'material.alpha';
-      if (mesh.material) {
-        mesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-      }
     } else {
       propertyToAnimate = property;
     }
@@ -674,7 +671,7 @@ export const flockAnimate = {
     mesh.animations.push(keyframeAnimation);
 
     if (property === 'alpha' && mesh.material) {
-      mesh.material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag);
+      flock._prepareMaterialForAlphaAnimation(mesh);
     }
 
     const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
@@ -770,6 +767,12 @@ export const flockAnimate = {
         : [];
 
       const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
+
+      // Descendants are targets too, and a say label's text plane needs blending
+      // whether or not its own keyframes build anything.
+      if (property === 'alpha' && targetMesh.material) {
+        flock._prepareMaterialForAlphaAnimation(targetMesh);
+      }
 
       if (allKeyframes.length > 1) {
         keyframeAnimation.setKeys(allKeyframes);
@@ -871,6 +874,10 @@ export const flockAnimate = {
     }
 
     animation.setKeys(keys);
+
+    if (property === 'alpha' && mesh.material) {
+      flock._prepareMaterialForAlphaAnimation(mesh);
+    }
 
     const animatable = flock.scene.beginDirectAnimation(
       mesh,
@@ -984,6 +991,14 @@ export const flockAnimate = {
       obj[parts[parts.length - 1]] = value;
     }
   },
+  // An alpha animation writes material.alpha directly, so nothing else sets up
+  // the blending it needs.
+  _prepareMaterialForAlphaAnimation(mesh) {
+    const material = mesh.material;
+    if (!material) return;
+    material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+    material.markAsDirty(flock.BABYLON.Material.MiscDirtyFlag);
+  },
   _resolvePropertyToAnimate(property, mesh) {
     if (!mesh) {
       flock.reportBlockError({
@@ -1009,9 +1024,6 @@ export const flockAnimate = {
         return 'material.albedoColor';
 
       case 'alpha':
-        if (mesh.material) {
-          mesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-        }
         return 'material.alpha';
 
       default:

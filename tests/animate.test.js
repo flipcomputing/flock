@@ -330,6 +330,63 @@ export function runAnimateTests(flock) {
         expect(animGroup).to.exist;
       });
 
+      it('should set up blending when alpha is animated on an opaque object', async function () {
+        const boxId = 'createAnimAlphaPrepass';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 4,
+          depth: 1,
+          color: '#8899ff',
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        expect(mesh.material.transparencyMode).to.not.equal(
+          flock.BABYLON.Material.MATERIAL_ALPHABLEND
+        );
+
+        await flock.createAnimation('alphaPrepassGroup', boxId, {
+          property: 'alpha',
+          keyframes: [
+            { duration: 0, value: 1 },
+            { duration: 1, value: 0.3 },
+          ],
+          easing: 'Linear',
+          loop: false,
+          reverse: false,
+          mode: 'START',
+        });
+
+        expect(mesh.material.transparencyMode).to.equal(flock.BABYLON.Material.MATERIAL_ALPHABLEND);
+      });
+
+      it('should leave an opaque material alone when animateKeyFrames builds nothing', async function () {
+        const boxId = 'keyFramesAlphaNoop';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 4,
+          depth: 1,
+          color: '#8899ff',
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        // createAnimation differs: it sets up every alpha target regardless.
+        await flock.animateKeyFrames(boxId, {
+          property: 'alpha',
+          keyframes: [{ duration: 0, value: 1 }],
+          easing: 'Linear',
+          loop: false,
+          reverse: false,
+        });
+
+        expect(mesh.material.transparencyMode).to.not.equal(
+          flock.BABYLON.Material.MATERIAL_ALPHABLEND
+        );
+      });
+
       it('should generate unique group name when not provided', async function () {
         const boxId = 'createAnimUnique';
         await flock.createBox(boxId, {

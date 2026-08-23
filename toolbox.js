@@ -3474,38 +3474,6 @@ const toolboxMaterials = {
     },
     {
       kind: 'block',
-      type: 'gradient_colour',
-      keyword: 'gradient',
-      inputs: {
-        COLORS: {
-          block: {
-            type: 'lists_create_with',
-            extraState: { itemCount: 2 },
-            inline: true,
-            inputs: {
-              ADD0: {
-                shadow: {
-                  type: 'colour',
-                  fields: {
-                    COLOR: '#FF5733',
-                  },
-                },
-              },
-              ADD1: {
-                shadow: {
-                  type: 'colour',
-                  fields: {
-                    COLOR: '#FDFD96',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
       type: 'lists_create_with',
       keyword: 'colourlist',
       extraState: { itemCount: 2 },

@@ -17,8 +17,8 @@ export const flockScene = {
 
     // The gradient colour block hands over a descriptor. Unwrap to its colours
     // before the material conversion below, so the sky builds its own gradient
-    // and sizes minMax to the sky sphere; the sky only does bottom to top, so
-    // the direction is ignored.
+    // sized to the sky sphere; the sky only does bottom to top, so the
+    // direction is ignored.
     if (color && typeof color === 'object' && !Array.isArray(color) && Array.isArray(color.color)) {
       // Only for an untextured descriptor: with a texture the colour list means
       // palette replacement, which the material conversion has to handle.
@@ -103,6 +103,8 @@ export const flockScene = {
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       if (color.length === 2) {
+        // Tuned to the band of sphere in shot; the block gradient's linear ramp
+        // does not reproduce this curve.
         const mat = new flock.GradientMaterial('skyGradient', flock.scene);
         mat.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
         mat.topColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
@@ -112,14 +114,16 @@ export const flockScene = {
         mat.backFaceCulling = false;
         mat.disableLighting = true;
         skySphere.material = mat;
-      } else {
-        const mat = flock.createMultiColorGradientMaterial('skyGradient', color);
-        const { minimum, maximum } = skySphere.getBoundingInfo();
-        mat.setVector2('minMax', new flock.BABYLON.Vector2(minimum.y, maximum.y));
-        mat.backFaceCulling = false;
-        mat.disableLighting = true;
-        skySphere.material = mat;
+        return;
       }
+
+      // Colours come through the lit diffuse, so an unlit sky needs a white
+      // emissive or the lighting term multiplies it to black.
+      const mat = flock.createGradientMaterial('skyGradient', color);
+      mat.backFaceCulling = false;
+      mat.disableLighting = true;
+      mat.emissiveColor = flock.BABYLON.Color3.White();
+      skySphere.material = mat;
       return;
     }
 
@@ -259,7 +263,7 @@ export const flockScene = {
       } else {
         // Re-scale UVs for tiled textures in case they were previously
         // normalised for a gradient (switching back from gradient to texture).
-        const needsTiling = !(mat instanceof flock.GradientMaterial);
+        const needsTiling = !mat?.metadata?.gradientColors;
         if (needsTiling) {
           const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
           if (positions) {
@@ -307,7 +311,7 @@ export const flockScene = {
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
       !isMaterialColorList &&
-      !(material instanceof flock.GradientMaterial);
+      !material?.metadata?.gradientColors;
 
     let ground;
     if (image === 'NONE') {

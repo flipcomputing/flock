@@ -5,7 +5,7 @@ export function setFlockReference(ref) {
 }
 
 // Gradient direction follows CSS linear-gradient: 0 is bottom to top, increasing
-// clockwise, rotating within the object's local XY plane.
+// clockwise, rotating within each mesh's own local XY plane.
 function gradientAxisFor(direction) {
   const radians = ((Number(direction) || 0) * Math.PI) / 180;
   return { x: Math.sin(radians), y: Math.cos(radians) };
@@ -14,6 +14,140 @@ function gradientAxisFor(direction) {
 // The angle is part of a gradient's identity, so it has to reach the material cache key.
 function withGradientDirection(colorKey, direction) {
   return Number.isFinite(direction) ? `${colorKey}@${direction}` : colorKey;
+}
+
+// Built on first use: the class needs BABYLON, which arrives with the flock ref.
+let gradientPlugin = null;
+
+function gradientPluginClass() {
+  if (gradientPlugin) return gradientPlugin;
+
+  gradientPlugin = class FlockGradientPlugin extends flock.BABYLON.MaterialPluginBase {
+    constructor(material) {
+      super(material, 'FlockGradient', 200, { FLOCK_GRADIENT: true }, true, true);
+      this.colors = [];
+      this.direction = 0;
+      this.ramp = null;
+      this.axis = gradientAxisFor(0);
+    }
+
+    getClassName() {
+      return 'FlockGradientPlugin';
+    }
+
+    prepareDefines(defines) {
+      defines.FLOCK_GRADIENT = true;
+    }
+
+    getSamplers(samplers) {
+      samplers.push('gradientRamp');
+    }
+
+    getActiveTextures(activeTextures) {
+      if (this.ramp) activeTextures.push(this.ramp);
+    }
+
+    hasTexture(texture) {
+      return this.ramp === texture;
+    }
+
+    getUniforms() {
+      return {
+        ubo: [
+          { name: 'gradientAxis', size: 2, type: 'vec2' },
+          { name: 'gradientRange', size: 2, type: 'vec2' },
+        ],
+        fragment: 'uniform vec2 gradientAxis;\nuniform vec2 gradientRange;\n',
+      };
+    }
+
+    // Per draw, so meshes sharing this material get their own range; it spans
+    // the whole mesh, so submeshes of one mesh share it.
+    bindForSubMesh(uniformBuffer, scene, engine, subMesh) {
+      const mesh = subMesh?.getMesh?.();
+      const axis = this.axis;
+      let low = -1;
+      let high = 1;
+
+      if (mesh) {
+        const bb = mesh.getBoundingInfo().boundingBox;
+        low = Infinity;
+        high = -Infinity;
+        for (const x of [bb.minimum.x, bb.maximum.x]) {
+          for (const y of [bb.minimum.y, bb.maximum.y]) {
+            const projected = x * axis.x + y * axis.y;
+            low = Math.min(low, projected);
+            high = Math.max(high, projected);
+          }
+        }
+      }
+
+      uniformBuffer.updateFloat2('gradientAxis', axis.x, axis.y);
+      uniformBuffer.updateFloat2('gradientRange', low, high);
+      if (this.ramp) uniformBuffer.setTexture('gradientRamp', this.ramp);
+    }
+
+    getCustomCode(shaderType) {
+      if (shaderType === 'vertex') {
+        return {
+          CUSTOM_VERTEX_DEFINITIONS: 'varying vec3 vGradientPosition;\n',
+          CUSTOM_VERTEX_UPDATE_POSITION: 'vGradientPosition = positionUpdated;\n',
+        };
+      }
+
+      return {
+        CUSTOM_FRAGMENT_DEFINITIONS:
+          'varying vec3 vGradientPosition;\nuniform sampler2D gradientRamp;\n',
+        CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `
+          float gradientSpan = max(1e-5, gradientRange.y - gradientRange.x);
+          float gradientT = clamp(
+            (dot(vGradientPosition.xy, gradientAxis) - gradientRange.x) / gradientSpan, 0.0, 1.0);
+          baseColor.rgb = texture2D(gradientRamp, vec2(0.5, gradientT)).rgb;
+        `,
+      };
+    }
+
+    setColors(colors, direction) {
+      this.colors = colors.slice();
+      this.direction = Number(direction) || 0;
+      this.axis = gradientAxisFor(this.direction);
+
+      const previous = this.ramp;
+      this.ramp = flock.createLinearGradientTexture(colors, { size: 256, horizontal: false });
+      if (this.ramp) {
+        this.ramp.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        this.ramp.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      }
+      previous?.dispose();
+
+      this.markAllDefinesAsDirty();
+    }
+
+    serialize() {
+      return { name: this.name, colors: this.colors, direction: this.direction };
+    }
+
+    parse(source) {
+      if (source?.colors?.length) this.setColors(source.colors, source.direction);
+    }
+
+    dispose() {
+      this.ramp?.dispose();
+      this.ramp = null;
+    }
+  };
+
+  // Lets a material parsed back from a serialised scene rebuild its gradient.
+  flock.BABYLON.RegisterClass?.('BABYLON.FlockGradientPlugin', gradientPlugin);
+
+  return gradientPlugin;
+}
+
+function gradientPluginOn(material) {
+  return (
+    material?.pluginManager?._plugins?.find((p) => p.getClassName() === 'FlockGradientPlugin') ??
+    null
+  );
 }
 
 function readGradientDirection(value) {
@@ -267,7 +401,12 @@ export const flockMaterial = {
             ? flock.getColorFromString(baseColor)
             : '#ffffff';
 
-      if (params) {
+      // The halo comes from the glow layer, not the material, so rebuilding one
+      // without an emissive channel just costs a duplicate.
+      const canEmit =
+        m.material?.emissiveColor !== undefined && !m.material?.metadata?.gradientColors;
+
+      if (params && canEmit) {
         const materialParams = {
           ...params,
           color:
@@ -373,6 +512,12 @@ export const flockMaterial = {
     // Helper function to clone material for a mesh
     const cloneMaterial = (originalMaterial) => {
       const clone = originalMaterial.clone(`${originalMaterial.name}`);
+      // Babylon copies metadata by reference and doesn't clone plugins at all.
+      clone.metadata = { ...(originalMaterial.metadata || {}) };
+      if (clone.metadata.gradientColors) {
+        const plugin = gradientPluginOn(clone) ?? new (gradientPluginClass())(clone);
+        plugin.setColors(clone.metadata.gradientColors, clone.metadata.gradientDirection);
+      }
       return flock.inheritPendingTexture(originalMaterial, clone);
     };
 
@@ -541,8 +686,8 @@ export const flockMaterial = {
       return;
     }
 
-    // A gradient is one material spanning the object, not a colour per sub-mesh,
-    // so it goes straight to the material pipeline.
+    // One material on every part rather than a colour each. Each mesh in the
+    // hierarchy spans the gradient across its own bounds, not the model's.
     if (readGradientDirection(color) !== undefined) {
       flock.applyMaterialToHierarchy(mesh, color, { applyColor: true });
       if (mesh.metadata?.glow) flock.glowMesh(mesh);
@@ -1002,27 +1147,8 @@ export const flockMaterial = {
     if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === 'none.png') {
-        if (Number.isFinite(direction)) {
-          // An angled gradient needs the shader path even for two colours;
-          // GradientMaterial only runs bottom to top.
-          material = flock.createMultiColorGradientMaterial(materialName, color, direction);
-          material.backFaceCulling = false;
-        } else if (color.length === 2) {
-          material = new flock.GradientMaterial(materialName, flock.scene);
-          material.bottomColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[0])
-          );
-          material.topColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[1])
-          );
-          material.offset = 0.5;
-          material.smoothness = 0.5;
-          material.scale = 1.0;
-          material.backFaceCulling = false;
-        } else {
-          material = flock.createMultiColorGradientMaterial(materialName, color);
-          material.backFaceCulling = false;
-        }
+        material = flock.createGradientMaterial(materialName, color, direction);
+        material.backFaceCulling = false;
       } else {
         // Use shader-based color replacement for patterned materials
         material = flock.createColorReplaceShaderMaterial(materialName, texturePath, color);
@@ -1058,152 +1184,32 @@ export const flockMaterial = {
       material.setFloat('alpha', alpha);
     }
 
-    // Apply glow properties if enabled
-    if (glow && material.emissiveColor !== undefined) {
-      const emissiveColor = color
-        ? flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(Array.isArray(color) ? color[0] : color)
-          )
+    // Emissive would flatten a gradient, so those glow through the halo alone.
+    if (glow && material.emissiveColor !== undefined && !Array.isArray(color)) {
+      material.emissiveColor = color
+        ? flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
         : flock.BABYLON.Color3.White();
-      material.emissiveColor = emissiveColor;
       material.emissiveIntensity = 1.0;
     }
 
     if (flock.materialsDebug) console.log(`Created the material: ${material.name}`);
     return material;
   },
-  createMultiColorGradientMaterial(name, colors, direction = 0) {
-    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader']) {
-      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader'] = `
-        precision highp float;
-        attribute vec3 position;
-        uniform mat4 worldViewProjection;
-        uniform mat4 world;
-        uniform mat4 view;
-        uniform vec2 minMax;
-        uniform vec2 gradientAxis;
-        varying float vGradient;
-        varying vec3 vFogPosition;
+  // A gradient material is shared between meshes, so the range it spans has to be
+  // set per draw call. Every route that produces one must attach this, or the
+  // gradient keeps the placeholder bounds it was constructed with.
+  createGradientMaterial(name, colors, direction) {
+    const material = new flock.BABYLON.StandardMaterial(name, flock.scene);
+    const plugin = gradientPluginOn(material) ?? new (gradientPluginClass())(material);
+    plugin.setColors(colors, direction);
 
-        void main(void) {
-          vec4 worldPosition = world * vec4(position, 1.0);
-          vec4 viewPosition = view * worldPosition;
-          gl_Position = worldViewProjection * vec4(position, 1.0);
-          vGradient = (dot(position.xy, gradientAxis) - minMax.x) / max(1e-5, minMax.y - minMax.x);
-          vFogPosition = viewPosition.xyz;
-        }
-      `;
-    }
-    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader']) {
-      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader'] = `
-        precision highp float;
-        varying float vGradient;
-        varying vec3 vFogPosition;
-        uniform int colorCount;
-        uniform vec3 colors[16];
-        uniform float alpha;
-        uniform vec3 fogColor;
-        uniform float fogDensity;
-        uniform float fogStart;
-        uniform float fogEnd;
-        uniform int fogMode;
-
-        void main(void) {
-          float t = clamp(vGradient, 0.0, 1.0);
-          int count = colorCount;
-
-          if (count > 16) count = 16;
-          if (count < 2) count = 2;
-
-          float position = t * float(count - 1);
-          int segment = int(floor(position));
-          float localT = position - float(segment);
-
-          if (segment >= count - 1) {
-            segment = count - 2;
-            localT = 1.0;
-          }
-
-          vec3 color1 = colors[segment];
-          vec3 color2 = colors[segment + 1];
-          vec3 finalColor = mix(color1, color2, localT);
-
-          float fogDistance = length(vFogPosition);
-          float fogFactor = 1.0;
-          if (fogMode == 1) {
-            fogFactor = exp(-fogDensity * fogDistance);
-          } else if (fogMode == 2) {
-            fogFactor = exp(-pow(fogDensity * fogDistance, 2.0));
-          } else if (fogMode == 3) {
-            fogFactor = (fogEnd - fogDistance) / max(0.0001, fogEnd - fogStart);
-          }
-          fogFactor = clamp(fogFactor, 0.0, 1.0);
-
-          vec3 foggedColor = mix(fogColor, finalColor, fogFactor);
-          gl_FragColor = vec4(foggedColor, alpha);
-        }
-      `;
-    }
-
-    const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-      name,
-      flock.scene,
-      {
-        vertex: 'multiColorGradientFog',
-        fragment: 'multiColorGradientFog',
-      },
-      {
-        attributes: ['position'],
-        uniforms: [
-          'worldViewProjection',
-          'world',
-          'view',
-          'colorCount',
-          'colors',
-          'alpha',
-          'minMax',
-          'gradientAxis',
-          'fogColor',
-          'fogDensity',
-          'fogStart',
-          'fogEnd',
-          'fogMode',
-        ],
-      }
-    );
-
-    // Convert colors to Color3 array (max 16, matching shader array size)
-    const color3Array = colors
-      .slice(0, 16)
-      .map((c) => {
-        const hex = flock.getColorFromString(c);
-        const color3 = flock.BABYLON.Color3.FromHexString(hex);
-        return [color3.r, color3.g, color3.b];
-      })
-      .flat();
-
-    if (flock.materialsDebug) {
-      console.log('Color count:', colors.length);
-      console.log('Color array:', color3Array);
-    }
-
-    const axis = gradientAxisFor(direction);
-
-    shaderMaterial.setInt('colorCount', Math.min(colors.length, 16));
-    shaderMaterial.setArray3('colors', color3Array);
-    shaderMaterial.setFloat('alpha', 1.0);
-    shaderMaterial.setVector2('minMax', new flock.BABYLON.Vector2(-1, 1));
-    shaderMaterial.setVector2('gradientAxis', new flock.BABYLON.Vector2(axis.x, axis.y));
-
-    shaderMaterial.metadata = {
-      ...(shaderMaterial.metadata || {}),
+    material.metadata = {
+      ...(material.metadata || {}),
       gradientDirection: Number(direction) || 0,
+      gradientColors: colors.slice(),
     };
 
-    flock.registerFogAwareShaderMaterial(shaderMaterial);
-    flock.updateFogUniformsForShaderMaterial(shaderMaterial);
-
-    return shaderMaterial;
+    return material;
   },
   // Create shader material for color replacement
   registerFogAwareShaderMaterial(material) {
@@ -1539,8 +1545,9 @@ export const flockMaterial = {
 
     const oldMat = mesh.material;
 
-    // Get or create from cache
-    const newMat = flock.getOrCreateMaterial(materialData);
+    // Transparency belongs to the object: a colour naming no alpha keeps the
+    // mesh's own.
+    const newMat = flock.getOrCreateMaterial(materialData, oldMat?.alpha ?? 1);
 
     if (oldMat === newMat) return;
 
@@ -1670,10 +1677,10 @@ export const flockMaterial = {
     const getTexName = (v) =>
       isMaterialDescriptor(v) ? v.materialName || v.textureSet || 'NONE' : 'NONE';
 
-    const getAlpha = (v) =>
-      isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha ?? 1) : (opts.alpha ?? 1);
+    const getAlpha = (v, m) =>
+      (isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha) : opts.alpha) ?? m?.material?.alpha ?? 1;
 
-    const makeTargetCacheKey = (v) => {
+    const makeTargetCacheKey = (v, m) => {
       const rawColor = getRawColor(v);
       const colorKey = withGradientDirection(
         Array.isArray(rawColor)
@@ -1682,7 +1689,7 @@ export const flockMaterial = {
         readGradientDirection(v)
       );
       const texName = String(getTexName(v));
-      const alphaKey = parseFloat(getAlpha(v)).toFixed(2);
+      const alphaKey = parseFloat(getAlpha(v, m)).toFixed(2);
       const glow =
         typeof v === 'object' && v !== null && !Array.isArray(v) ? (v.glow ?? false) : false;
       const glowKey = glow ? 'glow' : 'noglow';
@@ -1698,35 +1705,14 @@ export const flockMaterial = {
       if (index !== undefined) m.metadata.materialIndex = index;
       else if (m.metadata.materialIndex !== undefined) delete m.metadata.materialIndex;
 
-      const targetCacheKey = makeTargetCacheKey(v);
+      const targetCacheKey = makeTargetCacheKey(v, m);
       if (m.material?.metadata?.cacheKey === targetCacheKey) return;
 
       flock.setMaterialWithCleanup(m, v);
 
       if (m.material) {
         flock.adjustMaterialTilingToMesh(m, m.material);
-        m.material.needDepthPrePass = getAlpha(v) > 0;
-
-        if (
-          m.material instanceof flock.BABYLON.ShaderMaterial &&
-          !m.material.metadata._minMaxObserver
-        ) {
-          const mat = m.material;
-          mat.metadata._minMaxObserver = mat.onBindObservable.add((boundMesh) => {
-            const bb = boundMesh.getBoundingInfo().boundingBox;
-            const axis = gradientAxisFor(mat.metadata?.gradientDirection ?? 0);
-            let low = Infinity;
-            let high = -Infinity;
-            for (const x of [bb.minimum.x, bb.maximum.x]) {
-              for (const y of [bb.minimum.y, bb.maximum.y]) {
-                const projected = x * axis.x + y * axis.y;
-                low = Math.min(low, projected);
-                high = Math.max(high, projected);
-              }
-            }
-            mat.setVector2('minMax', new flock.BABYLON.Vector2(low, high));
-          });
-        }
+        m.material.needDepthPrePass = getAlpha(v, m) > 0;
       }
     };
 

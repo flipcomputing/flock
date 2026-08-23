@@ -1,6 +1,28 @@
 import { expect } from 'chai';
 
 export function runMaterialsTests(flock) {
+  const gradientPluginOf = (material) =>
+    material?.pluginManager?._plugins?.find((p) => p.getClassName() === 'FlockGradientPlugin') ??
+    null;
+
+  // The range is set per draw, so ask the plugin rather than rendering.
+  function gradientRangeFor(mesh) {
+    const plugin = gradientPluginOf(mesh.material);
+    if (!plugin) return null;
+    const captured = {};
+    plugin.bindForSubMesh(
+      {
+        updateFloat2: (name, x, y) => {
+          captured[name] = { x, y };
+        },
+        setTexture() {},
+      },
+      flock.scene,
+      flock.scene.getEngine(),
+      mesh.subMeshes[0]
+    );
+    return captured.gradientRange;
+  }
   describe('Effects methods @materials', function () {
     const boxIds = [];
     const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00'];
@@ -381,9 +403,8 @@ export function runMaterialsTests(flock) {
       });
 
       expect(material).to.exist;
-      expect(material.getClassName()).to.equal('GradientMaterial');
-      expect(material.bottomColor).to.exist;
-      expect(material.topColor).to.exist;
+      expect(material.getClassName()).to.equal('StandardMaterial');
+      expect(gradientPluginOf(material)).to.exist;
       material.dispose();
     });
 
@@ -400,7 +421,7 @@ export function runMaterialsTests(flock) {
       });
 
       expect(material).to.exist;
-      expect(material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(material)).to.exist;
       material.dispose();
     });
 
@@ -444,13 +465,11 @@ export function runMaterialsTests(flock) {
       const target2 = getTarget(id2);
 
       expect(target1.material).to.exist;
-      expect(target1.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target1.material)).to.exist;
       expect(target2.material).to.exist;
-      expect(target2.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target2.material)).to.exist;
 
-      // Shared cached material uses onBindObservable to supply per-mesh minMax at
-      // render time, so both meshes correctly reference the same material instance.
-      expect(target1.material.metadata._minMaxObserver).to.exist;
+      expect(target1.material.uniqueId).to.equal(target2.material.uniqueId);
     });
   });
 
@@ -1221,7 +1240,7 @@ export function runMaterialsTests(flock) {
       await flock.glow(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('GradientMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.metadata.glowColor).to.equal('#ff0000');
     });
 
@@ -1233,7 +1252,7 @@ export function runMaterialsTests(flock) {
       await flock.glow(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.metadata.glowColor).to.equal('#ff0000');
     });
 
@@ -1246,7 +1265,7 @@ export function runMaterialsTests(flock) {
       await flock.clearEffects(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('GradientMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.metadata.glowColor).to.be.undefined;
     });
 
@@ -1259,7 +1278,7 @@ export function runMaterialsTests(flock) {
       await flock.clearEffects(id);
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
     });
 
     it('should preserve 3+ colour gradient after setAlpha', async function () {
@@ -1270,7 +1289,7 @@ export function runMaterialsTests(flock) {
       await flock.setAlpha(id, { value: 0.5 });
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.material.alpha).to.be.closeTo(0.5, 0.01);
     });
 
@@ -1294,6 +1313,196 @@ export function runMaterialsTests(flock) {
       const matAfterSecond = mesh.material;
 
       expect(matAfterFirst).to.equal(matAfterSecond);
+    });
+  });
+
+  describe('alpha survives colour changes @materials', function () {
+    this.timeout(5000);
+    const boxIds = [];
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    async function createBox(id) {
+      await flock.createBox(id, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        color: '#cccccc',
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+      return flock.scene.getMeshByName(id);
+    }
+
+    const gradient = {
+      color: ['#ff0000', '#00ff00', '#0000ff'],
+      materialName: 'none.png',
+      direction: 0,
+    };
+
+    it('keeps alpha when a gradient is applied afterwards', async function () {
+      const mesh = await createBox('alphaThenGradient');
+
+      await flock.setAlpha('alphaThenGradient', { value: 0.5 });
+      await flock.changeColor('alphaThenGradient', { color: gradient });
+
+      expect(gradientPluginOf(mesh.material)).to.exist;
+      expect(mesh.material.alpha).to.be.closeTo(0.5, 1e-6);
+    });
+
+    it('keeps alpha when a plain colour is applied afterwards', async function () {
+      const mesh = await createBox('alphaThenColour');
+
+      await flock.setAlpha('alphaThenColour', { value: 0.25 });
+      await flock.changeColor('alphaThenColour', { color: '#ff00ff' });
+
+      expect(mesh.material.alpha).to.be.closeTo(0.25, 1e-6);
+    });
+
+    it('still applies alpha after a gradient', async function () {
+      const mesh = await createBox('gradientThenAlpha');
+
+      await flock.changeColor('gradientThenAlpha', { color: gradient });
+      await flock.setAlpha('gradientThenAlpha', { value: 0.5 });
+
+      expect(gradientPluginOf(mesh.material)).to.exist;
+      expect(mesh.material.alpha).to.be.closeTo(0.5, 1e-6);
+    });
+
+    it('lets an explicit alpha override what the mesh has', async function () {
+      const mesh = await createBox('alphaOverridden');
+
+      await flock.setAlpha('alphaOverridden', { value: 0.5 });
+      flock.applyMaterialToHierarchy(mesh, {
+        color: '#00ff00',
+        materialName: 'none.png',
+        alpha: 1,
+      });
+
+      expect(mesh.material.alpha).to.be.closeTo(1, 1e-6);
+    });
+
+    it('resets alpha on clearEffects', async function () {
+      const mesh = await createBox('alphaCleared');
+
+      await flock.setAlpha('alphaCleared', { value: 0.5 });
+      await flock.clearEffects('alphaCleared');
+
+      expect(mesh.material.alpha).to.be.closeTo(1, 1e-6);
+    });
+  });
+
+  describe('gradient bounds after material rebuilds @materials', function () {
+    this.timeout(5000);
+    const boxIds = [];
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    // Taller than the fallback range, so a lost per-mesh range reads (-1, 1).
+    async function createTallGradientBox(id, colors) {
+      await flock.createBox(id, {
+        width: 1,
+        height: 4,
+        depth: 1,
+        color: { color: colors, materialName: 'none.png', alpha: 1 },
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+      return flock.scene.getMeshByName(id);
+    }
+
+    const colors = ['#ff0000', '#00ff00', '#0000ff'];
+
+    it('spans the mesh after glow', async function () {
+      const mesh = await createTallGradientBox('gradBoundsGlow', colors);
+      expect(gradientRangeFor(mesh).y).to.be.closeTo(2, 1e-6);
+
+      await flock.glow('gradBoundsGlow');
+
+      const bounds = gradientRangeFor(mesh);
+      expect(bounds.x).to.be.closeTo(-2, 1e-6);
+      expect(bounds.y).to.be.closeTo(2, 1e-6);
+    });
+
+    it('spans the mesh after setAlpha', async function () {
+      const mesh = await createTallGradientBox('gradBoundsAlpha', colors);
+
+      await flock.setAlpha('gradBoundsAlpha', { value: 0.5 });
+
+      const bounds = gradientRangeFor(mesh);
+      expect(bounds.x).to.be.closeTo(-2, 1e-6);
+      expect(bounds.y).to.be.closeTo(2, 1e-6);
+    });
+
+    it('spans the mesh after clearEffects', async function () {
+      const mesh = await createTallGradientBox('gradBoundsClear', colors);
+
+      await flock.glow('gradBoundsClear');
+      await flock.clearEffects('gradBoundsClear');
+
+      const bounds = gradientRangeFor(mesh);
+      expect(bounds.x).to.be.closeTo(-2, 1e-6);
+      expect(bounds.y).to.be.closeTo(2, 1e-6);
+    });
+
+    it('gives a cloned material its own metadata and bounds', async function () {
+      const mesh = await createTallGradientBox('gradBoundsClone', colors);
+      const original = mesh.material;
+
+      mesh.metadata.sharedMaterial = true;
+      flock.ensureUniqueMaterial(mesh);
+
+      const clone = mesh.material;
+      expect(clone.uniqueId).to.not.equal(original.uniqueId);
+      expect(clone.metadata === original.metadata).to.equal(false);
+      expect(gradientPluginOf(clone)).to.exist;
+      expect(gradientPluginOf(clone) === gradientPluginOf(original)).to.equal(false);
+    });
+
+    it('gives each mesh its own bounds when they share a gradient', async function () {
+      await flock.createBox('gradShareShort', {
+        width: 1,
+        height: 2,
+        depth: 1,
+        color: { color: colors, materialName: 'none.png', alpha: 1 },
+        position: [-3, 1, 0],
+      });
+      await flock.createBox('gradShareTall', {
+        width: 1,
+        height: 10,
+        depth: 1,
+        color: { color: colors, materialName: 'none.png', alpha: 1 },
+        position: [3, 5, 0],
+      });
+      boxIds.push('gradShareShort', 'gradShareTall');
+
+      const short = flock.scene.getMeshByName('gradShareShort');
+      const tall = flock.scene.getMeshByName('gradShareTall');
+      expect(short.material.uniqueId).to.equal(tall.material.uniqueId);
+
+      const shortRange = gradientRangeFor(short);
+      const tallRange = gradientRangeFor(tall);
+
+      expect(shortRange.x).to.be.closeTo(-1, 1e-6);
+      expect(shortRange.y).to.be.closeTo(1, 1e-6);
+      expect(tallRange.x).to.be.closeTo(-5, 1e-6);
+      expect(tallRange.y).to.be.closeTo(5, 1e-6);
+    });
+
+    it('leaves a glowing gradient on one material', async function () {
+      const mesh = await createTallGradientBox('gradGlowNoDupe', colors);
+      const before = mesh.material;
+
+      await flock.glow('gradGlowNoDupe');
+
+      expect(mesh.material.uniqueId).to.equal(before.uniqueId);
+      expect(mesh.metadata.glowColor).to.equal('#ff0000');
     });
   });
 
@@ -1328,7 +1537,7 @@ export function runMaterialsTests(flock) {
       return children.length ? children[0] : mesh;
     }
 
-    it('should use the shader for a 2-colour gradient with a direction', function () {
+    it('should carry the direction on a 2-colour gradient', function () {
       const material = flock.createMaterial({
         color: ['#ff0000', '#0000ff'],
         materialName: 'none.png',
@@ -1336,19 +1545,40 @@ export function runMaterialsTests(flock) {
         direction: 45,
       });
 
-      expect(material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(material)).to.exist;
       expect(material.metadata.gradientDirection).to.equal(45);
       material.dispose();
     });
 
-    it('should still use GradientMaterial for 2 colours with no direction', function () {
+    it('should rebuild the gradient from a serialised plugin', function () {
+      const source = flock.createMaterial({
+        color: ['#ff0000', '#00ff00', '#0000ff'],
+        materialName: 'none.png',
+        alpha: 1,
+        direction: 45,
+      });
+      const target = flock.createGradientMaterial('roundTrip', ['#ffffff', '#000000'], 0);
+
+      const serialised = gradientPluginOf(source).serialize();
+      gradientPluginOf(target).parse(serialised);
+
+      expect(gradientPluginOf(target).direction).to.equal(45);
+      expect(gradientPluginOf(target).colors).to.deep.equal(['#ff0000', '#00ff00', '#0000ff']);
+      expect(gradientPluginOf(target).ramp).to.exist;
+
+      source.dispose();
+      target.dispose();
+    });
+
+    it('should use the same gradient material with no direction', function () {
       const material = flock.createMaterial({
         color: ['#ff0000', '#0000ff'],
         materialName: 'none.png',
         alpha: 1,
       });
 
-      expect(material.getClassName()).to.equal('GradientMaterial');
+      expect(gradientPluginOf(material)).to.exist;
+      expect(material.metadata.gradientDirection).to.equal(0);
       material.dispose();
     });
 
@@ -1366,10 +1596,10 @@ export function runMaterialsTests(flock) {
         direction: 90,
       });
 
-      expect(up._vectors2.gradientAxis.x).to.be.closeTo(0, 1e-6);
-      expect(up._vectors2.gradientAxis.y).to.be.closeTo(1, 1e-6);
-      expect(right._vectors2.gradientAxis.x).to.be.closeTo(1, 1e-6);
-      expect(right._vectors2.gradientAxis.y).to.be.closeTo(0, 1e-6);
+      expect(gradientPluginOf(up).axis.x).to.be.closeTo(0, 1e-6);
+      expect(gradientPluginOf(up).axis.y).to.be.closeTo(1, 1e-6);
+      expect(gradientPluginOf(right).axis.x).to.be.closeTo(1, 1e-6);
+      expect(gradientPluginOf(right).axis.y).to.be.closeTo(0, 1e-6);
 
       up.dispose();
       right.dispose();
@@ -1408,13 +1638,13 @@ export function runMaterialsTests(flock) {
 
       await flock.setAlpha('gradDirEffects', { value: 0.5 });
       let target = getTarget('gradDirEffects');
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.material.metadata.gradientDirection).to.equal(45);
 
       await flock.glow('gradDirEffects');
       await flock.clearEffects('gradDirEffects');
       target = getTarget('gradDirEffects');
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.material.metadata.gradientDirection).to.equal(45);
     });
 
@@ -1434,7 +1664,7 @@ export function runMaterialsTests(flock) {
       });
 
       const target = getTarget(id);
-      expect(target.material.getClassName()).to.equal('ShaderMaterial');
+      expect(gradientPluginOf(target.material)).to.exist;
       expect(target.material.metadata.gradientDirection).to.equal(30);
     });
   });
