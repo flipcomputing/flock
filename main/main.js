@@ -34,7 +34,7 @@ import { initExampleGallery } from './examples.js';
 import { onResize, toggleInspector, togglePlayMode, initializeUI, switchView } from './view.js';
 import { hideLoadingScreen } from './loading.js';
 //import "./debug.js";
-import { initializeBlockHandling } from './blockhandling.js';
+import { initializeBlockHandling, showSelectedBlockHint } from './blockhandling.js';
 import { announceToScreenReader, setupInput } from './input.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
@@ -869,8 +869,13 @@ function initializeApp() {
     blockHintsButton.classList.toggle('active', expanded);
   };
   updateBlockHintsButton();
+  // Taking focus would deselect the workspace block, leaving nothing to hint about.
+  blockHintsButton?.addEventListener('pointerdown', (event) => event.preventDefault());
   blockHintsButton?.addEventListener('click', () => {
     setBlockHintsEnabled(!areBlockHintsEnabled());
+    if (areBlockHintsEnabled()) {
+      showSelectedBlockHint();
+    }
     updateBlockHintsButton();
   });
 

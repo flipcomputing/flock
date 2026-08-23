@@ -94,7 +94,7 @@ function createKeywordBlockAtViewportCenter(blockType) {
   return block;
 }
 
-function showSelectedBlockHint() {
+export function showSelectedBlockHint() {
   const selected = asBlocklyBlock(window.currentBlock);
   if (selected && !selected.isDisposed?.()) {
     showBlockHint(Blockly.Tooltip.getTooltipOfObject(selected));
