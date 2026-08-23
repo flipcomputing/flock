@@ -360,8 +360,11 @@ export function runMaterialsTests(flock) {
       });
 
       expect(material).to.exist;
-      expect(material.diffuseTexture).to.exist;
-      expect(material.diffuseTexture.name).to.include('test.png');
+      // The texture attaches once it has loaded, so the material renders its
+      // flat colour rather than nothing while the image is on its way.
+      expect(material.diffuseTexture).to.not.exist;
+      expect(flock.materialTexture(material)).to.exist;
+      expect(flock.materialTexture(material).name).to.include('test.png');
       material.dispose();
     });
 

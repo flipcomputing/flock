@@ -73,7 +73,7 @@ export const flockScene = {
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
       const isShader = typeof color.setFloat === 'function';
-      const tex = color.diffuseTexture || color.albedoTexture || color.baseTexture;
+      const tex = flock.materialTexture(color);
 
       if (tex || isShader) {
         const scaleValue = 10;

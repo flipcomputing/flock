@@ -256,7 +256,8 @@ function shouldApplyBoxProjection(resultMesh, options = {}) {
     if (!material) return false;
     if (
       hasRenderableTexture(material.diffuseTexture) ||
-      hasRenderableTexture(material.albedoTexture)
+      hasRenderableTexture(material.albedoTexture) ||
+      hasRenderableTexture(material.metadata?.pendingTexture)
     )
       return true;
     if (material.subMaterials && Array.isArray(material.subMaterials)) {
@@ -630,7 +631,10 @@ export const flockCSG = {
             mergedMesh.material.subMaterials = mergedMesh.material.subMaterials.map(
               (subMaterial) => {
                 if (subMaterial && isDefaultMaterial(subMaterial) && originalMaterial) {
-                  const replacement = originalMaterial.clone(modelId + '_material');
+                  const replacement = flock.inheritPendingTexture(
+                    originalMaterial,
+                    originalMaterial.clone(modelId + '_material')
+                  );
                   replacement.backFaceCulling = false;
                   return replacement;
                 }
@@ -638,12 +642,18 @@ export const flockCSG = {
               }
             );
           } else if (isDefaultMaterial(mergedMesh.material) && originalMaterial) {
-            const newMat = originalMaterial.clone(modelId + '_material');
+            const newMat = flock.inheritPendingTexture(
+              originalMaterial,
+              originalMaterial.clone(modelId + '_material')
+            );
             newMat.backFaceCulling = false;
             mergedMesh.material = newMat;
           }
         } else if (originalMaterial) {
-          const newMat = originalMaterial.clone(modelId + '_material');
+          const newMat = flock.inheritPendingTexture(
+            originalMaterial,
+            originalMaterial.clone(modelId + '_material')
+          );
           newMat.backFaceCulling = false;
           mergedMesh.material = newMat;
         }
@@ -1223,14 +1233,20 @@ export const flockCSG = {
     };
 
     const replaceMaterial = () => {
-      return referenceMesh.material.clone('clonedMaterial');
+      return flock.inheritPendingTexture(
+        referenceMesh.material,
+        referenceMesh.material.clone('clonedMaterial')
+      );
     };
 
     if (forceReferenceMaterial) {
-      resultMesh.material = referenceMesh.material.clone('csgResultMaterial');
+      resultMesh.material = flock.inheritPendingTexture(
+        referenceMesh.material,
+        referenceMesh.material.clone('csgResultMaterial')
+      );
       resultMesh.material.backFaceCulling = false;
       const textureName = String(
-        resultMesh.material.diffuseTexture?.name || resultMesh.material.albedoTexture?.name || ''
+        flock.materialTexture(resultMesh.material)?.name || ''
       ).toLowerCase();
       const hasRenderableTexture =
         textureName && !textureName.endsWith('undefined') && !textureName.includes('none.png');
@@ -1260,7 +1276,10 @@ export const flockCSG = {
       }
     } else {
       // No material assigned by CSG - copy from reference mesh
-      resultMesh.material = referenceMesh.material.clone('csgResultMaterial');
+      resultMesh.material = flock.inheritPendingTexture(
+        referenceMesh.material,
+        referenceMesh.material.clone('csgResultMaterial')
+      );
       resultMesh.material.backFaceCulling = false;
     }
 
@@ -1274,7 +1293,10 @@ export const flockCSG = {
         if (baseName && subMaterial.name === baseName) return subMaterial;
 
         if (typeof subMaterial.clone === 'function') {
-          subMaterial = subMaterial.clone(`${subMaterial.name}_csg`);
+          subMaterial = flock.inheritPendingTexture(
+            subMaterial,
+            subMaterial.clone(`${subMaterial.name}_csg`)
+          );
         }
 
         if (subMaterial.diffuseColor) {

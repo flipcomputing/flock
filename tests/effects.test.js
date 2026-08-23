@@ -216,8 +216,8 @@ export function runEffectsTests(flock) {
       expect(material.getClassName()).to.equal('StandardMaterial');
       expect(material.fogEnabled).to.not.equal(false);
       expect(material.alpha).to.equal(0.8);
-      expect(material.diffuseTexture.uScale).to.equal(1);
-      expect(material.diffuseTexture.vScale).to.equal(1);
+      expect(flock.materialTexture(material).uScale).to.equal(1);
+      expect(flock.materialTexture(material).vScale).to.equal(1);
       material.dispose();
     });
 

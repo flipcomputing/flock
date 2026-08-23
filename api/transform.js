@@ -704,7 +704,12 @@ export const flockTransform = {
       if (!m.material) return;
       const mats = m.material.subMaterials || [m.material];
       mats.forEach((mat) => {
-        const textures = [mat.albedoTexture, mat.diffuseTexture, mat.bumpTexture];
+        const textures = [
+          mat.albedoTexture,
+          mat.diffuseTexture,
+          mat.bumpTexture,
+          mat.metadata?.pendingTexture,
+        ];
         textures.forEach((tex) => {
           if (tex && typeof tex.uScale === 'number') {
             tex.uScale = width / unitsPerTile;

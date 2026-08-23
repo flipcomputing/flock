@@ -324,6 +324,32 @@ export const flockModels = {
       });
     };
 
+    // An object can draw black on the first frames after its material is made,
+    // so it stays hidden until the materials report ready; the deadline covers
+    // one that never gets there.
+    const revealWhenDrawable = (mesh) => {
+      const parts = [mesh, ...mesh.getDescendants(false)].filter(
+        (m) => m.material && m.getTotalVertices?.() > 0
+      );
+      if (!parts.length) {
+        setInstanceFlags(mesh);
+        return;
+      }
+
+      const signal = flock.abortController?.signal;
+      const compiled = parts.map((m) =>
+        m.material.forceCompilationAsync
+          ? m.material.forceCompilationAsync(m).catch(() => {})
+          : Promise.resolve()
+      );
+      const deadline = new Promise((resolve) => setTimeout(resolve, 2000));
+
+      Promise.race([Promise.all(compiled), deadline]).then(() => {
+        if (signal?.aborted || mesh.isDisposed()) return;
+        setInstanceFlags(mesh);
+      });
+    };
+
     const finalizeMesh = (mesh, mName, gName, bKey) => {
       const allNodes = [mesh, ...mesh.getDescendants(false)];
       allNodes.forEach((node) => {
@@ -346,7 +372,7 @@ export const flockModels = {
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
       mesh.refreshBoundingInfo(true);
-      setInstanceFlags(mesh);
+      revealWhenDrawable(mesh);
       flock.announceMeshReady(mName, gName);
       flock._markNameCreated(mName);
       if (callback) requestAnimationFrame(callback);

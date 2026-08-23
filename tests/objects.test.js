@@ -70,6 +70,26 @@ export function runCreateObjectTests(flock) {
       }
     });
 
+    it('should stay hidden when hidden before its materials finish compiling', async function () {
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__hide_race',
+        color: ['#66cdaa', '#cd853f'],
+        scale: 1,
+        position: { x: -6, y: 0, z: 10.8 },
+      });
+
+      await flock.hide(tree);
+      await flock.wait(1);
+
+      const mesh = flock.scene.getMeshByName(tree);
+      expect(mesh, 'mesh should exist').to.exist;
+      expect(mesh.isEnabled(), 'mesh should still be hidden').to.equal(false);
+      mesh.getChildMeshes().forEach((child) => {
+        expect(child.isEnabled(), `${child.name} should still be hidden`).to.equal(false);
+      });
+    });
+
     it('should handle multiple objects with show and hide', async function () {
       const trees = [];
       try {

@@ -238,10 +238,7 @@ export const flockMaterial = {
     }
 
     const matColor = mat.diffuseColor || mat.albedoColor;
-    const textureName =
-      mat.diffuseTexture?.name?.split('/').pop() ||
-      mat.albedoTexture?.name?.split('/').pop() ||
-      'none.png';
+    const textureName = flock.materialTexture(mat)?.name?.split('/').pop() || 'none.png';
     return {
       color: matColor ? '#' + matColor.toHexString().slice(1) : '#ffffff',
       materialName: textureName,
@@ -375,7 +372,8 @@ export const flockMaterial = {
   ensureUniqueMaterial(mesh) {
     // Helper function to clone material for a mesh
     const cloneMaterial = (originalMaterial) => {
-      return originalMaterial.clone(`${originalMaterial.name}`);
+      const clone = originalMaterial.clone(`${originalMaterial.name}`);
+      return flock.inheritPendingTexture(originalMaterial, clone);
     };
 
     // Recursive function to collect all meshes in the hierarchy
@@ -853,6 +851,71 @@ export const flockMaterial = {
         }
       : null;
   },
+  // Babylon skips a mesh until every texture on its material has loaded, so
+  // attaching up front leaves a hole where the mesh should be. Show the flat
+  // colour immediately and attach once the image is in.
+  attachTextureWhenLoaded(material, texture) {
+    if (!material || !texture) return texture;
+
+    if (texture.isReady()) {
+      material.diffuseTexture = texture;
+      return texture;
+    }
+
+    material.metadata ??= {};
+    material.metadata.pendingTexture = texture;
+
+    const observer = texture.onLoadObservable.addOnce(() => {
+      material.diffuseTexture = texture;
+      if (material.metadata?.pendingTexture === texture) {
+        delete material.metadata.pendingTexture;
+      }
+    });
+    material.onDisposeObservable.addOnce(() => texture.onLoadObservable.remove(observer));
+
+    return texture;
+  },
+  // A clone taken mid-load has no texture of its own; it waits for the same one.
+  inheritPendingTexture(source, clone) {
+    const pending = source?.metadata?.pendingTexture;
+    if (pending && clone && !clone.diffuseTexture) {
+      flock.attachTextureWhenLoaded(clone, pending);
+    }
+    return clone;
+  },
+  // 1x1 white stand-in for shader materials, which sample the texture directly
+  // and so can't defer it. Scene-owned so it dies with the scene.
+  whitePlaceholderTexture() {
+    const scene = flock.scene;
+    if (!scene) return null;
+
+    const store = (scene.reservedDataStore ??= {});
+    if (!store.flockWhitePlaceholder || store.flockWhitePlaceholder.isDisposed?.()) {
+      const texture = new flock.BABYLON.DynamicTexture(
+        'flockTexturePlaceholder',
+        { width: 1, height: 1 },
+        scene,
+        false
+      );
+      const ctx = texture.getContext();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 1, 1);
+      texture.update();
+      store.flockWhitePlaceholder = texture;
+    }
+    return store.flockWhitePlaceholder;
+  },
+  // The texture a material renders with, which mid-load is still pending.
+  materialTexture(material) {
+    if (!material) return null;
+    return (
+      material.diffuseTexture ||
+      material.albedoTexture ||
+      material.baseTexture ||
+      material.metadata?.pendingTexture ||
+      null
+    );
+  },
   changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
     if (flock.materialsDebug) console.log('Change material', materialName, color);
     flock.ensureUniqueMaterial(mesh);
@@ -862,8 +925,7 @@ export const flockMaterial = {
 
     // Load the texture if provided
     if (texturePath) {
-      const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-      material.diffuseTexture = texture;
+      flock.attachTextureWhenLoaded(material, new flock.BABYLON.Texture(texturePath, flock.scene));
     }
 
     // Set colour if provided
@@ -976,7 +1038,7 @@ export const flockMaterial = {
         // Apply default tiling for consistency
         texture.uScale = 1;
         texture.vScale = 1;
-        material.diffuseTexture = texture;
+        flock.attachTextureWhenLoaded(material, texture);
       }
 
       // Set single color if provided
@@ -1301,7 +1363,18 @@ export const flockMaterial = {
       const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
       texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      shaderMaterial.setTexture('textureSampler', texture);
+      const placeholder = texture.isReady() ? null : flock.whitePlaceholderTexture();
+      if (placeholder) {
+        // White resolves to the first colour below, so the mesh shows flat
+        // colour rather than vanishing until the image arrives.
+        shaderMaterial.setTexture('textureSampler', placeholder);
+        const observer = texture.onLoadObservable.addOnce(() => {
+          shaderMaterial.setTexture('textureSampler', texture);
+        });
+        shaderMaterial.onDisposeObservable.addOnce(() => texture.onLoadObservable.remove(observer));
+      } else {
+        shaderMaterial.setTexture('textureSampler', texture);
+      }
       // Apply tiling through shader uniforms (shader materials don't automatically use texture matrix)
       // Use scale of 1 to match single-color material behavior
       shaderMaterial.setFloat('uScale', 1);

@@ -441,8 +441,9 @@ export const flockMesh = {
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
 
     // Make sure any assigned texture will actually tile
-    if (mesh.material && mesh.material.diffuseTexture) {
-      const t = mesh.material.diffuseTexture;
+    const tilingTexture = flock.materialTexture(mesh.material);
+    if (tilingTexture) {
+      const t = tilingTexture;
       t.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       t.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       // Per-vertex UVs already encode the repeats; keep global scales neutral
