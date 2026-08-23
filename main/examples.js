@@ -1,7 +1,14 @@
 // To add a project, add its file to /examples and register it in EXAMPLES with
-// a matching `<key>_ui` locale entry. Register new categories in CATEGORIES.
+// a matching `<key>_ui` locale entry, then run `npm run thumbnails` to capture
+// its tile image. Register new categories in CATEGORIES.
 import { applyTranslations, translate } from './translation.js';
 import { loadExample, newProject } from './files.js';
+
+// Tile thumbnails, captured by scripts/capture-thumbnails.mjs. 16:9 to match the
+// canvas the screenshots come from.
+export const THUMBNAIL_DIR = 'images/thumbnails';
+export const THUMBNAIL_WIDTH = 480;
+export const THUMBNAIL_HEIGHT = 270;
 
 // Tabs, in display order. `i18nKey` maps to an `examples_cat_<…>_ui` locale
 // entry. Categories with no examples are skipped when building the tabs.
@@ -14,63 +21,57 @@ export const CATEGORIES = [
   { id: 'xr', i18nKey: 'examples_cat_xr' },
 ];
 
-// Ordered list of bundled examples. `i18nKey` maps to the existing `<key>_ui`
-// locale entries (which already include the leading emoji); `emoji` is kept as
-// a fallback used before translations are applied; `category` is a CATEGORIES id.
+// Ordered list of bundled examples. `i18nKey` maps to a `<key>_ui` locale entry
+// and to `images/thumbnails/<key>.webp`; `category` is a CATEGORIES id.
 export const EXAMPLES = [
-  { i18nKey: 'starter', file: 'examples/starter.flock', emoji: '👋🏽', category: 'worlds' },
-  { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', emoji: '🌳', category: 'games' },
+  { i18nKey: 'starter', file: 'examples/starter.flock', category: 'worlds' },
+  { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', category: 'games' },
   {
     i18nKey: 'collect_the_gems',
     file: 'examples/collect_the_gems.flock',
-    emoji: '💎',
     category: 'games',
   },
-  { i18nKey: 'candy_dash', file: 'examples/candy_dash.flock', emoji: '🎃', category: 'games' },
-  { i18nKey: 'beetle', file: 'examples/beetle.flock', emoji: '🪲', category: 'games' },
+  { i18nKey: 'candy_dash', file: 'examples/candy_dash.flock', category: 'games' },
+  { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
   {
     i18nKey: 'gem_tilt_game',
     file: 'examples/gem_tilt_game.flock',
-    emoji: '⚖️',
     category: 'games',
   },
-  { i18nKey: 'physics_fun', file: 'examples/physics_fun.flock', emoji: '👆🏾', category: 'physics' },
-  { i18nKey: 'shape_push', file: 'examples/shape_push.flock', emoji: '🔶', category: 'physics' },
-  { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', emoji: '🟠', category: 'physics' },
-  { i18nKey: 'skittles', file: 'examples/skittles.flock', emoji: '🎳', category: 'physics' },
-  { i18nKey: 'alien_planet', file: 'examples/alien_planet.flock', emoji: '👽', category: 'worlds' },
-  { i18nKey: 'my_place', file: 'examples/my_place.flock', emoji: '🏠', category: 'worlds' },
-  { i18nKey: 'forest_base', file: 'examples/forest_base.flock', emoji: '🌲', category: 'worlds' },
-  { i18nKey: 'water_map', file: 'examples/water_map.flock', emoji: '💧', category: 'worlds' },
-  { i18nKey: 'boat_trip', file: 'examples/boat_trip.flock', emoji: '⛵', category: 'worlds' },
-  { i18nKey: 'tent_lights', file: 'examples/tent_lights.flock', emoji: '⛺', category: 'worlds' },
-  { i18nKey: 'roominator', file: 'examples/roominator.flock', emoji: '🛋️', category: 'worlds' },
+  { i18nKey: 'physics_fun', file: 'examples/physics_fun.flock', category: 'physics' },
+  { i18nKey: 'shape_push', file: 'examples/shape_push.flock', category: 'physics' },
+  { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', category: 'physics' },
+  { i18nKey: 'skittles', file: 'examples/skittles.flock', category: 'physics' },
+  { i18nKey: 'alien_planet', file: 'examples/alien_planet.flock', category: 'worlds' },
+  { i18nKey: 'my_place', file: 'examples/my_place.flock', category: 'worlds' },
+  { i18nKey: 'forest_base', file: 'examples/forest_base.flock', category: 'worlds' },
+  { i18nKey: 'water_map', file: 'examples/water_map.flock', category: 'worlds' },
+  { i18nKey: 'boat_trip', file: 'examples/boat_trip.flock', category: 'worlds' },
+  { i18nKey: 'tent_lights', file: 'examples/tent_lights.flock', category: 'worlds' },
+  { i18nKey: 'roominator', file: 'examples/roominator.flock', category: 'worlds' },
   {
     i18nKey: 'character_animation',
     file: 'examples/character_animation.flock',
-    emoji: '🎥',
     category: 'create',
   },
-  { i18nKey: 'sit_down', file: 'examples/sit_down.flock', emoji: '🪑', category: 'create' },
-  { i18nKey: 'cube_art', file: 'examples/cube_art.flock', emoji: '🎨', category: 'create' },
-  { i18nKey: 'snow_globe', file: 'examples/snow_globe.flock', emoji: '❄️', category: 'create' },
-  { i18nKey: 'ur_enough', file: 'examples/ur_enough.flock', emoji: '💗', category: 'create' },
-  { i18nKey: 'flockenspiel', file: 'examples/flockenspiel.flock', emoji: '🎵', category: 'create' },
+  { i18nKey: 'sit_down', file: 'examples/sit_down.flock', category: 'create' },
+  { i18nKey: 'cube_art', file: 'examples/cube_art.flock', category: 'create' },
+  { i18nKey: 'snow_globe', file: 'examples/snow_globe.flock', category: 'create' },
+  { i18nKey: 'ur_enough', file: 'examples/ur_enough.flock', category: 'create' },
+  { i18nKey: 'flockenspiel', file: 'examples/flockenspiel.flock', category: 'create' },
   {
     i18nKey: 'tallest_buildings',
     file: 'examples/tallest_buildings.flock',
-    emoji: '📊',
     category: 'data',
   },
-  { i18nKey: 'pendant', file: 'examples/pendant.flock', emoji: '📿', category: 'xr' },
+  { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
     i18nKey: 'microbit_monkey',
     file: 'examples/microbit_monkey.flock',
-    emoji: '🐵',
     category: 'xr',
   },
-  { i18nKey: 'ar_demo', file: 'examples/ardemo.flock', emoji: '📱', category: 'xr' },
-  { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', emoji: '🥽', category: 'xr' },
+  { i18nKey: 'ar_demo', file: 'examples/ardemo.flock', category: 'xr' },
+  { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', category: 'xr' },
 ];
 
 let previouslyFocused = null;
@@ -102,21 +103,29 @@ function createTile(example) {
   button.type = 'button';
   button.className = 'example-tile';
   button.dataset.key = example.i18nKey;
-  button.dataset.emoji = example.emoji;
   button.dataset.file = example.file;
   button.setAttribute('role', 'option');
   button.setAttribute('aria-selected', 'false');
   button.tabIndex = -1;
 
-  // Name first (the accessible label), emoji after it and aria-hidden so screen
-  // readers don't lead with / announce the emoji. localizeTiles() fills the name.
+  // Decorative (alt=""): the name span beside it is the tile's accessible name,
+  // and the thumbnail only re-states what the project looks like. The intrinsic
+  // width/height give the tile its 16:9 box before the image arrives.
+  const thumb = document.createElement('img');
+  thumb.className = 'example-tile-thumb';
+  thumb.src = `${THUMBNAIL_DIR}/${example.i18nKey}.webp`;
+  thumb.alt = '';
+  thumb.loading = 'lazy';
+  thumb.decoding = 'async';
+  thumb.width = THUMBNAIL_WIDTH;
+  thumb.height = THUMBNAIL_HEIGHT;
+  // A project whose thumbnail hasn't been captured yet keeps a plain tile.
+  thumb.addEventListener('error', () => button.classList.add('example-tile--no-thumb'));
+
+  // localizeTiles() fills the name.
   const name = document.createElement('span');
   name.className = 'example-tile-name';
-  const emoji = document.createElement('span');
-  emoji.className = 'example-tile-emoji';
-  emoji.setAttribute('aria-hidden', 'true');
-  emoji.textContent = example.emoji;
-  button.append(name, emoji);
+  button.append(thumb, name);
 
   button.addEventListener('click', () => {
     loadExample(example.file, name.textContent.trim());
@@ -126,18 +135,15 @@ function createTile(example) {
   return button;
 }
 
-// Set each tile's visible name from its localised label, with the leading
-// emoji (which the locale strings bake in) stripped off — the emoji is shown
-// separately via the aria-hidden span. Runs on build and on every language
-// change (see the "translationsapplied" listener in initExampleGallery).
+// Set each tile's visible name from its localised label. Runs on build and on
+// every language change (see the "translationsapplied" listener in
+// initExampleGallery).
 function localizeTiles() {
   document.querySelectorAll('.example-tile').forEach((tile) => {
     const key = tile.dataset.key;
-    const emoji = tile.dataset.emoji || '';
-    const full = translate(`${key}_ui`) || key;
     const nameEl = tile.querySelector('.example-tile-name');
     if (nameEl) {
-      nameEl.textContent = full.startsWith(emoji) ? full.slice(emoji.length).trim() : full;
+      nameEl.textContent = translate(`${key}_ui`) || key;
     }
   });
 }
@@ -197,7 +203,7 @@ export function populateExampleGrid() {
   });
 
   applyTranslations(); // localises the tab labels
-  localizeTiles(); // fills tile names (emoji stripped, shown after the name)
+  localizeTiles(); // fills tile names
 }
 
 function getActivePanel() {

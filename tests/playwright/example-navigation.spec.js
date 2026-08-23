@@ -78,3 +78,24 @@ test('Help precedes the other info panel buttons in the custom tab order', async
   await page.keyboard.press('Tab');
   await expect(page.locator('#info-tab-btn-player')).toBeFocused();
 });
+
+test('Project tiles pair a decorative thumbnail with a visible, emoji-free name', async ({
+  page,
+}) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#exampleButton:not([disabled])', { timeout: 20000 });
+  await page.locator('#exampleButton').click();
+
+  const tile = page.locator('.example-panel:not([hidden]) .example-tile').first();
+  const thumbnail = tile.locator('img.example-tile-thumb');
+  await expect(thumbnail).toHaveAttribute('alt', '');
+  await expect
+    .poll(() => thumbnail.evaluate((img) => img.complete && img.naturalWidth > 0))
+    .toBe(true);
+
+  // The title is the tile's whole accessible name: the thumbnail must not add to
+  // it, and the locale strings must not carry the emoji they used to.
+  const name = (await tile.locator('.example-tile-name').textContent()).trim();
+  expect(name).not.toMatch(/\p{Extended_Pictographic}/u);
+  await expect(tile).toHaveAccessibleName(name);
+});

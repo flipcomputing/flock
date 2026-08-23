@@ -96,6 +96,8 @@ export default {
         { src: 'animations/*.{glb,gltf}', dest: 'animations' },
         { src: 'sounds/*.{mp3,aac,wav}', dest: 'sounds' },
         { src: 'images/*.*', dest: 'images' },
+        // Flat glob above, so the project tile thumbnails need their own target.
+        { src: 'images/thumbnails/*.webp', dest: 'images/thumbnails' },
         { src: 'examples/*.flock', dest: 'examples' },
         { src: 'textures/*.png', dest: 'textures' },
         { src: 'fonts/*.{json,woff2,ttf}', dest: 'fonts' },

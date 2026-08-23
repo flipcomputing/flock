@@ -1086,36 +1086,36 @@ export default {
 
   projects_ui: 'Proyectos', // human
   new_ui: 'Nuevo', // human
-  starter_ui: '👋🏽 Bienvenida', // human
-  controller_starter_ui: '🎮 Inicial con Controlador', // human
-  snow_globe_ui: '❄️ Globo de Nieve', // human
-  forest_base_ui: '🌲 Base en el Bosque', // human
-  character_animation_ui: '🎥 Animación de Personaje', // human
-  cube_art_ui: '🎨 Arte Cubo', // human
-  physics_fun_ui: '👆🏾 Diversión Física', // human
-  collect_the_gems_ui: '💎 Recoger las Gemas', // human
-  water_map_ui: '💧 Mapa de Agua', // human
-  skittles_ui: '🎳 Bolos', // human
+  starter_ui: 'Bienvenida', // human
+  controller_starter_ui: 'Inicial con Controlador', // human
+  snow_globe_ui: 'Globo de Nieve', // human
+  forest_base_ui: 'Base en el Bosque', // human
+  character_animation_ui: 'Animación de Personaje', // human
+  cube_art_ui: 'Arte Cubo', // human
+  physics_fun_ui: 'Diversión Física', // human
+  collect_the_gems_ui: 'Recoger las Gemas', // human
+  water_map_ui: 'Mapa de Agua', // human
+  skittles_ui: 'Bolos', // human
   beetle_ui: 'Escarabajo', // human
-  gem_tilt_game_ui: '⚖️ Inclina la Gema', // ai
-  roominator_ui: '🛋️ Habitación', // human
-  ball_pit_ui: '🟠 Piscina de Pelotas', // human
-  ur_enough_ui: '💗 ¡Eres Suficiente!', // human
-  tallest_buildings_ui: '📊 Edificios Más Altos', // human
-  candy_dash_ui: '🎃 Carrera de Dulces', // human
-  flockenspiel_ui: '🎵 Flockenspiel', // human
-  pendant_ui: '📿 Colgante imprimible en 3D', // human
-  tent_lights_ui: '⛺ Carpa de Festival', // human
-  my_place_ui: '🏠 Mi Lugar', // human
-  microbit_monkey_ui: '🐵 Mono micro:bit', // human
-  ar_demo_ui: '📱 Demo de RA', // ai
-  vr_demo_ui: '🥽 Demo de RV', // ai
-  tree_jump_ui: '🌳 Salto de árbol', // human
-  shape_push_ui: '🔶 Empujar forma', // human
-  alien_planet_ui: '👽 Planeta alienígena', // human
-  boat_trip_ui: '⛵ Viaje en barco', // human
-  character_designer_ui: '👚 Diseñador de personajes', // human
-  sit_down_ui: '🪑 Siéntate', // human
+  gem_tilt_game_ui: 'Inclina la Gema', // ai
+  roominator_ui: 'Habitación', // human
+  ball_pit_ui: 'Piscina de Pelotas', // human
+  ur_enough_ui: '¡Eres Suficiente!', // human
+  tallest_buildings_ui: 'Edificios Más Altos', // human
+  candy_dash_ui: 'Carrera de Dulces', // human
+  flockenspiel_ui: 'Flockenspiel', // human
+  pendant_ui: 'Colgante imprimible en 3D', // human
+  tent_lights_ui: 'Carpa de Festival', // human
+  my_place_ui: 'Mi Lugar', // human
+  microbit_monkey_ui: 'Mono micro:bit', // human
+  ar_demo_ui: 'Demo de RA', // ai
+  vr_demo_ui: 'Demo de RV', // ai
+  tree_jump_ui: 'Salto de árbol', // human
+  shape_push_ui: 'Empujar forma', // human
+  alien_planet_ui: 'Planeta alienígena', // human
+  boat_trip_ui: 'Viaje en barco', // human
+  character_designer_ui: 'Diseñador de personajes', // human
+  sit_down_ui: 'Siéntate', // human
 
   main_menu_ui: 'Menú Principal', // human
   menu_button_sr_label_ui: 'Menú', // human

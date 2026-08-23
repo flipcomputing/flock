@@ -9,6 +9,7 @@
     "serve": "vite preview",
     "lint": "eslint . && npm run check:link-security",
     "check:link-security": "node scripts/check-link-security.mjs",
+    "thumbnails": "node scripts/capture-thumbnails.mjs",
     "test:api": "node scripts/run-api-tests.mjs",
     "test:api:watch": "node scripts/run-api-tests.mjs --watch",
     "test:input": "node scripts/run-input-tests.mjs",
