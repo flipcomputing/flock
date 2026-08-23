@@ -372,8 +372,8 @@ export function runOnScreenControlsTests(flock) {
         const base = flock.controlsTexture
           .getDescendants()
           .find((control) => control.width === '110px');
-        expect(base.left).to.equal('17px');
-        expect(base.top).to.equal('-17px');
+        expect(base.left).to.equal('10px');
+        expect(base.top).to.equal('-10px');
         joystick.stop();
       });
     });

@@ -17,7 +17,7 @@ let fontFamily = 'Atkinson Hyperlegible Next';
 // plus a gutter, and the whole grid is inset from the canvas edge by the margin.
 const CONTROL_BUTTON_SIZE = 62;
 const CONTROL_CELL_SIZE = 72;
-const CONTROLS_EDGE_MARGIN = 12;
+const CONTROLS_EDGE_MARGIN = 5;
 // Distance from the canvas edge to the nearest button face.
 const CONTROLS_EDGE_INSET =
   CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;

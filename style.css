@@ -1677,16 +1677,12 @@ button {
     padding: 0.75em;
   }
 
-  /* Save / Open / New have to stay on one row at 360px, and the row is 28px
+  /* Save / Open / New stay on one row down to 320px, and the row is 28px
      narrower than it looks because the floated close button reserves that
-     corner. Trim the spacing, never the label. */
-  .project-actions {
-    gap: 6px;
-  }
-
+     corner. Only trim what that costs — longer translations may wrap. */
   .project-action-button {
-    gap: 0.3em;
-    padding: 6px 8px;
+    gap: 0.4em;
+    padding: 6px 12px;
   }
 
   .example-tile {
