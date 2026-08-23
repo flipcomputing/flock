@@ -1439,13 +1439,12 @@ button {
 
 .dropdown {
   position: absolute;
-  min-width: 200px;
+  /* No width: shrink-to-fit on the nowrap labels, so longer translations widen it */
   top: 100%; /* Below the button */
   /* Anchored left: the button sits at the window's left edge */
   left: 0;
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
-  padding: 0.5em;
   box-shadow: 0 4px 6px var(--color-shadow);
   z-index: 1000;
 }
@@ -2034,6 +2033,7 @@ body.color-picker-open #renderCanvas {
   display: flex;
   align-items: center;
   margin-left: auto;
+  padding-left: 16px;
   color: var(--color-text-brand);
 }
 
