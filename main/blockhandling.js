@@ -42,6 +42,44 @@ function getSelectedBlockForKeywordShortcut() {
   return getSelectedBlockFromFocusedNode(focusedNode) || asBlocklyBlock(window.currentBlock);
 }
 
+// Keyboard navigation stops on empty sockets, which are connections rather than
+// blocks: a value socket, or a statement slot — a C-shaped block's body, or the
+// gap below a block inside one.
+function getFocusedConnection() {
+  const node = Blockly.getFocusManager?.()?.getFocusedNode?.();
+  if (!node || typeof node.connect !== 'function') return null;
+  return node.type === Blockly.ConnectionType.INPUT_VALUE ||
+    node.type === Blockly.ConnectionType.NEXT_STATEMENT
+    ? node
+    : null;
+}
+
+// A hat block has nothing to append to, so the picker goes in the first slot of
+// its body — where a block dragged from the toolbox onto it would land.
+function getBodySlot(block) {
+  const input = block.inputList.find(
+    (candidate) => candidate.connection?.type === Blockly.ConnectionType.NEXT_STATEMENT
+  );
+  return input?.connection ?? null;
+}
+
+// Clicking a shadow block selects its parent, so the number the user is typing
+// in is only reachable through the field editor that click opened.
+function getBlockBeingEdited() {
+  const editor = document.activeElement;
+  if (!editor?.classList?.contains('blocklyHtmlInput')) return null;
+
+  for (const block of workspace.getAllBlocks(false)) {
+    if (block.type.startsWith('keyword')) continue;
+    for (const input of block.inputList) {
+      for (const field of input.fieldRow) {
+        if (field.htmlInput_ === editor) return block;
+      }
+    }
+  }
+  return null;
+}
+
 function getViewportCenterCoordinates(activeWorkspace) {
   const { left, top, width, height } = activeWorkspace.getMetricsManager().getViewMetrics(true);
 
@@ -81,6 +119,41 @@ function focusKeywordField(block) {
       htmlInput?.focus?.({ preventScroll: true });
       htmlInput?.select?.();
     });
+  }
+}
+
+// Connecting is left to Blockly, so the picker lands where a block dragged from
+// the toolbox would, and anything already there is spliced on below.
+function createKeywordBlockIn(connection) {
+  const isValueSocket = connection.type === Blockly.ConnectionType.INPUT_VALUE;
+
+  // Whatever the socket held is about to be replaced; a field editor open on it
+  // would otherwise be left behind editing a disposed block.
+  Blockly.WidgetDiv?.hide?.();
+
+  Blockly.Events.setGroup(true);
+  try {
+    const keywordBlock = workspace.newBlock(isValueSocket ? 'keyword_value' : 'keyword');
+    keywordBlock.initSvg();
+    keywordBlock.render();
+    connection.connect(
+      isValueSocket ? keywordBlock.outputConnection : keywordBlock.previousConnection
+    );
+    window.currentBlock = keywordBlock;
+    setTimeout(() => focusKeywordField(keywordBlock), 100);
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
+// The picker takes the selected value block's place in its parent socket. With
+// nothing to plug into it is created loose, like the no-selection case.
+function createValueKeywordBlock(selectedBlock) {
+  const socket = selectedBlock.outputConnection.targetConnection;
+  if (socket) {
+    createKeywordBlockIn(socket);
+  } else {
+    createKeywordBlockAtViewportCenter('keyword_value');
   }
 }
 
@@ -344,8 +417,15 @@ export function initializeBlockHandling() {
   // Handle Enter key for adding new blocks
   document.addEventListener('keydown', function (event) {
     if ((event.ctrlKey || event.metaKey) && event.key === ']') {
-      const selectedBlock = getSelectedBlockForKeywordShortcut();
       event.preventDefault();
+
+      const focusedConnection = getFocusedConnection();
+      if (focusedConnection) {
+        createKeywordBlockIn(focusedConnection);
+        return;
+      }
+
+      const selectedBlock = getBlockBeingEdited() ?? getSelectedBlockForKeywordShortcut();
 
       if (!selectedBlock) {
         createKeywordBlockAtViewportCenter('keyword');
@@ -354,7 +434,17 @@ export function initializeBlockHandling() {
 
       selectedBlock.unselect();
 
+      // A rounded block gets a rounded picker in its own socket: the picker
+      // replaces it there (a shadow vanishes, a real block is bumped out) and
+      // only offers blocks that socket accepts.
+      if (selectedBlock.outputConnection) {
+        createValueKeywordBlock(selectedBlock);
+        return;
+      }
+
       if (!selectedBlock.nextConnection) {
+        const bodySlot = getBodySlot(selectedBlock);
+        if (bodySlot) createKeywordBlockIn(bodySlot);
         return;
       }
 

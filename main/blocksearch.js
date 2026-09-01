@@ -43,6 +43,8 @@ export function getBlockSearchLabel(workspace, blockDefOrType) {
 // lists them. Their shadow values come from the toolbox entries, so the two
 // surfaces stay in step.
 const VARIABLE_BLOCK_TYPES = ['variables_set', 'math_change', 'variables_get'];
+// Only the getter is rounded, so it is all a value socket can take.
+const VARIABLE_VALUE_BLOCK_TYPES = ['variables_get'];
 const VARIABLE_BLOCK_MESSAGES = {
   variables_set: 'VARIABLES_SET',
   math_change: 'MATH_CHANGE_TITLE',
@@ -66,7 +68,7 @@ function variableRank(variable, query) {
 // reached by its own name instead of by the generic block names. Only the one
 // variable: typing "box" should reach box1, not fill the list with box2 and
 // box3 as well.
-function variableBlockDefinitions(workspace, query, index) {
+function variableBlockDefinitions(workspace, query, index, types) {
   const variables = workspace.getVariableMap?.()?.getAllVariables?.() ?? [];
   const [variable] = variables
     .filter((candidate) => variableName(candidate).toLowerCase().includes(query))
@@ -78,7 +80,8 @@ function variableBlockDefinitions(workspace, query, index) {
   if (!variable) return [];
 
   const name = variableName(variable);
-  return VARIABLE_BLOCK_TYPES.map((type) => index.find((entry) => entry.type === type)?.full)
+  return types
+    .map((type) => index.find((entry) => entry.type === type)?.full)
     .filter(Boolean)
     .map((template) => ({
       ...template,
@@ -102,12 +105,25 @@ function scoreMatch(def, query, label) {
   return 5;
 }
 
-export function matchBlockDefinitions(workspace, rawQuery) {
+// Value mode offers only blocks the target socket would accept. `outputCheck`
+// is the socket's own check: null accepts anything, and so does a block whose
+// output is untyped, matching Blockly's own connection checker.
+function fitsSocket(entry, outputCheck) {
+  const check = entry.outputCheck;
+  if (check === undefined || check === false) return false;
+  if (check === null || outputCheck === null) return true;
+  return check.some((type) => outputCheck.includes(type));
+}
+
+export function matchBlockDefinitions(workspace, rawQuery, options = {}) {
   const query = (rawQuery || '').toLowerCase().trim();
   if (!query) return [];
 
   const index = ensureBlockSearchIndex(workspace);
   if (!index) return [];
+
+  const valueOnly = options.valueOnly === true;
+  const outputCheck = options.outputCheck ?? null;
 
   const labelOf = (def) => getBlockSearchLabel(workspace, def).toLowerCase();
   // Variable blocks are one per variable, so the type alone is not unique.
@@ -115,8 +131,15 @@ export function matchBlockDefinitions(workspace, rawQuery) {
 
   const seenKeys = new Set();
   return [
-    ...variableBlockDefinitions(workspace, query, index),
-    ...index.filter((b) => b.text && b.text.includes(query)).map((b) => b.full),
+    ...variableBlockDefinitions(
+      workspace,
+      query,
+      index,
+      valueOnly ? VARIABLE_VALUE_BLOCK_TYPES : VARIABLE_BLOCK_TYPES
+    ),
+    ...index
+      .filter((b) => b.text && b.text.includes(query) && (!valueOnly || fitsSocket(b, outputCheck)))
+      .map((b) => b.full),
   ]
     .filter((def) => def?.type && !seenKeys.has(keyOf(def)) && seenKeys.add(keyOf(def)))
     .sort((a, b) => scoreMatch(a, query, labelOf(a)) - scoreMatch(b, query, labelOf(b)));

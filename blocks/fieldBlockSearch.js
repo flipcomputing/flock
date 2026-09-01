@@ -83,7 +83,8 @@ function getPickerFlyout(workspace) {
 
 // Text field with an inline block picker: typing filters the toolbox with the
 // same matcher the toolbox search uses, arrow keys move through the results and
-// Enter swaps the block. The source block supplies onBlockSearchSelect(def).
+// Enter swaps the block. The source block supplies onBlockSearchSelect(def) and
+// may narrow the results with getBlockSearchOptions().
 // Wide screens get real blocks in a flyout, narrow ones a text list.
 export class FieldBlockSearch extends Blockly.FieldTextInput {
   constructor(value, validator, config) {
@@ -169,7 +170,11 @@ export class FieldBlockSearch extends Blockly.FieldTextInput {
 
     const workspace = this.getWorkspace_();
     const limit = this.usesFlyout_() ? MAX_FLYOUT_RESULTS : MAX_LIST_RESULTS;
-    this.results_ = workspace ? matchBlockDefinitions(workspace, query).slice(0, limit) : [];
+    // A picker in a value socket narrows the results to what fits it.
+    const options = this.getSourceBlock()?.getBlockSearchOptions?.() ?? {};
+    this.results_ = workspace
+      ? matchBlockDefinitions(workspace, query, options).slice(0, limit)
+      : [];
     this.activeIndex_ = this.results_.length ? 0 : -1;
 
     window.flockBlockToolbar?.hide?.();

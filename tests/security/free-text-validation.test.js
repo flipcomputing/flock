@@ -53,6 +53,7 @@ const TESTED_TEXT_FIELDS = [
   'text_prompt.TEXT',
   'play_tune.ABC_TEXT',
   'keyword.KEYWORD',
+  'keyword_value.KEYWORD',
 ];
 
 const payload = '"; alert(1); //';
@@ -172,6 +173,17 @@ export function runTextFieldValidationTests() {
         workspace
       );
       expect(generate(block)).to.equal('');
+    });
+
+    it('an unresolved value keyword block generates null, not its typed text', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'keyword_value',
+          fields: { KEYWORD: payload },
+        },
+        workspace
+      );
+      expect(generate(block)).to.equal('null');
     });
 
     it('an unresolved keyword block does not stop the blocks below it', function () {

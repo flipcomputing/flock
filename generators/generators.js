@@ -57,6 +57,9 @@ export function defineGenerators() {
   // project saved with one still runs. Blockly still generates the rest of the
   // stack below it.
   javascriptGenerator.forBlock['keyword'] = () => '';
+  // The rounded picker sits in a value socket, so it has to yield an
+  // expression: an empty slot reads as null, as it would with nothing plugged in.
+  javascriptGenerator.forBlock['keyword_value'] = () => ['null', javascriptGenerator.ORDER_ATOMIC];
 
   // Initialise
   javascriptGenerator.init = function (workspace) {

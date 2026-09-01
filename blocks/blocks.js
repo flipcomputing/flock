@@ -1642,17 +1642,7 @@ export function defineBlocks() {
 
       try {
         const workspace = this.workspace;
-        const variablesBefore = new Set(
-          workspace
-            .getVariableMap()
-            .getAllVariables()
-            .map((variable) => variable.getId())
-        );
-        const newBlock = workspace.newBlock(definition.type);
-        newBlock.initSvg();
-        newBlock.render();
-        applyBlockDefinition(newBlock, definition);
-        discardUnusedNewVariables(workspace, variablesBefore);
+        const newBlock = buildChosenBlock(workspace, definition);
 
         const pos = this.getRelativeToSurfaceXY();
         newBlock.moveBy(pos.x, pos.y);
@@ -1696,6 +1686,79 @@ export function defineBlocks() {
       }
     },
   };
+
+  // The rounded picker: same field, but it sits in a value socket and is
+  // replaced by whatever rounded block is chosen.
+  Blockly.Blocks['keyword_value'] = {
+    init: function () {
+      this.appendDummyInput().appendField(new FieldBlockSearch(''), 'KEYWORD');
+      this.setTooltip(translate('block_search_tooltip'));
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setOutput(true);
+    },
+
+    getBlockSearchOptions: function () {
+      return {
+        valueOnly: true,
+        outputCheck: this.outputConnection?.targetConnection?.getCheck() ?? null,
+      };
+    },
+
+    onBlockSearchSelect: function (definition) {
+      if (this.isDisposed() || this.isReplaced || !definition?.type) {
+        return;
+      }
+      this.isReplaced = true;
+
+      const ownsGroup = !Blockly.Events.getGroup();
+      if (ownsGroup) Blockly.Events.setGroup(true);
+
+      try {
+        const workspace = this.workspace;
+        const newBlock = buildChosenBlock(workspace, definition);
+
+        const pos = this.getRelativeToSurfaceXY();
+        newBlock.moveBy(pos.x, pos.y);
+
+        // A chosen block that cannot fill the socket — a statement, or a value
+        // of the wrong type — is left floating where the placeholder was, and
+        // the socket falls back to whatever it held before.
+        const socket = this.outputConnection?.targetConnection ?? null;
+        this.outputConnection?.disconnect();
+        if (
+          socket &&
+          newBlock.outputConnection &&
+          workspace.connectionChecker.canConnect(socket, newBlock.outputConnection, false)
+        ) {
+          socket.connect(newBlock.outputConnection);
+        }
+
+        window.currentBlock = newBlock;
+
+        this.dispose(false);
+        setTimeout(() => {
+          if (!newBlock.isDisposed()) Blockly.getFocusManager().focusNode(newBlock);
+        }, 0);
+      } finally {
+        if (ownsGroup) Blockly.Events.setGroup(false);
+      }
+    },
+  };
+
+  function buildChosenBlock(workspace, definition) {
+    const variablesBefore = new Set(
+      workspace
+        .getVariableMap()
+        .getAllVariables()
+        .map((variable) => variable.getId())
+    );
+    const newBlock = workspace.newBlock(definition.type);
+    newBlock.initSvg();
+    newBlock.render();
+    applyBlockDefinition(newBlock, definition);
+    discardUnusedNewVariables(workspace, variablesBefore);
+    return newBlock;
+  }
 
   // Creating a block instantiates whatever variable its variable field defaults
   // to; when the definition then points the field at another one, that default

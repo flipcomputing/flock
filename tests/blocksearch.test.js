@@ -235,6 +235,84 @@ export function runBlockSearchTests() {
     });
   });
 
+  describe('results for a value socket @blocksearch', function () {
+    let workspace;
+
+    // Mirrors the index buildSearchIndex produces: outputCheck is false for a
+    // statement block, null for an untyped output.
+    beforeEach(function () {
+      workspace = new Blockly.Workspace();
+      workspace.flockBlockLabelMap = new Map();
+      workspace.flockSearchIndexedBlocks = [
+        {
+          type: 'get_x',
+          full: { kind: 'block', type: 'get_x' },
+          text: 'thing x',
+          outputCheck: ['Number'],
+        },
+        {
+          type: 'join_thing',
+          full: { kind: 'block', type: 'join_thing' },
+          text: 'thing join',
+          outputCheck: ['String'],
+        },
+        {
+          type: 'any_thing',
+          full: { kind: 'block', type: 'any_thing' },
+          text: 'thing any',
+          outputCheck: null,
+        },
+        {
+          type: 'do_thing',
+          full: { kind: 'block', type: 'do_thing' },
+          text: 'thing do',
+          outputCheck: false,
+        },
+        ...['variables_set', 'math_change', 'variables_get'].map((type) => ({
+          type,
+          full: toolboxDefinitionFor(type),
+          text: type.replace('_', ' '),
+          outputCheck: type === 'variables_get' ? null : false,
+        })),
+      ];
+    });
+
+    afterEach(function () {
+      workspace.dispose();
+    });
+
+    const typesFor = (options) =>
+      matchBlockDefinitions(workspace, 'thing', options).map((def) => def.type);
+
+    it('offers every block when not filtering to a socket', function () {
+      expect(typesFor()).to.have.members(['get_x', 'join_thing', 'any_thing', 'do_thing']);
+    });
+
+    it('offers only blocks the socket accepts', function () {
+      expect(typesFor({ valueOnly: true, outputCheck: ['Number'] })).to.have.members([
+        'get_x',
+        'any_thing',
+      ]);
+    });
+
+    it('offers every rounded block for an untyped socket', function () {
+      expect(typesFor({ valueOnly: true, outputCheck: null })).to.have.members([
+        'get_x',
+        'join_thing',
+        'any_thing',
+      ]);
+    });
+
+    it('offers the variable getter but not the set and change blocks', function () {
+      workspace.createVariable('score');
+      const types = matchBlockDefinitions(workspace, 'score', {
+        valueOnly: true,
+        outputCheck: ['Number'],
+      }).map((def) => def.type);
+      expect(types).to.deep.equal(['variables_get']);
+    });
+  });
+
   describe('blocks/fieldBlockSearch text list @blocksearch', function () {
     this.timeout(5000);
 
@@ -618,12 +696,28 @@ export function runBlockSearchTests() {
           },
         };
       }
+
+      Blockly.Blocks['test_value_number'] = {
+        init: function () {
+          this.appendDummyInput().appendField('number');
+          this.setOutput(true, 'Number');
+        },
+      };
+      Blockly.Blocks['test_value_container'] = {
+        init: function () {
+          this.appendValueInput('VALUE').setCheck('Number');
+          this.setPreviousStatement(true);
+          this.setNextStatement(true);
+        },
+      };
     });
 
     after(function () {
       delete Blockly.Blocks['test_replace_statement'];
       delete Blockly.Blocks['test_replace_terminal'];
       delete Blockly.Blocks['test_replace_hat'];
+      delete Blockly.Blocks['test_value_number'];
+      delete Blockly.Blocks['test_value_container'];
     });
 
     beforeEach(function () {
@@ -736,13 +830,68 @@ export function runBlockSearchTests() {
       ]);
     });
 
+    // container ( value ) with the picker in the socket.
+    function buildSocket(pickerType = 'keyword_value') {
+      const container = workspace.newBlock('test_value_container');
+      const picker = workspace.newBlock(pickerType);
+      for (const block of [container, picker]) {
+        block.initSvg();
+        block.render();
+      }
+      container.getInput('VALUE').connection.connect(picker.outputConnection);
+      return { container, picker };
+    }
+
+    it('narrows the picker results to the socket it sits in', function () {
+      const { picker } = buildSocket();
+      expect(picker.getBlockSearchOptions()).to.deep.equal({
+        valueOnly: true,
+        outputCheck: ['Number'],
+      });
+    });
+
+    it('offers everything rounded when the picker is not in a socket', function () {
+      const picker = workspace.newBlock('keyword_value');
+      picker.initSvg();
+      picker.render();
+      expect(picker.getBlockSearchOptions()).to.deep.equal({
+        valueOnly: true,
+        outputCheck: null,
+      });
+    });
+
+    it('plugs the chosen value block into the socket', function () {
+      const { container, picker } = buildSocket();
+      picker.onBlockSearchSelect({ kind: 'block', type: 'test_value_number' });
+      expect(container.getInputTargetBlock('VALUE').type).to.equal('test_value_number');
+      expect(workspace.getAllBlocks().some((b) => b.type === 'keyword_value')).to.equal(false);
+    });
+
+    it('leaves the socket empty when the chosen block cannot fill it', function () {
+      const { container, picker } = buildSocket();
+      picker.onBlockSearchSelect({ kind: 'block', type: 'test_replace_statement' });
+      expect(container.getInputTargetBlock('VALUE')).to.equal(null);
+      expect(workspace.getTopBlocks(false).map((b) => b.type)).to.include('test_replace_statement');
+    });
+
+    it('replaces a lone value picker with no socket around it', function () {
+      const picker = workspace.newBlock('keyword_value');
+      picker.initSvg();
+      picker.render();
+      picker.onBlockSearchSelect({ kind: 'block', type: 'test_value_number' });
+      expect(workspace.getTopBlocks(false).map((b) => b.type)).to.deep.equal(['test_value_number']);
+    });
+
     it('undoes the whole replacement in one step', async function () {
       const { head, keyword } = buildStack();
       keyword.onBlockSearchSelect({ kind: 'block', type: 'test_replace_terminal' });
       expect(stackTypes(head)).to.deep.equal(['test_replace_statement', 'test_replace_terminal']);
-      // Blockly flushes its event queue on a later tick; the undo stack is only
-      // populated once it has.
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      // Blockly flushes its event queue on a later tick, and how many ticks it
+      // takes varies; the undo stack is only populated once it has.
+      const deadline = Date.now() + 1000;
+      while (!workspace.undoStack_.length && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      }
       workspace.undo(false);
       expect(workspace.getAllBlocks().some((b) => b.type === 'test_replace_terminal')).to.equal(
         false

@@ -2722,6 +2722,9 @@ export function overrideSearchPlugin(workspace) {
         indexedBlocks.push({
           ...blockInfo,
           text: Array.from(searchTerms).join(' ').toLowerCase(),
+          // What the block can plug into: false for a statement, null for an
+          // untyped output. Used to filter the value-socket block picker.
+          outputCheck: block.outputConnection ? (block.outputConnection.getCheck() ?? null) : false,
         });
       });
     } finally {
