@@ -2926,6 +2926,56 @@ svg.blocklyTrashcanFlyout {
   border-bottom: 5px solid var(--color-menu, #f9f9f9);
 }
 
+/* Beside the block's first row (see positionBlockToolbar), used when there is
+   no room above: the caret moves to the bar's near edge and points sideways,
+   and --caret-shift slides it vertically instead of horizontally. */
+.fc-block-toolbar.beside-right {
+  transform: translate(10px, -50%);
+}
+
+.fc-block-toolbar.beside-left {
+  transform: translate(calc(-100% - 10px), -50%);
+}
+
+.fc-block-toolbar.beside-right::after,
+.fc-block-toolbar.beside-right::before,
+.fc-block-toolbar.beside-left::after,
+.fc-block-toolbar.beside-left::before {
+  top: calc(50% + var(--caret-shift, 0px));
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+.fc-block-toolbar.beside-right::after {
+  left: -7px;
+  border: 7px solid transparent;
+  border-left: 0;
+  border-right-color: var(--color-border, #ddd);
+}
+
+.fc-block-toolbar.beside-right::before {
+  left: -5px;
+  border: 5px solid transparent;
+  border-left: 0;
+  border-right-color: var(--color-menu, #f9f9f9);
+}
+
+.fc-block-toolbar.beside-left::after {
+  left: auto;
+  right: -7px;
+  border: 7px solid transparent;
+  border-right: 0;
+  border-left-color: var(--color-border, #ddd);
+}
+
+.fc-block-toolbar.beside-left::before {
+  left: auto;
+  right: -5px;
+  border: 5px solid transparent;
+  border-right: 0;
+  border-left-color: var(--color-menu, #f9f9f9);
+}
+
 .fc-block-toolbar.visible {
   opacity: 1;
   pointer-events: auto;

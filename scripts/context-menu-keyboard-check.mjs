@@ -72,6 +72,22 @@ try {
       const items = document.querySelectorAll('[role="menuitem"], .blocklyMenuItem').length;
       return !!(menu && menu.getBoundingClientRect().width > 0) && items > 0;
     });
+  // A point on a top block's own body — not a field or a socket, which no
+  // longer open the toolbar.
+  const blockBodyPoint = () =>
+    page.evaluate(() => {
+      const b = window.mainWorkspace.getTopBlocks(true).find((x) => !x.isShadow());
+      const path = b?.getSvgRoot().querySelector(':scope > .blocklyPath');
+      if (!path) return null;
+      const r = path.getBoundingClientRect();
+      return { x: Math.round(r.left + 12), y: Math.round(r.top + 14) };
+    });
+
+  const toolbarVisible = () =>
+    page.evaluate(
+      () =>
+        !![...document.querySelectorAll('.fc-block-toolbar')].pop()?.classList.contains('visible')
+    );
   const svgBox = () =>
     page.evaluate(() => {
       const b = document.querySelector('svg.blocklySvg').getBoundingClientRect();
@@ -124,6 +140,142 @@ try {
     onBlock && (await menuVisible()),
     'Ctrl+Enter still opens a focused block’s own context menu'
   );
+
+  // The floating block toolbar opens on Enter, not on focus alone.
+  await fresh();
+  await page.keyboard.press('Control+b');
+  await sleep(250);
+  await page.keyboard.press('8');
+  await sleep(400);
+  await page.keyboard.press('ArrowDown');
+  await sleep(500);
+  const openedOnFocus = await toolbarVisible();
+  await page.keyboard.press('Enter');
+  await sleep(500);
+  const openedOnEnter = await toolbarVisible();
+  await page.keyboard.press('Enter');
+  await sleep(500);
+  const closedOnEnter = !(await toolbarVisible());
+  check(!openedOnFocus, 'Arrowing onto a block does not open the block toolbar');
+  check(openedOnEnter, 'Enter opens the block toolbar for the focused block');
+  check(closedOnEnter, 'Enter again closes the block toolbar');
+
+  // Moving focus to another block takes the toolbar away with it.
+  await page.keyboard.press('Enter');
+  await sleep(400);
+  await page.keyboard.press('ArrowDown');
+  await sleep(500);
+  check(!(await toolbarVisible()), 'Moving focus to another block closes the block toolbar');
+
+  await fresh();
+  const wideBody = await blockBodyPoint();
+  await page.mouse.click(wideBody.x, wideBody.y);
+  await sleep(900);
+  check(await toolbarVisible(), 'Clicking a block opens the block toolbar');
+
+  // With one open, clicking another block moves it there — no need to close it.
+  await fresh();
+  const pair = await page.evaluate(() => {
+    const pts = [];
+    for (const b of window.mainWorkspace.getAllBlocks(false)) {
+      if (b.isShadow()) continue;
+      const path = b.getSvgRoot().querySelector(':scope > .blocklyPath');
+      if (!path) continue;
+      const r = path.getBoundingClientRect();
+      if (r.width < 40 || r.height < 14) continue;
+      pts.push({ x: Math.round(r.left + 12), y: Math.round(r.top + 14) });
+      if (pts.length === 2) break;
+    }
+    return pts;
+  });
+  const barPos = () =>
+    page.evaluate(() => {
+      const r = [...document.querySelectorAll('.fc-block-toolbar')].pop().getBoundingClientRect();
+      return `${Math.round(r.left)},${Math.round(r.top)}`;
+    });
+  if (pair.length === 2) {
+    await page.mouse.click(pair[0].x, pair[0].y);
+    await sleep(700);
+    const firstOpen = await toolbarVisible();
+    const firstPos = await barPos();
+    await page.mouse.click(pair[1].x, pair[1].y);
+    await sleep(700);
+    const movedPos = await barPos();
+    check(
+      firstOpen && (await toolbarVisible()) && movedPos !== firstPos,
+      'Clicking another block moves the open toolbar to it'
+    );
+  } else {
+    check(false, 'Found two block bodies to click for the relocation check');
+  }
+
+  // The block's own body opens it; its fields and the sockets plugged into it
+  // belong to the input being aimed at, so they leave it shut.
+  await fresh();
+  const parts = await page.evaluate(() => {
+    const box = (el) => {
+      const r = el?.getBoundingClientRect();
+      return r && r.width > 2 && r.height > 2 ? r : null;
+    };
+    const mid = (r) => ({
+      x: Math.round(r.left + r.width / 2),
+      y: Math.round(r.top + r.height / 2),
+    });
+    for (const b of window.mainWorkspace.getAllBlocks(false)) {
+      if (b.isShadow()) continue;
+      const body = box(b.getSvgRoot().querySelector(':scope > .blocklyPath'));
+      const field = b.inputList
+        .flatMap((i) => i.fieldRow)
+        .find((f) => f.isClickable?.() && box(f.getSvgRoot?.()));
+      const socket = b
+        .getChildren(false)
+        .find((c) => c.isShadow() && box(c.getSvgRoot().querySelector(':scope > .blocklyPath')));
+      if (!body || !field || !socket) continue;
+      return {
+        body: { x: Math.round(body.left + 12), y: Math.round(body.top + 14) },
+        field: mid(box(field.getSvgRoot())),
+        socket: mid(box(socket.getSvgRoot().querySelector(':scope > .blocklyPath'))),
+      };
+    }
+    return null;
+  });
+  check(!!parts, 'Found a block with both a field and a filled socket to click');
+  if (parts) {
+    await page.mouse.click(parts.field.x, parts.field.y);
+    await sleep(700);
+    const afterField = await toolbarVisible();
+    await page.keyboard.press('Escape');
+    await sleep(300);
+    await page.mouse.click(parts.socket.x, parts.socket.y);
+    await sleep(700);
+    const afterSocket = await toolbarVisible();
+    await page.keyboard.press('Escape');
+    await sleep(300);
+    await page.mouse.click(parts.body.x, parts.body.y);
+    await sleep(700);
+    check(!afterField, "Clicking a block's field leaves the toolbar closed");
+    check(!afterSocket, 'Clicking a value socket leaves the toolbar closed');
+    check(await toolbarVisible(), "Clicking the same block's body opens it");
+  }
+
+  // Leaving the code view takes it away with it. Only a narrow layout actually
+  // swaps panels — a wide one shows the canvas and code side by side.
+  const wideViewport = page.viewportSize();
+  await page.setViewportSize({ width: 390, height: 800 });
+  await fresh();
+  await page.evaluate(() => document.getElementById('codeToggleBtn')?.click());
+  await sleep(800);
+  const narrowBody = await blockBodyPoint();
+  await page.mouse.click(narrowBody.x, narrowBody.y);
+  await sleep(900);
+  const openedNarrow = await toolbarVisible();
+  await page.evaluate(() => document.getElementById('canvasToggleBtn')?.click());
+  await sleep(800);
+  const hiddenInPlayMode = !(await toolbarVisible());
+  await page.setViewportSize(wideViewport);
+  await fresh();
+  check(openedNarrow, 'Clicking a block opens the block toolbar on a narrow layout');
+  check(hiddenInPlayMode, 'Switching to the canvas view dismisses the block toolbar');
 
   // A workspace comment is reachable via stack nav (N) and keeps Blockly's ARIA.
   await fresh();

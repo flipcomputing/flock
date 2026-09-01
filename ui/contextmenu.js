@@ -729,6 +729,8 @@ export function initContextMenus(workspace) {
     // re-applies them after creation — without this, switching language after
     // the toolbar first renders would leave them stuck in the old language.
     function refreshStaticToolbarLabels() {
+      // role="toolbar" needs a name of its own, not just named buttons.
+      blockToolbar.setAttribute('aria-label', getToolbarLabel('block_menu', 'Block menu'));
       setToolbarLabel(duplicateBtn, getToolbarLabel('duplicate_block_button_ui', 'Duplicate block'));
       setToolbarLabel(deleteBtn, getToolbarLabel('delete_block_button_ui', 'Delete block'));
       setToolbarLabel(detachBtn, getToolbarLabel('shortcut_detach_block', 'Detach'));
@@ -812,10 +814,9 @@ export function initContextMenus(workspace) {
 
     let toolbarBlock = null; // block the toolbar is currently visible for
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
-    let toolbarShowTimer = null;
-    let lastSelectionWasPointer = false;
-    let pointerIsDown = false; // a pointer button is currently held — the hover-reveal timer must not fire while true
-    let pendingHoverBlock = null; // block whose hover-reveal was deferred because the pointer was still down when the timer fired
+    let pointerIsDown = false; // a pointer button is currently held
+    let pointerDownTarget = null; // element the last pointerdown landed on, to tell a click from a selection Blockly made itself
+    let revealOnRelease = null; // block to open once the held button comes up, unless a drag intervenes
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
     let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
     // Block whose toolbar we hid because a keyboard move (M) just started on
@@ -829,6 +830,7 @@ export function initContextMenus(workspace) {
     // a BLOCK_MOVE event fires. This re-checks shortly after, so viewBtn
     // catches up once the mesh actually appears/disappears.
     let viewMeshRecheckTimer = null;
+    let moveInProgress = false; // a drag/keyboard move is running — Enter belongs to Blockly
 
     function clearBadges() {
       badgeOverlay.replaceChildren();
@@ -852,15 +854,14 @@ export function initContextMenus(workspace) {
       badgeOverlay.classList.add('visible');
     }
 
-    // Track the input modality that drives selection. A pointer gesture can fire
-    // several SELECTED events (notably a drag fires one at start and one at end),
-    // so this is a persistent mode — set by the input device, not consumed on
-    // selection — rather than a one-shot flag.
+    // A selection only counts as a click when it lands on the block that was
+    // pressed. One gesture can fire several SELECTED events, so the press
+    // stands until the next one or a navigation key.
     document.addEventListener(
       'pointerdown',
-      () => {
-        lastSelectionWasPointer = true;
+      (e) => {
         pointerIsDown = true;
+        pointerDownTarget = e.target;
       },
       { capture: true }
     );
@@ -868,13 +869,12 @@ export function initContextMenus(workspace) {
       'pointerup',
       () => {
         pointerIsDown = false;
-        // The hover timer bailed (still held, no drag recognized) rather than
-        // showing — now that the button's up with no drag having intervened,
-        // it's a plain click: reveal now instead of leaving it stuck hidden.
-        if (pendingHoverBlock) {
-          const block = pendingHoverBlock;
-          pendingHoverBlock = null;
-          if (block === selectedBlock && !toolbarBlock) showBlockToolbar(block);
+        if (revealOnRelease) {
+          const block = revealOnRelease;
+          revealOnRelease = null;
+          // Not guarded on toolbarBlock: showing re-points an open toolbar, so
+          // a click moves it between blocks without closing it first.
+          if (block === selectedBlock) showBlockToolbar(block);
         }
       },
       { capture: true }
@@ -883,20 +883,20 @@ export function initContextMenus(workspace) {
       'pointercancel',
       () => {
         pointerIsDown = false;
-        pendingHoverBlock = null;
+        revealOnRelease = null;
       },
       { capture: true }
     );
     document.addEventListener(
       'keydown',
       (e) => {
-        // Only genuine block navigation flips to keyboard mode. Ignore typing,
-        // app-level combos (Ctrl/Cmd/Alt+…), and bare modifiers — the last so a
-        // Shift held during a mouse drag doesn't switch the toolbar to keyboard.
+        // Navigating by keyboard retires the last press. Ignore typing and
+        // app-level combos, and bare Shift — that one so a Shift held during a
+        // mouse drag doesn't retire the press that started it.
         if (isTypingInInput()) return;
         if (e.ctrlKey || e.metaKey || e.altKey) return;
         if (e.key === 'Shift') return;
-        lastSelectionWasPointer = false;
+        pointerDownTarget = null;
       },
       { capture: true }
     );
@@ -960,9 +960,20 @@ export function initContextMenus(workspace) {
       return r.height > 0 ? r.top : null;
     }
 
-    // Get the position of the jaw start for a hat block to display the context menu
-    function getHatJawTopScreenY(block) {
-      if (block.previousConnection) return null;
+    // The workspace toolbar draws over the zoom controls, so they bound the
+    // usable area too.
+    function getWorkspaceBottomEdge() {
+      const div = workspace.getInjectionDiv?.();
+      if (!div) return null;
+      const r = div.getBoundingClientRect();
+      if (r.height <= 0) return null;
+      const controls = document.getElementById('blocklyZoomControls')?.getBoundingClientRect();
+      return controls?.height > 0 ? Math.min(r.bottom, controls.top) : r.bottom;
+    }
+
+    // Where the block's own first row ends: the jaw start for a block with a
+    // statement input, otherwise null.
+    function getFirstStatementTopScreenY(block) {
       const jawInput = block.inputList?.find((input) => input.type === Blockly.NEXT_STATEMENT);
       const connection = jawInput?.connection;
       if (!connection) return null;
@@ -973,7 +984,21 @@ export function initContextMenus(workspace) {
       return screen.y;
     }
 
-    function positionBlockToolbar() {
+    // Nudges the workspace down so a block near the top edge has room for the
+    // toolbar above it. Returns the pixels actually gained — Blockly clamps to
+    // the scrollable area, so this can be less than asked for, or nothing.
+    function scrollWorkspaceForToolbar(px) {
+      if (typeof workspace.scroll !== 'function' || pointerIsDown) return 0;
+      const before = workspace.scrollY;
+      try {
+        workspace.scroll(workspace.scrollX, before + px);
+      } catch {
+        return 0; // workspace has no metrics yet, so it cannot be scrolled
+      }
+      return workspace.scrollY - before;
+    }
+
+    function positionBlockToolbar({ mayScroll = false } = {}) {
       if (!toolbarBlock) return;
       const svgRoot = toolbarBlock.getSvgRoot?.();
       if (!svgRoot) return;
@@ -981,28 +1006,95 @@ export function initContextMenus(workspace) {
         hideBlockToolbar();
         return;
       }
-      const rect = getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
-      const blockCenterX = Math.round(rect.left + rect.width / 2);
-      blockToolbar.style.left = `${blockCenterX}px`;
-      blockToolbar.style.removeProperty('--caret-shift');
+      const readRect = () => getOwnBlockScreenRect(toolbarBlock) ?? svgRoot.getBoundingClientRect();
+      let rect = readRect();
 
       const margin = 8;
       const workspaceTop = getWorkspaceTopEdge();
       const minTop = workspaceTop != null ? workspaceTop + margin : margin;
+      const maxBottom = (getWorkspaceBottomEdge() ?? window.innerHeight) - margin;
+      const maxRight = window.innerWidth - margin;
+      const toolboxRight = getToolboxRightEdge();
 
-      // Push the context bar below the block if it would be outside the top of the workspace
-      blockToolbar.style.top = `${Math.round(rect.top)}px`;
-      blockToolbar.classList.remove('below');
-      if (blockToolbar.getBoundingClientRect().top < minTop) {
-        blockToolbar.classList.add('below');
-        const jawTop = getHatJawTopScreenY(toolbarBlock);
-        blockToolbar.style.top = `${Math.round(jawTop ?? rect.bottom)}px`;
+      // Each placement is a CSS class (which side of the anchor point the bar
+      // hangs off) plus the anchor point itself.
+      const anchor = (mode, x, y) => {
+        blockToolbar.classList.remove('below', 'beside-left', 'beside-right');
+        if (mode) blockToolbar.classList.add(mode);
+        blockToolbar.style.left = `${Math.round(x)}px`;
+        blockToolbar.style.top = `${Math.round(y)}px`;
+        return blockToolbar.getBoundingClientRect();
+      };
+
+      // Slides the caret the opposite way to a clamp, so it keeps pointing at
+      // the block. Past this limit it would fall off the end of the bar.
+      const shiftCaret = (px, extent) => {
+        const limit = Math.max(0, extent / 2 - 12);
+        blockToolbar.style.setProperty(
+          '--caret-shift',
+          `${Math.max(-limit, Math.min(limit, -px))}px`
+        );
+      };
+
+      blockToolbar.style.removeProperty('--caret-shift');
+
+      // Preferred placement: centred above the block.
+      let bar = anchor(null, rect.left + rect.width / 2, rect.top);
+      let overshoot = minTop - bar.top;
+
+      // No room above: scroll the block down to make some, so the bar keeps its
+      // usual place. Only on show — a reposition must not fight the user's own
+      // scrolling, and falls through to the placements below instead.
+      if (overshoot > 0 && mayScroll && scrollWorkspaceForToolbar(overshoot) > 0) {
+        rect = readRect();
+        bar = anchor(null, rect.left + rect.width / 2, rect.top);
+        overshoot = minTop - bar.top;
+      }
+
+      // Could not scroll — mid-gesture, or the workspace would not go far
+      // enough. Sit beside the block's first row rather than over the blocks
+      // inside it.
+      let besideY = 0;
+      let beside = false;
+      if (overshoot > 0) {
+        besideY = (rect.top + (getFirstStatementTopScreenY(toolbarBlock) ?? rect.bottom)) / 2;
+        const minLeft = toolboxRight != null ? Math.max(margin, toolboxRight + margin) : margin;
+        bar = anchor('beside-right', rect.right, besideY);
+        if (bar.right > maxRight) bar = anchor('beside-left', rect.left, besideY);
+        beside = bar.left >= minLeft && bar.right <= maxRight;
+      }
+
+      if (beside) {
+        // Keep it inside the workspace vertically; the caret follows the row.
+        let adj = 0;
+        if (bar.top < minTop) adj = minTop - bar.top;
+        else if (bar.bottom > maxBottom) adj = Math.max(maxBottom - bar.bottom, minTop - bar.top);
+        if (adj !== 0) {
+          blockToolbar.style.top = `${Math.round(besideY + adj)}px`;
+          shiftCaret(adj, bar.height);
+        }
+        if (toolbarKeyboardMode) renderBadges();
+        return;
+      }
+
+      // Nowhere else to go: flip under the block. A hat block's own rect wraps
+      // everything in its jaw, so use the jaw start rather than its far bottom.
+      const blockCenterX = Math.round(rect.left + rect.width / 2);
+      if (overshoot > 0) {
+        const jawTop = toolbarBlock.previousConnection
+          ? null
+          : getFirstStatementTopScreenY(toolbarBlock);
+        const belowY = jawTop ?? rect.bottom;
+        // rect.bottom is past everything a C-shaped block holds, which can be
+        // below the workspace, so pull it back inside.
+        anchor('below', blockCenterX, belowY);
+        const drop = blockToolbar.getBoundingClientRect().bottom - maxBottom;
+        if (drop > 0) anchor('below', blockCenterX, belowY - drop);
       }
 
       // Clamp to viewport, and to the right of the toolbox/flyout so the
       // toolbar is never tucked behind it. Shift the caret opposite so it
       // still points at the block.
-      const toolboxRight = getToolboxRightEdge();
       const tbRect = blockToolbar.getBoundingClientRect();
       // On narrow phones the toolbar can be wider than the space left beside
       // the toolbox: spill over the toolbox rather than off the screen edge.
@@ -1014,16 +1106,11 @@ export function initContextMenus(workspace) {
           : margin;
       let adj = 0;
       if (tbRect.left < minLeft) adj = minLeft - tbRect.left;
-      else if (tbRect.right > window.innerWidth - margin)
-        adj = Math.max(window.innerWidth - margin - tbRect.right, minLeft - tbRect.left);
+      else if (tbRect.right > maxRight)
+        adj = Math.max(maxRight - tbRect.right, minLeft - tbRect.left);
       if (adj !== 0) {
         blockToolbar.style.left = `${blockCenterX + adj}px`;
-        // A big shift would otherwise push the caret off the toolbar's ends.
-        const caretLimit = Math.max(0, tbRect.width / 2 - 12);
-        blockToolbar.style.setProperty(
-          '--caret-shift',
-          `${Math.max(-caretLimit, Math.min(caretLimit, -adj))}px`
-        );
+        shiftCaret(adj, tbRect.width);
       }
       // Badges are positioned off the buttons, so they must follow the toolbar.
       if (toolbarKeyboardMode) renderBadges();
@@ -1132,13 +1219,11 @@ export function initContextMenus(workspace) {
       // mode positionBlockToolbar() draws fresh ones (it also re-runs on block
       // move / viewport change to keep them aligned with the buttons).
       if (!keyboard) clearBadges();
-      positionBlockToolbar();
+      positionBlockToolbar({ mayScroll: true });
     }
 
     function hideBlockToolbar() {
-      clearTimeout(toolbarShowTimer);
-      toolbarShowTimer = null;
-      pendingHoverBlock = null;
+      revealOnRelease = null;
       clearTimeout(viewMeshRecheckTimer);
       viewMeshRecheckTimer = null;
       toolbarBlock = null;
@@ -1156,13 +1241,7 @@ export function initContextMenus(workspace) {
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.SELECTED) {
         if (e.newElementId) {
-          clearTimeout(toolbarShowTimer);
-          toolbarShowTimer = null;
           const block = workspace.getBlockById(e.newElementId);
-          // Read (don't consume) the current input modality; it persists until
-          // the next pointer/keyboard input, so a drag's start/end SELECTED pair
-          // are both treated as pointer-driven.
-          const wasPointer = lastSelectionWasPointer;
           const wasDismissed = block === dismissedBlock;
           dismissedBlock = null;
           const wasSuppressed = block === suppressReshowBlock;
@@ -1170,30 +1249,14 @@ export function initContextMenus(workspace) {
           if (isToolbarBlock(block)) {
             selectedBlock = block;
 
-            if (wasPointer) {
-              // Pointer selection: reveal after a short hover, no badges.
-              if (!wasDismissed) {
-                toolbarShowTimer = setTimeout(() => {
-                  toolbarShowTimer = null;
-                  if (pointerIsDown) {
-                    // Button still held with no drag recognized yet — a real
-                    // drag would already have cancelled this timer via
-                    // hideBlockToolbar(). Defer to the pointerup handler
-                    // above: reveal once released, unless a drag starts first.
-                    pendingHoverBlock = block;
-                    return;
-                  }
-                  showBlockToolbar(block);
-                }, 400);
-              } else {
-                hideBlockToolbar();
-              }
-            } else if (!wasSuppressed) {
-              // Keyboard navigation: show immediately with the shortcut overlay.
-              // (Suppressed case: this is the reselect echo from starting a
-              // keyboard move — stay hidden so the block is visible while
-              // it's being dragged.)
-              showBlockToolbar(block, { keyboard: true });
+            // Only a click opens the toolbar; every other way a block gets
+            // selected takes an open one away. Blockly selects on the press, so
+            // wait for the release — a drag in between cancels via hide.
+            if (!wasDismissed && !wasSuppressed && isOnBlockItself(block, pointerDownTarget)) {
+              if (pointerIsDown) revealOnRelease = block;
+              else showBlockToolbar(block);
+            } else {
+              hideBlockToolbar();
             }
           } else {
             selectedBlock = null;
@@ -1206,8 +1269,6 @@ export function initContextMenus(workspace) {
           if (actualSelected && actualSelected === selectedBlock) {
             // Block is still selected in Blockly — this null event is for something else; ignore it.
           } else {
-            clearTimeout(toolbarShowTimer);
-            toolbarShowTimer = null;
             selectedBlock = null;
             dismissedBlock = null;
             hideBlockToolbar();
@@ -1244,64 +1305,76 @@ export function initContextMenus(workspace) {
         updateEnableButton(toolbarBlock);
         updateSimplifiedToolbar();
         scheduleViewMeshRecheck();
-      } else if (e.type === Blockly.Events.BLOCK_DRAG && e.isStart) {
-        // A keyboard-initiated move (M) fires this the same as a pointer
-        // drag; flag the block so the SELECTED handler above ignores the
-        // reselect echo that follows and doesn't immediately undo this hide.
-        if (toolbarBlock && toolbarKeyboardMode) {
-          suppressReshowBlock = toolbarBlock;
+      } else if (e.type === Blockly.Events.BLOCK_DRAG) {
+        moveInProgress = !!e.isStart;
+        if (e.isStart) {
+          // Dragging is not a request for the toolbar, so flag the block for
+          // the SELECTED handler above: the reselect that follows must not
+          // undo this hide. Covers toolbox drags and keyboard moves (M) alike.
+          suppressReshowBlock = workspace.getBlockById(e.blockId) ?? toolbarBlock;
+          hideBlockToolbar();
         }
-        hideBlockToolbar();
       }
     });
+
+    // Is this element the block's own body? A block's SVG group nests
+    // everything it holds, so `contains` alone can't tell it from a block
+    // within it. Sockets and clickable fields belong to the input being aimed
+    // at; plain labels and icons are part of the block.
+    const isOnBlockItself = (block, el) => {
+      const svgRoot = block?.getSvgRoot?.();
+      if (!svgRoot || !el || !svgRoot.contains(el)) return false;
+      if (block.getChildren(false).some((child) => child.getSvgRoot()?.contains(el))) return false;
+      return !block.inputList?.some((input) =>
+        input.fieldRow?.some((field) => field.isClickable?.() && field.getSvgRoot?.()?.contains(el))
+      );
+    };
+
+    // Blockly won't fire SELECTED again for an already-selected block, so the
+    // click and key paths show/hide directly. Hiding marks the block dismissed
+    // so a following SELECTED doesn't re-show it.
+    function toggleToolbarForSelected({ keyboard = false } = {}) {
+      if (!selectedBlock) return;
+      if (toolbarBlock) {
+        dismissedBlock = selectedBlock;
+        hideBlockToolbar();
+      } else {
+        dismissedBlock = null;
+        showBlockToolbar(selectedBlock, { keyboard });
+      }
+    }
 
     // Toggle toolbar on click of the selected block
     document.addEventListener(
       'pointerdown',
       (e) => {
         if (e.button !== 0) return;
-        if (!selectedBlock) return;
-        const svgRoot = selectedBlock.getSvgRoot?.();
-        if (!svgRoot || !svgRoot.contains(e.target)) return;
-        if (toolbarBlock) {
-          // Toolbar visible → hide it; prevent SELECTED from re-showing for this specific block.
-
-          dismissedBlock = selectedBlock;
-          hideBlockToolbar();
-        } else {
-          // Toolbar not visible (dismissed or hidden e.g. after returning from gizmo/canvas).
-          // Blockly won't fire SELECTED again for an already-selected block, so show directly.
-          dismissedBlock = null;
-          showBlockToolbar(selectedBlock);
-        }
+        if (!isOnBlockItself(selectedBlock, e.target)) return;
+        toggleToolbarForSelected();
       },
       { capture: true }
     );
 
-    // Keyboard equivalent of the click-to-toggle above: H toggles the
-    // toolbar for the currently selected block. Unbound elsewhere in this
-    // context, and unlike Enter it doesn't collide with finishing a keyboard
-    // move (M) or any other existing shortcut. The containment check guards
-    // against `selectedBlock` being a stale reference while focus has
-    // actually moved elsewhere (e.g. the toolbox).
+    // Enter toggles the toolbar for the focused block, with H as an alias. The
+    // containment check guards against `selectedBlock` being stale while focus
+    // has moved elsewhere (e.g. the toolbox).
     document.addEventListener(
       'keydown',
       (e) => {
-        if (e.key.toLowerCase() !== 'h') return;
+        const key = e.key.toLowerCase();
+        if (key !== 'enter' && key !== 'h') return;
         if (isTypingInInput()) return;
         if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-        if (!selectedBlock) return;
-        const svgRoot = selectedBlock.getSvgRoot?.();
-        if (!svgRoot || !svgRoot.contains(document.activeElement)) return;
+        // Enter also confirms a move (M) and opens a field's editor, so take
+        // it only when the block itself is focused and no move is running.
+        if (key === 'enter') {
+          if (moveInProgress) return;
+          if (!document.activeElement?.classList?.contains('blocklyPath')) return;
+        }
+        if (!isOnBlockItself(selectedBlock, document.activeElement)) return;
         e.preventDefault();
         e.stopPropagation();
-        if (toolbarBlock) {
-          dismissedBlock = selectedBlock;
-          hideBlockToolbar();
-        } else {
-          dismissedBlock = null;
-          showBlockToolbar(selectedBlock, { keyboard: true });
-        }
+        toggleToolbarForSelected({ keyboard: true });
       },
       { capture: true }
     );

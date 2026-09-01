@@ -1166,6 +1166,7 @@ export default {
   duplicate_button_ui: 'Duplicar objeto seleccionado', // human
   delete_button_ui: 'Eliminar objeto seleccionado', // human
   delete_block_button_ui: 'Eliminar bloque',
+  block_menu: 'Menú de bloque', // ai
   duplicate_block_button_ui: 'Duplicar bloque',
   camera_button_ui: 'Controles de cámara', // human
   eye_button_ui: 'Orbitar alrededor del objeto seleccionado',

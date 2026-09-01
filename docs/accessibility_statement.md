@@ -114,15 +114,15 @@ There has been interest in making the Flock XR user interface and blocks workspa
 
 In addition to keyboard controls and support for adaptive inputs, Flock XR has a number of features to support users with fine motor control challenges.
 
-### Context toolbar and bottom bar buttons
+### Block menu and bottom bar buttons
 
-Additional actions for blocks are available from the right-click menu in Flock XR which requires a tap-and-hold gesture on touch screens. Common actions are offered on a pop-up context menu which is easier to access.
+Additional actions for blocks are available from the right-click menu in Flock XR which requires a tap-and-hold gesture on touch screens. Common actions are offered on a pop-up block menu which is easier to access. Click or tap a block to open the block menu, or press Enter when the block is focused. The same click or key closes it again. Clicking a block's fields, or the values plugged into it, leaves the block menu closed so it stays out of the way while you edit.
 
 Additional actions for the blocks workspace are available as buttons in the bottom toolbar.
 
 ### Locking blocks
 
-Blocks that are not currently being edited can be locked from the context menu. This avoids accidental edits.
+Blocks that are not currently being edited can be locked from the right-click menu. This avoids accidental edits.
 
 ### Tap before drag on phones
 

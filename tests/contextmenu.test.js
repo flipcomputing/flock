@@ -279,30 +279,26 @@ export function runContextMenuTests(_flock) {
     describe('floating block toolbar', function () {
       // Blockly fires its change events asynchronously.
       const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
+      // Long enough for a click's reveal-on-release to have run if it was going to.
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
 
-      it('dismisses itself when repositioned against a collapsed workspace', async function () {
+      it('does not open when a block is merely selected', async function () {
         const block = makeBlock();
-        // Keyboard modality shows the toolbar at once; pointer waits for a hover.
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
         block.select();
         await flush();
-        expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        expect(blockToolbar.classList.contains('visible')).to.equal(false);
+      });
 
-        // Collapse rather than display:none — the toolbar survives this, so the
-        // dismissal below is the visibility guard rather than a Blockly deselect.
-        container.style.width = '0px';
-        container.style.height = '0px';
-        try {
-          await flush();
-          expect(blockToolbar.classList.contains('visible')).to.equal(true);
-
-          block.moveBy(1, 1); // any event that repositions the toolbar
-          await flush();
-          expect(blockToolbar.classList.contains('visible')).to.equal(false);
-        } finally {
-          container.style.width = '300px';
-          container.style.height = '200px';
-        }
+      it('stays shut for a selection the pointer never landed on', async function () {
+        // Blockly selects on its own too — moving focus to a neighbour after a
+        // delete, say — and that is not a request for the toolbar.
+        const block = makeBlock();
+        document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+        document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        block.select();
+        await settle();
+        expect(blockToolbar.classList.contains('visible')).to.equal(false);
       });
     });
   });

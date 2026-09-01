@@ -1179,6 +1179,7 @@ export default {
   duplicate_button_ui: 'Duplicate selected object',
   delete_button_ui: 'Delete selected object',
   delete_block_button_ui: 'Delete block',
+  block_menu: 'Block menu',
   duplicate_block_button_ui: 'Duplicate block',
   camera_button_ui: 'Camera controls',
   eye_button_ui: 'Orbit around selected object',
