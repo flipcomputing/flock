@@ -532,6 +532,11 @@ function getShortcuts() {
       keys: `← →`,
       category: translate('shortcut_category_editor'),
     },
+    {
+      label: translate('shortcut_dropdown_typeahead'),
+      keys: `A–Z`,
+      category: translate('shortcut_category_editor'),
+    },
 
     {
       label: translate('shortcut_next_block_stack'),

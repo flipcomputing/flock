@@ -1437,6 +1437,7 @@ export default {
   shortcut_select_workspace: 'Seleccionar área de trabajo',
   shortcut_move_through_blocks: 'Moverse por los bloques',
   shortcut_move_in_out_blocks: 'Entrar/salir de un bloque',
+  shortcut_dropdown_typeahead: 'Saltar por una lista desplegable abierta escribiendo un nombre', // ai
   shortcut_next_block_stack: 'Siguiente pila de bloques',
   shortcut_prev_block_stack: 'Pila de bloques anterior',
   shortcut_open_gizmos: 'Gizmos',

@@ -1501,6 +1501,7 @@ export default {
   shortcut_select_workspace: 'Select workspace',
   shortcut_move_through_blocks: 'Move through blocks',
   shortcut_move_in_out_blocks: 'Move in/out of a block',
+  shortcut_dropdown_typeahead: 'Jump through an open dropdown by typing a name',
   shortcut_next_block_stack: 'Next block stack',
   shortcut_prev_block_stack: 'Previous block stack',
   shortcut_open_gizmos: 'Gizmos',

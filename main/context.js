@@ -2,6 +2,7 @@
  * Flock Context Manager
  * Priority-based state tracker for keyboard/mouse intent.
  */
+import * as Blockly from 'blockly';
 import { isDebugModeEnabled } from './debugMode.js';
 
 export const ContextManager = {
@@ -17,23 +18,9 @@ export const ContextManager = {
         activeEl.tagName === 'TEXTAREA' ||
         activeEl.isContentEditable);
 
-    // Check Blockly safely across different versions/namespaces
-    let isBlocklyTyping = false;
-    if (window.Blockly) {
-      // Try multiple ways to find the main workspace
-      const mainWorkspace =
-        (typeof window.Blockly.getMainWorkspace === 'function'
-          ? window.Blockly.getMainWorkspace()
-          : null) ??
-        (typeof window.Blockly.common?.getMainWorkspace === 'function'
-          ? window.Blockly.common.getMainWorkspace()
-          : null);
-
-      // If workspace is found, check if it's currently editing a field
-      if (mainWorkspace && mainWorkspace.isTyping) {
-        isBlocklyTyping = mainWorkspace.isTyping();
-      }
-    }
+    // An open Blockly field editor owns the keyboard, whether it is a text widget or a
+    // dropdown menu. Menus are not inputs, so nothing else here recognises them.
+    const isBlocklyTyping = Blockly.WidgetDiv.isVisible() || Blockly.DropDownDiv.isVisible();
 
     if (isInput || isBlocklyTyping) return 'TYPING';
 

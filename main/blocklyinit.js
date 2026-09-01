@@ -55,6 +55,7 @@ import {
   deleteBlockComment,
 } from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
+import { installDropdownTypeahead } from './dropdownTypeahead.js';
 
 // Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
@@ -173,6 +174,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
     };
   }
 }
+
+installDropdownTypeahead();
 
 let workspace = null;
 export { workspace };
@@ -1463,6 +1466,11 @@ function installShadowNavigationPatch(ws) {
   // which fails on a skippable block's field — re-register the same keys for that case.
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
 
+  // A field editor holding ephemeral focus leaves scope.focusedNode pointing at the
+  // field, so shortcuts resolving their own target would otherwise fire on letters
+  // typed into an open dropdown. Blockly's own destructive shortcuts guard the same way.
+  const fieldEditorOpen = () => Blockly.getFocusManager().ephemeralFocusTaken();
+
   const skippableFieldBlock = () => {
     const field = getFocusedSkippableField();
     return field ? field.getSourceBlock() : null;
@@ -1573,6 +1581,7 @@ function installShadowNavigationPatch(ws) {
     };
     const commentEditable = (ws, block) =>
       !!block &&
+      !fieldEditorOpen() &&
       !ws.isDragging?.() &&
       !ws.isReadOnly?.() &&
       !block.isShadow?.() &&
@@ -1634,6 +1643,7 @@ function installShadowNavigationPatch(ws) {
     };
     const enableEditable = (ws, block) =>
       !!block &&
+      !fieldEditorOpen() &&
       !ws.isDragging?.() &&
       !ws.isReadOnly?.() &&
       !block.isShadow?.() &&
