@@ -3973,12 +3973,51 @@ const toolboxLists = {
   ],
 };
 
+// `custom` supplies the flyout, so these contents are never rendered; they are
+// here so the variable blocks reach the block search index, which is built from
+// the toolbox definition.
 const toolboxVariables = {
   kind: 'category',
   name: '%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}',
   icon: './images/variables.svg',
   categorystyle: 'variables_category',
-  contents: [],
+  contents: [
+    {
+      kind: 'block',
+      type: 'variables_set',
+      keyword: 'set',
+      inputs: {
+        VALUE: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'math_change',
+      keyword: 'change',
+      inputs: {
+        DELTA: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'variables_get',
+      keyword: 'variable',
+    },
+  ],
   custom: 'VARIABLE',
 };
 

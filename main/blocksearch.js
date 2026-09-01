@@ -28,12 +28,64 @@ export function indexesFieldValues(field) {
 }
 
 export function getBlockSearchLabel(workspace, blockDefOrType) {
+  if (typeof blockDefOrType !== 'string' && blockDefOrType?.searchLabel) {
+    return blockDefOrType.searchLabel;
+  }
   const type = typeof blockDefOrType === 'string' ? blockDefOrType : blockDefOrType?.type;
   if (!type) return '';
   return (
     workspace?.flockBlockLabelMap?.get(type) ||
     type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
   );
+}
+
+// The blocks that work on one variable, in the order the Variables flyout
+// lists them. Their shadow values come from the toolbox entries, so the two
+// surfaces stay in step.
+const VARIABLE_BLOCK_TYPES = ['variables_set', 'math_change', 'variables_get'];
+const VARIABLE_BLOCK_MESSAGES = {
+  variables_set: 'VARIABLES_SET',
+  math_change: 'MATH_CHANGE_TITLE',
+};
+function variableBlockLabel(type, name) {
+  const message = Blockly.Msg[VARIABLE_BLOCK_MESSAGES[type]];
+  return message ? message.replace('%1', name).replace('%2', '( )').trim() : name;
+}
+
+function variableName(variable) {
+  return variable.getName?.() ?? variable.name ?? '';
+}
+
+function variableRank(variable, query) {
+  const name = variableName(variable).toLowerCase();
+  if (name === query) return 0;
+  return name.startsWith(query) ? 1 : 2;
+}
+
+// A set/change/get trio for the closest matching variable, so a variable can be
+// reached by its own name instead of by the generic block names. Only the one
+// variable: typing "box" should reach box1, not fill the list with box2 and
+// box3 as well.
+function variableBlockDefinitions(workspace, query, index) {
+  const variables = workspace.getVariableMap?.()?.getAllVariables?.() ?? [];
+  const [variable] = variables
+    .filter((candidate) => variableName(candidate).toLowerCase().includes(query))
+    .sort(
+      (a, b) =>
+        variableRank(a, query) - variableRank(b, query) ||
+        variableName(a).length - variableName(b).length
+    );
+  if (!variable) return [];
+
+  const name = variableName(variable);
+  return VARIABLE_BLOCK_TYPES.map((type) => index.find((entry) => entry.type === type)?.full)
+    .filter(Boolean)
+    .map((template) => ({
+      ...template,
+      keyword: name,
+      searchLabel: variableBlockLabel(template.type, name),
+      fields: { ...template.fields, VAR: { name, type: variable.getType?.() ?? '' } },
+    }));
 }
 
 // Ranking tiers, best first. An exactly typed keyword or label wins outright so
@@ -58,12 +110,15 @@ export function matchBlockDefinitions(workspace, rawQuery) {
   if (!index) return [];
 
   const labelOf = (def) => getBlockSearchLabel(workspace, def).toLowerCase();
+  // Variable blocks are one per variable, so the type alone is not unique.
+  const keyOf = (def) => `${def.type}|${def.fields?.VAR?.name ?? ''}`;
 
-  const seenTypes = new Set();
-  return index
-    .filter((b) => b.text && b.text.includes(query))
-    .map((b) => b.full)
-    .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
+  const seenKeys = new Set();
+  return [
+    ...variableBlockDefinitions(workspace, query, index),
+    ...index.filter((b) => b.text && b.text.includes(query)).map((b) => b.full),
+  ]
+    .filter((def) => def?.type && !seenKeys.has(keyOf(def)) && seenKeys.add(keyOf(def)))
     .sort((a, b) => scoreMatch(a, query, labelOf(a)) - scoreMatch(b, query, labelOf(b)));
 }
 

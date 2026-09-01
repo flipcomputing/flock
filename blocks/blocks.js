@@ -1642,10 +1642,17 @@ export function defineBlocks() {
 
       try {
         const workspace = this.workspace;
+        const variablesBefore = new Set(
+          workspace
+            .getVariableMap()
+            .getAllVariables()
+            .map((variable) => variable.getId())
+        );
         const newBlock = workspace.newBlock(definition.type);
         newBlock.initSvg();
         newBlock.render();
         applyBlockDefinition(newBlock, definition);
+        discardUnusedNewVariables(workspace, variablesBefore);
 
         const pos = this.getRelativeToSurfaceXY();
         newBlock.moveBy(pos.x, pos.y);
@@ -1689,6 +1696,24 @@ export function defineBlocks() {
       }
     },
   };
+
+  // Creating a block instantiates whatever variable its variable field defaults
+  // to; when the definition then points the field at another one, that default
+  // is left behind unused.
+  function discardUnusedNewVariables(workspace, existingIds) {
+    const variableMap = workspace.getVariableMap();
+    const stranded = variableMap
+      .getAllVariables()
+      .filter((variable) => !existingIds.has(variable.getId()));
+    if (!stranded.length) return;
+
+    const used = new Set(
+      Blockly.Variables.allUsedVarModels(workspace).map((variable) => variable.getId())
+    );
+    for (const variable of stranded) {
+      if (!used.has(variable.getId())) variableMap.deleteVariable(variable);
+    }
+  }
 
   function applyBlockDefinition(block, definition) {
     if (!block || !definition) {

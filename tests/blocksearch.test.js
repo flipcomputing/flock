@@ -8,6 +8,7 @@ import {
   rebuildBlockCategoryMap,
 } from '../main/blocksearch.js';
 import { FieldBlockSearch } from '../blocks/fieldBlockSearch.js';
+import { toolbox } from '../toolbox.js';
 
 const CAMERA_FOLLOW = { kind: 'block', type: 'camera_follow', keyword: 'camfollow' };
 const CAMERA = { kind: 'block', type: 'set_camera', keyword: 'cam' };
@@ -26,6 +27,16 @@ function stubIndex(workspace) {
     { type: 'set_camera', full: CAMERA, text: 'set camera to cam free camera' },
     { type: 'clone_mesh', full: CLONE, text: 'clone as clone_mesh' },
   ];
+}
+
+function toolboxDefinitionFor(type) {
+  const stack = [toolbox];
+  while (stack.length) {
+    const node = stack.pop();
+    if (node?.kind === 'block' && node.type === type) return node;
+    if (node?.contents) stack.push(...node.contents);
+  }
+  return null;
 }
 
 // Blockly.Blocks is global, so every test block is registered and removed
@@ -135,6 +146,92 @@ export function runBlockSearchTests() {
         expect(getBlockCategoryInfo(workspace, 'set_camera').name).to.equal('Camera');
         expect(getBlockCategoryInfo(workspace, 'unknown_block').name).to.equal('');
       });
+    });
+  });
+
+  describe('matching a variable by name @blocksearch', function () {
+    let workspace;
+
+    // Only the variable blocks are indexed here; their toolbox definitions are
+    // the templates the per-variable results are built from.
+    beforeEach(function () {
+      workspace = new Blockly.Workspace();
+      workspace.flockBlockLabelMap = new Map([['clone_mesh', 'clone ( ) as ( )']]);
+      workspace.flockSearchIndexedBlocks = [
+        ...['variables_set', 'math_change', 'variables_get'].map((type) => ({
+          type,
+          full: toolboxDefinitionFor(type),
+          text: type.replace('_', ' '),
+        })),
+        { type: 'clone_mesh', full: CLONE, text: 'clone as clone_mesh score' },
+      ];
+    });
+
+    afterEach(function () {
+      workspace.dispose();
+    });
+
+    const summarise = (query) =>
+      matchBlockDefinitions(workspace, query).map((def) => `${def.type}:${def.fields?.VAR?.name}`);
+
+    it('offers the set, change and getter blocks for a variable', function () {
+      workspace.createVariable('score');
+      expect(summarise('score').slice(0, 3)).to.deep.equal([
+        'variables_set:score',
+        'math_change:score',
+        'variables_get:score',
+      ]);
+    });
+
+    it('labels each result with the variable it acts on', function () {
+      workspace.createVariable('score');
+      const labels = matchBlockDefinitions(workspace, 'score')
+        .slice(0, 3)
+        .map((def) => getBlockSearchLabel(workspace, def));
+      expect(labels[0]).to.contain('score');
+      expect(labels[0]).to.not.equal(labels[1]);
+      expect(labels[2]).to.equal('score');
+    });
+
+    it('carries the toolbox shadows over to the variable blocks', function () {
+      workspace.createVariable('score');
+      const [setDef, changeDef] = matchBlockDefinitions(workspace, 'score');
+      expect(setDef.inputs.VALUE.shadow.fields.NUM).to.equal(0);
+      expect(changeDef.inputs.DELTA.shadow.fields.NUM).to.equal(1);
+    });
+
+    it('ranks the variable ahead of blocks that merely mention it', function () {
+      workspace.createVariable('score');
+      expect(summarise('score')[0]).to.equal('variables_set:score');
+      expect(summarise('score')).to.contain('clone_mesh:undefined');
+    });
+
+    it('offers only the closest matching variable', function () {
+      workspace.createVariable('score');
+      workspace.createVariable('scoreboard');
+      const named = summarise('score').filter((entry) => !entry.endsWith(':undefined'));
+      expect(named).to.deep.equal([
+        'variables_set:score',
+        'math_change:score',
+        'variables_get:score',
+      ]);
+    });
+
+    it('prefers an exact name over a shorter one that only contains the query', function () {
+      workspace.createVariable('boxes');
+      workspace.createVariable('box');
+      expect(summarise('box')[0]).to.equal('variables_set:box');
+    });
+
+    it('takes the first of equally close names', function () {
+      for (const name of ['box1', 'box2', 'box3']) workspace.createVariable(name);
+      const named = summarise('box').filter((entry) => !entry.endsWith(':undefined'));
+      expect(named).to.deep.equal(['variables_set:box1', 'math_change:box1', 'variables_get:box1']);
+    });
+
+    it('leaves the generic blocks alone when no variable matches', function () {
+      workspace.createVariable('score');
+      expect(summarise('variables set')).to.deep.equal(['variables_set:undefined']);
     });
   });
 
@@ -432,6 +529,75 @@ export function runBlockSearchTests() {
     });
   });
 
+  // The search index is built from the toolbox definition, so a block only
+  // reaches the picker if the toolbox lists it — even in a category whose
+  // flyout is supplied by a `custom` callback, as the variable one is.
+  describe('variable blocks in the toolbox definition @blocksearch', function () {
+    this.timeout(5000);
+
+    let container;
+    let workspace;
+
+    beforeEach(function () {
+      container = document.createElement('div');
+      container.style.width = '500px';
+      container.style.height = '400px';
+      document.body.appendChild(container);
+      workspace = Blockly.inject(container, {});
+    });
+
+    // Blockly flushes its event queue on a later tick; disposing the workspace
+    // before it does leaves events pointing at a dead workspace, and the throw
+    // from firing them lands in whichever test runs next.
+    afterEach(async function () {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      workspace.dispose();
+      container.remove();
+    });
+
+    for (const [type, keyword] of [
+      ['variables_set', 'set'],
+      ['math_change', 'change'],
+      ['variables_get', 'variable'],
+    ]) {
+      it(`lists ${type} so it can be searched by "${keyword}"`, function () {
+        const definition = toolboxDefinitionFor(type);
+        expect(definition, `${type} missing from the toolbox definition`).to.not.equal(null);
+        expect(definition.keyword).to.equal(keyword);
+      });
+
+      it(`builds ${type} from its toolbox definition`, function () {
+        const keywordBlock = workspace.newBlock('keyword');
+        keywordBlock.initSvg();
+        keywordBlock.render();
+        keywordBlock.onBlockSearchSelect(toolboxDefinitionFor(type));
+        const created = workspace.getAllBlocks().find((block) => block.type === type);
+        expect(created, `${type} was not created`).to.not.equal(undefined);
+        expect(created.getField('VAR')?.getText()).to.be.a('string').and.not.equal('');
+      });
+    }
+
+    // The picked block should arrive filled in the same way as the one dragged
+    // out of the Variables flyout (registerToolboxCategoryCallback in
+    // main/blocklyinit.js), which is where these shadow values come from.
+    for (const [type, input, shadowType, value] of [
+      ['variables_set', 'VALUE', 'math_number', '0'],
+      ['math_change', 'DELTA', 'math_number', '1'],
+    ]) {
+      it(`fills the ${input} socket of ${type} the way the flyout does`, function () {
+        const keywordBlock = workspace.newBlock('keyword');
+        keywordBlock.initSvg();
+        keywordBlock.render();
+        keywordBlock.onBlockSearchSelect(toolboxDefinitionFor(type));
+        const created = workspace.getAllBlocks().find((block) => block.type === type);
+        const shadow = created.getInputTargetBlock(input);
+        expect(shadow?.type).to.equal(shadowType);
+        expect(shadow.isShadow()).to.equal(true);
+        expect(shadow.getFieldValue('NUM')).to.equal(Number(value));
+      });
+    }
+  });
+
   describe('keyword block replacement @blocksearch', function () {
     this.timeout(5000);
 
@@ -522,6 +688,42 @@ export function runBlockSearchTests() {
       expect(tail.isDisposed()).to.equal(false);
       expect(stackTypes(head)).to.deep.equal(['test_replace_statement', 'test_replace_terminal']);
       expect(workspace.getTopBlocks(false)).to.have.length(2);
+    });
+
+    // Creating the block instantiates its default variable before the chosen
+    // one is applied; the default must not be left lying around.
+    it('does not strand the default variable when the definition names another', function () {
+      workspace.createVariable('score');
+      const keyword = workspace.newBlock('keyword');
+      keyword.initSvg();
+      keyword.render();
+      keyword.onBlockSearchSelect({
+        ...toolboxDefinitionFor('variables_set'),
+        fields: { VAR: { name: 'score', type: '' } },
+      });
+      const setBlock = workspace.getAllBlocks().find((block) => block.type === 'variables_set');
+      expect(setBlock.getField('VAR').getText()).to.equal('score');
+      expect(
+        workspace
+          .getVariableMap()
+          .getAllVariables()
+          .map((variable) => variable.getName())
+      ).to.deep.equal(['score']);
+    });
+
+    it('keeps the default variable when the block is the one using it', function () {
+      const keyword = workspace.newBlock('keyword');
+      keyword.initSvg();
+      keyword.render();
+      keyword.onBlockSearchSelect(toolboxDefinitionFor('variables_set'));
+      const setBlock = workspace.getAllBlocks().find((block) => block.type === 'variables_set');
+      const name = setBlock.getField('VAR').getText();
+      expect(
+        workspace
+          .getVariableMap()
+          .getAllVariables()
+          .map((variable) => variable.getName())
+      ).to.deep.equal([name]);
     });
 
     it('replaces a lone keyword block with no stack around it', function () {
