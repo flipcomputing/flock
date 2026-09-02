@@ -33,11 +33,11 @@ export const EXAMPLES = [
   },
   { i18nKey: 'candy_dash', file: 'examples/candy_dash.flock', category: 'games' },
   { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
-  {
+  /*{
     i18nKey: 'gem_tilt_game',
     file: 'examples/gem_tilt_game.flock',
     category: 'games',
-  },
+  },*/
   { i18nKey: 'physics_fun', file: 'examples/physics_fun.flock', category: 'physics' },
   { i18nKey: 'shape_push', file: 'examples/shape_push.flock', category: 'physics' },
   { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', category: 'physics' },
