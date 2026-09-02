@@ -59,16 +59,6 @@ export function runBlockHintTests(_flock) {
         expect(text.textContent).to.equal('Move the object');
       });
 
-      it("strips the trailing 'Keyword: x' search term", function () {
-        showBlockHint('Move the object.\nKeyword: move');
-        expect(text.textContent).to.equal('Move the object.');
-      });
-
-      it("keeps a 'Keyword:' that is not the trailing term", function () {
-        showBlockHint('Keyword: names the search term used by the toolbox.');
-        expect(text.textContent).to.equal('Keyword: names the search term used by the toolbox.');
-      });
-
       it('trims surrounding whitespace', function () {
         showBlockHint('   Move the object   ');
         expect(text.textContent).to.equal('Move the object');
@@ -231,11 +221,6 @@ export function runBlockHintTests(_flock) {
         showBlockHintMessage('Show hints: in the Tools menu', { boldPart: 'Show hints' });
         expect(container.hidden).to.be.false;
         expect(text.textContent).to.equal('Show hints: in the Tools menu');
-      });
-
-      it("does not strip 'Keyword:' — unlike showBlockHint, messages are not tooltips", function () {
-        showBlockHintMessage('A message.\nKeyword: move');
-        expect(text.textContent).to.equal('A message.\nKeyword: move');
       });
 
       it('renders boldPart as text, never as markup', function () {

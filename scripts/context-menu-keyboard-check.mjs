@@ -141,7 +141,7 @@ try {
     'Ctrl+Enter still opens a focused block’s own context menu'
   );
 
-  // The floating block toolbar opens on Enter, not on focus alone.
+  // The toolbar opens on H, not on focus alone; Enter belongs to Blockly.
   await fresh();
   await page.keyboard.press('Control+b');
   await sleep(250);
@@ -153,15 +153,47 @@ try {
   await page.keyboard.press('Enter');
   await sleep(500);
   const openedOnEnter = await toolbarVisible();
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('Escape');
+  await sleep(400);
+  await page.keyboard.press('h');
   await sleep(500);
-  const closedOnEnter = !(await toolbarVisible());
+  const openedOnH = await toolbarVisible();
+  await page.keyboard.press('h');
+  await sleep(500);
+  const closedOnH = !(await toolbarVisible());
   check(!openedOnFocus, 'Arrowing onto a block does not open the block toolbar');
-  check(openedOnEnter, 'Enter opens the block toolbar for the focused block');
-  check(closedOnEnter, 'Enter again closes the block toolbar');
+  check(!openedOnEnter, 'Enter does not open the block toolbar');
+  check(openedOnH, 'H opens the block toolbar for the focused block');
+  check(closedOnH, 'H again closes the block toolbar');
+
+  await page.evaluate(() => {
+    const el = document.getElementById('announcements');
+    if (el) el.textContent = '';
+  });
+  await page.keyboard.press('h');
+  await sleep(250);
+  const announced = await page.evaluate(
+    () => document.getElementById('announcements')?.textContent?.trim() || ''
+  );
+  const focusStayed = await page.evaluate(
+    () => !!document.activeElement?.classList?.contains('blocklyPath')
+  );
+  check(
+    /Block menu/i.test(announced) && /, D\b/.test(announced),
+    'Opening announces the menu and its shortcut keys'
+  );
+  check(focusStayed, 'Opening leaves focus on the block');
+  check(
+    await page.evaluate(
+      () => document.querySelector('.fc-toolbar-badges')?.getAttribute('aria-hidden') === 'true'
+    ),
+    'The shortcut badges are hidden from screen readers (the announcement carries them)'
+  );
+  await page.keyboard.press('h');
+  await sleep(400);
 
   // Moving focus to another block takes the toolbar away with it.
-  await page.keyboard.press('Enter');
+  await page.keyboard.press('h');
   await sleep(400);
   await page.keyboard.press('ArrowDown');
   await sleep(500);

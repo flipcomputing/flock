@@ -9,9 +9,6 @@ function getTextElement() {
   return typeof document === 'undefined' ? null : document.getElementById('blockHintText');
 }
 
-// Strips the obsolete trailing "Keyword: word" some tooltips still carry.
-const KEYWORD_RE = /\s*Keyword:\s*\S+\s*$/;
-
 const EXPANDED_KEY = 'flock-block-hints-expanded';
 
 // null means "never chosen", so the default applies.
@@ -92,7 +89,7 @@ function renderBlockHint(text) {
   }
 
   element.replaceChildren();
-  element.append(content.replace(KEYWORD_RE, '').trim());
+  element.append(content.trim());
 
   container.hidden = false;
 }

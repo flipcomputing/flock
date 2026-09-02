@@ -245,7 +245,7 @@ export default {
   apply_force: 'tillämpa kraft på %1 x: %2 y: %3 z: %4',
   set_speed: 'ställ in hastighet för %1 %2 till %3', // ai
   set_speed_tooltip:
-    'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.\nNyckelord: speed', // ai
+    'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks
@@ -364,21 +364,20 @@ export default {
   BLOCK_CREATE_BOX_MESSAGE: 'skapa låda %1 färg %2 storlek %3 × %4 × %5 vid %6, %7, %8',
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Ställ in scenens himmelfärg.\nNyckelord: himmel',
-  create_ground_tooltip:
-    'Lägg till ett markplan med kollisioner aktiverade i scenen.\nNyckelord: mark',
-  set_background_color_tooltip: 'Ställ in bakgrundsfärgen i scenen.\nNyckelord: bakgrund',
-  create_map_tooltip: 'Skapa en karta med valt namn och material.\nNyckelord: karta',
-  show_tooltip: 'Visa det valda objektet.\nNyckelord: visa',
-  hide_tooltip: 'Dölj det valda objektet.\nNyckelord: dölj',
-  dispose_tooltip: 'Ta bort det angivna objektet från scenen.\nNyckelord: ta bort',
-  clone_mesh_tooltip: 'Kopiera ett objekt och tilldela det till en variabel.\nNyckelord: kopiera',
+  set_sky_color_tooltip: 'Ställ in scenens himmelfärg.',
+  create_ground_tooltip: 'Lägg till ett markplan med kollisioner aktiverade i scenen.',
+  set_background_color_tooltip: 'Ställ in bakgrundsfärgen i scenen.',
+  create_map_tooltip: 'Skapa en karta med valt namn och material.',
+  show_tooltip: 'Visa det valda objektet.',
+  hide_tooltip: 'Dölj det valda objektet.',
+  dispose_tooltip: 'Ta bort det angivna objektet från scenen.',
+  clone_mesh_tooltip: 'Kopiera ett objekt och tilldela det till en variabel.',
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Skapa en konfigurerbar karaktär.\nNyckelord: karaktär',
-  load_object_tooltip: 'Skapa ett objekt.\nNyckelord: objekt',
-  load_multi_object_tooltip: 'Skapa ett objekt med färger.\nNyckelord: objekt',
-  load_model_tooltip: 'Ladda en modell.\nNyckelord: modell',
+  load_character_tooltip: 'Skapa en konfigurerbar karaktär.',
+  load_object_tooltip: 'Skapa ett objekt.',
+  load_multi_object_tooltip: 'Skapa ett objekt med färger.',
+  load_model_tooltip: 'Ladda en modell.',
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -406,11 +405,9 @@ export default {
   control_animation_group_tooltip:
     'Styr animationsgruppen genom att spela, pausa eller stoppa den.',
   animate_from_tooltip: 'Börja animera gruppen från angiven tid (i sekunder).',
-  stop_animations_tooltip:
-    'Stoppa alla nyckelruteanimationer på det valda objektet.\nNyckelord: stoppa',
-  switch_animation_tooltip:
-    'Byt animation på det angivna objektet till vald animation.\nNyckelord: byt',
-  play_animation_tooltip: 'Spela vald animation en gång på det angivna objektet.\nNyckelord: spela',
+  stop_animations_tooltip: 'Stoppa alla nyckelruteanimationer på det valda objektet.',
+  switch_animation_tooltip: 'Byt animation på det angivna objektet till vald animation.',
+  play_animation_tooltip: 'Spela vald animation en gång på det angivna objektet.',
 
   // Tooltip translations - Base blocks
   xyz_tooltip: 'Skapar en vektor med X-, Y- och Z-koordinater',
@@ -418,115 +415,109 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Koppla en specifik tangent till en kamerakontrollfunktion.',
   camera_follow_tooltip:
-    'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.\nKeyword: follow',
+    'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.',
   get_camera_tooltip: 'Hämta den aktuella scenkameran',
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    'Slå samman en lista med objekt till ett och spara resultatet.\nKeyword: merge',
+  merge_meshes_tooltip: 'Slå samman en lista med objekt till ett och spara resultatet.',
   subtract_meshes_tooltip:
-    'Subtrahera en lista med objekt från ett basobjekt och spara resultatet.\nKeyword: subtract',
+    'Subtrahera en lista med objekt från ett basobjekt och spara resultatet.',
   intersection_meshes_tooltip:
-    'Skapa en geometri genom att skära en lista med objekt och spara resultatet.\nKeyword: intersect',
-  hull_meshes_tooltip:
-    'Skapa ett konvext hölje från en lista med objekt och spara resultatet.\nKeyword: hull',
+    'Skapa en geometri genom att skära en lista med objekt och spara resultatet.',
+  hull_meshes_tooltip: 'Skapa ett konvext hölje från en lista med objekt och spara resultatet.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition\nKeyword:parent',
+    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition',
   parent_child_tooltip:
-    'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child',
-  remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.\nKeyword: unparent',
-  stop_follow_tooltip: 'Stoppa det angivna objektet från att följa ett annat.\nKeyword: stopfollow',
+    'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.',
+  remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.',
+  stop_follow_tooltip: 'Stoppa det angivna objektet från att följa ett annat.',
   hold_tooltip:
-    'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold',
-  drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.\nKeyword: drop',
+    'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.',
+  drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.',
   follow_tooltip:
-    'Få ett objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow',
-  export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.\nKeyword: export',
+    'Få ett objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.',
+  export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.',
 
   // Tooltip translations - Control blocks
-  wait_tooltip: 'Vänta en angiven tid i millisekunder.\nKeyword: milli',
-  wait_seconds_tooltip: 'Vänta en angiven tid i sekunder.\nKeyword: wait',
-  wait_until_tooltip: 'Vänta tills villkoret är uppfyllt.\nKeyword:until',
+  wait_tooltip: 'Vänta en angiven tid i millisekunder.',
+  wait_seconds_tooltip: 'Vänta en angiven tid i sekunder.',
+  wait_until_tooltip: 'Vänta tills villkoret är uppfyllt.',
   local_variable_tooltip:
-    'Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.\nKeyword: local',
+    'Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.',
   for_loop2_tooltip: 'Loop från ett starttal till ett slutvärde med ett givet steg.',
   for_loop_tooltip:
-    'Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.\nKeyword: for',
+    'Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.',
   get_lexical_variable_tooltip: 'Hämta värdet av en lexikal variabel',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: 'Ställ in intensiteten på huvudljuset.\nKeyword: light intensity',
+  main_light_tooltip: 'Ställ in intensiteten på huvudljuset.',
   set_fog_tooltip:
-    'Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog',
-  get_light_tooltip: 'Hämta huvudljuset på aktuella scen.\nKeyword: light',
+    'Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.',
+  get_light_tooltip: 'Hämta huvudljuset på aktuella scen.',
 
   // Tooltip translations - Events blocks
-  start_tooltip: 'Kör blocken när projektet startar. Du kan ha flera startblock.\nKeyword: start',
-  forever_tooltip:
-    'Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever',
-  when_clicked_tooltip: 'Kör blocken när objekt-triggern aktiveras.\nKeyword: click',
+  start_tooltip: 'Kör blocken när projektet startar. Du kan ha flera startblock.',
+  forever_tooltip: 'Kör blocken varje bildruta eller när föregående iteration är klar.',
+  when_clicked_tooltip: 'Kör blocken när objekt-triggern aktiveras.',
   on_collision_tooltip:
-    'Kör blocken när ett objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide',
+    'Kör blocken när ett objekt kolliderar med eller slutar kollidera med ett annat.',
   when_key_event_tooltip: 'Kör blocken när den angivna tangenten trycks ned eller släpps.',
   when_action_event_tooltip:
     'Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.',
-  broadcast_event_tooltip: 'Sänd ett event som tas emot av on event.\nKeyword: broadcast',
-  on_event_tooltip: 'Kör kod när ett broadcast-event tas emot.\nKeyword: on',
+  broadcast_event_tooltip: 'Sänd ett event som tas emot av on event.',
+  on_event_tooltip: 'Kör kod när ett broadcast-event tas emot.',
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Ändra färgen på det valda objektet.\nKeyword: color',
-  change_material_tooltip:
-    'Applicera ett valt material med färgton på det angivna objektet.\nKeyword: material',
+  change_color_tooltip: 'Ändra färgen på det valda objektet.',
+  change_material_tooltip: 'Applicera ett valt material med färgton på det angivna objektet.',
   text_material_tooltip:
     'Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.',
   place_decal_tooltip: 'Placera en dekal på ett objekt med valt material.',
   decal_tooltip: 'Skapa en dekal på ett objekt med position, normal, storlek och material.',
-  highlight_tooltip: 'Markera det valda objektet.\nKeyword: highlight',
-  glow_tooltip: 'Lägg till ett glödeffekt på det valda objektet.\nKeyword: glow',
-  tint_tooltip: 'Lägg till en färgtonseffekt.\nKeyword: tint',
+  highlight_tooltip: 'Markera det valda objektet.',
+  glow_tooltip: 'Lägg till ett glödeffekt på det valda objektet.',
+  tint_tooltip: 'Lägg till en färgtonseffekt.',
   set_alpha_tooltip:
-    'Ställ in alfavärdet (transparens) för materialet/materialen på det angivna objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha',
-  clear_effects_tooltip: 'Ta bort visuella effekter från valt objekt.\nKeyword: clear',
-  colour_tooltip: 'Välj en färg.\nKeyword: color',
-  skin_colour_tooltip: 'Välj en hudfärg.\nKeyword: skin',
-  greyscale_colour_tooltip: 'Välj en gråskala-färg för höjd.\nKeyword: grey',
-  random_colour_tooltip: 'Generera en slumpmässig färg.\nKeyword: randcol',
+    'Ställ in alfavärdet (transparens) för materialet/materialen på det angivna objektet. Värden ska vara mellan 0 och 1.',
+  clear_effects_tooltip: 'Ta bort visuella effekter från valt objekt.',
+  colour_tooltip: 'Välj en färg.',
+  skin_colour_tooltip: 'Välj en hudfärg.',
+  greyscale_colour_tooltip: 'Välj en gråskala-färg för höjd.',
+  random_colour_tooltip: 'Generera en slumpmässig färg.',
   material_tooltip: 'Definiera materialegenskaper',
   gradient_material_tooltip: 'Definiera materialegenskaper',
   set_material_tooltip: 'Ange det angivna materialet på det valda objektet.',
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    'Lägg till fysik på objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics',
+    'Lägg till fysik på objektet. Alternativen är dynamisk, statisk, animerad och ingen.',
   add_physics_shape_tooltip:
-    'Lägg till en fysikform på objektet. Alternativen är objekt eller kapsel.\nKeyword:physics',
-  apply_force_tooltip: 'Applicera en kraft på ett objekt i XYZ-riktningar.\nKeyword: force',
+    'Lägg till en fysikform på objektet. Alternativen är objekt eller kapsel.',
+  apply_force_tooltip: 'Applicera en kraft på ett objekt i XYZ-riktningar.',
   show_physics_tooltip:
-    'Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider',
+    'Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.',
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: 'Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed',
+  key_pressed_tooltip: 'Returnerar sant om den angivna tangenten är nedtryckt.',
   action_pressed_tooltip:
     'Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.',
   set_action_key: 'ställ in %1 tangent till %2',
   set_action_key_tooltip:
     'Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).',
-  meshes_touching_tooltip:
-    'Returnerar sant om de två valda objekten rör vid varandra.\nKeyword: istouching',
+  meshes_touching_tooltip: 'Returnerar sant om de två valda objekten rör vid varandra.',
   time_tooltip:
     'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
   ground_level_tooltip: 'Returnerar markhöjden vid aktuell x/z-position.',
   distance_to_tooltip: 'Beräkna avståndet mellan två objekt.',
-  touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.\nKeyword: surface',
+  touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.',
   mesh_exists_tooltip: 'Returnerar sant om meshen med det här namnet finns i scenen.',
-  get_property_tooltip: 'Hämta värdet på den valda egenskapen för ett objekt.\nKeyword: get',
-  canvas_controls_tooltip: 'Lägg till eller ta bort rörelsekontroller på canvas.\nKeyword: canvas',
-  interact_indicator_tooltip:
-    'Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.\nKeyword: indicator',
-  button_controls_tooltip: 'Konfigurera knappkontroller.\nKeyword: button',
-  on_screen_controls_tooltip: 'Konfigurera skärmkontroller.\nKeyword: onscreen', // ai
+  get_property_tooltip: 'Hämta värdet på den valda egenskapen för ett objekt.',
+  canvas_controls_tooltip: 'Lägg till eller ta bort rörelsekontroller på canvas.',
+  interact_indicator_tooltip: 'Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.',
+  button_controls_tooltip: 'Konfigurera knappkontroller.',
+  on_screen_controls_tooltip: 'Konfigurera skärmkontroller.', // ai
   microbit_input_tooltip: 'Kör blocken när ett specifikt micro:bit-event triggas.',
   ui_slider_tooltip: 'Lägg till en 2D-sliderkontroll i UI:t och lagra dess referens i en variabel.',
 
@@ -535,26 +526,22 @@ export default {
     'Skapa en partikeleffekt kopplad till ett objekt med konfigurerbar form, gravitation, storlek, färg, transparens, livstid, kraft och rotation.',
   control_particle_system_tooltip:
     'Styr partikeleffekten genom att starta, stoppa eller återställa den.',
-  create_box_tooltip: 'Skapa en färgad box med angivna dimensioner och position.\nKeyword: box',
-  create_sphere_tooltip:
-    'Skapa en färgad sfär med angivna dimensioner och position.\nKeyword: sphere',
-  create_cylinder_tooltip:
-    'Skapa en färgad cylinder med angivna dimensioner och position.\nKeyword: cylinder',
-  create_capsule_tooltip:
-    'Skapa en färgad kapsel med angivna dimensioner och position.\nKeyword: capsule',
+  create_box_tooltip: 'Skapa en färgad box med angivna dimensioner och position.',
+  create_sphere_tooltip: 'Skapa en färgad sfär med angivna dimensioner och position.',
+  create_cylinder_tooltip: 'Skapa en färgad cylinder med angivna dimensioner och position.',
+  create_capsule_tooltip: 'Skapa en färgad kapsel med angivna dimensioner och position.',
   create_wedge_tooltip:
-    'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.\nNyckelord: wedge', // ai
+    'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.', // ai
   create_donut_tooltip:
-    'Lägger till en munk — en ringform. Diametern anger hur bred ringen är, tjockleken hur tjockt röret är och sidorna hur slät den ser ut.\nNyckelord: donut', // ai
-  create_plane_tooltip:
-    'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.\nKeyword: plane',
+    'Lägger till en munk — en ringform. Diametern anger hur bred ringen är, tjockleken hur tjockt röret är och sidorna hur slät den ser ut.', // ai
+  create_plane_tooltip: 'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.',
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    'Spela upp ett musiktema på ett objekt med justerbar hastighet, volym och läge.\nKeyword: theme',
+    'Spela upp ett musiktema på ett objekt med justerbar hastighet, volym och läge.',
   play_sound_tooltip:
-    'Spela upp det valda ljudet på ett objekt med justerbar hastighet, volym och läge.\nKeyword: sound',
-  stop_all_sounds_tooltip: 'Stoppa alla ljud som spelas i scenen.\nKeyword:nosound',
+    'Spela upp det valda ljudet på ett objekt med justerbar hastighet, volym och läge.',
+  stop_all_sounds_tooltip: 'Stoppa alla ljud som spelas i scenen.',
   midi_note_tooltip: 'Ett MIDI-notvärde mellan 0 och 127.',
   rest_tooltip: 'En paus (tystnad) i en musiksekvens.',
   play_notes_tooltip:
@@ -564,17 +551,15 @@ export default {
   create_instrument_tooltip: 'Skapa ett instrument och tilldela det till den valda variabeln.',
   instrument_tooltip: 'Välj ett instrument att använda för att spela noter.',
   speak_tooltip:
-    'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.\nKeyword: speak',
-  enable_subtitles_tooltip: 'Visa undertexter på skärmen för talad text.\nKeyword: subtitles', // ai
+    'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.',
+  enable_subtitles_tooltip: 'Visa undertexter på skärmen för talad text.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'En kommentarsrad för att hjälpa andra att förstå din kod.',
-  print_text_tooltip: 'Skriv ut text till utmatningspanelen.\nKeyword: print',
-  subtitle_tooltip:
-    'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.\nKeyword: subtitle', // ai
-  say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.\nKeyword: say',
-  describe_tooltip:
-    'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe',
+  print_text_tooltip: 'Skriv ut text till utmatningspanelen.',
+  subtitle_tooltip: 'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.', // ai
+  say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.',
+  describe_tooltip: 'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.',
   ui_text_tooltip:
     'Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning.',
 
@@ -587,47 +572,40 @@ export default {
   create_3d_text_tooltip: 'Skapa 3D-text i scenen.',
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.\nKeyword: seed',
+  random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.',
   to_number_tooltip: 'Konverterar en sträng till ett heltal eller flyttal.',
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.\nKeyword: move',
-  move_by_xyz_single_tooltip:
-    'Flytta ett objekt en viss mängd i x-, y- eller z-led.\nKeyword: move',
+  move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.',
+  move_by_xyz_single_tooltip: 'Flytta ett objekt en viss mängd i x-, y- eller z-led.',
   move_to_xyz_tooltip:
-    'Teleportera objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby',
-  move_to_xyz_single_tooltip:
-    'Teleportera objekt:en till den angivna enskilda koordinaten.\nKeyword: moveby',
-  move_to_tooltip:
-    'Teleportera det första objektet till det andra objektets position.\nKeyword: moveto',
+    'Teleportera objektet till angivna koordinater. Du kan välja att använda Y-axeln.',
+  move_to_xyz_single_tooltip: 'Teleportera objekt:en till den angivna enskilda koordinaten.',
+  move_to_tooltip: 'Teleportera det första objektet till det andra objektets position.',
   scale_tooltip:
-    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: scale',
+    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.',
   resize_tooltip:
-    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: resize',
-  rotate_model_xyz_tooltip:
-    'Rotera ett objekt med angivna x-, y- och z-värden.\nKeyword: rotate\nKeyword: rotateby',
-  rotate_to_tooltip:
-    'Rotera ett objekt så att det pekar mot angivna koordinater.\nKeyword: rotateto',
-  look_at_tooltip: 'Rotera det första objektet mot det andra objektets position.\nKeyword: look',
+    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.',
+  rotate_model_xyz_tooltip: 'Rotera ett objekt med angivna x-, y- och z-värden.',
+  rotate_to_tooltip: 'Rotera ett objekt så att det pekar mot angivna koordinater.',
+  look_at_tooltip: 'Rotera det första objektet mot det andra objektets position.',
   move_forward_tooltip:
-    "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
-  rotate_camera_tooltip:
-    'Roterar kameran åt vänster eller höger med angivet antal grader.\nKeyword: rotate',
-  up_tooltip: 'Applicerar den angivna uppåtriktade kraften.\nKeyword: up',
-  set_pivot_tooltip:
-    'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln\nKeyword: ankare',
-  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt\nKeyword: minmax',
+    "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.",
+  rotate_camera_tooltip: 'Roterar kameran åt vänster eller höger med angivet antal grader.',
+  up_tooltip: 'Applicerar den angivna uppåtriktade kraften.',
+  set_pivot_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln',
+  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Använd enhetens kamera som bakgrund för scenen. Fungerar på både mobil och dator.',
   set_xr_mode_tooltip: 'Ställ in XR-läget för scenen.\nAlternativ: VR, AR, Magic Window.',
   play_rumble_pattern_tooltip:
-    'Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.\nNyckelord: rumble preset',
+    'Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.',
   controller_rumble_tooltip:
-    'Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.\nNyckelord: rumble',
+    'Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.',
   controller_rumble_pattern_tooltip:
-    'Gör att en spelkontroll vibrerar i ett upprepat mönster. Ange motor, styrka (0 till 1), på-tid, av-tid och antal upprepningar.\nNyckelord: rumble pattern',
+    'Gör att en spelkontroll vibrerar i ett upprepat mönster. Ange motor, styrka (0 till 1), på-tid, av-tid och antal upprepningar.',
 
   // Dropdown option translations
   AWAIT_option: 'await',

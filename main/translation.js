@@ -206,59 +206,11 @@ export function getBlocklyMessage(key) {
   return Blockly.Msg[key] || key;
 }
 
-const keywordHintLabels = {
-  en: 'Keyword',
-  es: 'Palabra clave',
-};
-
-function getTooltipKeywordLabel() {
-  return keywordHintLabels[currentLanguage] || keywordHintLabels.en;
-}
-
-function tooltipHasKeywordHint(tooltip) {
-  return /(?:keyword|palabra clave)\s*:/iu.test(tooltip);
-}
-
-function findToolboxKeyword(blockType) {
-  const workspace = globalThis.window?.mainWorkspace || Blockly.getMainWorkspace();
-  const languageTree = workspace?.options?.languageTree;
-
-  function searchContents(contents) {
-    if (!Array.isArray(contents)) {
-      return '';
-    }
-
-    for (const item of contents) {
-      if (item?.kind === 'block' && item.type === blockType) {
-        return item.keyword || '';
-      }
-
-      const nestedKeyword = searchContents(item?.contents);
-      if (nestedKeyword) {
-        return nestedKeyword;
-      }
-    }
-
-    return '';
-  }
-
-  return searchContents(languageTree?.contents);
-}
-
 // Helper function to get translated tooltips
 export function getTooltip(blockType) {
   return () => {
     const tooltipKey = blockType + '_tooltip';
-    const translatedTooltip =
-      translations[currentLanguage]?.[tooltipKey] || translations['en']?.[tooltipKey] || '';
-    const keyword = findToolboxKeyword(blockType);
-
-    if (!keyword || tooltipHasKeywordHint(translatedTooltip)) {
-      return translatedTooltip;
-    }
-
-    const keywordHint = `${getTooltipKeywordLabel()}: ${keyword}`;
-    return translatedTooltip ? `${translatedTooltip}\n${keywordHint}` : keywordHint;
+    return translations[currentLanguage]?.[tooltipKey] || translations['en']?.[tooltipKey] || '';
   };
 }
 

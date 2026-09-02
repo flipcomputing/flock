@@ -564,6 +564,11 @@ function getShortcuts() {
       category: translate('shortcut_category_editor'),
     },
     {
+      label: translate('shortcut_block_info'),
+      keys: `I`,
+      category: translate('shortcut_category_editor'),
+    },
+    {
       label: translate('shortcut_duplicate_block'),
       keys: `D`,
       category: translate('shortcut_category_editor'),

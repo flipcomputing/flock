@@ -248,7 +248,7 @@ export default {
   jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
   set_speed_tooltip:
-    'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.\nPalabra clave: speed', // ai
+    'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
   // Custom block translations - Sensing blocks
@@ -403,22 +403,20 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Establece el cielo del cielo de la escena.\nPalabra clave: cielo', // human
-  create_ground_tooltip:
-    'Añide un plano de tierra con collisions habilitadas a la escena.\nPalabra clave: suelo', // human
-  set_background_color_tooltip:
-    'Establece el color de fondo de las escenas.\nPalabra clave: background', // human
-  create_map_tooltip: 'Crea un mapa con el nombre y matieral seleccionado.\nPalabra clave: mapa', // human
-  show_tooltip: 'mostrar el objeto seleccionado.\nPalabra clave: mostrar', // human
-  hide_tooltip: 'Ocultar el objeto seleccionado.\nPalabra clave: Oculater', // human
-  dispose_tooltip: 'Eliminar el objeto especificado de la escena.\nPalabra clave: disponer', // human
-  clone_mesh_tooltip: 'clonar un objeto y asignrla a una variable.\nPalabra clave: clonar', // human
+  set_sky_color_tooltip: 'Establece el cielo del cielo de la escena.', // human
+  create_ground_tooltip: 'Añide un plano de tierra con collisions habilitadas a la escena.', // human
+  set_background_color_tooltip: 'Establece el color de fondo de las escenas.', // human
+  create_map_tooltip: 'Crea un mapa con el nombre y matieral seleccionado.', // human
+  show_tooltip: 'mostrar el objeto seleccionado.', // human
+  hide_tooltip: 'Ocultar el objeto seleccionado.', // human
+  dispose_tooltip: 'Eliminar el objeto especificado de la escena.', // human
+  clone_mesh_tooltip: 'clonar un objeto y asignrla a una variable.', // human
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Crear un personaje configurable.\nPalabra clave: personaje', // human
-  load_object_tooltip: 'crear un objeto.\nPalabra clave: objecto', // human
-  load_multi_object_tooltip: 'crear un objeto con colores.\nPalabra clave: objecto', // human
-  load_model_tooltip: 'cargar un modelo.\nPalabra clave: modelo', // human
+  load_character_tooltip: 'Crear un personaje configurable.', // human
+  load_object_tooltip: 'crear un objeto.', // human
+  load_multi_object_tooltip: 'crear un objeto con colores.', // human
+  load_model_tooltip: 'cargar un modelo.', // human
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -447,11 +445,9 @@ export default {
     'Controla el grupo de animación reproduciéndolo, pausándolo o parandolo.', // human
   animate_from_tooltip: 'Comienza a animar el grupo desde el tiempo especificado (en segundos).', // human
   stop_animations_tooltip:
-    'Para todas las animaciones de fotogramas clave en el objeto seleccionado.\nPalabra clave: para', // human
-  switch_animation_tooltip:
-    'Cambia la animación del objeto indicado a la animación dada.\nPalabra clave: cambia', // human
-  play_animation_tooltip:
-    'Reproduce la animación seleccionada una vez en el objeto indicado.\nPalabra clave: Reproduce', // human
+    'Para todas las animaciones de fotogramas clave en el objeto seleccionado.', // human
+  switch_animation_tooltip: 'Cambia la animación del objeto indicado a la animación dada.', // human
+  play_animation_tooltip: 'Reproduce la animación seleccionada una vez en el objeto indicado.', // human
 
   // Tooltip translations - Base blocks
   xyz_tooltip: 'Crea un vector con coordenadas X, Y, Z', // human
@@ -459,143 +455,125 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Asocia una tecla específica a una acción de control de cámara.', // human
   camera_follow_tooltip:
-    'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.\nPalabra clave: Sigue', // human
+    'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.', // human
   get_camera_tooltip: 'Obtén la cámara actual de la escena', // human
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    'Fusiona una lista de objetos en uno y almacena el resultado.\nPalabra clave: fusiona', // human
-  subtract_meshes_tooltip:
-    'Resta una lista de objetos de un objeto base y almacena el resultado.\nPalabra clave: Resta', // human
+  merge_meshes_tooltip: 'Fusiona una lista de objetos en uno y almacena el resultado.', // human
+  subtract_meshes_tooltip: 'Resta una lista de objetos de un objeto base y almacena el resultado.', // human
   intersection_meshes_tooltip:
-    'Intersecta una lista de objetos y almacena la geometría resultante.\nPalabra clave: intersecta', // human
+    'Intersecta una lista de objetos y almacena la geometría resultante.', // human
   hull_meshes_tooltip:
-    'Crea una envolvente convexa de una lista de objetos y almacena el resultado.\nPalabra clave: envolvente', // human
+    'Crea una envolvente convexa de una lista de objetos y almacena el resultado.', // human
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.\nPalabra clave: padre', // human
+    'Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.', // human
   parent_child_tooltip:
-    'Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.\nPalabra clave: hijo', // human
-  remove_parent_tooltip:
-    'Elimina la relación de paternidad del objeto especificado.\nPalabra clave: elimina', // human
-  stop_follow_tooltip:
-    'Prevenir que el objeto especificado siga a otro.\nPalabra clave: paraseguir', // human
-  hold_tooltip:
-    'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.\nPalabra clave: sostenga', // human
-  drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.\nPalabra clave: soltar', // human
+    'Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.', // human
+  remove_parent_tooltip: 'Elimina la relación de paternidad del objeto especificado.', // human
+  stop_follow_tooltip: 'Prevenir que el objeto especificado siga a otro.', // human
+  hold_tooltip: 'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.', // human
+  drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.', // human
   follow_tooltip:
-    'Haz que un objeto siga a otro en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.\nPalabra clave: siigue', // human
-  export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.\nPalabra clave: exporta', // human
+    'Haz que un objeto siga a otro en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.', // human
+  export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.', // human
 
   // Tooltip translations - Control blocks
   if_clause_tooltip:
     'Ejecuta los bloques conectados si la condición es verdadera. Cambia el menú desplegable a "sino si" o "sino", y conecta otro bloque si debajo para crear cadenas de si / sino si / sino.', // ai
-  wait_tooltip: 'Espera un tiempo especificado en milisegundos.\nPalabra clave: mili', // human
-  wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.\nPalabra clave: espera', // human
-  wait_until_tooltip: 'Espera hasta que la condición sea verdadera.\nPalabra clave: hasta', // human
+  wait_tooltip: 'Espera un tiempo especificado en milisegundos.', // human
+  wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.', // human
+  wait_until_tooltip: 'Espera hasta que la condición sea verdadera.', // human
   local_variable_tooltip:
-    'Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.\nPalabra clave: local', // human
+    'Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.', // human
   for_loop2_tooltip: 'Bucle desde un número inicial hasta uno final usando un cierto paso.', // human
   for_loop_tooltip:
-    'Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código\nPalabra clave: para', // human
+    'Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código', // human
   get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica', // human
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip:
-    'Establece la intensidad de la luz principal.\nPalabra clave: intensidad de luz', // human
+  main_light_tooltip: 'Establece la intensidad de la luz principal.', // human
   set_fog_tooltip:
-    'Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: niebla', // human
-  get_light_tooltip: 'Obtén la luz principal de la escena actual.\nPalabra clave: luz', // human
+    'Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.', // human
+  get_light_tooltip: 'Obtén la luz principal de la escena actual.', // human
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    'Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: Iniciar', // human
+    'Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.', // human
   forever_tooltip:
-    'Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: para siempre', // human
-  when_clicked_tooltip:
-    'Ejecuta los bloques en el interior cuando active el objeto.\nPalabra clave: clic', // human
+    'Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.', // human
+  when_clicked_tooltip: 'Ejecuta los bloques en el interior cuando active el objeto.', // human
   on_collision_tooltip:
-    'Ejecuta los bloques internos cuando un objeto intersecta o deja de intersectar otro.\nPalabra clave: chocar', // human
+    'Ejecuta los bloques internos cuando un objeto intersecta o deja de intersectar otro.', // human
   when_key_event_tooltip:
     'Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.', // human
   when_action_event_tooltip:
     'Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, toque o XR.', // human
-  broadcast_event_tooltip:
-    "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: emite", // human
-  on_event_tooltip:
-    'Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: encender', // human
+  broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.", // human
+  on_event_tooltip: 'Ejecuta el código cuando se recibe un evento emitido.', // human
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Cambia el color del objeto seleccionado.\nPalabra clave: color', // human
+  change_color_tooltip: 'Cambia el color del objeto seleccionado.', // human
   change_material_tooltip:
-    'Aplica un material seleccionado con tinte de color al objeto especificado.\nPalabra clave: material', // human
+    'Aplica un material seleccionado con tinte de color al objeto especificado.', // human
   text_material_tooltip:
     'Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.', // human
   place_decal_tooltip: 'Coloca una calcomanía en un objeto usando el material seleccionado.', // human
   decal_tooltip: 'Crea una calcomanía en un objeto con posición, normal, tamaño y material.', // human
-  highlight_tooltip: 'Resalta el objeto seleccionado.\nPalabra clave: resalta', // human
-  glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.\nPalabra clave: resplandor', // human
-  tint_tooltip: 'Añade un tinte de color.\nPalabra clave: tinte', // human
+  highlight_tooltip: 'Resalta el objeto seleccionado.', // human
+  glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.', // human
+  tint_tooltip: 'Añade un tinte de color.', // human
   set_alpha_tooltip:
-    'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.\nPalabra clave: alfa', // human
-  clear_effects_tooltip:
-    'Elimina efectos visuales del objeto seleccionado.\nPalabra clave: elimina', // human
-  colour_tooltip: 'Selecciona un color.\nPalabra clave: color', // human
-  skin_colour_tooltip: 'Selecciona un color de piel.\nPalabra clave: piel', // human
-  greyscale_colour_tooltip:
-    'Selecciona un color en escala de grises para elevación.\nPalabra clave: gris', // human
-  random_colour_tooltip: 'Genera un color aleatorio.\nPalabra clave: color aleatorio', // human
+    'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.', // human
+  clear_effects_tooltip: 'Elimina efectos visuales del objeto seleccionado.', // human
+  colour_tooltip: 'Selecciona un color.', // human
+  skin_colour_tooltip: 'Selecciona un color de piel.', // human
+  greyscale_colour_tooltip: 'Selecciona un color en escala de grises para elevación.', // human
+  random_colour_tooltip: 'Genera un color aleatorio.', // human
   material_tooltip: 'Define propiedades del material', // human
   gradient_material_tooltip: 'Define propiedades del material (gradiente)', // human
   gradient_colour_tooltip:
-    'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.\nPalabra clave: degradado', // ai
+    'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.', // ai
   set_material_tooltip: 'Establecer el material especificado al objeto indicado.', // human
 
   // Tooltip translations - Physics blocks
-  add_physics_tooltip:
-    'Añade física al objeto. Opciones: dinámico, estático, animado o nada.\nPalabra clave: física', // human
-  add_physics_shape_tooltip:
-    'Añade una forma física al objeto. Opciones: objeto o cápsula.\nPalabra clave: física', // human
-  apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.\nPalabra clave: fuerza', // human
+  add_physics_tooltip: 'Añade física al objeto. Opciones: dinámico, estático, animado o nada.', // human
+  add_physics_shape_tooltip: 'Añade una forma física al objeto. Opciones: objeto o cápsula.', // human
+  apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.', // human
   jump_tooltip:
-    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual. Necesita física.\nKeyword: saltar brincar', // ai
+    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual. Necesita física.', // ai
   show_physics_tooltip:
-    'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física', // human
+    'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.', // human
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip:
-    'Devuelve verdadero si la tecla especificada está pulsado.\nPalabra clave: estápulsado', // human
+  key_pressed_tooltip: 'Devuelve verdadero si la tecla especificada está pulsado.', // human
   action_pressed_tooltip:
     'Devuelve verdadero si el control de movimiento o acción specificado está activo en teclado, toque o XR.', // human
   set_action_key: 'establecer tecla %1 a %2', // human
   set_action_key_tooltip:
     'Establece la tecla que activa una acción específica (adelante, atrás, izquierda, derecha o botones).', // ai
-  meshes_touching_tooltip:
-    'Devuelve verdadero si los dos objetos seleccionados se están tocando.\nPalabra clave: estántocando', // human
+  meshes_touching_tooltip: 'Devuelve verdadero si los dos objetos seleccionados se están tocando.', // human
   time_tooltip:
     'Devuelve el tiempo transcurrido. Se pausa mientras la pestaña está oculta, ideal para temporizadores y cuentas atrás.', // ai
   ground_level_tooltip: 'Devuelve la altura del suelo a la posición x/z actual.', // human
   distance_to_tooltip: 'Calcula la distancia entre dos objetos.', // human
-  touching_surface_tooltip:
-    'Comprueba si el objeto está tocando una superficie.\nPalabra clave: superficie', // human
+  touching_surface_tooltip: 'Comprueba si el objeto está tocando una superficie.', // human
   mesh_exists_tooltip: 'devuelve verdadero si el objeto con este nombre está presente en la escena', // human
-  get_property_tooltip:
-    'Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene', // human
-  canvas_controls_tooltip:
-    'Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo', // human
+  get_property_tooltip: 'Obtiene el valor de la propiedad seleccionada de un objeto.', // human
+  canvas_controls_tooltip: 'Añade o elimina controles de movimiento en el lienzo.', // human
   interact_indicator_tooltip:
-    'Muestra u oculta el indicador de interacción junto a los objetos cercanos.\nPalabra clave: indicator', // ai
-  button_controls_tooltip: 'Configura controles de botónes.\nPalabra clave: botón', // human
-  on_screen_controls_tooltip: 'Configura los controles en pantalla.\nPalabra clave: onscreen', // ai
+    'Muestra u oculta el indicador de interacción junto a los objetos cercanos.', // ai
+  button_controls_tooltip: 'Configura controles de botónes.', // human
+  on_screen_controls_tooltip: 'Configura los controles en pantalla.', // ai
   microbit_input_tooltip:
     'Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.', // human
   add_microbit_tooltip:
     'Conecta un micro:bit y haz referencia a él con esta variable. Haz clic en el icono de estado para conectar un micro:bit por USB. Los micro:bit desenchufados envían eventos por radio a través de cualquier micro:bit enchufado en el mismo canal.', // ai
   microbit_show_image_tooltip:
-    'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.\nPalabra clave: leds', // ai
+    'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.', // ai
   microbit_scroll_text_tooltip:
-    'Desplaza un texto por la pantalla LED de un micro:bit conectado por USB. Los textos largos se recortan a 16 caracteres.\nPalabra clave: scroll', // ai
+    'Desplaza un texto por la pantalla LED de un micro:bit conectado por USB. Los textos largos se recortan a 16 caracteres.', // ai
   ui_slider_tooltip:
     'Añade un control deslizante 2D en la UI y almacena su referencia en una variable.', // human
 
@@ -604,28 +582,22 @@ export default {
     'Crea un efecto de partículas conectado a un objeto con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.', // human
   control_particle_system_tooltip:
     'Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.', // human
-  create_box_tooltip:
-    'Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: caja', // human
-  create_sphere_tooltip:
-    'Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: esfera', // human
-  create_cylinder_tooltip:
-    'Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cilindro', // human
-  create_capsule_tooltip:
-    'Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: cápsula', // human
+  create_box_tooltip: 'Crea una caja de color con dimensiones y posición especificadas.', // human
+  create_sphere_tooltip: 'Crea una esfera de color con dimensiones y posición especificadas.', // human
+  create_cylinder_tooltip: 'Crea un cilindro de color con dimensiones y posición especificadas.', // human
+  create_capsule_tooltip: 'Crea una cápsula de color con dimensiones y posición especificadas.', // human
   create_wedge_tooltip:
-    'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.\nPalabra clave: wedge', // ai
+    'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.', // ai
   create_donut_tooltip:
-    'Añade una rosquilla: una forma de anillo. El diámetro define lo ancho que es el anillo, el grosor lo grueso que es el tubo y los lados lo suave que se ve.\nPalabra clave: donut', // ai
-  create_plane_tooltip:
-    'Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano', // human
+    'Añade una rosquilla: una forma de anillo. El diámetro define lo ancho que es el anillo, el grosor lo grueso que es el tubo y los lados lo suave que se ve.', // ai
+  create_plane_tooltip: 'Crea un plano 2D de color con ancho, alto y posición especificadas.', // human
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    'Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: tema', // human
+    'Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.', // human
   play_sound_tooltip:
-    'Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: sonido', // human
-  stop_all_sounds_tooltip:
-    'Para todos los sonidos que estén reproduciendo en la escena.\nPalabra clave: nosonido', // human
+    'Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.', // human
+  stop_all_sounds_tooltip: 'Para todos los sonidos que estén reproduciendo en la escena.', // human
   midi_note_tooltip: 'Un valor de nota MIDI entre 0 y 127.', // human
   rest_tooltip: 'Un pausa (silencio) en una secuencia musical.', // human
   play_notes_tooltip:
@@ -635,18 +607,17 @@ export default {
   create_instrument_tooltip: 'Crea un instrumento y lo asigna a la variable seleccionada.', // human
   instrument_tooltip: 'Selecciona un instrumento para reproducir notas.', // human
   speak_tooltip:
-    'Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.\nPalabra clave: hablar', // human
-  enable_subtitles_tooltip:
-    'Muestra subtítulos en pantalla para el texto hablado.\nPalabra clave: subtitles', // ai
+    'Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.', // human
+  enable_subtitles_tooltip: 'Muestra subtítulos en pantalla para el texto hablado.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una línea de comentario para ayudar la comprensión de tu código.', // human
-  print_text_tooltip: 'Texto en el panel de salida.\nPalabra clave: imprimir', // human
+  print_text_tooltip: 'Texto en el panel de salida.', // human
   subtitle_tooltip:
-    'Muestra el texto como subtítulo en pantalla. 0 segundos permanece hasta el siguiente.\nPalabra clave: subtitle', // ai
-  say_tooltip: 'Muestra un texto como burbuja de diálogo en un objeto.\nPalabra clave: di', // human
+    'Muestra el texto como subtítulo en pantalla. 0 segundos permanece hasta el siguiente.', // ai
+  say_tooltip: 'Muestra un texto como burbuja de diálogo en un objeto.', // human
   describe_tooltip:
-    'Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe', // human
+    'Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.', // human
   ui_text_tooltip:
     'Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.', // human
   ui_button_tooltip:
@@ -656,38 +627,28 @@ export default {
   create_3d_text_tooltip: 'Crea texto 3D en la escena.', // human
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip:
-    'Generar un numero entero aleatorio con una semilla.\nPalabra clave: semilla', // human
+  random_seeded_int_tooltip: 'Generar un numero entero aleatorio con una semilla.', // human
   to_number_tooltip: 'Convertir una cadena a un numero entero o un flotante', // human
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip:
-    'Mueve un objeto cierta cantidad en direcciones x, y, y z.\nPalabra clave: mueve', // human
-  move_by_xyz_single_tooltip:
-    'Mueve un objeto una cantidad en cualquiera dirección x, y, o z.\nPalabra clave: mueve', // human
-  move_to_xyz_tooltip:
-    'Teletransporta el objeto a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: muevepor', // human
-  move_to_xyz_single_tooltip:
-    'Teletransporta el objeto a la coordenada única especificada.\nPalabra clave: muevepor', // human
-  move_to_tooltip:
-    'Teletransporta el primer objeto a la ubicación del segundo.\nPalabra clave: muevea', // human
+  move_by_xyz_tooltip: 'Mueve un objeto cierta cantidad en direcciones x, y, y z.', // human
+  move_by_xyz_single_tooltip: 'Mueve un objeto una cantidad en cualquiera dirección x, y, o z.', // human
+  move_to_xyz_tooltip: 'Teletransporta el objeto a las coordenadas. Opcionalmente, usa el eje Y.', // human
+  move_to_xyz_single_tooltip: 'Teletransporta el objeto a la coordenada única especificada.', // human
+  move_to_tooltip: 'Teletransporta el primer objeto a la ubicación del segundo.', // human
   scale_tooltip:
-    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: escala', // human
+    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.', // human
   resize_tooltip:
-    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona', // human
-  rotate_model_xyz_tooltip:
-    'Rota el objeto por los valores x, y, z indicados.\nPalabra clave: rota\nPalabra clave: rotapor', // human
-  rotate_to_tooltip: 'Rota el objeto para q apunte hacia las coordenadas.\nPalabra clave: rotaa', // human
-  look_at_tooltip: 'Rota el primer objeto hacia la posición de la segunda.\nPalabra clave: mira', // human
+    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.', // human
+  rotate_model_xyz_tooltip: 'Rota el objeto por los valores x, y, z indicados.', // human
+  rotate_to_tooltip: 'Rota el objeto para q apunte hacia las coordenadas.', // human
+  look_at_tooltip: 'Rota el primer objeto hacia la posición de la segunda.', // human
   move_forward_tooltip:
-    "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
-  rotate_camera_tooltip:
-    'Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate', // human
-  up_tooltip: 'Aplica la fuerza especificada hacia arriba .\nPalabra clave: up', // human
-  set_pivot_tooltip:
-    'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.\nPalabra clave: ancla', // human
-  min_centre_max_tooltip:
-    'Elige minimo, centro o maximo para el punto de pivote.\nPalabra clave: minmax', // human
+    "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.", // human
+  rotate_camera_tooltip: 'Rota la cámara a la izquierda o derecha los grados indicados.', // human
+  up_tooltip: 'Aplica la fuerza especificada hacia arriba .', // human
+  set_pivot_tooltip: 'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.', // human
+  min_centre_max_tooltip: 'Elige minimo, centro o maximo para el punto de pivote.', // human
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
@@ -698,11 +659,11 @@ export default {
   remove_teleport_target_tooltip:
     'Impide teletransportarse al suelo, a un objeto o a todos los objetos.',
   play_rumble_pattern_tooltip:
-    'Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset', // human
+    'Reproduce un patrón de vibración predefinido en todos los mandos conectados.', // human
   controller_rumble_tooltip:
-    'Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.\nPalabra clave: vibrar', // human
+    'Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.', // human
   controller_rumble_pattern_tooltip:
-    'Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.\nPalabra clave: patrón de vibrar', // human
+    'Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.', // human
 
   // Dropdown option translations
   AWAIT_option: 'esperar', // human
@@ -1167,6 +1128,7 @@ export default {
   delete_button_ui: 'Eliminar objeto seleccionado', // human
   delete_block_button_ui: 'Eliminar bloque',
   block_menu: 'Menú de bloque', // ai
+  block_menu_announcement: 'Menú de bloque: %1', // ai
   duplicate_block_button_ui: 'Duplicar bloque',
   camera_button_ui: 'Controles de cámara', // human
   eye_button_ui: 'Orbitar alrededor del objeto seleccionado',
@@ -1426,7 +1388,8 @@ export default {
   shortcut_toolbox_typing: 'Ir a la categoría',
   shortcut_toolbox_typing_hint: 'Empieza a escribir su nombre',
   shortcut_context_menu: 'Abrir menú contextual',
-  shortcut_toggle_block_toolbar: 'Mostrar/ocultar la barra de sugerencias del bloque',
+  shortcut_toggle_block_toolbar: 'Mostrar/ocultar el menú de bloque', // ai
+  shortcut_block_info: 'Mostrar/ocultar la información del bloque', // ai
   shortcut_duplicate_block: 'Duplicar bloque',
   shortcut_detach_block: 'Desconectar bloque',
   shortcut_comment_block: 'Mostrar/ocultar comentario',

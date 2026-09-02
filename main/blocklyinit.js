@@ -1338,9 +1338,8 @@ export function initializeWorkspace() {
   return workspace;
 }
 
-// Patch the Navigator so keyboard navigation skips the redundant block stop on value blocks
-// with their own focusable field — shadow (" " in print_text) and standalone (`text`,
-// `colour_from_string`) alike. Simple reporters are excluded; see the predicates below.
+// Skip the block stop on a shadow value block with its own field (the " " in print_text):
+// editing that field is all a shadow offers. A real block plugged in keeps its stop.
 function installShadowNavigationPatch(ws) {
   const nav = ws.getNavigator?.();
   if (!nav) return;
@@ -1370,28 +1369,25 @@ function installShadowNavigationPatch(ws) {
     !!node.outputConnection &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter());
 
-  // Excluded via isSimpleReporter (output + exactly one field) — same reason as
-  // isSkippableShadow. That is a field-count test, not a field-type one.
-  const isSkippableStandalone = (node) =>
+  // A real value block with its own field stop (simple reporters excluded, as above).
+  const isValueBlockWithOwnField = (node) =>
     !!node?.outputConnection &&
     !node.isShadow?.() &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter()) &&
     getPrimaryEditableField(node) != null;
 
-  const skipBlock = (node) => {
-    if (!isSkippableShadow(node) && !isSkippableStandalone(node)) return node;
-    return getPrimaryEditableField(node) ?? node;
-  };
+  const skipBlock = (node) =>
+    isSkippableShadow(node) ? (getPrimaryEditableField(node) ?? node) : node;
 
   // getFocusedNode() resolves a full-block field back to its block, so recover the field
   // that actually owns focus from document.activeElement.
-  const getFocusedSkippableField = () => {
+  const getFocusedFieldOf = (owns) => {
     const el = document.activeElement;
     if (!el?.id) return null;
     const sep = el.id.indexOf('_field_');
     if (sep === -1) return null;
     const block = ws.getBlockById(el.id.substring(0, sep));
-    if (!isSkippableShadow(block) && !isSkippableStandalone(block)) return null;
+    if (!owns(block)) return null;
     for (const input of block.inputList) {
       for (const field of input.fieldRow) {
         if (field.getFocusableElement?.()?.id === el.id) return field;
@@ -1400,41 +1396,43 @@ function installShadowNavigationPatch(ws) {
     return null;
   };
 
+  const getFocusedShadowField = () => getFocusedFieldOf(isSkippableShadow);
+
   const origIn = nav.getInNode.bind(nav);
   const origOut = nav.getOutNode.bind(nav);
   const origNext = nav.getNextNode.bind(nav);
   const origPrev = nav.getPreviousNode.bind(nav);
 
-  // Right-arrow: land on the field, not the redundant block stop. From a skippable field,
+  // Right-arrow: land on the field, not the redundant shadow stop. From such a field,
   // pass the field explicitly so traversal bubbles to the next inline sibling.
   nav.getInNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     return skipBlock(field ? origIn(field) : origIn(node));
   };
 
-  // Left-arrow: from a skippable field, go to the block's parent, skipping the block.
+  // Left-arrow: from a skipped shadow's field, go to its parent, skipping the shadow.
   nav.getOutNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origOut(field.getSourceBlock()));
     return origOut(node);
   };
 
-  // Down-arrow: navigate as if standing on the skippable block itself.
+  // Down-arrow: navigate as if standing on the skipped shadow itself.
   nav.getNextNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origNext(field.getSourceBlock()));
     return skipBlock(origNext(node));
   };
 
   // Up-arrow: same idea.
   nav.getPreviousNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origPrev(field.getSourceBlock()));
     return skipBlock(origPrev(node));
   };
 
   // Built-in DISCONNECT (X), DUPLICATE (D) and DELETE check the focused node is a Block,
-  // which fails on a skippable block's field — re-register the same keys for that case.
+  // which fails on a value block's own field — re-register the same keys for that case.
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
 
   // A field editor holding ephemeral focus leaves scope.focusedNode pointing at the
@@ -1442,34 +1440,34 @@ function installShadowNavigationPatch(ws) {
   // typed into an open dropdown. Blockly's own destructive shortcuts guard the same way.
   const fieldEditorOpen = () => Blockly.getFocusManager().ephemeralFocusTaken();
 
-  const skippableFieldBlock = () => {
-    const field = getFocusedSkippableField();
+  const focusedFieldBlock = () => {
+    const field = getFocusedFieldOf((b) => isSkippableShadow(b) || isValueBlockWithOwnField(b));
     return field ? field.getSourceBlock() : null;
   };
 
-  // Registers a shortcut that fires only when a skippable field is focused.
+  // Registers a shortcut that fires only while a value block's own field is focused.
   // canRun(workspace, block) → extra conditions beyond the common workspace checks.
   // run(workspace, event, block) → performs the action, returns true on success.
-  const registerSkippableFieldShortcut = (name, keyCode, canRun, run) => {
+  const registerFocusedFieldShortcut = (name, keyCode, canRun, run) => {
     shortcutRegistry.register({
       name,
       allowCollision: true,
       keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
       preconditionFn: (workspace) => {
-        const block = skippableFieldBlock();
+        const block = focusedFieldBlock();
         return (
           !!block && !workspace.isDragging() && !workspace.isReadOnly() && canRun(workspace, block)
         );
       },
       callback: (workspace, event) => {
-        const block = skippableFieldBlock();
+        const block = focusedFieldBlock();
         return !!block && run(workspace, event, block);
       },
     });
   };
 
-  registerSkippableFieldShortcut(
-    'disconnect_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'disconnect_from_focused_field',
     Blockly.utils.KeyCodes.X,
     (_ws, block) => !block.isShadow?.(),
     (_ws, event, block) => {
@@ -1488,8 +1486,8 @@ function installShadowNavigationPatch(ws) {
     return true;
   };
 
-  registerSkippableFieldShortcut(
-    'duplicate_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'duplicate_from_focused_field',
     Blockly.utils.KeyCodes.D,
     (ws, block) => !ws.isFlyout && !block.isShadow?.() && !!block.isDuplicatable?.(),
     (ws, _event, block) => duplicateViaClipboard(ws, block)
@@ -1523,8 +1521,8 @@ function installShadowNavigationPatch(ws) {
 
   // Delete key is safe to bind here — Del doesn't conflict with text editing
   // (users use Backspace for that). Backspace is intentionally excluded.
-  registerSkippableFieldShortcut(
-    'delete_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'delete_from_focused_field',
     Blockly.utils.KeyCodes.DELETE,
     (_ws, block) => !block.isShadow?.() && !!block.isDeletable?.(),
     (_ws, event, block) => {
@@ -1548,7 +1546,7 @@ function installShadowNavigationPatch(ws) {
           if (block) return block;
         }
       }
-      return skippableFieldBlock();
+      return focusedFieldBlock();
     };
     const commentEditable = (ws, block) =>
       !!block &&
@@ -1610,7 +1608,7 @@ function installShadowNavigationPatch(ws) {
           if (block) return block;
         }
       }
-      return skippableFieldBlock();
+      return focusedFieldBlock();
     };
     const enableEditable = (ws, block) =>
       !!block &&

@@ -407,21 +407,20 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Set the sky color of the scene.\nKeyword: sky',
-  create_ground_tooltip:
-    'Add a ground plane with collisions enabled to the scene.\nKeyword: ground',
-  set_background_color_tooltip: "Set the scene's background color.\nKeyword: background",
-  create_map_tooltip: 'Create a map with the selected name and material.\nKeyword: map',
-  show_tooltip: 'Show the selected object.\nKeyword: show',
-  hide_tooltip: 'Hide the selected object.\nKeyword: hide',
-  dispose_tooltip: 'Remove the specified object from the scene.\nKeyword: dispose',
-  clone_mesh_tooltip: 'Clone an object and assign it to a variable.\nKeyword: clone',
+  set_sky_color_tooltip: 'Set the sky color of the scene.',
+  create_ground_tooltip: 'Add a ground plane with collisions enabled to the scene.',
+  set_background_color_tooltip: "Set the scene's background color.",
+  create_map_tooltip: 'Create a map with the selected name and material.',
+  show_tooltip: 'Show the selected object.',
+  hide_tooltip: 'Hide the selected object.',
+  dispose_tooltip: 'Remove the specified object from the scene.',
+  clone_mesh_tooltip: 'Clone an object and assign it to a variable.',
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Create a configurable character.\nKeyword: character',
-  load_object_tooltip: 'Create an object.\nKeyword: object',
-  load_multi_object_tooltip: 'Create an object with colors.\nKeyword: object',
-  load_model_tooltip: 'Load a model.\nKeyword: model',
+  load_character_tooltip: 'Create a configurable character.',
+  load_object_tooltip: 'Create an object.',
+  load_multi_object_tooltip: 'Create an object with colors.',
+  load_model_tooltip: 'Load a model.',
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -449,11 +448,9 @@ export default {
   control_animation_group_tooltip:
     'Control the animation group by playing, pausing, or stopping it.',
   animate_from_tooltip: 'Start animating the group from the specified time (in seconds).',
-  stop_animations_tooltip: 'Stop all keyframe animations on the selected object.\nKeyword: stop',
-  switch_animation_tooltip:
-    'Changes the animation of the specified object to the given animation.\nKeyword: switch',
-  play_animation_tooltip:
-    'Play the selected animation once on the specified object.\nKeyword: play',
+  stop_animations_tooltip: 'Stop all keyframe animations on the selected object.',
+  switch_animation_tooltip: 'Changes the animation of the specified object to the given animation.',
+  play_animation_tooltip: 'Play the selected animation once on the specified object.',
 
   // Tooltip translations - Base blocks
   xyz_tooltip: 'Creates a vector with X, Y, Z coordinates',
@@ -461,138 +458,127 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Bind a specific key to a camera control action.',
   camera_follow_tooltip:
-    'Make the camera follow an object with a customizable distance (radius) from the target.\nKeyword: follow',
+    'Make the camera follow an object with a customizable distance (radius) from the target.',
   get_camera_tooltip: 'Get the current scene camera',
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip: 'Merge a list of objects into one and store the result.\nKeyword: merge',
-  subtract_meshes_tooltip:
-    'Subtract a list of objects from a base object and store the result.\nKeyword: subtract',
-  intersection_meshes_tooltip:
-    'Intersect a list of objects and store the resulting geometry.\nKeyword: intersect',
-  hull_meshes_tooltip:
-    'Create a convex hull from a list of objects and store the result.\nKeyword: hull',
+  merge_meshes_tooltip: 'Merge a list of objects into one and store the result.',
+  subtract_meshes_tooltip: 'Subtract a list of objects from a base object and store the result.',
+  intersection_meshes_tooltip: 'Intersect a list of objects and store the resulting geometry.',
+  hull_meshes_tooltip: 'Create a convex hull from a list of objects and store the result.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Set a parent-child relationship between two objects and keeps the child in its world position\nKeyword:parent',
+    'Set a parent-child relationship between two objects and keeps the child in its world position',
   parent_child_tooltip:
-    'Set a parent-child relationship between two objects with a specified offset in x, y, and z directions.\nKeyword: child',
-  remove_parent_tooltip:
-    'Remove the parent relationship from the specified object.\nKeyword: unparent',
-  stop_follow_tooltip: 'Stop the specified object from following another.\nKeyword: stopfollow',
+    'Set a parent-child relationship between two objects with a specified offset in x, y, and z directions.',
+  remove_parent_tooltip: 'Remove the parent relationship from the specified object.',
+  stop_follow_tooltip: 'Stop the specified object from following another.',
   hold_tooltip:
-    'Attach an object to the specified bone of another object with a specified offset in x, y, and z directions.\nKeyword: hold',
-  drop_tooltip: 'Detach an object from its currently attached bone.\nKeyword: drop',
+    'Attach an object to the specified bone of another object with a specified offset in x, y, and z directions.',
+  drop_tooltip: 'Detach an object from its currently attached bone.',
   follow_tooltip:
-    'Make one object follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions. \nKeyword: follow',
-  export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB.\nKeyword: export',
+    'Make one object follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.',
+  export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB.',
 
   // Tooltip translations - Control blocks
   if_clause_tooltip:
     'Run the attached blocks if the condition is true. Switch the dropdown to "else if" or "else", and connect another if block below to build if / else if / else chains.',
-  wait_tooltip: 'Wait for a specified time in milliseconds.\nKeyword: milli',
-  wait_seconds_tooltip: 'Wait for a specified time in seconds.\nKeyword: wait',
-  wait_until_tooltip: 'Wait until the condition is true.\nKeyword:until',
+  wait_tooltip: 'Wait for a specified time in milliseconds.',
+  wait_seconds_tooltip: 'Wait for a specified time in seconds.',
+  wait_until_tooltip: 'Wait until the condition is true.',
   local_variable_tooltip:
-    'Create a local version of a selected variable. This hides the global variable and can have a different value. \nKeyword: local',
+    'Create a local version of a selected variable. This hides the global variable and can have a different value.',
   for_loop2_tooltip: 'Loop from a starting number to an ending number by a given step.',
   for_loop_tooltip:
-    'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.\nKeyword: for',
+    'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',
   get_lexical_variable_tooltip: 'Get the value of a lexical variable',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip:
-    'Set the intensity and diffuse and ground colors of the main light.\nKeyword: light intensity',
+  main_light_tooltip: 'Set the intensity and diffuse and ground colors of the main light.',
   set_fog_tooltip:
-    "Configure the scene's fog. Use start and end to set the near and far distances.\nKeyword: fog",
-  get_light_tooltip: "Get the current scene's main light.\nKeyword: light",
+    "Configure the scene's fog. Use start and end to set the near and far distances.",
+  get_light_tooltip: "Get the current scene's main light.",
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    'Run the blocks inside when the project starts. You can have multiple start blocks. \nKeyword: start',
-  forever_tooltip:
-    'Run the blocks inside every frame or when the previous iteration finishes. \nKeyword: forever',
-  when_clicked_tooltip: 'Run the blocks inside when the object trigger occurs.\nKeyword: click',
+    'Run the blocks inside when the project starts. You can have multiple start blocks.',
+  forever_tooltip: 'Run the blocks inside every frame or when the previous iteration finishes.',
+  when_clicked_tooltip: 'Run the blocks inside when the object trigger occurs.',
   on_collision_tooltip:
-    'Execute the blocks inside when the object intersects or no longer intersects with another object.\nKeyword: collide',
+    'Execute the blocks inside when the object intersects or no longer intersects with another object.',
   when_key_event_tooltip:
     'Execute the blocks inside when the specified key is pressed or released.',
   when_action_event_tooltip:
     'Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.',
-  broadcast_event_tooltip: 'Broadcast an event that is received by on event.\nKeyword: broadcast',
-  on_event_tooltip: 'Run code when a broadcast event is received.\nKeyword: on',
+  broadcast_event_tooltip: 'Broadcast an event that is received by on event.',
+  on_event_tooltip: 'Run code when a broadcast event is received.',
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Change the color of the selected object.\nKeyword: color',
-  change_material_tooltip:
-    'Apply a selected material with a color tint to the specified object.\nKeyword: material',
+  change_color_tooltip: 'Change the color of the selected object.',
+  change_material_tooltip: 'Apply a selected material with a color tint to the specified object.',
   text_material_tooltip:
     'Create a material with text or emoji, specifying width, height, background color, and text size.',
   place_decal_tooltip: 'Place a decal on an object using the selected material.',
   decal_tooltip: 'Create a decal on an object with position, normal, size, and material.',
-  highlight_tooltip: 'Highlight the selected object.\nKeyword: highlight',
-  glow_tooltip: 'Adds a glow effect to the selected object.\nKeyword: glow',
-  set_shadow_tooltip: 'Toggle whether an object casts a shadow.\nKeyword: shadow',
-  enable_shadows_tooltip: 'Turn scene shadows on or off.\nKeyword: shadows',
-  tint_tooltip: 'Add color tint effect.\nKeyword: tint',
+  highlight_tooltip: 'Highlight the selected object.',
+  glow_tooltip: 'Adds a glow effect to the selected object.',
+  set_shadow_tooltip: 'Toggle whether an object casts a shadow.',
+  enable_shadows_tooltip: 'Turn scene shadows on or off.',
+  tint_tooltip: 'Add color tint effect.',
   set_alpha_tooltip:
-    'Set the alpha (transparency) of the material(s) on a specified object. Values should be 0 to 1.\nKeyword:alpha',
-  clear_effects_tooltip: 'Clear visual effects from selected object.\nKeyword: clear',
-  colour_tooltip: 'Pick a color.\nKeyword: color',
-  skin_colour_tooltip: 'Pick a skin color.\nKeyword: skin',
-  greyscale_colour_tooltip: 'Pick a greyscale color for elevation.\nKeyword: grey',
-  random_colour_tooltip: 'Generate a random color.\nKeyword: randcol',
+    'Set the alpha (transparency) of the material(s) on a specified object. Values should be 0 to 1.',
+  clear_effects_tooltip: 'Clear visual effects from selected object.',
+  colour_tooltip: 'Pick a color.',
+  skin_colour_tooltip: 'Pick a skin color.',
+  greyscale_colour_tooltip: 'Pick a greyscale color for elevation.',
+  random_colour_tooltip: 'Generate a random color.',
   material_tooltip: 'Define material properties',
   gradient_material_tooltip: 'Define material properties',
   gradient_colour_tooltip:
-    'Blend between two or more colors. Direction is in degrees: 0 is bottom to top, 90 is left to right.\nKeyword: gradient',
+    'Blend between two or more colors. Direction is in degrees: 0 is bottom to top, 90 is left to right.',
   set_material_tooltip: 'Set the specified material on the given object.',
 
   // Tooltip translations - Physics blocks
-  add_physics_tooltip:
-    'Add physics to the object. Options are dynamic, static, animated and none.\nKeyword:physics',
-  add_physics_shape_tooltip:
-    'Add a physics shape to the object. Options are object or capsule.\nKeyword:physics',
-  apply_force_tooltip: 'Apply a force to an object in XYZ directions.\nKeyword: force',
+  add_physics_tooltip: 'Add physics to the object. Options are dynamic, static, animated and none.',
+  add_physics_shape_tooltip: 'Add a physics shape to the object. Options are object or capsule.',
+  apply_force_tooltip: 'Apply a force to an object in XYZ directions.',
   jump_tooltip:
-    'Make a character jump to a height (in blocks). Keeps your current running speed. Needs physics.\nKeyword: jump hop leap',
+    'Make a character jump to a height (in blocks). Keeps your current running speed. Needs physics.',
   set_speed_tooltip:
-    'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.\nKeyword: speed',
+    'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.',
   set_bounciness_tooltip:
-    'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.\nKeyword: bouncy restitution',
+    'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.',
   show_physics_tooltip:
-    'Show or hide physics colliders for debugging. Check to show, uncheck to hide.\nKeyword: debug physics collider',
+    'Show or hide physics colliders for debugging. Check to show, uncheck to hide.',
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: 'Return true if the specified key is pressed.\nKeyword:ispressed',
+  key_pressed_tooltip: 'Return true if the specified key is pressed.',
   action_pressed_tooltip:
     'Return true if the specified movement or action control is active across keyboard, touch, or XR inputs.',
   set_action_key: 'set %1 key to %2',
   set_action_key_tooltip:
     'Set the key that triggers a specific action (forward, backward, left, right, or buttons).',
-  meshes_touching_tooltip:
-    'Return true if the two selected objects are touching.\nKeyword: istouching',
+  meshes_touching_tooltip: 'Return true if the two selected objects are touching.',
   time_tooltip:
     "Return the elapsed time. Pauses while the tab is hidden, so it's best for game timers and countdowns.",
   ground_level_tooltip: 'Return the ground height at the current x/z position.',
   distance_to_tooltip: 'Calculate the distance between two objects.',
-  touching_surface_tooltip: 'Check if the object is touching a surface.\nKeyword: surface',
+  touching_surface_tooltip: 'Check if the object is touching a surface.',
   mesh_exists_tooltip: 'Return true if the object with this name is present in the scene.',
-  get_property_tooltip: 'Get the value of the selected property of an object.\nKeyword: get',
-  canvas_controls_tooltip: 'Add or remove canvas motion controls.\nKeyword: canvas',
-  interact_indicator_tooltip:
-    'Show or hide the interact indicator next to nearby objects.\nKeyword: indicator',
-  button_controls_tooltip: 'Configure button controls.\nKeyword: button',
-  on_screen_controls_tooltip: 'Configure on-screen controls.\nKeyword: onscreen',
+  get_property_tooltip: 'Get the value of the selected property of an object.',
+  canvas_controls_tooltip: 'Add or remove canvas motion controls.',
+  interact_indicator_tooltip: 'Show or hide the interact indicator next to nearby objects.',
+  button_controls_tooltip: 'Configure button controls.',
+  on_screen_controls_tooltip: 'Configure on-screen controls.',
   microbit_input_tooltip:
     'Executes the blocks inside when a specified micro:bit event is triggered.',
   add_microbit_tooltip:
     'Connect a micro:bit and refer to it by this variable. Click the status icon to connect a micro:bit over USB. Unplugged micro:bits send events by radio through any plugged-in micro:bit on the same channel.',
   microbit_show_image_tooltip:
-    "Show an image on a plugged-in micro:bit's LED display. Click the image to edit it.\nKeyword: leds",
+    "Show an image on a plugged-in micro:bit's LED display. Click the image to edit it.",
   microbit_scroll_text_tooltip:
-    "Scroll text across a plugged-in micro:bit's LED display. Long text is shortened to 16 characters.\nKeyword: scroll",
+    "Scroll text across a plugged-in micro:bit's LED display. Long text is shortened to 16 characters.",
   ui_slider_tooltip: 'Add a 2D slider UI control and store its reference in a variable.',
 
   // Tooltip translations - Shapes blocks
@@ -600,34 +586,27 @@ export default {
     'Create a particle effect attached to an object with configurable shape, gravity, size, color, transparency, lifetime, force, and rotation.',
   control_particle_system_tooltip:
     'Control the particle system by starting, stopping, or resetting it.',
-  create_box_tooltip: 'Create a colored box with specified dimensions and position.\nKeyword: box',
-  create_sphere_tooltip:
-    'Create a colored sphere with specified dimensions and position.\nKeyword: sphere',
-  create_cylinder_tooltip:
-    'Create a colored cylinder with specified dimensions and position.\nKeyword: cylinder',
-  create_capsule_tooltip:
-    'Create a colored capsule with specified dimensions and position.\nKeyword: capsule',
+  create_box_tooltip: 'Create a colored box with specified dimensions and position.',
+  create_sphere_tooltip: 'Create a colored sphere with specified dimensions and position.',
+  create_cylinder_tooltip: 'Create a colored cylinder with specified dimensions and position.',
+  create_capsule_tooltip: 'Create a colored capsule with specified dimensions and position.',
   create_wedge_tooltip:
-    'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.\nKeyword: wedge',
+    'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.',
   create_donut_tooltip:
-    'Add a donut \u2014 a ring shape. Diameter sets how wide the ring is, thickness how thick the tube is, and sides how smooth it looks.\nKeyword: donut',
-  create_plane_tooltip:
-    'Create a colored 2D plane with specified width, height, and position.\nKeyword: plane',
+    'Add a donut \u2014 a ring shape. Diameter sets how wide the ring is, thickness how thick the tube is, and sides how smooth it looks.',
+  create_plane_tooltip: 'Create a colored 2D plane with specified width, height, and position.',
 
   // Tooltip translations - Sound blocks
-  play_theme_tooltip:
-    'Play a theme tune on an object with adjustable speed, volume, and mode.\nKeyword: theme',
+  play_theme_tooltip: 'Play a theme tune on an object with adjustable speed, volume, and mode.',
   play_sound_tooltip:
-    'Play the selected sound on an object with adjustable speed, volume, and mode.\nKeyword: sound',
-  stop_all_sounds_tooltip: 'Stop all sounds currently playing in the scene.\nKeyword:nosound',
-  note_tooltip: 'A musical note with a pitch (MIDI 0–127) and duration in beats.\nKeyword: note',
-  rest_tooltip: 'A musical rest (silence). Use as the pitch in a note block.\nKeyword: rest',
-  play_tune_tooltip:
-    'Import an ABC notation string to generate a tune with notes and repeats.\nKeyword: playtune',
+    'Play the selected sound on an object with adjustable speed, volume, and mode.',
+  stop_all_sounds_tooltip: 'Stop all sounds currently playing in the scene.',
+  note_tooltip: 'A musical note with a pitch (MIDI 0–127) and duration in beats.',
+  rest_tooltip: 'A musical rest (silence). Use as the pitch in a note block.',
+  play_tune_tooltip: 'Import an ABC notation string to generate a tune with notes and repeats.',
   play_tune_notes_tooltip:
-    'Play a sequence of notes and rests on an object using the specified instrument.\nKeyword: playtunenotes',
-  set_music_speed_tooltip:
-    'Set the music playback speed multiplier for an object.\nKeyword: musicspeed',
+    'Play a sequence of notes and rests on an object using the specified instrument.',
+  set_music_speed_tooltip: 'Set the music playback speed multiplier for an object.',
   midi_note_tooltip: 'A MIDI note value between 0 and 127.',
   play_notes_tooltip:
     'Play a sequence of MIDI notes and rests with corresponding durations, using object for panning. Can return immediately or after the notes have finished playing.',
@@ -635,18 +614,16 @@ export default {
   set_mesh_bpm_tooltip: 'Set the BPM for a selected object',
   create_instrument_tooltip: 'Create an instrument and assigns it to the selected variable.',
   instrument_tooltip: 'Select an instrument to use for playing notes.',
-  speak_tooltip:
-    'Convert text to speech using the Web Speech API with optional 3D positioning.\nKeyword: speak',
-  enable_subtitles_tooltip: 'Show on-screen subtitles for spoken text.\nKeyword: subtitles',
+  speak_tooltip: 'Convert text to speech using the Web Speech API with optional 3D positioning.',
+  enable_subtitles_tooltip: 'Show on-screen subtitles for spoken text.',
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'A comment line to help people understand your code.',
-  print_text_tooltip: 'A text to the output panel.\nKeyword: print',
-  subtitle_tooltip:
-    'Show text as an on-screen subtitle. 0 seconds stays until replaced.\nKeyword: subtitle',
-  say_tooltip: 'Display a piece of text as a speech bubble on an object.\nKeyword: say',
+  print_text_tooltip: 'A text to the output panel.',
+  subtitle_tooltip: 'Show text as an on-screen subtitle. 0 seconds stays until replaced.',
+  say_tooltip: 'Display a piece of text as a speech bubble on an object.',
   describe_tooltip:
-    'Set the display name for an object. This updates the object metadata for accessibility.\nKeyword: describe',
+    'Set the display name for an object. This updates the object metadata for accessibility.',
   ui_text_tooltip:
     'Add text to the UI screen, and store control in a variable for later use or disposal.',
   ui_button_tooltip:
@@ -655,33 +632,26 @@ export default {
   create_3d_text_tooltip: 'Create 3D text in the scene.',
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip: 'Generate a random integer with a seed.\nKeyword: seed',
+  random_seeded_int_tooltip: 'Generate a random integer with a seed.',
   to_number_tooltip: 'Convert a string to an integer or float.',
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: 'Move an object a given amount in x y and z directions.\nKeyword: move',
-  move_by_xyz_single_tooltip:
-    'Move an object a given amount in either x y or z direction.\nKeyword: move',
-  move_to_xyz_tooltip:
-    'Teleport the object to the coordinates. Optionally, use the Y axis.\nKeyword: moveby',
-  move_to_xyz_single_tooltip:
-    'Teleport the object to the specified single coordinate.\nKeyword: moveby',
-  move_to_tooltip:
-    'Teleport the first object to the location of the second object.\nKeyword: moveto',
-  scale_tooltip:
-    'Resize an object to the given x, y, and z and controls the origin of scaling. \nKeyword: scale',
-  resize_tooltip:
-    'Resize an object to the given x, y, and z and controls the origin of scaling.\nKeyword: resize',
-  rotate_model_xyz_tooltip: 'Rotate the object by the given x, y, z values.\nKeyword: rotateby',
-  rotate_to_tooltip: 'Rotate the object to point towards the  coordinates.\nKeyword: rotateto',
-  look_at_tooltip:
-    'Rotate the first object towards the position of the second object.\nKeyword: look',
+  move_by_xyz_tooltip: 'Move an object a given amount in x y and z directions.',
+  move_by_xyz_single_tooltip: 'Move an object a given amount in either x y or z direction.',
+  move_to_xyz_tooltip: 'Teleport the object to the coordinates. Optionally, use the Y axis.',
+  move_to_xyz_single_tooltip: 'Teleport the object to the specified single coordinate.',
+  move_to_tooltip: 'Teleport the first object to the location of the second object.',
+  scale_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
+  resize_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
+  rotate_model_xyz_tooltip: 'Rotate the object by the given x, y, z values.',
+  rotate_to_tooltip: 'Rotate the object to point towards the  coordinates.',
+  look_at_tooltip: 'Rotate the first object towards the position of the second object.',
   move_forward_tooltip:
-    "Move the object in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.\nKeyword: push",
-  rotate_camera_tooltip: 'Rotate the camera left or right by the given degrees.\nKeyword: rotate',
-  up_tooltip: 'Apply the specified upwards force.\nKeyword: up',
-  set_pivot_tooltip: 'Set the anchor point for an object on the X, Y, and Z axes\nKeyword: anchor',
-  min_centre_max_tooltip: 'Choose min, center, or max for the pivot point\nKeyword: minmax',
+    "Move the object in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
+  rotate_camera_tooltip: 'Rotate the camera left or right by the given degrees.',
+  up_tooltip: 'Apply the specified upwards force.',
+  set_pivot_tooltip: 'Set the anchor point for an object on the X, Y, and Z axes',
+  min_centre_max_tooltip: 'Choose min, center, or max for the pivot point',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
@@ -690,7 +660,7 @@ export default {
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
   set_ar_scene_size_tooltip:
-    'Scale: how wide the scene appears in the room, or 0 for life size. Distance: how far in front of you it starts. Height: how far it floats above the floor.\nKeyword: diorama',
+    'Scale: how wide the scene appears in the room, or 0 for life size. Distance: how far in front of you it starts. Height: how far it floats above the floor.',
   set_vr_comfort_tooltip:
     'Comfort options for a VR headset. Tunnel vision narrows the edges of your view while the scene moves; the overlay adds faint markers that hold still in your real room.',
   set_xr_ui_placement_tooltip:
@@ -698,12 +668,11 @@ export default {
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',
   remove_teleport_target_tooltip:
     'Stop allowing teleportation onto the ground, one object, or all objects.',
-  play_rumble_pattern_tooltip:
-    'Play a preset haptic rumble pattern on all connected controllers.\nKeyword: rumble preset',
+  play_rumble_pattern_tooltip: 'Play a preset haptic rumble pattern on all connected controllers.',
   controller_rumble_tooltip:
-    'Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.\nKeyword: rumble',
+    'Make a connected game controller rumble. Choose all, left, or right motor, set the strength (0 to 1), and how long to rumble in milliseconds.',
   controller_rumble_pattern_tooltip:
-    'Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.\nKeyword: rumble pattern',
+    'Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.',
 
   // Dropdown option translations
   AWAIT_option: 'await',
@@ -1180,6 +1149,7 @@ export default {
   delete_button_ui: 'Delete selected object',
   delete_block_button_ui: 'Delete block',
   block_menu: 'Block menu',
+  block_menu_announcement: 'Block menu: %1',
   duplicate_block_button_ui: 'Duplicate block',
   camera_button_ui: 'Camera controls',
   eye_button_ui: 'Orbit around selected object',
@@ -1490,7 +1460,8 @@ export default {
   shortcut_toolbox_typing: 'Skip to category',
   shortcut_toolbox_typing_hint: 'Start typing its name',
   shortcut_context_menu: 'Open context menu',
-  shortcut_toggle_block_toolbar: 'Show/hide block hint toolbar',
+  shortcut_toggle_block_toolbar: 'Show/hide block menu',
+  shortcut_block_info: 'Show/hide block info',
   shortcut_duplicate_block: 'Duplicate block',
   shortcut_detach_block: 'Detach block',
   shortcut_comment_block: 'Show/hide comment',

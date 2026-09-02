@@ -47,7 +47,12 @@ import {
 import { ShortcutsPanel } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from './keyboardDispatcher.js';
 import { ContextManager, toggleContextDebug } from './context.js';
-import { areBlockHintsEnabled, setBlockHintsEnabled } from '../ui/blockHint.js';
+import {
+  areBlockHintsEnabled,
+  setBlockHintsEnabled,
+  showBlockHintMessage,
+  hideBlockHint,
+} from '../ui/blockHint.js';
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get('embed');
@@ -612,6 +617,31 @@ function registerTopBlockReorderShortcuts() {
   });
 }
 
+function registerBlockInfoHint() {
+  let describedBlockId = null;
+
+  const dismiss = () => {
+    describedBlockId = null;
+    hideBlockHint();
+  };
+
+  wrapShortcut('information', (ws, event, shortcut, orig) => {
+    const handled = orig?.(ws, event, shortcut);
+    if (Blockly.getFocusManager().ephemeralFocusTaken()) return handled;
+
+    const node = Blockly.getFocusManager().getFocusedNode();
+    const block = ws.getNavigator?.().getSourceBlockFromNode(node) ?? null;
+    if (!block || describedBlockId === block.id) {
+      dismiss();
+      return handled;
+    }
+    describedBlockId = block.id;
+    showBlockHintMessage(Blockly.Tooltip.getTooltipOfObject(block));
+    document.addEventListener('focusin', dismiss, { once: true, capture: true });
+    return handled;
+  });
+}
+
 // Blockly's "menu" shortcut opens nothing when the bare workspace is focused —
 // its focus-target node has no showContextMenu. Fall back to the workspace menu.
 function registerWorkspaceContextMenuFallback() {
@@ -1035,6 +1065,7 @@ window.onload = async function () {
   registerBlocklyPlayShortcut();
   registerTopBlockReorderShortcuts();
   registerWorkspaceContextMenuFallback();
+  registerBlockInfoHint();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();

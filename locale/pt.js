@@ -246,7 +246,7 @@ export default {
   apply_force: 'aplicar força em %1 x: %2 y: %3 z: %4',
   set_speed: 'definir velocidade de %1 %2 para %3', // ai
   set_speed_tooltip:
-    'Mantém um objeto a mover-se a uma velocidade definida numa direção. Move-se tal como uma personagem com "mover" — sobe rampas, transpõe pequenos degraus, para nas paredes e mantém-se direito — mas em relação ao objeto ou ao mundo, em vez da câmara. Mantém essa velocidade até a alterares. Escolhe uma direção em relação ao objeto (frente, lateral, cima) ou um eixo do mundo (x, y, z); usa "olhar para" para apontar e depois segue em frente. Escolhe "todos" e 0 para parar.\nPalavra-chave: speed', // ai
+    'Mantém um objeto a mover-se a uma velocidade definida numa direção. Move-se tal como uma personagem com "mover" — sobe rampas, transpõe pequenos degraus, para nas paredes e mantém-se direito — mas em relação ao objeto ou ao mundo, em vez da câmara. Mantém essa velocidade até a alterares. Escolhe uma direção em relação ao objeto (frente, lateral, cima) ou um eixo do mundo (x, y, z); usa "olhar para" para apontar e depois segue em frente. Escolhe "todos" e 0 para parar.', // ai
   show_physics: 'mostrar formas físicas %1',
 
   // Custom block translations - Sensing blocks
@@ -368,21 +368,20 @@ export default {
   BLOCK_CREATE_BOX_MESSAGE: 'criar caixa %1 cor %2 tamanho %3 × %4 × %5 em %6, %7, %8',
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Define a cor do céu da cena.\nPalavra-chave: céu',
-  create_ground_tooltip:
-    'Adiciona um plano de chão com colisões habilitadas na cena.\nPalavra-chave: chão',
-  set_background_color_tooltip: 'Define a cor de fundo da cena.\nPalavra-chave: fundo',
-  create_map_tooltip: 'Cria um mapa com o nome e material selecionados.\nPalavra-chave: mapa',
-  show_tooltip: 'Mostra o objeto selecionado.\nPalavra-chave: mostrar',
-  hide_tooltip: 'Oculta o objeto selecionado.\nPalavra-chave: ocultar',
-  dispose_tooltip: 'Remove o objeto especificado da cena.\nPalavra-chave: remover',
-  clone_mesh_tooltip: 'Clona um objeto e o atribui a uma variável.\nPalavra-chave: clonar',
+  set_sky_color_tooltip: 'Define a cor do céu da cena.',
+  create_ground_tooltip: 'Adiciona um plano de chão com colisões habilitadas na cena.',
+  set_background_color_tooltip: 'Define a cor de fundo da cena.',
+  create_map_tooltip: 'Cria um mapa com o nome e material selecionados.',
+  show_tooltip: 'Mostra o objeto selecionado.',
+  hide_tooltip: 'Oculta o objeto selecionado.',
+  dispose_tooltip: 'Remove o objeto especificado da cena.',
+  clone_mesh_tooltip: 'Clona um objeto e o atribui a uma variável.',
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Cria um personagem configurável.\nPalavra-chave: personagem',
-  load_object_tooltip: 'Cria um objeto.\nPalavra-chave: objeto',
-  load_multi_object_tooltip: 'Cria um objeto com cores.\nPalavra-chave: objeto',
-  load_model_tooltip: 'Carrega um modelo.\nPalavra-chave: modelo',
+  load_character_tooltip: 'Cria um personagem configurável.',
+  load_object_tooltip: 'Cria um objeto.',
+  load_multi_object_tooltip: 'Cria um objeto com cores.',
+  load_model_tooltip: 'Carrega um modelo.',
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -410,12 +409,9 @@ export default {
   control_animation_group_tooltip:
     'Controla o grupo de animação reproduzindo, pausando ou parando.',
   animate_from_tooltip: 'Inicia a animação do grupo a partir de um tempo específico (em segundos).',
-  stop_animations_tooltip:
-    'Para todas as animações de quadros-chave no objeto selecionado.\nPalavra-chave: parar',
-  switch_animation_tooltip:
-    'Altera a animação do objeto especificado para a animação fornecida.\nPalavra-chave: trocar',
-  play_animation_tooltip:
-    'Reproduz a animação selecionada uma vez no objeto especificado.\nPalavra-chave: reproduzir',
+  stop_animations_tooltip: 'Para todas as animações de quadros-chave no objeto selecionado.',
+  switch_animation_tooltip: 'Altera a animação do objeto especificado para a animação fornecida.',
+  play_animation_tooltip: 'Reproduz a animação selecionada uma vez no objeto especificado.',
 
   // Tooltip translations - Base blocks
   xyz_tooltip: 'Cria um vetor com coordenadas X, Y, Z',
@@ -423,126 +419,111 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Associa uma tecla específica a uma ação de controle da câmera.',
   camera_follow_tooltip:
-    'Faz a câmera seguir um objeto com uma distância (raio) personalizável do alvo.\nPalavra-chave: seguir',
+    'Faz a câmera seguir um objeto com uma distância (raio) personalizável do alvo.',
   get_camera_tooltip: 'Obtém a câmera atual da cena',
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    'Une uma lista de objetos em um só e armazena o resultado.\nPalavra-chave: mesclar',
-  subtract_meshes_tooltip:
-    'Subtrai uma lista de objetos de um objeto base e armazena o resultado.\nPalavra-chave: subtrair',
+  merge_meshes_tooltip: 'Une uma lista de objetos em um só e armazena o resultado.',
+  subtract_meshes_tooltip: 'Subtrai uma lista de objetos de um objeto base e armazena o resultado.',
   intersection_meshes_tooltip:
-    'Intersecciona uma lista de objetos e armazena a geometria resultante.\nPalavra-chave: interseção',
+    'Intersecciona uma lista de objetos e armazena a geometria resultante.',
   hull_meshes_tooltip:
-    'Cria um envoltório convexo a partir de uma lista de objetos e armazena o resultado.\nPalavra-chave: casca',
+    'Cria um envoltório convexo a partir de uma lista de objetos e armazena o resultado.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Define uma relação pai-filho entre dois objetos e mantém o filho em sua posição global.\nPalavra-chave: pai',
+    'Define uma relação pai-filho entre dois objetos e mantém o filho em sua posição global.',
   parent_child_tooltip:
-    'Define uma relação pai-filho entre dois objetos com deslocamento especificado em x, y e z.\nPalavra-chave: filho',
-  remove_parent_tooltip:
-    'Remove a relação de parentesco do objeto especificado.\nPalavra-chave: desvincular',
-  stop_follow_tooltip:
-    'Faz com que o objeto especificado pare de seguir outro.\nPalavra-chave: pararseguir',
+    'Define uma relação pai-filho entre dois objetos com deslocamento especificado em x, y e z.',
+  remove_parent_tooltip: 'Remove a relação de parentesco do objeto especificado.',
+  stop_follow_tooltip: 'Faz com que o objeto especificado pare de seguir outro.',
   hold_tooltip:
-    'Anexa um objeto a um osso específico de outro objeto com deslocamento em x, y e z.\nPalavra-chave: segurar',
-  drop_tooltip: 'Desanexa um objeto do osso ao qual está conectado.\nPalavra-chave: soltar',
+    'Anexa um objeto a um osso específico de outro objeto com deslocamento em x, y e z.',
+  drop_tooltip: 'Desanexa um objeto do osso ao qual está conectado.',
   follow_tooltip:
-    'Faz um objeto seguir outro em uma posição específica (topo, centro ou base) com deslocamento em x, y e z.\nPalavra-chave: seguir',
-  export_mesh_tooltip: 'Exporta um objeto como STL, OBJ ou GLB.\nPalavra-chave: exportar',
+    'Faz um objeto seguir outro em uma posição específica (topo, centro ou base) com deslocamento em x, y e z.',
+  export_mesh_tooltip: 'Exporta um objeto como STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks
-  wait_tooltip: 'Aguarda por um tempo especificado em milissegundos.\nPalavra-chave: mili',
-  wait_seconds_tooltip: 'Aguarda por um tempo especificado em segundos.\nPalavra-chave: esperar',
-  wait_until_tooltip: 'Aguarda até que a condição seja verdadeira.\nPalavra-chave: até',
+  wait_tooltip: 'Aguarda por um tempo especificado em milissegundos.',
+  wait_seconds_tooltip: 'Aguarda por um tempo especificado em segundos.',
+  wait_until_tooltip: 'Aguarda até que a condição seja verdadeira.',
   local_variable_tooltip:
-    'Cria uma versão local de uma variável selecionada. Isso oculta a variável global e pode ter um valor diferente.\nPalavra-chave: local',
+    'Cria uma versão local de uma variável selecionada. Isso oculta a variável global e pode ter um valor diferente.',
   for_loop2_tooltip: 'Repete de um número inicial até um final com um passo definido.',
   for_loop_tooltip:
-    'Repete de um número inicial até um final com um passo definido. Clique no menu suspenso para obter a variável do loop para usar no seu código.\nPalavra-chave: para',
+    'Repete de um número inicial até um final com um passo definido. Clique no menu suspenso para obter a variável do loop para usar no seu código.',
   get_lexical_variable_tooltip: 'Obtém o valor de uma variável lexical',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: 'Define a intensidade da luz principal.\nPalavra-chave: intensidade da luz',
+  main_light_tooltip: 'Define a intensidade da luz principal.',
   set_fog_tooltip:
-    'Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.\nPalavra-chave: névoa',
-  get_light_tooltip: 'Obtém a luz principal da cena atual.\nPalavra-chave: luz',
+    'Configura a névoa da cena. Use início e fim para definir as distâncias próxima e distante.',
+  get_light_tooltip: 'Obtém a luz principal da cena atual.',
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    'Executa os blocos dentro quando o projeto iniciar. Você pode ter vários blocos de início.\nPalavra-chave: iniciar',
-  forever_tooltip:
-    'Executa os blocos continuamente a cada quadro ou após a execução anterior.\nPalavra-chave: para sempre',
-  when_clicked_tooltip:
-    'Executa os blocos quando ocorre o clique no objeto.\nPalavra-chave: clique',
-  on_collision_tooltip:
-    'Executa os blocos quando o objeto colide ou deixa de colidir com outro.\nPalavra-chave: colisão',
+    'Executa os blocos dentro quando o projeto iniciar. Você pode ter vários blocos de início.',
+  forever_tooltip: 'Executa os blocos continuamente a cada quadro ou após a execução anterior.',
+  when_clicked_tooltip: 'Executa os blocos quando ocorre o clique no objeto.',
+  on_collision_tooltip: 'Executa os blocos quando o objeto colide ou deixa de colidir com outro.',
   when_key_event_tooltip:
     'Executa os blocos quando a tecla especificada é pressionada ou liberada.',
   when_action_event_tooltip:
     'Executa os blocos quando a ação escolhida é pressionada ou liberada no teclado, toque ou XR.',
-  broadcast_event_tooltip:
-    "Emite um evento que será recebido pelo bloco 'ao receber'.\nPalavra-chave: transmitir",
-  on_event_tooltip: 'Executa o código ao receber um evento transmitido.\nPalavra-chave: ao',
+  broadcast_event_tooltip: "Emite um evento que será recebido pelo bloco 'ao receber'.",
+  on_event_tooltip: 'Executa o código ao receber um evento transmitido.',
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Altera a cor do objeto selecionado.\nPalavra-chave: cor',
-  change_material_tooltip:
-    'Aplica um material selecionado com cor ao objeto especificado.\nPalavra-chave: material',
+  change_color_tooltip: 'Altera a cor do objeto selecionado.',
+  change_material_tooltip: 'Aplica um material selecionado com cor ao objeto especificado.',
   text_material_tooltip:
     'Cria um material com texto ou emoji, especificando largura, altura, cor de fundo e tamanho da fonte.',
   place_decal_tooltip: 'Coloca um decalque em um objeto usando o material selecionado.',
   decal_tooltip: 'Cria um decalque em um objeto com posição, normal, tamanho e material.',
-  highlight_tooltip: 'Destaca o objeto selecionado.\nPalavra-chave: destaque',
-  glow_tooltip: 'Adiciona um efeito de brilho ao objeto selecionado.\nPalavra-chave: brilho',
-  tint_tooltip: 'Adiciona um efeito de matiz de cor.\nPalavra-chave: matiz',
+  highlight_tooltip: 'Destaca o objeto selecionado.',
+  glow_tooltip: 'Adiciona um efeito de brilho ao objeto selecionado.',
+  tint_tooltip: 'Adiciona um efeito de matiz de cor.',
   set_alpha_tooltip:
-    'Define a opacidade (alpha) dos materiais no objeto especificado. Valores devem estar entre 0 e 1.\nPalavra-chave: alpha',
-  clear_effects_tooltip: 'Remove os efeitos visuais do objeto selecionado.\nPalavra-chave: limpar',
-  colour_tooltip: 'Escolhe uma cor.\nPalavra-chave: cor',
-  skin_colour_tooltip: 'Escolhe uma cor de pele.\nPalavra-chave: pele',
-  greyscale_colour_tooltip:
-    'Escolhe uma cor em escala de cinza para elevação.\nPalavra-chave: cinza',
-  random_colour_tooltip: 'Gera uma cor aleatória.\nPalavra-chave: coraleat',
+    'Define a opacidade (alpha) dos materiais no objeto especificado. Valores devem estar entre 0 e 1.',
+  clear_effects_tooltip: 'Remove os efeitos visuais do objeto selecionado.',
+  colour_tooltip: 'Escolhe uma cor.',
+  skin_colour_tooltip: 'Escolhe uma cor de pele.',
+  greyscale_colour_tooltip: 'Escolhe uma cor em escala de cinza para elevação.',
+  random_colour_tooltip: 'Gera uma cor aleatória.',
   material_tooltip: 'Define propriedades de material',
   gradient_material_tooltip: 'Define propriedades de material com gradiente',
   set_material_tooltip: 'Define o material especificado no objeto indicado.',
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    'Adiciona física ao objeto. As opções são dinâmico, estático, animado e nenhum.\nPalavra-chave: física',
+    'Adiciona física ao objeto. As opções são dinâmico, estático, animado e nenhum.',
   add_physics_shape_tooltip:
-    'Adiciona uma forma de física ao objeto. As opções são objeto ou cápsula.\nPalavra-chave: física',
-  apply_force_tooltip: 'Aplica uma força a um objeto nas direções X, Y e Z.\nPalavra-chave: força',
+    'Adiciona uma forma de física ao objeto. As opções são objeto ou cápsula.',
+  apply_force_tooltip: 'Aplica uma força a um objeto nas direções X, Y e Z.',
   show_physics_tooltip:
-    'Mostrar ou ocultar colisores de física para depuração. Marque para mostrar, desmarque para ocultar.\nPalavra-chave: debug physics collider',
+    'Mostrar ou ocultar colisores de física para depuração. Marque para mostrar, desmarque para ocultar.',
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip:
-    'Retorna verdadeiro se a tecla especificada estiver pressionada.\nPalavra-chave: estápressionada',
+  key_pressed_tooltip: 'Retorna verdadeiro se a tecla especificada estiver pressionada.',
   action_pressed_tooltip:
     'Retorna verdadeiro se o controle de movimento ou ação escolhido estiver ativo no teclado, toque ou XR.',
   set_action_key: 'definir tecla %1 para %2',
   set_action_key_tooltip:
     'Define a tecla que aciona uma ação específica (frente, trás, esquerda, direita ou botões).',
-  meshes_touching_tooltip:
-    'Retorna verdadeiro se os dois objetos selecionados estiverem tocando.\nPalavra-chave: estátocando',
+  meshes_touching_tooltip: 'Retorna verdadeiro se os dois objetos selecionados estiverem tocando.',
   time_tooltip:
     'Retorna o tempo decorrido. Pausa enquanto a aba está oculta, ideal para cronômetros e contagens regressivas.', // ai
   ground_level_tooltip: 'Retorna a altura do solo na posição x/z atual.',
   distance_to_tooltip: 'Calcula a distância entre dois objetos.',
-  touching_surface_tooltip:
-    'Verifica se o objeto está tocando uma superfície.\nPalavra-chave: superfície',
+  touching_surface_tooltip: 'Verifica se o objeto está tocando uma superfície.',
   mesh_exists_tooltip: 'Retorna verdadeiro se o objeto com esse nome estiver presente na cena.',
-  get_property_tooltip:
-    'Obtém o valor da propriedade selecionada de um objeto.\nPalavra-chave: obter',
-  canvas_controls_tooltip:
-    'Adiciona ou remove controles de movimento por tela.\nPalavra-chave: canvas',
+  get_property_tooltip: 'Obtém o valor da propriedade selecionada de um objeto.',
+  canvas_controls_tooltip: 'Adiciona ou remove controles de movimento por tela.',
   interact_indicator_tooltip:
-    'Mostra ou oculta o indicador de interação ao lado de objetos próximos.\nPalavra-chave: indicator',
-  button_controls_tooltip: 'Configura controles por botão.\nPalavra-chave: botão',
-  on_screen_controls_tooltip: 'Configura os controles na tela.\nPalavra-chave: onscreen', // ai
+    'Mostra ou oculta o indicador de interação ao lado de objetos próximos.',
+  button_controls_tooltip: 'Configura controles por botão.',
+  on_screen_controls_tooltip: 'Configura os controles na tela.', // ai
   microbit_input_tooltip: 'Executa os blocos quando um evento do micro:bit for acionado.',
   ui_slider_tooltip:
     'Adiciona um controle deslizante 2D na interface e armazena sua referência em uma variável.',
@@ -552,28 +533,22 @@ export default {
     'Cria um efeito de partículas conectado a um objeto com forma, gravidade, tamanho, cor, transparência, duração, força e rotação configuráveis.',
   control_particle_system_tooltip:
     'Controla o sistema de partículas iniciando, parando ou reiniciando.',
-  create_box_tooltip:
-    'Cria uma caixa colorida com dimensões e posição especificadas.\nPalavra-chave: caixa',
-  create_sphere_tooltip:
-    'Cria uma esfera colorida com dimensões e posição especificadas.\nPalavra-chave: esfera',
-  create_cylinder_tooltip:
-    'Cria um cilindro colorido com dimensões e posição especificadas.\nPalavra-chave: cilindro',
-  create_capsule_tooltip:
-    'Cria uma cápsula colorida com dimensões e posição especificadas.\nPalavra-chave: cápsula',
+  create_box_tooltip: 'Cria uma caixa colorida com dimensões e posição especificadas.',
+  create_sphere_tooltip: 'Cria uma esfera colorida com dimensões e posição especificadas.',
+  create_cylinder_tooltip: 'Cria um cilindro colorido com dimensões e posição especificadas.',
+  create_capsule_tooltip: 'Cria uma cápsula colorida com dimensões e posição especificadas.',
   create_wedge_tooltip:
-    'Adiciona uma cunha — um prisma triangular para construir rampas, declives e telhados. Muda o pico para mudar a forma: 0 faz uma rampa, 0.5 faz um telhado.\nPalavra-chave: wedge', // ai
+    'Adiciona uma cunha — um prisma triangular para construir rampas, declives e telhados. Muda o pico para mudar a forma: 0 faz uma rampa, 0.5 faz um telhado.', // ai
   create_donut_tooltip:
-    'Adiciona um donut — uma forma de anel. O diâmetro define a largura do anel, a espessura quão espesso é o tubo e os lados o quão suave parece.\nPalavra-chave: donut', // ai
-  create_plane_tooltip:
-    'Cria um plano 2D colorido com largura, altura e posição especificadas.\nPalavra-chave: plano',
+    'Adiciona um donut — uma forma de anel. O diâmetro define a largura do anel, a espessura quão espesso é o tubo e os lados o quão suave parece.', // ai
+  create_plane_tooltip: 'Cria um plano 2D colorido com largura, altura e posição especificadas.',
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    'Reproduz um tema musical em um objeto com velocidade, volume e modo ajustáveis.\nPalavra-chave: tema',
+    'Reproduz um tema musical em um objeto com velocidade, volume e modo ajustáveis.',
   play_sound_tooltip:
-    'Reproduz o som selecionado em um objeto com velocidade, volume e modo ajustáveis.\nPalavra-chave: som',
-  stop_all_sounds_tooltip:
-    'Interrompe todos os sons atualmente em reprodução na cena.\nPalavra-chave: semsom',
+    'Reproduz o som selecionado em um objeto com velocidade, volume e modo ajustáveis.',
+  stop_all_sounds_tooltip: 'Interrompe todos os sons atualmente em reprodução na cena.',
   midi_note_tooltip: 'Um valor de nota MIDI entre 0 e 127.',
   rest_tooltip: 'Uma pausa (silêncio) em uma sequência musical.',
   play_notes_tooltip:
@@ -582,19 +557,16 @@ export default {
   set_mesh_bpm_tooltip: 'Define o BPM para um objeto específico.',
   create_instrument_tooltip: 'Cria um instrumento e o atribui à variável selecionada.',
   instrument_tooltip: 'Seleciona um instrumento para tocar notas.',
-  speak_tooltip:
-    'Converte texto em fala usando a API Web Speech com posicionamento 3D opcional.\nPalavra-chave: falar',
-  enable_subtitles_tooltip:
-    'Mostra legendas na tela para o texto falado.\nPalavra-chave: subtitles', // ai
+  speak_tooltip: 'Converte texto em fala usando a API Web Speech com posicionamento 3D opcional.',
+  enable_subtitles_tooltip: 'Mostra legendas na tela para o texto falado.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Uma linha de comentário para ajudar a entender seu código.',
-  print_text_tooltip: 'Mostra um texto no painel de saída.\nPalavra-chave: imprimir',
-  subtitle_tooltip:
-    'Mostra o texto como legenda na tela. 0 segundos permanece até a próxima.\nPalavra-chave: subtitle', // ai
-  say_tooltip: 'Exibe um texto como balão de fala em um objeto.\nPalavra-chave: dizer',
+  print_text_tooltip: 'Mostra um texto no painel de saída.',
+  subtitle_tooltip: 'Mostra o texto como legenda na tela. 0 segundos permanece até a próxima.', // ai
+  say_tooltip: 'Exibe um texto como balão de fala em um objeto.',
   describe_tooltip:
-    'Define o nome de exibição de um objeto. Atualiza os metadados para acessibilidade.\nPalavra-chave: describe',
+    'Define o nome de exibição de um objeto. Atualiza os metadados para acessibilidade.',
   ui_text_tooltip:
     'Adiciona um texto à interface e armazena o controle em uma variável para uso posterior.',
 
@@ -607,49 +579,39 @@ export default {
   create_3d_text_tooltip: 'Cria um texto 3D na cena.',
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip: 'Gera um inteiro aleatório com uma semente.\nPalavra-chave: seed',
+  random_seeded_int_tooltip: 'Gera um inteiro aleatório com uma semente.',
   to_number_tooltip: 'Converte uma string em número inteiro ou decimal.',
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip:
-    'Move um objeto uma certa distância nas direções x, y e z.\nPalavra-chave: mover',
-  move_by_xyz_single_tooltip:
-    'Mover um objeto uma determinada quantidade na direção x, y ou z.\nPalavra-chave: mover',
-  move_to_xyz_tooltip:
-    'Teleporta o objeto para as coordenadas. Opcionalmente, use o eixo Y.\nPalavra-chave: moverpor',
-  move_to_xyz_single_tooltip:
-    'Teletransportar o objeto para a coordenada única especificada.\nPalavra-chave: moverpor',
-  move_to_tooltip:
-    'Teleporta o primeiro objeto para a localização do segundo objeto.\nPalavra-chave: moverte',
+  move_by_xyz_tooltip: 'Move um objeto uma certa distância nas direções x, y e z.',
+  move_by_xyz_single_tooltip: 'Mover um objeto uma determinada quantidade na direção x, y ou z.',
+  move_to_xyz_tooltip: 'Teleporta o objeto para as coordenadas. Opcionalmente, use o eixo Y.',
+  move_to_xyz_single_tooltip: 'Teletransportar o objeto para a coordenada única especificada.',
+  move_to_tooltip: 'Teleporta o primeiro objeto para a localização do segundo objeto.',
   scale_tooltip:
-    'Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: escalar',
+    'Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.',
   resize_tooltip:
-    'Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.\nPalavra-chave: redimensionar',
-  rotate_model_xyz_tooltip:
-    'Gira o objeto pelos valores dados de x, y, z.\nPalavra-chave: girar\nPalavra-chave: girarpor',
-  rotate_to_tooltip: 'Gira o objeto para apontar para as coordenadas.\nPalavra-chave: girarte',
-  look_at_tooltip:
-    'Gira o primeiro objeto para olhar para a posição do segundo objeto.\nPalavra-chave: olhar',
+    'Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.',
+  rotate_model_xyz_tooltip: 'Gira o objeto pelos valores dados de x, y, z.',
+  rotate_to_tooltip: 'Gira o objeto para apontar para as coordenadas.',
+  look_at_tooltip: 'Gira o primeiro objeto para olhar para a posição do segundo objeto.',
   move_forward_tooltip:
-    "Move o objeto na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.\nPalavra-chave: empurrar",
-  rotate_camera_tooltip:
-    'Gira a câmera para a esquerda ou direita pelos graus indicados.\nPalavra-chave: rotate',
-  up_tooltip: 'Aplica a força para cima especificada.\nPalavra-chave: up',
-  set_pivot_tooltip:
-    'Define o ponto de âncora de um objeto nos eixos X, Y e Z.\nPalavra-chave: âncora',
-  min_centre_max_tooltip:
-    'Escolhe mínimo, centro ou máximo como ponto de pivô.\nPalavra-chave: minmax',
+    "Move o objeto na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.",
+  rotate_camera_tooltip: 'Gira a câmera para a esquerda ou direita pelos graus indicados.',
+  up_tooltip: 'Aplica a força para cima especificada.',
+  set_pivot_tooltip: 'Define o ponto de âncora de um objeto nos eixos X, Y e Z.',
+  min_centre_max_tooltip: 'Escolhe mínimo, centro ou máximo como ponto de pivô.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Usa a câmera do dispositivo como fundo da cena. Funciona em dispositivos móveis e desktop.',
   set_xr_mode_tooltip: 'Define o modo XR da cena.\nOpções: VR, AR, Magic Window.',
   play_rumble_pattern_tooltip:
-    'Reproduz um padrão de vibração predefinido em todos os controles conectados.\nPalavra-chave: rumble preset',
+    'Reproduz um padrão de vibração predefinido em todos os controles conectados.',
   controller_rumble_tooltip:
-    'Faz um controle de jogo conectado vibrar. Escolha o motor todos, esquerdo ou direito, defina a intensidade (0 a 1) e a duração em milissegundos.\nPalavra-chave: rumble',
+    'Faz um controle de jogo conectado vibrar. Escolha o motor todos, esquerdo ou direito, defina a intensidade (0 a 1) e a duração em milissegundos.',
   controller_rumble_pattern_tooltip:
-    'Faz um controle de jogo vibrar em padrão repetido. Defina o motor, a intensidade (0 a 1), o tempo ligado, o tempo desligado e o número de repetições.\nPalavra-chave: rumble pattern',
+    'Faz um controle de jogo vibrar em padrão repetido. Defina o motor, a intensidade (0 a 1), o tempo ligado, o tempo desligado e o número de repetições.',
 
   // Dropdown option translations
   AWAIT_option: 'aguardar',

@@ -2,6 +2,7 @@
 
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
+import { announceToScreenReader } from '../main/input.js';
 import { getMeshFromBlock } from './blockmesh.js';
 import {
   setBlockLocked,
@@ -679,6 +680,7 @@ export function initContextMenus(workspace) {
     // Keyboard-only overlay of shortcut-letter badges, one per visible button.
     const badgeOverlay = document.createElement('div');
     badgeOverlay.className = 'fc-toolbar-badges';
+    badgeOverlay.setAttribute('aria-hidden', 'true');
     document.body.appendChild(badgeOverlay);
 
     // Icon paths below are Font Awesome Free 6.7.2 solid- and regular-style icons
@@ -836,7 +838,6 @@ export function initContextMenus(workspace) {
     // a BLOCK_MOVE event fires. This re-checks shortly after, so viewBtn
     // catches up once the mesh actually appears/disappears.
     let viewMeshRecheckTimer = null;
-    let moveInProgress = false; // a drag/keyboard move is running — Enter belongs to Blockly
 
     function clearBadges() {
       badgeOverlay.replaceChildren();
@@ -1125,6 +1126,28 @@ export function initContextMenus(workspace) {
       enableBtn.innerHTML = disabled ? blockDisabledSvg : blockEnabledSvg;
     }
 
+    function announceBlockToolbar() {
+      const actions = [];
+      for (const [btn, labelSpec] of buttonShortcuts) {
+        if (btn.style.display === 'none' || btn.offsetParent === null) continue;
+        const label =
+          btn.getAttribute('aria-label') ||
+          (btn === moveHint ? getToolbarLabel('shortcut_start_move_block', 'Move block') : '');
+        if (!label) continue;
+        const key = (typeof labelSpec === 'function' ? labelSpec() : labelSpec)
+          .replace('⇧', 'Shift ')
+          .replace(/^Del$/, 'Delete');
+        actions.push(`${label}, ${key}`);
+      }
+      if (!actions.length) return;
+
+      const message = getToolbarLabel('block_menu_announcement', 'Block menu: %1').replace(
+        '%1',
+        actions.join('. ')
+      );
+      announceToScreenReader(message, { requireCanvasFocus: false });
+    }
+
     function showBlockToolbar(block, { keyboard = false } = {}) {
       toolbarBlock = block;
       toolbarKeyboardMode = keyboard;
@@ -1164,6 +1187,7 @@ export function initContextMenus(workspace) {
       if (!keyboard) clearBadges();
       toolbarShownAt = Date.now();
       positionBlockToolbar({ mayScroll: true });
+      announceBlockToolbar();
     }
 
     function hideBlockToolbar() {
@@ -1252,7 +1276,6 @@ export function initContextMenus(workspace) {
         updateSimplifiedToolbar();
         scheduleViewMeshRecheck();
       } else if (e.type === Blockly.Events.BLOCK_DRAG) {
-        moveInProgress = !!e.isStart;
         if (e.isStart) {
           // Dragging is not a request for the toolbar, so flag the block for
           // the SELECTED handler above: the reselect that follows must not
@@ -1276,18 +1299,24 @@ export function initContextMenus(workspace) {
       );
     };
 
-    // Blockly won't fire SELECTED again for an already-selected block, so the
-    // click and key paths show/hide directly. Hiding marks the block dismissed
-    // so a following SELECTED doesn't re-show it.
-    function toggleToolbarForSelected({ keyboard = false } = {}) {
-      if (!selectedBlock) return;
-      if (toolbarBlock) {
-        dismissedBlock = selectedBlock;
+    // Blockly won't fire SELECTED again for an already-selected block, so the click and key
+    // paths show/hide directly; dismissing marks the block so a following SELECTED doesn't.
+    function toggleBlockToolbar({ keyboard = false, block = selectedBlock } = {}) {
+      if (!block) return;
+      if (toolbarBlock === block) {
+        dismissedBlock = block;
         hideBlockToolbar();
       } else {
         dismissedBlock = null;
-        showBlockToolbar(selectedBlock, { keyboard });
+        showBlockToolbar(block, { keyboard });
       }
+    }
+
+    function focusedToolbarBlock() {
+      const node = Blockly.getFocusManager().getFocusedNode();
+      let block = workspace.getNavigator?.().getSourceBlockFromNode(node) ?? null;
+      while (block?.isShadow?.()) block = block.getParent();
+      return isToolbarBlock(block) ? block : null;
     }
 
     // Toggle toolbar on click of the selected block
@@ -1296,31 +1325,22 @@ export function initContextMenus(workspace) {
       (e) => {
         if (e.button !== 0) return;
         if (!isOnBlockItself(selectedBlock, e.target)) return;
-        toggleToolbarForSelected();
+        toggleBlockToolbar();
       },
       { capture: true }
     );
 
-    // Enter toggles the toolbar for the focused block, with H as an alias. The
-    // containment check guards against `selectedBlock` being stale while focus
-    // has moved elsewhere (e.g. the toolbox).
     document.addEventListener(
       'keydown',
       (e) => {
-        const key = e.key.toLowerCase();
-        if (key !== 'enter' && key !== 'h') return;
-        if (isTypingInInput()) return;
+        if (e.key.toLowerCase() !== 'h') return;
+        if (isTypingInInput() || Blockly.getFocusManager().ephemeralFocusTaken()) return;
         if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-        // Enter also confirms a move (M) and opens a field's editor, so take
-        // it only when the block itself is focused and no move is running.
-        if (key === 'enter') {
-          if (moveInProgress) return;
-          if (!document.activeElement?.classList?.contains('blocklyPath')) return;
-        }
-        if (!isOnBlockItself(selectedBlock, document.activeElement)) return;
+        const block = focusedToolbarBlock();
+        if (!block) return;
         e.preventDefault();
         e.stopPropagation();
-        toggleToolbarForSelected({ keyboard: true });
+        toggleBlockToolbar({ keyboard: true, block });
       },
       { capture: true }
     );
