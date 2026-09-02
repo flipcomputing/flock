@@ -812,12 +812,18 @@ export function initContextMenus(workspace) {
       [deleteBtn, 'Del'],
     ];
 
+    // Viewport changes this soon after opening are the toolbar's own: it
+    // scrolls to make room for itself, and keyboard selection scrolls the
+    // block into view.
+    const SETTLE_AFTER_SHOW_MS = 400;
+
     let toolbarBlock = null; // block the toolbar is currently visible for
     let selectedBlock = null; // block currently selected (regardless of toolbar visibility)
     let pointerIsDown = false; // a pointer button is currently held
     let pointerDownTarget = null; // element the last pointerdown landed on, to tell a click from a selection Blockly made itself
     let revealOnRelease = null; // block to open once the held button comes up, unless a drag intervenes
     let dismissedBlock = null; // block whose toolbar was just dismissed via toggle; suppress re-show for it only
+    let toolbarShownAt = 0; // when the toolbar last opened, so its own scroll doesn't close it
     let toolbarKeyboardMode = false; // toolbar was opened via keyboard → show badge overlay
     // Block whose toolbar we hid because a keyboard move (M) just started on
     // it. Starting a move fires a deselect+reselect SELECTED pair for that
@@ -960,30 +966,6 @@ export function initContextMenus(workspace) {
       return r.height > 0 ? r.top : null;
     }
 
-    // The workspace toolbar draws over the zoom controls, so they bound the
-    // usable area too.
-    function getWorkspaceBottomEdge() {
-      const div = workspace.getInjectionDiv?.();
-      if (!div) return null;
-      const r = div.getBoundingClientRect();
-      if (r.height <= 0) return null;
-      const controls = document.getElementById('blocklyZoomControls')?.getBoundingClientRect();
-      return controls?.height > 0 ? Math.min(r.bottom, controls.top) : r.bottom;
-    }
-
-    // Where the block's own first row ends: the jaw start for a block with a
-    // statement input, otherwise null.
-    function getFirstStatementTopScreenY(block) {
-      const jawInput = block.inputList?.find((input) => input.type === Blockly.NEXT_STATEMENT);
-      const connection = jawInput?.connection;
-      if (!connection) return null;
-      const screen = Blockly.utils.svgMath.wsToScreenCoordinates(
-        workspace,
-        new Blockly.utils.Coordinate(connection.x, connection.y)
-      );
-      return screen.y;
-    }
-
     // Nudges the workspace down so a block near the top edge has room for the
     // toolbar above it. Returns the pixels actually gained — Blockly clamps to
     // the scrollable area, so this can be less than asked for, or nothing.
@@ -1012,15 +994,11 @@ export function initContextMenus(workspace) {
       const margin = 8;
       const workspaceTop = getWorkspaceTopEdge();
       const minTop = workspaceTop != null ? workspaceTop + margin : margin;
-      const maxBottom = (getWorkspaceBottomEdge() ?? window.innerHeight) - margin;
       const maxRight = window.innerWidth - margin;
       const toolboxRight = getToolboxRightEdge();
 
-      // Each placement is a CSS class (which side of the anchor point the bar
-      // hangs off) plus the anchor point itself.
-      const anchor = (mode, x, y) => {
-        blockToolbar.classList.remove('below', 'beside-left', 'beside-right');
-        if (mode) blockToolbar.classList.add(mode);
+      // The bar always hangs above its anchor point; only the point moves.
+      const anchor = (x, y) => {
         blockToolbar.style.left = `${Math.round(x)}px`;
         blockToolbar.style.top = `${Math.round(y)}px`;
         return blockToolbar.getBoundingClientRect();
@@ -1038,59 +1016,24 @@ export function initContextMenus(workspace) {
 
       blockToolbar.style.removeProperty('--caret-shift');
 
-      // Preferred placement: centred above the block.
-      let bar = anchor(null, rect.left + rect.width / 2, rect.top);
+      // Centred above the block. This is the only placement: beside or under
+      // the block reads as belonging to something else.
+      const blockCenterX = Math.round(rect.left + rect.width / 2);
+      let bar = anchor(blockCenterX, rect.top);
       let overshoot = minTop - bar.top;
 
-      // No room above: scroll the block down to make some, so the bar keeps its
-      // usual place. Only on show — a reposition must not fight the user's own
-      // scrolling, and falls through to the placements below instead.
+      // No room above: scroll the block down to make some. Only on show — a
+      // reposition must not fight the user's own scrolling.
       if (overshoot > 0 && mayScroll && scrollWorkspaceForToolbar(overshoot) > 0) {
         rect = readRect();
-        bar = anchor(null, rect.left + rect.width / 2, rect.top);
+        bar = anchor(blockCenterX, rect.top);
         overshoot = minTop - bar.top;
       }
 
-      // Could not scroll — mid-gesture, or the workspace would not go far
-      // enough. Sit beside the block's first row rather than over the blocks
-      // inside it.
-      let besideY = 0;
-      let beside = false;
-      if (overshoot > 0) {
-        besideY = (rect.top + (getFirstStatementTopScreenY(toolbarBlock) ?? rect.bottom)) / 2;
-        const minLeft = toolboxRight != null ? Math.max(margin, toolboxRight + margin) : margin;
-        bar = anchor('beside-right', rect.right, besideY);
-        if (bar.right > maxRight) bar = anchor('beside-left', rect.left, besideY);
-        beside = bar.left >= minLeft && bar.right <= maxRight;
-      }
-
-      if (beside) {
-        // Keep it inside the workspace vertically; the caret follows the row.
-        let adj = 0;
-        if (bar.top < minTop) adj = minTop - bar.top;
-        else if (bar.bottom > maxBottom) adj = Math.max(maxBottom - bar.bottom, minTop - bar.top);
-        if (adj !== 0) {
-          blockToolbar.style.top = `${Math.round(besideY + adj)}px`;
-          shiftCaret(adj, bar.height);
-        }
-        if (toolbarKeyboardMode) renderBadges();
-        return;
-      }
-
-      // Nowhere else to go: flip under the block. A hat block's own rect wraps
-      // everything in its jaw, so use the jaw start rather than its far bottom.
-      const blockCenterX = Math.round(rect.left + rect.width / 2);
-      if (overshoot > 0) {
-        const jawTop = toolbarBlock.previousConnection
-          ? null
-          : getFirstStatementTopScreenY(toolbarBlock);
-        const belowY = jawTop ?? rect.bottom;
-        // rect.bottom is past everything a C-shaped block holds, which can be
-        // below the workspace, so pull it back inside.
-        anchor('below', blockCenterX, belowY);
-        const drop = blockToolbar.getBoundingClientRect().bottom - maxBottom;
-        if (drop > 0) anchor('below', blockCenterX, belowY - drop);
-      }
+      // Could not scroll far enough — mid-gesture, or the user panned the
+      // block up with the bar open. Hold it at the workspace top edge, over
+      // the block's own top rows.
+      if (overshoot > 0) anchor(blockCenterX, rect.top + overshoot);
 
       // Clamp to viewport, and to the right of the toolbox/flyout so the
       // toolbar is never tucked behind it. Shift the caret opposite so it
@@ -1219,6 +1162,7 @@ export function initContextMenus(workspace) {
       // mode positionBlockToolbar() draws fresh ones (it also re-runs on block
       // move / viewport change to keep them aligned with the buttons).
       if (!keyboard) clearBadges();
+      toolbarShownAt = Date.now();
       positionBlockToolbar({ mayScroll: true });
     }
 
@@ -1274,17 +1218,19 @@ export function initContextMenus(workspace) {
             hideBlockToolbar();
           }
         }
-      } else if (
-        (e.type === Blockly.Events.BLOCK_MOVE || e.type === Blockly.Events.VIEWPORT_CHANGE) &&
-        toolbarBlock
-      ) {
+      } else if (e.type === Blockly.Events.VIEWPORT_CHANGE && toolbarBlock) {
+        // Panning or zooming drags the toolbar around after the block, which
+        // reads as jitter, so close it — the same thing Blockly does with its
+        // own menus (scroll() calls hideChaff). Showing the toolbar scrolls to
+        // make room for itself and keyboard selection scrolls the block into
+        // view, so ignore what those cause. A click on the block reopens it.
+        if (Date.now() - toolbarShownAt > SETTLE_AFTER_SHOW_MS) hideBlockToolbar();
+      } else if (e.type === Blockly.Events.BLOCK_MOVE && toolbarBlock) {
         // A move can attach/detach the block (e.g. X detaches it while the
         // toolbar is up), so refresh the simplified-toolbar state before
         // re-rendering badges.
-        if (e.type === Blockly.Events.BLOCK_MOVE) {
-          updateSimplifiedToolbar();
-          scheduleViewMeshRecheck();
-        }
+        updateSimplifiedToolbar();
+        scheduleViewMeshRecheck();
         positionBlockToolbar();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
