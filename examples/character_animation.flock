@@ -1617,6 +1617,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "Vi#bZSO%6g`*SZ_[}RBH",
+        "x": 10,
+        "y": 3794,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "jHQ#k^xP77]Hh$7S(SAT",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

@@ -26,6 +26,7 @@ export function setFlockReference(ref) {
 export const createFlockXRState = () => ({
   _xrCameraMotionMode: 'none',
   _xrViewMode: 'watch',
+  _xrViewChosenByProject: false,
   _xrFollowTarget: null,
   _xrFollowCameraDirection: null,
   _xrFollowCameraRadius: null,
@@ -41,6 +42,7 @@ export const createFlockXRState = () => ({
   _xrProjectCameraOrbits: false,
   _xrEmbodiedVisibility: new Map(),
   _xrMode: undefined,
+  _xrVRAllowsPhone: false,
   _teleportAllTargets: false,
   _teleportGroundTarget: true,
   _teleportExplicitTargetNames: new Set(),
@@ -505,17 +507,17 @@ export const flockXR = {
       },
     };
   },
+  // Re-derived, not one-shot: a camera follow that lands after the XR block still counts.
   _applyXRDefaults(mode) {
-    // The starting state doubles as "the project never said": leave anything else alone.
-    if (mode !== 'VR' || flock._xrViewMode !== 'watch' || flock._xrCameraMotionMode !== 'none') {
-      return;
-    }
-    if (flock._xrTargetPosition()) {
-      flock._xrCameraMotionMode = 'comfort';
-      return;
-    }
-    flock._xrViewMode = 'embody';
-    flock._xrCameraMotionMode = 'teleport';
+    if (mode !== 'VR' || flock._xrViewChosenByProject) return;
+    const watching = !!flock._xrTargetPosition();
+    const view = watching ? 'watch' : 'embody';
+    const motion = watching ? 'comfort' : 'teleport';
+    if (view === flock._xrViewMode && motion === flock._xrCameraMotionMode) return;
+    flock._xrViewMode = view;
+    flock._xrCameraMotionMode = motion;
+    flock._applyXRInputState?.();
+    flock._applyTeleportationState?.();
   },
   _ensureTeleportationState() {
     flock._teleportExplicitTargetNames ??= new Set();
@@ -640,6 +642,7 @@ export const flockXR = {
   _handleXRStateChange(state) {
     if (state === flock.BABYLON.WebXRState.ENTERING_XR) {
       flock._syncXRFollowTargetFromCamera();
+      flock._applyXRDefaults(flock._xrMode);
       flock._xrSource?.start();
       flock._enterXRHUD();
       const stackPanel = flock.stackPanel;
@@ -840,6 +843,7 @@ export const flockXR = {
   // project attaches part way through a session has to reach the wearer too.
   _frameXRFromProjectCamera(camera) {
     flock._syncXRFollowTargetFromCamera(camera);
+    flock._applyXRDefaults(flock._xrMode);
     if (!flock._xrSessionActive || flock._xrMode !== 'VR') return;
     flock._positionXRWatchCamera();
     flock._resetXRViewTracking({ reposition: true });
@@ -1479,12 +1483,19 @@ export const flockXR = {
       return false;
     }
   },
-  // Phones do Cardboard-style immersive VR as well, so support alone can't tell them from a
-  // headset. A headset browser missing from this list just falls back to the XR block.
+  // Phones do Cardboard-style immersive VR too, so support alone can't tell them apart. Chrome's
+  // reduced agent hides Android headsets, which then need 'VR headset or phone'.
   _isHeadsetBrowser() {
     const agent = navigator.userAgent ?? '';
-    if (/OculusBrowser|Quest|Pico|Wolvic|Vision ?OS|Mobile VR/i.test(agent)) return true;
+    if (
+      /OculusBrowser|Quest|Pico|Wolvic|Vision ?OS|Vive|Magic ?Leap|Mobile VR|VR Safari/i.test(agent)
+    ) {
+      return true;
+    }
     return !/Android|iPhone|iPad|iPod/i.test(agent);
+  },
+  async _vrHeadsetAvailable() {
+    return flock._isHeadsetBrowser() && (await flock._immersiveVRSupported());
   },
   async _immersiveARSupported() {
     try {
@@ -1517,12 +1528,19 @@ export const flockXR = {
       }
     }
   },
+  _isLocalHost(host = globalThis.location?.hostname ?? '') {
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '[::1]';
+  },
+  // Testing shortcut: DEV also covers a headset reaching the dev server over the network.
+  _xrAutoButtonAllowed() {
+    return !!import.meta.env?.DEV || flock._isLocalHost();
+  },
   // Entering stays the wearer's click either way: a session needs a user gesture.
   async _showXRButtonOnHeadset() {
     if (flock.xrHelper || flock._xrMode !== undefined) return false;
-    if (!flock._isHeadsetBrowser()) return false;
+    if (!flock._xrAutoButtonAllowed()) return false;
     const signal = flock.abortController?.signal;
-    if (!(await flock._immersiveVRSupported())) return false;
+    if (!(await flock._vrHeadsetAvailable())) return false;
     // The project may have set its own mode, or been stopped, while we were asking.
     if (signal?.aborted || flock.xrHelper || flock._xrMode !== undefined) return false;
     await flock.initializeXR('VR');
@@ -1571,16 +1589,16 @@ export const flockXR = {
     const autoHelper = flock.xrHelper && flock._xrHelperAutoCreated ? flock.xrHelper : null;
     if (flock.xrHelper && !autoHelper) return; // Avoid reinitializing
 
+    // Normalised here so nothing downstream knows about the phone variant.
+    flock._xrVRAllowsPhone = mode === 'VR_PHONE';
+    if (flock._xrVRAllowsPhone) mode = 'VR';
+
     patchEmulatorOffsetReferenceSpace();
     // Claimed before any await, so the headset auto-button cannot race in and take the mode.
     flock._xrMode = mode;
 
     // A headset head-tracks the view already, so looking around there means a session.
-    if (
-      mode === 'MAGIC_WINDOW' &&
-      flock._isHeadsetBrowser() &&
-      (await flock._immersiveVRSupported())
-    ) {
+    if (mode === 'MAGIC_WINDOW' && (await flock._vrHeadsetAvailable())) {
       mode = 'VR';
       flock._xrMode = mode;
     }
@@ -1594,6 +1612,14 @@ export const flockXR = {
       await flock._syncPendingXRSessionMode();
       flock._applyTeleportationState();
       return;
+    }
+
+    // No headset: leave the device as it was rather than offer a button that opens nothing.
+    if (mode === 'VR') {
+      const available = flock._xrVRAllowsPhone
+        ? await flock._immersiveVRSupported()
+        : await flock._vrHeadsetAvailable();
+      if (!available) return false;
     }
 
     flock._syncXRFollowTargetFromCamera();
@@ -2033,7 +2059,8 @@ export const flockXR = {
     );
   },
   async setXRMode(mode) {
-    await flock.initializeXR(mode);
+    // false means nothing started, so there is nothing to announce.
+    if ((await flock.initializeXR(mode)) === false) return;
     flock.printText({
       text: translate('xr_mode_message'),
       duration: 5,
@@ -2042,6 +2069,7 @@ export const flockXR = {
   },
   setXRViewMode(mode) {
     if (mode !== 'watch' && mode !== 'embody') return;
+    flock._xrViewChosenByProject = true;
     flock._xrViewMode = mode;
     if (mode === 'watch' && flock._xrCameraMotionMode === 'teleport') {
       flock._xrCameraMotionMode = 'comfort';
@@ -2097,6 +2125,7 @@ export const flockXR = {
         ? ['none', 'teleport', 'smooth']
         : ['none', 'comfort', 'smooth'];
     if (!validModes.includes(mode)) return;
+    flock._xrViewChosenByProject = true;
     flock._xrCameraMotionMode = mode;
     flock._applyXRInputState?.();
     flock._applyTeleportationState?.();

@@ -605,7 +605,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Usa a câmera do dispositivo como fundo da cena. Funciona em dispositivos móveis e desktop.',
-  set_xr_mode_tooltip: 'Define o modo XR da cena.\nOpções: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Define o modo XR da cena.\nVisor VR: só inicia num visor, por isso o computador e o telemóvel continuam a correr o projeto normalmente.\nVisor VR ou telemóvel: também oferece VR no telemóvel com um visor de cartão.\nAR: coloca a cena na sala.\nJanela Mágica: olhe em volta movendo o telemóvel; um visor obtém VR.', // ai
   play_rumble_pattern_tooltip:
     'Reproduz um padrão de vibração predefinido em todos os controles conectados.',
   controller_rumble_tooltip:
@@ -927,7 +927,8 @@ export default {
   _18px_option: 'médio',
   _24px_option: 'grande',
 
-  VR_option: 'VR (Oculus Quest ou visor de telemóvel)',
+  VR_option: 'Visor VR', // ai
+  VR_PHONE_option: 'Visor VR ou telemóvel', // ai
   AR_option: 'AR (Realidade Aumentada)',
   MAGIC_WINDOW_option: 'Janela Mágica (olhar em volta)',
 

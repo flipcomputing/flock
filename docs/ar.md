@@ -57,7 +57,8 @@ Sets up AR and shows the enter button. Run it once, near the start of your proje
   scene, as if the screen were a window into it. There is no button to press: it starts as soon
   as the block runs.
 
-The third option, **VR**, is for headsets and is covered in [VR in Flock XR](vr.md).
+The other two options, **VR headset** and **VR headset or phone**, are covered in
+[VR in Flock XR](vr.md).
 
 Magic Window needs the phone's tilt sensor, and not every phone will share it — iPhones and
 iPads never do. Those phones show your scene in front of the rear camera picture instead. You

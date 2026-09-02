@@ -493,14 +493,18 @@ export function runXRTests(flock) {
           nonXRCameraPosition: flock._xrNonXRCameraPosition,
           embodiedVisibility: flock._xrEmbodiedVisibility,
           cameraMotionMode: flock._xrCameraMotionMode,
+          viewChosenByProject: flock._xrViewChosenByProject,
           canvasControlsEnabled: flock._canvasControlsEnabled,
           engine: flock.engine,
         };
+        // Sticky across the suite otherwise, silencing the defaults these tests are about.
+        flock._xrViewChosenByProject = false;
       });
 
       afterEach(function () {
         flock._restoreXREmbodiedVisibility();
         flock._xrViewMode = originalState.mode;
+        flock._xrViewChosenByProject = originalState.viewChosenByProject;
         flock.xrHelper = originalState.helper;
         flock._xrFollowTarget = originalState.target;
         flock._xrFollowCameraDirection = originalState.followCameraDirection;
@@ -696,13 +700,106 @@ export function runXRTests(flock) {
 
       it('preserves an explicit no-follow locomotion mode', function () {
         flock._xrFollowTarget = null;
-        flock._xrViewMode = 'embody';
-        flock._xrCameraMotionMode = 'teleport';
+        flock.setXRViewMode('embody');
+        flock.setXRCameraMotionMode('teleport');
 
         flock._applyXRDefaults('VR');
 
         expect(flock._xrViewMode).to.equal('embody');
         expect(flock._xrCameraMotionMode).to.equal('teleport');
+      });
+
+      it('re-frames to watching when the followed object arrives after the XR block', function () {
+        flock._xrFollowTarget = null;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock._applyXRDefaults('VR');
+        expect(flock._xrViewMode).to.equal('embody');
+
+        flock._xrFollowTarget = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          isDisposed: () => false,
+        };
+        flock._applyXRDefaults('VR');
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
+      });
+
+      it('falls back to embodied teleport when the followed object goes away', function () {
+        flock._xrFollowTarget = {
+          position: new flock.BABYLON.Vector3(0, 0, 0),
+          isDisposed: () => false,
+        };
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock._applyXRDefaults('VR');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
+
+        flock._xrFollowTarget = null;
+        flock._applyXRDefaults('VR');
+
+        expect(flock._xrViewMode).to.equal('embody');
+        expect(flock._xrCameraMotionMode).to.equal('teleport');
+      });
+
+      it('leaves a project that chose watching alone when no object is followed', function () {
+        flock.setXRViewMode('watch');
+        flock.setXRCameraMotionMode('none');
+        flock._xrFollowTarget = null;
+
+        flock._applyXRDefaults('VR');
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('none');
+      });
+
+      it('ignores a rejected view value rather than counting it as a choice', function () {
+        flock._xrFollowTarget = null;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock.setXRViewMode('sideways');
+
+        flock._applyXRDefaults('VR');
+
+        expect(flock._xrViewMode).to.equal('embody');
+      });
+
+      it('settles the view as the session is entered', function () {
+        flock._xrMode = 'VR';
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        const camera = { position: new flock.BABYLON.Vector3(0, 2, -7) };
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0), isDisposed: () => false };
+        camera.lockedTarget = target;
+        const originalCamera = flock.scene.activeCamera;
+        try {
+          flock.scene.activeCamera = camera;
+          flock._handleXRStateChange(flock.BABYLON.WebXRState.ENTERING_XR);
+        } finally {
+          flock.scene.activeCamera = originalCamera;
+        }
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
+      });
+
+      it('settles the view when a camera follow attaches later', function () {
+        flock._xrMode = 'VR';
+        flock._xrFollowTarget = null;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+        flock._applyXRDefaults('VR');
+        expect(flock._xrViewMode).to.equal('embody');
+
+        const target = { position: new flock.BABYLON.Vector3(0, 0, 0), isDisposed: () => false };
+        flock._frameXRFromProjectCamera({
+          position: new flock.BABYLON.Vector3(0, 2, -7),
+          lockedTarget: target,
+        });
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('comfort');
       });
 
       it('comfort holds the camera while moving, then catches up after movement stops', function () {
@@ -1681,12 +1778,15 @@ export function runXRTests(flock) {
       let originalInitializeXR;
       let originalPrintText;
 
+      let printCalls;
+
       beforeEach(function () {
         // WebXR and i18n are unavailable in headless — stub all three
         originalInitializeXR = flock.initializeXR;
         flock.initializeXR = async () => {};
         originalPrintText = flock.printText;
-        flock.printText = () => {};
+        printCalls = 0;
+        flock.printText = () => printCalls++;
         window.translate = (key) => key;
       });
 
@@ -1703,6 +1803,20 @@ export function runXRTests(flock) {
       it('should not throw for AR mode', async function () {
         await flock.setXRMode('AR');
       });
+
+      it('announces the mode when XR started', async function () {
+        await flock.setXRMode('VR');
+
+        expect(printCalls).to.equal(1);
+      });
+
+      it('says nothing on a device that was left to play the project flat', async function () {
+        flock.initializeXR = async () => false;
+
+        await flock.setXRMode('VR');
+
+        expect(printCalls).to.equal(0);
+      });
     });
 
     describe('enter-VR button on headsets', function () {
@@ -1712,6 +1826,7 @@ export function runXRTests(flock) {
       let originalHelper;
       let originalXRMode;
       let originalAbortController;
+      let originalAutoAllowed;
       let initCalls;
 
       beforeEach(function () {
@@ -1727,6 +1842,8 @@ export function runXRTests(flock) {
         };
         flock._immersiveVRSupported = async () => true;
         flock._isHeadsetBrowser = () => true;
+        originalAutoAllowed = flock._xrAutoButtonAllowed;
+        flock._xrAutoButtonAllowed = () => true;
         flock.xrHelper = null;
         flock._xrMode = undefined;
         flock.abortController = new AbortController();
@@ -1736,9 +1853,26 @@ export function runXRTests(flock) {
         flock.initializeXR = originalInitializeXR;
         flock._immersiveVRSupported = originalSupported;
         flock._isHeadsetBrowser = originalHeadsetBrowser;
+        flock._xrAutoButtonAllowed = originalAutoAllowed;
         flock.xrHelper = originalHelper;
         flock._xrMode = originalXRMode;
         flock.abortController = originalAbortController;
+      });
+
+      it('counts only loopback names as the testing host', function () {
+        for (const host of ['localhost', '127.0.0.1', '::1', '[::1]']) {
+          expect(flock._isLocalHost(host), host).to.equal(true);
+        }
+        for (const host of ['flockxr.com', 'localhost.example.com', '192.168.1.20', '']) {
+          expect(flock._isLocalHost(host), host).to.equal(false);
+        }
+      });
+
+      it('stays out of a project that never asked for VR away from the testing host', async function () {
+        flock._xrAutoButtonAllowed = () => false;
+
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(initCalls).to.deep.equal([]);
       });
 
       it('initializes VR so the enter button appears without an XR block', async function () {
@@ -1894,6 +2028,41 @@ export function runXRTests(flock) {
           expect(flock._isHeadsetBrowser()).to.equal(false);
         });
 
+        it('recognises the newer Quest agent that dropped the Mobile token', function () {
+          stubAgent(
+            'Mozilla/5.0 (X11; Linux x86_64; Quest 3) AppleWebKit/537.36 OculusBrowser/39.2.0.0 Chrome/136.0.0.0 VR Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(true);
+        });
+
+        it('recognises headset browsers that name themselves', function () {
+          for (const agent of [
+            'Mozilla/5.0 (Linux; Android 12; Vive Focus 3) AppleWebKit/537.36 ViveBrowser/2.0 Chrome/110.0.0.0',
+            'Mozilla/5.0 (Linux; Android 10; Magic Leap 2) AppleWebKit/537.36 Chrome/110.0.0.0',
+          ]) {
+            stubAgent(agent);
+            expect(flock._isHeadsetBrowser(), agent).to.equal(true);
+          }
+        });
+
+        it('cannot see past a reduced Android agent, leaving the phone option as the way in', function () {
+          // Chrome freezes every Android device to "Android 10; K", headsets included.
+          stubAgent(
+            'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/150.0.0.0 Mobile Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(false);
+        });
+
+        it('does not mistake a vivo phone for a Vive headset', function () {
+          stubAgent(
+            'Mozilla/5.0 (Linux; Android 13; vivo X90) AppleWebKit/537.36 Chrome/126.0.0.0 Mobile Safari/537.36'
+          );
+
+          expect(flock._isHeadsetBrowser()).to.equal(false);
+        });
+
         it('treats a desktop reporting immersive-vr as a tethered headset', function () {
           stubAgent(
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36'
@@ -1901,6 +2070,132 @@ export function runXRTests(flock) {
 
           expect(flock._isHeadsetBrowser()).to.equal(true);
         });
+      });
+    });
+
+    describe('VR only starts where there is a headset', function () {
+      const keys = [
+        '_xrMode',
+        '_xrVRAllowsPhone',
+        '_xrViewMode',
+        '_xrCameraMotionMode',
+        '_xrFollowTarget',
+        '_xrHelperAutoCreated',
+      ];
+      let saved;
+      let savedHelper;
+      let savedHeadsetBrowser;
+      let savedVRSupported;
+      let hadOwnCreate;
+      let originalCreate;
+      let createCalls;
+
+      beforeEach(function () {
+        saved = Object.fromEntries(keys.map((key) => [key, flock[key]]));
+        savedHelper = flock.xrHelper;
+        savedHeadsetBrowser = flock._isHeadsetBrowser;
+        savedVRSupported = flock._immersiveVRSupported;
+        hadOwnCreate = Object.prototype.hasOwnProperty.call(
+          flock.scene,
+          'createDefaultXRExperienceAsync'
+        );
+        originalCreate = flock.scene.createDefaultXRExperienceAsync;
+        createCalls = 0;
+        // Nothing usable stops initializeXR at its own guard, leaving the XR rig out of it.
+        flock.scene.createDefaultXRExperienceAsync = async () => {
+          createCalls += 1;
+          return {};
+        };
+        flock._isHeadsetBrowser = () => true;
+        flock._immersiveVRSupported = async () => true;
+        flock.xrHelper = null;
+        flock._xrMode = undefined;
+        flock._xrHelperAutoCreated = false;
+        flock._xrViewMode = 'watch';
+        flock._xrCameraMotionMode = 'none';
+      });
+
+      afterEach(function () {
+        Object.assign(flock, saved);
+        flock.xrHelper = savedHelper;
+        flock._isHeadsetBrowser = savedHeadsetBrowser;
+        flock._immersiveVRSupported = savedVRSupported;
+        if (hadOwnCreate) flock.scene.createDefaultXRExperienceAsync = originalCreate;
+        else delete flock.scene.createDefaultXRExperienceAsync;
+      });
+
+      it('starts VR on a headset', async function () {
+        expect(await flock.initializeXR('VR')).to.not.equal(false);
+        expect(createCalls).to.equal(1);
+      });
+
+      it('leaves a desktop with no headset to play the project flat', async function () {
+        // The emulator is indistinguishable from a tethered headset, which is the point.
+        flock._immersiveVRSupported = async () => false;
+
+        expect(await flock.initializeXR('VR')).to.equal(false);
+        expect(createCalls).to.equal(0);
+        expect(flock.xrHelper).to.equal(null);
+      });
+
+      it('leaves a Cardboard-capable phone flat when the project asked for a headset', async function () {
+        flock._isHeadsetBrowser = () => false;
+
+        expect(await flock.initializeXR('VR')).to.equal(false);
+        expect(createCalls).to.equal(0);
+      });
+
+      it('touches none of the view defaults on a device it declined', async function () {
+        flock._isHeadsetBrowser = () => false;
+
+        await flock.initializeXR('VR');
+
+        expect(flock._xrViewMode).to.equal('watch');
+        expect(flock._xrCameraMotionMode).to.equal('none');
+      });
+
+      it('keeps the post-run headset button out once the project has chosen VR', async function () {
+        flock._isHeadsetBrowser = () => false;
+        await flock.initializeXR('VR');
+
+        flock._isHeadsetBrowser = () => true;
+        expect(await flock._showXRButtonOnHeadset()).to.equal(false);
+        expect(createCalls).to.equal(0);
+      });
+
+      it('starts phone VR when the project opts in', async function () {
+        flock._isHeadsetBrowser = () => false;
+
+        await flock.initializeXR('VR_PHONE');
+
+        expect(createCalls).to.equal(1);
+        expect(flock._xrMode).to.equal('VR');
+        expect(flock._xrVRAllowsPhone).to.equal(true);
+      });
+
+      it('leaves a bare desktop alone even when the project opts phones in', async function () {
+        flock._immersiveVRSupported = async () => false;
+
+        expect(await flock.initializeXR('VR_PHONE')).to.equal(false);
+        expect(createCalls).to.equal(0);
+      });
+
+      it('still starts on a headset when the project opts phones in', async function () {
+        await flock.initializeXR('VR_PHONE');
+
+        expect(createCalls).to.equal(1);
+        expect(flock._xrMode).to.equal('VR');
+      });
+
+      it('reads a headset as the browser and the session support together', async function () {
+        expect(await flock._vrHeadsetAvailable()).to.equal(true);
+
+        flock._immersiveVRSupported = async () => false;
+        expect(await flock._vrHeadsetAvailable()).to.equal(false);
+
+        flock._immersiveVRSupported = async () => true;
+        flock._isHeadsetBrowser = () => false;
+        expect(await flock._vrHeadsetAvailable()).to.equal(false);
       });
     });
 

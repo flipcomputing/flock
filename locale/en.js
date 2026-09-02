@@ -656,7 +656,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Use the device camera as the background for the scene. Works on both mobile and desktop. In a headset the scene appears in your room instead.',
-  set_xr_mode_tooltip: 'Set the XR mode for the scene.\nOptions: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Set the XR mode for the scene.\nVR headset: starts only on a headset, so desktop and phone still play the project normally.\nVR headset or phone: also offers phone VR with a cardboard viewer.\nAR: puts the scene in the room.\nMagic Window: look around by moving a phone; a headset gets VR.',
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
   set_ar_scene_size_tooltip:
@@ -1009,7 +1009,8 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans',
 
-  VR_option: 'VR (Oculus Quest or phone viewer)',
+  VR_option: 'VR headset',
+  VR_PHONE_option: 'VR headset or phone',
   AR_option: 'AR (Augmented Reality)',
   MAGIC_WINDOW_option: 'Magic Window (look-around)',
 

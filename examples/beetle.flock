@@ -7604,6 +7604,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "V#OJ@GLT-A{rsyvXP/hX",
+        "x": 10,
+        "y": 13338,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "*O0QC.VgDuWzjHlR6Ucn",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

@@ -900,6 +900,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": ",GZF23(+Ocp5^k(_$T?;",
+        "x": 10,
+        "y": 2078,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "zK_6x;/3yJw4-U90~x4w",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

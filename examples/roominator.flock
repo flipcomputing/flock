@@ -3210,6 +3210,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "EP$@8wlkOd|QL{t}?,A*",
+        "x": 10,
+        "y": 5766,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "g*4k]q_^,nrm0$d)oh=J",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

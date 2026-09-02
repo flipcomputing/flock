@@ -25,12 +25,29 @@ that switched on.
 Open your project in the headset's own browser. Meta Quest, Pico, Wolvic, Vision Pro and
 similar headsets should all work. Testing has been carried out on Meta Quest 1, 2 and 3.
 
-An **enter VR** button, with a headset icon, appears in the corner of the scene once your
-project starts running. You get it even if your project uses no XR blocks at all.
+**Your project needs a `set XR mode to VR headset` block.** With one, an **enter VR** button
+appears in the corner of the scene once the project starts running; without one there is no
+button, and the project runs on the headset's screen like any other web page. Every bundled
+example bar the AR one has the block, so they all work in a headset.
 
-You can also put an Android phone into a VR headset holder. On Android you do need a VR block
-to get the **enter VR** button. This relies on the phone's gyroscope to follow your head, so
-it works on phones but not on every tablet — cheaper tablets often leave that sensor out.
+The block is a promise that someone thought about VR here. Being inside a scene asks more of
+it than looking at one on a monitor — how you move through it, where the controls sit, what is
+within reach — so a project says when it is ready for that, rather than every project on the
+web being offered as VR whether or not it was built for one.
+
+It costs a project that also runs on a screen nothing, because on a desktop or a phone the
+block does nothing at all: no button appears and everything behaves exactly as it did. So one
+project can be a VR project and a screen project at once, which is what the examples are.
+
+You can also put an Android phone into a VR headset holder. That needs the other value —
+`set XR mode to VR headset or phone` — because a plain **VR headset** project leaves a phone
+alone. It relies on the phone's gyroscope to follow your head, so it works on phones but not
+on every tablet — cheaper tablets often leave that sensor out.
+
+> Some headsets cannot be told apart from a phone: Chrome reports every Android device as the
+> same anonymous model, so a headset running plain Chrome rather than its own browser is read
+> as a phone and a **VR headset** project will not offer it the button. Choose **VR headset or
+> phone** on those.
 
 Click the button and you are inside your world: look around by turning your head, interact
 with objects and, depending on the project, move around.
@@ -42,11 +59,22 @@ VR** again to go back in.
 
 ## The VR blocks
 
-### `set XR mode to [VR]`
+### `set XR mode to [VR headset]`
 
-Sets up VR and shows the enter button. Run it once, near the start of your project. Choose
-**VR (Oculus Quest or phone viewer)** for a headset: your scene replaces everything you can
-see.
+Sets up VR and shows the enter button. Run it once.
+
+**Without this block there is no VR.** It is what turns the enter button on, and what says the
+project was designed for a headset rather than merely surviving one. Every bundled example bar
+the AR one has one, tucked inside a collapsed `start` block at the bottom of the workspace.
+
+- **VR headset** — your scene replaces everything you can see. It starts only where there is
+  a headset to start it on. On a desktop or a phone the block does nothing at all and your
+  project runs on the screen exactly as before, so one project can be a VR project and a
+  screen project at the same time. This is the one to use.
+- **VR headset or phone** — the same, and it additionally offers the enter button on an
+  Android phone, for a phone slotted into a cardboard-style holder. Try the project that way
+  yourself before choosing it: a holder gives you no controllers and less tracking than a
+  headset, so a project that reads well in one may not in the other.
 
 **AR (Augmented Reality)** is just as much a headset mode. If your headset can show you the
 room through its cameras, AR draws your scene over your real room instead of replacing it,
@@ -76,7 +104,7 @@ The camera motion menu changes depending on which view you pick:
 | View | Camera motion | What happens |
 | --- | --- | --- |
 | watch | none | You stay where you are. Your character can walk away and out of sight. |
-| watch | comfort | You stay still while your character moves, then catch up about a quarter of a second after it stops. Less likely to cause cyber-sickness than being carried along with it. |
+| watch | comfort | You stay still while your character moves, then catch up about a quarter of a second after it stops. Your view holds still for most of the time you are watching, rather than being carried along with it. |
 | watch | smooth | You travel with your character, always seeing it from the same angle. |
 | embody | none | You stay put. Only your own head movement changes the view. |
 | embody | teleport | Point at the floor with a controller, and a circle shows where you would land. Let go to jump there. Your character comes with you, so it still bumps into things. |
@@ -111,10 +139,11 @@ You only get the circle in **embody** view with **teleport** motion.
 
 ### `set VR comfort tunnel vision [...] strength [...] colour [...] alpha [...]` / `overlay [...] shown [...]`
 
-Moving through a scene while your body stays still is what makes people feel unwell in VR.
-Your eyes report motion, your inner ear reports none, and the mismatch between them is what
-causes cyber-sickness. This block narrows what you can see at the edges while the scene is
-moving under you, and opens it back up once you stop.
+When a scene carries you along while your body stays still, your eyes report motion and your
+inner ear reports none. This block settles that disagreement: it narrows what you can see at
+the edges while the scene is moving under you, and opens it back up once you stop. The corners
+of your eye are where motion registers most strongly, so quietening them is what does the
+work.
 
 It measures how fast the view is moving and turning, subtracts your own head movement, and
 closes the edges in proportion to whatever is left over. Walking around your room, or turning
@@ -175,7 +204,7 @@ Nothing happens on a flat screen or in AR, whatever you set it to.
 > are still. Allison and Palmisano (2025),
 > [Visual Factors in Cybersickness: A Literature Survey and Meta-Analysis](https://doi.org/10.1163/22134808-bja10181),
 > Multisensory Research, pooled 97 studies and found peripheral field-of-view restriction to be
-> one of the few visual factors that reliably reduces cybersickness.
+> one of the few visual factors that reliably helps.
 >
 > The overlay — a *rest frame*, or independent visual background — comes from Prothero,
 > Draper, Furness, Parker and Wells (1999),
@@ -214,11 +243,12 @@ VR with no changes.
 | Left **X** | Button 3 | F or 3 |
 | Right **A** | Button 4 | Space or 4 |
 
-Turning happens in **snaps** of 30°, one per push of the stick, rather than as a smooth spin,
-which can bring on cyber-sickness. In watch view you swing around your character so it stays
-in front of you; in embody view you turn on the spot. With teleport motion, turning is part of
-teleporting: hold the stick over and the arrow on the circle turns, so you choose which way
-you face as you land.
+Turning happens in **snaps** of 30°, one per push of the stick, rather than as a smooth spin.
+A snap is over before your eyes can read it as travel, where a continuous spin is motion your
+body never made. In watch view you swing around your character so it stays in front of you; in
+embody view you turn on the spot. With teleport motion, turning is part of teleporting: hold
+the stick over and the arrow on the circle turns, so you choose which way you face as you
+land.
 
 In most modes the thumbstick goes to your own blocks, so a project that moves a character with
 `when key pressed` works just as it does on the keyboard. Flock only takes the stick when
@@ -270,9 +300,14 @@ there is just more it can do once you can turn your head.
 
 ## Tips
 
-- `set XR mode` prints a short "XR Mode!" message when it takes effect.
+- `set XR mode` prints a short "XR Mode!" message when it takes effect. On a device with no
+  headset, **VR headset** prints nothing, because nothing was started.
+- While developing against a local server, a headset gets the enter button even for a project
+  with no XR block, so you can try a project in VR before deciding to add one. That shortcut
+  is local only: everywhere else the block is required.
 - For anything fast-moving, prefer **watch + comfort**; for exploring, **embody + teleport**.
-  Both help avoid cyber-sickness, and both are chosen for you if you say nothing. If a
-  project has to move people about quickly, add `set VR comfort` on top.
+  Both are the comfortable pairings — your view only moves when you do — and both are chosen
+  for you if you say nothing. If a project has to move people about quickly, add
+  `set VR comfort` on top.
 - Design your UI for VR: a wall of small text that works on a monitor is hard to read on a
   floating panel. Fewer, bigger controls work better.

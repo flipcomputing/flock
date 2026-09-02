@@ -1905,6 +1905,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "Ob:U2(l{cv_1AYM9!B|(",
+        "x": 10,
+        "y": 3476,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "ZB+_zA.vpuiGv5m`_`6K",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

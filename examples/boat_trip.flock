@@ -2374,6 +2374,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "+Z~nZ@#7o4Vaq=P|4!mz",
+        "x": 10,
+        "y": 4540,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "L6HJkKp_~C:YRm?oIfG4",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

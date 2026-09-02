@@ -137,6 +137,7 @@ export function defineXRBlocks() {
             name: 'MODE',
             options: [
               getDropdownOption('VR'),
+              getDropdownOption('VR_PHONE'),
               getDropdownOption('AR'),
               getDropdownOption('MAGIC_WINDOW'),
             ],

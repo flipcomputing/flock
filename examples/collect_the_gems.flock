@@ -3166,6 +3166,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "f@a@d.5CM!,I0koUtmhO",
+        "x": 10,
+        "y": 7232,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "hD0#Bw!vwpkYaD#EQmVt",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

@@ -1111,6 +1111,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "MElXV(z.vry;bL8%NYji",
+        "x": 10,
+        "y": 1910,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "A:}rYG}CcXUc~7ILDCM.",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

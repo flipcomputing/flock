@@ -1444,6 +1444,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "iLI[(Foq]lt-jPkb$d_}",
+        "x": 10,
+        "y": 2207,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "4]/kU$3V==I|4RjCl7w+",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

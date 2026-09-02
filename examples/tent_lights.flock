@@ -1717,6 +1717,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "O|Q9M$=nxq#NRga.gBQZ",
+        "x": 10,
+        "y": 3610,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "Q4|rOa,(_6dIE]nhnI=z",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },

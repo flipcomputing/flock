@@ -749,7 +749,7 @@ export default {
   // XR tooltips
   device_camera_background_tooltip:
     'Verwende Gerätekamera als Hintergrund für die Szene. Funktioniert auf Mobilgeräten und Desktop.',
-  set_xr_mode_tooltip: 'Setze XR‑Modus der Szene.\nOptionen: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Setze XR‑Modus der Szene.\nVR‑Headset: startet nur auf einem Headset, Desktop und Handy spielen das Projekt normal weiter.\nVR‑Headset oder Handy: bietet auch Handy‑VR mit einem Cardboard‑Viewer.\nAR: platziert die Szene im Raum.\nMagic Window: durch Bewegen des Handys umsehen; ein Headset bekommt VR.', // ai
   play_rumble_pattern_tooltip:
     'Spielt ein vordefiniertes Vibrationsmuster auf allen angeschlossenen Controllern ab.\nStichwort: rumble preset',
   controller_rumble_tooltip:
@@ -933,7 +933,8 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans',
 
-  VR_option: 'VR (Oculus Quest oder Handy-Viewer)',
+  VR_option: 'VR‑Headset', // ai
+  VR_PHONE_option: 'VR‑Headset oder Handy', // ai
   AR_option: 'AR (Augmented Reality)',
   MAGIC_WINDOW_option: 'Magic Window (Rundumsicht)',
 

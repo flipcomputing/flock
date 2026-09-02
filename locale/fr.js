@@ -608,7 +608,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Utilise la caméra de l’appareil comme arrière-plan pour la scène. Fonctionne sur mobile et ordinateur.',
-  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nOptions: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nCasque VR : ne démarre que sur un casque, l\'ordinateur et le téléphone jouent le projet normalement.\nCasque VR ou téléphone : propose aussi la VR sur téléphone avec un viewer en carton.\nRA : place la scène dans la pièce.\nFenêtre magique : regardez autour en bougeant le téléphone ; un casque obtient la VR.', // ai
   play_rumble_pattern_tooltip:
     'Joue un motif de vibration prédéfini sur toutes les manettes connectées.',
   controller_rumble_tooltip:
@@ -933,7 +933,8 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans',
 
-  VR_option: 'VR (Oculus Quest ou visionneuse mobile)',
+  VR_option: 'Casque VR', // ai
+  VR_PHONE_option: 'Casque VR ou téléphone', // ai
   AR_option: 'RA (Réalité Augmentée)',
   MAGIC_WINDOW_option: 'Fenêtre magique (regarder autour)',
 
