@@ -239,10 +239,50 @@ function hasUsableUVs(mesh) {
   return maxU - minU > 1e-5 || maxV - minV > 1e-5;
 }
 
-function shouldApplyBoxProjection(resultMesh, options = {}) {
-  if (options.uvProjection === 'box') return true;
-  if (options.uvProjection !== 'auto') return false;
+// A boolean keeps one property set per merged coplanar face, so a union of
+// touching boxes can leave triangles whose UVs collapse to a line or a point.
+// Those sample a single texel across the whole triangle, which shows up as a
+// solid block of colour under a patterned material.
+function hasCollapsedUVTriangles(mesh) {
+  const uvs = mesh?.getVerticesData?.(flock.BABYLON.VertexBuffer.UVKind);
+  const positions = mesh?.getVerticesData?.(flock.BABYLON.VertexBuffer.PositionKind);
+  const indices = mesh?.getIndices?.();
+  if (!uvs || !positions || !indices) return false;
 
+  for (let i = 0; i < indices.length; i += 3) {
+    const [a, b, c] = [indices[i], indices[i + 1], indices[i + 2]];
+
+    const uvArea = Math.abs(
+      (uvs[b * 2] - uvs[a * 2]) * (uvs[c * 2 + 1] - uvs[a * 2 + 1]) -
+        (uvs[c * 2] - uvs[a * 2]) * (uvs[b * 2 + 1] - uvs[a * 2 + 1])
+    );
+    if (uvArea > 1e-9) continue;
+
+    // Triangles with no surface area of their own are harmless.
+    const e1 = [
+      positions[b * 3] - positions[a * 3],
+      positions[b * 3 + 1] - positions[a * 3 + 1],
+      positions[b * 3 + 2] - positions[a * 3 + 2],
+    ];
+    const e2 = [
+      positions[c * 3] - positions[a * 3],
+      positions[c * 3 + 1] - positions[a * 3 + 1],
+      positions[c * 3 + 2] - positions[a * 3 + 2],
+    ];
+    const area = Math.hypot(
+      e1[1] * e2[2] - e1[2] * e2[1],
+      e1[2] * e2[0] - e1[0] * e2[2],
+      e1[0] * e2[1] - e1[1] * e2[0]
+    );
+    if (area > 1e-9) return true;
+  }
+
+  return false;
+}
+
+// Textures are still pending while they load, so a material that is about to
+// show a pattern counts as textured.
+function materialHasTexture(material) {
   const hasRenderableTexture = (texture) => {
     if (!texture) return false;
     const textureName = String(texture.name || '').toLowerCase();
@@ -252,19 +292,22 @@ function shouldApplyBoxProjection(resultMesh, options = {}) {
     return true;
   };
 
-  const materialHasTexture = (material) => {
-    if (!material) return false;
-    if (
-      hasRenderableTexture(material.diffuseTexture) ||
-      hasRenderableTexture(material.albedoTexture) ||
-      hasRenderableTexture(material.metadata?.pendingTexture)
-    )
-      return true;
-    if (material.subMaterials && Array.isArray(material.subMaterials)) {
-      return material.subMaterials.some((sub) => materialHasTexture(sub));
-    }
-    return false;
-  };
+  if (!material) return false;
+  if (
+    hasRenderableTexture(material.diffuseTexture) ||
+    hasRenderableTexture(material.albedoTexture) ||
+    hasRenderableTexture(material.metadata?.pendingTexture)
+  )
+    return true;
+  if (material.subMaterials && Array.isArray(material.subMaterials)) {
+    return material.subMaterials.some((sub) => materialHasTexture(sub));
+  }
+  return false;
+}
+
+function shouldApplyBoxProjection(resultMesh, options = {}) {
+  if (options.uvProjection === 'box') return true;
+  if (options.uvProjection !== 'auto') return false;
 
   return materialHasTexture(resultMesh.material) && !hasUsableUVs(resultMesh);
 }
@@ -659,6 +702,18 @@ export const flockCSG = {
         }
 
         mergedMesh.createNormals(true);
+
+        // Shapes are box-mapped when they are built, so re-projecting is the
+        // same mapping over the merged bounds; models carry their own UVs and
+        // must keep them.
+        const allSourcesAreShapes = validMeshes.every((mesh) => !mesh.metadata?.modelName);
+        if (
+          allSourcesAreShapes &&
+          materialHasTexture(mergedMesh.material) &&
+          hasCollapsedUVTriangles(mergedMesh)
+        ) {
+          applyBoxProjectionUV(mergedMesh);
+        }
 
         try {
           const physicsShape = new flock.BABYLON.PhysicsShapeMesh(mergedMesh, flock.scene);

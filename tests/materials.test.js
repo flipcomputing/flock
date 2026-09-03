@@ -1147,6 +1147,75 @@ export function runMaterialsTests(flock) {
         meshIds.push(firstId, secondId);
         expect(firstId).to.not.equal(secondId);
       });
+
+      it('leaves no collapsed UV triangles when merging textured shapes', async function () {
+        const positions = [
+          [0, 0, 0],
+          [1, 0, 0],
+          [0, 1, 0],
+        ];
+        for (let i = 0; i < positions.length; i++) {
+          const name = 'uvMergeBox' + i;
+          await flock.createBox(name, {
+            width: 1,
+            height: 1,
+            depth: 1,
+            position: positions[i],
+          });
+          await flock.setMaterial(name, [{ color: '#ffffff', materialName: 'Grid.png', alpha: 1 }]);
+          meshIds.push(name);
+        }
+
+        const id = await flock.mergeMeshes('uvMerge', [
+          'uvMergeBox0',
+          'uvMergeBox1',
+          'uvMergeBox2',
+        ]);
+        meshIds.push(id);
+
+        const merged = flock.scene.getMeshByName(id);
+        const uvs = merged.getVerticesData(flock.BABYLON.VertexBuffer.UVKind);
+        const verts = merged.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        const indices = merged.getIndices();
+
+        const area2 = (ax, ay, bx, by, cx, cy) =>
+          Math.abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay));
+
+        // A triangle with real surface area but no UV area samples one texel
+        // across its whole face, which renders as a solid block of colour.
+        const collapsed = [];
+        for (let i = 0; i < indices.length; i += 3) {
+          const [a, b, c] = [indices[i], indices[i + 1], indices[i + 2]];
+          const uvArea = area2(
+            uvs[a * 2],
+            uvs[a * 2 + 1],
+            uvs[b * 2],
+            uvs[b * 2 + 1],
+            uvs[c * 2],
+            uvs[c * 2 + 1]
+          );
+          if (uvArea > 1e-9) continue;
+
+          const e1 = [
+            verts[b * 3] - verts[a * 3],
+            verts[b * 3 + 1] - verts[a * 3 + 1],
+            verts[b * 3 + 2] - verts[a * 3 + 2],
+          ];
+          const e2 = [
+            verts[c * 3] - verts[a * 3],
+            verts[c * 3 + 1] - verts[a * 3 + 1],
+            verts[c * 3 + 2] - verts[a * 3 + 2],
+          ];
+          const faceArea = Math.hypot(
+            e1[1] * e2[2] - e1[2] * e2[1],
+            e1[2] * e2[0] - e1[0] * e2[2],
+            e1[0] * e2[1] - e1[1] * e2[0]
+          );
+          if (faceArea > 1e-9) collapsed.push(i / 3);
+        }
+
+        expect(collapsed).to.deep.equal([]);
+      });
     });
     describe('randomColour', function () {
       it('should return a lowercase hex colour string', function () {
