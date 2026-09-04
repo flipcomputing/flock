@@ -8,7 +8,7 @@ async function openInspector(page) {
   await page.waitForFunction(() => !document.body.classList.contains('loading'));
   await page.click('#menuBtn');
   await page.click('#tools-menu-item');
-  await page.click('#inspector-menu-item');
+  await page.check('#inspectorCheckbox');
   await page.waitForSelector(inspectorSelector);
   await expect(page.locator(collapseButtonSelector).last()).toBeVisible();
 }

@@ -961,6 +961,10 @@ document.addEventListener('flock-theme-changed', async (event) => {
   await showInspector({ focus: restoreFocus });
 });
 
+export function isInspectorVisible() {
+  return !!flock.scene?.debugLayer?.isVisible();
+}
+
 export async function toggleInspector({ focus = false } = {}) {
   if (flock.scene?.debugLayer?.isVisible()) {
     hideInspector();

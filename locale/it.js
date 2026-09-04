@@ -270,8 +270,7 @@ export default {
   canvas_controls: 'controlli canvas %1',
   interact_indicator: 'indicatore di interazione %1',
   button_controls: 'controlli pulsante %1 abilitati %2 colore %3',
-  on_screen_controls:
-    'controlli sullo schermo  movimento: %1  azioni: %2  abilitato: %3  colore: %4', // ai
+  on_screen_controls: 'comandi del giocatore  movimento: %1  azioni: %2  attivato: %3  colore: %4', // ai
   microbit_input: 'quando evento micro:bit %1',
   ui_slider: 'slider UI %1 da %2 a %3 predefinito %4 a x: %5 y: %6\ncolore: %7 sfondo: %8 %9',
 
@@ -523,7 +522,8 @@ export default {
   interact_indicator_tooltip:
     "Mostra o nascondi l'indicatore di interazione accanto agli oggetti vicini.",
   button_controls_tooltip: 'Configura i controlli dei pulsanti.',
-  on_screen_controls_tooltip: 'Configura i controlli sullo schermo.', // ai
+  on_screen_controls_tooltip:
+    "Configura i comandi del giocatore disegnati sulla tela. Auto segue l'impostazione del pannello Strumenti.", // ai
   microbit_input_tooltip: 'Esegue i blocchi quando si verifica un evento micro:bit specificato.',
   ui_slider_tooltip:
     'Aggiunge un controllo slider 2D all’UI e ne salva il riferimento in una variabile.',
@@ -1033,6 +1033,9 @@ export default {
   project_save_ui: 'Salva',
   tools_submenu_ui: 'Strumenti',
   inspector_tool_ui: 'Ispettore',
+  player_controls_option_ui: 'Comandi del giocatore', // ai
+  gizmo_controls_option_ui: 'Comandi di manipolazione', // ai
+  close_tools_ui: 'Chiudi strumenti', // ai
   show_block_hints_ui: 'Mostra suggerimenti dei blocchi',
   hide_block_hints_ui: 'Nascondi suggerimenti dei blocchi',
   language_submenu_ui: 'Lingua',
@@ -1334,11 +1337,10 @@ export default {
   shortcut_lock_transform: "Blocca trasformazione sull'asse",
   shortcut_transform_3d: 'Trasforma in 3D',
   shortcut_focus_camera: "Centra la telecamera sull'oggetto",
-  shortcut_toggle_hud: 'Mostra/nascondi i comandi a schermo', // machine
-  hud_hidden: 'Comandi a schermo nascosti', // machine
-  hud_shown: 'Comandi a schermo visibili', // machine
-  gizmo_controls_hint:
-    'ℹ️ Clicca sul pulsante a forma di ingranaggio per mostrare/nascondere i comandi.', // machine
+  shortcut_toggle_hud: 'Mostra/nascondi i comandi di manipolazione', // ai
+  hud_hidden: 'Comandi di manipolazione nascosti', // ai
+  hud_shown: 'Comandi di manipolazione visibili', // ai
+  gizmo_controls_hint: 'ℹ️ Mostra o nascondi questi comandi da Menu > Strumenti.', // ai
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 

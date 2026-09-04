@@ -503,10 +503,8 @@
                   class="menu-item"
                   role="menuitem"
                   tabindex="-1"
-                  aria-haspopup="true"
-                  aria-expanded="false"
-                  aria-controls="tools-submenu"
-                  aria-labelledby="tools-label"
+                  aria-haspopup="dialog"
+                  aria-controls="toolsModal"
                 >
                   <span class="menu-icon">
                     <svg
@@ -520,33 +518,7 @@
                       />
                     </svg>
                   </span>
-                  <span id="tools-label" class="menu-label" data-i18n="tools_submenu">Tools</span>
-                  <span class="menu-arrow" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                      <path
-                        fill="currentColor"
-                        d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
-                      />
-                    </svg>
-                  </span>
-                  <ul
-                    id="tools-submenu"
-                    class="submenu"
-                    role="menu"
-                    aria-labelledby="tools-menu-item"
-                    hidden
-                  >
-                    <li role="none">
-                      <a
-                        href="#"
-                        id="inspector-menu-item"
-                        data-i18n="inspector_tool"
-                        role="menuitem"
-                        tabindex="-1"
-                        >Inspector</a
-                      >
-                    </li>
-                  </ul>
+                  <span class="menu-label" data-i18n="tools_submenu">Tools</span>
                 </li>
                 <!-- About menu item -->
                 <li id="about-menu-item" class="menu-item" role="menuitem" tabindex="-1">
@@ -726,6 +698,41 @@
                       >get in touch</a
                     >
                   </p>
+                </div>
+              </div>
+            </div>
+            <div
+              id="toolsModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="tools-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeToolsModal"
+                  data-i18n="close_tools"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close tools"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="tools-modal-title" data-i18n="tools_submenu">Tools</h2>
+                <div class="tools-options">
+                  <label class="tools-option" for="playerControlsCheckbox">
+                    <input type="checkbox" id="playerControlsCheckbox" />
+                    <span data-i18n="player_controls_option">Player controls</span>
+                  </label>
+                  <label class="tools-option" for="gizmoControlsCheckbox">
+                    <input type="checkbox" id="gizmoControlsCheckbox" />
+                    <span data-i18n="gizmo_controls_option">Gizmo controls</span>
+                  </label>
+                  <label class="tools-option" id="inspectorOption" for="inspectorCheckbox">
+                    <input type="checkbox" id="inspectorCheckbox" />
+                    <span data-i18n="inspector_tool">Inspector</span>
+                  </label>
                 </div>
               </div>
             </div>

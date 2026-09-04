@@ -1,7 +1,20 @@
+import {
+  getPlayerControlsEnabled,
+  setPlayerControlsEnabled,
+  getGizmoControlsEnabled,
+  setGizmoControlsEnabled,
+  onControlPreferenceChange,
+} from '../ui/controlPreferences.js';
+
 const menuBtn = document.getElementById('menuBtn');
 const openAbout = document.getElementById('about-menu-item');
 const infoModal = document.getElementById('infoModal');
 const closeInfoModal = document.getElementById('closeInfoModal');
+const openTools = document.getElementById('tools-menu-item');
+const toolsModal = document.getElementById('toolsModal');
+const closeToolsModal = document.getElementById('closeToolsModal');
+const playerControlsCheckbox = document.getElementById('playerControlsCheckbox');
+const gizmoControlsCheckbox = document.getElementById('gizmoControlsCheckbox');
 let previouslyFocused = null;
 
 function canRestoreFocus(element) {
@@ -22,27 +35,27 @@ function canRestoreFocus(element) {
   return rect.width > 0 && rect.height > 0;
 }
 
-function openInfoModal() {
-  if (!infoModal || !closeInfoModal) {
+function openModal(modal, initialFocus) {
+  if (!modal || !initialFocus) {
     return;
   }
   previouslyFocused = document.activeElement;
-  infoModal.classList.remove('hidden');
-  infoModal.setAttribute('aria-hidden', 'false');
-  infoModal.setAttribute('aria-modal', 'true');
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.setAttribute('aria-modal', 'true');
 
   setTimeout(() => {
-    closeInfoModal.focus();
+    initialFocus.focus();
   }, 0);
 }
 
-function hideInfoModal() {
-  if (!infoModal) {
+function hideModal(modal) {
+  if (!modal) {
     return;
   }
-  infoModal.classList.add('hidden');
-  infoModal.setAttribute('aria-hidden', 'true');
-  infoModal.removeAttribute('aria-modal');
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.removeAttribute('aria-modal');
 
   if (canRestoreFocus(previouslyFocused)) {
     previouslyFocused.focus();
@@ -51,6 +64,30 @@ function hideInfoModal() {
   }
 
   previouslyFocused = null;
+}
+
+function openInfoModal() {
+  openModal(infoModal, closeInfoModal);
+}
+
+function hideInfoModal() {
+  hideModal(infoModal);
+}
+
+function syncToolsModal() {
+  if (playerControlsCheckbox) playerControlsCheckbox.checked = getPlayerControlsEnabled();
+  if (gizmoControlsCheckbox) gizmoControlsCheckbox.checked = getGizmoControlsEnabled();
+  // main.js fills in the inspector row.
+  document.dispatchEvent(new CustomEvent('toolspanelsync'));
+}
+
+function openToolsModal() {
+  syncToolsModal();
+  openModal(toolsModal, playerControlsCheckbox ?? closeToolsModal);
+}
+
+function hideToolsModal() {
+  hideModal(toolsModal);
 }
 
 class AccessibleFlyoutMenu {
@@ -159,6 +196,11 @@ class AccessibleFlyoutMenu {
 
         if (infoModal && !infoModal.classList.contains('hidden')) {
           hideInfoModal();
+          handled = true;
+        }
+
+        if (toolsModal && !toolsModal.classList.contains('hidden')) {
+          hideToolsModal();
           handled = true;
         }
 
@@ -398,6 +440,40 @@ if (openAbout) {
   });
 }
 
+if (openTools) {
+  openTools.addEventListener('click', (e) => {
+    e.preventDefault();
+    menuFlyout?.closeAllMenus();
+    openToolsModal();
+  });
+}
+
+if (playerControlsCheckbox) {
+  playerControlsCheckbox.addEventListener('change', () => {
+    setPlayerControlsEnabled(playerControlsCheckbox.checked);
+  });
+}
+
+if (gizmoControlsCheckbox) {
+  gizmoControlsCheckbox.addEventListener('change', () => {
+    setGizmoControlsEnabled(gizmoControlsCheckbox.checked);
+  });
+}
+
+// The gizmo shortcut key changes the same preferences behind an open panel.
+onControlPreferenceChange(() => {
+  if (toolsModal && !toolsModal.classList.contains('hidden')) syncToolsModal();
+});
+
+if (closeToolsModal) {
+  closeToolsModal.addEventListener('click', () => {
+    hideToolsModal();
+  });
+}
+
+// A tool that takes over the screen closes the panel itself.
+document.addEventListener('toolspanelclose', () => hideToolsModal());
+
 // Close modal on close button
 if (closeInfoModal) {
   closeInfoModal.addEventListener('click', () => {
@@ -405,18 +481,22 @@ if (closeInfoModal) {
   });
 }
 
-// Handle keyboard events for modal
-if (infoModal) {
-  infoModal.addEventListener('keydown', (e) => {
+function installModalKeyHandling(modal, hide) {
+  if (!modal) return;
+  modal.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
-      hideInfoModal();
+      hide();
     } else if (e.key === 'Tab') {
-      // Trap focus within modal
-      const focusableElements = infoModal.querySelectorAll(
-        'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
-      );
+      // Only genuinely tabbable, rendered controls: a row CSS hides (the
+      // inspector below 1024px) would become the last element and let Tab escape.
+      const focusableElements = Array.from(
+        modal.querySelectorAll(
+          'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.tabIndex !== -1 && !el.disabled && el.offsetParent !== null);
+      if (focusableElements.length === 0) return;
       const firstElement = focusableElements[0];
       const lastElement = focusableElements[focusableElements.length - 1];
 
@@ -431,8 +511,11 @@ if (infoModal) {
   });
 
   window.addEventListener('click', (e) => {
-    if (e.target === infoModal) {
-      hideInfoModal();
+    if (e.target === modal) {
+      hide();
     }
   });
 }
+
+installModalKeyHandling(infoModal, hideInfoModal);
+installModalKeyHandling(toolsModal, hideToolsModal);

@@ -272,7 +272,7 @@ export default {
   canvas_controls: 'canvas controls %1',
   interact_indicator: 'interact indicator %1',
   button_controls: 'button controls %1 enabled: %2 color: %3',
-  on_screen_controls: 'on screen controls  movement: %1  actions: %2  enabled: %3  color: %4',
+  on_screen_controls: 'player controls  movement: %1  actions: %2  enabled: %3  color: %4',
   microbit_input: 'when micro:bit event %1',
   add_microbit: 'add micro:bit %1 radio channel %2',
   microbit_any_option: 'any',
@@ -570,7 +570,8 @@ export default {
   canvas_controls_tooltip: 'Add or remove canvas motion controls.',
   interact_indicator_tooltip: 'Show or hide the interact indicator next to nearby objects.',
   button_controls_tooltip: 'Configure button controls.',
-  on_screen_controls_tooltip: 'Configure on-screen controls.',
+  on_screen_controls_tooltip:
+    'Configure the player controls drawn on the canvas. Auto follows the Tools panel setting.',
   microbit_input_tooltip:
     'Executes the blocks inside when a specified micro:bit event is triggered.',
   add_microbit_tooltip:
@@ -1107,6 +1108,9 @@ export default {
   project_save_ui: 'Save',
   tools_submenu_ui: 'Tools',
   inspector_tool_ui: 'Inspector',
+  player_controls_option_ui: 'Player controls',
+  gizmo_controls_option_ui: 'Gizmo controls',
+  close_tools_ui: 'Close tools',
   show_block_hints_ui: 'Show block hints',
   hide_block_hints_ui: 'Hide block hints',
   language_submenu_ui: 'Language',
@@ -1485,10 +1489,10 @@ export default {
   shortcut_lock_transform: 'Lock transform to axis',
   shortcut_transform_3d: 'Transform in 3D',
   shortcut_focus_camera: 'Focus camera on object',
-  shortcut_toggle_hud: 'Show/hide on-screen controls',
-  hud_hidden: 'On-screen controls hidden',
-  hud_shown: 'On-screen controls shown',
-  gizmo_controls_hint: 'ℹ️ Click the cog button to show/hide the controls.',
+  shortcut_toggle_hud: 'Show/hide gizmo controls',
+  hud_hidden: 'Gizmo controls hidden',
+  hud_shown: 'Gizmo controls shown',
+  gizmo_controls_hint: 'ℹ️ Show or hide these controls from Menu > Tools.',
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
 

@@ -264,7 +264,7 @@ export default {
   canvas_controls: 'canvas kontroller %1',
   interact_indicator: 'interaktionsindikator %1',
   button_controls: 'knappkontroller %1 aktiverad %2 färg %3',
-  on_screen_controls: 'skärmkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4', // ai
+  on_screen_controls: 'spelarkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4', // ai
   microbit_input: 'när micro:bit händelse %1',
   ui_slider: 'ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9',
 
@@ -517,7 +517,8 @@ export default {
   canvas_controls_tooltip: 'Lägg till eller ta bort rörelsekontroller på canvas.',
   interact_indicator_tooltip: 'Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.',
   button_controls_tooltip: 'Konfigurera knappkontroller.',
-  on_screen_controls_tooltip: 'Konfigurera skärmkontroller.', // ai
+  on_screen_controls_tooltip:
+    'Konfigurera spelarkontrollerna som ritas på arbetsytan. Auto följer inställningen i panelen Verktyg.', // ai
   microbit_input_tooltip: 'Kör blocken när ett specifikt micro:bit-event triggas.',
   ui_slider_tooltip: 'Lägg till en 2D-sliderkontroll i UI:t och lagra dess referens i en variabel.',
 
@@ -1015,6 +1016,9 @@ export default {
   project_save_ui: 'Spara',
   tools_submenu_ui: 'Verktyg',
   inspector_tool_ui: 'Inspektör',
+  player_controls_option_ui: 'Spelarkontroller', // ai
+  gizmo_controls_option_ui: 'Gizmo-kontroller', // ai
+  close_tools_ui: 'Stäng verktyg', // ai
   show_block_hints_ui: 'Visa blocktips',
   hide_block_hints_ui: 'Dölj blocktips',
   language_submenu_ui: 'Språk',
@@ -1314,10 +1318,10 @@ export default {
   shortcut_lock_transform: 'Lås transformering till axel',
   shortcut_transform_3d: 'Transformera i 3D',
   shortcut_focus_camera: 'Rikta kameran mot objekt',
-  shortcut_toggle_hud: 'Visa/dölj skärmkontroller', // machine
-  hud_hidden: 'Skärmkontroller dolda', // machine
-  hud_shown: 'Skärmkontroller visas', // machine
-  gizmo_controls_hint: 'ℹ️ Klicka på kugghjulsknappen för att visa/dölja kontrollerna.', // machine
+  shortcut_toggle_hud: 'Visa/dölj gizmo-kontroller', // ai
+  hud_hidden: 'Gizmo-kontroller dolda', // ai
+  hud_shown: 'Gizmo-kontroller visas', // ai
+  gizmo_controls_hint: 'ℹ️ Visa eller dölj dessa kontroller via Meny > Verktyg.', // ai
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

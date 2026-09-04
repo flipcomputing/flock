@@ -266,7 +266,7 @@ export default {
   canvas_controls: 'kontrola płótna %1',
   interact_indicator: 'wskaźnik interakcji %1',
   button_controls: 'kontrolki przycisku %1 włączone: %2 kolor: %3',
-  on_screen_controls: 'kontrolki na ekranie  ruch: %1  akcje: %2  włączone: %3  kolor: %4', // ai
+  on_screen_controls: 'sterowanie gracza  ruch: %1  akcje: %2  włączone: %3  kolor: %4', // ai
   microbit_input: 'gdy zdarzenie micro:bit: %1',
   ui_slider: 'suwak UI %1 od %2 do %3 domyślnie %4 w x: %5 y: %6\nkolor: %7 tło: %8 %9',
 
@@ -514,7 +514,8 @@ export default {
   canvas_controls_tooltip: 'Dodaj lub usuń kontrolki ruchu na płótnie.',
   interact_indicator_tooltip: 'Pokaż lub ukryj wskaźnik interakcji obok pobliskich obiektów.',
   button_controls_tooltip: 'Skonfiguruj kontrolki przycisku %1, aktywność %2, kolor %3.',
-  on_screen_controls_tooltip: 'Skonfiguruj kontrolki na ekranie.', // ai
+  on_screen_controls_tooltip:
+    'Skonfiguruj sterowanie gracza rysowane na płótnie. Auto podąża za ustawieniem w panelu Narzędzia.', // ai
   microbit_input_tooltip: 'Wykonaj bloki, gdy wyzwolone zostanie zdarzenie micro:bit %1.',
   ui_slider_tooltip:
     'Dodaj suwak UI 2D %1 od %2 do %3, domyślnie %4, położenie x: %5 y: %6\nkolor: %7 tło: %8 %9',
@@ -1018,6 +1019,9 @@ export default {
   project_save_ui: 'Zapisz',
   tools_submenu_ui: 'Narzędzia',
   inspector_tool_ui: 'Inspektor',
+  player_controls_option_ui: 'Sterowanie gracza', // ai
+  gizmo_controls_option_ui: 'Sterowanie gizmo', // ai
+  close_tools_ui: 'Zamknij narzędzia', // ai
   show_block_hints_ui: 'Pokaż podpowiedzi bloków',
   hide_block_hints_ui: 'Ukryj podpowiedzi bloków',
   language_submenu_ui: 'Język',
@@ -1321,10 +1325,10 @@ export default {
   shortcut_lock_transform: 'Zablokuj transformację na osi',
   shortcut_transform_3d: 'Transformuj w 3D',
   shortcut_focus_camera: 'Skieruj kamerę na obiekt',
-  shortcut_toggle_hud: 'Pokaż/ukryj sterowanie ekranowe', // machine
-  hud_hidden: 'Sterowanie ekranowe ukryte', // machine
-  hud_shown: 'Sterowanie ekranowe widoczne', // machine
-  gizmo_controls_hint: 'ℹ️ Kliknij przycisk trybika, aby pokazać/ukryć sterowanie.', // machine
+  shortcut_toggle_hud: 'Pokaż/ukryj sterowanie gizmo', // ai
+  hud_hidden: 'Sterowanie gizmo ukryte', // ai
+  hud_shown: 'Sterowanie gizmo widoczne', // ai
+  gizmo_controls_hint: 'ℹ️ Pokaż lub ukryj to sterowanie w Menu > Narzędzia.', // ai
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { createGizmoMobileHud } from '../ui/gizmo-mobile-hud.js';
+import { setGizmoControlsEnabled } from '../ui/controlPreferences.js';
 
 function findHud(flock) {
   return flock.scene.textures.find((t) => t.name === 'GizmoHUD');
@@ -10,7 +11,7 @@ function findControl(flock, name) {
   return hud?.getDescendants(false, (c) => c.name === name)[0] ?? null;
 }
 
-const COLLAPSED_KEY = 'flock-gizmo-hud-collapsed';
+const GIZMO_CONTROLS_KEY = 'flock-gizmo-controls';
 
 // A dispatched PointerEvent has no active pointer behind it, so the slider's
 // canvas.setPointerCapture() throws NotFoundError here even though it is fine
@@ -32,10 +33,10 @@ export function runGizmoMobileHudTests(flock) {
     let moves;
     let axisChanges;
 
-    // The collapsed preference persists in localStorage, so without this a
+    // The visibility preference persists in localStorage, so without this a
     // single collapse test would silently invalidate every later assertion.
     beforeEach(function () {
-      localStorage.removeItem(COLLAPSED_KEY);
+      localStorage.removeItem(GIZMO_CONTROLS_KEY);
     });
 
     function make(overrides = {}) {
@@ -56,7 +57,7 @@ export function runGizmoMobileHudTests(flock) {
       stop = null;
       flock.controlsTexture = undefined;
       flock._joystickSource = undefined;
-      localStorage.removeItem(COLLAPSED_KEY);
+      localStorage.removeItem(GIZMO_CONTROLS_KEY);
     });
 
     describe('guard clause', function () {
@@ -100,6 +101,19 @@ export function runGizmoMobileHudTests(flock) {
         expect(flock.controlsTexture.rootContainer.isVisible).to.equal(false);
         stop();
         expect(flock.controlsTexture.rootContainer.isVisible).to.equal(true);
+        stop = null;
+      });
+
+      it('keeps player controls rebuilt while it is open hidden', function () {
+        // The Tools panel can turn them on mid-gizmo, building a texture the
+        // HUD never saw.
+        flock.controlsTexture = { rootContainer: { isVisible: true } };
+        make();
+        const rebuilt = { rootContainer: { isVisible: !flock._playerControlsSuppressed } };
+        flock.controlsTexture = rebuilt;
+        expect(rebuilt.rootContainer.isVisible).to.equal(false);
+        stop();
+        expect(rebuilt.rootContainer.isVisible).to.equal(true);
         stop = null;
       });
 
@@ -279,36 +293,23 @@ export function runGizmoMobileHudTests(flock) {
       });
     });
 
-    describe('collapse handle', function () {
-      it('creates the handle in slider mode', function () {
-        make();
-        expect(findControl(flock, 'gizmo-hud-toggle')).to.exist;
-      });
-
-      it('creates the handle in arrows mode', function () {
-        make({ mode: 'arrows' });
-        expect(findControl(flock, 'gizmo-hud-toggle')).to.exist;
-      });
-
+    describe('visibility preference', function () {
       it('starts expanded by default', function () {
         make();
         expect(stop.isCollapsed()).to.equal(false);
         expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
       });
 
-      it('tapping the handle hides the strip but keeps the handle visible', function () {
+      it('collapsing hides the strip', function () {
         make();
-        const handle = findControl(flock, 'gizmo-hud-toggle');
-        handle.onPointerUpObservable.notifyObservers();
+        stop.toggleCollapsed();
         expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);
-        expect(handle.isVisible).to.equal(true);
       });
 
-      it('tapping the handle again restores the strip', function () {
+      it('expanding again restores the strip', function () {
         make();
-        const handle = findControl(flock, 'gizmo-hud-toggle');
-        handle.onPointerUpObservable.notifyObservers();
-        handle.onPointerUpObservable.notifyObservers();
+        stop.toggleCollapsed();
+        stop.toggleCollapsed();
         expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
       });
 
@@ -322,14 +323,22 @@ export function runGizmoMobileHudTests(flock) {
       it('reports each collapse and expand to onCollapsedChange', function () {
         const states = [];
         make({ onCollapsedChange: (c) => states.push(c) });
-        const handle = findControl(flock, 'gizmo-hud-toggle');
-        handle.onPointerUpObservable.notifyObservers();
-        handle.onPointerUpObservable.notifyObservers();
+        stop.toggleCollapsed();
+        stop.toggleCollapsed();
         expect(states).to.deep.equal([true, false]);
       });
 
+      it('follows the preference changed from outside the HUD', function () {
+        make();
+        setGizmoControlsEnabled(false);
+        expect(stop.isCollapsed()).to.equal(true);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);
+        setGizmoControlsEnabled(true);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
+      });
+
       it('does not report the collapsed state a HUD was built in', function () {
-        localStorage.setItem(COLLAPSED_KEY, '1');
+        localStorage.setItem(GIZMO_CONTROLS_KEY, '0');
         const states = [];
         make({ onCollapsedChange: (c) => states.push(c) });
         expect(states).to.deep.equal([]);
@@ -350,11 +359,11 @@ export function runGizmoMobileHudTests(flock) {
       it('persists the collapsed state to localStorage', function () {
         make();
         stop.toggleCollapsed();
-        expect(localStorage.getItem(COLLAPSED_KEY)).to.equal('1');
+        expect(localStorage.getItem(GIZMO_CONTROLS_KEY)).to.equal('0');
       });
 
       it('a HUD built while the preference is set starts collapsed', function () {
-        localStorage.setItem(COLLAPSED_KEY, '1');
+        localStorage.setItem(GIZMO_CONTROLS_KEY, '0');
         make();
         expect(stop.isCollapsed()).to.equal(true);
         expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);

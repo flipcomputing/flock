@@ -1065,7 +1065,7 @@ button {
   }
 
   #babylon-inspector-container,
-  #menuDropdown #inspector-menu-item {
+  #toolsModal #inspectorOption {
     display: none !important;
   }
 
@@ -1495,6 +1495,23 @@ button {
   overflow-y: auto;
 }
 
+/* Centring drops these panels far down a tall screen. border-box keeps the
+   offset inside the full-height overlay so max-height still fits. */
+#infoModal,
+#toolsModal {
+  box-sizing: border-box;
+  align-items: flex-start;
+  padding-top: 80px;
+}
+
+/* A landscape phone has no room for the full offset. */
+@media (max-height: 500px) {
+  #infoModal,
+  #toolsModal {
+    padding-top: 16px;
+  }
+}
+
 /* Keep the full-screen click-outside target transparent so this reads as a
    popover anchored to Projects. */
 #exampleModal {
@@ -1738,6 +1755,25 @@ button {
 /* Always skip the top margin for h2s in modals */
 .modal-content h2 {
   margin-top: 0;
+}
+
+.tools-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+}
+
+.tools-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  cursor: pointer;
+}
+
+.tools-option input {
+  width: 1.2em;
+  height: 1.2em;
+  cursor: pointer;
 }
 
 .hidden {

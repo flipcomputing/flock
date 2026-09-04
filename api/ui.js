@@ -8,6 +8,7 @@ import {
   unregisterUIControl,
 } from '../accessibility/uiA11y.js';
 import { setInteractIndicatorEnabled } from '../ui/interactIndicator.js';
+import { getPlayerControlsEnabled, onControlPreferenceChange } from '../ui/controlPreferences.js';
 
 let flock;
 //let fontFamily = "Asap";
@@ -66,6 +67,12 @@ function currentControlsScale() {
   return baseDisplayScale * (baseHardwareScaling / hardwareScaling);
 }
 
+// AUTO defers to the Tools panel preference, so the layout keeps the mode and
+// re-derives visibility per render rather than caching an answer.
+function controlsShouldShow(mode) {
+  return mode === 'ENABLED' || (mode === 'AUTO' && getPlayerControlsEnabled());
+}
+
 function renderControls(layout, scale) {
   flock._onScreenSource?.releaseAll();
   if (flock._joystickSource) {
@@ -73,7 +80,7 @@ function renderControls(layout, scale) {
     flock._joystickSource = null;
   }
   disposeControls();
-  if (!layout?.shouldShow) return;
+  if (!layout || !controlsShouldShow(layout.mode)) return;
 
   const previousDisplayScale = flock.displayScale;
   flock.displayScale = scale;
@@ -83,6 +90,8 @@ function renderControls(layout, scale) {
       true,
       flock.scene
     );
+    // A gizmo HUD hides the player controls for its lifetime, rebuilds included.
+    flock.controlsTexture.rootContainer.isVisible = !flock._playerControlsSuppressed;
 
     if (layout.kind === 'buttons') {
       if (layout.control === 'ARROWS' || layout.control === 'BOTH') {
@@ -130,6 +139,12 @@ function configureControlsResizeHandling() {
     renderControls(flock._controlsLayout, scale);
   });
 }
+
+// The Tools panel can flip the preference between block runs.
+onControlPreferenceChange(() => {
+  if (!flock?._controlsLayout) return;
+  renderControls(flock._controlsLayout, currentControlsScale());
+});
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -619,17 +634,9 @@ export const flockUI = {
     rightGrid.addControl(button4, 1, 1);
   },
   buttonControls(control = 'BOTH', mode = 'AUTO', color = '#ffffff') {
-    // Check if touch is available
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-
-    const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
-
     configureControlsResizeHandling();
     flock._controlsBaseDisplayScale = flock.displayScale;
-    flock._controlsLayout = { kind: 'buttons', control, color, shouldShow };
+    flock._controlsLayout = { kind: 'buttons', control, color, mode };
     renderControls(flock._controlsLayout, currentControlsScale());
   },
   createJoystickControls(color) {
@@ -671,16 +678,9 @@ export const flockUI = {
     });
   },
   onScreenControls(movement = 'ARROWS', actions = 'YES', mode = 'AUTO', color = '#ffffff') {
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-
-    const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
-
     configureControlsResizeHandling();
     flock._controlsBaseDisplayScale = flock.displayScale;
-    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, shouldShow };
+    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, mode };
     renderControls(flock._controlsLayout, currentControlsScale());
 
     window.__flockSizeDebug?.sample('controls-created');

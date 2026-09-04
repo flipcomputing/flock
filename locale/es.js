@@ -268,7 +268,7 @@ export default {
   interact_indicator: 'indicador de interacción %1', // ai
   button_controls: 'controles de botón %1 habilitados %2 color %3', // human
   on_screen_controls:
-    'controles en pantalla  movimiento: %1  acciones: %2  habilitado: %3  color: %4', // ai
+    'controles del jugador  movimiento: %1  acciones: %2  activado: %3  color: %4', // ai
   microbit_input: 'cuando evento micro:bit %1', // human
   add_microbit: 'añadir micro:bit %1 canal de radio %2', // ai
   microbit_any_option: 'cualquiera', // ai
@@ -565,7 +565,8 @@ export default {
   interact_indicator_tooltip:
     'Muestra u oculta el indicador de interacción junto a los objetos cercanos.', // ai
   button_controls_tooltip: 'Configura controles de botónes.', // human
-  on_screen_controls_tooltip: 'Configura los controles en pantalla.', // ai
+  on_screen_controls_tooltip:
+    'Configura los controles del jugador dibujados en el lienzo. Auto sigue el ajuste del panel Herramientas.', // ai
   microbit_input_tooltip:
     'Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.', // human
   add_microbit_tooltip:
@@ -1087,6 +1088,9 @@ export default {
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
   inspector_tool_ui: 'Inspector', // ai
+  player_controls_option_ui: 'Controles del jugador', // ai
+  gizmo_controls_option_ui: 'Controles de manipulación', // ai
+  close_tools_ui: 'Cerrar herramientas', // ai
   show_block_hints_ui: 'Mostrar sugerencias de bloques',
   hide_block_hints_ui: 'Ocultar sugerencias de bloques',
   language_submenu_ui: 'Idioma', // human
@@ -1413,10 +1417,10 @@ export default {
   shortcut_lock_transform: 'Bloquear transformación en eje',
   shortcut_transform_3d: 'Transformar en 3D',
   shortcut_focus_camera: 'Enfocar cámara en objeto',
-  shortcut_toggle_hud: 'Mostrar/ocultar controles en pantalla', // machine
-  hud_hidden: 'Controles en pantalla ocultos', // machine
-  hud_shown: 'Controles en pantalla visibles', // machine
-  gizmo_controls_hint: 'ℹ️ Haz clic en el botón del engranaje para mostrar/ocultar los controles.', // machine
+  shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
+  hud_hidden: 'Controles de manipulación ocultos', // ai
+  hud_shown: 'Controles de manipulación visibles', // ai
+  gizmo_controls_hint: 'ℹ️ Muestra u oculta estos controles desde Menú > Herramientas.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 

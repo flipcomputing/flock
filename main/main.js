@@ -31,7 +31,14 @@ import {
   updateSaveButtonState,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
-import { onResize, toggleInspector, togglePlayMode, initializeUI, switchView } from './view.js';
+import {
+  onResize,
+  toggleInspector,
+  isInspectorVisible,
+  togglePlayMode,
+  initializeUI,
+  switchView,
+} from './view.js';
 import { hideLoadingScreen } from './loading.js';
 //import "./debug.js";
 import { initializeBlockHandling, showSelectedBlockHint } from './blockhandling.js';
@@ -758,7 +765,7 @@ function initializeApp() {
   });
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
-  const inspectorMenuItem = document.getElementById('inspector-menu-item');
+  const inspectorCheckbox = document.getElementById('inspectorCheckbox');
   const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
   const stopCodeButton = document.getElementById('stopCodeButton');
@@ -874,9 +881,16 @@ function initializeApp() {
       focusToolboxRestoringCategory(workspace);
     }, 0);
   });
-  inspectorMenuItem?.addEventListener('click', async (event) => {
-    event.preventDefault();
-    const opened = await toggleInspector({ focus: true });
+  // The inspector can also be closed from its own header, so read its live state.
+  document.addEventListener('toolspanelsync', () => {
+    if (inspectorCheckbox) inspectorCheckbox.checked = isInspectorVisible();
+  });
+  inspectorCheckbox?.addEventListener('change', async () => {
+    const opening = inspectorCheckbox.checked;
+    // The inspector docks behind the panel, so close it before focus moves.
+    if (opening) document.dispatchEvent(new CustomEvent('toolspanelclose'));
+    const opened = await toggleInspector({ focus: opening });
+    inspectorCheckbox.checked = opened;
     const inspector = document.getElementById('babylon-inspector-container');
     if (opened && inspector?.contains(document.activeElement)) {
       const focusedMessage = translate('focused_element_suffix').replace(

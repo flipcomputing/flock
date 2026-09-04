@@ -265,7 +265,7 @@ export default {
   canvas_controls: 'contrôles de la toile %1',
   interact_indicator: "indicateur d'interaction %1",
   button_controls: 'contrôles du bouton %1 activé %2 couleur %3',
-  on_screen_controls: "contrôles à l'écran  mouvement: %1  actions: %2  activé: %3  couleur: %4", // ai
+  on_screen_controls: 'commandes du joueur  mouvement: %1  actions: %2  activé: %3  couleur: %4', // ai
   microbit_input: "lors de l'événement micro:bit %1",
   ui_slider: 'curseur UI %1 de %2 à %3 par défaut %4 à x: %5 y: %6\ncouleur: %7 fond: %8 %9',
 
@@ -526,7 +526,8 @@ export default {
   interact_indicator_tooltip:
     "Affiche ou masque l'indicateur d'interaction à côté des objets proches.",
   button_controls_tooltip: 'Configure les contrôles par boutons.',
-  on_screen_controls_tooltip: "Configure les contrôles à l'écran.", // ai
+  on_screen_controls_tooltip:
+    'Configure les commandes du joueur dessinées sur la toile. Auto suit le réglage du panneau Outils.', // ai
   microbit_input_tooltip:
     'Exécute les blocs à l’intérieur lorsqu’un événement micro:bit spécifié est déclenché.',
   ui_slider_tooltip: 'Ajoute un curseur UI 2D et stocke sa référence dans une variable.',
@@ -1026,6 +1027,9 @@ export default {
   project_save_ui: 'Enregistrer',
   tools_submenu_ui: 'Outils',
   inspector_tool_ui: 'Inspecteur',
+  player_controls_option_ui: 'Commandes du joueur', // ai
+  gizmo_controls_option_ui: 'Commandes de manipulation', // ai
+  close_tools_ui: 'Fermer les outils', // ai
   show_block_hints_ui: 'Afficher les astuces des blocs',
   hide_block_hints_ui: 'Masquer les astuces des blocs',
   language_submenu_ui: 'Langue',
@@ -1333,11 +1337,10 @@ export default {
   shortcut_lock_transform: 'Verrouiller la transformation sur un axe',
   shortcut_transform_3d: 'Transformer en 3D',
   shortcut_focus_camera: "Centrer la caméra sur l'objet",
-  shortcut_toggle_hud: "Afficher/masquer les commandes à l'écran", // machine
-  hud_hidden: "Commandes à l'écran masquées", // machine
-  hud_shown: "Commandes à l'écran affichées", // machine
-  gizmo_controls_hint:
-    "ℹ️ Cliquez sur le bouton en forme d'engrenage pour afficher/masquer les commandes.", // machine
+  shortcut_toggle_hud: 'Afficher/masquer les commandes de manipulation', // ai
+  hud_hidden: 'Commandes de manipulation masquées', // ai
+  hud_shown: 'Commandes de manipulation affichées', // ai
+  gizmo_controls_hint: 'ℹ️ Affichez ou masquez ces commandes depuis Menu > Outils.', // ai
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 
