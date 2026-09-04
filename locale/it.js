@@ -1044,9 +1044,9 @@ export default {
 
   theme_submenu_ui: 'Tema',
   light_theme_ui: 'Chiaro',
-  dark_theme_ui: 'Scuro 2',
+  dark_theme_ui: 'Scuro',
   dark_contrast_theme_ui: 'Scuro',
-  low_vision_theme_ui: 'Ipovisione',
+  low_vision_theme_ui: 'Colore ridotto', // ai
   contrast_theme_ui: 'Contrasto',
 
   run_code_button_ui: 'Esegui il tuo codice',

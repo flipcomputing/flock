@@ -302,8 +302,15 @@ export function getIconColorForTheme(themeName) {
   }
 }
 
-// Function to call when switching themes
-function switchTheme(themeName) {
+const OS_DARK_QUERY = '(prefers-color-scheme: dark)';
+
+function osPrefersDark() {
+  return window.matchMedia?.(OS_DARK_QUERY).matches ?? false;
+}
+
+// persist: false leaves localStorage untouched, so a theme we picked from the OS
+// setting keeps following it rather than freezing on first load.
+function switchTheme(themeName, { persist = true } = {}) {
   const previousThemeName = document.body.dataset.theme;
   document.body.setAttribute('data-theme', themeName);
   document.dispatchEvent(
@@ -360,8 +367,7 @@ function switchTheme(themeName) {
     setLowVisionFlyoutLoadingVisibility(workspace, false);
   }
 
-  // Optional: Save theme preference
-  localStorage.setItem('blocklyTheme', themeName);
+  if (persist) localStorage.setItem('blocklyTheme', themeName);
 }
 
 // Create theme configuration for all themes
@@ -735,11 +741,23 @@ export function initializeTheme() {
     });
   });
 
-  // Load saved theme or default to light
-  const savedTheme = localStorage.getItem('blocklyTheme') || 'light';
-  switchTheme(savedTheme);
-  updateActiveTheme(savedTheme);
-  currentTheme = savedTheme;
+  // Only a theme the user picked is stored, so an absent one means "follow the OS".
+  const savedTheme = localStorage.getItem('blocklyTheme');
+  const startingTheme = savedTheme || (osPrefersDark() ? 'dark' : 'light');
+  switchTheme(startingTheme, { persist: false });
+  updateActiveTheme(startingTheme);
+  currentTheme = startingTheme;
+
+  if (!savedTheme) {
+    window.matchMedia?.(OS_DARK_QUERY).addEventListener('change', (event) => {
+      if (localStorage.getItem('blocklyTheme')) return;
+      const nextTheme = event.matches ? 'dark' : 'light';
+      if (nextTheme === currentTheme) return;
+      switchTheme(nextTheme, { persist: false });
+      updateActiveTheme(nextTheme);
+      currentTheme = nextTheme;
+    });
+  }
 }
 
 // Register category styles with Blockly before workspace creation

@@ -406,6 +406,25 @@ export function preloadLowVisionCategoryIcons() {
   return Promise.allSettled(pendingDecodes);
 }
 
+/* A full-block field paints the block itself, and only while it is the block's
+   only field — Blockly's blockIsSimpleReporter() rejects a field row longer than
+   one. Inserting the category icon therefore stops a colour swatch rendering at
+   all, leaving the block on its theme fill with the icon on top. */
+function hasFullBlockField(block) {
+  for (const input of block.inputList) {
+    for (const field of input.fieldRow) {
+      if (typeof field.isFullBlockField !== 'function') continue;
+      try {
+        if (field.isFullBlockField()) return true;
+      } catch {
+        // Throws when the field has no source block; such a field is not rendered
+        // as a full-block field either, so treat it as not one.
+      }
+    }
+  }
+  return false;
+}
+
 export function applyLowVisionCategoryIcons(workspace) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
@@ -422,6 +441,7 @@ export function applyLowVisionCategoryIcons(workspace) {
 
     const firstInput = block.inputList?.[0];
     if (!firstInput) continue;
+    if (hasFullBlockField(block)) continue;
     if (!block.getField(LOW_VISION_ICON_FIELD_NAME)) {
       firstInput.insertFieldAt(
         0,

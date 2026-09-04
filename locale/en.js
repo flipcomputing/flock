@@ -1119,9 +1119,9 @@ export default {
 
   theme_submenu_ui: 'Theme',
   light_theme_ui: 'Light',
-  dark_theme_ui: 'Dark 2',
+  dark_theme_ui: 'Dark',
   dark_contrast_theme_ui: 'Dark',
-  low_vision_theme_ui: 'Low vision',
+  low_vision_theme_ui: 'Low color',
   contrast_theme_ui: 'Contrast',
 
   run_code_button_ui: 'Run your code',

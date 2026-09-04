@@ -1032,7 +1032,7 @@ export default {
   light_theme_ui: 'Jasny',
   dark_theme_ui: 'Ciemny',
   contrast_theme_ui: 'Kontrast',
-  low_vision_theme_ui: 'Słabe widzenie',
+  low_vision_theme_ui: 'Mało koloru', // ai
 
   run_code_button_ui: 'Uruchom kod',
   stop_code_button_ui: 'Zatrzymaj kod',

@@ -678,6 +678,13 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     background: #1f1f1f !important;
   }
 
+  /* #3a3a3a is this theme's own flyout colour. It stays a step lighter than the
+     category rows so the gaps still separate them. */
+  [data-theme='low-vision'] .blocklyToolbox,
+  [data-theme='low-vision'] .blocklyToolboxCategoryGroup {
+    background: #3a3a3a !important;
+  }
+
   .blocklyToolboxCategoryGroup {
     background-color: #d3d3d3 !important;
   }
