@@ -485,6 +485,18 @@ body[data-theme='low-vision'] {
   background-color: #d8d8d8 !important;
 }
 
+/* Same ground as the workspace above, so the categories don't sit on a lighter
+   column. Blockly paints the toolbox from the theme, hence the !important.
+   Light only: the other themes set their toolbox a deliberate step away from
+   their workspace, and low-vision's is dark under light category text. */
+[data-theme='light'] .blocklyToolbox {
+  background-color: #ebebeb !important;
+  /* Sharing the workspace's ground leaves no seam, so the column is marked with
+     a rule instead. Same recipe as the app's other dividers. */
+  border-right: 1px solid var(--color-border);
+  border-right-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+}
+
 [data-theme='low-vision'] .blocklyPath {
   stroke: #e0e0e0 !important;
   stroke-width: 2.5px !important;

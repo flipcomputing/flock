@@ -52,16 +52,9 @@
   --color-focus: #fc3;
   --color-focus-outline: #0a84ff;
 
-  /* Light-theme icon-button palette. Kept explicitly light-only below so
+  /* Light-theme icon-button ink. Kept explicitly light-only below so the
      grouped tools do not replace the established colours of other themes. */
   --color-light-tool-ink: var(--color-primary);
-  --color-light-icon-hover: var(--color-button-bg-hover);
-  --color-light-icon-hover: color-mix(
-    in srgb,
-    var(--color-light-tool-ink) 20%,
-    transparent
-  );
-  --color-light-icon-bar: #bababa;
 
   /* Menu Colors */
   --color-menu-hover: #f0f0f0;
@@ -586,7 +579,9 @@ button {
 
 #canvasArea {
   position: relative;
-  background-color: #f3f3f3;
+  /* The same grey .blocklySvg carries, so the strip under the canvas reads as
+     one surface with the workspace beside it. */
+  background-color: #ebebeb;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -674,15 +669,23 @@ button {
 }
 
 #blocklyZoomControls .toolbar-divider,
-#info-panel-tabs .toolbar-divider {
+#info-panel-tabs .toolbar-divider,
+.gizmo-buttons-inner .toolbar-divider {
   width: 1px;
   height: 24px;
   background-color: var(--color-border);
   margin: 0 4px;
 }
 
+/* The other two bars are white; this strip sits on the canvas area's grey,
+   where --color-border all but disappears. Same recipe as the rule under the
+   strip, so the two lines around it match. */
+.gizmo-buttons-inner .toolbar-divider {
+  background-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+}
+
 [data-theme='light'] #canvasArea {
-  background-color: var(--color-bg);
+  background-color: #ebebeb;
 }
 
 [data-theme='dark'] #canvasArea {
@@ -746,7 +749,9 @@ button {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
   border: none;
-  border-radius: 15px;
+  /* An outline takes the element's own corners, so this is what shapes the
+     focus ring: a rounded square around the icon, matching the gizmo bar. */
+  border-radius: 8px;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -757,16 +762,13 @@ button {
   border-radius: 10px;
 }
 
+/* Matched to the icon buttons: its own id-level radius outranks theirs. */
+#exampleButton:focus-visible {
+  border-radius: 0;
+}
+
 #exampleButton:hover {
   background-color: #3d166d;
-}
-
-.bigbutton:hover {
-  background-color: var(--color-button-bg-hover);
-}
-
-[data-theme='light'] .bigbutton:hover {
-  background-color: var(--color-light-icon-hover);
 }
 
 /* Gizmo Buttons */
@@ -863,42 +865,64 @@ button {
   background: var(--axis-color);
 }
 
-/* The strip is the page background, like the app's other icon-button areas;
-   the buttons on it carry the colour. Everything here is scoped to the strip:
-   the .gizmo-button base styles stand alone for the colour picker's own
-   buttons, which reuse the class outside it. */
+/* The strip and its buttons are both the page background, so only the icons
+   carry colour. Everything here is scoped to the strip: the .gizmo-button base
+   styles stand alone for the colour picker's own buttons, which reuse the class
+   outside it. */
 .gizmo-buttons-inner {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  /* Between groups only — the buttons inside a group run together. */
-  gap: 5px;
+  justify-content: flex-start;
+  /* Centres the short dividers against the taller buttons, the way the zoom
+     controls and info-panel tabs centre theirs. */
+  align-items: center;
+  /* Between groups only — the buttons inside a group run together. The
+     dividers carry their own margins, so this only has to keep them off the
+     buttons either side. */
+  gap: 4px;
   width: 100%;
   padding: 7px 4px;
   box-sizing: border-box;
-  /* Reserve the divider's height so opening an info tab does not shift the
-     canvas, but let the toolbar read as part of the canvas while none is open. */
+  /* The rule between the strip and the panel below it. It lives here rather
+     than on the panel's top edge so resizeCanvas(), which measures this bar,
+     keeps counting it against the canvas height. */
   border-bottom: 1px solid transparent;
   background-color: transparent;
 }
 
-/* Once a docked info tab opens, give the toolbar its panel surface and mark
-   the boundary with the panel below it. Phone and narrow-landscape panels are
-   modal, so their active tabs must not change the toolbar surface. */
+/* The docked panel is its own surface below the toolbar, ruled off from it and
+   the same whether or not a tab is open. Phone and narrow-landscape panels are
+   modal, so they keep the canvas area's ground and no rule. */
 @media (min-width: 1025px), (min-width: 601px) and (orientation: portrait) {
-  #canvasArea:has(.info-tab-btn.active) .gizmo-buttons-inner {
+  #info-panel {
+    background-color: var(--color-bg);
+  }
+
+  .gizmo-buttons-inner {
     border-bottom-color: var(--color-border);
     border-bottom-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
-    background-color: var(--color-bg);
   }
 }
 
 /* Four intact groups fit as 2+3 and 3+2 buttons inside this five-button
-   content width, giving portrait phones two balanced centred rows. */
+   content width, giving portrait phones two balanced rows. */
 @media (max-width: 600px) and (orientation: portrait) {
   .gizmo-buttons-inner {
     width: min(100%, 228px);
     margin-inline: auto;
+  }
+}
+
+/* A wrapped bar would strand a divider at the end of a row, so the layouts that
+   wrap go back to separating the groups with the gap alone. */
+@media (max-width: 600px) and (orientation: portrait),
+  (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
+  .gizmo-buttons-inner {
+    gap: 20px;
+  }
+
+  .gizmo-buttons-inner .toolbar-divider {
+    display: none;
   }
 }
 
@@ -912,37 +936,26 @@ button {
   background-color: var(--color-button-primary);
 }
 
-/* Related tools run together into one pill, the way MakeCode groups its
-   toolbar: no gap inside a group, only the group's outer ends rounded. */
+/* Related tools run together with no gap, so the divider between groups — or
+   the wider gap, where a wrapping bar drops the dividers — is what separates
+   one group from the next. */
 .gizmo-group {
   display: flex;
-  border-radius: 10px;
-  background-color: var(--color-button-primary);
 }
 
-/* No rule between neighbours in a pill: the padding does the separating. */
+/* Bare icons on the bar: nothing is filled in behind one until it is on, and
+   then it is a rounded square around the icon. Even padding is what squares it,
+   and it keeps the dividers from costing the bar any width over the pills they
+   replaced. */
 .gizmo-buttons-inner .gizmo-button {
-  padding: 7px;
+  padding: 5px;
   background-color: transparent;
-  border-radius: 0;
+  border-radius: 8px;
 }
 
+/* Ink on the bar, not knocked out of a fill. */
 .gizmo-buttons-inner .gizmo-button path {
-  fill: var(--color-bg);
-}
-
-/* #shape-menu wraps its button to anchor the shapes dropdown, so each end has
-   to reach through it as well as matching a bare button. */
-.gizmo-group > :first-child,
-.gizmo-group > :first-child > .gizmo-button {
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-}
-
-.gizmo-group > :last-child,
-.gizmo-group > :last-child > .gizmo-button {
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
+  fill: var(--color-text-primary);
 }
 
 /* Keep the grouped toolbar at the compact size used by the original buttons. */
@@ -972,25 +985,19 @@ button {
   background-color: var(--color-focus);
 }
 
+/* The on state is still a solid chip, so its icon goes back to reading against
+   that fill rather than the bar. */
 .gizmo-buttons-inner .gizmo-button.active {
   background-color: var(--color-focus);
 }
 
+.gizmo-buttons-inner .gizmo-button.active path {
+  fill: var(--color-bg);
+}
+
 /* The refreshed purple treatment belongs to light mode only. */
-[data-theme='light'] .gizmo-group {
-  background-color: var(--color-light-icon-bar);
-}
-
-[data-theme='light'] .gizmo-buttons {
-  background-color: var(--color-bg);
-}
-
 [data-theme='light'] .gizmo-buttons-inner .gizmo-button path {
   fill: var(--color-light-tool-ink);
-}
-
-[data-theme='light'] .gizmo-buttons-inner .gizmo-button:hover:not(:disabled):not(.active) {
-  background-color: var(--color-light-icon-hover);
 }
 
 [data-theme='light'] .gizmo-buttons-inner .gizmo-button.active {
@@ -998,15 +1005,16 @@ button {
 }
 
 [data-theme='light'] .gizmo-buttons-inner .gizmo-button.active path {
-  fill: var(--color-light-icon-bar);
+  fill: var(--color-bg);
 }
 
-/* Sprung off the button so a band of pill shows through, micro:bit style, in
-   a bright blue rather than the app's yellow. No radius of its own: the ring
-   follows the button, so only the pill's outer corners are rounded. */
+/* Sprung off the button so a band of bar shows through, micro:bit style, in
+   a bright blue rather than the app's yellow. An outline takes the element's
+   own corners, so squaring the ring means squaring the button under it. */
 .gizmo-buttons-inner .gizmo-button:focus-visible {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
+  border-radius: 0;
 }
 
 .bigbutton.active {
@@ -1051,21 +1059,41 @@ button {
   color: #f0f0f0 !important;
 }
 
-/* Round, so the fill sits concentric with the circular info glyph. */
+/* Two states at one footprint: collapsed fills the button behind the glyph,
+   expanded rings it instead. Both are the button's own 1.5em circle. */
 #blockHintsBtn {
+  /* The ring is the button's own circle, so the box is sized to the
+     neighbouring glyphs rather than to their whole button, and the glyph is
+     centred in it rather than left on .bigbutton's inline baseline. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 1.5em;
+  height: 1.5em;
+  min-height: 0;
   border-radius: 50%;
 }
 
-/* Collapsed hints invert the button, leaving expanded as the solid state.
-   The theme rules above set .icon path with !important, so this must too. */
+/* One glyph size for both states; what changes around it is the fill or the
+   ring, so the icon never appears to resize. */
+#blockHintsBtn .icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+/* Thick enough to overlap the glyph — the box's radius less the icon's, plus a
+   pixel so the two circles' edges don't leave an antialiased seam between them.
+   .bigbutton's shared 2px stops short of the glyph entirely. */
+#blockHintsBtn.active {
+  box-shadow: inset 0 0 0 calc((1.5em - 1.15em) / 2 + 1px) var(--color-primary);
+}
+
 #blockHintsBtn:not(.active) {
   background-color: var(--color-text-brand);
 }
 
-#blockHintsBtn:not(.active):hover {
-  opacity: 0.85;
-}
-
+/* The theme rules above set .icon path with !important, so this must too. */
 #blockHintsBtn:not(.active) .icon path {
   fill: var(--color-bg) !important;
 }
@@ -2045,6 +2073,7 @@ details summary:focus-visible,
 #menuDropdown [role='menuitem']:focus-visible {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
+  border-radius: 0;
   z-index: 20;
 }
 
@@ -2053,15 +2082,11 @@ details summary:focus-visible,
   white-space: nowrap;
 }
 
-/* High contrast focus for better visibility */
+/* The ring is the whole indicator — nothing fills in behind the icon. */
 .bigbutton:focus-visible {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
-  background-color: var(--color-button-bg-hover);
-}
-
-[data-theme='light'] .bigbutton:focus-visible {
-  background-color: var(--color-light-icon-hover);
+  border-radius: 0;
 }
 
 #exportCodeButton.no-autosave .icon {
@@ -2247,12 +2272,6 @@ body.color-picker-open #renderCanvas {
   height: 100%;
   display: block;
   fill: var(--color-text-brand);
-}
-
-/* Make some of the icons smaller for better fit in buttons */
-.bigbutton .icon--sm {
-  height: 1.25em;
-  width: 1.25em;
 }
 
 /* Style inline icon (e.g. run button) */
@@ -2452,9 +2471,9 @@ body.color-picker-open #renderCanvas {
   #shapes-dropdown {
     top: 5px; /* level with the top row of buttons */
     /* Start one button in: the bar's 5px padding, the button strip's own 4px
-       padding, a 34px button (7px padding either side of a 20px icon), then
-       the grid's 5px gap. */
-    left: calc(5px + 4px + 34px + 5px);
+       padding, a 30px button (5px padding around a 20px icon), then a 5px
+       breath before the grid. */
+    left: calc(5px + 4px + 30px + 5px);
     right: 5px;
     bottom: auto;
     width: auto;
@@ -2688,6 +2707,7 @@ kbd {
   box-sizing: border-box;
 }
 
+
 #info-panel-tablist {
   display: flex;
   align-items: center;
@@ -2703,10 +2723,6 @@ kbd {
      Without it they resolve against #canvasArea, escaping this scroller's
      clipping and giving #canvasArea phantom scrollable overflow. */
   position: relative;
-}
-
-#info-panel:has(.info-tab-btn.active) #info-panel-body {
-  background-color: var(--color-bg);
 }
 
 .info-tab-panel {
