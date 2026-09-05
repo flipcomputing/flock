@@ -1142,8 +1142,7 @@ export default {
 
   toggle_play_ui: 'Use your project',
   fullscreen_toggle_ui: 'Switch between fullscreen and normal views.',
-  exit_play_mode_ui: 'Exit play mode',
-  exit_play_mode_hint_ui: 'Play mode. Press Escape, or the exit button at the top right, to leave.',
+  exit_play_mode_hint_ui: 'Play mode. Press Escape or use the play button in the top bar to leave.',
 
   show_shapes_button_ui: 'Add shapes and models',
   color_picker_button_ui: 'Choose a color',

@@ -1410,7 +1410,7 @@ button {
 }
 
 /* Phones in landscape are height-starved: the 16:9 canvas is height-bound and
-   leaves unused margin on both sides, so dock the 2-row gizmo block beside the
+   leaves unused margin on both sides, so dock the wrapping gizmo block beside the
    canvas and give the strip's height back. Scoped by max-height to phones;
    tablets in landscape are tall enough not to need it. `resizeCanvas()` in
    main/view.js matches this query and must be kept in sync. */
@@ -1422,26 +1422,48 @@ button {
     flex-direction: row;
   }
 
-  /* Grows into all the width left over beside the canvas. The inner toolbar is
-     content-sized so resizeCanvas() can measure it without depending on the
-     canvas width it is being used to compute. */
+  /* Grows into all the width left over beside the canvas. */
   #gizmoButtons {
     position: relative;
     flex: 1 1 auto;
     padding: 5px;
     /* display:flex comes from an inline style in view.js */
-    align-items: center;
+    align-items: flex-start;
   }
 
-  /* Content-sized for canvas measurement; its wrapped rows centre internally. */
+  /* A compact, wrapping tool column leaves enough width for a height-bound
+     16:9 canvas. resizeCanvas() measures this wrapper when reserving space. */
   .gizmo-buttons-inner {
-    width: auto;
+    width: 228px;
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
+  /* Status messages belong to the scene, not the adjacent tool column. */
+  .gizmo-toast {
+    max-width: calc(var(--render-canvas-width, 100%) - 20px);
   }
 
   /* The canvas is sized in px to already allow for the toolbar beside it, so it
      must not be flexed away from that. */
   #renderCanvas {
     flex: 0 0 auto;
+  }
+
+  aside#info-panel #info-panel-tabs {
+    justify-content: flex-start;
+  }
+
+  #info-panel-tablist {
+    margin-right: auto;
+  }
+}
+
+/* On the narrowest landscape phones, stack the four intact tool groups so the
+   canvas gets the width that would otherwise be spent keeping two groups on a row. */
+@media (max-width: 700px) and (orientation: landscape) and (max-height: 500px) {
+  .gizmo-buttons-inner {
+    width: 132px;
   }
 }
 
@@ -3173,57 +3195,10 @@ svg.blocklyTrashcanFlyout {
   cursor: not-allowed !important;
 }
 
-/* Play mode hides Flock's own UI only; body keeps its safe-area padding so the
-   scene never runs under the OS bars. */
-body.play-mode header {
-  display: none;
-}
-
 /* Collapse the double-width two-panel strip: WebKit scrolls that phantom
    overflow on the entering tap and drags the canvas half off-screen. */
 body.play-mode #maincontent {
   width: var(--view-width);
   overflow-x: hidden;
-  height: calc(var(--app-height) - env(safe-area-inset-top));
-}
-
-#exitPlayMode {
-  display: none;
-}
-
-/* The only way out besides Escape, so it never fades. */
-body.play-mode #exitPlayMode {
-  display: flex;
-  position: fixed;
-  top: calc(env(safe-area-inset-top) + 8px);
-  right: calc(var(--safe-right) + 8px);
-  z-index: 1200;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  color: #ffffff;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-body.play-mode #exitPlayMode svg {
-  width: 24px;
-  height: 24px;
-  display: block;
-}
-
-body.play-mode #exitPlayMode:hover,
-body.play-mode #exitPlayMode:active,
-body.play-mode #exitPlayMode:focus-visible {
-  background: rgba(0, 0, 0, 0.9);
-}
-
-body.play-mode #exitPlayMode:focus-visible {
-  outline: 3px solid var(--color-focus-outline);
-  outline-offset: 2px;
+  height: calc(var(--app-height) - 50px - env(safe-area-inset-top));
 }
