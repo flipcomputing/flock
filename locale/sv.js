@@ -1166,16 +1166,16 @@ export default {
   error_xr_models_offline:
     'Anslut till internet för att ladda modellerna för handkontrollerna och händerna (valfria). XR fungerar ändå utan dem.', // ai
   xr_mode_message: 'XR-läge!',
-  fly_camera_instructions: 'ℹ️ Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
+  fly_camera_instructions: 'Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
-  select_mesh_prompt: 'ℹ️ Välj ett objekt, eller använd piltangenterna för att flytta kursorn.',
-  select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
-  select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
-  place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
-  orbit_mesh_info: 'ℹ️ Dra för att flytta kameran runt objektet',
-  place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
+    'Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
+  select_mesh_prompt: 'Välj ett objekt, eller använd piltangenterna för att flytta kursorn.',
+  select_mesh_delete_prompt: 'Klicka på ett objekt för att ta bort det.',
+  select_mesh_duplicate_prompt: 'Välj ett objekt att duplicera.',
+  place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Klicka på ett objekt för att kretsa runt det.',
+  orbit_mesh_info: 'Dra för att flytta kameran runt objektet',
+  place_object_prompt: 'Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
   blocks_copied_alert: 'Block kopierade till lokal lagring!',
@@ -1321,7 +1321,7 @@ export default {
   shortcut_toggle_hud: 'Visa/dölj gizmo-kontroller', // ai
   hud_hidden: 'Gizmo-kontroller dolda', // ai
   hud_shown: 'Gizmo-kontroller visas', // ai
-  gizmo_controls_hint: 'ℹ️ Visa eller dölj dessa kontroller via Meny > Verktyg.', // ai
+  gizmo_controls_hint: 'Visa eller dölj gizmo-kontrollerna via Meny > Verktyg.', // ai
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

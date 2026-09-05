@@ -118,10 +118,11 @@ function _attachFocusBehavior(el, posParams) {
   const indicator = document.createElement('div');
   indicator.style.cssText =
     `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
-    'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
+    'outline:3px solid var(--color-focus-outline);outline-offset:2px;border-radius:3px;box-sizing:border-box;';
   document.body.appendChild(indicator);
 
   el.addEventListener('focus', () => {
+    if (!el.matches(':focus-visible')) return;
     const rect = _computeFixedRect(posParams);
     if (rect) {
       indicator.style.left = `${rect.left}px`;
@@ -274,7 +275,9 @@ export function registerUIInput(
     const bg = babylonInput.background || '#ffffff';
     const fg = babylonInput.color || '#000000';
     const fs = babylonInput.fontSize || '16px';
-    const border = focused ? '2px solid #005fcc' : '1px solid rgba(128,128,128,0.6)';
+    const border = focused
+      ? '2px solid var(--color-focus-outline)'
+      : '1px solid rgba(128,128,128,0.6)';
     _phStyle.textContent = `#${_styleId}-el::placeholder { color: ${fg}; opacity: 0.5; }`;
     htmlInput.id = `${_styleId}-el`;
     htmlInput.style.cssText =
@@ -290,7 +293,7 @@ export function registerUIInput(
 
   htmlInput.addEventListener('focus', () => {
     if (babylonInput.text) htmlInput.value = babylonInput.text;
-    _applyStyle(true);
+    _applyStyle(htmlInput.matches(':focus-visible'));
   });
 
   htmlInput.addEventListener('blur', () => {
@@ -383,10 +386,11 @@ export function registerUIText(id, text, posParams) {
     indicator = document.createElement('div');
     indicator.style.cssText =
       `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
-      'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
+      'outline:3px solid var(--color-focus-outline);outline-offset:2px;border-radius:3px;box-sizing:border-box;';
     document.body.appendChild(indicator);
 
     p.addEventListener('focus', () => {
+      if (!p.matches(':focus-visible')) return;
       const rect = _computeFixedRect(posParams);
       if (rect) {
         indicator.style.left = `${rect.left}px`;

@@ -2,6 +2,7 @@
 // Tools panel, the player controls block's AUTO mode and the gizmo HUD agree.
 const PLAYER_CONTROLS_KEY = 'flock-player-controls';
 const GIZMO_CONTROLS_KEY = 'flock-gizmo-controls';
+const GIZMO_HINTS_KEY = 'flock-gizmo-hints';
 
 // Only keys localStorage refused, so private mode still honours the choice.
 const unpersisted = new Map();
@@ -53,6 +54,17 @@ export function getGizmoControlsEnabled() {
 
 export function setGizmoControlsEnabled(enabled) {
   write(GIZMO_CONTROLS_KEY, !!enabled);
+}
+
+// The prompts the design tools put up ("Click a surface to place the object");
+// readouts like the position display are not covered by this.
+export function getGizmoHintsEnabled() {
+  const stored = read(GIZMO_HINTS_KEY);
+  return stored === null ? true : stored;
+}
+
+export function setGizmoHintsEnabled(enabled) {
+  write(GIZMO_HINTS_KEY, !!enabled);
 }
 
 // Returns an unsubscribe function.

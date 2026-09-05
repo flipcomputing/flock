@@ -50,7 +50,23 @@
 
   /* Focus Colors */
   --color-focus: #fc3;
-  --color-focus-ring: #511d91;
+  --color-focus-outline: #0a84ff;
+
+  /* Light-theme icon-button palette. Kept explicitly light-only below so
+     grouped tools do not replace the established colours of other themes. */
+  --color-light-tool-ink: var(--color-primary);
+  --color-light-icon-hover: var(--color-button-bg-hover);
+  --color-light-icon-hover: color-mix(
+    in srgb,
+    var(--color-light-tool-ink) 20%,
+    transparent
+  );
+  --color-light-icon-bar: var(--color-button-bg);
+  --color-light-icon-bar: color-mix(
+    in srgb,
+    var(--color-light-tool-ink) 28%,
+    var(--color-bg)
+  );
 
   /* Menu Colors */
   --color-menu-hover: #f0f0f0;
@@ -86,8 +102,6 @@
   --color-shadow: rgba(0, 0, 0, 0.7);
   --color-shadow-light: rgba(0, 0, 0, 0.5);
   --color-shadow-medium: rgba(0, 0, 0, 0.7);
-  --color-outline-focus: #fff200;
-  --color-focus-ring: #fff200;
 
   /* Buttons */
   --color-button-bg: var(--color-bg-alt);
@@ -151,8 +165,6 @@
   --color-shadow: rgba(0, 0, 0, 0.7);
   --color-shadow-light: rgba(0, 0, 0, 0.5);
   --color-shadow-medium: rgba(0, 0, 0, 0.7);
-  --color-outline-focus: #fff200;
-  --color-focus-ring: #fff200;
 
   /* Buttons */
   --color-button-bg: var(--color-bg-alt);
@@ -239,7 +251,6 @@
 
   /* Focus Colors */
   --color-focus: #fc3;
-  --color-focus-ring: #511d91;
 
   /* Menu Colors */
   --color-menu: var(--color-bg);
@@ -278,8 +289,6 @@
   --color-text-on-primary: #f0f0f0;
   --color-menu: var(--color-bg-alt);
   --color-menu-hover: #2a2a2a;
-  --color-focus-ring: #e0e0e0;
-  --color-outline-focus: #e0e0e0;
 
   /* Error banner */
   --color-error-bg: #38146a;
@@ -564,7 +573,7 @@ button {
 }
 
 .canvas-stopped-overlay__play:focus-visible {
-  outline: 3px solid #ffffff;
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 4px;
 }
 
@@ -613,6 +622,10 @@ button {
   position: absolute;
   top: 8px;
   right: 8px;
+  /* No global box-sizing reset in this project: without this the padding and
+     border sit outside the width cap and the box overruns the left edge on a
+     narrow workspace. */
+  box-sizing: border-box;
   width: min(320px, calc(100% - 16px));
   margin: 0;
   padding: 6px 12px;
@@ -645,6 +658,22 @@ button {
 
 .block-hint__text {
   margin: 0;
+}
+
+/* The box itself ignores the pointer so it never blocks the workspace; the
+   close button is the one part that takes clicks. */
+.block-hint__close {
+  flex: none;
+  margin-left: auto;
+  padding: 0 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 #blocklyZoomControls .toolbar-divider,
@@ -733,26 +762,80 @@ button {
   background-color: var(--color-button-bg-hover);
 }
 
+[data-theme='light'] .bigbutton:hover {
+  background-color: var(--color-light-icon-hover);
+}
+
 /* Gizmo Buttons */
 .gizmo-buttons {
   font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
-  padding: 5px 5px 8px 0px;
+  /* No padding: the strip sits flush against the canvas above it and the info
+     panel below it. */
+  padding: 0;
   margin: 0;
   box-sizing: border-box;
   flex-direction: column;
 }
 
-/* Height must stay fixed whatever the text: resizeCanvas() subtracts it. The
-   top margin clears the Ctrl+G badges renderBadges() floats below each button. */
+/* The status floats over the canvas rather than reserving a line under the
+   strip, so the column's height goes to the info panel. It sits at the top:
+   the on-screen touch controls own the bottom corners. It stays in the layout
+   when empty — only its chrome is hidden — because a live region has to be
+   present for a screen reader to announce into it. */
+.gizmo-toast {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  width: fit-content;
+  /* Border-box so the padding counts inside the cap, or a long message runs
+     right up to the canvas edge. */
+  box-sizing: border-box;
+  /* Leaves the same 8px on the right as the left inset above takes. */
+  max-width: calc(100% - 20px);
+  padding: 6px 6px 6px 10px;
+  border-radius: 8px;
+  background-color: var(--color-bg);
+  box-shadow: 0 2px 6px var(--color-shadow-medium);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.gizmo-toast:has(.gizmo-status:not(:empty)) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The tools it reports on are hidden while stopped. */
+#canvasArea.is-stopped .gizmo-toast {
+  display: none;
+}
+
+.gizmo-toast:not(:has(.gizmo-status:not(:empty))) .gizmo-toast__close {
+  display: none;
+}
+
 .gizmo-status {
-  height: 1.6em;
-  margin: 12px 0 0 5px;
+  margin: 0;
   font-size: 1rem;
   line-height: 1.4;
-  color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-text-primary);
+}
+
+.gizmo-toast__close {
+  flex: none;
+  padding: 0 4px;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-text-primary);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  cursor: pointer;
 }
 
 .gizmo-status__axis {
@@ -777,20 +860,43 @@ button {
   background: var(--axis-color);
 }
 
-/* When an info tab is docked, tighten the gizmo bar and status row without
-   making an empty row prominent. The lower rule matches the panel's tab bar. */
-@media (min-width: 1025px), (orientation: portrait) {
-  #canvasArea:has(.info-tab-btn.active) .gizmo-buttons {
-    box-shadow: inset 0 -1px var(--color-border);
-  }
-}
-
+/* The strip is the page background, like the app's other icon-button areas;
+   the buttons on it carry the colour. Everything here is scoped to the strip:
+   the .gizmo-button base styles stand alone for the colour picker's own
+   buttons, which reuse the class outside it. */
 .gizmo-buttons-inner {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
+  /* Between groups only — the buttons inside a group run together. */
   gap: 5px;
   width: 100%;
+  padding: 7px 4px;
   box-sizing: border-box;
+  /* Reserve the divider's height so opening an info tab does not shift the
+     canvas, but let the toolbar read as part of the canvas while none is open. */
+  border-bottom: 1px solid transparent;
+  background-color: transparent;
+}
+
+/* Once a docked info tab opens, give the toolbar its panel surface and mark
+   the boundary with the panel below it. Phone and narrow-landscape panels are
+   modal, so their active tabs must not change the toolbar surface. */
+@media (min-width: 1025px), (min-width: 601px) and (orientation: portrait) {
+  #canvasArea:has(.info-tab-btn.active) .gizmo-buttons-inner {
+    border-bottom-color: var(--color-border);
+    border-bottom-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+    background-color: var(--color-bg);
+  }
+}
+
+/* Four intact groups fit as 2+3 and 3+2 buttons inside this five-button
+   content width, giving portrait phones two balanced centred rows. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .gizmo-buttons-inner {
+    width: min(100%, 228px);
+    margin-inline: auto;
+  }
 }
 
 .gizmo-button {
@@ -801,6 +907,61 @@ button {
   border-radius: 5px;
   border: none;
   background-color: var(--color-button-primary);
+}
+
+/* Related tools run together into one pill, the way MakeCode groups its
+   toolbar: no gap inside a group, only the group's outer ends rounded. */
+.gizmo-group {
+  display: flex;
+  border-radius: 10px;
+  background-color: var(--color-button-primary);
+}
+
+/* No rule between neighbours in a pill: the padding does the separating. */
+.gizmo-buttons-inner .gizmo-button {
+  padding: 8px;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.gizmo-buttons-inner .gizmo-button path {
+  fill: var(--color-bg);
+}
+
+/* #shape-menu wraps its button to anchor the shapes dropdown, so each end has
+   to reach through it as well as matching a bare button. */
+.gizmo-group > :first-child,
+.gizmo-group > :first-child > .gizmo-button {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.gizmo-group > :last-child,
+.gizmo-group > :last-child > .gizmo-button {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* 27px, matching the glyphs in the rest of the app's chrome. The row then
+   only just fits the narrowest canvas panel. */
+.gizmo-buttons-inner .gizmo-button svg {
+  width: 27px;
+  height: 27px;
+}
+
+/* The cursor is the one tall, narrow glyph: at the shared size it paints only
+   17px wide, leaving a pocket of space beside its neighbour. Drawn larger,
+   with the negative margin keeping the button box at 41px. */
+.gizmo-buttons-inner #selectButton svg {
+  width: 29px;
+  height: 29px;
+  margin: -1px;
+}
+
+/* The bar carries its own padding, so the shape button's standalone left
+   margin would push the first icon out of line with the rest. */
+.gizmo-buttons-inner #shape-menu {
+  margin-left: 0;
 }
 
 .gizmo-button svg {
@@ -818,35 +979,37 @@ button {
   background-color: var(--color-focus);
 }
 
-/* On phone widths the toolbar no longer fits on one line. Force a
-   deliberate 5-per-row grid (2 tidy rows for the current 10 buttons)
-   rather than letting flex-wrap overflow unevenly. Columns are sized to
-   content (not 1fr) and the group is centred, so the buttons stay packed
-   together instead of spreading across the full width. Shared by portrait
-   phones and phones in landscape (docked beside the canvas, see below);
-   tablets still fit one row in either orientation. */
-@media (max-width: 600px),
-  (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
-  .gizmo-buttons-inner {
-    display: grid;
-    grid-template-columns: repeat(5, auto);
-    justify-content: center;
-    gap: 5px;
-  }
-  /* Neutralise the shape button's desktop left margin, which would
-     otherwise nudge the first column out of line with the row below. */
-  .gizmo-buttons-inner #shape-menu {
-    margin-left: 0;
-  }
+.gizmo-buttons-inner .gizmo-button.active {
+  background-color: var(--color-focus);
 }
 
-/* Too narrow for the longest prompts on one line, so give the status two. */
-@media (max-width: 600px) {
-  .gizmo-status {
-    height: 3.2em;
-    white-space: normal;
-    text-align: center;
-  }
+/* The refreshed purple treatment belongs to light mode only. */
+[data-theme='light'] .gizmo-group {
+  background-color: var(--color-light-icon-bar);
+}
+
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button path {
+  fill: var(--color-light-tool-ink);
+}
+
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button:hover:not(:disabled):not(.active) {
+  background-color: var(--color-light-icon-hover);
+}
+
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active {
+  background-color: var(--color-light-tool-ink);
+}
+
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active path {
+  fill: var(--color-light-icon-bar);
+}
+
+/* Sprung off the button so a band of pill shows through, micro:bit style, in
+   a bright blue rather than the app's yellow. No radius of its own: the ring
+   follows the button, so only the pill's outer corners are rounded. */
+.gizmo-buttons-inner .gizmo-button:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
 }
 
 .bigbutton.active {
@@ -985,7 +1148,7 @@ button {
 }
 
 #shapes-dropdown ul li.keyboard-focused {
-  outline: 3px solid var(--color-outline-focus);
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: -3px;
   border-radius: 5px;
 }
@@ -1158,11 +1321,8 @@ button {
     height: 100% !important;
   }
 
-  /* Reserves room above the fixed #bottomBar for whichever docks here — the
-     shortcuts tabs in narrow *portrait* (where the info panel is still docked,
-     see the landscape-only hide below), or otherwise just keeping tabs clear
-     of the bar. Without this the tabs/pill-toggle area render underneath the
-     fixed bar and get covered by it. */
+  /* Reserves room above the fixed #bottomBar for the info tabs. Without this
+     the tabs/pill-toggle area renders underneath the fixed bar. */
   #info-panel-tabs {
     margin-bottom: calc(35px + max(0px, env(safe-area-inset-bottom, 0px)));
   }
@@ -1172,10 +1332,8 @@ button {
   }
 }
 
-/* Hidden by default; shown only in the narrow+landscape case below. Kept as a
-   base rule (rather than solely relying on #bottomBar being display:none on
-   wide screens) so it doesn't render unstyled in narrow *portrait* layouts,
-   where the info panel still has room to host the docked copy instead. */
+/* Hidden by default; shown only in the narrow+landscape case below. Portrait
+   layouts keep the original logo in the info tab bar instead. */
 .bottombar-flocklink {
   display: none;
 }
@@ -1189,11 +1347,10 @@ button {
   }
 }
 
-/* Landscape-only: at low resolutions there's no room beside the canvas to dock
-   the info panel (portrait is narrow too but tall enough to stay docked). Both
-   panels become modal and the flock link moves to the bottom bar. Must match
-   `isNarrowLayout()` in accessibility/keyboardui.js. `aside#info-panel`, not
-   `#info-panel`, is needed to out-specify the base rule further down the file. */
+/* Narrow landscape layouts remove the docked body because their info content
+   is modal and the toolbar is positioned separately beside the canvas. Phone
+   portrait keeps the established flex structure as a spacer beneath its
+   modal-trigger tabs. */
 @media (max-width: 1024px) and (orientation: landscape) {
   /* contents, not none: children (the tab bar) still need to render, but shouldn't take a column in #canvasArea's row layout. */
   aside#info-panel {
@@ -1203,7 +1360,10 @@ button {
   #info-panel-body {
     display: none;
   }
+}
 
+/* Landscape-only placement for the surviving tab bar and bottom-bar logo. */
+@media (max-width: 1024px) and (orientation: landscape) {
   /* Fixed in the dead space below the gizmo block and above the bottom bar, so the canvas keeps its full height; ancestor-qualified for the same cascade reason as above. */
   aside#info-panel #info-panel-tabs {
     position: fixed;
@@ -1242,9 +1402,8 @@ button {
 
   /* <a> isn't covered by the global button/input focus rule, so it'd fall back
      to the browser default (reads white on the bar) — match the app's yellow. */
-  .bottombar-flocklink:focus,
   .bottombar-flocklink:focus-visible {
-    outline: 3px solid var(--color-focus);
+    outline: 3px solid var(--color-focus-outline);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -1256,40 +1415,27 @@ button {
    tablets in landscape are tall enough not to need it. `resizeCanvas()` in
    main/view.js matches this query and must be kept in sync. */
 @media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
-  /* Nothing here may centre its children. #canvasArea is sized to the viewport
-     and the fixed #bottomBar overlaps its lower edge, so the box extends under
-     the bar; resizeCanvas() accounts for that when sizing the canvas, but
-     centring would place it in the full box and push it back under the bar.
-     Everything stays anchored to the top-left instead. */
+  /* Keep the canvas anchored to the top-left: #canvasArea is sized to the
+     viewport and the fixed #bottomBar overlaps its lower edge. The toolbar
+     centres its own rows separately below. */
   #canvasArea {
     flex-direction: row;
   }
 
-  /* Grows into all the width left over beside the canvas (the buttons
-     themselves stay content-sized at its left), so the shape popup can anchor
-     to it and still reach the grey space past the buttons. resizeCanvas()
-     therefore measures .gizmo-buttons-inner, not this — this width depends on
-     the canvas width it is being used to compute. */
+  /* Grows into all the width left over beside the canvas. The inner toolbar is
+     content-sized so resizeCanvas() can measure it without depending on the
+     canvas width it is being used to compute. */
   #gizmoButtons {
     position: relative;
     flex: 1 1 auto;
     padding: 5px;
     /* display:flex comes from an inline style in view.js */
-    align-items: flex-start;
+    align-items: center;
   }
 
+  /* Content-sized for canvas measurement; its wrapped rows centre internally. */
   .gizmo-buttons-inner {
     width: auto;
-  }
-
-  /* Free to wrap here: the canvas is measured from .gizmo-buttons-inner. */
-  .gizmo-status {
-    align-self: stretch;
-    min-width: 0;
-    height: auto;
-    margin-left: 0;
-    white-space: normal;
-    text-align: left;
   }
 
   /* The canvas is sized in px to already allow for the toolbar beside it, so it
@@ -1347,9 +1493,9 @@ button {
     background-color: var(--color-focus);
   }
 
-  .resizer:focus {
+  .resizer:focus-visible {
     background-color: var(--color-focus);
-    outline: 3px solid var(--color-focus);
+    outline: 3px solid var(--color-focus-outline);
   }
 
   .resizer::before {
@@ -1566,9 +1712,8 @@ button {
   background-color: var(--color-button-bg-hover);
 }
 
-.project-action-button:focus,
 .project-action-button:focus-visible {
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -1647,9 +1792,8 @@ button {
   color: var(--color-bg);
 }
 
-.example-tab:focus,
 .example-tab:focus-visible {
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -1730,9 +1874,8 @@ button {
   box-shadow: 0 4px 12px var(--color-shadow-medium);
 }
 
-.example-tile:focus,
 .example-tile:focus-visible {
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   z-index: 1;
 }
@@ -1868,21 +2011,20 @@ button.flock-close-icon {
   text-decoration: none;
 }
 
-.skip-link:focus,
 .skip-link:focus-visible {
   left: 0;
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: -3px;
 }
 
 /* Enhanced focus indicators */
-button:focus,
-input:focus,
-select:focus,
-.gizmo-button:focus,
-details summary:focus,
-#menuDropdown [role='menuitem']:focus {
-  outline: 3px solid var(--color-focus);
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.gizmo-button:focus-visible,
+details summary:focus-visible,
+#menuDropdown [role='menuitem']:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   z-index: 20;
 }
@@ -1893,10 +2035,14 @@ details summary:focus,
 }
 
 /* High contrast focus for better visibility */
-.bigbutton:focus {
-  outline: 3px solid var(--color-focus);
+.bigbutton:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   background-color: var(--color-button-bg-hover);
+}
+
+[data-theme='light'] .bigbutton:focus-visible {
+  background-color: var(--color-light-icon-hover);
 }
 
 #exportCodeButton.no-autosave .icon {
@@ -1984,8 +2130,8 @@ body.embed-mode #renderCanvas:focus {
   background-color: var(--color-button-bg-hover);
 }
 
-body.embed-mode #embedBottomBar a:focus {
-  outline: 3px solid var(--color-focus);
+body.embed-mode #embedBottomBar a:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2018,8 +2164,8 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Focus management for modal */
-.modal:focus-within .modal-content {
-  outline: 2px solid var(--color-focus-ring);
+.modal:has(:focus-visible) .modal-content {
+  outline: 2px solid var(--color-focus-outline);
   outline-offset: -2px;
 }
 
@@ -2029,12 +2175,12 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Flock XR logo link focus styling */
-#info-panel-link:focus {
-  outline: 3px solid var(--color-focus);
+#info-panel-link:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   box-shadow:
     0 0 0 2px var(--color-bg),
-    0 0 0 5px var(--color-focus);
+    0 0 0 5px var(--color-focus-outline);
   border-radius: 4px;
 }
 
@@ -2243,9 +2389,7 @@ body.color-picker-open #renderCanvas {
     right: 0;
     top: 100%; /* directly below the toolbar */
     bottom: auto;
-    /* Pull back up past the bar's 25px bottom padding and the .gizmo-status
-       block below the buttons (24px margin + 3.2rem) to sit just under them. */
-    margin-top: calc(-44px - 3.2rem);
+    margin-top: 0; /* directly under the buttons: the bar has no bottom padding */
     width: auto;
     max-width: 100%;
     padding: 10px; /* symmetric so the grey side gaps match */
@@ -2288,9 +2432,10 @@ body.color-picker-open #renderCanvas {
   }
   #shapes-dropdown {
     top: 5px; /* level with the top row of buttons */
-    /* Start one button in: the bar's 5px padding, a 34px button (7px padding
-       either side of a 20px icon), then the grid's 5px gap. */
-    left: calc(5px + 34px + 5px);
+    /* Start one button in: the bar's 5px padding, the button strip's own 4px
+       padding, a 41px button (7px padding either side of a 27px icon), then
+       the grid's 5px gap. */
+    left: calc(5px + 4px + 41px + 5px);
     right: 5px;
     bottom: auto;
     width: auto;
@@ -2400,8 +2545,8 @@ body.color-picker-open #renderCanvas {
 }
 
 /* Which area badge is currently focused */
-.area-number-badge:focus {
-  outline: 3px solid var(--color-focus);
+.area-number-badge:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2503,6 +2648,14 @@ kbd {
   box-shadow: none;
 }
 
+[data-theme='light'] .info-tab-btn.active {
+  background-color: var(--color-light-tool-ink);
+}
+
+[data-theme='light'] #flockeditor .info-tab-btn.active .icon path {
+  fill: var(--color-bg) !important;
+}
+
 #info-panel-tabs {
   display: flex;
   flex-shrink: 0;
@@ -2541,8 +2694,8 @@ kbd {
   padding: 1em;
 }
 
-.info-tab-panel:focus {
-  outline: 2px solid var(--color-focus);
+.info-tab-panel:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
   outline-offset: -2px;
 }
 
@@ -2618,8 +2771,8 @@ kbd {
   margin-left: 12px;
 }
 
-.shortcuts-panel-header .help-link-button:focus {
-  outline: 2px solid var(--color-focus);
+.shortcuts-panel-header .help-link-button:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -2680,7 +2833,7 @@ kbd {
 }
 
 #help-list a:focus-visible {
-  outline: 2px solid var(--color-focus);
+  outline: 2px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -2881,7 +3034,7 @@ svg.blocklyTrashcanFlyout {
 }
 
 .fc-confirm-btn:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
+  outline: 2px solid var(--color-focus-outline);
 }
 
 .fc-confirm-btn--cancel {
@@ -3071,6 +3224,6 @@ body.play-mode #exitPlayMode:focus-visible {
 }
 
 body.play-mode #exitPlayMode:focus-visible {
-  outline: 3px solid #ffffff;
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }

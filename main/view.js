@@ -1360,7 +1360,8 @@ class PanelResizer {
   // button's own width avoids counting the absolutely-positioned shape-menu
   // dropdown nested inside #shape-menu, which would otherwise inflate the min.
   // The buttons live in an inner wrapper (.gizmo-buttons-inner) that carries the
-  // flex layout + gap; #gizmoButtons itself carries the horizontal padding.
+  // flex layout, gap and the bar's own padding; #gizmoButtons adds the
+  // horizontal padding around it.
   getMinCanvasWidth() {
     const gizmo = document.getElementById('gizmoButtons');
     if (!gizmo) return this.minPanelFloor;
@@ -1373,8 +1374,12 @@ class PanelResizer {
 
     const rowStyle = window.getComputedStyle(row);
     const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+    const rowPaddingX =
+      row === gizmo
+        ? 0
+        : (parseFloat(rowStyle.paddingLeft) || 0) + (parseFloat(rowStyle.paddingRight) || 0);
 
-    let total = paddingX;
+    let total = paddingX + rowPaddingX;
     let visibleChildren = 0;
     for (const child of row.children) {
       const childStyle = window.getComputedStyle(child);

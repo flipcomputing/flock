@@ -1188,16 +1188,16 @@ export default {
   error_xr_models_offline:
     'Connettiti a internet per caricare i modelli dei controller e delle mani (facoltativi). La XR funziona lo stesso senza di essi.', // ai
   xr_mode_message: 'Modalità XR!',
-  fly_camera_instructions: 'ℹ️ Guarda intorno con le frecce e Pag su/giù o Fn + ↑ ↓',
+  fly_camera_instructions: 'Guarda intorno con le frecce e Pag su/giù o Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    'ℹ️ Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
-  select_mesh_prompt: 'ℹ️ Seleziona un oggetto, oppure usa le frecce per spostare il cursore.',
-  select_mesh_delete_prompt: 'ℹ️ Clicca su un oggetto per eliminarlo.',
-  select_mesh_duplicate_prompt: 'ℹ️ Seleziona un oggetto da duplicare.',
-  place_duplicate_prompt: 'ℹ️ Fai clic per posizionare una copia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Clicca su un oggetto per orbitargli attorno.',
-  orbit_mesh_info: "ℹ️ Trascina per muovere la telecamera intorno all'oggetto",
-  place_object_prompt: "ℹ️ Fai clic su una superficie per posizionare l'oggetto.",
+    'Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
+  select_mesh_prompt: 'Seleziona un oggetto, oppure usa le frecce per spostare il cursore.',
+  select_mesh_delete_prompt: 'Clicca su un oggetto per eliminarlo.',
+  select_mesh_duplicate_prompt: 'Seleziona un oggetto da duplicare.',
+  place_duplicate_prompt: 'Fai clic per posizionare una copia.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Clicca su un oggetto per orbitargli attorno.',
+  orbit_mesh_info: "Trascina per muovere la telecamera intorno all'oggetto",
+  place_object_prompt: "Fai clic su una superficie per posizionare l'oggetto.",
   position_readout: 'Posizione: {position}',
   eyedropper_not_supported_alert:
     'La selezione del colore è disponibile in Chrome/Edge su desktop.', // ai
@@ -1340,7 +1340,7 @@ export default {
   shortcut_toggle_hud: 'Mostra/nascondi i comandi di manipolazione', // ai
   hud_hidden: 'Comandi di manipolazione nascosti', // ai
   hud_shown: 'Comandi di manipolazione visibili', // ai
-  gizmo_controls_hint: 'ℹ️ Mostra o nascondi questi comandi da Menu > Strumenti.', // ai
+  gizmo_controls_hint: 'Mostra o nascondi i comandi di manipolazione da Menu > Strumenti.', // ai
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 

@@ -1,10 +1,24 @@
 // Editor status line. Not flock.printText: that one paints into the canvas.
+import { getGizmoHintsEnabled, onControlPreferenceChange } from './controlPreferences.js';
 
 let hideTimer = null;
 let owner = null;
+let showingHint = false;
 
 function getElement() {
   return typeof document === 'undefined' ? null : document.getElementById('gizmoStatus');
+}
+
+let closeWired = false;
+
+// Wired on first use rather than at import: the button is part of the page,
+// but the tests mount the status element on its own.
+function wireClose() {
+  if (closeWired) return;
+  const button = document.getElementById('gizmoStatusClose');
+  if (!button) return;
+  button.addEventListener('click', () => clearStatus());
+  closeWired = true;
 }
 
 function cancelHide() {
@@ -40,13 +54,18 @@ function render(element, content) {
   element.replaceChildren(...content.map(toNode));
 }
 
-// duration 0 keeps the message up until something replaces or clears it.
-export function showStatus(content, { duration = 0, owner: nextOwner = null } = {}) {
+// duration 0 keeps the message up until something replaces or clears it. A
+// hint is one of the tools' prompts, which the Tools panel can turn off;
+// readouts pass no flag and always show.
+export function showStatus(content, { duration = 0, owner: nextOwner = null, hint = false } = {}) {
   const element = getElement();
   if (!element) return;
+  if (hint && !getGizmoHintsEnabled()) return;
 
   cancelHide();
+  wireClose();
   owner = nextOwner;
+  showingHint = hint;
   render(element, content);
 
   const seconds = Number(duration);
@@ -61,6 +80,12 @@ export function clearStatus(forOwner = null) {
   if (forOwner !== null && owner !== forOwner) return;
   cancelHide();
   owner = null;
+  showingHint = false;
   const element = getElement();
   if (element) element.replaceChildren();
 }
+
+// Turning hints off in the Tools panel takes the one on screen with it.
+onControlPreferenceChange(() => {
+  if (showingHint && !getGizmoHintsEnabled()) clearStatus();
+});

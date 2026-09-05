@@ -3,6 +3,8 @@ import {
   setPlayerControlsEnabled,
   getGizmoControlsEnabled,
   setGizmoControlsEnabled,
+  getGizmoHintsEnabled,
+  setGizmoHintsEnabled,
   onControlPreferenceChange,
 } from '../ui/controlPreferences.js';
 
@@ -15,6 +17,7 @@ const toolsModal = document.getElementById('toolsModal');
 const closeToolsModal = document.getElementById('closeToolsModal');
 const playerControlsCheckbox = document.getElementById('playerControlsCheckbox');
 const gizmoControlsCheckbox = document.getElementById('gizmoControlsCheckbox');
+const gizmoHintsCheckbox = document.getElementById('gizmoHintsCheckbox');
 let previouslyFocused = null;
 
 function canRestoreFocus(element) {
@@ -77,6 +80,7 @@ function hideInfoModal() {
 function syncToolsModal() {
   if (playerControlsCheckbox) playerControlsCheckbox.checked = getPlayerControlsEnabled();
   if (gizmoControlsCheckbox) gizmoControlsCheckbox.checked = getGizmoControlsEnabled();
+  if (gizmoHintsCheckbox) gizmoHintsCheckbox.checked = getGizmoHintsEnabled();
   // main.js fills in the inspector row.
   document.dispatchEvent(new CustomEvent('toolspanelsync'));
 }
@@ -457,6 +461,12 @@ if (playerControlsCheckbox) {
 if (gizmoControlsCheckbox) {
   gizmoControlsCheckbox.addEventListener('change', () => {
     setGizmoControlsEnabled(gizmoControlsCheckbox.checked);
+  });
+}
+
+if (gizmoHintsCheckbox) {
+  gizmoHintsCheckbox.addEventListener('change', () => {
+    setGizmoHintsEnabled(gizmoHintsCheckbox.checked);
   });
 }
 

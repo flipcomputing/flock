@@ -1090,6 +1090,7 @@ export default {
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai
+  gizmo_hints_option_ui: 'Consejos de manipulación', // ai
   close_tools_ui: 'Cerrar herramientas', // ai
   show_block_hints_ui: 'Mostrar sugerencias de bloques',
   hide_block_hints_ui: 'Ocultar sugerencias de bloques',
@@ -1137,6 +1138,7 @@ export default {
   duplicate_block_button_ui: 'Duplicar bloque',
   camera_button_ui: 'Controles de cámara', // human
   eye_button_ui: 'Orbitar alrededor del objeto seleccionado',
+  close_status_message_ui: 'Cerrar mensaje', // ai
 
   info_panel_link_ui: 'Visitar pagina web de Flock XR (se abre en una pestaña nueva)', // human
   skip_to_scene_ui: 'Saltar a la escena 3D', // ai
@@ -1261,16 +1263,16 @@ export default {
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
-  fly_camera_instructions: 'ℹ️ Mira alrededor con las flechas y Page Up/Down o Fn + ↑ ↓', // human
+  fly_camera_instructions: 'Mira alrededor con las flechas y Page Up/Down o Fn + ↑ ↓', // human
   fly_camera_instructions_touch:
-    'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
-  select_mesh_prompt: 'ℹ️ Selecciona un objeto, o usa las flechas para mover el cursor.',
-  select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
-  select_mesh_duplicate_prompt: 'ℹ️ Selecciona un objeto para duplicar.', // Google (had to update it)
-  place_duplicate_prompt: 'ℹ️ Haz clic para colocar una copia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Haz clic en un objeto para orbitar alrededor de él.',
-  orbit_mesh_info: 'ℹ️ Arrastra para mover la cámara alrededor del objeto',
-  place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
+    'Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
+  select_mesh_prompt: 'Selecciona un objeto, o usa las flechas para mover el cursor.',
+  select_mesh_delete_prompt: 'Haz clic en un objeto para eliminarlo.', // Google translate
+  select_mesh_duplicate_prompt: 'Selecciona un objeto para duplicar.', // Google (had to update it)
+  place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Haz clic en un objeto para orbitar alrededor de él.',
+  orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
+  place_object_prompt: 'Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:
     'La selección de color está disponible en Chrome/Edge en ordenadores de escritorio.', // ai
@@ -1420,7 +1422,8 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
   hud_hidden: 'Controles de manipulación ocultos', // ai
   hud_shown: 'Controles de manipulación visibles', // ai
-  gizmo_controls_hint: 'ℹ️ Muestra u oculta estos controles desde Menú > Herramientas.', // ai
+  gizmo_controls_hint:
+    'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 

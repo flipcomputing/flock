@@ -1180,16 +1180,16 @@ export default {
   error_xr_models_offline:
     'Connectez-vous à Internet pour charger les modèles des manettes et des mains (facultatifs). La XR fonctionne quand même sans eux.', // ai
   xr_mode_message: 'Mode XR !',
-  fly_camera_instructions: 'ℹ️ Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
+  fly_camera_instructions: 'Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    "ℹ️ Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
-  select_mesh_prompt: 'ℹ️ Sélectionnez un objet, ou utilisez les flèches pour déplacer le curseur.',
-  select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
-  select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
-  place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Cliquez sur un objet pour orbiter autour de lui.',
-  orbit_mesh_info: "ℹ️ Glissez pour déplacer la caméra autour de l'objet",
-  place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
+    "Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
+  select_mesh_prompt: 'Sélectionnez un objet, ou utilisez les flèches pour déplacer le curseur.',
+  select_mesh_delete_prompt: 'Cliquez sur un objet pour le supprimer.',
+  select_mesh_duplicate_prompt: 'Sélectionnez un objet à dupliquer.',
+  place_duplicate_prompt: 'Cliquez pour placer une copie.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Cliquez sur un objet pour orbiter autour de lui.',
+  orbit_mesh_info: "Glissez pour déplacer la caméra autour de l'objet",
+  place_object_prompt: "Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
     'La sélection de couleur est disponible dans Chrome/Edge sur ordinateur.', // ai
@@ -1340,7 +1340,8 @@ export default {
   shortcut_toggle_hud: 'Afficher/masquer les commandes de manipulation', // ai
   hud_hidden: 'Commandes de manipulation masquées', // ai
   hud_shown: 'Commandes de manipulation affichées', // ai
-  gizmo_controls_hint: 'ℹ️ Affichez ou masquez ces commandes depuis Menu > Outils.', // ai
+  gizmo_controls_hint:
+    'Affichez ou masquez les commandes de manipulation depuis Menu > Outils.', // ai
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 

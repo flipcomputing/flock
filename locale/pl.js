@@ -1171,17 +1171,16 @@ export default {
   error_xr_models_offline:
     'Połącz się z internetem, aby wczytać modele kontrolerów i dłoni (opcjonalne). XR działa również bez nich.', // ai
   xr_mode_message: 'Tryb XR!',
-  fly_camera_instructions:
-    'ℹ️ Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
+  fly_camera_instructions: 'Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    'ℹ️ Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
-  select_mesh_prompt: 'ℹ️ Wybierz obiekt lub użyj klawiszy strzałek, aby przesunąć kursor.',
-  select_mesh_delete_prompt: 'ℹ️ Kliknij obiekt, aby go usunąć.',
-  select_mesh_duplicate_prompt: 'ℹ️ Wybierz obiekt do powielenia.',
-  place_duplicate_prompt: 'ℹ️ Kliknij, aby umieścić kopię.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Kliknij obiekt, aby go okrążyć.',
-  orbit_mesh_info: 'ℹ️ Przeciągnij, aby przesunąć kamerę wokół obiektu',
-  place_object_prompt: 'ℹ️ Kliknij na powierzchnię, aby umieścić obiekt.',
+    'Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
+  select_mesh_prompt: 'Wybierz obiekt lub użyj klawiszy strzałek, aby przesunąć kursor.',
+  select_mesh_delete_prompt: 'Kliknij obiekt, aby go usunąć.',
+  select_mesh_duplicate_prompt: 'Wybierz obiekt do powielenia.',
+  place_duplicate_prompt: 'Kliknij, aby umieścić kopię.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Kliknij obiekt, aby go okrążyć.',
+  orbit_mesh_info: 'Przeciągnij, aby przesunąć kamerę wokół obiektu',
+  place_object_prompt: 'Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
   eyedropper_not_supported_alert: 'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai
   blocks_copied_alert: 'Bloki skopiowane do pamięci lokalnej!',
@@ -1328,7 +1327,7 @@ export default {
   shortcut_toggle_hud: 'Pokaż/ukryj sterowanie gizmo', // ai
   hud_hidden: 'Sterowanie gizmo ukryte', // ai
   hud_shown: 'Sterowanie gizmo widoczne', // ai
-  gizmo_controls_hint: 'ℹ️ Pokaż lub ukryj to sterowanie w Menu > Narzędzia.', // ai
+  gizmo_controls_hint: 'Pokaż lub ukryj sterowanie gizmo w Menu > Narzędzia.', // ai
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 

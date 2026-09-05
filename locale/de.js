@@ -1159,17 +1159,15 @@ export default {
   error_xr_models_offline:
     'Stelle eine Internetverbindung her, um die Controller- und Handmodelle zu laden (optional). XR funktioniert auch ohne sie.', // ai
   xr_mode_message: 'XR-Modus!',
-  fly_camera_instructions: 'ℹ️ Schau dich um mit Pfeiltasten und Bild auf/ab oder Fn + ↑ ↓',
-  fly_camera_instructions_touch:
-    'ℹ️ Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
-  select_mesh_prompt:
-    'ℹ️ Wähle ein Objekt aus, oder nutze die Pfeiltasten, um den Cursor zu bewegen.',
-  select_mesh_delete_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu löschen.',
-  select_mesh_duplicate_prompt: 'ℹ️ Wähle ein Objekt zum Duplizieren aus.',
-  place_duplicate_prompt: 'ℹ️ Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Klicke auf ein Objekt, um es zu umkreisen.',
-  orbit_mesh_info: 'ℹ️ Ziehe, um die Kamera um das Objekt zu bewegen',
-  place_object_prompt: 'ℹ️ Klicke auf eine Fläche, um das Objekt zu platzieren.',
+  fly_camera_instructions: 'Schau dich um mit Pfeiltasten und Bild auf/ab oder Fn + ↑ ↓',
+  fly_camera_instructions_touch: 'Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',
+  select_mesh_prompt: 'Wähle ein Objekt aus, oder nutze die Pfeiltasten, um den Cursor zu bewegen.',
+  select_mesh_delete_prompt: 'Klicke auf ein Objekt, um es zu löschen.',
+  select_mesh_duplicate_prompt: 'Wähle ein Objekt zum Duplizieren aus.',
+  place_duplicate_prompt: 'Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Klicke auf ein Objekt, um es zu umkreisen.',
+  orbit_mesh_info: 'Ziehe, um die Kamera um das Objekt zu bewegen',
+  place_object_prompt: 'Klicke auf eine Fläche, um das Objekt zu platzieren.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Die Farbauswahl ist in Chrome/Edge auf dem Desktop verfügbar.', // ai
   blocks_copied_alert: 'Blöcke in den lokalen Speicher kopiert!',
@@ -1323,7 +1321,7 @@ export default {
   shortcut_toggle_hud: 'Gizmo-Steuerung ein-/ausblenden', // ai
   hud_hidden: 'Gizmo-Steuerung ausgeblendet', // ai
   hud_shown: 'Gizmo-Steuerung eingeblendet', // ai
-  gizmo_controls_hint: 'ℹ️ Blende diese Steuerung über Menü > Werkzeuge ein oder aus.', // ai
+  gizmo_controls_hint: 'Blende die Gizmo-Steuerung über Menü > Werkzeuge ein oder aus.', // ai
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 

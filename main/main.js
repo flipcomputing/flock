@@ -913,6 +913,7 @@ function initializeApp() {
     blockHintsButton.classList.toggle('active', expanded);
   };
   updateBlockHintsButton();
+  document.addEventListener('flock-block-hints-changed', updateBlockHintsButton);
   // Taking focus would deselect the workspace block, leaving nothing to hint about.
   blockHintsButton?.addEventListener('pointerdown', (event) => event.preventDefault());
   blockHintsButton?.addEventListener('click', () => {

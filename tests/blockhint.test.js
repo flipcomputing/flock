@@ -26,6 +26,8 @@ export function runBlockHintTests(_flock) {
   describe('ui/blockHint @blockhint', function () {
     let container;
     let text;
+    let closeButton;
+    let trigger;
     let originalEnabled;
 
     beforeEach(function () {
@@ -37,8 +39,15 @@ export function runBlockHintTests(_flock) {
       container.hidden = true;
       text = document.createElement('p');
       text.id = 'blockHintText';
-      container.appendChild(text);
+      closeButton = document.createElement('button');
+      closeButton.id = 'blockHintClose';
+      container.append(text, closeButton);
       document.body.appendChild(container);
+
+      trigger = document.createElement('button');
+      trigger.id = 'blockHintsBtn';
+      trigger.setAttribute('aria-expanded', 'true');
+      document.body.appendChild(trigger);
 
       originalEnabled = areBlockHintsEnabled();
       setBlockHintsEnabled(true);
@@ -50,6 +59,7 @@ export function runBlockHintTests(_flock) {
       showBlockHint('');
       setBlockHintsEnabled(originalEnabled);
       container.remove();
+      trigger.remove();
     });
 
     describe('showBlockHint', function () {
@@ -128,6 +138,25 @@ export function runBlockHintTests(_flock) {
     });
 
     describe('clearBlockHint / hideBlockHint', function () {
+      it('close disables hints, updates the controller, and restores focus', function () {
+        const updateController = (event) =>
+          trigger.setAttribute('aria-expanded', String(event.detail.enabled));
+        document.addEventListener('flock-block-hints-changed', updateController);
+        try {
+          showBlockHint('Move the object');
+          closeButton.focus();
+          closeButton.click();
+
+          expect(container.hidden).to.be.true;
+          expect(areBlockHintsEnabled()).to.be.false;
+          expect(localStorage.getItem(EXPANDED_KEY)).to.equal('0');
+          expect(trigger.getAttribute('aria-expanded')).to.equal('false');
+          expect(document.activeElement).to.equal(trigger);
+        } finally {
+          document.removeEventListener('flock-block-hints-changed', updateController);
+        }
+      });
+
       it('clearBlockHint hides the container', function () {
         showBlockHint('Move the object');
         clearBlockHint();

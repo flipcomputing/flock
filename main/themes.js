@@ -737,6 +737,9 @@ export function initializeTheme() {
         switchTheme(newTheme);
         updateActiveTheme(newTheme);
         currentTheme = newTheme;
+      } else if (!localStorage.getItem('blocklyTheme')) {
+        // Selecting the OS-derived theme is still an explicit preference.
+        localStorage.setItem('blocklyTheme', newTheme);
       }
     });
   });

@@ -46,9 +46,9 @@ body.color-picker-open #blocklyDiv * {
   cursor: grabbing;
 }
 
-.color-picker-drag-handle:focus {
+.color-picker-drag-handle:focus-visible {
   background-color: var(--color-focus);
-  outline: 3px solid var(--color-focus);
+  outline: 3px solid var(--color-focus-outline);
 }
 
 .color-picker-drag-handle::before {
@@ -122,8 +122,8 @@ body.color-picker-open #blocklyDiv * {
   touch-action: none;
 }
 
-.lightness-slider:focus {
-  outline: 3px solid var(--color-focus);
+.lightness-slider:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -444,9 +444,9 @@ body.color-picker-open #blocklyDiv * {
   background-color: var(--color-button-bg-hover);
 }
 
-.color-picker-random:focus,
-.color-picker-more-options:focus {
-  outline: 3px solid var(--color-focus);
+.color-picker-random:focus-visible,
+.color-picker-more-options:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -538,10 +538,13 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .color-picker-close:hover,
-.color-picker-close:focus {
+.color-picker-close:focus-visible {
   background: #f0f0f0;
   color: #333;
-  outline: 3px solid var(--color-focus);
+}
+
+.color-picker-close:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -612,8 +615,8 @@ body.color-picker-open #blocklyDiv * {
   box-sizing: border-box;
 }
 
-.color-swatch:focus {
-  outline: 3px solid var(--color-focus);
+.color-swatch:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   z-index: 1;
 }
@@ -643,14 +646,13 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .color-wheel:hover,
-.color-wheel:focus {
-  outline: 3px solid var(--color-focus) !important;
-  outline-offset: 2px;
+.color-wheel:focus-visible {
   transform: scale(1.02);
 }
 
-.color-wheel-canvas:focus {
-  outline: 3px solid var(--color-focus) !important;
+.color-wheel:focus-visible,
+.color-wheel-canvas:focus-visible {
+  outline: 3px solid var(--color-focus-outline) !important;
   outline-offset: 2px;
 }
 
@@ -663,10 +665,13 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .color-brightness:hover,
-.color-brightness:focus {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
+.color-brightness:focus-visible {
   transform: scale(1.02);
+}
+
+.color-brightness:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
 }
 
 /* Screen color picker button */
@@ -685,10 +690,13 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .screen-color-picker-btn:hover,
-.screen-color-picker-btn:focus {
+.screen-color-picker-btn:focus-visible {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(81, 29, 145, 0.4);
-  outline: 3px solid #fff;
+}
+
+.screen-color-picker-btn:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -714,9 +722,12 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .advanced-toggle:hover,
-.advanced-toggle:focus {
+.advanced-toggle:focus-visible {
   background: #e8e8e8;
-  outline: 3px solid var(--color-focus);
+}
+
+.advanced-toggle:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -759,8 +770,8 @@ body.color-picker-open #blocklyDiv * {
   transition: all 0.2s ease;
 }
 
-.rgb-slider:focus {
-  outline: 3px solid var(--color-focus);
+.rgb-slider:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -795,8 +806,8 @@ body.color-picker-open #blocklyDiv * {
   font-weight: bold;
 }
 
-.rgb-number:focus {
-  outline: 3px solid var(--color-focus);
+.rgb-number:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -815,8 +826,8 @@ body.color-picker-open #blocklyDiv * {
   transition: border-color 0.2s ease;
 }
 
-.css-color-input:focus {
-  outline: 3px solid var(--color-focus);
+.css-color-input:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -848,11 +859,14 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .cancel-btn:hover,
-.cancel-btn:focus {
+.cancel-btn:focus-visible {
   background: #e8e8e8;
   color: #333;
   border-color: #bbb;
-  outline: 3px solid #666;
+}
+
+.cancel-btn:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -863,11 +877,14 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .confirm-btn:hover,
-.confirm-btn:focus {
+.confirm-btn:focus-visible {
   background: linear-gradient(135deg, #27ae60, #2d995b);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(45, 153, 91, 0.3);
-  outline: 3px solid #fff;
+}
+
+.confirm-btn:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -991,7 +1008,7 @@ body.color-picker-open #blocklyDiv * {
     border-width: 4px;
   }
 
-  .color-swatch:focus,
+  .color-swatch:focus-visible,
   .color-swatch:hover {
     border-width: 5px;
   }
@@ -1006,12 +1023,12 @@ body.color-picker-open #blocklyDiv * {
   }
 
   .color-swatch:hover,
-  .color-swatch:focus {
+  .color-swatch:focus-visible {
     transform: none;
   }
 
   .color-wheel:hover,
-  .color-wheel:focus {
+  .color-wheel:focus-visible {
     transform: none;
   }
 }

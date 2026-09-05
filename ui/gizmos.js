@@ -1396,7 +1396,7 @@ function positionStatus(position) {
 function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
   cleanupScenePick(); // Stop picking
   resetAttachedMesh();
-  if (prompt) showStatus(prompt, { owner: 'scene-pick' });
+  if (prompt) showStatus(prompt, { owner: 'scene-pick', hint: true });
   let hasPicked = false;
 
   const handlePicked = (pickedMesh, pickedPoint, x, y) => {
@@ -1688,7 +1688,7 @@ function updateChildBlockPositions(mesh) {
 function startDuplicatePlacement() {
   let blockKey, blockId, canvas, onPickMesh;
   if (!gizmoManager.attachedMesh) {
-    showStatus(translate('select_mesh_duplicate_prompt'), { duration: 10 });
+    showStatus(translate('select_mesh_duplicate_prompt'), { duration: 10, hint: true });
     return;
   }
   blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
@@ -1701,7 +1701,7 @@ function startDuplicatePlacement() {
   blockId = meshBlockIdMap[blockKey];
   duplicateModeActive = true;
 
-  showStatus(translate('place_duplicate_prompt'), { owner: 'duplicate-place' });
+  showStatus(translate('place_duplicate_prompt'), { owner: 'duplicate-place', hint: true });
   setCrosshairCursor();
 
   canvas = flock.scene.getEngine().getRenderingCanvas(); // Get the flock.BABYLON.js canvas
@@ -1987,7 +1987,11 @@ function handleScaleGizmo() {
     startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
-    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
+    showStatus(translate('gizmo_controls_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
   } else {
     pickMeshFromScene(
       (pickedMesh) => {
@@ -2015,7 +2019,11 @@ function handleScaleGizmo() {
     startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
-    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
+    showStatus(translate('gizmo_controls_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(scaleObs));
@@ -2175,7 +2183,11 @@ function handleRotationGizmo() {
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
-    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
+    showStatus(translate('gizmo_controls_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
   } else {
     pickMeshFromScene(
       (pickedMesh) => {
@@ -2202,7 +2214,11 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
-    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
+    showStatus(translate('gizmo_controls_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
@@ -2276,7 +2292,11 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
-    showStatus(translate('gizmo_controls_hint'), { duration: 10, owner: 'gizmo-controls-hint' });
+    showStatus(translate('gizmo_controls_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
     startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
@@ -2503,7 +2523,7 @@ function handleCameraGizmo() {
     flock.inputManager?.setInputOwner('editor');
     showStatus(
       translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
-      { duration: 15, owner: 'camera' }
+      { duration: 15, owner: 'camera', hint: true }
     );
     setGizmoButtonActive(cameraButton, true);
   } else {
@@ -2593,7 +2613,7 @@ function handleEyeGizmo() {
   const mesh = gizmoManager.attachedMesh;
   if (mesh && mesh.name !== 'ground') {
     attachOrbitView(mesh);
-    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
+    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
     return;
   }
 
@@ -2605,7 +2625,7 @@ function handleEyeGizmo() {
       }
       attachMeshForActiveTool(pickedMesh);
       attachOrbitView(pickedMesh);
-      showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo' });
+      showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
     },
     false,
     translate('select_mesh_eye_prompt')

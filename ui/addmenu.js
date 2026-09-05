@@ -379,7 +379,7 @@ function selectCharacter(characterName) {
   }
 
   setCrosshairCursor();
-  showStatus(translate('place_object_prompt'), { owner: 'placement' });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -492,7 +492,7 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   setCrosshairCursor();
-  showStatus(translate('place_object_prompt'), { owner: 'placement' });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -566,7 +566,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 
   // Mouse click fallback (capture=true)
   setCrosshairCursor();
-  showStatus(translate('place_object_prompt'), { owner: 'placement' });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -827,6 +827,10 @@ function registerActivePickHandler(handler, { capture = false, delay = 0 } = {})
 }
 
 function cleanupPlacementMode() {
+  // Only tear down when a placement is actually pending: the outside-click
+  // handler below runs on every click, and the canvas keyboard mode and cursor
+  // it clears may belong to a gizmo rather than to us.
+  if (!flock.activePickHandler) return;
   detachActivePickHandler();
   stopCanvasKeyboardMode();
   setDefaultCursor();

@@ -7,9 +7,13 @@ import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 import { logViewport } from '../main/viewportDebug.js';
 
-// Must match the CSS breakpoint in style.css that hides the docked info panel.
+// Phones use modal panels in either orientation; wider narrow layouts need
+// them only in landscape. Portrait phones retain the dock's empty flex body
+// purely to preserve the established tab and bottom-bar positioning.
 const isNarrowLayout = () =>
-  window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
+  window.matchMedia(
+    '(max-width: 600px), (max-width: 1024px) and (orientation: landscape)'
+  ).matches;
 
 // Measured: ~65px chrome plus ~40px per em per row; below 2 rows the modal reads better than a docked scroll.
 const MIN_DOCKED_ROWS = 2;

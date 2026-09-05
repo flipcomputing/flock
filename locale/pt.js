@@ -1174,16 +1174,16 @@ export default {
   error_xr_models_offline:
     'Liga-te à internet para carregar os modelos dos comandos e das mãos (opcionais). A XR funciona na mesma sem eles.', // ai
   xr_mode_message: 'Modo XR!',
-  fly_camera_instructions: 'ℹ️ Olhe ao redor com as setas e Page Up/Down ou Fn + ↑ ↓',
+  fly_camera_instructions: 'Olhe ao redor com as setas e Page Up/Down ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    'ℹ️ Câmera de voo, use os controles na tela e arraste para olhar em volta',
-  select_mesh_prompt: 'ℹ️ Selecione um objeto, ou use as setas para mover o cursor.',
-  select_mesh_delete_prompt: 'ℹ️ Clique em um objeto para excluí-lo.',
-  select_mesh_duplicate_prompt: 'ℹ️ Selecione um objeto para duplicar.',
-  place_duplicate_prompt: 'ℹ️ Clique para posicionar uma cópia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Clique em um objeto para orbitar ao redor dele.',
-  orbit_mesh_info: 'ℹ️ Arraste para mover a câmera ao redor do objeto',
-  place_object_prompt: 'ℹ️ Clique em uma superfície para posicionar o objeto.',
+    'Câmera de voo, use os controles na tela e arraste para olhar em volta',
+  select_mesh_prompt: 'Selecione um objeto, ou use as setas para mover o cursor.',
+  select_mesh_delete_prompt: 'Clique em um objeto para excluí-lo.',
+  select_mesh_duplicate_prompt: 'Selecione um objeto para duplicar.',
+  place_duplicate_prompt: 'Clique para posicionar uma cópia.', // AI-generated; needs validation
+  select_mesh_eye_prompt: 'Clique em um objeto para orbitar ao redor dele.',
+  orbit_mesh_info: 'Arraste para mover a câmera ao redor do objeto',
+  place_object_prompt: 'Clique em uma superfície para posicionar o objeto.',
   position_readout: 'Posição: {position}',
   eyedropper_not_supported_alert:
     'A seleção de cores está disponível no Chrome/Edge no computador.', // ai
@@ -1330,7 +1330,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controlos de manipulação', // ai
   hud_hidden: 'Controlos de manipulação ocultos', // ai
   hud_shown: 'Controlos de manipulação visíveis', // ai
-  gizmo_controls_hint: 'ℹ️ Mostra ou oculta estes controlos em Menu > Ferramentas.', // ai
+  gizmo_controls_hint: 'Mostra ou oculta os controlos de manipulação em Menu > Ferramentas.', // ai
   shortcut_quick_colour: 'Uso rápido de cor no seletor de cores',
   shortcut_delete_object: 'Eliminar objeto',
 

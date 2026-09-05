@@ -9,6 +9,18 @@ function getTextElement() {
   return typeof document === 'undefined' ? null : document.getElementById('blockHintText');
 }
 
+// Wired on first render rather than at import: the tests mount the hint
+// elements themselves, without the button.
+function wireClose() {
+  const button = document.getElementById('blockHintClose');
+  if (!button || button.dataset.blockHintCloseWired) return;
+  button.addEventListener('click', () => {
+    setBlockHintsEnabled(false);
+    document.getElementById('blockHintsBtn')?.focus();
+  });
+  button.dataset.blockHintCloseWired = 'true';
+}
+
 const EXPANDED_KEY = 'flock-block-hints-expanded';
 
 // null means "never chosen", so the default applies.
@@ -64,6 +76,11 @@ export function setBlockHintsEnabled(value) {
   } else {
     renderBlockHint(suppressed ? '' : lastHintText);
   }
+  if (typeof document !== 'undefined') {
+    document.dispatchEvent(
+      new CustomEvent('flock-block-hints-changed', { detail: { enabled } })
+    );
+  }
 }
 
 export function setBlockHintsSuppressed(value) {
@@ -91,6 +108,7 @@ function renderBlockHint(text) {
   element.replaceChildren();
   element.append(content.trim());
 
+  wireClose();
   container.hidden = false;
 }
 
@@ -132,6 +150,7 @@ export function showBlockHintMessage(text, { boldPart } = {}) {
     element.append(before, strong, after);
   }
 
+  wireClose();
   container.hidden = false;
   addMessageDismissal();
 }

@@ -1362,7 +1362,8 @@ class CustomColorPicker {
     });
 
     hueSlider.addEventListener('focus', () => {
-      hueSlider.style.outline = '3px solid var(--color-focus)';
+      if (!hueSlider.matches(':focus-visible')) return;
+      hueSlider.style.outline = '3px solid var(--color-focus-outline)';
       hueSlider.style.outlineOffset = '2px';
     });
     hueSlider.addEventListener('blur', () => {
