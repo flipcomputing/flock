@@ -751,7 +751,7 @@ export const flockUI = {
         if (targetMesh.metadata && targetMesh.metadata.shape == 'plane') {
           plane = targetMesh;
           background = plane.material.diffuseColor.toHexString();
-          plane.material.needDepthPrePass = true;
+          flock.setDepthPrePass(plane.material, true);
           plane.metadata = {
             ...(plane.metadata || {}),
             hasSayTexture: true,

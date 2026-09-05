@@ -451,7 +451,7 @@ export const flockMaterial = {
           if (nextMesh.material) {
             nextMesh.material.transparencyMode =
               value < 1 ? flock.BABYLON.Material.MATERIAL_ALPHABLEND : null;
-            nextMesh.material.needDepthPrePass = value > 0 && value < 1;
+            flock.setDepthPrePass(nextMesh.material, value > 0 && value < 1);
           }
         });
         resolve();
@@ -482,7 +482,7 @@ export const flockMaterial = {
 
             if (targetMesh.material) {
               targetMesh.material.transparencyMode = null;
-              targetMesh.material.needDepthPrePass = false;
+              flock.setDepthPrePass(targetMesh.material, false);
             }
           }
 
@@ -641,7 +641,7 @@ export const flockMaterial = {
         targetMesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_OPAQUE;
         // targetMesh.material.alphaMode = undefined;
         //targetMesh.material.reflectionTexture = null;
-        targetMesh.material.needDepthPrePass = false;
+        flock.setDepthPrePass(targetMesh.material, false);
         targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
       }
     };
@@ -995,6 +995,13 @@ export const flockMaterial = {
           b: parseInt(result[3], 16),
         }
       : null;
+  },
+  // The depth pre-pass shader paints opaque black, so hot swapping must not be
+  // allowed to stand it in for the colour variant while that one compiles.
+  setDepthPrePass(material, enabled) {
+    if (!material) return;
+    material.needDepthPrePass = enabled;
+    material.allowShaderHotSwapping = !enabled;
   },
   // Babylon skips a mesh until every texture on its material has loaded, so
   // attaching up front leaves a hole where the mesh should be. Show the flat
@@ -1639,7 +1646,7 @@ export const flockMaterial = {
 
     if (finalAlpha < 1) {
       newMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-      newMat.needDepthPrePass = true;
+      flock.setDepthPrePass(newMat, true);
     }
 
     flock.materialCache[cacheKey] = newMat;
@@ -1712,7 +1719,7 @@ export const flockMaterial = {
 
       if (m.material) {
         flock.adjustMaterialTilingToMesh(m, m.material);
-        m.material.needDepthPrePass = getAlpha(v, m) > 0;
+        flock.setDepthPrePass(m.material, getAlpha(v, m) > 0);
       }
     };
 

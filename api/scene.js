@@ -10,6 +10,29 @@ export const flockScene = {
   /*
    Category: Scene
   */
+  // The sky is a mesh, so the clear colour is what shows until its material is
+  // ready to draw. Matching the middle of the ramp keeps that gap from flashing
+  // the scene default; an average of every stop could land on a colour the sky
+  // never shows.
+  matchClearColorToSky(colors) {
+    if (!sceneReady()) return;
+    const list = (Array.isArray(colors) ? colors : [colors]).filter(Boolean);
+    if (!list.length) return;
+
+    const toColor3 = (c) =>
+      c instanceof flock.BABYLON.Color3
+        ? c
+        : flock.BABYLON.Color3.FromHexString(flock.getColorFromString(c));
+
+    // Cloned, so a colour read off a material can't be mutated through the scene.
+    const middle = list.length / 2;
+    flock.scene.clearColor =
+      list.length % 2
+        ? toColor3(list[(list.length - 1) / 2]).clone()
+        : toColor3(list[middle - 1])
+            .add(toColor3(list[middle]))
+            .scale(0.5);
+  },
   setSky(input, options = {}) {
     if (!sceneReady()) return;
 
@@ -92,6 +115,12 @@ export const flockScene = {
 
       color.backFaceCulling = false;
       skySphere.material = color;
+      flock.matchClearColorToSky(
+        color.metadata?.gradientColors ??
+          color.diffuseColor ??
+          color.albedoColor ??
+          color.emissiveColor
+      );
       return;
     }
 
@@ -114,6 +143,7 @@ export const flockScene = {
         mat.backFaceCulling = false;
         mat.disableLighting = true;
         skySphere.material = mat;
+        flock.matchClearColorToSky(color);
         return;
       }
 
@@ -124,6 +154,7 @@ export const flockScene = {
       mat.disableLighting = true;
       mat.emissiveColor = flock.BABYLON.Color3.White();
       skySphere.material = mat;
+      flock.matchClearColorToSky(color);
       return;
     }
 
@@ -142,6 +173,7 @@ export const flockScene = {
       skyMat.fogEnabled = false;
 
       skySphere.material = skyMat;
+      flock.matchClearColorToSky(c3);
       return;
     }
 

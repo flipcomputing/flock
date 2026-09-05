@@ -296,7 +296,7 @@ export const flockMesh = {
     mesh.receiveShadows = true;
 
     if (alpha > 0 && mesh.material) {
-      mesh.material.needDepthPrePass = true;
+      flock.setDepthPrePass(mesh.material, true);
     }
 
     mesh.metadata.sharedGeometry = true;

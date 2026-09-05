@@ -44,6 +44,28 @@ export function runSceneTests(flock) {
         expect(flock.sky).to.not.exist;
       });
 
+      it('should take the clear colour from the middle of a gradient sky', function () {
+        flock.setSky(['#ff0000', '#00ff00', '#0000ff']);
+        expect(flock.scene.clearColor.r).to.be.closeTo(0, 1e-6);
+        expect(flock.scene.clearColor.g).to.be.closeTo(1, 1e-6);
+        expect(flock.scene.clearColor.b).to.be.closeTo(0, 1e-6);
+      });
+
+      it('should take the clear colour between the two stops of a two-colour sky', function () {
+        flock.setSky(['#000000', '#ffffff']);
+        expect(flock.scene.clearColor.r).to.be.closeTo(0.5, 1e-6);
+        expect(flock.scene.clearColor.g).to.be.closeTo(0.5, 1e-6);
+        expect(flock.scene.clearColor.b).to.be.closeTo(0.5, 1e-6);
+      });
+
+      it('should not alias a material colour into the scene clear colour', function () {
+        const mat = new flock.BABYLON.StandardMaterial('aliasSkyMat', flock.scene);
+        mat.diffuseColor = new flock.BABYLON.Color3(1, 0, 0);
+        flock.setSky(mat);
+        expect(flock.scene.clearColor).to.not.equal(mat.diffuseColor);
+        mat.dispose();
+      });
+
       it('should only have one sky mesh after calling setSky twice', function () {
         flock.setSky('#6495ed');
         const first = flock.sky;
