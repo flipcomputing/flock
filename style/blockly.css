@@ -173,6 +173,27 @@ textarea.blocklyCommentText::placeholder {
   fill: rgba(76, 76, 76, 0.5) !important;
 }
 
+.blocklyToolbox {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(76, 76, 76, 0.5) transparent;
+}
+
+[data-theme='dark'] .blocklyToolbox {
+  scrollbar-color: rgba(186, 186, 186, 0.5) transparent;
+}
+
+[data-theme='dark-contrast'] .blocklyToolbox {
+  scrollbar-color: rgba(205, 205, 205, 0.5) transparent;
+}
+
+[data-theme='contrast'] .blocklyToolbox {
+  scrollbar-color: rgba(255, 255, 255, 0.85) transparent;
+}
+
+[data-theme='low-vision'] .blocklyToolbox {
+  scrollbar-color: rgba(224, 224, 224, 0.85) transparent;
+}
+
 [data-theme='dark'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(186, 186, 186, 0.5) !important;
 }
@@ -314,16 +335,18 @@ body[data-theme='low-vision'] {
   right: 0;
   width: auto;
   box-sizing: border-box;
-  padding: 2px;
+  padding: 2px 2px 2px 8px;
   margin: 0 !important;
   font-size: 14px;
   min-width: 0;
   z-index: 10;
+  border: 1px solid #888;
+  border-radius: 4px;
 }
 
 .blocklyTreeRowContentContainer input[type='search']:focus-visible {
-  outline: 3px solid var(--color-focus-outline);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-blockly-focus);
+  outline-offset: -3px;
   background-color: var(--color-bg);
 }
 
@@ -586,7 +609,7 @@ body[data-theme='dark'] .blocklyTreeLabel {
 }
 
 .blocklyWorkspaceFocusRing {
-  stroke: var(--color-focus-outline) !important;
+  stroke: none !important;
 }
 
 .blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
@@ -651,8 +674,9 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 
   .blocklyToolbox {
-    background: #f3f3f3 !important;
+    background: #d3d3d3 !important;
     min-width: 130px;
+    padding-top: 0 !important;
   }
 
   [data-theme='dark-contrast'] .blocklyToolbox {
@@ -675,7 +699,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 
   .blocklyToolboxCategoryGroup {
-    background-color: #d3d3d3 !important;
+    background-color: transparent !important;
   }
 
   /* The row element */
@@ -686,6 +710,9 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     padding-top: 1.25px !important;
     padding-bottom: 1.25px !important;
     padding-left: 8px !important;
+    border-radius: 4px;
+    margin-left: 3px;
+    margin-right: 3px;
   }
 
   /* The inner content wrapper (icon + label) */
@@ -722,6 +749,14 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     height: 30px;
     margin: 0;
     box-sizing: border-box;
+    top: 3px;
+    left: 3px;
+    right: 3px;
+  }
+
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type='search']) {
+    min-height: 33px !important;
+    background-color: transparent !important;
   }
 
   .blocklyToolbox
@@ -851,8 +886,8 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 
   .mobile-search-overlay input[type='search']:focus-visible {
-    outline: 3px solid var(--color-focus-outline);
-    outline-offset: 2px;
+    outline: 3px solid var(--color-blockly-focus);
+    outline-offset: -3px;
   }
 
   .mobile-search-overlay input[type='search']::-webkit-search-cancel-button {
@@ -982,6 +1017,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   padding: 0.5em;
   background: var(--color-bg);
   box-shadow: 0 2px 12px var(--color-shadow);
+  border-radius: 10px 0 0 10px;
 }
 
 .ws-search-mobile-input {
@@ -999,8 +1035,8 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 }
 
 .ws-search-mobile-input:focus-visible {
-  outline: 3px solid var(--color-focus-outline);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-blockly-focus);
+  outline-offset: -3px;
 }
 
 .ws-search-mobile-count {
@@ -1048,6 +1084,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     left: 0;
     max-width: none;
     padding: 8px;
+    border-radius: 0;
   }
 
   .ws-search-mobile-close.flock-close-icon {

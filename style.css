@@ -594,6 +594,8 @@ button {
 
 #codePanel {
   position: relative;
+  border-top: 1px solid #aaa;
+  box-sizing: border-box;
 }
 
 #blocklyZoomControls {
@@ -752,6 +754,7 @@ button {
 #exampleButton {
   background-color: var(--color-primary);
   color: #ffffff;
+  border-radius: 10px;
 }
 
 #exampleButton:hover {
