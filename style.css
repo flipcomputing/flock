@@ -61,12 +61,7 @@
     var(--color-light-tool-ink) 20%,
     transparent
   );
-  --color-light-icon-bar: var(--color-button-bg);
-  --color-light-icon-bar: color-mix(
-    in srgb,
-    var(--color-light-tool-ink) 28%,
-    var(--color-bg)
-  );
+  --color-light-icon-bar: #bababa;
 
   /* Menu Colors */
   --color-menu-hover: #f0f0f0;
@@ -683,6 +678,11 @@ button {
   background-color: var(--color-border);
   margin: 0 4px;
 }
+
+[data-theme='light'] #canvasArea {
+  background-color: var(--color-bg);
+}
+
 [data-theme='dark'] #canvasArea {
   background-color: #2c2c2c !important;
 }
@@ -919,7 +919,7 @@ button {
 
 /* No rule between neighbours in a pill: the padding does the separating. */
 .gizmo-buttons-inner .gizmo-button {
-  padding: 8px;
+  padding: 7px;
   background-color: transparent;
   border-radius: 0;
 }
@@ -942,20 +942,10 @@ button {
   border-bottom-right-radius: 10px;
 }
 
-/* 27px, matching the glyphs in the rest of the app's chrome. The row then
-   only just fits the narrowest canvas panel. */
+/* Keep the grouped toolbar at the compact size used by the original buttons. */
 .gizmo-buttons-inner .gizmo-button svg {
-  width: 27px;
-  height: 27px;
-}
-
-/* The cursor is the one tall, narrow glyph: at the shared size it paints only
-   17px wide, leaving a pocket of space beside its neighbour. Drawn larger,
-   with the negative margin keeping the button box at 41px. */
-.gizmo-buttons-inner #selectButton svg {
-  width: 29px;
-  height: 29px;
-  margin: -1px;
+  width: 20px;
+  height: 20px;
 }
 
 /* The bar carries its own padding, so the shape button's standalone left
@@ -986,6 +976,10 @@ button {
 /* The refreshed purple treatment belongs to light mode only. */
 [data-theme='light'] .gizmo-group {
   background-color: var(--color-light-icon-bar);
+}
+
+[data-theme='light'] .gizmo-buttons {
+  background-color: var(--color-bg);
 }
 
 [data-theme='light'] .gizmo-buttons-inner .gizmo-button path {
@@ -2455,9 +2449,9 @@ body.color-picker-open #renderCanvas {
   #shapes-dropdown {
     top: 5px; /* level with the top row of buttons */
     /* Start one button in: the bar's 5px padding, the button strip's own 4px
-       padding, a 41px button (7px padding either side of a 27px icon), then
+       padding, a 34px button (7px padding either side of a 20px icon), then
        the grid's 5px gap. */
-    left: calc(5px + 4px + 41px + 5px);
+    left: calc(5px + 4px + 34px + 5px);
     right: 5px;
     bottom: auto;
     width: auto;
