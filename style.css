@@ -28,7 +28,7 @@
   --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
 
   /* Button Colors */
-  --color-button-bg: #e0e0e0;
+  --color-button-bg: #f0f0f0;
   --color-button-bg-hover: #d0d0d0;
   --color-button-primary: #004d4d;
   --color-button-scroll: rgba(76, 76, 76, 0.5);
@@ -71,10 +71,10 @@
   );
 
   /* Menu Colors */
-  --color-menu-hover: #f0f0f0;
+  --color-menu-hover: var(--color-button-bg-hover);
   --color-menu-item: #511d91;
-  --color-menu: #f9f9f9;
-  --color-button-bg: #f0f0f0;
+  --color-panel-bg: #efead4;
+  --color-menu: #fcfaf1;
 
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -129,10 +129,9 @@
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 
   --color-dropdown-bg: #333333;
-  --color-dropdown-hover: #555555;
 
   --color-menu: var(--color-dropdown-bg);
-  --color-menu-hover: var(--color-dropdown-hover);
+  --color-menu-hover: var(--color-button-bg-hover);
   --color-menu-item-hover: #444444;
 
   /* Overlays */
@@ -192,10 +191,9 @@
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 
   --color-dropdown-bg: #333333;
-  --color-dropdown-hover: #555555;
 
   --color-menu: var(--color-dropdown-bg);
-  --color-menu-hover: var(--color-dropdown-hover);
+  --color-menu-hover: var(--color-button-bg-hover);
   --color-menu-item-hover: #444444;
 
   /* Overlays */
@@ -231,7 +229,7 @@
   --color-bg-glass-focused: rgba(255, 255, 255, 0.9);
 
   /* Button Colors */
-  --color-button-bg: #ffffff;
+  --color-button-bg: #f0f0f0;
   --color-button-bg-hover: #d0d0d0;
   --color-button-primary: #ffffff;
   --color-button-scroll: rgba(0, 0, 0, 0.5);
@@ -256,9 +254,8 @@
 
   /* Menu Colors */
   --color-menu: var(--color-bg);
-  --color-menu-hover: #333333;
+  --color-menu-hover: var(--color-button-bg-hover);
   --color-menu-item: #ffffff;
-  --color-button-bg: #f0f0f0;
 
   /* Shadow Colors */
   --color-shadow: rgba(0, 0, 0, 0.1);
@@ -290,7 +287,7 @@
   --color-button-scroll: rgba(224, 224, 224, 0.5);
   --color-text-on-primary: #f0f0f0;
   --color-menu: var(--color-bg-alt);
-  --color-menu-hover: #2a2a2a;
+  --color-menu-hover: var(--color-button-bg-hover);
 
   /* Error banner */
   --color-error-bg: #38146a;
@@ -624,6 +621,14 @@ button {
   z-index: 100;
 }
 
+[data-theme='light'] #blocklyZoomControls {
+  background-color: var(--color-menu);
+}
+
+[data-theme='light'] #blocklyZoomControls .bigbutton:not(#blockHintsBtn) {
+  background-color: var(--color-menu);
+}
+
 .block-hint {
   position: absolute;
   top: 8px;
@@ -691,7 +696,11 @@ button {
 }
 
 [data-theme='light'] #canvasArea {
-  background-color: #ebebeb;
+  background-color: var(--color-menu);
+}
+
+[data-theme='light'] header[role='banner'] {
+  background-color: var(--color-menu);
 }
 
 [data-theme='dark'] #canvasArea {
@@ -727,6 +736,14 @@ button {
   border-radius: 5px;
   box-shadow: 0px 0px 10px var(--color-shadow);
   box-sizing: border-box;
+}
+
+[data-theme='light'] #menu {
+  background-color: var(--color-menu);
+}
+
+[data-theme='light'] #menu .bigbutton:not(#exampleButton) {
+  background-color: var(--color-menu);
 }
 
 #menuleft,
@@ -993,10 +1010,8 @@ button {
   background-color: var(--color-light-icon-bar);
 }
 
-/* The strip is the one surface the groups have to stand out from, so it stays
-   white here rather than taking the canvas area's grey. */
 [data-theme='light'] .gizmo-buttons {
-  background-color: var(--color-bg);
+  background-color: var(--color-menu);
 }
 
 [data-theme='light'] .gizmo-buttons-inner .gizmo-button path {
@@ -1093,6 +1108,10 @@ button {
    .bigbutton's shared 2px stops short of the glyph entirely. */
 #blockHintsBtn.active {
   box-shadow: inset 0 0 0 calc((1.5em - 1.15em) / 2 + 1px) var(--color-primary);
+}
+
+[data-theme='light'] #blockHintsBtn.active {
+  background-color: var(--color-menu);
 }
 
 #blockHintsBtn:not(.active) {
@@ -1660,6 +1679,10 @@ button {
   border: 1px solid var(--color-border);
   box-shadow: 0 4px 6px var(--color-shadow);
   z-index: 1000;
+}
+
+[data-theme='light'] .dropdown {
+  background-color: var(--color-menu);
 }
 
 .dropdown a {
@@ -2378,6 +2401,10 @@ body.color-picker-open #renderCanvas {
   min-width: 120px;
   z-index: 1001;
 }
+
+[data-theme='light'] .submenu {
+  background-color: var(--color-menu);
+}
 .menu-item:hover > .submenu,
 .menu-item:focus-within > .submenu {
   display: block;
@@ -2675,6 +2702,10 @@ kbd {
   font-size: 1.2em;
 }
 
+[data-theme='light'] kbd {
+  background-color: var(--color-panel-bg);
+}
+
 /* Info panel tabs */
 #info-panel {
   display: flex;
@@ -2683,20 +2714,24 @@ kbd {
   min-height: 0;
 }
 
+[data-theme='light'] #info-panel {
+  background-color: var(--color-panel-bg);
+}
+
+[data-theme='light'] #info-panel-body {
+  color: #332b22;
+}
+
 .info-tab-btn {
   border-radius: 0;
 }
 
 .info-tab-btn.active {
-  background-color: var(--color-button-bg-hover);
+  background-color: var(--color-text-brand);
   box-shadow: none;
 }
 
-[data-theme='light'] .info-tab-btn.active {
-  background-color: var(--color-light-tool-ink);
-}
-
-[data-theme='light'] #flockeditor .info-tab-btn.active .icon path {
+#flockeditor .info-tab-btn.active .icon path {
   fill: var(--color-bg) !important;
 }
 
@@ -2711,6 +2746,14 @@ kbd {
   border-top: 1px solid var(--color-border);
   background-color: var(--color-bg);
   box-sizing: border-box;
+}
+
+[data-theme='light'] #info-panel-tabs {
+  background-color: var(--color-menu);
+}
+
+[data-theme='light'] #info-panel-tabs .bigbutton:not(.active) {
+  background-color: var(--color-menu);
 }
 
 
@@ -2797,6 +2840,11 @@ kbd {
 .font-increase-btn {
   font-weight: bold;
   margin-left: 0;
+}
+
+[data-theme='light'] .font-decrease-btn,
+[data-theme='light'] .font-increase-btn {
+  background-color: var(--color-panel-bg);
 }
 
 .font-decrease-btn span {

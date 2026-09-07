@@ -350,6 +350,11 @@ body[data-theme='low-vision'] {
   background-color: var(--color-bg);
 }
 
+[data-theme='light'] .blocklyTreeRowContentContainer input[type='search'],
+[data-theme='light'] .blocklyTreeRowContentContainer input[type='search']:focus-visible {
+  background-color: var(--color-menu);
+}
+
 #blocklyDiv {
   height: 100%;
   width: 100%;
@@ -466,7 +471,7 @@ body[data-theme='low-vision'] {
 
 /* Override code area colour */
 .blocklySvg {
-  background-color: #ebebeb !important;
+  background-color: var(--color-menu) !important;
 }
 
 [data-theme='dark-contrast'] .blocklySvg {
@@ -490,7 +495,7 @@ body[data-theme='low-vision'] {
    Light only: the other themes set their toolbox a deliberate step away from
    their workspace, and low-vision's is dark under light category text. */
 [data-theme='light'] .blocklyToolbox {
-  background-color: #ebebeb !important;
+  background-color: var(--color-menu) !important;
   /* Sharing the workspace's ground leaves no seam, so the column is marked with
      a rule instead. Same recipe as the app's other dividers. */
   border-right: 1px solid var(--color-border);
