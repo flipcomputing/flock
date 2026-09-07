@@ -390,9 +390,10 @@ body[data-theme='low-vision'] {
   box-shadow: none !important;
   border-radius: 0 !important;
   /* Lift the focused row so its outline paints over the neighbouring rows
-     rather than being covered by their opaque backgrounds. */
+     rather than being covered by their opaque backgrounds — including the
+     search input above it, which sits at z-index 10. */
   position: relative;
-  z-index: 2;
+  z-index: 11;
 }
 
 .blocklyZoomIn,
@@ -785,29 +786,32 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     min-height: 20px !important; /* pick your row height */
     padding-top: 6px !important;
     padding-bottom: 6px !important;
-    /* Side margins are wider than the chip needs so the keyboard-focus outline
-       (drawn 2px outside the chip) still clears the toolbox scroll clip; the
-       reduced padding-left keeps the icon/label in the same place. */
+    /* Side margins keep the row, its 2px border and the keyboard-focus outline
+       clear of the toolbox scroll clip; the smaller padding-left keeps the
+       icon/label in place. */
     padding-left: 4px !important;
     border-radius: 4px;
-    /* One hairline between rows: a bottom rule only, so borders never stack to
-       a doubled 2px line. Same divider recipe as the app's others. */
-    border: 0;
-    border-bottom: 1px solid
-      color-mix(in srgb, var(--color-text-primary) 15%, transparent);
+    /* Full 1px outline on every row, in that category's own edge colour.
+       --fc-category-border-colour is set per row in toolbox.js to the exact
+       colourTertiary Blockly strokes that category's blocks with (a darker
+       shade of the fill); the grey mix is the fallback for the search row,
+       which carries no category colour. The negative margin-bottom overlaps
+       each row onto the next by the border width, so the lower row's top
+       border paints over the upper row's bottom border — one seam in the
+       lower row's colour, the way connected blocks (which overlap, lower
+       block on top) render their join. The run's outer top and bottom stay a
+       single border width. */
+    /* !important so all four sides win over the legacy
+       `.blocklyToolboxCategory { border-left: 0 !important }` reset above. */
+    border: 1px solid
+      var(
+        --fc-category-border-colour,
+        color-mix(in srgb, var(--color-text-primary) 30%, transparent)
+      ) !important;
     margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    margin-bottom: -1px !important;
     margin-left: 7px;
     margin-right: 7px;
-  }
-
-  /* Close the run of rows with a rule on top, so the first row reads the same
-     as the rest. */
-  .blocklyToolbox
-    .blocklyToolboxCategoryContainer:first-child
-    > .blocklyToolboxCategory {
-    border-top: 1px solid
-      color-mix(in srgb, var(--color-text-primary) 15%, transparent);
   }
 
   /* The inner content wrapper (icon + label) */
@@ -854,6 +858,12 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   .blocklyToolbox .blocklyToolboxCategory:has(input[type='search']) {
     min-height: 33px !important;
     background-color: transparent !important;
+    /* No category outline on the search row: it only holds the <input>, which
+       draws its own 1px border. A positive margin-bottom (instead of the rows'
+       -2px overlap) sets the search box off on its own; 3px matches the gap
+       above the input (its top: 3px inset) so it sits evenly. */
+    border: 0 !important;
+    margin-bottom: 3px !important;
   }
 
   .blocklyToolbox
