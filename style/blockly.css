@@ -490,14 +490,16 @@ body[data-theme='low-vision'] {
   background-color: #d8d8d8 !important;
 }
 
-/* Same ground as the workspace above, so the categories don't sit on a lighter
-   column. Blockly paints the toolbox from the theme, hence the !important.
-   Light only: the other themes set their toolbox a deliberate step away from
-   their workspace, and low-vision's is dark under light category text. */
+/* The darker info-panel ground (same as the keyboard-shortcuts and other info
+   panels), so the toolbox column reads as chrome rather than an extension of
+   the workspace. Blockly paints the toolbox from the theme, hence the
+   !important. Light only: the other themes set their toolbox a deliberate step
+   away from their workspace, and low-vision's is dark under light category
+   text. */
 [data-theme='light'] .blocklyToolbox {
-  background-color: var(--color-menu) !important;
-  /* Sharing the workspace's ground leaves no seam, so the column is marked with
-     a rule instead. Same recipe as the app's other dividers. */
+  background-color: var(--color-panel-bg) !important;
+  /* The step down from the workspace leaves a seam; the column is also marked
+     with a rule. Same recipe as the app's other dividers. */
   border-right: 1px solid var(--color-border);
   border-right-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
 }
@@ -686,8 +688,14 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
+  /* Subcategories are indented from the left but keep the top-level rows' right
+     edge, so they're narrower and read as nested while staying right-aligned.
+     They also take the darker info-panel ground to set them off from the
+     top-level rows. */
   .blocklyToolboxCategoryContainer[aria-level='2'] > .blocklyToolboxCategory {
-    border-left: 8px solid transparent !important;
+    margin-left: 10px !important;
+    margin-right: 3px !important;
+    background-color: var(--color-panel-bg) !important;
   }
 
   .blocklyToolbox {
@@ -719,17 +727,41 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     background-color: transparent !important;
   }
 
+  /* Reset Blockly v13's injected container margins so rows tile with no gap. */
+  .blocklyToolbox .blocklyToolboxCategoryContainer {
+    margin: 0 !important;
+  }
+
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;
     align-items: center !important; /* <-- centers within the full row */
-    min-height: 26px !important; /* pick your row height */
-    padding-top: 1.25px !important;
-    padding-bottom: 1.25px !important;
+    /* Blockly v13 injects an inline height (22px) that swallows the padding
+       below. Let the row grow to its content instead. */
+    height: auto !important;
+    min-height: 20px !important; /* pick your row height */
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
     padding-left: 8px !important;
     border-radius: 4px;
+    /* One hairline between rows: a bottom rule only, so borders never stack to
+       a doubled 2px line. Same divider recipe as the app's others. */
+    border: 0;
+    border-bottom: 1px solid
+      color-mix(in srgb, var(--color-text-primary) 15%, transparent);
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     margin-left: 3px;
     margin-right: 3px;
+  }
+
+  /* Close the run of rows with a rule on top, so the first row reads the same
+     as the rest. */
+  .blocklyToolbox
+    .blocklyToolboxCategoryContainer:first-child
+    > .blocklyToolboxCategory {
+    border-top: 1px solid
+      color-mix(in srgb, var(--color-text-primary) 15%, transparent);
   }
 
   /* The inner content wrapper (icon + label) */
