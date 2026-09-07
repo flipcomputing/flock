@@ -1716,6 +1716,23 @@ export function createBlocklyWorkspace() {
 
   workspace = Blockly.inject('blocklyDiv', options);
 
+  // Blockly insets the workspace "selection ring" (the keyboard-focus outline
+  // shown while the empty workspace is the active node) by 5px so its stroke
+  // sits inside the SVG viewport. We surface only that ring (see
+  // style/blockly.css), and want it flush to the canvas edge like a border,
+  // so force its inset to 0 — matching the always-flush focus ring.
+  const originalResizeWorkspaceRing = workspace.resizeWorkspaceRing;
+  if (typeof originalResizeWorkspaceRing === 'function') {
+    workspace.resizeWorkspaceRing = function (ring, inset) {
+      return originalResizeWorkspaceRing.call(
+        this,
+        ring,
+        ring === this.workspaceSelectionRing ? 0 : inset
+      );
+    };
+    workspace.resize();
+  }
+
   // Stop trashcan flyout from covering the whole workspace on small
   // screens when it has wide blocks in it
   const trashcan = workspace.trashcan;

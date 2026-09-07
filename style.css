@@ -998,11 +998,11 @@ button {
 }
 
 .gizmo-button.active {
-  background-color: var(--color-focus);
+  background-color: var(--color-focus-outline);
 }
 
 .gizmo-buttons-inner .gizmo-button.active {
-  background-color: var(--color-focus);
+  background-color: var(--color-focus-outline);
 }
 
 /* The refreshed purple treatment belongs to light mode only. */
@@ -1455,7 +1455,7 @@ button {
   .bottombar-flocklink:focus-visible {
     outline: 3px solid var(--color-focus-outline);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 0;
   }
 }
 
@@ -1558,15 +1558,15 @@ button {
   }
 
   .resizer:hover {
-    background-color: var(--color-focus);
+    background-color: var(--color-focus-outline);
   }
 
   .resizer:active {
-    background-color: var(--color-focus);
+    background-color: var(--color-focus-outline);
   }
 
   .resizer:focus-visible {
-    background-color: var(--color-focus);
+    background-color: var(--color-focus-outline);
     outline: 3px solid var(--color-focus-outline);
   }
 
@@ -1583,7 +1583,9 @@ button {
     transform: translate(-50%, -50%);
     width: 3px;
     height: 30px;
-    background-color: #999;
+    /* Light menu ground, so the grip stays legible against the blue bar
+       it sits on when hovered/active/focused. */
+    background-color: var(--color-menu);
     border-radius: 2px;
   }
 
@@ -2254,7 +2256,7 @@ body.color-picker-open #renderCanvas {
   box-shadow:
     0 0 0 2px var(--color-bg),
     0 0 0 5px var(--color-focus-outline);
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .loading-content {
@@ -3149,7 +3151,7 @@ svg.blocklyTrashcanFlyout {
 .fc-block-toolbar {
   position: fixed;
   display: flex;
-  gap: 2px;
+  gap: 6px;
   background: var(--color-menu, #f9f9f9);
   border: 1px solid var(--color-border, #ddd);
   border-radius: 10px;
@@ -3228,8 +3230,8 @@ svg.blocklyTrashcanFlyout {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border: none;
   border-radius: 7px;
   background: var(--color-button-bg, #f0f0f0);
@@ -3247,16 +3249,17 @@ svg.blocklyTrashcanFlyout {
   opacity: 0.3;
 }
 
-/* Light mode only: the popup takes the lighter menu ground (above), the buttons
-   the darker info-panel ground, and the icons — trashcan included — the brand
-   purple. Other themes keep their existing treatment. */
+/* Light mode only: the popup keeps the lighter menu ground (above), while the
+   buttons take the same light-purple bar and brand-purple icons as the grouped
+   gizmo toolbar, so the two floating menus read as one family. The trashcan
+   icon is tinted to match in style/blockly.css. Other themes are untouched. */
 [data-theme='light'] .fc-block-toolbar-btn {
-  background: var(--color-panel-bg);
+  background: var(--color-light-icon-bar);
   color: var(--color-primary);
 }
 
 [data-theme='light'] .fc-block-toolbar-btn:active {
-  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-panel-bg));
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-light-icon-bar));
 }
 
 /* Passive keyboard hint in the block toolbar (the "press M to move" icon).

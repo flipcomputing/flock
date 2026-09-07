@@ -38,16 +38,16 @@ body.color-picker-open #blocklyDiv * {
 }
 
 .color-picker-drag-handle:hover {
-  background-color: var(--color-focus);
+  background-color: var(--color-focus-outline);
 }
 
 .color-picker-drag-handle:active {
-  background-color: var(--color-focus);
+  background-color: var(--color-focus-outline);
   cursor: grabbing;
 }
 
 .color-picker-drag-handle:focus-visible {
-  background-color: var(--color-focus);
+  background-color: var(--color-focus-outline);
   outline: 3px solid var(--color-focus-outline);
 }
 
@@ -59,7 +59,8 @@ body.color-picker-open #blocklyDiv * {
   transform: translate(-50%, -50%);
   width: 30px;
   height: 3px;
-  background-color: #999;
+  /* Light menu ground, so the grip stays legible against the blue bar. */
+  background-color: var(--color-menu);
   border-radius: 2px;
 }
 

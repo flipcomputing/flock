@@ -442,7 +442,12 @@ export function createThemeConfig(themeName) {
         colour: baseStyles.procedures.colourPrimary,
       },
     },
-    componentStyles: baseStyles.components,
+    componentStyles: {
+      ...(baseStyles.components || {}),
+      // Selected-block glow: match the app-wide blue focus colour
+      // (style.css --color-focus-outline / blockly.css --color-blockly-focus).
+      selectedGlowColour: '#0a84ff',
+    },
   };
 }
 
