@@ -2493,25 +2493,17 @@ body.color-picker-open #renderCanvas {
   }
 }
 
-/* Landscape: open rightward from the plus button, across the rest of the
-   toolbar and the grey space beyond it, so the canvas stays clear. #shape-menu
-   goes static so the popup resolves against #gizmoButtons, whose left edge is
-   fixed relative to the buttons — the button's own position moves with the
-   canvas width, so anchoring to it would need JS. Tiles are 36px so the 5 rows
-   still clear the plus button (5 * (36 + 10) + 4 * 8 = 262px). */
 @media (max-width: 1024px) and (orientation: landscape) and (max-height: 500px) {
   #shape-menu {
     position: static;
   }
   #shapes-dropdown {
     top: 5px; /* level with the top row of buttons */
-    /* Start one button in: the bar's 5px padding, the button strip's own 4px
-       padding, a 34px button (7px padding either side of a 20px icon), then
-       the grid's 5px gap. */
-    left: calc(5px + 4px + 34px + 5px);
-    right: 5px;
+    left: auto;
+    right: 8px;
     bottom: auto;
-    width: auto;
+    width: 292px;
+    max-width: calc(100vw - 16px);
     padding: 10px;
     z-index: 80;
     box-sizing: border-box;
@@ -2520,20 +2512,12 @@ body.color-picker-open #renderCanvas {
     width: 36px;
     height: 36px;
   }
-  /* Every row scrolls, so the narrowest landscape phones — where the canvas
-     alone fills the width — just show fewer tiles and reach the rest with the
-     chevrons, rather than overflowing into #canvasArea, which would clip them. */
   .scrollable-container {
-    width: 100%;
-    max-width: 262px;
+    width: 262px;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
   }
-  /* Chevrons stay at the desktop -15px, overlapping the first and last tile.
-     Portrait nudges them out to -34px, but there's no margin to do that here:
-     the menu is sized to the gap beside the plus button and the rows fill it,
-     so out-dented chevrons would cover the plus button on the left and be
-     clipped by #canvasArea on the right. */
 }
 
 /* Style for the yellow circle to place/select using kb controls */

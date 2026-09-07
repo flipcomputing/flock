@@ -1874,9 +1874,35 @@ class CustomColorPicker {
       const canvasRect = canvasArea.getBoundingClientRect();
 
       this.container.style.position = 'absolute';
-      const isMobile = window.innerWidth <= 600;
+      const isLandscapePhone = window.matchMedia(
+        '(max-width: 1024px) and (orientation: landscape) and (max-height: 600px)'
+      ).matches;
+      const isMobile = !isLandscapePhone && window.innerWidth <= 600;
 
-      if (isMobile) {
+      const content = this.container.querySelector('.color-picker-content');
+      if (content) {
+        content.style.maxHeight = '';
+        content.style.overflowY = '';
+      }
+
+      if (isLandscapePhone) {
+        this.container.style.width = 'fit-content';
+        this.container.style.right = 'auto';
+        this.container.style.maxWidth = `${Math.max(200, canvasRect.width - 20)}px`;
+        this.container.style.marginLeft = '';
+        this.container.style.marginRight = '';
+
+        if (content) {
+          const available = canvasRect.height - 60;
+          content.style.maxHeight = `${Math.max(160, available)}px`;
+          content.style.overflowY = 'auto';
+        }
+
+        const width = this.container.getBoundingClientRect().width || 320;
+        let left = buttonRect.left - canvasRect.left;
+        if (left + width > canvasRect.width - 10) left = canvasRect.width - width - 10;
+        this.container.style.left = `${Math.max(10, left)}px`;
+      } else if (isMobile) {
         this.container.style.left = '0px';
         this.container.style.right = '0px';
         this.container.style.width = `${canvasRect.width - 20}px`;
@@ -1887,6 +1913,7 @@ class CustomColorPicker {
         this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
         this.container.style.width = '360px';
         this.container.style.right = 'auto';
+        this.container.style.maxWidth = '';
 
         const containerWidth = 360;
         if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
@@ -1894,7 +1921,6 @@ class CustomColorPicker {
         }
       }
 
-      const content = this.container.querySelector('.color-picker-content');
       const measuredPickerHeight =
         content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
       const bottomBarHeight = 40;

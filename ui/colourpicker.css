@@ -917,7 +917,7 @@ body.color-picker-open #blocklyDiv * {
 }
 
 /* Responsive design */
-@media (max-width: 600px) {
+@media (max-width: 600px) and (orientation: portrait) {
   .custom-color-picker {
     left: 0 !important;
     right: 0 !important;
@@ -996,6 +996,49 @@ body.color-picker-open #blocklyDiv * {
   .css-color-input {
     padding: 4px;
     font-size: 11px;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) and (max-height: 600px) {
+  .color-picker-content {
+    position: static;
+    width: fit-content;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .color-picker-inner {
+    padding: 8px;
+  }
+
+  .custom-color-picker .color-picker-body {
+    grid-template-columns: auto auto;
+    justify-content: start;
+  }
+
+  .color-palette {
+    grid-template-columns: repeat(6, 26px);
+  }
+
+  .color-swatch {
+    width: 26px;
+  }
+
+  .color-picker-tools-row {
+    margin: 8px 0;
+    margin-right: 0;
+  }
+
+  .palette-row {
+    margin: 2px 0 6px;
+  }
+
+  .color-picker-footer {
+    padding: 6px 10px;
+  }
+
+  .color-picker-footer .current-color-display {
+    height: 24px;
   }
 }
 
