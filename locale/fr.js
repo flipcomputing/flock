@@ -265,7 +265,8 @@ export default {
   canvas_controls: 'contrôles de la toile %1',
   interact_indicator: "indicateur d'interaction %1",
   button_controls: 'contrôles du bouton %1 activé %2 couleur %3',
-  on_screen_controls: 'commandes du joueur  mouvement: %1  actions: %2  activé: %3  couleur: %4', // ai
+  on_screen_controls:
+    'commandes du joueur  mouvement: %1  actions: %2  activé: %3\ncouleur: %4  fond: %5  alpha: %6', // ai
   microbit_input: "lors de l'événement micro:bit %1",
   ui_slider: 'curseur UI %1 de %2 à %3 par défaut %4 à x: %5 y: %6\ncouleur: %7 fond: %8 %9',
 

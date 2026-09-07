@@ -699,9 +699,22 @@ export function defineSensingBlocks() {
           {
             type: 'input_value',
             name: 'COLOR',
-            check: 'Colour',
+            // A single colour, or a [movement/joystick, actions] pair.
+            check: ['Colour', 'Array'],
+          },
+          {
+            type: 'input_value',
+            name: 'BACKGROUND',
+            colour: '#000000',
+            check: ['Colour', 'Array'],
+          },
+          {
+            type: 'input_value',
+            name: 'ALPHA',
+            check: 'Number',
           },
         ],
+        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Sensing'],

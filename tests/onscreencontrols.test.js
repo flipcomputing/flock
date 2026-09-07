@@ -122,6 +122,65 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.equal(0);
       });
+
+      const arrowButtons = (texture) =>
+        texture
+          .getDescendants()
+          .filter((control) => ['△', '▽', '◁', '▷'].includes(control.textBlock?.text));
+      const actionButtons = (texture) =>
+        texture
+          .getDescendants()
+          .filter((control) => ['1', '2', '3', '4'].includes(control.textBlock?.text));
+
+      it('should keep control backgrounds transparent when alpha defaults to 0', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        const buttons = arrowButtons(flock.controlsTexture);
+        expect(buttons.length).to.equal(4);
+        buttons.forEach((button) => expect(button.background).to.equal('transparent'));
+      });
+
+      it('should fill each control border with the tinted background when alpha is above 0', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED', '#ffffff', '#123456', 0.5);
+        const buttons = arrowButtons(flock.controlsTexture);
+        expect(buttons.length).to.equal(4);
+        buttons.forEach((button) =>
+          expect(button.background).to.equal('rgba(18, 52, 86, 0.5)')
+        );
+      });
+
+      it('should send the first colour to the arrows and the second to the actions', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', ['#ff0000', '#00ff00']);
+        arrowButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.color).to.equal('#ff0000')
+        );
+        actionButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.color).to.equal('#00ff00')
+        );
+      });
+
+      it('should split a background colour pair between the arrows and the actions', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', '#ffffff', ['#123456', '#654321'], 0.5);
+        arrowButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.background).to.equal('rgba(18, 52, 86, 0.5)')
+        );
+        actionButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.background).to.equal('rgba(101, 67, 33, 0.5)')
+        );
+      });
+
+      it('should reuse a single colour for both sides', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', ['#abcdef']);
+        [...arrowButtons(flock.controlsTexture), ...actionButtons(flock.controlsTexture)].forEach(
+          (button) => expect(button.color).to.equal('#abcdef')
+        );
+      });
+
+      it('should fall back to white when a colour list is empty', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', []);
+        [...arrowButtons(flock.controlsTexture), ...actionButtons(flock.controlsTexture)].forEach(
+          (button) => expect(button.color).to.equal('#ffffff')
+        );
+      });
     });
 
     describe('XR HUD hosting', function () {

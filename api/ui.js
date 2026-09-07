@@ -93,12 +93,18 @@ function renderControls(layout, scale) {
     // A gizmo HUD hides the player controls for its lifetime, rebuilds included.
     flock.controlsTexture.rootContainer.isVisible = !flock._playerControlsSuppressed;
 
+    // color/background may each be a single value or a [movement, actions] pair.
+    const moveColor = controlSideColor(layout.color, 0, '#ffffff');
+    const actionColor = controlSideColor(layout.color, 1, '#ffffff');
+    const moveBackground = controlsButtonBackground(layout, 0);
+    const actionBackground = controlsButtonBackground(layout, 1);
+
     if (layout.kind === 'buttons') {
       if (layout.control === 'ARROWS' || layout.control === 'BOTH') {
-        flock.createArrowControls(layout.color);
+        flock.createArrowControls(moveColor, moveBackground);
       }
       if (layout.control === 'ACTIONS' || layout.control === 'BOTH') {
-        flock.createButtonControls(layout.color);
+        flock.createButtonControls(actionColor, actionBackground);
       }
       return;
     }
@@ -107,15 +113,33 @@ function renderControls(layout, scale) {
     const onXRHUD = controlsHost() !== flock.controlsTexture;
     const movement = onXRHUD && layout.movement === 'JOYSTICK' ? 'ARROWS' : layout.movement;
     if (movement === 'ARROWS') {
-      flock.createArrowControls(layout.color);
+      flock.createArrowControls(moveColor, moveBackground);
     } else if (movement === 'JOYSTICK') {
-      flock._joystickSource = flock.createJoystickControls(layout.color);
+      flock._joystickSource = flock.createJoystickControls(moveColor, moveBackground);
       flock._joystickSource?.start();
     }
-    if (layout.actions === 'YES') flock.createButtonControls(layout.color);
+    if (layout.actions === 'YES') flock.createButtonControls(actionColor, actionBackground);
   } finally {
     flock.displayScale = previousDisplayScale;
   }
+}
+
+// color/background inputs accept a [movement/joystick, actions] pair. A single
+// value (or a one-item list) applies to both sides; an empty list falls back to
+// the default so the controls never lose their colour.
+function controlSideColor(color, index, fallback) {
+  if (Array.isArray(color)) return color[index] || color[0] || fallback;
+  return color || fallback;
+}
+
+// The fill painted inside each control's border. Resolves to 'transparent'
+// unless alpha is above 0, so older saved projects (which can only produce
+// alpha 0) render exactly as before.
+function controlsButtonBackground(layout, index) {
+  const alpha = Number(layout?.alpha);
+  if (!isFinite(alpha) || alpha <= 0) return 'transparent';
+  const hex = controlSideColor(layout.background, index, '#000000');
+  return flock.hexToRgba(hex, Math.min(alpha, 1));
 }
 
 function configureControlsResizeHandling() {
@@ -533,7 +557,12 @@ export const flockUI = {
 
     return slider;
   },
-  createSmallButton(text, keys, color, { thickness = 3, fontSize = 36, cornerRadius = 8 } = {}) {
+  createSmallButton(
+    text,
+    keys,
+    color,
+    { thickness = 3, fontSize = 36, cornerRadius = 8, background = 'transparent' } = {}
+  ) {
     if (!flock.controlsTexture) return;
 
     const keyList = Array.isArray(keys) ? keys : [keys];
@@ -548,7 +577,7 @@ export const flockUI = {
     button.color = color;
     button.thickness = thickness * flock.displayScale;
     button.cornerRadius = cornerRadius * flock.displayScale;
-    button.background = 'transparent';
+    button.background = background;
     button.fontSize = `${fontSize * flock.displayScale}px`;
     button.fontFamily = fontFamily;
 
@@ -586,7 +615,7 @@ export const flockUI = {
 
     return button;
   },
-  createArrowControls(color) {
+  createArrowControls(color, background = 'transparent') {
     if (!flock.controlsTexture) return;
 
     const grid = new flock.GUI.Grid();
@@ -604,17 +633,17 @@ export const flockUI = {
 
     addControlsRoot(grid);
 
-    const upButton = flock.createSmallButton('△', ['w', 'ArrowUp'], color);
-    const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color);
-    const leftButton = flock.createSmallButton('◁', ['a', 'ArrowLeft'], color);
-    const rightButton = flock.createSmallButton('▷', ['d', 'ArrowRight'], color);
+    const upButton = flock.createSmallButton('△', ['w', 'ArrowUp'], color, { background });
+    const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color, { background });
+    const leftButton = flock.createSmallButton('◁', ['a', 'ArrowLeft'], color, { background });
+    const rightButton = flock.createSmallButton('▷', ['d', 'ArrowRight'], color, { background });
 
     grid.addControl(upButton, 0, 1);
     grid.addControl(leftButton, 1, 0);
     grid.addControl(downButton, 1, 1);
     grid.addControl(rightButton, 1, 2);
   },
-  createButtonControls(color) {
+  createButtonControls(color, background = 'transparent') {
     if (!flock.controlsTexture) return;
 
     const rightGrid = new flock.GUI.Grid();
@@ -635,6 +664,7 @@ export const flockUI = {
       thickness: 3,
       fontSize: 30,
       cornerRadius: CONTROL_BUTTON_SIZE / 2,
+      background,
     };
     const button1 = flock.createSmallButton(
       '1',
@@ -662,7 +692,7 @@ export const flockUI = {
     flock._controlsLayout = { kind: 'buttons', control, color, mode };
     renderControls(flock._controlsLayout, currentControlsScale());
   },
-  createJoystickControls(color) {
+  createJoystickControls(color, background = 'transparent') {
     if (!flock.controlsTexture) return;
 
     const baseRadius = 55 * flock.displayScale;
@@ -674,7 +704,7 @@ export const flockUI = {
     base.height = `${baseRadius * 2}px`;
     base.color = color;
     base.thickness = 3 * flock.displayScale;
-    base.background = 'transparent';
+    base.background = background;
     base.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     base.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
     base.left = `${edgeInset}px`;
@@ -700,10 +730,17 @@ export const flockUI = {
       scene: flock.scene,
     });
   },
-  onScreenControls(movement = 'ARROWS', actions = 'YES', mode = 'AUTO', color = '#ffffff') {
+  onScreenControls(
+    movement = 'ARROWS',
+    actions = 'YES',
+    mode = 'AUTO',
+    color = '#ffffff',
+    background = '#000000',
+    alpha = 0
+  ) {
     configureControlsResizeHandling();
     flock._controlsBaseDisplayScale = flock.displayScale;
-    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, mode };
+    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, background, alpha, mode };
     renderControls(flock._controlsLayout, currentControlsScale());
 
     window.__flockSizeDebug?.sample('controls-created');

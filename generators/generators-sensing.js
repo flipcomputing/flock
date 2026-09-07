@@ -117,10 +117,14 @@ export function registerSensingGenerators(javascriptGenerator) {
   // On-screen controls
   javascriptGenerator.forBlock['on_screen_controls'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#ffffff"');
+    // Older saved projects predate these inputs; fall back to a transparent
+    // background so their controls render exactly as before.
+    const background = getFieldValue(block, 'BACKGROUND', '"#000000"');
+    const alpha = getFieldValue(block, 'ALPHA', '0');
     const movement = block.getFieldValue('MOVEMENT');
     const actions = block.getFieldValue('ACTIONS');
     const mode = block.getFieldValue('ENABLED');
-    return `onScreenControls("${movement}", "${actions}", "${mode}", ${color});\n`;
+    return `onScreenControls("${movement}", "${actions}", "${mode}", ${color}, ${background}, ${alpha});\n`;
   };
 
   // Add a micro:bit and set its radio channel

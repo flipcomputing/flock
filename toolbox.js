@@ -2686,6 +2686,22 @@ const toolboxSensing = {
             },
           },
         },
+        BACKGROUND: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#000000',
+            },
+          },
+        },
+        ALPHA: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
       },
     },
     {

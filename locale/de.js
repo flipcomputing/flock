@@ -269,7 +269,8 @@ export default {
   canvas_controls: 'Leinwandsteuerung %1',
   interact_indicator: 'Interaktionsanzeige %1',
   button_controls: 'Buttonsteuerung %1 aktiviert %2 Farbe %3',
-  on_screen_controls: 'Spielersteuerung  Bewegung: %1  Aktionen: %2  aktiviert: %3  Farbe: %4', // ai
+  on_screen_controls:
+    'Spielersteuerung  Bewegung: %1  Aktionen: %2  aktiviert: %3\nFarbe: %4  Hintergrund: %5  Alpha: %6', // ai
   microbit_input: 'wenn micro:bit-Ereignis %1',
   ui_slider: 'UI-Regler %1 von %2 bis %3 Standard %4 bei x: %5 y: %6\nFarbe: %7 Hintergrund: %8 %9',
 

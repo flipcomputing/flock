@@ -266,7 +266,8 @@ export default {
   canvas_controls: 'kontrola płótna %1',
   interact_indicator: 'wskaźnik interakcji %1',
   button_controls: 'kontrolki przycisku %1 włączone: %2 kolor: %3',
-  on_screen_controls: 'sterowanie gracza  ruch: %1  akcje: %2  włączone: %3  kolor: %4', // ai
+  on_screen_controls:
+    'sterowanie gracza  ruch: %1  akcje: %2  włączone: %3\nkolor: %4  tło: %5  alfa: %6', // ai
   microbit_input: 'gdy zdarzenie micro:bit: %1',
   ui_slider: 'suwak UI %1 od %2 do %3 domyślnie %4 w x: %5 y: %6\nkolor: %7 tło: %8 %9',
 

@@ -265,7 +265,8 @@ export default {
   canvas_controls: 'controles de tela %1',
   interact_indicator: 'indicador de interação %1',
   button_controls: 'controles de botão %1 ativado %2 cor %3',
-  on_screen_controls: 'controlos do jogador  movimento: %1  ações: %2  ativado: %3  cor: %4', // ai
+  on_screen_controls:
+    'controlos do jogador  movimento: %1  ações: %2  ativado: %3\ncor: %4  fundo: %5  alfa: %6', // ai
   microbit_input: 'quando evento do micro:bit %1',
   ui_slider: 'controle deslizante %1 de %2 até %3 padrão %4 em x: %5 y: %6\ncor: %7 fundo: %8 %9',
 

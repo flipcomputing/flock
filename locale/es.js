@@ -268,7 +268,7 @@ export default {
   interact_indicator: 'indicador de interacción %1', // ai
   button_controls: 'controles de botón %1 habilitados %2 color %3', // human
   on_screen_controls:
-    'controles del jugador  movimiento: %1  acciones: %2  activado: %3  color: %4', // ai
+    'controles del jugador  movimiento: %1  acciones: %2  activado: %3\ncolor: %4  fondo: %5  alfa: %6', // ai
   microbit_input: 'cuando evento micro:bit %1', // human
   add_microbit: 'añadir micro:bit %1 canal de radio %2', // ai
   microbit_any_option: 'cualquiera', // ai

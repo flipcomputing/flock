@@ -272,7 +272,8 @@ export default {
   canvas_controls: 'canvas controls %1',
   interact_indicator: 'interact indicator %1',
   button_controls: 'button controls %1 enabled: %2 color: %3',
-  on_screen_controls: 'player controls  movement: %1  actions: %2  enabled: %3  color: %4',
+  on_screen_controls:
+    'player controls  movement: %1  actions: %2  enabled: %3\ncolor: %4  background: %5  alpha: %6',
   microbit_input: 'when micro:bit event %1',
   add_microbit: 'add micro:bit %1 radio channel %2',
   microbit_any_option: 'any',
@@ -571,7 +572,7 @@ export default {
   interact_indicator_tooltip: 'Show or hide the interact indicator next to nearby objects.',
   button_controls_tooltip: 'Configure button controls.',
   on_screen_controls_tooltip:
-    'Configure the player controls drawn on the canvas. Auto follows the Tools panel setting.',
+    'Configure the player controls drawn on the canvas. Auto follows the Tools panel setting. Background alpha 0 keeps the controls transparent.',
   microbit_input_tooltip:
     'Executes the blocks inside when a specified micro:bit event is triggered.',
   add_microbit_tooltip:

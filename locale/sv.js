@@ -264,7 +264,8 @@ export default {
   canvas_controls: 'canvas kontroller %1',
   interact_indicator: 'interaktionsindikator %1',
   button_controls: 'knappkontroller %1 aktiverad %2 färg %3',
-  on_screen_controls: 'spelarkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4', // ai
+  on_screen_controls:
+    'spelarkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3\nfärg: %4  bakgrund: %5  alfa: %6', // ai
   microbit_input: 'när micro:bit händelse %1',
   ui_slider: 'ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9',
 

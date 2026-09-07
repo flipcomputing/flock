@@ -270,7 +270,8 @@ export default {
   canvas_controls: 'controlli canvas %1',
   interact_indicator: 'indicatore di interazione %1',
   button_controls: 'controlli pulsante %1 abilitati %2 colore %3',
-  on_screen_controls: 'comandi del giocatore  movimento: %1  azioni: %2  attivato: %3  colore: %4', // ai
+  on_screen_controls:
+    'comandi del giocatore  movimento: %1  azioni: %2  attivato: %3\ncolore: %4  sfondo: %5  alfa: %6', // ai
   microbit_input: 'quando evento micro:bit %1',
   ui_slider: 'slider UI %1 da %2 a %3 predefinito %4 a x: %5 y: %6\ncolore: %7 sfondo: %8 %9',
 
