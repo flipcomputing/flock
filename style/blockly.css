@@ -383,6 +383,15 @@ body[data-theme='low-vision'] {
   color: #4c4c4c !important;
 }
 
+/* Light mode: tint the workspace trashcan with the brand purple (--color-primary,
+   #511d91). It is an external SVG sprite loaded via <image>, so `color`/`fill`
+   can't reach it — this filter chain maps the sprite to that exact colour
+   (brightness(0) flattens the grey sprite to black first). */
+[data-theme='light'] .blocklyTrash {
+  filter: brightness(0) saturate(100%) invert(10%) sepia(64%) saturate(4926%)
+    hue-rotate(264deg) brightness(100%) contrast(95%) !important;
+}
+
 [data-theme='dark'] .blocklyTrash,
 .blocklyZoomIn > image,
 .blocklyZoomOut > image {

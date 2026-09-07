@@ -3247,6 +3247,18 @@ svg.blocklyTrashcanFlyout {
   opacity: 0.3;
 }
 
+/* Light mode only: the popup takes the lighter menu ground (above), the buttons
+   the darker info-panel ground, and the icons — trashcan included — the brand
+   purple. Other themes keep their existing treatment. */
+[data-theme='light'] .fc-block-toolbar-btn {
+  background: var(--color-panel-bg);
+  color: var(--color-primary);
+}
+
+[data-theme='light'] .fc-block-toolbar-btn:active {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-panel-bg));
+}
+
 /* Passive keyboard hint in the block toolbar (the "press M to move" icon).
    Styled like a button so it lines up with its badge, but inert. */
 .fc-block-toolbar-hint {
