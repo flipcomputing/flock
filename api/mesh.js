@@ -1023,6 +1023,22 @@ export const flockMesh = {
               });
 
               meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+
+              if (logicalBoneName === 'Head') {
+                const targetBaseY = bone.getAbsolutePosition(targetWithSkeleton).y + Number(y || 0);
+                for (let pass = 0; pass < 4; pass++) {
+                  meshToAttachInstance.computeWorldMatrix(true);
+                  const accBaseY = meshToAttachInstance.getHierarchyBoundingVectors(
+                    true,
+                    (m) => m !== meshToAttachInstance
+                  ).min.y;
+                  const deltaY = targetBaseY - accBaseY;
+                  if (!isFinite(deltaY) || Math.abs(deltaY) < 1e-3) break;
+                  meshToAttachInstance.position.y += deltaY;
+                }
+                meshToAttachInstance.computeWorldMatrix(true);
+              }
+
               flock._applyXRViewVisibility?.();
               flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
             }

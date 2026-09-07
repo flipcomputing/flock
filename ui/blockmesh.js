@@ -2316,6 +2316,7 @@ function replaceMeshModel(currentMesh, block) {
       // Bone-attached keeps its own pivot; grounded keeps its base.
       if (isBoneAttached(currentMesh)) {
         if (freshLocalPosition) newChild.position.copyFrom(freshLocalPosition);
+        reattachToBone(currentMesh);
       } else if (oldBaseY != null) {
         try {
           newChild.computeWorldMatrix(true);

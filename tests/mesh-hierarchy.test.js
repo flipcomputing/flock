@@ -348,7 +348,18 @@ export function runMeshHierarchyTests(flock) {
         );
       });
 
-      it('attach to Head should apply the given offsets exactly', async function () {
+      const renderedBaseY = (id) => {
+        const m = flock.scene.getMeshByName(id);
+        return m.getHierarchyBoundingVectors(true, (n) => n !== m).min.y;
+      };
+
+      it('attach to Head rests the accessory on its base and adds the Y offset on top', async function () {
+        await pumpAnimation(
+          flock,
+          flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0, z: 0 })
+        );
+        const restedBaseY = renderedBaseY(treeId);
+
         await pumpAnimation(
           flock,
           flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
@@ -356,8 +367,8 @@ export function runMeshHierarchyTests(flock) {
 
         const treeMesh = flock.scene.getMeshByName(treeId);
         expect(treeMesh.position.x).to.equal(0);
-        expect(treeMesh.position.y).to.equal(0.25);
         expect(treeMesh.position.z).to.equal(0);
+        expect(renderedBaseY(treeId)).to.be.closeTo(restedBaseY + 0.25, 1e-3);
       });
 
       it('attach should record the raw offset for model-switch re-attachment', async function () {
@@ -365,6 +376,7 @@ export function runMeshHierarchyTests(flock) {
           flock,
           flock.attach(treeId, lizId, { boneName: 'Head', x: 0, y: 0.25, z: 0 })
         );
+        const landedY = flock.scene.getMeshByName(treeId).position.y;
 
         const lizMesh = flock.scene.getMeshByName(lizId);
         const entry = lizMesh.metadata._boneAttachments.find((e) => e.meshName === treeId);
@@ -382,7 +394,7 @@ export function runMeshHierarchyTests(flock) {
             z: entry.offset.z,
           })
         );
-        expect(flock.scene.getMeshByName(treeId).position.y).to.equal(0.25);
+        expect(flock.scene.getMeshByName(treeId).position.y).to.be.closeTo(landedY, 1e-6);
       });
 
       it('replaying attach should restore the bone offset after the tree is moved', async function () {
@@ -392,6 +404,7 @@ export function runMeshHierarchyTests(flock) {
         );
 
         const treeMesh = flock.scene.getMeshByName(treeId);
+        const landedY = treeMesh.position.y;
         treeMesh.position.set(1, 2, 3);
 
         const md = treeMesh.metadata;
@@ -406,8 +419,29 @@ export function runMeshHierarchyTests(flock) {
         );
 
         expect(treeMesh.position.x).to.equal(0);
-        expect(treeMesh.position.y).to.equal(0.25);
+        expect(treeMesh.position.y).to.be.closeTo(landedY, 1e-6);
         expect(treeMesh.position.z).to.equal(0);
+      });
+
+      it('attach to Head rests a centre-origin object base on the attachment point', async function () {
+        const gemId = flock.createObject({
+          modelName: 'Gem2.glb',
+          modelId: 'headTestGem',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        meshIds.push(gemId);
+        await pumpAnimation(flock, waitForModel(flock, gemId));
+        await pumpAnimation(
+          flock,
+          flock.attach(gemId, lizId, { boneName: 'Head', x: 0, y: 0, z: 0 })
+        );
+
+        const gemMesh = flock.scene.getMeshByName(gemId);
+        const skeleton = gemMesh._transformToBoneReferal.skeleton;
+        const crownBone = skeleton.bones[skeleton.getBoneIndexByName('mixamorig:HeadTop_End')];
+        const anchorY = crownBone.getAbsolutePosition(gemMesh._transformToBoneReferal).y;
+
+        expect(renderedBaseY(gemId)).to.be.closeTo(anchorY, 0.05);
       });
 
       it('replaying attach should keep the original pre-attach rotation for drop', async function () {
