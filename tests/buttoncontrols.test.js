@@ -182,17 +182,36 @@ export function runButtonControlsTests(flock) {
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
-      it('should create a ① button that registers the e key in inputManager', function () {
+      it('should create a "1" button that registers the e key in inputManager', function () {
         flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
           'TestControls',
           true,
           flock.scene
         );
         flock.createButtonControls('#ffffff');
-        const btn1 = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '①');
+        const btn1 = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '1');
         expect(btn1).to.exist;
         btn1.onPointerDownObservable.notifyObservers({});
         expect(flock.inputManager.isKeyDown('e')).to.be.true;
+      });
+
+      it('should draw the action buttons as plain digits in a full-round border matching the arrows', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        flock.createButtonControls('#ffffff');
+        const actionButtons = flock.controlsTexture
+          .getDescendants()
+          .filter((c) => ['1', '2', '3', '4'].includes(c.textBlock?.text));
+        expect(actionButtons).to.have.lengthOf(4);
+        actionButtons.forEach((btn) => {
+          expect(btn.thickness).to.equal(3);
+          expect(btn.cornerRadius).to.equal(31);
+          expect(btn.fontSize).to.equal('30px');
+          expect(btn.widthInPixels).to.equal(62);
+        });
       });
     });
   });

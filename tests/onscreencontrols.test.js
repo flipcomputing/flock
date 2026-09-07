@@ -319,14 +319,14 @@ export function runOnScreenControlsTests(flock) {
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
-      it('should create a ② button that registers the e key in inputManager', function () {
+      it('should create a "2" button that registers the e key in inputManager', function () {
         flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
           'TestControls',
           true,
           flock.scene
         );
         flock.createButtonControls('#ffffff');
-        const btn2 = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '②');
+        const btn2 = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '2');
         expect(btn2).to.exist;
         btn2.onPointerDownObservable.notifyObservers({});
         expect(flock.inputManager.isKeyDown('e')).to.be.true;

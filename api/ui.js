@@ -533,7 +533,7 @@ export const flockUI = {
 
     return slider;
   },
-  createSmallButton(text, keys, color) {
+  createSmallButton(text, keys, color, { thickness = 3, fontSize = 36, cornerRadius = 8 } = {}) {
     if (!flock.controlsTexture) return;
 
     const keyList = Array.isArray(keys) ? keys : [keys];
@@ -546,11 +546,19 @@ export const flockUI = {
     button.width = `${size}px`;
     button.height = `${size}px`;
     button.color = color;
-    button.thickness = 3 * flock.displayScale;
-    button.cornerRadius = 8 * flock.displayScale;
+    button.thickness = thickness * flock.displayScale;
+    button.cornerRadius = cornerRadius * flock.displayScale;
     button.background = 'transparent';
-    button.fontSize = `${36 * flock.displayScale}px`;
+    button.fontSize = `${fontSize * flock.displayScale}px`;
     button.fontFamily = fontFamily;
+
+    if (button.textBlock) {
+      button.textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      button.textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      if (text === '1') {
+        button.textBlock.left = `${-2 * flock.displayScale}px`;
+      }
+    }
 
     const releaseKeys = () => {
       uniqueKeys.forEach((key) => {
@@ -623,10 +631,25 @@ export const flockUI = {
 
     addControlsRoot(rightGrid);
 
-    const button1 = flock.createSmallButton('①', [...getBoundKeys('BUTTON1'), 'PageUp'], color);
-    const button2 = flock.createSmallButton('②', getBoundKeys('BUTTON2'), color);
-    const button3 = flock.createSmallButton('③', [...getBoundKeys('BUTTON3'), 'PageDown'], color);
-    const button4 = flock.createSmallButton('④', getBoundKeys('BUTTON4'), color);
+    const actionStyle = {
+      thickness: 3,
+      fontSize: 30,
+      cornerRadius: CONTROL_BUTTON_SIZE / 2,
+    };
+    const button1 = flock.createSmallButton(
+      '1',
+      [...getBoundKeys('BUTTON1'), 'PageUp'],
+      color,
+      actionStyle
+    );
+    const button2 = flock.createSmallButton('2', getBoundKeys('BUTTON2'), color, actionStyle);
+    const button3 = flock.createSmallButton(
+      '3',
+      [...getBoundKeys('BUTTON3'), 'PageDown'],
+      color,
+      actionStyle
+    );
+    const button4 = flock.createSmallButton('4', getBoundKeys('BUTTON4'), color, actionStyle);
 
     rightGrid.addControl(button1, 0, 0);
     rightGrid.addControl(button2, 0, 1);
