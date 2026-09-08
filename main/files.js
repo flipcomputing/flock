@@ -3,6 +3,8 @@ import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
 import { getMetadata } from 'meta-png';
 import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
+import { flock } from '../flock.js';
+import { showStatus } from '../ui/status.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -325,6 +327,16 @@ function validateBlocklyJson(json) {
   return data;
 }
 
+export function hintIfXrModeMissing(workspace) {
+  if (!workspace || workspace.getBlocksByType('set_xr_mode', false).length > 0) return;
+  if (flock._xrAutoButtonAllowed?.() || !flock._vrHeadsetAvailable) return;
+  Promise.resolve(flock._vrHeadsetAvailable()).then((onHeadset) => {
+    if (onHeadset && workspace.getBlocksByType('set_xr_mode', false).length === 0) {
+      showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing', hint: true });
+    }
+  });
+}
+
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   if (!workspace || !json) {
     throw new Error('Invalid workspace or json data.');
@@ -339,6 +351,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas: false });
+    hintIfXrModeMissing(workspace);
   } catch (error) {
     console.error('Failed to load workspace:', error);
 

@@ -1323,6 +1323,8 @@ export default {
   hud_hidden: 'Gizmo-Steuerung ausgeblendet', // ai
   hud_shown: 'Gizmo-Steuerung eingeblendet', // ai
   gizmo_controls_hint: 'Blende die Gizmo-Steuerung über Menü > Werkzeuge ein oder aus.', // ai
+  xr_mode_missing_hint:
+    'Kein XR‑Modus‑Block, daher öffnet dieses Projekt nicht im Headset. Füge einen über Szene > XR hinzu.', // ai
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 

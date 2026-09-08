@@ -1323,6 +1323,8 @@ export default {
   hud_hidden: 'Gizmo-kontroller dolda', // ai
   hud_shown: 'Gizmo-kontroller visas', // ai
   gizmo_controls_hint: 'Visa eller dölj gizmo-kontrollerna via Meny > Verktyg.', // ai
+  xr_mode_missing_hint:
+    'Inget XR-lägesblock, så projektet öppnas inte i ditt headset. Lägg till ett från Scen > XR.', // ai
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

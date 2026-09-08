@@ -1344,6 +1344,8 @@ export default {
   hud_hidden: 'Comandi di manipolazione nascosti', // ai
   hud_shown: 'Comandi di manipolazione visibili', // ai
   gizmo_controls_hint: 'Mostra o nascondi i comandi di manipolazione da Menu > Strumenti.', // ai
+  xr_mode_missing_hint:
+    'Nessun blocco modalità XR: questo progetto non si aprirà nel visore. Aggiungine uno da Scena > XR.', // ai
   shortcut_quick_colour: 'Uso rapido del colore nel selettore colori',
   shortcut_delete_object: 'Elimina oggetto',
 

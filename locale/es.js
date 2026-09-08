@@ -1427,6 +1427,8 @@ export default {
   hud_shown: 'Controles de manipulación visibles', // ai
   gizmo_controls_hint:
     'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
+  xr_mode_missing_hint:
+    'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
 

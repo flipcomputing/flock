@@ -1329,6 +1329,8 @@ export default {
   hud_hidden: 'Sterowanie gizmo ukryte', // ai
   hud_shown: 'Sterowanie gizmo widoczne', // ai
   gizmo_controls_hint: 'Pokaż lub ukryj sterowanie gizmo w Menu > Narzędzia.', // ai
+  xr_mode_missing_hint:
+    'Brak bloku trybu XR, więc ten projekt nie otworzy się w goglach. Dodaj go z Scena > XR.', // ai
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 
