@@ -1036,7 +1036,7 @@ export default {
   light_theme_ui: 'Claro',
   dark_theme_ui: 'Escuro',
   contrast_theme_ui: 'Contraste',
-  low_vision_theme_ui: 'Cor reduzida', // ai
+  low_color_theme_ui: 'Cor reduzida', // ai
 
   run_code_button_ui: 'Executar o teu código',
   stop_code_button_ui: 'Parar o teu código',

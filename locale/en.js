@@ -1125,7 +1125,7 @@ export default {
   light_theme_ui: 'Light',
   dark_theme_ui: 'Dark',
   dark_contrast_theme_ui: 'Dark',
-  low_vision_theme_ui: 'Low color',
+  low_color_theme_ui: 'Low color',
   contrast_theme_ui: 'Contrast',
 
   run_code_button_ui: 'Run your code',

@@ -83,7 +83,7 @@ export const contrastCategoryColours = {
   Procedures: '#83398f',
 };
 
-const LOW_VISION_THEME = 'low-vision';
+const LOW_VISION_THEME = 'low-color';
 let lowVisionIconListenerRegistered = false;
 const LOW_VISION_TOOLBOX_ACCENTS = {
   'events.svg': 'events_blocks',
@@ -237,7 +237,7 @@ function setLogos(themeName) {
   if (!bird || !inlineLogo) return;
   switch (themeName) {
     case 'dark-contrast':
-    case 'low-vision':
+    case 'low-color':
       inlineLogo.src = './images/inline-flock-xr-dark1.svg';
       bird.src = './images/flock-bird-mascot-2colours-dark1.svg';
       break;
@@ -296,7 +296,7 @@ export function getIconColorForTheme(themeName) {
       return 'black';
     case 'contrast':
     case 'dark-contrast':
-    case 'low-vision':
+    case 'low-color':
     default:
       return 'white';
   }
@@ -620,7 +620,7 @@ function getThemeBaseStyles(themeName) {
         cursorColour: '#FF0000',
       },
     },
-    'low-vision': {
+    'low-color': {
       events: {
         colourPrimary: '#1E1E1E',
         colourSecondary: '#1E1E1E',
@@ -750,7 +750,12 @@ export function initializeTheme() {
   });
 
   // Only a theme the user picked is stored, so an absent one means "follow the OS".
-  const savedTheme = localStorage.getItem('blocklyTheme');
+  let savedTheme = localStorage.getItem('blocklyTheme');
+  if (savedTheme === 'low-vision') {
+    // The "low-vision" theme id was renamed to "low-color"; carry stored picks over.
+    savedTheme = LOW_VISION_THEME;
+    localStorage.setItem('blocklyTheme', savedTheme);
+  }
   const startingTheme = savedTheme || (osPrefersDark() ? 'dark' : 'light');
   switchTheme(startingTheme, { persist: false });
   updateActiveTheme(startingTheme);

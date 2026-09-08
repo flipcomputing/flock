@@ -1040,7 +1040,7 @@ export default {
   light_theme_ui: 'Hell',
   dark_theme_ui: 'Dunkel',
   dark_contrast_theme_ui: 'Kontrast Dunkel',
-  low_vision_theme_ui: 'Wenig Farbe', // ai
+  low_color_theme_ui: 'Wenig Farbe', // ai
   contrast_theme_ui: 'Kontrast',
   run_code_button_ui: 'Code ausführen',
   stop_code_button_ui: 'Code stoppen',

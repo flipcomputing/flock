@@ -41,7 +41,7 @@
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 }
 
-[data-theme='low-vision'] {
+[data-theme='low-color'] {
   --color-bg: #121212;
   --color-text: #f0f0f0;
   --color-text-label: #f0f0f0;
@@ -90,7 +90,7 @@ body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput {
   color: #000000 !important;
 }
 
-body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='low-color'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
@@ -101,7 +101,7 @@ body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInva
   color: #575e75 !important;
 }
 
-body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='low-color'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
@@ -193,7 +193,7 @@ textarea.blocklyCommentText::placeholder {
   scrollbar-color: rgba(255, 255, 255, 0.85) transparent;
 }
 
-[data-theme='low-vision'] .blocklyToolbox {
+[data-theme='low-color'] .blocklyToolbox {
   scrollbar-color: rgba(224, 224, 224, 0.85) transparent;
 }
 
@@ -209,7 +209,7 @@ textarea.blocklyCommentText::placeholder {
   fill: rgba(255, 255, 255, 0.85) !important;
 }
 
-[data-theme='low-vision'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+[data-theme='low-color'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(224, 224, 224, 0.85) !important;
 }
 
@@ -236,7 +236,7 @@ body[data-theme='contrast'] {
   }
 }
 
-body[data-theme='low-vision'] {
+body[data-theme='low-color'] {
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: #f0f0f0 !important;
   }
@@ -280,7 +280,7 @@ body[data-theme='low-vision'] {
 }
 
 /* Low-vision: replace fill with a dashed white stroke for better contrast */
-[data-theme='low-vision']
+[data-theme='low-color']
   #blocklyDiv.blockly-search-active
   .ws-search-match
   > path.blocklyPath:not(.blocklyPathSelected) {
@@ -485,14 +485,14 @@ body[data-theme='low-vision'] {
 
 [data-theme='dark'] .blockly-ws-search button,
 [data-theme='dark-contrast'] .blockly-ws-search button,
-[data-theme='low-vision'] .blockly-ws-search button,
+[data-theme='low-color'] .blockly-ws-search button,
 [data-theme='contrast'] .blockly-ws-search button {
   filter: invert(1);
 }
 
 [data-theme='dark'] .blockly-ws-search button:focus-visible,
 [data-theme='dark-contrast'] .blockly-ws-search button:focus-visible,
-[data-theme='low-vision'] .blockly-ws-search button:focus-visible,
+[data-theme='low-color'] .blockly-ws-search button:focus-visible,
 [data-theme='contrast'] .blockly-ws-search button:focus-visible {
   filter: none;
   outline: 3px solid var(--color-focus-outline);
@@ -523,7 +523,7 @@ body[data-theme='low-vision'] {
   background-color: #000000 !important;
 }
 
-[data-theme='low-vision'] .blocklySvg {
+[data-theme='low-color'] .blocklySvg {
   background-color: #d8d8d8 !important;
 }
 
@@ -531,7 +531,7 @@ body[data-theme='low-vision'] {
    panels), so the toolbox column reads as chrome rather than an extension of
    the workspace. Blockly paints the toolbox from the theme, hence the
    !important. Light only: the other themes set their toolbox a deliberate step
-   away from their workspace, and low-vision's is dark under light category
+   away from their workspace, and low-color's is dark under light category
    text. */
 [data-theme='light'] .blocklyToolbox {
   background-color: var(--color-panel-bg) !important;
@@ -541,7 +541,7 @@ body[data-theme='low-vision'] {
   border-right-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
 }
 
-[data-theme='low-vision'] .blocklyPath {
+[data-theme='low-color'] .blocklyPath {
   stroke: #e0e0e0 !important;
   stroke-width: 2.5px !important;
 }
@@ -642,12 +642,12 @@ body[data-theme='dark'] .blocklyTreeLabel {
   fill-opacity: 0.8 !important;
 }
 
-[data-theme='low-vision'] .blocklyFlyout,
-[data-theme='low-vision'] .blocklyFlyoutBackground {
+[data-theme='low-color'] .blocklyFlyout,
+[data-theme='low-color'] .blocklyFlyoutBackground {
   opacity: 1 !important;
 }
 
-[data-theme='low-vision'] .blocklyFlyoutBackground {
+[data-theme='low-color'] .blocklyFlyoutBackground {
   fill: #3a3a3a !important;
   fill-opacity: 1 !important;
 }
@@ -690,42 +690,42 @@ body[data-theme='dark'] .blocklyTreeLabel {
   fill: white !important;
 }
 
-[data-theme='low-vision'] .blocklyText,
-[data-theme='low-vision'] .blocklyTreeLabel {
+[data-theme='low-color'] .blocklyText,
+[data-theme='low-color'] .blocklyTreeLabel {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText {
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText {
   fill: #000000 !important;
 }
 
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropdownText,
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropDownText {
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropdownText,
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropDownText {
   fill: #f0f0f0 !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownText,
-[data-theme='low-vision'] .blocklyDropDownText {
+[data-theme='low-color'] .blocklyDropdownText,
+[data-theme='low-color'] .blocklyDropDownText {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-[data-theme='low-vision'] .blocklyEditableText > rect,
-[data-theme='low-vision'] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
+[data-theme='low-color'] .blocklyEditableText > rect,
+[data-theme='low-color'] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
   fill: #ffffff !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownRect {
+[data-theme='low-color'] .blocklyDropdownRect {
   fill: #1e1e1e !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownArrow,
-[data-theme='low-vision'] .blocklyDropdownArrow > path {
+[data-theme='low-color'] .blocklyDropdownArrow,
+[data-theme='low-color'] .blocklyDropdownArrow > path {
   fill: #cfcfcf !important;
   stroke: #cfcfcf !important;
 }
@@ -762,8 +762,8 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 
   /* #3a3a3a is this theme's own flyout colour. It stays a step lighter than the
      category rows so the gaps still separate them. */
-  [data-theme='low-vision'] .blocklyToolbox,
-  [data-theme='low-vision'] .blocklyToolboxCategoryGroup {
+  [data-theme='low-color'] .blocklyToolbox,
+  [data-theme='low-color'] .blocklyToolboxCategoryGroup {
     background: #3a3a3a !important;
   }
 
@@ -1454,7 +1454,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 }
 
 /* Opaque and lifted: this flyout floats over the workspace rather than docking.
-   fill is left to the theme rules above so low-vision keeps its own colour. */
+   fill is left to the theme rules above so low-color keeps its own colour. */
 .block-search-flyout .blocklyFlyoutBackground {
   opacity: 1 !important;
   fill-opacity: 1 !important;

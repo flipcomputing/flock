@@ -74,9 +74,9 @@ Flock XR can be used with browser zoom to increase the size of text and UI compo
 
 Flock XR uses the Atkinson Hyperlegible Font throughout including on coding blocks, the user interface and in text on the canvas. This font has been designed for users with low vision and has clearly distinguishable letters. For example, the number 0 has a strikethrough to distinguish it from the letter O. We have chosen this as the main font rather than offering it as an option as this design is helpful for all users.
 
-### Dark contrast and low vision themes
+### Dark contrast and low color themes
 
-The dark contrast theme offers higher contrast for users that need or prefer it. We also have a low vision black and white mode that does not rely on colors and uses icons instead.
+The dark contrast theme offers higher contrast for users that need or prefer it. We also have a low color black and white mode that does not rely on colors and uses icons instead.
 
 ### Browser font size
 
@@ -86,7 +86,7 @@ Flock XR respects the browser font size settings so users can set their minimum 
 
 ### Block category colors
 
-The category colors in Flock XR have been chosen to be as color-blind friendly as possible. The low vision black and white theme uses icons instead of colors to offer another alternative.
+The category colors in Flock XR have been chosen to be as color-blind friendly as possible. The low color black and white theme uses icons instead of colors to offer another alternative.
 
 ### Gizmos
 

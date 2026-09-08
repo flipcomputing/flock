@@ -268,7 +268,7 @@
 }
 
 /* Low-vision theme */
-[data-theme='low-vision'] {
+[data-theme='low-color'] {
   --color-bg: #121212;
   --color-bg-alt: #1e1e1e;
   --color-text: #f0f0f0;
@@ -312,7 +312,7 @@
    measured against, and there is no global border-box here. */
 [data-theme='dark'] #exampleButton,
 [data-theme='dark-contrast'] #exampleButton,
-[data-theme='low-vision'] #exampleButton {
+[data-theme='low-color'] #exampleButton {
   background-color: var(--color-bg) !important;
   box-shadow: inset 0 0 0 1px currentColor;
 }
@@ -715,7 +715,7 @@ button {
   background-color: #090909 !important;
 }
 
-[data-theme='low-vision'] #canvasArea {
+[data-theme='low-color'] #canvasArea {
   background-color: #121212 !important;
 }
 
@@ -1063,7 +1063,7 @@ button {
   fill: #ffffff !important;
 }
 
-[data-theme='low-vision'] #flockeditor .icon path {
+[data-theme='low-color'] #flockeditor .icon path {
   fill: #f0f0f0 !important;
 }
 
@@ -1075,8 +1075,8 @@ button {
   color: #ffffff !important;
 }
 
-[data-theme='low-vision'] .gizmo-button img,
-[data-theme='low-vision'] .bigbutton svg {
+[data-theme='low-color'] .gizmo-button img,
+[data-theme='low-color'] .bigbutton svg {
   color: #f0f0f0 !important;
 }
 
@@ -1127,11 +1127,11 @@ button {
 [data-theme='dark'] .modal-content a,
 [data-theme='dark-contrast'] .modal-content a,
 [data-theme='contrast'] .modal-content a,
-[data-theme='low-vision'] .modal-content a,
+[data-theme='low-color'] .modal-content a,
 [data-theme='dark'] #help-list a,
 [data-theme='dark-contrast'] #help-list a,
 [data-theme='contrast'] #help-list a,
-[data-theme='low-vision'] #help-list a {
+[data-theme='low-color'] #help-list a {
   color: var(--color-primary-light);
 }
 
@@ -1345,17 +1345,17 @@ button {
   [data-theme='dark'] #bottomBar,
   [data-theme='dark-contrast'] #bottomBar,
   [data-theme='contrast'] #bottomBar,
-  [data-theme='low-vision'] #bottomBar,
+  [data-theme='low-color'] #bottomBar,
   [data-theme='dark'] #viewToggle,
   [data-theme='dark-contrast'] #viewToggle,
   [data-theme='contrast'] #viewToggle,
-  [data-theme='low-vision'] #viewToggle {
+  [data-theme='low-color'] #viewToggle {
     background-color: var(--color-bg);
   }
 
   [data-theme='dark'] .view-toggle-btn[aria-pressed='true'],
   [data-theme='dark-contrast'] .view-toggle-btn[aria-pressed='true'],
-  [data-theme='low-vision'] .view-toggle-btn[aria-pressed='true'] {
+  [data-theme='low-color'] .view-toggle-btn[aria-pressed='true'] {
     color: #000;
   }
 
@@ -1636,17 +1636,17 @@ button {
 }
 
 [data-theme='dark-contrast'] #main-menu a,
-[data-theme='low-vision'] #main-menu a {
+[data-theme='low-color'] #main-menu a {
   color: var(--color-text-primary);
 }
 
 [data-theme='dark-contrast'] #menuDropdown .menu-item .menu-label,
-[data-theme='low-vision'] #menuDropdown .menu-item .menu-label {
+[data-theme='low-color'] #menuDropdown .menu-item .menu-label {
   color: var(--color-text-primary);
 }
 
 [data-theme='dark-contrast'] #menuDropdown .menu-item .menu-icon svg,
-[data-theme='low-vision'] #menuDropdown .menu-item .menu-icon svg {
+[data-theme='low-color'] #menuDropdown .menu-item .menu-icon svg {
   color: var(--color-text-primary);
 }
 
@@ -2051,7 +2051,7 @@ button.flock-close-icon {
   border-style: solid;
 }
 
-[data-theme='low-vision'] input {
+[data-theme='low-color'] input {
   border-style: solid;
 }
 
@@ -2369,6 +2369,41 @@ body.color-picker-open #renderCanvas {
 
 .menu-item:hover {
   background-color: var(--color-menu-hover);
+}
+
+/* Contrast + low-color: give the selected row and submenu link the light hover
+   tint light mode uses (#d0d0d0, i.e. light mode's --color-menu-hover) with
+   black text and icons, so category and subcategory selection read identically
+   and stay legible. Contrast already inherits that tint from its own
+   --color-menu-hover; low-color's is dark, so the background is set here too. */
+[data-theme='contrast'] #menuDropdown .menu-item:hover,
+[data-theme='contrast'] #menuDropdown .menu-item:focus,
+[data-theme='contrast'] #menuDropdown .submenu a:hover,
+[data-theme='contrast'] #menuDropdown .submenu a:focus,
+[data-theme='low-color'] #menuDropdown .menu-item:hover,
+[data-theme='low-color'] #menuDropdown .menu-item:focus,
+[data-theme='low-color'] #menuDropdown .submenu a:hover,
+[data-theme='low-color'] #menuDropdown .submenu a:focus {
+  background-color: #d0d0d0;
+  color: #000;
+}
+
+[data-theme='contrast'] #menuDropdown .menu-item:hover .menu-label,
+[data-theme='contrast'] #menuDropdown .menu-item:focus .menu-label,
+[data-theme='contrast'] #menuDropdown .menu-item:hover .menu-arrow,
+[data-theme='contrast'] #menuDropdown .menu-item:focus .menu-arrow,
+[data-theme='low-color'] #menuDropdown .menu-item:hover .menu-label,
+[data-theme='low-color'] #menuDropdown .menu-item:focus .menu-label,
+[data-theme='low-color'] #menuDropdown .menu-item:hover .menu-arrow,
+[data-theme='low-color'] #menuDropdown .menu-item:focus .menu-arrow {
+  color: #000;
+}
+
+[data-theme='contrast'] #menuDropdown .menu-item:hover .menu-icon svg,
+[data-theme='contrast'] #menuDropdown .menu-item:focus .menu-icon svg,
+[data-theme='low-color'] #menuDropdown .menu-item:hover .menu-icon svg,
+[data-theme='low-color'] #menuDropdown .menu-item:focus .menu-icon svg {
+  fill: #000;
 }
 
 .menu-icon {
@@ -3124,7 +3159,7 @@ svg.blocklyTrashcanFlyout {
 
 [data-theme='dark'] .fc-confirm-btn--ok,
 [data-theme='dark-contrast'] .fc-confirm-btn--ok,
-[data-theme='low-vision'] .fc-confirm-btn--ok,
+[data-theme='low-color'] .fc-confirm-btn--ok,
 [data-theme='contrast'] .fc-confirm-btn--ok,
 [data-theme='contrast'] .fc-confirm-btn--cancel,
 [data-theme='contrast'] .fc-block-toolbar-btn {
