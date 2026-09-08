@@ -737,7 +737,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
      They also take the darker info-panel ground to set them off from the
      top-level rows. */
   .blocklyToolboxCategoryContainer[aria-level='2'] > .blocklyToolboxCategory {
-    margin-left: 10px !important;
+    margin-left: 13px !important;
     margin-right: 7px !important;
     background-color: var(--color-panel-bg) !important;
   }
