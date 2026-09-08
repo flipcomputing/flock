@@ -5,6 +5,7 @@ import {
   getVariableInfo,
   getPositionTuple,
   createMesh,
+  getThenCallback,
 } from './generators-utilities.js';
 
 export function registerSceneGenerators(javascriptGenerator) {
@@ -118,7 +119,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         modelName: '${modelName}',
                         modelId: ${JSON.stringify(meshId)},
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
                 });\n`;
   };
 
@@ -161,7 +162,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         sleeves: ${sleevesColor},
                         shorts: ${shortsColor},
                         tshirt: ${tshirtColor}
-                  }${doCode ? `, callback: ${doCode}` : ''}
+                  }${doCode ? `, callback: ${doCode}` : ''}${getThenCallback(block)}
                 });\n`;
   };
 
@@ -194,7 +195,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                           modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
-                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
+                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
                   });\n`;
   };
   // Add object -------------------------------------------------------
@@ -225,7 +226,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
                 });\n`;
   };
 
@@ -402,7 +403,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
-                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}
+                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
                   });\n`;
   };
   // -------------------------------

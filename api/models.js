@@ -21,6 +21,7 @@ export const flockModels = {
       tshirt: '#0000ff',
     },
     callback = () => {},
+    then = null,
   }) {
     // Drop container references (do NOT dispose after addAllToScene)
     const releaseContainer = (container) => {
@@ -200,7 +201,8 @@ export const flockModels = {
           flock.switchToAnimation(flock.scene, bb, name, false, false, false)
         );
 
-        // After anims, run optional callback (await if it returns a promise), then show
+        // After anims, run optional callback (await if it returns a promise),
+        // show, then run the optional "then" section.
         Promise.all(animationPromises)
           .then(async () => {
             if (callback) {
@@ -214,6 +216,15 @@ export const flockModels = {
           })
           .then(() => {
             mesh.setEnabled(true);
+          })
+          .then(async () => {
+            if (!then) return;
+            try {
+              const result = then();
+              if (result && typeof result.then === 'function') await result;
+            } catch (err) {
+              console.error('Character then() error:', err);
+            }
           });
 
         // Announce readiness as soon as mesh is configured
@@ -276,6 +287,7 @@ export const flockModels = {
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
     callback = null,
+    then = null,
     applyColor = true,
   } = {}) {
     const releaseContainer = (container) => {
@@ -333,7 +345,7 @@ export const flockModels = {
       );
       if (!parts.length) {
         setInstanceFlags(mesh);
-        return;
+        return Promise.resolve();
       }
 
       const signal = flock.abortController?.signal;
@@ -344,10 +356,27 @@ export const flockModels = {
       );
       const deadline = new Promise((resolve) => setTimeout(resolve, 2000));
 
-      Promise.race([Promise.all(compiled), deadline]).then(() => {
+      return Promise.race([Promise.all(compiled), deadline]).then(() => {
         if (signal?.aborted || mesh.isDisposed()) return;
+        // A hide() during this window disables the wrapper; don't undo it.
+        if (mesh.parent?.isEnabled?.() === false) return;
         setInstanceFlags(mesh);
       });
+    };
+
+    // The "then" mutator section: runs once the constructor callback has
+    // finished and the object has been revealed.
+    const runThen = (mesh) => {
+      if (!then) return;
+      if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+      try {
+        const result = then();
+        if (result && typeof result.then === 'function') {
+          result.catch((err) => console.error('Add object then() error:', err));
+        }
+      } catch (err) {
+        console.error('Add object then() error:', err);
+      }
     };
 
     const finalizeMesh = (mesh, mName, gName, bKey) => {
@@ -372,10 +401,43 @@ export const flockModels = {
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
       mesh.refreshBoundingInfo(true);
-      revealWhenDrawable(mesh);
       flock.announceMeshReady(mName, gName);
       flock._markNameCreated(mName);
-      if (callback) requestAnimationFrame(callback);
+
+      if (!callback) {
+        revealWhenDrawable(mesh).then(() => runThen(mesh));
+        return;
+      }
+
+      // Run the DO-part blocks while the mesh is still hidden, then reveal, so
+      // the object appears in its constructed state. Otherwise async model
+      // decoding lets the mesh show before the callback runs and an initial
+      // rotation (or similar) is visible as a snap.
+      const runConstructor = new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          try {
+            const result = callback();
+            if (result && typeof result.then === 'function') {
+              result.then(resolve, (err) => {
+                console.error('Add object callback error:', err);
+                resolve();
+              });
+            } else {
+              resolve();
+            }
+          } catch (err) {
+            console.error('Add object callback error:', err);
+            resolve();
+          }
+        });
+      });
+
+      runConstructor
+        .then(() => {
+          if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+          return revealWhenDrawable(mesh);
+        })
+        .then(() => runThen(mesh));
     };
 
     try {
@@ -487,13 +549,21 @@ export const flockModels = {
       return 'error_' + flock.scene.getUniqueId();
     }
   },
-  createModel({ modelName, modelId, scale = 1, position = { x: 0, y: 0, z: 0 }, callback = null }) {
+  createModel({
+    modelName,
+    modelId,
+    scale = 1,
+    position = { x: 0, y: 0, z: 0 },
+    callback = null,
+    then = null,
+  }) {
     return flock.createObject({
       modelName,
       modelId,
       scale,
       position,
       callback,
+      then,
       applyColor: false,
     });
   },

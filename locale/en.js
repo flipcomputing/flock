@@ -149,6 +149,7 @@ export default {
   load_object: 'add %1 %2 %3 scale: %4 x: %5 y: %6 z: %7',
   load_multi_object: 'add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7',
   load_model: 'add %1 %2 scale: %3 x: %4 y: %5 z: %6',
+  then_label: 'then',
 
   // Custom block translations - Animate blocks
   glide_to: 'glide %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',

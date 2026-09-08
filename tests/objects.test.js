@@ -26,6 +26,21 @@ async function pumpAnimation(flock, promise) {
   }
 }
 
+// Render frames until `predicate()` is true (or the timeout is hit), so tests
+// wait on the actual lifecycle instead of a fixed timer.
+async function pumpUntil(flock, predicate, { timeout = 4000, label = 'condition' } = {}) {
+  const interval = setInterval(() => flock.scene.render(), 0);
+  const start = Date.now();
+  try {
+    while (!predicate() && Date.now() - start < timeout) {
+      await flock.wait(0.03);
+    }
+  } finally {
+    clearInterval(interval);
+  }
+  if (!predicate()) throw new Error(`pumpUntil: ${label} not met within ${timeout}ms`);
+}
+
 export function runCreateObjectTests(flock) {
   describe('createObject tests @slow', function () {
     this.timeout(5000);
@@ -88,6 +103,82 @@ export function runCreateObjectTests(flock) {
       mesh.getChildMeshes().forEach((child) => {
         expect(child.isEnabled(), `${child.name} should still be hidden`).to.equal(false);
       });
+    });
+
+    it('reveals the object only after the DO-part callback finishes', async function () {
+      let callbackRan = false;
+      let hiddenWhenCallbackRan = null;
+
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__constructor_reveal',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 12, y: 0, z: 10.8 },
+        callback: async () => {
+          const parts = flock.scene.getMeshByName(tree)?.getChildMeshes(false) ?? [];
+          hiddenWhenCallbackRan = parts.length > 0 && parts.every((p) => !p.isEnabled());
+          await flock.wait(0.2);
+          callbackRan = true;
+        },
+      });
+
+      await pumpUntil(flock, () => callbackRan, { label: 'DO callback' });
+      await pumpUntil(
+        flock,
+        () => flock.scene.getMeshByName(tree)?.getChildMeshes(false).some((p) => p.isEnabled()),
+        { label: 'reveal' }
+      );
+
+      expect(hiddenWhenCallbackRan, 'object stays hidden while the callback runs').to.equal(true);
+    });
+
+    it('keeps an object hidden when hide() lands during the deferred reveal', async function () {
+      this.timeout(9000);
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__hide_pending',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 20, y: 0, z: 10.8 },
+      });
+      await flock.hide(tree);
+      await pumpAnimation(flock, flock.wait(3)); // past the 2s reveal deadline
+
+      const mesh = flock.scene.getMeshByName(tree);
+      expect(mesh.isEnabled(), 'wrapper still hidden after the reveal deadline').to.equal(false);
+      mesh.getChildMeshes(false).forEach((child) => {
+        expect(child.isEnabled(), `${child.name} still hidden`).to.equal(false);
+        // The deferred reveal must not have run its side effects either.
+        expect(child.isVisible, `${child.name} not force-shown by the reveal`).to.equal(false);
+      });
+    });
+
+    it('runs then() after the constructor callback and after the object is revealed', async function () {
+      const order = [];
+      let revealedWhenThenRan = null;
+
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__then_order',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 16, y: 0, z: 10.8 },
+        callback: async () => {
+          order.push('callback');
+          await flock.wait(0.2);
+        },
+        then: () => {
+          order.push('then');
+          const parts = flock.scene.getMeshByName(tree)?.getChildMeshes(false) ?? [];
+          revealedWhenThenRan = parts.length > 0 && parts.some((p) => p.isEnabled());
+        },
+      });
+
+      await pumpUntil(flock, () => order.includes('then'), { label: 'then()' });
+
+      expect(order, 'then() runs after the constructor callback').to.deep.equal([
+        'callback',
+        'then',
+      ]);
+      expect(revealedWhenThenRan, 'object is revealed by the time then() runs').to.equal(true);
     });
 
     it('should handle multiple objects with show and hide', async function () {

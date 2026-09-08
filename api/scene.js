@@ -643,7 +643,7 @@ export const flockScene = {
       if (mesh) flock.disposeMesh(mesh);
     });
   },
-  cloneMesh({ sourceMeshName, cloneId, callback = null } = {}) {
+  cloneMesh({ sourceMeshName, cloneId, callback = null, then = null } = {}) {
     if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
       console.warn('cloneMesh: invalid sourceMeshName');
       return null;
@@ -655,6 +655,10 @@ export const flockScene = {
     if (callback != null && typeof callback !== 'function') {
       console.warn('cloneMesh: callback must be a function');
       callback = null;
+    }
+    if (then != null && typeof then !== 'function') {
+      console.warn('cloneMesh: then must be a function');
+      then = null;
     }
     if (flock.maxMeshesReached()) return 'error_' + cloneId;
 
@@ -707,8 +711,18 @@ export const flockScene = {
         setMetadata(clone);
         clone.getDescendants().forEach(setMetadata);
 
-        if (callback) {
-          requestAnimationFrame(() => callback());
+        if (callback || then) {
+          requestAnimationFrame(async () => {
+            for (const fn of [callback, then]) {
+              if (!fn) continue;
+              try {
+                const result = fn();
+                if (result && typeof result.then === 'function') await result;
+              } catch (err) {
+                console.error('cloneMesh callback error:', err);
+              }
+            }
+          });
         }
       }
     });

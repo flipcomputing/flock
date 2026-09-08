@@ -144,6 +144,7 @@ export default {
   load_object: 'añadir %1 %2 %3 escala: %4 x: %5 y: %6 z: %7', // human
   load_multi_object: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7', // human
   load_model: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6', // human
+  then_label: 'luego', // human
 
   // Custom block translations - Animate blocks
   glide_to: 'deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9', // human

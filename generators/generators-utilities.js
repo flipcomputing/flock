@@ -83,6 +83,14 @@ export function getPositionTuple(block) {
   return `[${posX}, ${posY}, ${posZ}]`;
 }
 
+// The "then" mutator section, wrapped for an options object: it runs once the
+// constructor callback has completed. Returns '' when the section is absent.
+export function getThenCallback(block) {
+  if (!block.getInput('THEN')) return '';
+  const code = javascriptGenerator.statementToCode(block, 'THEN') || '';
+  return code ? `,\nthen: async function() {\n${code}\n}` : '';
+}
+
 export function createMesh(block, meshType, params) {
   const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
@@ -92,10 +100,13 @@ export function createMesh(block, meshType, params) {
   meshBlockIdMap[block.id] = block.id;
 
   const doCode = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
+  const thenCode = block.getInput('THEN')
+    ? javascriptGenerator.statementToCode(block, 'THEN') || ''
+    : '';
 
   const options = [...params];
 
-  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${doCode}`;
+  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${doCode}${thenCode}`;
 }
 
 export function emitSafeIdentifierLiteral(code) {

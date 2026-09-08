@@ -1051,6 +1051,45 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
 
   adjustXPosition_() {}
 
+  // Zelos left-aligns an inline row, so the slack that widens a mutator-button
+  // row to the block width lands in the spacer after the button. Shift it in
+  // front of the button so the +/- sits at the block's right edge.
+  alignRowElements_() {
+    super.alignRowElements_();
+
+    if (typeof this.block_.getField !== 'function' || !this.block_.getField('TOGGLE_BUTTON')) {
+      return;
+    }
+
+    const edgeMargin = (this.constants_.GRID_UNIT || 4) * 2;
+
+    for (const row of this.rows) {
+      const elements = row.elements || [];
+      for (const buttonName of ['TOGGLE_BUTTON', 'THEN_TOGGLE_BUTTON']) {
+        const buttonIndex = elements.findIndex(
+          (el) => el.field && el.field.name === buttonName
+        );
+        if (buttonIndex <= 0 || buttonIndex >= elements.length - 1) continue;
+
+        const spacerBefore = elements[buttonIndex - 1];
+        const spacerAfter = elements[elements.length - 1];
+        if (
+          typeof spacerBefore.width !== 'number' ||
+          typeof spacerAfter.width !== 'number' ||
+          spacerBefore === spacerAfter
+        ) {
+          continue;
+        }
+
+        const shift = spacerAfter.width - edgeMargin;
+        if (shift <= 0) continue;
+
+        spacerBefore.width += shift;
+        spacerAfter.width -= shift;
+      }
+    }
+  }
+
   addElemSpacing_() {
     super.addElemSpacing_();
 
@@ -1896,20 +1935,112 @@ export function defineBlocks() {
   }
 }
 
+const DO_MUTATOR_ICON = (glyph) =>
+  'data:image/svg+xml;base64,' +
+  btoa(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">' +
+      '<rect x="3" y="3" width="24" height="24" rx="6" fill="none" stroke="white" stroke-width="2"/>' +
+      glyph +
+      '</svg>'
+  );
+// Plus while the DO part is absent, minus once it is present, both boxed so the
+// bare minus stays legible against the block.
+const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
+  '<path fill="white" d="M13.5 8h3v5.5H22v3h-5.5V22h-3v-5.5H8v-3h5.5z"/>'
+);
+const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
+
 export function addDoMutatorWithToggleBehavior(block) {
-  // Custom function to toggle the "do" block mutation
+  // The "then" toggle button only exists while DO does; keep it in sync and
+  // refresh both icons (+ with the section absent, - with it present). The
+  // "then" label rides on the button's row - only while the section exists -
+  // so a translated word never widens the statement rows below it.
+  const syncMutatorButtons = function () {
+    const hasDo = Boolean(block.getInput('DO'));
+    const hasThen = Boolean(block.getInput('THEN'));
+
+    const doField = block.getField('TOGGLE_BUTTON');
+    if (doField) {
+      doField.setValue(hasDo ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+    }
+
+    if (hasDo && !block.getInput('THEN_BUTTON')) {
+      const thenButton = new Blockly.FieldImage(
+        DO_MUTATOR_PLUS,
+        30,
+        30,
+        'toggle then block',
+        block.toggleThenBlock.bind(block)
+      );
+      block.appendDummyInput('THEN_BUTTON').appendField(thenButton, 'THEN_TOGGLE_BUTTON');
+      if (hasThen) {
+        block.moveInputBefore('THEN_BUTTON', 'THEN');
+      }
+    } else if (!hasDo && block.getInput('THEN_BUTTON')) {
+      block.removeInput('THEN_BUTTON');
+    }
+
+    const thenButtonInput = block.getInput('THEN_BUTTON');
+    if (thenButtonInput) {
+      const hasLabel = Boolean(block.getField('THEN_LABEL'));
+      if (hasThen && !hasLabel) {
+        thenButtonInput.insertFieldAt(0, translate('then_label'), 'THEN_LABEL');
+      } else if (!hasThen && hasLabel) {
+        thenButtonInput.removeField('THEN_LABEL');
+      }
+    }
+
+    const thenField = block.getField('THEN_TOGGLE_BUTTON');
+    if (thenField) {
+      thenField.setValue(hasThen ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+    }
+  };
+
+  const mutationText = function () {
+    const dom = block.mutationToDom && block.mutationToDom();
+    return dom ? Blockly.Xml.domToText(dom) : '';
+  };
+
+  // Re-render, reflow, and fire a mutation change so code regeneration runs.
+  const finishMutation = function (oldState) {
+    syncMutatorButtons();
+    if (block.rendered) {
+      block.render();
+      block.bumpNeighbours?.();
+    }
+    const newState = mutationText();
+    if (oldState !== newState) {
+      Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', '', oldState, newState));
+    }
+  };
+
+  // Toggle the "do" (constructor) section. Removing it also drops "then".
   block.toggleDoBlock = function () {
-    const hasDo = this.getInput('DO') ? true : false;
-    if (hasDo) {
+    const oldState = mutationText();
+    if (this.getInput('DO')) {
+      if (this.getInput('THEN')) this.removeInput('THEN');
       this.removeInput('DO');
     } else {
       this.appendStatementInput('DO').setCheck(null).appendField('');
     }
+    finishMutation(oldState);
+  };
+
+  // Toggle the "then" section, which runs once the constructor has completed.
+  block.toggleThenBlock = function () {
+    if (!this.getInput('DO')) return;
+    const oldState = mutationText();
+    if (this.getInput('THEN')) {
+      this.removeInput('THEN');
+    } else {
+      this.appendStatementInput('THEN').setCheck(null).appendField('');
+    }
+    finishMutation(oldState);
   };
 
   // Add the toggle button to the block
   const toggleButton = new Blockly.FieldImage(
-    'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iMzAiIHZpZXdCb3g9IjAgMCAzMCAzMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4gPHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xNSA2djloLTl2M2g5djloM3YtOWg5di0zaC05di05eiIvPjwvc3ZnPg==', // Custom icon
+    DO_MUTATOR_PLUS,
     30,
     30,
     'toggle do block', // Width, Height, Alt text
@@ -1925,16 +2056,23 @@ export function addDoMutatorWithToggleBehavior(block) {
   // Save the mutation state
   block.mutationToDom = function () {
     const container = document.createElement('mutation');
-    container.setAttribute('has_do', this.getInput('DO') ? 'true' : 'false');
+    const hasDo = Boolean(this.getInput('DO'));
+    container.setAttribute('has_do', hasDo ? 'true' : 'false');
+    container.setAttribute('has_then', hasDo && this.getInput('THEN') ? 'true' : 'false');
     return container;
   };
 
   // Restore the mutation state
   block.domToMutation = function (xmlElement) {
     const hasDo = xmlElement.getAttribute('has_do') === 'true';
+    const hasThen = xmlElement.getAttribute('has_then') === 'true';
     if (hasDo) {
       this.appendStatementInput('DO').setCheck(null).appendField('');
+      if (hasThen) {
+        this.appendStatementInput('THEN').setCheck(null).appendField('');
+      }
     }
+    syncMutatorButtons();
   };
 }
 
