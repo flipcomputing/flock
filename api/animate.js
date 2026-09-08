@@ -1369,7 +1369,7 @@ export const flockAnimate = {
             : animationName;
 
         const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          './animations/',
+          flock.animationPath,
           animationFile + '.glb',
           flock.scene,
           undefined,

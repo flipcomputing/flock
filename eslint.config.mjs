@@ -15,7 +15,14 @@ export default [
       'test-visual.js',
     ],
   },
-  { languageOptions: { globals: globals.browser } },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        __FLOCK_SES_SRI__: 'readonly',
+      },
+    },
+  },
   {
     files: ['tests/**/*.test.js'],
     languageOptions: {

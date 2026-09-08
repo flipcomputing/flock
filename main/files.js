@@ -354,6 +354,16 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
   }
 }
 
+export function extractEmbeddedProjectJson(htmlText) {
+  const match = htmlText.match(
+    /<script\b[^>]*\btype\s*=\s*["']application\/(?:vnd\.)?flock\+json["'][^>]*>([\s\S]*?)<\/script>/i
+  );
+  if (!match) {
+    throw new Error('No embedded Flock project (application/flock+json) found in HTML');
+  }
+  return match[1];
+}
+
 function parseProjectJsonResponse(response) {
   if (!response.ok) {
     throw new Error(`Failed to load project (${response.status} ${response.statusText})`);
@@ -362,17 +372,19 @@ function parseProjectJsonResponse(response) {
   const contentType = (response.headers.get('content-type') || '').toLowerCase();
 
   return response.text().then((projectText) => {
-    const trimmedProjectText = projectText.trim();
-
-    if (
-      contentType.includes('text/html') ||
-      trimmedProjectText.startsWith('<!doctype html') ||
-      trimmedProjectText.startsWith('<html')
-    ) {
-      throw new Error(`Expected JSON project data but received ${contentType || 'text/html'}`);
+    if (projectText.length > MAX_PROJECT_TEXT_LENGTH) {
+      throw new ProjectTooLargeError();
     }
 
-    return parseProjectText(projectText, {
+    const trimmedProjectText = projectText.trim();
+    const isHtml =
+      contentType.includes('text/html') ||
+      trimmedProjectText.startsWith('<!doctype html') ||
+      trimmedProjectText.startsWith('<html');
+
+    const jsonText = isHtml ? extractEmbeddedProjectJson(projectText) : projectText;
+
+    return parseProjectText(jsonText, {
       describeParseError: `Failed to parse project JSON from ${contentType || 'unknown content type'}`,
     });
   });
@@ -472,8 +484,8 @@ export function loadWorkspace(workspace, executeCallback) {
           throw new Error('Project URL must use http or https protocol');
         }
         const path = validatedUrl.pathname.toLowerCase();
-        if (!path.endsWith('.json') && !path.endsWith('.flock')) {
-          throw new Error('Project URL must point to a .json or .flock file');
+        if (!/\.(json|flock|html?)$/.test(path)) {
+          throw new Error('Project URL must point to a .flock, .json or .html file');
         }
       } catch (error) {
         console.error('Invalid project URL:', error);

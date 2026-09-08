@@ -1,7 +1,8 @@
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { copyFileSync } from 'fs';
+import { copyFileSync, readFileSync } from 'fs';
 import { resolve } from 'path';
+import { createHash } from 'node:crypto';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import { writeFileSync, mkdirSync } from 'fs';
 import { appendFile, rename, stat } from 'fs/promises';
@@ -9,6 +10,11 @@ import { appendFile, rename, stat } from 'fs/promises';
 // Determine if we are in production mode
 const isProduction = process.env.NODE_ENV === 'production';
 const BASE_URL = process.env.VITE_BASE_URL || '/';
+
+const SES_LOCKDOWN_PATH = 'node_modules/ses/dist/lockdown.umd.min.js';
+const SES_LOCKDOWN_SRI = `sha256-${createHash('sha256')
+  .update(readFileSync(SES_LOCKDOWN_PATH))
+  .digest('base64')}`;
 
 // Chunk basenames reachable only through the Inspector's dynamic import. The
 // find-inspector-chunks plugin computes these for the service worker manifest.
@@ -35,6 +41,10 @@ function sameHost(origin, host) {
 export default {
   // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
   base: BASE_URL,
+
+  define: {
+    __FLOCK_SES_SRI__: JSON.stringify(SES_LOCKDOWN_SRI),
+  },
 
   plugins: [
     // Dev-only sink: on-device XR samples land in logs/xr-debug.log.
@@ -417,6 +427,12 @@ export default {
         const outDir = options.dir ?? 'dist';
         copyFileSync('cubeart.html', resolve(outDir, 'cubeart.html'));
         copyFileSync('embed-example.html', resolve(outDir, 'embed-example.html'));
+        copyFileSync('standalone.css', resolve(outDir, 'standalone.css'));
+        mkdirSync(resolve(outDir, 'standalone'), { recursive: true });
+        copyFileSync(
+          'examples/standalone/alien-planet.html',
+          resolve(outDir, 'standalone/alien-planet.html')
+        );
         // Generate _headers for Cloudflare Pages (and any static host that supports it).
         // The Vite dev/preview server sets these headers directly; the _headers file
         // ensures the same headers are served in production.
@@ -427,6 +443,12 @@ export default {
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), payment=(), usb=(self), gamepad=(self)
+
+/standalone/*
+  Access-Control-Allow-Origin: *
+
+/examples/*
+  Access-Control-Allow-Origin: *
 `;
         writeFileSync(resolve(outDir, '_headers'), headersContent);
       },

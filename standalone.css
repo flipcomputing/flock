@@ -1,0 +1,147 @@
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#renderCanvas {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: block;
+  touch-action: none;
+}
+
+#renderCanvas:focus-visible {
+  outline: 3px solid #fc3;
+  outline-offset: -3px;
+}
+
+.flock-credit {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-top: 1px solid #cfcde0;
+  font:
+    13px/1 'Atkinson Hyperlegible Next',
+    'Asap',
+    Helvetica,
+    Arial,
+    sans-serif;
+  color: #511d91;
+}
+
+.flock-credit a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #511d91;
+  text-decoration: none;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.flock-credit a:hover,
+.flock-credit a:focus-visible {
+  text-decoration: underline;
+}
+
+.flock-credit img {
+  height: 14px;
+  width: auto;
+  display: block;
+}
+
+.flock-credit-open {
+  border: 1px solid #cfcde0;
+  padding: 4px 10px;
+}
+
+.flock-credit-open[hidden] {
+  display: none;
+}
+
+.flock-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  transition: opacity 0.5s ease-out;
+}
+
+.flock-loading.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flock-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, sans-serif;
+}
+
+.flock-loading-bird {
+  width: 120px;
+  height: 120px;
+  animation: flock-loading-float 2s ease-in-out infinite;
+}
+
+.flock-loading-logo {
+  width: 200px;
+  height: auto;
+}
+
+.flock-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e3e3e3;
+  border-top: 4px solid #511d91;
+  border-radius: 50%;
+  animation: flock-loading-spin 1s linear infinite;
+}
+
+.flock-loading-text {
+  color: #511d91;
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0;
+}
+
+@keyframes flock-loading-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes flock-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flock-loading-bird,
+  .flock-loading-spinner {
+    animation: none;
+  }
+}

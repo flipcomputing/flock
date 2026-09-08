@@ -7,25 +7,19 @@ let manifoldModule = null;
 let manifoldInitPromise = null;
 
 // Initialize the Manifold WASM module once
-export async function getManifold() {
+export async function getManifold(wasmUrl) {
   if (manifoldModule) return manifoldModule;
   if (manifoldInitPromise) return manifoldInitPromise;
 
   manifoldInitPromise = (async () => {
     try {
-      // Load with explicit WASM location using the correct base path
-      // Ensure base URL ends with a slash
-      let baseUrl = import.meta.env.BASE_URL || '/';
-      if (!baseUrl.endsWith('/')) baseUrl += '/';
+      const resolvedWasmUrl =
+        wasmUrl ||
+        flock?.runtimeUrl?.('wasm/manifold.wasm') ||
+        `${import.meta.env.BASE_URL || '/'}wasm/manifold.wasm`;
 
       const wasm = await Module({
-        locateFile: (file) => {
-          if (file.endsWith('.wasm')) {
-            // Use base URL for both dev and production (GitHub Pages)
-            return `${baseUrl}wasm/manifold.wasm`;
-          }
-          return file;
-        },
+        locateFile: (file) => (file.endsWith('.wasm') ? resolvedWasmUrl : file),
       });
 
       // Setup is required for manifold-3d
