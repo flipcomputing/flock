@@ -288,6 +288,20 @@ export function defineXRBlocks() {
             name: 'REST_FRAME_SHOW',
             options: [getDropdownOption('moving'), getDropdownOption('always')],
           },
+          {
+            type: 'field_dropdown',
+            name: 'REST_FRAME_SPACING',
+            options: [
+              getDropdownOption('small'),
+              getDropdownOption('medium'),
+              getDropdownOption('large'),
+            ],
+          },
+          {
+            type: 'input_value',
+            name: 'REST_FRAME_COLOR',
+            check: 'Colour',
+          },
         ],
         inputsInline: true,
         previousStatement: null,

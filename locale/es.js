@@ -374,7 +374,7 @@ export default {
   set_xr_view_mode: 'establecer vista de RV a %1 con movimiento de cámara %2',
   set_ar_scene_size: 'escena AR escala: %1 cm distancia: %2 cm altura: %3 cm', // ai
   set_vr_comfort: 'confort de RV visión de túnel %1 intensidad %2 color %3 alfa %4', // ai
-  set_vr_comfort_overlay: 'superposición %1 mostrada %2', // ai
+  set_vr_comfort_overlay: 'superposición %1 mostrada %2 espaciado %3 color %4', // ai
   set_xr_ui_placement: 'mostrar interfaz de RV en %1', // ai
   add_teleport_target: 'añadir destino de teletransporte %1',
   remove_teleport_target: 'eliminar destino de teletransporte %1',
@@ -854,6 +854,8 @@ export default {
   low_option: 'baja', // ai
   medium_option: 'media', // ai
   high_option: 'alta', // ai
+  small_option: 'pequeño', // ai
+  large_option: 'grande', // ai
   off_option: 'desactivado', // ai
   space_infinity_option: 'espacio ❖', // human
   q_icon_option: 'Q ■', // human

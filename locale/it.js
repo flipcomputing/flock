@@ -346,7 +346,7 @@ export default {
   set_xr_view_mode: 'imposta vista VR su %1 con movimento della camera %2',
   set_ar_scene_size: 'scena AR scala: %1 cm distanza: %2 cm altezza: %3 cm', // ai
   set_vr_comfort: 'comfort VR visione a tunnel %1 intensità %2 colore %3 alpha %4', // ai
-  set_vr_comfort_overlay: 'sovrapposizione %1 mostrata %2', // ai
+  set_vr_comfort_overlay: 'sovrapposizione %1 mostrata %2 spaziatura %3 colore %4', // ai
   set_xr_ui_placement: 'mostra interfaccia VR su %1', // ai
   add_teleport_target: 'aggiungi destinazione teletrasporto %1',
   remove_teleport_target: 'rimuovi destinazione teletrasporto %1',
@@ -801,6 +801,8 @@ export default {
   low_option: 'bassa', // ai
   medium_option: 'media', // ai
   high_option: 'alta', // ai
+  small_option: 'piccola', // ai
+  large_option: 'grande', // ai
   off_option: 'disattivato', // ai
   space_infinity_option: 'spazio ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q

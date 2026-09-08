@@ -379,7 +379,7 @@ export default {
   set_xr_view_mode: 'set VR view to %1 with camera motion %2',
   set_ar_scene_size: 'set AR scene scale: %1 cm distance: %2 cm height: %3 cm',
   set_vr_comfort: 'set VR comfort tunnel vision %1 strength %2 colour %3 alpha %4',
-  set_vr_comfort_overlay: 'overlay %1 shown %2',
+  set_vr_comfort_overlay: 'overlay %1 shown %2 spacing %3 colour %4',
   set_xr_ui_placement: 'show VR UI on %1',
   add_teleport_target: 'add teleport target %1',
   remove_teleport_target: 'remove teleport target %1',
@@ -664,7 +664,7 @@ export default {
   set_ar_scene_size_tooltip:
     'Scale: how wide the scene appears in the room, or 0 for life size. Distance: how far in front of you it starts. Height: how far it floats above the floor.',
   set_vr_comfort_tooltip:
-    'Comfort options for a VR headset. Tunnel vision narrows the edges of your view while the scene moves; the overlay adds faint markers that hold still in your real room.',
+    'Comfort options for a VR headset. Tunnel vision narrows the edges of your view while the scene moves; the overlay adds faint markers (dots or a room-sized grid cage) that hold still in your real room. Spacing and colour set how the dots and grid look.',
   set_xr_ui_placement_tooltip:
     'Choose where buttons, sliders and text appear in VR. The heads-up display floats in front of you; the wrist attaches them to your left controller like a watch.',
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',
@@ -866,6 +866,8 @@ export default {
   low_option: 'low',
   medium_option: 'medium',
   high_option: 'high',
+  small_option: 'small',
+  large_option: 'large',
   off_option: 'off',
   space_infinity_option: 'space ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q

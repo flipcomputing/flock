@@ -3230,6 +3230,8 @@ export function runXRTests(flock) {
         '_xrComfortPoseStatus',
         '_xrComfortRestFrame',
         '_xrComfortRestFrameShow',
+        '_xrComfortRestFrameSpacing',
+        '_xrComfortRestFrameColour',
         '_xrRestFrameNode',
         '_xrRestFrameMesh',
         '_xrRestFrameMaterial',
@@ -3275,6 +3277,8 @@ export function runXRTests(flock) {
         flock._xrComfortTunnel = 'auto';
         flock._xrComfortRestFrame = createFlockXRState()._xrComfortRestFrame;
         flock._xrComfortRestFrameShow = createFlockXRState()._xrComfortRestFrameShow;
+        flock._xrComfortRestFrameSpacing = createFlockXRState()._xrComfortRestFrameSpacing;
+        flock._xrComfortRestFrameColour = createFlockXRState()._xrComfortRestFrameColour;
         flock._xrVignetteMesh = { isVisible: false, isDisposed: () => false };
         flock._xrVignetteMaterial = { setFloat: () => {} };
         flock._xrVignetteRestriction = 0;
@@ -3301,7 +3305,10 @@ export function runXRTests(flock) {
           },
         };
         flock._xrRestFrameNode = node;
-        flock._xrRestFrameMaterial = { setFloat: (name, value) => (uniforms[name] = value) };
+        flock._xrRestFrameMaterial = {
+          setFloat: (name, value) => (uniforms[name] = value),
+          setColor3: (name, value) => (uniforms[name] = value),
+        };
         return { node, uniforms };
       };
 
@@ -3532,6 +3539,28 @@ export function runXRTests(flock) {
         expect(flock._xrComfortRestFrame).to.equal('dots');
       });
 
+      it('takes an overlay spacing and colour, and keeps the last good one', function () {
+        makeVRSession();
+
+        flock.setVRComfort('off', undefined, undefined, undefined, 'grid', 'moving', 'large', '#12ab34');
+        expect(flock._xrComfortRestFrameSpacing).to.equal('large');
+        expect(flock._xrComfortRestFrameColour).to.equal('#12ab34');
+
+        // Values from neither set leave the chosen ones standing.
+        flock.setVRComfort('off', undefined, undefined, undefined, 'grid', 'moving', 'enormous', 'reddish');
+        expect(flock._xrComfortRestFrameSpacing).to.equal('large');
+        expect(flock._xrComfortRestFrameColour).to.equal('#12ab34');
+      });
+
+      it('recolours the overlay without rebuilding its geometry', function () {
+        makeVRSession();
+        const { uniforms } = makeRestFrame('grid');
+        flock.setVRComfort('off', undefined, undefined, undefined, 'grid', 'moving', undefined, '#204080');
+
+        const tint = uniforms.tint;
+        expect([tint.r, tint.g, tint.b].map((c) => +c.toFixed(2))).to.deep.equal([0.13, 0.25, 0.5]);
+      });
+
       it('holds the rest frame still in the room while the view is driven under the wearer', function () {
         const { camera } = makeVRSession();
         const { node } = makeRestFrame('grid');
@@ -3689,6 +3718,30 @@ export function runXRTests(flock) {
           expect(dots[index + 1]).to.be.greaterThan(-0.4);
         }
         expect(flock._xrRestFrameGeometry('grid').length % 6).to.equal(0);
+      });
+
+      it('builds the grid as a room cage rather than a floor', function () {
+        const grid = flock._xrRestFrameGeometry('grid');
+        const heights = new Set();
+        for (let index = 1; index < grid.length; index += 3) heights.add(+grid[index].toFixed(3));
+
+        // The floor lattice is still there, joined to a matching one above head height.
+        expect(heights.has(0)).to.equal(true);
+        expect([...heights].some((y) => y > 1.6)).to.equal(true);
+      });
+
+      it('scales the grid and the dots by the named spacing', function () {
+        flock._xrComfortRestFrameSpacing = 'medium';
+        const gridMedium = flock._xrRestFrameGeometry('grid').length;
+        const dotsMedium = flock._xrRestFrameGeometry('dots').length;
+
+        flock._xrComfortRestFrameSpacing = 'small';
+        expect(flock._xrRestFrameGeometry('grid').length).to.be.greaterThan(gridMedium);
+        expect(flock._xrRestFrameGeometry('dots').length).to.be.greaterThan(dotsMedium);
+
+        flock._xrComfortRestFrameSpacing = 'large';
+        expect(flock._xrRestFrameGeometry('grid').length).to.be.lessThan(gridMedium);
+        expect(flock._xrRestFrameGeometry('dots').length).to.be.lessThan(dotsMedium);
       });
 
       it('keeps the rest frame out of the AR scene as well', function () {

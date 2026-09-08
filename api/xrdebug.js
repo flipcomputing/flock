@@ -110,6 +110,8 @@ function snapshot(label) {
       tunnel: flock._xrComfortTunnel ?? null,
       overlay: flock._xrComfortRestFrame ?? null,
       shown: flock._xrComfortRestFrameShow ?? null,
+      spacing: flock._xrComfortRestFrameSpacing ?? null,
+      overlayColour: flock._xrComfortRestFrameColour ?? null,
       pose: flock._xrComfortPoseStatus ?? null,
       motion: safe(() => flock._xrComfortMotion),
       fade: safe(() => flock._xrRestFrameFade),

@@ -642,7 +642,9 @@ export function registerSceneGenerators(javascriptGenerator) {
     const alpha = getFieldValue(block, 'ALPHA', '1');
     const restFrame = JSON.stringify(block.getFieldValue('REST_FRAME'));
     const restFrameShow = JSON.stringify(block.getFieldValue('REST_FRAME_SHOW'));
-    return `setVRComfort(${tunnel}, ${strength}, ${color}, ${alpha}, ${restFrame}, ${restFrameShow});\n`;
+    const restFrameSpacing = JSON.stringify(block.getFieldValue('REST_FRAME_SPACING'));
+    const restFrameColor = getFieldValue(block, 'REST_FRAME_COLOR', '"#ccd9ff"');
+    return `setVRComfort(${tunnel}, ${strength}, ${color}, ${alpha}, ${restFrame}, ${restFrameShow}, ${restFrameSpacing}, ${restFrameColor});\n`;
   };
 
   javascriptGenerator.forBlock['set_xr_ui_placement'] = function (block) {

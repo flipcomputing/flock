@@ -793,6 +793,14 @@ const toolboxSceneXR = {
             },
           },
         },
+        REST_FRAME_COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#ccd9ff',
+            },
+          },
+        },
       },
     },
     {

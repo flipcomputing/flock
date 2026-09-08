@@ -96,6 +96,8 @@ export const createFlockXRState = () => ({
   _xrComfortAlpha: 1,
   _xrComfortRestFrame: 'none',
   _xrComfortRestFrameShow: 'moving',
+  _xrComfortRestFrameSpacing: 'medium',
+  _xrComfortRestFrameColour: REST_FRAME_COLOUR,
   _xrComfortMotion: 0,
   _xrComfortPoseStatus: null,
   _xrVignetteMesh: null,
@@ -210,15 +212,18 @@ const REST_FRAME_RENDERING_GROUP = 2;
 const REST_FRAME_FORMS = new Set(['none', 'dots', 'grid', 'horizon']);
 // Faint: it is there to be sensed, not looked at.
 const REST_FRAME_OPACITY = 0.35;
-const REST_FRAME_COLOUR = [0.8, 0.85, 1];
+// The colour the picker starts on; a bad value from the block falls back to it.
+const REST_FRAME_COLOUR = '#ccd9ff';
 // Room-scale: further out than this reads as scenery rather than as a reference.
 const REST_FRAME_EXTENT_M = 4;
-const REST_FRAME_GRID_SPACING_M = 1;
-const REST_FRAME_DOT_SPACING_M = 1.5;
-const REST_FRAME_DOT_CEILING_M = 3;
+// Named rather than numbered: the wearer picks a density, not a measurement. Drives the grid
+// lines and the dot lattice alike.
+const REST_FRAME_SPACINGS = { small: 1, medium: 1.5, large: 2.5 };
+const REST_FRAME_CEILING_M = 3;
 // Nothing inside arm's reach: a dot at the end of the nose is an obstruction, not a reference.
 const REST_FRAME_DOT_CLEARANCE_M = 0.8;
-const REST_FRAME_DOT_JITTER_M = 0.35;
+// A fraction of the spacing, so the scatter reads the same at every density.
+const REST_FRAME_DOT_JITTER_RATIO = 0.23;
 // Pixels across at a metre, shrinking with distance; the floor keeps far dots from vanishing.
 const REST_FRAME_DOT_PIXELS = 28;
 const REST_FRAME_DOT_MIN_PIXELS = 4;
@@ -1242,25 +1247,42 @@ export const flockXR = {
       }
       return positions;
     }
+
+    const spacing = REST_FRAME_SPACINGS[flock._xrComfortRestFrameSpacing] ?? REST_FRAME_SPACINGS.medium;
+    // Grown out from the origin so the lattice stays centred on the wearer whatever the spacing.
+    const steps = Math.max(1, Math.floor(REST_FRAME_EXTENT_M / spacing));
+    const extent = steps * spacing;
+    const offsets = [];
+    for (let i = -steps; i <= steps; i += 1) offsets.push(i * spacing);
+
     if (form === 'grid') {
-      const extent = REST_FRAME_EXTENT_M;
-      for (let offset = -extent; offset <= extent + 0.0001; offset += REST_FRAME_GRID_SPACING_M) {
-        positions.push(offset, 0, -extent, offset, 0, extent);
-        positions.push(-extent, 0, offset, extent, 0, offset);
+      // A cage, not a floor: floor and ceiling lattices joined by uprights at every crossing, so
+      // something of it stays in view whichever way the wearer is looking.
+      for (const y of [0, REST_FRAME_CEILING_M]) {
+        for (const offset of offsets) {
+          positions.push(offset, y, -extent, offset, y, extent);
+          positions.push(-extent, y, offset, extent, y, offset);
+        }
+      }
+      for (const x of offsets) {
+        for (const z of offsets) {
+          positions.push(x, 0, z, x, REST_FRAME_CEILING_M, z);
+        }
       }
       return positions;
     }
+
     // Jittered off the lattice so it does not read as a second grid, but by a fixed pattern:
     // a project's dots land in the same places every run.
     let seed = 1;
+    const amplitude = spacing * REST_FRAME_DOT_JITTER_RATIO;
     const jitter = () => {
       seed = (seed * 1103515245 + 12345) % 2147483648;
-      return (seed / 2147483648 - 0.5) * 2 * REST_FRAME_DOT_JITTER_M;
+      return (seed / 2147483648 - 0.5) * 2 * amplitude;
     };
-    const spacing = REST_FRAME_DOT_SPACING_M;
-    for (let x = -REST_FRAME_EXTENT_M; x <= REST_FRAME_EXTENT_M + 0.0001; x += spacing) {
-      for (let z = -REST_FRAME_EXTENT_M; z <= REST_FRAME_EXTENT_M + 0.0001; z += spacing) {
-        for (let y = 0; y <= REST_FRAME_DOT_CEILING_M + 0.0001; y += spacing) {
+    for (const x of offsets) {
+      for (const z of offsets) {
+        for (let y = 0; y <= REST_FRAME_CEILING_M + 0.0001; y += spacing) {
           const point = [x + jitter(), y + jitter(), z + jitter()];
           if (Math.hypot(point[0], point[2]) < REST_FRAME_DOT_CLEARANCE_M) continue;
           positions.push(...point);
@@ -1301,10 +1323,11 @@ export const flockXR = {
     material.depthFunction = B.Constants.ALWAYS;
     material.fillMode =
       form === 'dots' ? B.Material.PointListDrawMode : B.Material.LineListDrawMode;
-    material.setColor3('tint', new B.Color3(...REST_FRAME_COLOUR));
     material.setFloat('pointSize', REST_FRAME_DOT_PIXELS);
     material.setFloat('minPointSize', REST_FRAME_DOT_MIN_PIXELS);
     material.setFloat('opacity', 0);
+    flock._xrRestFrameMaterial = material;
+    flock._applyXRRestFrameColour();
 
     const mesh = new B.Mesh(REST_FRAME_MESH_NAMES[form], flock.scene);
     const vertexData = new B.VertexData();
@@ -1320,8 +1343,20 @@ export const flockXR = {
 
     flock._xrRestFrameNode = node;
     flock._xrRestFrameMesh = mesh;
-    flock._xrRestFrameMaterial = material;
     flock._xrRestFrameFade = 0;
+  },
+  // Live: the colour is a straight uniform swap, no reason to rebuild the geometry for it.
+  _applyXRRestFrameColour() {
+    const material = flock._xrRestFrameMaterial;
+    if (!material) return;
+    const B = flock.BABYLON;
+    let tint = null;
+    try {
+      tint = B.Color3.FromHexString(flock._xrComfortRestFrameColour);
+    } catch {
+      // A colour the picker never produces: fall back rather than lose the frame.
+    }
+    material.setColor3('tint', tint ?? B.Color3.FromHexString(REST_FRAME_COLOUR));
   },
   _disposeXRRestFrame() {
     flock._xrRestFrameMesh?.dispose?.();
@@ -2113,7 +2148,16 @@ export const flockXR = {
     flock._arSceneHeightCm = optionalCentimetres(heightCm, AR_SCENE_HEIGHT_MAX_CM);
     flock._applyARSceneScale();
   },
-  setVRComfort(mode, strength, colour, alpha, restFrame, restFrameShow) {
+  setVRComfort(
+    mode,
+    strength,
+    colour,
+    alpha,
+    restFrame,
+    restFrameShow,
+    restFrameSpacing,
+    restFrameColour
+  ) {
     // Each setting stands on its own: one bad value leaves the others to take effect.
     if (mode === 'auto' || mode === 'off') flock._xrComfortTunnel = mode;
     if (Object.hasOwn(VIGNETTE_CLOSED_ANGLES, strength)) flock._xrComfortStrength = strength;
@@ -2129,12 +2173,21 @@ export const flockXR = {
     if (restFrameShow === 'moving' || restFrameShow === 'always') {
       flock._xrComfortRestFrameShow = restFrameShow;
     }
-    const rebuild = REST_FRAME_FORMS.has(restFrame) && restFrame !== flock._xrComfortRestFrame;
-    if (rebuild) flock._xrComfortRestFrame = restFrame;
+    if (typeof restFrameColour === 'string' && /^#[0-9a-f]{6}$/i.test(restFrameColour)) {
+      flock._xrComfortRestFrameColour = restFrameColour;
+    }
+    const spacingChanged =
+      Object.hasOwn(REST_FRAME_SPACINGS, restFrameSpacing) &&
+      restFrameSpacing !== flock._xrComfortRestFrameSpacing;
+    if (spacingChanged) flock._xrComfortRestFrameSpacing = restFrameSpacing;
+    const formChanged = REST_FRAME_FORMS.has(restFrame) && restFrame !== flock._xrComfortRestFrame;
+    if (formChanged) flock._xrComfortRestFrame = restFrame;
     flock._applyXRVignetteStyle();
     flock._resetXRComfortBaseline();
     if (flock._xrComfortTunnel === 'off') flock._setXRVignetteRestriction(0);
-    if (rebuild) flock._applyXRRestFrame();
+    // Geometry has to be rebuilt for a new form or spacing; a recolour is a live uniform swap.
+    if (formChanged || spacingChanged) flock._applyXRRestFrame();
+    else flock._applyXRRestFrameColour();
   },
   setXRUIPlacement(placement) {
     if (placement !== 'hud' && placement !== 'wrist') return;
