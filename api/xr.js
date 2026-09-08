@@ -1112,9 +1112,9 @@ export const flockXR = {
     mesh.renderingGroupId = VIGNETTE_RENDERING_GROUP;
     // It surrounds the camera, so testing its bounds against the frustum proves nothing.
     mesh.alwaysSelectAsActiveMesh = true;
-    // Riding the camera node keeps the aperture centred without a per-frame placement that
-    // could land a frame behind the eyes it is drawn for.
-    mesh.parent = camera;
+    // Placed per frame by _syncXRVignettePose rather than parented, so locomotion cannot slide
+    // the aperture off the eyes the way it does a child of the XR camera.
+    mesh.rotationQuaternion = new B.Quaternion();
 
     flock._xrVignetteMaterial = material;
     flock._xrVignetteMesh = mesh;
@@ -1168,6 +1168,27 @@ export const flockXR = {
       'aperture',
       VIGNETTE_OPEN_ANGLE + (flock._xrVignetteClosedAngle() - VIGNETTE_OPEN_ANGLE) * value
     );
+  },
+  // Centre on the averaged rig pose, as _syncXRHUDPose does: the rig cameras hold the pose the
+  // eyes render from, which locomotion moves the XR camera past.
+  _syncXRVignettePose() {
+    const mesh = flock._xrVignetteMesh;
+    if (!mesh || mesh.isDisposed?.() || !mesh.isVisible) return;
+    const rigs = flock.xrHelper?.baseExperience?.camera?.rigCameras;
+    if (!rigs?.length) return;
+
+    const B = flock.BABYLON;
+    flock._xrVignetteCenter ??= new B.Vector3();
+    const center = flock._xrVignetteCenter.copyFromFloats(0, 0, 0);
+    for (const rig of rigs) {
+      // globalPosition is only refreshed alongside the world matrix.
+      rig.getWorldMatrix();
+      center.addInPlace(rig.globalPosition);
+    }
+    center.scaleInPlace(1 / rigs.length);
+    mesh.position.copyFrom(center);
+    mesh.rotationQuaternion ??= new B.Quaternion();
+    mesh.rotationQuaternion.copyFrom(rigs[0].absoluteRotation);
   },
   _vrRestFrameActive() {
     if (flock._xrComfortRestFrame === 'none') return false;
@@ -1472,6 +1493,7 @@ export const flockXR = {
     }
     const status = flock._sampleXRComfortMotion();
     flock._setXRVignetteRestriction(tunnel ? VIGNETTE_MAX_RESTRICTION * flock._xrComfortMotion : 0);
+    flock._syncXRVignettePose();
     if (restFrame) flock._placeXRRestFrame(status);
     else flock._setXRRestFrameFade(0);
   },
