@@ -193,14 +193,19 @@ const COMFORT_JUMP_RAD = Math.PI / 12;
 
 // The restrictor closes the periphery down as the motion reading rises. Restriction runs
 // 0 (open) to 1 (tunnel), and stops short of 1 so there is always something left to steer by.
-const VIGNETTE_MAX_RESTRICTION = 0.85;
-// Half-angles from straight ahead: open sits outside any headset's field of view, so an open
-// restrictor is not merely invisible but has nothing to draw.
-const VIGNETTE_OPEN_ANGLE = 1.6;
-// How tight the tunnel gets at full speed. Relief and immersion trade off against each other
-// differently for every wearer, which is why this is the wearer's choice rather than a constant.
-const VIGNETTE_CLOSED_ANGLES = { low: 0.61, medium: 0.35, high: 0.21 };
-const VIGNETTE_FEATHER_RAD = 0.22;
+const VIGNETTE_MAX_RESTRICTION = 0.95;
+// Half-angles from straight ahead. Open sits just past the widest headset's field of view, so
+// an open restrictor has nothing to draw while the ramp still spends its range inside the view.
+const VIGNETTE_OPEN_ANGLE = 1.15;
+// How tight the tunnel gets at full speed, chosen by the wearer. Low stays visible without
+// taking much of the view; high leaves a narrow porthole.
+const VIGNETTE_CLOSED_ANGLES = { low: 0.63, medium: 0.5, high: 0.38 };
+// The edge is a smoothstep band sized as a fraction of how far the aperture has closed from
+// open, so it softens as the tunnel tightens and its edge moves in from the far periphery. Per
+// the subtle dynamic-FOV work (Fernandes & Feiner 2016): the restrictor works best unnoticed.
+const VIGNETTE_FEATHER_FRACTION = 0.35;
+// Never collapses to a hard line while the tunnel has only just begun to close.
+const VIGNETTE_FEATHER_MIN_RAD = 0.12;
 // Far enough out that the eyes' offset from the centre is a fifth of a degree of aperture.
 const VIGNETTE_RADIUS_M = 12;
 // Drawn after the scene, the handheld HUD's group, and the rest frame the tunnel must cover.
@@ -1104,7 +1109,7 @@ export const flockXR = {
     material.disableDepthWrite = true;
     material.depthFunction = B.Constants.ALWAYS;
     material.setFloat('aperture', VIGNETTE_OPEN_ANGLE);
-    material.setFloat('feather', VIGNETTE_FEATHER_RAD);
+    material.setFloat('feather', VIGNETTE_FEATHER_MIN_RAD);
 
     const mesh = B.MeshBuilder.CreateSphere(
       VIGNETTE_MESH_NAME,
@@ -1169,9 +1174,16 @@ export const flockXR = {
     // Open, the aperture is wider than any headset shows: there would be nothing to draw.
     mesh.isVisible = value > 0;
     if (value <= 0) return;
-    flock._xrVignetteMaterial?.setFloat?.(
-      'aperture',
-      VIGNETTE_OPEN_ANGLE + (flock._xrVignetteClosedAngle() - VIGNETTE_OPEN_ANGLE) * value
+    const aperture =
+      VIGNETTE_OPEN_ANGLE + (flock._xrVignetteClosedAngle() - VIGNETTE_OPEN_ANGLE) * value;
+    const material = flock._xrVignetteMaterial;
+    material?.setFloat?.('aperture', aperture);
+    material?.setFloat?.(
+      'feather',
+      Math.max(
+        VIGNETTE_FEATHER_MIN_RAD,
+        (VIGNETTE_OPEN_ANGLE - aperture) * VIGNETTE_FEATHER_FRACTION
+      )
     );
   },
   // Centre on the averaged rig pose, as _syncXRHUDPose does: the rig cameras hold the pose the
@@ -1248,7 +1260,8 @@ export const flockXR = {
       return positions;
     }
 
-    const spacing = REST_FRAME_SPACINGS[flock._xrComfortRestFrameSpacing] ?? REST_FRAME_SPACINGS.medium;
+    const spacing =
+      REST_FRAME_SPACINGS[flock._xrComfortRestFrameSpacing] ?? REST_FRAME_SPACINGS.medium;
     // Grown out from the origin so the lattice stays centred on the wearer whatever the spacing.
     const steps = Math.max(1, Math.floor(REST_FRAME_EXTENT_M / spacing));
     const extent = steps * spacing;
