@@ -3234,16 +3234,16 @@ svg.blocklyTrashcanFlyout {
 }
 
 /* Light mode only: the popup keeps the lighter menu ground (above), while the
-   buttons take the same light-purple bar and brand-purple icons as the grouped
-   gizmo toolbar, so the two floating menus read as one family. The trashcan
-   icon is tinted to match in style/blockly.css. Other themes are untouched. */
+   buttons take the darker info-panel ground and brand-purple icons, so they sit
+   quietly against the menu. The trashcan icon is tinted to match in
+   style/blockly.css. Other themes are untouched. */
 [data-theme='light'] .fc-block-toolbar-btn {
-  background: var(--color-light-icon-bar);
+  background: var(--color-panel-bg);
   color: var(--color-primary);
 }
 
 [data-theme='light'] .fc-block-toolbar-btn:active {
-  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-light-icon-bar));
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-panel-bg));
 }
 
 /* Passive keyboard hint in the block toolbar (the "press M to move" icon).
