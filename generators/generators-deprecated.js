@@ -143,40 +143,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
           } while (${condition});\n`;
   };
 
-  javascriptGenerator.forBlock['for_loop'] = function (block, generator) {
-    const variable0 = generator.getVariableName(block.getFieldValue('VAR'));
-
-    const argument0 = generator.valueToCode(block, 'FROM', generator.ORDER_ASSIGNMENT) || '0';
-    const argument1 = generator.valueToCode(block, 'TO', generator.ORDER_ASSIGNMENT) || '0';
-    const increment = generator.valueToCode(block, 'BY', generator.ORDER_ASSIGNMENT) || '1';
-
-    const branch = generator.statementToCode(block, 'DO');
-
-    // Timing and iteration counter variables
-    const timingVar = generator.nameDB_.getDistinctName(
-      `${variable0}_timing`,
-      Blockly.Names.DEVELOPER_VARIABLE_TYPE
-    );
-
-    const counterVar = generator.nameDB_.getDistinctName(
-      `${variable0}_counter`,
-      Blockly.Names.DEVELOPER_VARIABLE_TYPE
-    );
-
-    return `
-                  let ${timingVar} = performance.now();
-                  let ${counterVar} = 0;
-                  for (let ${variable0} = ${argument0}; (${increment} > 0 ? ${variable0} <= ${argument1} : ${variable0} >= ${argument1}); ${variable0} += ${increment}) {
-                          ${branch}
-                          ${counterVar}++;
-                          if (${counterVar} % 10 === 0 && performance.now() - ${timingVar} > 16) {
-                                  await new Promise(resolve => requestAnimationFrame(resolve));
-                                  ${timingVar} = performance.now();
-                          }
-                  }
-          `;
-  };
-
   javascriptGenerator.forBlock['when_key_event'] = function (block) {
     const key = block.getFieldValue('KEY');
     const event = block.getFieldValue('EVENT'); // "pressed" or "released"
