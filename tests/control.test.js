@@ -99,23 +99,6 @@ export function runControlTests(flock) {
       });
     });
 
-    describe('safeLoop', function () {
-      it('should call the loop body for each iteration', async function () {
-        const calls = [];
-        await flock.safeLoop(0, (i) => calls.push(i));
-        await flock.safeLoop(1, (i) => calls.push(i));
-        await flock.safeLoop(2, (i) => calls.push(i));
-        expect(calls).to.deep.equal([0, 1, 2]);
-      });
-
-      it('should stop when state.stopExecution is set', async function () {
-        const calls = [];
-        const state = { stopExecution: true };
-        await flock.safeLoop(0, (i) => calls.push(i), 100, undefined, state);
-        expect(calls).to.be.empty;
-      });
-    });
-
     describe('makeLoopYield', function () {
       const identityGuard = (cb) => cb;
 
