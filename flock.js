@@ -2859,10 +2859,20 @@ function flockConfigUrl(value) {
   return null;
 }
 
+// A base URL must end in '/' or `new URL(relative, base)` drops its last path
+// segment. Vite's BASE_URL normally has the slash, but the GitHub Pages deployer
+// passes `--base=/flock`, so guard against it (and against a slashless FLOCK_CONFIG).
+function ensureTrailingSlash(url) {
+  const parsed = new URL(url);
+  if (!parsed.pathname.endsWith('/')) parsed.pathname += '/';
+  return parsed.href;
+}
+
 function flockRuntimeBase() {
   const configured =
     typeof window !== 'undefined' && window.FLOCK_CONFIG && window.FLOCK_CONFIG.runtimeBaseUrl;
-  return flockConfigUrl(configured) || new URL(import.meta.env.BASE_URL, import.meta.url).href;
+  const base = flockConfigUrl(configured) || new URL(import.meta.env.BASE_URL, import.meta.url).href;
+  return ensureTrailingSlash(base);
 }
 
 function flockRuntimeUrl(relativePath) {
@@ -2874,7 +2884,8 @@ flock.runtimeUrl = flockRuntimeUrl;
 function flockAssetBase() {
   const configured =
     typeof window !== 'undefined' && window.FLOCK_CONFIG && window.FLOCK_CONFIG.assetBase;
-  return flockConfigUrl(configured) || flockRuntimeBase();
+  const base = flockConfigUrl(configured);
+  return base ? ensureTrailingSlash(base) : flockRuntimeBase();
 }
 
 function injectStandaloneChrome() {
