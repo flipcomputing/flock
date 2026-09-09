@@ -338,6 +338,69 @@ export function runSceneTests(flock) {
       it('sets enableOfflineSupport to false', function () {
         expect(flock.engine.enableOfflineSupport).to.be.false;
       });
+
+      describe('render loop visibility handling', function () {
+        const setHidden = (value) => {
+          Object.defineProperty(document, 'hidden', {
+            configurable: true,
+            get: () => value,
+          });
+          document.dispatchEvent(new Event('visibilitychange'));
+        };
+
+        let savedLoop;
+        let savedStopped;
+        let stopCalls;
+        let runArgs;
+        let origStop;
+        let origRun;
+
+        beforeEach(function () {
+          savedLoop = flock._renderLoop;
+          savedStopped = flock._renderLoopStopped;
+          flock._renderLoop = () => {};
+          flock._renderLoopStopped = false;
+          stopCalls = 0;
+          runArgs = [];
+          origStop = flock.engine.stopRenderLoop.bind(flock.engine);
+          origRun = flock.engine.runRenderLoop.bind(flock.engine);
+          flock.engine.stopRenderLoop = (...a) => {
+            stopCalls++;
+            return origStop(...a);
+          };
+          flock.engine.runRenderLoop = (...a) => {
+            runArgs.push(a[0]);
+            return origRun(...a);
+          };
+        });
+
+        afterEach(function () {
+          Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+          delete document.hidden;
+          flock.engine.stopRenderLoop = origStop;
+          flock.engine.runRenderLoop = origRun;
+          flock._renderLoop = savedLoop;
+          flock._renderLoopStopped = savedStopped;
+        });
+
+        it('stops the render loop when the tab is hidden', function () {
+          setHidden(true);
+          expect(stopCalls).to.be.greaterThan(0);
+        });
+
+        it('resumes the render loop when the tab is shown again', function () {
+          setHidden(true);
+          setHidden(false);
+          expect(runArgs).to.include(flock._renderLoop);
+        });
+
+        it('does not resume a render loop that Stop halted', function () {
+          flock._renderLoopStopped = true;
+          setHidden(true);
+          setHidden(false);
+          expect(runArgs).to.not.include(flock._renderLoop);
+        });
+      });
     });
 
     // ─── cloneMesh ─────────────────────────────────────────────────────────────

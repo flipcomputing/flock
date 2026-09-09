@@ -574,17 +574,81 @@ export const flock = {
 
     handleError(error, { source: 'physics-oom', fatal: true });
   },
+  // Wrap a yield primitive so it holds while the tab is hidden: a background
+  // tab must spend no real time running loops, matching wait() and the game
+  // clock. A stopped run abandons the held yield exactly as it would while
+  // visible, so abort only needs to detach the listener.
+  makeHiddenAwareYield(nativeYield, signal) {
+    const doc = typeof document !== 'undefined' ? document : null;
+    return (settle) => {
+      if (!doc?.hidden) {
+        nativeYield(settle);
+        return;
+      }
+      const onVisible = () => {
+        if (doc.hidden) return;
+        doc.removeEventListener('visibilitychange', onVisible);
+        signal?.removeEventListener('abort', onAbort);
+        nativeYield(settle);
+      };
+      const onAbort = () => doc.removeEventListener('visibilitychange', onVisible);
+      doc.addEventListener('visibilitychange', onVisible);
+      signal?.addEventListener('abort', onAbort, { once: true });
+    };
+  },
   // Counted-loop yield: scheduler.yield() resumes when the browser is free (not
   // at the next paint); fall back to rAF where unavailable. Guarded like rAF so
-  // a stopped run never resumes.
-  makeLoopYield(guard) {
+  // a stopped run never resumes; held while the tab is hidden.
+  makeLoopYield(guard, signal) {
     const schedulerYield = window.scheduler?.yield?.bind(window.scheduler) ?? null;
     const requestAnimationFrame = window.requestAnimationFrame.bind(window);
-    return (callback) => {
-      const settle = guard(callback);
-      if (schedulerYield) schedulerYield().then(settle, settle);
-      else requestAnimationFrame(settle);
+    const nativeYield = (settle) =>
+      schedulerYield ? schedulerYield().then(settle, settle) : requestAnimationFrame(settle);
+    const held = flock.makeHiddenAwareYield(nativeYield, signal);
+    return (callback) => held(guard(callback));
+  },
+  // setTimeout that spends no hidden-tab time: it pauses while the tab is
+  // hidden and resumes with the delay that was left, so a block's "for N
+  // seconds" means N visible seconds — the same rule as wait(). Returns a
+  // handle whose cancel() stops it and detaches the listener.
+  hiddenAwareTimeout(callback, ms) {
+    const doc = typeof document !== 'undefined' ? document : null;
+    let remaining = Math.max(0, Number(ms) || 0);
+    let startedAt = 0;
+    let running = false;
+    let id = null;
+    let done = false;
+
+    const cancel = () => {
+      if (done) return;
+      done = true;
+      running = false;
+      clearTimeout(id);
+      doc?.removeEventListener('visibilitychange', onVisibility);
     };
+    const fire = () => {
+      cancel();
+      callback();
+    };
+    const arm = () => {
+      startedAt = performance.now();
+      running = true;
+      id = setTimeout(fire, remaining);
+    };
+    const onVisibility = () => {
+      if (doc.hidden) {
+        if (!running) return;
+        running = false;
+        clearTimeout(id);
+        remaining = Math.max(0, remaining - (performance.now() - startedAt));
+      } else if (!running) {
+        arm();
+      }
+    };
+
+    doc?.addEventListener('visibilitychange', onVisibility);
+    if (!doc?.hidden) arm();
+    return { cancel };
   },
   validateCode(code) {
     if (typeof code !== 'string') {
@@ -922,10 +986,14 @@ export const flock = {
       // to cancel implicitly) or a stale run's frames fire into the next run.
       // Wrapped so the endowment carries no host `.constructor`.
       const hostRequestAnimationFrame = window.requestAnimationFrame.bind(window);
-      endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
-        hostRequestAnimationFrame(guard(callback))
+      const frameYield = flock.makeHiddenAwareYield(
+        (settle) => hostRequestAnimationFrame(settle),
+        signal
       );
-      endowments.__flockLoopYield = win.__flockWrapHostFn(flock.makeLoopYield(guard));
+      endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
+        frameYield(guard(callback))
+      );
+      endowments.__flockLoopYield = win.__flockWrapHostFn(flock.makeLoopYield(guard, signal));
 
       endowments.Date = new win.Object();
       endowments.Date.now = win.Date.now.bind(win.Date);
@@ -1560,8 +1628,9 @@ export const flock = {
       dismissBanner('webgl-lost');
       flock.engine.resize();
       // Don't resume behind the stopped overlay if Stop was pressed while the
-      // context was lost.
-      if (flock._renderLoop && !flock._renderLoopStopped) {
+      // context was lost, nor into a hidden tab (the visibilitychange handler
+      // resumes the loop when the tab is shown again).
+      if (flock._renderLoop && !flock._renderLoopStopped && !document.hidden) {
         flock.engine.runRenderLoop(flock._renderLoop);
       }
     });
@@ -1582,6 +1651,25 @@ export const flock = {
       flock._audioVisibilityListenerAdded = true;
       document.addEventListener('visibilitychange', () => {
         flock.syncAudioWithPageState?.();
+      });
+    }
+
+    if (!flock._renderVisibilityListenerAdded) {
+      flock._renderVisibilityListenerAdded = true;
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+          // Stop outright rather than leaning on the browser to throttle rAF:
+          // everything driven by scene.render() (physics, animations, forever,
+          // waitUntil) then freezes with the clock, audio and loop yields
+          // instead of crawling on in the background.
+          flock.engine?.stopRenderLoop();
+        } else if (
+          flock._renderLoop &&
+          !flock._renderLoopStopped &&
+          !flock.engine?.isContextLost?.()
+        ) {
+          flock.engine.runRenderLoop(flock._renderLoop);
+        }
       });
     }
 

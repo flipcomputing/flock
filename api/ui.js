@@ -284,13 +284,17 @@ export const flockUI = {
     });
 
     if (duration > 0) {
-      setTimeout(() => {
+      const expireTimer = flock.hiddenAwareTimeout(() => {
         const ctl = flock.scene.UITexture.getControlByName(bgId);
         if (ctl) {
           ctl.dispose();
         }
         unregisterUIControl(textBlockId);
       }, duration * 1000);
+
+      flock.abortController?.signal.addEventListener('abort', () => expireTimer.cancel(), {
+        once: true,
+      });
     }
 
     return textBlockId;
@@ -965,17 +969,17 @@ export const flockUI = {
           bg.addControl(textBlock);
 
           if (duration > 0) {
-            const timeoutId = setTimeout(() => {
+            const sayTimer = flock.hiddenAwareTimeout(() => {
               stackPanel.removeControl(bg);
               bg.dispose();
               textBlock.dispose();
               resolve();
             }, duration * 1000);
 
-            flock.abortController.signal.addEventListener(
+            flock.abortController?.signal.addEventListener(
               'abort',
               () => {
-                clearTimeout(timeoutId);
+                sayTimer.cancel();
                 bg.dispose();
                 textBlock.dispose();
                 resolve(new Error('Action aborted'));
@@ -1052,17 +1056,15 @@ export const flockUI = {
         });
       };
 
-      let timeoutId = null;
+      let fadeTimer = null;
       if (safeDuration > 0) {
-        timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+        fadeTimer = flock.hiddenAwareTimeout(fadeOut, safeDuration * 1000);
       }
 
-      flock.abortController.signal.addEventListener(
+      flock.abortController?.signal.addEventListener(
         'abort',
         () => {
-          if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-          }
+          fadeTimer?.cancel();
           if (flock.stackPanel) {
             flock.stackPanel.removeControl(bg);
             bg.dispose();
@@ -1213,7 +1215,7 @@ export const flockUI = {
 
       const seconds = Number(duration);
       if (isFinite(seconds) && seconds > 0) {
-        flock._subtitleTimer = setTimeout(() => {
+        flock._subtitleTimer = flock.hiddenAwareTimeout(() => {
           if (flock._subtitleToken === token) flock.clearSubtitle();
         }, seconds * 1000);
       }
@@ -1229,7 +1231,7 @@ export const flockUI = {
 
   clearSubtitle() {
     if (flock._subtitleTimer) {
-      clearTimeout(flock._subtitleTimer);
+      flock._subtitleTimer.cancel();
       flock._subtitleTimer = null;
     }
     if (!flock._subtitleControl) return;
