@@ -1286,7 +1286,13 @@ function findOrCreateRotateBlock(mesh) {
 
   let addedDoSection = false;
   if (!block.getInput('DO')) {
-    block.appendStatementInput('DO').setCheck(null).appendField('');
+    // Route through the block's own mutator so the +/- toggle button and any
+    // "then" button stay in sync; a bare appendStatementInput would not.
+    if (typeof block.toggleDoBlock === 'function') {
+      block.toggleDoBlock();
+    } else {
+      block.appendStatementInput('DO').setCheck(null).appendField('');
+    }
     addedDoSection = true;
   }
 
@@ -1465,7 +1471,13 @@ function findOrCreateResizeBlock(mesh) {
 
   let addedDoSection = false;
   if (!block.getInput('DO')) {
-    block.appendStatementInput('DO').setCheck(null).appendField('');
+    // Route through the block's own mutator so the +/- toggle button and any
+    // "then" button stay in sync; a bare appendStatementInput would not.
+    if (typeof block.toggleDoBlock === 'function') {
+      block.toggleDoBlock();
+    } else {
+      block.appendStatementInput('DO').setCheck(null).appendField('');
+    }
     addedDoSection = true;
   }
 
@@ -2597,7 +2609,12 @@ function addUndoHandler() {
 
             // Remove DO section if it should be removed
             if (shouldRemoveDoSection && doInput) {
-              parentBlock.removeInput('DO');
+              // Mirror toggleDoBlock so the mutator button reverts to "+".
+              if (typeof parentBlock.toggleDoBlock === 'function') {
+                parentBlock.toggleDoBlock();
+              } else {
+                parentBlock.removeInput('DO');
+              }
             }
           }
         }

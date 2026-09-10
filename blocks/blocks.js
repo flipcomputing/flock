@@ -2002,6 +2002,8 @@ export function addDoMutatorWithToggleBehavior(block) {
   };
 
   // Re-render, reflow, and fire a mutation change so code regeneration runs.
+  // The BlockMove matches the other toggle mutators (see blocks/events.js) and
+  // re-triggers layoutTopLevelBlocks so a taller block reflows the stack below.
   const finishMutation = function (oldState) {
     syncMutatorButtons();
     if (block.rendered) {
@@ -2011,6 +2013,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     const newState = mutationText();
     if (oldState !== newState) {
       Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', '', oldState, newState));
+      Blockly.Events.fire(new Blockly.Events.BlockMove(block));
     }
   };
 

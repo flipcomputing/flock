@@ -217,7 +217,13 @@ function addRotationToCreateBlock(block, rotation) {
   const modelVariable = block.getFieldValue('ID_VAR');
 
   if (!block.getInput('DO')) {
-    block.appendStatementInput('DO').setCheck(null).appendField('');
+    // Route through the block's own mutator so the +/- toggle button and any
+    // "then" button stay in sync; a bare appendStatementInput would not.
+    if (typeof block.toggleDoBlock === 'function') {
+      block.toggleDoBlock();
+    } else {
+      block.appendStatementInput('DO').setCheck(null).appendField('');
+    }
   }
 
   const rotateBlock = workspace.newBlock('rotate_to');
