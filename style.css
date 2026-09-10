@@ -782,7 +782,8 @@ button {
 #exampleButton {
   background-color: var(--color-primary);
   color: #ffffff;
-  border-radius: 10px;
+  /* Pill shape matching the .project-action-button rows in the Projects popup. */
+  border-radius: 18px;
 }
 
 /* Matched to the icon buttons: its own id-level radius outranks theirs. */
