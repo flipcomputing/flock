@@ -144,6 +144,11 @@ const AVAILABLE_SUITES = [
     pattern: '@gizmos',
   },
   {
+    id: 'listreorder',
+    name: 'List Reorder Tests',
+    pattern: '@listReorder',
+  },
+  {
     id: 'microbit',
     name: 'micro:bit Tests',
     pattern: '@microbit',

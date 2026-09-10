@@ -1217,6 +1217,8 @@ export default {
   exit_canvas_view: 'Stop orbiting object',
   detach_block_option: 'Detach',
   view_in_canvas_option: 'View in canvas',
+  move_item_up_option: 'Move item up',
+  move_item_down_option: 'Move item down',
   context_copy_option: 'Copy',
   context_paste_option: 'Paste',
   context_cut_option: 'Cut',

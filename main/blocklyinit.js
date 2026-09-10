@@ -47,6 +47,7 @@ import { defineTextBlocks } from '../blocks/text.js';
 import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
 import { initContextMenus } from '../ui/contextmenu.js';
+import { initListReorder } from '../ui/listReorder.js';
 import {
   applyBlockLockState,
   stripLockState,
@@ -2329,6 +2330,7 @@ export function createBlocklyWorkspace() {
   })();
 
   initContextMenus(workspace);
+  initListReorder(workspace);
 
   // ---- Touch-friendly confirm dialog ----
   if (navigator.maxTouchPoints > 0) {
