@@ -274,7 +274,7 @@ export default {
   interact_indicator: 'interact indicator %1',
   button_controls: 'button controls %1 enabled: %2 color: %3',
   on_screen_controls:
-    'player controls  movement: %1  actions: %2  enabled: %3\ncolor: %4  background: %5  alpha: %6',
+    'player controls  movement: %1  actions: %2  show: %3\ncolor: %4  background: %5  alpha: %6',
   microbit_input: 'when micro:bit event %1',
   add_microbit: 'add micro:bit %1 radio channel %2',
   microbit_any_option: 'any',
@@ -765,7 +765,7 @@ export default {
   environment_option: 'back',
 
   LINEAR_option: 'Linear',
-  NONE_option: 'None',
+  NONE_option: 'none',
   EXP_option: 'Exp',
   EXP2_option: 'Exp2',
 
@@ -908,6 +908,8 @@ export default {
   AUTO_option: 'auto',
   ENABLED_option: 'enabled',
   DISABLED_option: 'disabled',
+  SHOW_option: 'show',
+  HIDE_option: 'hide',
 
   BOTH_option: 'both',
   ARROWS_option: 'arrows',
@@ -915,6 +917,8 @@ export default {
   JOYSTICK_option: 'joystick',
   YES_option: 'yes',
   NO_option: 'no',
+  NUMBERS_option: 'numbers',
+  LETTERS_option: 'letters',
   ACTION_FORWARD_option: 'forward',
   ACTION_BACKWARD_option: 'backward',
   ACTION_LEFT_option: 'left',

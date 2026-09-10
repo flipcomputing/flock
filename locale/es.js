@@ -269,7 +269,7 @@ export default {
   interact_indicator: 'indicador de interacción %1', // ai
   button_controls: 'controles de botón %1 habilitados %2 color %3', // human
   on_screen_controls:
-    'controles del jugador  movimiento: %1  acciones: %2  activado: %3\ncolor: %4  fondo: %5  alfa: %6', // ai
+    'controles del jugador  movimiento: %1  acciones: %2  mostrar: %3\ncolor: %4  fondo: %5  alfa: %6', // ai
   microbit_input: 'cuando evento micro:bit %1', // human
   add_microbit: 'añadir micro:bit %1 canal de radio %2', // ai
   microbit_any_option: 'cualquiera', // ai
@@ -753,7 +753,7 @@ export default {
   environment_option: 'trasero', // human
 
   LINEAR_option: 'Lineal', // human
-  NONE_option: 'Ninguno', // human
+  NONE_option: 'ninguno', // human
   EXP_option: 'Exp', // human
   EXP2_option: 'Exp2', // human
 
@@ -896,6 +896,8 @@ export default {
   AUTO_option: 'automático', // human
   ENABLED_option: 'habilitado', // human
   DISABLED_option: 'deshabilitado', // human
+  SHOW_option: 'mostrar', // ai
+  HIDE_option: 'ocultar', // ai
 
   BOTH_option: 'ambos', // human
   ARROWS_option: 'flechas', // human
@@ -903,6 +905,8 @@ export default {
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'sí', // ai
   NO_option: 'no', // ai
+  NUMBERS_option: 'números', // ai
+  LETTERS_option: 'letras', // ai
   ACTION_FORWARD_option: 'adelante', // human
   ACTION_BACKWARD_option: 'atrás', // human
   ACTION_LEFT_option: 'izquierda', // human

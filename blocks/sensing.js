@@ -685,15 +685,24 @@ export function defineSensingBlocks() {
           {
             type: 'field_dropdown',
             name: 'ACTIONS',
-            options: [getDropdownOption('YES'), getDropdownOption('NO')],
+            // 'YES'/'NO' values are kept from the old yes/no field so projects
+            // saved before the relabel keep matching; only the shown text and
+            // the new 'LETTERS' choice are new.
+            options: [
+              [getOption('NUMBERS'), 'YES'],
+              [getOption('LETTERS'), 'LETTERS'],
+              [getOption('NONE'), 'NO'],
+            ],
           },
           {
             type: 'field_dropdown',
             name: 'ENABLED',
+            // Values stay AUTO/ENABLED/DISABLED so projects saved before the
+            // relabel keep matching; only the shown text became show/hide.
             options: [
               getDropdownOption('AUTO'),
-              getDropdownOption('ENABLED'),
-              getDropdownOption('DISABLED'),
+              [getOption('SHOW'), 'ENABLED'],
+              [getOption('HIDE'), 'DISABLED'],
             ],
           },
           {
