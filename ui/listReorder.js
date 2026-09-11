@@ -216,7 +216,9 @@ function handleTap(info, downEvent) {
   const block = info.tappedBlock || info.itemBlock;
   for (const input of block.inputList || []) {
     for (const field of input.fieldRow || []) {
-      const root = field.getSvgRoot?.();
+      // A full-block field (e.g. a colour swatch filling the whole block under
+      // Zelos) has its click target on the block body, not field.getSvgRoot().
+      const root = field.getClickTarget_?.() ?? field.getSvgRoot?.();
       if (root && node instanceof Node && root.contains(node) && field.isClickable?.()) {
         try {
           field.showEditor?.(downEvent);
