@@ -1,22 +1,10 @@
-// Drag an item of a `lists_create_with` block up or down to reorder it, without
-// giving up the +/- mutator UI. Item slots (ADD0, ADD1, ...) stay fixed; only
-// their contents move, so nothing about serialization or the generators changes.
-//
-// A pointerdown that lands on an item (its shadow, or a real value block plugged
-// into it) is taken over here before Blockly starts a whole-block drag - that
-// interception is the only reason a shadow, which Blockly won't drag on its own,
-// becomes grabbable. Below the drag threshold the press falls through to the
-// field editor / selection so tapping a shadow to type still works.
-//
-// While dragging, the grabbed item lifts and follows the pointer while the other
-// items stay put. On drop the grabbed item swaps places with whatever item the
-// pointer ended over - a single undoable change. Works whether the list lays its
-// items out inline (a row) or stacked.
-
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
 
 const DRAG_THRESHOLD = 6;
+const SNAP_RADIUS = 32;
+
+const SWAPPABLE_TYPES = new Set(['lists_create_with', 'text_join']);
 
 function countItems(list) {
   if (Number.isInteger(list.itemCount_)) return list.itemCount_;
@@ -25,17 +13,13 @@ function countItems(list) {
   return n;
 }
 
-// Walk up from a block to the first ancestor sitting directly in an ADDn slot of
-// a lists_create_with. `itemBlock` is that slot occupant (what a drag moves);
-// `tappedBlock` is the block actually under the pointer, which may be nested
-// inside it (what a tap should act on).
 function listItemInfo(block) {
   const tappedBlock = block;
   let b = block;
   while (b) {
     const parent = b.getParent?.();
     const input = b.outputConnection?.targetConnection?.getParentInput?.();
-    if (parent && parent.type === 'lists_create_with' && input) {
+    if (parent && SWAPPABLE_TYPES.has(parent.type) && input) {
       const m = /^ADD(\d+)$/.exec(input.name || '');
       if (m) return { list: parent, index: Number(m[1]), itemBlock: b, tappedBlock };
     }
@@ -51,15 +35,11 @@ function resolveFromEvent(workspace, target) {
   return block ? listItemInfo(block) : null;
 }
 
-// The field values shown by a slot's shadow, keyed by field name. Empty slots
-// and real-block slots return null (the caller doesn't need them).
 function shadowFields(connection) {
   const state = connection?.getShadowState?.(true);
   return state && state.fields ? { ...state.fields } : null;
 }
 
-// One entry per ADDn slot: its real (non-shadow) occupant if any, and the field
-// values its shadow should show. Captured once, before any rearranging.
 function snapshotSlots(list, n) {
   const slots = [];
   for (let i = 0; i < n; i++) {
@@ -73,16 +53,12 @@ function snapshotSlots(list, n) {
   return slots;
 }
 
-// The identity order with slots `i` and `j` exchanged.
 function swappedOrder(n, i, j) {
   const order = Array.from({ length: n }, (_, k) => k);
   [order[i], order[j]] = [order[j], order[i]];
   return order;
 }
 
-// Arrange the list so slot i shows what `snapshot[order[i]]` described. Works
-// from the original snapshot, so it is safe to call repeatedly with different
-// orders (each call re-derives the whole layout).
 function applyOrder(list, snapshot, order) {
   for (const slot of snapshot) if (slot.realBlock) slot.realBlock.unplug(false);
   for (let i = 0; i < order.length; i++) {
@@ -104,15 +80,8 @@ function applyOrder(list, snapshot, order) {
   if (list.rendered) list.render();
 }
 
-/**
- * Swap the contents of slots `i` and `j` in a lists_create_with block. A real
- * value block moves by its connection and keeps its identity; a shadow
- * placeholder stays in its slot and takes on the other item's field values.
- * The change is one undoable event group.
- * @returns {boolean} true if the block changed.
- */
 export function swapListItems(list, i, j) {
-  if (!list || list.type !== 'lists_create_with') return false;
+  if (!list || !SWAPPABLE_TYPES.has(list.type)) return false;
   const n = countItems(list);
   if (n < 2 || i === j) return false;
   if (!Number.isInteger(i) || !Number.isInteger(j)) return false;
@@ -125,7 +94,7 @@ export function swapListItems(list, i, j) {
   try {
     applyOrder(list, snapshot, order);
   } finally {
-    Blockly.Events.setGroup(prevGroup || null);
+    Blockly.Events.setGroup(prevGroup || false);
   }
   return true;
 }
@@ -135,36 +104,10 @@ function setOpacity(block, value) {
     const root = block?.getSvgRoot?.();
     if (root) root.style.opacity = value;
   } catch {
-    /* SVG gone after a re-render - ignore */
+    /* ignore */
   }
 }
 
-// A dashed outline in the shape of the grabbed block, left where it was picked
-// up. Cloned from the block's own body path so it matches the notch and corners,
-// placed in the same SVG group with the block's own transform. Returns the
-// element to remove when the drag ends, or null if the path wasn't found.
-function makeGhost(itemRoot, transform) {
-  const path = itemRoot.querySelector('.blocklyPath');
-  const container = itemRoot.parentNode;
-  if (!path || !container) return null;
-  const g = Blockly.utils.dom.createSvgElement('g', {}, null);
-  if (transform) g.setAttribute('transform', transform);
-  g.style.pointerEvents = 'none';
-  const outline = path.cloneNode(false);
-  outline.removeAttribute('filter');
-  outline.setAttribute('fill', 'none');
-  outline.setAttribute('stroke', 'var(--fc-list-ghost,rgba(0,0,0,.4))');
-  outline.setAttribute('stroke-width', '2');
-  outline.setAttribute('stroke-dasharray', '5 3');
-  g.appendChild(outline);
-  container.insertBefore(g, itemRoot);
-  return g;
-}
-
-// Client-pixel centre point of each item, read from what is actually on screen.
-// Measured once, before the drag moves anything; any pending Blockly render is
-// flushed first so the rects are current. Points (not just a Y) so this works
-// whether the list lays items out in a row, a column, or wrapped.
 function measureItemCentres(list) {
   Blockly.renderManagement?.triggerQueuedRenders?.(list.workspace);
   const centres = [];
@@ -176,7 +119,6 @@ function measureItemCentres(list) {
       centres.push({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
       continue;
     }
-    // Empty socket: fall back to the connection's own screen position.
     const off = conn?.getOffsetInBlock?.();
     if (off) {
       const base = list.getRelativeToSurfaceXY();
@@ -192,7 +134,6 @@ function measureItemCentres(list) {
   return centres;
 }
 
-// Which item the pointer is over, by nearest centre point.
 function slotAt(centres, clientX, clientY, fallback) {
   let best = fallback;
   let bestDist = Infinity;
@@ -208,16 +149,97 @@ function slotAt(centres, clientX, clientY, fallback) {
   return best;
 }
 
-// A press that didn't turn into a drag: reproduce the click Blockly would have
-// handled - open the field editor under the pointer, else just select. Acts on
-// the block actually pressed, which may be nested inside the slot occupant.
+function pointInRect(rect, clientX, clientY) {
+  return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+}
+
+function candidateConnections(workspace, itemBlock, sourceList) {
+  const skip = new Set([itemBlock, sourceList, ...itemBlock.getDescendants(false)]);
+  const candidates = [];
+  for (const block of workspace.getAllBlocks(false)) {
+    if (skip.has(block) || block.isInFlyout) continue;
+    for (const input of block.inputList) {
+      const conn = input.connection;
+      if (!conn || conn.type !== Blockly.INPUT_VALUE) continue;
+      if (!workspace.connectionChecker.canConnect(itemBlock.outputConnection, conn, true, Infinity)) continue;
+      const el = conn.targetBlock()?.getSvgRoot?.();
+      if (el) {
+        const r = el.getBoundingClientRect();
+        candidates.push({ connection: conn, x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        continue;
+      }
+      const off = conn.getOffsetInBlock?.();
+      if (!off) continue;
+      const base = block.getRelativeToSurfaceXY();
+      const p = Blockly.utils.svgMath.wsToScreenCoordinates(
+        workspace,
+        new Blockly.utils.Coordinate(base.x + off.x, base.y + off.y)
+      );
+      candidates.push({ connection: conn, x: p.x, y: p.y });
+    }
+  }
+  return candidates;
+}
+
+function nearestConnectionAt(candidates, clientX, clientY, maxDist) {
+  let best = null;
+  let bestDist = maxDist * maxDist;
+  for (const c of candidates) {
+    const d = (c.x - clientX) ** 2 + (c.y - clientY) ** 2;
+    if (d < bestDist) {
+      bestDist = d;
+      best = c.connection;
+    }
+  }
+  return best;
+}
+
+function duplicateItemBlock(itemBlock) {
+  Blockly.Events.disable();
+  try {
+    const state = Blockly.serialization.blocks.save(itemBlock, { includeShadows: true });
+    return Blockly.serialization.blocks.append(state, itemBlock.workspace);
+  } finally {
+    Blockly.Events.enable();
+  }
+}
+
+function commitDuplicate(copy) {
+  Blockly.Events.fire(new Blockly.Events.BlockCreate(copy));
+}
+
+function discardDuplicate(copy) {
+  Blockly.Events.disable();
+  try {
+    copy.dispose(false);
+  } finally {
+    Blockly.Events.enable();
+  }
+}
+
+function connectItemTo(copy, dest) {
+  const targetBlock = dest.getSourceBlock();
+  const prior = dest.targetBlock();
+  if (prior && !prior.isShadow()) prior.unplug(false);
+  dest.connect(copy.outputConnection);
+  if (prior && !prior.isShadow()) prior.bumpNeighbours();
+  if (targetBlock?.rendered) targetBlock.render();
+}
+
+function placeItemAt(copy, workspace, clientX, clientY) {
+  const point = Blockly.utils.svgMath.screenToWsCoordinates(
+    workspace,
+    new Blockly.utils.Coordinate(clientX, clientY)
+  );
+  const size = copy.getHeightWidth?.() || { width: 0, height: 0 };
+  copy.moveTo(new Blockly.utils.Coordinate(point.x - size.width / 2, point.y - size.height / 2));
+}
+
 function handleTap(info, downEvent) {
   const node = downEvent.target;
   const block = info.tappedBlock || info.itemBlock;
   for (const input of block.inputList || []) {
     for (const field of input.fieldRow || []) {
-      // A full-block field (e.g. a colour swatch filling the whole block under
-      // Zelos) has its click target on the block body, not field.getSvgRoot().
       const root = field.getClickTarget_?.() ?? field.getSvgRoot?.();
       if (root && node instanceof Node && root.contains(node) && field.isClickable?.()) {
         try {
@@ -266,15 +288,10 @@ function registerContextMenuItems() {
     });
   };
 
-  // Sit just after "Detach" (weight 10) / "View in canvas" (10.5).
   register('flockListItemMoveUp', -1, 'move_item_up_option', 'Move item up', 10.55);
   register('flockListItemMoveDown', 1, 'move_item_down_option', 'Move item down', 10.58);
 }
 
-/**
- * Wire drag-to-reorder for lists_create_with items on the given workspace, and
- * register the matching context-menu items (once).
- */
 export function initListReorder(workspace) {
   registerContextMenuItems();
 
@@ -293,7 +310,6 @@ export function initListReorder(workspace) {
       const n = countItems(info.list);
       if (n < 2) return;
 
-      // Claim this press before Blockly turns it into a whole-list drag.
       e.stopPropagation();
 
       const { list, index: fromIndex, itemBlock } = info;
@@ -304,9 +320,14 @@ export function initListReorder(workspace) {
       const startY = e.clientY;
       let dragging = false;
       let centres = null;
-      let origTransform = '';
+      let listRect = null;
+      let candidates = [];
       let dropIndex = fromIndex;
-      let ghost = null;
+      let externalTarget = null;
+      let highlighted = null;
+      let copy = null;
+      let copyRoot = null;
+      let copyOrigTransform = '';
 
       try {
         div.setPointerCapture(pointerId);
@@ -314,24 +335,40 @@ export function initListReorder(workspace) {
         /* ignore */
       }
 
+      const setExternalTarget = (target) => {
+        if (target === externalTarget) return;
+        highlighted?.unhighlight();
+        externalTarget = target;
+        highlighted = target || null;
+        highlighted?.highlight();
+      };
+
       const startDrag = () => {
         dragging = true;
         centres = measureItemCentres(list);
-        origTransform = itemRoot.getAttribute('transform') || '';
-        ghost = makeGhost(itemRoot, origTransform);
-        itemRoot.parentNode?.appendChild(itemRoot); // lift above the ghost
-        itemRoot.style.pointerEvents = 'none';
-        setOpacity(itemBlock, '0.9');
+        listRect = list.getSvgRoot().getBoundingClientRect();
+
+        copy = duplicateItemBlock(itemBlock);
+        Blockly.Events.disable();
+        try {
+          copy.moveTo(itemBlock.getRelativeToSurfaceXY());
+        } finally {
+          Blockly.Events.enable();
+        }
+        candidates = candidateConnections(list.workspace, copy, list);
+        copyRoot = copy.getSvgRoot();
+        copyOrigTransform = copyRoot?.getAttribute('transform') || '';
+        if (copyRoot) copyRoot.style.pointerEvents = 'none';
+        setOpacity(copy, '0.9');
         div.style.cursor = 'grabbing';
       };
 
       const endVisuals = () => {
         div.style.cursor = '';
-        setOpacity(itemBlock, '');
-        itemRoot.style.pointerEvents = '';
-        itemRoot.setAttribute('transform', origTransform);
-        ghost?.remove();
-        ghost = null;
+        highlighted?.unhighlight();
+        highlighted = null;
+        if (copyRoot) copyRoot.style.pointerEvents = '';
+        setOpacity(copy, '');
       };
 
       const removeListeners = () => {
@@ -361,9 +398,14 @@ export function initListReorder(workspace) {
         const scale = list.workspace.scale || 1;
         const dx = (ev.clientX - startX) / scale;
         const dy = (ev.clientY - startY) / scale;
-        itemRoot.setAttribute('transform', `${origTransform} translate(${dx},${dy})`);
+        if (copyRoot) copyRoot.setAttribute('transform', `${copyOrigTransform} translate(${dx},${dy})`);
 
-        dropIndex = slotAt(centres, ev.clientX, ev.clientY, dropIndex);
+        if (pointInRect(listRect, ev.clientX, ev.clientY)) {
+          dropIndex = slotAt(centres, ev.clientX, ev.clientY, dropIndex);
+          setExternalTarget(null);
+        } else {
+          setExternalTarget(nearestConnectionAt(candidates, ev.clientX, ev.clientY, SNAP_RADIUS * scale));
+        }
       };
 
       const onUp = (ev) => {
@@ -376,8 +418,23 @@ export function initListReorder(workspace) {
         ev.stopPropagation();
         ev.preventDefault();
         endVisuals();
-        if (dropIndex !== fromIndex) swapListItems(list, fromIndex, dropIndex);
-        else if (list.rendered) list.render();
+
+        if (pointInRect(listRect, ev.clientX, ev.clientY)) {
+          if (dropIndex !== fromIndex) swapListItems(list, fromIndex, dropIndex);
+          discardDuplicate(copy);
+          return;
+        }
+
+        const prevGroup = Blockly.Events.getGroup();
+        Blockly.Events.setGroup(prevGroup || true);
+        try {
+          commitDuplicate(copy);
+          if (externalTarget) connectItemTo(copy, externalTarget);
+          else placeItemAt(copy, list.workspace, ev.clientX, ev.clientY);
+        } finally {
+          Blockly.renderManagement?.triggerQueuedRenders?.(list.workspace);
+          Blockly.Events.setGroup(prevGroup || false);
+        }
       };
 
       const onCancel = (ev) => {
@@ -385,7 +442,7 @@ export function initListReorder(workspace) {
         removeListeners();
         if (dragging) {
           endVisuals();
-          if (list.rendered) list.render();
+          if (copy) discardDuplicate(copy);
         }
       };
 
