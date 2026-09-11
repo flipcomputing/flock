@@ -730,6 +730,59 @@
                 </div>
               </div>
             </div>
+            <div
+              id="unsavedChangesModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="unsaved-changes-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeUnsavedChangesModal"
+                  data-i18n="close_unsaved_changes"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="unsaved-changes-modal-title" data-i18n="unsaved_changes_title">
+                  Unsaved changes
+                </h2>
+                <p data-i18n="unsaved_changes_message">
+                  This project has changes that haven't been saved to a file. What would you like to
+                  do?
+                </p>
+                <div class="unsaved-changes-actions">
+                  <button
+                    type="button"
+                    class="project-action-button"
+                    id="unsavedChangesCancelButton"
+                    data-i18n="unsaved_changes_cancel_button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="project-action-button"
+                    id="unsavedChangesDiscardButton"
+                    data-i18n="unsaved_changes_discard_button"
+                  >
+                    Continue without saving
+                  </button>
+                  <button
+                    type="button"
+                    class="project-action-button project-action-button--primary"
+                    id="unsavedChangesSaveButton"
+                    data-i18n="unsaved_changes_save_button"
+                  >
+                    Save to file
+                  </button>
+                </div>
+              </div>
+            </div>
             <script type="module" src="main/menu.js"></script>
 
             <button

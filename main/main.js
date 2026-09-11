@@ -29,6 +29,8 @@ import {
   newProject,
   openFile,
   updateSaveButtonState,
+  isProjectModified,
+  initProjectModifiedTracking,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
 import {
@@ -1084,6 +1086,7 @@ window.onload = async function () {
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
+  initProjectModifiedTracking(workspace);
 
   console.log('Welcome to Flock XR 🐦🐦🐦');
   console.log('Release 1');
@@ -1096,6 +1099,15 @@ window.onload = async function () {
       autoSaveToFile(workspace);
     }
   }, 30000);
+
+  // A custom dialog can't run synchronously here, so save to localStorage and
+  // fall back to the browser's own "leave site?" prompt.
+  window.addEventListener('beforeunload', (event) => {
+    if (!isProjectModified()) return;
+    saveWorkspace(workspace);
+    event.preventDefault();
+    event.returnValue = '';
+  });
 
   (async () => {
     try {

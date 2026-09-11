@@ -128,8 +128,8 @@ function createTile(example) {
   button.append(thumb, name);
 
   button.addEventListener('click', () => {
-    loadExample(example.file, name.textContent.trim());
     hideExampleModal();
+    loadExample(example.file, name.textContent.trim());
   });
 
   return button;
@@ -329,7 +329,7 @@ function getTabs() {
 }
 
 function getActionButtons() {
-  return Array.from(document.querySelectorAll('.project-action-button'));
+  return Array.from(document.querySelectorAll('#exampleModal .project-action-button'));
 }
 
 function handleActionKeydown(e) {
@@ -487,8 +487,8 @@ export function initExampleGallery() {
   trigger.addEventListener('click', openExampleModal);
   closeButton?.addEventListener('click', hideExampleModal);
   newButton?.addEventListener('click', () => {
-    newProject();
     hideExampleModal();
+    newProject();
   });
   openButton?.addEventListener('click', hideExampleModal);
   saveButton?.addEventListener('click', hideExampleModal);

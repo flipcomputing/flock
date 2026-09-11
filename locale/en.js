@@ -659,7 +659,8 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Use the device camera as the background for the scene. Works on both mobile and desktop. In a headset the scene appears in your room instead.',
-  set_xr_mode_tooltip: 'Set the XR mode for the scene.\nVR headset: starts only on a headset, so desktop and phone still play the project normally.\nVR headset or phone: also offers phone VR with a cardboard viewer.\nAR: puts the scene in the room.\nMagic Window: look around by moving a phone; a headset gets VR.',
+  set_xr_mode_tooltip:
+    'Set the XR mode for the scene.\nVR headset: starts only on a headset, so desktop and phone still play the project normally.\nVR headset or phone: also offers phone VR with a cardboard viewer.\nAR: puts the scene in the room.\nMagic Window: look around by moving a phone; a headset gets VR.',
   set_xr_view_mode_tooltip:
     'Choose whether to watch or embody the followed object and how its camera moves. Watch comfort catches up after movement stops; embody teleport uses controller-ray teleportation.',
   set_ar_scene_size_tooltip:
@@ -1262,6 +1263,13 @@ export default {
   failed_to_read_file_alert: 'Failed to read file.',
   drag_drop_hint: 'Drop to open project or import snippet',
   drop_unsupported_file_alert: 'Only .flock, .json, .fsnip, or .png files can be dropped.',
+  unsaved_changes_title_ui: 'Unsaved changes',
+  unsaved_changes_message_ui:
+    "This project has changes that haven't been saved to a file. What would you like to do?",
+  unsaved_changes_save_button_ui: 'Save to file',
+  unsaved_changes_discard_button_ui: 'Continue without saving',
+  unsaved_changes_cancel_button_ui: 'Cancel',
+  close_unsaved_changes_ui: 'Close',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Limit reached: You can only have {max} objects in your world.',

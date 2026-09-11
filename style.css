@@ -56,19 +56,11 @@
      grouped tools do not replace the established colours of other themes. */
   --color-light-tool-ink: var(--color-primary);
   --color-light-icon-hover: var(--color-button-bg-hover);
-  --color-light-icon-hover: color-mix(
-    in srgb,
-    var(--color-light-tool-ink) 20%,
-    transparent
-  );
+  --color-light-icon-hover: color-mix(in srgb, var(--color-light-tool-ink) 20%, transparent);
   /* A tint of the ink rather than a neutral grey, so the group reads as part
      of the same purple treatment as the icons on it. */
   --color-light-icon-bar: #cec0e0;
-  --color-light-icon-bar: color-mix(
-    in srgb,
-    var(--color-light-tool-ink) 28%,
-    var(--color-bg)
-  );
+  --color-light-icon-bar: color-mix(in srgb, var(--color-light-tool-ink) 28%, var(--color-bg));
 
   /* Menu Colors */
   --color-menu-hover: var(--color-button-bg-hover);
@@ -1809,6 +1801,24 @@ button {
   height: 100%;
 }
 
+.unsaved-changes-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 1.5em;
+}
+
+.project-action-button--primary {
+  background-color: var(--color-button-primary);
+  color: var(--color-text-on-primary);
+  border-color: var(--color-button-primary);
+}
+
+.project-action-button--primary:hover {
+  opacity: 0.9;
+}
+
 [data-theme='contrast'] .project-action-button {
   color: var(--color-bg);
 }
@@ -2777,7 +2787,6 @@ kbd {
 [data-theme='light'] #info-panel-tabs .bigbutton:not(.active) {
   background-color: var(--color-menu);
 }
-
 
 #info-panel-tablist {
   display: flex;

@@ -5,6 +5,7 @@ import { getMetadata } from 'meta-png';
 import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
+import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -29,6 +30,56 @@ function alertKeyForProjectError(error) {
   if (error instanceof ProjectTooLargeError) return 'file_too_large_alert';
   if (error instanceof ProjectReadError) return 'failed_to_read_file_alert';
   return 'invalid_project_alert';
+}
+
+// Event types that count as an edit, vs. selection/scroll/other UI-only events.
+const CONTENT_CHANGE_EVENT_TYPES = new Set([
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_DELETE,
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_MOVE,
+  Blockly.Events.VAR_CREATE,
+  Blockly.Events.VAR_DELETE,
+  Blockly.Events.VAR_RENAME,
+  Blockly.Events.COMMENT_CREATE,
+  Blockly.Events.COMMENT_DELETE,
+  Blockly.Events.COMMENT_CHANGE,
+  Blockly.Events.COMMENT_MOVE,
+]);
+
+// Tracks changes since the last load or file save (not the last localStorage
+// autosave, which isn't durable).
+let projectModified = false;
+
+// `workspace` is still null at module load time, so this listener can't be
+// attached until createBlocklyWorkspace() has run.
+export function initProjectModifiedTracking(ws) {
+  ws.addChangeListener((event) => {
+    if (event.type === Blockly.Events.FINISHED_LOADING) {
+      projectModified = false;
+    } else if (CONTENT_CHANGE_EVENT_TYPES.has(event.type)) {
+      projectModified = true;
+    }
+  });
+}
+
+export function isProjectModified() {
+  return projectModified;
+}
+
+// Resolves true if the caller should proceed to replace the workspace.
+async function confirmDiscardIfModified() {
+  if (!projectModified) return true;
+
+  saveWorkspace(workspace);
+
+  const choice = await openUnsavedChangesModal();
+  if (choice === 'cancel') return false;
+  if (choice === 'save') {
+    const saved = await exportCode(workspace);
+    if (!saved) return false;
+  }
+  return true;
 }
 
 // Function to save the current workspace state
@@ -628,6 +679,7 @@ export async function exportCode(workspace) {
       currentFileHandle = fileHandle;
       updateSaveButtonState();
       document.getElementById('projectName').value = getSafeImportedFileBaseName(fileHandle.name);
+      projectModified = false;
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement('a');
@@ -636,9 +688,12 @@ export async function exportCode(workspace) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      projectModified = false;
     }
+    return true;
   } catch (e) {
     console.error('Error exporting project:', e);
+    return false;
   }
 }
 
@@ -930,9 +985,11 @@ export function setupFileInput(workspace, executeCallback) {
       return;
     }
 
-    window.loadingCode = true;
     readProjectFile(file)
-      .then((json) => {
+      .then(async (json) => {
+        if (!(await confirmDiscardIfModified())) return;
+
+        window.loadingCode = true;
         document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
@@ -968,6 +1025,8 @@ export async function openFile(workspace, executeCallback) {
       });
       const file = await fileHandle.getFile();
       const json = await readProjectFile(file);
+      if (!(await confirmDiscardIfModified())) return;
+
       window.loadingCode = true;
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
@@ -985,8 +1044,9 @@ export async function openFile(workspace, executeCallback) {
 
 // Function to load example projects. `file` is the .flock path and `name` is
 // the (already localised) display name used for the project name field.
-export function loadExample(file, name, executeCallback = window.executeCode) {
+export async function loadExample(file, name, executeCallback = window.executeCode) {
   if (!file) return;
+  if (!(await confirmDiscardIfModified())) return;
 
   window.loadingCode = true;
 
@@ -1009,7 +1069,9 @@ export function loadExample(file, name, executeCallback = window.executeCode) {
 }
 window.loadExample = loadExample;
 
-export function newProject() {
+export async function newProject() {
+  if (!(await confirmDiscardIfModified())) return;
+
   // Set project name
   const projectNameElement = document.getElementById('projectName');
   if (projectNameElement) {
