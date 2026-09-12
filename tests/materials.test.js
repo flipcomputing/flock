@@ -174,6 +174,28 @@ export function runMaterialsTests(flock) {
       });
     });
 
+    it('keeps say() text visible while hiding a plane hidden via setAlpha', async function () {
+      const id = flock.createPlane('planeAlphaSay', {
+        color: '#ff0000',
+        width: 4,
+        height: 4,
+        position: [0, 0, 0],
+      });
+      boxIds.push(id);
+
+      await flock.setAlpha(id, { value: 0 });
+      await flock.say(id, { text: 'A', duration: 0 });
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.material.alpha).to.be.closeTo(1, 0.01);
+
+      const fullScreenRect = mesh.advancedTexture
+        .getDescendants()
+        .find((c) => c.getClassName() === 'Rectangle' && c.name !== 'textBackground');
+      const rgbaParts = fullScreenRect.background.match(/[\d.]+/g).map(Number);
+      expect(rgbaParts[3]).to.be.closeTo(0, 0.01);
+    });
+
     it('should clear effects from a mesh', async function () {
       const { id, color } = await createBoxWithColorAndPosition('boxClear');
       boxIds.push(id);

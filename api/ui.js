@@ -825,10 +825,12 @@ export const flockUI = {
       return new Promise((resolve) => {
         let plane;
         let background = 'transparent';
+        let originalPlaneAlpha = 1;
 
         if (targetMesh.metadata && targetMesh.metadata.shape == 'plane') {
           plane = targetMesh;
           background = plane.material.diffuseColor.toHexString();
+          originalPlaneAlpha = plane.material.alpha ?? 1;
           flock.setDepthPrePass(plane.material, true);
           plane.metadata = {
             ...(plane.metadata || {}),
@@ -927,7 +929,7 @@ export const flockUI = {
             let fullScreenRect = new flock.GUI.Rectangle();
             fullScreenRect.width = '100%';
             fullScreenRect.height = '100%';
-            fullScreenRect.background = background;
+            fullScreenRect.background = flock.hexToRgba(background, originalPlaneAlpha);
             fullScreenRect.color = 'transparent';
             advancedTexture.addControl(fullScreenRect);
           }
