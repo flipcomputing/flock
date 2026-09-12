@@ -52,6 +52,16 @@ We are looking for funding to take Flock XR further so please [get in touch](htt
 
 Please see our [documentation hub](https://hub.flockxr.com) and [free resources for clubs](https://github.com/flipcomputing/flock/blob/main/docs/docs.md).
 
+Also see our [case studies and shout outs](docs/case-studies.md).
+
+The following user documentation is available on GitHub and describe the **development version** of
+Flock XR. For docs on the current release, check out the [hub](https://hub.flockxr.com) instead.
+
+- [Accessibility statement](docs/accessibility_statement.md)
+- [AR in Flock XR](docs/ar.md)
+- [VR in Flock XR](docs/vr.md)
+- [Endless OS](docs/endless.md)
+
 ## Development info
 
 Full details of Flock XR versions including the latest Development version can be found at [flockxr.com/versions/](https://flockxr.com/versions/)

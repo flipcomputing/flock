@@ -1,4 +1,4 @@
-# Case studies and shout outs
+# Case studies and mentions
 
 Educators and community members have written about and shared their feedback and experience of using Flock XR in clubs, classrooms and workshops. A selection is collected here.
 
@@ -23,7 +23,9 @@ Educators and community members have written about and shared their feedback and
   arcade games like Pong and Pacman to teach fundamental programming concepts.
   > "Flock is a free and open-source 3D creation software that runs in the web browser."
   >
-  > "Games can always be extended, improved or tweaked so are perfect for all abilities."
+  > "Games can always be extended, improved or tweaked so are perfect for all abilities and
+  > naturally lend themselves to including a range of programming techniques and extension
+  > exercises."
 
 - **[Working holiday in Harrow at the Digital Schoolhouse 2025 conference](https://cambolc.blog/2025/07/02/humpday-post-working-holiday-in-harrow-at-the-digital-schoolhouse-2025-conference-500-pennies-of-thought/)**
   — Philip Spalding, Teacher. Recounts introducing Year 7 and 8 pupils at an independent school in
@@ -40,7 +42,7 @@ Educators and community members have written about and shared their feedback and
   > environment, in which you can create your own 3D animations and games."
 
 - **[CKC 2025 write-up](https://www.computingatschool.org.uk/forum-news-blogs/2025/july/ckc2025-1/)**
-  — Allen Tsui, Primary School Teacher, Computing at School.'
+  — Allen Tsui, Primary School Teacher, Computing at School. On Tracy Gardner and Rebecca Franks'
   live-coding demo of Flock XR at CKC 2025.
   > "My favourite 'wow!' moment though was from Tracy Gardner and Rebecca Franks live coding
   > experience of Flip Computing's FlockXR. For those who have yet to try, Tracy and Rebecca
@@ -51,13 +53,22 @@ Educators and community members have written about and shared their feedback and
 
   Allen was also a guest speaker at the July 2025 Flock XR Community Meetup — see the video below.
 
-## Community meetup video
+## Videos
 
 - **[July Monthly Meetup | Flock XR](https://www.youtube.com/watch?v=1AjmiUFnLf8)** — recording of
   the July 2025 Flock XR Community Meetup, with guest speaker Allen Tsui (see his CKC 2025 write-up
   above).
 
+- **[How would you describe Flock XR?](https://www.facebook.com/61573334960943/videos/2001927267182061?__so__=permalink)**
+  — Claire Walmsley and Jo Hodge put Flock XR into their own words, for people who've never seen it
+  before.
+
 ## What people are saying
+
+- **[Claire Walmsley](https://www.linkedin.com/posts/claire-walmsley-3889a0249_edtech-flockxr-flipcomputing-ugcPost-7482437893609848833-JiYx/)**
+  — on attending the first Flip Computing Flock XR meetup, thanking organisers Rebecca Franks,
+  Tracy Gardner and Elizabeth Jackson-Smart.
+  > "I learnt so much and came away buzzing about ways I can use Flock XR in the classroom."
 
 - **[Nagmun Nahar Onu](https://www.linkedin.com/posts/nagmun-nahar-onu-0304b3225_ckc2025-activity-7347329701733908480-ZVFU/)**, Teacher
   > "🎮 And finally, my favourite session of the day: the Flock XR workshop. This free 3D creation
@@ -66,6 +77,23 @@ Educators and community members have written about and shared their feedback and
 
 - **[Babylon.js (official)](https://www.linkedin.com/posts/babylon-js_builtwithbabylon-3d-webdev-activity-7356368519334170625-ydT-/)**
   > "Check out this cool art experience by Flip Computing and Flock XR."
+
+- **[Intel® Skills for Innovation](https://www.linkedin.com/posts/intelsfi-iamintel-inteledu-ugcPost-7443273845073096704-I3FD/)**
+  — interview from BETT UK 2026 with Dr Jeremiah Okal-Frink and the Flock XR team (Tracy Gardner,
+  Rebecca Franks and Elizabeth Jackson-Smart), on the Intel Skills for Innovation partnership with
+  Flock XR and its Starter Pack Lessons.
+  > "It's a free 3D creation tool for young people. You can use it in the browser, so you don't
+  > need any installs or anything like that."
+  >
+  > "You can code 3D worlds within seconds, so it's great."
+  >
+  > "So that's amazing. And yeah, no logins or anything."
+
+- **[Neena Patel](https://www.linkedin.com/posts/neena4186_flockxr-edtech-primary-share-7472305676648759296-t0vZ/)**
+  — on free educational resources for working-class students and Flock XR's role in computing
+  education: completely free, browser-based, no logins or installs, with free taster packs for
+  primary and secondary schools aligned to the English national curriculum.
+  > "simply click and start creating"
 
 - **[Prof Michael Kölling](https://www.linkedin.com/posts/r-franks_flockxr-ugcPost-7347310930482913280-ZMnY)**
   > "Thank you, both, for presenting! It was great to have you, and there was a real buzz around
@@ -80,6 +108,10 @@ Educators and community members have written about and shared their feedback and
   > "The teacher we worked with has already said that she wants to introduce Flock XR to other
   > classes, and students had a ton of ideas for directions they'd like to go with their
   > projects."
+
+- **[Andy Calas](https://www.linkedin.com/posts/andy-calas-94269222a_super-impressed-with-flip-computing-flock-ugcPost-7394826253800787971-XA5V/)**
+  > "Giving Year 7 the chance to easily build and explore their own 3D environments, complete with
+  > characters and animations has genuinely sparked something in many of them."
 
 - **[Rebecca Franks named TechWomen100 award winner](https://uk.news.yahoo.com/former-dudley-teacher-wins-award-115941530.html)**
   — Rebecca Franks, a computing teacher with more than 15 years of experience at local schools,
@@ -106,4 +138,10 @@ Educators and community members have written about and shared their feedback and
 
 - **[Flip Computing free downloads](https://flipcomputing.com/product-category/free-downloads/)**
   — free, downloadable classroom resources from Flip Computing with lots of articles about inclusion and creative computing from our community.
+
+- **[Flip Computing magazine](https://flockxr.com/register)** — free, register to get the
+  magazine. The first issue includes an article contributed by Jonathon Simons on tips and tricks
+  for using Flock XR.
+  > "Very proud to have contributed an article to this wonderful first issue. It is packed full of
+  > interesting tips and tricks for using flock xr." — [Jonathon Simons](https://www.linkedin.com/posts/jonathonsimonstheedtechmaven_very-proud-to-have-contributed-an-article-activity-7470376390882770944-ZXcA)
 
