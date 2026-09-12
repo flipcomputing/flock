@@ -1270,6 +1270,12 @@ export default {
   unsaved_changes_discard_button_ui: 'Continue without saving',
   unsaved_changes_cancel_button_ui: 'Cancel',
   close_unsaved_changes_ui: 'Close',
+  untrusted_project_url_title_ui: 'Open project from another website?',
+  untrusted_project_url_message_ui:
+    "This project link isn't on Flock XR's trusted list. Only continue if you trust the source — it will run in your browser.",
+  untrusted_project_url_cancel_button_ui: 'Cancel',
+  untrusted_project_url_open_button_ui: 'Open project',
+  close_untrusted_project_url_ui: 'Close',
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Limit reached: You can only have {max} objects in your world.',

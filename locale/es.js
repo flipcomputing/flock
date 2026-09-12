@@ -1240,6 +1240,12 @@ export default {
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
+  untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
+  untrusted_project_url_message_ui:
+    'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
+  untrusted_project_url_cancel_button_ui: 'Cancelar', // ai
+  untrusted_project_url_open_button_ui: 'Abrir proyecto', // ai
+  close_untrusted_project_url_ui: 'Cerrar', // ai
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.', // human

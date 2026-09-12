@@ -6,10 +6,27 @@ import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
+import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
+
+// project= URLs are auto-fetched and their contents auto-executed as code,
+// so anything outside this list needs explicit user consent first.
+const TRUSTED_PROJECT_URL_PREFIXES = [
+  'https://github.com/flipcomputing/flockxr-projects',
+  'https://app.flockxr.com',
+  'https://flockxr.com',
+];
+
+export function isTrustedProjectUrl(url) {
+  if (url.origin === window.location.origin) return true;
+  return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
+    const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
+    return url.href === prefix || url.href.startsWith(boundary);
+  });
+}
 
 // Typed so callers can pick the right alert without matching message strings.
 class ProjectTooLargeError extends Error {
@@ -501,7 +518,7 @@ async function readProjectFile(file) {
 }
 
 // Function to load workspace from various sources
-export function loadWorkspace(workspace, executeCallback) {
+export async function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
   const projectUrl = urlParams.get('project');
   const reset = urlParams.get('reset');
@@ -556,15 +573,33 @@ export function loadWorkspace(workspace, executeCallback) {
         loadStarter();
         return;
       }
-      fetch(validatedUrl.href)
-        .then(parseProjectJsonResponse)
-        .then((json) => {
-          loadWorkspaceAndExecute(json, workspace, effectiveCallback);
-        })
-        .catch((error) => {
-          console.error('Error loading project from URL:', error);
+
+      if (!isTrustedProjectUrl(validatedUrl)) {
+        const choice = await openUntrustedProjectUrlModal(validatedUrl.origin);
+        if (choice !== 'open') {
           loadStarter();
-        });
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch(validatedUrl.href);
+        // fetch follows redirects transparently, so the origin that actually
+        // served the response can differ from the one the user approved.
+        const finalUrl = new URL(response.url);
+        if (finalUrl.origin !== validatedUrl.origin && !isTrustedProjectUrl(finalUrl)) {
+          const choice = await openUntrustedProjectUrlModal(finalUrl.origin);
+          if (choice !== 'open') {
+            loadStarter();
+            return;
+          }
+        }
+        const json = await parseProjectJsonResponse(response);
+        loadWorkspaceAndExecute(json, workspace, effectiveCallback);
+      } catch (error) {
+        console.error('Error loading project from URL:', error);
+        loadStarter();
+      }
     }
   } else if (savedState) {
     try {

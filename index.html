@@ -783,6 +783,52 @@
                 </div>
               </div>
             </div>
+            <div
+              id="untrustedProjectUrlModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="untrusted-project-url-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeUntrustedProjectUrlModal"
+                  data-i18n="close_untrusted_project_url"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="untrusted-project-url-modal-title" data-i18n="untrusted_project_url_title">
+                  Open project from another website?
+                </h2>
+                <p data-i18n="untrusted_project_url_message">
+                  This project link isn't on Flock XR's trusted list. Only continue if you trust the
+                  source — it will run in your browser.
+                </p>
+                <p><strong id="untrustedProjectUrlOrigin"></strong></p>
+                <div class="unsaved-changes-actions">
+                  <button
+                    type="button"
+                    class="project-action-button"
+                    id="untrustedProjectUrlCancelButton"
+                    data-i18n="untrusted_project_url_cancel_button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="project-action-button project-action-button--primary"
+                    id="untrustedProjectUrlOpenButton"
+                    data-i18n="untrusted_project_url_open_button"
+                  >
+                    Open project
+                  </button>
+                </div>
+              </div>
+            </div>
             <script type="module" src="main/menu.js"></script>
 
             <button
