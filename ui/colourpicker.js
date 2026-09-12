@@ -2,6 +2,7 @@ import { translate } from '../main/translation.js';
 import { exitGizmoState, setGizmoButtonActive } from './gizmos.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { ContextManager } from '../main/context.js';
+import { clearStatus } from './status.js';
 
 // UA-based rather than touch-based so touchscreen laptops still count as
 // desktop. The Macintosh clause catches iPads in desktop-mode Safari.
@@ -2085,6 +2086,7 @@ class CustomColorPicker {
     document.removeEventListener('click', this.outsideClickHandler, true);
     window.removeEventListener('keydown', this.globalEscapeHandler, true);
     KeyboardDispatcher.off('*', 'KeyC');
+    clearStatus('color-picker');
   }
 
   confirmColor() {

@@ -305,7 +305,8 @@ document.addEventListener('DOMContentLoaded', function () {
         window.selectedColor = newColor;
       },
       onClose: () => {
-        // Re-activate button: painting mode is still a gizmo action
+        // Re-activate button: painting mode is still a gizmo action.
+        // The hint is cleared in close() itself, as soon as the picker closes.
         setGizmoButtonActive(document.getElementById('colorPickerButton'), true);
         pickMeshFromCanvas();
       },
@@ -349,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function () {
         KeyboardDispatcher.clearModes();
         GizmoMenuManager.toggle(false);
         colorPicker.open(window.selectedColor);
+        showStatus(translate('color_picker_paint_prompt'), { owner: 'color-picker', hint: true });
       }
     });
   }
@@ -992,6 +994,7 @@ export function exitGizmoState() {
   clearStatus('axis');
   clearStatus('camera');
   clearStatus('eye-gizmo');
+  clearStatus('color-picker');
   // The readout belongs to the tool that took it; the next tool doesn't move it.
   clearStatus('position-readout');
   clearStatus('gizmo-controls-hint');

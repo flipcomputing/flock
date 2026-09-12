@@ -1320,6 +1320,7 @@ export default {
   select_mesh_eye_prompt: 'Click an object to orbit around it.',
   orbit_mesh_info: 'Drag to move the camera around the object',
   place_object_prompt: 'Click on a surface to place the object.',
+  color_picker_paint_prompt: 'Click an object to use the color.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Color picking is available in Chrome/Edge on desktop.',
   blocks_copied_alert: 'Blocks copied to local storage!',

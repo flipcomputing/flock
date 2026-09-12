@@ -4,9 +4,33 @@ import { getGizmoHintsEnabled, onControlPreferenceChange } from './controlPrefer
 let hideTimer = null;
 let owner = null;
 let showingHint = false;
+let fadeOutTimer = null;
+let fadeOutListener = null;
 
 function getElement() {
   return typeof document === 'undefined' ? null : document.getElementById('gizmoStatus');
+}
+
+function getToast() {
+  return typeof document === 'undefined' ? null : document.getElementById('gizmoStatusToast');
+}
+
+// Cancel a fade-out in progress and restore the toast to CSS-driven opacity,
+// so a new message shows immediately instead of appearing mid-fade.
+function cancelFadeOut() {
+  const toast = getToast();
+  if (fadeOutTimer !== null) {
+    clearTimeout(fadeOutTimer);
+    fadeOutTimer = null;
+  }
+  if (toast && fadeOutListener) {
+    toast.removeEventListener('transitionend', fadeOutListener);
+  }
+  fadeOutListener = null;
+  if (toast) {
+    toast.style.opacity = '';
+    toast.style.pointerEvents = '';
+  }
 }
 
 let closeWired = false;
@@ -63,6 +87,7 @@ export function showStatus(content, { duration = 0, owner: nextOwner = null, hin
   if (hint && !getGizmoHintsEnabled()) return;
 
   cancelHide();
+  cancelFadeOut();
   wireClose();
   owner = nextOwner;
   showingHint = hint;
@@ -82,7 +107,27 @@ export function clearStatus(forOwner = null) {
   owner = null;
   showingHint = false;
   const element = getElement();
-  if (element) element.replaceChildren();
+  if (!element) return;
+
+  const toast = getToast();
+  if (!toast || element.childNodes.length === 0) {
+    element.replaceChildren();
+    return;
+  }
+
+  // The toast's visibility is driven by whether .gizmo-status is :empty, so
+  // clearing the text immediately collapses the box to its empty min-size
+  // first and leaves that bare chip to fade out on its own — instead of the
+  // whole message fading as one. Fade with the text still in place, then
+  // empty it once it's invisible.
+  toast.style.opacity = '0';
+  toast.style.pointerEvents = 'none';
+  fadeOutListener = () => {
+    element.replaceChildren();
+    cancelFadeOut();
+  };
+  toast.addEventListener('transitionend', fadeOutListener, { once: true });
+  fadeOutTimer = setTimeout(fadeOutListener, 200);
 }
 
 // Turning hints off in the Tools panel takes the one on screen with it.
