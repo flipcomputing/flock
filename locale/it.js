@@ -419,13 +419,13 @@ export default {
   play_animation_tooltip: "Riproduce una volta l’animazione selezionata sull'oggetto indicato.",
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Crea un vettore con coordinate X, Y, Z',
+  xyz_tooltip: 'Crea un vettore con coordinate X, Y, Z.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Associa un tasto a un’azione di controllo camera.',
   camera_follow_tooltip:
     'Fa seguire alla camera un oggetto con una distanza (raggio) personalizzabile dal bersaglio.',
-  get_camera_tooltip: 'Ottieni la camera corrente della scena',
+  get_camera_tooltip: 'Ottieni la camera corrente della scena.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Unisci un elenco di oggetti in una sola e salva il risultato.',
@@ -455,7 +455,7 @@ export default {
   for_loop2_tooltip: 'Ciclo da un numero iniziale a uno finale con un passo dato.',
   for_loop_tooltip:
     'Ciclo da un numero iniziale a uno finale con un passo dato. Usa il menu a discesa per ottenere la variabile di ciclo da usare nel codice.',
-  get_lexical_variable_tooltip: 'Ottieni il valore di una variabile lessicale',
+  get_lexical_variable_tooltip: 'Ottieni il valore di una variabile lessicale.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Imposta l’intensità della luce principale.',
@@ -492,8 +492,8 @@ export default {
   skin_colour_tooltip: 'Scegli un colore pelle.',
   greyscale_colour_tooltip: 'Scegli un colore in scala di grigi per l’elevazione.',
   random_colour_tooltip: 'Genera un colore casuale.',
-  material_tooltip: 'Definisci le proprietà del materiale',
-  gradient_material_tooltip: 'Definisci le proprietà del materiale',
+  material_tooltip: 'Definisci le proprietà del materiale.',
+  gradient_material_tooltip: 'Definisci le proprietà del materiale.',
   set_material_tooltip: "Imposta il materiale specificato sull'oggetto indicato.",
 
   // Tooltip translations - Physics blocks
@@ -554,8 +554,8 @@ export default {
   rest_tooltip: 'Una pausa (silenzio) in una sequenza musicale.',
   play_notes_tooltip:
     "Riproduce una sequenza di note e pause MIDI con durate corrispondenti, usando l'oggetto per il panning. Può restituire subito o alla fine della riproduzione.",
-  set_scene_bpm_tooltip: 'Imposta i BPM per l’intera scena',
-  set_mesh_bpm_tooltip: 'Imposta i BPM per un oggetto selezionato',
+  set_scene_bpm_tooltip: 'Imposta i BPM per l’intera scena.',
+  set_mesh_bpm_tooltip: 'Imposta i BPM per un oggetto selezionato.',
   create_instrument_tooltip: 'Crea uno strumento e lo assegna alla variabile selezionata.',
   instrument_tooltip: 'Seleziona uno strumento per riprodurre le note.',
   speak_tooltip: 'Converte testo in voce usando la Web Speech API con posizionamento 3D opzionale.',
@@ -599,8 +599,8 @@ export default {
     "Muove l'oggetto nella direzione specificata. 'Avanti' segue la direzione in cui punta; 'laterale' si muove rispetto alla camera; 'strafe' si muove di lato rispetto alla camera.",
   rotate_camera_tooltip: 'Ruota la camera a sinistra o destra dei gradi indicati.',
   up_tooltip: "Applica la forza verso l'alto indicata.",
-  set_pivot_tooltip: 'Imposta il punto di ancoraggio di un oggetto sugli assi X, Y e Z',
-  min_centre_max_tooltip: 'Scegli min, centro o max per il punto di perno',
+  set_pivot_tooltip: 'Imposta il punto di ancoraggio di un oggetto sugli assi X, Y e Z.',
+  min_centre_max_tooltip: 'Scegli min, centro o max per il punto di perno.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:

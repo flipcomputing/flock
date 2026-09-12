@@ -379,8 +379,8 @@ export default {
   set_xr_mode: 'set XR mode to %1',
   set_xr_view_mode: 'set VR view to %1 with camera motion %2',
   set_ar_scene_size: 'set AR scene scale: %1 cm distance: %2 cm height: %3 cm',
-  set_vr_comfort: 'set VR comfort tunnel vision %1 strength %2 colour %3 alpha %4',
-  set_vr_comfort_overlay: 'overlay %1 shown %2 spacing %3 colour %4',
+  set_vr_comfort: 'set VR comfort tunnel vision %1 strength %2 color %3 alpha %4',
+  set_vr_comfort_overlay: 'overlay %1 shown %2 spacing %3 color %4',
   set_xr_ui_placement: 'show VR UI on %1',
   add_teleport_target: 'add teleport target %1',
   remove_teleport_target: 'remove teleport target %1',
@@ -451,17 +451,17 @@ export default {
     'Control the animation group by playing, pausing, or stopping it.',
   animate_from_tooltip: 'Start animating the group from the specified time (in seconds).',
   stop_animations_tooltip: 'Stop all keyframe animations on the selected object.',
-  switch_animation_tooltip: 'Changes the animation of the specified object to the given animation.',
+  switch_animation_tooltip: 'Change the animation of the specified object to the given animation.',
   play_animation_tooltip: 'Play the selected animation once on the specified object.',
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Creates a vector with X, Y, Z coordinates',
+  xyz_tooltip: 'Create a vector with X, Y, Z coordinates.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Bind a specific key to a camera control action.',
   camera_follow_tooltip:
     'Make the camera follow an object with a customizable distance (radius) from the target.',
-  get_camera_tooltip: 'Get the current scene camera',
+  get_camera_tooltip: 'Get the current scene camera.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Merge a list of objects into one and store the result.',
@@ -471,7 +471,7 @@ export default {
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Set a parent-child relationship between two objects and keeps the child in its world position',
+    'Set a parent-child relationship between two objects and keep the child in its world position.',
   parent_child_tooltip:
     'Set a parent-child relationship between two objects with a specified offset in x, y, and z directions.',
   remove_parent_tooltip: 'Remove the parent relationship from the specified object.',
@@ -494,7 +494,7 @@ export default {
   for_loop2_tooltip: 'Loop from a starting number to an ending number by a given step.',
   for_loop_tooltip:
     'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',
-  get_lexical_variable_tooltip: 'Get the value of a lexical variable',
+  get_lexical_variable_tooltip: 'Get the value of a lexical variable.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Set the intensity and diffuse and ground colors of the main light.',
@@ -524,7 +524,7 @@ export default {
   place_decal_tooltip: 'Place a decal on an object using the selected material.',
   decal_tooltip: 'Create a decal on an object with position, normal, size, and material.',
   highlight_tooltip: 'Highlight the selected object.',
-  glow_tooltip: 'Adds a glow effect to the selected object.',
+  glow_tooltip: 'Add a glow effect to the selected object.',
   set_shadow_tooltip: 'Toggle whether an object casts a shadow.',
   enable_shadows_tooltip: 'Turn scene shadows on or off.',
   tint_tooltip: 'Add color tint effect.',
@@ -535,8 +535,9 @@ export default {
   skin_colour_tooltip: 'Pick a skin color.',
   greyscale_colour_tooltip: 'Pick a greyscale color for elevation.',
   random_colour_tooltip: 'Generate a random color.',
-  material_tooltip: 'Define material properties',
-  gradient_material_tooltip: 'Define material properties',
+  material_tooltip: 'Define material properties.',
+  gradient_material_tooltip:
+    'Define a material using a color, gradient, or list of colors, with adjustable alpha (transparency).',
   gradient_colour_tooltip:
     'Blend between two or more colors. Direction is in degrees: 0 is bottom to top, 90 is left to right.',
   set_material_tooltip: 'Set the specified material on the given object.',
@@ -566,7 +567,7 @@ export default {
     "Return the elapsed time. Pauses while the tab is hidden, so it's best for game timers and countdowns.",
   ground_level_tooltip: 'Return the ground height at the current x/z position.',
   distance_to_tooltip: 'Calculate the distance between two objects.',
-  touching_surface_tooltip: 'Check if the object is touching a surface.',
+  touching_surface_tooltip: 'Return true if the object is touching a surface.',
   mesh_exists_tooltip: 'Return true if the object with this name is present in the scene.',
   get_property_tooltip: 'Get the value of the selected property of an object.',
   canvas_controls_tooltip: 'Add or remove canvas motion controls.',
@@ -575,7 +576,7 @@ export default {
   on_screen_controls_tooltip:
     'Configure the player controls drawn on the canvas. Auto follows the Tools panel setting. Background alpha 0 keeps the controls transparent.',
   microbit_input_tooltip:
-    'Executes the blocks inside when a specified micro:bit event is triggered.',
+    'Execute the blocks inside when a specified micro:bit event is triggered.',
   add_microbit_tooltip:
     'Connect a micro:bit and refer to it by this variable. Click the status icon to connect a micro:bit over USB. Unplugged micro:bits send events by radio through any plugged-in micro:bit on the same channel.',
   microbit_show_image_tooltip:
@@ -613,9 +614,9 @@ export default {
   midi_note_tooltip: 'A MIDI note value between 0 and 127.',
   play_notes_tooltip:
     'Play a sequence of MIDI notes and rests with corresponding durations, using object for panning. Can return immediately or after the notes have finished playing.',
-  set_scene_bpm_tooltip: 'Set the BPM for the entire scene',
-  set_mesh_bpm_tooltip: 'Set the BPM for a selected object',
-  create_instrument_tooltip: 'Create an instrument and assigns it to the selected variable.',
+  set_scene_bpm_tooltip: 'Set the BPM for the entire scene.',
+  set_mesh_bpm_tooltip: 'Set the BPM for a selected object.',
+  create_instrument_tooltip: 'Create an instrument and assign it to the selected variable.',
   instrument_tooltip: 'Select an instrument to use for playing notes.',
   speak_tooltip: 'Convert text to speech using the Web Speech API with optional 3D positioning.',
   enable_subtitles_tooltip: 'Show on-screen subtitles for spoken text.',
@@ -647,14 +648,14 @@ export default {
   scale_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
   resize_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
   rotate_model_xyz_tooltip: 'Rotate the object by the given x, y, z values.',
-  rotate_to_tooltip: 'Rotate the object to point towards the  coordinates.',
+  rotate_to_tooltip: 'Rotate the object to point towards the coordinates.',
   look_at_tooltip: 'Rotate the first object towards the position of the second object.',
   move_forward_tooltip:
     "Move the object in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
   rotate_camera_tooltip: 'Rotate the camera left or right by the given degrees.',
   up_tooltip: 'Apply the specified upwards force.',
-  set_pivot_tooltip: 'Set the anchor point for an object on the X, Y, and Z axes',
-  min_centre_max_tooltip: 'Choose min, center, or max for the pivot point',
+  set_pivot_tooltip: 'Set the anchor point for an object on the X, Y, and Z axes.',
+  min_centre_max_tooltip: 'Choose min, center, or max for the pivot point.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
@@ -666,7 +667,7 @@ export default {
   set_ar_scene_size_tooltip:
     'Scale: how wide the scene appears in the room, or 0 for life size. Distance: how far in front of you it starts. Height: how far it floats above the floor.',
   set_vr_comfort_tooltip:
-    'Comfort options for a VR headset. Tunnel vision narrows the edges of your view while the scene moves; the overlay adds faint markers (dots or a room-sized grid cage) that hold still in your real room. Spacing and colour set how the dots and grid look.',
+    'Comfort options for a VR headset. Tunnel vision narrows the edges of your view while the scene moves; the overlay adds faint markers (dots or a room-sized grid cage) that hold still in your real room. Spacing and color set how the dots and grid look.',
   set_xr_ui_placement_tooltip:
     'Choose where buttons, sliders and text appear in VR. The heads-up display floats in front of you; the wrist attaches them to your left controller like a watch.',
   add_teleport_target_tooltip: 'Allow teleporting onto the ground, one object, or all objects.',

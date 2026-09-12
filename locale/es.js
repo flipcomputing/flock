@@ -458,13 +458,13 @@ export default {
   play_animation_tooltip: 'Reproduce la animación seleccionada una vez en el objeto indicado.', // human
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Crea un vector con coordenadas X, Y, Z', // human
+  xyz_tooltip: 'Crea un vector con coordenadas X, Y, Z.', // human
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Asocia una tecla específica a una acción de control de cámara.', // human
   camera_follow_tooltip:
     'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.', // human
-  get_camera_tooltip: 'Obtén la cámara actual de la escena', // human
+  get_camera_tooltip: 'Obtén la cámara actual de la escena.', // human
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Fusiona una lista de objetos en uno y almacena el resultado.', // human
@@ -498,7 +498,7 @@ export default {
   for_loop2_tooltip: 'Bucle desde un número inicial hasta uno final usando un cierto paso.', // human
   for_loop_tooltip:
     'Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código', // human
-  get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica', // human
+  get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica.', // human
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Establece la intensidad de la luz principal.', // human
@@ -541,8 +541,8 @@ export default {
   skin_colour_tooltip: 'Selecciona un color de piel.', // human
   greyscale_colour_tooltip: 'Selecciona un color en escala de grises para elevación.', // human
   random_colour_tooltip: 'Genera un color aleatorio.', // human
-  material_tooltip: 'Define propiedades del material', // human
-  gradient_material_tooltip: 'Define propiedades del material (gradiente)', // human
+  material_tooltip: 'Define propiedades del material.', // human
+  gradient_material_tooltip: 'Define propiedades del material (gradiente).', // human
   gradient_colour_tooltip:
     'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.', // ai
   set_material_tooltip: 'Establecer el material especificado al objeto indicado.', // human

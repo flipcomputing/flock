@@ -1407,7 +1407,7 @@ export function defineBlocks() {
       let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "wall1";
       this.jsonInit({
         type: 'create_wall',
-        message0: 'new wall %1 type %2 colour %3 \n start x %4 z %5 end x %6 z %7 y position %8',
+        message0: 'new wall %1 type %2 color %3 \n start x %4 z %5 end x %6 z %7 y position %8',
         args0: [
           {
             type: 'field_variable',

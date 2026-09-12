@@ -415,13 +415,13 @@ export default {
   play_animation_tooltip: "Lancer l'animation sélectionnée une fois sur la forme spécifiée.",
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Crée un vecteur avec des coordonnées X, Y, Z',
+  xyz_tooltip: 'Crée un vecteur avec des coordonnées X, Y, Z.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Associer une touche spécifique à une action de contrôle de la caméra.',
   camera_follow_tooltip:
     'Faire suivre un objet par la caméra avec une distance (rayon) personnalisable par rapport à la cible.',
-  get_camera_tooltip: 'Obtenir la caméra actuelle de la scène',
+  get_camera_tooltip: 'Obtenir la caméra actuelle de la scène.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: "Fusionner une liste d'objets en un seul et stocker le résultat.",
@@ -433,7 +433,7 @@ export default {
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde",
+    "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde.",
   parent_child_tooltip:
     'Définit une relation parent-enfant entre deux objets avec un décalage spécifié dans les directions x, y et z.',
   remove_parent_tooltip: "Supprime la relation de parenté de l'objet spécifié.",
@@ -454,7 +454,7 @@ export default {
   for_loop2_tooltip: 'Boucle d’un nombre de départ à un nombre de fin avec un pas donné.',
   for_loop_tooltip:
     'Boucle d’un nombre de départ à un nombre de fin avec un pas donné. Cliquez sur le menu déroulant pour obtenir la variable de boucle à utiliser dans votre code.',
-  get_lexical_variable_tooltip: 'Obtenir la valeur d’une variable lexicale',
+  get_lexical_variable_tooltip: 'Obtenir la valeur d’une variable lexicale.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: "Définit l'intensité de la lumière principale.",
@@ -495,8 +495,8 @@ export default {
   skin_colour_tooltip: 'Choisir une couleur de peau.',
   greyscale_colour_tooltip: "Choisir une couleur en niveaux de gris pour l'élévation.",
   random_colour_tooltip: 'Génère une couleur aléatoire.',
-  material_tooltip: 'Définit les propriétés du matériau',
-  gradient_material_tooltip: 'Définit les propriétés du matériau',
+  material_tooltip: 'Définit les propriétés du matériau.',
+  gradient_material_tooltip: 'Définit les propriétés du matériau.',
   set_material_tooltip: "Définit le matériau spécifié sur l'objet donné.",
 
   // Tooltip translations - Physics blocks
@@ -559,8 +559,8 @@ export default {
   rest_tooltip: 'Un silence (pause) dans une séquence musicale.',
   play_notes_tooltip:
     'Joue une séquence de notes MIDI et de silences avec des durées correspondantes, en utilisant un objet pour le panoramique. Peut retourner immédiatement ou après la fin des notes.',
-  set_scene_bpm_tooltip: 'Définit le BPM pour toute la scène',
-  set_mesh_bpm_tooltip: 'Définit le BPM pour un objet sélectionné',
+  set_scene_bpm_tooltip: 'Définit le BPM pour toute la scène.',
+  set_mesh_bpm_tooltip: 'Définit le BPM pour un objet sélectionné.',
   create_instrument_tooltip: 'Crée un instrument et l’assigne à la variable sélectionnée.',
   instrument_tooltip: 'Sélectionner un instrument pour jouer des notes.',
   speak_tooltip:
@@ -604,8 +604,8 @@ export default {
   rotate_camera_tooltip:
     'Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.',
   up_tooltip: 'Applique la force vers le haut spécifiée.',
-  set_pivot_tooltip: 'Définit le point d’ancrage d’un objet selon les axes X, Y et Z',
-  min_centre_max_tooltip: 'Choisit min, centre ou max comme point de pivot',
+  set_pivot_tooltip: 'Définit le point d’ancrage d’un objet selon les axes X, Y et Z.',
+  min_centre_max_tooltip: 'Choisit min, centre ou max comme point de pivot.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:

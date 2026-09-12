@@ -411,13 +411,13 @@ export default {
   play_animation_tooltip: 'Spela vald animation en gång på det angivna objektet.',
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Skapar en vektor med X-, Y- och Z-koordinater',
+  xyz_tooltip: 'Skapar en vektor med X-, Y- och Z-koordinater.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Koppla en specifik tangent till en kamerakontrollfunktion.',
   camera_follow_tooltip:
     'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.',
-  get_camera_tooltip: 'Hämta den aktuella scenkameran',
+  get_camera_tooltip: 'Hämta den aktuella scenkameran.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Slå samman en lista med objekt till ett och spara resultatet.',
@@ -429,7 +429,7 @@ export default {
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition',
+    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition.',
   parent_child_tooltip:
     'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.',
   remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.',
@@ -450,7 +450,7 @@ export default {
   for_loop2_tooltip: 'Loop från ett starttal till ett slutvärde med ett givet steg.',
   for_loop_tooltip:
     'Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.',
-  get_lexical_variable_tooltip: 'Hämta värdet av en lexikal variabel',
+  get_lexical_variable_tooltip: 'Hämta värdet av en lexikal variabel.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Ställ in intensiteten på huvudljuset.',
@@ -487,8 +487,8 @@ export default {
   skin_colour_tooltip: 'Välj en hudfärg.',
   greyscale_colour_tooltip: 'Välj en gråskala-färg för höjd.',
   random_colour_tooltip: 'Generera en slumpmässig färg.',
-  material_tooltip: 'Definiera materialegenskaper',
-  gradient_material_tooltip: 'Definiera materialegenskaper',
+  material_tooltip: 'Definiera materialegenskaper.',
+  gradient_material_tooltip: 'Definiera materialegenskaper.',
   set_material_tooltip: 'Ange det angivna materialet på det valda objektet.',
 
   // Tooltip translations - Physics blocks
@@ -548,8 +548,8 @@ export default {
   rest_tooltip: 'En paus (tystnad) i en musiksekvens.',
   play_notes_tooltip:
     'Spela en sekvens av MIDI-noter och pauser med motsvarande längder, där objekt används för panorering. Kan returnera omedelbart eller efter uppspelning.',
-  set_scene_bpm_tooltip: 'Ställ in BPM för hela scenen',
-  set_mesh_bpm_tooltip: 'Ställ in BPM för ett valt objekt',
+  set_scene_bpm_tooltip: 'Ställ in BPM för hela scenen.',
+  set_mesh_bpm_tooltip: 'Ställ in BPM för ett valt objekt.',
   create_instrument_tooltip: 'Skapa ett instrument och tilldela det till den valda variabeln.',
   instrument_tooltip: 'Välj ett instrument att använda för att spela noter.',
   speak_tooltip:
@@ -595,8 +595,8 @@ export default {
     "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.",
   rotate_camera_tooltip: 'Roterar kameran åt vänster eller höger med angivet antal grader.',
   up_tooltip: 'Applicerar den angivna uppåtriktade kraften.',
-  set_pivot_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln',
-  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt',
+  set_pivot_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln.',
+  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:

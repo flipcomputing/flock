@@ -415,13 +415,13 @@ export default {
   play_animation_tooltip: 'Reproduz a animação selecionada uma vez no objeto especificado.',
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Cria um vetor com coordenadas X, Y, Z',
+  xyz_tooltip: 'Cria um vetor com coordenadas X, Y, Z.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Associa uma tecla específica a uma ação de controle da câmera.',
   camera_follow_tooltip:
     'Faz a câmera seguir um objeto com uma distância (raio) personalizável do alvo.',
-  get_camera_tooltip: 'Obtém a câmera atual da cena',
+  get_camera_tooltip: 'Obtém a câmera atual da cena.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Une uma lista de objetos em um só e armazena o resultado.',
@@ -454,7 +454,7 @@ export default {
   for_loop2_tooltip: 'Repete de um número inicial até um final com um passo definido.',
   for_loop_tooltip:
     'Repete de um número inicial até um final com um passo definido. Clique no menu suspenso para obter a variável do loop para usar no seu código.',
-  get_lexical_variable_tooltip: 'Obtém o valor de uma variável lexical',
+  get_lexical_variable_tooltip: 'Obtém o valor de uma variável lexical.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Define a intensidade da luz principal.',
@@ -492,8 +492,8 @@ export default {
   skin_colour_tooltip: 'Escolhe uma cor de pele.',
   greyscale_colour_tooltip: 'Escolhe uma cor em escala de cinza para elevação.',
   random_colour_tooltip: 'Gera uma cor aleatória.',
-  material_tooltip: 'Define propriedades de material',
-  gradient_material_tooltip: 'Define propriedades de material com gradiente',
+  material_tooltip: 'Define propriedades de material.',
+  gradient_material_tooltip: 'Define propriedades de material com gradiente.',
   set_material_tooltip: 'Define o material especificado no objeto indicado.',
 
   // Tooltip translations - Physics blocks

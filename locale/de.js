@@ -567,12 +567,12 @@ export default {
   play_animation_tooltip: 'Spiele die gewählte Animation einmal ab.',
 
   // Base tooltips
-  xyz_tooltip: 'Erstellt einen Vektor mit X, Y, Z Koordinaten',
+  xyz_tooltip: 'Erstellt einen Vektor mit X, Y, Z Koordinaten.',
 
   // Camera tooltips
   camera_control_tooltip: 'Verknüpfe eine Taste mit einer Kamerasteuerungsaktion.',
   camera_follow_tooltip: 'Lässt die Kamera einem Objekt mit einstellbarem Abstand folgen.',
-  get_camera_tooltip: 'Hole die aktuelle Szene‑Kamera',
+  get_camera_tooltip: 'Hole die aktuelle Szene‑Kamera.',
 
   // Combine tooltips
   merge_meshes_tooltip:
@@ -600,7 +600,7 @@ export default {
   local_variable_tooltip: 'Erstelle eine lokale Variable (überschreibt globale mit eigenem Wert).',
   for_loop2_tooltip: 'Schleife von Start‑ bis Endwert mit Schritt.',
   for_loop_tooltip: 'Schleife mit Start, Ende und Schritt. Dropdown zur Auswahl der Loop‑Variable.',
-  get_lexical_variable_tooltip: 'Hole den Wert einer lexikalischen Variablen',
+  get_lexical_variable_tooltip: 'Hole den Wert einer lexikalischen Variablen.',
 
   // Effects tooltips
   main_light_tooltip: 'Stelle die Intensität der Hauptbeleuchtung ein.',
@@ -635,8 +635,8 @@ export default {
   skin_colour_tooltip: 'Hautfarbe wählen.',
   greyscale_colour_tooltip: 'Graustufenfarbe für Höhen wählen.',
   random_colour_tooltip: 'Generiere eine Zufallsfarbe.',
-  material_tooltip: 'Definiere Materialeigenschaften',
-  gradient_material_tooltip: 'Definiere Materialeigenschaften mit Verlauf',
+  material_tooltip: 'Definiere Materialeigenschaften.',
+  gradient_material_tooltip: 'Definiere Materialeigenschaften mit Verlauf.',
   set_material_tooltip: 'Setze das angegebene Material auf das Objekt',
 
   // Physics tooltips
