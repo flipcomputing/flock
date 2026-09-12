@@ -228,6 +228,8 @@ export default {
     'calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11', // human
   highlight: 'resaltar %1 %2', // human
   glow: 'resplandor en %1', // human
+  set_shadow: 'proyectar sombra de %1 %2', // ai
+  enable_shadows: 'activar sombras %1', // ai
   tint: 'tinte %1 %2', // human
   set_alpha: 'establecer alfa de %1 a %2', // human
   clear_effects: 'limpiar efectos de %1', // human
@@ -250,6 +252,7 @@ export default {
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
   set_speed_tooltip:
     'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
+  set_bounciness: 'establecer rebote de %1 a %2', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
   // Custom block translations - Sensing blocks
@@ -325,8 +328,12 @@ export default {
   play_theme: 'reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
   play_sound: 'reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
   stop_all_sounds: 'parar todos los sonidos', // human
+  note: 'nota MIDI %1 %2', // ai
   midi_note: 'nota MIDI %1', // human
   rest: 'pausa', // human
+  play_tune: 'reproducir melodía', // ai
+  play_tune_notes: 'reproducir notas %1 instrumento: %2\nnotas: %3', // ai
+  set_music_speed: 'establecer velocidad de música de %1 %2', // ai
   play_notes: 'reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5', // human
   set_scene_bpm: 'establecer BPM de la escena a %1', // human
   set_mesh_bpm: 'establecer BPM de %1 a %2', // human
@@ -524,6 +531,8 @@ export default {
   decal_tooltip: 'Crea una calcomanía en un objeto con posición, normal, tamaño y material.', // human
   highlight_tooltip: 'Resalta el objeto seleccionado.', // human
   glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.', // human
+  set_shadow_tooltip: 'Activa o desactiva si un objeto proyecta sombra.', // ai
+  enable_shadows_tooltip: 'Activa o desactiva las sombras de la escena.', // ai
   tint_tooltip: 'Añade un tinte de color.', // human
   set_alpha_tooltip:
     'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.', // human
@@ -544,6 +553,8 @@ export default {
   apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.', // human
   jump_tooltip:
     'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual. Necesita física.', // ai
+  set_bounciness_tooltip:
+    'Establece cuánto rebota un objeto. 0 significa que no rebota, 1 significa que rebota mucho. El objeto necesita física primero.', // ai
   show_physics_tooltip:
     'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.', // human
 
@@ -600,8 +611,15 @@ export default {
   play_sound_tooltip:
     'Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.', // human
   stop_all_sounds_tooltip: 'Para todos los sonidos que estén reproduciendo en la escena.', // human
+  note_tooltip: 'Una nota musical con un tono (MIDI 0–127) y una duración en tiempos.', // ai
   midi_note_tooltip: 'Un valor de nota MIDI entre 0 y 127.', // human
   rest_tooltip: 'Un pausa (silencio) en una secuencia musical.', // human
+  play_tune_tooltip:
+    'Importa una cadena en notación ABC para generar una melodía con notas y repeticiones.', // ai
+  play_tune_notes_tooltip:
+    'Reproduce una secuencia de notas y silencios en un objeto usando el instrumento especificado.', // ai
+  set_music_speed_tooltip:
+    'Establece el multiplicador de velocidad de reproducción de música para un objeto.', // ai
   play_notes_tooltip:
     'Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando el objeto para paneo. Puede devolver inmediatamente o al finalizar.', // human
   set_scene_bpm_tooltip: 'Establece el BPM para toda la escena.', // human
@@ -656,6 +674,14 @@ export default {
   device_camera_background_tooltip:
     'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora. En unas gafas de RV la escena aparece en tu habitación.', // ai
   set_xr_mode_tooltip: 'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.', // ai
+  set_xr_view_mode_tooltip:
+    'Elige si observar o encarnar el objeto seguido y cómo se mueve su cámara. En observar, la comodidad de la cámara se ajusta después de detenerse el movimiento; en encarnar, la teletransportación usa el rayo del mando.', // ai
+  set_ar_scene_size_tooltip:
+    'Escala: cuán ancha aparece la escena en la habitación, o 0 para tamaño real. Distancia: a qué distancia delante de ti comienza. Altura: a qué distancia flota sobre el suelo.', // ai
+  set_vr_comfort_tooltip:
+    'Opciones de comodidad para un visor de RV. La visión de túnel estrecha los bordes de tu vista mientras la escena se mueve; la superposición añade marcadores tenues (puntos o una jaula de cuadrícula del tamaño de la habitación) que permanecen fijos en tu habitación real. El espaciado y el color determinan el aspecto de los puntos y la cuadrícula.', // ai
+  set_xr_ui_placement_tooltip:
+    'Elige dónde aparecen los botones, controles deslizantes y texto en RV. La pantalla frontal flota delante de ti; la muñeca los coloca en tu mando izquierdo como un reloj.', // ai
   add_teleport_target_tooltip:
     'Permite teletransportarse al suelo, a un objeto o a todos los objetos.',
   remove_teleport_target_tooltip:
@@ -967,6 +993,12 @@ export default {
   sound_spaceTrash_option: 'Basura Espacial', // human
   sound_threeTone1_option: 'Tres Tono 1', // human
   sound_threeTone2_option: 'Tres Tono 2', // human
+  sound_chop_option: 'Hachazo', // ai
+  sound_creak_option: 'Crujido', // ai
+  sound_footstep_option: 'Paso', // ai
+  sound_door_open_option: 'Apertura de Puerta', // ai
+  sound_door_close_option: 'Cierre de Puerta', // ai
+  sound_metal_latch_option: 'Pestillo Metálico', // ai
 
   sine_option: 'seno', // human
   square_option: 'cuadrada', // human
@@ -1013,6 +1045,10 @@ export default {
   diagonal_ridge_png_option: 'Cresta Diagonal', // human
   mixed_heights_png_option: 'Alturas Mixtas', // human
   uneven_terrain_png_option: 'Terreno Irregular', // human
+  mountains_png_option: 'Montañas', // ai
+  Islands_png_option: 'Islas', // ai
+  Lookout_png_option: 'Mirador', // ai
+  Valley_png_option: 'Valle', // ai
 
   Idle_option: 'Inactivo', // human
   Walk_option: 'Caminar', // human
@@ -1192,6 +1228,7 @@ export default {
   context_enable_option: 'Habilitar',
   add_comment: 'Añadir comentario',
   delete_comment: 'Eliminar comentario',
+  comment_text_label: 'Texto del comentario', // ai
   view_in_canvas: 'Ver en el lienzo',
   exit_canvas_view: 'Dejar de orbitar el objeto',
   detach_block_option: 'Desconectar',
@@ -1199,6 +1236,8 @@ export default {
   context_copy_option: 'Copiar', // human
   context_paste_option: 'Pegar', // human
   context_cut_option: 'Cortar', // human
+  move_item_up_option: 'Mover elemento hacia arriba', // ai
+  move_item_down_option: 'Mover elemento hacia abajo', // ai
   lock_block_option: 'Bloquear',
   unlock_block_option: 'Desbloquear',
   canvas_focus_navigation: 'Lienzo 3D enfocado. Usa las flechas o WASD para navegar.', // human
@@ -1240,6 +1279,13 @@ export default {
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
+  unsaved_changes_title_ui: 'Cambios sin guardar', // ai
+  unsaved_changes_message_ui:
+    'Este proyecto tiene cambios que no se han guardado en un archivo. ¿Qué te gustaría hacer?', // ai
+  unsaved_changes_save_button_ui: 'Guardar en archivo', // ai
+  unsaved_changes_discard_button_ui: 'Continuar sin guardar', // ai
+  unsaved_changes_cancel_button_ui: 'Cancelar', // ai
+  close_unsaved_changes_ui: 'Cerrar', // ai
   untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
   untrusted_project_url_message_ui:
     'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
@@ -1273,6 +1319,10 @@ export default {
     'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   error_xr_models_offline:
     'Conéctate a internet para cargar los modelos de los mandos y las manos (opcionales). La XR funciona igual sin ellos.', // ai
+  recursion_too_deep:
+    'Una función se seguía llamando a sí misma, así que se detuvo. Comprueba que pueda terminar.', // ai
+  unhandled_rejection: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
+  uncaught_error: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
@@ -1292,6 +1342,60 @@ export default {
   blocks_copied_alert: '¡Bloques copiados al almacenamiento local!', // human
   no_blocks_to_copy_alert: 'No hay bloques para copiar.', // human
   copy_blocks_failed_alert: 'No se pudieron copiar los bloques.', // human
+
+  // Model display names
+  model_display_liz1: 'Gato', // ai
+  model_display_liz2: 'Mono', // ai
+  model_display_liz3: 'Personaje con coleta larga', // ai
+  model_display_liz4: 'Personaje con pelo de punta', // ai
+  model_display_liz5: 'Alienígena', // ai
+  model_display_liz6: 'Elfo', // ai
+  model_display_block1: 'Personaje de bloques con coletas altas', // ai
+  model_display_block2: 'Personaje de bloques con coletas largas', // ai
+  model_display_block3: 'Personaje de bloques con coleta', // ai
+  model_display_block4: 'Personaje de bloques con pelo corto rizado', // ai
+  model_display_block5: 'Personaje de bloques con pelo corto', // ai
+  model_display_block6: 'Personaje de bloques con pelo largo', // ai
+  model_display_tree: 'Árbol', // ai
+  model_display_tree2: 'Árbol con dos ramas', // ai
+  model_display_tree3: 'Árbol de invierno', // ai
+  model_display_tree4: 'Abeto', // ai
+  model_display_hut: 'Cabaña redonda', // ai
+  model_display_hut2: 'Cabaña', // ai
+  model_display_hut3: 'Carpa de festival', // ai
+  model_display_hut4: 'Cabaña con forma de seta', // ai
+  model_display_rocks: 'Plataforma de roca', // ai
+  model_display_rocks2: 'Roca de esquina', // ai
+  model_display_rocks3: 'Roca de varios niveles', // ai
+  model_display_rocks4: 'Cascada', // ai
+  model_display_pond: 'Estanque', // ai
+  model_display_boat: 'Barco', // ai
+  model_display_airplane: 'Avión', // ai
+  model_display_airplane2: 'Avión con asiento', // ai
+  model_display_skateboard: 'Monopatín', // ai
+  model_display_humped: 'Puente jorobado', // ai
+  model_display_jetty: 'Muelle', // ai
+  model_display_flower: 'Flor', // ai
+  model_display_flower2: 'Tulipán', // ai
+  model_display_star: 'Estrella', // ai
+  model_display_heart: 'Corazón', // ai
+  model_display_coin: 'Moneda', // ai
+  model_display_egg: 'Huevo', // ai
+  model_display_gem1: 'Gema cuadrada', // ai
+  model_display_gem2: 'Diamante', // ai
+  model_display_gem3: 'Gema alargada', // ai
+  model_display_key: 'Llave', // ai
+  model_display_wand: 'Varita', // ai
+  model_display_hat: 'Sombrero', // ai
+  model_display_donut: 'Rosquilla', // ai
+  model_display_pumpkin: 'Calabaza', // ai
+  model_display_apple: 'Manzana', // ai
+  model_display_starboppers: 'Starboppers', // ai
+  model_display_headphones: 'Auriculares', // ai
+  model_display_flock: 'Pájaro Flock', // ai
+  model_display_flock_santa: 'Pájaro Flock con gorro de Papá Noel', // ai
+  model_display_character: 'Personaje', // ai
+  model_display_rhino: 'Rinoceronte', // ai
 
   // Context menu option translations
   export_JSON_snippet: 'Exportar bloque como fragmento JSON', // human
