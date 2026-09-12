@@ -23,6 +23,8 @@ export const CATEGORIES = [
 
 // Ordered list of bundled examples. `i18nKey` maps to a `<key>_ui` locale entry
 // and to `images/thumbnails/<key>.webp`; `category` is a CATEGORIES id.
+// `thumbnailSettleMs` overrides the capture script's default settle delay for
+// projects that keep visibly changing after their mesh count stabilises.
 export const EXAMPLES = [
   { i18nKey: 'starter', file: 'examples/starter.flock', category: 'worlds' },
   { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', category: 'games' },
@@ -31,7 +33,13 @@ export const EXAMPLES = [
     file: 'examples/collect_the_gems.flock',
     category: 'games',
   },
-  { i18nKey: 'candy_dash', file: 'examples/candy_dash.flock', category: 'games' },
+  {
+    i18nKey: 'candy_dash',
+    file: 'examples/candy_dash.flock',
+    category: 'games',
+    // Candies keep falling into view well after the mesh count settles.
+    thumbnailSettleMs: 6000,
+  },
   { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
   /*{
     i18nKey: 'gem_tilt_game',

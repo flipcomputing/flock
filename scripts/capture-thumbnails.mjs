@@ -1,13 +1,15 @@
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Captures the projects-menu tile thumbnails: loads each bundled example, lets
 // it run, then downscales the canvas to a 16:9 webp in images/thumbnails.
-// Pass example keys (e.g. `npm run thumbnails -- candy_dash`) to redo just those,
-// and THUMBNAIL_SETTLE_MS to give a slow-building project longer before the grab.
+// Pass example keys (e.g. `npm run thumbnails -- candy_dash`) to redo just those.
+// THUMBNAIL_SETTLE_MS overrides the default settle delay for every project in
+// the run; a single slow-building project instead sets `thumbnailSettleMs` on
+// its EXAMPLES entry in main/examples.js.
 
 const PORT = Number(process.env.THUMBNAIL_PORT || 4176);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
@@ -81,13 +83,21 @@ async function waitForServer(url, timeoutMs = 60_000) {
   throw new Error(`Timed out waiting for dev server at ${url}`);
 }
 
-const devServer = spawn(
-  'npm',
-  ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
-  // Its own process group: npm outlives a plain kill and leaves vite holding
-  // the port.
-  { stdio: 'pipe', detached: true, env: { ...process.env, FORCE_COLOR: '0' } }
-);
+const isWindows = process.platform === 'win32';
+const devArgs = ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'];
+// Windows resolves `npm` through a .cmd shim, which plain spawn() can't find
+// without shell: true; combining that with detached throws EINVAL, so skip
+// detached there too and rely on taskkill's /t (whole tree) for cleanup. A
+// single command string (rather than args + shell: true) avoids Node's
+// DEP0190 warning about unescaped shell arguments — safe here since none of
+// these tokens come from outside the script.
+const devServer = isWindows
+  ? spawn(['npm', ...devArgs].join(' '), { stdio: 'pipe', shell: true, env: { ...process.env, FORCE_COLOR: '0' } })
+  : spawn('npm', devArgs, {
+      stdio: 'pipe',
+      detached: true,
+      env: { ...process.env, FORCE_COLOR: '0' },
+    });
 
 let browser;
 let context;
@@ -127,7 +137,11 @@ try {
   const { examples, width, height } = await page.evaluate(async () => {
     const mod = await import('/main/examples.js');
     return {
-      examples: mod.EXAMPLES.map((ex) => ({ key: ex.i18nKey, file: ex.file })),
+      examples: mod.EXAMPLES.map((ex) => ({
+        key: ex.i18nKey,
+        file: ex.file,
+        settleMs: ex.thumbnailSettleMs,
+      })),
       width: mod.THUMBNAIL_WIDTH,
       height: mod.THUMBNAIL_HEIGHT,
     };
@@ -188,8 +202,9 @@ try {
     // than saving a blank tile.
     let dataUrl = '';
     let flat = true;
+    const settleMs = example.settleMs ?? SETTLE_MS;
     for (let attempt = 0; attempt < 4 && flat; attempt++) {
-      await sleep(SETTLE_MS);
+      await sleep(settleMs);
       await page.evaluate(setProjectText, false);
       await sleep(250);
       ({ dataUrl, flat } = await page.evaluate(grabFrame, { w: width, h: height }));
@@ -220,7 +235,12 @@ try {
   await context?.close().catch(() => {});
   await browser?.close().catch(() => {});
   try {
-    process.kill(-devServer.pid, 'SIGTERM');
+    if (isWindows) {
+      // No POSIX process groups on Windows: kill npm's whole tree by pid instead.
+      spawnSync('taskkill', ['/pid', String(devServer.pid), '/t', '/f']);
+    } else {
+      process.kill(-devServer.pid, 'SIGTERM');
+    }
   } catch {
     // Already exited.
   }
