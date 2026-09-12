@@ -182,6 +182,7 @@ export function defineTextBlocks() {
         nextStatement: null,
         colour: 160,
         tooltip: getTooltip('say'),
+        inputHints: { DURATION: getTooltip('say_duration') },
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');

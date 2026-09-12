@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
-import { blockHandlerRegistry, refreshReporterAriaLabels } from '../blocks/blocks.js';
+import { blockHandlerRegistry, refreshReporterAriaLabels, applyInputHint } from '../blocks/blocks.js';
 import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
@@ -167,13 +167,83 @@ function createKeywordBlockAtViewportCenter(blockType) {
   return block;
 }
 
-export function showSelectedBlockHint() {
-  const selected = asBlocklyBlock(window.currentBlock);
-  if (selected && !selected.isDisposed?.()) {
-    showBlockHint(Blockly.Tooltip.getTooltipOfObject(selected));
+// Clicking a field is, in Blockly's own gesture handling, a real SELECT of
+// the enclosing block immediately followed by a real DESELECT once the
+// field's editor opens. Rendering each as it arrives is correct at every
+// step but flickers the block's tooltip up then down, so field clicks are
+// special-cased below: decide and render the outcome immediately from the
+// click target (a slot's hint if applyInputHint set one, else blank), and
+// mute the SELECT/DESELECT noise so it can't override that decision.
+//
+// The shape of that noise isn't fixed -- clicking a field on an
+// already-deselected block can produce three events (leftover noise, select,
+// deselect) where the same field on an already-selected block produces just
+// one (a bare deselect). fieldGesture tracks content, not count or timing:
+// it waits for the enclosing block's reselect (unless it was already
+// selected, in which case there isn't one) and treats the deselect that
+// follows as completion. Anything that doesn't fit -- a later, unrelated
+// selection change, e.g. from keyboard navigation -- passes through
+// unsuppressed instead of being swallowed indefinitely.
+let lastCanvasPointerBlock = null;
+const fieldGesture = {
+  active: false,
+  expectedEnclosingId: null,
+  wasAlreadySelected: false,
+  seenExpectedReselect: false,
+};
+
+function armFieldGesture(enclosingId) {
+  fieldGesture.active = true;
+  fieldGesture.expectedEnclosingId = enclosingId;
+  fieldGesture.wasAlreadySelected = window.currentBlock?.id === enclosingId;
+  fieldGesture.seenExpectedReselect = false;
+}
+
+function disarmFieldGesture() {
+  fieldGesture.active = false;
+  fieldGesture.expectedEnclosingId = null;
+  fieldGesture.wasAlreadySelected = false;
+  fieldGesture.seenExpectedReselect = false;
+}
+
+// Returns true if this SELECTED event is gesture noise to swallow rather
+// than pass to showSelectedBlockHint. See the fieldGesture comment above.
+function isFieldGestureNoise(newElementId) {
+  if (!fieldGesture.active) return false;
+
+  if (!fieldGesture.seenExpectedReselect) {
+    if (newElementId === fieldGesture.expectedEnclosingId) {
+      fieldGesture.seenExpectedReselect = true;
+      return true;
+    }
+    if (newElementId === undefined && fieldGesture.wasAlreadySelected) {
+      disarmFieldGesture(); // sole deselect; nothing to reselect first
+      return true;
+    }
+    return true; // leftover noise from an earlier click
+  }
+
+  disarmFieldGesture();
+  return newElementId === undefined;
+}
+
+// Skips the DOM write (and whatever show/hide animation it triggers) when the
+// hint box already displays this exact text. Checked against the live DOM,
+// not a cached value, since other flows (the flyout hint, the one-off
+// info-shortcut message) write to the same box directly.
+function renderHint(text) {
+  if (document.getElementById('blockHintText')?.textContent === text) return;
+  if (text) {
+    showBlockHint(text);
   } else {
     clearBlockHint();
   }
+}
+
+export function showSelectedBlockHint() {
+  const selected = asBlocklyBlock(window.currentBlock);
+  const text = selected && !selected.isDisposed?.() ? Blockly.Tooltip.getTooltipOfObject(selected) : '';
+  renderHint(text);
 }
 
 // Blockly hangs its tooltip owner (a block or a field) off the SVG elements it
@@ -230,6 +300,50 @@ export function initializeBlockHandling() {
   observeBlocklyInputs();
   initializeFlyoutHints();
 
+  // Capture-phase so this runs before Blockly's own gesture handling decides
+  // whether the click selects a block or just edits a field in place.
+  //
+  // A click directly on a field's own DOM group (.blocklyField) is the
+  // obvious case, but a block that's just a bare value with nothing else --
+  // a shadow (the number in say's DURATION) or a plain reporter dragged in
+  // to replace one (a variable) -- has its *whole* clickable area, border
+  // included, wired to the same "activate this field" behavior.
+  // .closest('.blocklyField') alone misses a click on that outline.
+  workspace.getParentSvg()?.addEventListener(
+    'pointerdown',
+    (event) => {
+      lastCanvasPointerBlock = blockFromPointerTarget(event.target);
+      const isFieldClick =
+        !!event.target.closest?.('.blocklyField') ||
+        !!lastCanvasPointerBlock?.isShadow?.() ||
+        !!lastCanvasPointerBlock?.isSimpleReporter?.();
+      if (isFieldClick) {
+        // A shadow defers its selection to its enclosing block (e.g. "say"),
+        // but a real block -- a dragged-in variable, or a field living
+        // directly on a non-shadow block -- gets selected itself.
+        const parentConnection =
+          lastCanvasPointerBlock?.outputConnection?.targetConnection ??
+          lastCanvasPointerBlock?.previousConnection?.targetConnection;
+        const enclosingId = lastCanvasPointerBlock?.isShadow?.()
+          ? (parentConnection?.getSourceBlock?.()?.id ?? lastCanvasPointerBlock?.id ?? null)
+          : (lastCanvasPointerBlock?.id ?? null);
+        armFieldGesture(enclosingId);
+        const hint = lastCanvasPointerBlock?.hasOwnInputHint
+          ? Blockly.Tooltip.getTooltipOfObject(lastCanvasPointerBlock)
+          : '';
+        renderHint(hint);
+      } else {
+        // A body click just selects and stays selected, so the upcoming
+        // SELECTED event renders it -- but also call this now, for the one
+        // case with no such event: field-to-empty-canvas is a no-op in
+        // Blockly's selection model.
+        disarmFieldGesture();
+        showSelectedBlockHint();
+      }
+    },
+    true
+  );
+
   // Refresh reporter fields' ARIA when their slot changes so a value block
   // (e.g. a number in scale's X) announces its parent input ("x, number").
   workspace.addChangeListener((event) => {
@@ -240,6 +354,24 @@ export function initializeBlockHandling() {
     } else if (event.type === Blockly.Events.FINISHED_LOADING) {
       for (const top of workspace.getTopBlocks(false)) {
         refreshReporterAriaLabels(top);
+      }
+    }
+  });
+
+  // A slot's hint (e.g. say's DURATION meaning "seconds to show") belongs to
+  // whatever currently occupies it: the initial shadow, a respawned one after
+  // the real block is dragged out, or something dropped in to replace it.
+  workspace.addChangeListener((event) => {
+    if (event.isUiEvent) return;
+    if (event.type === Blockly.Events.BLOCK_CREATE) {
+      for (const id of event.ids ?? []) {
+        applyInputHint(workspace.getBlockById(id));
+      }
+    } else if (event.type === Blockly.Events.BLOCK_MOVE) {
+      applyInputHint(workspace.getBlockById(event.blockId));
+    } else if (event.type === Blockly.Events.FINISHED_LOADING) {
+      for (const block of workspace.getAllBlocks(false)) {
+        applyInputHint(block);
       }
     }
   });
@@ -478,7 +610,7 @@ export function initializeBlockHandling() {
     // Track the currently selected block.
     if (event.type === Blockly.Events.SELECTED) {
       window.currentBlock = event.newElementId ? workspace.getBlockById(event.newElementId) : null;
-      showSelectedBlockHint();
+      if (!isFieldGestureNoise(event.newElementId)) showSelectedBlockHint();
     }
 
     // Workaround for Blockly not checking for orphans on key

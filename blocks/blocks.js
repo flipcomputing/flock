@@ -298,6 +298,29 @@ export function refreshReporterAriaLabels(block) {
   }
 }
 
+// A slot can carry a hint distinct from whatever's plugged into it — e.g. say's
+// DURATION means "seconds to show", not just "a number". Parents declare these
+// via an `inputHints` map (jsonInit, stashed by blocklyinit.js); this applies
+// the hint to whatever currently occupies the slot, and restores the original
+// tooltip if the block later moves elsewhere.
+export function applyInputHint(block) {
+  if (!block) return;
+  const parentConnection =
+    block.outputConnection?.targetConnection ?? block.previousConnection?.targetConnection;
+  const input = parentConnection?.getParentInput?.();
+  const hint = input && input.getSourceBlock?.()?.inputHints?.[input.name];
+
+  if (hint) {
+    if (!block.hasOwnInputHint) block._tooltipBeforeInputHint = block.tooltip;
+    block.setTooltip(hint);
+    block.hasOwnInputHint = true;
+  } else if (block.hasOwnInputHint) {
+    block.setTooltip(block._tooltipBeforeInputHint);
+    delete block._tooltipBeforeInputHint;
+    block.hasOwnInputHint = false;
+  }
+}
+
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
   const toggleButton = new Blockly.FieldImage(

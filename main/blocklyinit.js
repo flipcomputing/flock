@@ -115,11 +115,15 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
 
 // Blocks may carry an `ariaLabels` map (keyed by input name) in their jsonInit definition to
 // override or suppress per-input labels; jsonInit itself ignores the key.
+//
+// They may also carry an `inputHints` map (input name -> tooltip), stashed here for
+// applyInputHint (blocks/blocks.js) to apply to that slot's occupant.
 {
   const originalJsonInit = Blockly.Block.prototype.jsonInit;
   Blockly.Block.prototype.jsonInit = function (json) {
     originalJsonInit.call(this, json);
     applyInputAriaLabels(this, json && json.ariaLabels);
+    if (json && json.inputHints) this.inputHints = json.inputHints;
   };
 }
 

@@ -626,6 +626,7 @@ export default {
   print_text_tooltip: 'A text to the output panel.',
   subtitle_tooltip: 'Show text as an on-screen subtitle. 0 seconds stays until replaced.',
   say_tooltip: 'Display a piece of text as a speech bubble on an object.',
+  say_duration_tooltip: 'Number of seconds to show before hiding. Use 0 to show text forever.',
   describe_tooltip:
     'Set the display name for an object. This updates the object metadata for accessibility.',
   ui_text_tooltip:
