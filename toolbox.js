@@ -2731,6 +2731,64 @@ const toolboxText = {
   contents: [
     {
       kind: 'block',
+      type: 'say',
+      keyword: 'say',
+      inputs: {
+        TEXT: {
+          shadow: {
+            type: 'text',
+            fields: {
+              TEXT: 'Hello',
+            },
+          },
+        },
+        DURATION: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
+        ALPHA: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        SIZE: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 20,
+            },
+          },
+        },
+        TEXT_COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#000000',
+            },
+          },
+        },
+        BACKGROUND_COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#ffffff',
+            },
+          },
+        },
+      },
+      fields: {
+        MODE: 'ADD',
+      },
+    },
+    {
+      kind: 'block',
       type: 'print_text',
       keyword: 'print',
       inputs: {
@@ -2793,64 +2851,6 @@ const toolboxText = {
             },
           },
         },
-      },
-    },
-    {
-      kind: 'block',
-      type: 'say',
-      keyword: 'say',
-      inputs: {
-        TEXT: {
-          shadow: {
-            type: 'text',
-            fields: {
-              TEXT: 'Hello',
-            },
-          },
-        },
-        DURATION: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 3,
-            },
-          },
-        },
-        ALPHA: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 1,
-            },
-          },
-        },
-        SIZE: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 20,
-            },
-          },
-        },
-        TEXT_COLOR: {
-          shadow: {
-            type: 'colour',
-            fields: {
-              COLOR: '#000000',
-            },
-          },
-        },
-        BACKGROUND_COLOR: {
-          shadow: {
-            type: 'colour',
-            fields: {
-              COLOR: '#ffffff',
-            },
-          },
-        },
-      },
-      fields: {
-        MODE: 'ADD',
       },
     },
     {
