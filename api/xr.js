@@ -2,6 +2,7 @@ import { translate } from '../main/translation.js';
 import { XRSource } from '../input/xrSource.js';
 import { patchEmulatorOffsetReferenceSpace } from '../input/xrEmulatorShim.js';
 import { FLY_SPEED } from '../input/cameraControls.js';
+import { hideFromInspector } from '../ui/inspectorVisibility.js';
 import {
   setFlockReference as setXRDebugFlockReference,
   xrDebugPost,
@@ -54,6 +55,8 @@ export const createFlockXRState = () => ({
   _xrMeshAddedObserver: null,
   _xrMeshRemovedObserver: null,
   _xrMeshObserverScene: null,
+  _xrCameraAddedObserver: null,
+  _xrCameraObserverScene: null,
   _xrVisibilitySyncQueued: false,
   _xrMoveForward: null,
   _xrMoveRight: null,
@@ -164,6 +167,9 @@ const XR_HELPER_MESH_NAMES = new Set([
   VIGNETTE_MESH_NAME,
   ...Object.values(REST_FRAME_MESH_NAMES),
 ]);
+// Babylon names these "webxr" and "XR-RigCamera: N"; isRigCamera also catches any rig it grows.
+const _isXRHelperCamera = (camera) =>
+  camera?.name === 'webxr' || camera?.isRigCamera || camera?.name?.startsWith('XR-RigCamera');
 
 // Stands in until the session reports a pose to measure the wearer against.
 const XR_FALLBACK_EYE_HEIGHT_M = 1.5;
@@ -466,6 +472,15 @@ export const flockXR = {
     flock.scene.UITexture = desktopTexture;
     flock._xrDesktopUITexture = null;
   },
+  _removeXRCameraAddedObserver() {
+    if (flock._xrCameraAddedObserver && flock._xrCameraObserverScene) {
+      flock._xrCameraObserverScene.onNewCameraAddedObservable?.remove?.(
+        flock._xrCameraAddedObserver
+      );
+    }
+    flock._xrCameraAddedObserver = null;
+    flock._xrCameraObserverScene = null;
+  },
   _resetXRState() {
     flock._exitXRHUD?.();
     flock._restoreARGround?.();
@@ -490,6 +505,7 @@ export const flockXR = {
         flock._xrMeshObserverScene.onMeshRemovedObservable?.remove?.(flock._xrMeshRemovedObserver);
       }
     }
+    flock._removeXRCameraAddedObserver();
     flock._disposeXRVignette();
     flock._disposeXRRestFrame();
     flock.xrHelper = null;
@@ -1125,6 +1141,7 @@ export const flockXR = {
     // Placed per frame by _syncXRVignettePose rather than parented, so locomotion cannot slide
     // the aperture off the eyes the way it does a child of the XR camera.
     mesh.rotationQuaternion = new B.Quaternion();
+    hideFromInspector(mesh);
 
     flock._xrVignetteMaterial = material;
     flock._xrVignetteMesh = mesh;
@@ -1318,6 +1335,7 @@ export const flockXR = {
     // has to be taken back out.
     node.parent = camera;
     node.setEnabled(false);
+    hideFromInspector(node);
 
     const material = new B.ShaderMaterial(
       'xrComfortRestFrameMaterial',
@@ -1353,6 +1371,7 @@ export const flockXR = {
     mesh.renderingGroupId = REST_FRAME_RENDERING_GROUP;
     // It surrounds the camera, so testing its bounds against the frustum proves nothing.
     mesh.alwaysSelectAsActiveMesh = true;
+    hideFromInspector(mesh);
 
     flock._xrRestFrameNode = node;
     flock._xrRestFrameMesh = mesh;
@@ -1704,21 +1723,42 @@ export const flockXR = {
         return;
       }
 
-      flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
-        outputCanvasOptions: flock._xrCanvasOptions(),
-        uiOptions: {
-          sessionMode: await flock._xrSessionMode(),
-          // A session that was not asked for hit test can never be granted it, and the mode
-          // can still be repointed after this.
-          optionalFeatures: ['hit-test'],
-        },
+      // Registered before creation: the "webxr" camera is constructed inside
+      // createDefaultXRExperienceAsync itself, and rig cameras follow once the session starts.
+      flock._xrCameraObserverScene = flock.scene;
+      flock._xrCameraAddedObserver = flock.scene.onNewCameraAddedObservable.add((camera) => {
+        if (_isXRHelperCamera(camera)) hideFromInspector(camera);
       });
+
+      try {
+        flock.xrHelper = await flock.scene.createDefaultXRExperienceAsync({
+          outputCanvasOptions: flock._xrCanvasOptions(),
+          uiOptions: {
+            sessionMode: await flock._xrSessionMode(),
+            // A session that was not asked for hit test can never be granted it, and the mode
+            // can still be repointed after this.
+            optionalFeatures: ['hit-test'],
+          },
+        });
+      } catch (error) {
+        flock._removeXRCameraAddedObserver();
+        throw error;
+      }
 
       // Babylon swallows a failed init and returns a helper with nothing on it.
       if (!flock.xrHelper?.baseExperience) {
         flock.xrHelper = null;
+        flock._removeXRCameraAddedObserver();
         return;
       }
+
+      // Catches anything built synchronously inside createDefaultXRExperienceAsync, before this
+      // point, that the observers above registered too late to see.
+      hideFromInspector(flock.xrHelper.baseExperience.camera);
+      hideFromInspector(flock.xrHelper.teleportation?.teleportationTargetMesh);
+      flock.scene.meshes.forEach((mesh) => {
+        if (XR_HELPER_MESH_NAMES.has(mesh.name)) hideFromInspector(mesh);
+      });
     } else if (mode === 'MAGIC_WINDOW') {
       // Not awaited: the sensor check waits out a permission iOS never grants here, and the
       // rest of the project should not wait with it.
@@ -1735,6 +1775,7 @@ export const flockXR = {
     flock.uiPlane.isVisible = false;
     flock.uiPlane.isPickable = false;
     flock.uiPlane.metadata = { isXRHUD: true };
+    hideFromInspector(flock.uiPlane);
 
     flock.meshTexture = flock._createXRHUDTexture(flock.uiPlane);
 
@@ -1773,6 +1814,9 @@ export const flockXR = {
     const observerScene = flock.scene;
     flock._xrMeshObserverScene = observerScene;
     flock._xrMeshAddedObserver = observerScene.onNewMeshAddedObservable.add((mesh) => {
+      // Babylon's own pointer visuals (laser, gaze dot) arrive whenever a controller connects,
+      // long after this observer is registered.
+      if (XR_HELPER_MESH_NAMES.has(mesh.name)) hideFromInspector(mesh);
       queueMicrotask(() => {
         if (flock._xrMeshObserverScene !== observerScene) return;
         flock._syncTeleportMesh(mesh);
