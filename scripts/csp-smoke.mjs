@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 
 const PORT = Number(process.env.CSP_SMOKE_PORT || 4173);
@@ -48,14 +48,22 @@ function isAnalyticsOrigin(origin) {
   }
 }
 
-const devServer = spawn(
-  'npm',
-  ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
-  {
-    stdio: 'pipe',
-    env: { ...process.env, FORCE_COLOR: '0' },
-  }
-);
+// On Windows, `npm` is a .cmd launcher: spawning "npm" directly (no shell)
+// throws ENOENT, so shell:true is required there (see scripts/run-api-tests.mjs).
+// `detached: true` puts npm and its child vite process in their own process
+// group so cleanup can kill the whole tree, not just the immediate child.
+const spawnOptions = { stdio: 'pipe', detached: true, env: { ...process.env, FORCE_COLOR: '0' } };
+const devServer =
+  process.platform === 'win32'
+    ? spawn(`npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`, {
+        ...spawnOptions,
+        shell: true,
+      })
+    : spawn(
+        'npm',
+        ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
+        spawnOptions
+      );
 
 let browser;
 let context;
@@ -168,5 +176,13 @@ try {
 } finally {
   await context?.close().catch(() => {});
   await browser?.close().catch(() => {});
-  devServer.kill('SIGTERM');
+  try {
+    if (devServer.pid && process.platform === 'win32') {
+      execFileSync('taskkill', ['/pid', String(devServer.pid), '/T', '/F'], { stdio: 'ignore' });
+    } else if (devServer.pid) {
+      process.kill(-devServer.pid, 'SIGTERM');
+    }
+  } catch {
+    // Already exited.
+  }
 }

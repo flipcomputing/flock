@@ -5,19 +5,25 @@
 // FocusManager; --headless=old keeps WebGL (as in scripts/run-api-tests.mjs).
 
 import { chromium } from 'playwright';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 
 const BASE_URL = 'http://127.0.0.1:5173/';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-const devServer = spawn('npm', ['run', 'dev'], {
-  cwd: process.cwd(),
-  detached: true,
-  stdio: 'ignore',
-});
+// On Windows, `npm` is a .cmd launcher: spawning "npm" directly (no shell)
+// throws ENOENT, so shell:true is required there (see scripts/run-api-tests.mjs).
+const spawnOptions = { cwd: process.cwd(), detached: true, stdio: 'ignore' };
+const devServer =
+  process.platform === 'win32'
+    ? spawn('npm run dev', { ...spawnOptions, shell: true })
+    : spawn('npm', ['run', 'dev'], spawnOptions);
 const cleanup = () => {
   try {
-    process.kill(-devServer.pid);
+    if (devServer.pid && process.platform === 'win32') {
+      execFileSync('taskkill', ['/pid', String(devServer.pid), '/T', '/F'], { stdio: 'ignore' });
+    } else {
+      process.kill(-devServer.pid);
+    }
   } catch {
     // Server already gone; nothing to kill.
   }
@@ -207,30 +213,42 @@ try {
 
   // With one open, clicking another block moves it there — no need to close it.
   await fresh();
-  const pair = await page.evaluate(() => {
-    const pts = [];
+  const blockClickPoint = (id) =>
+    page.evaluate((blockId) => {
+      const b = window.mainWorkspace.getBlockById(blockId);
+      const path = b?.getSvgRoot().querySelector(':scope > .blocklyPath');
+      const r = path?.getBoundingClientRect();
+      return r ? { x: Math.round(r.left + 12), y: Math.round(r.top + 14) } : null;
+    }, id);
+  const pairIds = await page.evaluate(() => {
+    const ids = [];
     for (const b of window.mainWorkspace.getAllBlocks(false)) {
       if (b.isShadow()) continue;
       const path = b.getSvgRoot().querySelector(':scope > .blocklyPath');
       if (!path) continue;
       const r = path.getBoundingClientRect();
       if (r.width < 40 || r.height < 14) continue;
-      pts.push({ x: Math.round(r.left + 12), y: Math.round(r.top + 14) });
-      if (pts.length === 2) break;
+      ids.push(b.id);
+      if (ids.length === 2) break;
     }
-    return pts;
+    return ids;
   });
   const barPos = () =>
     page.evaluate(() => {
       const r = [...document.querySelectorAll('.fc-block-toolbar')].pop().getBoundingClientRect();
       return `${Math.round(r.left)},${Math.round(r.top)}`;
     });
-  if (pair.length === 2) {
-    await page.mouse.click(pair[0].x, pair[0].y);
+  if (pairIds.length === 2) {
+    const firstPoint = await blockClickPoint(pairIds[0]);
+    await page.mouse.click(firstPoint.x, firstPoint.y);
     await sleep(700);
     const firstOpen = await toolbarVisible();
     const firstPos = await barPos();
-    await page.mouse.click(pair[1].x, pair[1].y);
+    // Opening the toolbar can scroll the workspace to make room for it (e.g.
+    // when the block is near the top edge), so block B's position has to be
+    // re-read now rather than reusing a point computed before that scroll.
+    const secondPoint = await blockClickPoint(pairIds[1]);
+    await page.mouse.click(secondPoint.x, secondPoint.y);
     await sleep(700);
     const movedPos = await barPos();
     check(

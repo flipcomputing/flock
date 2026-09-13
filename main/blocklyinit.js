@@ -1241,7 +1241,7 @@ export function initializeWorkspace() {
       }
     });
   };
-  workspaceSearch.unhighlightSearchGroup = function (blocks) {
+  workspaceSearch.unhighlightSearchGroup = function (blocks = workspaceSearch.blocks) {
     blocks.forEach((block) => block.getSvgRoot()?.classList.remove('ws-search-match'));
     workspace.getTopBlocks(false).forEach((block) => {
       block.getSvgRoot()?.classList.remove('ws-search-fade');
@@ -1754,12 +1754,9 @@ export function createBlocklyWorkspace() {
     // Lift the trashcan icon into an overlay SVG while the flyout is open — the
     // higher z-index flyout would otherwise hide it.
     const injectionDiv = workspace.getInjectionDiv();
-    let trashIcon = null;
-    try {
-      trashIcon = trashcan.getFocusableElement();
-    } catch {
-      trashIcon = null;
-    }
+    // Trashcan doesn't implement IFocusableNode (no getFocusableElement), so
+    // find its icon the same way main/input.js's tab order does.
+    const trashIcon = injectionDiv?.querySelector('g.blocklyTrash') ?? null;
     const iconHome = trashIcon?.parentNode;
     if (injectionDiv && trashIcon && iconHome) {
       const iconOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1811,8 +1808,8 @@ export function createBlocklyWorkspace() {
         if (trashcan.contentsIsOpen()) {
           trashcan.closeFlyout();
           returnFocusToWorkspace();
-        } else {
-          trashcan.performAction(); // gated open; no-op on an empty bin
+        } else if (trashcan.hasContents()) {
+          trashcan.openFlyout();
         }
       });
 
