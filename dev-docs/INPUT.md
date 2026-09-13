@@ -131,7 +131,7 @@ shared code.
 - **XR controller and hand models are the one asset class Flock does not ship.** Babylon fetches
   them from `immersive-web.github.io`, `assets.babylonjs.com` and `controllers.babylonjs.com`, and
   the service worker caches them on first use (`xr-input-models`, `xr-profiles-index` in
-  `vite.config.js`) so a headset downloads only the controller it reports, not every profile.
+  `vite.config.mjs`) so a headset downloads only the controller it reports, not every profile.
   Before that first online session hands fall back to Babylon's joint spheres and controllers to a
   pointer ray — cosmetic only, since XR input comes from the runtime. Babylon rejects those loads
   into promises it never catches, so `isXRAssetFetch()` in `ui/notifications.js` routes them to a

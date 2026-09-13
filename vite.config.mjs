@@ -133,20 +133,6 @@ export default {
       registerType: 'autoUpdate',
       devOptions: { enabled: false },
 
-      assetsInclude: [
-        '**/*.glb',
-        '**/*.gltf',
-        '**/*.aac',
-        '**/*.mp3',
-        '**/*.json',
-        '**/*.flock',
-        '**/*.png',
-        '**/*.woff',
-        '**/*.woff2',
-        '**/*.css',
-        '**/*.svg',
-        '**/*.wasm',
-      ],
       includeAssets: [
         '**/*.glb',
         '**/*.gltf',
@@ -274,22 +260,10 @@ export default {
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            // Static assets by destination
-            urlPattern: ({ request }) =>
-              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker'].includes(
-                request.destination
-              ),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'static-assets',
-              expiration: {
-                maxEntries: 1000,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
-            },
-          },
-          // Optional: keep your fine-grained caches
+          // Fine-grained caches first: Workbox uses the first matching route, and
+          // these path-based rules would otherwise be shadowed by the broader
+          // destination-based rule below (e.g. sounds loaded via <audio> would
+          // never reach sounds-cache's rangeRequests: true).
           {
             urlPattern: /\/models\/.*/,
             handler: 'CacheFirst',
@@ -338,6 +312,21 @@ export default {
             options: {
               cacheName: 'blockly-media',
               expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
+            },
+          },
+          {
+            // Catch-all for static assets not covered by a path above.
+            urlPattern: ({ request }) =>
+              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker'].includes(
+                request.destination
+              ),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 1000,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
             },
           },
         ],

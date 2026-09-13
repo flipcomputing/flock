@@ -1,0 +1,14 @@
+diff --git a/node_modules/@babylonjs/inspector/lib/index-C5ggNiyY.js b/node_modules/@babylonjs/inspector/lib/index-C5ggNiyY.js
+index 6f9dba3..68e78cb 100644
+--- a/node_modules/@babylonjs/inspector/lib/index-C5ggNiyY.js
++++ b/node_modules/@babylonjs/inspector/lib/index-C5ggNiyY.js
+@@ -11378,7 +11378,8 @@ const QuaternionPropertyLine = (props) => {
+         const quat = Quaternion.FromEulerAngles(val.x, val.y, val.z);
+         onQuatChange(quat);
+     };
+-    return useEuler ? (jsx(Vector3PropertyLine, { ...restProps, nullable: false, ignoreNullable: false, value: quat.toEulerAngles(), valueConverter: ToDegreesConverter, onChange: onEulerChange, unit: props.useDegrees ? "°" : "rad", step: step, precision: precision, expandedContent: jsx(TextPropertyLine, { label: "Quaternion", value: `[${quat.x.toFixed(4)}, ${quat.y.toFixed(4)}, ${quat.z.toFixed(4)}, ${quat.w.toFixed(4)}]` }) })) : (jsx(QuaternionPropertyLineInternal, { ...props, nullable: false, value: quat, onChange: onQuatChange, unit: props.useDegrees ? "°" : "rad", step: step, precision: precision }));
++    const safeQuat = quat ?? Quaternion.Identity();
++    return useEuler ? (jsx(Vector3PropertyLine, { ...restProps, nullable: false, ignoreNullable: false, value: safeQuat.toEulerAngles(), valueConverter: ToDegreesConverter, onChange: onEulerChange, unit: props.useDegrees ? "°" : "rad", step: step, precision: precision, expandedContent: jsx(TextPropertyLine, { label: "Quaternion", value: `[${safeQuat.x.toFixed(4)}, ${safeQuat.y.toFixed(4)}, ${safeQuat.z.toFixed(4)}, ${safeQuat.w.toFixed(4)}]` }) })) : (jsx(QuaternionPropertyLineInternal, { ...props, nullable: false, value: safeQuat, onChange: onQuatChange, unit: props.useDegrees ? "°" : "rad", step: step, precision: precision }));
+ };
+ const Vector2PropertyLine = TensorPropertyLine;
+ const Vector3PropertyLine = TensorPropertyLine;

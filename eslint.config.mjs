@@ -56,15 +56,6 @@ export default [
       },
     },
   },
-  {
-    files: ['vite.config.js'],
-    languageOptions: {
-      sourceType: 'module',
-      globals: {
-        ...globals.node,
-      },
-    },
-  },
   pluginJs.configs.recommended,
   {
     rules: {
