@@ -537,6 +537,11 @@ function getShortcuts() {
       category: translate('shortcut_category_editor'),
     },
     {
+      label: translate('shortcut_step_out_block'),
+      keys: `Esc`,
+      category: translate('shortcut_category_editor'),
+    },
+    {
       label: translate('shortcut_dropdown_typeahead'),
       keys: `A–Z`,
       category: translate('shortcut_category_editor'),
