@@ -680,6 +680,17 @@ const INSPECTOR_SEEN_POPUPS = [
 ];
 const INSPECTOR_THEME_STORAGE_KEY = 'Babylon/Inspector/ThemeMode';
 const INSPECTOR_THEME_ICON_PATH_PREFIXES = ['M15.5 13.5A6.98', 'M10 2c.28 0 .5.22.5.5'];
+// Properties-tab accordion sections flock doesn't want shown, matched by
+// their exact header text.
+const INSPECTOR_HIDDEN_PROPERTY_SECTIONS = [
+  'Pinned',
+  'Rendering',
+  'Material Image Processing',
+  'Physics',
+  'Collisions',
+  'Shadows',
+  'General',
+];
 let inspectorExtrasObserver = null;
 let inspectorExtrasFrame = null;
 const INSPECTOR_FOCUSABLE_SELECTOR =
@@ -819,7 +830,11 @@ window.addEventListener(
   true
 );
 
-// Keep Babylon's extensions and community links out of the embedded Inspector.
+// Keep Babylon's extensions, community links, duplicate gizmo controls
+// (flock has its own #gizmoButtons), and undockable pop-out windows (Texture
+// Editor, Animation Curve Editor) out of the embedded Inspector. Those pop-outs
+// are real, unsandboxed browser windows outside flock's UI, so letting them
+// open would hand the user the browser's own chrome (extensions, address bar).
 function hideInspectorExtras() {
   try {
     for (const key of INSPECTOR_SEEN_POPUPS) localStorage.setItem(key, 'true');
@@ -831,10 +846,23 @@ function hideInspectorExtras() {
     window.__flockForumBlocked = true;
     const nativeOpen = window.open.bind(window);
     window.open = (url, ...rest) =>
-      typeof url === 'string' && url.includes('forum.babylonjs.com')
+      // Inspector's Texture Editor / Curve Editor pop-outs call window.open("", ...);
+      // the browser's own popup blocker returns null for these, so this is a
+      // codepath the library already handles gracefully.
+      !url || (typeof url === 'string' && url.includes('forum.babylonjs.com'))
         ? null
         : nativeOpen(url, ...rest);
   }
+
+  // Inspector v2 is a React app: calling .remove() on its nodes detaches them
+  // from the DOM while React's fiber tree still thinks they're attached, so a
+  // later reconciliation (e.g. selecting a different entity) can call
+  // removeChild on a parent that no longer actually contains that child and
+  // crash the whole page with a NotFoundError. Hiding via display:none keeps
+  // every node in place for React to manage, so this can't happen.
+  const hide = (el) => {
+    if (el && el.style.display !== 'none') el.style.display = 'none';
+  };
 
   const removeButtons = () => {
     const inspector = document.getElementById('babylon-inspector-container');
@@ -849,9 +877,9 @@ function hideInspectorExtras() {
         iconPath.startsWith(prefix)
       );
       if (isThemeControl) {
-        (button.closest('.fui-SplitButton') ?? button).remove();
+        hide(button.closest('.fui-SplitButton') ?? button);
       } else if (/extensions|forum|give feedback on inspector|select theme/i.test(label)) {
-        button.remove();
+        hide(button);
       }
     });
 
@@ -859,11 +887,56 @@ function hideInspectorExtras() {
       if (!/extensions|forum|give feedback on inspector|select theme/i.test(tooltip.textContent)) {
         continue;
       }
-      inspector
-        ?.querySelector(`[aria-describedby="${CSS.escape(tooltip.id)}"]`)
-        ?.closest('button')
-        ?.remove();
+      hide(
+        inspector
+          ?.querySelector(`[aria-describedby="${CSS.escape(tooltip.id)}"]`)
+          ?.closest('button')
+      );
     }
+
+    // The Gizmo Toolbar's Translate/Rotate/Scale/Bounding Box buttons and their
+    // Coordinates Mode / Camera Gizmo dropdowns share one wrapper with no stable
+    // class name, so hide that wrapper rather than matching each control.
+    // Fluent puts the accessible name on aria-label on some renders and the
+    // title attribute on others, so both must be checked.
+    const findByLabel = (target) =>
+      [...(inspector?.querySelectorAll('button') ?? [])].find(
+        (button) => (button.getAttribute('aria-label') || button.title) === target
+      );
+    const translateButton = findByLabel('Translate');
+    const boundingBoxButton = findByLabel('Bounding Box');
+    let gizmoToolbar = translateButton;
+    while (gizmoToolbar && !gizmoToolbar.contains(boundingBoxButton)) {
+      gizmoToolbar = gizmoToolbar.parentElement;
+    }
+    if (gizmoToolbar && gizmoToolbar !== inspector) hide(gizmoToolbar);
+
+    // The side pane's collapse/expand split button has a dropdown whose only
+    // entry is "Undock" (pops the pane into its own browser window, already
+    // neutralised above). Its tooltip ("Hide Side Pane" / "Show Side Pane")
+    // lives on the wrapping .fui-SplitButton, not on either inner button, so
+    // it's not caught by the generic label-based removal above.
+    inspector?.querySelectorAll('.fui-SplitButton[aria-describedby]').forEach((splitButton) => {
+      const tooltipId = splitButton.getAttribute('aria-describedby');
+      const tooltip = tooltipId ? document.getElementById(tooltipId)?.textContent : '';
+      if (/hide side pane|show side pane/i.test(tooltip ?? '')) hide(splitButton);
+    });
+
+    // Belt-and-braces: the dropdown's "Undock" entry renders via a portal
+    // outside #babylon-inspector-container, so search the whole document.
+    document.querySelectorAll('[role="menuitem"]').forEach((item) => {
+      if (item.textContent?.trim() === 'Undock') hide(item);
+    });
+
+    // Properties-tab sections flock doesn't want shown. Each section is a
+    // .fui-AccordionItem holding a header+panel wrapper plus its own trailing
+    // .fui-Divider as siblings — hide the whole item, not just the header's
+    // immediate wrapper, or the divider is left behind as a visible stub.
+    inspector?.querySelectorAll('.fui-AccordionHeader').forEach((header) => {
+      if (INSPECTOR_HIDDEN_PROPERTY_SECTIONS.includes(header.textContent?.trim())) {
+        hide(header.closest('.fui-AccordionItem') ?? header.parentElement);
+      }
+    });
   };
 
   inspectorExtrasObserver?.disconnect();
