@@ -1,4 +1,4 @@
-import { attachBlockMapping, attachMixamoMapping } from '../config.js';
+import { attachBlockMapping, attachMixamoMapping, objectColliderShapes } from '../config.js';
 
 let flock;
 
@@ -85,6 +85,32 @@ export const flockMesh = {
     };
 
     return shape;
+  },
+  // Box collider sized to the mesh's full bounding box, for models listed in
+  // config.js's objectColliderShapes (e.g. long, low objects the default
+  // capsule under-covers along its longer horizontal axis).
+  createBoxFromBoundingBox(mesh, scene) {
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const localMin = boundingInfo.boundingBox.minimum;
+    const localMax = boundingInfo.boundingBox.maximum;
+
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
+
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2
+    );
+
+    return new flock.BABYLON.PhysicsShapeBox(
+      localCenter,
+      flock.BABYLON.Quaternion.Identity(),
+      new flock.BABYLON.Vector3(width, height, depth),
+      scene
+    );
   },
   createHorizontalCapsuleFromBoundingBox(mesh, scene, yOffsetFactor = 0) {
     // Get dimensions from the current vertical capsule
@@ -890,15 +916,25 @@ export const flockMesh = {
       flock.scene
     );
 
+    const colliderShapeOverride = modelName ? objectColliderShapes[modelName] : null;
+
+    // Baked shape dimensions are fixed to this call's scale (bakeCurrentTransformIntoVertices
+    // above), so the cache key must include scale or a same-model instance at a different
+    // scale would inherit the wrong-sized collider.
+    const shapeCacheKey = modelName ? `${modelName}::${scale}` : null;
+
     let boxShape;
-    const cachedShape = modelName ? flock.physicsShapeCache?.[modelName] : null;
+    const cachedShape = shapeCacheKey ? flock.physicsShapeCache?.[shapeCacheKey] : null;
     if (cachedShape && !cachedShape._isDisposed) {
       boxShape = cachedShape;
     } else {
-      boxShape = flock.createCapsuleFromBoundingBox(bb, flock.scene);
-      if (modelName) {
+      boxShape =
+        colliderShapeOverride === 'BOX'
+          ? flock.createBoxFromBoundingBox(bb, flock.scene)
+          : flock.createCapsuleFromBoundingBox(bb, flock.scene);
+      if (shapeCacheKey) {
         boxShape._isShared = true;
-        flock.physicsShapeCache[modelName] = boxShape;
+        flock.physicsShapeCache[shapeCacheKey] = boxShape;
       }
     }
 

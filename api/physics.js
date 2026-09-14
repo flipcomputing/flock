@@ -133,6 +133,8 @@ const getShapeTypeFromPhysics = (physics) => {
     shape instanceof flock.BABYLON.PhysicsShapeConvexHull
   )
     return 'CONVEX_HULL';
+  if (flock?.BABYLON?.PhysicsShapeBox && shape instanceof flock.BABYLON.PhysicsShapeBox)
+    return 'BOX';
   if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
     return 'MESH';
   return null;
@@ -199,6 +201,9 @@ const createPhysicsShape = (mesh, shapeType) => {
   if (shapeType === 'CONVEX_HULL') {
     return new flock.BABYLON.PhysicsShapeConvexHull(mesh, flock.scene);
   }
+  if (shapeType === 'BOX') {
+    return flock.createBoxFromBoundingBox(mesh, flock.scene);
+  }
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
 
@@ -209,7 +214,9 @@ const applyPhysicsShape = (
   disablePreStep = false
 ) => {
   const normalizedShapeType =
-    shapeType === 'CAPSULE' || shapeType === 'CONVEX_HULL' ? shapeType : 'MESH';
+    shapeType === 'CAPSULE' || shapeType === 'CONVEX_HULL' || shapeType === 'BOX'
+      ? shapeType
+      : 'MESH';
   const physicsShape = createPhysicsShape(targetMesh, normalizedShapeType);
   if (!physicsShape) {
     console.error('[physics] Failed to create', normalizedShapeType, 'shape for', targetMesh.name);
