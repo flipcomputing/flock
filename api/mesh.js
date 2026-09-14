@@ -83,9 +83,6 @@ export const flockMesh = {
 
     return shape;
   },
-  // Box collider sized to the mesh's full bounding box, for models listed in
-  // config.js's objectColliderShapes (e.g. long, low objects the default
-  // capsule under-covers along its longer horizontal axis).
   createBoxFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
@@ -109,9 +106,6 @@ export const flockMesh = {
       scene
     );
   },
-  // Sphere/cylinder colliders sized to the mesh's full bounding box, so a
-  // createSphere/createCylinder primitive rebuilds its own shape (rather than
-  // falling back to a MESH shape) after a physics disable/re-enable cycle.
   createSphereFromBoundingBox(mesh, scene) {
     mesh.computeWorldMatrix(true);
     const boundingInfo = mesh.getBoundingInfo();
@@ -963,9 +957,7 @@ export const flockMesh = {
 
     const colliderShapeOverride = modelName ? objectColliderShapes[modelName] : null;
 
-    // Baked shape dimensions are fixed to this call's scale (bakeCurrentTransformIntoVertices
-    // above), so the cache key must include scale or a same-model instance at a different
-    // scale would inherit the wrong-sized collider.
+    // Cache key includes scale: baked shape dimensions are fixed to this call's scale.
     const shapeCacheKey = modelName ? `${modelName}::${scale}` : null;
 
     let boxShape;

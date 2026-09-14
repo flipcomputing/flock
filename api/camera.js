@@ -224,10 +224,6 @@ export const flockCamera = {
       console.warn('[ensureVerticalConstraint] addConstraint failed:', e);
     }
 
-    // Shared with setSpeed's maintained-speed drive: whichever of the two
-    // reaches a mesh first registers this, so a drive always takes over from
-    // the default "no free sliding" stabiliser instead of the two competing
-    // observers fighting over the mesh's velocity depending on call order.
     flock.ensurePostPhysicsUpkeep(mesh);
   },
   getCamera() {

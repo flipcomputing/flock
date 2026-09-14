@@ -387,9 +387,6 @@ export const flockPhysics = {
       if (!newShape) return;
     }
 
-    // Rebuilding the body (Havok has no way to swap a shape in place) would
-    // otherwise reset velocity to zero, e.g. stopping a mesh dead mid-fall
-    // when it's resized. Carry it over to the new body.
     const linearVelocity = parent.physics.getLinearVelocity();
     const angularVelocity = parent.physics.getAngularVelocity();
 

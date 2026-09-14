@@ -200,11 +200,7 @@ export const objectDisplayNameTranslationKeys = {
   'rhino.glb': 'model_display_rhino',
 };
 
-// Per-model collider override for imported GLBs whose bounding box isn't well
-// approximated by the default vertical capsule (e.g. long, low objects where
-// the capsule radius, pinned to the shorter of width/depth, leaves the far
-// ends of the mesh uncovered). Missing entries keep the default capsule
-// (or its cylinder fallback for short/flat meshes). Currently supports 'BOX'.
+// Per-model collider override for imported GLBs. Currently supports 'BOX'.
 export const objectColliderShapes = {
   // 'boat.glb': 'BOX',
 };

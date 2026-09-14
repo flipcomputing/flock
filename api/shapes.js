@@ -440,10 +440,6 @@ export const flockShapes = {
     newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
 
-    // Create and apply physics shape. A uniform PhysicsShapeCylinder only takes
-    // one radius, so a tapered cylinder (cone/frustum) needs a hull built from
-    // the actual mesh instead, or the collider would be the wrong shape along
-    // the taper.
     let cylinderShape;
     if (diameterTop === diameterBottom) {
       const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
