@@ -702,6 +702,17 @@ export function initContextMenus(workspace) {
       el.title = label;
     };
 
+    const expandBtn = document.createElement('button');
+    expandBtn.type = 'button';
+    expandBtn.className = 'fc-block-toolbar-btn';
+    // fa-angles-down (v7.3.1; other icons here are v6.7.2)
+    // by @fontawesome — https://fontawesome.com
+    // License: https://fontawesome.com/license/free  Copyright 2026 Fonticons, Inc.
+    expandBtn.innerHTML = mkFaSvg(
+      '<path d="M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z"/>',
+      '0 0 640 640'
+    );
+
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
@@ -733,6 +744,7 @@ export function initContextMenus(workspace) {
     function refreshStaticToolbarLabels() {
       // role="toolbar" needs a name of its own, not just named buttons.
       blockToolbar.setAttribute('aria-label', getToolbarLabel('block_menu', 'Block menu'));
+      setToolbarLabel(expandBtn, getToolbarLabel('context_expand_option', 'Expand'));
       setToolbarLabel(duplicateBtn, getToolbarLabel('duplicate_block_button_ui', 'Duplicate block'));
       setToolbarLabel(deleteBtn, getToolbarLabel('delete_block_button_ui', 'Delete block'));
       setToolbarLabel(detachBtn, getToolbarLabel('shortcut_detach_block', 'Detach'));
@@ -795,7 +807,16 @@ export function initContextMenus(workspace) {
     setToolbarLabel(viewBtn, getToolbarLabel('view_in_canvas', 'View in canvas'));
     viewBtn.innerHTML = viewEnterSvg;
 
-    blockToolbar.append(duplicateBtn, detachBtn, moveHint, commentBtn, enableBtn, viewBtn, deleteBtn);
+    blockToolbar.append(
+      expandBtn,
+      duplicateBtn,
+      detachBtn,
+      moveHint,
+      commentBtn,
+      enableBtn,
+      viewBtn,
+      deleteBtn
+    );
 
     // The keyboard shortcut that each toolbar button mirrors. The overlay shows
     // these as a passive legend — the keys themselves are bound elsewhere
@@ -1084,6 +1105,8 @@ export function initContextMenus(workspace) {
       if (!block) return;
       const simplified = isLooseAndMovable(block);
       const locked = isBlockLocked(block);
+      expandBtn.style.display =
+        block.workspace?.options?.collapse && block.isCollapsed?.() ? '' : 'none';
       duplicateBtn.style.display = '';
       commentBtn.style.display = locked ? 'none' : '';
       detachBtn.style.display = locked || !isDetachable(block) ? 'none' : '';
@@ -1275,6 +1298,18 @@ export function initContextMenus(workspace) {
         updateEnableButton(toolbarBlock);
         updateSimplifiedToolbar();
         scheduleViewMeshRecheck();
+      } else if (
+        e.type === Blockly.Events.BLOCK_CHANGE &&
+        e.element === 'collapsed' &&
+        toolbarBlock &&
+        e.blockId === toolbarBlock.id
+      ) {
+        // Collapsed/expanded some other way (e.g. the right-click menu) while
+        // the toolbar is up: refresh whether the Expand button shows, and
+        // reposition since the block's size just changed.
+        updateSimplifiedToolbar();
+        positionBlockToolbar();
+        if (toolbarKeyboardMode) renderBadges();
       } else if (e.type === Blockly.Events.BLOCK_DRAG) {
         if (e.isStart) {
           // Dragging is not a request for the toolbar, so flag the block for
@@ -1355,6 +1390,17 @@ export function initContextMenus(workspace) {
         handler();
       });
     }
+
+    onToolbarButtonPress(expandBtn, () => {
+      if (!toolbarBlock || !toolbarBlock.isCollapsed?.()) return;
+      const block = toolbarBlock;
+      Blockly.Events.setGroup('toolbar_expand');
+      block.setCollapsed(false);
+      Blockly.Events.setGroup(false);
+      updateSimplifiedToolbar();
+      positionBlockToolbar();
+      if (toolbarKeyboardMode) renderBadges();
+    });
 
     onToolbarButtonPress(duplicateBtn, () => {
       if (!toolbarBlock) return;
