@@ -515,6 +515,11 @@ export const flockPhysics = {
         break;
 
       case 'DYNAMIC':
+        if (getShapeTypeFromPhysics(mesh.physics) === 'MESH') {
+          disposePhysics(mesh);
+          applyPhysicsShape(mesh, 'CONVEX_HULL', flock.BABYLON.PhysicsMotionType.DYNAMIC, false);
+          break;
+        }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
         mesh.physics.disablePreStep = false;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
