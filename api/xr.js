@@ -35,6 +35,7 @@ export const createFlockXRState = () => ({
   _xrFollowLastPosition: null,
   _xrFollowSettledPosition: null,
   _xrFollowLastMovedAt: 0,
+  _xrFallFreezeSince: 0,
   _xrWatchAnchorPosition: null,
   _xrWatchAnchorTarget: null,
   _xrSnapTurnHeld: false,
@@ -180,6 +181,10 @@ const SNAP_TURN_RELEASE = 0.3;
 const COMFORT_SETTLE_MS = 250;
 // Smaller height changes are the character settling, not a climb.
 const EMBODY_MIN_HEIGHT_CHANGE_M = 0.02;
+// A drop that keeps coming with no move-stick input behind it is gravity, not the player:
+// past this grace period the camera freezes rather than ride an unbounded fall (off the
+// edge of the world, say) down to wherever it ends.
+const FALL_FREEZE_GRACE_S = 1.5;
 
 // Both comfort aids run off one reading of the motion the wearer's own body cannot account
 // for: the speeds that earn a full reading, and the drift below which nothing reads at all.
@@ -753,6 +758,7 @@ export const flockXR = {
       flock._xrFollowLastPosition = targetPosition.clone?.() ?? { ...targetPosition };
       flock._xrFollowSettledPosition = targetPosition.clone?.() ?? { ...targetPosition };
       flock._xrFollowLastMovedAt = performance.now?.() ?? Date.now();
+      flock._xrFallFreezeSince = 0;
 
       if (reposition && xrCamera?.position && flock._xrViewMode === 'embody') {
         if (!flock._xrWatchPosition) flock._xrWatchPosition = xrCamera.position.clone();
@@ -1047,11 +1053,30 @@ export const flockXR = {
       const delta = position.subtract(flock._xrFollowLastPosition);
       const holdHeight = !isWatch && Math.abs(delta.y) < EMBODY_MIN_HEIGHT_CHANGE_M;
       if (holdHeight) delta.y = 0;
+
+      // Both embodied and follow-camera falls reach here (only 'embody' and 'watch' ever
+      // get this far), so freezing applies to whichever the player is currently viewing.
+      const falling =
+        delta.y < 0 &&
+        !flock.inputManager.getAxis('XR_MOVE_X') &&
+        !flock.inputManager.getAxis('XR_MOVE_Y') &&
+        !flock.inputManager.getAxis('XR_MOVE_VERTICAL');
+      if (falling) flock._xrFallFreezeSince ||= now;
+      else flock._xrFallFreezeSince = 0;
+      const frozen = falling && now - flock._xrFallFreezeSince >= FALL_FREEZE_GRACE_S * 1000;
+
       const heldY = flock._xrFollowLastPosition.y;
       flock._xrFollowLastMovedAt = now;
       flock._xrFollowLastPosition.copyFrom(position);
       // Held rather than dropped, so a slow climb still adds up to a move.
       if (holdHeight) flock._xrFollowLastPosition.y = heldY;
+      // Rebased above without moving the camera: the fall keeps running past the freeze, but
+      // nothing beyond this point is ever added, so there is no distance to snap through once
+      // input returns or the ground reappears underneath.
+      if (frozen) {
+        flock._xrFollowSettledPosition.copyFrom(position);
+        return;
+      }
       if (flock._xrCameraMotionMode === 'smooth') {
         if (!isWatch || !flock._placeXRWatchCamera(position, 0)) {
           xrCamera.position.addInPlace(delta);
@@ -1060,6 +1085,7 @@ export const flockXR = {
       }
       return;
     }
+    flock._xrFallFreezeSince = 0;
     if (flock._xrCameraMotionMode !== 'comfort') return;
     if (now - flock._xrFollowLastMovedAt < COMFORT_SETTLE_MS) return;
 
