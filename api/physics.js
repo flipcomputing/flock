@@ -105,22 +105,39 @@ const applyVelocityDrive = (mesh) => {
   keepUpright(mesh);
 };
 
-// Register a single per-step observer that keeps the velocity applied until
-// it's changed. Self-removes once the mesh is disposed.
-const ensureVelocityDrive = (mesh) => {
-  if (mesh.metadata._velocityDriveObserver) return;
+// Default "no free sliding" behaviour for a mesh with the upright joint
+// constraint when nothing is actively driving it.
+const applyUprightStabiliser = (mesh) => {
+  if (!mesh.metadata?.constraint) return;
+  try {
+    const v = mesh.physics.getLinearVelocity();
+    mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, v.y, 0));
+    mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+  } catch (err) {
+    console.warn('Physics body became invalid:', err);
+  }
+};
+
+// Single per-mesh post-physics observer shared by ensureVerticalConstraint
+// and setSpeed, so only one of them ever touches a mesh's velocity per step.
+const ensurePostPhysicsUpkeep = (mesh) => {
+  // Kept on the mesh, not mesh.metadata, since cloneMesh shallow-copies metadata.
+  if (mesh._postPhysicsUpkeep) return;
   const scene = flock.scene;
   if (!scene?.onAfterPhysicsObservable) return;
-  // After the step (like the upright stabiliser) so the held velocity isn't
-  // left with a step's worth of gravity in it.
   const observer = scene.onAfterPhysicsObservable.add(() => {
-    if (!mesh || mesh.isDisposed?.()) {
+    if (!mesh || mesh.isDisposed?.() || !isBodyAlive(mesh.physics)) {
       scene.onAfterPhysicsObservable.remove(observer);
+      mesh._postPhysicsUpkeep = null;
       return;
     }
-    applyVelocityDrive(mesh);
+    if (mesh.metadata?.velocityDrive) {
+      applyVelocityDrive(mesh);
+    } else {
+      applyUprightStabiliser(mesh);
+    }
   });
-  mesh.metadata._velocityDriveObserver = observer;
+  mesh._postPhysicsUpkeep = observer;
 };
 
 const getShapeTypeFromPhysics = (physics) => {
@@ -135,6 +152,10 @@ const getShapeTypeFromPhysics = (physics) => {
     return 'CONVEX_HULL';
   if (flock?.BABYLON?.PhysicsShapeBox && shape instanceof flock.BABYLON.PhysicsShapeBox)
     return 'BOX';
+  if (flock?.BABYLON?.PhysicsShapeSphere && shape instanceof flock.BABYLON.PhysicsShapeSphere)
+    return 'SPHERE';
+  if (flock?.BABYLON?.PhysicsShapeCylinder && shape instanceof flock.BABYLON.PhysicsShapeCylinder)
+    return 'CYLINDER';
   if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
     return 'MESH';
   return null;
@@ -204,8 +225,16 @@ const createPhysicsShape = (mesh, shapeType) => {
   if (shapeType === 'BOX') {
     return flock.createBoxFromBoundingBox(mesh, flock.scene);
   }
+  if (shapeType === 'SPHERE') {
+    return flock.createSphereFromBoundingBox(mesh, flock.scene);
+  }
+  if (shapeType === 'CYLINDER') {
+    return flock.createCylinderFromBoundingBox(mesh, flock.scene);
+  }
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
+
+const SHAPE_TYPES_KEPT_ON_REBUILD = ['CAPSULE', 'CONVEX_HULL', 'BOX', 'SPHERE', 'CYLINDER'];
 
 const applyPhysicsShape = (
   targetMesh,
@@ -213,10 +242,7 @@ const applyPhysicsShape = (
   motionType = flock.BABYLON.PhysicsMotionType.STATIC,
   disablePreStep = false
 ) => {
-  const normalizedShapeType =
-    shapeType === 'CAPSULE' || shapeType === 'CONVEX_HULL' || shapeType === 'BOX'
-      ? shapeType
-      : 'MESH';
+  const normalizedShapeType = SHAPE_TYPES_KEPT_ON_REBUILD.includes(shapeType) ? shapeType : 'MESH';
   const physicsShape = createPhysicsShape(targetMesh, normalizedShapeType);
   if (!physicsShape) {
     console.error('[physics] Failed to create', normalizedShapeType, 'shape for', targetMesh.name);
@@ -361,6 +387,12 @@ export const flockPhysics = {
       if (!newShape) return;
     }
 
+    // Rebuilding the body (Havok has no way to swap a shape in place) would
+    // otherwise reset velocity to zero, e.g. stopping a mesh dead mid-fall
+    // when it's resized. Carry it over to the new body.
+    const linearVelocity = parent.physics.getLinearVelocity();
+    const angularVelocity = parent.physics.getAngularVelocity();
+
     disposePhysics(parent);
 
     const isCapsule = detectedShapeType === 'CAPSULE';
@@ -376,6 +408,8 @@ export const flockPhysics = {
     physicsBody.setMassProperties({ mass: 1 });
     applyBounciness(physicsBody, parent);
     physicsBody.disablePreStep = disablePreStep ?? false;
+    physicsBody.setLinearVelocity(linearVelocity);
+    physicsBody.setAngularVelocity(angularVelocity);
     parent.physics = physicsBody;
     if (isCapsule) physicsBody.setMotionType(motionType ?? flock.BABYLON.PhysicsMotionType.STATIC);
     parent.metadata = parent.metadata || {};
@@ -408,6 +442,7 @@ export const flockPhysics = {
   // Set how bouncy an object is (0 = no bounce, 1 = very bouncy). Stored in
   // metadata so it survives physics rebuilds; see applyBounciness.
   applyBounciness,
+  ensurePostPhysicsUpkeep,
   setBounciness(meshName, bounciness = 0.5) {
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh && isBodyAlive(mesh.physics) && mesh.physics.shape) {
@@ -490,7 +525,7 @@ export const flockPhysics = {
       mesh.metadata.velocityDrive[worldAxis || direction] = speed;
     }
 
-    ensureVelocityDrive(mesh);
+    ensurePostPhysicsUpkeep(mesh);
     applyVelocityDrive(mesh); // take effect immediately, not next frame
   },
   setPhysicsForMesh(mesh, physicsType) {

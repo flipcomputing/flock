@@ -297,6 +297,7 @@ export const flockShapes = {
       flock.scene
     );
     flock.applyPhysics(newBox, boxShape);
+    newBox.metadata.physicsShapeType = 'BOX';
 
     flock.announceMeshReady(newBox.name, groupName);
     flock._registerInstance(blockKey, newBox.name);
@@ -367,6 +368,7 @@ export const flockShapes = {
       flock.scene
     );
     flock.applyPhysics(newSphere, sphereShape);
+    newSphere.metadata.physicsShapeType = 'SPHERE';
 
     flock.announceMeshReady(newSphere.name, groupName);
     flock._registerInstance(blockKey, newSphere.name);
@@ -438,16 +440,25 @@ export const flockShapes = {
     newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
 
-    // Create and apply physics shape
-    const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-    const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
-    const cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
-      startPoint,
-      endPoint,
-      diameterBottom / 2,
-      flock.scene
-    );
+    // Create and apply physics shape. A uniform PhysicsShapeCylinder only takes
+    // one radius, so a tapered cylinder (cone/frustum) needs a hull built from
+    // the actual mesh instead, or the collider would be the wrong shape along
+    // the taper.
+    let cylinderShape;
+    if (diameterTop === diameterBottom) {
+      const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+      const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+      cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
+        startPoint,
+        endPoint,
+        diameterBottom / 2,
+        flock.scene
+      );
+    } else {
+      cylinderShape = new flock.BABYLON.PhysicsShapeConvexHull(newCylinder, flock.scene);
+    }
     flock.applyPhysics(newCylinder, cylinderShape);
+    newCylinder.metadata.physicsShapeType = diameterTop === diameterBottom ? 'CYLINDER' : 'CONVEX_HULL';
 
     flock.announceMeshReady(newCylinder.name, groupName);
     flock._registerInstance(blockKey, newCylinder.name);

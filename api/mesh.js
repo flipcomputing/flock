@@ -24,15 +24,12 @@ export const flockMesh = {
 
     const radius = Math.min(width, depth) / 2;
 
-    const modelName = mesh.metadata?.modelName;
-    const adjustedRadius = modelName?.startsWith('Flock') ? radius * 1 : radius;
-
     // Shrink the capsule vertically to allow intersections
     const shrinkAmount = 0.01;
     const adjustedHeight = Math.max(0, height - shrinkAmount);
 
     // Use raw height for fallback decision, clamped height for capsule segment construction
-    const rawCylinderHeight = adjustedHeight - 2 * adjustedRadius;
+    const rawCylinderHeight = adjustedHeight - 2 * radius;
     const cylinderHeight = Math.max(0, rawCylinderHeight);
 
     // Center in LOCAL space
@@ -71,14 +68,14 @@ export const flockMesh = {
       shape = new flock.BABYLON.PhysicsShapeCapsule(
         segmentStart,
         segmentEnd,
-        adjustedRadius,
+        radius,
         scene
       );
     }
 
     if (!mesh.metadata) mesh.metadata = {};
     mesh.metadata.physicsCapsule = {
-      adjustedRadius,
+      radius,
       height: adjustedHeight,
       baseY: localCenter.y - adjustedHeight / 2,
       localCenter,
@@ -109,6 +106,54 @@ export const flockMesh = {
       localCenter,
       flock.BABYLON.Quaternion.Identity(),
       new flock.BABYLON.Vector3(width, height, depth),
+      scene
+    );
+  },
+  // Sphere/cylinder colliders sized to the mesh's full bounding box, so a
+  // createSphere/createCylinder primitive rebuilds its own shape (rather than
+  // falling back to a MESH shape) after a physics disable/re-enable cycle.
+  createSphereFromBoundingBox(mesh, scene) {
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const localMin = boundingInfo.boundingBox.minimum;
+    const localMax = boundingInfo.boundingBox.maximum;
+
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
+
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2
+    );
+
+    return new flock.BABYLON.PhysicsShapeSphere(
+      localCenter,
+      Math.max(width, height, depth) / 2,
+      scene
+    );
+  },
+  createCylinderFromBoundingBox(mesh, scene) {
+    mesh.computeWorldMatrix(true);
+    const boundingInfo = mesh.getBoundingInfo();
+    const localMin = boundingInfo.boundingBox.minimum;
+    const localMax = boundingInfo.boundingBox.maximum;
+
+    const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+    const height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+    const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
+
+    const localCenter = new flock.BABYLON.Vector3(
+      (localMin.x + localMax.x) / 2,
+      (localMin.y + localMax.y) / 2,
+      (localMin.z + localMax.z) / 2
+    );
+
+    return new flock.BABYLON.PhysicsShapeCylinder(
+      new flock.BABYLON.Vector3(localCenter.x, localCenter.y - height / 2, localCenter.z),
+      new flock.BABYLON.Vector3(localCenter.x, localCenter.y + height / 2, localCenter.z),
+      Math.max(width, depth) / 2,
       scene
     );
   },

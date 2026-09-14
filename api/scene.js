@@ -614,9 +614,9 @@ export const flockScene = {
           }
           md.uprightConstraint = null;
         }
-        if (md?._uprightStabiliser) {
-          flock.scene.onAfterPhysicsObservable.remove(md._uprightStabiliser);
-          md._uprightStabiliser = null;
+        if (currentMesh._postPhysicsUpkeep) {
+          flock.scene.onAfterPhysicsObservable.remove(currentMesh._postPhysicsUpkeep);
+          currentMesh._postPhysicsUpkeep = null;
         }
         if (currentMesh.physics) {
           if (!currentMesh.physics.shape?._isShared) {
