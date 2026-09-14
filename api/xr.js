@@ -1074,6 +1074,10 @@ export const flockXR = {
       // nothing beyond this point is ever added, so there is no distance to snap through once
       // input returns or the ground reappears underneath.
       if (frozen) {
+        // The watch anchor is its own tracking state, not the delta above: left stale, it
+        // would measure the whole frozen fall as one jump the instant following resumes.
+        // Re-anchoring each frozen frame keeps that resume a normal, small step.
+        if (isWatch) flock._syncXRWatchAnchor(xrCamera.position);
         flock._xrFollowSettledPosition.copyFrom(position);
         return;
       }
@@ -1085,7 +1089,10 @@ export const flockXR = {
       }
       return;
     }
-    flock._xrFallFreezeSince = 0;
+    // A single still frame can be a physics hiccup mid-fall, not a landing: only clear the
+    // freeze timer once the target has actually settled, the same window comfort mode waits
+    // out before it moves the camera at all.
+    if (now - flock._xrFollowLastMovedAt >= COMFORT_SETTLE_MS) flock._xrFallFreezeSince = 0;
     if (flock._xrCameraMotionMode !== 'comfort') return;
     if (now - flock._xrFollowLastMovedAt < COMFORT_SETTLE_MS) return;
 
