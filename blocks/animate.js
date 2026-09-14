@@ -9,6 +9,26 @@ import {
 import { animationNames } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
+function preventLoopingAwait(block, modeFieldName = 'MODE') {
+  const loopField = block.getField('LOOP');
+  const modeField = block.getField(modeFieldName);
+  if (!loopField || !modeField) return;
+
+  loopField.setValidator((newValue) => {
+    if (newValue === 'TRUE' && modeField.getValue() === 'AWAIT') {
+      modeField.setValue('START');
+    }
+    return newValue;
+  });
+
+  modeField.setValidator((newValue) => {
+    if (newValue === 'AWAIT' && loopField.getValue() === 'TRUE') {
+      return 'START';
+    }
+    return newValue;
+  });
+}
+
 export function defineAnimateBlocks() {
   Blockly.Blocks['glide_to'] = {
     init: function () {
@@ -80,6 +100,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -153,6 +174,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -231,6 +253,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
 
       const addZeroShadow = (inputName) => {
         const input = this.getInput(inputName);
@@ -320,6 +343,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -393,6 +417,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -466,6 +491,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -534,6 +560,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -593,6 +620,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this, 'START_AWAIT');
     },
   };
 
@@ -748,6 +776,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
     },
   };
 
@@ -833,6 +862,7 @@ export function defineAnimateBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('animate_blocks');
+      preventLoopingAwait(this);
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(
           this,
