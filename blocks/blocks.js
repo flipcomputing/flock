@@ -15,7 +15,7 @@ import {
 } from '../ui/blockmesh.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { createThemeConfig } from '../main/themes.js';
-import { makeInlineIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
+import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
 import { FieldBlockSearch } from './fieldBlockSearch.js';
 
 registerFieldColour();
@@ -194,8 +194,6 @@ export function registerBlockHandler(block, handler) {
   blockHandlerRegistry.set(block.id, handler);
 }
 
-export const inlineIcon = makeInlineIcon('white');
-
 export function getHelpUrlFor(_blockType) {
   return 'https://hub.flockxr.com';
 }
@@ -324,9 +322,9 @@ export function applyInputHint(block) {
 // Shared utility to add the toggle button to a block
 export function addToggleButton(block) {
   const toggleButton = new Blockly.FieldImage(
-    makeInlineIcon('white'),
-    30,
-    30,
+    makeToggleButtonIcon(block.isInline),
+    20,
+    20,
     'toggle inline blocks',
     () => {
       block.toggleDoBlock();
@@ -337,6 +335,11 @@ export function addToggleButton(block) {
     .appendDummyInput()
     .setAlign(Blockly.inputs.Align.RIGHT)
     .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
+}
+
+export function updateToggleButtonIcon(block) {
+  const field = block.getField(TOGGLE_BUTTON_FIELD_NAME);
+  if (field) field.setValue(makeToggleButtonIcon(block.isInline));
 }
 
 // Shared utility for the mutationToDom function
@@ -362,6 +365,7 @@ export function updateShape(block, isInline) {
     block.setPreviousStatement(false);
     block.setNextStatement(false);
   }
+  updateToggleButtonIcon(block);
 }
 export function handleBlockSelect(event) {
   if (event.type === Blockly.Events.SELECTED) {

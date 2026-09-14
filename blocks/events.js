@@ -6,6 +6,7 @@ import {
   mutationToDom,
   domToMutation,
   updateShape,
+  updateToggleButtonIcon,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import {
@@ -16,7 +17,7 @@ import {
   makeKeyboardIcon,
   makePressIcon,
   makeOnEventIcon,
-  makeInlineIcon,
+  makeToggleButtonIcon,
   getCurrentIconColor,
   BLOCK_ICON_FIELD_NAME,
   TOGGLE_BUTTON_FIELD_NAME,
@@ -161,9 +162,9 @@ export function defineEventsBlocks() {
 
       // Add inline toggle button
       const toggleButton = new Blockly.FieldImage(
-        makeInlineIcon('white'),
-        30,
-        30,
+        makeToggleButtonIcon(this.isInline),
+        20,
+        20,
         'toggle inline blocks',
         () => {
           this.toggleDoBlock();
@@ -197,6 +198,7 @@ export function defineEventsBlocks() {
         this.setPreviousStatement(false);
         this.setNextStatement(false);
       }
+      updateToggleButtonIcon(this);
     },
 
     toggleDoBlock: function () {
@@ -266,9 +268,9 @@ export function defineEventsBlocks() {
 
       // Add the toggle button
       const toggleButton = new Blockly.FieldImage(
-        makeInlineIcon('white'),
-        30,
-        30,
+        makeToggleButtonIcon(this.isInline),
+        20,
+        20,
         'toggle inline blocks',
         () => {
           this.toggleDoBlock();
@@ -326,6 +328,7 @@ export function defineEventsBlocks() {
         this.setPreviousStatement(false);
         this.setNextStatement(false);
       }
+      updateToggleButtonIcon(this);
     },
     toggleDoBlock: function () {
       const isInline = !this.isInline;

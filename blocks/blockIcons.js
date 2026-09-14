@@ -77,6 +77,14 @@ const ICON_PATHS = {
     viewBox: '0 0 640 640',
     d: 'M352 96l64 0c17.7 0 32 14.3 32 32l0 256c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0c53 0 96-43 96-96l0-256c0-53-43-96-96-96l-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32zm-9.4 182.6c12.5-12.5 12.5-32.8 0-45.3l-128-128c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L242.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l210.7 0-73.4 73.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l128-128z',
   },
+  indent: {
+    viewBox: '0 0 320 512',
+    d: 'M311.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L243.2 256 73.9 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z',
+  },
+  outdent: {
+    viewBox: '0 0 320 512',
+    d: 'M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z',
+  },
 };
 
 export function makeStartIcon(color) {
@@ -99,6 +107,16 @@ export function makePressIcon(color) {
 }
 export function makeOnEventIcon(color) {
   return makePathIcon(ICON_PATHS.event.viewBox, ICON_PATHS.event.d, color);
+}
+export function makeIndentIcon(color) {
+  return makePathIcon(ICON_PATHS.indent.viewBox, ICON_PATHS.indent.d, color);
+}
+export function makeOutdentIcon(color) {
+  return makePathIcon(ICON_PATHS.outdent.viewBox, ICON_PATHS.outdent.d, color);
+}
+
+export function makeToggleButtonIcon(isInline, color = 'white') {
+  return isInline ? makeOutdentIcon(color) : makeIndentIcon(color);
 }
 
 let _currentIconColor = 'white';
@@ -222,11 +240,6 @@ const LOW_VISION_SUBCATEGORY_STYLE_OVERRIDES = new Set([
   'animate_blocks',
   'snippets_blocks',
 ]);
-
-export function makeInlineIcon(color) {
-  const svg = `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="122.88px" height="80.593px" viewBox="0 0 122.88 80.593" xml:space="preserve"><g><polygon fill="${color}" points="122.88,80.593 122.88,49.772 61.44,0 0,49.772 0,80.593 61.44,30.82 122.88,80.593"/></g></svg>`;
-  return 'data:image/svg+xml,' + encodeURIComponent(svg);
-}
 
 const BLOCK_ICON_MAKERS = {
   start: makeStartIcon,

@@ -505,7 +505,8 @@ export default {
   // Tooltip translations - Events blocks
   start_tooltip:
     'Run the blocks inside when the project starts. You can have multiple start blocks.',
-  forever_tooltip: 'Run the blocks inside every frame or when the previous iteration finishes.',
+  forever_tooltip:
+    'Run the blocks inside repeatedly, just before each screen update, waiting for each run to finish before starting the next.',
   when_clicked_tooltip: 'Run the blocks inside when the object trigger occurs.',
   on_collision_tooltip:
     'Execute the blocks inside when the object intersects or no longer intersects with another object.',
