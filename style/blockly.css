@@ -1282,6 +1282,16 @@ body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blo
   stroke-width: 30;
 }
 
+.blocklyWarningIcon .blocklyIconShape {
+  fill: #511d91;
+  stroke: #fff;
+  stroke-width: 1px;
+}
+
+.blocklyWarningIcon .blocklyIconSymbol {
+  fill: #fff;
+}
+
 /* Block comment bubble border - targets only block comments, not workspace comments */
 .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
 .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {

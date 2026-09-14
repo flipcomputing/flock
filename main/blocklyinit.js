@@ -46,6 +46,7 @@ import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { defineGenerators } from '../generators/generators.js';
 import { registerCustomCommentIcon } from './customCommentIcon.js';
+import { patchWarningIconSize } from './customWarningIcon.js';
 import { initContextMenus } from '../ui/contextmenu.js';
 import { initListReorder } from '../ui/listReorder.js';
 import {
@@ -1708,6 +1709,7 @@ export function createBlocklyWorkspace() {
   );
 
   registerCustomCommentIcon();
+  patchWarningIconSize();
 
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
