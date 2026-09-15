@@ -680,6 +680,9 @@ const INSPECTOR_SEEN_POPUPS = [
 ];
 const INSPECTOR_THEME_STORAGE_KEY = 'Babylon/Inspector/ThemeMode';
 const INSPECTOR_THEME_ICON_PATH_PREFIXES = ['M15.5 13.5A6.98', 'M10 2c.28 0 .5.22.5.5'];
+// Pane header's "..." button (MoreHorizontalRegular icon), which opens a Dock
+// submenu for repositioning panes — has no aria-label/title/tooltip to match on.
+const INSPECTOR_PANE_MENU_ICON_PATH_PREFIX = 'M6.25 10a1.25 1.25 0 1 1-2.5 0';
 // Properties-tab accordion sections flock doesn't want shown, matched by
 // their exact header text.
 const INSPECTOR_HIDDEN_PROPERTY_SECTIONS = [
@@ -880,6 +883,8 @@ function hideInspectorExtras() {
         hide(button.closest('.fui-SplitButton') ?? button);
       } else if (/extensions|forum|give feedback on inspector|select theme/i.test(label)) {
         hide(button);
+      } else if (iconPath.startsWith(INSPECTOR_PANE_MENU_ICON_PATH_PREFIX)) {
+        hide(button);
       }
     });
 
@@ -915,11 +920,15 @@ function hideInspectorExtras() {
     // entry is "Undock" (pops the pane into its own browser window, already
     // neutralised above). Its tooltip ("Hide Side Pane" / "Show Side Pane")
     // lives on the wrapping .fui-SplitButton, not on either inner button, so
-    // it's not caught by the generic label-based removal above.
+    // it's not caught by the generic label-based removal above. Hide only the
+    // menu-trigger half (.fui-SplitButton__menuButton); the wrapper's other
+    // child is the actual collapse/expand toggle and must stay visible.
     inspector?.querySelectorAll('.fui-SplitButton[aria-describedby]').forEach((splitButton) => {
       const tooltipId = splitButton.getAttribute('aria-describedby');
       const tooltip = tooltipId ? document.getElementById(tooltipId)?.textContent : '';
-      if (/hide side pane|show side pane/i.test(tooltip ?? '')) hide(splitButton);
+      if (/hide side pane|show side pane/i.test(tooltip ?? '')) {
+        hide(splitButton.querySelector('.fui-SplitButton__menuButton'));
+      }
     });
 
     // Belt-and-braces: the dropdown's "Undock" entry renders via a portal
