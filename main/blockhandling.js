@@ -6,6 +6,12 @@ import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
 import { ensureBlockSearchIndex, isCompactSearchLayout } from './blocksearch.js';
+import {
+  attachFolderBehaviour,
+  buildContainedIdSet,
+  layoutFolderChildren,
+  setFolderReflowHook,
+} from '../blocks/folderContainment.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -299,6 +305,7 @@ function initializeFlyoutHints() {
 export function initializeBlockHandling() {
   observeBlocklyInputs();
   initializeFlyoutHints();
+  attachFolderBehaviour(workspace);
 
   // Capture-phase so this runs before Blockly's own gesture handling decides
   // whether the click selects a block or just edits a field in place.
@@ -401,18 +408,23 @@ export function initializeBlockHandling() {
 
     Blockly.Events.setGroup(true);
     try {
+      const contained = buildContainedIdSet(workspace);
       const topBlocks = (workspace.getTopBlocks(false) || [])
-        .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.())
+        .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.() && !contained.has(b.id))
         .sort((a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y);
 
       for (const block of topBlocks) {
         if (!blockTypesToCleanUp.includes(block.type)) continue;
+        // This debounced pass can fire mid-gesture on a slow drag; repositioning
+        // a block still held by the user corrupts its rendering.
+        if (block.isDragging?.()) continue;
         try {
           const xy = block.getRelativeToSurfaceXY();
           const dx = cursorX - xy.x;
           const dy = cursorY - xy.y;
           if (dx || dy) block.moveBy(dx, dy);
 
+          if (block.type === 'folder') layoutFolderChildren(block);
           const h = block.getHeightWidth?.().height || 40;
           cursorY += h + spacing;
         } catch (error) {
@@ -461,6 +473,8 @@ export function initializeBlockHandling() {
       Blockly.Events.setGroup(false);
     }
   }
+
+  setFolderReflowHook(layoutTopLevelBlocks);
 
   function pruneUnusedVariables() {
     const usedModels = Blockly.Variables.allUsedVarModels(workspace);
@@ -685,7 +699,9 @@ export function initializeBlockHandling() {
       }, 300); // adjust if you want snappier/slower cleanup
     }
 
-    // Immediate cleanup when a top-level block is collapsed/expanded.
+    // Immediate cleanup when a top-level block is collapsed/expanded via
+    // Blockly's own native collapse (a folder's own toggle reflows via
+    // setFolderReflowHook instead).
     if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'collapsed') {
       const block = workspace.getBlockById(event.blockId);
       if (block && !block.getParent()) {

@@ -12,6 +12,7 @@ import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
 import { resetLiveEditsForRun } from '../ui/blockmesh.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
+import { generateWorkspaceCode } from '../blocks/folderContainment.js';
 
 let isExecuting = false;
 
@@ -70,7 +71,7 @@ export async function executeCode(options = {}) {
       // Inside the try: a generator throw would escape with gizmos already disposed.
       // The code we're about to generate bakes current block values — nothing stale.
       resetLiveEditsForRun();
-      const code = javascriptGenerator.workspaceToCode(workspace);
+      const code = generateWorkspaceCode(workspace, javascriptGenerator);
       await flock.runCode(code, options);
     } catch (error) {
       // A stopped run is a normal stop: skip the banner and the gizmo/debug

@@ -3,10 +3,32 @@ import { importSnippet } from './files.js';
 import { getSnippetOption, translate } from './translation.js';
 import w500 from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2';
 
+function collectFolderExportBlocks(folder) {
+  const blocks = [Blockly.serialization.blocks.save(folder)];
+  const ws = folder.workspace;
+  for (const id of folder.containedBlockIds_ || []) {
+    const child = ws.getBlockById(id);
+    if (!child) continue;
+    if (child.type === 'folder') {
+      blocks.push(...collectFolderExportBlocks(child));
+    } else {
+      blocks.push(Blockly.serialization.blocks.save(child));
+    }
+  }
+  return blocks;
+}
+
+function saveBlockForExport(block) {
+  if (block.type === 'folder') {
+    return { blocks: { blocks: collectFolderExportBlocks(block) } };
+  }
+  return Blockly.serialization.blocks.save(block);
+}
+
 async function exportBlockSnippet(block) {
   try {
     // Save the block and its children to a JSON object
-    const blockJson = Blockly.serialization.blocks.save(block);
+    const blockJson = saveBlockForExport(block);
 
     // Convert the JSON object to a pretty-printed JSON string
     const jsonString = JSON.stringify(blockJson, null, 2);
@@ -320,7 +342,7 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
   wrapperSVG.appendChild(translationGroup);
 
   // Get the JSON representation of the block
-  const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
+  const blockJson = JSON.stringify(saveBlockForExport(block));
   const encodedJson = encodeURIComponent(blockJson); // Ensure it is URL-encoded
 
   // Embed the JSON in a <metadata> tag inside the SVG
@@ -340,7 +362,7 @@ import { addMetadata } from 'meta-png';
 
 async function exportBlockAsPNG(block) {
   const finalSVG = await generateSVG(block, { rasterSafe: true });
-  const blockJson = JSON.stringify(Blockly.serialization.blocks.save(block));
+  const blockJson = JSON.stringify(saveBlockForExport(block));
   const encodedJson = encodeURIComponent(blockJson);
 
   const img = new Image();

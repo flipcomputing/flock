@@ -25,6 +25,22 @@ export function registerControlGenerators(javascriptGenerator) {
   // -------------------------------
   // CONTROL
   // -------------------------------
+  javascriptGenerator.forBlock['folder'] = function (block) {
+    const ws = block.workspace;
+    const ids = block.containedBlockIds_ || [];
+
+    const lines = ids
+      .map((id) => ws.getBlockById(id))
+      .filter((child) => child && child.isEnabled())
+      .map((child) => {
+        const line = javascriptGenerator.blockToCode(child);
+        return Array.isArray(line) ? line[0] : line;
+      })
+      .join('');
+
+    return `{\n${lines}}\n`;
+  };
+
   // Wait for x seconds
   javascriptGenerator.forBlock['wait_seconds'] = function (block) {
     const duration =

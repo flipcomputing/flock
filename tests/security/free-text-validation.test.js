@@ -54,6 +54,7 @@ const TESTED_TEXT_FIELDS = [
   'play_tune.ABC_TEXT',
   'keyword.KEYWORD',
   'keyword_value.KEYWORD',
+  'folder.NAME',
 ];
 
 const payload = '"; alert(1); //';
@@ -184,6 +185,17 @@ export function runTextFieldValidationTests() {
         workspace
       );
       expect(generate(block)).to.equal('null');
+    });
+
+    it('folder name is never emitted into generated code', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'folder',
+          fields: { NAME: payload },
+        },
+        workspace
+      );
+      expect(generate(block)).not.to.include(payload);
     });
 
     it('an unresolved keyword block does not stop the blocks below it', function () {

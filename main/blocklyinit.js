@@ -37,6 +37,7 @@ import { defineConnectBlocks } from '../blocks/connect.js';
 import { defineCombineBlocks } from '../blocks/combine.js';
 import { defineTransformBlocks } from '../blocks/transform.js';
 import { defineControlBlocks } from '../blocks/control.js';
+import { defineFolderBlock } from '../blocks/folder.js';
 import { defineConditionBlocks } from '../blocks/condition.js';
 import { defineAnimateBlocks } from '../blocks/animate.js';
 import { defineSoundBlocks } from '../blocks/sound.js';
@@ -267,6 +268,7 @@ export function initializeBlocks() {
   defineCombineBlocks();
   defineTransformBlocks();
   defineControlBlocks();
+  defineFolderBlock();
   defineConditionBlocks();
   defineAnimateBlocks();
   defineSoundBlocks();
@@ -360,6 +362,15 @@ function initializeIfClauseConnectionChecker(workspace) {
     // Get the blocks involved
     const blockA = a.getSourceBlock();
     const blockB = b.getSourceBlock();
+
+    // A block with check=null on its own connection (e.g. a toggled 'forever')
+    // wildcard-matches everything, so a check-type mismatch alone can't stop it
+    // from connecting to the folder's otherwise-never-connected DO input.
+    const isFolderDo = (block, connection) =>
+      block.type === 'folder' && block.getInput?.('DO')?.connection === connection;
+    if (isFolderDo(blockA, a) || isFolderDo(blockB, b)) {
+      return false;
+    }
 
     // Check if either block is an if_clause
     const aIsIfClause = blockA.type === 'if_clause';

@@ -2551,6 +2551,11 @@ const toolboxControl = {
         },
       },
     },
+    {
+      kind: 'block',
+      type: 'folder',
+      keyword: 'folder',
+    },
   ],
 };
 

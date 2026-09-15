@@ -1146,6 +1146,17 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
         }
       }
     }
+
+    if (this.block_.type === 'folder') {
+      const desired = this.block_.desiredMouthHeight_ || 0;
+      for (const row of this.rows) {
+        if (row.hasStatement && desired > row.height) {
+          row.height = desired;
+          row.minHeight = desired;
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -1210,6 +1221,19 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
     }
 
     super.drawBottom_();
+  }
+
+  // drawStatementInput_ always draws a connector notch, even when the input
+  // can never actually connect - skip it for folder blocks.
+  drawStatementInput_(row) {
+    if (this.block_?.type !== 'folder') {
+      super.drawStatementInput_(row);
+      return;
+    }
+    const input = row.getLastInput();
+    if (!input) return;
+    this.outlinePath_ += `H ${input.xPos} v ${row.height} H ${row.xPos + row.width}`;
+    this.positionStatementInputConnection_(row);
   }
 
   colorizeAxisInput_() {
