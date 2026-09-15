@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { importSnippet } from './files.js';
 import { getSnippetOption, translate } from './translation.js';
 import w500 from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2';
+import { beginFolderDragFollow, endFolderDragFollow } from '../blocks/folderContainment.js';
 
 function collectFolderExportBlocks(folder) {
   const blocks = [Blockly.serialization.blocks.save(folder)];
@@ -226,16 +227,18 @@ function getFieldTextFontSizePt(block) {
 }
 
 async function generateSVG(block, { rasterSafe = false } = {}) {
+  const isFolder = block.type === 'folder';
+  if (isFolder) beginFolderDragFollow(block);
+
   const svgBlock = block.getSvgRoot().cloneNode(true);
 
-  // Blank selection/highlight overlays so they don't cover text.
-  svgBlock
-    .querySelectorAll('.blocklyPath.blocklyPathSelected, .blocklyHighlightedConnectionPath')
-    .forEach((el) => {
-      el.setAttribute('fill', 'none');
-      if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
-      el.setAttribute('stroke-width', '1');
-    });
+  svgBlock.querySelectorAll('.blocklyHighlightedConnectionPath').forEach((el) => el.remove());
+
+  svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
+    el.setAttribute('fill', 'none');
+    if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
+    el.setAttribute('stroke-width', '1');
+  });
 
   svgBlock.querySelectorAll('.blocklyActiveFocus').forEach((el) => {
     el.classList.remove('blocklyActiveFocus');
@@ -266,6 +269,8 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
   svgBlock.removeAttribute('transform');
 
   const bbox = block.getSvgRoot().getBBox();
+
+  if (isFolder) endFolderDragFollow(block);
 
   const uiElements = svgBlock.querySelectorAll('rect.blocklyFieldRect');
   uiElements.forEach((rect) => {

@@ -321,7 +321,7 @@ function installConnectionPreviewFolderResize() {
 // Contained blocks aren't real SVG children of the folder, so they don't move
 // for free while it's dragged - reparent them into its SVG group for the
 // duration of the drag, then back on drop.
-function beginFolderDragFollow(folder) {
+export function beginFolderDragFollow(folder) {
   const ws = folder.workspace;
   const folderGroup = folder.getSvgRoot?.();
   if (!folderGroup) return;
@@ -345,7 +345,7 @@ function beginFolderDragFollow(folder) {
   folder.dragFollowState_ = state;
 }
 
-function endFolderDragFollow(folder) {
+export function endFolderDragFollow(folder) {
   const state = folder.dragFollowState_;
   folder.dragFollowState_ = null;
   if (!state || !state.length) return;
