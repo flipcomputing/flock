@@ -1218,6 +1218,7 @@ export default {
   toolbox_search_results_aria: 'Resultados de búsqueda de la caja de herramientas.', // human
   context_delete_option: 'Eliminar', // human
   context_delete_all_blocks_option: 'Eliminar todos los bloques',
+  context_cleanup_option: 'Limpiar',
   context_inline_inputs_option: 'Entradas horizontales',
   context_external_inputs_option: 'Entradas verticales',
   context_collapse_option: 'Contraer',

@@ -1118,6 +1118,7 @@ export default {
   toolbox_search_results_aria: 'Risultati della ricerca nella toolbox.',
   context_delete_option: 'Elimina',
   context_delete_all_blocks_option: 'Elimina tutti i blocchi',
+  context_cleanup_option: 'Pulisci',
   context_inline_inputs_option: 'Input orizzontali',
   context_external_inputs_option: 'Input verticali',
   context_collapse_option: 'Comprimi',

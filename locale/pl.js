@@ -1100,6 +1100,7 @@ export default {
   toolbox_search_results_aria: 'Wyniki wyszukiwania w toolboxie.',
   context_delete_option: 'Usuń',
   context_delete_all_blocks_option: 'Usuń wszystkie bloki',
+  context_cleanup_option: 'Porządkuj',
   context_inline_inputs_option: 'Wejścia poziome',
   context_external_inputs_option: 'Wejścia pionowe',
   context_collapse_option: 'Zwiń',

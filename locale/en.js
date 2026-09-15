@@ -1210,6 +1210,7 @@ export default {
   toolbox_search_results_aria: 'Toolbox search results.',
   context_delete_option: 'Delete',
   context_delete_all_blocks_option: 'Delete all blocks',
+  context_cleanup_option: 'Cleanup',
   context_inline_inputs_option: 'Horizontal inputs',
   context_external_inputs_option: 'Vertical inputs',
   context_collapse_option: 'Collapse',

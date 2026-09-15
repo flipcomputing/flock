@@ -1104,6 +1104,7 @@ export default {
   toolbox_search_results_aria: 'Resultados de pesquisa da caixa de ferramentas.',
   context_delete_option: 'Excluir',
   context_delete_all_blocks_option: 'Excluir todos os blocos',
+  context_cleanup_option: 'Limpar',
   context_inline_inputs_option: 'Entradas horizontais',
   context_external_inputs_option: 'Entradas verticais',
   context_collapse_option: 'Recolher',

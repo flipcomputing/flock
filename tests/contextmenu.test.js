@@ -204,6 +204,23 @@ export function runContextMenuTests(_flock) {
       });
     });
 
+    describe('cleanWorkspace rename', function () {
+      it('relabels the built-in clean-up item to the translated "Cleanup" label', function () {
+        const item = getItem('cleanWorkspace');
+        expect(item).to.exist;
+        const text = item.displayText({ workspace });
+        expect(text).to.equal(translate('context_cleanup_option'));
+      });
+
+      it('sorts after the paste separator but before the collapse/expand toggle', function () {
+        const cleanup = getItem('cleanWorkspace');
+        const pasteSeparator = getItem('flock_ws_sep_after_paste');
+        const collapseExpand = getItem('flockCollapseExpandWorkspace');
+        expect(cleanup.weight).to.be.greaterThan(pasteSeparator.weight);
+        expect(cleanup.weight).to.be.lessThan(collapseExpand.weight);
+      });
+    });
+
     describe('workspaceFindInWorkspace', function () {
       it('is always enabled', function () {
         expect(getItem('workspaceFindInWorkspace').preconditionFn({})).to.equal('enabled');

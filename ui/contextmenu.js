@@ -226,17 +226,11 @@ export function initContextMenus(workspace) {
     }
   })();
 
-  // Remove undo/redo (toolbar buttons cover this) and clean up (flock does this automatically).
+  // Remove undo/redo (toolbar buttons cover this).
   // Also remove the separate collapse/expand workspace items — replaced by a single toggle below.
   (function removeRedundantContextMenuItems() {
     const registry = Blockly.ContextMenuRegistry.registry;
-    [
-      'undoWorkspace',
-      'redoWorkspace',
-      'cleanWorkspace',
-      'collapseWorkspace',
-      'expandWorkspace',
-    ].forEach((id) => {
+    ['undoWorkspace', 'redoWorkspace', 'collapseWorkspace', 'expandWorkspace'].forEach((id) => {
       try {
         registry.unregister(id);
       } catch (e) {
@@ -294,6 +288,18 @@ export function initContextMenus(workspace) {
   (function renameWorkspaceDeleteMenuItem() {
     const item = Blockly.ContextMenuRegistry.registry.getItem?.('workspaceDelete');
     if (item) item.displayText = () => translate('context_delete_all_blocks_option');
+  })();
+
+  // Rename built-in "Clean up Blocks" item to "Cleanup" — it also prunes
+  // unused variables (see workspace.cleanUp in main/blockhandling.js), not
+  // just layout, so the shorter label avoids implying it's layout-only.
+  // Weight moves it below the clipboard separator (3.5) but above the
+  // collapse/expand toggle (4).
+  (function renameCleanWorkspaceMenuItem() {
+    const item = Blockly.ContextMenuRegistry.registry.getItem?.('cleanWorkspace');
+    if (!item) return;
+    item.displayText = () => translate('context_cleanup_option');
+    item.weight = 3.8;
   })();
 
   // Add "Find in workspace" to the workspace context menu.
