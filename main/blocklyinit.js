@@ -633,7 +633,7 @@ export function initializeWorkspace() {
       shadow.setAttribute('inline', 'true');
 
       const mutation = document.createElement('mutation');
-      mutation.setAttribute('items', '2');
+      mutation.setAttribute('items', String(values.length));
       shadow.appendChild(mutation);
 
       values.forEach((value, index) => {
