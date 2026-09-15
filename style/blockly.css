@@ -1275,13 +1275,6 @@ body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blo
   display: none !important;
 }
 
-/* Custom Comment Icon Styles (block comment icon only) */
-.blocklyCommentIconPath {
-  fill: #fffcc7;
-  stroke: #555;
-  stroke-width: 30;
-}
-
 .blocklyWarningIcon .blocklyIconShape {
   fill: #511d91;
   stroke: #fff;
@@ -1292,66 +1285,7 @@ body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blo
   fill: #fff;
 }
 
-/* Block comment bubble border - targets only block comments, not workspace comments */
-.blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-.blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-/* NEEDS UPDATING PER THEME: dark theme comment icon color */
-[data-theme='dark'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #555;
-}
-
-[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-/* NEEDS UPDATING PER THEME: dark-contrast theme comment icon color */
-[data-theme='dark-contrast'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #333;
-}
-
-[data-theme='dark-contrast']
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme='dark-contrast']
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-/* NEEDS UPDATING PER THEME: contrast theme comment icon color */
-[data-theme='contrast'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #333;
-}
-
-[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-@media (pointer: coarse) {
-  .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-    stroke-width: 16px !important;
-  }
-}
-
-/* Keep block comment editor constrained to its bubble */
+/* Keep the comment editor constrained to its bubble (shared by workspace comments) */
 .blocklyCommentForeignObject > body.blocklyMinimalBody,
 .blocklyCommentForeignObject textarea.blocklyCommentText {
   width: 100% !important;

@@ -326,11 +326,6 @@ async function generateSVG(block, { rasterSafe = false } = {}) {
 	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
 	  fill: #ffffff !important;
 	}
-	.blocklyCommentIconPath {
-	  fill: #fffcc7;
-	  stroke: #555;
-	  stroke-width: 30;
-	}
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
 
