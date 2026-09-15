@@ -3503,6 +3503,14 @@ const toolboxMaterials = {
     },
     {
       kind: 'block',
+      type: 'skin_colour',
+      keyword: 'skincol',
+      fields: {
+        COLOR: '#A15C33',
+      },
+    },
+    {
+      kind: 'block',
       type: 'lists_create_with',
       keyword: 'colourlist',
       extraState: { itemCount: 2 },

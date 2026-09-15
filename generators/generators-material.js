@@ -156,8 +156,6 @@ export function registerMaterialGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
-  // Skin colour --------------------------------------------------
-  // used within character definition but not as a standalone block
   javascriptGenerator.forBlock['skin_colour'] = function (block) {
     const colour = block.getFieldValue('COLOR');
     const code = `"${colour}"`;
