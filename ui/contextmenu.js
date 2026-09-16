@@ -740,6 +740,16 @@ export function initContextMenus(workspace) {
       '0 0 640 640'
     );
 
+    // Same glyph as expandBtn, flipped vertically via CSS (.fc-block-toolbar-btn--flip-v)
+    // to read as angles-up — only shown for top-level container (c-shaped) blocks.
+    const collapseBtn = document.createElement('button');
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--flip-v';
+    collapseBtn.innerHTML = mkFaSvg(
+      '<path d="M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z"/>',
+      '0 0 640 640'
+    );
+
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
@@ -798,6 +808,7 @@ export function initContextMenus(workspace) {
       // role="toolbar" needs a name of its own, not just named buttons.
       blockToolbar.setAttribute('aria-label', getToolbarLabel('block_menu', 'Block menu'));
       setToolbarLabel(expandBtn, getToolbarLabel('context_expand_option', 'Expand'));
+      setToolbarLabel(collapseBtn, getToolbarLabel('context_collapse_option', 'Collapse'));
       setToolbarLabel(duplicateBtn, getToolbarLabel('duplicate_block_button_ui', 'Duplicate block'));
       setToolbarLabel(copyBtn, getToolbarLabel('copy_block_button_ui', 'Copy block'));
       setToolbarLabel(pasteBtn, getToolbarLabel('paste_block_button_ui', 'Paste block'));
@@ -851,6 +862,7 @@ export function initContextMenus(workspace) {
 
     blockToolbar.append(
       expandBtn,
+      collapseBtn,
       unlockBtn,
       duplicateBtn,
       copyBtn,
@@ -869,6 +881,7 @@ export function initContextMenus(workspace) {
     // may be a function for state-dependent buttons.
     const buttonShortcuts = [
       [expandBtn, 'C'],
+      [collapseBtn, 'C'],
       [duplicateBtn, 'D'],
       [copyBtn, `${modKey}C`],
       [pasteBtn, `${modKey}V`],
@@ -986,6 +999,15 @@ export function initContextMenus(workspace) {
       !!block?.getParent() ||
       !!block?.previousConnection?.targetConnection ||
       !!block?.outputConnection?.targetConnection;
+
+    // Top-level container (c-shaped) blocks: hat/event blocks like start, forever,
+    // when_clicked, on_event, etc. — they carry a statement body but, unlike if/repeat,
+    // can never connect above or below anything else, so they're always top-level.
+    const isTopLevelContainerBlock = (block) =>
+      !!block &&
+      !block.previousConnection &&
+      !block.outputConnection &&
+      !!block.inputList?.some((input) => input.type === Blockly.inputs.inputTypes.STATEMENT);
 
     // A block's own SVG group nests any blocks connected below it (via next
     // connection), so getBoundingClientRect() on it spans the whole stack —
@@ -1158,6 +1180,10 @@ export function initContextMenus(workspace) {
       const locked = isBlockLocked(block);
       expandBtn.style.display =
         block.workspace?.options?.collapse && block.isCollapsed?.() ? '' : 'none';
+      collapseBtn.style.display =
+        block.workspace?.options?.collapse && !block.isCollapsed?.() && isTopLevelContainerBlock(block)
+          ? ''
+          : 'none';
       unlockBtn.style.display = locked ? '' : 'none';
       copyBtn.style.display = '';
       pasteBtn.style.display = locked || !hasClipboardData() ? 'none' : '';
@@ -1433,6 +1459,17 @@ export function initContextMenus(workspace) {
       const block = toolbarBlock;
       Blockly.Events.setGroup('toolbar_expand');
       block.setCollapsed(false);
+      Blockly.Events.setGroup(false);
+      updateSimplifiedToolbar();
+      positionBlockToolbar();
+      if (toolbarKeyboardMode) renderBadges();
+    });
+
+    onToolbarButtonPress(collapseBtn, () => {
+      if (!toolbarBlock || toolbarBlock.isCollapsed?.()) return;
+      const block = toolbarBlock;
+      Blockly.Events.setGroup('toolbar_collapse');
+      block.setCollapsed(true);
       Blockly.Events.setGroup(false);
       updateSimplifiedToolbar();
       positionBlockToolbar();

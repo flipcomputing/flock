@@ -3371,6 +3371,10 @@ svg.blocklyTrashcanFlyout {
   opacity: 0.3;
 }
 
+.fc-block-toolbar-btn--flip-v svg {
+  transform: scaleY(-1);
+}
+
 /* Light mode only: the popup keeps the lighter menu ground (above), while the
    buttons take the darker info-panel ground and brand-purple icons, so they sit
    quietly against the menu. The trashcan icon is tinted to match in
