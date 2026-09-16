@@ -49,7 +49,12 @@ import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
 import { initContextMenus } from '../ui/contextmenu.js';
 import { initListReorder } from '../ui/listReorder.js';
-import { applyBlockLockState, stripLockState, isBlockLocked } from '../ui/blocklyutil.js';
+import {
+  applyBlockLockState,
+  stripLockState,
+  isBlockLocked,
+  setBlockLocked,
+} from '../ui/blocklyutil.js';
 import { toolbox as toolboxDef } from '../toolbox.js';
 import { installDropdownTypeahead } from './dropdownTypeahead.js';
 
@@ -1565,7 +1570,7 @@ function installShadowNavigationPatch(ws) {
 
     shortcutRegistry.register({
       name: 'toggle_block_enabled',
-      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.L)],
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.E)],
       preconditionFn: (ws, scope) => enableEditable(ws, enableTargetBlock(scope)),
       callback: (ws, event, _shortcut, scope) => {
         const block = enableTargetBlock(scope);
@@ -1574,6 +1579,53 @@ function installShadowNavigationPatch(ws) {
         Blockly.Events.setGroup('toolbar_disable');
         block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
         Blockly.Events.setGroup(false);
+        return true;
+      },
+    });
+
+    const lockEditable = (ws, block) =>
+      !!block && !fieldEditorOpen() && !ws.isDragging?.() && !ws.isReadOnly?.() && !block.isShadow?.();
+
+    shortcutRegistry.register({
+      name: 'toggle_block_locked',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.L)],
+      preconditionFn: (ws, scope) => lockEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!lockEditable(ws, block)) return false;
+        event?.preventDefault?.();
+        Blockly.Events.setGroup('toolbar_lock');
+        setBlockLocked(block, !isBlockLocked(block));
+        Blockly.Events.setGroup(false);
+        window.flockBlockToolbar?.refresh?.(block);
+        return true;
+      },
+    });
+
+    const collapseEditable = (ws, block) =>
+      !!block &&
+      !fieldEditorOpen() &&
+      !ws.isDragging?.() &&
+      !ws.isReadOnly?.() &&
+      !block.isShadow?.() &&
+      !!ws.options?.collapse;
+
+    if (shortcutRegistry.getRegistry?.()?.['cleanup']) {
+      shortcutRegistry.unregister('cleanup');
+    }
+
+    shortcutRegistry.register({
+      name: 'toggle_block_collapsed',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.C)],
+      preconditionFn: (ws, scope) => collapseEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!collapseEditable(ws, block)) return false;
+        event?.preventDefault?.();
+        Blockly.Events.setGroup('toolbar_collapse');
+        block.setCollapsed(!block.isCollapsed());
+        Blockly.Events.setGroup(false);
+        window.flockBlockToolbar?.refresh?.(block);
         return true;
       },
     });

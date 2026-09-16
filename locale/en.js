@@ -1172,6 +1172,8 @@ export default {
   block_menu: 'Block menu',
   block_menu_announcement: 'Block menu: %1',
   duplicate_block_button_ui: 'Duplicate block',
+  copy_block_button_ui: 'Copy block',
+  paste_block_button_ui: 'Paste block',
   camera_button_ui: 'Camera controls',
   eye_button_ui: 'Orbit around selected object',
   close_status_message_ui: 'Close message',

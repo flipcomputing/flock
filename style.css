@@ -3239,6 +3239,12 @@ svg.blocklyTrashcanFlyout {
 .fc-toolbar-key-badge {
   position: absolute;
   transform: translate(-50%, -50%); /* centre on the anchor point, below the icon */
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.fc-toolbar-keycap {
   background: #fff;
   color: #000;
   border: 1px solid #aaa;
@@ -3248,11 +3254,28 @@ svg.blocklyTrashcanFlyout {
   font-size: 12px;
   font-weight: bold;
   font-family: monospace;
-  pointer-events: none;
   min-width: 10px;
   text-align: center;
   line-height: 1.4;
   white-space: nowrap;
+}
+
+.fc-toolbar-keycap--mod {
+  width: 18px;
+  height: 22px;
+  box-sizing: border-box;
+  padding: 0 0 0 1px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  line-height: 1.25;
+  letter-spacing: 1.75px;
+}
+
+.fc-toolbar-keycap--paired {
+  padding: 2px 3px;
 }
 
 .fc-block-toolbar-btn {

@@ -35,6 +35,10 @@ function collapseSeparators(options) {
 }
 
 export function initContextMenus(workspace) {
+  const modKey = /Mac/i.test(navigator.userAgentData?.platform ?? navigator.platform)
+    ? '⌘'
+    : 'Ctrl+';
+
   // ------- Pointer tracking for "paste at pointer" -------
   let lastCM = { x: 0, y: 0 };
   (workspace.getInjectionDiv() || document).addEventListener(
@@ -155,7 +159,7 @@ export function initContextMenus(workspace) {
         const locked = isBlockLocked(scope.block);
         const key = locked ? 'unlock_block_option' : 'lock_block_option';
         const text = translate(key);
-        return text === key ? (locked ? 'Unlock' : 'Lock') : text;
+        return renderShortcut(text === key ? (locked ? 'Unlock' : 'Lock') : text, 'L');
       },
       preconditionFn: (scope) => {
         const block = scope.block;
@@ -170,6 +174,7 @@ export function initContextMenus(workspace) {
         Blockly.Events.setGroup('contextmenu_lock');
         setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(prevGroup || null);
+        window.flockBlockToolbar?.refresh?.(block);
       },
       scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     });
@@ -191,6 +196,18 @@ export function initContextMenus(workspace) {
       blockDelete: 20,
       blockHelp: 999,
     };
+    const shortcutHints = { blockDisable: 'E', blockCollapseExpand: 'C' };
+    for (const [id, key] of Object.entries(shortcutHints)) {
+      const item = registry.getItem?.(id);
+      if (!item || item.__flockShortcutHint) continue;
+      const orig = item.displayText?.bind(item);
+      item.displayText = (scope) => {
+        const label = orig?.(scope);
+        return renderShortcut(typeof label === 'string' ? label : '', key);
+      };
+      item.__flockShortcutHint = true;
+    }
+
     for (const [id, weight] of Object.entries(weights)) {
       const item = registry.getItem?.(id);
       if (item) item.weight = weight;
@@ -290,16 +307,12 @@ export function initContextMenus(workspace) {
     if (item) item.displayText = () => translate('context_delete_all_blocks_option');
   })();
 
-  // Rename built-in "Clean up Blocks" item to "Cleanup" — it also prunes
-  // unused variables (see workspace.cleanUp in main/blockhandling.js), not
-  // just layout, so the shorter label avoids implying it's layout-only.
-  // Weight moves it below the clipboard separator (3.5) but above the
-  // collapse/expand toggle (4).
-  (function renameCleanWorkspaceMenuItem() {
-    const item = Blockly.ContextMenuRegistry.registry.getItem?.('cleanWorkspace');
-    if (!item) return;
-    item.displayText = () => translate('context_cleanup_option');
-    item.weight = 3.8;
+  (function removeCleanWorkspaceMenuItem() {
+    try {
+      Blockly.ContextMenuRegistry.registry.unregister('cleanWorkspace');
+    } catch (e) {
+      void e;
+    }
   })();
 
   // Add "Find in workspace" to the workspace context menu.
@@ -329,7 +342,7 @@ export function initContextMenus(workspace) {
     registry.register({
       id: 'blockCut',
       weight: 1,
-      displayText: () => Blockly.Msg['CUT_SHORTCUT'] || 'Cut',
+      displayText: () => renderShortcut(Blockly.Msg['CUT_SHORTCUT'] || 'Cut', `${modKey}X`),
       preconditionFn: (scope) => (isBlockLocked(scope.block) ? 'disabled' : notInFlyout(scope)),
       callback: (scope) => {
         const block = scope.block;
@@ -345,7 +358,7 @@ export function initContextMenus(workspace) {
     registry.register({
       id: 'blockCopy',
       weight: 2,
-      displayText: () => Blockly.Msg['COPY_SHORTCUT'] || 'Copy',
+      displayText: () => renderShortcut(Blockly.Msg['COPY_SHORTCUT'] || 'Copy', `${modKey}C`),
       preconditionFn: notInFlyout,
       callback: (scope) => {
         const block = scope.block;
@@ -357,7 +370,7 @@ export function initContextMenus(workspace) {
     registry.register({
       id: 'blockPaste',
       weight: 3,
-      displayText: () => Blockly.Msg['PASTE_SHORTCUT'] || 'Paste',
+      displayText: () => renderShortcut(Blockly.Msg['PASTE_SHORTCUT'] || 'Paste', `${modKey}V`),
       preconditionFn: (scope) => {
         if (scope.block?.isInFlyout) return 'hidden';
         if (isBlockLocked(scope.block)) return 'disabled';
@@ -378,7 +391,7 @@ export function initContextMenus(workspace) {
     registry.register({
       id: 'workspacePaste',
       weight: 3,
-      displayText: () => Blockly.Msg['PASTE_SHORTCUT'] || 'Paste',
+      displayText: () => renderShortcut(Blockly.Msg['PASTE_SHORTCUT'] || 'Paste', `${modKey}V`),
       preconditionFn: () => (hasCopiedData() ? 'enabled' : 'disabled'),
       callback: (scope) => {
         const data = Blockly.clipboard?.getLastCopiedData?.();
@@ -639,6 +652,46 @@ export function initContextMenus(workspace) {
     { capture: true }
   );
 
+  // ---- Bind Ctrl/Cmd+C ----
+  host.addEventListener(
+    'keydown',
+    (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if ((e.key || '').toLowerCase() !== 'c') return;
+      if (isTypingInInput()) return;
+
+      const selected = Blockly.common?.getSelected?.() || null;
+      if (!(selected instanceof Blockly.Block) || selected.isInFlyout) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      copyWithoutToast(selected);
+    },
+    { capture: true }
+  );
+
+  // ---- Bind Ctrl/Cmd+X ----
+  host.addEventListener(
+    'keydown',
+    (e) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if ((e.key || '').toLowerCase() !== 'x') return;
+      if (isTypingInInput()) return;
+
+      const selected = Blockly.common?.getSelected?.() || null;
+      if (!(selected instanceof Blockly.Block) || selected.isInFlyout) return;
+      if (isBlockLocked(selected)) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      copyWithoutToast(selected);
+      Blockly.Events.setGroup('shortcut_cut');
+      selected.dispose(true);
+      Blockly.Events.setGroup(false);
+    },
+    { capture: true }
+  );
+
   // ---- Floating block toolbar ----
   // Pointer selection shows it after a short hover; keyboard navigation shows it
   // immediately with a shortcut-letter overlay (D/X/M/K/V/Del) above each button.
@@ -656,8 +709,9 @@ export function initContextMenus(workspace) {
     badgeOverlay.setAttribute('aria-hidden', 'true');
     document.body.appendChild(badgeOverlay);
 
-    // Icon paths below are Font Awesome Free 6.7.2 solid- and regular-style icons
-    // (each call site names the icon it draws) by @fontawesome — https://fontawesome.com
+    // Icon paths below are Font Awesome Free 6.7.2 solid- and regular-style icons,
+    // except duplicateBtn (a custom icon) (each call site names the icon it draws)
+    // by @fontawesome — https://fontawesome.com
     // License: https://fontawesome.com/license/free  Copyright 2024 Fonticons, Inc.
     const mkFaSvg = (path, vw = '0 0 448 512') =>
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
@@ -689,9 +743,26 @@ export function initContextMenus(workspace) {
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
-    // fa-copy
     duplicateBtn.innerHTML = mkFaSvg(
+      '<rect x="7" y="8" width="20" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="2" width="20" height="16" rx="3" fill="currentColor"/>',
+      '0 0 28 26'
+    );
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'fc-block-toolbar-btn';
+    // fa-copy
+    copyBtn.innerHTML = mkFaSvg(
       '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
+    );
+
+    const pasteBtn = document.createElement('button');
+    pasteBtn.type = 'button';
+    pasteBtn.className = 'fc-block-toolbar-btn';
+    // fa-paste
+    pasteBtn.innerHTML = mkFaSvg(
+      '<path d="M160 0c-23.7 0-44.4 12.9-55.4 32L48 32C21.5 32 0 53.5 0 80L0 400c0 26.5 21.5 48 48 48l144 0 0-272c0-44.2 35.8-80 80-80l48 0 0-16c0-26.5-21.5-48-48-48l-56.6 0C204.4 12.9 183.7 0 160 0zM272 128c-26.5 0-48 21.5-48 48l0 272 0 16c0 26.5 21.5 48 48 48l192 0c26.5 0 48-21.5 48-48l0-220.1c0-12.7-5.1-24.9-14.1-33.9l-67.9-67.9c-9-9-21.2-14.1-33.9-14.1L320 128l-48 0zM160 40a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/>',
+      '0 0 512 512'
     );
 
     const deleteBtn = document.createElement('button');
@@ -728,6 +799,8 @@ export function initContextMenus(workspace) {
       blockToolbar.setAttribute('aria-label', getToolbarLabel('block_menu', 'Block menu'));
       setToolbarLabel(expandBtn, getToolbarLabel('context_expand_option', 'Expand'));
       setToolbarLabel(duplicateBtn, getToolbarLabel('duplicate_block_button_ui', 'Duplicate block'));
+      setToolbarLabel(copyBtn, getToolbarLabel('copy_block_button_ui', 'Copy block'));
+      setToolbarLabel(pasteBtn, getToolbarLabel('paste_block_button_ui', 'Paste block'));
       setToolbarLabel(deleteBtn, getToolbarLabel('delete_block_button_ui', 'Delete block'));
       setToolbarLabel(detachBtn, getToolbarLabel('shortcut_detach_block', 'Detach'));
       setToolbarLabel(unlockBtn, getToolbarLabel('unlock_block_option', 'Unlock'));
@@ -780,6 +853,8 @@ export function initContextMenus(workspace) {
       expandBtn,
       unlockBtn,
       duplicateBtn,
+      copyBtn,
+      pasteBtn,
       detachBtn,
       moveHint,
       enableBtn,
@@ -793,10 +868,14 @@ export function initContextMenus(workspace) {
     // keyboard-selected block, so the badges only need to display them. A label
     // may be a function for state-dependent buttons.
     const buttonShortcuts = [
+      [expandBtn, 'C'],
       [duplicateBtn, 'D'],
+      [copyBtn, `${modKey}C`],
+      [pasteBtn, `${modKey}V`],
       [detachBtn, 'X'],
       [moveHint, 'M'],
-      [enableBtn, 'L'],
+      [unlockBtn, 'L'],
+      [enableBtn, 'E'],
       [viewBtn, 'V'],
       [deleteBtn, 'Del'],
     ];
@@ -840,7 +919,11 @@ export function initContextMenus(workspace) {
         const rect = btn.getBoundingClientRect();
         const badge = document.createElement('div');
         badge.className = 'fc-toolbar-key-badge';
-        badge.textContent = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
+        const text = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
+        const ctrlMatch = /^Ctrl\+(.)$/.exec(text);
+        badge.innerHTML = ctrlMatch
+          ? `<span class="fc-toolbar-keycap fc-toolbar-keycap--mod">CT<br>RL</span><span class="fc-toolbar-keycap fc-toolbar-keycap--paired">${ctrlMatch[1]}</span>`
+          : `<span class="fc-toolbar-keycap">${text}</span>`;
         badge.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
         badge.style.top = `${Math.round(rect.top + rect.height + 8)}px`;
         badgeOverlay.appendChild(badge);
@@ -1047,6 +1130,8 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     }
 
+    const hasClipboardData = () => !!Blockly.clipboard?.getLastCopiedData?.();
+
     // Deal with blocks that COULD attach to something but currently free
     const isLooseAndMovable = (block) =>
       !!block &&
@@ -1074,6 +1159,8 @@ export function initContextMenus(workspace) {
       expandBtn.style.display =
         block.workspace?.options?.collapse && block.isCollapsed?.() ? '' : 'none';
       unlockBtn.style.display = locked ? '' : 'none';
+      copyBtn.style.display = '';
+      pasteBtn.style.display = locked || !hasClipboardData() ? 'none' : '';
       duplicateBtn.style.display = '';
       detachBtn.style.display = locked || !isDetachable(block) ? 'none' : '';
       enableBtn.style.display = locked || simplified ? 'none' : '';
@@ -1177,7 +1264,15 @@ export function initContextMenus(workspace) {
       clearBadges();
     }
 
-    window.flockBlockToolbar = { hide: hideBlockToolbar };
+    function refreshToolbarForBlock(block) {
+      if (toolbarBlock !== block) return;
+      updateSimplifiedToolbar();
+      updateEnableButton(block);
+      positionBlockToolbar();
+      if (toolbarKeyboardMode) renderBadges();
+    }
+
+    window.flockBlockToolbar = { hide: hideBlockToolbar, refresh: refreshToolbarForBlock };
 
     const isToolbarBlock = (block) => block && !block.isInFlyout && !block.isShadow();
 
@@ -1357,19 +1452,34 @@ export function initContextMenus(workspace) {
       if (toolbarKeyboardMode) renderBadges();
     });
 
+    onToolbarButtonPress(copyBtn, () => {
+      if (!toolbarBlock) return;
+      copyWithoutToast(toolbarBlock);
+      pasteBtn.style.display = isBlockLocked(toolbarBlock) ? 'none' : '';
+      if (toolbarKeyboardMode) renderBadges();
+    });
+
+    onToolbarButtonPress(pasteBtn, () => {
+      if (!toolbarBlock || isBlockLocked(toolbarBlock) || pasteBtn.style.display === 'none') return;
+      const data = Blockly.clipboard?.getLastCopiedData?.();
+      if (!data) return;
+      const block = toolbarBlock;
+      Blockly.Events.setGroup('toolbar_paste');
+      pasteAsChildOrHere(block, block.workspace ?? workspace, data);
+      Blockly.Events.setGroup(false);
+    });
+
     onToolbarButtonPress(duplicateBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_duplicate');
-      const json = Blockly.serialization.blocks.save(block, { includeShadows: true });
-      delete json.next;
+      const copyData = block.toCopyData?.();
+      if (!copyData) return;
       // A copy of a locked block must itself be unlocked. Locking serializes
       // movable/editable/deletable=false into the state, so strip those before
-      // appending; otherwise the copy is created frozen.
-      stripLockState(json);
-      const copy = Blockly.serialization.blocks.append(json, workspace);
-      const orig = block.getRelativeToSurfaceXY();
-      copy.moveTo(new Blockly.utils.Coordinate(orig.x + 30, orig.y + 30));
+      // pasting; otherwise the copy is created frozen.
+      if (copyData.blockState) stripLockState(copyData.blockState);
+      Blockly.Events.setGroup('toolbar_duplicate');
+      Blockly.clipboard.paste(copyData, workspace);
       Blockly.Events.setGroup(false);
     });
 
