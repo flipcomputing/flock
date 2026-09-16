@@ -2867,6 +2867,23 @@ kbd {
   margin-bottom: 0.5em;
 }
 
+/* In modal mode the whole panel (not #info-panel-body) is the scroll
+   container, so pin the header — title, font-size buttons, help link and the
+   close X all live here — while the content underneath scrolls. The negative
+   margin/matching padding extends the header through the panel's own 1em
+   padding so no gap opens beside it; sticky's "stuck" offset is measured from
+   the margin edge, so top must be -1em too or the border box (and its
+   background) stops 1em short of the scrollport's actual top. */
+.info-tab-panel.shortcuts-modal .shortcuts-panel-header {
+  position: sticky;
+  top: -1em;
+  z-index: 1;
+  margin: -1em -1em 0.75em;
+  padding: 1em 1em 0.75em;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
 .shortcuts-panel-title {
   /* Stays a step above .shortcuts-category, which is 1.2x the same property. */
   font-size: calc(var(--panel-font-size, 1.2em) * 1.5);

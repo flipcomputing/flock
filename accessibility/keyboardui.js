@@ -7,16 +7,16 @@ import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 import { logViewport } from '../main/viewportDebug.js';
 
-// Phones use modal panels in either orientation; wider narrow layouts need
-// them only in landscape. Portrait phones retain the dock's empty flex body
-// purely to preserve the established tab and bottom-bar positioning.
+// Narrow landscape layouts (phones and small tablets alike) set
+// #info-panel-body to display:none in CSS, so there's no docked area to
+// measure — modal is the only option there. Portrait layouts keep a real,
+// measurable docked body at every width, so they're left to isDockedAreaTooShort()
+// instead of being forced modal by width alone.
 const isNarrowLayout = () =>
-  window.matchMedia(
-    '(max-width: 600px), (max-width: 1024px) and (orientation: landscape)'
-  ).matches;
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
 
-// Measured: ~65px chrome plus ~40px per em per row; below 2 rows the modal reads better than a docked scroll.
-const MIN_DOCKED_ROWS = 2;
+// Measured: ~65px chrome plus ~40px per em per row; below 1 row the modal reads better than a docked scroll.
+const MIN_DOCKED_ROWS = 1;
 const PANEL_CHROME_HEIGHT = 65;
 const ROW_HEIGHT_PER_EM = 40;
 
