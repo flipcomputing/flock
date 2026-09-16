@@ -1250,7 +1250,7 @@ const svgMark = (name) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${CONTROL_MARKS[name]}</svg>`;
 
 const svgRingedChar = (char) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><text x="12" y="12" text-anchor="middle" dominant-baseline="central" font-size="13" fill="currentColor" stroke="none">${char}</text></svg>`;
+  `<svg viewBox="0 0 24 24"><text x="12" y="12" text-anchor="middle" dominant-baseline="central" font-size="16" fill="currentColor">${char}</text></svg>`;
 
 function getPlayerControls() {
   return [
