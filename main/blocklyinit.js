@@ -1274,6 +1274,10 @@ export function initializeWorkspace() {
     setBlockHintsSuppressed(true);
     document.body.appendChild(wsMobileBar);
     wsMobileInput.value = workspaceSearch.searchText || '';
+    const focusManager = Blockly.FocusManager.getFocusManager();
+    if (!workspaceSearch.returnEphemeralFocus && !focusManager.ephemeralFocusTaken()) {
+      workspaceSearch.returnEphemeralFocus = focusManager.takeEphemeralFocus(wsMobileInput);
+    }
     if (wsMobileInput.value) {
       workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
     }
@@ -1295,7 +1299,7 @@ export function initializeWorkspace() {
 
   // Override highlight methods to work at block-group level so the plugin's
   // injected fill: #000 rule never applies to matched block paths.
-  workspaceSearch.highlightSearchGroup = function (blocks) {
+  workspaceSearch.highlightSearchGroup = function (blocks = workspaceSearch.blocks) {
     const matchTopIds = new Set();
     blocks.forEach((block) => {
       block.getSvgRoot()?.classList.add('ws-search-match');
@@ -1315,6 +1319,8 @@ export function initializeWorkspace() {
       block.getSvgRoot()?.classList.remove('ws-search-fade');
     });
   };
+  workspaceSearch.greyNonMatchingBlocks = function () {};
+  workspaceSearch.ungreyNonMatchingBlocks = function () {};
   // The current match is just the selected block, so Blockly renders it correctly for every block shape
   workspaceSearch.highlightCurrentSelection = function (block) {
     block.select?.();

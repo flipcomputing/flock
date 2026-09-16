@@ -9,6 +9,9 @@ test('workspace search button toggles search and focuses the found block when cl
   await page.waitForFunction(() => window.mainWorkspace && window.flockWorkspaceSearch, {
     timeout: 20000,
   });
+  // The starter project loads into the workspace after startup, so let it settle
+  // before adding a test block.
+  await page.waitForFunction(() => window.loadingCode === false, { timeout: 20000 });
 
   const blockId = await page.evaluate(() => {
     const block = window.mainWorkspace.newBlock('math_number');
@@ -114,6 +117,9 @@ test('workspace search supports keyboard navigation throughout the shared search
   await page.waitForFunction(() => window.mainWorkspace && window.flockWorkspaceSearch, {
     timeout: 20000,
   });
+  // The starter project loads into the workspace after startup, so let it settle
+  // before adding test blocks.
+  await page.waitForFunction(() => window.loadingCode === false, { timeout: 20000 });
 
   await page.evaluate(() => {
     for (const x of [80, 280]) {
