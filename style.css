@@ -3006,10 +3006,21 @@ kbd {
   border-radius: 4px;
 }
 
+.pc-chip--ringed {
+  border: none;
+  width: 1.6em;
+  height: 1.6em;
+}
+
 .pc-chip svg {
   display: block;
   width: 1.1em;
   height: 1.1em;
+}
+
+.pc-chip--ringed svg {
+  width: 1.4em;
+  height: 1.4em;
 }
 
 .pc-keys kbd {

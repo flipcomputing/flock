@@ -1245,24 +1245,28 @@ function getPlayerControls() {
         {
           action: 'player_action_camera_up',
           marks: [svgRingedChar(1)],
+          ringed: true,
           keys: 'R',
           label: translate('player_control_button').replace('%1', 1),
         },
         {
           action: 'player_action_interact',
           marks: [svgRingedChar(2)],
+          ringed: true,
           keys: 'E',
           label: translate('player_control_button').replace('%1', 2),
         },
         {
           action: 'player_action_camera_down',
           marks: [svgRingedChar(3)],
+          ringed: true,
           keys: 'F',
           label: translate('player_control_button').replace('%1', 3),
         },
         {
           action: 'player_action_spare',
           marks: [svgRingedChar(4)],
+          ringed: true,
           keys: 'Space',
           label: translate('player_control_button').replace('%1', 4),
         },
@@ -1366,8 +1370,9 @@ const PlayerPanel = {
       if (entry.marks) {
         const keys = entry.keys ? `<span class="pc-sep"> / </span>${formatKeys(entry.keys)}` : '';
         const srText = entry.keys ? `${entry.label} ${formatKeys(entry.keys)}` : entry.label;
+        const chipClass = entry.ringed ? 'pc-chip pc-chip--ringed' : 'pc-chip';
         return `<span class="pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}" aria-hidden="true">${entry.marks
-          .map((m) => `<span class="pc-chip">${m}</span>`)
+          .map((m) => `<span class="${chipClass}">${m}</span>`)
           .join('')}${keys}</span><span class="sr-only">${srText}</span>`;
       }
       return formatKeys(entry.keys);

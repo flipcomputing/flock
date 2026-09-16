@@ -456,7 +456,7 @@ export function readColourValue(block) {
 }
 
 // Numeric from an input's NUM field, with fallback.
-function readNumberInput(parent, inputName, fallback = 1) {
+export function readNumberInput(parent, inputName, fallback = 1) {
   const b = parent?.getInputTargetBlock?.(inputName);
   const v = b?.getField?.('NUM')?.getValue?.();
   const n = typeof v === 'string' ? parseFloat(v) : v;
@@ -464,7 +464,7 @@ function readNumberInput(parent, inputName, fallback = 1) {
 }
 
 // Reads a colour from an input's target block, falling back to the shadow's value when present.
-function readColourFromInputOrShadow(parent, inputName) {
+export function readColourFromInputOrShadow(parent, inputName) {
   const target = parent?.getInputTargetBlock?.(inputName);
   if (target) return readColourValue(target);
 

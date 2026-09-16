@@ -15,6 +15,9 @@ import { ACTIONS } from '../input/bindings.js';
 import { makeMicrobitStatusIcon } from './blockIcons.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
+import { flock } from '../flock.js';
+import { makeTouchesInputSubtree, changeEventHitsTouches, wasBlockDeleted } from './scene.js';
+import { readColourFromInputOrShadow, readNumberInput } from '../ui/blockmesh.js';
 
 // Gamepad-only accessibility actions have no keyboard equivalent, so they're
 // excluded from the keyboard-facing action dropdowns below.
@@ -265,6 +268,70 @@ function wireMicrobitManager() {
     });
   manager.onStatusChange(() => {
     refreshMicrobitBlocks(Blockly.getMainWorkspace?.());
+  });
+}
+
+function applyOnScreenControlsLive(block) {
+  if (!flock?.scene) return;
+
+  const movement = block.getFieldValue('MOVEMENT');
+  const actions = block.getFieldValue('ACTIONS');
+  const mode = block.isEnabled() ? block.getFieldValue('ENABLED') : 'DISABLED';
+  const color = readColourFromInputOrShadow(block, 'COLOR').value ?? '#ffffff';
+  const background = readColourFromInputOrShadow(block, 'BACKGROUND').value ?? '#000000';
+  const alpha = readNumberInput(block, 'ALPHA', 0);
+
+  flock.onScreenControls(movement, actions, mode, color, background, alpha);
+}
+
+function isBackgroundColourPick(changeEvent, touchesBackground, block) {
+  if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE || changeEvent.element !== 'field') {
+    return false;
+  }
+  if (changeEvent.name !== 'COLOR' && changeEvent.name !== 'COLOUR') return false;
+  return changeEvent.blockId !== block.id && touchesBackground(changeEvent.blockId);
+}
+
+function attachOnScreenControlsLiveUpdate(block) {
+  const ws = block.workspace;
+  const touchesColor = makeTouchesInputSubtree(block, ws, 'COLOR');
+  const touchesBackground = makeTouchesInputSubtree(block, ws, 'BACKGROUND');
+  const touchesAlpha = makeTouchesInputSubtree(block, ws, 'ALPHA');
+
+  const eventTypes = [
+    Blockly.Events.BLOCK_CREATE,
+    Blockly.Events.BLOCK_CHANGE,
+    Blockly.Events.BLOCK_MOVE,
+    Blockly.Events.BLOCK_DELETE,
+    Blockly.Events.UI,
+  ];
+
+  registerBlockHandler(block, (changeEvent) => {
+    if (!eventTypes.includes(changeEvent.type)) return;
+    if (window.loadingCode && !changeEvent.recordUndo) return;
+
+    if (wasBlockDeleted(changeEvent, block.id)) {
+      flock.onScreenControls?.('ARROWS', 'YES', 'DISABLED', '#ffffff', '#000000', 0);
+      return;
+    }
+
+    if (block.disposed) return;
+
+    const relevant =
+      changeEventHitsTouches(changeEvent, touchesColor) ||
+      changeEventHitsTouches(changeEvent, touchesBackground) ||
+      changeEventHitsTouches(changeEvent, touchesAlpha);
+
+    if (!relevant) return;
+
+    if (
+      isBackgroundColourPick(changeEvent, touchesBackground, block) &&
+      readNumberInput(block, 'ALPHA', 0) === 0
+    ) {
+      block.getInputTargetBlock('ALPHA')?.setFieldValue?.('1', 'NUM');
+    }
+
+    applyOnScreenControlsLive(block);
   });
 }
 
@@ -700,8 +767,8 @@ export function defineSensingBlocks() {
             // Values stay AUTO/ENABLED/DISABLED so projects saved before the
             // relabel keep matching; only the shown text became show/hide.
             options: [
-              getDropdownOption('AUTO'),
               [getOption('SHOW'), 'ENABLED'],
+              getDropdownOption('AUTO'),
               [getOption('HIDE'), 'DISABLED'],
             ],
           },
@@ -731,6 +798,7 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sensing_blocks');
+      attachOnScreenControlsLiveUpdate(this);
     },
   };
 
