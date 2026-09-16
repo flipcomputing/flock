@@ -698,14 +698,14 @@ export default {
   START_option: 'iniciar', // human
   CREATE_option: 'crear', // human
 
-  Linear_option: 'Lineal', // human
-  SineEase_option: 'Suavizado seno', // human
-  CubicEase_option: 'Suavizado cúbico', // human
-  QuadraticEase_option: 'Suavizado cuadrático', // human
-  ExponentialEase_option: 'Suavizado exponencial', // human
-  BounceEase_option: 'Suavizado rebote', // human
-  ElasticEase_option: 'Suavizado elástico', // human
-  BackEase_option: 'Suavizado retroceso', // human
+  Linear_option: 'lineal', // human
+  SineEase_option: 'suavizado seno', // human
+  CubicEase_option: 'suavizado cúbico', // human
+  QuadraticEase_option: 'suavizado cuadrático', // human
+  ExponentialEase_option: 'suavizado exponencial', // human
+  BounceEase_option: 'suavizado rebote', // human
+  ElasticEase_option: 'suavizado elástico', // human
+  BackEase_option: 'suavizado retroceso', // human
   TOWARDS_option: 'hacia', // human
   SAME_ROTATION_option: 'la mismo rotación que', // human
 
@@ -713,11 +713,11 @@ export default {
   EASEOUT_option: 'salida suavizado', // human
   EASEINOUT_option: 'entrada-salida suavizado', // human
 
-  play_option: '▶️ Reproducir', // human
-  pause_option: '⏸️ Pausa', // human
-  stop_option: '⏹️ Para', // human
-  start_option: '▶️ Iniciar', // human
-  reset_option: '🔄 Reiniciar', // human
+  play_option: '▶️ reproducir', // human
+  pause_option: '⏸️ pausa', // human
+  stop_option: '⏹️ para', // human
+  start_option: '▶️ iniciar', // human
+  reset_option: '🔄 reiniciar', // human
 
   diffuseColor_option: 'color difuso', // human
   emissiveColor_option: 'color emisivo', // human
@@ -738,14 +738,14 @@ export default {
   scaling_y_option: 'escalado.y', // human
   scaling_z_option: 'escalado.z', // human
 
-  rotateLeft_option: 'Girar izquierda', // human
-  rotateRight_option: 'Girar derecha', // human
-  rotateUp_option: 'Mirar arriba', // human
-  rotateDown_option: 'Mirar abajo', // human
-  moveUp_option: 'Mover arriba', // human
-  moveDown_option: 'Mover abajo', // human
-  moveLeft_option: 'Mover izquierda', // human
-  moveRight_option: 'Mover derecha', // human
+  rotateLeft_option: 'girar izquierda', // human
+  rotateRight_option: 'girar derecha', // human
+  rotateUp_option: 'mirar arriba', // human
+  rotateDown_option: 'mirar abajo', // human
+  moveUp_option: 'mover arriba', // human
+  moveDown_option: 'mover abajo', // human
+  moveLeft_option: 'mover izquierda', // human
+  moveRight_option: 'mover derecha', // human
 
   _65_option: 'A ◁', // human
   _68_option: 'D', // human
@@ -778,10 +778,10 @@ export default {
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
 
-  LINEAR_option: 'Lineal', // human
+  LINEAR_option: 'lineal', // human
   NONE_option: 'ninguno', // human
-  EXP_option: 'Exp', // human
-  EXP2_option: 'Exp2', // human
+  EXP_option: 'exp', // human
+  EXP2_option: 'exp2', // human
 
   OnPickTrigger_option: 'clickeado', // human
   OnLeftPickTrigger_option: 'interactuar', // human
@@ -849,7 +849,7 @@ export default {
   MESH_option: 'objeto', // human
   CAPSULE_option: 'cápsula', // human
 
-  FLAT_option: 'Plano', // human
+  FLAT_option: 'plano', // human
 
   ANY_option: 'cualquiera', // human
   all_option: 'todos', // human
@@ -969,36 +969,36 @@ export default {
   LOOP_option: 'bucle', // human
   everywhere_option: 'en todas partes', // human
 
-  theme_bright_option: 'Brillante', // human
-  theme_calm_option: 'Tranquilo', // human
-  theme_electronic_option: 'Electrónico', // human
-  theme_game_option: 'Juego', // human
-  theme_medieval_option: 'Medieval', // human
-  theme_metal_option: 'Metal', // human
+  theme_bright_option: 'brillante', // human
+  theme_calm_option: 'tranquilo', // human
+  theme_electronic_option: 'electrónico', // human
+  theme_game_option: 'juego', // human
+  theme_medieval_option: 'medieval', // human
+  theme_metal_option: 'metal', // human
 
-  sound_highDown_option: 'Tono Alto Descendente', // human
-  sound_highUp_option: 'Tono Alto Ascendente', // human
-  sound_laser1_option: 'Láser 1', // human
-  sound_laser2_option: 'Láser 2', // human
-  sound_laser3_option: 'Láser 3', // human
-  sound_lowDown_option: 'Tono Bajo Descendente', // human
-  sound_lowRandom_option: 'Tono Bajo Aleatorio', // human
-  sound_lowThreeTone_option: 'Tono Bajo Tres', // human
-  sound_phaseJump1_option: 'Salto de Fase 1', // human
-  sound_powerUp1_option: 'Potenciador 1', // human
-  sound_powerUp2_option: 'Potenciador 2', // human
-  sound_powerUp3_option: 'Potenciador 3', // human
-  sound_powerUp4_option: 'Potenciador 4', // human
-  sound_powerUp5_option: 'Potenciador 5', // human
-  sound_spaceTrash_option: 'Basura Espacial', // human
-  sound_threeTone1_option: 'Tres Tono 1', // human
-  sound_threeTone2_option: 'Tres Tono 2', // human
-  sound_chop_option: 'Hachazo', // ai
-  sound_creak_option: 'Crujido', // ai
-  sound_footstep_option: 'Paso', // ai
-  sound_door_open_option: 'Apertura de Puerta', // ai
-  sound_door_close_option: 'Cierre de Puerta', // ai
-  sound_metal_latch_option: 'Pestillo Metálico', // ai
+  sound_highDown_option: 'tono alto descendente', // human
+  sound_highUp_option: 'tono alto ascendente', // human
+  sound_laser1_option: 'láser 1', // human
+  sound_laser2_option: 'láser 2', // human
+  sound_laser3_option: 'láser 3', // human
+  sound_lowDown_option: 'tono bajo descendente', // human
+  sound_lowRandom_option: 'tono bajo aleatorio', // human
+  sound_lowThreeTone_option: 'tono bajo tres', // human
+  sound_phaseJump1_option: 'salto de fase 1', // human
+  sound_powerUp1_option: 'potenciador 1', // human
+  sound_powerUp2_option: 'potenciador 2', // human
+  sound_powerUp3_option: 'potenciador 3', // human
+  sound_powerUp4_option: 'potenciador 4', // human
+  sound_powerUp5_option: 'potenciador 5', // human
+  sound_spaceTrash_option: 'basura espacial', // human
+  sound_threeTone1_option: 'tres tono 1', // human
+  sound_threeTone2_option: 'tres tono 2', // human
+  sound_chop_option: 'hachazo', // ai
+  sound_creak_option: 'crujido', // ai
+  sound_footstep_option: 'paso', // ai
+  sound_door_open_option: 'apertura de puerta', // ai
+  sound_door_close_option: 'cierre de puerta', // ai
+  sound_metal_latch_option: 'pestillo metálico', // ai
 
   sine_option: 'seno', // human
   square_option: 'cuadrada', // human
@@ -1011,17 +1011,17 @@ export default {
   warble_option: 'gorjeo', // human
   robot_option: 'robot', // human
 
-  default_option: 'Instrumento por defecto (Seno)', // human
-  piano_option: 'Piano (Cuadrado)', // human
-  guitar_option: 'Guitarra (Diente de sierra)', // human
-  violin_option: 'Violín (Triángulo)', // human
+  default_option: 'instrumento por defecto (seno)', // human
+  piano_option: 'piano (cuadrado)', // human
+  guitar_option: 'guitarra (diente de sierra)', // human
+  violin_option: 'violín (triángulo)', // human
 
   female_option: 'hembra', // human
   male_option: 'macho', // human
 
-  en_GB_option: 'Inglés (Reino Unido)', // human
-  en_US_option: 'Inglés (EE.UU.)', // human
-  es_option: 'Español', // ai
+  en_GB_option: 'inglés (Reino Unido)', // human
+  en_US_option: 'inglés (EE.UU.)', // human
+  es_option: 'español', // ai
 
   ADD_option: 'añadir', // human
   REPLACE_option: 'reemplazar', // human
@@ -1032,56 +1032,56 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans', // human
 
-  VR_option: 'Visor VR', // ai
-  VR_PHONE_option: 'Visor VR o teléfono', // ai
-  AR_option: 'RA (Realidad Aumentada)', // human
-  MAGIC_WINDOW_option: 'Ventana Mágica (mirar alrededor)', // human
+  VR_option: 'visor VR', // ai
+  VR_PHONE_option: 'visor VR o teléfono', // ai
+  AR_option: 'RA (realidad aumentada)', // human
+  MAGIC_WINDOW_option: 'ventana mágica (mirar alrededor)', // human
 
-  circular_depression_png_option: 'Depresión Circular', // human
-  checkerboard_png_option: 'Tablero de damas', // human
-  sloped_plane_png_option: 'Plano Inclinado', // human
-  cove_plateau_png_option: 'Meseta de la cala', // human
-  random_hills_png_option: 'Colinas Aleatorias', // human
-  diagonal_ridge_png_option: 'Cresta Diagonal', // human
-  mixed_heights_png_option: 'Alturas Mixtas', // human
-  uneven_terrain_png_option: 'Terreno Irregular', // human
-  mountains_png_option: 'Montañas', // ai
-  Islands_png_option: 'Islas', // ai
-  Lookout_png_option: 'Mirador', // ai
-  Valley_png_option: 'Valle', // ai
+  circular_depression_png_option: 'depresión circular', // human
+  checkerboard_png_option: 'tablero de damas', // human
+  sloped_plane_png_option: 'plano inclinado', // human
+  cove_plateau_png_option: 'meseta de la cala', // human
+  random_hills_png_option: 'colinas aleatorias', // human
+  diagonal_ridge_png_option: 'cresta diagonal', // human
+  mixed_heights_png_option: 'alturas mixtas', // human
+  uneven_terrain_png_option: 'terreno irregular', // human
+  mountains_png_option: 'montañas', // ai
+  Islands_png_option: 'islas', // ai
+  Lookout_png_option: 'mirador', // ai
+  Valley_png_option: 'valle', // ai
 
-  Idle_option: 'Inactivo', // human
-  Walk_option: 'Caminar', // human
-  Run_option: 'Correr', // human
-  Wave_option: 'Saludar', // human
-  Yes_option: 'Sí', // human
-  No_option: 'No', // human
-  Duck_option: 'Agacharse', // human
-  Fall_option: 'Caer', // human
-  Fly_option: 'Volar', // human
-  Jump_option: 'Saltar', // human
-  Flip_option: 'Voltear', // human
-  Dance1_option: 'Baile1', // human
-  Dance2_option: 'Baile2', // human
-  Dance3_option: 'Baile3', // human
-  Dance4_option: 'Baile4', // human
-  JumpUp_option: 'Saltar arriba', // human
-  JumpIdle_option: 'Saltar Inactivo', // human
-  JumpLand_option: 'Aterrizaje de Salto', // human
-  Punch_option: 'Golpear', // human
-  HitReact_option: 'Reacción al Golpe', // human
-  Idle_Hold_option: 'Inactivo Sostener', // human
-  Walk_Hold_option: 'Caminar Sostener', // human
-  Run_Hold_option: 'Correr Sostener', // human
-  Idle_Attack_option: 'Ataque Inactivo', // human
-  Walk_Attack_option: 'Ataque al Caminar', // human
-  Run_Attack_option: 'Ataque al Correr', // human
-  Sit_Down_option: 'Sentarse', // human
-  Sitting_option: 'Sentado', // human
-  Stand_Up_option: 'Levantarse', // human
-  Wobble_option: 'Tambalearse', // human
-  Clap_option: 'Aplaudir', // human
-  Climb_rope_option: 'Trepar la cuerda', // human
+  Idle_option: 'inactivo', // human
+  Walk_option: 'caminar', // human
+  Run_option: 'correr', // human
+  Wave_option: 'saludar', // human
+  Yes_option: 'sí', // human
+  No_option: 'no', // human
+  Duck_option: 'agacharse', // human
+  Fall_option: 'caer', // human
+  Fly_option: 'volar', // human
+  Jump_option: 'saltar', // human
+  Flip_option: 'voltear', // human
+  Dance1_option: 'baile1', // human
+  Dance2_option: 'baile2', // human
+  Dance3_option: 'baile3', // human
+  Dance4_option: 'baile4', // human
+  JumpUp_option: 'saltar arriba', // human
+  JumpIdle_option: 'saltar inactivo', // human
+  JumpLand_option: 'aterrizaje de salto', // human
+  Punch_option: 'golpear', // human
+  HitReact_option: 'reacción al golpe', // human
+  Idle_Hold_option: 'inactivo sostener', // human
+  Walk_Hold_option: 'caminar sostener', // human
+  Run_Hold_option: 'correr sostener', // human
+  Idle_Attack_option: 'ataque inactivo', // human
+  Walk_Attack_option: 'ataque al caminar', // human
+  Run_Attack_option: 'ataque al correr', // human
+  Sit_Down_option: 'sentarse', // human
+  Sitting_option: 'sentado', // human
+  Stand_Up_option: 'levantarse', // human
+  Wobble_option: 'tambalearse', // human
+  Clap_option: 'aplaudir', // human
+  Climb_rope_option: 'trepar la cuerda', // human
 
   // HTML translations
   loading_ui: 'Cargando Flock XR...', // human
@@ -1415,26 +1415,26 @@ export default {
   dark_contrast_theme_ui: 'Oscuro', // human
 
   // Attachment point options
-  LeftHand_option: 'Mano izquierda', // human
-  RightHand_option: 'Mano derecha', // human
-  Head_option: 'Cabeza', // human
-  Hips_option: 'Caderas', // human
-  Spine_option: 'Columna', // human
-  Spine1_option: 'Columna 1', // human
-  Spine2_option: 'Columna 2', // human
-  Neck_option: 'Cuello', // human
-  LeftShoulder_option: 'Hombro izquierdo', // human
-  LeftArm_option: 'Brazo superior izquierdo', // human
-  LeftForeArm_option: 'Antebrazo izquierdo', // human
-  RightShoulder_option: 'Hombro derecho', // human
-  RightArm_option: 'Brazo superior derecho', // human
-  RightForeArm_option: 'Antebrazo derecho', // human
-  LeftUpLeg_option: 'Muslo izquierdo', // human
-  LeftLeg_option: 'Espinilla izquierda', // human
-  LeftFoot_option: 'Pie izquierdo', // human
-  RightUpLeg_option: 'Muslo derecho', // human
-  RightLeg_option: 'Espinilla derecha', // human
-  RightFoot_option: 'Pie derecho', // human
+  LeftHand_option: 'mano izquierda', // human
+  RightHand_option: 'mano derecha', // human
+  Head_option: 'cabeza', // human
+  Hips_option: 'caderas', // human
+  Spine_option: 'columna', // human
+  Spine1_option: 'columna 1', // human
+  Spine2_option: 'columna 2', // human
+  Neck_option: 'cuello', // human
+  LeftShoulder_option: 'hombro izquierdo', // human
+  LeftArm_option: 'brazo superior izquierdo', // human
+  LeftForeArm_option: 'antebrazo izquierdo', // human
+  RightShoulder_option: 'hombro derecho', // human
+  RightArm_option: 'brazo superior derecho', // human
+  RightForeArm_option: 'antebrazo derecho', // human
+  LeftUpLeg_option: 'muslo izquierdo', // human
+  LeftLeg_option: 'espinilla izquierda', // human
+  LeftFoot_option: 'pie izquierdo', // human
+  RightUpLeg_option: 'muslo derecho', // human
+  RightLeg_option: 'espinilla derecha', // human
+  RightFoot_option: 'pie derecho', // human
 
   // Workspace toolbar
   toolbar_undo_ui: 'Deshacer',
