@@ -72,6 +72,70 @@ export function runBlocklyInitTests(_flock) {
         expect(workspace.scrollY).to.equal(beforeY - 50);
       });
 
+      it('suppresses the focus scroll entirely (both axes) after a keyword-block-shortcut insertion', function () {
+        const near = workspace.getAllBlocks(false).find((b) => b.getRelativeToSurfaceXY().x !== 3000);
+        Blockly.getFocusManager().focusNode(near);
+        workspace.markKeywordBlockCreated(near);
+
+        const beforeX = workspace.scrollX;
+        const beforeY = workspace.scrollY;
+        scrollBoundsIntoView(beforeX - 400, beforeY - 50);
+
+        expect(workspace.scrollX).to.equal(beforeX);
+        expect(workspace.scrollY).to.equal(beforeY);
+      });
+
+      it('does not suppress the focus scroll when the created block is not fully in view', function () {
+        // "far" was moved to (3000, 3000) in beforeEach — well outside the
+        // viewport regardless of current scroll position.
+        const far = workspace.getAllBlocks(false).find((b) => b.getRelativeToSurfaceXY().x === 3000);
+        Blockly.getFocusManager().focusNode(far);
+        workspace.markKeywordBlockCreated(far);
+
+        const beforeX = workspace.scrollX;
+        const beforeY = workspace.scrollY;
+        scrollBoundsIntoView(beforeX - 400, beforeY - 50);
+
+        expect(workspace.scrollX).to.equal(beforeX - 400);
+        expect(workspace.scrollY).to.equal(beforeY - 50);
+      });
+
+      it('does not suppress the focus scroll when focus has moved to a different block', function () {
+        const near = workspace.getAllBlocks(false).find((b) => b.getRelativeToSurfaceXY().x !== 3000);
+        const far = workspace.getAllBlocks(false).find((b) => b.getRelativeToSurfaceXY().x === 3000);
+        // "near" is the block the shortcut created (and is fully visible), but
+        // focus has since moved to "far" — that block's own scroll-into-view
+        // must not be swallowed just because "near" is still within its window.
+        workspace.markKeywordBlockCreated(near);
+        Blockly.getFocusManager().focusNode(far);
+
+        const beforeX = workspace.scrollX;
+        const beforeY = workspace.scrollY;
+        scrollBoundsIntoView(beforeX - 400, beforeY - 50);
+
+        expect(workspace.scrollX).to.equal(beforeX - 400);
+        expect(workspace.scrollY).to.equal(beforeY - 50);
+      });
+
+      it('only suppresses once, letting a later scroll for the same block through', function () {
+        const near = workspace.getAllBlocks(false).find((b) => b.getRelativeToSurfaceXY().x !== 3000);
+        Blockly.getFocusManager().focusNode(near);
+        workspace.markKeywordBlockCreated(near);
+
+        const beforeX = workspace.scrollX;
+        const beforeY = workspace.scrollY;
+        scrollBoundsIntoView(beforeX - 400, beforeY - 50);
+        expect(workspace.scrollX).to.equal(beforeX);
+        expect(workspace.scrollY).to.equal(beforeY);
+
+        // The marker is consumed by the first suppression, so a second
+        // focus-driven scroll for the same block applies normally instead of
+        // being suppressed indefinitely for the rest of the window.
+        scrollBoundsIntoView(beforeX - 400, beforeY - 50);
+        expect(workspace.scrollX).to.equal(beforeX - 400);
+        expect(workspace.scrollY).to.equal(beforeY - 50);
+      });
+
       it('applies both axes normally for a non-focus-driven scroll even after a canvas tap', function () {
         workspace
           .getParentSvg()

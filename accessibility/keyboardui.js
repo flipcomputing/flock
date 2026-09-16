@@ -559,7 +559,7 @@ function getShortcuts() {
     },
     {
       label: translate('shortcut_add_block_by_name'),
-      keys: `${mod} + ]`,
+      keys: `${mod} + .`,
       category: translate('shortcut_category_editor'),
     },
     {

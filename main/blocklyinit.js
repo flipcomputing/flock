@@ -198,6 +198,39 @@ export function installWorkspaceJumpDebug(workspace) {
     }
   });
 
+  // The Mod+. keyword-block shortcut (main/blockhandling.js, blocks/blocks.js)
+  // usually places its block where it's already visible (viewport center, the
+  // connection the cursor was on, or wherever the placeholder it replaces
+  // was) and calls this synchronously, so the focus that follows doesn't
+  // normally need to scroll. A change-listener can't stand in for this:
+  // Blockly fires BLOCK_CREATE on a deferred setTimeout(0), which is too late
+  // — the focus-driven scroll it needs to suppress can happen first.
+  //
+  // "Usually", not always — a chosen block can be much bigger than the
+  // placeholder it replaces and end up genuinely off-screen, so the block is
+  // recorded too: the scroll override below only suppresses the jump when
+  // this block turns out to already be fully in view.
+  let lastKeywordBlockCreated = null;
+  workspace.markKeywordBlockCreated = function (block) {
+    lastKeywordBlockCreated = {
+      timestamp: performance.now(),
+      block: block ?? null,
+    };
+  };
+
+  function isBlockFullyVisible(ws, block) {
+    if (!block || block.isDisposed?.()) return true;
+    const rect = block.getBoundingRectangle?.();
+    if (!rect) return true;
+    const view = ws.getMetricsManager().getViewMetrics(true);
+    return (
+      rect.left >= view.left &&
+      rect.top >= view.top &&
+      rect.right <= view.left + view.width &&
+      rect.bottom <= view.top + view.height
+    );
+  }
+
   // Also treat a direct tap on the canvas as a field interaction, so the jump is
   // suppressed on the tap that opens a field editor, not just after it closes.
   let lastCanvasPointerDown = null;
@@ -229,6 +262,9 @@ export function installWorkspaceJumpDebug(workspace) {
       const msSinceCanvasPointerDown = lastCanvasPointerDown
         ? Math.round(performance.now() - lastCanvasPointerDown.timestamp)
         : null;
+      const msSinceKeywordBlockCreated = lastKeywordBlockCreated
+        ? Math.round(performance.now() - lastKeywordBlockCreated.timestamp)
+        : null;
       const fromFocusScroll = stack.some(
         (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
       );
@@ -237,6 +273,28 @@ export function installWorkspaceJumpDebug(workspace) {
       const recentFieldInteraction =
         (typeof msSinceFieldEdit === 'number' && msSinceFieldEdit < 1500) ||
         (typeof msSinceCanvasPointerDown === 'number' && msSinceCanvasPointerDown < 800);
+      const recentKeywordBlockCreation =
+        typeof msSinceKeywordBlockCreated === 'number' && msSinceKeywordBlockCreated < 1500;
+      // Confirm this scroll is actually chasing the block we created, not
+      // some other off-screen block the user focused in the meantime (e.g. by
+      // navigating away within the window) — otherwise that block's own
+      // legitimate scroll-into-view would be swallowed too.
+      const focusIsTrackedBlock =
+        recentKeywordBlockCreation &&
+        lastKeywordBlockCreated.block != null &&
+        Blockly.getFocusManager?.()?.getFocusedNode?.() === lastKeywordBlockCreated.block;
+
+      if (fromFocusScroll && focusIsTrackedBlock && isBlockFullyVisible(this, lastKeywordBlockCreated.block)) {
+        // The block is already fully in view (viewport center, the
+        // connection/selection the shortcut used, or wherever the block it
+        // replaced was), so the focus that follows it shouldn't scroll on
+        // either axis. But if it genuinely doesn't fit — a chosen block much
+        // larger than the placeholder it replaced, say — fall through and let
+        // the scroll bring it into view as normal.
+        // Used up: a later scroll in this same window is for something else.
+        lastKeywordBlockCreated = null;
+        return;
+      }
 
       if (fromFocusScroll && recentFieldInteraction && largeHorizontalJump) {
         // Keep X pinned (suppress the unwanted jump) but still apply Y —

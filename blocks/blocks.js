@@ -1785,10 +1785,8 @@ export function defineBlocks() {
 
       try {
         const workspace = this.workspace;
-        const newBlock = buildChosenBlock(workspace, definition);
-
         const pos = this.getRelativeToSurfaceXY();
-        newBlock.moveBy(pos.x, pos.y);
+        const newBlock = buildChosenBlock(workspace, definition, pos);
 
         const parentConnection = this.previousConnection?.targetConnection ?? null;
         const nextBlock = this.getNextBlock();
@@ -1807,6 +1805,8 @@ export function defineBlocks() {
           if (nextBlock && tailBlock.nextConnection) {
             tailBlock.nextConnection.connect(nextBlock.previousConnection);
           }
+        } else {
+          newBlock.moveTo(pos);
         }
 
         // Whatever is still hanging below would be disposed along with this
@@ -1819,11 +1819,16 @@ export function defineBlocks() {
         }
 
         window.currentBlock = newBlock;
+        // The chosen block is usually a different size than the placeholder it
+        // replaces, so fix up stack spacing immediately (as a paste would) and
+        // mark the focus that follows as expected, the same way the picker's
+        // own creation does — otherwise scrollBoundsIntoView jumps the
+        // workspace and/or the debounced tidy pass yanks it 300ms later.
+        workspace.markKeywordBlockCreated?.(newBlock);
+        workspace.layoutTopLevelBlocks?.();
 
         this.dispose(true);
-        setTimeout(() => {
-          if (!newBlock.isDisposed()) Blockly.getFocusManager().focusNode(newBlock);
-        }, 0);
+        setTimeout(() => focusNewlyChosenBlock(newBlock), 0);
       } finally {
         if (ownsGroup) Blockly.Events.setGroup(false);
       }
@@ -1858,10 +1863,8 @@ export function defineBlocks() {
 
       try {
         const workspace = this.workspace;
-        const newBlock = buildChosenBlock(workspace, definition);
-
         const pos = this.getRelativeToSurfaceXY();
-        newBlock.moveBy(pos.x, pos.y);
+        const newBlock = buildChosenBlock(workspace, definition, pos);
 
         // A chosen block that cannot fill the socket — a statement, or a value
         // of the wrong type — is left floating where the placeholder was, and
@@ -1874,21 +1877,74 @@ export function defineBlocks() {
           workspace.connectionChecker.canConnect(socket, newBlock.outputConnection, false)
         ) {
           socket.connect(newBlock.outputConnection);
+        } else {
+          newBlock.moveTo(pos);
         }
 
         window.currentBlock = newBlock;
+        // See the statement picker's onBlockSearchSelect above: fix up stack
+        // spacing immediately and mark this focus as expected, so it doesn't
+        // trigger (or get corrected by) a workspace jump.
+        workspace.markKeywordBlockCreated?.(newBlock);
+        workspace.layoutTopLevelBlocks?.();
 
         this.dispose(false);
-        setTimeout(() => {
-          if (!newBlock.isDisposed()) Blockly.getFocusManager().focusNode(newBlock);
-        }, 0);
+        setTimeout(() => focusNewlyChosenBlock(newBlock), 0);
       } finally {
         if (ownsGroup) Blockly.Events.setGroup(false);
       }
     },
   };
 
-  function buildChosenBlock(workspace, definition) {
+  // A bare focusNode() only updates the focus manager's bookkeeping; without
+  // also moving real DOM focus onto the block's own element, the disposed
+  // placeholder's input (which just lost focus to document.body) sometimes
+  // leaves the block registered as focused but not actually focused — it
+  // renders with the dimmed "passive" outline, or with no focus at all if the
+  // block's focusable element wasn't focusable yet on the first attempt.
+  function focusNewlyChosenBlock(block) {
+    if (block.isDisposed()) return;
+
+    const previouslySelected = Blockly.common?.getSelected?.();
+    if (previouslySelected && previouslySelected !== block) {
+      previouslySelected.unselect?.();
+    }
+    Blockly.common?.setSelected?.(block);
+    Blockly.getFocusManager()?.focusNode?.(block);
+    block.select?.();
+
+    const focusableElement = block.getFocusableElement?.() || block.getSvgRoot?.();
+    focusableElement?.focus?.({ preventScroll: true });
+
+    // The block's SVG can still be mid-render right after connecting (Blockly
+    // batches some layout to the next frame), so the element above may not
+    // yet be focusable. Confirm on the next frame and retry once if it didn't
+    // stick, rather than leaving the editor with no keyboard focus at all.
+    requestAnimationFrame(() => {
+      if (block.isDisposed()) return;
+      if (document.activeElement === focusableElement) return;
+      Blockly.getFocusManager()?.focusNode?.(block);
+      (block.getFocusableElement?.() || block.getSvgRoot?.())?.focus?.({ preventScroll: true });
+    });
+  }
+
+  // pos, if given, is applied before the first render() — a block created at
+  // Blockly's default new-block position often overlaps existing content, and
+  // render() reacts to that by auto-bumping the overlapping neighbour out of
+  // the way. That bump runs inside Blockly's own render pipeline under a
+  // *fresh* event group it opens unconditionally (the same "doesn't check for
+  // one already open" behavior main/blockhandling.js's layoutTopLevelBlocks
+  // had), which splits the caller's group in two.
+  //
+  // Rendering at pos (the placeholder's own position) still overlaps the
+  // placeholder itself, which is still connected and on-screen at that point
+  // — so it still bumps. The block usually doesn't need to render at pos at
+  // all: whichever caller connects it into a socket gets snapped into place
+  // by that connect() regardless of where it started, so parking it well
+  // clear of everything for the first render sidesteps the bump entirely.
+  // Only the "no matching connection, left floating" fallback actually needs
+  // pos, and does its own moveTo after this returns.
+  function buildChosenBlock(workspace, definition, pos) {
     const variablesBefore = new Set(
       workspace
         .getVariableMap()
@@ -1897,6 +1953,7 @@ export function defineBlocks() {
     );
     const newBlock = workspace.newBlock(definition.type);
     newBlock.initSvg();
+    if (pos) newBlock.moveTo({ x: pos.x, y: pos.y + 10000 });
     newBlock.render();
     applyBlockDefinition(newBlock, definition);
     discardUnusedNewVariables(workspace, variablesBefore);

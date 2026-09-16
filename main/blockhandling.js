@@ -146,6 +146,8 @@ function createKeywordBlockIn(connection) {
       isValueSocket ? keywordBlock.outputConnection : keywordBlock.previousConnection
     );
     window.currentBlock = keywordBlock;
+    workspace.markKeywordBlockCreated?.(keywordBlock);
+    workspace.layoutTopLevelBlocks?.();
     setTimeout(() => focusKeywordField(keywordBlock), 100);
   } finally {
     Blockly.Events.setGroup(false);
@@ -164,11 +166,20 @@ function createValueKeywordBlock(selectedBlock) {
 }
 
 function createKeywordBlockAtViewportCenter(blockType) {
-  const block = workspace.newBlock(blockType);
-  block.initSvg();
-  block.render();
-  block.moveTo(getViewportCenterCoordinates(workspace));
-  window.currentBlock = block;
+  const ownsGroup = !Blockly.Events.getGroup();
+  if (ownsGroup) Blockly.Events.setGroup(true);
+  let block;
+  try {
+    block = workspace.newBlock(blockType);
+    block.initSvg();
+    block.render();
+    block.moveTo(getViewportCenterCoordinates(workspace));
+    window.currentBlock = block;
+    workspace.markKeywordBlockCreated?.(block);
+    workspace.layoutTopLevelBlocks?.();
+  } finally {
+    if (ownsGroup) Blockly.Events.setGroup(false);
+  }
   focusKeywordField(block);
   return block;
 }
@@ -406,7 +417,12 @@ export function initializeBlockHandling() {
     const cursorX = 10;
     let cursorY = 10;
 
-    Blockly.Events.setGroup(true);
+    // setGroup(true) unconditionally mints a new group id — it doesn't check
+    // for one already open — so calling it unguarded here would split a
+    // caller's in-progress group (e.g. keyword-block creation) into two undo
+    // steps. Only open a group if the caller hasn't already opened one.
+    const ownsGroup = !Blockly.Events.getGroup();
+    if (ownsGroup) Blockly.Events.setGroup(true);
     try {
       const contained = buildContainedIdSet(workspace);
       const topBlocks = (workspace.getTopBlocks(false) || [])
@@ -470,11 +486,56 @@ export function initializeBlockHandling() {
         console.warn('Suppressed non-critical error:', error);
       }
     } finally {
-      Blockly.Events.setGroup(false);
+      if (ownsGroup) Blockly.Events.setGroup(false);
     }
   }
 
   setFolderReflowHook(layoutTopLevelBlocks);
+  // Exposed so the Mod+. keyword-block shortcut (createKeywordBlockIn /
+  // createKeywordBlockAtViewportCenter, below) can resolve stack overlap the
+  // instant it inserts a block, the same way this fires straight after a
+  // paste — instead of waiting on the 300ms debounce below, which leaves the
+  // picker's open, focused search input sitting in an overlapping stack (or
+  // jumping once the debounce finally corrects it).
+  workspace.layoutTopLevelBlocks = layoutTopLevelBlocks;
+
+  // Undoing a keyword-picker resolution (main/blockhandling.js /
+  // blocks/blocks.js) removes the chosen block and recreates the keyword
+  // placeholder it replaced, but Blockly's own undo doesn't move focus onto
+  // that recreated block — it's left on whatever this happened to focus
+  // before (typically the placeholder's parent), leaving an editable
+  // placeholder sitting unfocused. Patched here rather than in each of the
+  // several places that call workspace.undo() (toolbar buttons, the 3D
+  // canvas's own Ctrl+Z, Blockly's built-in shortcut), so it applies no
+  // matter how undo was triggered.
+  const workspaceUndo = workspace.undo.bind(workspace);
+  workspace.undo = function (redo) {
+    const beforeIds = new Set(this.getAllBlocks(false).map((b) => b.id));
+    const result = workspaceUndo(redo);
+    const recreated = this.getAllBlocks(false).find(
+      (b) => !beforeIds.has(b.id) && b.type?.startsWith('keyword')
+    );
+    if (recreated) {
+      focusBlocklyBlock(recreated);
+      // Blockly's own BlockSvg.dispose() has already run by this point (it's
+      // part of workspaceUndo() above, undoing that block's creation): if the
+      // disposed block held focus — it did, it's what undo just replaced —
+      // dispose() itself schedules a bare setTimeout(…, 0) that reassigns
+      // focus to its parent, precisely to avoid leaving focus on disposed
+      // content. That macrotask is already queued ahead of anything we
+      // schedule from here, so it always fires after the synchronous
+      // assignment above and silently overwrites it. Queuing our own
+      // setTimeout(…, 0) now runs after theirs (same delay, later in the
+      // queue), giving this the last word instead — and reopening the
+      // picker's own text field, not just the block, so typing can continue
+      // right where undo left off.
+      setTimeout(() => {
+        if (recreated.isDisposed()) return;
+        focusKeywordField(recreated);
+      }, 0);
+    }
+    return result;
+  };
 
   function pruneUnusedVariables() {
     const usedModels = Blockly.Variables.allUsedVarModels(workspace);
@@ -562,7 +623,7 @@ export function initializeBlockHandling() {
 
   // Handle Enter key for adding new blocks
   document.addEventListener('keydown', function (event) {
-    if ((event.ctrlKey || event.metaKey) && event.key === ']') {
+    if ((event.ctrlKey || event.metaKey) && event.key === '.') {
       event.preventDefault();
 
       const focusedConnection = getFocusedConnection();
@@ -595,23 +656,31 @@ export function initializeBlockHandling() {
       }
 
       // Create a new keyword block
+      const ownsGroup = !Blockly.Events.getGroup();
+      if (ownsGroup) Blockly.Events.setGroup(true);
       const keywordBlock = workspace.newBlock('keyword');
-      window.currentBlock = keywordBlock;
-      keywordBlock.initSvg();
-      keywordBlock.render();
+      try {
+        window.currentBlock = keywordBlock;
+        keywordBlock.initSvg();
+        keywordBlock.render();
 
-      // Connect blocks (same as before)
-      const currentNextBlock = selectedBlock.getNextBlock();
-      if (currentNextBlock) {
-        selectedBlock.nextConnection.disconnect();
-      }
-      selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
-      if (currentNextBlock && keywordBlock.nextConnection) {
-        keywordBlock.nextConnection.connect(currentNextBlock.previousConnection);
-      }
+        // Connect blocks (same as before)
+        const currentNextBlock = selectedBlock.getNextBlock();
+        if (currentNextBlock) {
+          selectedBlock.nextConnection.disconnect();
+        }
+        selectedBlock.nextConnection.connect(keywordBlock.previousConnection);
+        if (currentNextBlock && keywordBlock.nextConnection) {
+          keywordBlock.nextConnection.connect(currentNextBlock.previousConnection);
+        }
 
-      // Update our tracking variable to the new block
-      window.currentBlock = keywordBlock;
+        // Update our tracking variable to the new block
+        window.currentBlock = keywordBlock;
+        workspace.markKeywordBlockCreated?.(keywordBlock);
+        layoutTopLevelBlocks();
+      } finally {
+        if (ownsGroup) Blockly.Events.setGroup(false);
+      }
 
       // Open the editor with a delay
       setTimeout(() => {
