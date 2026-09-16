@@ -1008,6 +1008,26 @@ function decorateExternalLinks(root) {
   });
 }
 
+function focusWithVisibleRing(el) {
+  if (!el) return;
+  el.classList.add('force-focus-ring');
+  el.addEventListener('blur', () => el.classList.remove('force-focus-ring'), { once: true });
+  el.focus();
+}
+
+function wireHelpLinks(list) {
+  const toolsLink = list.querySelector('#help-link-tools');
+  toolsLink?.addEventListener('click', () => {
+    document.getElementById('tools-menu-item')?.click();
+    setTimeout(() => focusWithVisibleRing(document.getElementById('gizmoHintsCheckbox')), 0);
+  });
+
+  const blockInfoLink = list.querySelector('#help-link-blockinfo');
+  blockInfoLink?.addEventListener('click', () => {
+    focusWithVisibleRing(document.getElementById('blockHintsBtn'));
+  });
+}
+
 // First info panel tab; registered before the others so it renders leftmost.
 const HelpPanel = {
   ...ModalPanelBehaviour,
@@ -1053,6 +1073,7 @@ const HelpPanel = {
     const list = this.panel.querySelector('#help-list');
     list.innerHTML = helpContentFor(getCurrentLanguage());
     decorateExternalLinks(list);
+    wireHelpLinks(list);
   },
 
   show() {

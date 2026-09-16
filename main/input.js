@@ -221,9 +221,14 @@ export function setupInput() {
         shortcutsPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
 
-      ['#workspaceSearchBtn', '#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
-        pushUnique(document.querySelector(sel))
-      );
+      [
+        '#blockHintsBtn',
+        '#workspaceSearchBtn',
+        '#undoBtn',
+        '#redoBtn',
+        '#zoomOutBtn',
+        '#zoomInBtn',
+      ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
       // View toggle in code mode — right after zoomInBtn
       if (inCodeMode) {

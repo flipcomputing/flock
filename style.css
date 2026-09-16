@@ -1076,16 +1076,22 @@ button {
 /* Two states at one footprint: collapsed fills the button behind the glyph,
    expanded rings it instead. Both are the button's own 1.5em circle. */
 #blockHintsBtn {
-  /* The ring is the button's own circle, so the box is sized to the
-     neighbouring glyphs rather than to their whole button, and the glyph is
-     centred in it rather than left on .bigbutton's inline baseline. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  width: 1.5em;
-  height: 1.5em;
+  padding: 4px;
+  width: calc(1.5em + 8px);
+  height: calc(1.5em + 8px);
   min-height: 0;
+  position: relative;
+  isolation: isolate;
+}
+
+#blockHintsBtn::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
   border-radius: 50%;
 }
 
@@ -1099,15 +1105,15 @@ button {
 /* Thick enough to overlap the glyph — the box's radius less the icon's, plus a
    pixel so the two circles' edges don't leave an antialiased seam between them.
    .bigbutton's shared 2px stops short of the glyph entirely. */
-#blockHintsBtn.active {
+#blockHintsBtn.active::before {
   box-shadow: inset 0 0 0 calc((1.5em - 1.15em) / 2 + 1px) var(--color-primary);
 }
 
-[data-theme='light'] #blockHintsBtn.active {
+[data-theme='light'] #blockHintsBtn.active::before {
   background-color: var(--color-menu);
 }
 
-#blockHintsBtn:not(.active) {
+#blockHintsBtn:not(.active)::before {
   background-color: var(--color-text-brand);
 }
 
@@ -2119,6 +2125,13 @@ details summary:focus-visible,
   z-index: 20;
 }
 
+.force-focus-ring {
+  outline: 3px solid var(--color-focus-outline) !important;
+  outline-offset: 2px;
+  border-radius: 0;
+  z-index: 20;
+}
+
 #info-details table td:first-child {
   min-width: 100px;
   white-space: nowrap;
@@ -2919,7 +2932,8 @@ kbd {
   margin: 0 0 0.3em;
 }
 
-#help-list h3:first-child {
+#help-list h3:first-child,
+#help-list p.help-intro + h3 {
   padding-top: 0;
 }
 
@@ -2934,6 +2948,56 @@ kbd {
 
 #help-list p {
   margin: 0 0 0.75em;
+}
+
+.help-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  fill: currentColor;
+}
+
+[data-theme='light'] .help-icon {
+  color: var(--color-primary);
+}
+
+.help-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  vertical-align: -0.4em;
+  background-color: var(--color-text-brand);
+}
+
+.help-icon-badge .help-icon {
+  width: 1.15em;
+  height: 1.15em;
+  color: var(--color-bg);
+}
+
+.help-link {
+  border: none;
+  background: none;
+  padding: 0.1em 0.2em;
+  margin: 0 -0.2em;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.help-link:hover,
+.help-link:focus-visible {
+  background: var(--color-light-icon-hover);
+}
+
+.help-link:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  outline-offset: 2px;
 }
 
 #help-list ul,

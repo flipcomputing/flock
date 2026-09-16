@@ -60,7 +60,7 @@ export function setGizmoControlsEnabled(enabled) {
 // readouts like the position display are not covered by this.
 export function getGizmoHintsEnabled() {
   const stored = read(GIZMO_HINTS_KEY);
-  return stored === null ? true : stored;
+  return stored === null ? false : stored;
 }
 
 export function setGizmoHintsEnabled(enabled) {
