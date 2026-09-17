@@ -5,6 +5,7 @@ import { translate } from '../main/translation.js';
 import { announceToScreenReader } from '../main/input.js';
 import { getMeshFromBlock } from './blockmesh.js';
 import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
+import { focusBlocklyBlock, rememberUndoFocusTarget } from '../main/blockhandling.js';
 
 // Render a context-menu row as "Label                 Shortcut", with the
 // shortcut hint dimmed on the right. Shared by the detach (X) and view (V)
@@ -537,18 +538,11 @@ export function initContextMenus(workspace) {
     { capture: true }
   );
 
-  function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
-    if (!data) return;
-    // A pasted copy of a locked block must be editable; the copied state carries
-    // movable/editable/deletable=false, so strip it from the clipboard data.
-    if (data.blockState) stripLockState(data.blockState);
-    const at = screenToWs(ws, lastCM);
-    const pasted = Blockly.clipboard.paste(data, ws, at);
-    const pb = /** @type {Blockly.BlockSvg} */ (pasted);
-    if (!targetBlock) return;
+  function connectAfterTarget(targetBlock, pb) {
+    if (!targetBlock) return false;
 
-    const checker = ws.getConnectionChecker
-      ? ws.getConnectionChecker()
+    const checker = workspace.getConnectionChecker
+      ? workspace.getConnectionChecker()
       : new Blockly.ConnectionChecker();
     const can = (a, b) => checker.canConnect(a, b, /*isDragging=*/ false);
 
@@ -559,7 +553,7 @@ export function initContextMenus(workspace) {
       can(targetBlock.nextConnection, pb.previousConnection)
     ) {
       targetBlock.nextConnection.connect(pb.previousConnection);
-      return;
+      return true;
     }
     // 2) empty statement input ⟷ pb.previous
     for (const input of targetBlock.inputList) {
@@ -571,7 +565,7 @@ export function initContextMenus(workspace) {
         can(input.connection, pb.previousConnection)
       ) {
         input.connection.connect(pb.previousConnection);
-        return;
+        return true;
       }
     }
     // 2b) top-level block: insert pb as first child in statement input,
@@ -586,21 +580,21 @@ export function initContextMenus(workspace) {
           can(input.connection, pb.previousConnection)
         ) {
           const firstChild = input.connection.targetBlock();
-          input.connection.disconnect();
-          input.connection.connect(pb.previousConnection);
-          // Append previous first child after pb chain
           let lastPb = pb;
           while (lastPb.nextConnection && lastPb.nextConnection.targetBlock()) {
             lastPb = lastPb.nextConnection.targetBlock();
           }
           if (
-            lastPb.nextConnection &&
-            firstChild.previousConnection &&
-            can(lastPb.nextConnection, firstChild.previousConnection)
+            !lastPb.nextConnection ||
+            !firstChild.previousConnection ||
+            !can(lastPb.nextConnection, firstChild.previousConnection)
           ) {
-            lastPb.nextConnection.connect(firstChild.previousConnection);
+            continue; // try another input, or fall through to the next case
           }
-          return;
+          input.connection.disconnect();
+          input.connection.connect(pb.previousConnection);
+          lastPb.nextConnection.connect(firstChild.previousConnection);
+          return true;
         }
       }
     }
@@ -614,7 +608,7 @@ export function initContextMenus(workspace) {
         can(input.connection, pb.outputConnection)
       ) {
         input.connection.connect(pb.outputConnection);
-        return;
+        return true;
       }
     }
     // 4) insert above: target.previous ⟷ pb.next
@@ -623,11 +617,143 @@ export function initContextMenus(workspace) {
       pb.nextConnection &&
       can(targetBlock.previousConnection, pb.nextConnection)
     ) {
-      targetBlock.previousConnection.connect(pb.nextConnection);
-      return;
+      const parentConn = targetBlock.previousConnection.targetConnection;
+      if (!parentConn) {
+        targetBlock.previousConnection.connect(pb.nextConnection);
+        return true;
+      }
+      if (pb.previousConnection && can(parentConn, pb.previousConnection)) {
+        targetBlock.previousConnection.disconnect();
+        parentConn.connect(pb.previousConnection);
+        targetBlock.previousConnection.connect(pb.nextConnection);
+        return true;
+      }
     }
-    // else: stays at pointer
+    return false;
   }
+
+  function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
+    if (!data) return;
+    // A pasted copy of a locked block must be editable; the copied state carries
+    // movable/editable/deletable=false, so strip it from the clipboard data.
+    if (data.blockState) stripLockState(data.blockState);
+
+    // Group the creation with the reconnect below so one undo removes both —
+    // otherwise undo only reverts the reconnect, leaving the block dropped
+    // loose on the workspace.
+    const ownsGroup = !Blockly.Events.getGroup();
+    if (ownsGroup) Blockly.Events.setGroup(true);
+    try {
+      const at = screenToWs(ws, lastCM);
+      const pasted = Blockly.clipboard.paste(data, ws, at);
+      const pb = /** @type {Blockly.BlockSvg} */ (pasted);
+      if (!targetBlock || !pb) return;
+      if (connectAfterTarget(targetBlock, pb)) {
+        rememberUndoFocusTarget(Blockly.Events.getGroup(), targetBlock.id);
+      }
+    } finally {
+      if (ownsGroup) Blockly.Events.setGroup(false);
+    }
+  }
+
+  // ---- Click/tap a flyout block to insert it, same as paste ----
+  (function initFlyoutClickToInsert() {
+    // Sticky: opening the toolbox deselects the workspace block before the
+    // flyout item is even clicked, so live getSelected() is too late to use.
+    let lastMainSelection = null;
+
+    function isInToolboxFlyout(e) {
+      const flyoutWs = workspace.getToolbox?.()?.getFlyout?.()?.getWorkspace?.();
+      const svg = flyoutWs?.getParentSvg?.();
+      return !!svg && svg.contains(e.target);
+    }
+
+    let pending = null; // { pointerId, x, y, confirmed }
+    let clearTimer = null;
+
+    document.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (e.button !== 0) return;
+        if (clearTimer) {
+          clearTimeout(clearTimer);
+          clearTimer = null;
+        }
+        if (!isInToolboxFlyout(e)) {
+          pending = null;
+          return;
+        }
+        pending = { pointerId: e.pointerId, x: e.clientX, y: e.clientY, confirmed: false };
+      },
+      { capture: true }
+    );
+
+    document.addEventListener(
+      'pointerup',
+      (e) => {
+        if (!pending || pending.pointerId !== e.pointerId) return;
+        const threshold = Blockly.config?.flyoutDragRadius || 10;
+        if (Math.hypot(e.clientX - pending.x, e.clientY - pending.y) > threshold) {
+          pending = null; // was a drag-out; Blockly handles its own drop
+          return;
+        }
+        pending.confirmed = true;
+        // a disabled flyout item never fires BLOCK_CREATE
+        clearTimer = setTimeout(() => {
+          pending = null;
+          clearTimer = null;
+        }, 400);
+      },
+      { capture: true }
+    );
+
+    workspace.addChangeListener((event) => {
+      if (event.workspaceId !== workspace.id) return;
+
+      if (event.type === Blockly.Events.SELECTED) {
+        if (event.newElementId) {
+          const block = workspace.getBlockById(event.newElementId);
+          if (block) lastMainSelection = block;
+        }
+        return; // deselection (newElementId falsy) leaves lastMainSelection as-is
+      }
+
+      if (event.type === Blockly.Events.CLICK && event.targetType === 'workspace') {
+        lastMainSelection = null; // deliberate click on empty canvas
+        return;
+      }
+
+      if (!pending || !pending.confirmed) return;
+      if (event.type !== Blockly.Events.BLOCK_CREATE) return;
+
+      pending = null;
+      if (clearTimer) {
+        clearTimeout(clearTimer);
+        clearTimer = null;
+      }
+
+      const newBlock = event.blockId && workspace.getBlockById(event.blockId);
+      if (!newBlock || newBlock.getParent()) return; // not a fresh top-level drop
+
+      const target =
+        lastMainSelection && !lastMainSelection.isDisposed?.() && workspace.getBlockById(lastMainSelection.id)
+          ? lastMainSelection
+          : null;
+
+      if (target) {
+        Blockly.Events.setGroup(event.group || true);
+        try {
+          if (connectAfterTarget(target, newBlock)) {
+            rememberUndoFocusTarget(event.group, target.id);
+          }
+        } finally {
+          Blockly.Events.setGroup(false);
+        }
+      }
+
+      focusBlocklyBlock(newBlock);
+    });
+  })();
 
   // ---- Bind Ctrl/Cmd+V ----
   host.addEventListener(
@@ -1501,7 +1627,7 @@ export function initContextMenus(workspace) {
       const data = Blockly.clipboard?.getLastCopiedData?.();
       if (!data) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_paste');
+      Blockly.Events.setGroup(true);
       pasteAsChildOrHere(block, block.workspace ?? workspace, data);
       Blockly.Events.setGroup(false);
     });
@@ -1515,7 +1641,7 @@ export function initContextMenus(workspace) {
       // movable/editable/deletable=false into the state, so strip those before
       // pasting; otherwise the copy is created frozen.
       if (copyData.blockState) stripLockState(copyData.blockState);
-      Blockly.Events.setGroup('toolbar_duplicate');
+      Blockly.Events.setGroup(true);
       Blockly.clipboard.paste(copyData, workspace);
       Blockly.Events.setGroup(false);
     });

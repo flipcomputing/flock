@@ -101,7 +101,14 @@ function getBlocklyFocusManager() {
   return Blockly.getFocusManager?.() || Blockly.common?.getFocusManager?.();
 }
 
-function focusBlocklyBlock(block) {
+const undoFocusTargets = new Map(); // event group id -> block id to refocus if that group is undone
+
+export function rememberUndoFocusTarget(groupId, blockId) {
+  if (!groupId || !blockId) return;
+  undoFocusTargets.set(groupId, blockId);
+}
+
+export function focusBlocklyBlock(block) {
   const previouslySelected = Blockly.common?.getSelected?.();
   if (previouslySelected && previouslySelected !== block) {
     previouslySelected.unselect?.();
@@ -515,6 +522,9 @@ export function initializeBlockHandling() {
   // matter how undo was triggered.
   const workspaceUndo = workspace.undo.bind(workspace);
   workspace.undo = function (redo) {
+    const stack = redo ? this.getRedoStack?.() : this.getUndoStack?.();
+    const undoneGroup = stack?.[stack.length - 1]?.group;
+
     const beforeIds = new Set(this.getAllBlocks(false).map((b) => b.id));
     const result = workspaceUndo(redo);
     const recreated = this.getAllBlocks(false).find(
@@ -538,6 +548,18 @@ export function initializeBlockHandling() {
         if (recreated.isDisposed()) return;
         focusKeywordField(recreated);
       }, 0);
+    } else if (!redo && undoneGroup && undoFocusTargets.has(undoneGroup)) {
+      const targetId = undoFocusTargets.get(undoneGroup);
+      undoFocusTargets.delete(undoneGroup);
+      const target = this.getBlockById(targetId);
+      if (target && !target.isDisposed?.()) {
+        focusBlocklyBlock(target);
+        // Same dispose()-queued setTimeout(…, 0) race as the keyword-block
+        // case above: queue ours after it to have the last word.
+        setTimeout(() => {
+          if (!target.isDisposed?.()) focusBlocklyBlock(target);
+        }, 0);
+      }
     }
     return result;
   };
