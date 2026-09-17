@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 
-// Shared by the toolbox search flyout, the mobile search overlay and the
-// add-block-by-name field, so one query gives the same answers everywhere.
+// Shared by the toolbox search flyout and the add-block-by-name field, so one
+// query gives the same answers everywhere.
 // The index is built by overrideSearchPlugin (blocklyinit.js), which exposes
 // the builder as workspace.flockBuildSearchIndex.
 

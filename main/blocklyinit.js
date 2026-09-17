@@ -5,15 +5,7 @@ import { initializeTheme } from './themes.js';
 import { translate } from './translation.js';
 import { focusRememberedWorkspaceNode } from './workspaceFocus.js';
 import { setBlockHintsSuppressed } from '../ui/blockHint.js';
-import {
-  matchBlockDefinitions,
-  compactSearchMediaQuery,
-  isCompactSearchLayout,
-  getBlockSearchLabel,
-  getBlockCategoryInfo,
-  indexesFieldValues,
-  rebuildBlockCategoryMap,
-} from './blocksearch.js';
+import { matchBlockDefinitions, indexesFieldValues } from './blocksearch.js';
 import {
   options,
   defineBlocks,
@@ -55,7 +47,6 @@ import {
   isBlockLocked,
   setBlockLocked,
 } from '../ui/blocklyutil.js';
-import { toolbox as toolboxDef } from '../toolbox.js';
 import { installDropdownTypeahead } from './dropdownTypeahead.js';
 
 // Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
@@ -860,306 +851,23 @@ export function initializeWorkspace() {
     input.setAttribute('aria-label', label);
   };
 
-  // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
+  // Toolbox search input: placeholder + accessible name, reapplied whenever
+  // the toolbox rebuilds (theme change, language change, etc.)
   requestAnimationFrame(() => {
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
     searchInput.placeholder = translate('toolbox_search_placeholder');
     fixSearchCategoryAria(searchInput);
 
-    let originalParent = searchInput.parentElement;
-    const isMobile = isCompactSearchLayout;
-    const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
-
-    // Get the toolbox search category (used to override matchBlocks and to
-    // build Flock's rich search index on demand, and to reuse its searcher).
-    let searchCategory = workspace
-      .getToolbox()
-      ?.getToolboxItems?.()
-      .find((item) => item.getId?.() === 'toolbox-search-input');
-
-    const buildCategoryMap = () => rebuildBlockCategoryMap(workspace, toolboxDef);
-    buildCategoryMap();
-
-    // Build overlay bar
-    const overlay = document.createElement('div');
-    overlay.className = 'mobile-search-overlay';
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.type = 'button';
-    cancelBtn.className = 'mobile-search-cancel flock-close-icon';
-    cancelBtn.setAttribute('aria-label', translate('close'));
-    overlay.appendChild(cancelBtn);
-
-    // Build results panel
-    const resultsPanel = document.createElement('div');
-    resultsPanel.className = 'mobile-search-results';
-
-    const addBlockToCenter = (blockDef) => {
-      if (!Blockly.Blocks[blockDef.type]) return;
-      const metrics = workspace.getMetrics();
-
-      // Place below all existing top-level blocks
-      const topBlocks = workspace.getTopBlocks(false);
-      let placeY;
-      if (topBlocks.length === 0) {
-        placeY = -workspace.scrollY / workspace.scale + 50;
-      } else {
-        placeY =
-          Math.max(
-            ...topBlocks.map((b) => {
-              const pos = b.getRelativeToSurfaceXY();
-              return pos.y + (b.height || 50);
-            })
-          ) + 30;
-      }
-      const placeX = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
-
-      const state = { ...blockDef, x: placeX, y: placeY };
-      delete state.kind;
-      delete state.keyword;
-      Blockly.serialization.blocks.append(state, workspace);
-
-      // Scroll so the new block is visible
-      const scale = workspace.scale;
-      workspace.scroll(
-        metrics.viewWidth / 2 - placeX * scale,
-        metrics.viewHeight * 0.4 - placeY * scale
-      );
-    };
-
-    const updateResults = () => {
-      const query = searchInput.value.trim();
-      if (!query) {
-        resultsPanel.innerHTML = '';
-        return;
-      }
-
-      const filtered = matchBlockDefinitions(workspace, query);
-
-      if (filtered.length === 0) {
-        resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
-        return;
-      }
-
-      resultsPanel.innerHTML = '';
-      filtered.slice(0, 60).forEach((blockDef) => {
-        const type = blockDef.type;
-        if (!type || !Blockly.Blocks[type]) return;
-
-        const label = getBlockSearchLabel(workspace, blockDef);
-        const { name: category, color } = getBlockCategoryInfo(workspace, type);
-
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'mobile-search-result-item';
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'mobile-search-result-name';
-        nameSpan.textContent = label;
-        item.appendChild(nameSpan);
-
-        if (category) {
-          const categorySpan = document.createElement('span');
-          categorySpan.className = 'mobile-search-result-category';
-          if (color) categorySpan.style.backgroundColor = color;
-          categorySpan.textContent = category;
-          item.appendChild(categorySpan);
-        }
-
-        item.addEventListener('click', () => {
-          if (overlay.isConnected) {
-            addBlockToCenter(blockDef);
-            closeOverlay();
-          }
-        });
-
-        resultsPanel.appendChild(item);
-      });
-    };
-
-    let blurTimeout = null;
-    let suppressBlurClose = false;
-
-    const openOverlay = () => {
-      if (!isMobileResults()) overlay.classList.add('expanding');
-      document.body.appendChild(overlay);
-      overlay.insertBefore(searchInput, cancelBtn);
-      if (isMobileResults()) {
-        workspace.getToolbox()?.clearSelection?.();
-        document.body.appendChild(resultsPanel);
-        updateResults();
-        if (searchCategory) {
-          searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
-          searchCategory.matchBlocks = () => {};
-        }
-      }
-      requestAnimationFrame(() => searchInput.focus());
-    };
-
-    const collapseOverlay = () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = null;
-      overlay.classList.remove('expanding');
-      overlay.classList.add('collapsing');
-      overlay.addEventListener(
-        'animationend',
-        () => {
-          overlay.classList.remove('collapsing');
-          if (searchCategory?._mobileMatchBlocks) {
-            searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
-            delete searchCategory._mobileMatchBlocks;
-          }
-          if (resultsPanel.isConnected) {
-            resultsPanel.remove();
-            resultsPanel.innerHTML = '';
-          }
-          originalParent.appendChild(searchInput);
-          overlay.remove();
-        },
-        { once: true }
-      );
-    };
-
-    const closeOverlay = () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = null;
-      // Restore flyout behaviour
-      if (searchCategory?._mobileMatchBlocks) {
-        searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
-        delete searchCategory._mobileMatchBlocks;
-      }
-      workspace.getToolbox()?.clearSelection?.();
-      searchInput.value = '';
-      originalParent.appendChild(searchInput);
-      overlay.remove();
-      resultsPanel.remove();
-      resultsPanel.innerHTML = '';
-    };
-
-    const attachInputListeners = (input) => {
-      let openRequested = false;
-
-      const requestOpen = () => {
-        openRequested = true;
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-        if (!overlay.isConnected && isMobile()) openOverlay();
-      };
-
-      input.setAttribute('autocomplete', 'one-time-code');
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          suppressBlurClose = true;
-          const query = input.value;
-          input.blur();
-          requestAnimationFrame(() => {
-            input.value = query;
-            if (resultsPanel.isConnected) updateResults();
-          });
-        }
-      });
-      input.addEventListener('blur', () => {
-        if (!overlay.isConnected) return;
-        if (suppressBlurClose) {
-          suppressBlurClose = false;
-          return;
-        }
-        blurTimeout = setTimeout(() => {
-          if (!overlay.isConnected) return;
-          const active = document.activeElement;
-          const blocklyDiv = document.getElementById('blocklyDiv');
-          if (!active || active === document.body || overlay.contains(active)) return;
-          if (blocklyDiv?.contains(active)) {
-            collapseOverlay();
-            return;
-          }
-          closeOverlay();
-        }, 150);
-      });
-      input.addEventListener('focus', () => {
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-        if (!overlay.isConnected && isMobile() && openRequested) {
-          openRequested = false;
-          openOverlay();
-        } else {
-          openRequested = false;
-        }
-      });
-      input.addEventListener('pointerdown', (e) => {
-        requestOpen();
-        // Blockly prevents the default pointer action when the active toolbox
-        // category is clicked again, which collapses native text selection.
-        if (workspace.getToolbox()?.getSelectedItem?.() === searchCategory) {
-          e.stopPropagation();
-        }
-      });
-      input.addEventListener('mousedown', requestOpen);
-      input.addEventListener('touchstart', requestOpen, { passive: true });
-      input.addEventListener('click', requestOpen);
-
-      const searchRow = input
-        .closest('.blocklyToolboxCategory')
-        ?.querySelector(':scope > .blocklyTreeRowContentContainer');
-      if (searchRow) {
-        searchRow.addEventListener('pointerdown', requestOpen);
-        searchRow.addEventListener('touchstart', requestOpen, { passive: true });
-        searchRow.addEventListener('click', requestOpen);
-      }
-
-      input.addEventListener('input', () => {
-        if (resultsPanel.isConnected) {
-          updateResults();
-        } else {
-          // The plugin calls matchBlocks() from keydown, before input.value updates, so the
-          // query lagged a character ("map" searched "ma"). Re-run it where the value is current.
-          searchCategory?.matchBlocks?.();
-        }
-      });
-      input.addEventListener('keyup', () => {
-        if (resultsPanel.isConnected) updateResults();
-      });
-    };
-
-    cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
-    cancelBtn.addEventListener('click', closeOverlay);
-
-    window.matchMedia(compactSearchMediaQuery).addEventListener('change', (e) => {
-      if (!e.matches && overlay.isConnected) closeOverlay();
-    });
-
-    // Scrolling the results panel should not trigger the blur-close timeout
-    resultsPanel.addEventListener(
-      'touchstart',
-      () => {
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-      },
-      { passive: true }
-    );
-
-    attachInputListeners(searchInput);
-
-    // Re-bind when the toolbox rebuilds (theme change, language change, etc.)
     const toolboxEl = document.querySelector('.blocklyToolbox');
     if (toolboxEl) {
       new MutationObserver(() => {
         if (searchInput.isConnected) return;
-        if (overlay.isConnected) closeOverlay();
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
         newInput.placeholder = translate('toolbox_search_placeholder');
         fixSearchCategoryAria(newInput);
         searchInput = newInput;
-        originalParent = newInput.parentElement;
-        searchCategory = workspace
-          .getToolbox()
-          ?.getToolboxItems?.()
-          .find((item) => item.getId?.() === 'toolbox-search-input');
-        buildCategoryMap();
-        attachInputListeners(newInput);
       }).observe(toolboxEl, { childList: true, subtree: true });
     }
   });
