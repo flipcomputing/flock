@@ -3109,7 +3109,7 @@ const toolboxText = {
       inputs: {
         COMMENT: {
           shadow: {
-            type: 'text',
+            type: 'text_multiline',
             fields: {
               TEXT: 'comment',
             },

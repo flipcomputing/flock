@@ -100,7 +100,7 @@
         "inputs": {
           "COMMENT": {
             "shadow": {
-              "type": "text",
+              "type": "text_multiline",
               "id": "~/c]WIOxF7V)cY;;^t=g",
               "fields": {
                 "TEXT": "Watch the world's tallest buildings being built in order. At the end you can use the arrow keys or the on-screen pad to move the camera."

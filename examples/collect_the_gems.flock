@@ -248,7 +248,7 @@
               "inputs": {
                 "COMMENT": {
                   "shadow": {
-                    "type": "text",
+                    "type": "text_multiline",
                     "id": "qdc6yE(Mc1Gr4l!SW_t$",
                     "fields": {
                       "TEXT": "This block has been switched to inline inputs from the menu."
@@ -320,7 +320,7 @@
         "inputs": {
           "COMMENT": {
             "shadow": {
-              "type": "text",
+              "type": "text_multiline",
               "id": "dgF/`fwz13vqeJ%ye;+C",
               "fields": {
                 "TEXT": "Creates a function that will build stairs"

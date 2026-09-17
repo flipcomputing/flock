@@ -25,7 +25,7 @@
               "inputs": {
                 "COMMENT": {
                   "shadow": {
-                    "type": "text",
+                    "type": "text_multiline",
                     "id": "zr}j7.LA/L9T~e_NRr#;",
                     "fields": {
                       "TEXT": "Try changing the sky colours"
@@ -83,7 +83,7 @@
                       "inputs": {
                         "COMMENT": {
                           "shadow": {
-                            "type": "text",
+                            "type": "text_multiline",
                             "id": "UNH_wyPJSas-~$hqc}Wa",
                             "fields": {
                               "TEXT": "Try changing the terrain, material, and ground colour"
@@ -390,7 +390,7 @@
               "inputs": {
                 "COMMENT": {
                   "shadow": {
-                    "type": "text",
+                    "type": "text_multiline",
                     "id": "|uA7cJgeMG+]7p3Up0`O",
                     "fields": {
                       "TEXT": "Change what the character says. Try the different options."
@@ -472,7 +472,7 @@
                       "inputs": {
                         "COMMENT": {
                           "shadow": {
-                            "type": "text",
+                            "type": "text_multiline",
                             "id": "awA/cB6vwS7c8dY$b6o(",
                             "fields": {
                               "TEXT": "Play an animation until it is done."
@@ -507,7 +507,7 @@
                               "inputs": {
                                 "COMMENT": {
                                   "shadow": {
-                                    "type": "text",
+                                    "type": "text_multiline",
                                     "id": "8(.Lwx;9.U^~FJYu:,d)",
                                     "fields": {
                                       "TEXT": "Switch to an animation and keep playing it."

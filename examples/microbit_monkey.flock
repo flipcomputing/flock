@@ -322,7 +322,7 @@
                   "inputs": {
                     "COMMENT": {
                       "shadow": {
-                        "type": "text",
+                        "type": "text_multiline",
                         "id": "u/`#xPATKS#h#`l:=Ln3",
                         "fields": {
                           "TEXT": "Switch to an animation and keep it playing."

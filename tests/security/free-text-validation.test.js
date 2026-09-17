@@ -55,6 +55,7 @@ const TESTED_TEXT_FIELDS = [
   'keyword.KEYWORD',
   'keyword_value.KEYWORD',
   'section.NAME',
+  'text_multiline.TEXT',
 ];
 
 const payload = '"; alert(1); //';
@@ -98,6 +99,66 @@ export function runTextFieldValidationTests() {
       const expression = soleExpression(generate(block));
       expect(expression.type).to.equal('Literal');
       expect(expression.value).to.equal(payload);
+    });
+
+    it('stringifies multiline text field', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'text_multiline',
+          fields: { TEXT: payload },
+        },
+        workspace
+      );
+      const expression = soleExpression(generate(block));
+      expect(expression.type).to.equal('Literal');
+      expect(expression.value).to.equal(payload);
+    });
+
+    it('comment block never lets an embedded newline turn into real code', function () {
+      const maliciousComment = 'safe first line\nalert(1);\n*/ evil() /*\n// nested comment';
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'comment',
+          inputs: {
+            COMMENT: {
+              shadow: { type: 'text_multiline', fields: { TEXT: maliciousComment } },
+            },
+          },
+        },
+        workspace
+      );
+
+      const code = generate(block);
+
+      const program = parse(code, { ecmaVersion: 'latest' });
+      expect(program.body).to.have.lengthOf(0);
+
+      expect(code).to.include('// safe first line');
+      expect(code).to.include('alert(1);');
+      expect(code).not.to.include('*/');
+      expect(code.match(/\/\//g).length).to.be.at.least(4);
+    });
+
+    it('comment block treats U+2028/U+2029 as line terminators too, not just \\n', function () {
+      // ECMAScript also ends a `//` comment at U+2028/U+2029.
+      const payloadWithLineSeparators = 'safe text alert(1); more(2);';
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'comment',
+          inputs: {
+            COMMENT: {
+              shadow: { type: 'text_multiline', fields: { TEXT: payloadWithLineSeparators } },
+            },
+          },
+        },
+        workspace
+      );
+
+      const code = generate(block);
+      const program = parse(code, { ecmaVersion: 'latest' });
+      expect(program.body).to.have.lengthOf(0);
+      expect(code).not.to.include('alert(1)');
+      expect(code).not.to.include('more(2)');
     });
 
     it('fixes name of procedure without return', function () {

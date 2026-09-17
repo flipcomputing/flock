@@ -1938,7 +1938,7 @@
         "inputs": {
           "COMMENT": {
             "shadow": {
-              "type": "text",
+              "type": "text_multiline",
               "id": "*DWVOmDb1ujBbOSSzR-L",
               "fields": {
                 "TEXT": "Generate random trees from a seed"

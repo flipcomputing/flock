@@ -44,6 +44,7 @@
     "@blockly/block-plus-minus": "^13.2.0",
     "@blockly/field-colour": "^13.2.0",
     "@blockly/field-grid-dropdown": "^13.2.0",
+    "@blockly/field-multilineinput": "^13.3.0",
     "@blockly/plugin-scroll-options": "^13.2.0",
     "@blockly/plugin-workspace-search": "^13.2.0",
     "@blockly/toolbox-search": "^13.2.0",

@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { textMultiline, FieldMultilineInput } from '@blockly/field-multilineinput';
 import { meshMap, meshBlockIdMap, generateUniqueId } from './mesh-state.js';
 import {
   getFieldValue,
@@ -8,6 +9,26 @@ import {
 } from './generators-utilities.js';
 
 export function registerTextGenerators(javascriptGenerator) {
+  textMultiline.installBlock({ javascript: javascriptGenerator });
+
+  // Drop the plugin's default pilcrow icon.
+  Blockly.Blocks['text_multiline'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'text_multiline',
+        message0: '%1',
+        args0: [{ type: 'field_multilinetext', name: 'TEXT', text: '' }],
+        output: 'String',
+        style: 'text_blocks',
+        helpUrl: '%{BKY_TEXT_TEXT_HELPURL}',
+        tooltip: '%{BKY_TEXT_TEXT_TOOLTIP}',
+        extensions: ['parent_tooltip_when_inline'],
+      });
+    },
+  };
+
+  FieldMultilineInput.showHint = false;
+
   // -------------------------------
   // TEXT
   // -------------------------------
@@ -238,18 +259,25 @@ export function registerTextGenerators(javascriptGenerator) {
 
   // Comment ------------------------------------------------
   javascriptGenerator.forBlock['comment'] = function (block) {
-    /**
-     * comment block -> single-line JS comment.
-     * Sanitizes the displayed text so it cannot break out of comment context.
-     */
-    let raw =
-      javascriptGenerator.valueToCode(block, 'COMMENT', javascriptGenerator.ORDER_ATOMIC) || "''";
+    const commentChild = block.getInputTargetBlock('COMMENT');
 
-    const m = raw.match(/^(['"`])(.*)\1$/s);
-    const content = m ? m[2] : raw;
+    let rawText;
+    if (commentChild?.type === 'text_multiline') {
+      rawText = commentChild.getFieldValue('TEXT') ?? '';
+    } else {
+      const raw =
+        javascriptGenerator.valueToCode(block, 'COMMENT', javascriptGenerator.ORDER_ATOMIC) ||
+        "''";
+      const m = raw.match(/^(['"`])(.*)\1$/s);
+      rawText = m ? m[2] : raw;
+    }
 
-    const safe = sanitizeForCode(content);
-    return `// ${safe}\n`;
+    return (
+      rawText
+        .split(/\r\n|\r|\n/)
+        .map((line) => `// ${sanitizeForCode(line)}`)
+        .join('\n') + '\n'
+    );
   };
   // Describe -----------------------------------------------
   javascriptGenerator.forBlock['describe'] = function (block) {

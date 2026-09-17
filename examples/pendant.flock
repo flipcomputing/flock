@@ -136,7 +136,7 @@
                                       "inputs": {
                                         "COMMENT": {
                                           "shadow": {
-                                            "type": "text",
+                                            "type": "text_multiline",
                                             "id": "++b~;7LV3-d;lIYDTc*r",
                                             "fields": {
                                               "TEXT": "Set up the camera to look down from above"
@@ -405,7 +405,7 @@
                                                               "inputs": {
                                                                 "COMMENT": {
                                                                   "shadow": {
-                                                                    "type": "text",
+                                                                    "type": "text_multiline",
                                                                     "id": "I+714x7bGe*TXu#o@M6t",
                                                                     "fields": {
                                                                       "TEXT": "Create the big hoop"
@@ -494,7 +494,7 @@
                                                                             "inputs": {
                                                                               "COMMENT": {
                                                                                 "shadow": {
-                                                                                  "type": "text",
+                                                                                  "type": "text_multiline",
                                                                                   "id": "HRTS*/^`A,i/=sER6]w=",
                                                                                   "fields": {
                                                                                     "TEXT": "Create a temporary ball to rotate hoops around"
@@ -934,7 +934,7 @@
                                                                                                                 "inputs": {
                                                                                                                   "COMMENT": {
                                                                                                                     "shadow": {
-                                                                                                                      "type": "text",
+                                                                                                                      "type": "text_multiline",
                                                                                                                       "id": "[k6|Oj3m[v.q?KlAX=Yl",
                                                                                                                       "fields": {
                                                                                                                         "TEXT": "Merge the new hoop into the pendant"
@@ -1234,7 +1234,7 @@
                                                                                       "inputs": {
                                                                                         "COMMENT": {
                                                                                           "shadow": {
-                                                                                            "type": "text",
+                                                                                            "type": "text_multiline",
                                                                                             "id": "?VRyiam^Unec#Rc8Ui`^",
                                                                                             "fields": {
                                                                                               "TEXT": "Create the hanging hoop"
