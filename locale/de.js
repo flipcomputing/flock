@@ -178,7 +178,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'Kamera %1 %2',
-  camera_follow: 'Kamera folgt %1 mit Radius %2 vorne %3',
+  camera_follow: 'Kamera folgt %1 mit Radius %2 Winkel %3 vorne %4',
   get_camera: 'Kamera als %1 holen',
 
   // Custom block translations - Combine blocks

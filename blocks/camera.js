@@ -103,6 +103,11 @@ export function defineCameraBlocks() {
             check: 'Number',
           },
           {
+            type: 'input_value',
+            name: 'ANGLE',
+            check: 'Number',
+          },
+          {
             type: 'field_checkbox',
             name: 'FRONT',
             checked: false,

@@ -1185,6 +1185,14 @@ const toolboxSceneCamera = {
             },
           },
         },
+        ANGLE: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 90,
+            },
+          },
+        },
       },
     },
     {

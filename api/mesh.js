@@ -1098,17 +1098,39 @@ export const flockMesh = {
               meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
 
               if (logicalBoneName === 'Head') {
-                const targetBaseY = bone.getAbsolutePosition(targetWithSkeleton).y + Number(y || 0);
-                for (let pass = 0; pass < 4; pass++) {
-                  meshToAttachInstance.computeWorldMatrix(true);
-                  const accBaseY = meshToAttachInstance.getHierarchyBoundingVectors(
-                    true,
-                    (m) => m !== meshToAttachInstance
-                  ).min.y;
-                  const deltaY = targetBaseY - accBaseY;
-                  if (!isFinite(deltaY) || Math.abs(deltaY) < 1e-3) break;
-                  meshToAttachInstance.position.y += deltaY;
-                }
+                // Rest accessories on top of the head, not at the neck joint the bone sits
+                // at. The crown bone (if the rig has one) gives the head's real length —
+                // computed in world space so it already reflects any character scaling.
+                const headBasePos = bone.getAbsolutePosition(targetWithSkeleton);
+                const crownBone = bone.children?.[0];
+                const headLength = crownBone
+                  ? flock.BABYLON.Vector3.Distance(
+                      headBasePos,
+                      crownBone.getAbsolutePosition(targetWithSkeleton)
+                    )
+                  : 0;
+                const targetBaseY = headBasePos.y + headLength + Number(y || 0);
+
+                // A change to the mesh's local Y doesn't move its world Y 1:1 — the bone,
+                // skeleton mesh and character can all be scaled — so measure the actual
+                // local-to-world ratio along Y instead of assuming it's 1.
+                const baseLocalY = meshToAttachInstance.position.y;
+                meshToAttachInstance.computeWorldMatrix(true);
+                const w0 = meshToAttachInstance.getHierarchyBoundingVectors(
+                  true,
+                  (m) => m !== meshToAttachInstance
+                ).min.y;
+                meshToAttachInstance.position.y = baseLocalY + 1;
+                meshToAttachInstance.computeWorldMatrix(true);
+                const w1 = meshToAttachInstance.getHierarchyBoundingVectors(
+                  true,
+                  (m) => m !== meshToAttachInstance
+                ).min.y;
+                const worldPerLocalY = w1 - w0;
+
+                meshToAttachInstance.position.y = worldPerLocalY
+                  ? baseLocalY + (targetBaseY - w0) / worldPerLocalY
+                  : baseLocalY;
                 meshToAttachInstance.computeWorldMatrix(true);
               }
 

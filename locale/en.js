@@ -179,7 +179,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'camera %1 %2',
-  camera_follow: 'camera follow %1 with radius %2 front %3',
+  camera_follow: 'camera follow %1 with radius %2 angle %3 front %4',
   get_camera: 'get camera as %1',
 
   // Custom block translations - Combine blocks
@@ -463,7 +463,7 @@ export default {
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Bind a specific key to a camera control action.',
   camera_follow_tooltip:
-    'Make the camera follow an object with a customizable distance (radius) from the target.',
+    'Make the camera follow an object with a customizable distance (radius) and angle from the target.',
   get_camera_tooltip: 'Get the current scene camera.',
 
   // Tooltip translations - Combine blocks

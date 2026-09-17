@@ -338,13 +338,13 @@ export function runMeshHierarchyTests(flock) {
         expect(treeWorldPos.x).to.be.closeTo(10, 2);
       });
 
-      it('attach to Head should use the crown bone, not the skull joint', async function () {
+      it('attach to Head should parent to the real head bone, not the crown tip', async function () {
         await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
         const skeleton = treeMesh._transformToBoneReferal.skeleton;
         expect(skeleton.bones.indexOf(treeMesh.parent)).to.equal(
-          skeleton.getBoneIndexByName('mixamorig:HeadTop_End')
+          skeleton.getBoneIndexByName('mixamorig:Head')
         );
       });
 
@@ -442,6 +442,39 @@ export function runMeshHierarchyTests(flock) {
         const anchorY = crownBone.getAbsolutePosition(gemMesh._transformToBoneReferal).y;
 
         expect(renderedBaseY(gemId)).to.be.closeTo(anchorY, 0.05);
+      });
+
+      it('attach to Head lands on a scaled character, not somewhere down its body', async function () {
+        const scaledLizId = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'headTestScaledLiz',
+          scale: 2,
+          position: { x: 0, y: 0, z: 0 },
+        });
+        meshIds.push(scaledLizId);
+        await pumpAnimation(flock, waitForModel(flock, scaledLizId));
+
+        const gemId = flock.createObject({
+          modelName: 'Gem2.glb',
+          modelId: 'headTestScaledGem',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        meshIds.push(gemId);
+        await pumpAnimation(flock, waitForModel(flock, gemId));
+        await pumpAnimation(
+          flock,
+          flock.attach(gemId, scaledLizId, { boneName: 'Head', x: 0, y: 0, z: 0 })
+        );
+
+        const gemMesh = flock.scene.getMeshByName(gemId);
+        const skeleton = gemMesh._transformToBoneReferal.skeleton;
+        const crownBone = skeleton.bones[skeleton.getBoneIndexByName('mixamorig:HeadTop_End')];
+        const anchorY = crownBone.getAbsolutePosition(gemMesh._transformToBoneReferal).y;
+
+        // At scale 1 the neck joint (Head bone) sits well below the crown; if the fix for
+        // scaled characters regresses, the gem lands near the neck instead, which would
+        // still be closeTo some Y but far from the crown's actual (scaled) height.
+        expect(renderedBaseY(gemId)).to.be.closeTo(anchorY, 0.1);
       });
 
       it('replaying attach should keep the original pre-attach rotation for drop', async function () {

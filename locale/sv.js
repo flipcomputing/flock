@@ -173,7 +173,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera följ %1 med radie %2 fram %3',
+  camera_follow: 'kamera följ %1 med radie %2 vinkel %3 fram %4',
   get_camera: 'hämta kamera som %1',
 
   // Custom block translations - Combine blocks

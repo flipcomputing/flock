@@ -592,9 +592,12 @@ export function registerSceneGenerators(javascriptGenerator) {
     const radius =
       javascriptGenerator.valueToCode(block, 'RADIUS', javascriptGenerator.ORDER_ATOMIC) || 7;
 
+    const angle =
+      javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_ATOMIC) || 90;
+
     const front = block.getFieldValue('FRONT') === 'TRUE';
 
-    return `await attachCamera(${modelName}, { radius: ${radius}, front: ${front} });\n`;
+    return `await attachCamera(${modelName}, { radius: ${radius}, angle: ${angle}, front: ${front} });\n`;
   };
 
   // Camera rotate --------------------------------------------------

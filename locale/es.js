@@ -175,7 +175,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'cámara %1 %2', // human
-  camera_follow: 'cámara sigue a %1 con radio %2 frente %3', // human
+  camera_follow: 'cámara sigue a %1 con radio %2 ángulo %3 frente %4', // human
   get_camera: 'obtener cámara como %1', // human
 
   // Custom block translations - Combine blocks

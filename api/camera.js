@@ -11,7 +11,7 @@ export const flockCamera = {
                 Category: Scene>Camera
         */
   attachCamera(meshName, options = {}) {
-    const { radius = 7, front = true } = options;
+    const { radius = 7, front = true, angle = 90 } = options;
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
@@ -42,20 +42,22 @@ export const flockCamera = {
           flock.savedCamera = existingCamera;
         }
 
+        const betaRadians = flock.BABYLON.Tools.ToRadians(angle);
+
         const camera = new flock.BABYLON.ArcRotateCamera(
           'camera',
           Math.PI / 2,
-          // Where the beta limit below clamps it anyway, and XR reads this camera's position
-          // without ever rendering it.
-          Math.PI / 2,
+          betaRadians,
           radius,
           anchor,
           flock.scene
         );
 
         if (!front) camera.checkCollisions = true;
-        camera.lowerBetaLimit = Math.PI / 3;
-        camera.upperBetaLimit = Math.PI / 2;
+        // Upper limit sits at the requested angle itself, since setPosition below places the
+        // camera there; lower limit allows orbiting 30° further overhead.
+        camera.lowerBetaLimit = Math.max(0.01, betaRadians - Math.PI / 6);
+        camera.upperBetaLimit = betaRadians;
         camera.lowerRadiusLimit = radius * 0.6;
         camera.upperRadiusLimit = radius * 1.6;
         camera.angularSensibilityX = 2000;
@@ -71,7 +73,13 @@ export const flockCamera = {
 
         camera.lockedTarget = mesh;
         // front looks the character in the face, otherwise sit over its shoulder.
-        camera.setPosition(anchor.add(facing.scale(front ? radius : -radius)));
+        const horizontalOffset = radius * Math.sin(betaRadians);
+        const verticalOffset = radius * Math.cos(betaRadians);
+        camera.setPosition(
+          anchor
+            .add(facing.scale(front ? horizontalOffset : -horizontalOffset))
+            .add(flock.BABYLON.Vector3.Up().scale(verticalOffset))
+        );
 
         camera.metadata = camera.metadata || {};
         camera.metadata.following = mesh;
