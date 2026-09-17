@@ -1085,6 +1085,11 @@ button {
   min-height: 0;
   position: relative;
   isolation: isolate;
+  background-color: transparent;
+}
+
+#blockHintsBtn.active {
+  box-shadow: none;
 }
 
 #blockHintsBtn::before {
