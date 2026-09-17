@@ -12,7 +12,7 @@ import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
 import { resetLiveEditsForRun } from '../ui/blockmesh.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
-import { generateWorkspaceCode } from '../blocks/folderContainment.js';
+import { generateWorkspaceCode } from '../blocks/sectionContainment.js';
 
 let isExecuting = false;
 

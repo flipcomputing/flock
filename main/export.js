@@ -2,16 +2,16 @@ import * as Blockly from 'blockly';
 import { importSnippet } from './files.js';
 import { getSnippetOption, translate } from './translation.js';
 import w500 from '@fontsource/atkinson-hyperlegible-next/files/atkinson-hyperlegible-next-latin-500-normal.woff2';
-import { beginFolderDragFollow, endFolderDragFollow } from '../blocks/folderContainment.js';
+import { beginSectionDragFollow, endSectionDragFollow } from '../blocks/sectionContainment.js';
 
-function collectFolderExportBlocks(folder) {
-  const blocks = [Blockly.serialization.blocks.save(folder)];
-  const ws = folder.workspace;
-  for (const id of folder.containedBlockIds_ || []) {
+function collectSectionExportBlocks(section) {
+  const blocks = [Blockly.serialization.blocks.save(section)];
+  const ws = section.workspace;
+  for (const id of section.containedBlockIds_ || []) {
     const child = ws.getBlockById(id);
     if (!child) continue;
-    if (child.type === 'folder') {
-      blocks.push(...collectFolderExportBlocks(child));
+    if (child.type === 'section') {
+      blocks.push(...collectSectionExportBlocks(child));
     } else {
       blocks.push(Blockly.serialization.blocks.save(child));
     }
@@ -20,8 +20,8 @@ function collectFolderExportBlocks(folder) {
 }
 
 function saveBlockForExport(block) {
-  if (block.type === 'folder') {
-    return { blocks: { blocks: collectFolderExportBlocks(block) } };
+  if (block.type === 'section') {
+    return { blocks: { blocks: collectSectionExportBlocks(block) } };
   }
   return Blockly.serialization.blocks.save(block);
 }
@@ -227,50 +227,53 @@ function getFieldTextFontSizePt(block) {
 }
 
 async function generateSVG(block, { rasterSafe = false } = {}) {
-  const isFolder = block.type === 'folder';
-  if (isFolder) beginFolderDragFollow(block);
+  const isSection = block.type === 'section';
+  if (isSection) beginSectionDragFollow(block);
 
-  const svgBlock = block.getSvgRoot().cloneNode(true);
+  let svgBlock, serializer, bbox;
+  try {
+    svgBlock = block.getSvgRoot().cloneNode(true);
 
-  svgBlock.querySelectorAll('.blocklyHighlightedConnectionPath').forEach((el) => el.remove());
+    svgBlock.querySelectorAll('.blocklyHighlightedConnectionPath').forEach((el) => el.remove());
 
-  svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
-    el.setAttribute('fill', 'none');
-    if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
-    el.setAttribute('stroke-width', '1');
-  });
-
-  svgBlock.querySelectorAll('.blocklyActiveFocus').forEach((el) => {
-    el.classList.remove('blocklyActiveFocus');
-  });
-
-  // Keep each block's base path filled; blank later overlay paths.
-  svgBlock.querySelectorAll('g.blocklyBlock, g.start').forEach((g) => {
-    const paths = g.querySelectorAll(':scope > path.blocklyPath');
-    paths.forEach((p, i) => {
-      if (i > 0) {
-        p.setAttribute('fill', 'none');
-        if (!p.getAttribute('stroke')) p.setAttribute('stroke', '#999');
-        p.setAttribute('stroke-width', '1');
-      }
+    svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
+      el.setAttribute('fill', 'none');
+      if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
+      el.setAttribute('stroke-width', '1');
     });
-  });
 
-  const axisExportColors = { X: '#1A9EE0', Y: '#00CC96', Z: '#F07020' };
-  for (const [axis, color] of Object.entries(axisExportColors)) {
-    svgBlock.querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`).forEach((path) => {
-      path.setAttribute('stroke', color);
-      path.setAttribute('stroke-width', '2');
+    svgBlock.querySelectorAll('.blocklyActiveFocus').forEach((el) => {
+      el.classList.remove('blocklyActiveFocus');
     });
+
+    // Keep each block's base path filled; blank later overlay paths.
+    svgBlock.querySelectorAll('g.blocklyBlock, g.start').forEach((g) => {
+      const paths = g.querySelectorAll(':scope > path.blocklyPath');
+      paths.forEach((p, i) => {
+        if (i > 0) {
+          p.setAttribute('fill', 'none');
+          if (!p.getAttribute('stroke')) p.setAttribute('stroke', '#999');
+          p.setAttribute('stroke-width', '1');
+        }
+      });
+    });
+
+    const axisExportColors = { X: '#1A9EE0', Y: '#00CC96', Z: '#F07020' };
+    for (const [axis, color] of Object.entries(axisExportColors)) {
+      svgBlock.querySelectorAll(`:scope >[data-axis="${axis}"] .blocklyPath`).forEach((path) => {
+        path.setAttribute('stroke', color);
+        path.setAttribute('stroke-width', '2');
+      });
+    }
+
+    serializer = new XMLSerializer();
+
+    svgBlock.removeAttribute('transform');
+
+    bbox = block.getSvgRoot().getBBox();
+  } finally {
+    if (isSection) endSectionDragFollow(block);
   }
-
-  const serializer = new XMLSerializer();
-
-  svgBlock.removeAttribute('transform');
-
-  const bbox = block.getSvgRoot().getBBox();
-
-  if (isFolder) endFolderDragFollow(block);
 
   const uiElements = svgBlock.querySelectorAll('rect.blocklyFieldRect');
   uiElements.forEach((rect) => {

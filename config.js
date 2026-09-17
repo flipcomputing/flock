@@ -11,7 +11,7 @@ export const TOP_BLOCK_TYPES = Object.freeze([
   'when_key_event',
   'when_action_event',
   'on_event',
-  'folder',
+  'section',
   'procedures_defnoreturn',
   'procedures_defreturn',
   'microbit_input',

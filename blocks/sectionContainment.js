@@ -2,20 +2,20 @@ import * as Blockly from 'blockly';
 
 const CHILD_GAP = 40;
 const TOP_GAP = 8;
-export const FOLDER_DO_CHECK = '__folder_do_never_connects__';
+export const SECTION_DO_CHECK = '__section_do_never_connects__';
 
 function isRendered(block) {
   return !!block && typeof block.getSvgRoot === 'function' && !!block.getSvgRoot();
 }
 
-export function getAllFolderBlocks(workspace) {
-  return (workspace.getAllBlocks(false) || []).filter((b) => b.type === 'folder');
+export function getAllSectionBlocks(workspace) {
+  return (workspace.getAllBlocks(false) || []).filter((b) => b.type === 'section');
 }
 
 export function buildContainedIdSet(workspace) {
   const ids = new Set();
-  for (const folder of getAllFolderBlocks(workspace)) {
-    for (const id of folder.containedBlockIds_ || []) ids.add(id);
+  for (const section of getAllSectionBlocks(workspace)) {
+    for (const id of section.containedBlockIds_ || []) ids.add(id);
   }
   return ids;
 }
@@ -50,9 +50,9 @@ export function generateWorkspaceCode(workspace, javascriptGenerator) {
   return code;
 }
 
-function findOwningFolder(workspace, blockId) {
-  for (const folder of getAllFolderBlocks(workspace)) {
-    if ((folder.containedBlockIds_ || []).includes(blockId)) return folder;
+function findOwningSection(workspace, blockId) {
+  for (const section of getAllSectionBlocks(workspace)) {
+    if ((section.containedBlockIds_ || []).includes(blockId)) return section;
   }
   return null;
 }
@@ -65,14 +65,14 @@ function duplicateOwnedBlock(workspace, originalId) {
   return Blockly.serialization.blocks.append(state, workspace);
 }
 
-function deduplicateFolderContents(workspace, folder) {
-  const ids = folder.containedBlockIds_;
+function deduplicateSectionContents(workspace, section) {
+  const ids = section.containedBlockIds_;
   if (!Array.isArray(ids) || !ids.length) return;
 
   let changed = false;
   for (let i = 0; i < ids.length; i++) {
-    const owner = findOwningFolder(workspace, ids[i]);
-    if (!owner || owner === folder) continue;
+    const owner = findOwningSection(workspace, ids[i]);
+    if (!owner || owner === section) continue;
 
     const copy = duplicateOwnedBlock(workspace, ids[i]);
     if (copy) {
@@ -81,16 +81,16 @@ function deduplicateFolderContents(workspace, folder) {
     }
   }
 
-  if (changed) layoutFolderChildren(folder);
+  if (changed) layoutSectionChildren(section);
 }
 
-function isSelfOrDescendant(workspace, folder, candidateId) {
-  if (folder.id === candidateId) return true;
-  const ids = folder.containedBlockIds_ || [];
+function isSelfOrDescendant(workspace, section, candidateId) {
+  if (section.id === candidateId) return true;
+  const ids = section.containedBlockIds_ || [];
   for (const id of ids) {
     if (id === candidateId) return true;
     const child = workspace.getBlockById(id);
-    if (child && child.type === 'folder' && isSelfOrDescendant(workspace, child, candidateId)) {
+    if (child && child.type === 'section' && isSelfOrDescendant(workspace, child, candidateId)) {
       return true;
     }
   }
@@ -102,11 +102,11 @@ function setBlockVisible(block, visible) {
   if (svg) svg.style.display = visible ? '' : 'none';
 }
 
-function collectAllDescendantIds(ws, folder, out = []) {
-  for (const id of folder.containedBlockIds_ || []) {
+function collectAllDescendantIds(ws, section, out = []) {
+  for (const id of section.containedBlockIds_ || []) {
     out.push(id);
     const child = ws.getBlockById(id);
-    if (child && child.type === 'folder') collectAllDescendantIds(ws, child, out);
+    if (child && child.type === 'section') collectAllDescendantIds(ws, child, out);
   }
   return out;
 }
@@ -114,36 +114,36 @@ function collectAllDescendantIds(ws, folder, out = []) {
 // Blockly coalesces a synthetic BlockChange event away when it's followed by
 // the icon field's own change in the same tick, so this hook is called directly.
 let reflowTopLevelBlocks = null;
-export function setFolderReflowHook(fn) {
+export function setSectionReflowHook(fn) {
   reflowTopLevelBlocks = fn;
 }
 
-export function toggleFolderCollapsed(folder) {
-  folder.folderCollapsed_ = !folder.folderCollapsed_;
-  layoutFolderChildren(folder);
+export function toggleSectionCollapsed(section) {
+  section.sectionCollapsed_ = !section.sectionCollapsed_;
+  layoutSectionChildren(section);
   reflowTopLevelBlocks?.();
-  Blockly.Events.fire(new Blockly.Events.BlockChange(folder, 'mutation', null, '', ''));
+  Blockly.Events.fire(new Blockly.Events.BlockChange(section, 'mutation', null, '', ''));
 }
 
-export function layoutFolderChildren(folder) {
-  if (!isRendered(folder) || folder.isInFlyout) return;
-  if (folder.isDragging?.()) return;
-  const ws = folder.workspace;
-  const ids = folder.containedBlockIds_ || [];
+export function layoutSectionChildren(section) {
+  if (!isRendered(section) || section.isInFlyout) return;
+  if (section.isDragging?.()) return;
+  const ws = section.workspace;
+  const ids = section.containedBlockIds_ || [];
 
-  if (folder.folderCollapsed_) {
-    for (const id of collectAllDescendantIds(ws, folder)) {
+  if (section.sectionCollapsed_) {
+    for (const id of collectAllDescendantIds(ws, section)) {
       setBlockVisible(ws.getBlockById(id), false);
     }
     // Blockly leaves residual row height if the input is merely hidden, not removed.
-    if (folder.getInput('DO')) folder.removeInput('DO');
-    folder.render();
+    if (section.getInput('DO')) section.removeInput('DO');
+    section.render();
     return;
   }
 
-  let doInput = folder.getInput('DO');
+  let doInput = section.getInput('DO');
   if (!doInput) {
-    doInput = folder.appendStatementInput('DO').setCheck(FOLDER_DO_CHECK);
+    doInput = section.appendStatementInput('DO').setCheck(SECTION_DO_CHECK);
   }
   doInput.setVisible(true);
 
@@ -154,10 +154,10 @@ export function layoutFolderChildren(folder) {
     desired += hw.height;
     desired += index < children.length - 1 ? CHILD_GAP : TOP_GAP;
   });
-  folder.desiredMouthHeight_ = desired;
-  folder.render();
+  section.desiredMouthHeight_ = desired;
+  section.render();
 
-  const origin = folder.getRelativeToSurfaceXY();
+  const origin = section.getRelativeToSurfaceXY();
   const offset = doInput.connection.getOffsetInBlock();
   const targetX = origin.x + offset.x;
   let cursorY = origin.y + offset.y + (children.length ? TOP_GAP : 0);
@@ -173,7 +173,7 @@ export function layoutFolderChildren(folder) {
     const hw = child.getHeightWidth ? child.getHeightWidth() : { width: 100, height: 40 };
     cursorY += hw.height + CHILD_GAP;
 
-    if (child.type === 'folder') layoutFolderChildren(child);
+    if (child.type === 'section') layoutSectionChildren(child);
   }
 }
 
@@ -181,9 +181,9 @@ const ZONE_MARGIN = 10;
 const TOP_ANCHOR_OFFSET = 10;
 const LEFT_ANCHOR_OFFSET = 15;
 
-function getFolderDropZone(folder) {
-  if (!isRendered(folder) || folder.folderCollapsed_) return null;
-  const rect = folder.getBoundingRectangle();
+function getSectionDropZone(section) {
+  if (!isRendered(section) || section.sectionCollapsed_) return null;
+  const rect = section.getBoundingRectangle();
   return {
     left: rect.left - ZONE_MARGIN,
     right: rect.right + ZONE_MARGIN,
@@ -192,7 +192,7 @@ function getFolderDropZone(folder) {
   };
 }
 
-function findFolderAt(workspace, draggedBlock) {
+function findSectionAt(workspace, draggedBlock) {
   const rect = draggedBlock.getBoundingRectangle?.();
   if (!rect) return null;
   const cx = rect.left + LEFT_ANCHOR_OFFSET;
@@ -200,30 +200,30 @@ function findFolderAt(workspace, draggedBlock) {
 
   let best = null;
   let bestZoneArea = Infinity;
-  for (const folder of getAllFolderBlocks(workspace)) {
-    if (folder.id === draggedBlock.id) continue;
-    if (isSelfOrDescendant(workspace, draggedBlock, folder.id)) continue;
-    const zone = getFolderDropZone(folder);
+  for (const section of getAllSectionBlocks(workspace)) {
+    if (section.id === draggedBlock.id) continue;
+    if (isSelfOrDescendant(workspace, draggedBlock, section.id)) continue;
+    const zone = getSectionDropZone(section);
     if (!zone) continue;
     if (cx < zone.left || cx > zone.right || cy < zone.top || cy > zone.bottom) continue;
     const zoneArea = (zone.right - zone.left) * (zone.bottom - zone.top);
     if (zoneArea < bestZoneArea) {
       bestZoneArea = zoneArea;
-      best = folder;
+      best = section;
     }
   }
   return best;
 }
 
-function removeChildId(folder, blockId) {
-  const ids = folder.containedBlockIds_ || [];
+function removeChildId(section, blockId) {
+  const ids = section.containedBlockIds_ || [];
   const index = ids.indexOf(blockId);
   if (index !== -1) ids.splice(index, 1);
 }
 
-function insertChildIdByPosition(folder, block) {
-  const ws = folder.workspace;
-  const ids = folder.containedBlockIds_ || (folder.containedBlockIds_ = []);
+function insertChildIdByPosition(section, block) {
+  const ws = section.workspace;
+  const ids = section.containedBlockIds_ || (section.containedBlockIds_ = []);
   const dropY = block.getRelativeToSurfaceXY().y;
   let index = ids.length;
   for (let i = 0; i < ids.length; i++) {
@@ -238,31 +238,31 @@ function insertChildIdByPosition(folder, block) {
 
 function handleDragEnd(workspace, draggedBlock) {
   if (draggedBlock.previousConnection || draggedBlock.outputConnection) return;
-  if (draggedBlock.type === 'folder' && draggedBlock.isInFlyout) return;
+  if (draggedBlock.type === 'section' && draggedBlock.isInFlyout) return;
 
-  const oldFolder = findOwningFolder(workspace, draggedBlock.id);
-  const candidate = findFolderAt(workspace, draggedBlock);
+  const oldSection = findOwningSection(workspace, draggedBlock.id);
+  const candidate = findSectionAt(workspace, draggedBlock);
 
-  if (oldFolder && oldFolder !== candidate) {
-    removeChildId(oldFolder, draggedBlock.id);
-    layoutFolderChildren(oldFolder);
+  if (oldSection && oldSection !== candidate) {
+    removeChildId(oldSection, draggedBlock.id);
+    layoutSectionChildren(oldSection);
   }
 
   if (candidate) {
-    if (candidate === oldFolder) removeChildId(candidate, draggedBlock.id);
+    if (candidate === oldSection) removeChildId(candidate, draggedBlock.id);
     insertChildIdByPosition(candidate, draggedBlock);
-    layoutFolderChildren(candidate);
+    layoutSectionChildren(candidate);
   }
 }
 
-function propagateFolderMove(workspace, folder, dx, dy) {
-  for (const id of folder.containedBlockIds_ || []) {
+function propagateSectionMove(workspace, section, dx, dy) {
+  for (const id of section.containedBlockIds_ || []) {
     const child = workspace.getBlockById(id);
     if (child) child.moveBy(dx, dy);
   }
 }
 
-function resizeOwningFoldersImmediately(workspace, changedBlockId) {
+function resizeOwningSectionsImmediately(workspace, changedBlockId) {
   const changed = workspace.getBlockById(changedBlockId);
   if (!changed) return;
 
@@ -271,10 +271,10 @@ function resizeOwningFoldersImmediately(workspace, changedBlockId) {
     root = root.getSurroundParent();
   }
 
-  let owner = findOwningFolder(workspace, root.id);
+  let owner = findOwningSection(workspace, root.id);
   while (owner) {
-    layoutFolderChildren(owner);
-    owner = findOwningFolder(workspace, owner.id);
+    layoutSectionChildren(owner);
+    owner = findOwningSection(workspace, owner.id);
   }
 }
 
@@ -283,9 +283,9 @@ function resizeOwningFoldersImmediately(workspace, changedBlockId) {
 // `connectionCandidate` field off BlockDragStrategy to detect it - wrapped in
 // try/catch since it's not public API and could change shape in a future
 // Blockly upgrade.
-function installConnectionPreviewFolderResize() {
+function installConnectionPreviewSectionResize() {
   const proto = Blockly.dragging?.BlockDragStrategy?.prototype;
-  if (!proto || proto.folderPreviewPatched_ || typeof proto.drag !== 'function') return;
+  if (!proto || proto.sectionPreviewPatched_ || typeof proto.drag !== 'function') return;
 
   const originalDrag = proto.drag;
   proto.drag = function (newLoc, e) {
@@ -296,11 +296,11 @@ function installConnectionPreviewFolderResize() {
     requestAnimationFrame(() => {
       try {
         const neighbourBlock = self.connectionCandidate?.neighbour?.getSourceBlock?.() || null;
-        const previous = self.folderPreviewTarget_ || null;
+        const previous = self.sectionPreviewTarget_ || null;
         if (neighbourBlock === previous) return;
-        self.folderPreviewTarget_ = neighbourBlock;
-        if (previous) resizeOwningFoldersImmediately(self.workspace, previous.id);
-        if (neighbourBlock) resizeOwningFoldersImmediately(self.workspace, neighbourBlock.id);
+        self.sectionPreviewTarget_ = neighbourBlock;
+        if (previous) resizeOwningSectionsImmediately(self.workspace, previous.id);
+        if (neighbourBlock) resizeOwningSectionsImmediately(self.workspace, neighbourBlock.id);
       } catch {
         // Undocumented internals moved under us - fall through silently.
       }
@@ -310,48 +310,48 @@ function installConnectionPreviewFolderResize() {
   if (typeof proto.startDrag === 'function') {
     const originalStartDrag = proto.startDrag;
     proto.startDrag = function (e) {
-      this.folderPreviewTarget_ = null;
+      this.sectionPreviewTarget_ = null;
       return originalStartDrag.call(this, e);
     };
   }
 
-  proto.folderPreviewPatched_ = true;
+  proto.sectionPreviewPatched_ = true;
 }
 
-// Contained blocks aren't real SVG children of the folder, so they don't move
+// Contained blocks aren't real SVG children of the section, so they don't move
 // for free while it's dragged - reparent them into its SVG group for the
 // duration of the drag, then back on drop.
-export function beginFolderDragFollow(folder) {
-  const ws = folder.workspace;
-  const folderGroup = folder.getSvgRoot?.();
-  if (!folderGroup) return;
-  const folderOrigin = folder.getRelativeToSurfaceXY();
+export function beginSectionDragFollow(section) {
+  const ws = section.workspace;
+  const sectionGroup = section.getSvgRoot?.();
+  if (!sectionGroup) return;
+  const sectionOrigin = section.getRelativeToSurfaceXY();
 
   const state = [];
-  for (const id of collectAllDescendantIds(ws, folder)) {
+  for (const id of collectAllDescendantIds(ws, section)) {
     const child = ws.getBlockById(id);
     const childRoot = child?.getSvgRoot?.();
     if (!child || !childRoot || !childRoot.parentNode) continue;
 
     const childOrigin = child.getRelativeToSurfaceXY();
-    const localX = childOrigin.x - folderOrigin.x;
-    const localY = childOrigin.y - folderOrigin.y;
+    const localX = childOrigin.x - sectionOrigin.x;
+    const localY = childOrigin.y - sectionOrigin.y;
     const originalParent = childRoot.parentNode;
 
-    folderGroup.appendChild(childRoot);
+    sectionGroup.appendChild(childRoot);
     childRoot.setAttribute('transform', `translate(${localX}, ${localY})`);
     state.push({ id, localX, localY, originalParent });
   }
-  folder.dragFollowState_ = state;
+  section.dragFollowState_ = state;
 }
 
-export function endFolderDragFollow(folder) {
-  const state = folder.dragFollowState_;
-  folder.dragFollowState_ = null;
+export function endSectionDragFollow(section) {
+  const state = section.dragFollowState_;
+  section.dragFollowState_ = null;
   if (!state || !state.length) return;
 
-  const ws = folder.workspace;
-  const folderOrigin = folder.getRelativeToSurfaceXY();
+  const ws = section.workspace;
+  const sectionOrigin = section.getRelativeToSurfaceXY();
 
   for (const { id, localX, localY, originalParent } of state) {
     const child = ws.getBlockById(id);
@@ -361,40 +361,40 @@ export function endFolderDragFollow(folder) {
     originalParent.appendChild(childRoot);
     childRoot.setAttribute(
       'transform',
-      `translate(${folderOrigin.x + localX}, ${folderOrigin.y + localY})`
+      `translate(${sectionOrigin.x + localX}, ${sectionOrigin.y + localY})`
     );
   }
 }
 
-export function removeFromAllFolders(workspace, blockId) {
-  for (const folder of getAllFolderBlocks(workspace)) {
-    if ((folder.containedBlockIds_ || []).includes(blockId)) {
-      removeChildId(folder, blockId);
-      layoutFolderChildren(folder);
+export function removeFromAllSections(workspace, blockId) {
+  for (const section of getAllSectionBlocks(workspace)) {
+    if ((section.containedBlockIds_ || []).includes(blockId)) {
+      removeChildId(section, blockId);
+      layoutSectionChildren(section);
     }
   }
 }
 
-// event.oldJson is the folder's state captured before disposal, readable
+// event.oldJson is the section's state captured before disposal, readable
 // even though the live block is already gone.
-function deleteFolderContents(workspace, savedFolderJson) {
-  const ids = savedFolderJson?.extraState?.contains;
+function deleteSectionContents(workspace, savedSectionJson) {
+  const ids = savedSectionJson?.extraState?.contains;
   if (!Array.isArray(ids)) return;
   for (const id of ids) {
     workspace.getBlockById(id)?.dispose(false);
   }
 }
 
-export function attachFolderBehaviour(workspace) {
-  installConnectionPreviewFolderResize();
+export function attachSectionBehaviour(workspace) {
+  installConnectionPreviewSectionResize();
   workspace.addChangeListener((event) => {
     if (event.type === Blockly.Events.BLOCK_DRAG) {
       const block = workspace.getBlockById(event.blockId);
       if (event.isStart) {
-        if (block?.type === 'folder') beginFolderDragFollow(block);
+        if (block?.type === 'section') beginSectionDragFollow(block);
         return;
       }
-      if (block?.type === 'folder') endFolderDragFollow(block);
+      if (block?.type === 'section') endSectionDragFollow(block);
       if (block) handleDragEnd(workspace, block);
       return;
     }
@@ -403,21 +403,21 @@ export function attachFolderBehaviour(workspace) {
       // Blockly can coalesce a drag into an event that carries both a
       // coordinate change and a reparent, so both are checked unconditionally.
       if (event.oldCoordinate && event.newCoordinate) {
-        const folder = workspace.getBlockById(event.blockId);
-        if (folder && folder.type === 'folder') {
+        const section = workspace.getBlockById(event.blockId);
+        if (section && section.type === 'section') {
           const dx = event.newCoordinate.x - event.oldCoordinate.x;
           const dy = event.newCoordinate.y - event.oldCoordinate.y;
-          if (dx || dy) propagateFolderMove(workspace, folder, dx, dy);
+          if (dx || dy) propagateSectionMove(workspace, section, dx, dy);
         }
       }
-      resizeOwningFoldersImmediately(workspace, event.blockId);
+      resizeOwningSectionsImmediately(workspace, event.blockId);
       return;
     }
 
     if (event.type === Blockly.Events.BLOCK_DELETE) {
-      removeFromAllFolders(workspace, event.blockId);
-      for (const id of event.ids || []) removeFromAllFolders(workspace, id);
-      if (event.oldJson?.type === 'folder') deleteFolderContents(workspace, event.oldJson);
+      removeFromAllSections(workspace, event.blockId);
+      for (const id of event.ids || []) removeFromAllSections(workspace, id);
+      if (event.oldJson?.type === 'section') deleteSectionContents(workspace, event.oldJson);
       return;
     }
 
@@ -425,7 +425,7 @@ export function attachFolderBehaviour(workspace) {
       const ids = Array.isArray(event.ids) ? event.ids : [event.blockId];
       for (const id of ids) {
         const block = workspace.getBlockById(id);
-        if (block?.type === 'folder') deduplicateFolderContents(workspace, block);
+        if (block?.type === 'section') deduplicateSectionContents(workspace, block);
       }
     }
   });

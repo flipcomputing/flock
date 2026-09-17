@@ -54,7 +54,7 @@ const TESTED_TEXT_FIELDS = [
   'play_tune.ABC_TEXT',
   'keyword.KEYWORD',
   'keyword_value.KEYWORD',
-  'folder.NAME',
+  'section.NAME',
 ];
 
 const payload = '"; alert(1); //';
@@ -187,10 +187,10 @@ export function runTextFieldValidationTests() {
       expect(generate(block)).to.equal('null');
     });
 
-    it('folder name is never emitted into generated code', function () {
+    it('section name is never emitted into generated code', function () {
       const block = Blockly.serialization.blocks.append(
         {
-          type: 'folder',
+          type: 'section',
           fields: { NAME: payload },
         },
         workspace

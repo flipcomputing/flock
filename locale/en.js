@@ -207,9 +207,9 @@ export default {
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
   for_loop: 'for each %1 from %2 to %3 by %4 do %5',
   get_lexical_variable: '%1',
-  folder: 'folder %1',
-  folder_default_name: 'Folder',
-  folder_toggle_alt: 'expand or collapse folder',
+  section: 'section %1',
+  section_default_name: 'Section',
+  section_toggle_alt: 'expand or collapse section',
 
   // Custom block translations - Effects blocks
   main_light: 'light intensity: %1 color: %2 ground: %3',
@@ -498,7 +498,7 @@ export default {
   for_loop_tooltip:
     'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',
   get_lexical_variable_tooltip: 'Get the value of a lexical variable.',
-  folder_tooltip: 'Organize related blocks.',
+  section_tooltip: 'Organize related blocks.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Set the intensity and diffuse and ground colors of the main light.',

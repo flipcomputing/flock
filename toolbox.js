@@ -2553,8 +2553,8 @@ const toolboxControl = {
     },
     {
       kind: 'block',
-      type: 'folder',
-      keyword: 'folder',
+      type: 'section',
+      keyword: 'section',
     },
   ],
 };

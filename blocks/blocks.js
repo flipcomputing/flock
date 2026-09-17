@@ -1200,7 +1200,7 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
       }
     }
 
-    if (this.block_.type === 'folder') {
+    if (this.block_.type === 'section') {
       const desired = this.block_.desiredMouthHeight_ || 0;
       for (const row of this.rows) {
         if (row.hasStatement && desired > row.height) {
@@ -1277,9 +1277,9 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
   }
 
   // drawStatementInput_ always draws a connector notch, even when the input
-  // can never actually connect - skip it for folder blocks.
+  // can never actually connect - skip it for section blocks.
   drawStatementInput_(row) {
-    if (this.block_?.type !== 'folder') {
+    if (this.block_?.type !== 'section') {
       super.drawStatementInput_(row);
       return;
     }

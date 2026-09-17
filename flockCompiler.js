@@ -15,8 +15,8 @@ import { defineConnectBlocks } from './blocks/connect.js';
 import { defineCombineBlocks } from './blocks/combine.js';
 import { defineTransformBlocks } from './blocks/transform.js';
 import { defineControlBlocks } from './blocks/control.js';
-import { defineFolderBlock } from './blocks/folder.js';
-import { generateWorkspaceCode } from './blocks/folderContainment.js';
+import { defineSectionBlock } from './blocks/section.js';
+import { generateWorkspaceCode } from './blocks/sectionContainment.js';
 import { defineConditionBlocks } from './blocks/condition.js';
 import { defineAnimateBlocks } from './blocks/animate.js';
 import { defineSoundBlocks } from './blocks/sound.js';
@@ -47,7 +47,7 @@ function registerBlocksAndGenerators() {
     defineCombineBlocks,
     defineTransformBlocks,
     defineControlBlocks,
-    defineFolderBlock,
+    defineSectionBlock,
     defineConditionBlocks,
     defineAnimateBlocks,
     defineSoundBlocks,

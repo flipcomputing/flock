@@ -7,11 +7,11 @@ import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
 import { ensureBlockSearchIndex, isCompactSearchLayout } from './blocksearch.js';
 import {
-  attachFolderBehaviour,
+  attachSectionBehaviour,
   buildContainedIdSet,
-  layoutFolderChildren,
-  setFolderReflowHook,
-} from '../blocks/folderContainment.js';
+  layoutSectionChildren,
+  setSectionReflowHook,
+} from '../blocks/sectionContainment.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -316,7 +316,7 @@ function initializeFlyoutHints() {
 export function initializeBlockHandling() {
   observeBlocklyInputs();
   initializeFlyoutHints();
-  attachFolderBehaviour(workspace);
+  attachSectionBehaviour(workspace);
 
   // Capture-phase so this runs before Blockly's own gesture handling decides
   // whether the click selects a block or just edits a field in place.
@@ -440,7 +440,7 @@ export function initializeBlockHandling() {
           const dy = cursorY - xy.y;
           if (dx || dy) block.moveBy(dx, dy);
 
-          if (block.type === 'folder') layoutFolderChildren(block);
+          if (block.type === 'section') layoutSectionChildren(block);
           const h = block.getHeightWidth?.().height || 40;
           cursorY += h + spacing;
         } catch (error) {
@@ -490,7 +490,7 @@ export function initializeBlockHandling() {
     }
   }
 
-  setFolderReflowHook(layoutTopLevelBlocks);
+  setSectionReflowHook(layoutTopLevelBlocks);
   // Exposed so the Mod+. keyword-block shortcut (createKeywordBlockIn /
   // createKeywordBlockAtViewportCenter, below) can resolve stack overlap the
   // instant it inserts a block, the same way this fires straight after a
@@ -769,8 +769,8 @@ export function initializeBlockHandling() {
     }
 
     // Immediate cleanup when a top-level block is collapsed/expanded via
-    // Blockly's own native collapse (a folder's own toggle reflows via
-    // setFolderReflowHook instead).
+    // Blockly's own native collapse (a section's own toggle reflows via
+    // setSectionReflowHook instead).
     if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'collapsed') {
       const block = workspace.getBlockById(event.blockId);
       if (block && !block.getParent()) {

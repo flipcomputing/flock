@@ -25,7 +25,7 @@ export function registerControlGenerators(javascriptGenerator) {
   // -------------------------------
   // CONTROL
   // -------------------------------
-  javascriptGenerator.forBlock['folder'] = function (block) {
+  javascriptGenerator.forBlock['section'] = function (block) {
     const ws = block.workspace;
     const ids = block.containedBlockIds_ || [];
 
