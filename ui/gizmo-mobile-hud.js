@@ -107,6 +107,10 @@ export function createGizmoMobileHud({
     btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     btn.left = `${HALF + GAP + i * (BTN_SIZE + GAP)}px`;
     btn.top = `${GAP}px`;
+    btn.shadowColor = 'rgba(120,120,120,0.5)';
+    btn.shadowBlur = 6 * s;
+    btn.shadowOffsetX = 3 * s;
+    btn.shadowOffsetY = 3 * s;
     container.addControl(btn);
     axisButtons[key] = btn;
   });
@@ -176,7 +180,9 @@ export function createGizmoMobileHud({
       btn.fontSize = `${Math.min(56 * s, Math.floor(BTN_SIZE * 0.75))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
-      btn.background = 'transparent';
+      // A fully transparent fill casts no canvas shadow, so give it a faint
+      // one purely to carry the drop shadow the border alone can't cast.
+      btn.background = 'rgba(0,0,0,0.35)';
       btn.color = 'white';
       btn.thickness = 3 * s;
       btn.isPointerBlocker = true;
@@ -184,6 +190,10 @@ export function createGizmoMobileHud({
       btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       btn.left = `${leftPos}px`;
       btn.top = `${GAP}px`;
+      btn.shadowColor = 'rgba(120,120,120,0.5)';
+      btn.shadowBlur = 6 * s;
+      btn.shadowOffsetX = 3 * s;
+      btn.shadowOffsetY = 3 * s;
       container.addControl(btn);
       // The +/- glyphs sit low within their line-box in this font; nudge up to
       // visually re-centre them in the button.
@@ -268,7 +278,7 @@ export function createGizmoMobileHud({
       const tick = new flock.GUI.Rectangle(`gizmoTick${deg}`);
       tick.width = `${tickW}px`;
       tick.height = `${tickH}px`;
-      tick.background = 'rgba(255,255,255,0.55)';
+      tick.background = 'white';
       tick.thickness = 0;
       tick.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       tick.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -286,7 +296,28 @@ export function createGizmoMobileHud({
     thumb.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     thumb.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     thumb.top = `${TRACK_CENTER_Y - THUMB_R}px`;
+    thumb.shadowColor = 'rgba(120,120,120,0.5)';
+    thumb.shadowBlur = 6 * s;
+    thumb.shadowOffsetX = 3 * s;
+    thumb.shadowOffsetY = 3 * s;
     container.addControl(thumb);
+
+    // The covered tick sits *under* the 85%-opaque thumb, so recolouring it can
+    // only ever wash back out toward white (0.85*white + 0.15*anything is still
+    // ~85% of the way to white) — that's why it read as a flicker, not a solid
+    // grey. Draw the grey mark on top of the thumb instead, where it's opaque.
+    const notchW = tickW;
+    const notchH = THUMB_R * 0.7;
+    const thumbNotch = new flock.GUI.Rectangle('gizmoThumbNotch');
+    thumbNotch.width = `${notchW}px`;
+    thumbNotch.height = `${notchH}px`;
+    thumbNotch.background = '#999999';
+    thumbNotch.thickness = 0;
+    thumbNotch.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    thumbNotch.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    thumbNotch.top = `${TRACK_CENTER_Y - notchH / 2}px`;
+    thumbNotch.isVisible = false;
+    container.addControl(thumbNotch);
 
     let rawOffsetGUI = 0; // follows finger exactly
     let thumbOffsetGUI = 0; // snapped display position
@@ -345,10 +376,16 @@ export function createGizmoMobileHud({
       }
     }
 
+    function updateThumbNotch(gui) {
+      thumbNotch.left = `${HALF / 2 - notchW / 2 + gui}px`;
+      thumbNotch.isVisible = isSnapPoint(gui);
+    }
+
     refreshThumb = () => {
       rawOffsetGUI = degToGUI(getAxisDeg());
       thumbOffsetGUI = snapGUI(rawOffsetGUI);
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
+      updateThumbNotch(thumbOffsetGUI);
     };
     refreshThumb();
 
@@ -392,6 +429,7 @@ export function createGizmoMobileHud({
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       updateThumbHeldColour(newThumbOffsetGUI);
+      updateThumbNotch(newThumbOffsetGUI);
     }
 
     function onPointerMove(e) {
@@ -408,6 +446,7 @@ export function createGizmoMobileHud({
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       updateThumbHeldColour(newThumbOffsetGUI);
+      updateThumbNotch(newThumbOffsetGUI);
     }
 
     function onPointerUp(e) {
