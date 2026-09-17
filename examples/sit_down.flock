@@ -1933,6 +1933,23 @@
         }
       },
       {
+        "type": "comment",
+        "id": "?E:v7qH8mSW[3Jf_AU!T",
+        "inputs": {
+          "COMMENT": {
+            "shadow": {
+              "type": "text",
+              "id": "*DWVOmDb1ujBbOSSzR-L",
+              "fields": {
+                "TEXT": "Generate random trees from a seed"
+              }
+            }
+          }
+        },
+        "x": 10,
+        "y": 4504
+      },
+      {
         "type": "procedures_defnoreturn",
         "id": ",;|QW%96ML$|:cj!bPU0",
         "x": 10,
@@ -1945,14 +1962,6 @@
               "argId": "nw)OthfIa/0NfyKp@B_D"
             }
           ]
-        },
-        "icons": {
-          "comment": {
-            "text": "Generate random trees from a seed",
-            "pinned": false,
-            "height": 80,
-            "width": 160
-          }
         },
         "fields": {
           "NAME": "forest",

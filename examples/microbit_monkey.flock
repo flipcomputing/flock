@@ -317,28 +317,37 @@
               },
               "next": {
                 "block": {
-                  "type": "switch_animation",
-                  "id": "ybz;~~L1:$FFc9KGvLS[",
-                  "icons": {
-                    "comment": {
-                      "text": "Switch to an animation and keep it playing.",
-                      "pinned": false,
-                      "height": 44.5008544921875,
-                      "width": 450.02166748046875
-                    }
-                  },
-                  "fields": {
-                    "MODEL": {
-                      "id": "wS3o8x9I3I=8:GDE;OR3"
-                    }
-                  },
+                  "type": "comment",
+                  "id": "/n4ijm?8}G]RE!enSe7!",
                   "inputs": {
-                    "ANIMATION_NAME": {
+                    "COMMENT": {
                       "shadow": {
-                        "type": "animation_name",
-                        "id": "Qty0bhwTcV}?F=1nQ-hl",
+                        "type": "text",
+                        "id": "u/`#xPATKS#h#`l:=Ln3",
                         "fields": {
-                          "ANIMATION_NAME": "Idle"
+                          "TEXT": "Switch to an animation and keep it playing."
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "switch_animation",
+                      "id": "ybz;~~L1:$FFc9KGvLS[",
+                      "fields": {
+                        "MODEL": {
+                          "id": "wS3o8x9I3I=8:GDE;OR3"
+                        }
+                      },
+                      "inputs": {
+                        "ANIMATION_NAME": {
+                          "shadow": {
+                            "type": "animation_name",
+                            "id": "Qty0bhwTcV}?F=1nQ-hl",
+                            "fields": {
+                              "ANIMATION_NAME": "Idle"
+                            }
+                          }
                         }
                       }
                     }

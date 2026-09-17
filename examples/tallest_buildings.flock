@@ -95,20 +95,27 @@
         }
       },
       {
+        "type": "comment",
+        "id": ",SlNYzIf`6;II08B*]l$",
+        "inputs": {
+          "COMMENT": {
+            "shadow": {
+              "type": "text",
+              "id": "~/c]WIOxF7V)cY;;^t=g",
+              "fields": {
+                "TEXT": "Watch the world's tallest buildings being built in order. At the end you can use the arrow keys or the on-screen pad to move the camera."
+              }
+            }
+          }
+        },
+        "x": 10,
+        "y": 204
+      },
+      {
         "type": "start",
         "id": ":Hp[{`Ym;(nCSico4=gW",
         "x": 10,
         "y": 254,
-        "icons": {
-          "comment": {
-            "text": "Watch the worlds \ntallest buildings\nbeing build in order. \n\nAt the end you can use the \narrow keys or the on-screen \npad to move the camera. ",
-            "pinned": false,
-            "height": 143.47097778320312,
-            "width": 246.08258056640625,
-            "x": 38.203125,
-            "y": 102.57700892857142
-          }
-        },
         "inputs": {
           "DO": {
             "block": {
