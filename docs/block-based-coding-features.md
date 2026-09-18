@@ -59,6 +59,8 @@ Clicking or tapping a block in the toolbox will also append/insert to the curren
 
 We found that it was too easy to accidentally drag blocks on mobile phones. In Flock XR, if you're on a small device then you need to tap a block to select it before you can drag it. This makes it easier to scroll the workspace without accidentally moving blocks around.
 
+The same rule applies to the toolbox: on a small device, tap a block in the toolbox to select it first, then tap again or drag to add it to the workspace. This stops blocks being added accidentally while scrolling through the toolbox.
+
 ## Expand/collapse
 
 Expand and collapse are standard Blockly features which Flock XR enables. They are really helpful for tidying up big projects so you can keep your focus on new code. We have customised the collapsed version of the block in some cases to be more helpful for specific blocks in Flock XR.

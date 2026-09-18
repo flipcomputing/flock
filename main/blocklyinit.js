@@ -1681,42 +1681,92 @@ export function createBlocklyWorkspace() {
 
     const blocklyDiv = document.getElementById('blocklyDiv');
 
+    // "selected" here tracks our two-step tap helper only. The workspace half
+    // uses Blockly's own selection model; flyout blocks are recreated whenever
+    // the flyout reopens, so their highlight is tracked on the SVG root alone.
     let selectedBlock = null;
+    let flyoutSelected = null;
+
+    // Drop the flyout half of the tap helper by removing the highlight class we
+    // managed; the flyout's own focus state is left untouched.
+    const clearFlyoutSelection = () => {
+      if (flyoutSelected?.isConnected) {
+        flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
+      }
+      flyoutSelected = null;
+    };
 
     blocklyDiv.addEventListener(
       'pointerdown',
       (e) => {
         if (e.pointerType !== 'touch') return;
         const blockRoot = e.target.closest('.blocklyDraggable');
+        const inFlyout = blockRoot?.closest('.blocklyFlyout') != null;
+        // Workspace selection is Blockly's own; the flyout's is the block whose
+        // SVG root we last focused, kept so the second tap or a drag passes
+        // through to Blockly.
+        const alreadySelected = inFlyout
+          ? flyoutSelected === blockRoot
+          : blockRoot?.classList.contains('blocklySelected');
 
-        if (
-          blockRoot &&
-          !blockRoot.classList.contains('blocklySelected') &&
-          !blockRoot.closest('.blocklyFlyout')
-        ) {
+        if (blockRoot && !alreadySelected) {
+          // First tap only selects the block (workspace or flyout); a second
+          // tap or a drag after selection performs the real action.
           e.stopPropagation();
           const blockId = blockRoot.getAttribute('data-id');
-          if (blockId) {
-            const block = workspace.getBlockById(blockId);
-            if (block) {
-              selectedBlock?.unselect();
-              block.select();
-              selectedBlock = block;
+          if (!blockId) return;
+          if (inFlyout) {
+            // Highlight the block with the same blue a focused block gets.
+            // The class is applied directly — not via Blockly's focus
+            // manager — because driving the focus machinery here moves DOM
+            // focus, whose focusin/focusout guard promptly hands the
+            // highlight to a different block. Blockly's own flyout
+            // bookkeeping still strips the class after some taps, so the
+            // observer below re-asserts it.
+            const path = blockRoot.querySelector(':scope > .blocklyPath');
+            if (flyoutSelected && flyoutSelected !== blockRoot && flyoutSelected.isConnected) {
+              flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
             }
+            flyoutSelected = blockRoot;
+            path?.classList.add('blocklyActiveFocus');
+            return;
+          }
+          const block = workspace.getBlockById(blockId);
+          if (block) {
+            clearFlyoutSelection();
+            selectedBlock?.unselect();
+            block.select();
+            selectedBlock = block;
           }
         } else if (!blockRoot) {
           selectedBlock?.unselect();
           selectedBlock = null;
+          clearFlyoutSelection();
         }
       },
       true
     );
+
+    // The flyout's own focus bookkeeping strips `blocklyActiveFocus` from the
+    // tapped block a moment after some taps. Watch the flyout svgs and put the
+    // class back; adding it triggers one more mutation that is then a no-op.
+    for (const flyoutSvg of blocklyDiv.querySelectorAll('.blocklyFlyout')) {
+      new MutationObserver(() => {
+        if (workspace.isDragging?.()) return;
+        if (!flyoutSelected?.isConnected || !flyoutSelected.closest('.blocklyFlyout')) return;
+        const path = flyoutSelected.querySelector(':scope > .blocklyPath');
+        if (path && !path.classList.contains('blocklyActiveFocus')) {
+          path.classList.add('blocklyActiveFocus');
+        }
+      }).observe(flyoutSvg, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.BLOCK_DRAG && !e.isStart) {
         setTimeout(() => {
           Blockly.common.getSelected()?.unselect();
           selectedBlock = null;
+          flyoutSelected = null;
         }, 0);
       }
     });
