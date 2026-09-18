@@ -1341,7 +1341,7 @@ button {
   }
 
   .view-toggle-btn[aria-pressed='true'] {
-    background-color: white;
+    background-color: var(--color-loading-bg);
     color: var(--color-primary);
   }
 
