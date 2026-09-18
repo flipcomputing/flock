@@ -2802,14 +2802,26 @@ const toolboxText = {
     },
     {
       kind: 'block',
+      type: 'comment',
+      keyword: '//',
+      inputs: {
+        COMMENT: {
+          shadow: {
+            type: 'text_multiline',
+            fields: {
+              TEXT: 'comment',
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'print_text',
       keyword: 'print',
       inputs: {
         TEXT: {
-          // Shadow text_join: print_text's onChange promotes it to a real
-          // block on the canvas (so you can drop variables/blocks into the
-          // items) and respawns it when dragged out, like set_material.
-          shadow: {
+             shadow: {
             type: 'text_join',
             extraState: { itemCount: 1 },
             inline: true,
@@ -3109,21 +3121,6 @@ const toolboxText = {
       kind: 'block',
       type: 'text',
       keyword: 'text',
-    },
-    {
-      kind: 'block',
-      type: 'comment',
-      keyword: '//',
-      inputs: {
-        COMMENT: {
-          shadow: {
-            type: 'text_multiline',
-            fields: {
-              TEXT: 'comment',
-            },
-          },
-        },
-      },
     },
     {
       kind: 'block',
