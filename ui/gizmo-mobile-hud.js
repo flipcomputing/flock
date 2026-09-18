@@ -54,6 +54,8 @@ export function createGizmoMobileHud({
   const BTN_SIZE = Math.min(62 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
   const TOTAL_H = BTN_SIZE + 2 * GAP;
 
+  const symbolTextTop = `${-Math.round(BTN_SIZE * 0.04)}px`;
+
   // ── Transparent container ─────────────────────────────────────────────────
   const container = new flock.GUI.Rectangle('gizmoHudContainer');
   container.width = `${canvas.width}px`;
@@ -112,6 +114,7 @@ export function createGizmoMobileHud({
     btn.shadowOffsetX = 3 * s;
     btn.shadowOffsetY = 3 * s;
     container.addControl(btn);
+    if (label === '=' || label === '-' || label === '+') btn.textBlock.top = symbolTextTop;
     axisButtons[key] = btn;
   });
 
@@ -195,9 +198,8 @@ export function createGizmoMobileHud({
       btn.shadowOffsetX = 3 * s;
       btn.shadowOffsetY = 3 * s;
       container.addControl(btn);
-      // The +/- glyphs sit low within their line-box in this font; nudge up to
-      // visually re-centre them in the button.
-      btn.textBlock.top = `${-Math.round(BTN_SIZE * 0.08)}px`;
+      // Shares the symbol nudge above so -/+ stay optically centred.
+      btn.textBlock.top = symbolTextTop;
 
       let timeoutId = null;
       let intervalId = null;
