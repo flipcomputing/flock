@@ -1694,6 +1694,7 @@ export function createBlocklyWorkspace() {
         flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
       }
       flyoutSelected = null;
+      workspace.flyoutTapSelectedId = null;
     };
 
     blocklyDiv.addEventListener(
@@ -1728,6 +1729,7 @@ export function createBlocklyWorkspace() {
               flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
             }
             flyoutSelected = blockRoot;
+            workspace.flyoutTapSelectedId = blockId;
             path?.classList.add('blocklyActiveFocus');
             return;
           }
@@ -1766,7 +1768,7 @@ export function createBlocklyWorkspace() {
         setTimeout(() => {
           Blockly.common.getSelected()?.unselect();
           selectedBlock = null;
-          flyoutSelected = null;
+          clearFlyoutSelection();
         }, 0);
       }
     });

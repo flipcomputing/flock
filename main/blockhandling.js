@@ -321,6 +321,17 @@ function initializeFlyoutHints() {
   });
   flyoutSvg.addEventListener('pointerleave', () => {
     hoveredBlock = null;
+    // A tap-selected flyout block keeps its hint in the box: mobile users
+    // lift the finger (firing pointerleave) to read the help, and the
+    // workspace selection a tap just made is usually none.
+    const tapSelectedId = workspace.flyoutTapSelectedId;
+    if (tapSelectedId) {
+      const tapSelected = flyoutWorkspace.getBlockById(tapSelectedId);
+      if (tapSelected && !tapSelected.isDisposed()) {
+        showFlyoutHint(tapSelected);
+        return;
+      }
+    }
     showSelectedBlockHint();
   });
 }
