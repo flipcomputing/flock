@@ -5,7 +5,12 @@ import { initializeTheme } from './themes.js';
 import { translate } from './translation.js';
 import { focusRememberedWorkspaceNode } from './workspaceFocus.js';
 import { setBlockHintsSuppressed } from '../ui/blockHint.js';
-import { matchBlockDefinitions, indexesFieldValues } from './blocksearch.js';
+import {
+  matchBlockDefinitions,
+  indexesFieldValues,
+  PROCEDURE_SEARCH_BLOCKS,
+  procedureDefDefaultFields,
+} from './blocksearch.js';
 import {
   options,
   defineBlocks,
@@ -2522,6 +2527,22 @@ export function overrideSearchPlugin(workspace) {
       collectBlocks(item);
     });
 
+    // The Functions category is a dynamic `custom: 'PROCEDURE'` flyout with no
+    // static entries, so the walk above finds nothing for it. Add the
+    // definition blocks explicitly so they stay searchable; callers are added
+    // per procedure at match time (procedureBlockDefinitions in blocksearch.js).
+    for (const procedureBlock of PROCEDURE_SEARCH_BLOCKS) {
+      if (!seenTypes.has(procedureBlock.type)) {
+        seenTypes.add(procedureBlock.type);
+        toolboxBlocks.push({
+          type: procedureBlock.type,
+          text: procedureBlock.type,
+          full: procedureBlock,
+          keyword: procedureBlock.keyword,
+        });
+      }
+    }
+
     return toolboxBlocks;
   }
 
@@ -2715,50 +2736,85 @@ export function overrideSearchPlugin(workspace) {
           searchTerms.add(keyword);
         }
 
-        const block = blockCreationWorkspace.newBlock(type);
+        // Fresh definition blocks have a blank name; the Functions flyout
+        // fills in the default ("do something"), so index and serve them the
+        // same way. Rebuilt on language change, so this tracks translations.
+        const defaultFields = blockInfo.full ? procedureDefDefaultFields(blockInfo.full) : null;
+        const full = defaultFields
+          ? { ...blockInfo.full, fields: { ...(blockInfo.full.fields ?? {}), ...defaultFields } }
+          : (blockInfo.full ?? blockInfo);
+
+        let block = null;
+        try {
+          block = blockCreationWorkspace.newBlock(type);
+        } catch (error) {
+          console.warn(`Search index: could not instantiate ${type}`, error);
+        }
         if (!block) {
+          // Still index the type and keyword so the block stays reachable
+          // even when it cannot be instantiated headlessly (e.g. a call
+          // block with no procedure model yet).
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            outputCheck: type === 'procedures_callreturn' ? null : false,
+          });
           return;
         }
-        applyFieldValues(block, blockInfo.full?.fields);
+        applyFieldValues(block, full?.fields);
 
-        const labelText = typeof block.toString === 'function' ? block.toString().trim() : '';
-        if (labelText) {
-          searchTerms.add(labelText);
-        } else {
-          const fallbackMessage = getBlockMessage(type);
-          if (fallbackMessage) searchTerms.add(fallbackMessage);
-        }
+        try {
+          const labelText = typeof block.toString === 'function' ? block.toString().trim() : '';
+          if (labelText) {
+            searchTerms.add(labelText);
+          } else {
+            const fallbackMessage = getBlockMessage(type);
+            if (fallbackMessage) searchTerms.add(fallbackMessage);
+          }
 
-        const blockLabel = buildBlockLabel(block) || getBlockMessage(type) || '';
+          const blockLabel = buildBlockLabel(block) || getBlockMessage(type) || '';
 
-        addBlockFieldTerms(block, searchTerms, runDebugFields);
+          addBlockFieldTerms(block, searchTerms, runDebugFields);
 
-        const inputDefinitions = blockInfo.full?.inputs;
-        if (inputDefinitions) {
-          Object.values(inputDefinitions).forEach((definition) => {
-            const shadowType = definition?.shadow?.type;
-            if (!shadowType) {
-              return;
-            }
+          const inputDefinitions = full?.inputs;
+          if (inputDefinitions) {
+            Object.values(inputDefinitions).forEach((definition) => {
+              const shadowType = definition?.shadow?.type;
+              if (!shadowType) {
+                return;
+              }
 
-            const shadowBlock = blockCreationWorkspace.newBlock(shadowType);
-            if (!shadowBlock) {
-              return;
-            }
-            applyFieldValues(shadowBlock, definition?.shadow?.fields);
-            addBlockFieldTerms(shadowBlock, searchTerms, runDebugFields);
-            shadowBlock.dispose(true);
+              const shadowBlock = blockCreationWorkspace.newBlock(shadowType);
+              if (!shadowBlock) {
+                return;
+              }
+              applyFieldValues(shadowBlock, definition?.shadow?.fields);
+              addBlockFieldTerms(shadowBlock, searchTerms, runDebugFields);
+              shadowBlock.dispose(true);
+            });
+          }
+
+          (workspace.flockBlockLabelMap ??= new Map()).set(type, blockLabel);
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            // What the block can plug into: false for a statement, null for an
+            // untyped output. Used to filter the value-socket block picker.
+            outputCheck: block.outputConnection
+              ? (block.outputConnection.getCheck() ?? null)
+              : false,
+          });
+        } catch (error) {
+          console.warn(`Search index: could not index ${type}`, error);
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            outputCheck: type === 'procedures_callreturn' ? null : false,
           });
         }
-
-        (workspace.flockBlockLabelMap ??= new Map()).set(type, blockLabel);
-        indexedBlocks.push({
-          ...blockInfo,
-          text: Array.from(searchTerms).join(' ').toLowerCase(),
-          // What the block can plug into: false for a statement, null for an
-          // untyped output. Used to filter the value-socket block picker.
-          outputCheck: block.outputConnection ? (block.outputConnection.getCheck() ?? null) : false,
-        });
       });
     } finally {
       blockCreationWorkspace.dispose();

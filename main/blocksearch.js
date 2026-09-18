@@ -39,6 +39,17 @@ export function getBlockSearchLabel(workspace, blockDefOrType) {
   );
 }
 
+// The Functions flyout is a dynamic `custom: 'PROCEDURE'` category, so the
+// toolbox definition lists no static blocks for it. Index the definition
+// blocks explicitly so a search for "function" reaches them; the call blocks
+// are added dynamically per procedure below (procedureBlockDefinitions), the
+// way the flyout lists one caller per existing function. A generic call block
+// would render unbound ("???"), so it is deliberately not indexed.
+export const PROCEDURE_SEARCH_BLOCKS = [
+  { kind: 'block', type: 'procedures_defnoreturn', keyword: 'function' },
+  { kind: 'block', type: 'procedures_defreturn', keyword: 'function' },
+];
+
 // The blocks that work on one variable, in the order the Variables flyout
 // lists them. Their shadow values come from the toolbox entries, so the two
 // surfaces stay in step.
@@ -91,6 +102,91 @@ function variableBlockDefinitions(workspace, query, index, types) {
     }));
 }
 
+// A fresh definition block has a blank name; the Functions flyout fills in
+// the default ("do something"), so search does the same for its labels and
+// results. Null when the block already names itself or the message is absent.
+export function procedureDefDefaultFields(def) {
+  const type = typeof def === 'string' ? def : def?.type;
+  if (type !== 'procedures_defnoreturn' && type !== 'procedures_defreturn') return null;
+  if (typeof def === 'object' && def?.fields?.NAME) return null;
+  const messageKey =
+    type === 'procedures_defreturn'
+      ? 'PROCEDURES_DEFRETURN_PROCEDURE'
+      : 'PROCEDURES_DEFNORETURN_PROCEDURE';
+  const name = Blockly.Msg?.[messageKey];
+  return name ? { NAME: name } : null;
+}
+
+// All procedures on the workspace: data-model procedures plus legacy
+// definition blocks. Mirrors what Blockly.Procedures.flyoutCategory lists.
+export function getWorkspaceProcedures(workspace) {
+  const seen = new Set();
+  const procedures = [];
+  const add = (name, params, hasReturn) => {
+    if (!name) return;
+    const key = String(name).toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    procedures.push({ name, params: params ?? [], hasReturn: !!hasReturn });
+  };
+
+  try {
+    for (const model of workspace.getProcedureMap?.()?.getProcedures?.() ?? []) {
+      add(
+        model.getName?.() ?? model.name,
+        (model.getParameters?.() ?? []).map((param) => param.getName?.() ?? param.name ?? ''),
+        (() => {
+          // Blockly uses null for no return; a returning procedure may use
+          // an empty array for an untyped output, which is still a return.
+          const returnTypes = model.getReturnTypes?.();
+          return returnTypes !== null && returnTypes !== undefined;
+        })()
+      );
+    }
+  } catch {
+    // The procedure map may be unavailable; legacy blocks below still count.
+  }
+
+  try {
+    for (const type of ['procedures_defnoreturn', 'procedures_defreturn']) {
+      for (const block of workspace.getBlocksByType?.(type, false) ?? []) {
+        try {
+          const [name, params] = block.getProcedureDef?.() ?? [];
+          add(name, params, type === 'procedures_defreturn');
+        } catch {
+          // Skip blocks whose definition cannot be read.
+        }
+      }
+    }
+  } catch {
+    // Stub workspaces in tests have no block query methods.
+  }
+
+  return procedures;
+}
+
+// One caller per matching procedure, bound via extraState the way the
+// Functions flyout binds its callers — so search results name the actual
+// functions instead of rendering an unbound call block. Like variables, a
+// procedure is reached by its own name; any prefix of "function" lists every
+// caller alongside the generic definitions, matching the keyword-prefix tier
+// the definitions themselves match on.
+function procedureBlockDefinitions(workspace, query, valueOnly) {
+  return getWorkspaceProcedures(workspace)
+    .filter(
+      (procedure) =>
+        procedure.name.toLowerCase().includes(query) || 'function'.startsWith(query)
+    )
+    .filter((procedure) => !valueOnly || procedure.hasReturn)
+    .map((procedure) => ({
+      kind: 'block',
+      type: procedure.hasReturn ? 'procedures_callreturn' : 'procedures_callnoreturn',
+      keyword: procedure.name,
+      searchLabel: `call ${procedure.name} ( )`,
+      extraState: { name: procedure.name, params: procedure.params },
+    }));
+}
+
 // Ranking tiers, best first. An exactly typed keyword or label wins outright so
 // the keywords people already know still land on the block they expect.
 function scoreMatch(def, query, label) {
@@ -126,8 +222,10 @@ export function matchBlockDefinitions(workspace, rawQuery, options = {}) {
   const outputCheck = options.outputCheck ?? null;
 
   const labelOf = (def) => getBlockSearchLabel(workspace, def).toLowerCase();
-  // Variable blocks are one per variable, so the type alone is not unique.
-  const keyOf = (def) => `${def.type}|${def.fields?.VAR?.name ?? ''}`;
+  // Variable and procedure blocks repeat one type per name, so the type alone
+  // is not unique.
+  const keyOf = (def) =>
+    `${def.type}|${def.fields?.VAR?.name ?? ''}|${def.extraState?.name ?? ''}`;
 
   const seenKeys = new Set();
   return [
@@ -137,6 +235,7 @@ export function matchBlockDefinitions(workspace, rawQuery, options = {}) {
       index,
       valueOnly ? VARIABLE_VALUE_BLOCK_TYPES : VARIABLE_BLOCK_TYPES
     ),
+    ...procedureBlockDefinitions(workspace, query, valueOnly),
     ...index
       .filter((b) => b.text && b.text.includes(query) && (!valueOnly || fitsSocket(b, outputCheck)))
       .map((b) => b.full),
@@ -199,5 +298,15 @@ export function rebuildBlockCategoryMap(workspace, toolboxDef) {
 }
 
 export function getBlockCategoryInfo(workspace, type) {
-  return categoryMaps.get(workspace)?.get(type) ?? { name: '', color: null };
+  const known = categoryMaps.get(workspace)?.get(type);
+  if (known) return known;
+  // The Functions flyout is dynamic, so procedure blocks never land in the
+  // category map; report them under Functions anyway.
+  if (typeof type === 'string' && type.startsWith('procedures_')) {
+    return {
+      name: resolveCategoryName('%{BKY_CATEGORY_FUNCTIONS}'),
+      color: resolveCategoryColour(workspace, 'procedures_category'),
+    };
+  }
+  return { name: '', color: null };
 }

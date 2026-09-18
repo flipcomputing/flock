@@ -6,6 +6,8 @@ import {
   getBlockCategoryInfo,
   indexesFieldValues,
   rebuildBlockCategoryMap,
+  PROCEDURE_SEARCH_BLOCKS,
+  procedureDefDefaultFields,
 } from '../main/blocksearch.js';
 import { FieldBlockSearch } from '../blocks/fieldBlockSearch.js';
 import { toolbox } from '../toolbox.js';
@@ -674,6 +676,138 @@ export function runBlockSearchTests() {
         expect(shadow.getFieldValue('NUM')).to.equal(Number(value));
       });
     }
+  });
+
+  // The Functions category is a dynamic `custom: 'PROCEDURE'` flyout with no
+  // static toolbox entries, so the search index adds the definitions
+  // explicitly (PROCEDURE_SEARCH_BLOCKS in main/blocksearch.js, wired up in
+  // main/blocklyinit.js) while callers are built per procedure at match time.
+  // Searching "function" must reach the definitions plus a caller bound to
+  // each actual function — never an unbound call block.
+  describe('procedure blocks in search @blocksearch', function () {
+    const DEFINITION_TYPES = ['procedures_defnoreturn', 'procedures_defreturn'];
+
+    // A workspace stub with the static procedure index plus fake procedure
+    // models. matchBlockDefinitions only needs the index array, the label map
+    // and the procedure map, so a plain object suffices here.
+    function stubProcedureWorkspace(procedures) {
+      return {
+        flockSearchIndexedBlocks: PROCEDURE_SEARCH_BLOCKS.map((full) => ({
+          type: full.type,
+          full,
+          text: `${full.type.replaceAll('_', ' ')} ${full.keyword}`,
+        })),
+        flockBlockLabelMap: new Map(),
+        getProcedureMap: () => ({
+          getProcedures: () =>
+            procedures.map((procedure) => ({
+              getName: () => procedure.name,
+              getParameters: () => (procedure.params ?? []).map((name) => ({ getName: () => name })),
+              getReturnTypes: () => (procedure.hasReturn ? [] : null),
+            })),
+        }),
+      };
+    }
+
+    it('indexes the definition blocks with the "function" keyword', function () {
+      for (const type of DEFINITION_TYPES) {
+        const definition = PROCEDURE_SEARCH_BLOCKS.find((entry) => entry.type === type);
+        expect(definition, `${type} missing from PROCEDURE_SEARCH_BLOCKS`).to.not.equal(undefined);
+        expect(definition.keyword).to.equal('function');
+      }
+    });
+
+    it('does not index a generic unbound call block', function () {
+      const callTypes = PROCEDURE_SEARCH_BLOCKS.filter((entry) =>
+        entry.type.startsWith('procedures_call')
+      ).map((entry) => entry.type);
+      expect(callTypes).to.deep.equal([]);
+    });
+
+    it('matches the definitions for a search for "function"', function () {
+      const workspace = new Blockly.Workspace();
+      try {
+        workspace.flockBlockLabelMap = new Map();
+        workspace.flockSearchIndexedBlocks = PROCEDURE_SEARCH_BLOCKS.map((full) => ({
+          type: full.type,
+          full,
+          text: `${full.type.replaceAll('_', ' ')} ${full.keyword}`,
+        }));
+        const types = matchBlockDefinitions(workspace, 'function').map((def) => def.type);
+        expect(types).to.have.members(DEFINITION_TYPES);
+      } finally {
+        workspace.dispose();
+      }
+    });
+
+    it('lists a bound caller for each existing procedure', function () {
+      const workspace = stubProcedureWorkspace([
+        { name: 'dance', params: ['speed'] },
+        { name: 'spin', params: [], hasReturn: true },
+      ]);
+      const results = matchBlockDefinitions(workspace, 'function');
+      const callers = results.filter((def) => def.type.startsWith('procedures_call'));
+      expect(callers.map((def) => def.extraState?.name)).to.have.members(['dance', 'spin']);
+      expect(callers.find((def) => def.extraState?.name === 'dance')).to.deep.equal({
+        kind: 'block',
+        type: 'procedures_callnoreturn',
+        keyword: 'dance',
+        searchLabel: 'call dance ( )',
+        extraState: { name: 'dance', params: ['speed'] },
+      });
+      expect(
+        callers.find((def) => def.extraState?.name === 'spin').type
+      ).to.equal('procedures_callreturn');
+    });
+
+    it('finds a caller by procedure name', function () {
+      const workspace = stubProcedureWorkspace([{ name: 'dance', params: ['speed'] }]);
+      const results = matchBlockDefinitions(workspace, 'dance');
+      expect(results[0].type).to.equal('procedures_callnoreturn');
+      expect(results[0].extraState).to.deep.equal({ name: 'dance', params: ['speed'] });
+    });
+
+    it('lists callers for a prefix of "function", as the definitions match', function () {
+      const workspace = stubProcedureWorkspace([{ name: 'dance', params: [] }]);
+      const types = matchBlockDefinitions(workspace, 'fun').map((def) => def.type);
+      expect(types).to.include('procedures_defnoreturn');
+      expect(types).to.include('procedures_callnoreturn');
+    });
+
+    it('offers only callers that return a value for a value socket', function () {
+      const workspace = stubProcedureWorkspace([
+        { name: 'dance', params: [] },
+        { name: 'spin', params: [], hasReturn: true },
+      ]);
+      const results = matchBlockDefinitions(workspace, 'function', {
+        valueOnly: true,
+        outputCheck: null,
+      });
+      expect(results.map((def) => def.extraState?.name)).to.deep.equal(['spin']);
+      expect(results[0].type).to.equal('procedures_callreturn');
+    });
+
+    it('reports procedure blocks under the Functions category', function () {
+      const info = getBlockCategoryInfo({}, 'procedures_callnoreturn');
+      expect(info.name).to.equal(Blockly.Msg.CATEGORY_FUNCTIONS || 'Functions');
+    });
+
+    it('fills in the default definition name ("do something")', function () {
+      expect(procedureDefDefaultFields({ type: 'procedures_defnoreturn' })).to.deep.equal({
+        NAME: Blockly.Msg.PROCEDURES_DEFNORETURN_PROCEDURE,
+      });
+      expect(procedureDefDefaultFields({ type: 'procedures_defreturn' })).to.deep.equal({
+        NAME: Blockly.Msg.PROCEDURES_DEFRETURN_PROCEDURE,
+      });
+    });
+
+    it('leaves named definitions and other blocks alone', function () {
+      expect(
+        procedureDefDefaultFields({ type: 'procedures_defnoreturn', fields: { NAME: 'dance' } })
+      ).to.equal(null);
+      expect(procedureDefDefaultFields({ type: 'procedures_callnoreturn' })).to.equal(null);
+      expect(procedureDefDefaultFields({ type: 'start' })).to.equal(null);
+    });
   });
 
   describe('keyword block replacement @blocksearch', function () {
