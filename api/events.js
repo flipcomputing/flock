@@ -64,6 +64,13 @@ export const flockEvents = {
       flock.events[eventName].notifyObservers(data);
     }
   },
+  restartProject() {
+    const signal = flock.abortController?.signal;
+    setTimeout(() => {
+      if (signal?.aborted) return;
+      window.executeCode?.();
+    }, 0);
+  },
   whenActionEvent(action, callback, isReleased = false) {
     if (typeof callback !== 'function') {
       flock.reportBlockError({ key: 'invalid_callback', api: 'whenActionEvent' });

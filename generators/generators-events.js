@@ -129,4 +129,8 @@ export function registerEventsGenerators(javascriptGenerator) {
     const statements_do = javascriptGenerator.statementToCode(block, 'DO');
     return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
   };
+
+  javascriptGenerator.forBlock['restart'] = function () {
+    return 'restartProject();\n';
+  };
 }

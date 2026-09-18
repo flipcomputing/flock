@@ -676,4 +676,19 @@ export function defineEventsBlocks() {
       }
     },
   };
+
+  Blockly.Blocks['restart'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'restart',
+        message0: translate('restart'),
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Events'],
+        tooltip: getTooltip('restart'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('events_blocks');
+    },
+  };
 }

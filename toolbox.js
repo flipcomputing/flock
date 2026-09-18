@@ -1390,6 +1390,11 @@ const toolboxEvents = {
         },
       },
     },
+    {
+      kind: 'block',
+      type: 'restart',
+      keyword: 'restart',
+    },
   ],
 };
 

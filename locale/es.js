@@ -218,6 +218,7 @@ export default {
   when_action_event: 'cuando %1 %2', // human
   broadcast_event: 'transmitir evento %1', // human
   on_event: 'al evento %1', // human
+  restart: 'reiniciar', // ai
 
   // Custom block translations - Materials blocks
   change_color: 'cambiar color de %1 a %2', // human
@@ -520,6 +521,7 @@ export default {
     'Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, toque o XR.', // human
   broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.", // human
   on_event_tooltip: 'Ejecuta el código cuando se recibe un evento emitido.', // human
+  restart_tooltip: 'Reinicia el proyecto desde el principio, igual que pulsar Reproducir.', // ai
 
   // Tooltip translations - Materials blocks
   change_color_tooltip: 'Cambia el color del objeto seleccionado.', // human

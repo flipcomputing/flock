@@ -225,6 +225,7 @@ export default {
   when_action_event: 'when %1 %2',
   broadcast_event: 'broadcast event %1',
   on_event: 'on event %1',
+  restart: 'restart',
 
   // Custom block translations - Materials blocks
   change_color: 'color %1 to %2',
@@ -520,6 +521,7 @@ export default {
     'Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.',
   broadcast_event_tooltip: 'Broadcast an event that is received by on event.',
   on_event_tooltip: 'Run code when a broadcast event is received.',
+  restart_tooltip: 'Restart the project from the beginning, same as pressing Play.',
 
   // Tooltip translations - Materials blocks
   change_color_tooltip: 'Change the color of the selected object.',
