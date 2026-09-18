@@ -49,6 +49,8 @@ Instead of hover block info which is not visible on mobile devices, Flock XR use
 
 Flock XR builds on Blockly's support for keyboard navigation. Projects can be fully authored using keyboard controls. This extends to the full editor including the overall UI and the visual gizmos and color picker. Flock XR also has additional keyboard shortcuts for common actions.
 
+When keyboard focus is on a toolbox category, you can start typing the category name to skip to that category (typeahead).
+
 ## Context-aware add
 
 If you select a block and then paste, the pasted blocks will be added after the selected block where appropriate. This reduces the number of actions needed when copying or reorganising code.
