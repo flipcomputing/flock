@@ -44,7 +44,7 @@
   --color-border-light: #eee;
 
   /* Loading Screen Colors */
-  --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --color-loading-bg: #fcfaf1;
   --color-loading-spinner: #e3e3e3;
   --color-loading-spinner-active: #511d91;
 
@@ -237,7 +237,7 @@
   --color-border-light: #cccccc;
 
   /* Loading Screen Colors */
-  --color-loading-bg: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  --color-loading-bg: #fcfaf1;
   --color-loading-spinner: #e3e3e3;
   --color-loading-spinner-active: #511d91;
 

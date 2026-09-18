@@ -79,7 +79,7 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 10000;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: #fcfaf1;
   transition: opacity 0.5s ease-out;
 }
 
