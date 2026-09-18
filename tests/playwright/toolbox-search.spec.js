@@ -31,3 +31,19 @@ test('toolbox search retains its term while allowing native text selection', asy
     .poll(() => searchInput.evaluate((input) => input.selectionEnd - input.selectionStart))
     .toBeGreaterThan(0);
 });
+
+test('clicking into toolbox search selects all for easy replace', async ({ page }) => {
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => document.querySelector(".blocklyToolbox input[type='search']"), {
+    timeout: 20000,
+  });
+
+  const searchInput = page.locator(".blocklyToolbox input[type='search']");
+  await searchInput.fill('alpha beta');
+  await page.locator('.blocklyToolboxCategory').filter({ hasText: 'Scene' }).click();
+  await searchInput.click();
+
+  await expect
+    .poll(() => searchInput.evaluate((input) => input.value.slice(input.selectionStart, input.selectionEnd)))
+    .toBe('alpha beta');
+});

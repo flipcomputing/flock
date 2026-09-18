@@ -859,10 +859,58 @@ export function initializeWorkspace() {
   // Toolbox search input: placeholder + accessible name, reapplied whenever
   // the toolbox rebuilds (theme change, language change, etc.)
   requestAnimationFrame(() => {
+    const getSearchCategory = () =>
+      workspace
+        ?.getToolbox?.()
+        ?.getToolboxItems?.()
+        ?.find((item) => item.getId?.() === 'toolbox-search-input');
+
+    const attachSearchSelectBehavior = (input) => {
+      if (input.__flockSearchSelectInstalled) return;
+      input.__flockSearchSelectInstalled = true;
+      // Re-clicking the active search row lets Blockly's toolbox handler
+      // swallow the pointer event, collapsing native text selection.
+      input.addEventListener('pointerdown', (e) => {
+        if (workspace.getToolbox?.()?.getSelectedItem?.() === getSearchCategory()) {
+          e.stopPropagation();
+        }
+        input.__flockHadFocusOnPointerDown = document.activeElement === input;
+        input.__flockPointerMoved = false;
+      });
+      input.addEventListener('pointermove', (e) => {
+        if (input.__flockHadFocusOnPointerDown === false && e.buttons !== 0) {
+          input.__flockPointerMoved = true;
+        }
+      });
+      // First click in selects all for easy replace; the mouseup default
+      // would otherwise collapse it to the click point.
+      input.addEventListener('mouseup', (e) => {
+        if (
+          input.__flockHadFocusOnPointerDown === false &&
+          input.__flockPointerMoved === false &&
+          document.activeElement === input &&
+          input.value
+        ) {
+          e.preventDefault();
+          input.select?.();
+        }
+        input.__flockHadFocusOnPointerDown = null;
+        input.__flockPointerMoved = null;
+      });
+      // Keyboard entry (Ctrl+F etc.) selects all for easy replace.
+      // Mouse entry is covered by mouseup above so dblclick word-select keeps working.
+      input.addEventListener('focus', (e) => {
+        if (e.relatedTarget instanceof Element && input.contains(e.relatedTarget)) return;
+        if (input.__flockHadFocusOnPointerDown === false) return;
+        if (input.value) requestAnimationFrame(() => input.select?.());
+      });
+    };
+
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
     searchInput.placeholder = translate('toolbox_search_placeholder');
     fixSearchCategoryAria(searchInput);
+    attachSearchSelectBehavior(searchInput);
 
     const toolboxEl = document.querySelector('.blocklyToolbox');
     if (toolboxEl) {
@@ -872,6 +920,7 @@ export function initializeWorkspace() {
         if (!newInput) return;
         newInput.placeholder = translate('toolbox_search_placeholder');
         fixSearchCategoryAria(newInput);
+        attachSearchSelectBehavior(newInput);
         searchInput = newInput;
       }).observe(toolboxEl, { childList: true, subtree: true });
     }
