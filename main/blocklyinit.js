@@ -1687,6 +1687,29 @@ export function createBlocklyWorkspace() {
     let selectedBlock = null;
     let flyoutSelected = null;
 
+    // While a drop that starts over an *unselected* flyout block is in flight,
+    // the pointer is scroll-only (handed to Blockly's flyout gesture above).
+    // This candidate records where it started so the pointerup handler can
+    // tell a genuine tap (which highlights the block) from a scroll (which
+    // does not). Flagged as a drag once the pointer moves past the flyout
+    // drag radius. Bound to one pointer: extra touches are ignored while it
+    // is active, and only its own release settles it.
+    let flyoutTapCandidate = null;
+    const flyoutTapRadius = Blockly.config.flyoutDragRadius;
+
+    // The workspace has two flyouts (toolbox and trashcan). Resolve the one
+    // that owns the touched block so scroll gestures and hover cleanup
+    // target the right workspace.
+    const getOwningFlyout = (blockRoot) => {
+      const flyoutEl = blockRoot?.closest('.blocklyFlyout');
+      if (!flyoutEl) return null;
+      return (
+        [workspace.getFlyout(), trashcanFlyout].find(
+          (f) => f?.getWorkspace?.().getParentSvg?.() === flyoutEl
+        ) ?? null
+      );
+    };
+
     // Drop the flyout half of the tap helper by removing the highlight class we
     // managed; the flyout's own focus state is left untouched.
     const clearFlyoutSelection = () => {
@@ -1697,10 +1720,41 @@ export function createBlocklyWorkspace() {
       workspace.flyoutTapSelectedId = null;
     };
 
+    // Drop Blockly's own hover selection from flyout blocks. While a touch
+    // moves, Blockly highlights each block under the pointer, even when the
+    // gesture becomes a scroll — and the highlight sticks after release.
+    // A scroll must leave nothing behind; a tap leaves only our blue.
+    const removeFlyoutHover = (blockRoot) => {
+      const blockId = blockRoot?.getAttribute('data-id');
+      if (!blockId) return;
+      const owned =
+        getOwningFlyout(blockRoot)?.getWorkspace?.().getBlockById(blockId) ?? null;
+      if (owned) {
+        owned.removeSelect();
+        return;
+      }
+      for (const flyout of [workspace.getFlyout(), trashcanFlyout]) {
+        const block = flyout?.getWorkspace?.().getBlockById(blockId);
+        if (block) {
+          block.removeSelect();
+          return;
+        }
+      }
+    };
+    const clearFlyoutHoverSelection = () => {
+      for (const root of blocklyDiv.querySelectorAll(
+        '.blocklyFlyout .blocklyDraggable.blocklySelected'
+      )) {
+        removeFlyoutHover(root);
+      }
+    };
+
     blocklyDiv.addEventListener(
       'pointerdown',
       (e) => {
         if (e.pointerType !== 'touch') return;
+        // One tap at a time: a second finger must not steal the candidate.
+        if (flyoutTapCandidate && e.pointerId !== flyoutTapCandidate.pointerId) return;
         const blockRoot = e.target.closest('.blocklyDraggable');
         const inFlyout = blockRoot?.closest('.blocklyFlyout') != null;
         // Workspace selection is Blockly's own; the flyout's is the block whose
@@ -1711,28 +1765,40 @@ export function createBlocklyWorkspace() {
           : blockRoot?.classList.contains('blocklySelected');
 
         if (blockRoot && !alreadySelected) {
-          // First tap only selects the block (workspace or flyout); a second
-          // tap or a drag after selection performs the real action.
-          e.stopPropagation();
+          // A first touch over an unselected block never performs the real
+          // action; a second tap or a drag after selection does. A touch that
+          // merely starts on the block is not a selection either — flyout
+          // blocks are recreated whenever the flyout reopens, so they are
+          // tracked here (see flyoutTapCandidate below). The workspace half
+          // keeps selecting on the first tap; the flyout half defers it so a
+          // drop-start scrolls the flyout instead.
           const blockId = blockRoot.getAttribute('data-id');
           if (!blockId) return;
           if (inFlyout) {
-            // Highlight the block with the same blue a focused block gets.
-            // The class is applied directly — not via Blockly's focus
-            // manager — because driving the focus machinery here moves DOM
-            // focus, whose focusin/focusout guard promptly hands the
-            // highlight to a different block. Blockly's own flyout
-            // bookkeeping still strips the class after some taps, so the
-            // observer below re-asserts it.
-            const path = blockRoot.querySelector(':scope > .blocklyPath');
-            if (flyoutSelected && flyoutSelected !== blockRoot && flyoutSelected.isConnected) {
-              flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
+            // Drop-start on a flyout block is a scroll, same as dropping on
+            // the flyout background: hand the pointer to Blockly's flyout
+            // gesture, which scrolls once the drop exceeds the drag radius.
+            // The blue highlight is applied only when the interaction settles
+            // as a genuine tap (see the pointerup handler below).
+            const gesture = workspace.getGesture(e);
+            const flyout = getOwningFlyout(blockRoot) ?? workspace.getFlyout();
+            if (gesture && flyout) {
+              e.stopPropagation();
+              gesture.handleFlyoutStart(e, flyout);
             }
-            flyoutSelected = blockRoot;
-            workspace.flyoutTapSelectedId = blockId;
-            path?.classList.add('blocklyActiveFocus');
+            flyoutTapCandidate = {
+              blockRoot,
+              blockId,
+              pointerId: e.pointerId,
+              startX: e.clientX,
+              startY: e.clientY,
+              asDrag: false,
+            };
             return;
           }
+          // Workspace selection is Blockly's own: tap selects now, a second
+          // tap or a drag performs the real action.
+          e.stopPropagation();
           const block = workspace.getBlockById(blockId);
           if (block) {
             clearFlyoutSelection();
@@ -1745,6 +1811,76 @@ export function createBlocklyWorkspace() {
           selectedBlock = null;
           clearFlyoutSelection();
         }
+      },
+      true
+    );
+
+    // Settle a drop that started over an unselected flyout block. Past the
+    // drag radius it is a scroll, so the candidate is flagged and nothing is
+    // highlighted. Otherwise it was a tap, applied here at pointerup.
+    document.addEventListener(
+      'pointermove',
+      (e) => {
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerType !== 'touch') return;
+        if (e.pointerId !== candidate.pointerId) return;
+        const dx = e.clientX - candidate.startX;
+        const dy = e.clientY - candidate.startY;
+        if (Math.hypot(dx, dy) > flyoutTapRadius) candidate.asDrag = true;
+      },
+      true
+    );
+    // Blockly highlights each flyout block under a moving pointer, including
+    // the first millimetres of a scroll. Strip that hover selection back off
+    // — this listener runs on bubble, after the block's own move listener
+    // re-adds it each move, and before paint, so a scroll never flashes the
+    // start block. Scoped to the undecided candidate so real block drags
+    // (second tap, workspace) are untouched.
+    document.addEventListener(
+      'pointermove',
+      (e) => {
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerType !== 'touch') return;
+        if (e.pointerId !== candidate.pointerId) return;
+        const blockRoot = e.target?.closest?.('.blocklyDraggable');
+        if (!blockRoot || !blockRoot.classList.contains('blocklySelected')) return;
+        if (blockRoot.closest('.blocklyFlyout') == null) return;
+        removeFlyoutHover(blockRoot);
+      },
+      false
+    );
+    document.addEventListener(
+      'pointerup',
+      (e) => {
+        if (e.pointerType !== 'touch') return;
+        clearFlyoutHoverSelection();
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerId !== candidate.pointerId) return;
+        flyoutTapCandidate = null;
+        if (candidate.asDrag) return;
+        const blockRoot = candidate.blockRoot;
+        if (!blockRoot?.isConnected || !blockRoot.closest('.blocklyFlyout')) return;
+        // Highlight the block with the same blue a focused block gets. The
+        // class is applied directly — not via Blockly's focus manager —
+        // because driving the focus machinery here moves DOM focus, whose
+        // focusin/focusout guard promptly hands the highlight to a different
+        // block. Blockly's own flyout bookkeeping still strips the class
+        // after some taps, so the observer below re-asserts it.
+        clearFlyoutSelection();
+        selectedBlock?.unselect();
+        selectedBlock = null;
+        flyoutSelected = blockRoot;
+        workspace.flyoutTapSelectedId = candidate.blockId;
+        blockRoot.querySelector(':scope > .blocklyPath')?.classList.add('blocklyActiveFocus');
+      },
+      true
+    );
+    document.addEventListener(
+      'pointercancel',
+      (e) => {
+        if (e.pointerType !== 'touch') return;
+        clearFlyoutHoverSelection();
+        if (flyoutTapCandidate?.pointerId === e.pointerId) flyoutTapCandidate = null;
       },
       true
     );

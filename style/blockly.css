@@ -642,6 +642,15 @@ body[data-theme='dark'] .blocklyTreeLabel {
   fill-opacity: 0.8 !important;
 }
 
+/* Touch tap-selection in the flyout. Blockly only paints `blocklyActiveFocus`
+   on block paths in keyboard-navigation mode, which touch never enters — so
+   the two-step tap helper's highlight would be invisible. Paint the same blue
+   unconditionally, scoped to flyout blocks. */
+.blocklyFlyout .blocklyDraggable > .blocklyPath.blocklyActiveFocus {
+  stroke: var(--blockly-active-node-color);
+  stroke-width: var(--blockly-selection-width);
+}
+
 [data-theme='low-color'] .blocklyFlyout,
 [data-theme='low-color'] .blocklyFlyoutBackground {
   opacity: 1 !important;
