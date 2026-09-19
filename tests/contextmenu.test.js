@@ -306,6 +306,93 @@ export function runContextMenuTests(_flock) {
         await settle();
         expect(blockToolbar.classList.contains('visible')).to.equal(false);
       });
+
+      it('opens via a click on the block itself', async function () {
+        const block = makeBlock();
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        } finally {
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('hides when a toolbox category opens on narrow screens', async function () {
+        const block = makeBlock();
+        const origMatchMedia = window.matchMedia;
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+
+          window.matchMedia = () => ({ matches: true });
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => true }) });
+          workspace.fireChangeListener({
+            type: Blockly.Events.TOOLBOX_ITEM_SELECT,
+            newItem: 'Logic',
+          });
+          expect(blockToolbar.classList.contains('visible')).to.equal(false);
+        } finally {
+          window.matchMedia = origMatchMedia;
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('stays open on toolbox selection when the flyout is shut', async function () {
+        const block = makeBlock();
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => false }) });
+          workspace.fireChangeListener({
+            type: Blockly.Events.TOOLBOX_ITEM_SELECT,
+            newItem: null,
+          });
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        } finally {
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('does not open while the toolbox flyout is open on narrow screens', async function () {
+        const block = makeBlock();
+        const origMatchMedia = window.matchMedia;
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          window.matchMedia = () => ({ matches: true });
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => true }) });
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(false);
+        } finally {
+          window.matchMedia = origMatchMedia;
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
+        }
+      });
     });
   });
 }

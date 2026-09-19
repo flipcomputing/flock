@@ -1363,7 +1363,17 @@ export function initContextMenus(workspace) {
       announceToScreenReader(message, { requireCanvasFocus: false });
     }
 
+    const isNarrowViewport = () =>
+      window.matchMedia?.('(max-width: 768px)').matches ?? false;
+    const isToolboxFlyoutOpen = () =>
+      !!workspace.getToolbox?.()?.getFlyout?.()?.isVisible?.();
+
     function showBlockToolbar(block, { keyboard = false } = {}) {
+      // Keep the toolbar behind the toolbox flyout on narrow screens.
+      if (isNarrowViewport() && isToolboxFlyoutOpen()) {
+        hideBlockToolbar();
+        return;
+      }
       toolbarBlock = block;
       toolbarKeyboardMode = keyboard;
 
@@ -1505,6 +1515,11 @@ export function initContextMenus(workspace) {
           // the SELECTED handler above: the reselect that follows must not
           // undo this hide. Covers toolbox drags and keyboard moves (M) alike.
           suppressReshowBlock = workspace.getBlockById(e.blockId) ?? toolbarBlock;
+          hideBlockToolbar();
+        }
+      } else if (e.type === Blockly.Events.TOOLBOX_ITEM_SELECT) {
+        // The event can fire before the flyout reads visible.
+        if (isNarrowViewport() && (e.newItem != null || isToolboxFlyoutOpen())) {
           hideBlockToolbar();
         }
       }
