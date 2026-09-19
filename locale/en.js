@@ -207,7 +207,7 @@ export default {
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
   for_loop: 'for each %1 from %2 to %3 by %4 do %5',
   get_lexical_variable: '%1',
-  section: 'section %1',
+  section: 'section %1 start: %2',
   section_default_name: 'Section',
   section_toggle_alt: 'expand or collapse section',
 

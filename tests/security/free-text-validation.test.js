@@ -55,6 +55,7 @@ const TESTED_TEXT_FIELDS = [
   'keyword.KEYWORD',
   'keyword_value.KEYWORD',
   'section.NAME',
+  'section.COMMENT',
   'text_multiline.TEXT',
 ];
 
@@ -253,6 +254,17 @@ export function runTextFieldValidationTests() {
         {
           type: 'section',
           fields: { NAME: payload },
+        },
+        workspace
+      );
+      expect(generate(block)).not.to.include(payload);
+    });
+
+    it('section comment is never emitted into generated code', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'section',
+          fields: { COMMENT: payload },
         },
         workspace
       );

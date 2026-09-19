@@ -14,6 +14,7 @@ import {
   setClearSkyToBlack,
 } from '../ui/blockmesh.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
+import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
 import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
 import { FieldBlockSearch } from './fieldBlockSearch.js';
@@ -1123,6 +1124,24 @@ export class CustomConstantProvider extends Blockly.zelos.ConstantProvider {
 }
 
 const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
+
+// Section blocks manually position their contained blocks instead of really
+// connecting them (see sectionContainment.js), so once the block is widened
+// to fit a wide child, the comment field needs to be stretched to match too -
+// otherwise it looks like a narrower box floating inside a wider block.
+{
+  const originalUpdateSize = FieldMultilineInput.prototype.updateSize_;
+  FieldMultilineInput.prototype.updateSize_ = function (...args) {
+    originalUpdateSize.apply(this, args);
+    if (this.name !== 'COMMENT') return;
+    const block = this.getSourceBlock?.();
+    const minWidth = block?.type === 'section' ? block.commentMinWidth_ || 0 : 0;
+    if (minWidth > this.size_.width) {
+      this.size_.width = minWidth;
+      this.borderRect_?.setAttribute('width', minWidth);
+    }
+  };
+}
 
 class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   constructor(renderer, block) {

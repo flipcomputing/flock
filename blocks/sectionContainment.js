@@ -137,6 +137,7 @@ export function layoutSectionChildren(section) {
     }
     // Blockly leaves residual row height if the input is merely hidden, not removed.
     if (section.getInput('DO')) section.removeInput('DO');
+    section.commentMinWidth_ = 0;
     section.render();
     return;
   }
@@ -148,13 +149,21 @@ export function layoutSectionChildren(section) {
   doInput.setVisible(true);
 
   const children = ids.map((id) => ws.getBlockById(id)).filter(Boolean);
-  let desired = children.length ? TOP_GAP : 0;
+  let desiredHeight = children.length ? TOP_GAP : 0;
+  let widestChild = 0;
   children.forEach((child, index) => {
     const hw = child.getHeightWidth ? child.getHeightWidth() : { width: 100, height: 40 };
-    desired += hw.height;
-    desired += index < children.length - 1 ? CHILD_GAP : TOP_GAP;
+    desiredHeight += hw.height;
+    desiredHeight += index < children.length - 1 ? CHILD_GAP : TOP_GAP;
+    if (hw.width > widestChild) widestChild = hw.width;
   });
-  section.desiredMouthHeight_ = desired;
+  section.desiredMouthHeight_ = desiredHeight;
+  // Contained blocks are manually positioned, not real connections, so
+  // Blockly never widens the block to fit them on its own. The comment field
+  // starts at the same X as the children (see COMMENT_INDENT_WIDTH in
+  // section.js), so stretching it to their width grows the whole block to
+  // match instead of leaving a gap between the comment and the block edge.
+  section.commentMinWidth_ = widestChild ? widestChild + TOP_GAP : 0;
   section.render();
 
   const origin = section.getRelativeToSurfaceXY();
@@ -410,6 +419,17 @@ export function attachSectionBehaviour(workspace) {
           if (dx || dy) propagateSectionMove(workspace, section, dx, dy);
         }
       }
+      resizeOwningSectionsImmediately(workspace, event.blockId);
+      return;
+    }
+
+    if (event.type === Blockly.Events.BLOCK_CHANGE) {
+      // A field edit (comment, name, checkbox, a contained block's own
+      // field...) can change a block's height without moving it, which
+      // BLOCK_MOVE would otherwise have caught - re-layout so contained
+      // blocks aren't left at their old, now-stale position.
+      const block = workspace.getBlockById(event.blockId);
+      if (block?.type === 'section') layoutSectionChildren(block);
       resizeOwningSectionsImmediately(workspace, event.blockId);
       return;
     }
