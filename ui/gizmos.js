@@ -14,6 +14,10 @@ import {
   getCanvasXAndCanvasYValues,
   setBlockXYZ,
   duplicateBlockAndInsert,
+  insertBlockSnapshot,
+  captureStackAnchor,
+  reattachBlockToAnchor,
+  chainBlockAfter,
   findParentWithBlockId,
   setNumberInputs,
   getNumberInput,
@@ -76,6 +80,7 @@ let activeDuplicatePickTimer = null; // Deferred-listener timer for the above
 let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
+let canvasClipboard = null;
 let orbitSavedCamera = null; // Free camera stashed while orbit-view is active
 let orbitViewObserver = null; // Unused; orbit no longer tracks selection
 let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
@@ -286,6 +291,20 @@ function registerBindings() {
     const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
     deleteBlockWithUndo(meshBlockIdMap[blockKey]);
   });
+  // Canvas clipboard: Ctrl/Cmd+C/X/V on the selected mesh.
+  const withCanvasClipboard = (fn) => (e) => {
+    if (!(e.ctrlKey || e.metaKey)) return;
+    if (e.repeat) return;
+    if (isCanvasClipboardTypingTarget(e)) return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    fn();
+  };
+  for (const ctx of ['GIZMO', 'CAMERA']) {
+    KeyboardDispatcher.on(ctx, 'Mod+KeyC', withCanvasClipboard(copyCanvasSelection));
+    KeyboardDispatcher.on(ctx, 'Mod+KeyX', withCanvasClipboard(cutCanvasSelection));
+    KeyboardDispatcher.on(ctx, 'Mod+KeyV', withCanvasClipboard(pasteCanvasClipboard));
+  }
   // Exit gizmo with Tab key
   KeyboardDispatcher.on('GIZMO', 'Tab', () => {
     exitGizmoState();
@@ -630,6 +649,140 @@ function deleteBlockWithUndo(blockId) {
 
   gizmoManager.attachToMesh(null);
   turnOffAllGizmos();
+}
+
+function getCanvasSelectedRoot() {
+  let mesh = gizmoManager?.attachedMesh;
+  if (!mesh || mesh.name === 'ground') return null;
+  if (mesh.isDisposed?.()) return null;
+  if (mesh.parent) mesh = getRootMesh(mesh.parent) ?? mesh;
+  return mesh;
+}
+
+function isCanvasClipboardTypingTarget(e) {
+  const t = e.target;
+  if (!t) return false;
+  const tag = t.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (t.isContentEditable) return true;
+  if (Blockly.WidgetDiv?.isVisible?.() || Blockly.DropDownDiv?.isVisible?.()) return true;
+  if (Blockly.getMainWorkspace?.()?.getInjectionDiv?.()?.contains(t)) return true;
+  if (typeof t.closest === 'function' && t.closest('.blocklySvg, .blocklyToolbox')) {
+    return true;
+  }
+  return false;
+}
+
+export function copyCanvasSelection() {
+  const mesh = getCanvasSelectedRoot();
+  if (!mesh) return false;
+  const blockKey = findParentWithBlockId(mesh)?.metadata?.blockKey;
+  const workspace = Blockly.getMainWorkspace?.();
+  const block = meshBlockIdMap[blockKey] ? workspace?.getBlockById(meshBlockIdMap[blockKey]) : null;
+  if (!block || block.disposed) return false;
+  let snapshot;
+  try {
+    snapshot = Blockly.serialization.blocks.save(block, { includeShadows: true });
+  } catch {
+    return false;
+  }
+  if (snapshot?.next) delete snapshot.next;
+  const pos = flock.getBlockPositionFromMesh(mesh);
+  canvasClipboard = {
+    snapshot,
+    blockId: block.id,
+    anchor: captureStackAnchor(block),
+    x: pos.x,
+    y: pos.y,
+    z: pos.z,
+  };
+  return true;
+}
+
+export function cutCanvasSelection() {
+  const mesh = getCanvasSelectedRoot();
+  if (!mesh) return false;
+  const blockKey = findParentWithBlockId(mesh)?.metadata?.blockKey;
+  const blockId = meshBlockIdMap[blockKey];
+  if (!blockId || !copyCanvasSelection()) return false;
+  deleteBlockWithUndo(blockId);
+  return true;
+}
+
+export function pasteCanvasClipboard() {
+  if (!canvasClipboard?.snapshot) return false;
+  const workspace = Blockly.getMainWorkspace?.();
+  if (!workspace) return false;
+  const current = getCanvasSelectedRoot();
+  const pastePos = current
+    ? flock.getBlockPositionFromMesh(current)
+    : { x: canvasClipboard.x, y: canvasClipboard.y, z: canvasClipboard.z };
+  const source = canvasClipboard.blockId ? workspace.getBlockById(canvasClipboard.blockId) : null;
+  const sourceAlive = source && !source.disposed ? source : null;
+  let selectionBlock = null;
+  if (current && !sourceAlive) {
+    const blockKey = findParentWithBlockId(current)?.metadata?.blockKey;
+    selectionBlock = meshBlockIdMap[blockKey] ? workspace.getBlockById(meshBlockIdMap[blockKey]) : null;
+    if (selectionBlock?.disposed) selectionBlock = null;
+  }
+  Blockly.Events.setGroup('duplicate');
+  let newBlock = null;
+  try {
+    newBlock = insertBlockSnapshot(
+      canvasClipboard.snapshot,
+      workspace,
+      pastePos,
+      sourceAlive
+    );
+    if (newBlock && !sourceAlive) {
+      const reattached =
+        canvasClipboard.anchor && reattachBlockToAnchor(workspace, newBlock, canvasClipboard.anchor);
+      if (!reattached && selectionBlock) chainBlockAfter(workspace, selectionBlock, newBlock);
+    }
+  } catch {
+    return false;
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+  if (!newBlock) return false;
+  highlightBlockById(workspace, newBlock);
+  attachPastedMesh(newBlock);
+  return true;
+}
+
+export function getCanvasClipboard() {
+  if (!canvasClipboard) return null;
+  return {
+    blockId: canvasClipboard.blockId,
+    anchor: canvasClipboard.anchor ? { ...canvasClipboard.anchor } : null,
+    x: canvasClipboard.x,
+    y: canvasClipboard.y,
+    z: canvasClipboard.z,
+    snapshot: JSON.parse(JSON.stringify(canvasClipboard.snapshot)),
+  };
+}
+
+export function clearCanvasClipboard() {
+  canvasClipboard = null;
+}
+
+function attachPastedMesh(newBlock) {
+  if (!gizmoManager) return;
+  let attempts = 0;
+  const tryAttach = () => {
+    if (!newBlock || newBlock.disposed) return;
+    const key = getBlockKeyFromBlock(newBlock);
+    let mesh = (key ? getMeshFromBlockKey(key) : null) || getMeshFromBlock(newBlock);
+    if (mesh) {
+      if (mesh.parent) mesh = getRootMesh(mesh.parent) ?? mesh;
+      gizmoManager.attachToMesh(mesh);
+      enableBoundingBox(mesh);
+      return;
+    }
+    attempts += 1;
+    if (attempts < 20) requestAnimationFrame(tryAttach);
+  };
+  requestAnimationFrame(tryAttach);
 }
 
 function focusCameraOnMesh(overrideMesh) {

@@ -2,6 +2,12 @@ import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { initContextMenus } from '../ui/contextmenu.js';
 import { setBlockLocked, isBlockLocked } from '../ui/blocklyutil.js';
+import {
+  insertBlockSnapshot,
+  captureStackAnchor,
+  reattachBlockToAnchor,
+  chainBlockAfter,
+} from '../ui/blocklyutil.js';
 import { defineControlBlocks } from '../blocks/control.js';
 import { translate } from '../main/translation.js';
 
@@ -279,6 +285,91 @@ export function runContextMenuTests(_flock) {
 
         // It should have landed connected below the target, not floating loose.
         expect(target.nextConnection.isConnected()).to.equal(true);
+      });
+    });
+
+    describe('canvas clipboard stack anchor', function () {
+      const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+      function chain(count = 3) {
+        const blocks = [];
+        for (let i = 0; i < count; i++) blocks.push(makeBlock());
+        for (let i = 0; i + 1 < count; i++) {
+          blocks[i].nextConnection.connect(blocks[i + 1].previousConnection);
+        }
+        return blocks;
+      }
+
+      function snapshotOf(block) {
+        const snapshot = Blockly.serialization.blocks.save(block, { includeShadows: true });
+        if (snapshot.next) delete snapshot.next;
+        return snapshot;
+      }
+
+      it('captureStackAnchor records the parent and next block', function () {
+        const [a, b, c] = chain();
+        const anchor = captureStackAnchor(b);
+        expect(anchor.parentId).to.equal(a.id);
+        expect(anchor.inputName).to.equal(null);
+        expect(anchor.nextId).to.equal(c.id);
+      });
+
+      it('cut-style paste reinserts the block into its stack position', async function () {
+        const [a, b, c] = chain();
+        const snapshot = snapshotOf(b);
+        const anchor = captureStackAnchor(b);
+        b.dispose(true);
+        createdBlocks = createdBlocks.filter((x) => x !== b);
+        expect(a.getNextBlock()).to.equal(c);
+
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(true);
+        expect(a.getNextBlock()).to.equal(pasted);
+        expect(pasted.getNextBlock()).to.equal(c);
+        await flush();
+      });
+
+      it('reattach leaves the block detached when the parent is gone', async function () {
+        const [a, b] = chain(2);
+        const snapshot = snapshotOf(b);
+        const anchor = captureStackAnchor(b);
+        b.dispose(true);
+        createdBlocks = createdBlocks.filter((x) => x !== b);
+        a.dispose();
+        createdBlocks = createdBlocks.filter((x) => x !== a);
+
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(false);
+        expect(pasted.getParent()).to.equal(null);
+        await flush();
+      });
+
+      it('chainBlockAfter inserts between a target and its next block', async function () {
+        const [a, c] = chain(2);
+        const loose = makeBlock();
+        expect(chainBlockAfter(workspace, a, loose)).to.equal(true);
+        expect(a.getNextBlock()).to.equal(loose);
+        expect(loose.getNextBlock()).to.equal(c);
+        await flush();
+      });
+
+      it('cut lone block then paste chains after the selected block', async function () {
+        const lone = makeBlock();
+        const snapshot = snapshotOf(lone);
+        const anchor = captureStackAnchor(lone);
+        expect(anchor).to.equal(null);
+        lone.dispose();
+        createdBlocks = createdBlocks.filter((x) => x !== lone);
+
+        const target = makeBlock();
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(false);
+        expect(chainBlockAfter(workspace, target, pasted)).to.equal(true);
+        expect(target.getNextBlock()).to.equal(pasted);
+        await flush();
       });
     });
 

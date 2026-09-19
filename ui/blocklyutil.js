@@ -479,8 +479,6 @@ export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition
     return null;
   }
 
-  Blockly.Events.setGroup('duplicate');
-
   const blockJson = Blockly.serialization.blocks.save(originalBlock, {
     includeShadows: true,
   });
@@ -489,20 +487,34 @@ export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition
     delete blockJson.next;
   }
 
-  // A copy of a locked block must come out unlocked/movable.
-  stripLockState(blockJson);
+  return insertBlockSnapshot(blockJson, workspace, pickedPosition, originalBlock);
+}
 
-  const duplicateBlock = Blockly.serialization.blocks.append(blockJson, workspace);
-
-  setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
-
-  if (originalBlock.nextConnection && duplicateBlock.previousConnection) {
-    originalBlock.nextConnection.connect(duplicateBlock.previousConnection);
-  } else {
-    duplicateBlock.moveBy(50, 50);
+export function insertBlockSnapshot(snapshotJson, workspace, pickedPosition, connectAfter = null) {
+  if (!snapshotJson || !workspace) {
+    return null;
   }
 
-  Blockly.Events.setGroup(false);
+  const ownsGroup = !Blockly.Events.getGroup();
+  if (ownsGroup) Blockly.Events.setGroup('duplicate');
+
+  let duplicateBlock;
+  try {
+    const snapshot = JSON.parse(JSON.stringify(snapshotJson));
+    stripLockState(snapshot);
+
+    duplicateBlock = Blockly.serialization.blocks.append(snapshot, workspace);
+
+    setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
+
+    if (connectAfter?.nextConnection && duplicateBlock.previousConnection) {
+      connectAfter.nextConnection.connect(duplicateBlock.previousConnection);
+    } else {
+      duplicateBlock.moveBy(50, 50);
+    }
+  } finally {
+    if (ownsGroup) Blockly.Events.setGroup(false);
+  }
 
   // Trigger update of mesh from block values
   queueMicrotask(() => {
@@ -539,6 +551,81 @@ export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition
   duplicateBlock.render();
 
   return duplicateBlock;
+}
+
+export function captureStackAnchor(block) {
+  if (!block || block.disposed) return null;
+  const parent = block.getParent?.();
+  if (!parent || parent.disposed) return null;
+  const input = parent.getInputWithBlock?.(block);
+  const next = block.getNextBlock?.();
+  return {
+    parentId: parent.id,
+    inputName: input ? input.name : null,
+    nextId: next && !next.disposed ? next.id : null,
+  };
+}
+
+export function reattachBlockToAnchor(workspace, block, anchor) {
+  if (!workspace || !block || block.disposed || !anchor?.parentId) return false;
+  const parent = workspace.getBlockById(anchor.parentId);
+  if (!parent || parent.disposed) return false;
+  let fromConn;
+  let toConn;
+  if (anchor.inputName) {
+    const input = parent.getInput?.(anchor.inputName);
+    if (!input?.connection) return false;
+    fromConn = input.connection;
+    toConn =
+      input.type === Blockly.NEXT_STATEMENT ? block.previousConnection : block.outputConnection;
+  } else {
+    fromConn = parent.nextConnection;
+    toConn = block.previousConnection;
+  }
+  if (!fromConn || !toConn) return false;
+  try {
+    const occupant = fromConn.targetBlock?.();
+    if (occupant && occupant !== block) fromConn.disconnect();
+    if (!fromConn.isConnected()) fromConn.connect(toConn);
+    let follow = anchor.nextId ? workspace.getBlockById(anchor.nextId) : null;
+    if (follow && (follow.disposed || follow.previousConnection?.isConnected())) follow = null;
+    const target = occupant && occupant !== block ? occupant : follow;
+    if (
+      target?.previousConnection &&
+      block.nextConnection &&
+      !block.nextConnection.isConnected()
+    ) {
+      block.nextConnection.connect(target.previousConnection);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function chainBlockAfter(workspace, target, block) {
+  if (!workspace || !target || target.disposed || !block || block.disposed) return false;
+  const fromConn = target.nextConnection;
+  const toConn = block.previousConnection;
+  if (!fromConn || !toConn) return false;
+  try {
+    const occupant = fromConn.targetBlock?.();
+    if (occupant && occupant !== block) fromConn.disconnect();
+    if (!fromConn.isConnected()) fromConn.connect(toConn);
+    if (
+      occupant &&
+      occupant !== block &&
+      !occupant.disposed &&
+      occupant.previousConnection &&
+      block.nextConnection &&
+      !block.nextConnection.isConnected()
+    ) {
+      block.nextConnection.connect(occupant.previousConnection);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function findParentWithBlockId(mesh) {
