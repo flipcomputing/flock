@@ -456,11 +456,9 @@ export function runGizmoTests(flock) {
       });
 
       afterEach(function () {
-        // If a test left orbit-view active, detaching the mesh runs the normal
-        // disconnect path (restores the free camera, disposes the orbit camera).
-        if (flock.scene.activeCamera?.metadata?.orbitView) {
-          mgr.attachToMesh(null);
-        }
+        // Orbit no longer tracks gizmo selection, so detach alone does not
+        // exit it — always run the full teardown.
+        exitGizmoState();
         flock.scene.activeCamera = prevActiveCamera;
         flock.savedCamera = prevSavedCamera;
         window.currentBlock = prevCurrentBlock;
@@ -481,8 +479,8 @@ export function runGizmoTests(flock) {
         const cam = flock.scene.activeCamera;
         expect(cam).to.be.an.instanceof(BABYLON.ArcRotateCamera);
         expect(cam.metadata?.orbitView).to.be.true;
-        // Unit box at the origin: radius clamps to the 4 minimum, target centred.
-        expect(cam.radius).to.equal(4);
+        // Unit box at the origin: radius clamps to the 8 minimum, target centred.
+        expect(cam.radius).to.equal(8);
         expect(cam.target.x).to.be.closeTo(0, 1e-6);
         expect(cam.target.y).to.be.closeTo(0, 1e-6);
         expect(cam.target.z).to.be.closeTo(0, 1e-6);
@@ -505,18 +503,29 @@ export function runGizmoTests(flock) {
         expect(mgr.usePointerToAttachGizmos).to.be.true;
       });
 
-      it('deselecting the mesh returns to the free camera', function () {
-        orbitBox();
+      it('deselecting the gizmo keeps the orbit camera (independent selection)', function () {
+        const box = orbitBox();
         expect(flock.scene.activeCamera).to.not.equal(freeCamera);
         mgr.attachToMesh(null);
-        expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+        expect(window.orbitMesh).to.equal(box);
       });
 
-      it('selecting a different mesh returns to the free camera', function () {
-        orbitBox();
+      it('selecting a different mesh keeps the orbit camera on its target', function () {
+        const box = orbitBox();
         const other = makeBox('orbitOtherBox');
         mgr.attachToMesh(other);
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+        expect(window.orbitMesh).to.equal(box);
+        expect(mgr.attachedMesh).to.equal(other);
+      });
+
+      it('disposing the orbited mesh exits orbit', function () {
+        const box = orbitBox();
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+        box.dispose();
         expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.not.equal(true);
       });
 
       it('does nothing when no mesh is selected', function () {
@@ -536,6 +545,169 @@ export function runGizmoTests(flock) {
         orbitBox();
         expect(flock.savedCamera).to.equal(playCamera);
         playCamera.dispose();
+      });
+
+      describe('orbit-preserving tools', function () {
+        let buttons;
+
+        function addButton(id) {
+          const btn = document.createElement('button');
+          btn.id = id;
+          btn.className = 'gizmo-button';
+          document.body.appendChild(btn);
+          buttons.push(btn);
+          return btn;
+        }
+
+        beforeEach(function () {
+          buttons = [];
+          ['positionButton', 'rotationButton', 'scaleButton', 'selectButton', 'eyeButton'].forEach(
+            addButton
+          );
+        });
+
+        afterEach(function () {
+          buttons.forEach((b) => b.remove());
+          buttons = [];
+          // toggleGizmo('position'|'rotation'|'scale') registers a
+          // click-away watcher on a timer; exitGizmoState clears it.
+          exitGizmoState();
+        });
+
+        function orbitWithButtons(name = 'orbitPreserveBox') {
+          return orbitBox(name);
+        }
+
+        it('position keeps the orbit camera with both buttons lit', function () {
+          orbitWithButtons();
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          toggleGizmo('position');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+          expect(mgr.positionGizmoEnabled).to.be.true;
+        });
+
+        it('rotation keeps the orbit camera with both buttons lit', function () {
+          orbitWithButtons();
+          toggleGizmo('rotation');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('rotationButton').classList.contains('active')).to.be.true;
+          expect(mgr.rotationGizmoEnabled).to.be.true;
+        });
+
+        it('scale keeps the orbit camera with both buttons lit', function () {
+          orbitWithButtons();
+          toggleGizmo('scale');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('scaleButton').classList.contains('active')).to.be.true;
+          expect(mgr.scaleGizmoEnabled).to.be.true;
+        });
+
+        it('duplicate keeps the orbit camera with both buttons lit', function () {
+          addButton('duplicateButton');
+          orbitWithButtons();
+          toggleGizmo('duplicate');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('duplicateButton').classList.contains('active')).to.be.true;
+        });
+
+        it('toggling the transform off stays in orbit', function () {
+          orbitWithButtons();
+          toggleGizmo('position');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          toggleGizmo('position'); // toggle off
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
+        });
+
+        it('eye toggle-off keeps the transform picked while orbiting', function () {
+          orbitWithButtons();
+          toggleGizmo('position');
+          expect(mgr.positionGizmoEnabled).to.be.true;
+          toggleGizmo('eye'); // orbit off
+          expect(flock.scene.activeCamera).to.equal(freeCamera);
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.false;
+          expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+          expect(mgr.positionGizmoEnabled).to.be.true;
+        });
+
+        it('select keeps the orbit camera with both buttons lit', function () {
+          orbitWithButtons();
+          toggleGizmo('select');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          expect(document.getElementById('selectButton').classList.contains('active')).to.be.true;
+        });
+
+        it('add menu keeps the orbit camera with the eye still lit', function () {
+          // enableGizmos only wires when every required button exists.
+          [
+            'duplicateButton',
+            'deleteButton',
+            'cameraButton',
+            'showShapesButton',
+            'scrollShapesLeftButton',
+            'scrollShapesRightButton',
+            'scrollModelsLeftButton',
+            'scrollModelsRightButton',
+            'scrollObjectsLeftButton',
+            'scrollObjectsRightButton',
+            'scrollCharactersLeftButton',
+            'scrollCharactersRightButton',
+          ].forEach(addButton);
+          enableGizmos();
+          let called = false;
+          const saved = window.showShapes;
+          window.showShapes = () => (called = true);
+          try {
+            orbitWithButtons();
+            expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+            document.getElementById('showShapesButton').click();
+            expect(called).to.be.true;
+            expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+            expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+          } finally {
+            window.showShapes = saved;
+          }
+        });
+
+        it('transform can retarget to another mesh without leaving orbit', function () {
+          const first = orbitWithButtons('orbitRetargetA');
+          toggleGizmo('position');
+          expect(mgr.attachedMesh).to.equal(first);
+          const second = makeBox('orbitRetargetB');
+          mgr.attachToMesh(second);
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(window.orbitMesh).to.equal(first);
+          expect(mgr.attachedMesh).to.equal(second);
+          expect(mgr.positionGizmoEnabled).to.be.true;
+        });
+
+        it('transform re-enables pointer attach while orbiting', function () {
+          orbitWithButtons();
+          expect(mgr.usePointerToAttachGizmos).to.be.false;
+          toggleGizmo('position');
+          expect(mgr.usePointerToAttachGizmos).to.be.true;
+          toggleGizmo('position'); // transform off
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(mgr.usePointerToAttachGizmos).to.be.false;
+        });
+
+        it('exiting orbit keeps the retargeted transform selection', function () {
+          orbitWithButtons('orbitKeepA');
+          toggleGizmo('position');
+          const second = makeBox('orbitKeepB');
+          mgr.attachToMesh(second);
+          toggleGizmo('eye'); // orbit off
+          expect(flock.scene.activeCamera).to.equal(freeCamera);
+          expect(mgr.attachedMesh).to.equal(second);
+          expect(mgr.positionGizmoEnabled).to.be.true;
+        });
       });
     });
 

@@ -77,8 +77,24 @@ let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
 let orbitSavedCamera = null; // Free camera stashed while orbit-view is active
-let orbitViewObserver = null; // Observer handle for orbit-view selection tracking
+let orbitViewObserver = null; // Unused; orbit no longer tracks selection
+let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
+let orbitDisposeMesh = null; // Mesh the orbit camera targets (window.orbitMesh)
 let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
+
+// Tools that keep the orbit camera active.
+const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select']);
+
+function isOrbitViewActive() {
+  return !!flock.scene?.activeCamera?.metadata?.orbitView;
+}
+
+// Ends the tool but keeps an active orbit camera.
+function exitTransformState() {
+  const preserve = isOrbitViewActive();
+  exitGizmoState(preserve ? { preserveOrbit: true } : undefined);
+  if (preserve && gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
+}
 
 // Keep track of things to clean up
 const cleanupFns = [];
@@ -686,9 +702,8 @@ export function viewMeshWithCamera(block) {
 
   if (!camera?.metadata?.following) {
     if (camera?.metadata?.orbitView) {
-      // Toggle off if: V key (no block), or eye button on the already-orbited mesh.
-      // Switch if: eye button on a different mesh.
-      if (!block || mesh === gizmoManager.attachedMesh) {
+      // Toggle off on the orbited mesh; switch target on a different one.
+      if (!block || mesh === window.orbitMesh) {
         disconnectOrbitView();
         return;
       }
@@ -836,8 +851,7 @@ function attachOrbitView(mesh) {
   const freeCamera = scene.activeCamera;
   if (!freeCamera) return;
 
-  // Make sure the mesh is the selected one so the selection-tracking
-  // observable below is meaningful (deselect/delete/select-other -> exit).
+  // Orbit target and gizmo selection are independent.
   applyMeshSelection(mesh);
   const selectedMesh = gizmoManager.attachedMesh ?? mesh;
 
@@ -846,7 +860,7 @@ function attachOrbitView(mesh) {
   const target = BABYLON.Vector3.Center(min, max);
   const size = max.subtract(min);
   const extent = Math.max(size.x, size.y, size.z);
-  const radius = Math.max(extent * 2, 4);
+  const radius = Math.max(extent * 3, 8);
 
   const orbitCamera = new BABYLON.ArcRotateCamera(
     'orbitViewCamera',
@@ -864,9 +878,7 @@ function attachOrbitView(mesh) {
   orbitCamera.upperRadiusLimit = null;
   orbitCamera.minZ = 0.1;
   orbitCamera.wheelDeltaPercentage = 0.01;
-  // Tag so the V toggle, the camera button and disconnect logic recognise it.
-  // Stop pointer drags from re-attaching the gizmo (which would trip the
-  // selection-change exit below); restore the prior setting on disconnect.
+  // Tag so orbit is recognised. Pointer attach stays off in orbit-only mode.
   orbitCamera.metadata = {
     orbitView: true,
     prevPointerAttach: gizmoManager.usePointerToAttachGizmos,
@@ -882,10 +894,18 @@ function attachOrbitView(mesh) {
     canvas.focus();
   }
 
-  // Exit when the selection ends or changes to a different mesh.
-  orbitViewObserver = gizmoManager.onAttachedToMeshObservable.add((attached) => {
-    if (attached !== selectedMesh) disconnectOrbitView();
-  });
+  // Only disposing the orbited mesh exits orbit on its own.
+  if (orbitDisposeObserver && orbitDisposeMesh) {
+    orbitDisposeMesh.onDisposeObservable.remove(orbitDisposeObserver);
+    orbitDisposeObserver = null;
+    orbitDisposeMesh = null;
+  }
+  orbitDisposeMesh = selectedMesh;
+  if (selectedMesh?.onDisposeObservable) {
+    orbitDisposeObserver = selectedMesh.onDisposeObservable.add(() => {
+      disconnectOrbitView();
+    });
+  }
   window.orbitViewActive = true;
   window.orbitBlock = window.currentBlock ?? null;
   window.orbitMesh = selectedMesh;
@@ -905,8 +925,21 @@ function restoreFreeCameraFromOrbit() {
   if (!freeCamera || freeCamera.isDisposed()) return false;
 
   if (orbitViewObserver) {
-    gizmoManager.onAttachedToMeshObservable.remove(orbitViewObserver);
+    try {
+      gizmoManager.onAttachedToMeshObservable.remove(orbitViewObserver);
+    } catch {
+      // Already gone.
+    }
     orbitViewObserver = null;
+  }
+  if (orbitDisposeObserver && orbitDisposeMesh) {
+    try {
+      orbitDisposeMesh.onDisposeObservable.remove(orbitDisposeObserver);
+    } catch {
+      // Already disposed.
+    }
+    orbitDisposeObserver = null;
+    orbitDisposeMesh = null;
   }
 
   // Restore pointer-to-attach to whatever it was before orbit-view.
@@ -919,8 +952,7 @@ function restoreFreeCameraFromOrbit() {
   return true;
 }
 
-// Standard orbit-view exit (V toggle, deselect, delete, select-other):
-// return to the free camera and give it canvas control.
+// Standard orbit-view exit: return to the free camera.
 function disconnectOrbitView() {
   const prevMesh = window.orbitMesh;
   // Scene gone (disposal path): wipe all orbit globals so stale state never
@@ -929,6 +961,15 @@ function disconnectOrbitView() {
     window.orbitViewActive = false;
     window.orbitBlock = null;
     window.orbitMesh = null;
+    if (orbitDisposeObserver && orbitDisposeMesh) {
+      try {
+        orbitDisposeMesh.onDisposeObservable.remove(orbitDisposeObserver);
+      } catch {
+        // Already disposed.
+      }
+      orbitDisposeObserver = null;
+      orbitDisposeMesh = null;
+    }
     setGizmoButtonActive(document.getElementById('eyeButton'), false);
     return;
   }
@@ -941,10 +982,8 @@ function disconnectOrbitView() {
   window.orbitBlock = null;
   window.orbitMesh = null;
   setGizmoButtonActive(document.getElementById('eyeButton'), false);
-  // BabylonJS may clear gizmoManager.attachedMesh when the orbit camera is
-  // disposed or usePointerToAttachGizmos is restored. Re-attach so the mesh
-  // stays selected and V can re-enter orbit without a pick prompt.
-  if (prevMesh && !prevMesh.isDisposed?.()) {
+  // Re-attach the orbit target only when nothing else is selected.
+  if (!gizmoManager.attachedMesh && prevMesh && !prevMesh.isDisposed?.()) {
     gizmoManager.attachToMesh(prevMesh);
     enableBoundingBox(prevMesh);
   }
@@ -987,8 +1026,11 @@ function retilePrimitiveUVsForScale(mesh) {
 }
 
 // Clean up gizmo state if aborted
-export function exitGizmoState() {
-  disconnectOrbitView();
+export function exitGizmoState(options = {}) {
+  const { preserveOrbit = false } = options ?? {};
+  if (!preserveOrbit) {
+    disconnectOrbitView();
+  }
   duplicateModeActive = false;
   clearStatus('duplicate-place');
   if (duplicateRafId !== null) {
@@ -1013,7 +1055,7 @@ export function exitGizmoState() {
   stopAxisKeyboard = null;
   clearStatus('axis');
   clearStatus('camera');
-  clearStatus('eye-gizmo');
+  if (!preserveOrbit) clearStatus('eye-gizmo');
   clearStatus('color-picker');
   // The readout belongs to the tool that took it; the next tool doesn't move it.
   clearStatus('position-readout');
@@ -1022,8 +1064,14 @@ export function exitGizmoState() {
   // Run all queued cleanup functions
   runCleanups();
 
-  // Remove active class from all buttons
-  document.querySelectorAll('.gizmo-button').forEach((btn) => setGizmoButtonActive(btn, false));
+  // Orbit stays lit alongside a compatible tool.
+  document
+    .querySelectorAll('.gizmo-button')
+    .forEach((btn) => {
+      if (preserveOrbit && btn.id === 'eyeButton') return;
+      setGizmoButtonActive(btn, false);
+    });
+  if (preserveOrbit) setGizmoButtonActive(document.getElementById('eyeButton'), true);
   // The fly camera is a mode, not a tool: it stays on alongside whichever tool
   // is picked next, so its button keeps reporting that.
   setGizmoButtonActive(document.getElementById('cameraButton'), cameraMode === 'fly');
@@ -1061,11 +1109,11 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     }
   };
   const onConfirm = () => {
-    exitGizmoState();
+    exitTransformState();
     document.getElementById('positionButton')?.focus();
   };
   const onCancel = () => {
-    exitGizmoState();
+    exitTransformState();
     // Deselect so you get [select mesh] for next tool
     gizmoManager.attachToMesh(null);
     document.getElementById('positionButton')?.focus();
@@ -1166,11 +1214,11 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     }
   };
   const onConfirm = () => {
-    exitGizmoState();
+    exitTransformState();
     document.getElementById('rotationButton')?.focus();
   };
   const onCancel = () => {
-    exitGizmoState();
+    exitTransformState();
     gizmoManager.attachToMesh(null);
     document.getElementById('rotationButton')?.focus();
   };
@@ -1244,11 +1292,11 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
     updateScaleBlock(mesh);
   };
   const onConfirm = () => {
-    exitGizmoState();
+    exitTransformState();
     document.getElementById('scaleButton')?.focus();
   };
   const onCancel = () => {
-    exitGizmoState();
+    exitTransformState();
     gizmoManager.attachToMesh(null);
     document.getElementById('scaleButton')?.focus();
   };
@@ -1792,7 +1840,7 @@ function startDuplicatePlacement() {
     if (eventIsOutOfCanvasBounds(event, canvasRect)) {
       window.removeEventListener('click', onPickMesh);
       meshToClone.showBoundingBox = false;
-      exitGizmoState();
+      exitTransformState();
       return;
     }
 
@@ -1814,7 +1862,7 @@ function startDuplicatePlacement() {
       // If they deleted the original block while picking, exit gracefully
       if (!originalBlock) {
         meshToClone.showBoundingBox = false;
-        exitGizmoState();
+        exitTransformState();
         return;
       }
       // Otherwise carry on adding the new block
@@ -1844,7 +1892,7 @@ function startDuplicatePlacement() {
           // If they deleted the original block while picking, exit gracefully
           if (!originalBlock) {
             meshToClone.showBoundingBox = false;
-            exitGizmoState();
+            exitTransformState();
             return;
           }
           const newBlock = duplicateBlockAndInsert(
@@ -1904,35 +1952,52 @@ export function toggleGizmo(gizmoType) {
       disconnectOrbitView();
       const prevType = orbitPreviousGizmoType;
       orbitPreviousGizmoType = null;
-      if (prevType) {
-        // Re-run the full activation flow for the previous tool so its
-        // handlers (pick observer, drag handles, etc.) are live again —
-        // not just its button class.
+      const prevButton = prevType ? document.getElementById(`${prevType}Button`) : null;
+      if (prevType && prevButton && !prevButton.classList.contains('active')) {
+        // Skip when that tool is already live — toggling would turn it off.
         toggleGizmo(prevType);
       } else {
+        setGizmoButtonActive(document.getElementById('eyeButton'), false);
         flock.scene?.getEngine()?.getRenderingCanvas()?.focus();
       }
+      return;
+    }
+    // Turning a compatible tool off while orbiting stays in orbit.
+    if (ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive()) {
+      exitGizmoState({ preserveOrbit: true });
+      if (gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
       return;
     }
     exitGizmoState();
     return;
   }
 
+  const preserveOrbit = ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive();
+
   // No buttons should be highlighted
   if (gizmoType === 'eye') {
     const activeBtn = document.querySelector('.gizmo-button.active');
-    orbitPreviousGizmoType = activeBtn?.id.replace('Button', '') ?? null;
+    const prevId = activeBtn?.id ?? null;
+    const prevType = prevId?.endsWith('Button') ? prevId.slice(0, -'Button'.length) : null;
+    orbitPreviousGizmoType =
+      prevType && ['position', 'rotation', 'scale', 'select', 'duplicate', 'delete', 'camera', 'focus'].includes(prevType)
+        ? prevType
+        : null;
   }
-  document.querySelectorAll('.gizmo-button').forEach((btn) => setGizmoButtonActive(btn, false));
+  document.querySelectorAll('.gizmo-button').forEach((btn) => {
+    if (preserveOrbit && btn.id === 'eyeButton') return;
+    setGizmoButtonActive(btn, false);
+  });
 
   // If they abandoned a duplicate half way, remove listener
   if (gizmoType === 'duplicate' && activeDuplicatePickHandler) {
-    exitGizmoState();
+    exitTransformState();
     return;
   }
 
-  exitGizmoState(); // Clean up any existing gizmo state
-  if (gizmoType !== 'camera' && gizmoType !== 'eye') resetAttachedMeshIfMeshAttached();
+  exitGizmoState(preserveOrbit ? { preserveOrbit: true } : undefined); // Clean up any existing gizmo state
+  if (!preserveOrbit && gizmoType !== 'camera' && gizmoType !== 'eye')
+    resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = 'default';
 
@@ -1975,6 +2040,10 @@ export function toggleGizmo(gizmoType) {
       break;
     default:
       break;
+  }
+  // Canvas clicks retarget the gizmo only; orbit target stays put.
+  if (preserveOrbit && ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && gizmoManager) {
+    gizmoManager.usePointerToAttachGizmos = true;
   }
 }
 
@@ -2032,7 +2101,7 @@ function handleScaleGizmo() {
     pickMeshFromScene(
       (pickedMesh) => {
         if (!pickedMesh || pickedMesh.name === 'ground') {
-          exitGizmoState();
+          exitTransformState();
           return;
         }
         attachMeshForActiveTool(pickedMesh);
@@ -2046,7 +2115,7 @@ function handleScaleGizmo() {
   const scaleObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
       updateScaleBlock(lastScaledMesh); // update blockly block
-      exitGizmoState();
+      exitTransformState();
       gizmoManager.attachToMesh(null); // unselect
       return;
     }
@@ -2229,7 +2298,7 @@ function handleRotationGizmo() {
     pickMeshFromScene(
       (pickedMesh) => {
         if (!pickedMesh || pickedMesh.name === 'ground') {
-          exitGizmoState();
+          exitTransformState();
           return;
         }
         attachMeshForActiveTool(pickedMesh);
@@ -2244,7 +2313,7 @@ function handleRotationGizmo() {
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
       updateRotationBlock(lastRotatedMesh); // properly update block if they click out
-      exitGizmoState();
+      exitTransformState();
       gizmoManager.attachToMesh(null);
       return;
     }
@@ -2323,7 +2392,7 @@ function handlePositionGizmo() {
   let savedHudAxis = null;
   const activatePositionKeyboardForMesh = (mesh) => {
     if (!mesh) {
-      exitGizmoState();
+      exitTransformState();
       return;
     }
 
@@ -2359,7 +2428,7 @@ function handlePositionGizmo() {
     pickMeshFromScene(
       (pickedMesh) => {
         if (!pickedMesh || pickedMesh.name === 'ground') {
-          exitGizmoState();
+          exitTransformState();
           return;
         }
         if (pickedMesh.parent) {
@@ -2490,7 +2559,7 @@ function handleDuplicateGizmo() {
     pickMeshFromScene(
       (pickedMesh) => {
         if (!pickedMesh || pickedMesh.name === 'ground') {
-          exitGizmoState();
+          exitTransformState();
           return;
         }
         attachMeshForActiveTool(pickedMesh);
@@ -2759,7 +2828,7 @@ export function enableGizmos() {
   duplicateButton.addEventListener('click', () => toggleGizmo('duplicate'));
   deleteButton.addEventListener('click', () => toggleGizmo('delete'));
   showShapesButton.addEventListener('click', () => {
-    exitGizmoState(); // Unhighlight other buttons
+    exitTransformState();
     window.showShapes();
   });
   scrollShapesLeftButton.addEventListener('click', () => window.scrollShapes(-1));

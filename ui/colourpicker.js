@@ -1849,7 +1849,9 @@ class CustomColorPicker {
   open(color = this.currentColor, { onConfirm, onClose: closeOverride } = {}) {
     this._confirmOverride = onConfirm ?? null;
     this._closeOverride = closeOverride !== undefined ? closeOverride : undefined;
-    exitGizmoState();
+    // Keep an active orbit camera; eye-button-active alone is not orbit state.
+    const preserveOrbit = !!window.orbitViewActive;
+    exitGizmoState(preserveOrbit ? { preserveOrbit: true } : undefined);
 
     // Show first so layout has real sizes
     this.container.style.display = 'block';
