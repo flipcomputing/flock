@@ -1248,9 +1248,11 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   });
 }
 
-// Scale a mesh using the keyboard
+// Scale a mesh using the keyboard. Defaults to uniform (=) so the first
+// arrow press scales all axes; the user can then pick X/Y/Z if needed.
 function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
-  const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
+  const carriedAxis = stopAxisKeyboard?.getAxis?.() ?? null;
+  const defaultAxis = savedHudAxis ?? carriedAxis ?? 'all';
   document.body.style.cursor = 'default';
   cleanupScenePick();
   stopAxisKeyboard?.();
@@ -1318,8 +1320,8 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
       highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, axis);
     },
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.scaleGizmo, null),
-    initialKeyboardAxis,
-    initialHudAxis: savedHudAxis,
+    initialKeyboardAxis: defaultAxis,
+    initialHudAxis: defaultAxis,
   });
 }
 
