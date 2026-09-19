@@ -540,6 +540,26 @@ function eventIsOutOfCanvasBounds(event, canvasRect) {
   );
 }
 
+function watchClickAwayFromCanvas() {
+  const canvas =
+    flock.scene?.getEngine?.().getRenderingCanvas?.() ??
+    document.getElementById('renderCanvas');
+  if (!canvas) return;
+  const onClickAway = (event) => {
+    if (colorPicker?.isOpen) return;
+    if (flock.scene?.activeCamera?.metadata?.orbitView) return;
+    if (!document.querySelector('.gizmo-button.active:not(#cameraButton)')) return;
+    if (!eventIsOutOfCanvasBounds(event, canvas.getBoundingClientRect())) return;
+    exitGizmoState();
+    gizmoManager?.attachToMesh(null);
+  };
+  const timer = setTimeout(() => window.addEventListener('click', onClickAway), 50);
+  onExit(() => {
+    clearTimeout(timer);
+    window.removeEventListener('click', onClickAway);
+  });
+}
+
 function deleteBlockWithUndo(blockId) {
   const workspace = Blockly.getMainWorkspace();
   const block = workspace.getBlockById(blockId);
@@ -1960,6 +1980,7 @@ export function toggleGizmo(gizmoType) {
 
 // Scale: Allow the user to scale the mesh by dragging it
 function handleScaleGizmo() {
+  watchClickAwayFromCanvas();
   // A locked mesh may already be attached from Select; don't let scale use it.
   detachIfAttachedMeshLocked();
   configureScaleGizmo(gizmoManager);
@@ -2183,6 +2204,7 @@ function observeDragAxis(gizmo) {
 
 // Rotation: Allow the user to rotate the mesh by dragging it
 function handleRotationGizmo() {
+  watchClickAwayFromCanvas();
   // A locked mesh may already be attached from Select; don't let rotation use it.
   detachIfAttachedMeshLocked();
   configureRotationGizmo(gizmoManager);
@@ -2287,6 +2309,7 @@ function handleRotationGizmo() {
 
 // Position: Allow the user to move the mesh by dragging it
 function handlePositionGizmo() {
+  watchClickAwayFromCanvas();
   // A locked mesh may already be attached from Select; don't let move use it.
   detachIfAttachedMeshLocked();
   configurePositionGizmo(gizmoManager);
@@ -2433,6 +2456,7 @@ function _handleBoundsGizmo() {
 
 // Select: Allow the user to select a mesh by clicking on it
 function handleSelectGizmo() {
+  watchClickAwayFromCanvas();
   setGizmoButtonActive(document.getElementById('selectButton'), true);
 
   function applySelection(pickedMesh, pickedPoint) {
@@ -2484,6 +2508,7 @@ function handleDuplicateGizmo() {
 
 // Delete: Remove the selected mesh and its corresponding block
 function handleDeleteGizmo() {
+  watchClickAwayFromCanvas();
   // Highlight the button
   setGizmoButtonActive(document.getElementById('deleteButton'), true);
 
@@ -2628,6 +2653,7 @@ function addUndoHandler() {
 
 // Eye: Orbit camera around selected or picked mesh
 function handleEyeGizmo() {
+  watchClickAwayFromCanvas();
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
 
   const mesh = gizmoManager.attachedMesh;

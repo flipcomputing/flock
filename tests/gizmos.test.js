@@ -337,6 +337,99 @@ export function runGizmoTests(flock) {
       });
     });
 
+    // ─── click away from the canvas ──────────────────────────────────────
+
+    describe('click away from canvas', function () {
+      let buttons;
+
+      function addButton(id) {
+        const btn = document.createElement('button');
+        btn.id = id;
+        btn.className = 'gizmo-button';
+        document.body.appendChild(btn);
+        buttons.push(btn);
+        return btn;
+      }
+
+      function canvasCenter() {
+        const canvas =
+          flock.scene?.getEngine?.().getRenderingCanvas?.() ??
+          document.getElementById('renderCanvas');
+        const rect = canvas.getBoundingClientRect();
+        return {
+          canvas,
+          x: (rect.left + rect.right) / 2,
+          y: (rect.top + rect.bottom) / 2,
+        };
+      }
+
+      function clickAt(x, y) {
+        window.dispatchEvent(
+          new MouseEvent('click', { bubbles: true, cancelable: true, clientX: x, clientY: y })
+        );
+      }
+
+      const waitForWatcher = () => new Promise((r) => setTimeout(r, 120));
+
+      beforeEach(function () {
+        buttons = [];
+      });
+
+      afterEach(function () {
+        buttons.forEach((b) => b.remove());
+        buttons = [];
+      });
+
+      it('a click outside the canvas exits the active gizmo', async function () {
+        addButton('positionButton');
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        await waitForWatcher();
+        clickAt(-1000, -1000);
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
+        expect(mgr.positionGizmoEnabled).to.be.false;
+      });
+
+      it('a click outside the canvas with a mesh attached exits and deselects', async function () {
+        addButton('positionButton');
+        const box = makeBox();
+        mgr.attachToMesh(box);
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        await waitForWatcher();
+        clickAt(-1000, -1000);
+        expect(mgr.positionGizmoEnabled).to.be.false;
+        expect(mgr.attachedMesh).to.be.null;
+      });
+
+      it('a click inside the canvas keeps the active gizmo', async function () {
+        addButton('positionButton');
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        await waitForWatcher();
+        const { x, y } = canvasCenter();
+        clickAt(x, y);
+        expect(document.getElementById('positionButton').classList.contains('active')).to.be.true;
+        expect(mgr.positionGizmoEnabled).to.be.true;
+      });
+
+      it('leaves fly-camera mode alone when it is the only active button', async function () {
+        addButton('positionButton');
+        addButton('cameraButton');
+        toggleGizmo('position');
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        await waitForWatcher();
+        document.getElementById('positionButton').classList.remove('active');
+        document.getElementById('cameraButton').classList.add('active');
+        clickAt(-1000, -1000);
+        expect(document.getElementById('cameraButton').classList.contains('active')).to.be.true;
+        expect(mgr.positionGizmoEnabled).to.be.true;
+        document.getElementById('positionButton').classList.add('active');
+        clickAt(-1000, -1000);
+        expect(mgr.positionGizmoEnabled).to.be.false;
+      });
+    });
+
     // ─── viewMeshWithCamera: orbit view ──────────────────────────────────────
 
     describe('viewMeshWithCamera (orbit view)', function () {
