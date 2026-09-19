@@ -2927,6 +2927,31 @@ export const flock = {
   },
 };
 
+ // Bind API module closures at load time so workspace-load paths (e.g. the XR
+ // hint) can call flock helpers before the first scene runs. initializeNewScene
+ // re-asserts the same reference after each reset.
+setFlockCSG(flock);
+setFlockAnimate(flock);
+setFlockSound(flock);
+setFlockUI(flock);
+setFlockMovement(flock);
+setFlockModels(flock);
+setFlockShapes(flock);
+setFlockTransform(flock);
+setFlockMaterial(flock);
+setFlockEffects(flock);
+setFlockPhysics(flock);
+setFlockScene(flock);
+setFlockMesh(flock);
+setFlockCamera(flock);
+setFlockXR(flock);
+setFlockMath(flock);
+setFlockControl(flock);
+setFlockEvents(flock);
+setFlockMicrobit(flock);
+setFlockMicrobitManager(flock);
+setFlockSensing(flock);
+
 async function verifySesIntegrity(sesText) {
   const expected = typeof __FLOCK_SES_SRI__ !== 'undefined' ? __FLOCK_SES_SRI__ : null;
   if (!expected) return;

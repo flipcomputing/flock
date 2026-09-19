@@ -1617,7 +1617,7 @@ export const flockXR = {
     return !/Android|iPhone|iPad|iPod/i.test(agent);
   },
   async _vrHeadsetAvailable() {
-    return flock._isHeadsetBrowser() && (await flock._immersiveVRSupported());
+    return flock?._isHeadsetBrowser?.() === true && (await flock?._immersiveVRSupported?.()) === true;
   },
   async _immersiveARSupported() {
     try {
@@ -1655,7 +1655,8 @@ export const flockXR = {
   },
   // Testing shortcut: DEV also covers a headset reaching the dev server over the network.
   _xrAutoButtonAllowed() {
-    return !!import.meta.env?.DEV || flock._isLocalHost();
+    if (import.meta.env?.DEV) return true;
+    return flock?._isLocalHost?.() === true;
   },
   // Entering stays the wearer's click either way: a session needs a user gesture.
   async _showXRButtonOnHeadset() {

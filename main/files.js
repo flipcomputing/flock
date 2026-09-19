@@ -396,13 +396,19 @@ function validateBlocklyJson(json) {
 }
 
 export function hintIfXrModeMissing(workspace) {
-  if (!workspace || workspace.getBlocksByType('set_xr_mode', false).length > 0) return;
-  if (flock._xrAutoButtonAllowed?.() || !flock._vrHeadsetAvailable) return;
-  Promise.resolve(flock._vrHeadsetAvailable()).then((onHeadset) => {
-    if (onHeadset && workspace.getBlocksByType('set_xr_mode', false).length === 0) {
-      showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing', hint: true });
-    }
-  });
+  try {
+    if (!workspace || workspace.getBlocksByType('set_xr_mode', false).length > 0) return;
+    if (flock._xrAutoButtonAllowed?.() || !flock._vrHeadsetAvailable) return;
+    Promise.resolve(flock._vrHeadsetAvailable())
+      .then((onHeadset) => {
+        if (onHeadset && workspace.getBlocksByType('set_xr_mode', false).length === 0) {
+          showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing', hint: true });
+        }
+      })
+      .catch(() => {});
+  } catch {
+    return;
+  }
 }
 
 export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
