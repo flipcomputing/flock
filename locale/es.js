@@ -1545,6 +1545,10 @@ export default {
     'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
+  shortcut_fly_move: 'Cámara libre: mover', // ai
+  shortcut_fly_height: 'Cámara libre: subir / bajar', // ai
+  shortcut_orbit_rotate: 'Cámara orbital: girar alrededor del objeto', // ai
+  shortcut_orbit_zoom: 'Cámara orbital: acercar / alejar', // ai
 
   // AI-generated; needs validation
   axis_lock_x: 'Teclado bloqueado en el eje X',
@@ -1559,6 +1563,7 @@ export default {
   shortcut_category_toolbox: 'Caja de herramientas',
   shortcut_category_editor: 'Editor',
   shortcut_category_gizmos: 'Gizmos',
+  shortcut_category_camera: 'Cámara', // ai
 
   // Blockly keyboard navigation toast messages
   KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: 'Usa las teclas de flecha para navegar', // machine

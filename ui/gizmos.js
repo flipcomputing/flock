@@ -878,6 +878,9 @@ function attachOrbitView(mesh) {
   orbitCamera.upperRadiusLimit = null;
   orbitCamera.minZ = 0.1;
   orbitCamera.wheelDeltaPercentage = 0.01;
+  // Rotation comes from CameraControls via the InputManager, so drop Babylon's
+  // keyboard input to keep physical arrows on a single path.
+  orbitCamera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
   // Tag so orbit is recognised. Pointer attach stays off in orbit-only mode.
   orbitCamera.metadata = {
     orbitView: true,

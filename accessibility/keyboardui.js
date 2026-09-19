@@ -683,6 +683,27 @@ function getShortcuts() {
       keys: `Del`,
       category: translate('shortcut_category_gizmos'),
     },
+
+    {
+      label: translate('shortcut_fly_move'),
+      keys: `W A S D / ↑ ↓ ← →`,
+      category: translate('shortcut_category_camera'),
+    },
+    {
+      label: translate('shortcut_fly_height'),
+      keys: `R F / 1 3 / ${pgUpDn}`,
+      category: translate('shortcut_category_camera'),
+    },
+    {
+      label: translate('shortcut_orbit_rotate'),
+      keys: `↑ ↓ ← → / W A S D`,
+      category: translate('shortcut_category_camera'),
+    },
+    {
+      label: translate('shortcut_orbit_zoom'),
+      keys: `R F / 1 3 / ${pgUpDn}`,
+      category: translate('shortcut_category_camera'),
+    },
   ];
 }
 

@@ -1,11 +1,11 @@
-// Drives the active camera each frame from gamepad look input and movement
-// input (gamepad stick, on-screen joystick, or WASD). Joystick and keyboard
-// are read directly from their sources: fly mode hides them from
-// InputManager, and gamepad polling rewrites the shared MOVE axes anyway.
+// Drives the active camera each frame: gamepad look, movement (stick,
+// joystick, WASD), and orbit-view rotation/zoom from the InputManager.
 
 const YAW_SPEED = 2.5;
 const PITCH_SPEED = 2.0;
 export const FLY_SPEED = 3.0;
+// Orbit-view zoom: fraction of radius per second while held (~49%/s).
+const ORBIT_ZOOM_RATE = 0.4;
 
 export class CameraControls {
   #flock;
@@ -39,18 +39,49 @@ export class CameraControls {
     );
   }
 
+  // InputManager plus KeyboardSource (physical keys while the editor owns input).
+  #isKeyDownAny(keys) {
+    const im = this.#flock.inputManager;
+    const kb = this.#flock._keyboardSource;
+    return keys.some((k) => im?.isKeyDown?.(k) || kb?.isKeyDown?.(k) || false);
+  }
+
+  // Native ArcRotate directions: Left/Up decrease alpha/beta.
+  #orbitKeyYaw() {
+    const im = this.#flock.inputManager;
+    const left = [...(im?._getActionKeys?.('LEFT') ?? ['a', 'q']), 'ArrowLeft'];
+    const right = [...(im?._getActionKeys?.('RIGHT') ?? ['d']), 'ArrowRight'];
+    return (this.#isKeyDownAny(left) ? 1 : 0) - (this.#isKeyDownAny(right) ? 1 : 0);
+  }
+
+  #orbitKeyPitch() {
+    const im = this.#flock.inputManager;
+    const up = [...(im?._getActionKeys?.('FORWARD') ?? ['w', 'z']), 'ArrowUp'];
+    const down = [...(im?._getActionKeys?.('BACKWARD') ?? ['s']), 'ArrowDown'];
+    return (this.#isKeyDownAny(up) ? 1 : 0) - (this.#isKeyDownAny(down) ? 1 : 0);
+  }
+
+  // Orbit zoom mirrors free-camera height: BUTTON1 in, BUTTON3 out.
+  #zoomDirection() {
+    const im = this.#flock.inputManager;
+    const zoomInKeys = [...(im?._getActionKeys?.('BUTTON1') ?? ['r', '1']), 'PageUp'];
+    const zoomOutKeys = [...(im?._getActionKeys?.('BUTTON3') ?? ['f', '3']), 'PageDown'];
+    return (this.#isKeyDownAny(zoomInKeys) ? 1 : 0) - (this.#isKeyDownAny(zoomOutKeys) ? 1 : 0);
+  }
+
   #update() {
     const flock = this.#flock;
     const rightX = flock.inputManager.getAxis('LOOK_X');
     const rightY = flock.inputManager.getAxis('LOOK_Y');
     const shoulderTurn = flock.inputManager.getAxis('TURN');
-    const yawInput = rightX + shoulderTurn;
 
     const joy = flock._joystickSource?.getMove();
     const moveX = this.#resolveMoveAxis('MOVE_X', joy?.x ?? 0, 'a', 'd');
     const moveY = this.#resolveMoveAxis('MOVE_Y', joy?.y ?? 0, 'w', 's');
 
-    if (!yawInput && !rightY && !moveX && !moveY) {
+    const camera = this.#scene.activeCamera;
+
+    if (!camera) {
       return;
     }
 
@@ -63,15 +94,21 @@ export class CameraControls {
       return;
     }
 
-    const camera = this.#scene.activeCamera;
+    // Orbit-view arrows/WASD via the InputManager: one path for physical keys,
+    // on-screen buttons and gamepad.
+    const orbitView = camera.getClassName?.() === 'ArcRotateCamera' && camera.metadata?.orbitView;
+    const keyYaw = orbitView ? this.#orbitKeyYaw() : 0;
+    const keyPitch = orbitView ? this.#orbitKeyPitch() : 0;
+    const yawInput = rightX + shoulderTurn + keyYaw;
+    const pitchInput = rightY + keyPitch;
 
-    if (!camera) {
+    if (!yawInput && !pitchInput && !moveX && !moveY && !this.#zoomDirection()) {
       return;
     }
 
     const deltaTime = (flock.engine?.getDeltaTime?.() ?? 16) / 1000;
     const yawDelta = yawInput * YAW_SPEED * deltaTime;
-    const pitchDelta = rightY * PITCH_SPEED * deltaTime;
+    const pitchDelta = pitchInput * PITCH_SPEED * deltaTime;
 
     if (camera.getClassName?.() === 'ArcRotateCamera') {
       camera.alpha -= yawDelta;
@@ -81,6 +118,20 @@ export class CameraControls {
       const upperBeta = camera.upperBetaLimit ?? Math.PI - 0.01;
 
       camera.beta = Math.min(upperBeta, Math.max(lowerBeta, camera.beta));
+
+      if (camera.metadata?.orbitView) {
+        const zoom = this.#zoomDirection();
+        if (zoom !== 0) {
+          let radius = camera.radius * Math.exp(-zoom * ORBIT_ZOOM_RATE * deltaTime);
+          if (Number.isFinite(camera.lowerRadiusLimit)) {
+            radius = Math.max(camera.lowerRadiusLimit, radius);
+          }
+          if (Number.isFinite(camera.upperRadiusLimit)) {
+            radius = Math.min(camera.upperRadiusLimit, radius);
+          }
+          camera.radius = radius;
+        }
+      }
     } else {
       camera.rotation.y += yawDelta;
       camera.rotation.x += pitchDelta;

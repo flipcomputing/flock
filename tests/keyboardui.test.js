@@ -406,6 +406,14 @@ export function runKeyboardUiTests(flock) {
           expect(list.querySelectorAll('.shortcuts-category').length).to.be.above(0);
           expect(list.querySelectorAll('kbd').length).to.be.above(0);
         });
+
+        it('documents fly and orbit camera keys under a Camera category', function () {
+          ShortcutsPanel.show();
+          const text = ShortcutsPanel.panel.querySelector('#shortcuts-list').textContent;
+          expect(text).to.include('Camera');
+          expect(text).to.include('Fly camera');
+          expect(text).to.include('Orbit camera');
+        });
       });
 
       describe('adjustFontSize', function () {

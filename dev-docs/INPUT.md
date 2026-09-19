@@ -74,6 +74,10 @@ are literally the same `FreeCamera` object, and the gizmo's camera swap is a no-
 - **Height** — Babylon's own `FreeCameraKeyboardMoveInput`, whose `keysUpward`/`keysDownward` are
   remapped in `flock.js` to BUTTON1 keys + `PageUp` and BUTTON3 keys + `PageDown`. `GamepadSource`
   reaches it by _synthesising_ `PageUp`/`PageDown` DOM events — the only DOM keys it synthesises.
+- **Orbit rotation and zoom** — `input/cameraControls.js`, per frame, orbit-view cameras only
+  (`metadata.orbitView`). Arrows/WASD rotate, BUTTON1 + `PageUp` zooms in, BUTTON3 + `PageDown`
+  zooms out; zoom is exponential in radius and clamped to `lower/upperRadiusLimit` when finite.
+  The orbit camera's Babylon keyboard input is removed in `ui/gizmos.js` to keep one input path.
 - **XR** — `_updateXRView()` in `api/xr.js`, sharing only the `FLY_SPEED` constant.
 
 All of it is gated by the `canvasControls` block (`flock._canvasControlsEnabled`), which detaches

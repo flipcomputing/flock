@@ -1531,6 +1531,10 @@ export default {
     "No XR mode block, so this project won't open in your headset. Add one from Scene > XR.",
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
+  shortcut_fly_move: 'Fly camera: move',
+  shortcut_fly_height: 'Fly camera: up / down',
+  shortcut_orbit_rotate: 'Orbit camera: rotate around object',
+  shortcut_orbit_zoom: 'Orbit camera: zoom in / out',
 
   axis_lock_x: 'Keyboard locked to X axis',
   axis_lock_y: 'Keyboard locked to Y axis',
@@ -1544,6 +1548,7 @@ export default {
   shortcut_category_toolbox: 'Toolbox',
   shortcut_category_editor: 'Editor',
   shortcut_category_gizmos: 'Gizmos',
+  shortcut_category_camera: 'Camera',
 
   // Blockly keyboard navigation toast messages
   KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: 'Use the arrow keys to navigate',

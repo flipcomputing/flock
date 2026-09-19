@@ -50,9 +50,19 @@ function makeArcRotateCamera() {
   return {
     alpha: 1,
     beta: 1,
+    radius: 10,
+    lowerRadiusLimit: null,
+    upperRadiusLimit: null,
+    metadata: {},
     position: new StubVector3(0, 0, 0),
     getClassName: () => 'ArcRotateCamera',
   };
+}
+
+function makeOrbitCamera() {
+  const camera = makeArcRotateCamera();
+  camera.metadata = { orbitView: true };
+  return camera;
 }
 
 function makeFlock() {
@@ -195,6 +205,152 @@ export function runCameraControlsTests() {
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
+      });
+    });
+
+    describe('orbit rotation', function () {
+      afterEach(function () {
+        flock.inputManager._clearAllKeys();
+        flock._keyboardSource = null;
+      });
+
+      it('ArrowLeft/ArrowRight rotate alpha like the native keys', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowLeft', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+        flock.inputManager._setKey('ArrowLeft', false);
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowRight', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.greaterThan(1);
+      });
+
+      it('ArrowUp/ArrowDown pitch beta like the native keys', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.be.lessThan(1);
+        flock.inputManager._setKey('ArrowUp', false);
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowDown', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.be.greaterThan(1);
+      });
+
+      it('WASD rotates (A left, D right, W up, S down)', function () {
+        for (const [key, axis, dir] of [
+          ['a', 'alpha', -1],
+          ['d', 'alpha', 1],
+          ['w', 'beta', -1],
+          ['s', 'beta', 1],
+        ]) {
+          flock.scene.activeCamera = makeOrbitCamera();
+          flock.inputManager._setKey(key, true);
+          flock.scene.onBeforeRenderObservable.fire();
+          expect(flock.scene.activeCamera[axis]).to.be[dir < 0 ? 'lessThan' : 'greaterThan'](1);
+          flock.inputManager._setKey(key, false);
+        }
+      });
+
+      it('letter and arrow for the same direction take one step, not two', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        const single = flock.scene.activeCamera.beta;
+        flock.inputManager._clearAllKeys();
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('w', true);
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.equal(single);
+      });
+
+      it('physical keys rotate via KeyboardSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+      });
+
+      it('opposing keys cancel out', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('ArrowLeft', true);
+        flock.inputManager._setKey('ArrowRight', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+      });
+
+      it('a follow camera without orbitView ignores the keys', function () {
+        flock.scene.activeCamera = makeArcRotateCamera();
+        flock.inputManager._setKey('a', true);
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+        expect(flock.scene.activeCamera.beta).to.equal(1);
+      });
+    });
+
+    describe('orbit zoom', function () {
+      afterEach(function () {
+        flock.inputManager._clearAllKeys();
+        flock._keyboardSource = null;
+      });
+
+      it('BUTTON1 key zooms an orbit camera in', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('BUTTON3 key zooms an orbit camera out', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('f', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.greaterThan(10);
+      });
+
+      it('PageUp/PageDown zoom (on-screen 1/3 and gamepad extra keys)', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('PageUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+        flock.inputManager._setKey('PageUp', false);
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('PageDown', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.greaterThan(10);
+      });
+
+      it('physical keyboard zooms via KeyboardSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === '1' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('opposing zoom keys cancel out', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('r', true);
+        flock.inputManager._setKey('f', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(10);
+      });
+
+      it('a follow camera without orbitView ignores zoom keys', function () {
+        flock.scene.activeCamera = makeArcRotateCamera();
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(10);
+      });
+
+      it('zoom clamps to radius limits', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera.lowerRadiusLimit = 9.99;
+        flock.inputManager._setKey('r', true);
+        for (let i = 0; i < 60; i++) flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(9.99);
       });
     });
   });
