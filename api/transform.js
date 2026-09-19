@@ -14,6 +14,11 @@ function resolvePositionInputs(mesh, { x = 0, y = 0, z = 0, useY = true, meshNam
   };
 }
 
+// Planes pivot at their centre, exempt from the base-rule lift.
+function usesCenterPivot(mesh) {
+  return mesh?.metadata?.shape === 'plane';
+}
+
 function applyPositionWithCurrentBaseRule(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = '' } = {}
@@ -33,7 +38,7 @@ function applyPositionWithCurrentBaseRule(
 
   mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
 
-  if (useY && !isCamera && typeof mesh.getBoundingInfo === 'function') {
+  if (useY && !isCamera && !usesCenterPivot(mesh) && typeof mesh.getBoundingInfo === 'function') {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
     const bi = mesh.getBoundingInfo();
@@ -924,6 +929,9 @@ export const flockTransform = {
   // api/transform.js around line 914
   getBlockPositionFromMesh(mesh) {
     if (!mesh) return { x: 0, y: 0, z: 0 };
+    if (usesCenterPivot(mesh)) {
+      return { x: mesh.position?.x ?? 0, y: mesh.position?.y ?? 0, z: mesh.position?.z ?? 0 };
+    }
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
 

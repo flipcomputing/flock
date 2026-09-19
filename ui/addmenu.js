@@ -151,13 +151,6 @@ function __metaFor(name) {
     : { type: 'math_number', field: 'NUM' };
 }
 
-// Matches the ground detection used elsewhere (see api/scene.js).
-function isGroundMesh(mesh) {
-  if (!mesh) return false;
-  const name = mesh?.name?.toLowerCase?.() ?? '';
-  return name === 'ground' || name.includes('ground') || mesh?.metadata?.blockKey === 'ground';
-}
-
 // Rotation (in degrees) that makes a default plane — whose normal faces
 // world +Z — lie flat against a surface with the given world-space normal.
 // Returns null when no rotation is needed (normal already faces +Z).
@@ -424,11 +417,8 @@ function selectShape(shapeType) {
 
     const pickResult = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
     if (pickResult && pickResult.hit) {
-      // A plane dropped onto another object's surface ends up coplanar with
-      // the hit face and z-fights with it. Only in that case do we nudge the
-      // plane clear along the surface normal. Planes placed on the ground (or
-      // any non-plane shape) keep their exact picked position.
-      if (shapeType === 'create_plane' && !isGroundMesh(pickResult.pickedMesh)) {
+      // Lay planes flat against the hit face, nudged clear along its normal.
+      if (shapeType === 'create_plane') {
         // Use the geometric face normal (useVerticesNormals = false) in world
         // space, so the plane lies flat against the actual clicked face rather
         // than an interpolated/averaged vertex normal.
@@ -462,20 +452,8 @@ function selectShape(shapeType) {
             roundPositionValue(p.y, 2),
             roundPositionValue(p.z, 2)
           );
-          // Nudge along the outward normal so the plane sits just clear of the
-          // surface (toward the viewer) and does not z-fight the clicked face.
+          // Centre-pivot planes need no base-rule compensation.
           const position = base.add(normal.scale(0.02));
-
-          // Compensate for flock's "base rule": when the plane is created it is
-          // still upright (height 2), and the base rule places the unrotated
-          // bottom at position.y — shifting the centre up by half the height.
-          // rotate_to then flattens the plane around that centre, so without
-          // this it would float ~1 unit above the surface. Subtract that shift
-          // (height/2 of the default plane) so the flat plane lands on the
-          // clicked surface. See applyPositionWithCurrentBaseRule in
-          // api/transform.js.
-          const DEFAULT_PLANE_HALF_HEIGHT = 1; // create_plane default HEIGHT (2) / 2
-          position.y -= DEFAULT_PLANE_HALF_HEIGHT;
 
           const planeBlock = addShapeToWorkspace(shapeType, position, 2, rotation);
 

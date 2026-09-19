@@ -428,6 +428,64 @@ export function runShapesTests(flock) {
         expect(mesh.metadata).to.exist;
         expect(mesh.metadata.shape).to.equal('plane');
       });
+
+      it('should pivot planes at their centre, not the bottom edge', function () {
+        const id = flock.createPlane('testPlanePivot', {
+          color: '#cc0044',
+          width: 2,
+          height: 4,
+          position: [0, 5, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.position.y).to.be.closeTo(5, 1e-6);
+      });
+
+      it('should round-trip plane positions through block coordinates', function () {
+        const id = flock.createPlane('testPlaneRoundTrip', {
+          color: '#cc0044',
+          width: 2,
+          height: 4,
+          position: [1, 5, 2],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const back = flock.getBlockPositionFromMesh(mesh);
+        expect(back.x).to.be.closeTo(1, 1e-6);
+        expect(back.y).to.be.closeTo(5, 1e-6);
+        expect(back.z).to.be.closeTo(2, 1e-6);
+      });
+
+      it('should move planes by their centre', async function () {
+        const id = flock.createPlane('testPlaneMove', {
+          color: '#cc0044',
+          width: 2,
+          height: 4,
+          position: [0, 5, 0],
+        });
+        createdIds.push(id);
+
+        await flock.positionAt(id, { x: 0, y: 7, z: 0 });
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.position.y).to.be.closeTo(7, 1e-6);
+      });
+
+      it('should keep the base rule for non-plane shapes', function () {
+        const id = flock.createBox('testBoxBaseRule', {
+          width: 2,
+          height: 4,
+          depth: 2,
+          color: '#cc0044',
+          position: [0, 5, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        // Bottom edge at 5, centre lifted by half the height.
+        expect(mesh.position.y).to.be.closeTo(7, 1e-6);
+      });
     });
 
     describe('shared name reservation', function () {
