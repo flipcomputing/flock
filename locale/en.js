@@ -923,6 +923,7 @@ export default {
 
   BOTH_option: 'both',
   ARROWS_option: 'arrows',
+  WASD_option: 'WASD',
   ACTIONS_option: 'actions',
   JOYSTICK_option: 'joystick',
   YES_option: 'yes',

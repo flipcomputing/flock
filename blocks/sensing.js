@@ -745,6 +745,7 @@ export function defineSensingBlocks() {
             name: 'MOVEMENT',
             options: [
               getDropdownOption('ARROWS'),
+              getDropdownOption('WASD'),
               getDropdownOption('JOYSTICK'),
               getDropdownOption('NONE'),
             ],

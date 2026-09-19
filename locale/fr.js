@@ -838,6 +838,7 @@ export default {
 
   BOTH_option: 'les deux',
   ARROWS_option: 'flèches',
+  WASD_option: 'ZQSD',
   ACTIONS_option: 'actions',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'oui', // ai

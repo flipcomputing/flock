@@ -834,6 +834,7 @@ export default {
   DISABLED_option: 'desativado',
   BOTH_option: 'ambos',
   ARROWS_option: 'setas',
+  WASD_option: 'WASD',
   ACTIONS_option: 'ações',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'sim', // ai

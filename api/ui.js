@@ -124,9 +124,14 @@ function renderControls(layout, scale) {
 
     // The joystick tracks canvas pointer events, which an immersive session never delivers.
     const onXRHUD = controlsHost() !== flock.controlsTexture;
-    const movement = onXRHUD && layout.movement === 'JOYSTICK' ? 'ARROWS' : layout.movement;
+    const movement =
+      onXRHUD && (layout.movement === 'JOYSTICK' || layout.movement === 'WASD')
+        ? 'ARROWS'
+        : layout.movement;
     if (movement === 'ARROWS') {
       flock.createArrowControls(moveColor, moveBackground);
+    } else if (movement === 'WASD') {
+      flock.createWASDControls(moveColor, moveBackground);
     } else if (movement === 'JOYSTICK') {
       flock._joystickSource = flock.createJoystickControls(moveColor, moveBackground);
       flock._joystickSource?.start();
@@ -655,6 +660,46 @@ export const flockUI = {
     const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color, { background });
     const leftButton = flock.createSmallButton('◁', ['a', 'ArrowLeft'], color, { background });
     const rightButton = flock.createSmallButton('▷', ['d', 'ArrowRight'], color, { background });
+
+    grid.addControl(upButton, 0, 1);
+    grid.addControl(leftButton, 1, 0);
+    grid.addControl(downButton, 1, 1);
+    grid.addControl(rightButton, 1, 2);
+  },
+  createWASDControls(color, background = 'transparent') {
+    if (!flock.controlsTexture) return;
+
+    // Same behaviour as the arrows, only the faces differ: WASD on QWERTY,
+    // ZQSD on AZERTY (French). Each button presses its letter keys (both
+    // layouts) plus the matching arrow key, so key and action events fire
+    // exactly as they do for the arrow pad.
+    let labels = ['W', 'A', 'S', 'D'];
+    try {
+      if (localStorage.getItem('flock-language') === 'fr') labels = ['Z', 'Q', 'S', 'D'];
+    } catch {
+      /* non-DOM env (e.g. tests) — fall back to WASD */
+    }
+
+    const grid = new flock.GUI.Grid();
+    grid.width = `${3 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    grid.left = `${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.addRowDefinition(1);
+    grid.addRowDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+
+    addControlsRoot(grid);
+
+    const style = { background, fontSize: 30 };
+    const upButton = flock.createSmallButton(labels[0], ['w', 'z', 'ArrowUp'], color, style);
+    const downButton = flock.createSmallButton(labels[2], ['s', 'ArrowDown'], color, style);
+    const leftButton = flock.createSmallButton(labels[1], ['a', 'q', 'ArrowLeft'], color, style);
+    const rightButton = flock.createSmallButton(labels[3], ['d', 'ArrowRight'], color, style);
 
     grid.addControl(upButton, 0, 1);
     grid.addControl(leftButton, 1, 0);

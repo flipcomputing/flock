@@ -858,6 +858,7 @@ export default {
 
   BOTH_option: 'beides',
   ARROWS_option: 'Pfeile',
+  WASD_option: 'WASD',
   ACTIONS_option: 'Aktionen',
   JOYSTICK_option: 'Joystick', // ai
   YES_option: 'ja', // ai

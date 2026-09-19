@@ -845,6 +845,7 @@ export default {
 
   BOTH_option: 'entrambi',
   ARROWS_option: 'frecce',
+  WASD_option: 'WASD',
   ACTIONS_option: 'azioni',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'sì', // ai

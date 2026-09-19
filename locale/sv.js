@@ -828,6 +828,7 @@ export default {
   DISABLED_option: 'inaktiverad',
   BOTH_option: 'båda',
   ARROWS_option: 'pilar',
+  WASD_option: 'WASD',
   ACTIONS_option: 'åtgärder',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'ja', // ai

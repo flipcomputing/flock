@@ -929,6 +929,7 @@ export default {
 
   BOTH_option: 'ambos', // human
   ARROWS_option: 'flechas', // human
+  WASD_option: 'WASD', // ai
   ACTIONS_option: 'acciones', // human
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'sí', // ai

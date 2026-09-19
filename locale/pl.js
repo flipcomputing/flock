@@ -825,6 +825,7 @@ export default {
   DISABLED_option: 'wyłączony',
   BOTH_option: 'oba',
   ARROWS_option: 'strzałki',
+  WASD_option: 'WASD',
   ACTIONS_option: 'akcje',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'tak', // ai
