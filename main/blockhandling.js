@@ -13,6 +13,7 @@ import {
   layoutSectionChildren,
   setSectionReflowHook,
 } from '../blocks/sectionContainment.js';
+import { updateCollapsedBlockIcon } from '../blocks/blockIcons.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -813,6 +814,9 @@ export function initializeBlockHandling() {
       const block = workspace.getBlockById(event.blockId);
       if (block && !block.getParent()) {
         layoutTopLevelBlocks();
+      }
+      if (block && event.newValue) {
+        updateCollapsedBlockIcon(block);
       }
     }
 

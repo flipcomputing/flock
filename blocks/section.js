@@ -53,6 +53,24 @@ export function defineSectionBlock() {
         makeSectionIcon(getCurrentIconColor(), this.sectionCollapsed_)
       );
     },
+    // Sections have their own fold (hiding the grouped blocks below them,
+    // toggled by clicking the icon) rather than Blockly's native collapse,
+    // which would hide the icon along with everything else. Routing the
+    // generic collapse triggers (right-click menu, the 'C' shortcut, the
+    // block toolbar's collapse button, workspace collapse-all) through the
+    // same toggle keeps the icon visible and behaviour consistent no matter
+    // how collapse is invoked.
+    //
+    // isCollapsed() is deliberately NOT overridden: Block.render() consults
+    // it directly (not the private collapsed_ flag) to decide whether to
+    // draw Blockly's own collapsed summary row. Making it return true for a
+    // folded section would make every render() call - including the one
+    // layoutSectionChildren does after folding - draw that native summary
+    // row on top of our own layout, hiding the icon and every other field.
+    setCollapsed: function (collapsed) {
+      if (!!collapsed === !!this.sectionCollapsed_) return;
+      this.toggleSectionCollapsed_();
+    },
     saveExtraState: function () {
       return {
         contains: (this.containedBlockIds_ || []).slice(),

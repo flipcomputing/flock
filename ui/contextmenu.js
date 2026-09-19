@@ -7,6 +7,17 @@ import { getMeshFromBlock } from './blockmesh.js';
 import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
 import { focusBlocklyBlock, rememberUndoFocusTarget } from '../main/blockhandling.js';
 
+// Section blocks fold via their own sectionCollapsed_ flag rather than
+// Blockly's native collapsed_ (see the setCollapsed override in section.js -
+// isCollapsed() has to stay native there since render() reads it directly).
+// UI that needs to know whether a block is folded - for the purposes of
+// showing the right button/label - has to check sectionCollapsed_ for
+// sections instead of trusting isCollapsed().
+function isBlockFolded(block) {
+  if (!block) return false;
+  return block.type === 'section' ? !!block.sectionCollapsed_ : !!block.isCollapsed?.();
+}
+
 // Render a context-menu row as "Label                 Shortcut", with the
 // shortcut hint dimmed on the right. Shared by the detach (X) and view (V)
 // items.
@@ -215,6 +226,38 @@ export function initContextMenus(workspace) {
     }
   })();
 
+  // Section blocks fold via their own sectionCollapsed_ flag rather than
+  // Blockly's native collapsed_ (see the setCollapsed override in
+  // section.js). Patch the built-in Collapse/Expand item - which also backs
+  // the 'C' shortcut - so its label and action reflect and toggle that state
+  // for a section, the same as clicking its icon.
+  (function makeBlockCollapseExpandSectionAware() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const item = registry.getItem?.('blockCollapseExpand');
+    if (!item || item.__sectionAware) return;
+
+    const origDisplayText = item.displayText?.bind(item);
+    const origCallback = item.callback?.bind(item);
+
+    item.displayText = (scope) => {
+      if (scope.block?.type === 'section') {
+        const label = scope.block.sectionCollapsed_
+          ? Blockly.Msg['EXPAND_BLOCK']
+          : Blockly.Msg['COLLAPSE_BLOCK'];
+        return renderShortcut(label, 'C');
+      }
+      return origDisplayText?.(scope);
+    };
+    item.callback = (scope) => {
+      if (scope.block?.type === 'section') {
+        scope.block.toggleSectionCollapsed_();
+        return;
+      }
+      return origCallback?.(scope);
+    };
+    item.__sectionAware = true;
+  })();
+
   // Remove the built-in block-level comment item from the right-click menu.
   // Flock's comment block (blocks/text.js) is the preferred way to annotate
   // code; workspace comments (registered separately below) are unaffected.
@@ -267,7 +310,7 @@ export function initContextMenus(workspace) {
       for (const block of ws.getTopBlocks(false)) {
         let b = block;
         while (b) {
-          if (!b.isCollapsed()) return true;
+          if (!isBlockFolded(b)) return true;
           b = b.getNextBlock();
         }
       }
@@ -1305,9 +1348,9 @@ export function initContextMenus(workspace) {
       const simplified = isLooseAndMovable(block);
       const locked = isBlockLocked(block);
       expandBtn.style.display =
-        block.workspace?.options?.collapse && block.isCollapsed?.() ? '' : 'none';
+        block.workspace?.options?.collapse && isBlockFolded(block) ? '' : 'none';
       collapseBtn.style.display =
-        block.workspace?.options?.collapse && !block.isCollapsed?.() && isTopLevelContainerBlock(block)
+        block.workspace?.options?.collapse && !isBlockFolded(block) && isTopLevelContainerBlock(block)
           ? ''
           : 'none';
       unlockBtn.style.display = locked ? '' : 'none';
@@ -1499,9 +1542,12 @@ export function initContextMenus(workspace) {
         scheduleViewMeshRecheck();
       } else if (
         e.type === Blockly.Events.BLOCK_CHANGE &&
-        e.element === 'collapsed' &&
         toolbarBlock &&
-        e.blockId === toolbarBlock.id
+        e.blockId === toolbarBlock.id &&
+        // A section reports its fold via a 'mutation' change (see
+        // toggleSectionCollapsed in sectionContainment.js), not 'collapsed' -
+        // it never goes through Blockly's native collapse.
+        (e.element === 'collapsed' || (e.element === 'mutation' && toolbarBlock.type === 'section'))
       ) {
         // Collapsed/expanded some other way (e.g. the right-click menu) while
         // the toolbar is up: refresh whether the Expand button shows, and
@@ -1596,7 +1642,7 @@ export function initContextMenus(workspace) {
     }
 
     onToolbarButtonPress(expandBtn, () => {
-      if (!toolbarBlock || !toolbarBlock.isCollapsed?.()) return;
+      if (!toolbarBlock || !isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
       Blockly.Events.setGroup('toolbar_expand');
       block.setCollapsed(false);
@@ -1607,7 +1653,7 @@ export function initContextMenus(workspace) {
     });
 
     onToolbarButtonPress(collapseBtn, () => {
-      if (!toolbarBlock || toolbarBlock.isCollapsed?.()) return;
+      if (!toolbarBlock || isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
       Blockly.Events.setGroup('toolbar_collapse');
       block.setCollapsed(true);

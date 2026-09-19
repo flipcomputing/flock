@@ -7,6 +7,7 @@ import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
+import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -422,6 +423,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
 
   try {
     Blockly.serialization.workspaces.load(validatedJson, workspace);
+    syncCollapsedBlockIcons(workspace);
 
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas: false });

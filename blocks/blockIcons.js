@@ -152,6 +152,10 @@ export const pressIcon = makePressIcon('white');
 export const eventIcon = makeOnEventIcon('white');
 
 export const BLOCK_ICON_FIELD_NAME = 'BLOCK_ICON';
+// A second copy of the block icon, inserted into Blockly's auto-generated
+// collapsed-summary input so the icon survives native collapse (which
+// otherwise hides the whole input row the real BLOCK_ICON field lives in).
+export const BLOCK_ICON_COLLAPSED_FIELD_NAME = 'BLOCK_ICON_COLLAPSED';
 export const TOGGLE_BUTTON_FIELD_NAME = 'TOGGLE_BUTTON';
 const LOW_VISION_ICON_FIELD_NAME = 'LOW_VISION_CATEGORY_ICON';
 const LOW_VISION_BAR_FIELD_NAME = 'LOW_VISION_CATEGORY_BAR';
@@ -266,25 +270,87 @@ const BLOCK_ICON_MAKERS = {
   section: makeSectionIcon,
 };
 
+// Sizes (in px) the collapsed-summary copy of each block's icon should render
+// at, matching the size used for its expanded BLOCK_ICON field. Section is
+// excluded: it never goes through native collapse (see setCollapsed override
+// in section.js), so it has no collapsed-summary copy to size.
+const BLOCK_ICON_COLLAPSED_SIZES = {
+  start: { width: 18, height: 18 },
+  forever: { width: 32, height: 32 },
+  when_clicked: { width: 22, height: 22 },
+  on_collision: { width: 24, height: 24 },
+  when_key_event: { width: 36, height: 36 },
+  when_action_event: { width: 32, height: 32 },
+  on_event: { width: 28, height: 28 },
+};
+
 export function updateBlockIcons(workspace, iconColor) {
   if (!workspace) return;
   const blocks = getWorkspaceAndFlyoutBlocks(workspace);
   for (const block of blocks) {
     if (!block || typeof block.getField !== 'function') continue;
+    const maker = BLOCK_ICON_MAKERS[block.type];
+    if (!maker) continue;
     const iconField = block.getField(BLOCK_ICON_FIELD_NAME);
     if (iconField) {
-      const maker = BLOCK_ICON_MAKERS[block.type];
-      if (maker) {
-        iconField.setValue(
-          block.type === 'section' ? maker(iconColor, block.sectionCollapsed_) : maker(iconColor)
-        );
-      }
+      iconField.setValue(
+        block.type === 'section' ? maker(iconColor, block.sectionCollapsed_) : maker(iconColor)
+      );
+    }
+    const collapsedIconField = block.getField(BLOCK_ICON_COLLAPSED_FIELD_NAME);
+    if (collapsedIconField) {
+      collapsedIconField.setValue(maker(iconColor));
     }
   }
 }
 
 export function updateAllBlockIcons(workspace, iconColor) {
   updateBlockIcons(workspace, iconColor);
+}
+
+// Inserts a copy of the block's icon into Blockly's auto-generated
+// collapsed-summary input, so it's still visible once the block is natively
+// collapsed. Returns true once handled (inserted, already present, or not
+// applicable to this block type), false if the collapsed input doesn't exist
+// yet - Blockly can create it on a later render pass, so the caller should
+// retry.
+function insertCollapsedBlockIcon(block) {
+  if (!block || typeof block.getInput !== 'function') return true;
+  const maker = BLOCK_ICON_MAKERS[block.type];
+  const size = BLOCK_ICON_COLLAPSED_SIZES[block.type];
+  if (!maker || !size) return true;
+  const collapsedInput = block.getInput(Blockly.Block.COLLAPSED_INPUT_NAME);
+  if (!collapsedInput) return false;
+  if (collapsedInput.fieldRow?.some((field) => field.name === BLOCK_ICON_COLLAPSED_FIELD_NAME)) {
+    return true;
+  }
+  collapsedInput.insertFieldAt(
+    0,
+    new DecorativeFieldImage(maker(getCurrentIconColor()), size.width, size.height, '', null),
+    BLOCK_ICON_COLLAPSED_FIELD_NAME
+  );
+  return true;
+}
+
+// Blockly may not have created the collapsed-summary input yet at the moment
+// a block's 'collapsed' change event fires, since rendering can happen on a
+// later pass - retry once via rAF if the first attempt finds nothing to
+// attach to.
+export function updateCollapsedBlockIcon(block) {
+  if (insertCollapsedBlockIcon(block)) return;
+  if (typeof requestAnimationFrame !== 'function') return;
+  requestAnimationFrame(() => insertCollapsedBlockIcon(block));
+}
+
+// Catch-up pass for blocks that load already collapsed (e.g. from saved
+// workspace JSON), since deserialization doesn't fire per-block 'collapsed'
+// change events.
+export function syncCollapsedBlockIcons(workspace) {
+  if (!workspace) return;
+  const blocks = getWorkspaceAndFlyoutBlocks(workspace);
+  for (const block of blocks) {
+    if (block?.isCollapsed?.()) updateCollapsedBlockIcon(block);
+  }
 }
 
 function getBlockStyleName(block) {

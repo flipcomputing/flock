@@ -1453,7 +1453,12 @@ function installShadowNavigationPatch(ws) {
         if (!collapseEditable(ws, block)) return false;
         event?.preventDefault?.();
         Blockly.Events.setGroup('toolbar_collapse');
-        block.setCollapsed(!block.isCollapsed());
+        // Sections fold via their own sectionCollapsed_ flag, not Blockly's
+        // native collapsed_/isCollapsed() (see setCollapsed override in
+        // section.js), so isCollapsed() alone can't tell whether one is
+        // folded.
+        const isFolded = block.type === 'section' ? !!block.sectionCollapsed_ : block.isCollapsed();
+        block.setCollapsed(!isFolded);
         Blockly.Events.setGroup(false);
         window.flockBlockToolbar?.refresh?.(block);
         return true;
