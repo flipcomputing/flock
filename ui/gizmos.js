@@ -747,7 +747,7 @@ export function pasteCanvasClipboard() {
   }
   if (!newBlock) return false;
   highlightBlockById(workspace, newBlock);
-  attachPastedMesh(newBlock);
+  selectMeshForBlock(newBlock);
   return true;
 }
 
@@ -767,7 +767,11 @@ export function clearCanvasClipboard() {
   canvasClipboard = null;
 }
 
-function attachPastedMesh(newBlock) {
+// Attach the gizmo/bounding box to the mesh for a just-created block, once its
+// mesh exists. Blockly fires the create event synchronously but the
+// corresponding mesh is built asynchronously (see applyLiveRotationWhenReady
+// in ui/addmenu.js for the same pattern), so poll a few frames for it.
+export function selectMeshForBlock(newBlock) {
   if (!gizmoManager) return;
   let attempts = 0;
   const tryAttach = () => {

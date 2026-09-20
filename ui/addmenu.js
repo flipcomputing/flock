@@ -16,6 +16,7 @@ import {
   setDefaultCursor,
 } from './canvas-utils.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
+import { selectMeshForBlock } from './gizmos.js';
 import { showStatus, clearStatus } from './status.js';
 import { translate } from '../main/translation.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
@@ -317,6 +318,8 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
       console.error('Error highlighting block:', e);
     }
 
+    selectMeshForBlock(block);
+
     return block;
   } catch (error) {
     console.error('Error in addShapeToWorkspace:', error);
@@ -359,7 +362,7 @@ function selectCharacter(characterName) {
 
     const pickedPosition = pick.pickedPoint;
 
-    createBlockForCharacter(
+    const block = createBlockForCharacter(
       workspace,
       characterName,
       pickedPosition,
@@ -367,6 +370,7 @@ function selectCharacter(characterName) {
       setPositionValues,
       highlightBlockById
     );
+    selectMeshForBlock(block);
 
     cleanup();
   };
@@ -529,7 +533,7 @@ function selectObjectWithCommand(objectName, menu, command) {
 
     const pickedPosition = pick.pickedPoint;
 
-    createBlockForObject(
+    const block = createBlockForObject(
       workspace,
       command,
       objectName,
@@ -538,6 +542,7 @@ function selectObjectWithCommand(objectName, menu, command) {
       setPositionValues,
       highlightBlockById
     );
+    selectMeshForBlock(block);
 
     cleanup();
   };

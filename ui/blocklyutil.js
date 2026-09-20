@@ -380,6 +380,8 @@ export function createBlockForObject(
     } catch (error) {
       console.warn('highlightBlockById failed for object block:', error);
     }
+
+    return block;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);
@@ -449,6 +451,8 @@ export function createBlockForCharacter(
     } catch (error) {
       console.warn('highlightBlockById failed for character block:', error);
     }
+
+    return charBlock;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);
