@@ -86,6 +86,7 @@ let orbitViewObserver = null; // Unused; orbit no longer tracks selection
 let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
 let orbitDisposeMesh = null; // Mesh the orbit camera targets (window.orbitMesh)
 let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
+let orbitRetargetObserver = null; // Pointer observer that lets a canvas click switch orbit target
 
 // Tools that keep the orbit camera active.
 const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select']);
@@ -1066,6 +1067,7 @@ function attachOrbitView(mesh) {
   window.orbitBlock = window.currentBlock ?? null;
   window.orbitMesh = selectedMesh;
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
+  watchEyeGizmoRetarget();
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -1117,6 +1119,7 @@ function disconnectOrbitView() {
     window.orbitViewActive = false;
     window.orbitBlock = null;
     window.orbitMesh = null;
+    clearOrbitRetargetObserver();
     if (orbitDisposeObserver && orbitDisposeMesh) {
       try {
         orbitDisposeMesh.onDisposeObservable.remove(orbitDisposeObserver);
@@ -1137,6 +1140,7 @@ function disconnectOrbitView() {
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
+  clearOrbitRetargetObserver();
   setGizmoButtonActive(document.getElementById('eyeButton'), false);
   // Re-attach the orbit target only when nothing else is selected.
   if (!gizmoManager.attachedMesh && prevMesh && !prevMesh.isDisposed?.()) {
@@ -2876,6 +2880,40 @@ function addUndoHandler() {
       }
     }
   });
+}
+
+// While eye is the only active gizmo, clicking a different mesh in the
+// canvas switches the orbit target to it instead of doing nothing. Once
+// another gizmo (position/rotation/scale/...) is also active, canvas clicks
+// retarget that gizmo instead (see toggleGizmo's preserveOrbit handling), so
+// this stays out of the way in that case.
+function watchEyeGizmoRetarget() {
+  const scene = flock.scene;
+  if (!scene) return;
+  if (orbitRetargetObserver) scene.onPointerObservable.remove(orbitRetargetObserver);
+  orbitRetargetObserver = scene.onPointerObservable.add((event) => {
+    if (event.type !== flock.BABYLON.PointerEventTypes.POINTERPICK) return;
+    if (document.querySelector('.gizmo-button.active:not(#eyeButton)')) return;
+    if (!scene.activeCamera?.metadata?.orbitView) return;
+
+    let pickedMesh = event.pickInfo?.pickedMesh;
+    if (!pickedMesh || pickedMesh.name === 'ground') return;
+    if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+    if (!pickedMesh || pickedMesh === window.orbitMesh) return;
+
+    disconnectOrbitView();
+    attachMeshForActiveTool(pickedMesh);
+    attachOrbitView(pickedMesh); // re-registers this observer for the new target
+    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
+  });
+}
+
+// Detach the eye-gizmo retarget-on-click observer. Called from every path
+// that ends orbit view, so it never outlives the orbit camera it depends on.
+function clearOrbitRetargetObserver() {
+  if (!orbitRetargetObserver) return;
+  flock.scene?.onPointerObservable?.remove(orbitRetargetObserver);
+  orbitRetargetObserver = null;
 }
 
 // Eye: Orbit camera around selected or picked mesh
