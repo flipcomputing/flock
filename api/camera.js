@@ -131,6 +131,7 @@ export const flockCamera = {
       constraintBox.metadata.sectionOwner = flock._currentSection;
       constraintBox.name = constraintBox.name + '_' + constraintBox.uniqueId;
       constraintBox.isVisible = false;
+      constraintBox.isPickable = false;
       hideFromInspector(constraintBox);
       constraintBox.material =
         constraintBox.material || new flock.BABYLON.StandardMaterial('staticMaterial', scene);
