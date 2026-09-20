@@ -291,10 +291,37 @@ function blockFromPointerTarget(target) {
 // Hints for the toolbox: hovering or keyboard-focusing a flyout block describes
 // it in the hint box, which replaced Blockly's hover tooltips.
 function initializeFlyoutHints() {
-  const flyoutWorkspace = workspace.getFlyout()?.getWorkspace();
+  const flyout = workspace.getFlyout();
+  const flyoutWorkspace = flyout?.getWorkspace();
   if (!flyoutWorkspace) return;
 
   let hoveredBlock = null;
+
+  // Multi-block Snippets (Snippets category) share root block types (e.g.
+  // several start with a plain `start` block), so the root's own tooltip
+  // can't describe what a specific snippet does. toolbox.js can instead name
+  // a translation key via a `hint` field on the toolbox entry; captured here
+  // from the raw contents passed to flyout.show(), the one place that still
+  // has it — the flyout inflater drops unknown BlockInfo keys once it builds
+  // the actual Block instances, mirroring the trashcan flyout.show() wrap in
+  // blocklyinit.js.
+  const blockHints = new WeakMap();
+  if (flyout && !flyout._flockHintShowWrapped) {
+    const originalShow = flyout.show.bind(flyout);
+    flyout.show = function (contents) {
+      originalShow(contents);
+      const items = Array.isArray(contents) ? contents : contents?.contents;
+      if (!Array.isArray(items)) return;
+      const topBlocks = flyoutWorkspace.getTopBlocks(false);
+      let blockIndex = 0;
+      for (const item of items) {
+        if (item?.kind !== 'block') continue;
+        const block = topBlocks[blockIndex++];
+        if (block && item.hint) blockHints.set(block, item.hint);
+      }
+    };
+    flyout._flockHintShowWrapped = true;
+  }
 
   // A flyout item is dragged out whole, so hint about its root block rather
   // than whichever shadow field the pointer or cursor happens to be on.
@@ -304,7 +331,8 @@ function initializeFlyoutHints() {
       showSelectedBlockHint();
       return;
     }
-    showBlockHint(Blockly.Tooltip.getTooltipOfObject(root));
+    const hintKey = blockHints.get(root);
+    showBlockHint(hintKey ? translate(hintKey) : Blockly.Tooltip.getTooltipOfObject(root));
   };
 
   flyoutWorkspace.addChangeListener((event) => {

@@ -4261,6 +4261,7 @@ const toolboxSnippetsPhysics = {
       kind: 'block',
       type: 'start',
       keyword: 'playerstart',
+      hint: 'snippet_playerstart_hint',
       inputs: {
         DO: {
           block: {
@@ -4348,6 +4349,7 @@ const toolboxSnippetsPhysics = {
       kind: 'block',
       type: 'when_clicked',
       keyword: 'clickbox',
+      hint: 'snippet_clickbox_hint',
       extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="false"></mutation>',
       fields: {
         MODEL_VAR: {
@@ -4397,6 +4399,7 @@ const toolboxSnippetsPhysics = {
     {
       kind: 'block',
       type: 'start',
+      hint: 'snippet_bouncy_sphere_hint',
       inputs: {
         DO: {
           block: {
@@ -4519,6 +4522,7 @@ const toolboxSnippetsPhysics = {
     {
       kind: 'block',
       type: 'start',
+      hint: 'snippet_falling_star_hint',
       inputs: {
         DO: {
           block: {
@@ -4591,6 +4595,7 @@ const toolboxSnippetsPhysics = {
     {
       kind: 'block',
       type: 'start',
+      hint: 'snippet_falling_heart_hint',
       inputs: {
         DO: {
           block: {
@@ -4709,6 +4714,7 @@ const toolboxSnippetsMovement = {
       kind: 'block',
       type: 'forever',
       keyword: 'move8',
+      hint: 'snippet_move8_hint',
       inputs: {
         DO: {
           block: {
@@ -4875,6 +4881,7 @@ const toolboxSnippetsMovement = {
     {
       kind: 'block',
       type: 'forever',
+      hint: 'snippet_move4_hint',
       inputs: {
         DO: {
           block: {
@@ -5178,6 +5185,7 @@ const toolboxSnippets = {
       type: 'start',
       kind: 'block',
       keyword: 'skyworld',
+      hint: 'snippet_skyworld_hint',
       inputs: {
         DO: {
           block: {
@@ -5268,6 +5276,7 @@ const toolboxSnippets = {
     {
       kind: 'block',
       type: 'start',
+      hint: 'snippet_player_camera_hint',
       inputs: {
         DO: {
           block: {

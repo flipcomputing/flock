@@ -691,6 +691,18 @@ export default {
   controller_rumble_pattern_tooltip:
     'Make a connected game controller rumble in a repeating pattern. Set the motor, strength (0 to 1), on time, off time, and number of repeats.',
 
+  // Snippet hint translations - shown when hovering or tapping a toolbox snippet
+  snippet_playerstart_hint: 'A box that falls and lands under gravity.',
+  snippet_clickbox_hint: 'Click the box to give it a push.',
+  snippet_bouncy_sphere_hint: 'A sphere with physics that gets a push as soon as it appears.',
+  snippet_falling_star_hint: 'A golden star that drops onto the scene with physics.',
+  snippet_falling_heart_hint: 'A tilted heart that tumbles onto the scene with physics.',
+  snippet_move8_hint: 'Moves the player forward and backward with the player controls.',
+  snippet_move4_hint:
+    'Moves the player forward, backward, left and right with the player controls.',
+  snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
+  snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
+
   // Dropdown option translations
   AWAIT_option: 'await',
   START_option: 'start',
