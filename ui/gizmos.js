@@ -1049,6 +1049,9 @@ function attachOrbitView(mesh) {
   orbitSavedCamera = freeCamera;
   freeCamera.detachControl();
   scene.activeCamera = orbitCamera;
+  // Orbit-view keys (WASD/arrows) are read straight off the physical keyboard
+  // by CameraControls, same as fly mode — the project shouldn't see them too.
+  flock.inputManager?.setInputOwner('editor');
   const canvas = scene.getEngine().getRenderingCanvas();
   if (canvas) {
     orbitCamera.attachControl(canvas, false);
@@ -1120,6 +1123,7 @@ function disconnectOrbitView() {
   // Scene gone (disposal path): wipe all orbit globals so stale state never
   // persists across a scene reset, even though no camera restore is possible.
   if (!flock.scene?.activeCamera?.metadata?.orbitView) {
+    flock.inputManager?.setInputOwner('project');
     window.orbitViewActive = false;
     window.orbitBlock = null;
     window.orbitMesh = null;
@@ -1141,6 +1145,7 @@ function disconnectOrbitView() {
   // leave all state intact so the caller can see the system is still "stuck"
   // in orbit rather than silently desynchronising flags from camera state.
   if (!restoreFreeCameraFromOrbit()) return;
+  flock.inputManager?.setInputOwner('project');
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
