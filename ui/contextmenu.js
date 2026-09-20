@@ -157,6 +157,47 @@ export function initContextMenus(workspace) {
     });
   })();
 
+  // Add a context menu item to focus the camera on a block's mesh — moves the
+  // followed player to face it when a follow camera is active (camera stays
+  // attached), otherwise reframes the free camera on it. Mirrors the F key.
+  (function registerFocusOnMeshContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'focusBlockInCanvas';
+    if (registry.getItem && registry.getItem(id)) return;
+
+    registry.register({
+      id,
+      weight: 9,
+      displayText: () => {
+        const text = translate('focus_on_mesh_option');
+        const label = text === 'focus_on_mesh_option' ? 'Focus' : text;
+        return renderShortcut(label, 'F');
+      },
+      preconditionFn: (scope) => {
+        const block = scope.block;
+        if (!block || block.isInFlyout) return 'hidden';
+        try {
+          const mesh = getMeshFromBlock(block);
+          return mesh && mesh.name !== 'ground' ? 'enabled' : 'hidden';
+        } catch {
+          return 'hidden';
+        }
+      },
+      callback: (scope) => {
+        const block = scope.block;
+        if (!block) return;
+        Promise.all([import('../main/view.js'), import('./gizmos.js')]).then(
+          ([{ showCanvasView }, { focusOnMesh }]) => {
+            showCanvasView();
+            window.currentBlock = block;
+            focusOnMesh(block);
+          }
+        );
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+    });
+  })();
+
   // Add a context menu item to lock/unlock a block (and its descendants) so it
   // can't be edited, moved or deleted. Appears directly after "Disable".
   (function registerLockContextMenuItem() {

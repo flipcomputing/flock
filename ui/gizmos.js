@@ -247,11 +247,11 @@ function registerBindings() {
   const noMod = (fn) => (e) => {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
-  // Focus on mesh with V or F key
+  // Focus on mesh with F key
   KeyboardDispatcher.on(
     'GIZMO',
     'KeyF',
-    noMod(() => focusCameraOnMesh())
+    noMod(() => focusOnMesh())
   );
   KeyboardDispatcher.on(
     'GIZMO',
@@ -790,23 +790,15 @@ export function selectMeshForBlock(newBlock) {
   requestAnimationFrame(tryAttach);
 }
 
-function focusCameraOnMesh(overrideMesh) {
-  let mesh = overrideMesh ?? gizmoManager.attachedMesh;
-  if (mesh && mesh.name === 'ground') mesh = null;
-  if (!mesh && window.currentBlock) {
-    mesh = getMeshFromBlock(window.currentBlock);
-    if (mesh && mesh.name === 'ground') mesh = null;
-  }
-  if (!mesh) return;
+// Reframe the free/fly camera directly on the mesh. Only valid when no
+// follow camera is active — focusOnMesh() below routes to
+// movePlayerToFaceMesh() instead whenever one is.
+function frameFreeCameraOnMesh(mesh) {
   applyMeshSelection(mesh);
 
   mesh.computeWorldMatrix(true);
   const { min, max } = mesh.getHierarchyBoundingVectors(true);
   const newTarget = flock.BABYLON.Vector3.Center(min, max);
-
-  if (flock.scene.activeCamera?.metadata?.following) {
-    handleCameraGizmo();
-  }
 
   const camera = flock.scene.activeCamera;
   const currentDistance = camera.radius || 10;
@@ -820,63 +812,10 @@ function focusCameraOnMesh(overrideMesh) {
   camera.setTarget(newTarget);
 }
 
-function applyMeshSelection(pickedMesh, pickedPoint) {
-  if (pickedMesh && pickedMesh.name !== 'ground') {
-    if (pickedMesh.parent) {
-      pickedMesh = getRootMesh(pickedMesh.parent);
-      pickedMesh.visibility = 0.001;
-    }
-    const block = meshMap[pickedMesh?.metadata?.blockKey];
-    highlightBlockById(Blockly.getMainWorkspace(), block);
-    gizmoManager.attachToMesh(pickedMesh);
-    enableBoundingBox(pickedMesh);
-    return;
-  }
-
-  if (pickedMesh && pickedMesh.name === 'ground') {
-    showStatus(positionStatus(pickedPoint), { duration: 10, owner: 'position-readout' });
-  }
-  if (gizmoManager.attachedMesh) {
-    resetChildMeshesOfAttachedMesh();
-    gizmoManager.attachToMesh(null);
-  }
-}
-
-export function viewMeshWithCamera(block) {
-  let mesh;
-  if (block) {
-    mesh = getMeshFromBlock(block);
-    if (mesh?.name === 'ground') mesh = null;
-  } else {
-    mesh = gizmoManager.attachedMesh;
-    if (mesh?.name === 'ground') mesh = null;
-    if (!mesh && window.currentBlock) {
-      mesh = getMeshFromBlock(window.currentBlock);
-      if (mesh?.name === 'ground') mesh = null;
-    }
-  }
-
-  const camera = flock.scene.activeCamera;
-
-  if (!camera?.metadata?.following) {
-    if (camera?.metadata?.orbitView) {
-      // Toggle off on the orbited mesh; switch target on a different one.
-      if (!block || mesh === window.orbitMesh) {
-        disconnectOrbitView();
-        return;
-      }
-      disconnectOrbitView(); // switch target — disconnect first, then fall through
-      // If disconnect failed (orbit camera still active), don't attach a new one on top
-      if (flock.scene.activeCamera?.metadata?.orbitView) {
-        return;
-      }
-    }
-    if (mesh) attachOrbitView(mesh);
-    return;
-  }
-
-  if (!mesh) return;
-
+// Move the followed player to face the mesh, keeping the camera attached to
+// the player throughout — unlike orbit view, which detaches the camera onto
+// its own free-floating ArcRotateCamera.
+function movePlayerToFaceMesh(mesh, camera) {
   const BABYLON = flock.BABYLON;
   const player = camera.metadata.following;
 
@@ -997,6 +936,96 @@ export function viewMeshWithCamera(block) {
 
   // Behind player relative to the direction the player is facing toward the mesh.
   camera.alpha = -chosenYaw - Math.PI / 2;
+}
+
+// Focus on a mesh: when a follow camera is active, moves the followed player
+// to face it (camera stays attached); otherwise reframes the free camera on
+// it directly. Resolves the mesh from `block` when given (context menu),
+// else from the current gizmo selection (keyboard shortcut).
+export function focusOnMesh(block) {
+  let mesh;
+  if (block) {
+    mesh = getMeshFromBlock(block);
+    if (mesh?.name === 'ground') mesh = null;
+  } else {
+    mesh = gizmoManager.attachedMesh;
+    if (mesh?.name === 'ground') mesh = null;
+    if (!mesh && window.currentBlock) {
+      mesh = getMeshFromBlock(window.currentBlock);
+      if (mesh?.name === 'ground') mesh = null;
+    }
+  }
+  if (!mesh) return;
+
+  // Orbit view owns the camera while active; drop out of it first so the
+  // following/free-camera check below runs against the camera orbit was
+  // covering for, instead of mutating the orbit camera directly (which would
+  // desync window.orbitMesh and its disposal observer from what's on screen).
+  let camera = flock.scene.activeCamera;
+  if (camera?.metadata?.orbitView) {
+    disconnectOrbitView();
+    camera = flock.scene.activeCamera;
+    if (camera?.metadata?.orbitView) return; // no valid camera to restore
+  }
+
+  if (camera?.metadata?.following) {
+    movePlayerToFaceMesh(mesh, camera);
+    return;
+  }
+
+  frameFreeCameraOnMesh(mesh);
+}
+
+function applyMeshSelection(pickedMesh, pickedPoint) {
+  if (pickedMesh && pickedMesh.name !== 'ground') {
+    if (pickedMesh.parent) {
+      pickedMesh = getRootMesh(pickedMesh.parent);
+      pickedMesh.visibility = 0.001;
+    }
+    const block = meshMap[pickedMesh?.metadata?.blockKey];
+    highlightBlockById(Blockly.getMainWorkspace(), block);
+    gizmoManager.attachToMesh(pickedMesh);
+    enableBoundingBox(pickedMesh);
+    return;
+  }
+
+  if (pickedMesh && pickedMesh.name === 'ground') {
+    showStatus(positionStatus(pickedPoint), { duration: 10, owner: 'position-readout' });
+  }
+  if (gizmoManager.attachedMesh) {
+    resetChildMeshesOfAttachedMesh();
+    gizmoManager.attachToMesh(null);
+  }
+}
+
+export function viewMeshWithCamera(block) {
+  let mesh;
+  if (block) {
+    mesh = getMeshFromBlock(block);
+    if (mesh?.name === 'ground') mesh = null;
+  } else {
+    mesh = gizmoManager.attachedMesh;
+    if (mesh?.name === 'ground') mesh = null;
+    if (!mesh && window.currentBlock) {
+      mesh = getMeshFromBlock(window.currentBlock);
+      if (mesh?.name === 'ground') mesh = null;
+    }
+  }
+
+  const camera = flock.scene.activeCamera;
+  if (camera?.metadata?.orbitView) {
+    // Toggle off on the orbited mesh; switch target on a different one.
+    if (!block || mesh === window.orbitMesh) {
+      disconnectOrbitView();
+      return;
+    }
+    disconnectOrbitView(); // switch target — disconnect first, then fall through
+    // If disconnect failed (orbit camera still active), don't attach a new one on top
+    if (flock.scene.activeCamera?.metadata?.orbitView) {
+      return;
+    }
+  }
+  if (mesh) attachOrbitView(mesh);
 }
 
 // Attach an ArcRotateCamera that orbits the given mesh (free-camera mode only).
@@ -2115,6 +2144,17 @@ export function disableGizmos() {
 
 // Toggle which Gizmo is being used
 export function toggleGizmo(gizmoType) {
+  // The camera button's job while orbiting is just to exit orbit. Must run
+  // before the "already active" / cleanup logic below: cameraButton is never
+  // marked active during orbit (cameraMode stays 'play' throughout), so
+  // without this the general exitGizmoState() cleanup would disconnect orbit
+  // on its own, and by the time handleCameraGizmo() ran its own orbit check
+  // would already see a plain camera and fall through to a play/fly toggle.
+  if (gizmoType === 'camera' && isOrbitViewActive()) {
+    disconnectOrbitView();
+    return;
+  }
+
   // Is this gizmo already active? If so, toggle it off
   const button = document.getElementById(`${gizmoType}Button`);
   if (button?.classList.contains('active')) {
@@ -2207,7 +2247,7 @@ export function toggleGizmo(gizmoType) {
       break;
     */
     case 'focus':
-      focusCameraOnMesh();
+      focusOnMesh();
       break;
     default:
       break;
@@ -2791,12 +2831,14 @@ const isTouchDevice = () =>
 
 // Camera: Toggle between play and fly camera modes
 function handleCameraGizmo() {
-  // If orbit-view is active, drop back to the free camera first so the
-  // play/fly swap below operates on the normal camera pair. If there is no
-  // saved play camera to swap to, just stay on the restored free camera.
+  // If orbit-view is active, the camera button's job is just to exit orbit
+  // and return to whichever camera was active before it — the player's
+  // follow camera if that's what was showing, not a fly/play toggle on top
+  // (cameraMode is always 'play' during orbit, so that toggle would always
+  // land on the fly camera regardless of what was really active before).
   if (flock.scene.activeCamera?.metadata?.orbitView) {
     disconnectOrbitView();
-    if (!flock.savedCamera) return;
+    return;
   }
 
   const cameraButton = document.getElementById('cameraButton');

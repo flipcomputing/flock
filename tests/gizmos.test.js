@@ -10,6 +10,7 @@ import {
   configureRotationGizmo,
   configureScaleGizmo,
   viewMeshWithCamera,
+  focusOnMesh,
   toggleGizmo,
   enableGizmos,
 } from '../ui/gizmos.js';
@@ -708,6 +709,59 @@ export function runGizmoTests(flock) {
           expect(mgr.attachedMesh).to.equal(second);
           expect(mgr.positionGizmoEnabled).to.be.true;
         });
+      });
+
+      describe('camera button while orbiting', function () {
+        let cameraButton;
+
+        beforeEach(function () {
+          cameraButton = document.createElement('button');
+          cameraButton.id = 'cameraButton';
+          cameraButton.className = 'gizmo-button';
+          document.body.appendChild(cameraButton);
+        });
+
+        afterEach(function () {
+          cameraButton.remove();
+        });
+
+        it('exits orbit and returns to the previous camera, not fly mode', function () {
+          orbitBox();
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          toggleGizmo('camera');
+          expect(flock.scene.activeCamera).to.equal(freeCamera);
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.not.equal(true);
+          expect(cameraButton.classList.contains('active')).to.be.false;
+        });
+
+        it('returns to a follow camera if that was active before orbiting', function () {
+          const player = makeBox('cameraButtonFollowPlayer');
+          const followCamera = new BABYLON.FreeCamera(
+            'cameraButtonFollowCamera',
+            new BABYLON.Vector3(0, 5, -10),
+            flock.scene
+          );
+          followCamera.metadata = { following: player };
+          flock.scene.activeCamera = followCamera;
+
+          orbitBox('cameraButtonFollowBox');
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+
+          toggleGizmo('camera');
+          expect(flock.scene.activeCamera).to.equal(followCamera);
+          expect(cameraButton.classList.contains('active')).to.be.false;
+
+          followCamera.dispose();
+        });
+      });
+
+      it('focusOnMesh (F) during orbit exits orbit instead of mutating the orbit camera', function () {
+        orbitBox('focusDuringOrbitBox');
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+        focusOnMesh();
+        expect(flock.scene.activeCamera.metadata?.orbitView).to.not.equal(true);
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(window.orbitMesh).to.be.null;
       });
     });
 
