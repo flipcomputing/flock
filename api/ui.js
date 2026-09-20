@@ -207,6 +207,8 @@ export const flockUI = {
   } = {}) {
     if (!flock.scene || !flock.GUI) return;
 
+    const __owningSection = flock._currentSection;
+
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
@@ -255,6 +257,8 @@ export const flockUI = {
         bg.isVisible = visible;
       });
     }
+
+    bg.sectionOwner = __owningSection;
 
     bg.background = flock.hexToRgba(backgroundColor || '#ffffff', resolvedAlpha);
 
@@ -323,6 +327,8 @@ export const flockUI = {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
 
+    const __owningSection = flock._currentSection;
+
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
@@ -363,6 +369,8 @@ export const flockUI = {
       const scaledSize = Math.round(parsedSize * flock.displayScale);
       button.textBlock.fontSize = scaledSize;
     }
+
+    button.sectionOwner = __owningSection;
 
     button.color = textColor || 'white';
     button.background = backgroundColor || 'blue';
@@ -405,6 +413,7 @@ export const flockUI = {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
+    const __owningSection = flock._currentSection;
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
@@ -478,6 +487,9 @@ export const flockUI = {
     button.horizontalAlignment = input.horizontalAlignment;
     button.verticalAlignment = input.verticalAlignment;
 
+    input.sectionOwner = __owningSection;
+    button.sectionOwner = __owningSection;
+
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
 
@@ -519,6 +531,8 @@ export const flockUI = {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
+
+    const __owningSection = flock._currentSection;
 
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
@@ -568,6 +582,7 @@ export const flockUI = {
         : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
 
     slider.zIndex = 1000;
+    slider.sectionOwner = __owningSection;
 
     flock.scene.UITexture.addControl(slider);
 

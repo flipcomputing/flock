@@ -57,7 +57,7 @@ async function loadAudioBuffer(url, context) {
   return soundBufferCache.get(url);
 }
 
-function playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate }) {
+function playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate, owningSignal }) {
   const gainNode = context.createGain();
   gainNode.gain.value = volume;
   gainNode.connect(context.destination);
@@ -94,6 +94,8 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   };
 
   flock.globalSounds.push(soundRef);
+  // Not mesh-attached, so nothing else disposes it on unload.
+  flock.onStop(finish, owningSignal);
   source.start();
 
   if (!loop) {
@@ -335,7 +337,17 @@ function getNoteBus(context) {
 }
 
 export const flockSound = {
-  async playSound(meshName, { soundName, loop = false, volume = 1, playbackRate = 1 } = {}) {
+  async playSound(
+    meshName,
+    {
+      soundName,
+      loop = false,
+      volume = 1,
+      playbackRate = 1,
+      // Captured before the first await - see onStop in api/sections.js.
+      __owningSignal = flock.sectionSignal(),
+    } = {}
+  ) {
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
     playbackRate =
       Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
@@ -367,7 +379,12 @@ export const flockSound = {
     if (context.state === 'closed') return;
 
     if (meshName === '__everywhere__') {
-      return playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate });
+      return playBufferEverywhere(context, buffer, soundName, {
+        loop,
+        volume,
+        playbackRate,
+        owningSignal: __owningSignal,
+      });
     }
 
     const mesh = flock.scene.getMeshByName(meshName);
@@ -506,7 +523,13 @@ export const flockSound = {
   },
   async playNotes(
     meshName,
-    { notes = [], durations = [], instrument = flock.createInstrument('square') } = {}
+    {
+      notes = [],
+      durations = [],
+      instrument = flock.createInstrument('square'),
+      // Captured here, before any real await - see playSound's __owningSignal.
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     // Clear any prior stopAllSounds abort; stop must not disable future playback.
     flock._audioStopped = false;
@@ -544,7 +567,8 @@ export const flockSound = {
               duration,
               bpm,
               baseTime + offsetTime,
-              instrument
+              instrument,
+              __owningSignal
             );
           }
 
@@ -644,7 +668,7 @@ export const flockSound = {
       });
     });
   },
-  playMidiNote(context, mesh, note, duration, bpm, playTime, instrument = null) {
+  playMidiNote(context, mesh, note, duration, bpm, playTime, instrument = null, owningSignal = null) {
     if (!context || context.state === 'closed') return;
 
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
@@ -754,6 +778,7 @@ export const flockSound = {
       },
     };
     if (flock.globalSounds) flock.globalSounds.push(noteRef);
+    flock.onStop(() => noteRef.stop(), owningSignal);
   },
   midiToFrequency(note) {
     const parsed = Number(note);

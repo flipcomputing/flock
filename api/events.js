@@ -42,13 +42,9 @@ export const flockEvents = {
       observer = flock.events[eventName].add(handler);
     }
 
-    signal?.addEventListener(
-      'abort',
-      () => {
-        flock.events[eventName]?.remove(observer);
-      },
-      { once: true }
-    );
+    const cleanup = () => flock.events[eventName]?.remove(observer);
+    signal?.addEventListener('abort', cleanup, { once: true });
+    flock.sectionSignal?.()?.addEventListener('abort', cleanup, { once: true });
   },
   broadcastEvent(eventName, data) {
     eventName = flock.sanitizeEventName(eventName);
@@ -83,12 +79,15 @@ export const flockEvents = {
       if (a === action) callback();
     };
 
+    const onStop = (cleanup) => {
+      signal?.addEventListener('abort', cleanup, { once: true });
+      flock.sectionSignal?.()?.addEventListener('abort', cleanup, { once: true });
+    };
+
     if (isReleased) {
       const upObs = flock.inputManager.onActionUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener('abort', () => upObs.remove(observer), {
-        once: true,
-      });
+      onStop(() => upObs.remove(observer));
     } else {
       // "pressed" fires on the down edge and again on each OS auto-repeat tick
       // while held, giving continuous behaviour for held keys.
@@ -96,14 +95,10 @@ export const flockEvents = {
       const repeatObs = flock.inputManager.onActionRepeatObservable;
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
-      signal?.addEventListener(
-        'abort',
-        () => {
-          downObs.remove(downObserver);
-          repeatObs.remove(repeatObserver);
-        },
-        { once: true }
-      );
+      onStop(() => {
+        downObs.remove(downObserver);
+        repeatObs.remove(repeatObserver);
+      });
     }
   },
   whenKeyEvent(key, callback, isReleased = false) {
@@ -118,12 +113,15 @@ export const flockEvents = {
       if (k === key) callback();
     };
 
+    const onStop = (cleanup) => {
+      signal?.addEventListener('abort', cleanup, { once: true });
+      flock.sectionSignal?.()?.addEventListener('abort', cleanup, { once: true });
+    };
+
     if (isReleased) {
       const upObs = flock.inputManager.onKeyUpObservable;
       const observer = upObs.add(handler);
-      signal?.addEventListener('abort', () => upObs.remove(observer), {
-        once: true,
-      });
+      onStop(() => upObs.remove(observer));
     } else {
       // "pressed" fires on the down edge and again on each OS auto-repeat tick
       // while held, giving continuous behaviour for held keys.
@@ -131,14 +129,10 @@ export const flockEvents = {
       const repeatObs = flock.inputManager.onKeyRepeatObservable;
       const downObserver = downObs.add(handler);
       const repeatObserver = repeatObs.add(handler);
-      signal?.addEventListener(
-        'abort',
-        () => {
-          downObs.remove(downObserver);
-          repeatObs.remove(repeatObserver);
-        },
-        { once: true }
-      );
+      onStop(() => {
+        downObs.remove(downObserver);
+        repeatObs.remove(repeatObserver);
+      });
     }
   },
   onMicrobitEvent(variableName, eventChar, callback) {
@@ -155,6 +149,7 @@ export const flockEvents = {
       if (char === eventChar) callback();
     });
     signal?.addEventListener('abort', unsubscribe, { once: true });
+    flock.sectionSignal?.()?.addEventListener('abort', unsubscribe, { once: true });
   },
   start(action) {
     flock.scene.onBeforeRenderObservable.addOnce(action);
@@ -206,6 +201,8 @@ export const flockEvents = {
       flock.scene.onBeforeRenderObservable.removeCallback(runAction);
     };
     flock.scene.onDisposeObservable.addOnce(disposeHandler);
+    // Also stop when the owning section unloads, not just on scene disposal.
+    flock.sectionSignal?.()?.addEventListener('abort', disposeHandler, { once: true });
   },
   isAllowedEventName(eventName) {
     if (!eventName || typeof eventName !== 'string') {

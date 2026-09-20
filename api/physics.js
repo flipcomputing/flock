@@ -714,7 +714,19 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(meshName, { trigger, callback, mode = 'wait', applyToGroup = false }) {
+  onTrigger(
+    meshName,
+    {
+      trigger,
+      callback,
+      mode = 'wait',
+      applyToGroup = false,
+      // Captured here, not re-read later - a pending trigger registers
+      // asynchronously, by which point this could be stale. Internal only,
+      // see onSectionStop in api/sections.js.
+      __owningSignal = flock.sectionSignal(),
+    }
+  ) {
     const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
 
     const groupName = getGroupRoot(meshName);
@@ -741,7 +753,7 @@ export const flockPhysics = {
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
@@ -761,6 +773,7 @@ export const flockPhysics = {
             callback,
             mode,
             applyToGroup: false,
+            __owningSignal,
           });
         }
       }
@@ -771,13 +784,14 @@ export const flockPhysics = {
             callback,
             mode,
             applyToGroup: false,
+            __owningSignal,
           });
         }
       }
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
@@ -793,7 +807,7 @@ export const flockPhysics = {
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
@@ -833,11 +847,19 @@ export const flockPhysics = {
             );
           }
           mesh.actionManager.registerAction(actionSequence);
+          flock.onSectionStop(
+            () => mesh.actionManager?.unregisterAction(actionSequence),
+            __owningSignal
+          );
         }
 
         function registerButtonAction(button, trigger, action) {
           if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.add(action);
           else button.onPointerClickObservable.add(action);
+          flock.onSectionStop(() => {
+            if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.remove(action);
+            else button.onPointerClickObservable.remove(action);
+          }, __owningSignal);
         }
 
         async function executeAction(meshId) {

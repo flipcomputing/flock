@@ -692,7 +692,18 @@ export const flockAnimate = {
   async createAnimation(
     animationGroupName,
     meshName,
-    { property, keyframes, easing = 'Linear', loop = false, reverse = false, mode = 'START' } = {}
+    {
+      property,
+      keyframes,
+      easing = 'Linear',
+      loop = false,
+      reverse = false,
+      mode = 'START',
+      // Captured here, before any real await - tags the group for
+      // unloadSection's sweep, so a reload/unload race doesn't matter here
+      // the way it does for signal-based cleanup (see onStop).
+      __owningSection = flock._currentSection,
+    } = {}
   ) {
     // Generate a unique name if one isn't provided
     animationGroupName = animationGroupName || `animation_${flock.scene.getUniqueId()}`;
@@ -702,6 +713,8 @@ export const flockAnimate = {
     if (!animationGroup) {
       animationGroup = new flock.BABYLON.AnimationGroup(animationGroupName, flock.scene);
     }
+    // Reassigned every call, not just on creation, so reuse transfers ownership.
+    animationGroup.sectionOwner = __owningSection;
 
     const mesh = await flock.whenModelReady(meshName);
     if (!flock.requireMesh(mesh, { api: 'createAnimation', name: meshName })) {

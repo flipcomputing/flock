@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { SECTION_NAME_TYPE, findOwningSection } from '../blocks/sectionContainment.js';
 
 function budgetYield(generator, label) {
   const timingVar = generator.nameDB_.getDistinctName(
@@ -28,6 +29,12 @@ export function registerControlGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock['section'] = function (block) {
     const ws = block.workspace;
     const ids = block.containedBlockIds_ || [];
+    const autoStart = block.getFieldValue('START') === 'TRUE';
+    // Mangled, not the raw field text, keeping free-text names out of generated code.
+    const fnName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('NAME'),
+      SECTION_NAME_TYPE
+    );
 
     const lines = ids
       .map((id) => ws.getBlockById(id))
@@ -38,7 +45,70 @@ export function registerControlGenerators(javascriptGenerator) {
       })
       .join('');
 
-    return `{\n${lines}}\n`;
+    let code = `async function ${fnName}() {\n${lines}}\n`;
+    // Non-autostart sections stay defined but dormant until loaded explicitly.
+    // Queued: this is top-level, not nested inside another section.
+    if (autoStart) {
+      code += `await loadSectionQueued(${fnName});\n`;
+    }
+    return code;
+  };
+
+  // Resolves a section_control block's SECTION field to its target's mangled
+  // function name. Null covers a deleted/never-chosen target and "none" alike.
+  function targetSectionFnName(block) {
+    const targetId = block.getFieldValue('SECTION');
+    const target = targetId && block.workspace.getBlockById(targetId);
+    if (!target || target.type !== 'section') return null;
+    return javascriptGenerator.nameDB_.getName(target.getFieldValue('NAME'), SECTION_NAME_TYPE);
+  }
+
+  const SECTION_ACTION_CODE = {
+    LOAD: (fnName) => `await loadSection(${fnName});\n`,
+    UNLOAD: (fnName) => `unloadSection(${fnName});\n`,
+    // Exclusive: unload every other loaded section, then load this one.
+    SWITCH: (fnName) => `await switchSection(${fnName});\n`,
+  };
+
+  // Anything not a direct child of a section's own body queues instead -
+  // see unloadSectionQueued for why unload needs this too.
+  const SECTION_ACTION_CODE_QUEUED = {
+    LOAD: (fnName) => `await loadSectionQueued(${fnName});\n`,
+    UNLOAD: (fnName) => `await unloadSectionQueued(${fnName});\n`,
+    SWITCH: (fnName) => `await switchSectionQueued(${fnName});\n`,
+  };
+
+  javascriptGenerator.forBlock['section_control'] = function (block) {
+    const fnName = targetSectionFnName(block);
+    const action = block.getFieldValue('ACTION');
+    const owner = findOwningSection(block.workspace, block.id);
+    const ownerFnName = owner
+      ? javascriptGenerator.nameDB_.getName(owner.getFieldValue('NAME'), SECTION_NAME_TYPE)
+      : null;
+
+    if (!fnName) {
+      // Switch to "none" means unload everything; Load/Unload have no
+      // equivalent for a missing target.
+      if (action !== 'SWITCH') return '';
+      // Also unloads whichever section this might be nested inside.
+      return owner ? 'unloadAllSections();\nreturn;\n' : 'await unloadAllSectionsQueued();\n';
+    }
+
+    // A direct child of a section is already sequential with its parent -
+    // queueing would deadlock against that same in-progress load.
+    const nested = !!owner;
+    const table = nested ? SECTION_ACTION_CODE : SECTION_ACTION_CODE_QUEUED;
+    let code = (table[action] || table.LOAD)(fnName);
+
+    // A nested self-unload or switch-away unloads this block's own section -
+    // stop its body here, or what runs next gets tagged with a swept owner.
+    const unloadsOwner =
+      nested &&
+      ((action === 'UNLOAD' && fnName === ownerFnName) ||
+        (action === 'SWITCH' && fnName !== ownerFnName));
+    if (unloadsOwner) code += 'return;\n';
+
+    return code;
   };
 
   // Wait for x seconds

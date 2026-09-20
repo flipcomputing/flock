@@ -128,6 +128,7 @@ export const flockCamera = {
       );
       constraintBox.metadata = constraintBox.metadata || {};
       constraintBox.metadata.blockKey = constraintBox.name;
+      constraintBox.metadata.sectionOwner = flock._currentSection;
       constraintBox.name = constraintBox.name + '_' + constraintBox.uniqueId;
       constraintBox.isVisible = false;
       hideFromInspector(constraintBox);

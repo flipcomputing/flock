@@ -1,15 +1,9 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor, registerBlockHandler } from './blocks.js';
-import { translate, getTooltip } from '../main/translation.js';
+import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { makeSectionIcon, getCurrentIconColor, BLOCK_ICON_FIELD_NAME } from './blockIcons.js';
-import { toggleSectionCollapsed, SECTION_DO_CHECK } from './sectionContainment.js';
-
-// Matches the DO input's left inset, so the comment row lines up with the
-// contained blocks rather than the block's outer edge.
-const COMMENT_INDENT_WIDTH = 8;
-const TRANSPARENT_SPACER =
-  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBTAA7';
+import { toggleSectionCollapsed, SECTION_DO_CHECK, getAllSectionBlocks } from './sectionContainment.js';
 
 // Sections are identified by this plain name field, not a Blockly variable -
 // the load/save section blocks (added later) will list section names the same
@@ -48,6 +42,54 @@ function ensureUniqueSectionName(block, changeEvent) {
   }
 }
 
+// Dropdown value is the target section's block id, not its name, so renames
+// stay correct. "None" (value '') is always offered - it's how Switch is
+// told to unload everything and load nothing.
+function sectionDropdownOptions() {
+  const ws = this.sourceBlock_?.workspace;
+  const sections = ws ? getAllSectionBlocks(ws) : [];
+  const noneOption = [translate('section_none_option'), ''];
+  return sections.length
+    ? [...sections.map((section) => [section.getFieldValue('NAME'), section.id]), noneOption]
+    : [noneOption];
+}
+
+// FieldDropdown caches the selected label at set-time, so a section rename
+// wouldn't otherwise show until reopened - look the name up by id on render.
+class SectionRefDropdown extends Blockly.FieldDropdown {
+  getText_() {
+    const ws = this.sourceBlock_?.workspace;
+    const target = ws?.getBlockById(this.getValue());
+    if (target?.type === 'section') return target.getFieldValue('NAME');
+    return super.getText_();
+  }
+}
+
+// Load/unload/switch a section from one block. Switch is exclusive: it
+// unloads every other loaded section before loading the chosen one.
+function defineSectionControlBlock() {
+  Blockly.Blocks['section_control'] = {
+    init: function () {
+      this.appendDummyInput()
+        .appendField(
+          new Blockly.FieldDropdown([
+            getDropdownOption('LOAD'),
+            getDropdownOption('UNLOAD'),
+            getDropdownOption('SWITCH'),
+          ]),
+          'ACTION'
+        )
+        .appendField(translate('section_control'))
+        .appendField(new SectionRefDropdown(sectionDropdownOptions), 'SECTION');
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(categoryColours['Control']);
+      this.setTooltip(getTooltip('section_control'));
+      this.setHelpUrl(getHelpUrlFor('section_control'));
+    },
+  };
+}
+
 export function defineSectionBlock() {
   Blockly.Blocks['section'] = {
     init: function () {
@@ -57,7 +99,7 @@ export function defineSectionBlock() {
       this.jsonInit({
         type: 'section',
         message0: translate('section'),
-        message1: '%1',
+        message1: '%1 %2',
         message2: '%1',
         args0: [
           {
@@ -72,6 +114,11 @@ export function defineSectionBlock() {
           },
         ],
         args1: [
+          {
+            type: 'field_label',
+            name: 'COMMENT_PREFIX',
+            text: '//',
+          },
           {
             type: 'field_multilinetext',
             name: 'COMMENT',
@@ -102,12 +149,7 @@ export function defineSectionBlock() {
         ),
         BLOCK_ICON_FIELD_NAME
       );
-      // Indent the comment row to line up with the DO mouth's contents below it.
-      this.inputList[1].insertFieldAt(
-        0,
-        new Blockly.FieldImage(TRANSPARENT_SPACER, COMMENT_INDENT_WIDTH, 1, ''),
-        'COMMENT_INDENT'
-      );
+      this.inputList[1].setAlign(Blockly.inputs.Align.LEFT);
 
       registerBlockHandler(this, (changeEvent) => ensureUniqueSectionName(this, changeEvent));
     },
@@ -149,4 +191,6 @@ export function defineSectionBlock() {
       );
     },
   };
+
+  defineSectionControlBlock();
 }

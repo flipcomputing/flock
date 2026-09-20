@@ -3,6 +3,8 @@ import * as Blockly from 'blockly';
 const CHILD_GAP = 40;
 const TOP_GAP = 8;
 export const SECTION_DO_CHECK = '__section_do_never_connects__';
+// Name-mangling bucket for section NAME fields, same mechanism as procedures.
+export const SECTION_NAME_TYPE = 'section';
 
 function isRendered(block) {
   return !!block && typeof block.getSvgRoot === 'function' && !!block.getSvgRoot();
@@ -50,7 +52,7 @@ export function generateWorkspaceCode(workspace, javascriptGenerator) {
   return code;
 }
 
-function findOwningSection(workspace, blockId) {
+export function findOwningSection(workspace, blockId) {
   for (const section of getAllSectionBlocks(workspace)) {
     if ((section.containedBlockIds_ || []).includes(blockId)) return section;
   }
@@ -159,10 +161,7 @@ export function layoutSectionChildren(section) {
   });
   section.desiredMouthHeight_ = desiredHeight;
   // Contained blocks are manually positioned, not real connections, so
-  // Blockly never widens the block to fit them on its own. The comment field
-  // starts at the same X as the children (see COMMENT_INDENT_WIDTH in
-  // section.js), so stretching it to their width grows the whole block to
-  // match instead of leaving a gap between the comment and the block edge.
+  // Blockly won't widen the block for them - stretch the comment field instead.
   section.commentMinWidth_ = widestChild ? widestChild + TOP_GAP : 0;
   section.render();
 
@@ -375,6 +374,19 @@ export function endSectionDragFollow(section) {
   }
 }
 
+const SECTION_REFERENCE_TYPES = ['section_control'];
+
+// Nothing repaints a section_control block's dropdown when its target's name
+// changes - force a repaint on every block pointing at the renamed section.
+function refreshSectionReferenceDropdowns(workspace, sectionId) {
+  for (const block of workspace.getAllBlocks(false)) {
+    if (!SECTION_REFERENCE_TYPES.includes(block.type)) continue;
+    const field = block.getField('SECTION');
+    if (field?.getValue() !== sectionId) continue;
+    field.forceRerender();
+  }
+}
+
 export function removeFromAllSections(workspace, blockId) {
   for (const section of getAllSectionBlocks(workspace)) {
     if ((section.containedBlockIds_ || []).includes(blockId)) {
@@ -430,6 +442,9 @@ export function attachSectionBehaviour(workspace) {
       // blocks aren't left at their old, now-stale position.
       const block = workspace.getBlockById(event.blockId);
       if (block?.type === 'section') layoutSectionChildren(block);
+      if (block?.type === 'section' && event.element === 'field' && event.name === 'NAME') {
+        refreshSectionReferenceDropdowns(workspace, block.id);
+      }
       resizeOwningSectionsImmediately(workspace, event.blockId);
       return;
     }

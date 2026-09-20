@@ -564,6 +564,7 @@ export const flockCSG = {
           mergedMesh.name = modelId;
           mergedMesh.metadata = mergedMesh.metadata || {};
           mergedMesh.metadata.blockKey = blockKey;
+          mergedMesh.metadata.sectionOwner = flock._currentSection;
           mergedMesh.metadata.sharedMaterial = false;
 
           return modelId;
@@ -660,6 +661,7 @@ export const flockCSG = {
         mergedMesh.name = modelId;
         mergedMesh.metadata = mergedMesh.metadata || {};
         mergedMesh.metadata.blockKey = blockKey;
+        mergedMesh.metadata.sectionOwner = flock._currentSection;
         mergedMesh.metadata.sharedMaterial = false;
 
         const isDefaultMaterial = (material) => {
@@ -1251,6 +1253,7 @@ export const flockCSG = {
               mesh.name = modelId;
               mesh.metadata = mesh.metadata || {};
               mesh.metadata.blockKey = blockId;
+              mesh.metadata.sectionOwner = flock._currentSection;
               resolve(mesh);
             } else {
               console.warn(`Could not resolve mesh for ${meshName}`);
@@ -1276,6 +1279,7 @@ export const flockCSG = {
     resultMesh.name = modelId;
     resultMesh.metadata = resultMesh.metadata || {};
     resultMesh.metadata.blockKey = blockId;
+    resultMesh.metadata.sectionOwner = flock._currentSection;
 
     // Apply physics
     flock.applyPhysics(resultMesh, new flock.BABYLON.PhysicsShapeMesh(resultMesh, flock.scene));

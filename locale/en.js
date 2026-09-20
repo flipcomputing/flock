@@ -210,6 +210,8 @@ export default {
   section: 'section %1 start: %2',
   section_default_name: 'Section',
   section_toggle_alt: 'expand or collapse section',
+  section_control: 'section',
+  section_none_option: 'none',
 
   // Custom block translations - Effects blocks
   main_light: 'light intensity: %1 color: %2 ground: %3',
@@ -499,7 +501,9 @@ export default {
   for_loop_tooltip:
     'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',
   get_lexical_variable_tooltip: 'Get the value of a lexical variable.',
-  section_tooltip: 'Organize related blocks.',
+  section_tooltip: 'Organize related blocks. Use sections to create scenes or levels.',
+  section_control_tooltip:
+    'Load, unload, or switch to a section. Load has no effect if already loaded; switch unloads every other loaded section first.',
 
   // Tooltip translations - Effects blocks
   main_light_tooltip: 'Set the intensity and diffuse and ground colors of the main light.',
@@ -691,6 +695,9 @@ export default {
   AWAIT_option: 'await',
   START_option: 'start',
   CREATE_option: 'create',
+  LOAD_option: 'load',
+  UNLOAD_option: 'unload',
+  SWITCH_option: 'switch',
 
   Linear_option: 'linear',
   SineEase_option: 'sine ease',

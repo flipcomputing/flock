@@ -288,6 +288,7 @@ export const flockShapes = {
 
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
+    newBox.metadata.sectionOwner = flock._currentSection;
 
     // Define and apply the physics shape
     const boxShape = new flock.BABYLON.PhysicsShapeBox(
@@ -360,6 +361,7 @@ export const flockShapes = {
 
     newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
+    newSphere.metadata.sectionOwner = flock._currentSection;
 
     // Define and apply the physics shape
     const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
@@ -439,6 +441,7 @@ export const flockShapes = {
 
     newCylinder.metadata = newCylinder.metadata || {};
     newCylinder.metadata.blockKey = blockKey;
+    newCylinder.metadata.sectionOwner = flock._currentSection;
 
     let cylinderShape;
     if (diameterTop === diameterBottom) {
@@ -510,6 +513,7 @@ export const flockShapes = {
 
     newCapsule.metadata = newCapsule.metadata || {};
     newCapsule.metadata.blockKey = blockKey;
+    newCapsule.metadata.sectionOwner = flock._currentSection;
     // Define central point for the capsule
     const center = flock.BABYLON.Vector3.Zero();
 
@@ -597,6 +601,7 @@ export const flockShapes = {
 
     newWedge.metadata = newWedge.metadata || {};
     newWedge.metadata.blockKey = blockKey;
+    newWedge.metadata.sectionOwner = flock._currentSection;
     newWedge.metadata.wedgePeak = peak;
     newWedge.metadata.wedgeAxis = axis;
 
@@ -661,6 +666,7 @@ export const flockShapes = {
 
     newDonut.metadata = newDonut.metadata || {};
     newDonut.metadata.blockKey = blockKey;
+    newDonut.metadata.sectionOwner = flock._currentSection;
     newDonut.metadata.donutThickness = thickness;
 
     // A mesh shape leaves the hole open; a hull would fill it in.
@@ -704,6 +710,7 @@ export const flockShapes = {
     newPlane.metadata = newPlane.metadata || {};
     newPlane.metadata.shape = 'plane';
     newPlane.metadata.blockKey = blockKey;
+    newPlane.metadata.sectionOwner = flock._currentSection;
 
     flock.setBlockPositionOnMesh(newPlane, {
       x: position[0],
@@ -742,6 +749,7 @@ export const flockShapes = {
     });
 
     newPlane.metadata.blockKey = blockKey;
+    newPlane.metadata.sectionOwner = flock._currentSection;
 
     flock.announceMeshReady(newPlane.name, groupName);
     flock._registerInstance(blockKey, newPlane.name);
@@ -875,6 +883,7 @@ export const flockShapes = {
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.blockKey = blockKey;
+        mesh.metadata.sectionOwner = flock._currentSection;
         mesh.position.set(x, y, z);
 
         const material = new flock.BABYLON.StandardMaterial('textMaterial_' + meshId, flock.scene);

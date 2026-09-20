@@ -2569,6 +2569,11 @@ const toolboxControl = {
       type: 'section',
       keyword: 'section',
     },
+    {
+      kind: 'block',
+      type: 'section_control',
+      keyword: 'load section',
+    },
   ],
 };
 

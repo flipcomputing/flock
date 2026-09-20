@@ -52,6 +52,7 @@ import { flockScene, setFlockReference as setFlockScene } from './api/scene';
 import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
 import { flockCamera, setFlockReference as setFlockCamera } from './api/camera';
 import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
+import { flockSections, setFlockReference as setFlockSections } from './api/sections';
 import { flockMicrobit, setFlockReference as setFlockMicrobit } from './api/microbit';
 import {
   getMicrobitManager,
@@ -151,6 +152,8 @@ export const flock = {
   inputManager: null,
   canvas: null,
   abortController: null,
+  // Set only while a section's own setup code (loadSection) is running.
+  _currentSection: null,
   _renderLoop: null,
   _renderLoopStopped: false,
   _contextLostAt: null,
@@ -193,6 +196,7 @@ export const flock = {
   ...flockXR,
   ...flockControl,
   ...flockEvents,
+  ...flockSections,
   ...flockMicrobit,
   ...flockSensing,
   ...flockMath,
@@ -1267,6 +1271,14 @@ export const flock = {
       microbitScrollText: this.microbitScrollText?.bind(this),
       start: this.start?.bind(this),
       forever: this.forever?.bind(this),
+      loadSection: this.loadSection?.bind(this),
+      unloadSection: this.unloadSection?.bind(this),
+      switchSection: this.switchSection?.bind(this),
+      unloadAllSections: this.unloadAllSections?.bind(this),
+      loadSectionQueued: this.loadSectionQueued?.bind(this),
+      switchSectionQueued: this.switchSectionQueued?.bind(this),
+      unloadSectionQueued: this.unloadSectionQueued?.bind(this),
+      unloadAllSectionsQueued: this.unloadAllSectionsQueued?.bind(this),
       whenActionEvent: this.whenActionEvent?.bind(this),
       whenKeyEvent: this.whenKeyEvent?.bind(this),
       randomInteger: this.randomInteger?.bind(this),
@@ -2283,6 +2295,10 @@ export const flock = {
 
     // Abort controller for clean-up
     flock.abortController = new AbortController();
+    // Strong-reference Set, unlike _sections - reset per run to avoid leaking.
+    flock._loadedSections = new Set();
+    // Reset so a stale queued load from a previous run can't hold up this one.
+    flock._loadQueueTail = Promise.resolve();
     flock._canvasControlsEnabled = undefined;
     // Subtitles default off each run; the enable_subtitles block opts in.
     flock.subtitlesEnabled = false;
@@ -2312,6 +2328,7 @@ export const flock = {
     setFlockMath(flock);
     setFlockControl(flock);
     setFlockEvents(flock);
+    setFlockSections(flock);
     setFlockMicrobit(flock);
     setFlockSensing(flock);
 
@@ -2762,7 +2779,14 @@ export const flock = {
       const remaining = [];
 
       for (const pending of triggers) {
-        const { meshName: pendingMeshName, trigger, callback, mode, applyToGroup } = pending;
+        const {
+          meshName: pendingMeshName,
+          trigger,
+          callback,
+          mode,
+          applyToGroup,
+          owningSignal,
+        } = pending;
         const targetMeshName = pendingMeshName ?? meshName;
 
         if (applyToGroup) {
@@ -2772,6 +2796,7 @@ export const flock = {
             callback,
             mode,
             applyToGroup: false,
+            __owningSignal: owningSignal,
           });
           remaining.push(pending);
         } else {
@@ -2785,6 +2810,7 @@ export const flock = {
               callback,
               mode,
               applyToGroup: false,
+              __owningSignal: owningSignal,
             });
           } else {
             remaining.push(pending);
@@ -2927,9 +2953,9 @@ export const flock = {
   },
 };
 
- // Bind API module closures at load time so workspace-load paths (e.g. the XR
- // hint) can call flock helpers before the first scene runs. initializeNewScene
- // re-asserts the same reference after each reset.
+// Bind API module closures at load time so workspace-load paths (e.g. the XR
+// hint) can call flock helpers before the first scene runs. initializeNewScene
+// re-asserts the same reference after each reset.
 setFlockCSG(flock);
 setFlockAnimate(flock);
 setFlockSound(flock);
@@ -2948,6 +2974,7 @@ setFlockXR(flock);
 setFlockMath(flock);
 setFlockControl(flock);
 setFlockEvents(flock);
+setFlockSections(flock);
 setFlockMicrobit(flock);
 setFlockMicrobitManager(flock);
 setFlockSensing(flock);

@@ -343,6 +343,7 @@ export const flockMesh = {
 
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
+    mesh.metadata.sectionOwner = flock._currentSection;
 
     if (applyColor) {
       const colorInput = Array.isArray(color) ? color.flat() : color;
@@ -866,6 +867,7 @@ export const flockMesh = {
     bb.name = modelId;
     bb.metadata = bb.metadata || {};
     bb.metadata.blockKey = blockId;
+    bb.metadata.sectionOwner = flock._currentSection;
 
     bb.isPickable = false;
 
