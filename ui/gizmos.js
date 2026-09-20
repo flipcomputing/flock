@@ -2449,7 +2449,10 @@ function handleRotationGizmo() {
   const rotationButton = document.getElementById('rotationButton');
   setGizmoButtonActive(rotationButton, true);
 
-  let savedHudAxis = null;
+  // Default to Y on a fresh activation (most rotations are about the vertical
+  // axis); once the user picks a different axis, re-attaching to another mesh
+  // within this same activation keeps that choice instead of resetting.
+  let savedHudAxis = 'y';
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
