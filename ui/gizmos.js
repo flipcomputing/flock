@@ -3583,6 +3583,7 @@ export function enableGizmos() {
 
 export function setGizmoManager(value) {
   gizmoManager = value;
+  if (!value) return;
 
   // A drop grouping the attached mesh moves the gizmo to the group root,
   // like a canvas pick. Anything else is left alone. Registered here, not at

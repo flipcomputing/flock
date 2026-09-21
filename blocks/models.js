@@ -102,6 +102,10 @@ export function defineModelBlocks() {
             name: 'SLEEVES_COLOR',
             check: 'Colour',
           },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
         ],
         inputsInline: true,
         colour: categoryColours['Scene'],
@@ -202,6 +206,10 @@ export function defineModelBlocks() {
             type: 'input_value',
             name: 'Z',
             check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
           },
         ],
         inputsInline: true,
@@ -305,6 +313,10 @@ export function defineModelBlocks() {
             type: 'input_value',
             name: 'COLORS',
             check: 'Array',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
           },
         ],
         inputsInline: true,
@@ -511,6 +523,10 @@ export function defineModelBlocks() {
             type: 'input_value',
             name: 'Z',
             check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
           },
         ],
         inputsInline: true,

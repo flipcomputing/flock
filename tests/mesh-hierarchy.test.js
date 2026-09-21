@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { meshMap } from '../generators/generators.js';
-import { bakeGroupScale, cacheGroupScaleBaseline, healGroupOrigin, updateChildBlockRotations, updateScaleBlock, setGizmoManager } from '../ui/gizmos.js';
+import { bakeGroupScale, cacheGroupScaleBaseline, healGroupOrigin, updateChildBlockRotations, updateScaleBlock, setGizmoManager, gizmoManager } from '../ui/gizmos.js';
 import { suppressBlockLiveUpdates, unsuppressBlockLiveUpdates, updateMeshFromBlock, syncGroupParentOnMove, setGroupSelectionFollower, getColorRoot, handleMaterialOrColorChange, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
 
 function configureDraco(BABYLON) {
@@ -1383,6 +1383,7 @@ export function runMeshHierarchyTests(flock) {
             this.attachedTo = m;
           },
         };
+        const previousGizmoManager = gizmoManager;
         setGizmoManager(fake);
         try {
           syncGroupParentOnMove(childMesh, memberMock);
@@ -1391,6 +1392,7 @@ export function runMeshHierarchyTests(flock) {
         } finally {
           fake.attachedMesh = null;
           fake.attachedTo = null;
+          setGizmoManager(previousGizmoManager);
         }
       });
 

@@ -564,7 +564,7 @@ export function clearLowVisionCategoryIcons(workspace) {
   }
 }
 
-function getWorkspaceAndFlyoutBlocks(workspace) {
+export function getWorkspaceAndFlyoutBlocks(workspace) {
   const blocks = workspace.getAllBlocks(false) || [];
   const flyoutWorkspace = workspace.getFlyout?.()?.getWorkspace?.();
   if (flyoutWorkspace) {

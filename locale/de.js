@@ -144,14 +144,14 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6\nhaare: %7 | haut: %8 | augen: %9 | t-shirt: %10 | shorts: %11 | details: %12',
-  load_object: 'füge %1 %2 %3 hinzu Skalierung: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6\nFarben: %7',
-  load_model: 'füge %1 %2 hinzu Skalierung: %3 x: %4 y: %5 z: %6',
+    'füge %1 %2 hinzu Skalierung: %3 %13 x: %4 y: %5 z: %6\nhaare: %7 | haut: %8 | augen: %9 | t-shirt: %10 | shorts: %11 | details: %12',
+  load_object: 'füge %1 %2 %3 hinzu Skalierung: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'füge %1 %2 hinzu Skalierung: %3 %8 x: %4 y: %5 z: %6\nFarben: %7',
+  load_model: 'füge %1 %2 hinzu Skalierung: %3 %7 x: %4 y: %5 z: %6',
 
   // Custom block translations - Animate blocks
-  glide_to: '%1 gleitet zu x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9',
-  glide_to_seconds: '%1 gleitet zu x %2 y %3 z %4 in %5 Sekunden\n%6 zurück? %7 Schleife? %8 %9',
+  glide_to: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9',
+  glide_to_seconds: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 Sekunden\n%6 zurück? %7 Schleife? %8 %9',
   glide_to_object:
     '%1 gleitet zu %2 in %6 Sekunden\nVersatz x: %3 y: %4 z: %5\n%7 zurück? %8 Schleife? %9 %10',
   glide_to_axis: '%1 gleitet %2 %3 in %4 Sekunden\n%5 zurück? %6 Schleife? %7 %8',
@@ -162,7 +162,7 @@ export default {
   animate_property: 'animieren %1 %2 zu %3 in %4 ms rückwärts? %5 Schleife? %6 %7',
   colour_keyframe: 'bei %1 Farbe: %2',
   number_keyframe: 'bei %1 Wert: %2',
-  xyz_keyframe: 'bei %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'bei %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animieren Schlüsselbilder von %1 Eigenschaft %2\nKeyframes %3\nEasing %4 Rückwärts %5 Schleife %6 %7',
   animation:
@@ -278,18 +278,18 @@ export default {
   create_particle_effect:
     'Füge Partikeleffekt %1 hinzu auf: %2\nForm: %3 Start: %4 Ende: %5 Alpha: %6–%7\nRate: %8 Größe: %9–%10 Lebensdauer: %11–%12\nGravitation: %13 Kraft x: %14 y: %15 z: %16\nDrehgeschwindigkeit: %17–%18 Anfangswinkel: %19–%20',
   control_particle_system: 'Steuere Partikelsystem %1 %2',
-  create_box: 'Box hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nbei x: %6 y: %7 z: %8',
-  create_sphere: 'Kugel hinzufügen %1 %2 Ø x: %3 Ø y: %4 Ø z: %5\nbei x: %6 y: %7 z: %8',
+  create_box: 'Box hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\n%9 x: %6 y: %7 z: %8',
+  create_sphere: 'Kugel hinzufügen %1 %2 Ø x: %3 Ø y: %4 Ø z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'Zylinder hinzufügen %1 %2 Höhe: %3 oben: %4 unten: %5 Seiten: %6\nbei x: %7 y: %8 z: %9',
-  create_capsule: 'Kapsel hinzufügen %1 %2 Ø: %3 Höhe: %4\nbei x: %5 y: %6 z: %7',
+    'Zylinder hinzufügen %1 %2 Höhe: %3 oben: %4 unten: %5 Seiten: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'Kapsel hinzufügen %1 %2 Ø: %3 Höhe: %4\n%8 x: %5 y: %6 z: %7',
   X_option: 'x', // ai
   Z_option: 'z', // ai
   create_wedge:
-    'Keil hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nSpitze: %6 entlang: %7\nbei x: %8 y: %9 z: %10', // ai
+    'Keil hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nSpitze: %6 entlang: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_donut:
-    'Donut hinzufügen %1 %2 Durchmesser: %3 Dicke: %4 Seiten: %5\nbei x: %6 y: %7 z: %8', // ai
-  create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\nbei x: %5 y: %6 z: %7',
+    'Donut hinzufügen %1 %2 Durchmesser: %3 Dicke: %4 Seiten: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\n%8 x: %5 y: %6 z: %7',
 
   // Sound blocks
   play_theme:
@@ -317,7 +317,7 @@ export default {
   ui_input: 'UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8',
   describe: 'beschreibe %1 als %2',
   create_3d_text:
-    'Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 x: %7 y: %8 z: %9',
+    'Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 %10 x: %7 y: %8 z: %9',
 
   // Math blocks
   random_seeded_int: 'zufällige Ganzzahl von %1 bis %2 Seed: %3',
@@ -326,7 +326,7 @@ export default {
   // Transform blocks
   move_by_xyz: 'Position von %1 ändern um x: %2 y: %3 z: %4',
   move_by_xyz_single: 'Position von %1 ändern um %2 %3',
-  move_to_xyz: 'Position von %1 setzen auf x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'Position von %1 setzen auf %6 x: %2 y: %3 z: %4 y? %5',
   move_to_xyz_single: 'Position von %1 setzen auf %2 %3',
   move_to: 'Position von %1 setzen auf %2 y? %3',
   scale: 'Skaliere %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7',

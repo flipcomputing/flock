@@ -20,6 +20,7 @@ import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
 import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
 import { FieldBlockSearch } from './fieldBlockSearch.js';
+import './fieldPickPosition.js'; // registers field_pick_position
 
 registerFieldColour();
 

@@ -7,6 +7,7 @@ import {
   makeLowVisionCategoryIconDataUrl,
   preloadLowVisionCategoryIcons,
 } from '../blocks/blockIcons.js';
+import { updatePickPositionFieldIcons } from '../blocks/fieldPickPosition.js';
 
 export const categoryColours = {
   Events: 5,
@@ -356,6 +357,7 @@ function switchTheme(themeName, { persist = true } = {}) {
 
   workspace.updateToolbox(workspace.options.languageTree);
   updateAllBlockIcons(workspace, iconColor);
+  updatePickPositionFieldIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
     applyLowVisionDecorations(workspace, {
       hideFlyoutWhileApplying: true,

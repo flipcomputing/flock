@@ -384,7 +384,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     meshBlockIdMap[block.id] = block.id;
     const isActive = block.getFieldValue('ACTIVE') === 'TRUE';
 
-    const parentCode = isActive ? maybeParentToGroup(variableName) : '';
+    const parentCode = maybeParentToGroup(variableName);
 
     const doCode = block.getInput('DO')
       ? withGroupParent(isActive ? variableName : null, () =>

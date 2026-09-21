@@ -138,6 +138,10 @@ export function defineTransformBlocks() {
             checked: true,
             text: 'Use Y axis',
           },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
         ],
         previousStatement: null,
         nextStatement: null,

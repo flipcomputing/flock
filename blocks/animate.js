@@ -92,6 +92,10 @@ export function defineAnimateBlocks() {
               getDropdownOption('BackEase'),
             ],
           },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
         ],
         previousStatement: null,
         nextStatement: null,
@@ -165,6 +169,10 @@ export function defineAnimateBlocks() {
               getDropdownOption('ElasticEase'),
               getDropdownOption('BackEase'),
             ],
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
           },
         ],
         previousStatement: null,
@@ -703,6 +711,10 @@ export function defineAnimateBlocks() {
             type: 'input_value',
             name: 'Z',
             check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
           },
         ],
         colour: categoryColours['Animate'],

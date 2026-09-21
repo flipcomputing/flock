@@ -505,6 +505,10 @@ export function defineTextBlocks() {
             name: 'Z',
             check: 'Number',
           },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
         ],
         inputsInline: true,
         colour: categoryColours['Text'],

@@ -140,15 +140,15 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nwłosy: %7 | skóra: %8 | oczy: %9 | koszulka: %10 | spodenki: %11 | detale: %12',
-  load_object: 'dodaj %1 %2 %3, skala: %4, x: %5, y: %6, z: %7',
-  load_multi_object: 'dodaj %1 %2, skala: %3, x: %4, y: %5, z: %6\nkolory: %7',
-  load_model: 'dodaj model %1 %2, skala: %3, x: %4, y: %5, z: %6',
+    'dodaj %1 %2, skala: %3, %13 x: %4, y: %5, z: %6\nwłosy: %7 | skóra: %8 | oczy: %9 | koszulka: %10 | spodenki: %11 | detale: %12',
+  load_object: 'dodaj %1 %2 %3, skala: %4, %8 x: %5, y: %6, z: %7',
+  load_multi_object: 'dodaj %1 %2, skala: %3, %8 x: %4, y: %5, z: %6\nkolory: %7',
+  load_model: 'dodaj model %1 %2, skala: %3, %7 x: %4, y: %5, z: %6',
 
   // Custom block translations - Animate blocks
-  glide_to: 'przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9',
+  glide_to: 'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9',
   glide_to_seconds:
-    'przesuń %1 do x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9',
+    'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9',
   glide_to_object:
     'przesuń %1 do %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10',
   glide_to_axis: 'przesuń %1 %2 %3 w czasie %4 sekund\n%5 powrót? %6 pętla? %7 %8',
@@ -159,7 +159,7 @@ export default {
   animate_property: 'animuj %1: %2 do %3 w czasie %4 ms, odwróć? %5, pętla? %6 %7',
   colour_keyframe: 'w %1 kolor: %2',
   number_keyframe: 'w %1 wartość: %2',
-  xyz_keyframe: 'w %1 x: %2, y: %3, z: %4',
+  xyz_keyframe: 'w %1 %5 x: %2, y: %3, z: %4',
   animate_keyframes:
     'animuj klatki kluczowe %1, właściwość: %2\nklatki: %3\nWygładzanie: %4, odwróć: %5, pętla: %6 %7',
   animation:
@@ -275,18 +275,18 @@ export default {
   create_particle_effect:
     'dodaj efekt cząsteczek %1 na: %2\nkształt: %3 start: %4 koniec: %5 przezroczystość: %6 do %7\nczęstotliwość: %8 rozmiar: %9 do %10 żywotność: %11 do %12\ngrawitacja: %13 siła x: %14 y: %15 z: %16\nprędkość kątowa: %17 do %18 kąt początkowy: %19 do %20',
   control_particle_system: 'system cząsteczek %1 %2',
-  create_box: 'dodaj pudełko %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nw x: %6 y: %7 z: %8',
+  create_box: 'dodaj pudełko %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\n%9 x: %6 y: %7 z: %8',
   create_sphere:
-    'dodaj sferę %1 %2 średnica x: %3 średnica y: %4 średnica z: %5\nw x: %6 y: %7 z: %8',
+    'dodaj sferę %1 %2 średnica x: %3 średnica y: %4 średnica z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'dodaj cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\nw x: %7 y: %8 z: %9',
-  create_capsule: 'dodaj kapsułę %1 %2 średnica: %3 wysokość: %4\nw x: %5 y: %6 z: %7',
+    'dodaj cylinder %1 %2 wysokość: %3 góra: %4 dół: %5 boki: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'dodaj kapsułę %1 %2 średnica: %3 wysokość: %4\n%8 x: %5 y: %6 z: %7',
   X_option: 'x', // ai
   Z_option: 'z', // ai
   create_wedge:
-    'dodaj klin %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nszczyt: %6 wzdłuż: %7\nw x: %8 y: %9 z: %10', // ai
-  create_donut: 'dodaj pączek %1 %2 średnica: %3 grubość: %4 boki: %5\nw x: %6 y: %7 z: %8', // ai
-  create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\nw x: %5 y: %6 z: %7',
+    'dodaj klin %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nszczyt: %6 wzdłuż: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut: 'dodaj pączek %1 %2 średnica: %3 grubość: %4 boki: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
   play_theme: 'odtwórz motyw %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7',
@@ -314,7 +314,7 @@ export default {
   ui_input: 'wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8',
   describe: 'opisz %1 jako %2',
   create_3d_text:
-    'dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 x: %7 y: %8 z: %9',
+    'dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'losowa liczba całkowita od %1 do %2 z ziarnem: %3',
@@ -323,7 +323,7 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'zmień pozycję %1 o x: %2, y: %3, z: %4',
   move_by_xyz_single: 'zmień położenie %1 o %2 %3',
-  move_to_xyz: 'ustaw pozycję %1 na x: %2, y: %3, z: %4 y? %5',
+  move_to_xyz: 'ustaw pozycję %1 na %6 x: %2, y: %3, z: %4 y? %5',
   move_to_xyz_single: 'ustaw położenie %1 na %2 %3',
   move_to: 'ustaw pozycję %1 na %2 y? %3',
   scale: 'skaluj %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7',

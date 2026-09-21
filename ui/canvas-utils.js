@@ -1,5 +1,6 @@
 import { flock } from '../flock.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { translate } from '../main/translation.js';
 
 // Create yellow circle for canvas position indicator
 // One circle selector can be active on the canvas at once
@@ -34,6 +35,8 @@ export function createCanvasCircle() {
   canvasCircle = document.createElement('div');
   canvasCircle.className = 'canvas-selector-circle'; // Set style
   canvasCircle.tabIndex = -1;
+  canvasCircle.setAttribute('role', 'application');
+  canvasCircle.setAttribute('aria-label', translate('canvas_selector_cursor_aria'));
   document.body.appendChild(canvasCircle);
 
   if (!canvasCirclePositionSet) {

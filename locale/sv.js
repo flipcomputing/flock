@@ -140,14 +140,14 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12',
-  load_object: 'lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7',
-  load_model: 'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6',
+    'lägg till %1 %2 skala: %3 %13 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12',
+  load_object: 'lägg till %1 %2 %3 skala: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'lägg till %1 %2 skala: %3 %8 x: %4 y: %5 z: %6\nfärger: %7',
+  load_model: 'lägg till %1 %2 skala: %3 %7 x: %4 y: %5 z: %6',
 
   // Custom block translations - Animate blocks
-  glide_to: 'glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
-  glide_to_seconds: 'glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
+  glide_to: 'glid %1 till %10 x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
+  glide_to_seconds: 'glid %1 till %10 x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
   glide_to_object:
     'glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
   glide_to_axis: 'glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8',
@@ -157,7 +157,7 @@ export default {
   animate_property: 'animerar %1 %2 till %3 på %4 ms omvänd? %5 loop? %6 %7',
   colour_keyframe: 'vid %1 färg: %2',
   number_keyframe: 'vid: %1 värde: %2',
-  xyz_keyframe: 'vid: %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'vid: %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 omvänd %5 loop %6 %7',
   animation:
@@ -273,18 +273,18 @@ export default {
   create_particle_effect:
     'lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20',
   control_particle_system: 'partikelsystem %1 %2',
-  create_box: 'lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8',
+  create_box: 'lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \n%9 x: %6 y: %7 z: %8',
   create_sphere:
-    'lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8',
+    'lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9',
-  create_capsule: 'lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
+    'lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'lägg till kapsel %1 %2 diameter: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
   X_option: 'x', // ai
   Z_option: 'z', // ai
   create_wedge:
-    'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\nvid x: %8 y: %9 z: %10', // ai
-  create_donut: 'lägg till munk %1 %2 diameter: %3 tjocklek: %4 sidor: %5\nvid x: %6 y: %7 z: %8', // ai
-  create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
+    'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut: 'lägg till munk %1 %2 diameter: %3 tjocklek: %4 sidor: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
   play_theme: 'spela tema %1 %2 från %3 \nhastighet: %4 volym: %5 läge: %6 asynkront: %7',
@@ -311,7 +311,7 @@ export default {
   ui_input: 'ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8',
   describe: 'beskriv %1 som %2',
   create_3d_text:
-    'lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ',
+    'lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'slumpmässigt heltal från %1 till %2 frö: %3',
@@ -320,7 +320,7 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'ändra positionen för %1 med x: %2 y: %3 z: %4',
   move_by_xyz_single: 'ändra positionen för %1 med %2 %3',
-  move_to_xyz: 'ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'ställ in positionen för %1 till %6 x: %2 y: %3 z: %4 y? %5',
   move_to_xyz_single: 'ställ in positionen för %1 till %2 %3',
   move_to: 'ställ in positionen för %1 till %2 y? %3',
   scale: 'skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7',

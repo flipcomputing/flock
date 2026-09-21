@@ -145,15 +145,15 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'add %1 %2 scale: %3 x: %4 y: %5 z: %6\nhair: %7 |  skin: %8 |  eyes: %9 |  t-shirt: %10 |  shorts: %11 |  detail: %12',
-  load_object: 'add %1 %2 %3 scale: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'add %1 %2 scale: %3 x: %4 y: %5 z: %6\ncolors: %7',
-  load_model: 'add %1 %2 scale: %3 x: %4 y: %5 z: %6',
+    'add %1 %2 scale: %3 %13 x: %4 y: %5 z: %6\nhair: %7 |  skin: %8 |  eyes: %9 |  t-shirt: %10 |  shorts: %11 |  detail: %12',
+  load_object: 'add %1 %2 %3 scale: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'add %1 %2 scale: %3 %8 x: %4 y: %5 z: %6\ncolors: %7',
+  load_model: 'add %1 %2 scale: %3 %7 x: %4 y: %5 z: %6',
   then_label: 'then',
 
   // Custom block translations - Animate blocks
-  glide_to: 'glide %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',
-  glide_to_seconds: 'glide %1 to x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9',
+  glide_to: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',
+  glide_to_seconds: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9',
   glide_to_object:
     'glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10',
   glide_to_axis: 'glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8',
@@ -163,7 +163,7 @@ export default {
   animate_property: 'animate %1 %2 to %3 in %4 ms reverse? %5 loop? %6 %7',
   colour_keyframe: 'at %1 color: %2',
   number_keyframe: 'at: %1 value: %2',
-  xyz_keyframe: 'at: %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'at: %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animate keyframes on %1 property %2\nkeyframes %3\neasing %4 reverse %5 loop %6 %7',
   animation:
@@ -318,17 +318,17 @@ export default {
   create_particle_effect:
     'add %1 particle effect on: %2\nshape: %3 start: %4 end: %5 alpha: %6 to %7\nrate: %8 size: %9 to %10 lifetime: %11 to %12\ngravity: %13 force x: %14 y: %15 z: %16\nangular speed: %17 to %18 initial angle: %19 to %20',
   control_particle_system: 'particle system %1 %2',
-  create_box: 'add box %1 %2 width: %3 height: %4 depth: %5 \nat x: %6 y: %7 z: %8',
+  create_box: 'add box %1 %2 width: %3 height: %4 depth: %5 \n%9 x: %6 y: %7 z: %8',
   create_group: 'add group %1 active: %2',
   create_sphere:
-    'add sphere %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nat x: %6 y: %7 z: %8',
+    'add sphere %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'add cylinder %1 %2 height: %3 top: %4 bottom: %5 sides: %6\nat x: %7 y: %8 z: %9',
-  create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \nat x: %5 y: %6 z: %7',
+    'add cylinder %1 %2 height: %3 top: %4 bottom: %5 sides: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
   create_wedge:
-    'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\nat x: %8 y: %9 z: %10',
-  create_donut: 'add donut %1 %2 diameter: %3 thickness: %4 sides: %5\nat x: %6 y: %7 z: %8',
-  create_plane: 'add plane %1 %2 width: %3 height: %4 \nat x: %5 y: %6 z: %7',
+    'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\n%11 x: %8 y: %9 z: %10',
+  create_donut: 'add donut %1 %2 diameter: %3 thickness: %4 sides: %5\n%9 x: %6 y: %7 z: %8',
+  create_plane: 'add plane %1 %2 width: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
   play_theme: 'play theme %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7',
@@ -358,7 +358,7 @@ export default {
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   ui_input: 'ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   describe: 'describe %1 as %2',
-  create_3d_text: 'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 x: %7 y: %8 z: %9 ',
+  create_3d_text: 'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',
@@ -367,7 +367,7 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'change position of %1 by x: %2 y: %3 z: %4',
   move_by_xyz_single: 'change position of %1 by %2 %3',
-  move_to_xyz: 'set position of %1 to x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'set position of %1 to %6 x: %2 y: %3 z: %4 y? %5',
   move_to_xyz_single: 'set position of %1 to %2 %3',
   move_to: /* "move %1 to %2 y? %3" */ 'set position of %1 to %2 y? %3',
   scale: 'scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7',
@@ -1260,6 +1260,7 @@ export default {
   lock_block_option: 'Lock',
   unlock_block_option: 'Unlock',
   canvas_focus_navigation: '3D canvas focused. Use arrow keys or WASD to navigate.',
+  canvas_selector_cursor_aria: 'Selector. Arrow keys to move, Enter to confirm, Escape to cancel.',
   design_tool_label: 'Design tool',
   focused_element_suffix: '{name} focused',
   search_toolbox_focused: 'Search toolbox focused',
@@ -1354,6 +1355,9 @@ export default {
   orbit_mesh_info: 'Drag to move the camera around the object',
   place_object_prompt: 'Click on a surface to place the object.',
   color_picker_paint_prompt: 'Click an object to use the color.',
+  pick_position_prompt: 'Pick a position on a surface',
+  pick_position_button_label: 'Pick position from canvas',
+  pick_position_confirmed: 'Position set to x: %1, y: %2, z: %3',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Color picking is available in Chrome/Edge on desktop.',
   blocks_copied_alert: 'Blocks copied to local storage!',

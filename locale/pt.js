@@ -140,14 +140,14 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncabelo: %7 | pele: %8 | olhos: %9 | camiseta: %10 | shorts: %11 | detalhe: %12',
-  load_object: 'adicionar %1 %2 %3 escala: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6\ncores: %7',
-  load_model: 'adicionar %1 %2 escala: %3 x: %4 y: %5 z: %6',
+    'adicionar %1 %2 escala: %3 %13 x: %4 y: %5 z: %6\ncabelo: %7 | pele: %8 | olhos: %9 | camiseta: %10 | shorts: %11 | detalhe: %12',
+  load_object: 'adicionar %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'adicionar %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncores: %7',
+  load_model: 'adicionar %1 %2 escala: %3 %7 x: %4 y: %5 z: %6',
 
   // Custom block translations - Animate blocks
-  glide_to: 'deslizar %1 para x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9',
-  glide_to_seconds: 'deslizar %1 para x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9',
+  glide_to: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9',
+  glide_to_seconds: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9',
   glide_to_object:
     'deslizar %1 até %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10',
   glide_to_axis: 'deslizar %1 %2 %3 em %4 segundos\n%5 voltar? %6 repetir? %7 %8',
@@ -158,7 +158,7 @@ export default {
   animate_property: 'animar %1 %2 até %3 em %4 ms inverter? %5 repetir? %6 %7',
   colour_keyframe: 'em %1 cor: %2',
   number_keyframe: 'em: %1 valor: %2',
-  xyz_keyframe: 'em: %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'em: %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animar quadros-chave em %1 propriedade %2\nquadros-chave %3\neasing %4 inverter %5 repetir %6 %7',
   animation:
@@ -275,18 +275,18 @@ export default {
     'adicionar efeito de partículas %1 em: %2\nforma: %3 início %4 fim %5 opacidade: %6 até %7\ntaxa: %8 tamanho: %9 até %10 duração: %11 até %12\ngravidade: %13 força x: %14 y: %15 z: %16\nvelocidade angular: %17 até %18 ângulo inicial: %19 até %20',
   control_particle_system: 'sistema de partículas %1 %2',
   create_box:
-    'adicionar caixa %1 %2 largura: %3 altura: %4 profundidade: %5 \nem x: %6 y: %7 z: %8',
+    'adicionar caixa %1 %2 largura: %3 altura: %4 profundidade: %5 \n%9 x: %6 y: %7 z: %8',
   create_sphere:
-    'adicionar esfera %1 %2 diâmetro x: %3 diâmetro y: %4 diâmetro z: %5\nem x: %6 y: %7 z: %8',
+    'adicionar esfera %1 %2 diâmetro x: %3 diâmetro y: %4 diâmetro z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'adicionar cilindro %1 %2 altura: %3 topo: %4 base: %5 lados: %6\nem x: %7 y: %8 z: %9',
-  create_capsule: 'adicionar cápsula %1 %2 diâmetro: %3 altura: %4 \nem x: %5 y: %6 z: %7',
+    'adicionar cilindro %1 %2 altura: %3 topo: %4 base: %5 lados: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'adicionar cápsula %1 %2 diâmetro: %3 altura: %4 \n%8 x: %5 y: %6 z: %7',
   X_option: 'x', // ai
   Z_option: 'z', // ai
   create_wedge:
-    'adicionar cunha %1 %2 largura: %3 altura: %4 profundidade: %5\npico: %6 ao longo de: %7\nem x: %8 y: %9 z: %10', // ai
-  create_donut: 'adicionar donut %1 %2 diâmetro: %3 espessura: %4 lados: %5\nem x: %6 y: %7 z: %8', // ai
-  create_plane: 'adicionar plano %1 %2 largura: %3 altura: %4 \nem x: %5 y: %6 z: %7',
+    'adicionar cunha %1 %2 largura: %3 altura: %4 profundidade: %5\npico: %6 ao longo de: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut: 'adicionar donut %1 %2 diâmetro: %3 espessura: %4 lados: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_plane: 'adicionar plano %1 %2 largura: %3 altura: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
   play_theme: 'tocar tema %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7',
@@ -315,7 +315,7 @@ export default {
     'campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8',
   describe: 'descrever %1 como %2',
   create_3d_text:
-    'adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 x: %7 y: %8 z: %9',
+    'adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'inteiro aleatório de %1 a %2 semente: %3',
@@ -324,7 +324,7 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'alterar posição de %1 em x: %2 y: %3 z: %4',
   move_by_xyz_single: 'alterar posição de %1 em %2 %3',
-  move_to_xyz: 'definir posição de %1 para x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'definir posição de %1 para %6 x: %2 y: %3 z: %4 y? %5',
   move_to_xyz_single: 'definir posição de %1 para %2 %3',
   move_to: 'definir posição de %1 para %2 y? %3',
   scale: 'escalar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7',

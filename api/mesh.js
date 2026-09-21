@@ -867,6 +867,10 @@ export const flockMesh = {
     const vertexData = flock.BABYLON.VertexData.CreateBox({ width: w, height: h, depth: d });
     vertexData.applyToMesh(mesh, true);
     mesh.refreshBoundingInfo();
+    if (mesh.metadata) {
+      delete mesh.metadata.originalMin;
+      delete mesh.metadata.originalMax;
+    }
   },
   recomputeGroupGeometry(groupMesh) {
     if (!groupMesh || groupMesh.metadata?.shapeType !== 'Group') return null;

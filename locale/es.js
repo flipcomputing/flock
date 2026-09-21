@@ -140,16 +140,16 @@ export default {
 
   // Custom block translations - Models blocks
   load_character:
-    'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12', // human
-  load_object: 'añadir %1 %2 %3 escala: %4 x: %5 y: %6 z: %7', // human
-  load_multi_object: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7', // human
-  load_model: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6', // human
+    'añadir %1 %2 escala: %3 %13 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12', // human
+  load_object: 'añadir %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7', // human
+  load_multi_object: 'añadir %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncolores: %7', // human
+  load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6', // human
   then_label: 'luego', // human
 
   // Custom block translations - Animate blocks
-  glide_to: 'deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
+  glide_to: 'deslizar %1 a %10 x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_seconds:
-    'deslizar %1 a x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
+    'deslizar %1 a %10 x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_object:
     'deslizar %1 a %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
   glide_to_axis: 'deslizar %1 %2 %3 en %4 segundos\n%5 ¿regresar? %6 ¿repetir? %7 %8', // human
@@ -159,7 +159,7 @@ export default {
   animate_property: 'animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7', // human
   colour_keyframe: 'en %1 color: %2', // human
   number_keyframe: 'en: %1 valor: %2', // human
-  xyz_keyframe: 'en: %1 x: %2 y: %3 z: %4', // human
+  xyz_keyframe: 'en: %1 %5 x: %2 y: %3 z: %4', // human
   animate_keyframes:
     'animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 invertir %5 repetir %6 %7', // human
   animation:
@@ -312,18 +312,18 @@ export default {
   create_particle_effect:
     'añadir efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20', // human
   control_particle_system: 'sistema de partículas %1 %2', // human
-  create_box: 'añadir caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8', // human
+  create_box: 'añadir caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \n%9 x: %6 y: %7 z: %8', // human
   create_sphere:
-    'añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8', // human
+    'añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\n%9 x: %6 y: %7 z: %8', // human
   create_cylinder:
-    'añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\nen x: %7 y: %8 z: %9', // human
-  create_capsule: 'añadir cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7', // human
+    'añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\n%10 x: %7 y: %8 z: %9', // human
+  create_capsule: 'añadir cápsula %1 %2 diámetro: %3 altura: %4 \n%8 x: %5 y: %6 z: %7', // human
   X_option: 'x', // ai
   Z_option: 'z', // ai
   create_wedge:
-    'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\nen x: %8 y: %9 z: %10', // ai
-  create_donut: 'añadir rosquilla %1 %2 diámetro: %3 grosor: %4 lados: %5\nen x: %6 y: %7 z: %8', // ai
-  create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7', // human
+    'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut: 'añadir rosquilla %1 %2 diámetro: %3 grosor: %4 lados: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \n%8 x: %5 y: %6 z: %7', // human
 
   // Custom block translations - Sound blocks
   play_theme: 'reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
@@ -354,7 +354,7 @@ export default {
   ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   describe: 'describir %1 como %2', // human
   create_3d_text:
-    'añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9', // human
+    'añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 %10 x: %7 y: %8 z: %9', // human
 
   // Custom block translations - Math blocks
   random_seeded_int: 'numero entero aleatorio de %1 a %2 semilla: %3', // human
@@ -363,7 +363,7 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambiar posición de %1 por x: %2 y: %3 z: %4', // human
   move_by_xyz_single: 'cambiar posición de %1 por %2 %3', // human
-  move_to_xyz: 'establecer posición de %1 a x: %2 y: %3 z: %4 y? %5', // human
+  move_to_xyz: 'establecer posición de %1 a %6 x: %2 y: %3 z: %4 y? %5', // human
   move_to_xyz_single: 'establecer posición de %1 a %2 %3', // human
   move_to: 'establecer posición de %1 a %2 y? %3', // human
   scale: 'escalar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7', // human
