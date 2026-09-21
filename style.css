@@ -1154,8 +1154,8 @@ button {
   display: block;
   background-color: var(--color-bg-glass);
   padding: 10px 10px 10px 5px;
-  box-shadow: 0px 4px 8px var(--color-shadow-medium);
-  border-radius: 5px;
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -1177,23 +1177,30 @@ button {
 
 #shapes-dropdown ul li {
   background-color: var(--color-bg-glass-light);
-  border-radius: 5px;
+  border-radius: 8px;
   padding: 5px;
   display: inline-block;
   cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 #shapes-dropdown ul li img {
   width: 50px;
   height: 50px;
+  transition: transform 0.15s ease;
 }
 
 #shapes-dropdown ul li:hover {
   background-color: var(--color-bg-glass-hover);
+  box-shadow: 0 2px 6px var(--color-shadow);
+  transform: translateY(-2px);
 }
 
 #shapes-dropdown ul li:hover img {
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 /* Keyboard navigation styles */
@@ -1204,7 +1211,7 @@ button {
 #shapes-dropdown ul li.keyboard-focused {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: -3px;
-  border-radius: 5px;
+  border-radius: 8px;
 }
 
 /* Scrollable Container with Arrows */
@@ -1248,23 +1255,41 @@ button {
   background-color: var(--color-button-scroll);
   color: var(--color-text-on-primary);
   border: none;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 18px;
-  padding: 5px 10px;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 2;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
+  box-shadow: 0 1px 3px var(--color-shadow);
+  transition: filter 0.15s ease;
+}
+
+.scroll-button:hover:not(:disabled) {
+  filter: brightness(1.2);
+}
+
+.scroll-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.scroll-button:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
 }
 
 .scroll-button.left {
-  left: -15px;
+  left: -18px;
 }
 
 .scroll-button.right {
-  right: -15px;
+  right: -18px;
 }
 
 #flocklink {
@@ -2548,12 +2573,12 @@ body.color-picker-open #renderCanvas {
     margin-right: auto;
   }
   /* Nudge the chevrons out past the tiles into the grey side margins so they
-     no longer overlap the first/last tile (30px button + 4px gap). */
+     no longer overlap the first/last tile (36px button + 4px gap). */
   .scrollable-container .scroll-button.left {
-    left: -34px;
+    left: -40px;
   }
   .scrollable-container .scroll-button.right {
-    right: -34px;
+    right: -40px;
   }
 }
 
