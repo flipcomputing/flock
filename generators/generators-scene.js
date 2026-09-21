@@ -6,6 +6,8 @@ import {
   getPositionTuple,
   createMesh,
   getThenCallback,
+  maybeParentToGroup,
+  withGroupParent,
 } from './generators-utilities.js';
 
 export function registerSceneGenerators(javascriptGenerator) {
@@ -120,7 +122,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         modelId: ${JSON.stringify(meshId)},
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
-                });\n`;
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add character ----------------------------------------------------
@@ -163,7 +165,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         shorts: ${shortsColor},
                         tshirt: ${tshirtColor}
                   }${doCode ? `, callback: ${doCode}` : ''}${getThenCallback(block)}
-                });\n`;
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add item ---------------------------------------------------------
@@ -196,7 +198,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                           color: ${color},
                           scale: ${scale},
                           position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
-                  });\n`;
+                  });\n${maybeParentToGroup(variableName)}`;
   };
   // Add object -------------------------------------------------------
   javascriptGenerator.forBlock['load_multi_object'] = function (block) {
@@ -227,7 +229,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         color: ${color},
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
-                });\n`;
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add box ---------------------------------------------------------
@@ -372,6 +374,30 @@ export function registerSceneGenerators(javascriptGenerator) {
     return createMesh(block, 'Plane', params, 'plane');
   };
 
+  // Add group: an empty transform node for parenting. Its DO generates with
+  // withGroupParent so nested mesh-creating blocks parent to it; THEN runs
+  // after and is not treated as contents.
+  javascriptGenerator.forBlock['create_group'] = function (block) {
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
+    const meshId = `${userVariableName}__${block.id}`;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+    const isActive = block.getFieldValue('ACTIVE') === 'TRUE';
+
+    const parentCode = isActive ? maybeParentToGroup(variableName) : '';
+
+    const doCode = block.getInput('DO')
+      ? withGroupParent(isActive ? variableName : null, () =>
+          javascriptGenerator.statementToCode(block, 'DO') || ''
+        )
+      : '';
+    const thenCode = block.getInput('THEN')
+      ? javascriptGenerator.statementToCode(block, 'THEN') || ''
+      : '';
+
+    return `${variableName} = createGroup(${JSON.stringify(meshId)});\n${parentCode}${doCode}${thenCode}${parentCode}`;
+  };
+
   // Add clone ----------------------------------------------------------
   javascriptGenerator.forBlock['clone_mesh'] = function (block) {
     // Get the source mesh variable
@@ -404,7 +430,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
                           cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
-                  });\n`;
+                  });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------
   // EFFECTS

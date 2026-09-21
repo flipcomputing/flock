@@ -19,6 +19,30 @@ function usesCenterPivot(mesh) {
   return mesh?.metadata?.shape === 'plane';
 }
 
+function applyInWorldSpace(mesh, applyFn) {
+  const parent = mesh.parent;
+  if (parent) mesh.setParent(null);
+  try {
+    applyFn();
+  } finally {
+    if (parent) mesh.setParent(parent);
+  }
+}
+
+// Physics bodies live in world space, but mesh.position and
+// mesh.rotationQuaternion are parent-relative. Decompose the world matrix so
+// a grouped member targets its actual pose - a local target sends the body
+// toward the wrong place (observed as the mesh flinging toward the local
+// origin on the next physics step).
+function worldTransformForPhysics(mesh) {
+  const scale = new flock.BABYLON.Vector3();
+  const quat = new flock.BABYLON.Quaternion();
+  const pos = new flock.BABYLON.Vector3();
+  mesh.computeWorldMatrix(true);
+  mesh.getWorldMatrix().decompose(scale, quat, pos);
+  return { pos, quat };
+}
+
 function applyPositionWithCurrentBaseRule(
   mesh,
   { x = 0, y = 0, z = 0, useY = true, meshName = '' } = {}
@@ -41,14 +65,12 @@ function applyPositionWithCurrentBaseRule(
   if (useY && !isCamera && !usesCenterPivot(mesh) && typeof mesh.getBoundingInfo === 'function') {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
-    const bi = mesh.getBoundingInfo();
-    const localMinY = bi?.boundingBox?.minimum?.y;
-    const scaleY = mesh.scaling?.y ?? 1;
+    const worldMinY = mesh.getBoundingInfo()?.boundingBox?.minimumWorld?.y;
 
-    if (Number.isFinite(localMinY)) {
-      // Where the unrotated bottom currently sits in world space.
-      const unrotatedMinWorldY = mesh.position.y + localMinY * scaleY;
-      const deltaY = nextY - unrotatedMinWorldY;
+    if (Number.isFinite(worldMinY)) {
+      // Anchor the measured world base: unlike the unrotated local bounds,
+      // this holds for any orientation.
+      const deltaY = nextY - worldMinY;
       if (Math.abs(deltaY) > 1e-6) {
         mesh.position.y += deltaY;
       }
@@ -121,12 +143,14 @@ export const flockTransform = {
       nextY = flock.getGroundLevelAt(x, z);
     }
 
-    applyPositionWithCurrentBaseRule(mesh, {
-      x,
-      y: nextY,
-      z,
-      useY,
-      meshName: meshName || mesh.name || '',
+    applyInWorldSpace(mesh, () => {
+      applyPositionWithCurrentBaseRule(mesh, {
+        x,
+        y: nextY,
+        z,
+        useY,
+        meshName: meshName || mesh.name || '',
+      });
     });
   },
   positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
@@ -171,7 +195,8 @@ export const flockTransform = {
         // Update physics and world matrix
         if (mesh.physics) {
           mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
+          const target = worldTransformForPhysics(mesh);
+          mesh.physics.setTargetTransform(target.pos, target.quat);
         }
         mesh.computeWorldMatrix(true);
 
@@ -518,7 +543,48 @@ export const flockTransform = {
           resolve();
           return;
         }
-        mesh.rotationQuaternion = flock.eulerDegreesToQuat(x, y, z);
+        // A group member's block Y is its world base, but creating it
+        // anchors the unrotated base and rotating shifts it again whenever
+        // the vertical extent changes - so re-anchor the pre-rotation base
+        // after setting the orientation. Unparented meshes keep the
+        // historical centre-preserving behaviour their pipeline relies on.
+        let groupedBaseY = null;
+        {
+          let ancestor = mesh.parent;
+          while (ancestor) {
+            if (ancestor.metadata?.shapeType === 'Group') {
+              if (
+                !usesCenterPivot(mesh) &&
+                typeof mesh.getBoundingInfo === 'function' &&
+                mesh.getTotalVertices?.() > 0
+              ) {
+                mesh.computeWorldMatrix(true);
+                mesh.refreshBoundingInfo?.();
+                const worldMinY = mesh.getBoundingInfo()?.boundingBox?.minimumWorld?.y;
+                if (Number.isFinite(worldMinY)) groupedBaseY = worldMinY;
+              }
+              break;
+            }
+            ancestor = ancestor.parent;
+          }
+        }
+        const parent = mesh.parent;
+        if (parent) mesh.setParent(null);
+        try {
+          mesh.rotationQuaternion = flock.eulerDegreesToQuat(x, y, z);
+          if (groupedBaseY !== null) {
+            applyPositionWithCurrentBaseRule(mesh, {
+              x: mesh.position.x,
+              y: groupedBaseY,
+              z: mesh.position.z,
+              useY: true,
+              meshName: meshName || mesh.name || '',
+            });
+          }
+        } finally {
+          if (parent) mesh.setParent(parent);
+        }
+        mesh.computeWorldMatrix(true);
 
         if (mesh.name === 'hemisphericLight') {
           const xRadian = flock.BABYLON.Tools.ToRadians(x);
@@ -529,7 +595,8 @@ export const flockTransform = {
 
         if (mesh.physics) {
           mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
+          const target = worldTransformForPhysics(mesh);
+          mesh.physics.setTargetTransform(target.pos, target.quat);
         }
         resolve();
       });
@@ -747,9 +814,16 @@ export const flockTransform = {
         mesh.metadata = mesh.metadata || {};
 
         if (!mesh.metadata.originalMin || !mesh.metadata.originalMax) {
-          const bi = mesh.getBoundingInfo();
-          mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
-          mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+          if (mesh.getTotalVertices() > 0) {
+            const bi = mesh.getBoundingInfo();
+            mesh.metadata.originalMin = bi.boundingBox.minimum.clone();
+            mesh.metadata.originalMax = bi.boundingBox.maximum.clone();
+          } else {
+            // Empty container (e.g. a group): its size lives in its children.
+            const { min, max } = flock.getHierarchyLocalBounds(mesh);
+            mesh.metadata.originalMin = min.clone();
+            mesh.metadata.originalMax = max.clone();
+          }
         }
 
         const origMin = mesh.metadata.originalMin;
@@ -762,11 +836,7 @@ export const flockTransform = {
         const scaleY = origHeight && height !== null ? height / origHeight : 1;
         const scaleZ = origDepth && depth !== null ? depth / origDepth : 1;
 
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        const oldBI = mesh.getBoundingInfo();
-        const oldMinWorld = oldBI.boundingBox.minimumWorld;
-        const oldMaxWorld = oldBI.boundingBox.maximumWorld;
+        const { min: oldMinWorld, max: oldMaxWorld } = flock.getEffectiveWorldBounds(mesh);
 
         const oldAnchor = new flock.BABYLON.Vector3(
           xOrigin === 'LEFT'
@@ -792,7 +862,10 @@ export const flockTransform = {
           Math.max(0.01, Math.abs(scaleZ))
         );
 
-        if (maintainTextureScale) {
+        // An empty container (e.g. a group) stretches its children via the
+        // scaling transform - retiling their textures against the group's
+        // overall size would be wrong, since each child has its own size.
+        if (maintainTextureScale && mesh.getTotalVertices() > 0) {
           // Use the intended target dimensions for consistency
           const currentW = width !== null ? width : origWidth * scaleX;
           const currentH = height !== null ? height : origHeight * scaleY;
@@ -810,11 +883,7 @@ export const flockTransform = {
           }
         }
 
-        mesh.computeWorldMatrix(true);
-        mesh.refreshBoundingInfo();
-        const newBI = mesh.getBoundingInfo();
-        const newMinWorld = newBI.boundingBox.minimumWorld;
-        const newMaxWorld = newBI.boundingBox.maximumWorld;
+        const { min: newMinWorld, max: newMaxWorld } = flock.getEffectiveWorldBounds(mesh);
 
         const newAnchor = new flock.BABYLON.Vector3(
           xOrigin === 'LEFT'
@@ -926,22 +995,22 @@ export const flockTransform = {
       });
     });
   },
-  // api/transform.js around line 914
   getBlockPositionFromMesh(mesh) {
     if (!mesh) return { x: 0, y: 0, z: 0 };
-    if (usesCenterPivot(mesh)) {
-      return { x: mesh.position?.x ?? 0, y: mesh.position?.y ?? 0, z: mesh.position?.z ?? 0 };
-    }
     mesh.computeWorldMatrix?.(true);
+    // World-space pivot: mesh.position is parent-relative, and the Y rule
+    // below is already world-space via minimumWorld.
+    const worldPos = mesh.absolutePosition ?? mesh.position ?? { x: 0, y: 0, z: 0 };
+    if (usesCenterPivot(mesh)) {
+      return { x: worldPos.x ?? 0, y: worldPos.y ?? 0, z: worldPos.z ?? 0 };
+    }
     mesh.refreshBoundingInfo?.();
 
     const bi = mesh.getBoundingInfo?.();
-    const localMinY = bi?.boundingBox?.minimum?.y; // unrotated, mesh-local
-    const scaleY = mesh.scaling?.y ?? 1;
-    const posY = mesh.position?.y ?? 0;
-    const baseRuleY = Number.isFinite(localMinY) ? posY + localMinY * scaleY : posY;
+    // World base, valid for any orientation.
+    const baseRuleY = bi?.boundingBox?.minimumWorld?.y ?? worldPos.y ?? 0;
 
-    return { x: mesh.position?.x ?? 0, y: baseRuleY, z: mesh.position?.z ?? 0 };
+    return { x: worldPos.x ?? 0, y: baseRuleY, z: worldPos.z ?? 0 };
   },
   _getAnchor(mesh) {
     if (!mesh) return null;

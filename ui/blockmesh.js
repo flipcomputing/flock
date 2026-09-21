@@ -112,6 +112,58 @@ export function recordLiveEdit(block, changeEvent) {
   });
 }
 
+// While a bulk editor operation owns a block's writes (bakeGroupScale), the
+// live field-change cascade must stay out of that block: it would rebuild
+// its mesh from half-written state. Scoped to block IDs, not a global flag:
+// Blockly dispatches those change events several frames late, and a global
+// flag held open that long could swallow an unrelated block's real events.
+// Stored on globalThis so hot-reload module copies share the one cell.
+const SUPPRESSED_BLOCK_IDS_KEY = '__flockSuppressedBlockIds';
+// Bumped on every interception so the bake can poll for its event backlog
+// draining (depth varies with how many members/fields it touched).
+const SUPPRESS_HITS_KEY = '__flockSuppressLiveMeshUpdateHits';
+
+function getSuppressedBlockIds() {
+  try {
+    if (!(globalThis[SUPPRESSED_BLOCK_IDS_KEY] instanceof Set)) {
+      globalThis[SUPPRESSED_BLOCK_IDS_KEY] = new Set();
+    }
+    return globalThis[SUPPRESSED_BLOCK_IDS_KEY];
+  } catch {
+    return new Set();
+  }
+}
+
+export function suppressBlockLiveUpdates(blockId) {
+  if (!blockId) return;
+  getSuppressedBlockIds().add(blockId);
+}
+
+export function unsuppressBlockLiveUpdates(blockId) {
+  if (!blockId) return;
+  getSuppressedBlockIds().delete(blockId);
+}
+
+function isBlockLiveUpdateSuppressed(blockId) {
+  return !!blockId && getSuppressedBlockIds().has(blockId);
+}
+
+function noteSuppressedHit() {
+  try {
+    globalThis[SUPPRESS_HITS_KEY] = (globalThis[SUPPRESS_HITS_KEY] ?? 0) + 1;
+  } catch {
+    /* fall through */
+  }
+}
+
+export function getSuppressedHitCount() {
+  try {
+    return globalThis[SUPPRESS_HITS_KEY] ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
 // Applies the block's current colour to one mesh; random re-rolls per call.
 function applyBlockColourToMesh(block, mesh) {
   const changed = block.type === 'load_multi_object' ? 'COLORS' : 'COLOR';
@@ -790,7 +842,24 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   }
 }
 
-function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
+// Colour applies per member inside groups: climb to the topmost mesh that is
+// not itself parented to a group. Bone-attachments still win, exactly as
+// before; non-group parents (e.g. parent-block children) still paint the
+// whole hierarchy together.
+export function getColorRoot(mesh) {
+  let current = mesh;
+  while (current) {
+    if (current.metadata?._attachedTargetName) {
+      flock.setPhysics(current.name, 'NONE');
+      return current;
+    }
+    if (!current.parent || current.parent.metadata?.shapeType === 'Group') return current;
+    current = current.parent;
+  }
+  return mesh;
+}
+
+export function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
   if (
     !(['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA'].includes(changed) || changed.startsWith?.('ADD'))
   ) {
@@ -798,21 +867,7 @@ function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) 
     return mesh;
   }
 
-  const ultimateParent = (m) => (m.parent ? ultimateParent(m.parent) : m);
-
-  const findAttachedRoot = (m) => {
-    let current = m;
-    while (current) {
-      if (current.metadata?._attachedTargetName) {
-        flock.setPhysics(current.name, 'NONE');
-        return current;
-      }
-      current = current.parent;
-    }
-    return null;
-  };
-
-  const root = findAttachedRoot(mesh) || ultimateParent(mesh);
+  const root = getColorRoot(mesh);
 
   const alpha = materialInfo?.alpha ?? 1;
 
@@ -1194,7 +1249,7 @@ function handleLoadBlockChange(meshes, block, changed, changeEvent) {
 }
 
 // Utility: read X/Y/Z numeric inputs from a Blockly block
-function getXYZFromBlock(block) {
+export function getXYZFromBlock(block) {
   if (!block) return { x: null, y: null, z: null };
 
   const getNum = (inputName) => {
@@ -1254,28 +1309,168 @@ function applyChildBlockPosition(mesh, block) {
   if (!mesh || mesh.isDisposed?.() || !mesh.parent) return;
   if (!block || block.disposed) return;
 
-  // Unparent so the block's world position applies in world space, apply it,
-  // then restore the parent — the child moves to the block position while
-  // staying in the hierarchy. The finally guarantees the parent is restored
-  // even if reading or applying the position throws.
+  const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+  const position = getXYZFromBlock(block);
   const childParent = mesh.parent;
-  mesh.setParent(null);
-  try {
-    const position = getXYZFromBlock(block);
-    const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
-    flock.setBlockPositionOnMesh(mesh, {
-      x: num(position.x, mesh.position.x),
-      y: num(position.y, mesh.position.y),
-      z: num(position.z, mesh.position.z),
-      useY: true,
-    });
-  } finally {
-    mesh.setParent(childParent);
-  }
+
+  flock.setBlockPositionOnMesh(mesh, {
+    x: num(position.x, mesh.position.x),
+    y: num(position.y, mesh.position.y),
+    z: num(position.z, mesh.position.z),
+    useY: true,
+  });
   flock.updatePhysics?.(mesh);
+
+  if (childParent?.metadata?.shapeType === 'Group') {
+    const groupBlock = meshMap[childParent.metadata?.blockKey];
+    if (groupBlock) recomputeGroupPivot(groupBlock);
+  }
+}
+
+export function findEnclosingGroupBlock(block) {
+  const container = block?.getSurroundParent?.();
+  if (!container || container.type !== 'create_group') return null;
+  if (container.getFieldValue('ACTIVE') !== 'TRUE') return null;
+
+  let cur = container.getInput('DO')?.connection?.targetBlock();
+  while (cur) {
+    if (cur === block) return container;
+    cur = cur.getNextBlock();
+  }
+  return null;
+}
+
+function resolveGroupMesh(groupBlock) {
+  if (!groupBlock) return null;
+  return (
+    getMeshFromBlock(groupBlock) ||
+    flock.scene?.meshes?.find((m) => m?.metadata?.blockKey === groupBlock.id)
+  );
+}
+
+export function attachToEnclosingGroupIfAny(block, mesh) {
+  if (!mesh) return;
+  const groupBlock = findEnclosingGroupBlock(block);
+  const groupMesh = resolveGroupMesh(groupBlock);
+  if (!groupMesh || groupMesh === mesh) return;
+  mesh.setParent(groupMesh);
+
+  const eventGroupId = Blockly.utils.idGenerator.genUid();
+  Blockly.Events.setGroup(eventGroupId);
+  try {
+    recomputeGroupPivot(groupBlock);
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
+// Called with (memberMesh, groupMesh) when a drop groups a mesh. Owned by
+// gizmos.js (selection); blockmesh must not import gizmos back.
+let groupSelectionFollower = null;
+
+export function setGroupSelectionFollower(fn) {
+  groupSelectionFollower = typeof fn === 'function' ? fn : null;
+}
+
+export function syncGroupParentOnMove(mesh, block) {
+  if (!mesh || mesh.isDisposed?.() || !block || block.disposed) return;
+  // Not suppression-gated: a bake-owned mesh is already correctly parented
+  // (the check below), making this a no-op; gating would risk dropping a
+  // real concurrent drag-into-group instead.
+
+  const groupBlock = findEnclosingGroupBlock(block);
+  const newGroupMesh = resolveGroupMesh(groupBlock);
+  const wasGrouped = mesh.parent?.metadata?.shapeType === 'Group';
+  const oldGroupMesh = wasGrouped ? mesh.parent : null;
+
+  if (newGroupMesh) {
+    if (mesh.parent === newGroupMesh || mesh === newGroupMesh) return newGroupMesh;
+    mesh.setParent(newGroupMesh);
+    // A drop grouping the selected mesh moves selection to the group, like
+    // a canvas pick; any other selection is left alone.
+    groupSelectionFollower?.(mesh, newGroupMesh);
+  } else {
+    if (!wasGrouped) return null; // wasn't a group child; nothing to convert
+    mesh.setParent(null);
+  }
+
+  flock.updatePhysics?.(mesh);
+
+  const eventGroupId = Blockly.utils.idGenerator.genUid();
+  Blockly.Events.setGroup(eventGroupId);
+  try {
+    recomputeGroupPivot(groupBlock);
+    if (oldGroupMesh && oldGroupMesh !== newGroupMesh) {
+      const oldGroupBlock = meshMap[oldGroupMesh.metadata?.blockKey];
+      if (oldGroupBlock) recomputeGroupPivot(oldGroupBlock);
+    }
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+  return newGroupMesh;
+}
+
+function recomputeGroupPivot(groupBlock) {
+  if (!groupBlock || groupBlock.disposed || groupBlock.type !== 'create_group') return;
+  const groupMesh = resolveGroupMesh(groupBlock);
+  if (!groupMesh || groupMesh.isDisposed?.()) return;
+  flock.recomputeGroupGeometry(groupMesh);
+}
+
+// Size edits on grouped members run unparented - exactly how Play builds
+// them (create, then parent). The geometry helpers decompose world
+// transforms into local fields, which mis-anchors under a transformed
+// parent: moveMeshToOrigin zeroes local fields while bakeCurrentTransform-
+// IntoVertices bakes the world matrix, so a rotated parent's orientation
+// would end up baked into the vertices and restored wrong.
+function detachGroupedMember(mesh) {
+  const groupMesh = mesh?.parent?.metadata?.shapeType === 'Group' ? mesh.parent : null;
+  if (groupMesh && !mesh.isDisposed?.()) mesh.setParent(null);
+  return groupMesh;
+}
+
+function reattachGroupedMember(mesh, groupMesh) {
+  if (!groupMesh || groupMesh.isDisposed?.() || mesh.isDisposed?.()) return;
+  if (mesh.parent !== groupMesh) mesh.setParent(groupMesh);
+  const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+  if (groupBlock) recomputeGroupPivot(groupBlock);
+}
+
+function getDirectGroupMemberBlocks(groupBlock) {
+  const members = [];
+  let cur = groupBlock?.getInput('DO')?.connection?.targetBlock();
+  while (cur) {
+    members.push(cur);
+    cur = cur.getNextBlock();
+  }
+  return members;
+}
+
+function handleGroupActiveToggle(groupMesh, groupBlock) {
+  if (!groupMesh || groupMesh.isDisposed?.()) return;
+
+  if (groupBlock.getFieldValue('ACTIVE') === 'TRUE') {
+    getDirectGroupMemberBlocks(groupBlock).forEach((memberBlock) => {
+      getMeshesFromBlock(memberBlock).forEach((mesh) => {
+        if (mesh && mesh !== groupMesh && mesh.parent !== groupMesh) mesh.setParent(groupMesh);
+      });
+    });
+    flock.recomputeGroupGeometry(groupMesh);
+  } else {
+    groupMesh.getChildMeshes(true).forEach((child) => child.setParent(null));
+    flock.rebuildGroupGeometry(groupMesh, 0.01, 0.01, 0.01);
+  }
+  flock.updatePhysics?.(groupMesh);
 }
 
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
+  // Bulk editor operations own their blocks' writes; the live pipeline must
+  // not rebuild those meshes from half-written state.
+  if (isBlockLiveUpdateSuppressed(block?.id)) {
+    noteSuppressedHit();
+    return;
+  }
+
   if (flock.meshDebug) {
     console.log('=== UPDATE MESH FROM BLOCK ===');
     console.log('Block type:', block.type);
@@ -1333,6 +1528,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'MODELS';
     } else if (block.type === 'create_map' && changeEvent.name === 'MAP_NAME') {
       changed = 'MAP_NAME';
+    } else if (block.type === 'create_group' && changeEvent.name === 'ACTIVE') {
+      changed = 'ACTIVE';
     }
   }
 
@@ -1429,6 +1626,11 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     return;
   }
 
+  if (block.type === 'create_group' && changed === 'ACTIVE') {
+    handleGroupActiveToggle(meshes[0], block);
+    return;
+  }
+
   const colourIsRandom = colourSourceIsRandom(block);
 
   // Random sources roll per mesh in the loop; resolving here would waste a roll.
@@ -1440,7 +1642,12 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   if (block.type.startsWith('load_') && changed === 'SCALE') {
     meshes.forEach((mesh) => {
-      updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
+      const groupMesh = detachGroupedMember(mesh);
+      try {
+        updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
+      } finally {
+        reattachGroupedMember(mesh, groupMesh);
+      }
       reattachToBone(mesh);
     });
   }
@@ -1451,7 +1658,12 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   meshes.forEach((mesh) => {
-    handlePrimitiveGeometryChange(mesh, block, changed);
+    const groupMesh = detachGroupedMember(mesh);
+    try {
+      handlePrimitiveGeometryChange(mesh, block, changed);
+    } finally {
+      reattachGroupedMember(mesh, groupMesh);
+    }
 
     // Random colour rolls per mesh; resolving once would paint all copies alike.
     let meshColour = color;
@@ -1476,7 +1688,16 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     // --- rotate_to: allow gizmo / non-field events ---
     if (contextBlock.type === 'rotate_to') {
       const rotation = getXYZFromBlock(contextBlock);
-      meshes.forEach((mesh) => flock.rotateTo(mesh.name, rotation));
+      meshes.forEach((mesh) => {
+        flock.rotateTo(mesh.name, rotation).then(() => {
+          // Rotating a member reshapes the group bounds - keep the group
+          // outline in sync, like moving a child does.
+          const groupMesh = mesh?.parent;
+          if (mesh?.isDisposed?.() || groupMesh?.metadata?.shapeType !== 'Group') return;
+          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+          if (groupBlock) recomputeGroupPivot(groupBlock);
+        });
+      });
       return;
     }
 
@@ -1509,6 +1730,13 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         flock.resize(mesh.name, resizeOptions);
         if (flock.meshDebug) console.log('After resize', mesh);
         reattachToBone(mesh);
+        // Resize runs parented (as Play's DO-resize does); resync the group
+        // outline and body from the new bounds.
+        const groupMesh = mesh?.parent?.metadata?.shapeType === 'Group' ? mesh.parent : null;
+        if (groupMesh && !mesh.isDisposed?.()) {
+          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+          if (groupBlock) recomputeGroupPivot(groupBlock);
+        }
       });
       return;
     }
@@ -2398,20 +2626,6 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     }
   };
 
-  const getUltimateParent = (m) => (m?.parent ? getUltimateParent(m.parent) : m);
-
-  const getAttachedAwareRoot = (m) => {
-    let current = m;
-    while (current) {
-      if (current.metadata?._attachedTargetName) {
-        flock.setPhysics(current.name, 'NONE');
-        return current;
-      }
-      current = current.parent;
-    }
-    return getUltimateParent(m);
-  };
-
   const setColorOnTargetOrField = (targetBlock, parentBlock, colorHex) => {
     if (targetBlock) {
       if (targetBlock.getField?.('COLOR')) {
@@ -2541,8 +2755,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
     return;
   }
 
-  // Mesh → block
-  const root = getAttachedAwareRoot(mesh);
+  // Mesh → block (per member inside groups - see getColorRoot)
+  const root = getColorRoot(mesh);
   const blockKey = root?.metadata?.blockKey;
 
   if (!blockKey || !meshMap?.[blockKey]) {

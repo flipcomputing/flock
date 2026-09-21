@@ -1,6 +1,11 @@
 import { meshMap, meshBlockIdMap } from '../generators/generators.js';
 import { flock } from '../flock.js';
-import { extractMaterialInfo, getMeshFromBlock, readColourValue } from './blockmesh.js';
+import {
+  extractMaterialInfo,
+  getMeshFromBlock,
+  readColourValue,
+  attachToEnclosingGroupIfAny,
+} from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
   if (!isEligibleForMeshCreation(block)) {
@@ -39,6 +44,11 @@ export function createMeshOnCanvas(block) {
     // Group all shape creation events together
     createShapeInternal(block);
 
+    return;
+  }
+
+  if (block.type === 'create_group') {
+    createGroupInternal(block);
     return;
   }
 
@@ -661,5 +671,22 @@ function createShapeInternal(block) {
   if (newMesh) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
+    // The blockKey index rebuilds lazily and may still be mid-flight right
+    // after creation - use the name flock.create*() just handed back.
+    attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
+  }
+}
+
+// Live-editor counterpart of the create_group generator: an empty group
+// mesh, parented to an outer group too when nested (mirroring codegen). No
+// position fields: the position derives from the contents.
+function createGroupInternal(block) {
+  const newMesh = flock.createGroup(`group__${block.id}`);
+
+  if (newMesh) {
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+    // Same lookup, minus the index (see above).
+    attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
   }
 }

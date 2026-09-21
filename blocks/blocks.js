@@ -9,9 +9,11 @@ import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
   getMeshFromBlock,
+  getMeshesFromBlock,
   getActiveSceneControllerBlockId,
   clearSkyMesh,
   setClearSkyToBlack,
+  syncGroupParentOnMove,
 } from '../ui/blockmesh.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
@@ -536,6 +538,17 @@ export function handleMeshLifecycleChange(block, changeEvent) {
   if (changeEvent.type === Blockly.Events.BLOCK_MOVE && changeEvent.blockId === block.id) {
     if (block.getParent() && !mesh) {
       updateOrCreateMeshFromBlock(block, changeEvent);
+    } else if (mesh) {
+      // The move may have changed which group (if any) this block's mesh is
+      // a direct child of - convert once, in place, so nothing jumps.
+      syncGroupParentOnMove(mesh, block);
+      // Blockly fires one move event for the head of a dragged stack; blocks
+      // chained after it moved along with it get no event of their own.
+      let sibling = block.getNextBlock?.();
+      while (sibling) {
+        getMeshesFromBlock(sibling).forEach((m) => syncGroupParentOnMove(m, sibling));
+        sibling = sibling.getNextBlock?.();
+      }
     }
     return true;
   }
@@ -1461,6 +1474,7 @@ export const options = {
 export function initializeVariableIndexes() {
   nextVariableIndexes = Object.assign(Object.create(null), {
     model: 1,
+    group: 1,
     box: 1,
     sphere: 1,
     cylinder: 1,

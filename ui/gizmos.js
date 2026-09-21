@@ -7,7 +7,12 @@ import {
   getMeshFromBlockKey,
   getMeshFromBlock,
   getRootMesh,
+  getXYZFromBlock,
   updateBlockColorAndHighlight,
+  suppressBlockLiveUpdates,
+  unsuppressBlockLiveUpdates,
+  getSuppressedHitCount,
+  setGroupSelectionFollower,
 } from './blockmesh.js';
 import {
   highlightBlockById,
@@ -61,6 +66,10 @@ const MODEL_BLOCK_TYPES = new Set([
   'load_object',
   'load_character',
 ]);
+
+// Block types with no dimension fields of their own: like models, they get a
+// resize block instead. A group is an empty container sized by its children.
+const RESIZE_BLOCK_TYPES = new Set([...MODEL_BLOCK_TYPES, 'create_group']);
 
 window.selectedColor = '#ffffff'; // Default color
 let colorPicker = null;
@@ -1196,7 +1205,17 @@ function disconnectOrbitView() {
 }
 
 function getScaledSize(mesh) {
-  const { originalMin, originalMax } = mesh.metadata || {};
+  let { originalMin, originalMax } = mesh.metadata || {};
+  // Empty container (e.g. a group): size lives in the children. Cache it
+  // like flock.resize() does rather than re-measuring every call.
+  if ((!originalMin || !originalMax) && mesh.getTotalVertices() === 0) {
+    const bounds = flock.getHierarchyLocalBounds(mesh);
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.originalMin = bounds.min.clone();
+    mesh.metadata.originalMax = bounds.max.clone();
+    originalMin = mesh.metadata.originalMin;
+    originalMax = mesh.metadata.originalMax;
+  }
   const min = originalMin ?? mesh.getBoundingInfo().boundingBox.minimum;
   const max = originalMax ?? mesh.getBoundingInfo().boundingBox.maximum;
 
@@ -1343,7 +1362,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
-  const rotateBlock = findOrCreateRotateBlock(mesh);
+  const rotateBlock =
+    mesh?.metadata?.shapeType === 'Group' ? null : findOrCreateRotateBlock(mesh);
   if (rotateBlock) {
     highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
   } else {
@@ -1352,26 +1372,17 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     if (creationBlock) highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
   }
 
-  // Track the rotation as Euler degrees (the block's own representation) rather
-  // than composing increments onto the quaternion and reading Euler back. A
-  // single-axis drag then changes only that axis's value, and the mesh is
-  // rebuilt with RotationYawPitchRoll — identical to what rotate_to applies — so
-  // the live view always matches the block. This also makes each axis a
-  // WORLD-axis rotation, like the drag arcs: rotating "Y" yaws a tilted mesh
-  // about the vertical, instead of spinning it about its own (local) axis, which
-  // on a shape symmetric about that axis (e.g. a capsule) looked like no change
-  // and smeared every Euler component across all three block values.
+  // Track rotation as Euler degrees (the block's representation), not
+  // quaternion increments: a single-axis drag then changes only that axis,
+  // and each axis stays a WORLD-axis rotation like the drag arcs, matching
+  // exactly what rotate_to applies.
   const working = (() => {
     const e = getMeshRotationInDegrees(mesh);
     return { x: e.x, y: e.y, z: e.z };
   })();
   const axisInput = { x: 'X', y: 'Y', z: 'Z' };
-  // The slider/keyboard treat `working` as their source of truth, but the mouse
-  // rotation gizmo (active at the same time) rotates the mesh without touching
-  // `working`. Left alone, the next slider touch would rebuild the mesh from the
-  // now-stale `working` and jump it off the mouse-dragged orientation. Re-seed
-  // `working` from the mesh whenever the two have actually diverged (a no-op
-  // during a continuous slider drag, where the mesh already equals `working`).
+  // The mouse gizmo rotates the mesh without touching `working`; re-seed
+  // from the mesh on divergence so the next slider touch doesn't jump.
   const syncWorkingToMesh = () => {
     if (!mesh.rotationQuaternion) return;
     const q = flock.BABYLON.Quaternion.RotationYawPitchRoll(
@@ -1401,6 +1412,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
       flock.BABYLON.Tools.ToRadians(working.x),
       flock.BABYLON.Tools.ToRadians(working.z)
     );
+    // Groups keep orientation in their members, never on the group node.
+    if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh);
     if (isBodyAlive(mesh.physics)) {
       mesh.physics.disablePreStep = false;
       mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
@@ -1455,12 +1468,18 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
 
   const creationBlock = meshMap[mesh?.metadata?.blockKey];
   if (creationBlock) {
-    if (MODEL_BLOCK_TYPES.has(creationBlock.type)) {
+    if (creationBlock.type === 'create_group') {
+      highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
+    } else if (RESIZE_BLOCK_TYPES.has(creationBlock.type)) {
       const existingResize = findExistingResizeBlock(mesh);
       highlightBlockById(Blockly.getMainWorkspace(), existingResize ?? creationBlock);
     } else {
       highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
     }
+  }
+  if (mesh?.metadata?.shapeType === 'Group') {
+    healGroupOrigin(mesh);
+    cacheGroupScaleBaseline(mesh);
   }
 
   const isRadial = RADIAL_BLOCK_TYPES.has(creationBlock?.type);
@@ -1472,6 +1491,9 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
       dx = diameterStep;
       dz = diameterStep;
     }
+
+    // Scale about the members' true center, never a drifted origin.
+    if (mesh?.metadata?.shapeType === 'Group') healGroupOrigin(mesh);
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
@@ -1720,7 +1742,7 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
 // Find an existing resize block in mesh's DO section without creating one.
 function findExistingResizeBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
-  if (!block || !MODEL_BLOCK_TYPES.has(block.type)) return null;
+  if (!block || !RESIZE_BLOCK_TYPES.has(block.type)) return null;
   const modelVariable = block.getFieldValue('ID_VAR');
   const stmt = block.getInput('DO')?.connection?.targetBlock?.();
   for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
@@ -1732,10 +1754,10 @@ function findExistingResizeBlock(mesh) {
 }
 
 // Find the existing resize block in mesh's DO section, or create one.
-// Returns the resizeBlock, or null if mesh is not a model type.
+// Returns the resizeBlock, or null if mesh's block type has no resize support.
 function findOrCreateResizeBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
-  if (!block || !MODEL_BLOCK_TYPES.has(block.type)) return null;
+  if (!block || !RESIZE_BLOCK_TYPES.has(block.type)) return null;
 
   const groupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(groupId);
@@ -1808,7 +1830,381 @@ function findOrCreateResizeBlock(mesh) {
 }
 
 // Update blockly block after a scale
-function updateScaleBlock(mesh, originalBottomY = null) {
+// Baseline world sizes captured when a group scale begins (scale-drag-start
+// / keyboard-scale setup), keyed by member blockKey. bakeGroupScale consumes
+// them to turn the group's node scale into member size/position block values.
+let groupScaleBaseline = null;
+
+export function cacheGroupScaleBaseline(groupMesh) {
+  const groupKey = groupMesh?.metadata?.blockKey;
+  if (!groupKey) return;
+  const sizes = new Map();
+  for (const m of groupMesh.getChildMeshes?.(false) || []) {
+    if (!m || m.isDisposed?.() || m.metadata?.shapeType === 'Group') continue;
+    const key = m.metadata?.blockKey;
+    if (!key || sizes.has(key)) continue;
+    m.computeWorldMatrix(true);
+    const bounds = flock.getEffectiveWorldBounds(m);
+    sizes.set(key, {
+      x: bounds.max.x - bounds.min.x,
+      y: bounds.max.y - bounds.min.y,
+      z: bounds.max.z - bounds.min.z,
+    });
+  }
+  groupScaleBaseline = { groupKey, sizes };
+}
+
+// Blocks hold 1dp values; after a bake rounds member values, snap the live
+// meshes back onto them so the scene is exactly what Play rebuilds. Sizes
+// stay exact (like every plain-mesh scale): rebuilding geometry here would
+// risk the physics corruption the suppression machinery guards against.
+function snapMemberPositionToBlock(member) {
+  const key = member?.metadata?.blockKey;
+  if (!key || member.isDisposed?.()) return;
+  const memberBlock = meshMap[key];
+  if (!memberBlock || memberBlock.disposed) return;
+  const live = flock.getBlockPositionFromMesh(member);
+  const p = getXYZFromBlock(memberBlock);
+  const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+  flock.setBlockPositionOnMesh(member, {
+    x: num(p.x, live.x),
+    y: num(p.y, live.y),
+    z: num(p.z, live.z),
+    useY: true,
+  });
+  flock.updatePhysics?.(member);
+}
+
+// Multiply a member's size inputs by per-axis factors, mirroring the
+// updateScaleBlock cases. Models keep their size in a resize block; its id
+// needs suppressing too (the entity's own block is covered by the caller).
+function scaleMemberSizeInputs(mesh, fx, fy, fz, suppress) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  if (!block || block.disposed) return;
+  const mul = (target, name, f) => {
+    const cur = getNumberInput(target, name);
+    if (Number.isFinite(cur)) setNumberInputs(target, { [name]: cur * f });
+  };
+  switch (block.type) {
+    case 'create_plane':
+      mul(block, 'WIDTH', fx);
+      mul(block, 'HEIGHT', fy);
+      break;
+    case 'create_box':
+    case 'create_wedge':
+      mul(block, 'WIDTH', fx);
+      mul(block, 'HEIGHT', fy);
+      mul(block, 'DEPTH', fz);
+      break;
+    case 'create_capsule':
+      mul(block, 'HEIGHT', fy);
+      mul(block, 'DIAMETER', fx);
+      break;
+    case 'create_donut':
+      mul(block, 'DIAMETER', fx);
+      mul(block, 'THICKNESS', fy);
+      break;
+    case 'create_cylinder':
+      mul(block, 'HEIGHT', fy);
+      mul(block, 'DIAMETER_TOP', fx);
+      mul(block, 'DIAMETER_BOTTOM', fx);
+      break;
+    case 'create_sphere':
+      mul(block, 'DIAMETER_X', fx);
+      mul(block, 'DIAMETER_Y', fy);
+      mul(block, 'DIAMETER_Z', fz);
+      break;
+    case 'create_3d_text':
+      mul(block, 'SIZE', fy);
+      mul(block, 'DEPTH', fz);
+      break;
+    case 'load_model':
+    case 'load_multi_object':
+    case 'load_object':
+    case 'load_character': {
+      // A fresh resize block is seeded from the mesh's current (already
+      // scaled) size, so only a pre-existing one needs multiplying.
+      const existed = !!findExistingResizeBlock(mesh);
+      const resizeBlock = findOrCreateResizeBlock(mesh);
+      if (!resizeBlock) break;
+      suppress?.(resizeBlock.id);
+      if (existed) {
+        mul(resizeBlock, 'X', fx);
+        mul(resizeBlock, 'Y', fy);
+        mul(resizeBlock, 'Z', fz);
+      }
+      break;
+    }
+  }
+}
+
+// Re-anchor a group to its members' center before scaling; a no-op when
+// already aligned. Preserves every world transform.
+export function healGroupOrigin(groupMesh) {
+  if (!groupMesh || groupMesh.isDisposed?.()) return;
+  groupMesh.computeWorldMatrix(true);
+  let min = null;
+  let max = null;
+  for (const m of groupMesh.getChildMeshes?.(false) || []) {
+    if (!m || m.isDisposed?.()) continue;
+    const b = m.getHierarchyBoundingVectors(true);
+    if (!b) continue;
+    if (!min) {
+      min = b.min.clone();
+      max = b.max.clone();
+    } else {
+      flock.BABYLON.Vector3.CheckExtends(b.min, min, max);
+      flock.BABYLON.Vector3.CheckExtends(b.max, min, max);
+    }
+  }
+  if (!min || !max) return;
+  const dx = (min.x + max.x) / 2 - groupMesh.position.x;
+  const dy = (min.y + max.y) / 2 - groupMesh.position.y;
+  const dz = (min.z + max.z) / 2 - groupMesh.position.z;
+  if (dx * dx + dy * dy + dz * dz > 1e-6) {
+    flock.recomputeGroupGeometry(groupMesh);
+  }
+}
+
+// Blockly dispatches the bake's field-change events several frames late, so
+// suppression lifts only after QUIET_FRAMES with no new interceptions
+// (polling getSuppressedHitCount), capped at MAX_WAIT_FRAMES. Scoped to the
+// bake's own block ids, so unrelated blocks are never at risk.
+const QUIET_FRAMES = 3;
+const MAX_WAIT_FRAMES = 90; // ~1.5s at 60fps - safety cap
+function deferClearSuppressedBlocks(blockIds) {
+  if (!blockIds || blockIds.size === 0) return;
+  let lastHitCount = getSuppressedHitCount();
+  let quietStreak = 0;
+  let totalFrames = 0;
+  const tick = () => {
+    totalFrames++;
+    const hitCount = getSuppressedHitCount();
+    if (hitCount !== lastHitCount) {
+      lastHitCount = hitCount;
+      quietStreak = 0;
+    } else {
+      quietStreak++;
+    }
+    if (quietStreak >= QUIET_FRAMES || totalFrames >= MAX_WAIT_FRAMES) {
+      for (const id of blockIds) unsuppressBlockLiveUpdates(id);
+    } else {
+      requestAnimationFrame(tick);
+    }
+  };
+  requestAnimationFrame(tick);
+}
+
+// Fold a group's node scale into its members; the group returns to scale 1.
+// Returns false when there is nothing to bake, or a non-uniform scale meets
+// rotated transforms unexpressible in member inputs (the caller then falls
+// back to the legacy group resize block).
+export function bakeGroupScale(groupMesh) {
+  const groupKey = groupMesh?.metadata?.blockKey;
+  if (!groupKey) return false;
+  const s = groupMesh.scaling;
+  if ([s.x, s.y, s.z].every((v) => Math.abs(v - 1) < 1e-4)) return false;
+
+  const descendants = groupMesh.getChildMeshes?.(false) || [];
+  // Top-most members only, so a scaled ancestor is never applied twice;
+  // everything below them rides along untouched.
+  const entities = [];
+  const collectEntities = (node) => {
+    for (const m of node.getChildMeshes?.(true) || []) {
+      if (!m || m.isDisposed?.()) continue;
+      if (m.metadata?.shapeType === 'Group') {
+        collectEntities(m);
+        continue;
+      }
+      entities.push(m);
+    }
+  };
+  collectEntities(groupMesh);
+  if (!entities.length) {
+    groupMesh.scaling.set(1, 1, 1);
+    return true;
+  }
+
+  const isUniform = (v) =>
+    Math.abs(v.x - v.y) <= 1e-4 * Math.max(1, v.x, v.y, v.z) &&
+    Math.abs(v.y - v.z) <= 1e-4 * Math.max(1, v.x, v.y, v.z);
+  const worldQuatIdentity = (m) => {
+    m.computeWorldMatrix(true);
+    const scale = new flock.BABYLON.Vector3();
+    const quat = new flock.BABYLON.Quaternion();
+    const pos = new flock.BABYLON.Vector3();
+    m.getWorldMatrix().decompose(scale, quat, pos);
+    return Math.abs(quat.x) < 1e-3 && Math.abs(quat.y) < 1e-3 && Math.abs(quat.z) < 1e-3;
+  };
+  // Per-member scale factors, most exact source first: uniform ancestor
+  // scales commute through rotation and nesting; otherwise the subtree must
+  // be axis-aligned for component-wise factors, else baseline ratios.
+  const factors = new Map();
+  const seenKeys = new Set();
+  const chainScales = (leaf) => {
+    const acc = { x: 1, y: 1, z: 1 };
+    let uniform = true;
+    let p = leaf.parent;
+    while (p) {
+      const ps = p.scaling;
+      if (p.metadata?.shapeType === 'Group') {
+        if (!isUniform(ps)) uniform = false;
+        acc.x *= ps.x;
+        acc.y *= ps.y;
+        acc.z *= ps.z;
+      }
+      p = p.parent;
+    }
+    return { acc, uniform };
+  };
+  const baseline = groupScaleBaseline;
+  const baselineUsable =
+    baseline && baseline.groupKey === groupKey
+      ? baseline
+      : null;
+  let subtreeUnrotated = null;
+  for (const m of entities) {
+    const key = m.metadata?.blockKey;
+    if (!key || seenKeys.has(key)) return false;
+    seenKeys.add(key);
+    const { acc, uniform } = chainScales(m);
+    if (uniform) {
+      factors.set(key, { x: acc.x, y: acc.y, z: acc.z });
+      continue;
+    }
+    if (subtreeUnrotated === null) {
+      subtreeUnrotated =
+        worldQuatIdentity(groupMesh) &&
+        descendants.every(
+          (d) => !d || d.isDisposed?.() || worldQuatIdentity(d)
+        );
+    }
+    if (subtreeUnrotated) {
+      factors.set(key, { x: acc.x, y: acc.y, z: acc.z });
+      continue;
+    }
+    if (!baselineUsable) return false;
+    const oldSize = baselineUsable.sizes.get(key);
+    if (!oldSize) return false;
+    m.computeWorldMatrix(true);
+    const bounds = flock.getEffectiveWorldBounds(m);
+    const size = {
+      x: bounds.max.x - bounds.min.x,
+      y: bounds.max.y - bounds.min.y,
+      z: bounds.max.z - bounds.min.z,
+    };
+    const ratio = (a, b) => (Number.isFinite(a) && Number.isFinite(b) && b > 1e-9 ? a / b : 1);
+    factors.set(key, { x: ratio(size.x, oldSize.x), y: ratio(size.y, oldSize.y), z: ratio(size.z, oldSize.z) });
+  }
+  groupScaleBaseline = null;
+
+  const groupId = Blockly.utils.idGenerator.genUid();
+  Blockly.Events.setGroup(groupId);
+  // Own each touched block's writes: mid-bake they must not trigger the live
+  // pipeline. Events still record, so the bake stays a single undo.
+  const touchedBlockIds = new Set();
+  const suppress = (blockId) => {
+    if (!blockId || touchedBlockIds.has(blockId)) return;
+    touchedBlockIds.add(blockId);
+    suppressBlockLiveUpdates(blockId);
+  };
+  const parents = new Map();
+  // Restored on success and again (guarded) in finally: anything throwing
+  // mid-bake must not leave members detached with the group scale reset.
+  let reparented = false;
+  const restoreParents = () => {
+    if (reparented) return;
+    reparented = true;
+    for (const m of entities) {
+      if (!m.isDisposed?.()) m.setParent(parents.get(m) ?? null);
+    }
+  };
+  try {
+    for (const m of entities) {
+      parents.set(m, m.parent);
+      suppress(m.metadata?.blockKey);
+      m.setParent(null);
+    }
+    for (const m of entities) {
+      const key = m.metadata?.blockKey;
+      const f = factors.get(key);
+      scaleMemberSizeInputs(m, f.x, f.y, f.z, suppress);
+      const childBlock = meshMap[key];
+      if (childBlock && !childBlock.disposed) {
+        const pos = flock.getBlockPositionFromMesh(m);
+        setBlockXYZ(childBlock, pos.x, pos.y, pos.z);
+      }
+    }
+    groupMesh.scaling.set(1, 1, 1);
+    for (const m of descendants) {
+      if (m?.metadata?.shapeType === 'Group' && !m.isDisposed?.()) m.scaling.set(1, 1, 1);
+    }
+    restoreParents();
+    // Physics bodies rebuild once per direct parent group below, not here:
+    // rebuilding twice in one tick corrupts the Havok body.
+    // Members below top-level entities have no size to write, but their
+    // world positions moved, so their blocks update too (read unparented,
+    // like updateChildBlockPositions).
+    const snappedSubs = [];
+    for (const m of descendants) {
+      if (!m || m.isDisposed?.() || m.metadata?.shapeType === 'Group') continue;
+      const key = m.metadata?.blockKey;
+      if (!key || seenKeys.has(key)) continue;
+      const childBlock = meshMap[key];
+      if (!childBlock || childBlock.disposed) continue;
+      seenKeys.add(key);
+      suppress(key);
+      const parent = m.parent;
+      m.setParent(null);
+      let pos;
+      try {
+        pos = flock.getBlockPositionFromMesh(m);
+      } finally {
+        m.setParent(parent);
+      }
+      setBlockXYZ(childBlock, pos.x, pos.y, pos.z);
+      snappedSubs.push(m);
+    }
+    // Snap live members onto the rounded blocks (positions only; sizes stay
+    // exact) before the pivots recompute, so the scene matches Play.
+    for (const m of entities) snapMemberPositionToBlock(m);
+    for (const m of snappedSubs) snapMemberPositionToBlock(m);
+    const depthOf = (m) => {
+      let d = 0;
+      let p = m.parent;
+      while (p) {
+        d++;
+        p = p.parent;
+      }
+      return d;
+    };
+    const inners = descendants
+      .filter((m) => m?.metadata?.shapeType === 'Group' && !m.isDisposed?.())
+      .sort((a, b) => depthOf(b) - depthOf(a));
+    for (const g of inners) flock.recomputeGroupGeometry(g);
+    flock.recomputeGroupGeometry(groupMesh);
+    const resizeBlock = findExistingResizeBlock(groupMesh);
+    if (resizeBlock) {
+      suppress(resizeBlock.id);
+      const sized = getScaledSize(groupMesh);
+      setNumberInputs(resizeBlock, { X: sized.x, Y: sized.y, Z: sized.z });
+    }
+    flock.updatePhysics?.(groupMesh);
+  } finally {
+    restoreParents();
+    // Blockly dispatches the bake's field-change events a few frames late;
+    // lifting suppression now would replay them against the baked mesh.
+    // Clearing stays scoped to the touched blocks.
+    deferClearSuppressedBlocks(touchedBlockIds);
+    Blockly.Events.setGroup(false);
+  }
+  // Re-baseline to the baked state so repeated commits chain instead of
+  // falling back to a group resize block.
+  cacheGroupScaleBaseline(groupMesh);
+  return true;
+}
+
+export function updateScaleBlock(mesh, originalBottomY = null) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block) return;
 
@@ -1910,7 +2306,16 @@ function updateScaleBlock(mesh, originalBottomY = null) {
       case 'load_model':
       case 'load_multi_object':
       case 'load_object':
-      case 'load_character': {
+      case 'load_character':
+      case 'create_group': {
+        // Groups never keep a scale of their own: fold it into the members.
+        // Only an unexpressible scale (non-uniform over rotated transforms
+        // with no baseline) falls back to a group resize block.
+        if (block.type === 'create_group') {
+          if (bakeGroupScale(mesh)) break;
+          const sc = mesh.scaling;
+          if ([sc.x, sc.y, sc.z].every((v) => Math.abs(v - 1) < 1e-4)) break;
+        }
         const resizeBlock = findOrCreateResizeBlock(mesh);
         if (!resizeBlock) break;
 
@@ -1931,16 +2336,14 @@ function updateScaleBlock(mesh, originalBottomY = null) {
   }
 }
 
-// When a mesh is moved, its parented child objects move with it in world space.
-// Write each child's new position into its own block so re-running the project
-// reproduces what's on screen. To read the position we briefly unparent the
-// child so its transform is in world space, use the same getBlockPositionFromMesh
-// path as any root object, then restore the parent (a no-op in the common case
-// where nothing has moved from its start position). Writing the block fires
-// updateMeshFromBlock, which applies the change back to the child on a deferred
-// microtask (unparent/move/reparent); because the child is already at this
-// position, that apply is a no-op. The caller wraps this (with the parent's own
-// block update) in a single Blockly event group so the whole move is one undo.
+// When a mesh is moved, its parented children move with it in world space.
+// Write each child's new position into its own block so re-running the
+// project reproduces what's on screen. Read unparented so the transform is
+// world-space, then restore the parent. Writing the block fires
+// updateMeshFromBlock, which applies the change back on a deferred microtask;
+// the 1dp rounding makes that a small snap onto the rounded values, keeping
+// the scene identical to what Play rebuilds. The caller wraps this (with the
+// parent's own block update) in a single Blockly event group: one undo.
 function updateChildBlockPositions(mesh) {
   const rootKey = mesh?.metadata?.blockKey;
   const children = mesh?.getChildMeshes?.(false) || [];
@@ -2350,14 +2753,14 @@ function handleScaleGizmo() {
   const scaleDrag = gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
 
+    // Never scale about a stale origin (see the keyboard onMove).
+    if (mesh?.metadata?.shapeType === 'Group') healGroupOrigin(mesh);
+
     mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
     mesh.scaling.y = Math.max(0.01, mesh.scaling.y);
     mesh.scaling.z = Math.max(0.01, mesh.scaling.z);
 
-    mesh.computeWorldMatrix(true);
-    mesh.refreshBoundingInfo();
-
-    const newBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    const newBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
     const deltaY = originalBottomY - newBottomY;
     mesh.position.y += deltaY;
 
@@ -2412,9 +2815,7 @@ function handleScaleGizmo() {
   const scaleDragStart = gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     flock.ensureUniqueGeometry(mesh);
-    mesh.computeWorldMatrix(true);
-    mesh.refreshBoundingInfo();
-    originalBottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    originalBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
     textOrigScaleZ = mesh.scaling.z;
     scaleDragAxis = null;
 
@@ -2428,7 +2829,9 @@ function handleScaleGizmo() {
 
     const creationBlock = meshMap[mesh?.metadata?.blockKey];
     if (creationBlock) {
-      if (MODEL_BLOCK_TYPES.has(creationBlock.type)) {
+      if (creationBlock.type === 'create_group') {
+        highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
+      } else if (RESIZE_BLOCK_TYPES.has(creationBlock.type)) {
         const resizeBlock = findOrCreateResizeBlock(mesh);
         if (resizeBlock) {
           highlightBlockById(Blockly.getMainWorkspace(), resizeBlock);
@@ -2438,6 +2841,10 @@ function handleScaleGizmo() {
       } else {
         highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
       }
+    }
+    if (mesh?.metadata?.shapeType === 'Group') {
+      healGroupOrigin(mesh);
+      cacheGroupScaleBaseline(mesh);
     }
   });
 
@@ -2526,7 +2933,10 @@ function handleRotationGizmo() {
 
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
-      updateRotationBlock(lastRotatedMesh); // properly update block if they click out
+      if (lastRotatedMesh?.metadata?.shapeType !== 'Group') {
+        updateRotationBlock(lastRotatedMesh); // properly update block if they click out
+      }
+      updateChildBlockRotations(lastRotatedMesh);
       exitTransformState();
       gizmoManager.attachToMesh(null);
       return;
@@ -2550,9 +2960,14 @@ function handleRotationGizmo() {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
 
-    const rotateBlock = findOrCreateRotateBlock(mesh);
-    if (rotateBlock) {
-      highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
+    if (mesh.metadata?.shapeType === 'Group') {
+      const groupBlock = meshMap[mesh.metadata?.blockKey];
+      if (groupBlock) highlightBlockById(Blockly.getMainWorkspace(), groupBlock);
+    } else {
+      const rotateBlock = findOrCreateRotateBlock(mesh);
+      if (rotateBlock) {
+        highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
+      }
     }
 
     if (!isBodyAlive(mesh.physics)) return;
@@ -2579,15 +2994,90 @@ function handleRotationGizmo() {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
 
-    // Write all three Euler values so the block faithfully describes the mesh's
-    // actual orientation. A single gizmo ring rotates about a world axis, which
-    // in general cannot be represented by changing only one YawPitchRoll value
-    // (unless the object is otherwise unrotated), so writing just one axis makes
-    // the block disagree with the mesh and the object jumps when the block runs.
-    updateRotationBlock(mesh);
+    // Write all three Euler values: one gizmo ring rotates about a world
+    // axis, which a single YawPitchRoll value generally cannot represent, so
+    // writing one axis would disagree with the mesh and jump on re-run.
+    // A group's orientation lives in its members (see below), so no
+    // rotate_to is written for the group itself - that would apply twice.
+    if (mesh?.metadata?.shapeType !== 'Group') updateRotationBlock(mesh);
+    updateChildBlockRotations(mesh);
   });
 
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
+}
+
+export function updateChildBlockRotations(mesh) {
+  const rootKey = mesh?.metadata?.blockKey;
+  // Only groups persist orientation in their members; other parents keep
+  // the existing rotation-only behaviour.
+  const isGroupRoot = mesh?.metadata?.shapeType === 'Group';
+  const children = mesh?.getChildMeshes?.(false) || [];
+  const seenKeys = new Set();
+
+  children.forEach((child) => {
+    const key = child?.metadata?.blockKey;
+    if (!key || key === rootKey || seenKeys.has(key)) return;
+    seenKeys.add(key);
+
+    const childParent = child.parent;
+    child.setParent(null);
+    let rotation;
+    let pos = null;
+    try {
+      rotation = getMeshRotationInDegrees(child);
+      // A rotated group moves its members: persist world positions too, read
+      // in the same unparented window, or re-run restores them unrotated.
+      if (isGroupRoot) pos = flock.getBlockPositionFromMesh(child);
+    } finally {
+      child.setParent(childParent);
+    }
+
+    const rotateBlock = findOrCreateRotateBlock(child);
+    if (rotateBlock) setBlockXYZ(rotateBlock, rotation.x, rotation.y, rotation.z);
+    let memberBlock = null;
+    if (isGroupRoot && pos) {
+      memberBlock = meshMap[key];
+      if (memberBlock && !memberBlock.disposed) {
+        setBlockXYZ(memberBlock, pos.x, pos.y, pos.z);
+      }
+    }
+    // Snap live onto the rounded blocks: set the world orientation while
+    // unparented, then re-anchor the position to the rounded base.
+    if (isGroupRoot && (rotateBlock || memberBlock)) {
+      const parent = child.parent;
+      child.setParent(null);
+      try {
+        if (rotateBlock && !rotateBlock.disposed) {
+          const r = getXYZFromBlock(rotateBlock);
+          if ([r.x, r.y, r.z].every((v) => Number.isFinite(Number(v)))) {
+            child.rotationQuaternion = flock.eulerDegreesToQuat(
+              Number(r.x),
+              Number(r.y),
+              Number(r.z)
+            );
+          }
+        }
+        if (memberBlock && !memberBlock.disposed) {
+          const p = getXYZFromBlock(memberBlock);
+          const live = flock.getBlockPositionFromMesh(child);
+          const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
+          flock.setBlockPositionOnMesh(child, {
+            x: num(p.x, live.x),
+            y: num(p.y, live.y),
+            z: num(p.z, live.z),
+            useY: true,
+          });
+        }
+        flock.updatePhysics?.(child);
+      } finally {
+        child.setParent(parent);
+      }
+    }
+  });
+
+  // Rotating re-shapes the content bounds - re-centre the origin so the next
+  // transform starts from a consistent pivot.
+  if (isGroupRoot) flock.recomputeGroupGeometry(mesh);
 }
 
 // Position: Allow the user to move the mesh by dragging it
@@ -3093,6 +3583,18 @@ export function enableGizmos() {
 
 export function setGizmoManager(value) {
   gizmoManager = value;
+
+  // A drop grouping the attached mesh moves the gizmo to the group root,
+  // like a canvas pick. Anything else is left alone. Registered here, not at
+  // module scope: the import cycle can leave blockmesh's binding in TDZ
+  // during module evaluation. One-directional (gizmos -> blockmesh).
+  setGroupSelectionFollower((memberMesh, groupMesh) => {
+    if (!gizmoManager || gizmoManager.attachedMesh !== memberMesh) return;
+    if (!groupMesh || groupMesh.isDisposed?.()) return;
+    const block = meshMap[groupMesh.metadata?.blockKey];
+    if (block) highlightBlockById(Blockly.getMainWorkspace(), block);
+    gizmoManager.attachToMesh(groupMesh);
+  });
 
   const originalAttach = gizmoManager.attachToMesh.bind(gizmoManager);
   let attachedMeshDisposeObserver = null;

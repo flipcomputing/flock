@@ -319,6 +319,7 @@ export default {
     'add %1 particle effect on: %2\nshape: %3 start: %4 end: %5 alpha: %6 to %7\nrate: %8 size: %9 to %10 lifetime: %11 to %12\ngravity: %13 force x: %14 y: %15 z: %16\nangular speed: %17 to %18 initial angle: %19 to %20',
   control_particle_system: 'particle system %1 %2',
   create_box: 'add box %1 %2 width: %3 height: %4 depth: %5 \nat x: %6 y: %7 z: %8',
+  create_group: 'add group %1 active: %2',
   create_sphere:
     'add sphere %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nat x: %6 y: %7 z: %8',
   create_cylinder:
@@ -602,6 +603,8 @@ export default {
   control_particle_system_tooltip:
     'Control the particle system by starting, stopping, or resetting it.',
   create_box_tooltip: 'Create a colored box with specified dimensions and position.',
+  create_group_tooltip:
+    'Create a group. The objects inside move together. Uncheck active to change individual objects.',
   create_sphere_tooltip: 'Create a colored sphere with specified dimensions and position.',
   create_cylinder_tooltip: 'Create a colored cylinder with specified dimensions and position.',
   create_capsule_tooltip: 'Create a colored capsule with specified dimensions and position.',

@@ -859,6 +859,87 @@ export const flockMesh = {
 
     return true; // Already has unique geometry
   },
+  rebuildGroupGeometry(mesh, width, height, depth) {
+    const w = Math.max(width, 0.01);
+    const h = Math.max(height, 0.01);
+    const d = Math.max(depth, 0.01);
+
+    const vertexData = flock.BABYLON.VertexData.CreateBox({ width: w, height: h, depth: d });
+    vertexData.applyToMesh(mesh, true);
+    mesh.refreshBoundingInfo();
+  },
+  recomputeGroupGeometry(groupMesh) {
+    if (!groupMesh || groupMesh.metadata?.shapeType !== 'Group') return null;
+    const directChildren = groupMesh.getChildMeshes(true);
+    if (!directChildren.length) return null;
+
+    groupMesh.computeWorldMatrix(true);
+    let min = null;
+    let max = null;
+    directChildren.forEach((child) => {
+      const bounds = child.getHierarchyBoundingVectors(true);
+      if (!min) {
+        min = bounds.min.clone();
+        max = bounds.max.clone();
+      } else {
+        flock.BABYLON.Vector3.CheckExtends(bounds.min, min, max);
+        flock.BABYLON.Vector3.CheckExtends(bounds.max, min, max);
+      }
+    });
+
+    const size = max.subtract(min);
+    const newOrigin = new flock.BABYLON.Vector3(
+      (min.x + max.x) / 2,
+      (min.y + max.y) / 2,
+      (min.z + max.z) / 2
+    );
+
+    directChildren.forEach((child) => child.setParent(null));
+    groupMesh.setAbsolutePosition(newOrigin);
+    groupMesh.computeWorldMatrix(true);
+    directChildren.forEach((child) => child.setParent(groupMesh));
+
+    flock.rebuildGroupGeometry(groupMesh, size.x, size.y, size.z);
+    flock.updatePhysics?.(groupMesh);
+    // Children keep their world transforms through the setParent calls
+    // above, so their physics bodies need no rebuild here; rebuilding every
+    // recompute re-creates Havok bodies from intermediate bounds and drifts.
+
+    return { directChildren };
+  },
+  getEffectiveWorldBounds(mesh) {
+    mesh.computeWorldMatrix(true);
+    if (mesh.getTotalVertices() > 0) {
+      mesh.refreshBoundingInfo();
+      const bb = mesh.getBoundingInfo().boundingBox;
+      return { min: bb.minimumWorld, max: bb.maximumWorld };
+    }
+    return mesh.getHierarchyBoundingVectors(true);
+  },
+  getHierarchyLocalBounds(mesh) {
+    const savedPosition = mesh.position.clone();
+    const savedRotationQuaternion = mesh.rotationQuaternion
+      ? mesh.rotationQuaternion.clone()
+      : null;
+    const savedRotation = mesh.rotation.clone();
+    const savedScaling = mesh.scaling.clone();
+
+    mesh.position.set(0, 0, 0);
+    if (mesh.rotationQuaternion) mesh.rotationQuaternion.set(0, 0, 0, 1);
+    mesh.rotation.set(0, 0, 0);
+    mesh.scaling.set(1, 1, 1);
+    mesh.computeWorldMatrix(true);
+
+    const bounds = mesh.getHierarchyBoundingVectors(true);
+
+    mesh.position.copyFrom(savedPosition);
+    if (savedRotationQuaternion) mesh.rotationQuaternion.copyFrom(savedRotationQuaternion);
+    mesh.rotation.copyFrom(savedRotation);
+    mesh.scaling.copyFrom(savedScaling);
+    mesh.computeWorldMatrix(true);
+
+    return bounds;
+  },
   setupMesh(mesh, modelName, modelId, blockId, scale, x, y, z) {
     mesh.scaling = new flock.BABYLON.Vector3(scale, scale, scale);
 
@@ -1222,6 +1303,11 @@ export const flockMesh = {
             return;
           }
           childMesh.setParent(parentMesh);
+
+          if (parentMesh.metadata?.shapeType === 'Group') {
+            flock.recomputeGroupGeometry(parentMesh);
+          }
+
           resolve();
         });
       });

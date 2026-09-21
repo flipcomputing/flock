@@ -460,9 +460,14 @@ export function createBlockForCharacter(
   }
 }
 
-const roundToOneDecimal = (value) => Math.round(value * 10) / 10;
+// Block values are 1dp app-wide; group bakes round to the same and snap
+// live meshes back (see snapMemberPositionToBlock in gizmos.js).
+const roundToPrecision = (value, decimals = 1) => {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+};
 
-export function setBlockXYZ(block, x, y, z) {
+export function setBlockXYZ(block, x, y, z, { decimals = 1 } = {}) {
   const setInputValue = (inputName, value) => {
     const input = block.getInput(inputName);
     if (!input?.connection) return;
@@ -473,9 +478,9 @@ export function setBlockXYZ(block, x, y, z) {
     }
   };
 
-  setInputValue('X', roundToOneDecimal(x));
-  setInputValue('Y', roundToOneDecimal(y));
-  setInputValue('Z', roundToOneDecimal(z));
+  setInputValue('X', roundToPrecision(x, decimals));
+  setInputValue('Y', roundToPrecision(y, decimals));
+  setInputValue('Z', roundToPrecision(z, decimals));
 }
 
 export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition) {
@@ -656,7 +661,7 @@ export function calculateYPosition(mesh) {
   return Number.isFinite(minY) ? minY : mesh.position.y;
 }
 
-export function setNumberInputs(block, valuesByInputName) {
+export function setNumberInputs(block, valuesByInputName, { decimals = 1 } = {}) {
   if (!block || !valuesByInputName) return;
 
   for (const [inputName, value] of Object.entries(valuesByInputName)) {
@@ -667,7 +672,7 @@ export function setNumberInputs(block, valuesByInputName) {
 
     const target = block.getInput(inputName)?.connection?.targetBlock?.();
     if (!target?.getField?.('NUM')) continue;
-    target.setFieldValue(String(roundToOneDecimal(n)), 'NUM');
+    target.setFieldValue(String(roundToPrecision(n, decimals)), 'NUM');
   }
 }
 

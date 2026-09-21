@@ -1031,6 +1031,41 @@ export function defineShapeBlocks() {
     },
   };
 
+  Blockly.Blocks['create_group'] = {
+    init: function () {
+      const variableNamePrefix = 'group';
+      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'create_group',
+        message0: translate('create_group'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'field_checkbox',
+            name: 'ACTIVE',
+            checked: true,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('create_group'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockChange(this, changeEvent, variableNamePrefix)
+      );
+      addDoMutatorWithToggleBehavior(this);
+    },
+  };
+
   Blockly.Blocks['control_particle_system'] = {
     init: function () {
       this.jsonInit({

@@ -524,4 +524,55 @@ export function runRotationTests(flock) {
       expect(error).to.be.null;
     });
   });
+
+  describe('base-rule Y with rotated meshes', function () {
+    let rotatedId;
+    beforeEach(function () {
+      rotatedId = `rotbase_${Date.now()}`;
+      flock.createBox(rotatedId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+    });
+    afterEach(function () {
+      if (rotatedId) flock.dispose(rotatedId);
+    });
+
+    it('should read the world base, not the unrotated base', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+
+      mesh.computeWorldMatrix(true);
+      const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      expect(worldMinY).to.be.closeTo(0.5 - Math.SQRT2 / 2, 0.02);
+
+      const read = flock.getBlockPositionFromMesh(mesh);
+      expect(read.y).to.be.closeTo(worldMinY, 0.02);
+    });
+
+    it('should round-trip a rotated mesh without moving it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+
+      const before = mesh.getAbsolutePosition().clone();
+      const read = flock.getBlockPositionFromMesh(mesh);
+      await flock.setBlockPositionOnMesh(mesh, { x: read.x, y: read.y, z: read.z, useY: true });
+
+      const after = mesh.getAbsolutePosition();
+      expect(after.x).to.be.closeTo(before.x, 0.02);
+      expect(after.y).to.be.closeTo(before.y, 0.02);
+      expect(after.z).to.be.closeTo(before.z, 0.02);
+    });
+
+    it('should keep the unrotated base-rule behaviour', function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      const read = flock.getBlockPositionFromMesh(mesh);
+      expect(read.x).to.be.closeTo(0, 0.01);
+      expect(read.y).to.be.closeTo(0, 0.01);
+      expect(read.z).to.be.closeTo(0, 0.01);
+    });
+  });
 }

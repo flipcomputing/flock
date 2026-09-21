@@ -6,6 +6,7 @@ import {
   sanitizeForCode,
   emitSafeTextArg,
   getVariableInfo,
+  maybeParentToGroup,
 } from './generators-utilities.js';
 
 export function registerTextGenerators(javascriptGenerator) {
@@ -332,7 +333,7 @@ export function registerTextGenerators(javascriptGenerator) {
             depth: ${depth},
             position: { x: ${x}, y: ${y}, z: ${z} },
             modelId: ${JSON.stringify(meshId)}${doCode ? `,\n  callback: ${doCode}` : ''}
-          });\n`;
+          });\n${maybeParentToGroup(variableName)}`;
   };
 
   // -------------------------------

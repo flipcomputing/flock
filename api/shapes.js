@@ -309,6 +309,38 @@ export const flockShapes = {
 
     return newBox.name;
   },
+  createGroup(groupId, { position = new flock.BABYLON.Vector3(0, 0, 0), callback = null } = {}) {
+    if (!validateShapeId(groupId, 'createGroup')) return null;
+
+    let blockKey = groupId;
+
+    if (groupId.includes('__')) {
+      [groupId, blockKey] = groupId.split('__');
+    }
+
+    let groupName = groupId;
+    groupId = flock._reserveName(groupId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const newGroup = new flock.BABYLON.Mesh(groupId, flock.scene);
+    flock.rebuildGroupGeometry(newGroup, 0.01, 0.01, 0.01);
+
+    flock.initializeMesh(newGroup, position, null, 'Group', 1, false);
+    newGroup.metadata.blockKey = blockKey;
+    newGroup.visibility = 0;
+    newGroup.metadata.sharedGeometry = false;
+
+    flock.announceMeshReady(newGroup.name, groupName);
+    flock._registerInstance(blockKey, newGroup.name);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return newGroup.name;
+  },
   createSphere(
     sphereId,
     {

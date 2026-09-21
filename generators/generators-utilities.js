@@ -91,6 +91,22 @@ export function getThenCallback(block) {
   return code ? `,\nthen: async function() {\n${code}\n}` : '';
 }
 
+let currentGroupParent = null;
+
+export function withGroupParent(parentVar, generateFn) {
+  const previous = currentGroupParent;
+  currentGroupParent = parentVar;
+  try {
+    return generateFn();
+  } finally {
+    currentGroupParent = previous;
+  }
+}
+
+export function maybeParentToGroup(variableName) {
+  return currentGroupParent ? `setParent(${currentGroupParent}, ${variableName});\n` : '';
+}
+
 export function createMesh(block, meshType, params) {
   const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
@@ -99,6 +115,7 @@ export function createMesh(block, meshType, params) {
   meshMap[block.id] = block;
   meshBlockIdMap[block.id] = block.id;
 
+  const parentCode = maybeParentToGroup(variableName);
   const doCode = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
   const thenCode = block.getInput('THEN')
     ? javascriptGenerator.statementToCode(block, 'THEN') || ''
@@ -106,7 +123,12 @@ export function createMesh(block, meshType, params) {
 
   const options = [...params];
 
-  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${doCode}${thenCode}`;
+  // parentCode repeats after doCode/thenCode so a rotate_to/resize in this
+  // entity's own DO (how the live editor bakes group transforms into a
+  // member) runs before the group last recomputes: setParent recomputes as
+  // a side effect, so without the second call re-run would centre the group
+  // on pre-rotation bounds while live used post-rotation ones.
+  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}${parentCode}`;
 }
 
 export function emitSafeIdentifierLiteral(code) {

@@ -1523,6 +1523,11 @@ const toolboxTransformConnect = {
   contents: [
     {
       kind: 'block',
+      type: 'create_group',
+      keyword: 'group',
+    },
+    {
+      kind: 'block',
       type: 'parent',
       keyword: 'parent',
     },
