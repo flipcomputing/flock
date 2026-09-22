@@ -2275,16 +2275,13 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
         if (
           Number.isFinite(currentTop) &&
           Number.isFinite(currentBottom) &&
-          currentTop > 0 &&
-          currentBottom > 0
+          currentTop >= 0 &&
+          currentBottom >= 0 &&
+          Math.max(currentTop, currentBottom) > 0
         ) {
-          if (currentTop >= currentBottom) {
-            newTop = newScaledDiameter;
-            newBottom = newTop * (currentBottom / currentTop);
-          } else {
-            newBottom = newScaledDiameter;
-            newTop = newBottom * (currentTop / currentBottom);
-          }
+          const factor = newScaledDiameter / Math.max(currentTop, currentBottom);
+          newTop = currentTop * factor;
+          newBottom = currentBottom * factor;
         } else {
           newTop = newScaledDiameter;
           newBottom = newScaledDiameter;
