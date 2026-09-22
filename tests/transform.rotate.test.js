@@ -525,20 +525,31 @@ export function runRotationTests(flock) {
     });
   });
 
-  describe('base-rule Y with rotated meshes', function () {
-    let rotatedId;
-    beforeEach(function () {
+  // A Group member needs the rotation-aware world-AABB base (it gets
+  // re-anchored to it after every rotate - see rotateTo's groupedBaseY
+  // branch and mesh-hierarchy.test.js's "rebuild a rotated non-cubic
+  // member" test). A free-standing mesh does not: it is always created
+  // upright, before any rotate_to block runs, so its base must be read
+  // and written as if unrotated - see the @rotation describe below for
+  // why using the true rotated base there causes a jump on replay.
+  describe('base-rule Y with rotated meshes in a Group @rotation', function () {
+    let groupId, rotatedId;
+    beforeEach(async function () {
+      groupId = `rotbasegroup_${Date.now()}`;
       rotatedId = `rotbase_${Date.now()}`;
-      flock.createBox(rotatedId, {
+      await flock.createGroup(groupId, { position: [0, 0, 0] });
+      await flock.createBox(rotatedId, {
         color: '#FF00FF',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
+      await flock.setParent(groupId, rotatedId);
     });
     afterEach(function () {
       if (rotatedId) flock.dispose(rotatedId);
+      if (groupId) flock.dispose(groupId);
     });
 
     it('should read the world base, not the unrotated base', async function () {
@@ -547,7 +558,6 @@ export function runRotationTests(flock) {
 
       mesh.computeWorldMatrix(true);
       const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
-      expect(worldMinY).to.be.closeTo(0.5 - Math.SQRT2 / 2, 0.02);
 
       const read = flock.getBlockPositionFromMesh(mesh);
       expect(read.y).to.be.closeTo(worldMinY, 0.02);
@@ -566,13 +576,89 @@ export function runRotationTests(flock) {
       expect(after.y).to.be.closeTo(before.y, 0.02);
       expect(after.z).to.be.closeTo(before.z, 0.02);
     });
+  });
 
-    it('should keep the unrotated base-rule behaviour', function () {
+  describe('base-rule Y for free-standing meshes @rotation', function () {
+    let rotatedId;
+    beforeEach(function () {
+      rotatedId = `rotbasefree_${Date.now()}`;
+      // Non-cubic (like a carrot's cylinder): a cube's AABB is unchanged by
+      // an exact 90 degree turn, which would hide the bug this covers.
+      flock.createBox(rotatedId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+    });
+    afterEach(function () {
+      if (rotatedId) flock.dispose(rotatedId);
+    });
+
+    it('should keep the unrotated base-rule behaviour, not the rotated world base', async function () {
       const mesh = flock.scene.getMeshByName(rotatedId);
-      const read = flock.getBlockPositionFromMesh(mesh);
-      expect(read.x).to.be.closeTo(0, 0.01);
-      expect(read.y).to.be.closeTo(0, 0.01);
-      expect(read.z).to.be.closeTo(0, 0.01);
+      const upright = flock.getBlockPositionFromMesh(mesh);
+      expect(upright.y).to.be.closeTo(0, 0.01);
+
+      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+      mesh.computeWorldMatrix(true);
+      const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
+      // A free-standing mesh's read must not change just because it was
+      // rotated - it keeps reporting the unrotated-equivalent base, which
+      // stays valid because rotate never moves the pivot for it.
+      const readAfterRotate = flock.getBlockPositionFromMesh(mesh);
+      expect(readAfterRotate.y).to.be.closeTo(upright.y, 0.02);
+      expect(Math.abs(readAfterRotate.y - worldMinY)).to.be.greaterThan(0.03);
+    });
+
+    // Regression for the 71d1b217 "group block" commit, which switched the
+    // free-standing base-rule from an order-independent unrotated-bounds
+    // formula to the rotation-aware world-AABB formula. A tapered
+    // cylinder ("carrot") rotated horizontal and positioned via the
+    // position gizmo would then jump the instant the program re-ran:
+    // creation always applies the block's position before any later
+    // rotate_to block runs, so a Y captured from the *rotated* world base
+    // landed on the *unrotated* mesh, and the subsequent rotate (which
+    // does not re-anchor free-standing objects) swung it away from where
+    // it visually sat in the editor.
+    it('replays a position-after-rotate gizmo edit without jumping', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+
+      // Live editing: tip the box on its side, then drag the position gizmo
+      // so its lowest point rests exactly on a surface at world Y = 5. A
+      // gizmo drag sets mesh.position directly (no base-rule involved) -
+      // only the write-back that follows goes through the base-rule.
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: 90 });
+      mesh.computeWorldMatrix(true);
+      const restY = 5;
+      const beforeDragMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      mesh.position.y += restY - beforeDragMinY;
+      mesh.computeWorldMatrix(true);
+      const liveWorldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      expect(liveWorldMinY).to.be.closeTo(restY, 0.02);
+
+      // What the position gizmo's drag-end handler writes into the create
+      // block, captured while the mesh is already rotated.
+      const capturedBlockY = flock.getBlockPositionFromMesh(mesh).y;
+
+      // Simulate a fresh Play run: object created upright (position applied
+      // before any rotation, as initializeMesh always does), then the
+      // rotate_to block - appended after the create block by
+      // findOrCreateRotateBlock - runs afterward.
+      mesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+      mesh.position.set(0, 0, 0);
+      mesh.computeWorldMatrix(true);
+
+      await flock.setBlockPositionOnMesh(mesh, { x: 0, y: capturedBlockY, z: 0, useY: true });
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: 90 });
+
+      mesh.computeWorldMatrix(true);
+      const replayedWorldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
+      // Must land in the same resting spot as the live edit - no jump.
+      expect(replayedWorldMinY).to.be.closeTo(liveWorldMinY, 0.02);
     });
   });
 }
