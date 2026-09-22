@@ -1090,7 +1090,7 @@ export function defineShapeBlocks() {
       registerBlockHandler(this, (changeEvent) =>
         handleBlockChange(this, changeEvent, variableNamePrefix)
       );
-      addDoMutatorWithToggleBehavior(this);
+      this.appendStatementInput('DO').setCheck(null).appendField('');
     },
   };
 

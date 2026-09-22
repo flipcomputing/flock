@@ -375,8 +375,7 @@ export function registerSceneGenerators(javascriptGenerator) {
   };
 
   // Add group: an empty transform node for parenting. Its DO generates with
-  // withGroupParent so nested mesh-creating blocks parent to it; THEN runs
-  // after and is not treated as contents.
+  // withGroupParent so nested mesh-creating blocks parent to it.
   javascriptGenerator.forBlock['create_group'] = function (block) {
     const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
     const meshId = `${userVariableName}__${block.id}`;
@@ -391,11 +390,11 @@ export function registerSceneGenerators(javascriptGenerator) {
           javascriptGenerator.statementToCode(block, 'DO') || ''
         )
       : '';
-    const thenCode = block.getInput('THEN')
-      ? javascriptGenerator.statementToCode(block, 'THEN') || ''
-      : '';
 
-    return `${variableName} = createGroup(${JSON.stringify(meshId)});\n${parentCode}${doCode}${thenCode}${parentCode}`;
+    // Single trailing parent: members already recompute this group as they
+    // are added, so parenting to an outer group once suffices (contrast
+    // createMesh, where a second call is needed after own-DO transforms).
+    return `${variableName} = createGroup(${JSON.stringify(meshId)});\n${doCode}${parentCode}`;
   };
 
   // Add clone ----------------------------------------------------------
