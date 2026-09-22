@@ -44,11 +44,23 @@ function drawAttention(el) {
 
 // Cards, in display order. `i18nKey` maps to a `howto_<slug>_ui` locale
 // entry; `tone` selects one of the --color-howto-N card background tokens.
+// `tags` assigns topic tags — the label for each comes from a
+// `howto_tag_<tag>_ui` locale entry, and the grid offers them as a filter.
+// To add a new tag, use it here and add its locale entry; no other change
+// needed, the filter picks it up automatically.
 const HOW_TOS = [
-  { slug: 'set-the-scene', i18nKey: 'howto_set_the_scene_ui', tone: 1 },
-  { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 2 },
-  { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 3 },
-  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 4 },
+  { slug: 'add-sky-and-ground', i18nKey: 'howto_add_sky_and_ground_ui', tone: 1, tags: ['scene'] },
+  { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 2, tags: ['gizmo'] },
+  { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'] },
+  { slug: 'duplicate-objects', i18nKey: 'howto_duplicate_objects_ui', tone: 4, tags: ['gizmo'] },
+  { slug: 'look-around', i18nKey: 'howto_look_around_ui', tone: 5, tags: ['camera'] },
+  { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 6, tags: ['character'] },
+  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['camera'] },
+  { slug: 'colour-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'] },
+  { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'] },
+  { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'] },
+  { slug: 'delete-an-object', i18nKey: 'howto_delete_an_object_ui', tone: 11, tags: ['gizmo'] },
+  { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo'] },
 ];
 
 // How-to text lives in docs/how-tos/<lang>/<slug>.html — one locale folder
@@ -124,6 +136,15 @@ const HOWTO_LINK_TARGETS = {
   // added the block (or deleted it) — nothing to glow yet.
   skyblock: () => drawAttention(findMainWorkspaceBlock('set_sky_color')?.getSvgRoot?.()),
   mapblock: () => drawAttention(findMainWorkspaceBlock('create_map')?.getSvgRoot?.()),
+  // Points at the "+" toolbar button that opens the Add menu (shapes, models,
+  // characters) — same "guide, don't open it for them" approach as above.
+  addmenu: () => drawAttention(document.getElementById('showShapesButton')),
+  // Points at the Position button in the gizmo toolbar, which activates the
+  // position gizmo — same approach as above.
+  positiongizmo: () => drawAttention(document.getElementById('positionButton')),
+  // Points at the Duplicate button in the gizmo toolbar, which activates the
+  // duplicate gizmo — same approach as above.
+  duplicategizmo: () => drawAttention(document.getElementById('duplicateButton')),
 };
 
 function findSnippetsCategory() {
@@ -172,18 +193,27 @@ function suppressFlyoutAutoClose() {
 
 // Upgrades each declarative <link-to target="…">label</link-to> into the same
 // button.help-link shape/behaviour wireHelpLinks() produces, so how-to
-// authors write a plain tag rather than hand-rolling a button+id.
-function wireHowToLinks(root) {
+// authors write a plain tag rather than hand-rolling a button+id. A target of
+// the form "howto:<slug>" opens another how-to card instead of pointing at
+// the UI.
+function wireHowToLinks(root, onOpenHowTo) {
   root.querySelectorAll('link-to').forEach((el) => {
     const target = el.getAttribute('target');
-    const handler = HOWTO_LINK_TARGETS[target];
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'help-link';
     btn.textContent = el.textContent;
-    if (handler) {
-      btn.addEventListener('pointerdown', suppressFlyoutAutoClose, { capture: true });
-      btn.addEventListener('click', handler);
+    if (target?.startsWith('howto:')) {
+      const slug = target.slice('howto:'.length);
+      if (HOW_TOS.some((h) => h.slug === slug)) {
+        btn.addEventListener('click', () => onOpenHowTo(slug));
+      }
+    } else {
+      const handler = HOWTO_LINK_TARGETS[target];
+      if (handler) {
+        btn.addEventListener('pointerdown', suppressFlyoutAutoClose, { capture: true });
+        btn.addEventListener('click', handler);
+      }
     }
     el.replaceWith(btn);
   });
@@ -306,6 +336,7 @@ const HowToPanel = {
   panel: null,
   previousFocus: null,
   _activeSlug: null,
+  _activeTag: null,
   _modalTitleId: 'howto-panel-title',
   _tabBtnId: 'info-tab-btn-howto',
   _closeLabelKey: 'close',
@@ -351,22 +382,48 @@ const HowToPanel = {
   },
 
   renderGrid(list) {
-    list.innerHTML = `<ul class="howto-grid"></ul>`;
+    // Topic filter — one chip per tag (in first-seen order) plus All.
+    // Single-select: picking a tag shows only its cards; All shows everything.
+    const tags = [...new Set(HOW_TOS.flatMap((h) => h.tags ?? []))];
+    list.innerHTML = `<div class="howto-filter" role="group" aria-label="${translate('howto_filter_label_ui')}"></div><ul class="howto-grid"></ul>`;
+    const filter = list.querySelector('.howto-filter');
+    const addChip = (tag, label) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'howto-filter-chip';
+      chip.textContent = label;
+      chip.setAttribute('aria-pressed', String(this._activeTag === tag));
+      chip.addEventListener('click', () => {
+        this._activeTag = tag;
+        this.renderGrid(list);
+      });
+      filter.appendChild(chip);
+    };
+    addChip(null, translate('howto_filter_all_ui'));
+    tags.forEach((tag) => addChip(tag, translate(`howto_tag_${tag}_ui`)));
     const grid = list.querySelector('.howto-grid');
-    HOW_TOS.forEach((howTo) => {
-      const li = document.createElement('li');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'howto-tile';
-      button.dataset.tone = String(howTo.tone);
-      const name = document.createElement('span');
-      name.className = 'howto-tile-name';
-      name.textContent = translate(howTo.i18nKey);
-      button.appendChild(name);
-      button.addEventListener('click', () => this.openHowTo(howTo.slug));
-      li.appendChild(button);
-      grid.appendChild(li);
-    });
+    HOW_TOS.filter((h) => !this._activeTag || (h.tags ?? []).includes(this._activeTag)).forEach(
+      (howTo) => {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'howto-tile';
+        button.dataset.tone = String(howTo.tone);
+        const name = document.createElement('span');
+        name.className = 'howto-tile-name';
+        name.textContent = translate(howTo.i18nKey);
+        button.appendChild(name);
+        (howTo.tags ?? []).forEach((tag) => {
+          const pill = document.createElement('span');
+          pill.className = 'howto-tag';
+          pill.textContent = translate(`howto_tag_${tag}_ui`);
+          button.appendChild(pill);
+        });
+        button.addEventListener('click', () => this.openHowTo(howTo.slug));
+        li.appendChild(button);
+        grid.appendChild(li);
+      }
+    );
   },
 
   renderArticle(list, slug) {
@@ -375,11 +432,12 @@ const HowToPanel = {
       <button type="button" class="howto-back">${translate('howto_back_to_list')}</button>
       <h3 class="howto-article-title">${howTo ? translate(howTo.i18nKey) : ''}</h3>
       <div class="howto-article">${howToContentFor(slug, getCurrentLanguage())}</div>
+      <button type="button" class="howto-back">${translate('howto_back_to_list')}</button>
     `;
-    list.querySelector('.howto-back').addEventListener('click', () => this.closeHowTo());
+    list.querySelectorAll('.howto-back').forEach((btn) => btn.addEventListener('click', () => this.closeHowTo()));
     const article = list.querySelector('.howto-article');
     decorateExternalLinks(article);
-    wireHowToLinks(article);
+    wireHowToLinks(article, (slug) => this.openHowTo(slug));
     wireHowToSteps(article);
     wireHowToSnippets(article);
   },
@@ -414,9 +472,10 @@ const HowToPanel = {
     this.previousFocus?.focus();
     this.previousFocus = null;
     InfoPanel.deactivate('howto');
-    // Re-opening the tab should land back on the card grid, not strand the
-    // reader mid-article.
+    // Re-opening the tab should land back on the unfiltered card grid, not
+    // strand the reader mid-article or mid-filter.
     this._activeSlug = null;
+    this._activeTag = null;
   },
 
   toggle() {

@@ -2026,8 +2026,10 @@ button {
 .howto-tile {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   width: 100%;
   aspect-ratio: 16 / 9;
   padding: 0.5em;
@@ -2059,6 +2061,50 @@ button {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
   z-index: 1;
+}
+
+/* Topic filter chips above the card grid — single-select, the pressed chip
+   reads as the active filter. */
+.howto-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.howto-filter-chip {
+  padding: 2px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  border-radius: 999px;
+  border: 1px solid var(--color-howto-accent);
+  background: transparent;
+  color: var(--color-howto-accent);
+  cursor: pointer;
+}
+
+.howto-filter-chip[aria-pressed='true'] {
+  background-color: var(--color-howto-accent);
+  color: #fff;
+}
+
+.howto-filter-chip:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
+}
+
+/* Topic tag shown on each card — the unselected filter chip's colors (accent
+   text and border), on a white badge: a transparent background would show the
+   accent tile through, leaving accent-on-accent and unreadable. */
+.howto-tag {
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.4;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-howto-accent);
+  background: #fff;
+  color: var(--color-howto-accent);
 }
 
 @media (max-width: 600px) {
@@ -3094,12 +3140,8 @@ kbd {
   border-radius: 4px;
 }
 
-.help-link:hover,
 .help-link:focus-visible {
   background: var(--color-light-icon-hover);
-}
-
-.help-link:focus-visible {
   outline: 2px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
@@ -3135,8 +3177,8 @@ kbd {
 }
 
 .howto-back {
-  border: none;
-  background: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-button-bg);
   padding: 0.3em 0.4em;
   margin: 0 0 0.75em -0.4em;
   font: inherit;
@@ -3146,12 +3188,8 @@ kbd {
   border-radius: 4px;
 }
 
-.howto-back:hover,
 .howto-back:focus-visible {
   background: var(--color-light-icon-hover);
-}
-
-.howto-back:focus-visible {
   outline: 2px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
@@ -3194,9 +3232,29 @@ kbd {
   animation: howto-attention-in 0.4s ease-out forwards;
 }
 
+/* A Blockly block's getSvgRoot() is a <g> containing nested child-block
+   <g> elements — a filter on the root outlines the whole subtree. Glow only
+   the block's own outline path (a direct child; nested blocks' paths live
+   deeper), so sky/map links highlight just that block. */
+g.howto-attention.blocklyDraggable {
+  animation: none;
+  filter: none;
+}
+
+g.howto-attention.blocklyDraggable > .blocklyPath {
+  animation: howto-attention-in 0.4s ease-out forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .howto-attention {
     animation: none;
+    filter: drop-shadow(0 0 6px var(--color-primary-light))
+      drop-shadow(0 0 6px var(--color-primary-light));
+  }
+  g.howto-attention.blocklyDraggable {
+    filter: none;
+  }
+  g.howto-attention.blocklyDraggable > .blocklyPath {
     filter: drop-shadow(0 0 6px var(--color-primary-light))
       drop-shadow(0 0 6px var(--color-primary-light));
   }
@@ -3208,15 +3266,57 @@ kbd {
   text-align: left;
   line-height: 1.5;
   counter-reset: howto-step;
+  /* Axis colors — keep in sync with AXIS_HEX in ui/gizmos.js. Authors never
+     write these hex values; they use <axis-x>/<axis-y>/<axis-z> tags, so a
+     palette change lands here alone. */
+  --axis-x: #0072b2;
+  --axis-y: #009e73;
+  --axis-z: #d55e00;
 }
 
 .howto-article p {
   margin: 0 0 0.75em;
 }
 
+/* Inline UI icon (e.g. the Add "+" button) referenced in the text — sized to
+   the surrounding type so it reads as part of the sentence. */
+.howto-article .howto-icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+/* A vocabulary term — inline, but visually distinct so glossary terms stand
+   out in the text. A vocab list collecting these comes later. */
+.howto-article vocab {
+  font-weight: bold;
+  color: var(--color-howto-accent);
+}
+
+/* An axis reference — the letter renders in its gizmo color so readers can
+   match text to arrows (and to the same-colored block values). Authors write
+   e.g. <axis-x>X</axis-x>, never a hex value. */
+.howto-article axis-x,
+.howto-article axis-y,
+.howto-article axis-z {
+  font-weight: bold;
+}
+
+.howto-article axis-x {
+  color: var(--axis-x);
+}
+
+.howto-article axis-y {
+  color: var(--axis-y);
+}
+
+.howto-article axis-z {
+  color: var(--axis-z);
+}
+
 .howto-article goal,
 .howto-article step,
-.howto-article note {
+.howto-article tip {
   display: block;
   margin: 0 0 1em;
   padding: 0.75em 0.9em;
@@ -3335,22 +3435,22 @@ kbd {
   opacity: 0.3;
 }
 
-.howto-article note {
+.howto-article tip {
   background-color: var(--color-bg-secondary);
   border-left: 4px solid var(--color-primary-light);
   font-size: 0.95em;
 }
 
-.howto-article note::before {
-  content: 'Tip';
-  display: block;
+.howto-article tip::before {
+  content: 'Tip:';
+  display: inline;
   font-weight: bold;
-  margin-bottom: 0.3em;
+  margin-right: 0.4em;
 }
 
 .howto-article step p:last-child,
 .howto-article goal p:last-child,
-.howto-article note p:last-child {
+.howto-article tip p:last-child {
   margin-bottom: 0;
 }
 

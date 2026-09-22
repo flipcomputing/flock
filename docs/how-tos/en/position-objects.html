@@ -1,0 +1,94 @@
+<!-- Content of the "Position an object" how-to. Edit freely — see README.md in docs/how-tos. -->
+<goal>Move an object exactly where you want it.</goal>
+
+<step>
+  <step-title>Choose the position gizmo</step-title>
+  <p>
+    Click <link-to target="positiongizmo">Position</link-to>
+    <svg
+      class="howto-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      aria-hidden="true"
+    >
+      <path
+        fill="currentColor"
+        d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"
+      />
+    </svg>
+    in the gizmo menu. If an <vocab>object</vocab> is already selected, the gizmo
+    attaches to it — otherwise, click the object you want to move on the
+    <vocab>canvas</vocab>.
+  </p>
+</step>
+
+<step>
+  <step-title>Drag an arrow</step-title>
+  <p>
+    Drag one of the arrows and let go when the object is in the right place. Each
+    arrow moves along one axis:
+  </p>
+  <ul>
+    <li>The blue <axis-x>X</axis-x> arrow moves it side to side.</li>
+    <li>The green <axis-y>Y</axis-y> arrow moves it up and down.</li>
+    <li>The orange <axis-z>Z</axis-z> arrow moves it forward and back.</li>
+  </ul>
+  <p>Move slowly at first — small movements are easier to control.</p>
+</step>
+
+<step>
+  <step-title>Or set its position in code</step-title>
+  <p>
+    You can also set its position with the block's <axis-x>X</axis-x>,
+    <axis-y>Y</axis-y>, and <axis-z>Z</axis-z> values. They use the same colors as
+    the arrows, so match the value to the arrow you want.
+  </p>
+</step>
+
+<step>
+  <step-title>Pick a position from the canvas</step-title>
+  <p>
+    You can also go the other way: click the pin icon
+    <svg
+      class="howto-icon"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 384 512"
+      aria-hidden="true"
+    >
+      <path
+        fill="currentColor"
+        d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
+      />
+    </svg>
+    on the block, then click a surface on the <vocab>canvas</vocab>. The block's
+    <axis-x>X</axis-x>, <axis-y>Y</axis-y>, and <axis-z>Z</axis-z> values update
+    and the object moves to the new position.
+  </p>
+</step>
+
+<step>
+  <step-title>Switch objects</step-title>
+  <p>
+    Click on another object to move the position gizmo to it.
+  </p>
+</step>
+
+<step>
+  <step-title>Use canvas controls</step-title>
+  <p>
+    You can also use the on-screen controls: tap the <axis-x>X</axis-x>,
+    <axis-y>Y</axis-y>, or <axis-z>Z</axis-z> button for the axis you want to move
+    along, then use the - and + buttons to position the object.
+  </p>
+</step>
+
+<step>
+  <step-title>Put the gizmo away</step-title>
+  <p>
+    When you have finished, click off the canvas or click the Position button again.
+  </p>
+</step>
+
+<tip>
+  Moved it too far? Undo, then move it again slowly.
+</tip>

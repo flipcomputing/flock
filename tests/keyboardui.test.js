@@ -674,7 +674,7 @@ export function runKeyboardUiTests(flock) {
         HowToPanel.show();
         expect(InfoPanel._activeId).to.equal('howto');
         const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
-        expect(tiles.length).to.equal(4);
+        expect(tiles.length).to.equal(12);
       });
 
       it("clicking a card swaps the grid for that how-to's article, with a back button", function () {
@@ -688,6 +688,7 @@ export function runKeyboardUiTests(flock) {
       it('the back button returns to the card grid', function () {
         HowToPanel.show();
         HowToPanel.panel.querySelector('.howto-tile').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-back').length).to.equal(2);
         HowToPanel.panel.querySelector('.howto-back').click();
         expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
         expect(HowToPanel.panel.querySelector('.howto-back')).to.equal(null);
@@ -701,12 +702,76 @@ export function runKeyboardUiTests(flock) {
         expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
       });
 
+      it('a <link-to target="howto:…"> opens that how-to', function () {
+        HowToPanel.show();
+        const tiles = HowToPanel.panel.querySelectorAll('.howto-tile');
+        const targetName = tiles[4].querySelector('.howto-tile-name').textContent;
+        tiles[1].click();
+        const link = [...HowToPanel.panel.querySelectorAll('.howto-article button.help-link')].find(
+          (b) => b.textContent.includes('Explore')
+        );
+        expect(link).to.exist;
+        link.click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.equal(null);
+        expect(HowToPanel.panel.querySelector('.howto-article-title').textContent).to.equal(
+          targetName
+        );
+      });
+
       it('a <link-to> in the article is upgraded to a working help-link button', function () {
         HowToPanel.show();
         HowToPanel.panel.querySelector('.howto-tile').click();
         const article = HowToPanel.panel.querySelector('.howto-article');
         expect(article.querySelector('link-to')).to.equal(null);
         expect(article.querySelector('button.help-link')).to.exist;
+      });
+
+      it('shows a filter chip for All plus one per topic tag', function () {
+        HowToPanel.show();
+        const chips = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')];
+        expect(chips.map((c) => c.textContent)).to.deep.equal([
+          'All',
+          'Scene',
+          'Gizmo',
+          'Camera',
+          'Character',
+        ]);
+      });
+
+      it('each card shows its topic tag as a pill', function () {
+        HowToPanel.show();
+        const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
+        expect(tiles.length).to.equal(12);
+        tiles.forEach((t) => expect(t.querySelector('.howto-tag')).to.exist);
+      });
+
+      it('filtering by Gizmo shows only the gizmo cards, All restores the grid', function () {
+        HowToPanel.show();
+        const chipByLabel = () =>
+          new Map(
+            [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].map((c) => [
+              c.textContent,
+              c,
+            ])
+          );
+        chipByLabel().get('Gizmo').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(8);
+        expect(chipByLabel().get('Gizmo').getAttribute('aria-pressed')).to.equal('true');
+        chipByLabel().get('All').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);
+      });
+
+      it('the Duplicate an object article teaches the gizmo, not block duplication', function () {
+        HowToPanel.show();
+        const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
+          t.textContent.includes('Duplicate an object')
+        );
+        expect(tile).to.exist;
+        tile.click();
+        const text = HowToPanel.panel.querySelector('.howto-article').textContent;
+        expect(text).to.include('Duplicate');
+        expect(text).to.include('copy');
+        expect(text).to.not.include('Right-click');
       });
     });
   });
