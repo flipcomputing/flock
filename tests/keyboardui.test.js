@@ -3,6 +3,7 @@ import {
   GizmoMenuManager,
   InfoPanel,
   ShortcutsPanel,
+  HowToPanel,
   AreaManager,
 } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
@@ -638,6 +639,74 @@ export function runKeyboardUiTests(flock) {
             );
           }).to.not.throw();
         });
+      });
+    });
+
+    // Font-size, modal enter/exit, focus trap and keydown handling all come
+    // from the same ModalPanelBehaviour mixin already exercised in depth
+    // above via ShortcutsPanel — no need to re-test that generic behaviour
+    // here. This covers what's actually specific to HowToPanel: the card
+    // grid, the grid<->article swap, and resetting to the grid on hide().
+    describe('HowToPanel', function () {
+      let panelRoot;
+
+      before(function () {
+        panelRoot = document.createElement('div');
+        panelRoot.innerHTML =
+          '<div id="info-panel"><div id="info-panel-tabs">' +
+          '<div id="info-panel-tablist" role="tablist"></div></div>' +
+          '<div id="info-panel-body"></div></div>';
+        document.body.appendChild(panelRoot);
+        InfoPanel.init();
+        HowToPanel.init();
+      });
+
+      after(function () {
+        HowToPanel.hide();
+        panelRoot.remove();
+      });
+
+      afterEach(function () {
+        HowToPanel.hide();
+      });
+
+      it('show() activates the how-to tab and renders a card for each how-to', function () {
+        HowToPanel.show();
+        expect(InfoPanel._activeId).to.equal('howto');
+        const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
+        expect(tiles.length).to.equal(4);
+      });
+
+      it("clicking a card swaps the grid for that how-to's article, with a back button", function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.equal(null);
+        expect(HowToPanel.panel.querySelector('.howto-back')).to.exist;
+        expect(HowToPanel.panel.querySelector('.howto-article-title').textContent).to.not.equal('');
+      });
+
+      it('the back button returns to the card grid', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        HowToPanel.panel.querySelector('.howto-back').click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
+        expect(HowToPanel.panel.querySelector('.howto-back')).to.equal(null);
+      });
+
+      it('hide() resets to the grid, so reopening does not strand the reader mid-article', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        HowToPanel.hide();
+        HowToPanel.show();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
+      });
+
+      it('a <link-to> in the article is upgraded to a working help-link button', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        const article = HowToPanel.panel.querySelector('.howto-article');
+        expect(article.querySelector('link-to')).to.equal(null);
+        expect(article.querySelector('button.help-link')).to.exist;
       });
     });
   });

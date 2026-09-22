@@ -546,10 +546,26 @@ export function initExampleGallery() {
     }
   });
 
-  // Click on the backdrop (outside the content) closes the modal.
+  // Click on the backdrop (outside the content) closes the modal. The modal
+  // is a fixed, full-viewport element, so it stacks above the docked
+  // bottom-left info panel (Help/How to/Shortcuts/Player) and would
+  // otherwise intercept clicks meant for it as "outside" clicks — e.g. the
+  // How to tab points readers at the real Projects/New buttons while this
+  // modal is open, and a click meant for the how-to panel shouldn't close
+  // the very modal it's guiding them through.
   window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      hideExampleModal();
+    if (e.target !== modal) return;
+    const infoPanel = document.getElementById('info-panel');
+    const panelRect = infoPanel?.getBoundingClientRect();
+    if (
+      panelRect &&
+      e.clientX >= panelRect.left &&
+      e.clientX <= panelRect.right &&
+      e.clientY >= panelRect.top &&
+      e.clientY <= panelRect.bottom
+    ) {
+      return;
     }
+    hideExampleModal();
   });
 }

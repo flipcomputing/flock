@@ -226,7 +226,7 @@ function getFieldTextFontSizePt(block) {
   return typeof size === 'number' && size > 0 ? size : DEFAULT_FIELD_TEXT_FONTSIZE;
 }
 
-async function generateSVG(block, { rasterSafe = false } = {}) {
+export async function generateSVG(block, { rasterSafe = false } = {}) {
   const isSection = block.type === 'section';
   if (isSection) beginSectionDragFollow(block);
 

@@ -17,6 +17,15 @@
   --color-primary-light: #fc3;
   --color-primary-dark: #004d4d;
 
+  /* Dedicated accent for the How tos panel — the same rose-pink used on
+     flipcomputing.com's own how-to examples (their "Mark as Complete"
+     button, rgb(206, 74, 147)). Kept as its own token (not reused from
+     --color-primary) so this one panel's look can be changed without
+     touching the app's brand purple used everywhere else. Not overridden
+     per-theme (unlike --color-primary above) — it's a fixed brand accent
+     for this one feature, not a themed UI colour. */
+  --color-howto-accent: #ce4a93;
+
   /* Background Colors */
   --color-bg: #ffffff;
   --color-bg-secondary: #f8f9fa;
@@ -2005,6 +2014,53 @@ button {
   z-index: 1;
 }
 
+.howto-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(min(120px, 100%), 1fr));
+}
+
+.howto-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0.5em;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.3;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  /* Plain white-on-pink for now, ignoring data-tone — was 4 distinct
+     colours, simplified back to one shared accent (--color-howto-accent). */
+  background-color: var(--color-howto-accent);
+  color: #fff;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+
+.howto-tile-name {
+  font-weight: bold;
+}
+
+.howto-tile:hover {
+  transform: scale(1.04);
+  box-shadow: 0 4px 12px var(--color-shadow-medium);
+}
+
+.howto-tile:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
 @media (max-width: 600px) {
   .example-modal-content {
     padding: 0.75em;
@@ -2739,7 +2795,8 @@ body.color-picker-open #renderCanvas {
 /* --panel-font-size is set on the panel by the A- / A+ controls (keyboardui.js). */
 #shortcuts-list,
 #player-list,
-#help-list {
+#help-list,
+#howto-list {
   font-size: var(--panel-font-size, 1.2em);
   user-select: text;
 }
@@ -3075,6 +3132,247 @@ kbd {
   height: 0.75em;
   margin-left: 0.3em;
   vertical-align: -0.05em;
+}
+
+.howto-back {
+  border: none;
+  background: none;
+  padding: 0.3em 0.4em;
+  margin: 0 0 0.75em -0.4em;
+  font: inherit;
+  font-weight: bold;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.howto-back:hover,
+.howto-back:focus-visible {
+  background: var(--color-light-icon-hover);
+}
+
+.howto-back:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  outline-offset: 2px;
+}
+
+.howto-article-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin: 0 0 0.5em;
+}
+
+/* Applied by drawAttention() in ui/howToPanel.js to whichever real UI
+   element a <link-to> in a how-to points at — including an SVG block
+   inside the toolbox flyout, which is why this uses the filter: drop-shadow
+   glow rather than box-shadow (box-shadow doesn't apply to SVG content at
+   all; drop-shadow works on both, and hugs the element's actual silhouette
+   rather than its bounding box, which reads more like a glow and less like
+   an outline besides). Plays once as it appears, then holds still — never a
+   repeating flash/pulse, which is a real seizure risk for photosensitive
+   readers (WCAG 2.3.1), not just a style choice. Uses --color-primary-light
+   (the app's existing gold accent), never --color-focus-outline, so it can't
+   be mistaken for real keyboard focus — these targets are deliberately never
+   given real focus, which would yank it out of the how-to panel a reader
+   is partway through. Disappears when a different how-to link moves it, or
+   as soon as the reader actually uses the glowing element. */
+/* A solid colour, not color-mix() with transparent — color-mix() as a
+   drop-shadow color argument doesn't resolve correctly on SVG content in
+   this engine (renders near-black instead of gold). The blur radius alone
+   already softens the edges into a glow. */
+@keyframes howto-attention-in {
+  from {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  to {
+    filter: drop-shadow(0 0 6px var(--color-primary-light))
+      drop-shadow(0 0 6px var(--color-primary-light));
+  }
+}
+
+.howto-attention {
+  animation: howto-attention-in 0.4s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .howto-attention {
+    animation: none;
+    filter: drop-shadow(0 0 6px var(--color-primary-light))
+      drop-shadow(0 0 6px var(--color-primary-light));
+  }
+}
+
+/* Authored in docs/how-tos/<lang>/<slug>.html, so style plain elements and
+   the small custom tag vocabulary rather than classes. */
+.howto-article {
+  text-align: left;
+  line-height: 1.5;
+  counter-reset: howto-step;
+}
+
+.howto-article p {
+  margin: 0 0 0.75em;
+}
+
+.howto-article goal,
+.howto-article step,
+.howto-article note {
+  display: block;
+  margin: 0 0 1em;
+  padding: 0.75em 0.9em;
+  border-radius: 8px;
+}
+
+.howto-article goal {
+  background-color: color-mix(in srgb, var(--color-howto-accent) 12%, var(--color-bg));
+  border-left: 4px solid var(--color-howto-accent);
+}
+
+.howto-article goal::before {
+  content: 'Goal';
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.howto-article step {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  counter-increment: howto-step;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* A short <step-title> comes first inside <step> and carries the "Step N: "
+   prefix itself, so the number and the title read as one heading line —
+   important for scanning a list of steps at a glance. Steps without one (a
+   step-title is optional, not every step needs a heading) fall back to a
+   bare "Step N" label via the :not(:has(...)) rule below. */
+.howto-article step-title {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+  color: var(--color-howto-accent);
+}
+
+.howto-article step-title::before {
+  content: 'Step ' counter(howto-step) ': ';
+}
+
+.howto-article step:not(:has(step-title))::before {
+  content: 'Step ' counter(howto-step);
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-howto-accent);
+}
+
+/* Wraps the button so the button itself can be display: inline-block — a
+   plain text-decoration: none on the button does NOT stop the completed
+   step's propagated line-through from painting across it (browsers still
+   draw the ancestor's line through ordinary block/inline descendants
+   regardless of their own text-decoration value); only an atomic inline-level
+   box like inline-block is excluded from that painted line. text-align: right
+   here does the alignment that used to live on the button itself. */
+.howto-step-complete-row {
+  margin-top: 0.75em;
+  text-align: right;
+}
+
+/* Appended by wireHowToSteps() in ui/howToPanel.js, last inside <step>
+   (after all its content). Styled after the step-tracker on
+   flipcomputing.com/uefn-session-one-get-started/: clicking it toggles
+   .completed on the step, which greys the whole card out with a
+   strikethrough rather than removing it — completion isn't stored anywhere,
+   it's just DOM state that resets when the how-to is reopened. */
+.howto-step-complete {
+  display: inline-block;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.4em 1em;
+  background-color: var(--color-howto-accent);
+  color: var(--color-text-on-primary);
+  border: 2px solid var(--color-howto-accent);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.howto-step-complete:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  outline-offset: 2px;
+}
+
+.howto-article step.completed .howto-step-complete {
+  background-color: var(--color-bg);
+  color: var(--color-howto-accent);
+}
+
+/* Mixed against the theme's own text/bg colours (not --color-muted, which is
+   undefined in the light and contrast themes) so the grey-out is always
+   visible, at roughly the same strength as the flipcomputing.com reference
+   (~34%/47% black-into-white there works out to rgb(169) / rgb(136)). */
+.howto-article step.completed {
+  background-color: color-mix(in srgb, var(--color-text-primary) 34%, var(--color-bg));
+  color: color-mix(in srgb, var(--color-text-primary) 47%, var(--color-bg));
+  text-decoration: line-through;
+}
+
+.howto-article step.completed::before,
+.howto-article step.completed step-title {
+  color: color-mix(in srgb, var(--color-text-primary) 47%, var(--color-bg));
+}
+
+.howto-article step img {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.howto-article step.completed img {
+  opacity: 0.3;
+}
+
+.howto-article note {
+  background-color: var(--color-bg-secondary);
+  border-left: 4px solid var(--color-primary-light);
+  font-size: 0.95em;
+}
+
+.howto-article note::before {
+  content: 'Tip';
+  display: block;
+  font-weight: bold;
+  margin-bottom: 0.3em;
+}
+
+.howto-article step p:last-child,
+.howto-article goal p:last-child,
+.howto-article note p:last-child {
+  margin-bottom: 0;
+}
+
+/* Rendered by wireHowToSnippets() in ui/howToPanel.js from a
+   <snippet src="…"> tag — a real block, rendered live as inline SVG from
+   Blockly JSON (see docs/how-tos/snippets/README.md), so it always matches
+   the block's actual current look, in whatever language is active. */
+.howto-snippet {
+  margin: 0 0 1em;
+  text-align: center;
+}
+
+.howto-snippet svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.howto-snippet figcaption {
+  margin-top: 0.4em;
+  font-size: 0.9em;
+  font-style: italic;
+  color: var(--color-text-primary);
 }
 
 .pc-keys {

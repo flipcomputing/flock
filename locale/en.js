@@ -1461,6 +1461,16 @@ export default {
   help_panel_title: 'Help',
   link_opens_in_new_tab: 'opens in a new tab',
 
+  // How to panel — title, card names and back button
+  howto_panel_title: 'How tos',
+  howto_set_the_scene_ui: 'Set the scene',
+  howto_design_a_character_ui: 'Design a character',
+  howto_add_objects_ui: 'Add objects',
+  howto_walk_around_ui: 'Walk around',
+  howto_back_to_list: '← Back to how tos',
+  howto_mark_complete: 'Mark as complete',
+  howto_step_completed: 'Complete 🎉',
+
   // Player controls panel — title, sections and control names
   player_panel_title: 'Player Controls',
   player_section_onscreen: 'On-screen controls',

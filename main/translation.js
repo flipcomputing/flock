@@ -136,6 +136,11 @@ export async function setLanguage(language) {
     window.flockHelpPanel.refreshTranslations();
   }
 
+  // Update how-to panel if open
+  if (window.flockHowToPanel?.refreshTranslations) {
+    window.flockHowToPanel.refreshTranslations();
+  }
+
   // Update shortcuts panel if open
   if (window.flockShortcutsPanel?.refreshTranslations) {
     window.flockShortcutsPanel.refreshTranslations();
