@@ -27,6 +27,7 @@ import {
   setNumberInputs,
   getNumberInput,
   isBlockLocked,
+  stripLockState,
 } from './blocklyutil.js';
 import { getMeshRotationInDegrees, roundToOneDecimal, pickLeafFromRay } from './meshhelpers.js';
 import {
@@ -40,6 +41,7 @@ import { createAxisKeyboardHandler } from './axis-keyboard.js';
 import { showStatus, clearStatus } from './status.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { isBodyAlive } from '../api/physics.js';
 export let gizmoManager;
@@ -296,13 +298,76 @@ function registerBindings() {
     })
   );
   // Delete selected mesh with Del key
-  KeyboardDispatcher.on('GIZMO', 'Delete', (e) => {
-    if (!gizmoManager?.attachedMesh) return;
-    if (Blockly.getMainWorkspace()?.getInjectionDiv()?.contains(e.target)) return;
-    e.stopPropagation();
-    const blockKey = findParentWithBlockId(gizmoManager.attachedMesh)?.metadata?.blockKey;
-    deleteBlockWithUndo(meshBlockIdMap[blockKey]);
-  });
+  const deleteCanvasTarget = (e) => {
+    if (isCanvasClipboardTypingTarget(e)) return;
+    if (e.repeat) return;
+    const target = resolveCanvasTargetBlock();
+    if (!target || target.isInFlyout) return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    deleteBlockWithUndo(target.id);
+  };
+  for (const ctx of ['GIZMO', 'CAMERA']) {
+    KeyboardDispatcher.on(ctx, 'Delete', deleteCanvasTarget);
+    KeyboardDispatcher.on(ctx, 'Backspace', deleteCanvasTarget);
+  }
+  // View the selected object with V when the canvas owns the keyboard. GIZMO
+  // keeps its toggle-eye binding above; CAMERA had no V binding at all.
+  KeyboardDispatcher.on(
+    'CAMERA',
+    'KeyV',
+    noMod((e) => {
+      if (isCanvasClipboardTypingTarget(e)) return;
+      const target = resolveCanvasTargetBlock();
+      if (!target) return;
+      const mesh = getMeshFromBlock(target);
+      if (!mesh || mesh.name === 'ground') return;
+      attachMeshForActiveTool(mesh);
+      toggleGizmo('eye');
+    })
+  );
+  // Duplicate in place with Shift+D (bare D would clash with WASD movement,
+  // which stays live even with a mesh selected). Chains the copy after the
+  // original and selects the new mesh.
+  const duplicateCanvasTarget = (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!e.shiftKey) return;
+    if (e.repeat) return;
+    if (isCanvasClipboardTypingTarget(e)) return;
+    const target = resolveCanvasTargetBlock();
+    if (!target || target.disposed || target.isInFlyout || target.isShadow?.()) return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    duplicateCanvasTargetInPlace(target);
+  };
+  for (const ctx of ['GIZMO', 'CAMERA']) {
+    KeyboardDispatcher.on(ctx, 'Shift+KeyD', duplicateCanvasTarget);
+  }
+  // Toggle disabled with Shift+E (bare E is fly-camera up, like WASD, so it
+  // can't be reused — same reason duplicate is Shift+D). Refuses locked
+  // blocks, like the block toolbar.
+  const disableCanvasTarget = (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!e.shiftKey) return;
+    if (isCanvasClipboardTypingTarget(e)) return;
+    if (e.repeat) return;
+    const target = resolveCanvasTargetBlock();
+    if (!target || target.disposed || target.isInFlyout || target.isShadow?.()) return;
+    if (isBlockLocked(target)) return;
+    if (typeof target.hasDisabledReason !== 'function') return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    Blockly.Events.setGroup('toolbar_disable');
+    try {
+      target.setDisabledReason(!target.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
+    } finally {
+      Blockly.Events.setGroup(false);
+    }
+    window.flockBlockToolbar?.refresh?.(target);
+  };
+  for (const ctx of ['GIZMO', 'CAMERA']) {
+    KeyboardDispatcher.on(ctx, 'Shift+KeyE', disableCanvasTarget);
+  }
   // Canvas clipboard: Ctrl/Cmd+C/X/V on the selected mesh.
   const withCanvasClipboard = (fn) => (e) => {
     if (!(e.ctrlKey || e.metaKey)) return;
@@ -316,6 +381,34 @@ function registerBindings() {
     KeyboardDispatcher.on(ctx, 'Mod+KeyC', withCanvasClipboard(copyCanvasSelection));
     KeyboardDispatcher.on(ctx, 'Mod+KeyX', withCanvasClipboard(cutCanvasSelection));
     KeyboardDispatcher.on(ctx, 'Mod+KeyV', withCanvasClipboard(pasteCanvasClipboard));
+  }
+  // Undo/redo on canvas. Previously handled on the canvas element itself
+  // (main/input.js), which missed keys when a gizmo held the keyboard but
+  // the canvas wasn't the key target — so it lives here now alongside the
+  // other canvas clipboard bindings. (Holding the combo repeats, which
+  // standard undo/redo supports.)
+  const undoOnCanvas = (e) => {
+    if (isCanvasClipboardTypingTarget(e)) return;
+    const workspace = Blockly.getMainWorkspace?.() || window.mainWorkspace;
+    if (!workspace) return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    workspace.undo(false);
+    announceToScreenReader(translate('undo_performed'), { requireCanvasFocus: false });
+  };
+  const redoOnCanvas = (e) => {
+    if (isCanvasClipboardTypingTarget(e)) return;
+    const workspace = Blockly.getMainWorkspace?.() || window.mainWorkspace;
+    if (!workspace) return;
+    e.preventDefault?.();
+    e.stopPropagation?.();
+    workspace.undo(true);
+    announceToScreenReader(translate('redo_performed'), { requireCanvasFocus: false });
+  };
+  for (const ctx of ['GIZMO', 'CAMERA']) {
+    KeyboardDispatcher.on(ctx, 'Mod+KeyZ', undoOnCanvas);
+    KeyboardDispatcher.on(ctx, 'Mod+Shift+KeyZ', redoOnCanvas);
+    KeyboardDispatcher.on(ctx, 'Mod+KeyY', redoOnCanvas);
   }
   // Exit gizmo with Tab key
   KeyboardDispatcher.on('GIZMO', 'Tab', () => {
@@ -685,6 +778,167 @@ function isCanvasClipboardTypingTarget(e) {
   return false;
 }
 
+// Block the canvas shortcuts act on: gizmo-attached mesh first, then the
+// Blockly selection, then window.currentBlock (e.g. set by View in canvas).
+function resolveCanvasTargetBlock() {
+  const workspace = Blockly.getMainWorkspace?.();
+  if (!workspace) return null;
+  const root = getCanvasSelectedRoot();
+  if (root) {
+    const blockKey = findParentWithBlockId(root)?.metadata?.blockKey;
+    const block = blockKey != null && meshBlockIdMap[blockKey]
+      ? workspace.getBlockById(meshBlockIdMap[blockKey])
+      : null;
+    if (block && !block.disposed) return block;
+  }
+  const selected = Blockly.common?.getSelected?.();
+  if (selected instanceof Blockly.Block && !selected.disposed && !selected.isInFlyout) {
+    return selected;
+  }
+  const current = window.currentBlock;
+  if (current && !current.disposed && current.workspace === workspace) return current;
+  return null;
+}
+
+function getBlockForCanvasRoot(root) {
+  if (!root) return null;
+  const workspace = Blockly.getMainWorkspace?.();
+  if (!workspace) return null;
+  const blockKey = findParentWithBlockId(root)?.metadata?.blockKey;
+  const block = blockKey != null && meshBlockIdMap[blockKey]
+    ? workspace.getBlockById(meshBlockIdMap[blockKey])
+    : null;
+  return block && !block.disposed ? block : null;
+}
+
+// Chain a freshly pasted/duplicated block after the selection. Covers stacks
+// (next), statement inputs (empty, or prepend pushing existing children down)
+// and empty value inputs — mirroring the workspace paste helper.
+function connectPastedAfterSelection(workspace, targetBlock, pastedBlock) {
+  if (!workspace || !targetBlock || targetBlock.disposed || !pastedBlock || pastedBlock.disposed) {
+    return false;
+  }
+  if (chainBlockAfter(workspace, targetBlock, pastedBlock)) return true;
+  const checker = workspace.getConnectionChecker
+    ? workspace.getConnectionChecker()
+    : new Blockly.ConnectionChecker();
+  const can = (a, b) => checker.canConnect(a, b, false);
+  if (pastedBlock.previousConnection) {
+    for (const input of targetBlock.inputList ?? []) {
+      if (
+        input.type === Blockly.NEXT_STATEMENT &&
+        input.connection &&
+        !input.connection.targetBlock() &&
+        can(input.connection, pastedBlock.previousConnection)
+      ) {
+        input.connection.connect(pastedBlock.previousConnection);
+        return true;
+      }
+    }
+    const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
+    if (isTopLevel) {
+      for (const input of targetBlock.inputList ?? []) {
+        if (input.type !== Blockly.NEXT_STATEMENT || !input.connection) continue;
+        const firstChild = input.connection.targetBlock();
+        if (!firstChild || !can(input.connection, pastedBlock.previousConnection)) continue;
+        let lastPasted = pastedBlock;
+        while (lastPasted.nextConnection?.targetBlock?.()) {
+          lastPasted = lastPasted.nextConnection.targetBlock();
+        }
+        if (
+          !lastPasted.nextConnection ||
+          !firstChild.previousConnection ||
+          !can(lastPasted.nextConnection, firstChild.previousConnection)
+        ) {
+          continue;
+        }
+        input.connection.disconnect();
+        input.connection.connect(pastedBlock.previousConnection);
+        lastPasted.nextConnection.connect(firstChild.previousConnection);
+        return true;
+      }
+    }
+  }
+  if (pastedBlock.outputConnection) {
+    for (const input of targetBlock.inputList ?? []) {
+      if (
+        input.type === Blockly.INPUT_VALUE &&
+        input.connection &&
+        !input.connection.targetBlock() &&
+        can(input.connection, pastedBlock.outputConnection)
+      ) {
+        input.connection.connect(pastedBlock.outputConnection);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// A pasted stack block with no selection and no anchor gets its own start
+// block, matching how object blocks are added from the canvas.
+function ensureStartWrapper(workspace, block) {
+  if (!workspace || !block || block.disposed) return null;
+  if (!block.previousConnection || block.previousConnection.isConnected()) return null;
+  if (block.getParent?.()) return null;
+  let startBlock = null;
+  try {
+    startBlock = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
+  } catch {
+    return null;
+  }
+  const conn = startBlock?.getInput?.('DO')?.connection;
+  if (conn && block.previousConnection && !conn.targetBlock?.()) {
+    try {
+      conn.connect(block.previousConnection);
+    } catch {
+      // Leave the block loose rather than failing the paste.
+    }
+  }
+  return startBlock;
+}
+
+// Shift+D: snapshot the target, strip its next stack, and chain the copy
+// after the original.
+function duplicateCanvasTargetInPlace(target) {
+  const workspace = Blockly.getMainWorkspace?.();
+  if (!workspace || !target || target.disposed) return false;
+  let snapshot;
+  try {
+    snapshot = Blockly.serialization.blocks.save(target, { includeShadows: true });
+  } catch {
+    return false;
+  }
+  if (!snapshot) return false;
+  if (snapshot.next) delete snapshot.next;
+  const root = getCanvasSelectedRoot();
+  let pastePos = null;
+  try {
+    const meshForPos = root && getBlockForCanvasRoot(root) === target
+      ? root
+      : getMeshFromBlock(target);
+    pastePos = meshForPos ? flock.getBlockPositionFromMesh(meshForPos) : null;
+  } catch {
+    pastePos = null;
+  }
+  Blockly.Events.setGroup('duplicate');
+  let newBlock = null;
+  try {
+    newBlock = insertBlockSnapshot(snapshot, workspace, pastePos, target);
+    if (newBlock && !newBlock.getParent?.()) {
+      connectPastedAfterSelection(workspace, target, newBlock);
+    }
+  } catch {
+    newBlock = null;
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+  if (!newBlock) return false;
+  highlightBlockById(workspace, newBlock);
+  selectMeshForBlock(newBlock);
+  return true;
+}
+
 export function copyCanvasSelection() {
   const mesh = getCanvasSelectedRoot();
   if (!mesh) return false;
@@ -722,43 +976,89 @@ export function cutCanvasSelection() {
 }
 
 export function pasteCanvasClipboard() {
-  if (!canvasClipboard?.snapshot) return false;
   const workspace = Blockly.getMainWorkspace?.();
   if (!workspace) return false;
-  const current = getCanvasSelectedRoot();
-  const pastePos = current
-    ? flock.getBlockPositionFromMesh(current)
-    : { x: canvasClipboard.x, y: canvasClipboard.y, z: canvasClipboard.z };
-  const source = canvasClipboard.blockId ? workspace.getBlockById(canvasClipboard.blockId) : null;
-  const sourceAlive = source && !source.disposed ? source : null;
-  let selectionBlock = null;
-  if (current && !sourceAlive) {
-    const blockKey = findParentWithBlockId(current)?.metadata?.blockKey;
-    selectionBlock = meshBlockIdMap[blockKey] ? workspace.getBlockById(meshBlockIdMap[blockKey]) : null;
-    if (selectionBlock?.disposed) selectionBlock = null;
+  const root = getCanvasSelectedRoot();
+  const canvasBlock = getBlockForCanvasRoot(root);
+  const blocklySelected = Blockly.common?.getSelected?.();
+  const blocklyBlock =
+    blocklySelected instanceof Blockly.Block && !blocklySelected.disposed && !blocklySelected.isInFlyout
+      ? blocklySelected
+      : null;
+  const selectionBlock = canvasBlock ?? blocklyBlock ?? null;
+
+  // Canvas copy/cut buffer first; otherwise fall back to the Blockly
+  // clipboard (e.g. copied in the code view, pasted on the canvas).
+  if (canvasClipboard?.snapshot) {
+    const pastePos = root
+      ? flock.getBlockPositionFromMesh(root)
+      : { x: canvasClipboard.x, y: canvasClipboard.y, z: canvasClipboard.z };
+    const source = canvasClipboard.blockId ? workspace.getBlockById(canvasClipboard.blockId) : null;
+    const sourceAlive = source && !source.disposed ? source : null;
+    // Prefer the live selection over the copy source, so copy A → select B →
+    // paste lands after B. Without a selection, keep cut/paste restoring its
+    // anchor, or copy/paste chaining after its source.
+    const afterBlock = selectionBlock ?? sourceAlive ?? null;
+    Blockly.Events.setGroup('duplicate');
+    let newBlock = null;
+    try {
+      newBlock = insertBlockSnapshot(
+        canvasClipboard.snapshot,
+        workspace,
+        pastePos,
+        // insertBlockSnapshot only chains stacks; pass nothing when a
+        // statement/value connect or anchor reattach will handle it, so a
+        // start-block selection isn't skipped over.
+        afterBlock?.nextConnection ? afterBlock : null
+      );
+      if (newBlock) {
+        let connected = !!newBlock.getParent?.();
+        if (!connected && !sourceAlive && canvasClipboard.anchor) {
+          connected = !!reattachBlockToAnchor(workspace, newBlock, canvasClipboard.anchor);
+        }
+        if (!connected && afterBlock && afterBlock !== newBlock) {
+          connected = connectPastedAfterSelection(workspace, afterBlock, newBlock) || connected;
+        }
+        if (!connected && !selectionBlock && !canvasClipboard.anchor) {
+          ensureStartWrapper(workspace, newBlock);
+        }
+      }
+    } catch {
+      return false;
+    } finally {
+      Blockly.Events.setGroup(false);
+    }
+    if (!newBlock) return false;
+    highlightBlockById(workspace, newBlock);
+    selectMeshForBlock(newBlock);
+    return true;
   }
+
+  const data = Blockly.clipboard?.getLastCopiedData?.();
+  if (!data) return false;
+  if (data.blockState) stripLockState(data.blockState);
   Blockly.Events.setGroup('duplicate');
-  let newBlock = null;
+  let pasted = null;
   try {
-    newBlock = insertBlockSnapshot(
-      canvasClipboard.snapshot,
-      workspace,
-      pastePos,
-      sourceAlive
-    );
-    if (newBlock && !sourceAlive) {
-      const reattached =
-        canvasClipboard.anchor && reattachBlockToAnchor(workspace, newBlock, canvasClipboard.anchor);
-      if (!reattached && selectionBlock) chainBlockAfter(workspace, selectionBlock, newBlock);
+    pasted = Blockly.clipboard.paste(data, workspace);
+    const pb = Array.isArray(pasted) ? pasted[0] : pasted;
+    if (!pb) return false;
+    pasted = pb;
+    let connected = !!pasted.getParent?.();
+    if (!connected && selectionBlock && selectionBlock !== pasted) {
+      connected = connectPastedAfterSelection(workspace, selectionBlock, pasted) || connected;
+    }
+    if (!connected && !selectionBlock) {
+      ensureStartWrapper(workspace, pasted);
     }
   } catch {
     return false;
   } finally {
     Blockly.Events.setGroup(false);
   }
-  if (!newBlock) return false;
-  highlightBlockById(workspace, newBlock);
-  selectMeshForBlock(newBlock);
+  if (!pasted) return false;
+  highlightBlockById(workspace, pasted);
+  selectMeshForBlock(pasted);
   return true;
 }
 

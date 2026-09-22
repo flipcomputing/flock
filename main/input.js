@@ -499,30 +499,10 @@ export function setupInput() {
   }
 
   function handleCanvasKeyboard(e) {
-    // Handle Ctrl+Z for undo when canvas is focused
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(false);
-        announceToScreenReader(translate('undo_performed'));
-      }
-      return;
-    }
-
-    // Handle Ctrl+Shift+Z or Ctrl+Y for redo when canvas is focused
-    if (
-      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') ||
-      (e.ctrlKey && e.key.toLowerCase() === 'y')
-    ) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(true);
-        announceToScreenReader(translate('redo_performed'));
-      }
-      return;
-    }
+    // Undo/redo lives in the KeyboardDispatcher canvas bindings
+    // (ui/gizmos.js registerBindings) so it fires whenever the canvas owns
+    // the keyboard, not just when the canvas element itself is the key
+    // target. Handling it here too would undo/redo twice per press.
 
     // Announce camera movements to screen readers
     const announcements = {
