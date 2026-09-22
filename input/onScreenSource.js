@@ -93,6 +93,15 @@ export class OnScreenSource {
     this.#syncSuspension(wasSuspended);
   }
 
+  // Button state — always reflects on-screen presses, whoever owns input.
+  // Mirrors KeyboardSource.isKeyDown(): press()/release() track #pressedKeys
+  // unconditionally, so this stays live even while suspended (e.g. orbit view,
+  // which owns input but removes Babylon's own camera keyboard input and so
+  // has no other way to see an on-screen button press).
+  isKeyDown(key) {
+    return this.#pressedKeys.has(normaliseKey(key));
+  }
+
   // Releases any keys held during the paused period.
   resume(owner = 'default') {
     const wasSuspended = this.#suspended;

@@ -39,11 +39,15 @@ export class CameraControls {
     );
   }
 
-  // InputManager plus KeyboardSource (physical keys while the editor owns input).
+  // InputManager plus KeyboardSource and OnScreenSource (physical keys and
+  // on-screen buttons both stay live while the editor owns input).
   #isKeyDownAny(keys) {
     const im = this.#flock.inputManager;
     const kb = this.#flock._keyboardSource;
-    return keys.some((k) => im?.isKeyDown?.(k) || kb?.isKeyDown?.(k) || false);
+    const os = this.#flock._onScreenSource;
+    return keys.some(
+      (k) => im?.isKeyDown?.(k) || kb?.isKeyDown?.(k) || os?.isKeyDown?.(k) || false
+    );
   }
 
   // Native ArcRotate directions: Left/Up decrease alpha/beta.

@@ -67,6 +67,13 @@ export function runGizmoTests(flock) {
       return box;
     }
 
+    // A minimal stand-in for the DOM event PointerInfo wraps — Babylon's own
+    // internal pointer-input observers (e.g. the active camera's) also react
+    // to notifyObservers() and call preventDefault()/stopPropagation() on it.
+    function fakeMouseEvent(button = 0) {
+      return { button, preventDefault() {}, stopPropagation() {} };
+    }
+
     // ─── setGizmoManager / attachToMesh wrapper ──────────────────────────────
 
     describe('setGizmoManager', function () {
@@ -579,6 +586,34 @@ export function runGizmoTests(flock) {
           return orbitBox(name);
         }
 
+        it('ending orbit hides the previous orbit mesh box once the gizmo has moved elsewhere', function () {
+          const orbitMeshA = orbitWithButtons('orbitEndA');
+          toggleGizmo('position');
+          const gizmoMeshC = makeBox('orbitEndC');
+          // Retarget the position gizmo to C while still orbiting A (a real click).
+          flock.scene.onPointerObservable.notifyObservers(
+            new BABYLON.PointerInfo(BABYLON.PointerEventTypes.POINTERPICK, fakeMouseEvent(0), {
+              pickedMesh: gizmoMeshC,
+            })
+          );
+          expect(mgr.attachedMesh).to.equal(gizmoMeshC);
+          // Kept alive by the orbit-preserving fix even though the gizmo moved.
+          expect(orbitMeshA.showBoundingBox).to.be.true;
+
+          // End orbit (eye button toggled off — the same disconnectOrbitView()
+          // path a "switch orbit target to a different mesh" also goes
+          // through) while the gizmo is still on C.
+          toggleGizmo('eye');
+
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.not.be.true;
+          // A was only kept boxed because it was the orbit target — orbit has
+          // ended, and nothing else is tracking it, so its box should not be
+          // left on indefinitely.
+          expect(orbitMeshA.showBoundingBox).to.not.be.true;
+          // The gizmo's own target is untouched by orbit ending.
+          expect(mgr.attachedMesh).to.equal(gizmoMeshC);
+        });
+
         it('position keeps the orbit camera with both buttons lit', function () {
           orbitWithButtons();
           expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
@@ -689,11 +724,60 @@ export function runGizmoTests(flock) {
           expect(mgr.positionGizmoEnabled).to.be.true;
         });
 
-        it('transform re-enables pointer attach while orbiting', function () {
+        it('a real click retargets the transform gizmo and keeps the orbited mesh boxed (not the new target)', function () {
+          const first = orbitWithButtons('orbitClickRetargetA');
+          toggleGizmo('position');
+          const second = makeBox('orbitClickRetargetB');
+
+          flock.scene.onPointerObservable.notifyObservers(
+            new BABYLON.PointerInfo(BABYLON.PointerEventTypes.POINTERPICK, fakeMouseEvent(0), { pickedMesh: second })
+          );
+
+          expect(mgr.attachedMesh).to.equal(second);
+          expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+          expect(window.orbitMesh).to.equal(first);
+          // The orbited mesh's box would otherwise be hidden by
+          // resetAttachedMesh() switching the gizmo away from it.
+          expect(first.showBoundingBox).to.be.true;
+          // The new gizmo target gets no box of its own — only the orbited
+          // mesh keeps one, matching how retargeting behaved before this.
+          expect(second.showBoundingBox).to.not.be.true;
+        });
+
+        it('a drag (POINTERDOWN with no matching POINTERPICK) does not retarget the gizmo', function () {
+          const first = orbitWithButtons('orbitDragNoRetargetA');
+          toggleGizmo('position');
+          const second = makeBox('orbitDragNoRetargetB');
+
+          // A drag never fires POINTERPICK; simulate the raw pointerdown that
+          // Babylon's built-in usePointerToAttachGizmos would have reacted to,
+          // to prove this observer (POINTERPICK-only) ignores it.
+          flock.scene.onPointerObservable.notifyObservers(
+            new BABYLON.PointerInfo(BABYLON.PointerEventTypes.POINTERDOWN, fakeMouseEvent(0), { pickedMesh: second })
+          );
+
+          expect(mgr.attachedMesh).to.equal(first);
+        });
+
+        it('a secondary-button (right) click does not retarget the gizmo', function () {
+          const first = orbitWithButtons('orbitRightClickNoRetargetA');
+          toggleGizmo('position');
+          const second = makeBox('orbitRightClickNoRetargetB');
+
+          // Babylon's click detection doesn't filter by button, so a
+          // right-click that doesn't drag still fires POINTERPICK.
+          flock.scene.onPointerObservable.notifyObservers(
+            new BABYLON.PointerInfo(BABYLON.PointerEventTypes.POINTERPICK, fakeMouseEvent(2), { pickedMesh: second })
+          );
+
+          expect(mgr.attachedMesh).to.equal(first);
+        });
+
+        it('transform leaves pointer attach off while orbiting, so a drag to rotate never exits the gizmo', function () {
           orbitWithButtons();
           expect(mgr.usePointerToAttachGizmos).to.be.false;
           toggleGizmo('position');
-          expect(mgr.usePointerToAttachGizmos).to.be.true;
+          expect(mgr.usePointerToAttachGizmos).to.be.false;
           toggleGizmo('position'); // transform off
           expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
           expect(mgr.usePointerToAttachGizmos).to.be.false;
@@ -755,7 +839,7 @@ export function runGizmoTests(flock) {
         });
       });
 
-      it('focusOnMesh (F) during orbit exits orbit instead of mutating the orbit camera', function () {
+      it('focusOnMesh (J) during orbit exits orbit instead of mutating the orbit camera', function () {
         orbitBox('focusDuringOrbitBox');
         expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
         focusOnMesh();

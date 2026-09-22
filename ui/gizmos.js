@@ -256,10 +256,12 @@ function registerBindings() {
   const noMod = (fn) => (e) => {
     if (!e.ctrlKey && !e.altKey && !e.metaKey) fn(e);
   };
-  // Focus on mesh with F key
+  // Focus on mesh with J key (not F: F is orbit view's zoom-out key, and
+  // focusOnMesh() exits orbit view, so F would zoom out for one frame then
+  // immediately kick you out of orbit).
   KeyboardDispatcher.on(
     'GIZMO',
-    'KeyF',
+    'KeyJ',
     noMod(() => focusOnMesh())
   );
   KeyboardDispatcher.on(
@@ -1193,6 +1195,17 @@ function disconnectOrbitView() {
   if (!gizmoManager.attachedMesh && prevMesh && !prevMesh.isDisposed?.()) {
     gizmoManager.attachToMesh(prevMesh);
     enableBoundingBox(prevMesh);
+  } else if (
+    prevMesh &&
+    prevMesh !== gizmoManager.attachedMesh &&
+    !prevMesh.isDisposed?.()
+  ) {
+    // The transform gizmo was retargeted elsewhere while orbiting (see the
+    // click-retarget observer below), which keeps prevMesh's box on for as
+    // long as it's still the orbit target. Orbit is ending on it now — since
+    // nothing else references prevMesh, its box would otherwise be left on
+    // indefinitely.
+    hideBoundingBox(prevMesh);
   }
   const canvas = flock.scene.getEngine().getRenderingCanvas();
   if (canvas) {
@@ -2655,10 +2668,14 @@ export function toggleGizmo(gizmoType) {
     default:
       break;
   }
-  // Canvas clicks retarget the gizmo only; orbit target stays put.
-  if (preserveOrbit && ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && gizmoManager) {
-    gizmoManager.usePointerToAttachGizmos = true;
-  }
+  // NOTE: canvas clicks used to retarget the gizmo here via
+  // gizmoManager.usePointerToAttachGizmos = true, but that fires on raw
+  // POINTERDOWN with no click-vs-drag distinction — the same pointerdown that
+  // starts a drag to rotate the orbit camera would pick whatever's under the
+  // cursor (often the ground) and immediately exit the gizmo. Left off, like
+  // everywhere else orbit is preserved; retargeting the gizmo while orbiting
+  // would need a POINTERPICK-based observer (see watchEyeGizmoRetarget) if
+  // wanted back.
 }
 
 // Scale: Allow the user to scale the mesh by dragging it
@@ -3428,9 +3445,10 @@ function addUndoHandler() {
 
 // While eye is the only active gizmo, clicking a different mesh in the
 // canvas switches the orbit target to it instead of doing nothing. Once
-// another gizmo (position/rotation/scale/...) is also active, canvas clicks
-// retarget that gizmo instead (see toggleGizmo's preserveOrbit handling), so
-// this stays out of the way in that case.
+// another gizmo (position/rotation/scale/...) is also active, this stays out
+// of the way — that combination no longer retargets on a raw canvas click
+// (see toggleGizmo's preserveOrbit handling), since a drag to rotate the
+// orbit camera would trip the same pointerdown and exit the gizmo.
 function watchEyeGizmoRetarget() {
   const scene = flock.scene;
   if (!scene) return;
@@ -3585,6 +3603,17 @@ export function setGizmoManager(value) {
   gizmoManager = value;
   if (!value) return;
 
+  // Every click-to-select flow in this file already goes through
+  // pickMeshFromScene (a drag-aware POINTERPICK), not this built-in,
+  // POINTERDOWN-driven auto-attach. Left at Babylon's default (true), it fires
+  // on the very first pointerdown of an ordinary camera-look drag; since the
+  // ground is pickable and fills most of the view, that pick lands on it and
+  // attachToMesh's wrapper below (mesh.name === 'ground') calls
+  // turnOffAllGizmos() — silently ending whatever gizmo was active before the
+  // drag could rotate the camera at all. Orbit view already disables this for
+  // the same reason; do it everywhere so a camera drag never steals selection.
+  gizmoManager.usePointerToAttachGizmos = false;
+
   // A drop grouping the attached mesh moves the gizmo to the group root,
   // like a canvas pick. Anything else is left alone. Registered here, not at
   // module scope: the import cycle can leave blockmesh's binding in TDZ
@@ -3711,6 +3740,46 @@ export function setGizmoManager(value) {
         document.body.style.cursor = saved.body;
         if (canvas) canvas.style.cursor = saved.canvas ?? '';
         saved = null;
+      }
+    });
+  }
+
+  // Clicking a different mesh while a transform gizmo (position/rotation/
+  // scale) is active retargets it there — the replacement for the
+  // usePointerToAttachGizmos behaviour disabled above. POINTERPICK (unlike
+  // POINTERDOWN) is click/drag-aware, so a drag to rotate the camera never
+  // fires it; same mechanism as watchEyeGizmoRetarget, which handles the
+  // equivalent case for the orbit target.
+  if (flock.scene && !flock.scene.__transformRetargetObserver) {
+    flock.scene.__transformRetargetObserver = flock.scene.onPointerObservable.add((event) => {
+      if (event.type !== flock.BABYLON.PointerEventTypes.POINTERPICK) return;
+      // Babylon's click detection doesn't filter by button — a right-click
+      // (or middle-click) that doesn't drag fires POINTERPICK too. Only a
+      // primary-button click should retarget the gizmo.
+      if (event.event?.button !== 0) return;
+      if (!gizmoManager) return;
+      const transformActive =
+        gizmoManager.positionGizmoEnabled ||
+        gizmoManager.rotationGizmoEnabled ||
+        gizmoManager.scaleGizmoEnabled;
+      if (!transformActive) return;
+
+      let pickedMesh = event.pickInfo?.pickedMesh;
+      if (!pickedMesh || pickedMesh.name === 'ground') return;
+      if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+      if (!pickedMesh || pickedMesh === gizmoManager.attachedMesh) return;
+
+      // Wrapped attachToMesh (above) already handles locked meshes, parent
+      // resolution and the dispose observer, but it also hides the bounding
+      // box of whatever was attached before (resetAttachedMesh) — normally
+      // right, but while orbiting that "before" mesh is usually the orbited
+      // one, so its box would vanish even though the orbit camera is still
+      // centred on it. Only the orbited mesh's box is restored: the new gizmo
+      // target gets no box of its own, matching how this retarget behaved
+      // before (Babylon's native pointer-attach never granted one either).
+      gizmoManager.attachToMesh(pickedMesh);
+      if (flock.scene?.activeCamera?.metadata?.orbitView && window.orbitMesh && !window.orbitMesh.isDisposed?.()) {
+        enableBoundingBox(window.orbitMesh);
       }
     });
   }

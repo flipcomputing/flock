@@ -651,7 +651,7 @@ function getShortcuts() {
     },
     {
       label: translate('shortcut_focus_camera'),
-      keys: `F`,
+      keys: `J`,
       category: translate('shortcut_category_gizmos'),
     },
     {

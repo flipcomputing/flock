@@ -374,6 +374,17 @@ export function runOnScreenSourceTests() {
         expect(manager.isKeyDown('w')).to.be.false;
       });
 
+      // isKeyDown() is OnScreenSource's own always-live button state (mirrors
+      // KeyboardSource.isKeyDown()), so orbit view — which owns input and has
+      // no other channel for an on-screen button — can still read it.
+      it('isKeyDown() stays live while the editor owns input', function () {
+        manager.setInputOwner('editor');
+        source.press('ArrowLeft');
+        expect(source.isKeyDown('ArrowLeft')).to.be.true;
+        source.release('ArrowLeft');
+        expect(source.isKeyDown('ArrowLeft')).to.be.false;
+      });
+
       it('handover releases keys already held', function () {
         source.start(makeScene());
         source.press('w');

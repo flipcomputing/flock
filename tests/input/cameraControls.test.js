@@ -273,6 +273,16 @@ export function runCameraControlsTests() {
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
       });
 
+      // Orbit view owns input (InputManager itself never sees the press — the
+      // point of this test is that CameraControls still rotates from
+      // OnScreenSource's own always-live button state).
+      it('on-screen button presses rotate via OnScreenSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._onScreenSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+      });
+
       it('opposing keys cancel out', function () {
         flock.scene.activeCamera = makeOrbitCamera();
         flock.inputManager._setKey('ArrowLeft', true);
@@ -326,6 +336,13 @@ export function runCameraControlsTests() {
       it('physical keyboard zooms via KeyboardSource', function () {
         flock.scene.activeCamera = makeOrbitCamera();
         flock._keyboardSource = { isKeyDown: (k) => k === '1' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('on-screen button presses zoom via OnScreenSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._onScreenSource = { isKeyDown: (k) => k === '1' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
       });

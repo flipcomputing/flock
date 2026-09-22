@@ -171,7 +171,7 @@ export function initContextMenus(workspace) {
       displayText: () => {
         const text = translate('focus_on_mesh_option');
         const label = text === 'focus_on_mesh_option' ? 'Focus' : text;
-        return renderShortcut(label, 'F');
+        return renderShortcut(label, 'J');
       },
       preconditionFn: (scope) => {
         const block = scope.block;
