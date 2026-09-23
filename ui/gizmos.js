@@ -555,7 +555,9 @@ document.addEventListener('DOMContentLoaded', function () {
       // picker, which would otherwise reroll a random starting color.
       if (colorButton.classList.contains('active')) {
         if (colorPicker.isOpen) colorPicker.close();
-        exitGizmoState();
+        // Keep an active orbit camera on close too — matches the open path
+        // above (colourpicker.js's open()), which preserves it the same way.
+        exitGizmoState({ preserveOrbit: !!window.orbitViewActive });
         return;
       }
       KeyboardDispatcher.clearModes();

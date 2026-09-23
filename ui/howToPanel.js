@@ -763,14 +763,23 @@ function getSnippetWorkspace() {
   return snippetWorkspace;
 }
 
-async function renderSnippetSVG(blockJson, { selected = false } = {}) {
+// `highlightInput`, when given, selects the child block plugged into that
+// named input (e.g. the little colour swatch on COLOR) instead of the whole
+// top-level block — the snippet still crops to the top block's full bbox
+// (generateSVG still gets `block`), only the glow moves to the child. Falls
+// back to the top block if that input has nothing connected.
+async function renderSnippetSVG(blockJson, { selected = false, highlightInput = null } = {}) {
   const ws = getSnippetWorkspace();
   const block = Blockly.serialization.blocks.append(blockJson, ws, { recordUndo: false });
   try {
     block.initSvg();
     block.render();
-    if (selected) block.select();
-    return await generateSVG(block, { rasterSafe: true, keepSelected: selected });
+    const blockToHighlight = highlightInput
+      ? (block.getInput(highlightInput)?.connection?.targetBlock() ?? block)
+      : block;
+    const highlight = selected || !!highlightInput;
+    if (highlight) blockToHighlight.select();
+    return await generateSVG(block, { rasterSafe: true, keepSelected: highlight });
   } finally {
     block.dispose();
   }
@@ -780,6 +789,7 @@ function wireHowToSnippets(root) {
   root.querySelectorAll('snippet').forEach((el) => {
     const src = el.getAttribute('src');
     const selected = el.hasAttribute('selected');
+    const highlightInput = el.getAttribute('highlight-input');
     const caption = el.textContent.trim();
     const figure = document.createElement('figure');
     figure.className = 'howto-snippet';
@@ -795,7 +805,7 @@ function wireHowToSnippets(root) {
       console.error(`How-to snippet "${src}" has no matching docs/how-tos/snippets/*.json`);
       return;
     }
-    renderSnippetSVG(blockJson, { selected })
+    renderSnippetSVG(blockJson, { selected, highlightInput })
       .then((svg) => {
         figure.insertAdjacentHTML('afterbegin', svg);
         // The figcaption (when present) is the accessible description; the

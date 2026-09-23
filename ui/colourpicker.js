@@ -112,6 +112,13 @@ class CustomColorPicker {
     this.excludeFromClose = options.excludeFromClose || null;
 
     this.isOpen = false;
+    // Guards the "dead extreme" reroll in open() below — only the very first
+    // open should treat a white/black starting color as an unset default
+    // worth rerolling; once the reader has opened the picker at least once,
+    // currentColor always reflects a real choice (even an unconfirmed
+    // white/black swatch pick), which must never be discarded for a random
+    // one.
+    this._everOpened = false;
     this.globalEscapeHandler = (event) => {
       if (!this.isOpen || this._eyedropperActive || event.key !== 'Escape') {
         return;
@@ -438,13 +445,10 @@ class CustomColorPicker {
     useBtn.setAttribute('aria-label', translate('use_this_color'));
     useBtn.title = translate('use_this_color');
 
-    // Append to canvas area for proper positioning
-    const canvasArea = document.getElementById('canvasArea');
-    if (canvasArea) {
-      canvasArea.appendChild(this.container);
-    } else {
-      this.targetElement.appendChild(this.container);
-    }
+    // Append to the document body (not #canvasArea) so the picker, which is
+    // position: fixed, isn't clipped by #canvasArea's overflow: hidden and can
+    // be dragged anywhere on screen, including over the code workspace.
+    document.body.appendChild(this.container);
 
     // Store references
     this.canvas = this.container.querySelector('.color-wheel-canvas');
@@ -936,17 +940,17 @@ class CustomColorPicker {
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      const parent = this.container.parentElement;
-      if (!parent) return;
-      const parentRect = parent.getBoundingClientRect();
+      // The picker is position: fixed against the viewport (appended to
+      // document.body), so it can be dragged anywhere on screen, including
+      // over the code workspace — clamp to the viewport, not a container.
       const pickerRect = this.container.getBoundingClientRect();
 
-      const maxLeft = Math.max(0, parentRect.width - pickerRect.width);
+      const maxLeft = Math.max(0, window.innerWidth - pickerRect.width);
       const dragHandleHeight = Math.max(1, handle.offsetHeight || 24);
-      const maxTopInViewport = Math.max(0, window.innerHeight - parentRect.top - dragHandleHeight);
+      const maxTop = Math.max(0, window.innerHeight - dragHandleHeight);
 
       const newLeft = Math.max(0, Math.min(startLeft + dx, maxLeft));
-      const newTop = Math.max(0, Math.min(startTop + dy, maxTopInViewport));
+      const newTop = Math.max(0, Math.min(startTop + dy, maxTop));
 
       this.container.style.left = `${newLeft}px`;
       this.container.style.top = `${newTop}px`;
@@ -1876,7 +1880,8 @@ class CustomColorPicker {
       const buttonRect = colorButton.getBoundingClientRect();
       const canvasRect = canvasArea.getBoundingClientRect();
 
-      this.container.style.position = 'absolute';
+      // Stays position: fixed (set in CSS) so it's positioned against the
+      // viewport, not #canvasArea — left/top below are viewport coordinates.
       const isLandscapePhone = window.matchMedia(
         '(max-width: 1024px) and (orientation: landscape) and (max-height: 600px)'
       ).matches;
@@ -1902,33 +1907,33 @@ class CustomColorPicker {
         }
 
         const width = this.container.getBoundingClientRect().width || 320;
-        let left = buttonRect.left - canvasRect.left;
-        if (left + width > canvasRect.width - 10) left = canvasRect.width - width - 10;
-        this.container.style.left = `${Math.max(10, left)}px`;
+        let left = buttonRect.left;
+        if (left + width > canvasRect.right - 10) left = canvasRect.right - width - 10;
+        this.container.style.left = `${Math.max(canvasRect.left + 10, left)}px`;
       } else if (isMobile) {
-        this.container.style.left = '0px';
-        this.container.style.right = '0px';
+        this.container.style.left = `${canvasRect.left + 10}px`;
+        this.container.style.right = 'auto';
         this.container.style.width = `${canvasRect.width - 20}px`;
         this.container.style.maxWidth = 'none';
-        this.container.style.marginLeft = '10px';
-        this.container.style.marginRight = '10px';
+        this.container.style.marginLeft = '';
+        this.container.style.marginRight = '';
       } else {
-        this.container.style.left = `${buttonRect.left - canvasRect.left}px`;
+        this.container.style.left = `${buttonRect.left}px`;
         this.container.style.width = '360px';
         this.container.style.right = 'auto';
         this.container.style.maxWidth = '';
 
         const containerWidth = 360;
-        if (buttonRect.left - canvasRect.left + containerWidth > canvasRect.width) {
-          this.container.style.left = `${canvasRect.width - containerWidth - 10}px`;
+        if (buttonRect.left + containerWidth > canvasRect.right) {
+          this.container.style.left = `${canvasRect.right - containerWidth - 10}px`;
         }
       }
 
       const measuredPickerHeight =
         content?.getBoundingClientRect().height || this.container.offsetHeight || 250;
       const bottomBarHeight = 40;
-      const maxTop = canvasRect.height - measuredPickerHeight - bottomBarHeight;
-      const bottomAlignedTop = Math.max(10, maxTop);
+      const maxTop = canvasRect.bottom - measuredPickerHeight - bottomBarHeight;
+      const bottomAlignedTop = Math.max(canvasRect.top + 10, maxTop);
 
       const gizmoButtons = document.getElementById('gizmoButtons');
       const gizmosVisible =
@@ -1936,7 +1941,7 @@ class CustomColorPicker {
         getComputedStyle(gizmoButtons).display !== 'none' &&
         getComputedStyle(gizmoButtons).visibility !== 'hidden';
       const gizmoRect = gizmosVisible ? gizmoButtons.getBoundingClientRect() : buttonRect;
-      const belowGizmosTop = Math.max(10, gizmoRect.bottom - canvasRect.top + 8);
+      const belowGizmosTop = Math.max(canvasRect.top + 10, gizmoRect.bottom + 8);
 
       const topPosition = belowGizmosTop <= bottomAlignedTop ? belowGizmosTop : bottomAlignedTop;
       this.container.style.top = `${topPosition}px`;
@@ -1959,7 +1964,11 @@ class CustomColorPicker {
         if (hsl) {
           const isGray = hsl.s === 0; // greyscale
           const extremeL = hsl.l <= 2 || hsl.l >= 98; // near black/white
-          if (!(isGray && extremeL)) {
+          // The "dead extreme" reroll only applies before the reader has
+          // ever opened the picker — once they have, an extreme grayscale
+          // is a real (if unconfirmed) white/black swatch pick, not the
+          // unset default, and must be kept rather than rerolled.
+          if (this._everOpened || !(isGray && extremeL)) {
             useRandom = false; // keep saved color if it's not a dead extreme
           }
         }
@@ -1970,6 +1979,7 @@ class CustomColorPicker {
       } else {
         this.setColor(normalized); // preserves saved color exactly
       }
+      this._everOpened = true;
 
       // 3) Draw sliders & place handles/indicator to match current color
       this.drawHueSlider();
