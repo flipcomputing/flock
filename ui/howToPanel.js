@@ -49,19 +49,24 @@ function drawAttention(el) {
 // `howto_tag_<tag>_ui` locale entry, and the grid offers them as a filter.
 // To add a new tag, use it here and add its locale entry; no other change
 // needed, the filter picks it up automatically.
+// `icon` (a UI_BUTTON_ICONS key, see below) shows that button's glyph inline
+// at the start of the card — only set for gizmo how-tos, one per gizmo.
 const HOW_TOS = [
   { slug: 'add-sky-and-ground', i18nKey: 'howto_add_sky_and_ground_ui', tone: 1, tags: ['scene'] },
-  { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 2, tags: ['gizmo'] },
-  { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'] },
-  { slug: 'duplicate-objects', i18nKey: 'howto_duplicate_objects_ui', tone: 4, tags: ['gizmo'] },
-  { slug: 'look-around', i18nKey: 'howto_look_around_ui', tone: 5, tags: ['camera'] },
+  { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 2, tags: ['gizmo'], icon: 'addmenu' },
+  { slug: 'colour-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
+  { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'], icon: 'positiongizmo' },
+  { slug: 'position-with-code', i18nKey: 'howto_position_with_code_ui', tone: 15, tags: ['code'] },
+  { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'], icon: 'rotategizmo' },
+  { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'], icon: 'scalegizmo' },
+  { slug: 'select-an-object', i18nKey: 'howto_select_an_object_ui', tone: 14, tags: ['gizmo'], icon: 'selectgizmo' },
+  { slug: 'duplicate-objects', i18nKey: 'howto_duplicate_objects_ui', tone: 4, tags: ['gizmo'], icon: 'duplicategizmo' },
+  { slug: 'delete-an-object', i18nKey: 'howto_delete_an_object_ui', tone: 11, tags: ['gizmo'], icon: 'deletegizmo' },
   { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 6, tags: ['character'] },
+  { slug: 'look-around', i18nKey: 'howto_look_around_ui', tone: 5, tags: ['camera'] },
+  { slug: 'fly-camera', i18nKey: 'howto_fly_camera_ui', tone: 13, tags: ['gizmo', 'camera'], icon: 'cameragizmo' },
   { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['camera'] },
-  { slug: 'colour-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'] },
-  { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'] },
-  { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'] },
-  { slug: 'delete-an-object', i18nKey: 'howto_delete_an_object_ui', tone: 11, tags: ['gizmo'] },
-  { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo'] },
+  { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo', 'camera'], icon: 'viewgizmo' },
 ];
 
 // How-to text lives in docs/how-tos/<lang>/<slug>.html — one locale folder
@@ -105,6 +110,20 @@ const HOWTO_LINK_TARGETS = {
   newprojectbutton: () => {
     const modalOpen = !document.getElementById('exampleModal')?.classList.contains('hidden');
     drawAttention(document.getElementById(modalOpen ? 'newProjectButton' : 'exampleButton'));
+  },
+  // "Menu" → "Tools" → "Gizmo controls" is the same guided-chain shape as
+  // "Projects"/"New" above, one level deeper: "Menu" always points at the
+  // menu button (see mainmenu below); "Tools" points at the Tools menu item
+  // if the menu dropdown is already open, or falls back to the menu button
+  // otherwise; "Gizmo controls" points at its checkbox if the Tools modal is
+  // already open, or falls back to the Tools menu item otherwise.
+  toolsmenu: () => {
+    const menuOpen = !document.getElementById('menuDropdown')?.classList.contains('hidden');
+    drawAttention(document.getElementById(menuOpen ? 'tools-menu-item' : 'menuBtn'));
+  },
+  gizmocontrols: () => {
+    const modalOpen = !document.getElementById('toolsModal')?.classList.contains('hidden');
+    drawAttention(document.getElementById(modalOpen ? 'gizmoControlsCheckbox' : 'tools-menu-item'));
   },
   // Toolbox categories are pointed at via <ui-button target="toolbox:KEY">
   // instead (see glowToolboxCategory) — Blockly's toolbox categories aren't
@@ -342,6 +361,50 @@ UI_BUTTON_ICONS['block-delete'] = UI_BUTTON_ICONS.deletegizmo;
 UI_BUTTON_ICONS['block-view'] = UI_BUTTON_ICONS.viewgizmo;
 UI_BUTTON_ICONS.trashcan = UI_BUTTON_ICONS.deletegizmo;
 
+// Builds an <img> or <svg> node from a UI_BUTTON_ICONS entry — the shared
+// bit of wireHowToButtons() below and renderGrid()'s card icons, so both
+// draw the exact same glyph the same way.
+function createIconElement(icon) {
+  if (icon?.src) {
+    const img = document.createElement('img');
+    img.src = icon.src;
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.className = 'howto-icon';
+    return img;
+  }
+  if (icon) {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', icon.viewBox);
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'howto-icon');
+    if (icon.flip) svg.style.transform = 'scaleY(-1)';
+    if (icon.inner) {
+      svg.innerHTML = icon.inner;
+    } else {
+      const path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('fill', 'currentColor');
+      path.setAttribute('d', icon.path);
+      svg.appendChild(path);
+    }
+    return svg;
+  }
+  return null;
+}
+
+// Small icon buttons that live on blocks themselves, keyed by <block-icon>
+// name — as opposed to the toolbar/menu buttons behind <ui-button>. Same
+// hardcoded-copy convention as UI_BUTTON_ICONS above: if a block icon
+// changes, update its entry here in the same pass. First entry is the
+// pick-position pin from blocks/fieldPickPosition.js.
+const BLOCK_ICONS = {
+  pin: {
+    viewBox: '0 0 384 512',
+    path: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z',
+  },
+};
+
 function findSnippetsCategory() {
   const toolbox = Blockly.getMainWorkspace()?.getToolbox?.();
   return (toolbox?.getToolboxItems?.() ?? []).find(
@@ -482,7 +545,14 @@ function wireHowToButtons(root) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'help-link howto-ui-button';
-    btn.append(document.createTextNode(label));
+    // The label lives in its own span (not a bare text node) so the
+    // icon's :first-child rule only matches when the icon genuinely comes
+    // before the label — bare text nodes don't count for :first-child, so
+    // a trailing icon would otherwise match it too and lose its margin.
+    const labelEl = document.createElement('span');
+    labelEl.className = 'howto-ui-label';
+    labelEl.textContent = label;
+    btn.append(labelEl);
     let handler = HOWTO_LINK_TARGETS[target];
     let icon = UI_BUTTON_ICONS[target];
     // Toolbox categories show their icon before the name, like the toolbox
@@ -495,33 +565,10 @@ function wireHowToButtons(root) {
       if (src) icon = { src };
       iconFirst = true;
     }
-    const placeIcon = (node) => {
-      if (iconFirst) btn.prepend(node);
-      else btn.appendChild(node);
-    };
-    if (icon?.src) {
-      const img = document.createElement('img');
-      img.src = icon.src;
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-      img.className = 'howto-icon';
-      placeIcon(img);
-    } else if (icon) {
-      const svgNS = 'http://www.w3.org/2000/svg';
-      const svg = document.createElementNS(svgNS, 'svg');
-      svg.setAttribute('viewBox', icon.viewBox);
-      svg.setAttribute('aria-hidden', 'true');
-      svg.setAttribute('class', 'howto-icon');
-      if (icon.flip) svg.style.transform = 'scaleY(-1)';
-      if (icon.inner) {
-        svg.innerHTML = icon.inner;
-      } else {
-        const path = document.createElementNS(svgNS, 'path');
-        path.setAttribute('fill', 'currentColor');
-        path.setAttribute('d', icon.path);
-        svg.appendChild(path);
-      }
-      placeIcon(svg);
+    const iconEl = createIconElement(icon);
+    if (iconEl) {
+      if (iconFirst) btn.prepend(iconEl);
+      else btn.appendChild(iconEl);
     }
     if (handler) {
       btn.addEventListener('pointerdown', suppressFlyoutAutoClose, { capture: true });
@@ -530,6 +577,33 @@ function wireHowToButtons(root) {
       console.error(`How-to ui-button "${target}" has no matching HOWTO_LINK_TARGETS entry`);
     }
     el.replaceWith(btn);
+  });
+}
+
+// Upgrades each declarative <block-icon name="…"> into the block's own
+// inline icon from BLOCK_ICONS above, sized to the surrounding type by
+// .howto-icon like any other inline icon in the text. Unlike <ui-button>
+// this is not a link — it names no target and glows nothing; it just shows
+// the icon so the reader can match the text to the block.
+function wireHowToBlockIcons(root) {
+  root.querySelectorAll('block-icon').forEach((el) => {
+    const name = el.getAttribute('name');
+    const icon = BLOCK_ICONS[name];
+    if (!icon) {
+      console.error(`How-to block-icon "${name}" has no matching BLOCK_ICONS entry`);
+      el.remove();
+      return;
+    }
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', icon.viewBox);
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'howto-icon');
+    const path = document.createElementNS(svgNS, 'path');
+    path.setAttribute('fill', 'currentColor');
+    path.setAttribute('d', icon.path);
+    svg.appendChild(path);
+    el.replaceWith(svg);
   });
 }
 
@@ -558,6 +632,36 @@ function wireHowToLinks(root, onOpenHowTo) {
       }
     }
     el.replaceWith(btn);
+  });
+}
+
+// Upgrades a <related><related-howto slug="…"></related-howto>…</related>
+// block into a "Related:" box styled like <goal>/<tip> (see style.css), with
+// a plain inline .help-link per how-to — not a chip/pill, just a link, same
+// as any other link inside a tip. Deliberately text-free for the author: the
+// title comes live from HOW_TOS/i18n by slug, the same lookup
+// wireHowToLinks() uses for target="howto:…", so there's no label to type or
+// keep in sync if a title changes.
+function wireHowToRelated(root, onOpenHowTo) {
+  root.querySelectorAll('related').forEach((el) => {
+    const box = document.createElement('div');
+    box.className = 'howto-related';
+    const slugs = [...el.querySelectorAll('related-howto')].map((item) => item.getAttribute('slug'));
+    slugs.forEach((slug, i) => {
+      const howTo = HOW_TOS.find((h) => h.slug === slug);
+      if (!howTo) {
+        console.error(`How-to related-howto "${slug}" has no matching HOW_TOS entry`);
+        return;
+      }
+      if (i > 0) box.appendChild(document.createTextNode(', '));
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'help-link';
+      btn.textContent = translate(howTo.i18nKey);
+      btn.addEventListener('click', () => onOpenHowTo(slug));
+      box.appendChild(btn);
+    });
+    el.replaceWith(box);
   });
 }
 
@@ -603,13 +707,14 @@ function getSnippetWorkspace() {
   return snippetWorkspace;
 }
 
-async function renderSnippetSVG(blockJson) {
+async function renderSnippetSVG(blockJson, { selected = false } = {}) {
   const ws = getSnippetWorkspace();
   const block = Blockly.serialization.blocks.append(blockJson, ws, { recordUndo: false });
   try {
     block.initSvg();
     block.render();
-    return await generateSVG(block, { rasterSafe: true });
+    if (selected) block.select();
+    return await generateSVG(block, { rasterSafe: true, keepSelected: selected });
   } finally {
     block.dispose();
   }
@@ -618,6 +723,7 @@ async function renderSnippetSVG(blockJson) {
 function wireHowToSnippets(root) {
   root.querySelectorAll('snippet').forEach((el) => {
     const src = el.getAttribute('src');
+    const selected = el.hasAttribute('selected');
     const caption = el.textContent.trim();
     const figure = document.createElement('figure');
     figure.className = 'howto-snippet';
@@ -633,7 +739,7 @@ function wireHowToSnippets(root) {
       console.error(`How-to snippet "${src}" has no matching docs/how-tos/snippets/*.json`);
       return;
     }
-    renderSnippetSVG(blockJson)
+    renderSnippetSVG(blockJson, { selected })
       .then((svg) => {
         figure.insertAdjacentHTML('afterbegin', svg);
         // The figcaption (when present) is the accessible description; the
@@ -678,7 +784,9 @@ const HowToPanel = {
   panel: null,
   previousFocus: null,
   _activeSlug: null,
-  _activeTag: null,
+  // Gizmo is the default filter (not All) since most how-tos are gizmo
+  // how-tos — the reader lands on the subset they're most likely to want.
+  _activeTag: 'gizmo',
   _modalTitleId: 'howto-panel-title',
   _tabBtnId: 'info-tab-btn-howto',
   _closeLabelKey: 'close',
@@ -751,16 +859,15 @@ const HowToPanel = {
         button.type = 'button';
         button.className = 'howto-tile';
         button.dataset.tone = String(howTo.tone);
+        const title = document.createElement('span');
+        title.className = 'howto-tile-title';
+        const iconEl = createIconElement(UI_BUTTON_ICONS[howTo.icon]);
+        if (iconEl) title.appendChild(iconEl);
         const name = document.createElement('span');
         name.className = 'howto-tile-name';
         name.textContent = translate(howTo.i18nKey);
-        button.appendChild(name);
-        (howTo.tags ?? []).forEach((tag) => {
-          const pill = document.createElement('span');
-          pill.className = 'howto-tag';
-          pill.textContent = translate(`howto_tag_${tag}_ui`);
-          button.appendChild(pill);
-        });
+        title.appendChild(name);
+        button.appendChild(title);
         button.addEventListener('click', () => this.openHowTo(howTo.slug));
         li.appendChild(button);
         grid.appendChild(li);
@@ -781,8 +888,10 @@ const HowToPanel = {
     decorateExternalLinks(article);
     wireHowToLinks(article, (slug) => this.openHowTo(slug));
     wireHowToButtons(article);
+    wireHowToBlockIcons(article);
     wireHowToSteps(article);
     wireHowToSnippets(article);
+    wireHowToRelated(article, (slug) => this.openHowTo(slug));
   },
 
   openHowTo(slug) {
@@ -815,10 +924,10 @@ const HowToPanel = {
     this.previousFocus?.focus();
     this.previousFocus = null;
     InfoPanel.deactivate('howto');
-    // Re-opening the tab should land back on the unfiltered card grid, not
+    // Re-opening the tab should land back on the default card grid, not
     // strand the reader mid-article or mid-filter.
     this._activeSlug = null;
-    this._activeTag = null;
+    this._activeTag = 'gizmo';
   },
 
   toggle() {

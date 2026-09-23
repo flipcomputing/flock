@@ -670,11 +670,15 @@ export function runKeyboardUiTests(flock) {
         HowToPanel.hide();
       });
 
-      it('show() activates the how-to tab and renders a card for each how-to', function () {
+      it('show() activates the how-to tab, defaulting to the Gizmo filter', function () {
         HowToPanel.show();
         expect(InfoPanel._activeId).to.equal('howto');
         const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
-        expect(tiles.length).to.equal(12);
+        expect(tiles.length).to.equal(10);
+        const gizmoChip = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].find(
+          (c) => c.textContent === 'Gizmo'
+        );
+        expect(gizmoChip.getAttribute('aria-pressed')).to.equal('true');
       });
 
       it("clicking a card swaps the grid for that how-to's article, with a back button", function () {
@@ -704,9 +708,14 @@ export function runKeyboardUiTests(flock) {
 
       it('a <link-to target="howto:…"> opens that how-to', function () {
         HowToPanel.show();
+        [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')]
+          .find((c) => c.textContent === 'All')
+          .click();
         const tiles = HowToPanel.panel.querySelectorAll('.howto-tile');
-        const targetName = tiles[4].querySelector('.howto-tile-name').textContent;
-        tiles[1].click();
+        const targetName = [...tiles]
+          .find((t) => t.querySelector('.howto-tile-name').textContent === 'Explore your world')
+          .querySelector('.howto-tile-name').textContent;
+        [...tiles].find((t) => t.textContent.includes('Add an object')).click();
         const link = [...HowToPanel.panel.querySelectorAll('.howto-article button.help-link')].find(
           (b) => b.textContent.includes('Explore')
         );
@@ -729,7 +738,7 @@ export function runKeyboardUiTests(flock) {
       it('a <ui-button> renders its label with an icon and no underlined gap', function () {
         HowToPanel.show();
         const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
-          t.textContent.includes('Add objects')
+          t.textContent.includes('Add an object')
         );
         expect(tile).to.exist;
         tile.click();
@@ -757,16 +766,10 @@ export function runKeyboardUiTests(flock) {
           'All',
           'Scene',
           'Gizmo',
-          'Camera',
+          'Code',
           'Character',
+          'Camera',
         ]);
-      });
-
-      it('each card shows its topic tag as a pill', function () {
-        HowToPanel.show();
-        const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
-        expect(tiles.length).to.equal(12);
-        tiles.forEach((t) => expect(t.querySelector('.howto-tag')).to.exist);
       });
 
       it('filtering by Gizmo shows only the gizmo cards, All restores the grid', function () {
@@ -779,10 +782,10 @@ export function runKeyboardUiTests(flock) {
             ])
           );
         chipByLabel().get('Gizmo').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(8);
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(10);
         expect(chipByLabel().get('Gizmo').getAttribute('aria-pressed')).to.equal('true');
         chipByLabel().get('All').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(15);
       });
 
       it('the Duplicate an object article teaches the gizmo, not block duplication', function () {

@@ -2059,7 +2059,7 @@ body.embed-mode #infoResizer {
   padding: 0.5em;
   box-sizing: border-box;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 0.85em;
   line-height: 1.3;
   border: none;
   border-radius: 10px;
@@ -2072,13 +2072,45 @@ body.embed-mode #infoResizer {
   transition: transform 0.15s ease;
 }
 
-.howto-tile-name {
-  font-weight: bold;
+/* Wraps the icon (gizmo how-tos only) and the name so they read as one line
+   — the tile itself stays a centered flex column, this row is its single
+   child, so an iconless card's name still centers exactly as before. */
+.howto-tile-title {
+  display: flex;
+  /* flex-start, not center: centering against a wrapped 2-line title pushes
+     the icon down into the gap between the lines instead of sitting inline
+     with the text it's paired with. */
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.4em;
+  width: 100%;
 }
 
-.howto-tile:hover {
-  transform: scale(1.04);
-  box-shadow: 0 4px 12px var(--color-shadow-medium);
+.howto-tile-title .howto-icon {
+  width: 1.3em;
+  height: 1.3em;
+  flex-shrink: 0;
+}
+
+.howto-tile-name {
+  font-weight: bold;
+  /* .howto-tile centers text for the (usual) one-line case, but a wrapped
+     two-line title sizes this box to its widest line — centering within
+     that box then indents the narrower line away from the icon instead of
+     keeping both lines flush against it. */
+  text-align: left;
+  /* Flex items default to min-width:auto, which floors their shrink at the
+     unwrapped text width — without this, a long title doesn't wrap onto a
+     second line, it just overflows the tile past the icon instead. */
+  min-width: 0;
+  /* Reserves 2 lines' height (line-height 1.3, inherited) even for a title
+     that only needs one — without this, a one-line card's shorter block
+     centers higher than a two-line neighbour's taller block, so their icons
+     (and first lines) land at different heights across the same row. A flex
+     item is blockified automatically, so min-height applies and the text
+     still starts flush at the top of that reserved space either way — same
+     first-line position, and so the same icon position, in both cases. */
+  min-height: 2.6em;
 }
 
 .howto-tile:focus-visible {
@@ -2098,7 +2130,7 @@ body.embed-mode #infoResizer {
 
 .howto-filter-chip {
   padding: 2px 12px;
-  font-size: 13px;
+  font-size: 0.85em;
   line-height: 1.6;
   border-radius: 999px;
   border: 1px solid var(--color-howto-accent);
@@ -2115,20 +2147,6 @@ body.embed-mode #infoResizer {
 .howto-filter-chip:focus-visible {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
-}
-
-/* Topic tag shown on each card — the unselected filter chip's colors (accent
-   text and border), on a white badge: a transparent background would show the
-   accent tile through, leaving accent-on-accent and unreadable. */
-.howto-tag {
-  font-size: 13px;
-  font-weight: normal;
-  line-height: 1.4;
-  padding: 1px 8px;
-  border-radius: 999px;
-  border: 1px solid var(--color-howto-accent);
-  background: #fff;
-  color: var(--color-howto-accent);
 }
 
 @media (max-width: 600px) {
@@ -3312,13 +3330,13 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 /* Icon inside a <ui-button> highlight link — gap between the label and icon. */
 .howto-article .help-link .howto-icon {
-  margin-left: 0.15em;
+  margin-left: 0.35em;
 }
 
 /* Toolbox tags put the icon before the name, like the toolbox itself. */
 .howto-article .help-link .howto-icon:first-child {
   margin-left: 0;
-  margin-right: 0.15em;
+  margin-right: 0.35em;
 }
 
 /* <ui-button> labels render bold so buttons scan out from body text. */
@@ -3356,7 +3374,8 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-article goal,
 .howto-article step,
-.howto-article tip {
+.howto-article tip,
+.howto-article .howto-related {
   display: block;
   margin: 0 0 1em;
   padding: 0.75em 0.9em;
@@ -3369,10 +3388,10 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 }
 
 .howto-article goal::before {
-  content: 'Goal';
-  display: block;
+  content: 'Goal:';
+  display: inline;
   font-weight: bold;
-  margin-bottom: 0.3em;
+  margin-right: 0.4em;
 }
 
 .howto-article step {
@@ -3475,7 +3494,8 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   opacity: 0.3;
 }
 
-.howto-article tip {
+.howto-article tip,
+.howto-article .howto-related {
   background-color: var(--color-bg-secondary);
   border-left: 4px solid var(--color-primary-light);
   font-size: 0.95em;
@@ -3483,6 +3503,13 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-article tip::before {
   content: 'Tip:';
+  display: inline;
+  font-weight: bold;
+  margin-right: 0.4em;
+}
+
+.howto-article .howto-related::before {
+  content: 'Related:';
   display: inline;
   font-weight: bold;
   margin-right: 0.4em;

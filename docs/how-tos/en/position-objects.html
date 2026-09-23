@@ -1,12 +1,12 @@
 <!-- Content of the "Position an object" how-to. Edit freely — see README.md in docs/how-tos. -->
-<goal>Move an object exactly where you want it.</goal>
+<goal>Position an object on the 3D canvas.</goal>
 
 <step>
   <step-title>Choose the position gizmo</step-title>
   <p>
     Click <ui-button target="positiongizmo">Position</ui-button>
-    in the gizmo menu. If an <vocab>object</vocab> is already selected, the gizmo
-    attaches to it — otherwise, click the object you want to move on the
+    in the gizmo bar. If an <vocab>object</vocab> is already selected, the position gizmo
+    attaches to it. Otherwise, click the object you want to move on the
     <vocab>canvas</vocab>.
   </p>
 </step>
@@ -22,36 +22,19 @@
     <li>The green <axis-y>Y</axis-y> arrow moves it up and down.</li>
     <li>The orange <axis-z>Z</axis-z> arrow moves it forward and back.</li>
   </ul>
-  <p>Move slowly at first — small movements are easier to control.</p>
 </step>
 
 <step>
-  <step-title>Or set its position in code</step-title>
+  <step-title>Use canvas controls</step-title>
   <p>
-    You can also set its position with the block's <axis-x>X</axis-x>,
-    <axis-y>Y</axis-y>, and <axis-z>Z</axis-z> values. They use the same colors as
-    the arrows, so match the value to the arrow you want.
+    Use the on-screen gizmo controls: tap the <axis-x>X</axis-x>,
+    <axis-y>Y</axis-y>, or <axis-z>Z</axis-z> button for the axis you want to move
+    along, then use the - and + buttons to position the object.
   </p>
-</step>
-
-<step>
-  <step-title>Pick a position from the canvas</step-title>
   <p>
-    You can also go the other way: click the pin icon
-    <svg
-      class="howto-icon"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 384 512"
-      aria-hidden="true"
-    >
-      <path
-        fill="currentColor"
-        d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
-      />
-    </svg>
-    on the block, then click a surface on the <vocab>canvas</vocab>. The block's
-    <axis-x>X</axis-x>, <axis-y>Y</axis-y>, and <axis-z>Z</axis-z> values update
-    and the object moves to the new position.
+    Show or hide gizmo controls from <link-to target="mainmenu">Menu</link-to> &gt;
+    <link-to target="toolsmenu">Tools</link-to> &gt;
+    <link-to target="gizmocontrols">Gizmo controls</link-to>.
   </p>
 </step>
 
@@ -63,21 +46,12 @@
 </step>
 
 <step>
-  <step-title>Use canvas controls</step-title>
-  <p>
-    You can also use the on-screen controls: tap the <axis-x>X</axis-x>,
-    <axis-y>Y</axis-y>, or <axis-z>Z</axis-z> button for the axis you want to move
-    along, then use the - and + buttons to position the object.
-  </p>
-</step>
-
-<step>
   <step-title>Put the gizmo away</step-title>
   <p>
     When you have finished, click off the canvas or click the Position button again.
   </p>
 </step>
 
-<tip>
-  Moved it too far? Undo, then move it again slowly.
-</tip>
+<related>
+  <related-howto slug="position-with-code"></related-howto>
+</related>

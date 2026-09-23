@@ -226,7 +226,7 @@ function getFieldTextFontSizePt(block) {
   return typeof size === 'number' && size > 0 ? size : DEFAULT_FIELD_TEXT_FONTSIZE;
 }
 
-export async function generateSVG(block, { rasterSafe = false } = {}) {
+export async function generateSVG(block, { rasterSafe = false, keepSelected = false } = {}) {
   const isSection = block.type === 'section';
   if (isSection) beginSectionDragFollow(block);
 
@@ -236,11 +236,34 @@ export async function generateSVG(block, { rasterSafe = false } = {}) {
 
     svgBlock.querySelectorAll('.blocklyHighlightedConnectionPath').forEach((el) => el.remove());
 
-    svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
-      el.setAttribute('fill', 'none');
-      if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
-      el.setAttribute('stroke-width', '1');
-    });
+    if (keepSelected) {
+      // The real selection glow is `filter: var(--blocklySelectedGlowFilter)`,
+      // a custom property set on the workspace's own injection div — it won't
+      // resolve once this fragment is cloned out and inserted somewhere else
+      // in the document, so resolve it to the renderer's actual filter id
+      // (a real, stable <filter> element that stays in the DOM for as long as
+      // this block's workspace does) and set that directly. Only meaningful
+      // for a caller that keeps its target workspace alive after this call —
+      // e.g. the how-to snippet renderer's shared offscreen workspace — never
+      // for a one-shot export like PNG download, where the filter reference
+      // can't be resolved once the image is standalone.
+      const filterId = block.workspace?.getRenderer?.()?.getConstants?.()?.selectedGlowFilterId;
+      svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
+        // Both halves of the real (unresolvable, see above) CSS rule: without
+        // fill:none too, the block's own category-colour fill attribute wins
+        // (a presentation attribute loses to a real stylesheet rule, but not
+        // to nothing), and the glow filter then floods that whole solid
+        // shape blue instead of just haloing its edges.
+        el.style.fill = 'none';
+        if (filterId) el.style.filter = `url(#${filterId})`;
+      });
+    } else {
+      svgBlock.querySelectorAll('.blocklyPath.blocklyPathSelected').forEach((el) => {
+        el.setAttribute('fill', 'none');
+        if (!el.getAttribute('stroke')) el.setAttribute('stroke', '#999');
+        el.setAttribute('stroke-width', '1');
+      });
+    }
 
     svgBlock.querySelectorAll('.blocklyActiveFocus').forEach((el) => {
       el.classList.remove('blocklyActiveFocus');
@@ -271,6 +294,22 @@ export async function generateSVG(block, { rasterSafe = false } = {}) {
     svgBlock.removeAttribute('transform');
 
     bbox = block.getSvgRoot().getBBox();
+    if (keepSelected) {
+      // getBBox() measures the block's plain geometry, not how far the glow
+      // filter's blur can paint beyond it — left as-is, the wrapper <svg>
+      // below is sized exactly to the block and the glow gets clipped at its
+      // edges. Blockly's own filter region is a generous percentage-of-bbox
+      // margin (safe for a filter shared across differently-sized blocks),
+      // but the actual blur here is small and fixed (stdDeviation ~0.5), so a
+      // small fixed pixel pad covers it without ballooning the snippet.
+      const GLOW_PAD = 6;
+      bbox = {
+        x: bbox.x - GLOW_PAD,
+        y: bbox.y - GLOW_PAD,
+        width: bbox.width + GLOW_PAD * 2,
+        height: bbox.height + GLOW_PAD * 2,
+      };
+    }
   } finally {
     if (isSection) endSectionDragFollow(block);
   }
