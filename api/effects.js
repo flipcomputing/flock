@@ -4,11 +4,26 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Headlamp tracks this fraction of the main light's intensity, so it stays
+// proportional to lightIntensity() and goes to 0 when that does.
+const HEADLAMP_INTENSITY_RATIO = 0.4;
+
+function updateHeadlampIntensity() {
+  if (!flock.headlampLight) return;
+  const soft = flock._lightStyleSoft !== false;
+  flock.headlampLight.intensity = soft
+    ? (flock.mainLight?.intensity ?? 1) * HEADLAMP_INTENSITY_RATIO
+    : 0;
+}
+
 export const flockEffects = {
   /*    Category: Scene>Effects  */
+  // Called by flockEffects itself and by flock.js on scene init.
+  updateHeadlampIntensity,
   lightIntensity(intensity) {
     if (flock.mainLight) {
       flock.mainLight.intensity = intensity;
+      updateHeadlampIntensity();
     } else {
       console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
     }
@@ -19,6 +34,31 @@ export const flockEffects = {
       flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(groundColor);
     } else {
       console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
+    }
+  },
+  // Soft (default): no specular hotspot on the main light, gentle tone
+  // mapping. Classic: original look, full specular, no tone mapping.
+  lightStyle(style) {
+    if (!flock.mainLight) {
+      console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
+      return;
+    }
+    const soft = (style || 'SOFT').toString().toUpperCase() !== 'CLASSIC';
+    flock._lightStyleSoft = soft;
+
+    flock.mainLight.specular = soft
+      ? new flock.BABYLON.Color3(0, 0, 0)
+      : new flock.BABYLON.Color3(1, 1, 1);
+
+    updateHeadlampIntensity();
+
+    const ipc = flock.scene?.imageProcessingConfiguration;
+    if (ipc) {
+      ipc.toneMappingEnabled = soft;
+      if (soft) {
+        ipc.toneMappingType =
+          flock.BABYLON.ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
+      }
     }
   },
   getMainLight() {

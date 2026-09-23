@@ -205,7 +205,7 @@ export default {
   get_lexical_variable: '%1', // human
 
   // Custom block translations - Effects blocks
-  main_light: 'intensidad de luz: %1 color: %2 suelo: %3', // human
+  main_light: 'intensidad de luz: %1 color: %2 suelo: %3 sombreado %4', // human
   set_fog: 'establecer niebla color %1 modo %2 densidad %3\ninicio %4 fin %5', // human
   get_light: 'obtener luz como %1', // human
 
@@ -502,7 +502,8 @@ export default {
   get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica.', // human
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: 'Establece la intensidad de la luz principal.', // human
+  main_light_tooltip:
+    'Establece la intensidad y los colores difuso y de suelo de la luz principal, y elige entre sombreado suave (uniforme, sin brillos) y clásico (más brillante, el original).', // human
   set_fog_tooltip:
     'Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.', // human
   get_light_tooltip: 'Obtén la luz principal de la escena actual.', // human
@@ -675,7 +676,8 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora. En unas gafas de RV la escena aparece en tu habitación.', // ai
-  set_xr_mode_tooltip: 'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.', // ai
+  set_xr_mode_tooltip:
+    'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.', // ai
   set_xr_view_mode_tooltip:
     'Elige si observar o encarnar el objeto seguido y cómo se mueve su cámara. En observar, la comodidad de la cámara se ajusta después de detenerse el movimiento; en encarnar, la teletransportación usa el rayo del mando.', // ai
   set_ar_scene_size_tooltip:
@@ -784,6 +786,9 @@ export default {
   NONE_option: 'ninguno', // human
   EXP_option: 'exp', // human
   EXP2_option: 'exp2', // human
+
+  SOFT_option: 'suave',
+  CLASSIC_option: 'clásico',
 
   OnPickTrigger_option: 'clickeado', // human
   OnLeftPickTrigger_option: 'interactuar', // human
@@ -1540,8 +1545,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
   hud_hidden: 'Controles de manipulación ocultos', // ai
   hud_shown: 'Controles de manipulación visibles', // ai
-  gizmo_controls_hint:
-    'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
+  gizmo_controls_hint: 'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
   xr_mode_missing_hint:
     'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',

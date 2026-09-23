@@ -25,6 +25,11 @@ export function defineEffectsBlocks() {
             name: 'GROUND_COLOR',
             check: 'Colour',
           },
+          {
+            type: 'field_dropdown',
+            name: 'STYLE',
+            options: [getDropdownOption('SOFT'), getDropdownOption('CLASSIC')],
+          },
         ],
         inputsInline: true,
         previousStatement: null,

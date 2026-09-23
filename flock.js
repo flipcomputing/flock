@@ -1184,6 +1184,7 @@ export const flock = {
       setSky: this.setSky?.bind(this),
       lightIntensity: this.lightIntensity?.bind(this),
       lightColor: this.lightColor?.bind(this),
+      lightStyle: this.lightStyle?.bind(this),
       enableShadows: this.enableShadows?.bind(this),
       setShadow: this.setShadow?.bind(this),
       buttonControls: this.buttonControls?.bind(this),
@@ -1345,6 +1346,7 @@ export const flock = {
       'removeTeleportTarget',
       'lightIntensity',
       'lightColor',
+      'lightStyle',
       'enableShadows',
       'setShadow',
       'create3DText',
@@ -2392,8 +2394,18 @@ export const flock = {
     hemisphericLight.intensity = 1.0;
     hemisphericLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
     hemisphericLight.groundColor = new flock.BABYLON.Color3(0.5, 0.5, 0.5);
+    // No specular: an ambient light shouldn't cast a hard highlight that
+    // blows surfaces to white when the view aligns with its direction.
+    hemisphericLight.specular = new flock.BABYLON.Color3(0, 0, 0);
 
     flock.mainLight = hemisphericLight;
+
+    // KHR_PBR_NEUTRAL rolls off overexposure without crushing shadows the
+    // way ACES's filmic curve does.
+    flock.scene.imageProcessingConfiguration.toneMappingEnabled = true;
+    flock.scene.imageProcessingConfiguration.toneMappingType =
+      flock.BABYLON.ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
+    flock.scene.imageProcessingConfiguration.exposure = 1.0;
 
     // Directional light that drives the ShadowGenerator. A shadow is the
     // absence of this light's contribution where it's blocked, so it must
@@ -2413,6 +2425,24 @@ export const flock = {
     flock.shadowLight = shadowLight;
     flock.shadowGenerator = null;
     flock.shadowCasters.clear();
+
+    // Headlamp: fills in faces the hemispheric light leaves dark, by always
+    // pointing where the camera looks. No specular — its direction tracks
+    // the view exactly, so a head-on surface would always catch a hotspot.
+    const headlampLight = new flock.BABYLON.DirectionalLight(
+      'headlampLight',
+      new flock.BABYLON.Vector3(0, 0, 1),
+      flock.scene
+    );
+    headlampLight.diffuse = new flock.BABYLON.Color3(1, 1, 1);
+    headlampLight.specular = new flock.BABYLON.Color3(0, 0, 0);
+    flock.headlampLight = headlampLight;
+    flock.updateHeadlampIntensity();
+    flock.scene.onBeforeRenderObservable.add(() => {
+      const camera = flock.scene.activeCamera;
+      if (!camera) return;
+      headlampLight.direction = camera.getForwardRay().direction;
+    });
 
     // Enable collisions
     flock.scene.collisionsEnabled = true;
@@ -3015,7 +3045,8 @@ function ensureTrailingSlash(url) {
 function flockRuntimeBase() {
   const configured =
     typeof window !== 'undefined' && window.FLOCK_CONFIG && window.FLOCK_CONFIG.runtimeBaseUrl;
-  const base = flockConfigUrl(configured) || new URL(import.meta.env.BASE_URL, import.meta.url).href;
+  const base =
+    flockConfigUrl(configured) || new URL(import.meta.env.BASE_URL, import.meta.url).href;
   return ensureTrailingSlash(base);
 }
 
@@ -3068,7 +3099,12 @@ function injectStandaloneChrome() {
     text.className = 'flock-loading-text';
     text.textContent = 'Loading…';
 
-    content.append(bird, brandImg('inline-flock-xr.svg', 'flock-loading-logo', 'Flock XR'), spinner, text);
+    content.append(
+      bird,
+      brandImg('inline-flock-xr.svg', 'flock-loading-logo', 'Flock XR'),
+      spinner,
+      text
+    );
     screen.appendChild(content);
     body.appendChild(screen);
   }

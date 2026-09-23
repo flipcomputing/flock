@@ -214,7 +214,7 @@ export default {
   section_none_option: 'none',
 
   // Custom block translations - Effects blocks
-  main_light: 'light intensity: %1 color: %2 ground: %3',
+  main_light: 'light intensity: %1 color: %2 ground: %3 shading %4',
   set_fog: 'set fog color %1 mode %2 density %3\nstart %4 end %5',
   get_light: 'get light as %1',
 
@@ -358,7 +358,8 @@ export default {
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   ui_input: 'ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   describe: 'describe %1 as %2',
-  create_3d_text: 'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 %10 x: %7 y: %8 z: %9 ',
+  create_3d_text:
+    'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',
@@ -507,7 +508,8 @@ export default {
     'Load, unload, or switch to a section. Load has no effect if already loaded; switch unloads every other loaded section first.',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: 'Set the intensity and diffuse and ground colors of the main light.',
+  main_light_tooltip:
+    'Set the intensity and diffuse and ground colors of the main light, and choose between soft (even, no glare) and classic (shinier, original) shading.',
   set_fog_tooltip:
     "Configure the scene's fog. Use start and end to set the near and far distances.",
   get_light_tooltip: "Get the current scene's main light.",
@@ -800,6 +802,9 @@ export default {
   NONE_option: 'none',
   EXP_option: 'exp',
   EXP2_option: 'exp2',
+
+  SOFT_option: 'soft',
+  CLASSIC_option: 'classic',
 
   OnPickTrigger_option: 'clicked',
   OnLeftPickTrigger_option: 'interact',

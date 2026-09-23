@@ -386,8 +386,9 @@ export function registerSceneGenerators(javascriptGenerator) {
     const parentCode = maybeParentToGroup(variableName);
 
     const doCode = block.getInput('DO')
-      ? withGroupParent(isActive ? variableName : null, () =>
-          javascriptGenerator.statementToCode(block, 'DO') || ''
+      ? withGroupParent(
+          isActive ? variableName : null,
+          () => javascriptGenerator.statementToCode(block, 'DO') || ''
         )
       : '';
 
@@ -445,8 +446,9 @@ export function registerSceneGenerators(javascriptGenerator) {
     const groundColor =
       javascriptGenerator.valueToCode(block, 'GROUND_COLOR', javascriptGenerator.ORDER_ATOMIC) ||
       '#808080';
+    const style = block.getFieldValue('STYLE') || 'SOFT';
 
-    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
+    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\nlightStyle("${style}");\n`;
   };
 
   // Enable shadows -------------------------------------------------
