@@ -2997,6 +2997,16 @@ kbd {
   padding: 1em;
 }
 
+/* The how-to tab specifically (not shortcuts/players/help, which keep the
+   shared #info-panel beige) gets the lighter --color-menu background — the
+   same colour as the top and bottom menu bars. min-height keeps it filling
+   the scroller even when the grid/article is shorter than the panel, so no
+   sliver of the #info-panel beige behind shows through underneath it. */
+[data-theme='light'] #info-tab-panel-howto {
+  background-color: var(--color-menu);
+  min-height: 100%;
+}
+
 .info-tab-panel:focus-visible {
   outline: 2px solid var(--color-focus-outline);
   outline-offset: -2px;
@@ -3080,7 +3090,12 @@ kbd {
 
 [data-theme='light'] .font-decrease-btn,
 [data-theme='light'] .font-increase-btn {
-  background-color: var(--color-panel-bg);
+  /* Transparent rather than a fixed fill, since these buttons sit on
+     whichever page background their panel has — --color-panel-bg in the
+     shortcuts/players/help panels, --color-menu in the how-to panel (see
+     [data-theme='light'] #info-tab-panel-howto above) — and a solid fill
+     would only match one of them. */
+  background-color: transparent;
 }
 
 .font-decrease-btn span {
@@ -3403,6 +3418,14 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
     color 0.2s ease;
 }
 
+/* Same darker beige already used for kbd (see [data-theme='light'] kbd
+   above), so each step reads as its own card against the lighter
+   --color-menu page behind it (see [data-theme='light'] #info-tab-panel-howto
+   above). */
+[data-theme='light'] .howto-article step {
+  background-color: var(--color-panel-bg);
+}
+
 /* A short <step-title> comes first inside <step> and carries the "Step N: "
    prefix itself, so the number and the title read as one heading line —
    important for scanning a list of steps at a glance. Steps without one (a
@@ -3494,7 +3517,16 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   opacity: 0.3;
 }
 
-.howto-article tip,
+.howto-article tip {
+  /* Light yellow, mirroring how .howto-article goal tints --color-bg with
+     its own accent (--color-howto-accent) instead — --color-primary-light
+     is already the app's amber/gold accent (also --color-focus), reused here
+     rather than inventing a new colour. */
+  background-color: color-mix(in srgb, var(--color-primary-light) 12%, var(--color-bg));
+  border-left: 4px solid var(--color-primary-light);
+  font-size: 0.95em;
+}
+
 .howto-article .howto-related {
   background-color: var(--color-bg-secondary);
   border-left: 4px solid var(--color-primary-light);

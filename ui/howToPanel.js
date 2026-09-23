@@ -54,7 +54,7 @@ function drawAttention(el) {
 const HOW_TOS = [
   { slug: 'add-sky-and-ground', i18nKey: 'howto_add_sky_and_ground_ui', tone: 1, tags: ['scene'] },
   { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 2, tags: ['gizmo'], icon: 'addmenu' },
-  { slug: 'colour-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
+  { slug: 'color-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
   { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'], icon: 'positiongizmo' },
   { slug: 'position-with-code', i18nKey: 'howto_position_with_code_ui', tone: 15, tags: ['code'] },
   { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'], icon: 'rotategizmo' },
@@ -160,6 +160,37 @@ const HOWTO_LINK_TARGETS = {
   addmenu: () => drawAttention(document.getElementById('showShapesButton')),
   // Gizmo toolbar buttons — each activates its gizmo.
   colorpicker: () => drawAttention(document.getElementById('colorPickerButton')),
+  // Controls inside the color picker itself — same "Projects"/"New" guided-
+  // chain fallback as newprojectbutton/gizmocontrols above: each points at
+  // its real control if the picker is open, or falls back to the Color
+  // picker gizmo button (which opens it) otherwise.
+  colorpalette: () =>
+    drawAttention(
+      colorPickerSubElement('#palette-select') ?? document.getElementById('colorPickerButton')
+    ),
+  colorrandom: () =>
+    drawAttention(
+      colorPickerSubElement('.color-picker-random') ??
+        document.getElementById('colorPickerButton')
+    ),
+  colorwheel: () =>
+    drawAttention(
+      colorPickerSubElement('.color-wheel-canvas') ?? document.getElementById('colorPickerButton')
+    ),
+  colorbrightness: () =>
+    drawAttention(
+      colorPickerSubElement('.lightness-slider') ?? document.getElementById('colorPickerButton')
+    ),
+  colorhue: () =>
+    drawAttention(
+      colorPickerSubElement('.hue-slider-container') ??
+        document.getElementById('colorPickerButton')
+    ),
+  coloreyedropper: () =>
+    drawAttention(
+      colorPickerSubElement('.color-picker-eyedropper') ??
+        document.getElementById('colorPickerButton')
+    ),
   // Points at the Position button in the gizmo toolbar, which activates the
   // position gizmo — same approach as above.
   positiongizmo: () => drawAttention(document.getElementById('positionButton')),
@@ -404,6 +435,17 @@ const BLOCK_ICONS = {
     path: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z',
   },
 };
+
+// The color picker (ui/colourpicker.js) is a single instance appended to
+// #canvasArea once at startup and toggled via style.display, never
+// created/destroyed — so a plain selector reliably finds its current
+// controls. Returns null while the picker is closed, so callers can fall
+// back to the Color picker gizmo button instead of glowing a hidden control.
+function colorPickerSubElement(selector) {
+  const picker = document.querySelector('.custom-color-picker');
+  if (!picker || picker.style.display === 'none') return null;
+  return picker.querySelector(selector);
+}
 
 function findSnippetsCategory() {
   const toolbox = Blockly.getMainWorkspace()?.getToolbox?.();

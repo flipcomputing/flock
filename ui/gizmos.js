@@ -498,6 +498,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
         const canvas = document.getElementById('renderCanvas');
         if (canvas && (canvas === target || canvas.contains(target))) return true;
+        // Don't close when clicking inside the info panel (shortcuts/help/how-to) —
+        // a how-to <link-to> glowing one of the picker's own controls (see
+        // colorpalette/colorrandom/etc. in ui/howToPanel.js) would otherwise
+        // register as an "outside" click and immediately close the very
+        // picker it's trying to highlight.
+        const infoPanel = document.getElementById('info-panel');
+        if (infoPanel && infoPanel.contains(target)) return true;
         // Don't close when clicking a colour field in the Blockly workspace —
         // the pointerdown listener in blocks.js sets this flag for colour-field hits only
         if (colorPicker._colourFieldPointerDown) {
