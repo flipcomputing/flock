@@ -55,6 +55,50 @@ const blueColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.x); // Colour for 
 const greenColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.y); // Colour for Y-axis
 const orangeColor = flock.BABYLON.Color3.FromHexString(AXIS_HEX.z); // Colour for Z-axis
 
+// Matches --color-light-icon-bar in style.css (the light purple behind the
+// gizmo buttons), so the orbit-view box reads as "in orbit" rather than
+// "selected" at a glance.
+const ORBIT_BOUNDING_BOX_COLOR = flock.BABYLON.Color3.FromHexString('#cec0e0');
+let defaultBoundingBoxColors = null; // Babylon's own colours, captured once per scene
+let boundingBoxColorHookScene = null; // Scene the per-box colour hook is installed on
+
+// Babylon's BoundingBoxRenderer colour is normally scene-global — one
+// frontColor/backColor shared by every mesh with showBoundingBox=true — but
+// its onBeforeBoxRenderingObservable fires once per box, right before that
+// box's colour is read, with the exact BoundingBox instance being drawn
+// (mesh.getBoundingInfo().boundingBox — reused in place per mesh, not
+// recreated, so `===` identifies which mesh it belongs to). Swapping
+// frontColor/backColor in that hook tints only the orbited mesh's own box
+// purple, leaving every other box (select, transform gizmos, ...) at
+// Babylon's default colour — even while both are visible at once.
+function ensureOrbitBoundingBoxColorHook() {
+  const renderer = flock.scene?.getBoundingBoxRenderer?.();
+  if (!renderer || boundingBoxColorHookScene === flock.scene) return;
+  defaultBoundingBoxColors = {
+    front: renderer.frontColor.clone(),
+    back: renderer.backColor.clone(),
+  };
+  renderer.onBeforeBoxRenderingObservable.add((boundingBox) => {
+    const orbitMesh = window.orbitMesh;
+    const isOrbitBox =
+      !!flock.scene?.activeCamera?.metadata?.orbitView &&
+      orbitMesh &&
+      !orbitMesh.isDisposed?.() &&
+      boundingBox === orbitMesh.getBoundingInfo().boundingBox;
+    const colors = isOrbitBox
+      ? { front: ORBIT_BOUNDING_BOX_COLOR, back: ORBIT_BOUNDING_BOX_COLOR }
+      : defaultBoundingBoxColors;
+    renderer.frontColor = colors.front;
+    renderer.backColor = colors.back;
+  });
+  boundingBoxColorHookScene = flock.scene;
+}
+
+// True while mesh is the one orbit view is currently centred on.
+function isOrbitedMesh(mesh) {
+  return !!(mesh && flock.scene?.activeCamera?.metadata?.orbitView && mesh === window.orbitMesh);
+}
+
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
 const FAST_ROTATION = 0.5;
@@ -579,9 +623,16 @@ function resetChildMeshesOfAttachedMesh() {
   gizmoManager?.attachedMesh.getChildMeshes().forEach((child) => hideBoundingBox(child));
 }
 
+// Clears the attached mesh's box, except the orbited mesh's own box, which
+// stays lit for as long as orbit view is centred on it — regardless of which
+// tool is active or attached elsewhere. Safe to leave visible alongside a
+// plain-coloured selection box: the per-box colour hook above means the two
+// never share a colour just because they're both on screen at once.
 function resetAttachedMesh() {
   if (!gizmoManager?.attachedMesh) return;
-  hideBoundingBox(gizmoManager.attachedMesh);
+  if (!isOrbitedMesh(gizmoManager.attachedMesh)) {
+    hideBoundingBox(gizmoManager.attachedMesh);
+  }
   resetChildMeshesOfAttachedMesh();
 }
 
@@ -1984,6 +2035,7 @@ function enableBoundingBox(mesh) {
     mesh.visibility = 0.001;
   }
   mesh.showBoundingBox = true;
+  ensureOrbitBoundingBoxColorHook();
 }
 
 // Takes a block position, rounded as setBlockXYZ does, so the readout and the
@@ -2932,8 +2984,10 @@ export function toggleGizmo(gizmoType) {
   }
 
   exitGizmoState(preserveOrbit ? { preserveOrbit: true } : undefined); // Clean up any existing gizmo state
-  if (!preserveOrbit && gizmoType !== 'camera' && gizmoType !== 'eye')
-    resetAttachedMeshIfMeshAttached();
+  // Not gated on preserveOrbit: resetAttachedMesh already keeps the orbited
+  // mesh's own box lit on its own (see isOrbitedMesh), so switching tools
+  // here should still clear a plain selection box even mid-orbit.
+  if (gizmoType !== 'camera' && gizmoType !== 'eye') resetAttachedMeshIfMeshAttached();
 
   document.body.style.cursor = 'default';
 
