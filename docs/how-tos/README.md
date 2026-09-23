@@ -28,17 +28,90 @@ how-to-specific structure:
 | `<vocab>…</vocab>`                    | A vocabulary term, e.g. `<vocab>fly camera</vocab>`. Rendered inline in a distinct style; a vocab list collecting these terms comes later.                                                                                                                                                                                                                                                                                                                                                                                 |
 | `<axis-x>…</axis-x>`, `<axis-y>…</axis-y>`, `<axis-z>…</axis-z>` | An axis reference, e.g. `<axis-x>X</axis-x>`. The letter renders in its gizmo color so readers can match text to arrows and block values — never write a hex value or inline style for this; the colors live in one place in `style.css` (kept in sync with `AXIS_HEX` in `ui/gizmos.js`). |
 | `<link-to target="…">label</link-to>` | A link to a real part of the UI, e.g. `<link-to target="tools">gizmo hints</link-to>` or `<link-to target="newproject">Projects</link-to>`. Clicking it draws attention to (and sometimes opens) that part of the app — see `drawAttention()` in `ui/howToPanel.js`. Valid `target` values are defined in `HOWTO_LINK_TARGETS` in the same file — add a new one there before using it in a how-to; a target can check real UI state (e.g. whether a modal is already open) to point at whichever control makes sense next. A target of the form `howto:<slug>` (e.g. `howto:look-around`) opens another how-to card instead. |
+| `<ui-button target="…">label</ui-button>` | A button with its icon — menu-bar buttons, toolbox categories (`toolbox:KEY`), block-menu buttons (`block-…`) and the workspace trashcan (`trashcan`). See the target lists below. |
 | `<snippet src="…">caption</snippet>`  | A picture of a real block, e.g. `<snippet src="sky-and-map">The sky block</snippet>`. Rendered live from Blockly JSON in `docs/how-tos/snippets/` — see the README there for how to create one. The caption is optional but recommended: it's also the accessible description, since the rendered picture itself is decorative.                                                                                                                                                                                            |
 
 Avoid inline `style` attributes so the text keeps working with the panel's text-size
 buttons and with every colour theme.
 
-To show a UI button inline in a sentence, paste its SVG from `index.html` with
-`class="howto-icon"` (sized to the surrounding text by `style.css`) — see the Add
-step in `en/add-objects.html`.
+To show a button inline in a sentence, use
+`<ui-button target="…">label</ui-button>` — see the target lists below. It renders
+the label bold plus the button's icon (before the name for toolbox categories,
+after it for other buttons) and highlights the real button on click, so
+never paste an SVG for these buttons.
 
 A plain `<a href="https://…">` is enough for an external link — it's decorated the same
 way as in the Help tab (new tab, external-link icon, screen-reader announcement).
+
+### `<ui-button>` targets
+
+One target per menu-bar button. The icons are hardcoded copies of the SVGs in
+`index.html` (kept in `UI_BUTTON_ICONS` in `ui/howToPanel.js`) — if a button
+icon changes, update its entry there in the same pass. Text-only buttons
+(`projects`, `canvasview`, `codeview`) have no icon entry and render as a
+label-only highlight link.
+
+| Target | Points at | Example |
+| ------ | --------- | ------- |
+| `addmenu` | Add menu (`#showShapesButton`) | `<ui-button target="addmenu">Add</ui-button>` |
+| `colorpicker` | Colour picker (`#colorPickerButton`) | `<ui-button target="colorpicker">Colour</ui-button>` |
+| `positiongizmo` | Position gizmo (`#positionButton`) | `<ui-button target="positiongizmo">Position</ui-button>` |
+| `rotategizmo` | Rotate gizmo (`#rotationButton`) | `<ui-button target="rotategizmo">Rotate</ui-button>` |
+| `scalegizmo` | Resize gizmo (`#scaleButton`) | `<ui-button target="scalegizmo">Resize</ui-button>` |
+| `selectgizmo` | Select gizmo (`#selectButton`) | `<ui-button target="selectgizmo">Select</ui-button>` |
+| `duplicategizmo` | Duplicate gizmo (`#duplicateButton`) | `<ui-button target="duplicategizmo">Duplicate</ui-button>` |
+| `deletegizmo` | Delete gizmo (`#deleteButton`) | `<ui-button target="deletegizmo">Delete</ui-button>` |
+| `cameragizmo` | Camera controls (`#cameraButton`) | `<ui-button target="cameragizmo">Camera</ui-button>` |
+| `viewgizmo` | Orbit view (`#eyeButton`) | `<ui-button target="viewgizmo">View</ui-button>` |
+| `mainmenu` | Main menu (`#menuBtn`) | `<ui-button target="mainmenu">Menu</ui-button>` |
+| `projects` | Projects (`#exampleButton`, label only) | `<ui-button target="projects">Projects</ui-button>` |
+| `run` | Run (`#runCodeButton`) | `<ui-button target="run">Play</ui-button>` |
+| `stop` | Stop (`#stopCodeButton`) | `<ui-button target="stop">Stop</ui-button>` |
+| `playmode` | Play view (`#togglePlay`) | `<ui-button target="playmode">Play view</ui-button>` |
+| `fullscreen` | Fullscreen (`#fullscreenToggle`) | `<ui-button target="fullscreen">Fullscreen</ui-button>` |
+| `blockhints` | Block hints (`#blockHintsBtn`) | `<ui-button target="blockhints">Block hints</ui-button>` |
+| `search` | Find in workspace (`#workspaceSearchBtn`) | `<ui-button target="search">Search</ui-button>` |
+| `undo` | Undo (`#undoBtn`) | `<ui-button target="undo">Undo</ui-button>` |
+| `redo` | Redo (`#redoBtn`) | `<ui-button target="redo">Redo</ui-button>` |
+| `zoomout` | Zoom out (`#zoomOutBtn`) | `<ui-button target="zoomout">Zoom out</ui-button>` |
+| `zoomin` | Zoom in (`#zoomInBtn`) | `<ui-button target="zoomin">Zoom in</ui-button>` |
+| `canvasview` | Canvas view toggle (`#canvasToggleBtn`, label only) | `<ui-button target="canvasview">Canvas</ui-button>` |
+| `codeview` | Code view toggle (`#codeToggleBtn`, label only) | `<ui-button target="codeview">Code</ui-button>` |
+
+### `<ui-button>` toolbox targets
+
+`target="toolbox:KEY"`, where `KEY` matches a `CATEGORY_<KEY>` locale entry —
+e.g. `<ui-button target="toolbox:SNIPPETS">Snippets</ui-button>`. The icon is
+the category's own icon from `toolbox.js`, so no icon entry needs updating.
+Clicking highlights the category's row; for a subcategory whose parent isn't
+open yet (e.g. Strings inside Text), the glow goes to the parent category
+instead. Available keys:
+
+`SCENE`, `MESHES` (Objects), `XR`, `EFFECTS`, `CAMERA`, `EVENTS`,
+`TRANSFORM`, `PHYSICS`, `CONNECT`, `COMBINE`, `ANIMATE`, `KEYFRAME`,
+`CONTROL`, `CONDITION`, `SENSING`, `TEXT`, `STRINGS`, `MATERIALS`, `SOUND`,
+`VARIABLES`, `VARIABLES_SUBCATEGORY`, `LISTS`, `MATH`, `FUNCTIONS`,
+`SNIPPETS`, `MOVEMENT`.
+
+### `<ui-button>` block-menu and trashcan targets
+
+The floating block menu only opens on a selected block, so these highlight
+nothing until the reader has selected a block — tell them to select one
+first. The workspace trashcan (`trashcan`) is always visible.
+
+| Target | Points at | Example |
+| ------ | --------- | ------- |
+| `block-expand` | Expand block | `<ui-button target="block-expand">Expand</ui-button>` |
+| `block-collapse` | Collapse block | `<ui-button target="block-collapse">Collapse</ui-button>` |
+| `block-unlock` | Unlock block | `<ui-button target="block-unlock">Unlock</ui-button>` |
+| `block-duplicate` | Duplicate block | `<ui-button target="block-duplicate">Duplicate</ui-button>` |
+| `block-copy` | Copy block | `<ui-button target="block-copy">Copy</ui-button>` |
+| `block-paste` | Paste block | `<ui-button target="block-paste">Paste</ui-button>` |
+| `block-detach` | Detach block | `<ui-button target="block-detach">Detach</ui-button>` |
+| `block-enable` | Enable / Disable block | `<ui-button target="block-enable">Enable</ui-button>` |
+| `block-view` | View in canvas | `<ui-button target="block-view">View</ui-button>` |
+| `block-delete` | Delete block | `<ui-button target="block-delete">Delete</ui-button>` |
+| `trashcan` | Workspace trashcan | `<ui-button target="trashcan">Trashcan</ui-button>` |
 
 ## Translations
 

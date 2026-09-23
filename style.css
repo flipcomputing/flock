@@ -3286,6 +3286,22 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   vertical-align: -0.125em;
 }
 
+/* Icon inside a <ui-button> highlight link — gap between the label and icon. */
+.howto-article .help-link .howto-icon {
+  margin-left: 0.15em;
+}
+
+/* Toolbox tags put the icon before the name, like the toolbox itself. */
+.howto-article .help-link .howto-icon:first-child {
+  margin-left: 0;
+  margin-right: 0.15em;
+}
+
+/* <ui-button> labels render bold so buttons scan out from body text. */
+.howto-article .help-link.howto-ui-button {
+  font-weight: bold;
+}
+
 /* A vocabulary term — inline, but visually distinct so glossary terms stand
    out in the text. A vocab list collecting these comes later. */
 .howto-article vocab {

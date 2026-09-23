@@ -726,6 +726,30 @@ export function runKeyboardUiTests(flock) {
         expect(article.querySelector('button.help-link')).to.exist;
       });
 
+      it('a <ui-button> renders its label with an icon and no underlined gap', function () {
+        HowToPanel.show();
+        const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
+          t.textContent.includes('Add objects')
+        );
+        expect(tile).to.exist;
+        tile.click();
+        const article = HowToPanel.panel.querySelector('.howto-article');
+        expect(article.querySelector('ui-button')).to.equal(null);
+        const btn = [...article.querySelectorAll('button.help-link')].find((b) =>
+          b.textContent.includes('Add')
+        );
+        expect(btn).to.exist;
+        expect(btn.querySelector('svg.howto-icon')).to.exist;
+        expect(btn.classList.contains('howto-ui-button')).to.equal(true);
+        // The label-icon gap is CSS margin, not a whitespace text node, so no
+        // underline paints between them.
+        const gaps = [...btn.childNodes].filter(
+          (n) => n.nodeType === Node.TEXT_NODE && !n.textContent.trim()
+        );
+        expect(gaps.length).to.equal(0);
+        expect(btn.lastChild.nodeName).to.equal('svg');
+      });
+
       it('shows a filter chip for All plus one per topic tag', function () {
         HowToPanel.show();
         const chips = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')];
