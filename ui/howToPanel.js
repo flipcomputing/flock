@@ -168,6 +168,12 @@ const HOWTO_LINK_TARGETS = {
     drawAttention(
       colorPickerSubElement('#palette-select') ?? document.getElementById('colorPickerButton')
     ),
+  // The grid of preset swatches rendered under the palette dropdown, not the
+  // dropdown itself — see colorpalette above.
+  colorswatches: () =>
+    drawAttention(
+      colorPickerSubElement('.color-palette') ?? document.getElementById('colorPickerButton')
+    ),
   colorrandom: () =>
     drawAttention(
       colorPickerSubElement('.color-picker-random') ??
@@ -587,6 +593,9 @@ function wireHowToButtons(root) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'help-link howto-ui-button';
+    // Read by gizmos.js's color-picker "click outside to close" handler —
+    // see the matching comment in wireHowToLinks() above.
+    if (target) btn.dataset.target = target;
     // The label lives in its own span (not a bare text node) so the
     // icon's :first-child rule only matches when the icon genuinely comes
     // before the label — bare text nodes don't count for :first-child, so
@@ -661,6 +670,11 @@ function wireHowToLinks(root, onOpenHowTo) {
     btn.type = 'button';
     btn.className = 'help-link';
     btn.textContent = el.textContent;
+    // Read by gizmos.js's color-picker "click outside to close" handler —
+    // color-picker-targeting links (colorpalette/colorrandom/etc.) glow a
+    // picker control while it stays open, so they're special-cased there
+    // to not close it; everything else in the panel does.
+    if (target) btn.dataset.target = target;
     if (target?.startsWith('howto:')) {
       const slug = target.slice('howto:'.length);
       if (HOW_TOS.some((h) => h.slug === slug)) {

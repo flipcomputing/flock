@@ -495,16 +495,28 @@ document.addEventListener('DOMContentLoaded', function () {
         pickMeshFromCanvas();
       },
       excludeFromClose: (target) => {
+        // Don't close via the "outside click" handler when clicking the trigger
+        // button itself — that button's own click listener (registered below,
+        // at the target phase) is the sole decision-maker for open vs close.
+        // Without this, the outside-click handler (capture phase on document,
+        // which runs first) would close the picker out from under the button's
+        // handler, which would then see an inactive button and reopen it —
+        // rerolling a random starting color instead of toggling off.
+        const colorPickerButton = document.getElementById('colorPickerButton');
+        if (colorPickerButton && (colorPickerButton === target || colorPickerButton.contains(target)))
+          return true;
         // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
         const canvas = document.getElementById('renderCanvas');
         if (canvas && (canvas === target || canvas.contains(target))) return true;
-        // Don't close when clicking inside the info panel (shortcuts/help/how-to) —
-        // a how-to <link-to> glowing one of the picker's own controls (see
-        // colorpalette/colorrandom/etc. in ui/howToPanel.js) would otherwise
-        // register as an "outside" click and immediately close the very
-        // picker it's trying to highlight.
-        const infoPanel = document.getElementById('info-panel');
-        if (infoPanel && infoPanel.contains(target)) return true;
+        // Don't close for a how-to link that glows one of the picker's own
+        // controls (colorpalette/colorrandom/colorwheel/etc. — see
+        // wireHowToLinks()/wireHowToButtons() in ui/howToPanel.js, which tag
+        // these with data-target so they can be picked out here). Their whole
+        // point is to highlight a picker control while it stays open to look
+        // at, so an "outside" click on them must not close it. Every other
+        // click in the help panel (or anywhere else) closes it as normal.
+        const howtoLink = target?.closest?.('.help-link');
+        if (howtoLink?.dataset.target?.startsWith('color')) return true;
         // Don't close when clicking a colour field in the Blockly workspace —
         // the pointerdown listener in blocks.js sets this flag for colour-field hits only
         if (colorPicker._colourFieldPointerDown) {
@@ -537,12 +549,24 @@ document.addEventListener('DOMContentLoaded', function () {
   if (colorButton) {
     colorButton.addEventListener('click', (event) => {
       event.preventDefault();
-      if (colorPicker) {
-        KeyboardDispatcher.clearModes();
-        GizmoMenuManager.toggle(false);
-        colorPicker.open(window.selectedColor);
-        showStatus(translate('color_picker_paint_prompt'), { owner: 'color-picker', hint: true });
+      if (!colorPicker) return;
+      // Clicking while already active (popup open, or paint mode after a
+      // confirmed pick) should close/deactivate rather than reopen the
+      // picker, which would otherwise reroll a random starting color.
+      if (colorButton.classList.contains('active')) {
+        if (colorPicker.isOpen) colorPicker.close();
+        exitGizmoState();
+        return;
       }
+      KeyboardDispatcher.clearModes();
+      GizmoMenuManager.toggle(false);
+      // No explicit color: defaults to the picker's own last-shown color
+      // (this.currentColor), so closing and reopening without confirming
+      // keeps whatever was on screen instead of rerolling a random one.
+      // window.selectedColor only updates on an explicit paint/confirm, so
+      // passing it here would reintroduce that staleness.
+      colorPicker.open();
+      showStatus(translate('color_picker_paint_prompt'), { owner: 'color-picker', hint: true });
     });
   }
 });
