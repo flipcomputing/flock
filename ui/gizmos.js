@@ -2890,9 +2890,21 @@ export function toggleGizmo(gizmoType) {
     if (ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive()) {
       exitGizmoState({ preserveOrbit: true });
       if (gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
+      if (gizmoType === 'select') {
+        resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager?.attachedMesh);
+        resetAttachedMeshIfMeshAttached();
+        gizmoManager?.attachToMesh(null);
+      }
       return;
     }
     exitGizmoState();
+    // Clicking the select tool off deselects whatever it had picked, rather
+    // than leaving the gizmo/bounding box attached with no active tool.
+    if (gizmoType === 'select') {
+      resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager?.attachedMesh);
+      resetAttachedMeshIfMeshAttached();
+      gizmoManager?.attachToMesh(null);
+    }
     return;
   }
 
