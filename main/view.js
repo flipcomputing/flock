@@ -86,12 +86,18 @@ const handleWindowResize = () => {
 };
 window.addEventListener('resize', handleWindowResize);
 
-// Function to maintain a 16:9 aspect ratio for the canvas
-function getCanvasAvailableSize(canvasArea) {
+// User-sized info-panel height; null until the first splitter drag/keys.
+let infoPanelUserHeight = null;
+
+// Outer box minus gizmo strip, tabs, splitter bar and bottom-bar overlap;
+// callers then apply the info-body allowance they need.
+function getCanvasChrome(canvasArea) {
   const areaRect = canvasArea.getBoundingClientRect();
   let areaWidth = Math.max(1, Math.round(areaRect.width));
   let areaHeight = Math.max(1, Math.round(areaRect.height));
   let horizontalChromeWidth = 0;
+  let tabsHeight = 0;
+  let resizerHeight = 0;
 
   const gizmoButtons = document.getElementById('gizmoButtons');
   if (gizmoButtons && getComputedStyle(gizmoButtons).display !== 'none') {
@@ -113,8 +119,14 @@ function getCanvasAvailableSize(canvasArea) {
     const tabsRect = infoPanelTabs.getBoundingClientRect();
     const tabsStyle = getComputedStyle(infoPanelTabs);
     if (tabsRect.height > 0 && tabsStyle.position !== 'fixed') {
-      areaHeight = Math.max(1, areaHeight - Math.ceil(tabsRect.height));
+      tabsHeight = Math.ceil(tabsRect.height);
+      areaHeight = Math.max(1, areaHeight - tabsHeight);
     }
+  }
+
+  const infoResizer = document.getElementById('infoResizer');
+  if (infoResizer && getComputedStyle(infoResizer).display !== 'none') {
+    resizerHeight = Math.ceil(infoResizer.getBoundingClientRect().height);
   }
 
   const bottomBar = document.getElementById('bottomBar');
@@ -123,7 +135,80 @@ function getCanvasAvailableSize(canvasArea) {
     if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
   }
 
-  return { areaRect, areaWidth, areaHeight, horizontalChromeWidth };
+  return { areaRect, areaWidth, areaHeight, horizontalChromeWidth, tabsHeight, resizerHeight };
+}
+
+// Smallest keepable info-panel height: tab strip plus a sliver of body.
+function getMinInfoPanelHeight() {
+  const tabs = document.getElementById('info-panel-tabs');
+  let tabsHeight = 50;
+  if (tabs) {
+    const rect = tabs.getBoundingClientRect();
+    if (rect.height > 0 && getComputedStyle(tabs).position !== 'fixed') {
+      tabsHeight = Math.ceil(rect.height);
+    }
+  }
+  return tabsHeight + 30;
+}
+
+// A widening canvas takes info-panel space down toward the minimum.
+function shrinkInfoPanelForCanvasWidth(canvasArea, canvasWidth) {
+  if (infoPanelUserHeight == null || gizmosBesideCanvas() || playModeActive) return;
+  const chrome = getCanvasChrome(canvasArea);
+  const neededAvail = canvasWidth / AUTHORING_ASPECT;
+  const availNow = Math.max(
+    1,
+    chrome.areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
+  );
+  if (neededAvail <= availNow) return;
+  const target = Math.max(
+    getMinInfoPanelHeight(),
+    Math.round(chrome.areaHeight + chrome.tabsHeight - chrome.resizerHeight - neededAvail)
+  );
+  if (target >= infoPanelUserHeight) return;
+  const infoPanel = document.getElementById('info-panel');
+  if (!infoPanel) return;
+  infoPanel.style.flex = `1 1 ${target}px`;
+  infoPanelUserHeight = target;
+}
+
+// Canvas-region floor for info-panel sizing.
+const MIN_CANVAS_HEIGHT = 120;
+
+// Window resizes can strand the stored height; re-clamp it so the canvas recovers.
+function clampInfoPanelUserHeight(canvasArea) {
+  if (infoPanelUserHeight == null || gizmosBesideCanvas() || playModeActive) return;
+  const infoPanel = document.getElementById('info-panel');
+  if (!infoPanel || getComputedStyle(infoPanel).display === 'none') return;
+  const chrome = getCanvasChrome(canvasArea);
+  const min = getMinInfoPanelHeight();
+  const max = chrome.areaHeight + chrome.tabsHeight - chrome.resizerHeight - MIN_CANVAS_HEIGHT;
+  if (max < min) return;
+  const clamped = Math.min(max, Math.max(min, infoPanelUserHeight));
+  if (clamped === infoPanelUserHeight) return;
+  infoPanelUserHeight = clamped;
+  infoPanel.style.flex = `1 1 ${clamped}px`;
+}
+
+// Function to maintain a 16:9 aspect ratio for the canvas
+function getCanvasAvailableSize(canvasArea) {
+  const chrome = getCanvasChrome(canvasArea);
+  let areaHeight = chrome.areaHeight;
+
+  // A user-sized panel replaces the tab-strip allowance above.
+  if (infoPanelUserHeight != null && !gizmosBesideCanvas() && !playModeActive) {
+    areaHeight = Math.max(
+      1,
+      areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
+    );
+  }
+
+  return {
+    areaRect: chrome.areaRect,
+    areaWidth: chrome.areaWidth,
+    areaHeight,
+    horizontalChromeWidth: chrome.horizontalChromeWidth,
+  };
 }
 
 function resizeCanvas() {
@@ -135,6 +220,8 @@ function resizeCanvas() {
   // Hidden or collapsed (e.g. display:none in narrow-screen code view). Skip so
   // the buffer isn't shrunk to near-minimum; visibility paths re-resize.
   if (areaRect.width <= 0 || areaRect.height <= 0) return;
+
+  clampInfoPanelUserHeight(canvasArea);
 
   if (flock.embedMode) {
     let areaWidth = Math.max(1, Math.round(areaRect.width));
@@ -1368,6 +1455,7 @@ class PanelResizer {
     this.canvasArea.style.flex = `0 0 ${(newCanvasWidth / totalWidth) * 100}%`;
     this.codePanel.style.flex = `0 0 ${(newCodeWidth / totalWidth) * 100}%`;
 
+    shrinkInfoPanelForCanvasWidth(this.canvasArea, newCanvasWidth);
     this.triggerContentResize();
 
     if (e.cancelable) e.preventDefault();
@@ -1427,6 +1515,7 @@ class PanelResizer {
     this.canvasArea.style.flex = `0 0 ${newCanvasWidth}px`;
     this.codePanel.style.flex = `0 0 ${newCodeWidth}px`;
 
+    shrinkInfoPanelForCanvasWidth(this.canvasArea, newCanvasWidth);
     // Trigger content resize
     this.triggerContentResize();
 
@@ -1477,8 +1566,17 @@ class PanelResizer {
   }
 
   getMaxCanvasWidth() {
-    const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(this.canvasArea);
-    return Math.round((areaHeight * 16) / 9) + horizontalChromeWidth;
+    // Cap against the panel minimum so a tall setting can't stall the drag.
+    if (gizmosBesideCanvas() || playModeActive) {
+      const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(this.canvasArea);
+      return Math.round((areaHeight * 16) / 9) + horizontalChromeWidth;
+    }
+    const chrome = getCanvasChrome(this.canvasArea);
+    const avail = Math.max(
+      1,
+      chrome.areaHeight + chrome.tabsHeight - getMinInfoPanelHeight() - chrome.resizerHeight
+    );
+    return Math.round((avail * 16) / 9) + chrome.horizontalChromeWidth;
   }
 
   // A focusable role="separator" needs a value: the canvas panel's share of the split.
@@ -1495,9 +1593,155 @@ class PanelResizer {
   }
 }
 
+class InfoPanelResizer {
+  constructor() {
+    this.resizer = document.getElementById('infoResizer');
+    this.canvasArea = document.getElementById('canvasArea');
+    this.infoPanel = document.getElementById('info-panel');
+    this.gizmoButtons = document.getElementById('gizmoButtons');
+
+    this.isResizing = false;
+    this.startY = 0;
+    this.startHeight = 0;
+    this.minCanvasHeight = MIN_CANVAS_HEIGHT;
+    this.enabled = !!this.resizer && !!this.canvasArea && !!this.infoPanel;
+
+    this.init();
+  }
+
+  init() {
+    if (!this.enabled) return;
+
+    this.resizer.addEventListener('mousedown', this.startResize.bind(this));
+    document.addEventListener('mousemove', this.handleResize.bind(this));
+    document.addEventListener('mouseup', this.stopResize.bind(this));
+
+    this.resizer.addEventListener('touchstart', this.startResize.bind(this), {
+      passive: false,
+    });
+    document.addEventListener('touchmove', this.handleResize.bind(this), {
+      passive: false,
+    });
+    document.addEventListener('touchend', this.stopResize.bind(this));
+
+    this.resizer.addEventListener('keydown', this.handleKeyboard.bind(this));
+    this.resizer.addEventListener('selectstart', (e) => e.preventDefault());
+
+    const observer = new ResizeObserver(() => this.syncAriaValue());
+    observer.observe(this.canvasArea);
+    observer.observe(this.infoPanel);
+  }
+
+  isResizerVisible() {
+    const rect = this.resizer.getBoundingClientRect();
+    const style = window.getComputedStyle(this.resizer);
+    return (
+      rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden'
+    );
+  }
+
+  getChromeHeight() {
+    let chrome = 0;
+    if (this.gizmoButtons && getComputedStyle(this.gizmoButtons).display !== 'none') {
+      chrome += Math.ceil(this.gizmoButtons.getBoundingClientRect().height);
+    }
+    if (this.isResizerVisible()) {
+      chrome += Math.ceil(this.resizer.getBoundingClientRect().height);
+    }
+    return chrome;
+  }
+
+  clampHeight(height) {
+    const min = getMinInfoPanelHeight();
+    const max =
+      Math.max(1, Math.round(this.canvasArea.getBoundingClientRect().height)) -
+      this.getChromeHeight() -
+      this.minCanvasHeight;
+    if (max < min) return null;
+    return Math.min(max, Math.max(min, Math.round(height)));
+  }
+
+  applyHeight(height) {
+    const clamped = this.clampHeight(height);
+    if (clamped == null) return false;
+    // Growable basis absorbs width-bound slack.
+    this.infoPanel.style.flex = `1 1 ${clamped}px`;
+    infoPanelUserHeight = clamped;
+    this.triggerContentResize();
+    return true;
+  }
+
+  startResize(e) {
+    if (!this.enabled || !this.isResizerVisible()) return;
+    this.isResizing = true;
+    this.resizer.classList.add('resizing');
+
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    this.startY = clientY;
+    this.startHeight = this.infoPanel.getBoundingClientRect().height;
+
+    document.body.style.cursor = 'row-resize';
+    if (e.cancelable) e.preventDefault();
+  }
+
+  handleResize(e) {
+    if (!this.enabled || !this.isResizing) return;
+
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    this.applyHeight(this.startHeight - (clientY - this.startY));
+
+    if (e.cancelable) e.preventDefault();
+  }
+
+  stopResize() {
+    if (!this.enabled || !this.isResizing) return;
+    this.isResizing = false;
+    this.resizer.classList.remove('resizing');
+    document.body.style.cursor = '';
+    this.triggerContentResize();
+  }
+
+  handleKeyboard(e) {
+    if (!this.enabled || !this.isResizerVisible()) return;
+    const step = 20;
+    let delta = 0;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        delta = step;
+        break;
+      case 'ArrowDown':
+        delta = -step;
+        break;
+      default:
+        return;
+    }
+
+    const current = this.infoPanel.getBoundingClientRect().height;
+    if (!this.applyHeight(current + delta)) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+  }
+
+  syncAriaValue() {
+    if (!this.enabled) return;
+    const total = this.canvasArea.getBoundingClientRect().height;
+    if (!total) return;
+    const share = Math.round((this.infoPanel.getBoundingClientRect().height / total) * 100);
+    this.resizer.setAttribute('aria-valuenow', String(share));
+  }
+
+  triggerContentResize() {
+    onResize();
+  }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   new PanelResizer();
+  new InfoPanelResizer();
 });
 
 /* ---- iOS Chrome: fullscreen-rotation recovery ----

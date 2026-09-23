@@ -1278,6 +1278,8 @@ export default {
   code_workspace_focused: 'Code workspace focused',
   interactive_element_label: 'Interactive element',
   panel_resizer_focused: 'Panel resizer focused. Use arrow keys to resize panels, Home to reset.',
+  info_resizer_focused:
+    'Canvas and information panel resizer focused. Use up and down arrow keys to resize.',
   undo_performed: 'Undo performed',
   redo_performed: 'Redo performed',
   camera_moving_forward: 'Camera moving forward',

@@ -24,6 +24,12 @@ const AreaManager = {
     { selector: '#renderCanvas', label: '3', name: 'Canvas' },
     { selector: '#gizmoButtons', label: '4', name: 'Gizmos' },
     {
+      selector: '#info-panel',
+      label: '/',
+      name: 'Help panel and resize bar',
+      extend: { top: 8 },
+    },
+    {
       selector: '#info-panel-tabs',
       label: '5',
       name: 'Info panel tabs',
@@ -45,23 +51,29 @@ const AreaManager = {
     const reloadConnected = reloadBtn?.isConnected;
     const infoPanelTabs = document.getElementById('info-panel-tabs');
     const infoPanelTabsHidden = !infoPanelTabs || infoPanelTabs.offsetWidth === 0;
-    return this.areas.map((a) => {
-      // #info-panel-tabs is a dead target whenever it's not actually on screen
-      // (hidden by the landscape-narrow CSS, or display:none via canvasArea in
-      // narrow Code view) — hand area 5 to the pill toggle instead.
-      if (infoPanelTabsHidden && a.label === '5') {
-        return {
-          selector: '#viewToggle',
-          label: '5',
-          name: 'View switch',
-          focusSelector: '#canvasToggleBtn',
-        };
-      }
-      if (reloadConnected && a.label === '9') {
-        return { selector: '#reload-btn', label: '9', name: 'Reload' };
-      }
-      return a;
-    });
+    const infoResizer = document.getElementById('infoResizer');
+    const infoResizerHidden = !infoResizer || getComputedStyle(infoResizer).display === 'none';
+    return this.areas
+      .map((a) => {
+        // The '/' target is the splitter bar: drop it while the bar is hidden.
+        if (infoResizerHidden && a.label === '/') return null;
+        // #info-panel-tabs is a dead target whenever it's not actually on screen
+        // (hidden by the landscape-narrow CSS, or display:none via canvasArea in
+        // narrow Code view) — hand area 5 to the pill toggle instead.
+        if (infoPanelTabsHidden && a.label === '5') {
+          return {
+            selector: '#viewToggle',
+            label: '5',
+            name: 'View switch',
+            focusSelector: '#canvasToggleBtn',
+          };
+        }
+        if (reloadConnected && a.label === '9') {
+          return { selector: '#reload-btn', label: '9', name: 'Reload' };
+        }
+        return a;
+      })
+      .filter(Boolean);
   },
 
   init() {
@@ -122,6 +134,12 @@ const AreaManager = {
       });
     }
 
+    KeyboardDispatcher.on('OVERLAY', 'Slash', (e) => {
+      e.preventDefault();
+      const area = this.effectiveAreas.find((a) => a.label === '/');
+      if (area) this.activateArea(area);
+    });
+
     const cycleBadges = (reverse) => {
       const badges = [...this.overlay.querySelectorAll('.area-number-badge')];
       if (badges.length === 0) return;
@@ -162,6 +180,16 @@ const AreaManager = {
   // Set the focus to this area and close overlay
   activateArea(area) {
     this.toggle(false); // Close the menu
+    // '/' focuses the open panel, else the resize bar.
+    if (area.label === '/') {
+      const openPanel = document.querySelector('.info-tab-panel:not(.hidden)');
+      if (openPanel) {
+        openPanel.focus({ preventScroll: true });
+      } else {
+        document.getElementById('infoResizer')?.focus();
+      }
+      return;
+    }
     if (area.selector === '.blocklyToolbox') {
       // Restores the remembered category; the generic child lookup below
       // would land on the toolbox search input and wipe that memory.
@@ -477,7 +505,7 @@ function getShortcuts() {
     },
     {
       label: translate('shortcut_select_area'),
-      keys: `1-9 / Enter`,
+      keys: `1-9 [/] Enter`,
       category: translate('shortcut_category_area_menu'),
     },
 
@@ -695,6 +723,7 @@ function getShortcuts() {
 
 // Formats keys for menu nicely
 // You can use + or / and these won't be <kbd> tagged
+// Use [/] for a literal slash key.
 function formatKeys(keys) {
   if (keys.startsWith('"') && keys.endsWith('"')) {
     return keys.slice(1, -1);
@@ -708,7 +737,7 @@ function formatKeys(keys) {
           ? `<span aria-label="or"> / </span>`
           : part
               .split(' ')
-              .map((k) => `<kbd>${k}</kbd>`)
+              .map((k) => (k === '[/]' ? '<kbd>/</kbd>' : `<kbd>${k}</kbd>`))
               .join(' ')
     )
     .join('');

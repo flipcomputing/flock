@@ -99,8 +99,26 @@ export function setupInput() {
       // 2) Gizmo buttons
       document.querySelectorAll('#gizmoButtons button, #gizmoButtons input').forEach(pushUnique);
 
+      // 3) Splitter follows the gizmos
+      pushUnique(document.querySelector('#infoResizer'));
+
+      // Open Help panel sorts between splitter and Help button.
+      const helpTabPanel = document.getElementById('info-tab-panel-help');
+      if (helpTabPanel && !helpTabPanel.classList.contains('hidden')) {
+        pushUnique(helpTabPanel);
+        helpTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
+
       // 4) Info panel tabs and contents (if open), logo link, resizer
       pushUnique(document.querySelector('#info-tab-btn-help'));
+      pushUnique(document.querySelector('#info-tab-btn-howto'));
+
+      const howtoTabPanel = document.getElementById('info-tab-panel-howto');
+      if (howtoTabPanel && !howtoTabPanel.classList.contains('hidden')) {
+        pushUnique(howtoTabPanel);
+        howtoTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
+
       pushUnique(document.querySelector('#info-tab-btn-shortcuts'));
 
       const shortcutsTabPanel = document.getElementById('info-tab-panel-shortcuts');
@@ -367,9 +385,34 @@ export function setupInput() {
       ) {
         return; // Don't prevent default, let resizer handle it
       }
+      if (document.activeElement.id === 'infoResizer' && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
+        return; // Don't prevent default, let resizer handle it
+      }
 
       if (e.key !== 'Tab') return;
       const activeElement = document.activeElement;
+
+      // Splitter Tab goes to the open panel, else opens Help; never
+      // replaces the panel being read.
+      if (activeElement?.id === 'infoResizer' && !e.shiftKey) {
+        const openPanel = document.querySelector('.info-tab-panel:not(.hidden)');
+        if (openPanel) {
+          e.preventDefault();
+          openPanel.focus({ preventScroll: true });
+          return;
+        }
+        if (window.flockHelpPanel) {
+          e.preventDefault();
+          window.flockHelpPanel.show();
+          return;
+        }
+        const helpBtn = document.getElementById('info-tab-btn-help');
+        if (helpBtn) {
+          e.preventDefault();
+          helpBtn.focus();
+        }
+        return;
+      }
 
       const inspector = activeElement?.closest?.('#babylon-inspector-container');
       if (inspector) {
@@ -471,7 +514,13 @@ export function setupInput() {
             const focusedMessage = translate('focused_element_suffix').replace('{name}', text);
             announceToScreenReader(focusedMessage);
           } else if (nextElement.id === 'resizer') {
-            announceToScreenReader(translate('panel_resizer_focused'));
+            announceToScreenReader(translate('panel_resizer_focused'), {
+              requireCanvasFocus: false,
+            });
+          } else if (nextElement.id === 'infoResizer') {
+            announceToScreenReader(translate('info_resizer_focused'), {
+              requireCanvasFocus: false,
+            });
           }
         }
       }
