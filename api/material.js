@@ -1027,12 +1027,27 @@ export const flockMaterial = {
 
     return texture;
   },
-  // A clone taken mid-load has no texture of its own; it waits for the same one.
+  // A clone taken mid-load waits for the same load, then takes its own texture copy.
   inheritPendingTexture(source, clone) {
     const pending = source?.metadata?.pendingTexture;
-    if (pending && clone && !clone.diffuseTexture) {
-      flock.attachTextureWhenLoaded(clone, pending);
+    if (!pending || !clone || clone.diffuseTexture) return clone;
+
+    if (pending.isReady()) {
+      clone.diffuseTexture = pending.clone();
+      return clone;
     }
+
+    clone.metadata ??= {};
+    clone.metadata.pendingTexture = pending;
+
+    const observer = pending.onLoadObservable.addOnce(() => {
+      clone.diffuseTexture = pending.clone();
+      if (clone.metadata?.pendingTexture === pending) {
+        delete clone.metadata.pendingTexture;
+      }
+    });
+    clone.onDisposeObservable.addOnce(() => pending.onLoadObservable.remove(observer));
+
     return clone;
   },
   // 1x1 white stand-in for shader materials, which sample the texture directly
@@ -1547,6 +1562,37 @@ export const flockMaterial = {
 
     return shaderMaterial;
   },
+  isMaterialStillInUse(material, excludeMeshes = []) {
+    return flock.scene.meshes.some((m) => {
+      if (excludeMeshes.includes(m) || m.isDisposed() || !m.material) return false;
+      if (m.material === material) return true;
+      return (
+        m.material instanceof flock.BABYLON.MultiMaterial &&
+        m.material.subMaterials.includes(material)
+      );
+    });
+  },
+  disposeManagedMaterial(material, excludeMeshes = []) {
+    if (!material?.metadata?.isManaged) return;
+    if (flock.isMaterialStillInUse(material, excludeMeshes)) return;
+
+    const cacheKey = material.metadata.cacheKey;
+    if (cacheKey && flock.materialCache?.[cacheKey]) {
+      delete flock.materialCache[cacheKey];
+    }
+    material.dispose(true, true);
+  },
+  disposeOldMaterial(material, excludeMeshes = []) {
+    if (!material) return;
+
+    if (material instanceof flock.BABYLON.MultiMaterial) {
+      material.subMaterials.forEach((sub) => flock.disposeManagedMaterial(sub, excludeMeshes));
+      if (!flock.isMaterialStillInUse(material, excludeMeshes)) material.dispose();
+      return;
+    }
+
+    flock.disposeManagedMaterial(material, excludeMeshes);
+  },
   setMaterialWithCleanup(mesh, materialData) {
     if (!mesh) return;
 
@@ -1559,20 +1605,7 @@ export const flockMaterial = {
     if (oldMat === newMat) return;
 
     mesh.material = newMat;
-
-    if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
-      const cacheKey = oldMat.metadata.cacheKey;
-      const isStillInUse = flock.scene.meshes.some(
-        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat
-      );
-
-      if (!isStillInUse) {
-        if (cacheKey && flock.materialCache[cacheKey]) {
-          delete flock.materialCache[cacheKey];
-        }
-        oldMat.dispose(false, true);
-      }
-    }
+    flock.disposeOldMaterial(oldMat, [mesh]);
   },
   getOrCreateMaterial(colorInput, alpha = 1) {
     const isObject =

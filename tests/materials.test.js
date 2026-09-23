@@ -999,6 +999,57 @@ export function runMaterialsTests(flock) {
         });
       });
     });*/
+
+    it("keeps a CSG result's MultiMaterial submaterial alive when an unrelated clone sharing it is deleted", async function () {
+      // A cloned base mesh shares its material object with the CSG result's MultiMaterial submaterial.
+      const color = '#3388ff';
+
+      const target = (id) => {
+        const mesh = flock.scene.getMeshByName(id);
+        const children = mesh
+          .getDescendants(false)
+          .filter((n) => n.getTotalVertices && n.getTotalVertices() > 0);
+        return children.length ? children[0] : mesh;
+      };
+
+      await flock.createCylinder('csgSubBase', { color, height: 2, position: [0, 0, 0] });
+      await flock.createCylinder('csgSubTool', {
+        color: '#ff3366',
+        height: 3,
+        position: [0.3, 0, 0],
+      });
+
+      await new Promise((resolve) => {
+        flock.cloneMesh({
+          sourceMeshName: 'csgSubBase',
+          cloneId: 'csgSubBaseClone',
+          then: resolve,
+        });
+      });
+      boxIds.push('csgSubBaseClone');
+
+      const cloneMesh = target('csgSubBaseClone');
+
+      await flock.subtractMeshes('csgSubResult', 'csgSubBase', ['csgSubTool']);
+      boxIds.push('csgSubResult');
+
+      const resultMesh = target('csgSubResult');
+      expect(resultMesh.material).to.be.an.instanceOf(flock.BABYLON.MultiMaterial);
+
+      const sharedSub = resultMesh.material.subMaterials.find((m) => m === cloneMesh.material);
+      expect(
+        sharedSub,
+        'expected the clone to share a literal submaterial object with the CSG result'
+      ).to.exist;
+
+      flock.dispose('csgSubBaseClone');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(resultMesh.isDisposed()).to.equal(false);
+      expect(sharedSub.metadata).to.not.equal(null);
+      expect(resultMesh.material.subMaterials).to.include(sharedSub);
+    });
+
     describe('mergeMeshes geometry preparation @materials', function () {
       const meshIds = [];
 

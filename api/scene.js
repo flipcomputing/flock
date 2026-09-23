@@ -574,20 +574,12 @@ export const flockScene = {
       const material = currentMesh.material;
       if (!material) return;
 
-      const cacheKey = material.metadata?.cacheKey;
       currentMesh.material = null;
 
-      if (material.metadata?.isManaged) {
-        const isStillInUse = flock.scene.meshes.some(
-          (m) => !meshesToDispose.includes(m) && !m.isDisposed() && m.material === material
-        );
-
-        if (!isStillInUse) {
-          if (cacheKey && flock.materialCache?.[cacheKey]) {
-            delete flock.materialCache[cacheKey];
-          }
-          material.dispose(true, true);
-        }
+      if (material instanceof flock.BABYLON.MultiMaterial) {
+        flock.disposeOldMaterial(material, meshesToDispose);
+      } else if (material.metadata?.isManaged) {
+        flock.disposeManagedMaterial(material, meshesToDispose);
       } else if (currentMesh.metadata?.sharedMaterial === false) {
         material.dispose();
       }
