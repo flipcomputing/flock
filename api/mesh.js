@@ -65,12 +65,7 @@ export const flockMesh = {
 
       shape = new flock.BABYLON.PhysicsShapeCylinder(cylinderStart, cylinderEnd, radius, scene);
     } else {
-      shape = new flock.BABYLON.PhysicsShapeCapsule(
-        segmentStart,
-        segmentEnd,
-        radius,
-        scene
-      );
+      shape = new flock.BABYLON.PhysicsShapeCapsule(segmentStart, segmentEnd, radius, scene);
     }
 
     if (!mesh.metadata) mesh.metadata = {};
@@ -878,10 +873,14 @@ export const flockMesh = {
     if (!directChildren.length) return null;
 
     groupMesh.computeWorldMatrix(true);
+    // Ghosted CSG source meshes are excluded from bounds (at any depth) but
+    // still go through the recentre loop below, so their position stays correct.
+    const isNotGhost = (node) => !node.metadata?.isGhost;
+    const boundsChildren = directChildren.filter(isNotGhost);
     let min = null;
     let max = null;
-    directChildren.forEach((child) => {
-      const bounds = child.getHierarchyBoundingVectors(true);
+    (boundsChildren.length ? boundsChildren : directChildren).forEach((child) => {
+      const bounds = child.getHierarchyBoundingVectors(true, isNotGhost);
       if (!min) {
         min = bounds.min.clone();
         max = bounds.max.clone();

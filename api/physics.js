@@ -315,6 +315,9 @@ export const flockPhysics = {
 
     geometry.physics = physicsBody;
   },
+  disposeMeshPhysics(mesh) {
+    disposePhysics(mesh);
+  },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
     if (mesh.scaling.x < 0.01) mesh.scaling.x = Math.max(0.01, Math.abs(mesh.scaling.x));

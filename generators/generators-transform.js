@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
-import { getFieldValue } from './generators-utilities.js';
+import { getFieldValue, maybeParentToGroup } from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
@@ -450,7 +450,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to merge the meshes
-    return `${resultVar} = await mergeMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await mergeMeshes(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Add subtracted as object subtract list
@@ -472,7 +472,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to subtract meshes from the base mesh
-    return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n`;
+    return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Add intersection as intersect list
@@ -490,7 +490,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to intersect the meshes
-    return `${resultVar} = await intersectMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await intersectMeshes(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Add hull as hull list
@@ -508,7 +508,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to create the hull
-    return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Used as an input inside set_pivot
