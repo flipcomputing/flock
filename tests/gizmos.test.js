@@ -13,8 +13,11 @@ import {
   focusOnMesh,
   toggleGizmo,
   enableGizmos,
+  updateRotationBlock,
+  updateScaleBlock,
 } from '../ui/gizmos.js';
 import { showStatus, clearStatus } from '../ui/status.js';
+import { meshMap } from '../generators/generators.js';
 
 export function runGizmoTests(flock) {
   const BABYLON = flock.BABYLON;
@@ -969,6 +972,269 @@ export function runGizmoTests(flock) {
       it('clears the module-level gizmoManager reference', function () {
         disposeGizmoManager();
         expect(gizmoManager).to.be.null;
+      });
+    });
+
+    // ─── rotate/resize replay order ──────────────────────────────────────────
+
+    describe('rotate/resize replay order', function () {
+      // flock.resize() anchors from the mesh's *current* world-space box
+      // while rotateTo preserves position, so each op is state-dependent:
+      // Play must replay them in the order the gizmos were dragged. A fixed
+      // canonical order reproduces one drag sequence and visibly shifts a
+      // tilted model on the other. These tests run both drag orders through
+      // the real flock API and compare against the live gizmo transforms.
+      const DIMS = { width: 1, height: 3, depth: 1 };
+      const BASE_Y = DIMS.height / 2; // ground-aligned: base sits at y=0
+      const TILT = { x: 30, y: 0, z: 0 };
+      const SCALE = { x: 2, y: 1.5, z: 2 };
+      const SIZE = {
+        width: DIMS.width * SCALE.x,
+        height: DIMS.height * SCALE.y,
+        depth: DIMS.depth * SCALE.z,
+      };
+      let seq = 0;
+
+      function freshBox() {
+        seq += 1;
+        return flock.createBox(`gizmoOrderBox${seq}`, {
+          color: '#FFFFFF',
+          ...DIMS,
+          position: [0, BASE_Y, 0],
+        });
+      }
+
+      // rotation gizmo: orientation only, position untouched.
+      function liveTilt(mesh) {
+        mesh.rotationQuaternion = flock.eulerDegreesToQuat(TILT.x, TILT.y, TILT.z);
+        mesh.computeWorldMatrix(true);
+      }
+
+      // scale gizmo drag: local scaling, Y re-anchored to the current
+      // (possibly rotated) base, X/Z untouched.
+      function liveScale(mesh) {
+        const bottomBefore = flock.getEffectiveWorldBounds(mesh).min.y;
+        mesh.scaling.set(SCALE.x, SCALE.y, SCALE.z);
+        const bottomAfter = flock.getEffectiveWorldBounds(mesh).min.y;
+        mesh.position.y += bottomBefore - bottomAfter;
+        mesh.computeWorldMatrix(true);
+      }
+
+      async function replay(order) {
+        const id = freshBox();
+        try {
+          if (order === 'tilt-first') {
+            await flock.rotateTo(id, { ...TILT });
+            await flock.resize(id, { ...SIZE });
+          } else {
+            await flock.resize(id, { ...SIZE });
+            await flock.rotateTo(id, { ...TILT });
+          }
+          return flock.scene.getMeshByID(id).position.clone();
+        } finally {
+          flock.dispose(id);
+        }
+      }
+
+      it('replaying tilt-then-scale matches the live gizmos', async function () {
+        const id = freshBox();
+        let live;
+        try {
+          const mesh = flock.scene.getMeshByID(id);
+          liveTilt(mesh);
+          liveScale(mesh);
+          live = mesh.position.clone();
+        } finally {
+          flock.dispose(id);
+        }
+        const replayed = await replay('tilt-first');
+        expect(replayed.subtract(live).length()).to.be.lessThan(0.001);
+      });
+
+      it('replaying scale-then-tilt matches the live gizmos', async function () {
+        const id = freshBox();
+        let live;
+        try {
+          const mesh = flock.scene.getMeshByID(id);
+          liveScale(mesh);
+          liveTilt(mesh);
+          live = mesh.position.clone();
+        } finally {
+          flock.dispose(id);
+        }
+        const replayed = await replay('scale-first');
+        expect(replayed.subtract(live).length()).to.be.lessThan(0.001);
+      });
+    });
+
+    // ─── rotate/resize block ordering ───────────────────────────────────────
+
+    describe('rotate/resize block ordering', function () {
+      // A move after scaling commits the live (already anchor-shifted)
+      // position in the unrotated-base convention, so Play must resize
+      // (upright box) before it rotates - otherwise the rotated anchor shift
+      // applies twice and the mesh jumps. The resize block therefore always
+      // runs before rotate_to for the same model, regardless of which gizmo
+      // the user drags first.
+      function collectDoTypes(modelBlock) {
+        const types = [];
+        for (
+          let cur = modelBlock.getInput('DO')?.connection?.targetBlock?.();
+          cur;
+          cur = cur.getNextBlock?.()
+        ) {
+          types.push(cur.type);
+        }
+        return types;
+      }
+
+      function makeModelFixture(ws, varName) {
+        // Stand-in for an imported model (e.g. a tree): the block type, not
+        // the mesh type, decides the resize code path (see
+        // findOrCreateResizeBlock / scaleMemberSizeInputs).
+        const mesh = makeBox('gizmoOrderTree');
+        const modelBlock = ws.newBlock('load_model');
+        const vm = ws.getVariableMap();
+        let v = vm.getVariable(varName);
+        if (!v) v = vm.createVariable(varName);
+        modelBlock.getField('ID_VAR').setValue(typeof v.getId === 'function' ? v.getId() : v.id);
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.blockKey = modelBlock.id;
+        meshMap[modelBlock.id] = modelBlock;
+        return { mesh, modelBlock };
+      }
+
+      function withHeadlessBlocks(fn) {
+        const hadInitSvg = Object.prototype.hasOwnProperty.call(Blockly.Block.prototype, 'initSvg');
+        const hadRender = Object.prototype.hasOwnProperty.call(Blockly.Block.prototype, 'render');
+        if (!Blockly.Block.prototype.initSvg) Blockly.Block.prototype.initSvg = function () {};
+        if (!Blockly.Block.prototype.render) Blockly.Block.prototype.render = function () {};
+        try {
+          fn();
+        } finally {
+          if (!hadInitSvg) delete Blockly.Block.prototype.initSvg;
+          if (!hadRender) delete Blockly.Block.prototype.render;
+        }
+      }
+
+      function expectResizeFirst(ws, varName, first, second) {
+        withHeadlessBlocks(() => {
+          const { mesh, modelBlock } = makeModelFixture(ws, varName);
+          try {
+            first(mesh);
+            second(mesh);
+            const types = collectDoTypes(modelBlock);
+            expect(types).to.include('rotate_to');
+            expect(types).to.include('resize');
+            expect(
+              types.indexOf('resize'),
+              'resize must run before rotate_to regardless of gizmo drag order'
+            ).to.be.lessThan(types.indexOf('rotate_to'));
+          } finally {
+            delete meshMap[modelBlock.id];
+            if (!modelBlock.disposed) modelBlock.dispose(true);
+          }
+        });
+      }
+
+      it('rotate-then-resize drag order plays back resize before rotate', function () {
+        const ws = Blockly.getMainWorkspace();
+        expect(ws, 'main workspace present').to.exist;
+        expectResizeFirst(ws, 'gizmoOrderTreeVarA', updateRotationBlock, updateScaleBlock);
+      });
+
+      it('resize-then-rotate drag order plays back resize before rotate', function () {
+        const ws = Blockly.getMainWorkspace();
+        expect(ws, 'main workspace present').to.exist;
+        expectResizeFirst(ws, 'gizmoOrderTreeVarB', updateScaleBlock, updateRotationBlock);
+      });
+    });
+
+    // ─── reposition after tilt+scale ─────────────────────────────────────────
+
+    describe('reposition after tilt+scale', function () {
+      // Tilt, then scale, then move a tree: the move commits the live
+      // (already anchor-shifted) position in the unrotated-base convention,
+      // so Play must resize (upright box) before it rotates - otherwise the
+      // rotated anchor shift applies twice and the tree jumps up.
+      // NOTE: createObject names meshes by the pre-__ part of modelId
+      // (api/models.js), so every lookup below uses the RETURNED mesh name -
+      // reusing the modelId can resolve to another same-model mesh.
+      this.timeout(30000);
+
+      async function waitTree(meshName) {
+        const t0 = Date.now();
+        while (Date.now() - t0 < 25000) {
+          const m = flock.scene.getMeshByName(meshName);
+          if (m && m.getChildMeshes && m.getChildMeshes(false).length > 0) {
+            try {
+              m.computeWorldMatrix(true);
+              const b = flock.getEffectiveWorldBounds(m);
+              if (Number.isFinite(b.min.y) && Number.isFinite(b.max.y)) return m;
+            } catch { /* not ready */ }
+          }
+          await new Promise((r) => setTimeout(r, 150));
+        }
+        throw new Error('timeout waiting for ' + meshName);
+      }
+
+      it('replays without jumping up', async function () {
+        const r1 = (v) => Math.round(v * 10) / 10;
+        // live gizmo sequence on a real tree: tilt, scale, sidestep.
+        const liveName = flock.createObject({
+          modelName: 'tree.glb',
+          modelId: 'tree.glb__reproLive',
+          color: ['#cd853f', '#66cdaa'],
+          position: { x: 0, y: 0, z: 0 },
+        });
+        const live = await waitTree(liveName);
+        try {
+          live.rotationQuaternion = flock.eulerDegreesToQuat(30, 0, 0);
+          live.computeWorldMatrix(true);
+          const b0 = flock.getEffectiveWorldBounds(live).min.y;
+          live.scaling.set(2, 2, 2);
+          live.computeWorldMatrix(true);
+          const b1 = flock.getEffectiveWorldBounds(live).min.y;
+          live.position.y += b0 - b1;
+          live.position.x += 3;
+          live.computeWorldMatrix(true);
+          const livePos = live.position.clone();
+
+          // what the position gizmo commits.
+          const commit = flock.getBlockPositionFromMesh(live);
+          // sizes as updateScaleBlock writes them (1dp of local size × scale).
+          const bb = live.getBoundingInfo().boundingBox;
+          const sz = {
+            width: r1((bb.maximum.x - bb.minimum.x) * 2),
+            height: r1((bb.maximum.y - bb.minimum.y) * 2),
+            depth: r1((bb.maximum.z - bb.minimum.z) * 2),
+          };
+
+          // Play: creation base-rule apply, then resize before rotate.
+          const replayName = flock.createObject({
+            modelName: 'tree.glb',
+            modelId: 'tree.glb__reproReplay',
+            color: ['#cd853f', '#66cdaa'],
+            position: { x: 0, y: 0, z: 0 },
+          });
+          try {
+            await waitTree(replayName);
+            await flock.positionAt(replayName, {
+              x: commit.x,
+              y: commit.y,
+              z: commit.z,
+              useY: true,
+            });
+            await flock.resize(replayName, { width: sz.width, height: sz.height, depth: sz.depth });
+            await flock.rotateTo(replayName, { x: 30, y: 0, z: 0 });
+            const replayed = flock.scene.getMeshByName(replayName).position.clone();
+            expect(replayed.subtract(livePos).length()).to.be.lessThan(0.1);
+          } finally {
+            flock.dispose(replayName);
+          }
+        } finally {
+          flock.dispose(liveName);
+        }
       });
     });
   });

@@ -2042,7 +2042,7 @@ function findOrCreateRotateBlock(mesh) {
 
 // Update the blockly block after a rotation.
 // axisFilter: optional { x, y, z } booleans — only those axes are written.
-function updateRotationBlock(mesh, axisFilter = null) {
+export function updateRotationBlock(mesh, axisFilter = null) {
   const rotateBlock = findOrCreateRotateBlock(mesh);
   if (!rotateBlock) return;
 
@@ -2207,13 +2207,41 @@ function findOrCreateResizeBlock(mesh) {
 
     resizeBlock.render();
 
-    const doFirstBlock = block.getInput('DO').connection.targetBlock();
-    if (doFirstBlock) {
-      let tail = doFirstBlock;
-      while (tail.getNextBlock()) tail = tail.getNextBlock();
-      tail.nextConnection.connect(resizeBlock.previousConnection);
+    // Creation applies Y as the *unrotated* base (see
+    // applyPositionWithCurrentBaseRule) and the position gizmo commits that
+    // same convention - so a move after scaling leaves creation holding a
+    // post-scale position. Replaying rotate-then-resize would re-apply the
+    // rotated anchor shift on top of it and the mesh jumps on Play. Running
+    // the resize first measures the upright box, matching the convention the
+    // creation position was written in, regardless of which gizmo the user
+    // dragged first. (Tilt-then-scale with no later move replays closest in
+    // drag order instead; that residual heals the moment the mesh is nudged.)
+    let rotateTarget = null;
+    for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
+      if (cur.type === 'rotate_to' && cur.getFieldValue?.('MODEL') === modelVariable) {
+        rotateTarget = cur;
+        break;
+      }
+    }
+
+    if (rotateTarget) {
+      // targetConnection is either the DO input's own connection (when
+      // rotateTarget is the first block in the stack) or a sibling's
+      // nextConnection - either way, splice resizeBlock in ahead of it by
+      // reattaching that same connection.
+      const targetConnection = rotateTarget.previousConnection.targetConnection;
+      rotateTarget.previousConnection.disconnect();
+      targetConnection.connect(resizeBlock.previousConnection);
+      resizeBlock.nextConnection.connect(rotateTarget.previousConnection);
     } else {
-      block.getInput('DO').connection.connect(resizeBlock.previousConnection);
+      const doFirstBlock = block.getInput('DO').connection.targetBlock();
+      if (doFirstBlock) {
+        let tail = doFirstBlock;
+        while (tail.getNextBlock()) tail = tail.getNextBlock();
+        tail.nextConnection.connect(resizeBlock.previousConnection);
+      } else {
+        block.getInput('DO').connection.connect(resizeBlock.previousConnection);
+      }
     }
 
     gizmoCreatedBlocks.set(resizeBlock.id, {
