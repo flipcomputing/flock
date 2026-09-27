@@ -813,6 +813,8 @@ function initializeApp() {
     });
   if (undoBtn) undoBtn.addEventListener('click', () => workspace.undo(false));
   if (redoBtn) redoBtn.addEventListener('click', () => workspace.undo(true));
+  document.getElementById('gizmoUndoBtn')?.addEventListener('click', () => workspace.undo(false));
+  document.getElementById('gizmoRedoBtn')?.addEventListener('click', () => workspace.undo(true));
   const shortcutsBtn = document.getElementById('shortcutsBtn');
   if (shortcutsBtn) shortcutsBtn.addEventListener('click', () => ShortcutsPanel.toggle());
 

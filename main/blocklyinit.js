@@ -1849,7 +1849,8 @@ export function createBlocklyWorkspace() {
         const alreadySelected = inFlyout
           ? flyoutSelected === blockRoot
           : tapUnit
-            ? tapUnit === getSelectedTapUnit()
+            ? tapUnit === getSelectedTapUnit() ||
+              tapUnit.getSvgRoot().classList.contains('blocklySelected')
             : blockRoot?.classList.contains('blocklySelected');
         if (blockRoot && !alreadySelected) {
           // A first touch over an unselected block never performs the real
