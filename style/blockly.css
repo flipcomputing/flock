@@ -575,6 +575,20 @@ body[data-theme='low-color'] {
   color: #000000 !important;
 }
 
+.blocklyFieldGridContainer:has(.blocklyFieldGridItem > img) {
+  padding: 4px;
+}
+
+.blocklyFieldGrid:has(.blocklyFieldGridItem > img) {
+  grid-gap: 4px;
+}
+
+.blocklyFieldGrid .blocklyFieldGridItem:has(> img) {
+  border: none;
+  padding: 3px;
+  line-height: 0;
+}
+
 .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus-visible {
   box-shadow: 0 0 0 4px var(--color-blockly-focus) !important;
 }
