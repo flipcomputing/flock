@@ -1,12 +1,12 @@
 import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
-import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
 import { showBanner } from '../ui/notifications.js';
 import { announce } from '../accessibility/accessibility.js';
 import { translate } from './translation.js';
 import { disableGltfValidation } from './gltfvalidation.js';
 import { logViewport } from './viewportDebug.js';
+import { isRestorableWorkspaceNode } from './workspaceFocus.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -26,9 +26,20 @@ const gizmosBesideCanvas = () =>
 // framing against that shape however the screen is proportioned.
 const AUTHORING_ASPECT = 16 / 9;
 
-let pendingScrollBlockId = null;
+let savedCodeScroll = null;
+let savedCodeFocus = null;
 
-export function onResize(mode) {
+function restoreCodeFocus(node) {
+  if (!isRestorableWorkspaceNode(node)) return;
+  if (Blockly.FocusableTreeTraverser.findFocusedNode(workspace) !== node) return;
+  workspace.scrollBoundsIntoView = () => {};
+  Blockly.getFocusManager().focusNode(node);
+  Blockly.renderManagement.finishQueuedRenders().then(() => {
+    delete workspace.scrollBoundsIntoView;
+  });
+}
+
+export function onResize(mode, restore = null) {
   // First handle canvas and engine
   resizeCanvas();
   // Don't resize the engine against a hidden canvas (0 width in code view);
@@ -41,8 +52,17 @@ export function onResize(mode) {
   window.dispatchEvent(new Event('flock:canvas-resize'));
 
   requestAnimationFrame(() => {
+    const codePanel = document.getElementById('codePanel');
+    if (codePanel && codePanel.style.display === 'none') {
+      window.dispatchEvent(new Event('flock:canvas-resize-done'));
+      return;
+    }
+
     let scrollX = workspace?.scrollX || 0;
     let scrollY = workspace?.scrollY || 0;
+    if (mode === 'reset' && restore?.scroll) {
+      ({ x: scrollX, y: scrollY } = restore.scroll);
+    }
 
     if (scrollX === -7) {
       scrollX = 0;
@@ -53,13 +73,9 @@ export function onResize(mode) {
 
     if (workspace) {
       Blockly.svgResize(workspace);
-      if (mode === 'reset') workspace.scroll(scrollX, scrollY);
-      if (mode === 'reset' && pendingScrollBlockId) {
-        const blockId = pendingScrollBlockId;
-        pendingScrollBlockId = null;
-        requestAnimationFrame(() => {
-          restoreBlockFocus(workspace, blockId);
-        });
+      if (mode === 'reset') {
+        workspace.scroll(scrollX, scrollY);
+        if (restore?.focus) restoreCodeFocus(restore.focus);
       }
     }
     window.dispatchEvent(new Event('flock:canvas-resize-done'));
@@ -508,7 +524,10 @@ function showCodeView() {
     if (codeToggleBtn) codeToggleBtn.setAttribute('aria-pressed', 'true');
   }
 
-  onResize('reset');
+  const restore = { scroll: savedCodeScroll, focus: savedCodeFocus };
+  savedCodeScroll = null;
+  savedCodeFocus = null;
+  onResize('reset', restore);
 }
 
 export function showCanvasView() {
@@ -523,13 +542,11 @@ export function showCanvasView() {
   currentView = 'canvas';
 
   if (isNarrowScreen()) {
-    // Blockly.common.getSelected() is synchronous — reflects the click before the SELECTED
-    // event fires. window.currentBlock lags by one async event tick, so use getSelected() first.
-    // getSelected() may return non-Block selectables; verify via getBlockById before using .id.
-    const selected = Blockly.common.getSelected();
-    const selectedBlock = selected ? workspace.getBlockById(selected.id) : null;
-    const blockToRestore = selectedBlock ?? window.currentBlock;
-    pendingScrollBlockId = blockToRestore?.id || getLastHighlightedBlockId(workspace) || null;
+    const codePanel = document.getElementById('codePanel');
+    if (codePanel && codePanel.style.display !== 'none') {
+      savedCodeScroll = { x: workspace.scrollX, y: workspace.scrollY };
+      savedCodeFocus = Blockly.FocusableTreeTraverser.findFocusedNode(workspace);
+    }
 
     // Instead of CSS transform, change the layout directly
     const canvasArea = document.getElementById('canvasArea');
