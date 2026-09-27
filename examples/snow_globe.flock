@@ -644,6 +644,33 @@
                             "fields": {
                               "COLOR": "#ffffff"
                             }
+                          },
+                          "block": {
+                            "type": "material",
+                            "id": "I]NiPT*X^=QGAotrv-oV",
+                            "fields": {
+                              "TEXTURE_SET": "rough.png"
+                            },
+                            "inputs": {
+                              "BASE_COLOR": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "qx^8CZ~#aj8Mp?}#lG+r",
+                                  "fields": {
+                                    "COLOR": "#ffffff"
+                                  }
+                                }
+                              },
+                              "ALPHA": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "^lF0$BB4|?LxNoTGm/UH",
+                                  "fields": {
+                                    "NUM": 1
+                                  }
+                                }
+                              }
+                            }
                           }
                         },
                         "HEIGHT": {
@@ -706,75 +733,6 @@
                             "id": "@7m29F:8v+mqAMN8Z~@z",
                             "fields": {
                               "NUM": 0
-                            }
-                          }
-                        }
-                      },
-                      "next": {
-                        "block": {
-                          "type": "set_material",
-                          "id": "%ip!9g_R:G2.VwZ)(RmR",
-                          "fields": {
-                            "MESH": {
-                              "id": "+qBEJiI_7(*S[GBXsnvn"
-                            }
-                          },
-                          "inputs": {
-                            "MATERIAL": {
-                              "shadow": {
-                                "type": "material",
-                                "id": "I]NiPT*X^=QGAotrv-oV",
-                                "fields": {
-                                  "TEXTURE_SET": "rough.png"
-                                },
-                                "inputs": {
-                                  "BASE_COLOR": {
-                                    "shadow": {
-                                      "type": "colour",
-                                      "id": "qx^8CZ~#aj8Mp?}#lG+r",
-                                      "fields": {
-                                        "COLOR": "#ffffff"
-                                      }
-                                    }
-                                  },
-                                  "ALPHA": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "^lF0$BB4|?LxNoTGm/UH",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "block": {
-                                "type": "material",
-                                "id": "I]NiPT*X^=QGAotrv-oV",
-                                "fields": {
-                                  "TEXTURE_SET": "rough.png"
-                                },
-                                "inputs": {
-                                  "BASE_COLOR": {
-                                    "shadow": {
-                                      "type": "colour",
-                                      "id": "qx^8CZ~#aj8Mp?}#lG+r",
-                                      "fields": {
-                                        "COLOR": "#ffffff"
-                                      }
-                                    }
-                                  },
-                                  "ALPHA": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "^lF0$BB4|?LxNoTGm/UH",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  }
-                                }
-                              }
                             }
                           }
                         }

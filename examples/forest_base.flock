@@ -146,6 +146,33 @@
                     "fields": {
                       "COLOR": "#996633"
                     }
+                  },
+                  "block": {
+                    "type": "material",
+                    "id": "-2B,0._ajj2aKlq[UmDj",
+                    "fields": {
+                      "TEXTURE_SET": "planks.png"
+                    },
+                    "inputs": {
+                      "BASE_COLOR": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "wnqx|Q2%:@1/*?Y7R8Ia",
+                          "fields": {
+                            "COLOR": "#cc6600"
+                          }
+                        }
+                      },
+                      "ALPHA": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": ";ThspFvdw@%hW.?S80RZ",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      }
+                    }
                   }
                 },
                 "WIDTH": {
@@ -199,75 +226,6 @@
                     "id": "vt+-W*1(|?v=:-Uul#ow",
                     "fields": {
                       "NUM": 0
-                    }
-                  }
-                }
-              },
-              "next": {
-                "block": {
-                  "type": "set_material",
-                  "id": "r^TnaNU=V,#;Or_0UEGP",
-                  "fields": {
-                    "MESH": {
-                      "id": "D3G_}[AOUIY=dyu@Zy6P"
-                    }
-                  },
-                  "inputs": {
-                    "MATERIAL": {
-                      "shadow": {
-                        "type": "material",
-                        "id": "gFGh7Arzq4b[URFGw;ti",
-                        "fields": {
-                          "TEXTURE_SET": "planks.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "wnqx|Q2%:@1/*?Y7R8Ia",
-                              "fields": {
-                                "COLOR": "#cc6600"
-                              }
-                            }
-                          },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": ";ThspFvdw@%hW.?S80RZ",
-                              "fields": {
-                                "NUM": 1
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "block": {
-                        "type": "material",
-                        "id": "-2B,0._ajj2aKlq[UmDj",
-                        "fields": {
-                          "TEXTURE_SET": "planks.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "wnqx|Q2%:@1/*?Y7R8Ia",
-                              "fields": {
-                                "COLOR": "#cc6600"
-                              }
-                            }
-                          },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": ";ThspFvdw@%hW.?S80RZ",
-                              "fields": {
-                                "NUM": 1
-                              }
-                            }
-                          }
-                        }
-                      }
                     }
                   }
                 }
