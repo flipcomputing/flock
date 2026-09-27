@@ -1428,15 +1428,6 @@ button {
   display: none;
 }
 
-/* Narrow layouts (either orientation) have no side-by-side panels to resize,
-   so the drag handle is hidden — also keeps its tabindex out of the tab
-   order and drops it from the Ctrl+B highlight areas. */
-@media only screen and (max-width: 1024px) {
-  .resizer {
-    display: none;
-  }
-}
-
 /* Narrow landscape layouts remove the docked body because their info content
    is modal and the toolbar is positioned separately beside the canvas. Phone
    portrait keeps the established flex structure as a spacer beneath its
@@ -1590,63 +1581,82 @@ button {
   #codePanel {
     overflow: hidden; /* Prevents content from spilling out */
   }
+}
 
-  .resizer {
-    width: 8px;
-    background-color: #aaa;
-    cursor: col-resize;
-    position: relative;
-    transition: background-color 0.2s ease;
-    display: none; /* Hidden by default for mobile */
-    flex-shrink: 0;
-    touch-action: none;
-  }
+/* Hidden unless a layout below shows it, which also keeps its tabindex out of
+   the tab order and drops it from the Ctrl+B highlight areas. */
+.resizer {
+  width: 8px;
+  background-color: #aaa;
+  cursor: col-resize;
+  position: relative;
+  transition: background-color 0.2s ease;
+  display: none;
+  flex-shrink: 0;
+  touch-action: none;
+}
 
-  .resizer:hover {
-    background-color: var(--color-focus-outline);
-  }
+.resizer:hover {
+  background-color: var(--color-focus-outline);
+}
 
-  .resizer:active {
-    background-color: var(--color-focus-outline);
-  }
+.resizer:active {
+  background-color: var(--color-focus-outline);
+}
 
-  .resizer:focus-visible {
-    background-color: var(--color-focus-outline);
-    outline: 3px solid var(--color-focus-outline);
-  }
+.resizer:focus-visible {
+  background-color: var(--color-focus-outline);
+  outline: 3px solid var(--color-focus-outline);
+}
 
-  .resizer::before {
-    height: 60px; /* Taller grip indicator */
-    width: 6px; /* Thicker grip */
-  }
+.resizer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 30px;
+  /* Light menu ground, so the grip stays legible against the blue bar
+     it sits on when hovered/active/focused. */
+  background-color: var(--color-menu);
+  border-radius: 2px;
+}
 
-  .resizer::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 3px;
-    height: 30px;
-    /* Light menu ground, so the grip stays legible against the blue bar
-       it sits on when hovered/active/focused. */
-    background-color: var(--color-menu);
-    border-radius: 2px;
-  }
+.resizer-horizontal {
+  width: 100%;
+  height: 8px;
+  cursor: row-resize;
+}
 
+.resizer-horizontal::before {
+  width: 30px;
+  height: 3px;
+}
+
+@media (min-width: 1025px) {
   .resizer {
     display: block;
   }
+}
 
-  .resizer-horizontal {
-    width: 100%;
-    height: 8px;
-    cursor: row-resize;
+/* Narrow portrait still docks the info panel under the canvas, so its splitter
+   stays usable; the left/right splitter has no side-by-side panels here. */
+@media (max-width: 1024px) and (orientation: portrait) {
+  #infoResizer {
+    display: block;
+  }
+}
+
+/* A finger-sized target on touch screens. */
+@media (max-width: 1024px) and (orientation: portrait) and (pointer: coarse) {
+  #infoResizer {
+    height: 16px;
   }
 
-  .resizer-horizontal::before {
-    width: 30px;
-    height: 3px;
+  #infoResizer::before {
+    width: 40px;
+    height: 4px;
   }
 }
 
