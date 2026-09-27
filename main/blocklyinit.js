@@ -1855,6 +1855,7 @@ export function createBlocklyWorkspace() {
             };
             return;
           }
+          if (window.flockColorPicker?.isOpen) return;
           // Workspace selection is Blockly's own: tap selects now, a second
           // tap or a drag performs the real action.
           e.stopPropagation();

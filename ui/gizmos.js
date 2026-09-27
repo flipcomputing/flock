@@ -508,6 +508,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
         const canvas = document.getElementById('renderCanvas');
         if (canvas && (canvas === target || canvas.contains(target))) return true;
+        const canvasToggleBtn = document.getElementById('canvasToggleBtn');
+        const codeToggleBtn = document.getElementById('codeToggleBtn');
+        if (
+          (canvasToggleBtn && (canvasToggleBtn === target || canvasToggleBtn.contains(target))) ||
+          (codeToggleBtn && (codeToggleBtn === target || codeToggleBtn.contains(target)))
+        )
+          return true;
         // Don't close for a how-to link that glows one of the picker's own
         // controls (colorpalette/colorrandom/colorwheel/etc. — see
         // wireHowToLinks()/wireHowToButtons() in ui/howToPanel.js, which tag
