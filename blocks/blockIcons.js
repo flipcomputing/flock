@@ -276,7 +276,7 @@ const BLOCK_ICON_MAKERS = {
 // in section.js), so it has no collapsed-summary copy to size.
 const BLOCK_ICON_COLLAPSED_SIZES = {
   start: { width: 18, height: 18 },
-  forever: { width: 32, height: 32 },
+  forever: { width: 24, height: 24 },
   when_clicked: { width: 22, height: 22 },
   on_collision: { width: 24, height: 24 },
   when_key_event: { width: 36, height: 36 },
