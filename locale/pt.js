@@ -143,7 +143,7 @@ export default {
     'adicionar %1 %2 escala: %3 %13 x: %4 y: %5 z: %6\ncabelo: %7 | pele: %8 | olhos: %9 | camiseta: %10 | shorts: %11 | detalhe: %12',
   load_object: 'adicionar %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'adicionar %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncores: %7',
-  load_model: 'adicionar %1 %2 escala: %3 %7 x: %4 y: %5 z: %6',
+  load_model: 'adicionar %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncores: %8',
 
   // Custom block translations - Animate blocks
   glide_to: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9',

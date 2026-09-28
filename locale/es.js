@@ -143,7 +143,7 @@ export default {
     'añadir %1 %2 escala: %3 %13 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12', // human
   load_object: 'añadir %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7', // human
   load_multi_object: 'añadir %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncolores: %7', // human
-  load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6', // human
+  load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncolores: %8', // human
   then_label: 'luego', // human
 
   // Custom block translations - Animate blocks

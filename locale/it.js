@@ -148,7 +148,7 @@ export default {
     'aggiungi %1 %2 scala: %3 %13 x: %4 y: %5 z: %6\ncapelli: %7 |  pelle: %8 |  occhi: %9 |  maglietta: %10 |  pantaloncini: %11 |  dettaglio: %12',
   load_object: 'aggiungi %1 %2 %3 scala: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'aggiungi %1 %2 scala: %3 %8 x: %4 y: %5 z: %6\ncolori: %7',
-  load_model: 'aggiungi %1 %2 scala: %3 %7 x: %4 y: %5 z: %6',
+  load_model: 'aggiungi %1 %2 scala: %3 %7 x: %4 y: %5 z: %6\ncolori: %8',
 
   // Custom block translations - Animate blocks
   glide_to: 'scivola %1 a %10 x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9',

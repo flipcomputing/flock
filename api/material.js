@@ -1685,10 +1685,7 @@ export const flockMaterial = {
     flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
-  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
-    const applyColor = opts.applyColor ?? true;
-    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
-
+  getColorSlots(rootMesh) {
     const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
 
     const geometryMeshes = rootMesh
@@ -1704,6 +1701,41 @@ export const flockMaterial = {
       );
 
     const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
+
+    // Character models split a single logical part (e.g. the shorts) across
+    // several sub-meshes. Group those by canonical part name so the whole
+    // part draws one entry from the list, mirroring how the colour list is
+    // distributed; otherwise the top and bottom of the shorts would land on
+    // adjacent indices and get different materials. Meshes with no recognised
+    // part name fall back to one slot each, preserving the per-mesh ordering
+    // used by ordinary multi-mesh objects.
+    const isCharacterLike = targets.some((m) => flock.getCanonicalPartName(m));
+
+    if (isCharacterLike) {
+      const groupIndexByKey = new Map();
+      return targets.map((mesh) => {
+        const part = flock.getCanonicalPartName(mesh);
+        if (part) {
+          mesh.metadata = mesh.metadata || {};
+          mesh.metadata.materialPartName ||= part;
+        }
+        const key = part || `mesh:${mesh.uniqueId}`;
+        let index = groupIndexByKey.get(key);
+        if (index === undefined) {
+          index = groupIndexByKey.size;
+          groupIndexByKey.set(key, index);
+        }
+        return { mesh, index };
+      });
+    }
+
+    return targets.map((mesh, index) => ({ mesh, index }));
+  },
+  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
+    const applyColor = opts.applyColor ?? true;
+    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
+
+    const slots = flock.getColorSlots(rootMesh);
 
     const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -1760,34 +1792,9 @@ export const flockMaterial = {
       const flat = colorInput.flat();
       if (!flat.length) return rootMesh;
 
-      // Character models split a single logical part (e.g. the shorts) across
-      // several sub-meshes. Group those by canonical part name so the whole
-      // part draws one entry from the list, mirroring how the colour list is
-      // distributed; otherwise the top and bottom of the shorts would land on
-      // adjacent indices and get different materials. Meshes with no recognised
-      // part name fall back to one slot each, preserving the per-mesh ordering
-      // used by ordinary multi-mesh objects.
-      const isCharacterLike = targets.some((m) => flock.getCanonicalPartName(m));
-
-      if (isCharacterLike) {
-        const groupIndexByKey = new Map();
-        targets.forEach((m) => {
-          const key = flock.getCanonicalPartName(m) || `mesh:${m.uniqueId}`;
-          let index = groupIndexByKey.get(key);
-          if (index === undefined) {
-            index = groupIndexByKey.size;
-            groupIndexByKey.set(key, index);
-          }
-          applyOne(m, flat[index % flat.length], index);
-        });
-      } else {
-        targets.forEach((m, i) => {
-          const v = flat[i % flat.length];
-          applyOne(m, v, i);
-        });
-      }
+      slots.forEach(({ mesh, index }) => applyOne(mesh, flat[index % flat.length], index));
     } else {
-      targets.forEach((m) => applyOne(m, colorInput));
+      slots.forEach(({ mesh }) => applyOne(mesh, colorInput));
     }
 
     return rootMesh;

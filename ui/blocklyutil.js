@@ -334,7 +334,7 @@ export function createBlockForObject(
       addColourShadowSpec(spec, 'COLOR', color, 'colour');
     }
 
-    if (command === 'load_multi_object') {
+    if (command === 'load_multi_object' || command === 'load_model') {
       spec.inputs.COLORS = {
         shadow: buildColorsListShadowSpec(objectName),
       };

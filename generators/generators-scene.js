@@ -105,6 +105,9 @@ export function registerSceneGenerators(javascriptGenerator) {
     const x = getFieldValue(block, 'X', '0');
     const y = getFieldValue(block, 'Y', '0');
     const z = getFieldValue(block, 'Z', '0');
+    const colors = block.colorsEdited
+      ? javascriptGenerator.valueToCode(block, 'COLORS', javascriptGenerator.ORDER_NONE)
+      : '';
     const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
@@ -119,7 +122,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     return `${variableName} = createModel({
                         modelName: '${modelName}',
-                        modelId: ${JSON.stringify(meshId)},
+                        modelId: ${JSON.stringify(meshId)},${colors ? `\n                        colors: ${colors},` : ''}
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
                 });\n${maybeParentToGroup(variableName)}`;

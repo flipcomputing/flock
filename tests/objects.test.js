@@ -496,5 +496,66 @@ export function runCreateModelTests(flock) {
       await pumpAnimation(flock, flock.show(meshId));
       expect(mesh.isEnabled()).to.be.true;
     });
+
+    it('keeps the model materials when no colours are given', function () {
+      const mesh = flock.scene.getMeshByName(meshId);
+      const materialNames = flock.getColorSlots(mesh).map(({ mesh: part }) => part.material?.name);
+      expect(materialNames).to.include('Skin');
+    });
+
+    it('keeps colour slots stable across recolouring', async function () {
+      const recolourId = flock.createModel({ modelName, modelId: 'flock-model-recolour' });
+      await pumpAnimation(flock, flock.show(recolourId));
+
+      try {
+        const mesh = flock.scene.getMeshByName(recolourId);
+        const slotsByName = () =>
+          Object.fromEntries(flock.getColorSlots(mesh).map((s) => [s.mesh.name, s.index]));
+        const before = slotsByName();
+        const count = new Set(Object.values(before)).size;
+        const palette = Array.from(
+          { length: count },
+          (_, i) => `#${(i + 1).toString(16).padStart(6, '0')}`
+        );
+
+        flock.applyMaterialToHierarchy(mesh, palette);
+        expect(slotsByName()).to.deep.equal(before);
+
+        flock.applyMaterialToHierarchy(mesh, palette);
+        expect(slotsByName()).to.deep.equal(before);
+      } finally {
+        flock.dispose(recolourId);
+      }
+    });
+
+    it('applies colours to the instance without changing the cached template', async function () {
+      const colouredId = flock.createModel({
+        modelName,
+        modelId: 'flock-model-coloured',
+        colors: ['#123456'],
+      });
+      await pumpAnimation(flock, flock.show(colouredId));
+
+      try {
+        const coloured = flock.scene.getMeshByName(colouredId);
+        const parts = flock.getColorSlots(coloured).map(({ mesh }) => mesh);
+        parts.forEach((part) => {
+          expect(part.material.diffuseColor.toHexString()).to.equal('#123456');
+        });
+
+        const templateNames = flock
+          .getColorSlots(flock.modelCache[modelName])
+          .map(({ mesh }) => mesh.material?.name);
+        expect(templateNames).to.include('Skin');
+
+        const original = flock.scene.getMeshByName(meshId);
+        const originalNames = flock
+          .getColorSlots(original)
+          .map(({ mesh: part }) => part.material?.name);
+        expect(originalNames).to.include('Skin');
+      } finally {
+        flock.dispose(colouredId);
+      }
+    });
   });
 }

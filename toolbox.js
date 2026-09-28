@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import '@blockly/toolbox-search';
+import { buildColorsListShadowSpec } from './ui/blocklyshadowutil.js';
 
 export const categoryColours = {
   Events: 5,
@@ -68,6 +69,9 @@ const toolboxSceneMeshes = {
               NUM: 0,
             },
           },
+        },
+        COLORS: {
+          shadow: buildColorsListShadowSpec('Flock.glb'),
         },
       },
     },

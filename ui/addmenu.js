@@ -1,6 +1,12 @@
 import * as Blockly from 'blockly';
 import { flock } from '../flock.js';
-import { multiObjectNames, objectNames, characterNames, objectColours } from '../config.js';
+import {
+  multiObjectNames,
+  objectNames,
+  characterNames,
+  modelNames,
+  objectColours,
+} from '../config.js';
 import {
   highlightBlockById,
   setPositionValues,
@@ -495,6 +501,10 @@ function selectMultiObject(objectName) {
   selectObjectWithCommand(objectName, 'shapes-dropdown', 'load_multi_object');
 }
 
+function selectModel(modelName) {
+  selectObjectWithCommand(modelName, 'shapes-dropdown', 'load_model');
+}
+
 function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
@@ -575,6 +585,20 @@ function loadCharacterImages() {
     img.src = `./images/${baseName}.png`;
     img.alt = baseName;
     img.addEventListener('click', () => selectCharacter(name));
+
+    const li = document.createElement('li');
+    li.appendChild(img);
+
+    characterRow.appendChild(li);
+  });
+
+  modelNames.forEach((name) => {
+    const baseName = name.replace(/\.[^/.]+$/, '');
+
+    const img = document.createElement('img');
+    img.src = `./images/${baseName}.png`;
+    img.alt = baseName;
+    img.addEventListener('click', () => selectModel(name));
 
     const li = document.createElement('li');
     li.appendChild(img);
@@ -1004,7 +1028,11 @@ function handleShapeMenuKeydown(event) {
             } else if (rowId === 'model-row') {
               selectMultiObject(altText + '.glb');
             } else if (rowId === 'character-row') {
-              selectCharacter(altText + '.glb');
+              if (modelNames.includes(altText + '.glb')) {
+                selectModel(altText + '.glb');
+              } else {
+                selectCharacter(altText + '.glb');
+              }
             }
           }
         }
@@ -1048,6 +1076,7 @@ window.selectCharacter = selectCharacter;
 window.selectShape = selectShape;
 window.selectObject = selectObject;
 window.selectMultiObject = selectMultiObject;
+window.selectModel = selectModel;
 window.scrollShapes = scrollShapes;
 window.scrollObjects = scrollObjects;
 window.scrollCharacters = scrollCharacters;

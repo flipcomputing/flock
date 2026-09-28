@@ -147,7 +147,7 @@ export default {
     'füge %1 %2 hinzu Skalierung: %3 %13 x: %4 y: %5 z: %6\nhaare: %7 | haut: %8 | augen: %9 | t-shirt: %10 | shorts: %11 | details: %12',
   load_object: 'füge %1 %2 %3 hinzu Skalierung: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'füge %1 %2 hinzu Skalierung: %3 %8 x: %4 y: %5 z: %6\nFarben: %7',
-  load_model: 'füge %1 %2 hinzu Skalierung: %3 %7 x: %4 y: %5 z: %6',
+  load_model: 'füge %1 %2 hinzu Skalierung: %3 %7 x: %4 y: %5 z: %6\nFarben: %8',
 
   // Custom block translations - Animate blocks
   glide_to: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9',

@@ -148,7 +148,7 @@ export default {
     'add %1 %2 scale: %3 %13 x: %4 y: %5 z: %6\nhair: %7 |  skin: %8 |  eyes: %9 |  t-shirt: %10 |  shorts: %11 |  detail: %12',
   load_object: 'add %1 %2 %3 scale: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'add %1 %2 scale: %3 %8 x: %4 y: %5 z: %6\ncolors: %7',
-  load_model: 'add %1 %2 scale: %3 %7 x: %4 y: %5 z: %6',
+  load_model: 'add %1 %2 scale: %3 %7 x: %4 y: %5 z: %6\ncolors: %8',
   then_label: 'then',
 
   // Custom block translations - Animate blocks

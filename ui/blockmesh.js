@@ -485,6 +485,13 @@ export function readColourValue(block) {
   return { value: single, kind: single ? 'single' : 'none' };
 }
 
+export function readColourList(block) {
+  if (block?.type !== 'lists_create_with') return readColourValue(block).value;
+  return block.inputList
+    .filter((input) => input.name?.startsWith('ADD'))
+    .map((input) => readColourValue(input.connection?.targetBlock()).value);
+}
+
 // Numeric from an input's NUM field, with fallback.
 export function readNumberInput(parent, inputName, fallback = 1) {
   const b = parent?.getInputTargetBlock?.(inputName);
@@ -845,6 +852,8 @@ export function handleMaterialOrColorChange(mesh, block, changed, color, materia
     return mesh;
   }
 
+  if (block?.type === 'load_model' && !block.colorsEdited) return mesh;
+
   const root = getColorRoot(mesh);
 
   const alpha = materialInfo?.alpha ?? 1;
@@ -951,7 +960,7 @@ function inputSubtreeHasRandomColour(target) {
 
 export function colourSourceIsRandom(block) {
   if (!block?.getInputTargetBlock) return false;
-  const inputName = block.type === 'load_multi_object' ? 'COLORS' : 'COLOR';
+  const inputName = ['load_multi_object', 'load_model'].includes(block.type) ? 'COLORS' : 'COLOR';
   return inputSubtreeHasRandomColour(block.getInputTargetBlock(inputName));
 }
 
@@ -959,7 +968,11 @@ function resolveColorAndMaterialForBlock(block) {
   let color;
   let materialInfo = null;
 
-  if (!['load_object', 'load_multi_object', 'load_character', 'create_map'].includes(block.type)) {
+  if (
+    !['load_object', 'load_multi_object', 'load_model', 'load_character', 'create_map'].includes(
+      block.type
+    )
+  ) {
     const colorInput = block.getInputTargetBlock('COLOR');
 
     // Check if it's a material block
@@ -1017,10 +1030,8 @@ function resolveColorAndMaterialForBlock(block) {
         console.log('Simple color for load_object:', color);
       }
     }
-  } else if (block.type === 'load_multi_object') {
-    const colorsBlock = block.getInput('COLORS').connection.targetBlock();
-    const read = readColourValue(colorsBlock);
-    color = read.value;
+  } else if (block.type === 'load_multi_object' || block.type === 'load_model') {
+    color = readColourList(block.getInputTargetBlock('COLORS'));
   }
 
   return { color, materialInfo };
@@ -1200,7 +1211,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 function handleLoadBlockChange(meshes, block, changed, changeEvent) {
   // All load_* blocks: replace model when MODELS changes
   if (
-    ['load_object', 'load_multi_object', 'load_character'].includes(block.type) &&
+    ['load_object', 'load_multi_object', 'load_model', 'load_character'].includes(block.type) &&
     changed === 'MODELS'
   ) {
     meshes.forEach((mesh) => replaceMeshModel(mesh, block, changeEvent));
@@ -1579,7 +1590,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     changeEvent.blockId === block.id
   ) {
     if (
-      ['load_object', 'load_multi_object', 'load_character'].includes(block.type) &&
+      ['load_object', 'load_multi_object', 'load_model', 'load_character'].includes(block.type) &&
       changeEvent.name === 'MODELS'
     ) {
       changed = 'MODELS';
@@ -1654,6 +1665,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (
     (block.type === 'load_object' ||
       block.type === 'load_multi_object' ||
+      block.type === 'load_model' ||
       block.type === 'load_character') &&
     changed === 'MODELS' &&
     meshes.length === 0
@@ -2187,14 +2199,6 @@ function replaceMeshModel(currentMesh, block) {
     return cls === 'Mesh' || cls === 'InstancedMesh';
   }
 
-  function firstRenderable(node) {
-    const nodes = walkNodes(node);
-    for (const n of nodes) {
-      if (isRenderableMesh(n) && n.name !== '__root__') return n;
-    }
-    return null;
-  }
-
   const warnSuppressed = (operation, error) => {
     console.warn(`[replaceMeshModel] Suppressed non-critical error in ${operation}:`, error);
   };
@@ -2313,7 +2317,7 @@ function replaceMeshModel(currentMesh, block) {
     for (const r of collect) {
       const nodes = walkNodes(r);
       for (const n of nodes) {
-        if (!isRenderableMesh(n)) continue;
+        if (!isRenderableMesh(n) || !(n.getTotalVertices?.() > 0)) continue;
         try {
           n.computeWorldMatrix(true);
           n.refreshBoundingInfo?.();
@@ -2408,7 +2412,9 @@ function replaceMeshModel(currentMesh, block) {
 
   const newMeshName = isCharacter
     ? flock.createCharacter(createArgs)
-    : flock.createObject(createArgs);
+    : block.type === 'load_model'
+      ? flock.createModel(createArgs)
+      : flock.createObject(createArgs);
 
   flock.whenModelReady(newMeshName, (loadedMesh) => {
     if (!loadedMesh) {
@@ -2417,7 +2423,9 @@ function replaceMeshModel(currentMesh, block) {
     }
 
     try {
-      const newChild = firstRenderable(loadedMesh) || loadedMesh;
+      const newChildren = (loadedMesh.getChildren ? loadedMesh.getChildren() : []).slice();
+      if (!newChildren.length) return;
+      const newChild = newChildren[0];
 
       // The pivot a re-run produces. Via world matrices: newChild can sit
       // under __root__.
@@ -2471,13 +2479,6 @@ function replaceMeshModel(currentMesh, block) {
       // Remove physics on the temp container to avoid duplicate bodies
       stripPhysicsTree(loadedMesh);
 
-      // Detach new child from its loader wrapper
-      try {
-        newChild.setParent?.(null, true);
-      } catch (error) {
-        warnSuppressed('detachNewChild:setParent', error);
-      }
-
       // Collect bone-attached objects from the target's metadata list.
       // This is more reliable than traversing the BabylonJS hierarchy because
       // it doesn't depend on getChildren() returning bone-attached meshes.
@@ -2520,8 +2521,11 @@ function replaceMeshModel(currentMesh, block) {
         disposeTree(child);
         removed.push(child.name);
       }
-      // Parent the replacement under the existing parent
-      newChild.parent = currentMesh;
+      for (const child of newChildren) child.parent = currentMesh;
+      currentMesh.metadata = currentMesh.metadata || {};
+      currentMesh.metadata.modelName = loadedMesh.metadata?.modelName ?? modelName;
+      currentMesh.metadata.displayName =
+        loadedMesh.metadata?.displayName ?? currentMesh.metadata.displayName;
 
       // Re-attach any objects that were bone-attached to the old skeleton
       for (const item of boneAttachments) {
@@ -2554,13 +2558,13 @@ function replaceMeshModel(currentMesh, block) {
         reattachToBone(currentMesh);
       } else if (oldBaseY != null) {
         try {
-          newChild.computeWorldMatrix(true);
-          newChild.refreshBoundingInfo?.();
-          const newBaseY = newChild.getBoundingInfo().boundingBox.minimumWorld.y;
-          if (isFinite(newBaseY)) {
+          const newBaseY = worldBaseYOfRenderables(newChildren);
+          if (newBaseY != null) {
             const dy = oldBaseY - newBaseY;
-            const abs = newChild.getAbsolutePosition();
-            newChild.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+            for (const child of newChildren) {
+              const abs = child.getAbsolutePosition();
+              child.setAbsolutePosition(new flock.BABYLON.Vector3(abs.x, abs.y + dy, abs.z));
+            }
           }
         } catch (error) {
           warnSuppressed('baseAlignment:setAbsolutePosition', error);
@@ -2595,8 +2599,8 @@ function replaceMeshModel(currentMesh, block) {
         }
       }
 
-      // Dispose loader wrapper if distinct (physics already stripped)
-      if (loadedMesh !== newChild && !loadedMesh.isDisposed?.()) {
+      // Dispose the now-empty loader wrapper (physics already stripped)
+      if (!loadedMesh.isDisposed?.()) {
         try {
           loadedMesh.setParent?.(null);
         } catch (error) {
@@ -2610,7 +2614,7 @@ function replaceMeshModel(currentMesh, block) {
       }
 
       if (animationInfo?.name) {
-        flock.switchAnimation(loadedMesh.name, {
+        flock.switchAnimation(currentMesh.name, {
           animationName: animationInfo.name,
           restart: true,
           loop: animationInfo.isLooping ?? true, // defaults to true if undefined
@@ -2794,6 +2798,18 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
 
   const materialName = mesh?.material?.name?.replace(/_clone$/, '');
   const colorIndex = mesh?.metadata?.materialIndex;
+
+  if (block.type === 'load_model') {
+    const index =
+      colorIndex ?? flock.getColorSlots(root).find((slot) => slot.mesh === mesh)?.index;
+    if (index === undefined) return;
+    withUndoGroup(() => {
+      block.updateColorAtIndex?.(selectedColor, index);
+      block.initSvg?.();
+      highlightBlockById(Blockly.getMainWorkspace(), block);
+    });
+    return;
+  }
 
   if (materialName && Object.prototype.hasOwnProperty.call(materialToFieldMap, materialName)) {
     const fieldName = materialToFieldMap[materialName];

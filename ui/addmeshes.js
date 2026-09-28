@@ -4,6 +4,7 @@ import {
   extractMaterialInfo,
   getMeshFromBlock,
   readColourValue,
+  readColourList,
   attachToEnclosingGroupIfAny,
   applyInitialTransformsFromBlock,
 } from './blockmesh.js';
@@ -159,6 +160,7 @@ export function createMeshOnCanvas(block) {
       newMesh = flock.createModel({
         modelName: modelName,
         modelId: meshId,
+        colors: block.colorsEdited ? readColourList(block.getInputTargetBlock('COLORS')) : null,
         scale: scale,
         position: { x: position.x, y: position.y, z: position.z },
       });
@@ -233,22 +235,7 @@ export function createMeshOnCanvas(block) {
       modelName = block.getFieldValue('MODELS');
       scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
-      const colorsBlock = block.getInput('COLORS').connection.targetBlock();
-      let colorsArray = [];
-      if (colorsBlock && colorsBlock.type === 'lists_create_with') {
-        colorsBlock.inputList.forEach((input) => {
-          // Only process value inputs named "ADD*"
-          if (input.name && input.name.startsWith('ADD') && input.connection) {
-            const colorBlock = input.connection.targetBlock();
-            if (colorBlock) {
-              const colorVal = colorBlock.getFieldValue('COLOR');
-              if (colorVal) {
-                colorsArray.push(colorVal);
-              }
-            }
-          }
-        });
-      }
+      const colorsArray = readColourList(block.getInputTargetBlock('COLORS'));
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;

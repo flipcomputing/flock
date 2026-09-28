@@ -632,6 +632,81 @@
                     }
                   }
                 },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 8
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#33125B"
+                          }
+                        }
+                      },
+                      "ADD2": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#FFFFFF"
+                          }
+                        }
+                      },
+                      "ADD3": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#000000"
+                          }
+                        }
+                      },
+                      "ADD4": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      },
+                      "ADD5": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#F77100"
+                          }
+                        }
+                      },
+                      "ADD6": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#343434"
+                          }
+                        }
+                      },
+                      "ADD7": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 "DO": {
                   "block": {
                     "type": "rotate_to",

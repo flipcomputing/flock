@@ -303,7 +303,7 @@ export const flockModels = {
     };
 
     const applyMaterialToHierarchy = (mesh, colorInput) => {
-      if (!applyColor || !colorInput) return;
+      if (!colorInput) return;
 
       flock.applyMaterialToHierarchy(mesh, colorInput);
     };
@@ -552,6 +552,7 @@ export const flockModels = {
   createModel({
     modelName,
     modelId,
+    colors = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
     callback = null,
@@ -560,6 +561,7 @@ export const flockModels = {
     return flock.createObject({
       modelName,
       modelId,
+      color: colors,
       scale,
       position,
       callback,
