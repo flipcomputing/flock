@@ -5396,10 +5396,18 @@ const toolboxSnippets = {
                     },
                     inputs: {
                       RADIUS: {
-                        block: {
+                        shadow: {
                           type: 'math_number',
                           fields: {
                             NUM: 7,
+                          },
+                        },
+                      },
+                      ANGLE: {
+                        shadow: {
+                          type: 'math_number',
+                          fields: {
+                            NUM: 90,
                           },
                         },
                       },
