@@ -18,6 +18,7 @@ import {
 } from '../ui/gizmos.js';
 import { showStatus, clearStatus } from '../ui/status.js';
 import { meshMap } from '../generators/generators.js';
+import { updateMeshFromBlock } from '../ui/blockmesh.js';
 
 export function runGizmoTests(flock) {
   const BABYLON = flock.BABYLON;
@@ -345,6 +346,156 @@ export function runGizmoTests(flock) {
         expect(mgr.positionGizmoEnabled).to.be.false;
         expect(mgr.rotationGizmoEnabled).to.be.false;
         expect(mgr.scaleGizmoEnabled).to.be.false;
+      });
+    });
+
+    describe('group transform tools', function () {
+      let buttons;
+      let groupMesh;
+      let memberMesh;
+
+      beforeEach(async function () {
+        buttons = ['rotationButton', 'scaleButton'].map((id) => {
+          const btn = document.createElement('button');
+          btn.id = id;
+          document.body.appendChild(btn);
+          return btn;
+        });
+        const groupName = await flock.createGroup('gizmoToolGroup', { position: [0, 0, 0] });
+        const memberName = await flock.createBox('gizmoToolMember', {
+          width: 1,
+          height: 2,
+          depth: 1,
+          position: [2, 0, 0],
+        });
+        groupMesh = flock.scene.getMeshByName(groupName);
+        memberMesh = flock.scene.getMeshByName(memberName);
+        memberMesh.setParent(groupMesh);
+        flock.recomputeGroupGeometry(groupMesh);
+        createdMeshes.push(memberMesh, groupMesh);
+      });
+
+      afterEach(function () {
+        exitGizmoState();
+        buttons.forEach((b) => b.remove());
+      });
+
+      it('scale offers only the uniform handle for a group, and all handles again for a mesh', function () {
+        const box = makeBox('gizmoToolLoose');
+        mgr.attachToMesh(groupMesh);
+        toggleGizmo('scale');
+        const sg = mgr.gizmos.scaleGizmo;
+        for (const g of [sg.xGizmo, sg.yGizmo, sg.zGizmo]) {
+          expect(g.isEnabled).to.be.false;
+          expect(g.attachedMesh).to.equal(null);
+        }
+        expect(sg.uniformScaleGizmo.attachedMesh).to.equal(groupMesh);
+
+        mgr.attachToMesh(box);
+        for (const g of [sg.xGizmo, sg.yGizmo, sg.zGizmo]) {
+          expect(g.isEnabled).to.be.true;
+          expect(g.attachedMesh).to.equal(box);
+        }
+      });
+
+      it('clears the gizmo from the group or its members when active is toggled, leaving others alone', async function () {
+        const ws = Blockly.getMainWorkspace();
+        const groupBlock = Blockly.serialization.blocks.append(
+          {
+            type: 'create_group',
+            extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>',
+            fields: { ID_VAR: { name: 'toggleGroupVar' }, ACTIVE: 'TRUE' },
+            inputs: {
+              DO: { block: { type: 'create_box', fields: { ID_VAR: { name: 'toggleMemberVar' } } } },
+            },
+          },
+          ws
+        );
+        const memberBlock = groupBlock.getInputTargetBlock('DO');
+        const toggledGroup = flock.scene.getMeshByName(
+          await flock.createGroup(`toggleGroup__${groupBlock.id}`)
+        );
+        const toggledMember = flock.scene.getMeshByName(
+          await flock.createBox(`toggleMember__${memberBlock.id}`, { position: [3, 0, 0] })
+        );
+        toggledMember.setParent(toggledGroup);
+        flock.recomputeGroupGeometry(toggledGroup);
+        createdMeshes.push(toggledMember, toggledGroup);
+        const toggle = (value) => {
+          groupBlock.setFieldValue(value, 'ACTIVE');
+          updateMeshFromBlock([toggledGroup], groupBlock, {
+            type: Blockly.Events.BLOCK_CHANGE,
+            element: 'field',
+            name: 'ACTIVE',
+            blockId: groupBlock.id,
+          });
+        };
+        try {
+          mgr.attachToMesh(toggledGroup);
+          toggleGizmo('position');
+          toggle('FALSE');
+          expect(toggledMember.parent).to.equal(null);
+          expect(mgr.attachedMesh).to.equal(null);
+
+          mgr.attachToMesh(toggledMember);
+          toggle('TRUE');
+          expect(toggledMember.parent).to.equal(toggledGroup);
+          expect(mgr.attachedMesh).to.equal(null);
+
+          const other = makeBox('toggleOther');
+          mgr.attachToMesh(other);
+          toggle('FALSE');
+          expect(mgr.attachedMesh).to.equal(other);
+        } finally {
+          groupBlock.dispose();
+        }
+      });
+
+      it('scale restores all axis handles when the tool closes on a group', function () {
+        mgr.attachToMesh(groupMesh);
+        toggleGizmo('scale');
+        const sg = mgr.gizmos.scaleGizmo;
+        expect(sg.xGizmo.isEnabled).to.be.false;
+
+        exitGizmoState();
+        for (const g of [sg.xGizmo, sg.yGizmo, sg.zGizmo]) {
+          expect(g.isEnabled).to.be.true;
+        }
+      });
+
+      it('scale keeps the depth handle off for a plane, even after a group', function () {
+        const plane = makeBox('gizmoToolPlane');
+        plane.metadata = { blockKey: 'gizmoToolPlaneKey' };
+        meshMap.gizmoToolPlaneKey = { type: 'create_plane' };
+        try {
+          mgr.attachToMesh(groupMesh);
+          toggleGizmo('scale');
+          mgr.attachToMesh(plane);
+          const sg = mgr.gizmos.scaleGizmo;
+          expect(sg.xGizmo.isEnabled).to.be.true;
+          expect(sg.yGizmo.isEnabled).to.be.true;
+          expect(sg.zGizmo.isEnabled).to.be.false;
+          expect(sg.xGizmo.attachedMesh).to.equal(plane);
+        } finally {
+          delete meshMap.gizmoToolPlaneKey;
+        }
+      });
+
+      it('rotate settles the group to identity when the tool closes, leaving members in place', function () {
+        mgr.attachToMesh(groupMesh);
+        toggleGizmo('rotation');
+        groupMesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 20);
+        groupMesh.computeWorldMatrix(true);
+        memberMesh.computeWorldMatrix(true);
+        const before = memberMesh.getAbsolutePosition().clone();
+
+        exitGizmoState();
+
+        const q = groupMesh.rotationQuaternion;
+        expect(Math.abs(q.w)).to.be.closeTo(1, 1e-6);
+        memberMesh.computeWorldMatrix(true);
+        expect(memberMesh.getAbsolutePosition().subtract(before).length()).to.be.below(1e-3);
+        expect(memberMesh.parent).to.equal(groupMesh);
       });
     });
 

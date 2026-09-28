@@ -124,6 +124,32 @@ export function runAxisKeyboardTests(_flock) {
       });
     });
 
+    describe('uniformOnly', function () {
+      it("starts locked to 'all' whatever the initial axis", function () {
+        make({ uniformOnly: true, initialAxis: 'x' });
+        expect(stop.getAxis()).to.equal('all');
+      });
+
+      it('ignores x/y/z/u and keeps the uniform lock', function () {
+        make({ uniformOnly: true });
+        for (const key of ['x', 'Y', 'z', 'u']) topHandler()(makeEvent({ key }));
+        expect(stop.getAxis()).to.equal('all');
+        expect(axisChanges).to.deep.equal([]);
+      });
+
+      it('moves all axes together on an arrow key', function () {
+        make({ uniformOnly: true });
+        topHandler()(makeEvent({ key: 'ArrowRight' }));
+        expect(moves).to.deep.equal([[1, 1, 1]]);
+      });
+
+      it("setAxis cannot leave 'all'", function () {
+        make({ uniformOnly: true });
+        stop.setAxis('x');
+        expect(stop.getAxis()).to.equal('all');
+      });
+    });
+
     describe('initialAxis / normalizeAxis', function () {
       it("collapses an initial 'all' to 'x' when allowUniform is false", function () {
         make({ initialAxis: 'all', allowUniform: false });

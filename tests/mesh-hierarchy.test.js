@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { meshMap } from '../generators/generators.js';
-import { bakeGroupScale, cacheGroupScaleBaseline, healGroupOrigin, updateChildBlockRotations, updateScaleBlock, setGizmoManager, gizmoManager } from '../ui/gizmos.js';
+import { bakeGroupScale, healGroupOrigin, settleGroupRotation, updateChildBlockRotations, updateScaleBlock, setGizmoManager, gizmoManager } from '../ui/gizmos.js';
 import { suppressBlockLiveUpdates, unsuppressBlockLiveUpdates, updateMeshFromBlock, syncGroupParentOnMove, setGroupSelectionFollower, getColorRoot, handleMaterialOrColorChange, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
 
 function configureDraco(BABYLON) {
@@ -347,12 +347,12 @@ export function runMeshHierarchyTests(flock) {
         expect(childMesh.getAbsolutePosition().z).to.be.closeTo(bakedWorldPos.z, 0.05);
       });
 
-      it('should rebuild a rotated non-cubic member at its baked world base, matching the live scene', async function () {
+      it('should rebuild a rotated non-cubic member at its baked base, matching the live scene', async function () {
         // Live: a tall member parented to a group, group pitched 90 degrees
         // about X. The bake (updateChildBlockRotations) stores the member's
-        // world base Y in its block. Play rebuilds from those baked values in
-        // generated order: create (base-anchored) -> setParent -> rotateTo.
-        // The rebuild must land on the same world base the gizmo showed.
+        // unrotated base Y in its block. Play rebuilds from those baked values
+        // in generated order: create (base-anchored) -> setParent -> rotateTo.
+        // The rebuild must land where the gizmo showed it.
         const groupId = 'hierarchyGroupRotBase';
         const childId = 'hierarchyGroupRotBaseChild';
 
@@ -655,7 +655,6 @@ export function runMeshHierarchyTests(flock) {
         meshMap['bakeKeyA'] = mockA.block;
         meshMap['bakeKeyB'] = mockB.block;
         try {
-          cacheGroupScaleBaseline(groupMesh);
           groupMesh.scaling.set(2, 2, 2);
           groupMesh.computeWorldMatrix(true);
 
@@ -677,7 +676,6 @@ export function runMeshHierarchyTests(flock) {
           expect(mockA.holders.Y._v).to.be.closeTo(-0.5, 0.05);
 
           const keysBefore = Object.keys(meshMap);
-          cacheGroupScaleBaseline(groupMesh);
           expect(bakeGroupScale(groupMesh)).to.be.false;
           expect(groupMesh.scaling.x).to.be.closeTo(1, 1e-6);
           expect(Object.keys(meshMap)).to.deep.equal(keysBefore);
@@ -724,7 +722,6 @@ export function runMeshHierarchyTests(flock) {
         meshMap['bake1dpA'] = mockA.block;
         meshMap['bake1dpB'] = mockB.block;
         try {
-          cacheGroupScaleBaseline(groupMesh);
           // Irrational factor: exact live values cannot be 1dp, so the blocks
           // must round and the scene must snap onto the rounded values.
           groupMesh.scaling.set(Math.SQRT2, Math.SQRT2, Math.SQRT2);
@@ -859,60 +856,61 @@ export function runMeshHierarchyTests(flock) {
         }
       });
 
-      it('should fold a non-uniform group scale into members without a baseline', async function () {
+      it('should settle a rotated group to identity, keeping members and nested groups in place', async function () {
         this.timeout(15000);
 
-        const groupName = await flock.createGroup('hierarchyGroupBakeNU', { position: [0, 0, 0] });
-        const childNameA = await flock.createBox('hierarchyGroupBakeNUChildA', {
+        const outerName = await flock.createGroup('hierarchySettleOuter', { position: [0, 0, 0] });
+        const innerName = await flock.createGroup('hierarchySettleInner', { position: [0, 0, 0] });
+        const aName = await flock.createBox('hierarchySettleA', {
           width: 1,
           height: 2,
           depth: 1,
-          position: [0, 0, 0],
+          position: [2, 0, 0],
         });
-        const childNameB = await flock.createBox('hierarchyGroupBakeNUChildB', {
+        const bName = await flock.createBox('hierarchySettleB', {
           width: 1,
-          height: 2,
-          depth: 1,
-          position: [4, 0, 0],
+          height: 1,
+          depth: 3,
+          position: [-2, 1, 1],
         });
-        const groupMesh = flock.scene.getMeshByName(groupName);
-        const childMeshA = flock.scene.getMeshByName(childNameA);
-        const childMeshB = flock.scene.getMeshByName(childNameB);
-        expect(groupMesh, 'group mesh created').to.exist;
-        expect(childMeshA, 'child A created').to.exist;
-        expect(childMeshB, 'child B created').to.exist;
-        childMeshA.setParent(groupMesh);
-        childMeshB.setParent(groupMesh);
-        flock.recomputeGroupGeometry(groupMesh);
-        meshIds.push(groupName);
+        meshIds.push(bName, aName, innerName, outerName);
+        await flock.setParent(innerName, bName);
+        await flock.setParent(outerName, aName);
+        await flock.setParent(outerName, innerName);
 
-        childMeshA.metadata = childMeshA.metadata || {};
-        childMeshA.metadata.blockKey = 'bakeNUKeyA';
-        childMeshB.metadata = childMeshB.metadata || {};
-        childMeshB.metadata.blockKey = 'bakeNUKeyB';
-        const mockA = mockBoxBlock({ WIDTH: 1, HEIGHT: 2, DEPTH: 1, X: 0, Y: 0, Z: 0 });
-        const mockB = mockBoxBlock({ WIDTH: 1, HEIGHT: 2, DEPTH: 1, X: 4, Y: 0, Z: 0 });
-        meshMap['bakeNUKeyA'] = mockA.block;
-        meshMap['bakeNUKeyB'] = mockB.block;
-        try {
-          // No baseline cached: the input-derived path must still bake.
-          groupMesh.scaling.set(2, 1, 1);
-          groupMesh.computeWorldMatrix(true);
+        const outer = flock.scene.getMeshByName(outerName);
+        const inner = flock.scene.getMeshByName(innerName);
+        const members = [aName, bName].map((n) => flock.scene.getMeshByName(n));
 
-          expect(bakeGroupScale(groupMesh)).to.be.true;
+        outer.rotationQuaternion = flock.eulerDegreesToQuat(90, 30, 0);
+        outer.computeWorldMatrix(true);
+        const worldPose = (m) => {
+          m.computeWorldMatrix(true);
+          const scale = new flock.BABYLON.Vector3();
+          const quat = new flock.BABYLON.Quaternion();
+          const pos = new flock.BABYLON.Vector3();
+          m.getWorldMatrix().decompose(scale, quat, pos);
+          return { pos, quat };
+        };
+        const before = members.map(worldPose);
 
-          expect(groupMesh.scaling.x).to.be.closeTo(1, 1e-6);
-          expect(childMeshA.getAbsolutePosition().x).to.be.closeTo(-2, 0.05);
-          expect(childMeshB.getAbsolutePosition().x).to.be.closeTo(6, 0.05);
-          expect(mockA.holders.WIDTH._v).to.be.closeTo(2, 0.05);
-          expect(mockB.holders.WIDTH._v).to.be.closeTo(2, 0.05);
-          expect(mockA.holders.HEIGHT._v).to.be.closeTo(2, 0.05);
-          expect(mockA.holders.X._v).to.be.closeTo(-2, 0.05);
-          expect(mockB.holders.X._v).to.be.closeTo(6, 0.05);
-        } finally {
-          delete meshMap['bakeNUKeyA'];
-          delete meshMap['bakeNUKeyB'];
+        settleGroupRotation(outer);
+
+        for (const g of [outer, inner]) {
+          g.computeWorldMatrix(true);
+          const q = worldPose(g).quat;
+          expect(Math.abs(q.w), `${g.name} world rotation`).to.be.closeTo(1, 1e-4);
         }
+        members.forEach((m, i) => {
+          const after = worldPose(m);
+          expect(after.pos.subtract(before[i].pos).length(), `${m.name} position`).to.be.below(1e-3);
+          expect(Math.abs(flock.BABYLON.Quaternion.Dot(after.quat, before[i].quat)), `${m.name} rotation`).to.be.closeTo(1, 1e-4);
+        });
+        expect(members[1].parent).to.equal(inner);
+        expect(inner.parent).to.equal(outer);
+        const bBounds = members[1].getHierarchyBoundingVectors(true);
+        const bCentre = bBounds.min.add(bBounds.max).scale(0.5);
+        expect(inner.getAbsolutePosition().subtract(bCentre).length()).to.be.below(0.01);
       });
 
       it('should chain repeated uniform group scale bakes into member blocks', async function () {
@@ -956,7 +954,6 @@ export function runMeshHierarchyTests(flock) {
           let expectedWA = 4;
           let expectedWB = 2;
           for (let i = 0; i < 5; i++) {
-            cacheGroupScaleBaseline(groupMesh);
             groupMesh.scaling.set(1.5, 1.5, 1.5);
             groupMesh.computeWorldMatrix(true);
             expect(bakeGroupScale(groupMesh), `bake ${i}`).to.be.true;
@@ -973,41 +970,6 @@ export function runMeshHierarchyTests(flock) {
         } finally {
           delete meshMap['bakeRepeatKeyA'];
           delete meshMap['bakeRepeatKeyB'];
-        }
-      });
-
-      it('should decline to bake a non-uniform scale over rotated members', async function () {        this.timeout(15000);
-
-        const groupName = await flock.createGroup('hierarchyGroupBakeLegacy', { position: [0, 0, 0] });
-        const childName = await flock.createBox('hierarchyGroupBakeLegacyChild', {
-          width: 1,
-          height: 1,
-          depth: 1,
-          position: [2, 0, 0],
-        });
-        const groupMesh = flock.scene.getMeshByName(groupName);
-        const childMesh = flock.scene.getMeshByName(childName);
-        expect(groupMesh, 'group mesh created').to.exist;
-        expect(childMesh, 'child created').to.exist;
-        childMesh.setParent(groupMesh);
-        flock.recomputeGroupGeometry(groupMesh);
-        meshIds.push(groupName);
-
-        childMesh.metadata = childMesh.metadata || {};
-        childMesh.metadata.blockKey = 'bakeLegacyKey';
-        const mock = mockBoxBlock({ WIDTH: 1, HEIGHT: 1, DEPTH: 1, X: 2, Y: 0, Z: 0 });
-        meshMap['bakeLegacyKey'] = mock.block;
-        try {
-          childMesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 45, 0);
-          childMesh.computeWorldMatrix(true);
-          groupMesh.scaling.set(2, 1, 1);
-          groupMesh.computeWorldMatrix(true);
-
-          expect(bakeGroupScale(groupMesh)).to.be.false;
-          expect(groupMesh.scaling.x).to.be.closeTo(2, 1e-6);
-          expect(mock.holders.WIDTH._v).to.be.closeTo(1, 1e-6);
-        } finally {
-          delete meshMap['bakeLegacyKey'];
         }
       });
 
@@ -1046,7 +1008,6 @@ export function runMeshHierarchyTests(flock) {
         const mock = mockBoxBlock({ WIDTH: 1, HEIGHT: 1, DEPTH: 1, X: 0, Y: 0, Z: 0 });
         meshMap['bakeNestedKey'] = mock.block;
         try {
-          cacheGroupScaleBaseline(groupMesh);
           groupMesh.scaling.set(2, 2, 2);
           groupMesh.computeWorldMatrix(true);
 
@@ -1303,8 +1264,6 @@ export function runMeshHierarchyTests(flock) {
         meshMap[groupBlock.id] = groupBlock;
         const bottomY = flock.getEffectiveWorldBounds(groupMesh).min.y;
         try {
-          // Drag-start: capture the baseline.
-          cacheGroupScaleBaseline(groupMesh);
           // Drag: scale the group node.
           groupMesh.scaling.set(2, 2, 2);
           groupMesh.computeWorldMatrix(true);
@@ -1719,7 +1678,6 @@ export function runMeshHierarchyTests(flock) {
         try {
           // First bake: no resize block exists yet - findOrCreateResizeBlock
           // must create one, seeded so it lands on a single application.
-          cacheGroupScaleBaseline(groupMesh);
           groupMesh.scaling.set(2, 2, 2);
           groupMesh.computeWorldMatrix(true);
           expect(bakeGroupScale(groupMesh)).to.be.true;
@@ -1732,7 +1690,6 @@ export function runMeshHierarchyTests(flock) {
 
           // Second bake: the resize block now exists, so the multiply path
           // applies and should chain onto the first result.
-          cacheGroupScaleBaseline(groupMesh);
           groupMesh.scaling.set(1.5, 1.5, 1.5);
           groupMesh.computeWorldMatrix(true);
           expect(bakeGroupScale(groupMesh)).to.be.true;

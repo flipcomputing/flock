@@ -1372,6 +1372,12 @@ export function setGroupSelectionFollower(fn) {
   groupSelectionFollower = typeof fn === 'function' ? fn : null;
 }
 
+let groupActiveToggleListener = null;
+
+export function setGroupActiveToggleListener(fn) {
+  groupActiveToggleListener = typeof fn === 'function' ? fn : null;
+}
+
 export function syncGroupParentOnMove(mesh, block) {
   if (!mesh || mesh.isDisposed?.() || !block || block.disposed) return;
   // Not suppression-gated: a bake-owned mesh is already correctly parented
@@ -1448,6 +1454,11 @@ function getDirectGroupMemberBlocks(groupBlock) {
 
 function handleGroupActiveToggle(groupMesh, groupBlock) {
   if (!groupMesh || groupMesh.isDisposed?.()) return;
+
+  groupActiveToggleListener?.([
+    groupMesh,
+    ...getDirectGroupMemberBlocks(groupBlock).flatMap((b) => getMeshesFromBlock(b)),
+  ]);
 
   if (groupBlock.getFieldValue('ACTIVE') === 'TRUE') {
     getDirectGroupMemberBlocks(groupBlock).forEach((memberBlock) => {

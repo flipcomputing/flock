@@ -19,10 +19,6 @@ function usesCenterPivot(mesh) {
   return mesh?.metadata?.shape === 'plane';
 }
 
-// Group membership changes the base-rule maths (see applyPositionWithCurrentBaseRule):
-// only grouped meshes need the rotation-aware world-AABB base, since only they get
-// re-anchored after rotate (rotateTo's groupedBaseY branch). Must be read before any
-// unparenting a caller does for world-space math, since that would hide the ancestor.
 function isInGroup(mesh) {
   let ancestor = mesh?.parent;
   while (ancestor) {
@@ -58,7 +54,7 @@ function worldTransformForPhysics(mesh) {
 
 function applyPositionWithCurrentBaseRule(
   mesh,
-  { x = 0, y = 0, z = 0, useY = true, meshName = '', grouped = false } = {}
+  { x = 0, y = 0, z = 0, useY = true, meshName = '' } = {}
 ) {
   const {
     x: nextX,
@@ -79,30 +75,18 @@ function applyPositionWithCurrentBaseRule(
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo?.();
 
-    let deltaY;
-    if (grouped) {
-      // Grouped members are re-anchored to their world base after every
-      // rotate (see rotateTo's groupedBaseY branch), so the rotated world
-      // AABB is always the right reference here.
-      const worldMinY = mesh.getBoundingInfo()?.boundingBox?.minimumWorld?.y;
-      if (Number.isFinite(worldMinY)) deltaY = nextY - worldMinY;
-    } else {
-      // Free-standing meshes are created upright and any rotate_to block
-      // runs after creation, so the base must be computed as if unrotated -
-      // otherwise a position captured post-rotation (e.g. from a gizmo drag)
-      // gets applied pre-rotation on replay and the object jumps when the
-      // rotate then swings it around its pivot with no compensation.
-      const bi = mesh.getBoundingInfo();
-      const localMinY = bi?.boundingBox?.minimum?.y;
-      const scaleY = mesh.scaling?.y ?? 1;
-      if (Number.isFinite(localMinY)) {
-        const unrotatedMinWorldY = mesh.position.y + localMinY * scaleY;
-        deltaY = nextY - unrotatedMinWorldY;
-      }
-    }
-
-    if (deltaY !== undefined && Math.abs(deltaY) > 1e-6) {
-      mesh.position.y += deltaY;
+    // Meshes are created upright and any rotate_to block runs after
+    // creation, so the base must be computed as if unrotated - otherwise a
+    // position captured post-rotation (e.g. from a gizmo drag) gets applied
+    // pre-rotation on replay and the object jumps when the rotate then
+    // swings it around its pivot with no compensation. Group members follow
+    // the same rule, so moving a mesh into or out of a group keeps its Y.
+    const bi = mesh.getBoundingInfo();
+    const localMinY = bi?.boundingBox?.minimum?.y;
+    const scaleY = mesh.scaling?.y ?? 1;
+    if (Number.isFinite(localMinY)) {
+      const deltaY = nextY - (mesh.position.y + localMinY * scaleY);
+      if (Math.abs(deltaY) > 1e-6) mesh.position.y += deltaY;
     }
   }
 
@@ -172,9 +156,6 @@ export const flockTransform = {
       nextY = flock.getGroundLevelAt(x, z);
     }
 
-    // Must be read before unparenting below, which would hide the ancestor.
-    const grouped = isInGroup(mesh);
-
     applyInWorldSpace(mesh, () => {
       applyPositionWithCurrentBaseRule(mesh, {
         x,
@@ -182,7 +163,6 @@ export const flockTransform = {
         z,
         useY,
         meshName: meshName || mesh.name || '',
-        grouped,
       });
     });
   },
@@ -576,45 +556,10 @@ export const flockTransform = {
           resolve();
           return;
         }
-        // A group member's block Y is its world base, but creating it
-        // anchors the unrotated base and rotating shifts it again whenever
-        // the vertical extent changes - so re-anchor the pre-rotation base
-        // after setting the orientation. Unparented meshes keep the
-        // historical centre-preserving behaviour their pipeline relies on.
-        let groupedBaseY = null;
-        {
-          let ancestor = mesh.parent;
-          while (ancestor) {
-            if (ancestor.metadata?.shapeType === 'Group') {
-              if (
-                !usesCenterPivot(mesh) &&
-                typeof mesh.getBoundingInfo === 'function' &&
-                mesh.getTotalVertices?.() > 0
-              ) {
-                mesh.computeWorldMatrix(true);
-                mesh.refreshBoundingInfo?.();
-                const worldMinY = mesh.getBoundingInfo()?.boundingBox?.minimumWorld?.y;
-                if (Number.isFinite(worldMinY)) groupedBaseY = worldMinY;
-              }
-              break;
-            }
-            ancestor = ancestor.parent;
-          }
-        }
         const parent = mesh.parent;
         if (parent) mesh.setParent(null);
         try {
           mesh.rotationQuaternion = flock.eulerDegreesToQuat(x, y, z);
-          if (groupedBaseY !== null) {
-            applyPositionWithCurrentBaseRule(mesh, {
-              x: mesh.position.x,
-              y: groupedBaseY,
-              z: mesh.position.z,
-              useY: true,
-              meshName: meshName || mesh.name || '',
-              grouped: true,
-            });
-          }
         } finally {
           if (parent) mesh.setParent(parent);
         }
@@ -1032,9 +977,9 @@ export const flockTransform = {
   getBlockPositionFromMesh(mesh) {
     if (!mesh) return { x: 0, y: 0, z: 0 };
     mesh.computeWorldMatrix?.(true);
+    // Group members are read in world space (mesh.position is
+    // parent-relative), matching setBlockPositionOnMesh, which unparents.
     const grouped = isInGroup(mesh);
-    // World-space pivot: mesh.position is parent-relative, and the grouped Y
-    // rule below is already world-space via minimumWorld.
     const worldPos = mesh.absolutePosition ?? mesh.position ?? { x: 0, y: 0, z: 0 };
     if (usesCenterPivot(mesh)) {
       return { x: worldPos.x ?? 0, y: worldPos.y ?? 0, z: worldPos.z ?? 0 };
@@ -1043,22 +988,16 @@ export const flockTransform = {
 
     const bi = mesh.getBoundingInfo?.();
 
-    if (grouped) {
-      // World base, valid for any orientation - grouped members are
-      // re-anchored to it on every rotate (see rotateTo's groupedBaseY branch).
-      const baseRuleY = bi?.boundingBox?.minimumWorld?.y ?? worldPos.y ?? 0;
-      return { x: worldPos.x ?? 0, y: baseRuleY, z: worldPos.z ?? 0 };
-    }
-
-    // Free-standing meshes: base computed as if unrotated, matching how
-    // creation (initializeMesh) applies it before any later rotate_to block
-    // runs - see applyPositionWithCurrentBaseRule for why this must match.
+    // Base computed as if unrotated, matching how creation (initializeMesh)
+    // applies it before any later rotate_to block runs - see
+    // applyPositionWithCurrentBaseRule for why this must match.
+    const pos = grouped ? worldPos : (mesh.position ?? { x: 0, y: 0, z: 0 });
     const localMinY = bi?.boundingBox?.minimum?.y;
-    const scaleY = mesh.scaling?.y ?? 1;
-    const posY = mesh.position?.y ?? 0;
+    const scaleY = (grouped ? mesh.absoluteScaling?.y : mesh.scaling?.y) ?? 1;
+    const posY = pos.y ?? 0;
     const baseRuleY = Number.isFinite(localMinY) ? posY + localMinY * scaleY : posY;
 
-    return { x: mesh.position?.x ?? 0, y: baseRuleY, z: mesh.position?.z ?? 0 };
+    return { x: pos.x ?? 0, y: baseRuleY, z: pos.z ?? 0 };
   },
   _getAnchor(mesh) {
     if (!mesh) return null;

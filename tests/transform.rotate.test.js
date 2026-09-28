@@ -525,23 +525,20 @@ export function runRotationTests(flock) {
     });
   });
 
-  // A Group member needs the rotation-aware world-AABB base (it gets
-  // re-anchored to it after every rotate - see rotateTo's groupedBaseY
-  // branch and mesh-hierarchy.test.js's "rebuild a rotated non-cubic
-  // member" test). A free-standing mesh does not: it is always created
-  // upright, before any rotate_to block runs, so its base must be read
-  // and written as if unrotated - see the @rotation describe below for
-  // why using the true rotated base there causes a jump on replay.
+  // A Group member uses the same unrotated base rule as a free-standing
+  // mesh (see the @rotation describe below), so dragging a rotated mesh
+  // into or out of a group leaves its block Y unchanged.
   describe('base-rule Y with rotated meshes in a Group @rotation', function () {
     let groupId, rotatedId;
     beforeEach(async function () {
       groupId = `rotbasegroup_${Date.now()}`;
       rotatedId = `rotbase_${Date.now()}`;
       await flock.createGroup(groupId, { position: [0, 0, 0] });
+      // Non-cubic, so rotating changes the vertical extent.
       await flock.createBox(rotatedId, {
         color: '#FF00FF',
         width: 1,
-        height: 1,
+        height: 2,
         depth: 1,
         position: [0, 0, 0],
       });
@@ -552,15 +549,24 @@ export function runRotationTests(flock) {
       if (groupId) flock.dispose(groupId);
     });
 
-    it('should read the world base, not the unrotated base', async function () {
+    it('should read the unrotated base, the same as outside the group', async function () {
       const mesh = flock.scene.getMeshByName(rotatedId);
-      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+      const upright = flock.getBlockPositionFromMesh(mesh);
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: -60 });
 
       mesh.computeWorldMatrix(true);
       const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      const grouped = flock.getBlockPositionFromMesh(mesh);
+      expect(grouped.y).to.be.closeTo(upright.y, 0.02);
+      expect(Math.abs(grouped.y - worldMinY)).to.be.greaterThan(0.03);
 
-      const read = flock.getBlockPositionFromMesh(mesh);
-      expect(read.y).to.be.closeTo(worldMinY, 0.02);
+      const group = mesh.parent;
+      mesh.setParent(null);
+      const free = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(group);
+      expect(grouped.x).to.be.closeTo(free.x, 0.02);
+      expect(grouped.y).to.be.closeTo(free.y, 0.02);
+      expect(grouped.z).to.be.closeTo(free.z, 0.02);
     });
 
     it('should round-trip a rotated mesh without moving it', async function () {
@@ -575,6 +581,102 @@ export function runRotationTests(flock) {
       expect(after.x).to.be.closeTo(before.x, 0.02);
       expect(after.y).to.be.closeTo(before.y, 0.02);
       expect(after.z).to.be.closeTo(before.z, 0.02);
+    });
+
+    // Must use the world-decomposed scale, as unparenting does; a rotation-independent one breaks the round-trip.
+    it('should read a member of a non-uniformly scaled group as it reads unparented, and round-trip it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      const group = mesh.parent;
+      group.scaling.set(2, 1, 1);
+      mesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 0, 90);
+      mesh.computeWorldMatrix(true);
+
+      const before = mesh.getAbsolutePosition().clone();
+      const grouped = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(null);
+      const free = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(group);
+      expect(grouped.y).to.be.closeTo(free.y, 0.02);
+      expect(grouped.y).to.be.closeTo(before.y - 2, 0.02);
+
+      await flock.setBlockPositionOnMesh(mesh, { x: grouped.x, y: grouped.y, z: grouped.z, useY: true });
+      const after = mesh.getAbsolutePosition();
+      expect(after.x).to.be.closeTo(before.x, 0.02);
+      expect(after.y).to.be.closeTo(before.y, 0.02);
+      expect(after.z).to.be.closeTo(before.z, 0.02);
+    });
+
+    it('rebuilds a resized, rotated model member at its block position, inside or outside the group', async function () {
+      this.timeout(20000);
+      const position = { x: 1.5, y: 1.2, z: 0 };
+      let done;
+      const constructed = new Promise((resolve) => (done = resolve));
+      const treeId = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: `rotbasetree_${Date.now()}`,
+        scale: 1,
+        position,
+        callback: async function () {
+          await flock.resize(treeId, {
+            width: 0.5,
+            height: 2,
+            depth: 0.5,
+            xOrigin: 'CENTRE',
+            yOrigin: 'BASE',
+            zOrigin: 'CENTRE',
+          });
+          await flock.rotateTo(treeId, { x: 0, y: 0, z: -60 });
+          done();
+        },
+      });
+      await flock.setParent(groupId, treeId);
+      try {
+        await constructed;
+        const tree = flock.scene.getMeshByName(treeId);
+        expect(tree.parent?.name).to.equal(groupId);
+
+        const grouped = flock.getBlockPositionFromMesh(tree);
+        expect(grouped.x).to.be.closeTo(position.x, 0.02);
+        expect(grouped.y).to.be.closeTo(position.y, 0.02);
+        expect(grouped.z).to.be.closeTo(position.z, 0.02);
+
+        const group = tree.parent;
+        tree.setParent(null);
+        const free = flock.getBlockPositionFromMesh(tree);
+        tree.setParent(group);
+        expect(free.y).to.be.closeTo(position.y, 0.02);
+      } finally {
+        flock.dispose(treeId);
+      }
+    });
+
+    // Play builds a member in generated order: create (upright, unparented)
+    // -> setParent -> rotateTo. It must land where the live edit showed it.
+    it('replays a rotated member where the live scene had it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: -60 });
+      mesh.position.y += 1.5;
+      mesh.computeWorldMatrix(true);
+      const liveMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      const captured = flock.getBlockPositionFromMesh(mesh);
+
+      const replayId = `${rotatedId}_replay`;
+      await flock.createBox(replayId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [captured.x, captured.y, captured.z],
+      });
+      try {
+        await flock.setParent(groupId, replayId);
+        await flock.rotateTo(replayId, { x: 0, y: 0, z: -60 });
+        const replay = flock.scene.getMeshByName(replayId);
+        replay.computeWorldMatrix(true);
+        expect(replay.getBoundingInfo().boundingBox.minimumWorld.y).to.be.closeTo(liveMinY, 0.02);
+      } finally {
+        flock.dispose(replayId);
+      }
     });
   });
 

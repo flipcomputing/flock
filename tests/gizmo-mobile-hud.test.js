@@ -147,6 +147,15 @@ export function runGizmoMobileHudTests(flock) {
         expect(button.textBlock.text).to.equal('=');
       });
 
+      it("creates only the uniform 'all' button when uniformOnly is true", function () {
+        make({ uniformOnly: true, initialAxis: 'x' });
+        expect(findControl(flock, 'gizmo-axis-all')).to.exist;
+        expect(findControl(flock, 'gizmo-axis-x')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-y')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-z')).to.not.exist;
+        expect(stop.getAxis()).to.equal('all');
+      });
+
       it('clicking an axis button fires onAxisChange with that axis', function () {
         make();
         findControl(flock, 'gizmo-axis-y').onPointerUpObservable.notifyObservers();
