@@ -5,6 +5,7 @@ import {
   getMeshFromBlock,
   readColourValue,
   attachToEnclosingGroupIfAny,
+  applyInitialTransformsFromBlock,
 } from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
@@ -42,7 +43,7 @@ export function createMeshOnCanvas(block) {
   if (isShape) {
     // Use the same grouping approach as objects for consistency
     // Group all shape creation events together
-    createShapeInternal(block);
+    applyInitialTransformsWhenReady(block, createShapeInternal(block));
 
     return;
   }
@@ -410,7 +411,15 @@ export function createMeshOnCanvas(block) {
   if (newMesh) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
+    applyInitialTransformsWhenReady(block, newMesh);
   }
+}
+
+function applyInitialTransformsWhenReady(block, meshName) {
+  if (typeof meshName !== 'string' || meshName.startsWith('error_')) return;
+  flock.whenModelReady(meshName, (mesh) => {
+    if (mesh) applyInitialTransformsFromBlock(block, mesh);
+  });
 }
 
 function isEligibleForMeshCreation(block) {
@@ -675,6 +684,7 @@ function createShapeInternal(block) {
     // after creation - use the name flock.create*() just handed back.
     attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
   }
+  return newMesh;
 }
 
 // Live-editor counterpart of the create_group generator: an empty group

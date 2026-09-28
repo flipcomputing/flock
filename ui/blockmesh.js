@@ -1474,6 +1474,67 @@ function handleGroupActiveToggle(groupMesh, groupBlock) {
   flock.updatePhysics?.(groupMesh);
 }
 
+function applyTransformBlockToMeshes(transformBlock, meshes) {
+  if (transformBlock.type === 'rotate_to') {
+    const rotation = getXYZFromBlock(transformBlock);
+    return Promise.all(
+      meshes.map((mesh) =>
+        flock.rotateTo(mesh.name, rotation).then(() => {
+          // Rotating a member reshapes the group bounds - keep the group
+          // outline in sync, like moving a child does.
+          const groupMesh = mesh?.parent;
+          if (mesh?.isDisposed?.() || groupMesh?.metadata?.shapeType !== 'Group') return;
+          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+          if (groupBlock) recomputeGroupPivot(groupBlock);
+        })
+      )
+    );
+  }
+
+  if (transformBlock.type === 'resize') {
+    const dims = getXYZFromBlock(transformBlock);
+    const resizeOptions = {
+      width: dims.x ?? null,
+      height: dims.y ?? null,
+      depth: dims.z ?? null,
+      xOrigin: transformBlock.getFieldValue('X_ORIGIN') || 'CENTRE',
+      yOrigin: transformBlock.getFieldValue('Y_ORIGIN') || 'BASE',
+      zOrigin: transformBlock.getFieldValue('Z_ORIGIN') || 'CENTRE',
+    };
+
+    if (flock.meshDebug) console.log('Resize', resizeOptions, 'on mesh', meshes[0]?.name);
+
+    return Promise.all(
+      meshes.map((mesh) => {
+        const resized = flock.resize(mesh.name, resizeOptions);
+        if (flock.meshDebug) console.log('After resize', mesh);
+        reattachToBone(mesh);
+        // Resize runs parented (as Play's DO-resize does); resync the group
+        // outline and body from the new bounds.
+        const groupMesh = mesh?.parent?.metadata?.shapeType === 'Group' ? mesh.parent : null;
+        if (groupMesh && !mesh.isDisposed?.()) {
+          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+          if (groupBlock) recomputeGroupPivot(groupBlock);
+        }
+        return resized;
+      })
+    );
+  }
+
+  return Promise.resolve();
+}
+
+// A freshly built canvas mesh only reflects its add block's own inputs, so a
+// pasted/duplicated block would lose the rotate_to/resize in its DO section
+// until Play. Replay them in order, as Play would.
+export async function applyInitialTransformsFromBlock(block, mesh) {
+  for (let child = block.getInputTargetBlock?.('DO'); child; child = child.getNextBlock()) {
+    if (block.disposed || mesh.isDisposed?.()) return;
+    if (!child.isEnabled() || (child.type !== 'rotate_to' && child.type !== 'resize')) continue;
+    await applyTransformBlockToMeshes(child, [mesh]);
+  }
+}
+
 export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   // Bulk editor operations own their blocks' writes; the live pipeline must
   // not rebuild those meshes from half-written state.
@@ -1696,59 +1757,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     const contextBlock =
       parent && (parent.type === 'rotate_to' || parent.type === 'resize') ? parent : block;
 
-    // --- rotate_to: allow gizmo / non-field events ---
-    if (contextBlock.type === 'rotate_to') {
-      const rotation = getXYZFromBlock(contextBlock);
-      meshes.forEach((mesh) => {
-        flock.rotateTo(mesh.name, rotation).then(() => {
-          // Rotating a member reshapes the group bounds - keep the group
-          // outline in sync, like moving a child does.
-          const groupMesh = mesh?.parent;
-          if (mesh?.isDisposed?.() || groupMesh?.metadata?.shapeType !== 'Group') return;
-          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
-          if (groupBlock) recomputeGroupPivot(groupBlock);
-        });
-      });
-      return;
-    }
-
-    // --- resize: also allow gizmo / non-field events ---
-    if (contextBlock.type === 'resize') {
-      const dims = getXYZFromBlock(contextBlock);
-      const resizeOptions = {
-        width: dims.x ?? null,
-        height: dims.y ?? null,
-        depth: dims.z ?? null,
-        xOrigin: contextBlock.getFieldValue('X_ORIGIN') || 'CENTRE',
-        yOrigin: contextBlock.getFieldValue('Y_ORIGIN') || 'BASE',
-        zOrigin: contextBlock.getFieldValue('Z_ORIGIN') || 'CENTRE',
-      };
-
-      if (flock.meshDebug) {
-        console.log(
-          'Resize',
-          resizeOptions,
-          'on mesh',
-          meshes[0]?.name,
-          'from block',
-          block.type,
-          'event type',
-          changeEvent.type
-        );
-      }
-
-      meshes.forEach((mesh) => {
-        flock.resize(mesh.name, resizeOptions);
-        if (flock.meshDebug) console.log('After resize', mesh);
-        reattachToBone(mesh);
-        // Resize runs parented (as Play's DO-resize does); resync the group
-        // outline and body from the new bounds.
-        const groupMesh = mesh?.parent?.metadata?.shapeType === 'Group' ? mesh.parent : null;
-        if (groupMesh && !mesh.isDisposed?.()) {
-          const groupBlock = meshMap[groupMesh.metadata?.blockKey];
-          if (groupBlock) recomputeGroupPivot(groupBlock);
-        }
-      });
+    // rotate_to / resize: also allow gizmo / non-field events
+    if (contextBlock.type === 'rotate_to' || contextBlock.type === 'resize') {
+      applyTransformBlockToMeshes(contextBlock, meshes);
       return;
     }
 
