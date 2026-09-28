@@ -145,7 +145,7 @@ let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restor
 let orbitRetargetObserver = null; // Pointer observer that lets a canvas click switch orbit target
 
 // Tools that keep the orbit camera active.
-const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select']);
+const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select', 'delete']);
 
 function isOrbitViewActive() {
   return !!flock.scene?.activeCamera?.metadata?.orbitView;
@@ -782,9 +782,17 @@ function watchClickAwayFromCanvas() {
   if (!canvas) return;
   const onClickAway = (event) => {
     if (colorPicker?.isOpen) return;
-    if (flock.scene?.activeCamera?.metadata?.orbitView) return;
-    if (!document.querySelector('.gizmo-button.active:not(#cameraButton)')) return;
+    const orbiting = isOrbitViewActive();
+    const activeSelector = orbiting
+      ? '.gizmo-button.active:not(#cameraButton):not(#eyeButton)'
+      : '.gizmo-button.active:not(#cameraButton)';
+    if (!document.querySelector(activeSelector)) return;
     if (!eventIsOutOfCanvasBounds(event, canvas.getBoundingClientRect())) return;
+    if (orbiting) {
+      exitTransformState();
+      gizmoManager?.attachToMesh(null);
+      return;
+    }
     exitGizmoState();
     gizmoManager?.attachToMesh(null);
   };
@@ -2970,6 +2978,14 @@ export function disableGizmos() {
   stopCanvasKeyboardMode();
 }
 
+function clearSelection() {
+  if (!isOrbitedMesh(gizmoManager?.attachedMesh)) {
+    resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager?.attachedMesh);
+  }
+  resetAttachedMeshIfMeshAttached();
+  gizmoManager?.attachToMesh(null);
+}
+
 // Toggle which Gizmo is being used
 export function toggleGizmo(gizmoType) {
   // The camera button's job while orbiting is just to exit orbit. Must run
@@ -3005,25 +3021,18 @@ export function toggleGizmo(gizmoType) {
     if (ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive()) {
       exitGizmoState({ preserveOrbit: true });
       if (gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
-      if (gizmoType === 'select') {
-        resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager?.attachedMesh);
-        resetAttachedMeshIfMeshAttached();
-        gizmoManager?.attachToMesh(null);
-      }
+      clearSelection();
       return;
     }
     exitGizmoState();
-    // Clicking the select tool off deselects whatever it had picked, rather
-    // than leaving the gizmo/bounding box attached with no active tool.
-    if (gizmoType === 'select') {
-      resetBoundingBoxVisibilityIfManuallyChanged(gizmoManager?.attachedMesh);
-      resetAttachedMeshIfMeshAttached();
-      gizmoManager?.attachToMesh(null);
-    }
+    // Clicking a tool off deselects whatever it had picked, rather than
+    // leaving the gizmo/bounding box attached with no active tool.
+    if (gizmoType !== 'camera') clearSelection();
     return;
   }
 
   const preserveOrbit = ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive();
+  const selectToolActive = !!document.getElementById('selectButton')?.classList.contains('active');
 
   // No buttons should be highlighted
   if (gizmoType === 'eye') {
@@ -3043,6 +3052,7 @@ export function toggleGizmo(gizmoType) {
   // If they abandoned a duplicate half way, remove listener
   if (gizmoType === 'duplicate' && activeDuplicatePickHandler) {
     exitTransformState();
+    clearSelection();
     return;
   }
 
@@ -3060,10 +3070,10 @@ export function toggleGizmo(gizmoType) {
       handleCameraGizmo();
       break;
     case 'delete':
-      handleDeleteGizmo();
+      handleDeleteGizmo(selectToolActive);
       break;
     case 'duplicate':
-      handleDuplicateGizmo();
+      handleDuplicateGizmo(selectToolActive);
       break;
     case 'select':
       handleSelectGizmo();
@@ -3696,12 +3706,13 @@ function handleSelectGizmo() {
 
 // Duplicate: Create a copy of the selected mesh and its corresponding block,
 // and allow the user to place it by clicking on the canvas
-function handleDuplicateGizmo() {
+function handleDuplicateGizmo(selectToolActive = false) {
   // Set button active state
   const duplicateButton = document.getElementById('duplicateButton');
   setGizmoButtonActive(duplicateButton, true);
 
-  // Check if mesh already selected, if not prompt to select
+  // Only a mesh picked with the select tool is duplicated straight away
+  if (!selectToolActive && gizmoManager.attachedMesh) clearSelection();
   if (!gizmoManager.attachedMesh) {
     pickMeshFromScene(
       (pickedMesh) => {
@@ -3723,7 +3734,7 @@ function handleDuplicateGizmo() {
 }
 
 // Delete: Remove the selected mesh and its corresponding block
-function handleDeleteGizmo() {
+function handleDeleteGizmo(selectToolActive = false) {
   watchClickAwayFromCanvas();
   // Highlight the button
   setGizmoButtonActive(document.getElementById('deleteButton'), true);
@@ -3747,11 +3758,13 @@ function handleDeleteGizmo() {
     }, 0);
   }
 
-  // If a mesh selected, delete it instantly
-  if (gizmoManager.attachedMesh) {
-    applyDelete(gizmoManager.attachedMesh);
+  // Only a mesh picked with the select tool is deleted instantly
+  const attached = gizmoManager.attachedMesh;
+  if (selectToolActive && attached && !isOrbitedMesh(attached)) {
+    applyDelete(attached);
     return;
   }
+  if (attached) clearSelection();
 
   // Explain how to delete
   pickMeshFromScene(applyDelete, false, translate('select_mesh_delete_prompt'));
