@@ -3,9 +3,21 @@ import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor, handleFieldOrChildChange, registerBlockHandler } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { flock } from '../flock.js';
+import { applyRetargetedTransform } from '../ui/blockmesh.js';
 
 export function defineTransformBlocks() {
   function handleBlockChange(block, changeEvent) {
+    if (
+      changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+      changeEvent.blockId === block.id &&
+      changeEvent.element === 'field' &&
+      ((block.type === 'rotate_to' && changeEvent.name === 'MODEL') ||
+        (block.type === 'resize' && changeEvent.name === 'BLOCK_NAME'))
+    ) {
+      if (!window.loadingCode || changeEvent.recordUndo) applyRetargetedTransform(block);
+      return;
+    }
+
     const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
     if (!changeEventBlock) return;
     if (flock.blockDebug) console.log('The ID of this change event is', changeEventBlock.id);
