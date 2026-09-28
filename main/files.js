@@ -115,10 +115,20 @@ export function saveWorkspace(workspace) {
 }
 
 function validateBlocklyJson(json) {
-  // 1. Parse JSON safely
+  // 1. Parse JSON safely. Reject dangerous keys via a reviver so they are
+  // rejected as each one is parsed, before they can ever be attached to an
+  // object - closing the window between JSON.parse() and the post-parse
+  // dangerous-key check below.
+  function safeReviver(key, value) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      throw new Error(`Dangerous property found: ${key}`);
+    }
+    return value;
+  }
+
   let data;
   try {
-    data = typeof json === 'string' ? JSON.parse(json) : json;
+    data = typeof json === 'string' ? JSON.parse(json, safeReviver) : json;
   } catch {
     throw new Error('Invalid JSON format');
   }
