@@ -19,6 +19,7 @@ import {
 import { showStatus, clearStatus } from '../ui/status.js';
 import { meshMap } from '../generators/generators.js';
 import { updateMeshFromBlock } from '../ui/blockmesh.js';
+import { topHandler, makeKeyEvent } from './utils/keyboardDispatcherTestUtils.js';
 
 export function runGizmoTests(flock) {
   const BABYLON = flock.BABYLON;
@@ -496,6 +497,57 @@ export function runGizmoTests(flock) {
         memberMesh.computeWorldMatrix(true);
         expect(memberMesh.getAbsolutePosition().subtract(before).length()).to.be.below(1e-3);
         expect(memberMesh.parent).to.equal(groupMesh);
+      });
+    });
+
+    describe('uniform scale steps', function () {
+      let scaleButton;
+
+      beforeEach(function () {
+        scaleButton = document.createElement('button');
+        scaleButton.id = 'scaleButton';
+        document.body.appendChild(scaleButton);
+      });
+
+      afterEach(function () {
+        exitGizmoState();
+        scaleButton.remove();
+      });
+
+      function pressArrowDown(times, shiftKey) {
+        for (let i = 0; i < times; i++) {
+          topHandler()(makeKeyEvent({ key: 'ArrowDown', shiftKey }));
+        }
+      }
+
+      it('keeps the proportions of a mesh whose axes start at different scales', function () {
+        const box = makeBox('uniformScaleBox');
+        box.scaling.set(0.5, 1, 1);
+        mgr.attachToMesh(box);
+        toggleGizmo('scale');
+
+        pressArrowDown(3, true);
+        expect(box.scaling.z).to.be.below(1);
+        expect(box.scaling.x / box.scaling.z).to.be.closeTo(0.5, 1e-6);
+        expect(box.scaling.y / box.scaling.z).to.be.closeTo(1, 1e-6);
+
+        pressArrowDown(10, false);
+        expect(box.scaling.x).to.be.closeTo(0.01, 1e-6);
+        expect(box.scaling.x / box.scaling.z).to.be.closeTo(0.5, 1e-6);
+        expect(box.scaling.y / box.scaling.z).to.be.closeTo(1, 1e-6);
+      });
+
+      it('recovers a zero axis instead of producing NaN', function () {
+        const box = makeBox('uniformScaleZeroBox');
+        box.scaling.set(0, 1, 1);
+        mgr.attachToMesh(box);
+        toggleGizmo('scale');
+
+        pressArrowDown(1, true);
+        for (const v of [box.scaling.x, box.scaling.y, box.scaling.z]) {
+          expect(Number.isFinite(v)).to.be.true;
+          expect(v).to.be.at.least(0.01);
+        }
       });
     });
 

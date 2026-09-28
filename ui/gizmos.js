@@ -1932,9 +1932,22 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
     mesh.refreshBoundingInfo();
     const bottomY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
 
-    mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
-    mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
-    mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
+    const isUniform = dx !== 0 && dx === dy && dy === dz;
+    if (isUniform) {
+      const x = Math.max(0.01, mesh.scaling.x);
+      const y = Math.max(0.01, mesh.scaling.y);
+      const z = Math.max(0.01, mesh.scaling.z);
+      const largest = Math.max(x, y, z);
+      const smallest = Math.min(x, y, z);
+      const factor = Math.max(0.01 / smallest, 1 + dx / largest);
+      mesh.scaling.x = x * factor;
+      mesh.scaling.y = y * factor;
+      mesh.scaling.z = z * factor;
+    } else {
+      mesh.scaling.x = Math.max(0.01, mesh.scaling.x + dx);
+      mesh.scaling.y = Math.max(0.01, mesh.scaling.y + dy);
+      mesh.scaling.z = Math.max(0.01, mesh.scaling.z + dz);
+    }
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
