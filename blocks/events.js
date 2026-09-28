@@ -72,7 +72,7 @@ export function defineEventsBlocks() {
       this.isInline = false;
       this.inputList[0].insertFieldAt(
         0,
-        new DecorativeFieldImage(makeRepeatIcon(getCurrentIconColor()), 18, 18, '', null),
+        new DecorativeFieldImage(makeRepeatIcon(getCurrentIconColor()), 32, 32, '', null),
         BLOCK_ICON_FIELD_NAME
       );
       addToggleButton(this);
