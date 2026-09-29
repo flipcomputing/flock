@@ -1102,7 +1102,7 @@
         "type": "start",
         "id": "lco5.xZ7jJg)x-)U(7.=",
         "x": 10,
-        "y": 3956,
+        "y": 4005,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -1708,7 +1708,7 @@
                                               "type": "math_number",
                                               "id": "vf$EVr/O3.gY-bw|m%9l",
                                               "fields": {
-                                                "NUM": -39.7
+                                                "NUM": -40
                                               }
                                             }
                                           },
@@ -1717,8 +1717,20 @@
                                               "type": "math_number",
                                               "id": "L-@7v2lBoXVNqB,n}H?c",
                                               "fields": {
-                                                "NUM": 100.1
+                                                "NUM": 100
                                               }
+                                            }
+                                          }
+                                        },
+                                        "next": {
+                                          "block": {
+                                            "type": "add_physics_shape",
+                                            "id": "YJp@^X/sSSIIRV1nkD`b",
+                                            "fields": {
+                                              "MODEL_VAR": {
+                                                "id": "8;7VIV]Oky={`#;#6eSi"
+                                              },
+                                              "SHAPE_TYPE": "MESH"
                                             }
                                           }
                                         }
