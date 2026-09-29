@@ -2368,6 +2368,8 @@ export const flock = {
     if (kbInput) {
       kbInput.keysUpward = toKeyCodes([...getBoundKeys('BUTTON1'), 'PageUp']);
       kbInput.keysDownward = toKeyCodes([...getBoundKeys('BUTTON3'), 'PageDown']);
+      kbInput.keysLeft = [];
+      kbInput.keysRight = [];
     }
 
     // An engine created while the canvas was hidden keeps a 1x buffer until

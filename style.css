@@ -3360,7 +3360,7 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   }
 }
 
-/* Authored in docs/how-tos/<lang>/<slug>.html, so style plain elements and
+/* Authored in src/how-tos/<lang>/<slug>.html, so style plain elements and
    the small custom tag vocabulary rather than classes. */
 .howto-article {
   text-align: left;
@@ -3598,7 +3598,7 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 /* Rendered by wireHowToSnippets() in ui/howToPanel.js from a
    <snippet src="…"> tag — a real block, rendered live as inline SVG from
-   Blockly JSON (see docs/how-tos/snippets/README.md), so it always matches
+   Blockly JSON (see src/how-tos/snippets/README.md), so it always matches
    the block's actual current look, in whatever language is active. */
 .howto-snippet {
   margin: 0 0 1em;

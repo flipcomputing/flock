@@ -1,6 +1,6 @@
 # How-to snippet blocks
 
-JSON files referenced by `<snippet src="…">` tags in `docs/how-tos/*/*.html` — each one is a
+JSON files referenced by `<snippet src="…">` tags in `src/how-tos/*/*.html` — each one is a
 Blockly block (in the same serialization format `Blockly.serialization.blocks.append()` accepts),
 rendered live as an inline SVG by `ui/howToPanel.js` when the how-to article is opened.
 

@@ -700,7 +700,12 @@ function getShortcuts() {
 
     {
       label: translate('shortcut_fly_move'),
-      keys: `W A S D / ↑ ↓ ← →`,
+      keys: `W A S D / ↑ ↓`,
+      category: translate('shortcut_category_camera'),
+    },
+    {
+      label: translate('shortcut_fly_turn'),
+      keys: `← →`,
       category: translate('shortcut_category_camera'),
     },
     {

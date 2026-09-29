@@ -69,20 +69,20 @@ const HOW_TOS = [
   { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo', 'camera'], icon: 'viewgizmo' },
 ];
 
-// How-to text lives in docs/how-tos/<lang>/<slug>.html — one locale folder
+// How-to text lives in src/how-tos/<lang>/<slug>.html — one locale folder
 // per language, so it can be edited (and translated) without touching code;
 // bundled at build time (?raw) rather than fetched, so it works offline in
 // the PWA. English-only for now — any language without a folder falls back to
 // en/, same as the Help panel falling back to en.html.
-const HOWTO_CONTENT = import.meta.glob('../docs/how-tos/*/*.html', {
+const HOWTO_CONTENT = import.meta.glob('../src/how-tos/*/*.html', {
   query: '?raw',
   import: 'default',
   eager: true,
 });
 
 const howToContentFor = (slug, lang) =>
-  HOWTO_CONTENT[`../docs/how-tos/${lang}/${slug}.html`] ??
-  HOWTO_CONTENT[`../docs/how-tos/en/${slug}.html`] ??
+  HOWTO_CONTENT[`../src/how-tos/${lang}/${slug}.html`] ??
+  HOWTO_CONTENT[`../src/how-tos/en/${slug}.html`] ??
   '';
 
 // <link-to target="…"> in how-to content becomes a button wired to one of
@@ -722,14 +722,14 @@ function wireHowToRelated(root, onOpenHowTo) {
 }
 
 // How-to snippet blocks — Blockly JSON, one file per snippet, shared by
-// every language (see docs/how-tos/snippets/README.md for why this is
+// every language (see src/how-tos/snippets/README.md for why this is
 // rendered live rather than shipped as a picture).
-const SNIPPET_JSON = import.meta.glob('../docs/how-tos/snippets/*.json', {
+const SNIPPET_JSON = import.meta.glob('../src/how-tos/snippets/*.json', {
   eager: true,
   import: 'default',
 });
 
-const snippetJsonFor = (name) => SNIPPET_JSON[`../docs/how-tos/snippets/${name}.json`];
+const snippetJsonFor = (name) => SNIPPET_JSON[`../src/how-tos/snippets/${name}.json`];
 
 // A single hidden, off-screen Blockly workspace reused to render every
 // snippet — off-screen rather than display:none, since Blockly needs the SVG
@@ -802,7 +802,7 @@ function wireHowToSnippets(root) {
 
     const blockJson = snippetJsonFor(src);
     if (!blockJson) {
-      console.error(`How-to snippet "${src}" has no matching docs/how-tos/snippets/*.json`);
+      console.error(`How-to snippet "${src}" has no matching src/how-tos/snippets/*.json`);
       return;
     }
     renderSnippetSVG(blockJson, { selected, highlightInput })

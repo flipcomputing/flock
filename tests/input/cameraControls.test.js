@@ -190,6 +190,31 @@ export function runCameraControlsTests() {
         expect(flock.scene.activeCamera.rotation.y).to.be.greaterThan(0);
       });
 
+      it('physical ArrowLeft/ArrowRight turn a free camera without moving it', function () {
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowRight' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.be.greaterThan(0);
+        expect(flock.scene.activeCamera.position.x).to.equal(0);
+        flock.scene.activeCamera = makeFreeCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.be.lessThan(0);
+      });
+
+      it('an arrow the project bound with camera control is left to Babylon', function () {
+        flock.scene.activeCamera.keysLeft = [37];
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.equal(0);
+      });
+
+      it('on-screen ◁ ▷ strafe a free camera instead of turning it', function () {
+        flock._onScreenSource = { isKeyDown: (k) => k === 'd' || k === 'ArrowRight' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.x).to.be.greaterThan(0);
+        expect(flock.scene.activeCamera.rotation.y).to.equal(0);
+      });
+
       it('LOOK axes adjust ArcRotateCamera alpha/beta without moving it', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
         flock.inputManager._setAxis('LOOK_X', 1);

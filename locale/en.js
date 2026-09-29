@@ -1292,8 +1292,8 @@ export default {
   redo_performed: 'Redo performed',
   camera_moving_forward: 'Camera moving forward',
   camera_moving_backward: 'Camera moving backward',
-  camera_moving_left: 'Camera moving left',
-  camera_moving_right: 'Camera moving right',
+  camera_turning_left: 'Camera turning left',
+  camera_turning_right: 'Camera turning right',
   moving_forward: 'Moving forward',
   moving_backward: 'Moving backward',
   moving_left: 'Moving left',
@@ -1599,6 +1599,7 @@ export default {
   shortcut_delete_object: 'Delete object',
   shortcut_fly_move: 'Fly camera: move',
   shortcut_fly_height: 'Fly camera: up / down',
+  shortcut_fly_turn: 'Fly camera: turn left / right',
   shortcut_orbit_rotate: 'Orbit camera: rotate around object',
   shortcut_orbit_zoom: 'Orbit camera: zoom in / out',
 

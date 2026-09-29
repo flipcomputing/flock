@@ -29,14 +29,28 @@ export class CameraControls {
     this.#scene = null;
   }
 
-  // Movement precedence: gamepad axis, then joystick, then physical keys.
-  #resolveMoveAxis(axis, joyValue, negKey, posKey) {
+  // Movement precedence: gamepad axis, then joystick, then keys.
+  #resolveMoveAxis(axis, joyValue, negKey, posKey, includeOnScreen = false) {
     const kb = this.#flock._keyboardSource;
+    const os = includeOnScreen ? this.#flock._onScreenSource : null;
+    const isDown = (k) => kb?.isKeyDown(k) || os?.isKeyDown?.(k);
     return (
       this.#flock.inputManager.getAxis(axis) ||
       joyValue ||
-      (kb?.isKeyDown(posKey) ? 1 : kb?.isKeyDown(negKey) ? -1 : 0)
+      (isDown(posKey) ? 1 : isDown(negKey) ? -1 : 0)
     );
+  }
+
+  #flyKeyYaw(camera) {
+    const kb = this.#flock._keyboardSource;
+    const bound = [
+      ...(camera.keysLeft ?? []),
+      ...(camera.keysRight ?? []),
+      ...(camera.keysRotateLeft ?? []),
+      ...(camera.keysRotateRight ?? []),
+    ];
+    const held = (key, code) => !bound.includes(code) && kb?.isKeyDown(key);
+    return (held('ArrowRight', 39) ? 1 : 0) - (held('ArrowLeft', 37) ? 1 : 0);
   }
 
   // InputManager plus KeyboardSource and OnScreenSource (physical keys and
@@ -80,7 +94,7 @@ export class CameraControls {
     const shoulderTurn = flock.inputManager.getAxis('TURN');
 
     const joy = flock._joystickSource?.getMove();
-    const moveX = this.#resolveMoveAxis('MOVE_X', joy?.x ?? 0, 'a', 'd');
+    const moveX = this.#resolveMoveAxis('MOVE_X', joy?.x ?? 0, 'a', 'd', true);
     const moveY = this.#resolveMoveAxis('MOVE_Y', joy?.y ?? 0, 'w', 's');
 
     const camera = this.#scene.activeCamera;
@@ -100,8 +114,9 @@ export class CameraControls {
 
     // Orbit-view arrows/WASD via the InputManager: one path for physical keys,
     // on-screen buttons and gamepad.
-    const orbitView = camera.getClassName?.() === 'ArcRotateCamera' && camera.metadata?.orbitView;
-    const keyYaw = orbitView ? this.#orbitKeyYaw() : 0;
+    const isArcRotate = camera.getClassName?.() === 'ArcRotateCamera';
+    const orbitView = isArcRotate && camera.metadata?.orbitView;
+    const keyYaw = orbitView ? this.#orbitKeyYaw() : isArcRotate ? 0 : this.#flyKeyYaw(camera);
     const keyPitch = orbitView ? this.#orbitKeyPitch() : 0;
     const yawInput = rightX + shoulderTurn + keyYaw;
     const pitchInput = rightY + keyPitch;

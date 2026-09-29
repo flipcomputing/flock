@@ -71,6 +71,8 @@ are literally the same `FreeCamera` object, and the gizmo's camera swap is a no-
 - **Look and horizontal movement** — `input/cameraControls.js`, per frame. Gamepad stick and
   shoulder buttons look and turn; gamepad/joystick/WASD move. Precedence is gamepad axis, then
   on-screen joystick, then physical keys (read from `KeyboardSource`, not `InputManager`).
+  Physical ←/→ turn the fly camera; Babylon's `keysLeft`/`keysRight` are emptied in `flock.js`, so
+  on-screen ◁/▷ strafe through `OnScreenSource` instead. ↑/↓ stay with Babylon's `keysUp`/`keysDown`.
 - **Height** — Babylon's own `FreeCameraKeyboardMoveInput`, whose `keysUpward`/`keysDownward` are
   remapped in `flock.js` to BUTTON1 keys + `PageUp` and BUTTON3 keys + `PageDown`. `GamepadSource`
   reaches it by _synthesising_ `PageUp`/`PageDown` DOM events — the only DOM keys it synthesises.

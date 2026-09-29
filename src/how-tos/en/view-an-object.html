@@ -1,4 +1,93 @@
-<!-- Content of the "View an object" how-to. Edit freely — see README.md in docs/how-tos. -->
-<goal>Look closely at a single object.</goal>
+<!-- Content of the "View an object" how-to. Edit freely — see README.md in src/how-tos. -->
+<goal>Rotate the camera around a single object.</goal>
 
-<!-- Steps coming later. -->
+<step>
+  <step-title>View an object</step-title>
+  <p>
+    The view object gizmo centers your view on any <vocab>object</vocab> in your scene.
+    This is really useful when you are combining objects, or want to see your scene
+    from different angles.
+  </p>
+  <p>
+    Click <ui-button target="viewgizmo">View</ui-button> in the gizmo bar. If you
+    already have an object selected, the view object gizmo attaches to it. Otherwise,
+    click any object on the <vocab>canvas</vocab> to attach it.
+  </p>
+  <p>
+    The object you are viewing always has a purple box around it.
+  </p>
+</step>
+
+<step>
+  <step-title>Rotate around the object</step-title>
+  <p>
+    Drag to rotate around the object.
+  </p>
+  <tip>
+    You might end up viewing the object from under the ground. Just keep rotating up
+    to get back above ground.
+  </tip>
+</step>
+
+<step>
+  <step-title>Rotate with movement controls</step-title>
+  <p>
+    Use the on-screen movement controls, or <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd>
+    <kbd>D</kbd> on a keyboard, to rotate the view.
+  </p>
+</step>
+
+<step>
+  <step-title>Zoom in and out</step-title>
+  <p>
+    Use the left action buttons to zoom in and out, or <kbd>1</kbd>/<kbd>R</kbd> and
+    <kbd>3</kbd>/<kbd>Space</kbd> on a keyboard. On a touchscreen, use two fingers
+    to zoom.
+  </p>
+  <p>
+    Zoom in for detailed work. Zoom out to see more of your scene.
+  </p>
+</step>
+
+<step>
+  <step-title>Switch objects</step-title>
+  <p>
+    Click on another object in the scene to move the view gizmo to it. Use this to
+    move around the scene.
+  </p>
+</step>
+
+<step>
+  <step-title>Use other gizmos</step-title>
+  <p>
+    You can use other gizmos while the view gizmo is active. Try
+    <ui-button target="colorpicker">Color</ui-button> or
+    <ui-button target="positiongizmo">Position</ui-button>.
+  </p>
+  <p>
+    Click a gizmo button again to stop using it. When only the view gizmo is
+    selected, you can move it to another object.
+  </p>
+</step>
+
+<step>
+  <step-title>Put the gizmo away</step-title>
+  <p>
+    While the view object gizmo is active, you can't move around with the
+    <vocab>fly camera</vocab> or by moving the player.
+  </p>
+  <p>
+    Click the View button again to stop using it. You will return to the camera you
+    were using before.
+  </p>
+</step>
+
+<tip>
+  Use the purple box to line up your view — for example, to view an object from the
+  front or the top.
+</tip>
+
+<related>
+  <related-howto slug="look-around"></related-howto>
+  <related-howto slug="fly-camera"></related-howto>
+</related>

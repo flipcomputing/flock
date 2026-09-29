@@ -1270,8 +1270,8 @@ export default {
   redo_performed: 'Rehacer realizado', // human
   camera_moving_forward: 'Cámara moviéndose hacia adelante', // human
   camera_moving_backward: 'Cámara moviéndose hacia atrás', // human
-  camera_moving_left: 'Cámara moviéndose a la izquierda', // human
-  camera_moving_right: 'Cámara moviéndose a la derecha', // human
+  camera_turning_left: 'Cámara girando a la izquierda', // ai
+  camera_turning_right: 'Cámara girando a la derecha', // ai
   moving_forward: 'Moviéndose hacia adelante', // human
   moving_backward: 'Moviéndose hacia atrás', // human
   moving_left: 'Moviéndose a la izquierda', // human

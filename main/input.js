@@ -557,8 +557,8 @@ export function setupInput() {
     const announcements = {
       ArrowUp: translate('camera_moving_forward'),
       ArrowDown: translate('camera_moving_backward'),
-      ArrowLeft: translate('camera_moving_left'),
-      ArrowRight: translate('camera_moving_right'),
+      ArrowLeft: translate('camera_turning_left'),
+      ArrowRight: translate('camera_turning_right'),
       w: translate('moving_forward'),
       s: translate('moving_backward'),
       a: translate('moving_left'),
