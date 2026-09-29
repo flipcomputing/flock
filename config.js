@@ -334,6 +334,7 @@ export function mapNames() {
     getDropdownOption('Islands.png'),
     getDropdownOption('Lookout.png'),
     getDropdownOption('Valley.png'),
+    getDropdownOption('Basin.png'),
   ];
 }
 
