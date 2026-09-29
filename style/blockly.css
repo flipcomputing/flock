@@ -409,6 +409,42 @@ body[data-theme='low-color'] {
   color: #4c4c4c !important;
 }
 
+/* Styling for the custom trash can */
+
+.blocklyTrash .flockTrashArtwork {
+  fill: currentColor;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.blocklyTrash.blocklyTrashOpen .flockTrashArtwork,
+.blocklyTrash.blocklyTrashFull:hover .flockTrashArtwork,
+.blocklyTrash.blocklyTrashFull:focus .flockTrashArtwork {
+  opacity: 0.8;
+}
+
+.blocklyTrash .flockTrashHitArea {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.blocklyTrash .flockTrashContents {
+  display: none;
+  pointer-events: none;
+}
+
+.blocklyTrash.blocklyTrashFull .flockTrashContents {
+  display: block;
+}
+
+.blocklyTrash .blocklyTrashLid {
+  opacity: 1;
+}
+
+[data-theme="light"] .blocklyTrash .flockTrashArtwork {
+  fill: var(--color-primary);
+}
+
 /* Light mode: tint the workspace trashcan with the brand purple (--color-primary,
    #511d91). It is an external SVG sprite loaded via <image>, so `color`/`fill`
    can't reach it — this filter chain maps the sprite to that exact colour
