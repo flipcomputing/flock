@@ -1,29 +1,58 @@
 <!-- Content of the "Walk around" how-to. Edit freely — see README.md in src/how-tos. -->
-<goal>Step into your world and move around in it.</goal>
+<goal>Add a character and walk it around your world with the keyboard or on-screen controls.</goal>
 
 <step>
-  <step-title>Enter Play mode</step-title>
-  <p>Click <strong>Play</strong> to switch from editing your project to exploring it.</p>
+  <step-title>Add a player</step-title>
+  <p>
+    Open <ui-button target="toolbox:SNIPPETS">Snippets</ui-button> and drag the player snippet
+    onto the workspace. It adds a character called <code>player</code>, gives it physics, and makes
+    the camera follow it.
+  </p>
+  <snippet src="add-player"></snippet>
 </step>
 
 <step>
-  <step-title>Move and look around</step-title>
+  <step-title>Make it move</step-title>
   <p>
-    On a keyboard, use the arrow keys or WASD to move and the mouse to look around. On a
-    touchscreen, use the on-screen D-pad and buttons. With a game controller, use the left stick to
-    move and the right stick to look around.
+    Open <ui-button target="toolbox:SNIPPETS">Snippets</ui-button>, then
+    <ui-button target="toolbox:MOVEMENT">Movement</ui-button>, and drag the
+    <link-to target="moveforwardsnippet">forward and backward snippet</link-to> onto the workspace.
+    It makes the player walk forward and backward when you press the controls, and stand still when
+    you let go.
+  </p>
+  <p>
+    If you want your character to walk left and right too, use the
+    <link-to target="moveallsnippet">second movement snippet</link-to> instead.
   </p>
 </step>
 
 <step>
-  <step-title>Interact with objects</step-title>
+  <step-title>Walk around</step-title>
   <p>
-    Press the interact button (<kbd>E</kbd>, or Button 2 on a controller) near an object to interact
-    with it, if your project responds to it.
+    Click <ui-button target="run">Play</ui-button>. On a keyboard, use the arrow keys or WASD to
+    move. On a touchscreen, use the on-screen D-pad. With a game controller, use the left stick.
   </p>
+</step>
+
+<step>
+  <step-title>Adjust the camera</step-title>
+  <p>
+    In the "camera follow" block, change <strong>distance</strong> to move the camera closer to or
+    further from your character. Change <strong>angle</strong> to raise or lower it: 90 looks at
+    your character from the side, and smaller numbers look down from higher up.
+  </p>
+  <p>
+    Tick <strong>front</strong> to start with the camera facing your character instead of behind
+    it. This is helpful if you designed your character before adding the camera, so you see it the
+    same way you did while building it.
+  </p>
+  <snippet src="camera-follow-front"></snippet>
 </step>
 
 <tip>
-  The <strong>Player</strong> tab in this panel lists every control for keyboard, touch, and game
-  controller, including the screen-reader shortcuts.
+  In the <link-to target="moveallsnippet">second movement snippet</link-to>, try changing <strong>sideways</strong> to
+  <strong>strafe</strong> in the move blocks. Sideways turns your character to face the way it
+  walks; strafe slides it left or right while it keeps facing the same way.
 </tip>
+
+<related><related-howto slug="design-a-character"></related-howto></related>

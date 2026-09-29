@@ -65,7 +65,7 @@ const HOW_TOS = [
   { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 6, tags: ['character'] },
   { slug: 'look-around', i18nKey: 'howto_look_around_ui', tone: 5, tags: ['camera'] },
   { slug: 'fly-camera', i18nKey: 'howto_fly_camera_ui', tone: 13, tags: ['gizmo', 'camera'], icon: 'cameragizmo' },
-  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['camera'] },
+  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['character', 'camera'] },
   { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo', 'camera'], icon: 'viewgizmo' },
 ];
 
@@ -153,6 +153,8 @@ const HOWTO_LINK_TARGETS = {
   // workspace (added via the snippet above), so "change the color" isn't
   // left to a screenshot's worth of imagination. No-ops if the reader hasn't
   // added the block (or deleted it) — nothing to glow yet.
+  moveforwardsnippet: () => glowMovementSnippet(0),
+  moveallsnippet: () => glowMovementSnippet(1),
   skyblock: () => drawAttention(findMainWorkspaceBlock('set_sky_color')?.getSvgRoot?.()),
   mapblock: () => drawAttention(findMainWorkspaceBlock('create_map')?.getSvgRoot?.()),
   // Points at the "+" toolbar button that opens the Add menu (shapes, models,
@@ -458,6 +460,18 @@ function findSnippetsCategory() {
   return (toolbox?.getToolboxItems?.() ?? []).find(
     (item) => item.getName?.() === Blockly.Msg['CATEGORY_SNIPPETS']
   );
+}
+
+function glowMovementSnippet(index) {
+  const workspace = Blockly.getMainWorkspace();
+  const flyout = workspace?.getFlyout?.();
+  const selected = workspace?.getToolbox?.()?.getSelectedItem?.();
+  if (!flyout?.isVisible?.() || selected?.getName?.() !== Blockly.Msg['CATEGORY_MOVEMENT']) {
+    glowToolboxCategory('MOVEMENT');
+    return;
+  }
+  const block = flyout.getWorkspace?.()?.getTopBlocks(true)?.[index];
+  drawAttention(block?.getSvgRoot?.());
 }
 
 function findMainWorkspaceBlock(type) {
@@ -768,6 +782,18 @@ function getSnippetWorkspace() {
 // top-level block — the snippet still crops to the top block's full bbox
 // (generateSVG still gets `block`), only the glow moves to the child. Falls
 // back to the top block if that input has nothing connected.
+function stackAriaLabel(block) {
+  const labels = [];
+  for (let current = block; current; current = current.getNextBlock()) {
+    labels.push(current.getAriaLabel(Blockly.utils.aria.Verbosity.STANDARD));
+    for (const input of current.inputList) {
+      const child = input.type === Blockly.inputs.inputTypes.STATEMENT && input.connection?.targetBlock();
+      if (child) labels.push(stackAriaLabel(child));
+    }
+  }
+  return labels.filter(Boolean).join(', ');
+}
+
 async function renderSnippetSVG(blockJson, { selected = false, highlightInput = null } = {}) {
   const ws = getSnippetWorkspace();
   const block = Blockly.serialization.blocks.append(blockJson, ws, { recordUndo: false });
@@ -779,7 +805,9 @@ async function renderSnippetSVG(blockJson, { selected = false, highlightInput = 
       : block;
     const highlight = selected || !!highlightInput;
     if (highlight) blockToHighlight.select();
-    return await generateSVG(block, { rasterSafe: true, keepSelected: highlight });
+    const label = stackAriaLabel(block);
+    const svg = await generateSVG(block, { rasterSafe: true, keepSelected: highlight });
+    return { svg, label };
   } finally {
     block.dispose();
   }
@@ -806,11 +834,17 @@ function wireHowToSnippets(root) {
       return;
     }
     renderSnippetSVG(blockJson, { selected, highlightInput })
-      .then((svg) => {
+      .then(({ svg, label }) => {
         figure.insertAdjacentHTML('afterbegin', svg);
         // The figcaption (when present) is the accessible description; the
-        // picture itself is decorative on top of that.
+        // picture itself is decorative on top of that. Without one, the
+        // figure reads out the blocks the same way Blockly does on the
+        // workspace.
         figure.querySelector('svg')?.setAttribute('aria-hidden', 'true');
+        if (!caption && label) {
+          figure.setAttribute('role', 'img');
+          figure.setAttribute('aria-label', label);
+        }
       })
       .catch((e) => console.error(`Failed to render how-to snippet "${src}"`, e));
   });
