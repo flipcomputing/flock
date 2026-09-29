@@ -1168,6 +1168,8 @@ export const flock = {
       createDonut: this.createDonut?.bind(this),
       createPlane: this.createPlane?.bind(this),
       cloneMesh: this.cloneMesh?.bind(this),
+      runDo: this.runDo?.bind(this),
+      runThen: this.runThen?.bind(this),
       parentChild: this.parentChild?.bind(this),
       setParent: this.setParent?.bind(this),
       mergeMeshes: this.mergeMeshes?.bind(this),

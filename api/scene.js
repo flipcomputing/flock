@@ -759,13 +759,20 @@ export const flockScene = {
           flock.say(cloneTargetName, { text: '', duration: 0 })?.catch?.(() => {});
         }
 
+        const inherited = flock._constructionOf(sourceMesh);
+        flock._rememberConstruction(clone, {
+          dos: [...inherited.dos, callback],
+          thens: [...inherited.thens, then],
+        });
+        const { dos, thens } = flock._constructionOf(clone);
+
         resolveReady(clone);
         flock.announceMeshReady(clone.name, clone.name);
 
-        if (callback || then) {
+        if (dos.length || thens.length) {
           requestAnimationFrame(async () => {
-            for (const fn of [callback, then]) {
-              if (!fn) continue;
+            for (const fn of [...dos, ...thens]) {
+              if (signal?.aborted || clone.isDisposed()) return;
               try {
                 const result = fn(uniqueCloneId);
                 if (result && typeof result.then === 'function') await result;
@@ -793,6 +800,29 @@ export const flockScene = {
     };
     attached.then(done, done);
     signal?.addEventListener('abort', done, { once: true });
+  },
+  _constructionOf(mesh) {
+    return (mesh && flock._constructions?.get(mesh)) || { dos: [], thens: [] };
+  },
+  _rememberConstruction(mesh, { dos = [], thens = [] } = {}) {
+    const isFn = (fn) => typeof fn === 'function';
+    dos = dos.filter(isFn);
+    thens = thens.filter(isFn);
+    if (!mesh || (!dos.length && !thens.length)) return;
+    const current = flock._constructionOf(mesh);
+    flock._constructions ??= new WeakMap();
+    flock._constructions.set(mesh, {
+      dos: [...current.dos, ...dos],
+      thens: [...current.thens, ...thens],
+    });
+  },
+  runDo(meshName, fn) {
+    flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { dos: [fn] });
+    return fn(meshName);
+  },
+  runThen(meshName, fn) {
+    flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { thens: [fn] });
+    return fn(meshName);
   },
   _trackReveal(mesh, revealed) {
     const settled = revealed.then(

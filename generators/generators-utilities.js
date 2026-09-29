@@ -116,9 +116,15 @@ export function createMesh(block, meshType, params) {
   meshBlockIdMap[block.id] = block.id;
 
   const parentCode = maybeParentToGroup(variableName);
-  const doCode = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
-  const thenCode = block.getInput('THEN')
+  const doBody = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
+  const doCode = doBody
+    ? `await runDo(${variableName}, async function(${variableName}) {\n${doBody}\n});\n`
+    : '';
+  const thenBody = block.getInput('THEN')
     ? javascriptGenerator.statementToCode(block, 'THEN') || ''
+    : '';
+  const thenCode = thenBody
+    ? `await runThen(${variableName}, async function(${variableName}) {\n${thenBody}\n});\n`
     : '';
 
   const options = [...params];

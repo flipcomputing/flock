@@ -413,6 +413,14 @@ export function runSceneTests(flock) {
         createdIds.length = 0;
       });
 
+      async function pollUntil(predicate, timeout = 3000) {
+        const start = Date.now();
+        while (!predicate() && Date.now() - start < timeout) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        return predicate();
+      }
+
       it('should return null for a missing sourceMeshName', function () {
         const result = flock.cloneMesh({ cloneId: 'clone1' });
         expect(result).to.be.null;
@@ -838,6 +846,133 @@ export function runSceneTests(flock) {
         const clone = await flock.whenModelReady(cloneId);
         await new Promise((resolve) => setTimeout(resolve, 200));
         expect(clone.actionManager?.actions.length ?? 0).to.be.greaterThan(0);
+      });
+
+      it("should run the source shape's do on the clone before the clone's own do", async function () {
+        this.timeout(5000);
+        const calls = [];
+        const boxId = flock.createBox('doReplayBox__d1', {
+          color: '#996633',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(boxId);
+        await flock.runDo(boxId, async (me) => calls.push(['source', me]));
+
+        const cloneId = flock.cloneMesh({
+          sourceMeshName: boxId,
+          cloneId: 'doReplayClone',
+          callback: (me) => calls.push(['clone', me]),
+        });
+        createdIds.push(cloneId);
+
+        await pollUntil(() => calls.length >= 3);
+        expect(calls).to.deep.equal([
+          ['source', boxId],
+          ['source', cloneId],
+          ['clone', cloneId],
+        ]);
+      });
+
+      it("should run a model's do and then on its clone", async function () {
+        this.timeout(10000);
+        const received = [];
+        let resolveThen;
+        const revealed = new Promise((resolve) => (resolveThen = resolve));
+        const treeId = flock.createObject({
+          modelName: 'tree.glb',
+          modelId: 'doReplayTree__d2',
+          position: { x: 0, y: 0, z: 0 },
+          callback: (me) => received.push(['do', me]),
+          then: (me) => {
+            received.push(['then', me]);
+            resolveThen();
+          },
+        });
+        createdIds.push(treeId);
+        await revealed;
+
+        const cloneId = flock.cloneMesh({ sourceMeshName: treeId, cloneId: 'doReplayTreeClone' });
+        createdIds.push(cloneId);
+
+        await pollUntil(() => received.length >= 4);
+        expect(received).to.deep.equal([
+          ['do', treeId],
+          ['then', treeId],
+          ['do', cloneId],
+          ['then', cloneId],
+        ]);
+      });
+
+      it("should run a shape's then on its clone after the clone's own do", async function () {
+        this.timeout(5000);
+        const calls = [];
+        const boxId = flock.createBox('thenReplayBox__d4', {
+          color: '#996633',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(boxId);
+        await flock.runDo(boxId, (me) => calls.push(['source do', me]));
+        await flock.runThen(boxId, (me) => calls.push(['source then', me]));
+        calls.length = 0;
+
+        const cloneId = flock.cloneMesh({
+          sourceMeshName: boxId,
+          cloneId: 'thenReplayClone',
+          callback: (me) => calls.push(['clone do', me]),
+          then: (me) => calls.push(['clone then', me]),
+        });
+        createdIds.push(cloneId);
+
+        await pollUntil(() => calls.length >= 4);
+        expect(calls).to.deep.equal([
+          ['source do', cloneId],
+          ['clone do', cloneId],
+          ['source then', cloneId],
+          ['clone then', cloneId],
+        ]);
+      });
+
+      it('should run the whole do chain on a clone of a clone', async function () {
+        this.timeout(5000);
+        const calls = [];
+        const boxId = flock.createBox('doChainBox__d3', {
+          color: '#996633',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(boxId);
+        await flock.runDo(boxId, (me) => calls.push(['source', me]));
+
+        const firstId = flock.cloneMesh({
+          sourceMeshName: boxId,
+          cloneId: 'doChainFirst',
+          callback: (me) => calls.push(['first', me]),
+        });
+        createdIds.push(firstId);
+        await pollUntil(() => calls.length >= 3);
+
+        calls.length = 0;
+        const secondId = flock.cloneMesh({
+          sourceMeshName: firstId,
+          cloneId: 'doChainSecond',
+          callback: (me) => calls.push(['second', me]),
+        });
+        createdIds.push(secondId);
+
+        await pollUntil(() => calls.length >= 3);
+        expect(calls).to.deep.equal([
+          ['source', secondId],
+          ['first', secondId],
+          ['second', secondId],
+        ]);
       });
     });
   });

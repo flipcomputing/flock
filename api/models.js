@@ -179,6 +179,7 @@ export const flockModels = {
 
         const mesh = container.meshes[0];
         const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        flock._rememberConstruction(bb, { dos: [callback], thens: [then] });
 
         // materials & colors
         flock.ensureStandardMaterial(mesh);
@@ -391,7 +392,7 @@ export const flockModels = {
         }
       });
 
-      flock.setupMesh(
+      const root = flock.setupMesh(
         mesh,
         modelName,
         mName,
@@ -407,6 +408,7 @@ export const flockModels = {
       mesh.refreshBoundingInfo(true);
       flock.announceMeshReady(mName, gName);
       flock._markNameCreated(mName);
+      flock._rememberConstruction(root, { dos: [callback], thens: [then] });
 
       if (!callback) {
         flock._trackReveal(mesh, revealWhenDrawable(mesh)).then(() => runThen(mesh, mName));
