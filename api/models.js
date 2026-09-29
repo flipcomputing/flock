@@ -384,6 +384,40 @@ export const flockModels = {
       }
     };
 
+    const pairClonedNodes = (source, clone, pairs = new Map()) => {
+      pairs.set(source, clone);
+      const cloneChildren = clone.getDescendants(true);
+      source
+        .getDescendants(true)
+        .filter((child) => child.clone)
+        .forEach((child, i) => {
+          if (cloneChildren[i]) pairClonedNodes(child, cloneChildren[i], pairs);
+        });
+      return pairs;
+    };
+
+    const cloneSkeletons = (mesh) => {
+      const template = flock.modelCache[modelName];
+      const clonedNodes = template ? pairClonedNodes(template, mesh) : new Map();
+      const clones = new Map();
+      [mesh, ...mesh.getChildMeshes(false)].forEach((part) => {
+        const source = part.skeleton;
+        if (!source) return;
+        let skeleton = clones.get(source);
+        if (!skeleton) {
+          skeleton = source.clone(`${source.name}_${mesh.uniqueId}`);
+          skeleton.bones.forEach((bone, i) => {
+            const linked = source.bones[i].getTransformNode();
+            const target = linked && clonedNodes.get(linked);
+            if (target) bone.linkTransformNode(target);
+          });
+          mesh.onDisposeObservable.addOnce(() => skeleton.dispose());
+          clones.set(source, skeleton);
+        }
+        part.skeleton = skeleton;
+      });
+    };
+
     const finalizeMesh = (mesh, mName, gName, bKey) => {
       const allNodes = [mesh, ...mesh.getDescendants(false)];
       allNodes.forEach((node) => {
@@ -391,6 +425,7 @@ export const flockModels = {
           node.name = node.metadata.originalNodeName;
         }
       });
+      cloneSkeletons(mesh);
 
       const root = flock.setupMesh(
         mesh,

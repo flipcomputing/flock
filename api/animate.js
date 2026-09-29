@@ -1381,18 +1381,28 @@ export const flockAnimate = {
             ? animationName + '_Block'
             : animationName;
 
-        const animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
-          flock.animationPath,
-          animationFile + '.glb',
-          flock.scene,
-          undefined,
-          undefined,
-          {
-            gltf: {
-              animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
-            },
+        let animImport;
+        try {
+          animImport = await flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
+            flock.animationPath,
+            animationFile + '.glb',
+            flock.scene,
+            undefined,
+            undefined,
+            {
+              gltf: {
+                animationStartMode: flock.BABYLON_LOADER.GLTFLoaderAnimationStartMode.NONE,
+              },
+            }
+          );
+        } catch {
+          if (flock.isDebugLoggingEnabled()) {
+            console.warn(
+              `Animation '${animationName}' is not available for '${meshOrGroup.name}'.`
+            );
           }
-        );
+          return null;
+        }
 
         const animGroup = animImport.animationGroups.find(
           (ag) => ag.name === animationName && ag.targetedAnimations.length > 0
@@ -1524,7 +1534,8 @@ export const flockAnimate = {
       blendDuration
     );
     if (!animGroup) {
-      console.warn(`Animation '${animationName}' not found or failed for mesh '${meshName}'.`);
+      if (flock.isDebugLoggingEnabled())
+        console.warn(`Animation '${animationName}' not found or failed for mesh '${meshName}'.`);
       return;
     }
     return new Promise((resolve) => {
@@ -1717,11 +1728,17 @@ export const flockAnimate = {
       targetAnimationGroup = rootMesh.metadata.embeddedAnimationGroups[newAnimationName] || null;
 
       if (!targetAnimationGroup) {
-        const sourceGroup = flock.scene?.animationGroups?.find(
-          (group) =>
-            (group.name === newAnimationName || group.name?.endsWith?.(`.${newAnimationName}`)) &&
-            group.targetedAnimations?.length > 0
-        );
+        const candidates =
+          flock.scene?.animationGroups?.filter(
+            (group) =>
+              (group.name === newAnimationName || group.name?.endsWith?.(`.${newAnimationName}`)) &&
+              group.targetedAnimations?.length > 0
+          ) ?? [];
+        const modelName = rootMesh.metadata?.modelName;
+        const sourceGroup =
+          candidates.find((group) =>
+            group.targetedAnimations.some((ta) => ta.target?.metadata?.templateTag === modelName)
+          ) ?? candidates[0];
 
         if (sourceGroup) {
           const boneMap = {};
@@ -1892,7 +1909,8 @@ export const flockAnimate = {
       flock.switchToAnimation(flock.scene, mesh, animationName, loop, restart, true, blendDuration)
     );
     if (!animGroup) {
-      console.warn(`Animation '${animationName}' not found for mesh '${meshName}'.`);
+      if (flock.isDebugLoggingEnabled())
+        console.warn(`Animation '${animationName}' not found for mesh '${meshName}'.`);
       return;
     }
     return new Promise((resolve) => {
