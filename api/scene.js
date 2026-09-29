@@ -654,14 +654,48 @@ export const flockScene = {
     }
     if (flock.maxMeshesReached()) return 'error_' + cloneId;
 
-    const uniqueCloneId = flock._reserveName(cloneId);
+    const uniqueCloneId = flock._reserveName(cloneId, flock._familyOf(sourceMeshName));
 
-    flock.whenModelReady(sourceMeshName, (sourceMesh) => {
-      if (!sourceMesh || sourceMesh.isDisposed?.()) return;
+    const signal = flock.abortController?.signal;
+
+    let resolveReady;
+    const readyPromise = new Promise((resolve) => {
+      resolveReady = resolve;
+    });
+    flock.modelReadyPromises.set(uniqueCloneId, readyPromise);
+    readyPromise.finally(() => {
+      setTimeout(() => {
+        if (flock.modelReadyPromises.get(uniqueCloneId) === readyPromise)
+          flock.modelReadyPromises.delete(uniqueCloneId);
+      }, 5000);
+    });
+
+    flock.whenModelReady(sourceMeshName, async (sourceMesh) => {
+      if (!sourceMesh || sourceMesh.isDisposed?.()) {
+        resolveReady(null);
+        return;
+      }
+
+      await flock._whenHierarchySettled(sourceMesh);
+      if (signal?.aborted) return;
+      if (sourceMesh.isDisposed?.()) {
+        resolveReady(null);
+        return;
+      }
 
       flock._recycleOldestByKey(sourceMeshName);
 
-      const clone = sourceMesh.clone(uniqueCloneId);
+      const sayPlanes = sourceMesh
+        .getDescendants(false)
+        .filter((node) => node.metadata?.isTextPlane);
+      const sayParents = sayPlanes.map((plane) => plane.parent);
+      sayPlanes.forEach((plane) => (plane.parent = null));
+      let clone;
+      try {
+        clone = sourceMesh.clone(uniqueCloneId);
+      } finally {
+        sayPlanes.forEach((plane, i) => (plane.parent = sayParents[i]));
+      }
 
       flock._registerInstance(sourceMeshName, clone.name);
 
@@ -703,12 +737,37 @@ export const flockScene = {
         setMetadata(clone);
         clone.getDescendants().forEach(setMetadata);
 
+        const cloneNameFor = (sourceNode) => {
+          const path = [];
+          for (let node = sourceNode; node && node !== sourceMesh; node = node.parent) {
+            path.unshift(node.name);
+          }
+          return [clone.name, ...path].join('.');
+        };
+
+        const sayTexturePlanes = [sourceMesh, ...sourceMesh.getDescendants(false)].filter(
+          (node) => node.metadata?.hasSayTexture && node.advancedTexture
+        );
+        for (const sourcePlane of sayTexturePlanes) {
+          const cloneTargetName = cloneNameFor(sourcePlane);
+          const clonePlane = flock.scene.getMeshByName(cloneTargetName);
+          if (!clonePlane) continue;
+          if (clonePlane.advancedTexture !== sourcePlane.advancedTexture) {
+            clonePlane.advancedTexture?.dispose?.();
+          }
+          delete clonePlane.advancedTexture;
+          flock.say(cloneTargetName, { text: '', duration: 0 })?.catch?.(() => {});
+        }
+
+        resolveReady(clone);
+        flock.announceMeshReady(clone.name, clone.name);
+
         if (callback || then) {
           requestAnimationFrame(async () => {
             for (const fn of [callback, then]) {
               if (!fn) continue;
               try {
-                const result = fn();
+                const result = fn(uniqueCloneId);
                 if (result && typeof result.then === 'function') await result;
               } catch (err) {
                 console.error('cloneMesh callback error:', err);
@@ -720,5 +779,42 @@ export const flockScene = {
     });
 
     return uniqueCloneId;
+  },
+  _trackPendingChild(parentName, attached) {
+    const pending = (flock._pendingChildren ??= new Map());
+    let set = pending.get(parentName);
+    if (!set) pending.set(parentName, (set = new Set()));
+    set.add(attached);
+
+    const signal = flock.abortController?.signal;
+    const done = () => {
+      set.delete(attached);
+      if (!set.size && pending.get(parentName) === set) pending.delete(parentName);
+    };
+    attached.then(done, done);
+    signal?.addEventListener('abort', done, { once: true });
+  },
+  _trackReveal(mesh, revealed) {
+    const settled = revealed.then(
+      () => {},
+      () => {}
+    );
+    mesh._flockRevealed = settled;
+    settled.then(() => {
+      if (mesh._flockRevealed === settled) delete mesh._flockRevealed;
+    });
+    return revealed;
+  },
+  async _whenHierarchySettled(root) {
+    for (;;) {
+      const waits = [];
+      for (const node of [root, ...root.getDescendants(false)]) {
+        const children = flock._pendingChildren?.get(node.name);
+        if (children) waits.push(...children);
+        if (node._flockRevealed) waits.push(node._flockRevealed);
+      }
+      if (!waits.length) return;
+      await Promise.allSettled(waits);
+    }
   },
 };

@@ -889,17 +889,24 @@ export const flockUI = {
 
         if (targetMesh.metadata && targetMesh.metadata.shape == 'plane') {
           plane = targetMesh;
-          background = plane.material.diffuseColor.toHexString();
-          originalPlaneAlpha = plane.material.alpha ?? 1;
+          const savedBackground = plane.metadata?.sayBackground;
+          background = savedBackground?.color ?? plane.material.diffuseColor.toHexString();
+          originalPlaneAlpha = savedBackground?.alpha ?? plane.material.alpha ?? 1;
           flock.setDepthPrePass(plane.material, true);
           plane.metadata = {
             ...(plane.metadata || {}),
             hasSayTexture: true,
             originalPlaneColor: plane.material?.diffuseColor?.toHexString?.() || '#ffffff',
+            sayBackground: { color: background, alpha: originalPlaneAlpha },
           };
         } else {
           const cachedPlane = targetMesh.metadata?.sayPlane;
-          plane = cachedPlane && !cachedPlane.isDisposed?.() ? cachedPlane : null;
+          plane =
+            cachedPlane &&
+            !cachedPlane.isDisposed?.() &&
+            cachedPlane.metadata?.sayTarget === targetMesh
+              ? cachedPlane
+              : null;
           if (!plane) {
             plane = flock.scene.meshes.find(
               (child) =>

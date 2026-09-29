@@ -730,9 +730,7 @@ export const flockPhysics = {
       __owningSignal = flock.sectionSignal(),
     }
   ) {
-    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
-
-    const groupName = getGroupRoot(meshName);
+    const groupName = flock._familyOf(meshName);
     const getAllGuiControls = () => {
       const root = flock.scene?.UITexture?._rootContainer ?? flock.scene?.UITexture?.rootContainer;
       if (!root) return [];
@@ -764,10 +762,10 @@ export const flockPhysics = {
       let matchingButtons = [];
       if (flock.scene.UITexture) {
         matchingButtons = getAllGuiControls().filter(
-          (control) => control?.name && getGroupRoot(control.name) === groupName
+          (control) => control?.name && flock._familyOf(control.name) === groupName
         );
       }
-      const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+      const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
 
       if (matchingButtons.length > 0) {
         for (const btn of matchingButtons) {
@@ -938,22 +936,21 @@ export const flockPhysics = {
     otherMeshName,
     { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}
   ) {
-    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
       const exact = scene?.getMeshByName?.(rawName);
-      if (exact?.name) return getGroupRoot(exact.name);
+      if (exact?.name) return flock._familyOf(exact.name);
 
       let normalized = rawName.includes('__') ? rawName.split('__')[0] : rawName;
       normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (normalized && normalized !== rawName) {
         if (scene?.getMeshByName?.(normalized) || flock.modelReadyPromises.has(normalized)) {
-          return getGroupRoot(normalized);
+          return flock._familyOf(normalized);
         }
       }
 
-      return getGroupRoot(rawName);
+      return flock._familyOf(rawName);
     };
 
     if (applyToGroupSelf) {
@@ -971,7 +968,7 @@ export const flockPhysics = {
       flock.pendingSelfIntersections.get(groupName).push(pendingEntry);
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
         const promises = [];
         for (let i = 0; i < matching.length; i++) {
           for (let j = i + 1; j < matching.length; j++) {
@@ -1024,7 +1021,7 @@ export const flockPhysics = {
       };
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
         const matchingNames = [...new Set(matching.map((m) => m.name))];
         return Promise.all(matchingNames.map((name) => registerForOther(name)));
       }

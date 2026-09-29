@@ -203,24 +203,28 @@ export const flockModels = {
 
         // After anims, run optional callback (await if it returns a promise),
         // show, then run the optional "then" section.
-        Promise.all(animationPromises)
-          .then(async () => {
-            if (callback) {
-              try {
-                const result = callback();
-                if (result && typeof result.then === 'function') await result;
-              } catch (err) {
-                console.error('Callback error:', err);
-              }
-            }
-          })
-          .then(() => {
-            mesh.setEnabled(true);
-          })
+        flock
+          ._trackReveal(
+            mesh,
+            Promise.all(animationPromises)
+              .then(async () => {
+                if (callback) {
+                  try {
+                    const result = callback(meshName);
+                    if (result && typeof result.then === 'function') await result;
+                  } catch (err) {
+                    console.error('Callback error:', err);
+                  }
+                }
+              })
+              .then(() => {
+                mesh.setEnabled(true);
+              })
+          )
           .then(async () => {
             if (!then) return;
             try {
-              const result = then();
+              const result = then(meshName);
               if (result && typeof result.then === 'function') await result;
             } catch (err) {
               console.error('Character then() error:', err);
@@ -366,11 +370,11 @@ export const flockModels = {
 
     // The "then" mutator section: runs once the constructor callback has
     // finished and the object has been revealed.
-    const runThen = (mesh) => {
+    const runThen = (mesh, mName) => {
       if (!then) return;
       if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
       try {
-        const result = then();
+        const result = then(mName);
         if (result && typeof result.then === 'function') {
           result.catch((err) => console.error('Add object then() error:', err));
         }
@@ -405,7 +409,7 @@ export const flockModels = {
       flock._markNameCreated(mName);
 
       if (!callback) {
-        revealWhenDrawable(mesh).then(() => runThen(mesh));
+        flock._trackReveal(mesh, revealWhenDrawable(mesh)).then(() => runThen(mesh, mName));
         return;
       }
 
@@ -416,7 +420,7 @@ export const flockModels = {
       const runConstructor = new Promise((resolve) => {
         requestAnimationFrame(() => {
           try {
-            const result = callback();
+            const result = callback(mName);
             if (result && typeof result.then === 'function') {
               result.then(resolve, (err) => {
                 console.error('Add object callback error:', err);
@@ -432,12 +436,15 @@ export const flockModels = {
         });
       });
 
-      runConstructor
-        .then(() => {
-          if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
-          return revealWhenDrawable(mesh);
-        })
-        .then(() => runThen(mesh));
+      flock
+        ._trackReveal(
+          mesh,
+          runConstructor.then(() => {
+            if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+            return revealWhenDrawable(mesh);
+          })
+        )
+        .then(() => runThen(mesh, mName));
     };
 
     try {

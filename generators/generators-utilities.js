@@ -85,10 +85,10 @@ export function getPositionTuple(block) {
 
 // The "then" mutator section, wrapped for an options object: it runs once the
 // constructor callback has completed. Returns '' when the section is absent.
-export function getThenCallback(block) {
+export function getThenCallback(block, variableName) {
   if (!block.getInput('THEN')) return '';
   const code = javascriptGenerator.statementToCode(block, 'THEN') || '';
-  return code ? `,\nthen: async function() {\n${code}\n}` : '';
+  return code ? `,\nthen: async function(${variableName}) {\n${code}\n}` : '';
 }
 
 let currentGroupParent = null;

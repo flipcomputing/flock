@@ -958,7 +958,7 @@ export const flockShapes = {
         flock._registerInstance(blockKey, mesh.name);
 
         if (callback) {
-          requestAnimationFrame(callback);
+          requestAnimationFrame(() => callback(meshId));
         }
       } catch (error) {
         flock._pendingMeshIds?.delete(meshId);

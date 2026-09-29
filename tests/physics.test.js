@@ -125,29 +125,19 @@ export function runPhysicsTests(flock) {
       expect(intersected).to.be.true;
     });
 
-    it('should register intersections for all matching right-hand group meshes', async function () {
-      const source = 'colliderSource_1';
-      const groupA = 'groupTarget_1';
-      const groupB = 'groupTarget_2';
+    const box = (id, x = 0) =>
+      flock.createBox(id, { width: 1, height: 1, depth: 1, position: [x, 0, 0] });
+    const enter = (name, otherName) =>
+      flock.scene
+        .getMeshByName(name)
+        ?.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnIntersectionEnterTrigger, {
+          mesh: flock.scene.getMeshByName(otherName),
+        });
 
-      await flock.createBox(source, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      await flock.createBox(groupA, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      await flock.createBox(groupB, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
+    it('should register intersections for all matching right-hand group meshes', async function () {
+      const source = await box('colliderSource__b0');
+      const groupA = await box('groupTarget__b1');
+      const groupB = await box('groupTarget__b1');
       boxIds.push(source, groupA, groupB);
 
       let count = 0;
@@ -159,41 +149,15 @@ export function runPhysicsTests(flock) {
         },
       });
 
-      const sourceMesh = flock.scene.getMeshByName(source);
-      const otherA = flock.scene.getMeshByName(groupA);
-      const otherB = flock.scene.getMeshByName(groupB);
-      expect(sourceMesh).to.exist;
-      expect(otherA).to.exist;
-      expect(otherB).to.exist;
-
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA }
-      );
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB }
-      );
+      enter(source, groupA);
+      enter(source, groupB);
 
       expect(count).to.equal(2);
     });
 
     it('should skip self-pair when expanding right-hand collision group', async function () {
-      const source = 'selfPair_1';
-      const other = 'selfPair_2';
-
-      await flock.createBox(source, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      await flock.createBox(other, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
+      const source = await box('selfPair__b1');
+      const other = await box('selfPair__b1');
       boxIds.push(source, other);
 
       let count = 0;
@@ -205,34 +169,17 @@ export function runPhysicsTests(flock) {
         },
       });
 
-      const sourceMesh = flock.scene.getMeshByName(source);
-      const otherMesh = flock.scene.getMeshByName(other);
-      expect(sourceMesh).to.exist;
-      expect(otherMesh).to.exist;
-
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherMesh }
-      );
+      enter(source, other);
 
       expect(count).to.equal(1);
     });
 
     it('should apply right-hand group intersections when targets are created later', async function () {
-      const source = 'lateSource_1';
-      const futureGroupSeed = 'lateTarget_1';
-      const futureGroupOther = 'lateTarget_2';
-
-      await flock.createBox(source, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
+      const source = await box('lateSource__b0');
       boxIds.push(source);
 
       let count = 0;
-      await flock.onIntersect(source, futureGroupSeed, {
+      await flock.onIntersect(source, 'lateTarget', {
         trigger: 'OnIntersectionEnterTrigger',
         applyToGroupOther: true,
         callback: () => {
@@ -240,52 +187,21 @@ export function runPhysicsTests(flock) {
         },
       });
 
-      await flock.createBox(futureGroupSeed, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      await flock.createBox(futureGroupOther, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      boxIds.push(futureGroupSeed, futureGroupOther);
+      const otherA = await box('lateTarget__b1');
+      const otherB = await box('lateTarget__b1');
+      boxIds.push(otherA, otherB);
 
-      const sourceMesh = flock.scene.getMeshByName(source);
-      const otherA = flock.scene.getMeshByName(futureGroupSeed);
-      const otherB = flock.scene.getMeshByName(futureGroupOther);
-      expect(sourceMesh).to.exist;
-      expect(otherA).to.exist;
-      expect(otherB).to.exist;
-
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherA }
-      );
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: otherB }
-      );
+      enter(source, otherA);
+      enter(source, otherB);
 
       expect(count).to.equal(2);
     });
 
     it('should canonicalize unsanitized RHS names for pending group registration', async function () {
-      const source = 'canonSource_1';
+      const source = await box('canonSource__b0');
+      boxIds.push(source);
       const unsanitizedAlias = 'canon target !@#';
       const normalizedAlias = 'canontarget';
-      const createdTarget = 'canontarget_1';
-
-      await flock.createBox(source, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
-      boxIds.push(source);
 
       // Mirror whenModelReady alias support: unsanitized id resolves through
       // the normalized key present in modelReadyPromises.
@@ -300,26 +216,85 @@ export function runPhysicsTests(flock) {
         },
       });
 
-      await flock.createBox(createdTarget, {
-        width: 1,
-        height: 1,
-        depth: 1,
-        position: [0, 0, 0],
-      });
+      const createdTarget = await box('canontarget__b1');
       boxIds.push(createdTarget);
 
-      const sourceMesh = flock.scene.getMeshByName(source);
-      const targetMesh = flock.scene.getMeshByName(createdTarget);
-      expect(sourceMesh).to.exist;
-      expect(targetMesh).to.exist;
-
-      sourceMesh.actionManager.processTrigger(
-        flock.BABYLON.ActionManager.OnIntersectionEnterTrigger,
-        { mesh: targetMesh }
-      );
+      enter(source, createdTarget);
 
       expect(count).to.equal(1);
       flock.modelReadyPromises.delete(normalizedAlias);
+    });
+
+    it('should keep right-hand families with a shared underscore prefix apart', async function () {
+      const source = await box('underSource__b0');
+      const coin = await box('undercoin__b1', 10);
+      const goldA = await box('undercoin_gold__b2', 20);
+      const goldB = await box('undercoin_gold__b2', 30);
+      boxIds.push(source, coin, goldA, goldB);
+
+      const hits = [];
+      await flock.onIntersect(source, goldA, {
+        trigger: 'OnIntersectionEnterTrigger',
+        applyToGroupOther: true,
+        callback: (_self, other) => {
+          hits.push(other);
+        },
+      });
+
+      enter(source, coin);
+      enter(source, goldA);
+      enter(source, goldB);
+
+      expect(hits).to.have.members([goldA, goldB]);
+    });
+
+    it('should apply self-group intersections within one family only', async function () {
+      const ballA = await box('selfball_red__b1');
+      const ballB = await box('selfball_red__b1', 10);
+      const other = await box('selfball__b2', 20);
+      boxIds.push(ballA, ballB, other);
+
+      let count = 0;
+      await flock.onIntersect(ballA, ballA, {
+        trigger: 'OnIntersectionEnterTrigger',
+        applyToGroupSelf: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      enter(ballA, ballB);
+      enter(ballB, ballA);
+      enter(ballA, other);
+      enter(other, ballA);
+
+      expect(count).to.equal(1);
+    });
+
+    it('should add later family members to self-group intersections', async function () {
+      const ballA = await box('lateselfball_blue__b1');
+      boxIds.push(ballA);
+
+      let count = 0;
+      await flock.onIntersect(ballA, ballA, {
+        trigger: 'OnIntersectionEnterTrigger',
+        applyToGroupSelf: true,
+        callback: () => {
+          count++;
+        },
+      });
+
+      const ballB = await box('lateselfball_blue__b1', 10);
+      const other = await box('lateselfball__b2', 20);
+      boxIds.push(ballB, other);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      enter(ballA, ballB);
+      enter(ballB, ballA);
+      enter(ballA, other);
+      enter(other, ballA);
+
+      expect(count).to.equal(1);
     });
   });
 

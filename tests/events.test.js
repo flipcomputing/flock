@@ -291,132 +291,243 @@ export function runEventsTests(flock) {
     });
 
     // -------------------------------------------------------------------------
+    describe('_familyOf', function () {
+      it('uses the reserved base for the first instance and collision suffixes', function () {
+        const first = flock._reserveName('famof_tree_house');
+        const second = flock._reserveName('famof_tree_house');
+
+        expect(second).to.not.equal(first);
+        expect(flock._familyOf(first)).to.equal('famof_tree_house');
+        expect(flock._familyOf(second)).to.equal('famof_tree_house');
+        flock._releaseName(first);
+        flock._releaseName(second);
+      });
+
+      it('uses an explicit family when one is given', function () {
+        const name = flock._reserveName('famof_src_abc', 'famof_src');
+        expect(flock._familyOf(name)).to.equal('famof_src');
+        flock._releaseName(name);
+      });
+
+      it('takes the family of a registered parent for a dotted child name', function () {
+        const parent = flock._reserveName('famof_parent_1', 'famof_parent');
+        expect(flock._familyOf(`${parent}.arm_left`)).to.equal('famof_parent');
+        flock._releaseName(parent);
+      });
+
+      it('strips the block id from an unregistered generator id', function () {
+        expect(flock._familyOf('famof_unreg__abc_123')).to.equal('famof_unreg');
+      });
+
+      it('does not split an unregistered name on a single underscore', function () {
+        expect(flock._familyOf('famof_loose_name')).to.equal('famof_loose_name');
+        expect(flock._familyOf('Button_xyz')).to.equal('Button_xyz');
+        expect(flock._familyOf('Cylinder.001')).to.equal('Cylinder.001');
+      });
+    });
+
+    // -------------------------------------------------------------------------
     describe('onTrigger with applyToGroup @physics', function () {
-      // Note: createBox("name__N") strips the __N suffix, creating a mesh
-      // named "name". For separate meshes that share a group root, use single
-      // underscore: "evtbox_1" and "evtbox_2" both have group root "evtbox"
-      // (via getGroupRoot which splits on "_" when "__" is absent).
+      // Generated code creates meshes from "variable__blockId" ids. Repeat
+      // instances get collision suffixes ("coin", "coin_57") and share the
+      // family "coin" recorded when the name was reserved.
+      const box = (id, x = 0) =>
+        flock.createBox(id, { width: 1, height: 1, depth: 1, position: [x, 0, 0] });
+      const pick = (name) =>
+        flock.scene
+          .getMeshByName(name)
+          ?.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
 
-      it('registers trigger on all meshes sharing the same name prefix', async function () {
-        const id1 = 'evtbox_1';
-        const id2 = 'evtbox_2';
-        await flock.createBox(id1, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-        await flock.createBox(id2, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
-        meshIds.push(id1, id2);
-
-        const mesh1 = flock.scene.getMeshByName(id1);
-        const mesh2 = flock.scene.getMeshByName(id2);
-        expect(mesh1).to.exist;
-        expect(mesh2).to.exist;
+      it('registers trigger on every instance of the same family', async function () {
+        const name1 = await box('evtbox__b1');
+        const name2 = await box('evtbox__b1', 2);
+        meshIds.push(name1, name2);
+        expect(name1).to.not.equal(name2);
 
         let count = 0;
-        flock.onTrigger(id1, {
+        flock.onTrigger(name1, {
           trigger: 'OnPickTrigger',
           callback: () => count++,
           applyToGroup: true,
         });
 
-        mesh1.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        mesh2.actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        pick(name1);
+        pick(name2);
 
         expect(count).to.equal(2);
       });
 
       it('registers trigger only on named mesh when applyToGroup is false', async function () {
-        const id1 = 'solobox_1';
-        const id2 = 'solobox_2';
-        await flock.createBox(id1, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
-        await flock.createBox(id2, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
-        meshIds.push(id1, id2);
-
-        const mesh1 = flock.scene.getMeshByName(id1);
-        const mesh2 = flock.scene.getMeshByName(id2);
-        expect(mesh1).to.exist;
-        expect(mesh2).to.exist;
+        const name1 = await box('solobox__b1');
+        const name2 = await box('solobox__b1', 2);
+        meshIds.push(name1, name2);
 
         let count = 0;
-        flock.onTrigger(id1, {
+        flock.onTrigger(name1, {
           trigger: 'OnPickTrigger',
           callback: () => count++,
           applyToGroup: false,
         });
 
-        // Trigger the second mesh — should not fire since only id1 was registered
-        mesh2.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        pick(name2);
 
         expect(count).to.equal(0);
       });
 
       it('replays pending non-group trigger on the original target mesh only', async function () {
-        const target = 'latepick_1';
-        const sibling = 'latepick_2';
-
         let count = 0;
-        flock.onTrigger(target, {
+        flock.onTrigger('latepick', {
           trigger: 'OnPickTrigger',
           callback: () => count++,
           applyToGroup: false,
         });
 
-        await flock.createBox(sibling, {
-          width: 1,
-          height: 1,
-          depth: 1,
-          position: [0, 0, 0],
-        });
-        await flock.createBox(target, {
-          width: 1,
-          height: 1,
-          depth: 1,
-          position: [2, 0, 0],
-        });
+        const target = await box('latepick__b1');
+        const sibling = await box('latepick__b1', 2);
         meshIds.push(target, sibling);
+        expect(target).to.equal('latepick');
 
-        const targetMesh = flock.scene.getMeshByName(target);
-        const siblingMesh = flock.scene.getMeshByName(sibling);
-        expect(targetMesh).to.exist;
-        expect(siblingMesh).to.exist;
-
-        siblingMesh.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        targetMesh.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        pick(sibling);
+        pick(target);
 
         expect(count).to.equal(1);
       });
 
       it('replays pending group trigger across siblings when applyToGroup is true', async function () {
-        const first = 'lategroup_1';
-        const second = 'lategroup_2';
-
         let count = 0;
-        flock.onTrigger(first, {
+        flock.onTrigger('lategroup', {
           trigger: 'OnPickTrigger',
           callback: () => count++,
           applyToGroup: true,
         });
 
-        await flock.createBox(first, {
-          width: 1,
-          height: 1,
-          depth: 1,
-          position: [0, 0, 0],
-        });
-        await flock.createBox(second, {
-          width: 1,
-          height: 1,
-          depth: 1,
-          position: [2, 0, 0],
-        });
+        const first = await box('lategroup__b1');
+        const second = await box('lategroup__b1', 2);
         meshIds.push(first, second);
 
-        const mesh1 = flock.scene.getMeshByName(first);
-        const mesh2 = flock.scene.getMeshByName(second);
-        expect(mesh1).to.exist;
-        expect(mesh2).to.exist;
-
-        mesh1.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
-        mesh2.actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+        pick(first);
+        pick(second);
 
         expect(count).to.equal(2);
+      });
+
+      it('keeps names that share an underscore prefix in separate families', async function () {
+        const tree = await box('famtree__b1');
+        const treeHouse = await box('famtree_house__b2', 2);
+        const treeHouse2 = await box('famtree_house__b2', 4);
+        meshIds.push(tree, treeHouse, treeHouse2);
+
+        let treeCount = 0;
+        let houseCount = 0;
+        flock.onTrigger(tree, {
+          trigger: 'OnPickTrigger',
+          callback: () => treeCount++,
+          applyToGroup: true,
+        });
+        flock.onTrigger(treeHouse, {
+          trigger: 'OnPickTrigger',
+          callback: () => houseCount++,
+          applyToGroup: true,
+        });
+
+        pick(tree);
+        pick(treeHouse);
+        pick(treeHouse2);
+
+        expect(treeCount).to.equal(1);
+        expect(houseCount).to.equal(2);
+      });
+
+      it('does not treat a numbered variable name as another instance', async function () {
+        const coin1 = await box('famcoin_1__b1');
+        const coin2 = await box('famcoin_2__b2', 2);
+        meshIds.push(coin1, coin2);
+
+        let count = 0;
+        flock.onTrigger(coin1, {
+          trigger: 'OnPickTrigger',
+          callback: () => count++,
+          applyToGroup: true,
+        });
+
+        pick(coin1);
+        pick(coin2);
+
+        expect(count).to.equal(1);
+      });
+
+      it('replays a pending group trigger only on its own underscore family', async function () {
+        let count = 0;
+        flock.onTrigger('lateunder_thing', {
+          trigger: 'OnPickTrigger',
+          callback: () => count++,
+          applyToGroup: true,
+        });
+
+        const other = await box('lateunder__b1');
+        const first = await box('lateunder_thing__b2', 2);
+        const second = await box('lateunder_thing__b2', 4);
+        meshIds.push(other, first, second);
+
+        pick(other);
+        pick(first);
+        pick(second);
+
+        expect(count).to.equal(2);
+      });
+
+      it('passes the picked instance name to the callback', async function () {
+        const name1 = await box('evtself__b1');
+        const name2 = await box('evtself__b1', 2);
+        meshIds.push(name1, name2);
+
+        const picked = [];
+        flock.onTrigger(name1, {
+          trigger: 'OnPickTrigger',
+          callback: (name) => picked.push(name),
+          applyToGroup: true,
+        });
+
+        pick(name2);
+        pick(name1);
+
+        expect(picked).to.deep.equal([name2, name1]);
+      });
+
+      it('keeps GUI buttons with generated ids in separate families', function () {
+        const buttonA = flock.UIButton({
+          text: 'A',
+          x: 0,
+          y: 0,
+          width: 'SMALL',
+          buttonId: 'Button_famA',
+        });
+        const buttonB = flock.UIButton({
+          text: 'B',
+          x: 0,
+          y: 50,
+          width: 'SMALL',
+          buttonId: 'Button_famB',
+        });
+
+        let count = 0;
+        flock.onTrigger(buttonA, {
+          trigger: 'OnPickTrigger',
+          callback: () => count++,
+          applyToGroup: true,
+        });
+
+        const click = (name) =>
+          flock.scene.UITexture.getControlByName(name).onPointerClickObservable.notifyObservers(
+            {}
+          );
+        return new Promise((resolve) => setTimeout(resolve, 100)).then(() => {
+          click(buttonB);
+          click(buttonA);
+          expect(count).to.equal(1);
+          flock.scene.UITexture.getControlByName(buttonA)?.dispose();
+          flock.scene.UITexture.getControlByName(buttonB)?.dispose();
+        });
       });
     });
   });

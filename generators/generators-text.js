@@ -323,7 +323,7 @@ export function registerTextGenerators(javascriptGenerator) {
     if (block.getInput('DO')) {
       doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = create3DText({
             text: ${textLiteral},

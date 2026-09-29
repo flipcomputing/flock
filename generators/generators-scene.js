@@ -118,13 +118,13 @@ export function registerSceneGenerators(javascriptGenerator) {
     if (block.getInput('DO')) {
       doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createModel({
                         modelName: '${modelName}',
                         modelId: ${JSON.stringify(meshId)},${colors ? `\n                        colors: ${colors},` : ''}
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                 });\n${maybeParentToGroup(variableName)}`;
   };
 
@@ -153,7 +153,7 @@ export function registerSceneGenerators(javascriptGenerator) {
       doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createCharacter({
                   modelName: '${modelName}',
@@ -167,7 +167,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         sleeves: ${sleevesColor},
                         shorts: ${shortsColor},
                         tshirt: ${tshirtColor}
-                  }${doCode ? `, callback: ${doCode}` : ''}${getThenCallback(block)}
+                  }${doCode ? `, callback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                 });\n${maybeParentToGroup(variableName)}`;
   };
 
@@ -193,14 +193,14 @@ export function registerSceneGenerators(javascriptGenerator) {
       doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
                           modelName: '${modelName}',
                           modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
-                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
+                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                   });\n${maybeParentToGroup(variableName)}`;
   };
   // Add object -------------------------------------------------------
@@ -224,14 +224,14 @@ export function registerSceneGenerators(javascriptGenerator) {
       doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
                         modelName: '${modelName}',
                         modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                 });\n${maybeParentToGroup(variableName)}`;
   };
 
@@ -427,12 +427,12 @@ export function registerSceneGenerators(javascriptGenerator) {
     }
 
     // Wrap "DO" code in an async function if it exists
-    doCode = doCode ? `async function() {\n${doCode}\n}` : '';
+    doCode = doCode ? `async function(${cloneVariableName}) {\n${doCode}\n}` : '';
 
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
-                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block)}
+                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------

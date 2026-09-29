@@ -1295,7 +1295,7 @@ export const flockMesh = {
     });
   },
   setParent(parentModelName, childModelName) {
-    return new Promise((resolve) => {
+    const attached = new Promise((resolve) => {
       flock.whenModelReady(parentModelName, (parentMesh) => {
         flock.whenModelReady(childModelName, (childMesh) => {
           if (
@@ -1315,6 +1315,8 @@ export const flockMesh = {
         });
       });
     });
+    flock._trackPendingChild(parentModelName, attached);
+    return attached;
   },
   parentChild(parentModelName, childModelName, offsetX = 0, offsetY = 0, offsetZ = 0) {
     return new Promise((resolve) => {

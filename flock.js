@@ -2802,9 +2802,7 @@ export const flock = {
   announceMeshReady(meshName, groupName) {
     flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
 
-    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
-
-    groupName = getGroupRoot(groupName);
+    groupName = flock._familyOf(flock._nameRegistry.has(meshName) ? meshName : groupName);
 
     if (flock.pendingTriggers.has(groupName)) {
       const triggers = flock.pendingTriggers.get(groupName);
@@ -2872,7 +2870,7 @@ export const flock = {
       if (newMesh) {
         for (const pending of flock.pendingSelfIntersections.get(groupName)) {
           const existing = flock.scene.meshes.filter(
-            (m) => getGroupRoot(m.name) === groupName && m.name !== meshName
+            (m) => flock._familyOf(m.name) === groupName && m.name !== meshName
           );
           for (const existingMesh of existing) {
             const meshA = existingMesh.uniqueId < newMesh.uniqueId ? existingMesh : newMesh;
@@ -2892,13 +2890,13 @@ export const flock = {
     }
   },
   /** Reserve a unique name. If desired is taken or pending, suffix it. */
-  _reserveName(desired) {
+  _reserveName(desired, family = desired) {
     const has = (n) => flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
     let name = desired;
     while (has(name)) {
       name = `${desired}_${flock.scene.getUniqueId()}`;
     }
-    flock._nameRegistry.set(name, { pending: true, exists: false });
+    flock._nameRegistry.set(name, { pending: true, exists: false, family });
     return name;
   },
 
@@ -2909,6 +2907,18 @@ export const flock = {
       rec.pending = false;
       rec.exists = true;
     }
+  },
+
+  /** The name a mesh was reserved from; repeats and clones share it. */
+  _familyOf(name) {
+    const family = flock._nameRegistry.get(name)?.family;
+    if (family) return family;
+    const dot = name.indexOf('.');
+    if (dot > 0) {
+      const parentFamily = flock._nameRegistry.get(name.slice(0, dot))?.family;
+      if (parentFamily) return parentFamily;
+    }
+    return name.includes('__') ? name.split('__')[0] : name;
   },
 
   /** Release a reservation on failure/disposal. */
