@@ -1628,6 +1628,94 @@ export function createBlocklyWorkspace() {
   // screens when it has wide blocks in it
   const trashcan = workspace.trashcan;
   const trashcanFlyout = trashcan?.flyout;
+
+  // Use Flock's custom trash can artwork while preserving Blockly's
+  // existing trash behaviour, positioning and lid animation.
+  const trashIcon = workspace
+      .getInjectionDiv()
+      ?.querySelector(".blocklyTrash");
+
+  if (trashIcon) {
+      const svgNamespace = "http://www.w3.org/2000/svg";
+
+      // Keep Blockly's original hit area, positioning and behaviour,
+      // but hide its sprite-based artwork.
+      const originalTrashBody = trashIcon.querySelector(":scope > image");
+      const trashLidGroup = trashIcon.querySelector(".blocklyTrashLid");
+      const originalTrashLid = trashLidGroup?.querySelector("image");
+
+      if (originalTrashBody) {
+          originalTrashBody.style.display = "none";
+      }
+
+      if (originalTrashLid) {
+          originalTrashLid.style.display = "none";
+      }
+
+      // Invisible 47 x 60 hit area matching Blockly's original trash target.
+      const trashHitArea = document.createElementNS(svgNamespace, "rect");
+      trashHitArea.setAttribute("x", "0");
+      trashHitArea.setAttribute("y", "0");
+      trashHitArea.setAttribute("width", "47");
+      trashHitArea.setAttribute("height", "60");
+      trashHitArea.classList.add("flockTrashHitArea");
+
+      // Insert it behind all other trash artwork.
+      trashIcon.insertBefore(trashHitArea, trashIcon.firstChild);
+
+      // Empty bin body.
+      const customTrashBody = document.createElementNS(svgNamespace, "path");
+      customTrashBody.setAttribute(
+          "d",
+          "M36.965,11.956c.022.112.035.226.035.344v37.899c0,.993-.808,1.801-1.801,1.801H6.801c-.993,0-1.801-.808-1.801-1.801V12.301c0-.118.013-.232.035-.344h-2c-.01.115-.035.226-.035.344v37.899c0,2.099,1.702,3.801,3.801,3.801h28.399c2.099,0,3.801-1.702,3.801-3.801V12.301c0-.118-.024-.229-.035-.344h-2Z"
+      );
+      customTrashBody.classList.add("flockTrashArtwork");
+
+      // Shapes shown when Blockly marks the trash as full.
+      const trashContents = document.createElementNS(svgNamespace, "g");
+      trashContents.classList.add("flockTrashContents");
+
+      const trashContentPaths = [
+          "M8.226,39.333l.757-.08c.302-.032.604.066.83.268l.716.64c.227.203.528.3.831.268l2.216-.233c.266-.028.513-.154.691-.354l.85-.953c.178-.2.425-.326.691-.354l7.902-.833c.591-.062,1.122.367,1.184.958l.799,7.581c.062.591-.367,1.121-.958,1.184l-7.391.779c-.228.024-.443.12-.612.275l-1.355,1.234c-.17.154-.384.251-.612.275l-2.633.277c-.255.027-.511-.038-.722-.183l-1.137-.781c-.211-.145-.467-.21-.722-.183l-.289.03c-.591.062-1.121-.364-1.183-.955l-.809-7.678c-.062-.592.367-1.118.959-1.181Z",
+          "M18.812,24.223l.755.101c.301.04.571.206.744.457l.544.791c.172.25.443.416.744.457l2.209.296c.266.036.535-.029.755-.181l1.051-.726c.22-.152.49-.217.755-.181l7.875,1.056c.589.079,1.003.621.924,1.211l-1.014,7.555c-.079.589-.621,1.003-1.211.924l-7.366-.988c-.227-.03-.458.012-.66.122l-1.608.879c-.201.11-.432.153-.66.122l-2.624-.352c-.254-.034-.488-.158-.659-.348l-.921-1.027c-.171-.191-.405-.314-.659-.348l-.288-.039c-.589-.079-1.004-.618-.925-1.207l1.027-7.652c.079-.59.621-1,1.21-.921Z",
+          "M8.106,13.149l.759-.058c.303-.023.602.083.822.292l.697.66c.221.209.52.315.823.292l2.222-.17c.267-.02.517-.14.701-.335l.877-.929c.184-.195.434-.314.701-.335l7.923-.607c.593-.045,1.111.398,1.156.991l.582,7.601c.045.593-.398,1.111-.991,1.156l-7.411.568c-.229.018-.446.108-.62.257l-1.39,1.195c-.174.149-.391.24-.62.257l-2.64.202c-.256.02-.51-.053-.717-.204l-1.114-.813c-.207-.151-.461-.223-.717-.204l-.29.022c-.593.045-1.11-.395-1.156-.988l-.59-7.698c-.045-.593.399-1.108.992-1.153Z",
+      ];
+
+      trashContentPaths.forEach((pathData) => {
+          const blockPath = document.createElementNS(svgNamespace, "path");
+          blockPath.setAttribute("d", pathData);
+          blockPath.classList.add("flockTrashArtwork");
+          trashContents.appendChild(blockPath);
+      });
+
+      if (trashLidGroup) {
+          // Body first, contents on top, then Blockly's animated lid group.
+          trashIcon.insertBefore(customTrashBody, trashLidGroup);
+          trashIcon.insertBefore(trashContents, trashLidGroup);
+
+          const lidSvg = trashLidGroup.querySelector("svg");
+
+          if (lidSvg) {
+              const customTrashLid = document.createElementNS(
+                  svgNamespace,
+                  "path"
+              );
+
+              customTrashLid.setAttribute(
+                  "d",
+                  "M0,3v6h42V3h-10.5l-3-3h-15l-3,3H0Z"
+              );
+              customTrashLid.setAttribute("transform", "translate(0 32)");
+              customTrashLid.classList.add("flockTrashArtwork");
+
+              lidSvg.appendChild(customTrashLid);
+          }
+      } else {
+          trashIcon.appendChild(customTrashBody);
+          trashIcon.appendChild(trashContents);
+      }
+  }
+
   if (trashcan && trashcanFlyout) {
     const TRASHCAN_FLYOUT_LEFT_GAP = 48;
     trashcanFlyout.getWidth = function () {
