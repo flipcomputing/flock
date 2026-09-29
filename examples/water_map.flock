@@ -235,7 +235,7 @@
                     "type": "math_number",
                     "id": "iR~e1}6,n6Wp!3/._,tT",
                     "fields": {
-                      "NUM": -0.1
+                      "NUM": 0
                     }
                   }
                 },
@@ -489,7 +489,7 @@
                 "ID_VAR": {
                   "id": "YO+)V+eC+$M3-`*)nUT*"
                 },
-                "MODELS": "Block5.glb"
+                "MODELS": "Liz1.glb"
               },
               "inputs": {
                 "SCALE": {
@@ -506,7 +506,7 @@
                     "type": "math_number",
                     "id": "`+Q#R9A;N/%f2^GkIw4S",
                     "fields": {
-                      "NUM": 3
+                      "NUM": -1
                     }
                   }
                 },
@@ -1641,7 +1641,7 @@
                                         "type": "math_number",
                                         "id": "Ae;Dkdn+0dsUWRv#R;8C",
                                         "fields": {
-                                          "NUM": 15.2
+                                          "NUM": 11
                                         }
                                       }
                                     },
@@ -1650,7 +1650,7 @@
                                         "type": "math_number",
                                         "id": "V5#4Ykc=*eSJAN-Sor{.",
                                         "fields": {
-                                          "NUM": -1.5
+                                          "NUM": -1.7
                                         }
                                       }
                                     },
@@ -1659,7 +1659,7 @@
                                         "type": "math_number",
                                         "id": "c8FDJ;n*G)x@}H-6GTfD",
                                         "fields": {
-                                          "NUM": 6.2
+                                          "NUM": 3
                                         }
                                       }
                                     },
@@ -1699,7 +1699,7 @@
                                               "type": "math_number",
                                               "id": "QW7}UF:n%-;C*SF]{[?i",
                                               "fields": {
-                                                "NUM": 0
+                                                "NUM": -0.6
                                               }
                                             }
                                           },
@@ -1708,7 +1708,7 @@
                                               "type": "math_number",
                                               "id": "vf$EVr/O3.gY-bw|m%9l",
                                               "fields": {
-                                                "NUM": -40
+                                                "NUM": -99.6
                                               }
                                             }
                                           },
@@ -1717,7 +1717,7 @@
                                               "type": "math_number",
                                               "id": "L-@7v2lBoXVNqB,n}H?c",
                                               "fields": {
-                                                "NUM": 100
+                                                "NUM": -76.9
                                               }
                                             }
                                           }
