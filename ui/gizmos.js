@@ -2839,6 +2839,16 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
         break;
       }
     }
+
+    // The drag re-anchors the world bottom, which on a rotated mesh is not
+    // the unrotated base Play positions by - persist where it ended up.
+    if (block.type !== 'create_group' && block.type !== 'clone_mesh') {
+      const pos = flock.getBlockPositionFromMesh(mesh);
+      const stale = ['x', 'y', 'z'].some(
+        (axis) => getNumberInput(block, axis.toUpperCase()) !== roundToOneDecimal(pos[axis])
+      );
+      if (stale) writePositionToBlock(block, pos);
+    }
   } catch (e) {
     console.error('Error updating block values:', e);
   }
