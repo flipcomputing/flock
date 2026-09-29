@@ -336,6 +336,21 @@ export function runMaterialsTests(flock) {
         expect(part.metadata.materialIndex).to.be.within(0, colorList.length - 1);
       });
     });
+
+    it('should give a parent with its own geometry the first colour of a list', async function () {
+      const parentId = await createBoxWithRandomPosition('boxChangeColorParent');
+      const childId = await createBoxWithRandomPosition('boxChangeColorChild');
+      boxIds.push(childId, parentId);
+      flock.setParent(parentId, childId);
+      await flock.whenModelReady(childId);
+
+      await flock.changeColor(parentId, { color: ['#FF0000', '#00FF00'] });
+
+      const hex = (id) =>
+        flock.scene.getMeshByName(id).material.diffuseColor.toHexString().toUpperCase();
+      expect(hex(parentId)).to.equal('#FF0000');
+      expect(hex(childId)).to.equal('#00FF00');
+    });
   });
 
   describe('createMaterial method @materials', function () {

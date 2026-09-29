@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor } from './blocks.js';
+import { getHelpUrlFor, handleCloneDoBlockChange, registerBlockHandler } from './blocks.js';
 import { materialNames } from '../config.js';
 import { flock } from '../flock.js';
 import { translate, getTooltip } from '../main/translation.js';
@@ -41,6 +41,8 @@ export function defineMaterialsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
+
+      registerBlockHandler(this, (changeEvent) => handleCloneDoBlockChange(this, changeEvent));
     },
   };
 

@@ -497,6 +497,32 @@ export function runSceneTests(flock) {
         expect(firstCloneId).to.not.equal(secondCloneId);
       });
 
+      it('should key the clone to its own block, not the source block', async function () {
+        const groupId = flock.createGroup('cloneKeySrc__g2');
+        const sphereId = flock.createSphere('cloneKeyMember__s2', { position: [0, 0, 0] });
+        createdIds.push(groupId, sphereId);
+        flock.setParent(groupId, sphereId);
+
+        const cloneId = flock.cloneMesh({
+          sourceMeshName: groupId,
+          cloneId: 'keyedClone',
+          blockKey: 'cloneBlock1',
+        });
+        createdIds.push(cloneId);
+
+        const clone = await flock.whenModelReady(cloneId);
+        const source = flock.scene.getMeshByName(groupId);
+        const sourceMember = source.getChildMeshes(true)[0];
+        const cloneMember = clone.getChildMeshes(true)[0];
+
+        expect(clone.metadata.blockKey).to.equal('cloneBlock1');
+        expect(source.metadata.blockKey).to.equal('g2');
+        expect(cloneMember.metadata.blockKey).to.be.undefined;
+        expect(sourceMember.metadata.blockKey).to.equal('s2');
+        expect(cloneMember.metadata).to.not.equal(sourceMember.metadata);
+        expect(sourceMember.metadata.sharedMaterial).to.be.true;
+      });
+
       it('should invoke the callback after cloning', async function () {
         this.timeout(3000);
         const boxId = flock.createBox('cloneSrc__4', {

@@ -466,6 +466,49 @@ export function setBlockXYZ(block, x, y, z, { decimals = 1 } = {}) {
   setInputValue('Z', roundToPrecision(z, decimals));
 }
 
+export function findOrCreateDoBlock(
+  ownerBlock,
+  { type, varField, varId, inputs = {} },
+  { atStart = false } = {}
+) {
+  let addedDoSection = false;
+  if (!ownerBlock.getInput('DO')) {
+    if (typeof ownerBlock.toggleDoBlock === 'function') {
+      ownerBlock.toggleDoBlock();
+    } else {
+      ownerBlock.appendStatementInput('DO').setCheck(null).appendField('');
+    }
+    addedDoSection = true;
+  }
+
+  const doConnection = ownerBlock.getInput('DO').connection;
+  for (let cur = doConnection.targetBlock(); cur; cur = cur.getNextBlock()) {
+    if (cur.type === type && cur.getFieldValue(varField) === varId) {
+      return { block: cur, created: false, addedDoSection };
+    }
+  }
+
+  const block = Blockly.serialization.blocks.append(
+    { type, fields: { [varField]: { id: varId } }, inputs },
+    ownerBlock.workspace
+  );
+
+  const first = doConnection.targetBlock();
+  if (!first) {
+    doConnection.connect(block.previousConnection);
+  } else if (atStart) {
+    first.previousConnection.disconnect();
+    doConnection.connect(block.previousConnection);
+    block.nextConnection.connect(first.previousConnection);
+  } else {
+    let tail = first;
+    while (tail.getNextBlock()) tail = tail.getNextBlock();
+    tail.nextConnection.connect(block.previousConnection);
+  }
+
+  return { block, created: true, addedDoSection };
+}
+
 export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition) {
   if (!originalBlock) {
     return null;

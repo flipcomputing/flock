@@ -18,7 +18,8 @@ import {
 } from '../ui/gizmos.js';
 import { showStatus, clearStatus } from '../ui/status.js';
 import { meshMap } from '../generators/generators.js';
-import { updateMeshFromBlock } from '../ui/blockmesh.js';
+import { blockHandlerRegistry } from '../blocks/blocks.js';
+import { updateMeshFromBlock, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
 import { topHandler, makeKeyEvent } from './utils/keyboardDispatcherTestUtils.js';
 
 export function runGizmoTests(flock) {
@@ -65,6 +66,16 @@ export function runGizmoTests(flock) {
       // call even if a test already disposed it (it null-guards internally).
       disposeGizmoManager();
     });
+
+    function withHeadlessBlocks(fn) {
+      const stubs = ['initSvg', 'render'].filter((name) => !Blockly.Block.prototype[name]);
+      stubs.forEach((name) => (Blockly.Block.prototype[name] = function () {}));
+      try {
+        fn();
+      } finally {
+        stubs.forEach((name) => delete Blockly.Block.prototype[name]);
+      }
+    }
 
     function makeBox(name = 'gizmoTestBox') {
       const box = BABYLON.MeshBuilder.CreateBox(name, { size: 1 }, flock.scene);
@@ -1307,19 +1318,6 @@ export function runGizmoTests(flock) {
         return { mesh, modelBlock };
       }
 
-      function withHeadlessBlocks(fn) {
-        const hadInitSvg = Object.prototype.hasOwnProperty.call(Blockly.Block.prototype, 'initSvg');
-        const hadRender = Object.prototype.hasOwnProperty.call(Blockly.Block.prototype, 'render');
-        if (!Blockly.Block.prototype.initSvg) Blockly.Block.prototype.initSvg = function () {};
-        if (!Blockly.Block.prototype.render) Blockly.Block.prototype.render = function () {};
-        try {
-          fn();
-        } finally {
-          if (!hadInitSvg) delete Blockly.Block.prototype.initSvg;
-          if (!hadRender) delete Blockly.Block.prototype.render;
-        }
-      }
-
       function expectResizeFirst(ws, varName, first, second) {
         withHeadlessBlocks(() => {
           const { mesh, modelBlock } = makeModelFixture(ws, varName);
@@ -1350,6 +1348,289 @@ export function runGizmoTests(flock) {
         const ws = Blockly.getMainWorkspace();
         expect(ws, 'main workspace present').to.exist;
         expectResizeFirst(ws, 'gizmoOrderTreeVarB', updateScaleBlock, updateRotationBlock);
+      });
+    });
+
+    describe('clone blocks', function () {
+      let seq = 0;
+      let fixture;
+      let codePanel;
+      let addedCodePanel = false;
+      let codePanelDisplay;
+
+      // highlightBlockById only selects/scrolls while the code view is
+      // visible, which a headless workspace cannot do.
+      before(function () {
+        codePanel = document.getElementById('codePanel');
+        if (!codePanel) {
+          codePanel = document.createElement('div');
+          codePanel.id = 'codePanel';
+          document.body.appendChild(codePanel);
+          addedCodePanel = true;
+        }
+        codePanelDisplay = codePanel.style.display;
+        codePanel.style.display = 'none';
+      });
+
+      after(function () {
+        if (addedCodePanel) codePanel.remove();
+        else codePanel.style.display = codePanelDisplay;
+      });
+
+      async function makeCloneFixture({ group = false } = {}) {
+        seq += 1;
+        const ws = Blockly.getMainWorkspace();
+        const cloneBlock = ws.newBlock('clone_mesh');
+        const cloneVar = ws.getVariableMap().createVariable(`gizmoCloneVar${seq}`);
+        cloneBlock.getField('CLONE_VAR').setValue(cloneVar.getId());
+        meshMap[cloneBlock.id] = cloneBlock;
+
+        const ids = [];
+        let sourceId;
+        if (group) {
+          sourceId = flock.createGroup(`gizmoCloneGroup${seq}`);
+          ids.push(sourceId);
+          [
+            ['#ff0000', 0],
+            ['#0000ff', 2],
+          ].forEach(([color, x], i) => {
+            const memberId = flock.createBox(`gizmoCloneMember${seq}_${i}`, {
+              color,
+              position: [x, 0, 0],
+            });
+            ids.push(memberId);
+            flock.setParent(sourceId, memberId);
+          });
+        } else {
+          sourceId = flock.createBox(`gizmoCloneSrc${seq}`, { color: '#ff0000' });
+          ids.push(sourceId);
+        }
+
+        const cloneId = flock.cloneMesh({
+          sourceMeshName: sourceId,
+          cloneId: `gizmoClone${seq}`,
+          blockKey: cloneBlock.id,
+        });
+        ids.push(cloneId);
+        const clone = await flock.whenModelReady(cloneId);
+        fixture = { cloneBlock, cloneVarId: cloneVar.getId(), clone, sourceId, ids };
+        return fixture;
+      }
+
+      function doBlocks(block) {
+        const blocks = [];
+        for (let cur = block.getInputTargetBlock('DO'); cur; cur = cur.getNextBlock()) {
+          blocks.push(cur);
+        }
+        return blocks;
+      }
+
+      afterEach(function () {
+        if (!fixture) return;
+        fixture.ids.forEach((id) => flock.dispose(id));
+        delete meshMap[fixture.cloneBlock.id];
+        if (!fixture.cloneBlock.disposed) fixture.cloneBlock.dispose(true);
+        fixture = null;
+      });
+
+      it('writes a rotation into a rotate_to for the clone variable', async function () {
+        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+        clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 45, 0);
+        withHeadlessBlocks(() => updateRotationBlock(clone));
+
+        const [rotate] = doBlocks(cloneBlock);
+        expect(rotate.type).to.equal('rotate_to');
+        expect(rotate.getFieldValue('MODEL')).to.equal(cloneVarId);
+        expect(Number(rotate.getInputTargetBlock('Y').getFieldValue('NUM'))).to.be.closeTo(45, 0.1);
+      });
+
+      it('writes a move into a move_to_xyz at the start of the DO', async function () {
+        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+        clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 0);
+        withHeadlessBlocks(() => updateRotationBlock(clone));
+
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        const dragEnd = () =>
+          withHeadlessBlocks(() => mgr.gizmos.positionGizmo.onDragEndObservable.notifyObservers({}));
+        clone.position.x = 4;
+        dragEnd();
+        clone.position.x = 5;
+        dragEnd();
+
+        const blocks = doBlocks(cloneBlock);
+        expect(blocks.map((b) => b.type)).to.deep.equal(['move_to_xyz', 'rotate_to']);
+        expect(blocks[0].getFieldValue('MODEL')).to.equal(cloneVarId);
+        expect(Number(blocks[0].getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(5);
+      });
+
+      async function editField(ownerBlock, targetBlock, fieldName, value) {
+        targetBlock.setFieldValue(value, fieldName);
+        blockHandlerRegistry.get(ownerBlock.id)({
+          type: Blockly.Events.BLOCK_CHANGE,
+          element: 'field',
+          name: fieldName,
+          blockId: targetBlock.id,
+          workspaceId: ownerBlock.workspace.id,
+          recordUndo: true,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+
+      it('moves the clone when its move_to_xyz is edited', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        clone.position.x = 4;
+        withHeadlessBlocks(() => mgr.gizmos.positionGizmo.onDragEndObservable.notifyObservers({}));
+
+        const [move] = doBlocks(cloneBlock);
+        await editField(move, move.getInputTargetBlock('X'), 'NUM', 7);
+        expect(clone.position.x).to.be.closeTo(7, 0.01);
+      });
+
+      it('recolours the clone when its change_color list is edited', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
+        withHeadlessBlocks(() => updateBlockColorAndHighlight(clone, '#00ff00'));
+
+        const [change] = doBlocks(cloneBlock);
+        const entry = change.getInputTargetBlock('COLOR').getInputTargetBlock('ADD0');
+        await editField(change, entry, 'COLOR', '#123456');
+        expect(clone.material.diffuseColor.toHexString().toLowerCase()).to.equal('#123456');
+      });
+
+      it('applies a move_to_xyz dropped into the clone DO with the stack above it', async function () {
+        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+        const ws = Blockly.getMainWorkspace();
+        const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+        const head = Blockly.serialization.blocks.append(
+          {
+            type: 'rotate_to',
+            fields: { MODEL: { id: cloneVarId } },
+            inputs: { X: number(0), Y: number(0), Z: number(0) },
+            next: {
+              block: {
+                type: 'move_to_xyz',
+                fields: { MODEL: { id: cloneVarId }, USE_Y: 'TRUE' },
+                inputs: { X: number(6), Y: number(0), Z: number(0) },
+              },
+            },
+          },
+          ws
+        );
+        withHeadlessBlocks(() => {
+          if (!cloneBlock.getInput('DO')) cloneBlock.toggleDoBlock();
+        });
+        cloneBlock.getInput('DO').connection.connect(head.previousConnection);
+        const move = head.getNextBlock();
+
+        blockHandlerRegistry.get(move.id)({
+          type: Blockly.Events.BLOCK_MOVE,
+          blockId: head.id,
+          newParentId: cloneBlock.id,
+          workspaceId: ws.id,
+          recordUndo: true,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(clone.position.x).to.be.closeTo(6, 0.01);
+      });
+
+      it('turns off every scale handle and keyboard scaling for a cloned group', async function () {
+        const { clone } = await makeCloneFixture({ group: true });
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('scale'));
+
+        const sg = mgr.gizmos.scaleGizmo;
+        for (const g of [sg.xGizmo, sg.yGizmo, sg.zGizmo, sg.uniformScaleGizmo]) {
+          expect(g.isEnabled).to.be.false;
+        }
+      });
+
+      it('writes a primitive clone resize into a resize block', async function () {
+        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+        clone.scaling.set(2, 1, 1);
+        withHeadlessBlocks(() => updateScaleBlock(clone));
+
+        const [resize] = doBlocks(cloneBlock);
+        expect(resize.type).to.equal('resize');
+        expect(resize.getFieldValue('BLOCK_NAME')).to.equal(cloneVarId);
+        expect(Number(resize.getInputTargetBlock('X').getFieldValue('NUM'))).to.be.closeTo(2, 0.1);
+      });
+
+      it('writes no resize for a cloned group', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture({ group: true });
+        withHeadlessBlocks(() => updateScaleBlock(clone));
+        expect(doBlocks(cloneBlock)).to.be.empty;
+      });
+
+      it('gives a single-colour clone a one-colour list and keeps entries the user adds', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
+        const listColours = () => {
+          const list = doBlocks(cloneBlock)[0].getInputTargetBlock('COLOR');
+          return list.inputList
+            .filter((inp) => inp.name.startsWith('ADD'))
+            .map((inp) => inp.connection.targetBlock().getFieldValue('COLOR').toLowerCase());
+        };
+
+        withHeadlessBlocks(() => updateBlockColorAndHighlight(clone, '#00ff00'));
+        expect(listColours()).to.deep.equal(['#00ff00']);
+
+        const list = doBlocks(cloneBlock)[0].getInputTargetBlock('COLOR');
+        list.loadExtraState({ itemCount: 2 });
+        const extra = Blockly.serialization.blocks.append(
+          { type: 'colour', fields: { COLOR: '#123456' } },
+          Blockly.getMainWorkspace()
+        );
+        list.getInput('ADD1').connection.connect(extra.outputConnection);
+
+        withHeadlessBlocks(() => updateBlockColorAndHighlight(clone, '#0000ff'));
+        expect(listColours()).to.deep.equal(['#0000ff', '#123456']);
+        expect(clone.material.diffuseColor.toHexString().toLowerCase()).to.equal('#0000ff');
+      });
+
+      it('gives a clone of a multi-mesh single-colour object a one-colour list', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ group: true });
+        const sourceKey = flock.scene.getMeshByName(sourceId).metadata.blockKey;
+        meshMap[sourceKey] = { type: 'load_object' };
+        try {
+          const picked = flock.getColorSlots(clone)[1].mesh;
+          withHeadlessBlocks(() => updateBlockColorAndHighlight(picked, '#00ff00'));
+
+          const list = doBlocks(cloneBlock)[0].getInputTargetBlock('COLOR');
+          expect(list.inputList.filter((inp) => inp.name.startsWith('ADD'))).to.have.length(1);
+          flock
+            .getColorSlots(clone)
+            .forEach(({ mesh }) =>
+              expect(mesh.material.diffuseColor.toHexString().toLowerCase()).to.equal('#00ff00')
+            );
+        } finally {
+          delete meshMap[sourceKey];
+        }
+      });
+
+      it('writes a colour into the clone change_color list at the part slot', async function () {
+        const { cloneBlock, cloneVarId, clone, sourceId } = await makeCloneFixture({
+          group: true,
+        });
+        const slots = flock.getColorSlots(clone);
+        const picked = slots[1];
+        withHeadlessBlocks(() => updateBlockColorAndHighlight(picked.mesh, '#00ff00'));
+
+        const [change] = doBlocks(cloneBlock);
+        expect(change.type).to.equal('change_color');
+        expect(change.getFieldValue('MODEL_VAR')).to.equal(cloneVarId);
+        const list = change.getInputTargetBlock('COLOR');
+        const listColours = slots.map((_, i) =>
+          list.getInputTargetBlock(`ADD${i}`).getFieldValue('COLOR').toLowerCase()
+        );
+        expect(listColours[picked.index]).to.equal('#00ff00');
+        expect(listColours[slots[0].index]).to.not.equal('#00ff00');
+
+        const hex = (m) => m.material.diffuseColor.toHexString().toLowerCase();
+        expect(hex(picked.mesh)).to.equal('#00ff00');
+        expect(hex(slots[0].mesh)).to.equal(listColours[slots[0].index]);
+        const source = flock.scene.getMeshByName(sourceId);
+        source.getChildMeshes(true).forEach((m) => expect(hex(m)).to.not.equal('#00ff00'));
       });
     });
 

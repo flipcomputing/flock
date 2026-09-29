@@ -635,7 +635,7 @@ export const flockScene = {
       if (mesh) flock.disposeMesh(mesh);
     });
   },
-  cloneMesh({ sourceMeshName, cloneId, callback = null, then = null } = {}) {
+  cloneMesh({ sourceMeshName, cloneId, blockKey = cloneId, callback = null, then = null } = {}) {
     if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
       console.warn('cloneMesh: invalid sourceMeshName');
       return null;
@@ -734,8 +734,14 @@ export const flockScene = {
 
         clone.metadata = { ...(sourceMesh.metadata || {}) };
         clone.metadata.clones = [];
+        clone.metadata.sourceBlockKey ??= sourceMesh.metadata?.blockKey;
+        clone.metadata.blockKey = blockKey;
         setMetadata(clone);
-        clone.getDescendants().forEach(setMetadata);
+        clone.getDescendants().forEach((node) => {
+          setMetadata(node);
+          node.metadata = { ...node.metadata };
+          delete node.metadata.blockKey;
+        });
 
         const cloneNameFor = (sourceNode) => {
           const path = [];

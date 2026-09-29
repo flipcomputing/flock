@@ -417,8 +417,8 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     // Generate a unique ID for the clone
     const cloneId = sourceMeshName + '_' + generateUniqueId();
-    meshMap[cloneId] = block;
-    meshBlockIdMap[cloneId] = block.id;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
 
     // Generate the code for the "do" part (if present)
     let doCode = '';
@@ -432,7 +432,8 @@ export function registerSceneGenerators(javascriptGenerator) {
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
-                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
+                          cloneId: '${cloneId}',
+                          blockKey: ${JSON.stringify(block.id)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------

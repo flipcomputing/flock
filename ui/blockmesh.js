@@ -8,7 +8,7 @@ import {
 import { flock } from '../flock.js';
 import { objectColours } from '../config.js';
 import { createMeshOnCanvas } from './addmeshes.js';
-import { highlightBlockById } from './blocklyutil.js';
+import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
 
 const colorFields = {
@@ -365,28 +365,55 @@ function isTransformBlock(block) {
 // directly in that block's DO stack, is enabled, and names the block's own
 // variable - the only case where Play applies it to that mesh unconditionally.
 export function getInitialTransformOwner(transformBlock) {
-  const owner = getDoOwner(transformBlock);
-  return owner && getTransformTargetVar(transformBlock) === getOwnVar(owner) ? owner : null;
+  return isTransformBlock(transformBlock) ? getOwnDoOwner(transformBlock) : null;
 }
 
-function getDoOwner(transformBlock) {
-  if (!isTransformBlock(transformBlock) || !transformBlock.isEnabled?.()) return null;
+// move_to_xyz / change_color only update live under a clone, whose own
+// block has no position or colour inputs.
+export function getCloneDoOwner(block) {
+  if (block?.type !== 'move_to_xyz' && block?.type !== 'change_color') return null;
+  const owner = getOwnDoOwner(block);
+  return owner?.type === 'clone_mesh' ? owner : null;
+}
 
-  let top = transformBlock;
+const TARGET_VAR_FIELDS = {
+  rotate_to: 'MODEL',
+  resize: 'BLOCK_NAME',
+  move_to_xyz: 'MODEL',
+  change_color: 'MODEL_VAR',
+};
+
+function getOwnDoOwner(block) {
+  const targetField = TARGET_VAR_FIELDS[block?.type];
+  if (!targetField || !block.isEnabled?.()) return null;
+
+  let top = block;
   while (top.getPreviousBlock?.()?.getNextBlock?.() === top) {
     top = top.getPreviousBlock();
   }
 
   const owner = top.getParent?.();
-  return owner?.getInputWithBlock?.(top)?.name === 'DO' && getOwnVar(owner) ? owner : null;
+  const ownVar = owner?.getInputWithBlock?.(top)?.name === 'DO' ? getOwnVar(owner) : null;
+  return ownVar && ownVar === block.getFieldValue(targetField) ? owner : null;
 }
 
-function getTransformTargetVar(transformBlock) {
-  return transformBlock.getFieldValue(transformBlock.type === 'rotate_to' ? 'MODEL' : 'BLOCK_NAME');
+function applyCloneDoBlock(block, owner) {
+  const meshes = getMeshesFromBlock(owner);
+  if (block.type === 'move_to_xyz') {
+    const position = getXYZFromBlock(block);
+    const useY = block.getFieldValue('USE_Y') === 'TRUE';
+    meshes.forEach((mesh) => flock.positionAt(mesh.name, { ...position, useY }));
+    return;
+  }
+
+  const color = readColourList(block.getInputTargetBlock('COLOR'));
+  if (color == null || [].concat(color).includes(null)) return;
+  meshes.forEach((mesh) => flock.changeColorMesh(mesh, color));
 }
 
-function getOwnVar(block) {
-  return block.getField?.('ID_VAR') ? block.getFieldValue('ID_VAR') : null;
+export function getOwnVar(block) {
+  const field = block?.type === 'clone_mesh' ? 'CLONE_VAR' : 'ID_VAR';
+  return block?.getFieldValue?.(field) ?? null;
 }
 
 export function getMeshFromBlock(block) {
@@ -597,6 +624,18 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     console.log('Update or create mesh from block', block.type, changeEvent.type);
 
   if (!isMainWorkspaceEvent(changeEvent, block)) {
+    return;
+  }
+
+  const cloneOwner = getCloneDoOwner(block);
+  if (cloneOwner) {
+    const loading = window.loadingCode && !changeEvent?.recordUndo;
+    const applies =
+      changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
+      changeEvent?.type === Blockly.Events.BLOCK_MOVE;
+    if (applies && !loading) {
+      applyCloneDoBlock(block, cloneOwner);
+    }
     return;
   }
 
@@ -2626,6 +2665,112 @@ function replaceMeshModel(currentMesh, block) {
   });
 }
 
+const CHARACTER_COLOR_PARTS = ['hair', 'skin', 'eyes', 'tshirt', 'shorts', 'sleeves'];
+const MULTI_COLOUR_SOURCE_TYPES = new Set(['load_model', 'load_multi_object', 'create_group']);
+
+function meshColorHex(mesh) {
+  const colour = mesh?.material?.albedoColor || mesh?.material?.diffuseColor;
+  return colour?.toHexString ? colour.toHexString() : '#ffffff';
+}
+
+// Same slot order as changeColorMesh uses for a colour list.
+function getCloneColorSlots(cloneRoot, mesh) {
+  const parts = [cloneRoot, ...cloneRoot.getChildMeshes()];
+  if (parts.some((part) => flock.getCanonicalPartName(part))) {
+    const colors = CHARACTER_COLOR_PARTS.map((name) =>
+      meshColorHex(parts.find((part) => flock.getCanonicalPartName(part) === name))
+    );
+    return {
+      colors,
+      index: CHARACTER_COLOR_PARTS.indexOf(flock.getCanonicalPartName(mesh)),
+      isCharacter: true,
+    };
+  }
+
+  const sourceType = meshMap[cloneRoot.metadata?.sourceBlockKey]?.type;
+  if (sourceType && !MULTI_COLOUR_SOURCE_TYPES.has(sourceType)) {
+    return { colors: [meshColorHex(mesh)], index: 0, isCharacter: false };
+  }
+
+  const slots = flock.getColorSlots(cloneRoot, { includeRoot: true });
+  const colors = [];
+  slots.forEach(({ mesh: slotMesh, index }) => {
+    colors[index] ??= meshColorHex(slotMesh);
+  });
+  return {
+    colors,
+    index: slots.find((slot) => slot.mesh === mesh)?.index ?? 0,
+    isCharacter: false,
+  };
+}
+
+function colourListSpec(colors) {
+  return {
+    type: 'lists_create_with',
+    extraState: { itemCount: colors.length },
+    inline: true,
+    inputs: Object.fromEntries(
+      colors.map((c, i) => [`ADD${i}`, { shadow: { type: 'colour', fields: { COLOR: c } } }])
+    ),
+  };
+}
+
+// Keeps any extra entries the user added; colour lists wrap across slots
+// (see applyMaterialToHierarchy), characters take one entry per part.
+function setCloneColor(cloneBlock, cloneRoot, mesh, color) {
+  const { colors, index, isCharacter } = getCloneColorSlots(cloneRoot, mesh);
+  if (index < 0) return;
+  colors[index] = color;
+
+  const { block } = findOrCreateDoBlock(cloneBlock, {
+    type: 'change_color',
+    varField: 'MODEL_VAR',
+    varId: getOwnVar(cloneBlock),
+    inputs: {
+      COLOR: {
+        shadow: { type: 'colour', fields: { COLOR: color } },
+        block: colourListSpec(colors),
+      },
+    },
+  });
+
+  const workspace = block.workspace;
+  const input = block.getInput('COLOR');
+  let list = input.connection.targetBlock();
+  const countEntries = (b) => b.inputList.filter((inp) => /^ADD\d+$/.test(inp.name)).length;
+  const usable =
+    list?.type === 'lists_create_with' && countEntries(list) > (isCharacter ? index : 0);
+  if (!usable) {
+    if (list && !list.isShadow()) list.dispose(false);
+    list = Blockly.serialization.blocks.append(colourListSpec(colors), workspace);
+    input.connection.connect(list.outputConnection);
+  }
+
+  const length = countEntries(list);
+  const entryIndex = isCharacter ? index : index % length;
+  const entry = list.getInputTargetBlock(`ADD${entryIndex}`);
+  if (entry?.getField?.('COLOR')) {
+    entry.setFieldValue(color, 'COLOR');
+  } else {
+    if (entry && !entry.isShadow()) entry.dispose(false);
+    const colourBlock = Blockly.serialization.blocks.append(
+      { type: 'colour', fields: { COLOR: color } },
+      workspace
+    );
+    list.getInput(`ADD${entryIndex}`).connection.connect(colourBlock.outputConnection);
+  }
+
+  const listColors = Array.from({ length }, (_, i) => {
+    const target = list.getInputTargetBlock(`ADD${i}`);
+    return target?.getField?.('COLOR')
+      ? target.getFieldValue('COLOR')
+      : (colors[i] ?? colors[i % colors.length]);
+  });
+
+  getMeshesFromBlock(cloneBlock).forEach((clone) => flock.changeColorMesh(clone, listColors));
+  highlightBlockById(Blockly.getMainWorkspace(), block);
+}
+
 export function updateBlockColorAndHighlight(mesh, selectedColor) {
   // ---------- helpers
   const withUndoGroup = (fn) => {
@@ -2763,6 +2908,13 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       block.initSvg?.();
       highlightBlockById(Blockly.getMainWorkspace(), block);
     });
+    return;
+  }
+
+  const owner = findParentWithBlockId(mesh);
+  const ownerBlock = meshMap?.[owner?.metadata?.blockKey];
+  if (ownerBlock?.type === 'clone_mesh') {
+    withUndoGroup(() => setCloneColor(ownerBlock, owner, mesh, selectedColor));
     return;
   }
 

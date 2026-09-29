@@ -14,6 +14,7 @@ import {
   clearSkyMesh,
   setClearSkyToBlack,
   syncGroupParentOnMove,
+  getCloneDoOwner,
 } from '../ui/blockmesh.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
@@ -639,6 +640,22 @@ export function handleFieldOrChildChange(containerBlock, changeEvent) {
   }
 
   return false;
+}
+
+// Blockly fires one move event for the head of a dropped stack, so a block
+// further down the stack checks whether it travelled with that head.
+export function handleCloneDoBlockChange(block, changeEvent) {
+  if (!getCloneDoOwner(block)) return false;
+
+  if (changeEvent.type === Blockly.Events.BLOCK_MOVE && changeEvent.newParentId) {
+    let moved = block.workspace.getBlockById(changeEvent.blockId);
+    while (moved && moved !== block) moved = moved.getNextBlock();
+    if (moved) updateOrCreateMeshFromBlock(block, changeEvent);
+    return true;
+  }
+
+  handleFieldOrChildChange(block, changeEvent);
+  return true;
 }
 
 export function handleParentLinkedUpdate(containerBlock, changeEvent) {

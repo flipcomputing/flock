@@ -749,6 +749,8 @@ export const flockMaterial = {
 
     const normalizedColor = normalizeColorInput(color);
     const colors = Array.isArray(normalizedColor) ? normalizedColor : [normalizedColor];
+
+    const useColorSlots = !isCharacterLike && colors.length > 1;
     let colorIndex = 0;
 
     if (flock.materialsDebug) console.log(` Changing the colour of ${mesh.name} to ${colors}`);
@@ -806,7 +808,9 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!isCharacterLike) {
+    if (useColorSlots) {
+      flock.applyMaterialToHierarchy(mesh, colors, { applyColor: true, includeRoot: true });
+    } else if (!isCharacterLike) {
       applyColorInOrder(mesh);
     } else {
       const root = getRootMesh(mesh);
@@ -847,7 +851,7 @@ export const flockMaterial = {
     }
 
     // If no material was found, create a new one and set metadata
-    if (materialToColorMap.size === 0) {
+    if (!useColorSlots && materialToColorMap.size === 0) {
       flock.setMaterialWithCleanup(mesh, { color: colors[0] });
       mesh.metadata = mesh.metadata || {};
       if (mesh.metadata.materialIndex === undefined) {
@@ -1685,14 +1689,14 @@ export const flockMaterial = {
     flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
-  getColorSlots(rootMesh) {
+  getColorSlots(rootMesh, { includeRoot = false } = {}) {
     const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
+    const hasGeometry = (n) =>
+      n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n);
 
     const geometryMeshes = rootMesh
       .getDescendants(false)
-      .filter(
-        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n)
-      )
+      .filter(hasGeometry)
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, {
           numeric: true,
@@ -1700,7 +1704,12 @@ export const flockMaterial = {
         })
       );
 
-    const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
+    // Creation leaves a model's own root out of the list; changeColor keeps
+    // a primitive parent that has geometry of its own as the first slot.
+    const rootIsSlot =
+      includeRoot && hasGeometry(rootMesh) && rootMesh.metadata?.shapeType !== 'Group';
+    const withRoot = rootIsSlot ? [rootMesh, ...geometryMeshes] : geometryMeshes;
+    const targets = withRoot.length ? withRoot : [rootMesh];
 
     // Character models split a single logical part (e.g. the shorts) across
     // several sub-meshes. Group those by canonical part name so the whole
@@ -1735,7 +1744,7 @@ export const flockMaterial = {
     const applyColor = opts.applyColor ?? true;
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
 
-    const slots = flock.getColorSlots(rootMesh);
+    const slots = flock.getColorSlots(rootMesh, { includeRoot: opts.includeRoot });
 
     const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 

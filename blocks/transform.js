@@ -1,6 +1,11 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor, handleFieldOrChildChange, registerBlockHandler } from './blocks.js';
+import {
+  getHelpUrlFor,
+  handleCloneDoBlockChange,
+  handleFieldOrChildChange,
+  registerBlockHandler,
+} from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { flock } from '../flock.js';
 import { applyRetargetedTransform } from '../ui/blockmesh.js';
@@ -17,6 +22,8 @@ export function defineTransformBlocks() {
       if (!window.loadingCode || changeEvent.recordUndo) applyRetargetedTransform(block);
       return;
     }
+
+    if (handleCloneDoBlockChange(block, changeEvent)) return;
 
     const changeEventBlock = Blockly.getMainWorkspace().getBlockById(changeEvent.blockId);
     if (!changeEventBlock) return;
