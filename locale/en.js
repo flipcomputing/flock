@@ -1073,6 +1073,7 @@ export default {
   Islands_png_option: 'islands',
   Lookout_png_option: 'lookout',
   Valley_png_option: 'valley',
+  Basin_png_option: 'basin',
 
   Idle_option: 'idle',
   Walk_option: 'walk',
@@ -1083,6 +1084,8 @@ export default {
   Duck_option: 'duck',
   Fall_option: 'fall',
   Fly_option: 'fly',
+  Swim_option: 'swim',
+  Tread_Water_option: 'tread water',
   Jump_option: 'jump',
   Flip_option: 'flip',
   Dance1_option: 'dance1',
