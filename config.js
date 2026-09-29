@@ -334,6 +334,7 @@ export function mapNames() {
     getDropdownOption('Islands.png'),
     getDropdownOption('Lookout.png'),
     getDropdownOption('Valley.png'),
+    getDropdownOption('Basin.png'),
   ];
 }
 
@@ -348,6 +349,8 @@ export function animationNames() {
     getDropdownOption('Duck'),
     getDropdownOption('Fall'),
     getDropdownOption('Fly'),
+    getDropdownOption('Swim'),
+    getDropdownOption('Tread_Water'),
     getDropdownOption('Jump'),
     getDropdownOption('JumpUp'),
     getDropdownOption('JumpIdle'),
