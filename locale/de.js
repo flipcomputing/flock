@@ -317,7 +317,7 @@ export default {
   ui_input: 'UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8',
   describe: 'beschreibe %1 als %2',
   create_3d_text:
-    'Füge 3D‑Text hinzu %1: %2 Schrift: %3 Größe: %4 Farbe: %5\nTiefe: %6 %10 x: %7 y: %8 z: %9',
+    'Füge 3D‑Text hinzu %1: %2 Schrift: %3 Farbe: %5\nGröße: %4 Tiefe: %6 Abstand: %12 waagerecht: %11 %10 x: %7 y: %8 z: %9',
 
   // Math blocks
   random_seeded_int: 'zufällige Ganzzahl von %1 bis %2 Seed: %3',

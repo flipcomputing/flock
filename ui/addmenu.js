@@ -62,9 +62,10 @@ export function createBlockWithShadows(shapeType, position, colour, decimals = 1
   const data = { type: shapeType, inputs: {} };
   for (const name of allInputs) {
     const { type, field } = __metaFor(name);
-    data.inputs[name] = {
-      shadow: makeShadowSpec(type, { [field]: defaults[name] }),
-    };
+    const shadow = makeShadowSpec(type, { [field]: defaults[name] });
+    data.inputs[name] = spec.listInputs?.includes(name)
+      ? { shadow, block: makeListSpec(shadow) }
+      : { shadow };
   }
 
   const existingGroup = Blockly.Events.getGroup();
@@ -104,6 +105,17 @@ export function createBlockWithShadows(shapeType, position, colour, decimals = 1
 
 function makeShadowSpec(type, fields) {
   return { type, fields };
+}
+
+// A one-item list holding a copy of the shadow, as the toolbox sets up
+// colour inputs that also take a list.
+function makeListSpec(shadow) {
+  return {
+    type: 'lists_create_with',
+    extraState: { itemCount: 1 },
+    inline: true,
+    inputs: { ADD0: { shadow: { ...shadow } } },
+  };
 }
 
 const __CREATE_SPEC = {
@@ -146,6 +158,17 @@ const __CREATE_SPEC = {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
   },
+  create_3d_text: {
+    defaults: () => ({
+      TEXT: 'Hello World',
+      SIZE: 1,
+      COLOR: '#511d91',
+      DEPTH: 0.3,
+      SPACING: 0,
+    }),
+    inputs: ['TEXT', 'SIZE', 'COLOR', 'DEPTH', 'SPACING'],
+    listInputs: ['COLOR'],
+  },
   set_sky_color: {
     defaults: ({ c }) => ({ COLOR: c }),
     inputs: ['COLOR'],
@@ -153,9 +176,9 @@ const __CREATE_SPEC = {
 };
 
 function __metaFor(name) {
-  return name === 'COLOR'
-    ? { type: 'colour', field: 'COLOR' }
-    : { type: 'math_number', field: 'NUM' };
+  if (name === 'COLOR') return { type: 'colour', field: 'COLOR' };
+  if (name === 'TEXT') return { type: 'text', field: 'TEXT' };
+  return { type: 'math_number', field: 'NUM' };
 }
 
 // Rotation (in degrees) that makes a default plane — whose normal faces
@@ -1020,6 +1043,7 @@ function handleShapeMenuKeydown(event) {
                 wedge: 'create_wedge',
                 donut: 'create_donut',
                 plane: 'create_plane',
+                '3d text': 'create_3d_text',
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
               if (shapeType) selectShape(shapeType);

@@ -313,7 +313,7 @@ export default {
     'champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8',
   describe: 'décrire %1 comme %2',
   create_3d_text:
-    'ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 %10 x: %7 y: %8 z: %9',
+    'ajouter texte 3D %1: %2 police: %3 couleur: %5\ntaille: %4 profondeur: %6 espacement: %12 horizontal: %11 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'entier aléatoire de %1 à %2 graine : %3',

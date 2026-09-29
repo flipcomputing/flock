@@ -311,7 +311,7 @@ export default {
   ui_input: 'ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8',
   describe: 'beskriv %1 som %2',
   create_3d_text:
-    'lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 %10 x: %7 y: %8 z: %9 ',
+    'lägg till %1 3D text: %2 font: %3 färg: %5\nstorlek: %4 djup: %6 avstånd: %12 horisontell: %11 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'slumpmässigt heltal från %1 till %2 frö: %3',

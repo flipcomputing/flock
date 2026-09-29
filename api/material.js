@@ -155,7 +155,56 @@ function readGradientDirection(value) {
   return Number.isFinite(value.direction) ? value.direction : undefined;
 }
 
+// 3D text takes a plain colour list one letter at a time rather than as a
+// gradient. Returns the list when it applies to this mesh, otherwise null.
+function textLetterColors(mesh, colorInput) {
+  if (!mesh?.metadata?.textLetterIndex) return null;
+  if (readGradientDirection(colorInput) !== undefined) return null;
+  const isDescriptor =
+    typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
+  if (isDescriptor) {
+    const texture = colorInput.materialName ?? colorInput.textureSet;
+    if (texture && texture !== 'none.png' && texture !== 'NONE') return null;
+  }
+  const raw = isDescriptor ? (colorInput.color ?? colorInput.baseColor) : colorInput;
+  if (!Array.isArray(raw) || raw.length < 2) return null;
+  return raw.every((c) => typeof c === 'string') ? raw : null;
+}
+
 export const flockMaterial = {
+  _paintTextLetters(mesh, colors) {
+    const letterIndex = mesh.metadata.textLetterIndex;
+    const palette = colors.map((c) =>
+      flock.BABYLON.Color3.FromHexString(flock.getColorFromString(c))
+    );
+    const data = new Float32Array(letterIndex.length * 4);
+    letterIndex.forEach((letter, i) => {
+      const c = palette[letter % palette.length];
+      data.set([c.r, c.g, c.b, 1], i * 4);
+    });
+    mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, data, true);
+    mesh.metadata.textLetterColors = [...colors];
+  },
+  _clearTextLetters(mesh) {
+    if (!mesh?.metadata?.textLetterColors) return;
+    mesh.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
+    delete mesh.metadata.textLetterColors;
+  },
+  // Paints a colour list onto 3D text letters over a white base material.
+  // Returns false (after clearing any letter colours) when the input is
+  // not a letter list, so the caller applies it normally.
+  _applyTextLetterColors(mesh, colorInput, opts = {}) {
+    const colors = textLetterColors(mesh, colorInput);
+    if (!colors) {
+      flock._clearTextLetters(mesh);
+      return false;
+    }
+    const alpha = colorInput?.alpha ?? opts.alpha;
+    const white = alpha === undefined ? '#ffffff' : { color: '#ffffff', alpha };
+    flock.applyMaterialToHierarchy(mesh, white, { ...opts, applyColor: true });
+    flock._paintTextLetters(mesh, colors);
+    return true;
+  },
   adjustMaterialTilingToMesh(mesh, material, _unitsPerTile = null) {
     return; // Don't scale textures - need to change the mesh UVs instead
   },
@@ -683,6 +732,11 @@ export const flockMaterial = {
   changeColorMesh(mesh, color) {
     if (!mesh) {
       flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      return;
+    }
+
+    if (flock._applyTextLetterColors(mesh, color)) {
+      if (mesh.metadata?.glow) flock.glowMesh(mesh);
       return;
     }
 
@@ -1743,6 +1797,7 @@ export const flockMaterial = {
   applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
     const applyColor = opts.applyColor ?? true;
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
+    if (flock._applyTextLetterColors(rootMesh, colorInput, opts)) return rootMesh;
 
     const slots = flock.getColorSlots(rootMesh, { includeRoot: opts.includeRoot });
 

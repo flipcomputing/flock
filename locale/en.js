@@ -359,7 +359,7 @@ export default {
   ui_input: 'ui input %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
   describe: 'describe %1 as %2',
   create_3d_text:
-    'add %1 3D text: %2 font: %3 size: %4 color: %5\ndepth: %6 %10 x: %7 y: %8 z: %9 ',
+    'add %1 3D text: %2 font: %3 color: %5\nsize: %4 depth: %6 spacing: %12 horizontal: %11 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',

@@ -7,6 +7,7 @@ import {
   readColourList,
   attachToEnclosingGroupIfAny,
   applyInitialTransformsFromBlock,
+  readNumberOrList,
 } from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
@@ -642,7 +643,8 @@ function createShapeInternal(block) {
         : 'Hello World';
 
       const fontSize = parseFloat(getConnectedFieldValue('SIZE', 'NUM', '50'));
-      const textDepth = parseFloat(getConnectedFieldValue('DEPTH', 'NUM', '1'));
+      const textDepth = readNumberOrList(block, 'DEPTH', 1);
+      const textSpacing = parseFloat(getConnectedFieldValue('SPACING', 'NUM', '0'));
 
       meshMap[block.id] = block;
       meshBlockIdMap[block.id] = block.id;
@@ -654,7 +656,9 @@ function createShapeInternal(block) {
         alpha,
         size: fontSize,
         depth: textDepth,
+        spacing: textSpacing,
         position: { x: position.x, y: position.y, z: position.z },
+        horizontal: block.getFieldValue('HORIZONTAL') === 'TRUE',
         modelId: `3dtext__${block.id}`,
       });
       break;

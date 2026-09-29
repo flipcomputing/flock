@@ -44,6 +44,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_wedge',
   'create_donut',
   'create_plane',
+  'create_3d_text',
 ]);
 
 export function resetLiveEditsForRun() {
@@ -525,6 +526,15 @@ export function readNumberInput(parent, inputName, fallback = 1) {
   const v = b?.getField?.('NUM')?.getValue?.();
   const n = typeof v === 'string' ? parseFloat(v) : v;
   return Number.isFinite(n) ? n : fallback;
+}
+
+// A number, or each number in a list block for inputs that take either.
+export function readNumberOrList(parent, inputName, fallback = 1) {
+  const list = parent?.getInputTargetBlock?.(inputName);
+  if (list?.type !== 'lists_create_with') return readNumberInput(parent, inputName, fallback);
+  return list.inputList
+    .filter((input) => input.name?.startsWith('ADD'))
+    .map((input) => readNumberInput(list, input.name, fallback));
 }
 
 // Reads a colour from an input's target block, falling back to the shadow's value when present.
@@ -1224,22 +1234,47 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
     }
 
     case 'create_3d_text': {
-      if (['SIZE', 'DEPTH'].includes(changed)) {
-        const newSize = parseFloat(
-          block.getInput('SIZE').connection.targetBlock().getFieldValue('NUM')
-        );
-        const newDepth = parseFloat(
-          block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM')
-        );
+      const horizontal = block.getFieldValue('HORIZONTAL') === 'TRUE';
+      const newSize = readNumberInput(block, 'SIZE', 1);
+      const newDepth = readNumberOrList(block, 'DEPTH', 1);
+      // Per-letter depths can't be reached by scaling, so rebuild instead.
+      const rebuildFor = Array.isArray(newDepth)
+        ? ['TEXT', 'HORIZONTAL', 'SPACING', 'SIZE', 'DEPTH']
+        : ['TEXT', 'HORIZONTAL', 'SPACING'];
 
+      if (rebuildFor.includes(changed)) {
+        const text = block.getInputTargetBlock('TEXT');
+        const value = text?.getFieldValue('TEXT') ?? text?.getFieldValue('NUM');
+        if (value === null || value === undefined || String(value) === '') break;
+        flock
+          ._rebuild3DTextGeometry(mesh, {
+            text: String(value),
+            font: 'fonts/FreeSansBold.ttf',
+            size: newSize,
+            depth: newDepth,
+            spacing: readNumberInput(block, 'SPACING', 0),
+            horizontal,
+          })
+          .then(repositionPrimitiveFromBlock)
+          .catch((error) => console.error('Error rebuilding 3D text:', error));
+      } else if (['SIZE', 'DEPTH'].includes(changed)) {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
+        // Glyph height is a font-dependent fraction of SIZE, so scale from the
+        // size the geometry was built at rather than matching SIZE directly.
+        const builtSize = mesh.metadata?.textSize;
+        const factor = builtSize > 0 ? newSize / builtSize : 1;
         const ext = mesh.getBoundingInfo().boundingBox.extendSize;
-        const currentW = ext.x * 2 * mesh.scaling.x;
-        const currentH = ext.y * 2 * mesh.scaling.y;
-        const newW = currentH > 0 ? currentW * (newSize / currentH) : currentW;
+        const newW = ext.x * 2 * factor;
+        // Horizontal text's letter height runs along Z and its depth along Y.
+        const newH = (horizontal ? ext.z : ext.y) * 2 * factor;
 
-        setAbsoluteSize(mesh, newW, newSize, newDepth);
+        if (horizontal) {
+          setAbsoluteSize(mesh, newW, newDepth, newH);
+        } else {
+          setAbsoluteSize(mesh, newW, newH, newDepth);
+        }
+        mesh.metadata = { ...mesh.metadata, textSize: newSize };
         repositionPrimitiveFromBlock();
       }
       break;
@@ -1637,6 +1672,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'MAP_NAME';
     } else if (block.type === 'create_group' && changeEvent.name === 'ACTIVE') {
       changed = 'ACTIVE';
+    } else if (block.type === 'create_3d_text' && changeEvent.name === 'HORIZONTAL') {
+      changed = 'HORIZONTAL';
     }
   }
 
@@ -1653,6 +1690,14 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     if (changed && flock.meshDebug) {
       console.log(`Change detected in input: ${changed}`);
     }
+  }
+
+  // An edit inside a list reports the list's ADDn slot; name the text
+  // block's own input so depth lists rebuild and colour lists repaint.
+  if (block.type === 'create_3d_text' && changed?.startsWith?.('ADD')) {
+    let child = changedBlock;
+    while (child && child.getParent() !== block) child = child.getParent();
+    changed = (child && block.getInputWithBlock(child)?.name) || changed;
   }
 
   // Special handling for material blocks - check if change is in material subtree
@@ -2771,7 +2816,7 @@ function setCloneColor(cloneBlock, cloneRoot, mesh, color) {
   highlightBlockById(Blockly.getMainWorkspace(), block);
 }
 
-export function updateBlockColorAndHighlight(mesh, selectedColor) {
+export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {}) {
   // ---------- helpers
   const withUndoGroup = (fn) => {
     try {
@@ -2986,6 +3031,25 @@ export function updateBlockColorAndHighlight(mesh, selectedColor) {
       highlightBlockById(Blockly.getMainWorkspace(), block);
     });
     return;
+  }
+
+  // A picked 3D text letter recolours its own entry in a colour list, which
+  // the letters cycle through.
+  const colourList = block.getInputTargetBlock('COLOR');
+  if (
+    block.type === 'create_3d_text' &&
+    letter !== undefined &&
+    colourList?.type === 'lists_create_with'
+  ) {
+    const slots = colourList.inputList.filter((input) => /^ADD\d+$/.test(input.name));
+    if (slots.length) {
+      withUndoGroup(() => {
+        const target = ensureColorTargetOnInput(slots[letter % slots.length]);
+        setColorOnTargetOrField(target, colourList, selectedColor);
+        highlightBlockById(Blockly.getMainWorkspace(), block);
+      });
+      return;
+    }
   }
 
   const found = findNestedColorTarget(block);

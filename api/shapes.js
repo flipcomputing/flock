@@ -58,6 +58,20 @@ function toDim(v, fallback) {
   return Number.isFinite(n) && n >= 0 ? n : fallback;
 }
 
+// A list of depths cycles through the letters; one that never varies is a
+// plain depth, so it builds exactly as a number would.
+function toDepth(v) {
+  if (!Array.isArray(v)) return toDim(v, 1);
+  const depths = v.map((d) => toDim(d, 1));
+  if (!depths.length) return 1;
+  return depths.every((d) => d === depths[0]) ? depths[0] : depths;
+}
+
+function toSpacing(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function toAlpha(v) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
@@ -151,12 +165,54 @@ function convertPathToPolygons(path, curveSegments = 12) {
   return polygons;
 }
 
+function pointKey(x, y, size) {
+  const step = size * 1e-4 || 1e-4;
+  return `${Math.round(x / step)},${Math.round(y / step)}`;
+}
+
+// Extruded vertices sit on their glyph's outline; ones Manifold adds where
+// glyphs overlap fall back to the glyph spanning (or nearest) their x.
+function letterOfPoint(letterAt, letters, x, y, size) {
+  const index = letterAt.get(pointKey(x, y, size));
+  if (index !== undefined) return index;
+  let best = 0;
+  let bestDistance = Infinity;
+  letters.forEach((letter, index) => {
+    const distance = Math.max(letter.minX - x, x - letter.maxX, 0);
+    if (distance < bestDistance) {
+      best = index;
+      bestDistance = distance;
+    }
+  });
+  return best;
+}
+
+// Each letter takes the next depth in turn, all sharing the back plane at the
+// deepest letter's depth so the fronts stand out by different amounts.
+function extrudeLetters({ CrossSection, Manifold }, letters, depths) {
+  const backZ = Math.max(...depths);
+  const parts = letters.map((letter, i) => {
+    const depth = depths[i % depths.length];
+    const section = new CrossSection(letter.polygons.map((poly) => [...poly].reverse()));
+    const extruded = section.extrude(depth);
+    const part = extruded.translate(0, 0, backZ - depth);
+    extruded.delete();
+    section.delete();
+    return part;
+  });
+  try {
+    return Manifold.union(parts);
+  } finally {
+    parts.forEach((part) => part.delete());
+  }
+}
+
 /**
  * Create manifold 3D text mesh using Manifold library.
  * This produces guaranteed watertight geometry suitable for CSG operations.
  */
 async function createManifoldTextMesh(text, fontUrl, options = {}) {
-  const { size = 50, depth = 1, curveSegments = 12 } = options;
+  const { size = 50, depth = 1, spacing = 0, curveSegments = 12 } = options;
 
   const wasm = await getManifold();
   const { CrossSection } = wasm;
@@ -173,10 +229,29 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
 
   // Get the path from the font
   // Scale factor: opentype uses 72 units per em by default
-  const fontPath = font.getPath(text, 0, 0, size);
+  // letterSpacing is in ems; spacing is in scene units.
+  const letterSpacing = size > 0 ? spacing / size : 0;
+  const glyphPaths = font.getPaths(text, 0, 0, size, { letterSpacing });
 
-  // Convert to polygons
-  const polygons = convertPathToPolygons(fontPath, curveSegments);
+  // Convert to polygons, numbering only glyphs that draw something so spaces
+  // don't take a letter slot.
+  const polygons = [];
+  const letters = [];
+  const letterAt = new Map();
+  for (const glyphPath of glyphPaths) {
+    const glyphPolygons = convertPathToPolygons(glyphPath, curveSegments);
+    if (!glyphPolygons.length) continue;
+    const letter = { polygons: glyphPolygons, minX: Infinity, maxX: -Infinity };
+    for (const polygon of glyphPolygons) {
+      for (const [px, py] of polygon) {
+        letterAt.set(pointKey(px, py, size), letters.length);
+        letter.minX = Math.min(letter.minX, px);
+        letter.maxX = Math.max(letter.maxX, px);
+      }
+    }
+    letters.push(letter);
+    polygons.push(...glyphPolygons);
+  }
 
   if (polygons.length === 0) {
     throw new Error('No valid polygons generated from text');
@@ -190,11 +265,13 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
   let manifoldMesh = null;
 
   try {
-    // Create CrossSection - it handles polygons with holes automatically
-    crossSection = new CrossSection(correctedPolygons);
-
-    // Extrude to create 3D manifold mesh
-    manifoldMesh = crossSection.extrude(depth);
+    if (Array.isArray(depth)) {
+      manifoldMesh = extrudeLetters(wasm, letters, depth);
+    } else {
+      // Create CrossSection - it handles polygons with holes automatically
+      crossSection = new CrossSection(correctedPolygons);
+      manifoldMesh = crossSection.extrude(depth);
+    }
 
     // Get mesh data
     const meshData = manifoldMesh.getMesh();
@@ -207,10 +284,12 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
     // Convert to flat arrays for Babylon.js
     const positions = [];
     const indices = [];
+    const letterIndex = [];
 
     // vertProperties is a flat array with numProp values per vertex
     for (let i = 0; i < vertPos.length; i += numProp) {
       positions.push(vertPos[i], vertPos[i + 1], vertPos[i + 2]);
+      letterIndex.push(letterOfPoint(letterAt, letters, vertPos[i], vertPos[i + 1], size));
     }
 
     // triVerts is already a flat array of indices
@@ -227,11 +306,130 @@ async function createManifoldTextMesh(text, fontUrl, options = {}) {
     const referenceHeight =
       Number.isFinite(rawReferenceHeight) && rawReferenceHeight > 0 ? rawReferenceHeight : null;
 
-    return { positions, indices, referenceHeight };
+    return { positions, indices, letterIndex, referenceHeight };
   } finally {
     if (manifoldMesh) manifoldMesh.delete();
     if (crossSection) crossSection.delete();
   }
+}
+
+// Builds text geometry at the origin, normalised so the cap height equals
+// `size`. Horizontal text is turned to lie face-up with its base at y = 0.
+// Built on a throwaway mesh so the caller can set up its real mesh in one
+// synchronous step once the font work is done.
+async function buildTextVertexData(
+  meshId,
+  { text, font, size, depth, spacing, horizontal, useManifold }
+) {
+  let mesh;
+  let fontReferenceHeight = null;
+  let letterIndex = null;
+
+  if (useManifold) {
+    try {
+      let fontUrl = font;
+      if (font.endsWith('.json')) {
+        fontUrl = 'fonts/FreeSansBold.ttf';
+      }
+
+      const meshData = await createManifoldTextMesh(text, fontUrl, {
+        size,
+        depth,
+        spacing,
+        curveSegments: 12,
+      });
+      fontReferenceHeight = meshData.referenceHeight;
+      letterIndex = meshData.letterIndex;
+
+      mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
+      const vertexData = new flock.BABYLON.VertexData();
+
+      vertexData.positions = meshData.positions;
+      vertexData.indices = meshData.indices;
+
+      const normals = [];
+      flock.BABYLON.VertexData.ComputeNormals(meshData.positions, meshData.indices, normals);
+      vertexData.normals = normals;
+
+      const positions = meshData.positions;
+      let minX = Infinity,
+        maxX = -Infinity;
+      let minZ = Infinity,
+        maxZ = -Infinity;
+
+      for (let i = 0; i < positions.length; i += 3) {
+        minX = Math.min(minX, positions[i]);
+        maxX = Math.max(maxX, positions[i]);
+        minZ = Math.min(minZ, positions[i + 2]);
+        maxZ = Math.max(maxZ, positions[i + 2]);
+      }
+
+      const centerX = (minX + maxX) / 2;
+      const centerZ = (minZ + maxZ) / 2;
+
+      const centeredPositions = new Float32Array(positions.length);
+      for (let i = 0; i < positions.length; i += 3) {
+        centeredPositions[i] = positions[i] - centerX;
+        centeredPositions[i + 1] = positions[i + 1];
+        centeredPositions[i + 2] = positions[i + 2] - centerZ;
+      }
+
+      vertexData.positions = centeredPositions;
+      vertexData.applyToMesh(mesh);
+      mesh.flipFaces();
+    } catch (manifoldError) {
+      console.warn(
+        '[create3DText] Manifold approach failed, falling back to standard:',
+        manifoldError.message
+      );
+      mesh?.dispose();
+      mesh = null;
+      useManifold = false;
+      letterIndex = null;
+    }
+  }
+
+  if (!useManifold) {
+    // MeshBuilder.CreateText needs a Babylon font JSON, not a raw .ttf.
+    // If a .ttf was supplied, fall back to the bundled JSON font.
+    const fontDataUrl = font.toLowerCase().endsWith('.ttf') ? '/fonts/FreeSans_Bold.json' : font;
+    const fontData = await (await fetch(fontDataUrl)).json();
+    mesh = flock.BABYLON.MeshBuilder.CreateText(
+      meshId,
+      text,
+      fontData,
+      { size, depth: Array.isArray(depth) ? Math.max(...depth) : depth },
+      flock.scene,
+      earcut
+    );
+  }
+
+  if (!mesh) throw new Error('CreateText returned null');
+
+  mesh.computeWorldMatrix(true);
+  mesh.refreshBoundingInfo();
+
+  const bbHeight = mesh.getBoundingInfo().boundingBox.extendSize.y * 2;
+  // Use the font's cap height as the normalization reference so that glyphs
+  // with a small bounding box (e.g. "*") are not scaled up disproportionately.
+  const normReference = fontReferenceHeight ?? bbHeight;  if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
+    const normScale = size / normReference;
+    mesh.scaling.x = normScale;
+    mesh.scaling.y = normScale;
+    mesh.bakeCurrentTransformIntoVertices();
+  }
+
+  if (horizontal) {
+    mesh.rotation.x = Math.PI / 2;
+    mesh.bakeCurrentTransformIntoVertices();
+    mesh.refreshBoundingInfo();
+    mesh.position.y = -mesh.getBoundingInfo().boundingBox.minimum.y;
+    mesh.bakeCurrentTransformIntoVertices();
+  }
+
+  const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
+  mesh.dispose();
+  return { vertexData, letterIndex };
 }
 
 export const flockShapes = {
@@ -801,7 +999,10 @@ export const flockShapes = {
     depth = 1.0,
     position = { x: 0, y: 0, z: 0 },
     modelId,
+    spacing = 0,
+    horizontal = false,
     callback = null,
+    then = null,
     useManifold = true,
   } = {}) {
     if (!validateShapeId(modelId, 'create3DText')) return null;
@@ -814,7 +1015,8 @@ export const flockShapes = {
       return null;
     }
     size = toDim(size, 50);
-    depth = toDim(depth, 1);
+    depth = toDepth(depth);
+    spacing = toSpacing(spacing);
     const { x, y, z } = position;
 
     let blockKey = modelId;
@@ -831,121 +1033,44 @@ export const flockShapes = {
 
     const loadPromise = (async () => {
       try {
-        let mesh;
-        let fontReferenceHeight = null;
+        const { vertexData, letterIndex } = await buildTextVertexData(`${meshId}_build`, {
+          text,
+          font,
+          size,
+          depth,
+          spacing,
+          horizontal,
+          useManifold,
+        });
 
-        if (useManifold) {
-          try {
-            let fontUrl = font;
-            if (font.endsWith('.json')) {
-              fontUrl = 'fonts/FreeSansBold.ttf';
-            }
-
-            const scaledSize = size;
-            const meshData = await createManifoldTextMesh(text, fontUrl, {
-              size: scaledSize,
-              depth: depth,
-              curveSegments: 12,
-            });
-            fontReferenceHeight = meshData.referenceHeight;
-
-            mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
-            const vertexData = new flock.BABYLON.VertexData();
-
-            vertexData.positions = meshData.positions;
-            vertexData.indices = meshData.indices;
-
-            const normals = [];
-            flock.BABYLON.VertexData.ComputeNormals(meshData.positions, meshData.indices, normals);
-            vertexData.normals = normals;
-
-            const positions = meshData.positions;
-            let minX = Infinity,
-              maxX = -Infinity;
-            let minZ = Infinity,
-              maxZ = -Infinity;
-
-            for (let i = 0; i < positions.length; i += 3) {
-              minX = Math.min(minX, positions[i]);
-              maxX = Math.max(maxX, positions[i]);
-              minZ = Math.min(minZ, positions[i + 2]);
-              maxZ = Math.max(maxZ, positions[i + 2]);
-            }
-
-            const centerX = (minX + maxX) / 2;
-            const centerZ = (minZ + maxZ) / 2;
-
-            const centeredPositions = new Float32Array(positions.length);
-            for (let i = 0; i < positions.length; i += 3) {
-              centeredPositions[i] = positions[i] - centerX;
-              centeredPositions[i + 1] = positions[i + 1];
-              centeredPositions[i + 2] = positions[i + 2] - centerZ;
-            }
-
-            vertexData.positions = centeredPositions;
-            vertexData.applyToMesh(mesh);
-            mesh.flipFaces();
-          } catch (manifoldError) {
-            console.warn(
-              '[create3DText] Manifold approach failed, falling back to standard:',
-              manifoldError.message
-            );
-            useManifold = false;
-          }
-        }
-
-        if (!useManifold) {
-          // MeshBuilder.CreateText needs a Babylon font JSON, not a raw .ttf.
-          // If a .ttf was supplied, fall back to the bundled JSON font.
-          const fontDataUrl = font.toLowerCase().endsWith('.ttf')
-            ? '/fonts/FreeSans_Bold.json'
-            : font;
-          const fontData = await (await fetch(fontDataUrl)).json();
-          mesh = flock.BABYLON.MeshBuilder.CreateText(
-            meshId,
-            text,
-            fontData,
-            { size, depth },
-            flock.scene,
-            earcut
-          );
-        }
-
-        if (!mesh) throw new Error('CreateText returned null');
+        const mesh = new flock.BABYLON.Mesh(meshId, flock.scene);
+        vertexData.applyToMesh(mesh, true);
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.blockKey = blockKey;
         mesh.metadata.sectionOwner = flock._currentSection;
+        mesh.metadata.textSize = size;
+        if (letterIndex) mesh.metadata.textLetterIndex = letterIndex;
         mesh.position.set(x, y, z);
 
+        const colors = Array.isArray(color) ? color : [color];
+        const perLetter = letterIndex && colors.length > 1;
         const material = new flock.BABYLON.StandardMaterial('textMaterial_' + meshId, flock.scene);
 
-        material.diffuseColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+        material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(perLetter ? '#ffffff' : colors[0])
+        );
         material.backFaceCulling = false;
-        material.emissiveColor = material.diffuseColor.scale(0.2);
+        // A white glow would wash out the letter colours.
+        material.emissiveColor = perLetter
+          ? flock.BABYLON.Color3.Black()
+          : material.diffuseColor.scale(0.2);
         material.alpha = toAlpha(alpha);
         mesh.material = material;
+        if (perLetter) flock._paintTextLetters(mesh, colors);
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
-
-        const bbExt = mesh.getBoundingInfo().boundingBox.extendSize;
-        const bbHeight = bbExt.y * 2;
-        // Use the font's cap height as the normalization reference so that glyphs
-        // with a small bounding box (e.g. "*") are not scaled up disproportionately.
-        const normReference = fontReferenceHeight ?? bbHeight;
-        if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
-          const normScale = size / normReference;
-          const savedPos = mesh.position.clone();
-          mesh.position = flock.BABYLON.Vector3.Zero();
-          mesh.scaling.x = normScale;
-          mesh.scaling.y = normScale;
-          mesh.bakeCurrentTransformIntoVertices();
-          mesh.scaling = flock.BABYLON.Vector3.One();
-          mesh.position = savedPos;
-          mesh.computeWorldMatrix(true);
-          mesh.refreshBoundingInfo();
-        }
 
         mesh.setEnabled(true);
         mesh.visibility = 1;
@@ -956,9 +1081,20 @@ export const flockShapes = {
         flock._pendingMeshIds.delete(meshId);
 
         flock._registerInstance(blockKey, mesh.name);
+        flock._rememberConstruction(mesh, { dos: [callback], thens: [then] });
 
-        if (callback) {
-          requestAnimationFrame(() => callback(meshId));
+        if (callback || then) {
+          requestAnimationFrame(async () => {
+            for (const fn of [callback, then]) {
+              if (!fn) continue;
+              if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+              try {
+                await fn(meshId);
+              } catch (err) {
+                console.error('create3DText callback error:', err);
+              }
+            }
+          });
         }
       } catch (error) {
         flock._pendingMeshIds?.delete(meshId);
@@ -974,5 +1110,45 @@ export const flockShapes = {
     flock.modelReadyPromises.set(meshId, loadPromise);
 
     return meshId;
+  },
+  // Swaps new text geometry into an existing mesh, keeping its transform,
+  // material and physics body. A newer call supersedes one still in flight.
+  async _rebuild3DTextGeometry(mesh, { text, font, size, depth, spacing, horizontal = false }) {
+    if (!mesh || !text || typeof text !== 'string') return;
+    const token = {};
+    mesh._flockTextRebuild = token;
+
+    size = toDim(size, 50);
+    const { vertexData, letterIndex } = await buildTextVertexData(`${mesh.name}_build`, {
+      text,
+      font,
+      size,
+      depth: toDepth(depth),
+      spacing: toSpacing(spacing),
+      horizontal,
+      useManifold: true,
+    });
+    if (mesh._flockTextRebuild !== token || mesh.isDisposed()) return;
+    delete mesh._flockTextRebuild;
+
+    flock.ensureUniqueGeometry(mesh);
+    vertexData.applyToMesh(mesh, true);
+    // The new geometry is built at the requested size, so drop any scale
+    // left over from a gizmo drag.
+    mesh.scaling.set(1, 1, 1);
+    const { textLetterColors } = mesh.metadata ?? {};
+    mesh.metadata = { ...mesh.metadata, textSize: size, textLetterIndex: letterIndex };
+    if (textLetterColors && letterIndex) {
+      flock._paintTextLetters(mesh, textLetterColors);
+    } else {
+      flock._clearTextLetters(mesh);
+    }
+    mesh.computeWorldMatrix(true);
+    mesh.refreshBoundingInfo();
+
+    if (mesh.physics) {
+      mesh.physics.shape?.dispose();
+      mesh.physics.shape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
+    }
   },
 };

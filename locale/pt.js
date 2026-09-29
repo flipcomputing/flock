@@ -315,7 +315,7 @@ export default {
     'campo de entrada UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 texto: %7 fundo: %8',
   describe: 'descrever %1 como %2',
   create_3d_text:
-    'adicionar texto 3D %1: %2 fonte: %3 tamanho: %4 cor: %5\nprofundidade: %6 %10 x: %7 y: %8 z: %9',
+    'adicionar texto 3D %1: %2 fonte: %3 cor: %5\ntamanho: %4 profundidade: %6 espaçamento: %12 horizontal: %11 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'inteiro aleatório de %1 a %2 semente: %3',

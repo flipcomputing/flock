@@ -6,6 +6,7 @@ import {
   handleBlockCreateEvent,
   handleBlockChange,
   registerBlockHandler,
+  addDoMutatorWithToggleBehavior,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { attachShadowContainerOnChange } from './scene.js';
@@ -483,12 +484,12 @@ export function defineTextBlocks() {
           {
             type: 'input_value',
             name: 'COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Array'],
           },
           {
             type: 'input_value',
             name: 'DEPTH',
-            check: 'Number',
+            check: ['Number', 'Array'],
           },
           {
             type: 'input_value',
@@ -509,6 +510,16 @@ export function defineTextBlocks() {
             type: 'field_pick_position',
             name: 'PICK_POSITION',
           },
+          {
+            type: 'field_checkbox',
+            name: 'HORIZONTAL',
+            checked: false,
+          },
+          {
+            type: 'input_value',
+            name: 'SPACING',
+            check: 'Number',
+          },
         ],
         inputsInline: true,
         colour: categoryColours['Text'],
@@ -519,10 +530,16 @@ export function defineTextBlocks() {
 
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
+      // Projects saved before SPACING existed have no shadow for it.
+      this.getInput('SPACING').connection.setShadowState({
+        type: 'math_number',
+        fields: { NUM: 0 },
+      });
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockChange(this, changeEvent, variableNamePrefix)
       );
+      addDoMutatorWithToggleBehavior(this);
     },
   };
 }

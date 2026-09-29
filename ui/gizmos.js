@@ -125,7 +125,7 @@ let colorPicker = null;
 
 // Which scale gizmo handle is being dragged ('x' | 'y' | 'z' | 'uniform')
 let scaleDragAxis = null;
-let textOrigScaleZ = 1;
+let textOrigScale = { x: 1, y: 1, z: 1 };
 
 // Round shapes have a single horizontal dimension: X and Z always match.
 const RADIAL_BLOCK_TYPES = new Set(['create_capsule', 'create_cylinder']);
@@ -622,6 +622,15 @@ function pickMeshFromCanvas() {
   }, 200);
 }
 
+// Which letter of a 3D text mesh the ray hits, from the picked triangle.
+function pickedTextLetter(mesh, pickRay, scene) {
+  const letters = mesh.metadata?.textLetterIndex;
+  if (!letters) return undefined;
+  const hit = scene.pickWithRay(pickRay, (m) => m === mesh);
+  if (!hit?.hit || hit.faceId < 0) return undefined;
+  return letters[mesh.getIndices()[hit.faceId * 3]];
+}
+
 function applyColorAtPosition(canvasX, canvasY) {
   const scene = flock.scene;
 
@@ -648,7 +657,9 @@ function applyColorAtPosition(canvasX, canvasY) {
   }
 
   if (target) {
-    updateBlockColorAndHighlight(target, window.selectedColor);
+    updateBlockColorAndHighlight(target, window.selectedColor, {
+      letter: pickedTextLetter(target, pickRay, scene),
+    });
   } else {
     flock.setSky(window.selectedColor);
     updateBlockColorAndHighlight(meshMap?.['sky'], window.selectedColor);
@@ -2443,10 +2454,17 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
       mul(block, 'DIAMETER_Y');
       mul(block, 'DIAMETER_Z');
       break;
-    case 'create_3d_text':
+    case 'create_3d_text': {
       mul(block, 'SIZE');
       mul(block, 'DEPTH');
+      const depthList = block.getInputTargetBlock('DEPTH');
+      if (depthList?.type === 'lists_create_with') {
+        depthList.inputList
+          .filter((input) => input.name?.startsWith('ADD'))
+          .forEach((input) => mul(depthList, input.name));
+      }
       break;
+    }
     case 'load_model':
     case 'load_multi_object':
     case 'load_object':
@@ -2807,10 +2825,22 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
       case 'create_3d_text': {
         const currentSize = getNumberInput(block, 'SIZE');
         const currentDepth = getNumberInput(block, 'DEPTH');
+        // Horizontal text's letter height runs along Z and its depth along Y.
+        const horizontal = block.getFieldValue('HORIZONTAL') === 'TRUE';
+        const depthScale = horizontal ? mesh.scaling.y : mesh.scaling.z;
         setNumberInputs(block, {
-          SIZE: currentSize * mesh.scaling.y,
-          DEPTH: currentDepth * mesh.scaling.z,
+          SIZE: currentSize * (horizontal ? mesh.scaling.z : mesh.scaling.y),
+          DEPTH: currentDepth * depthScale,
         });
+        const depthList = block.getInputTargetBlock('DEPTH');
+        if (depthList?.type === 'lists_create_with') {
+          for (const input of depthList.inputList) {
+            const depth = input.name?.startsWith('ADD') && getNumberInput(depthList, input.name);
+            if (Number.isFinite(depth)) {
+              setNumberInputs(depthList, { [input.name]: depth * depthScale });
+            }
+          }
+        }
         break;
       }
 
@@ -3315,21 +3345,24 @@ function handleScaleGizmo() {
           mesh.scaling.z = diameter;
           break;
         }
-        case 'create_3d_text':
-          if (scaleDragAxis === 'z') {
-            // Z handle: depth only — lock X and Y
+        case 'create_3d_text': {
+          // The depth handle changes depth only; any other handle changes the
+          // letter size, keeping the two size axes equal and depth locked.
+          const horizontal = block.getFieldValue('HORIZONTAL') === 'TRUE';
+          const depthAxis = horizontal ? 'y' : 'z';
+          const heightAxis = horizontal ? 'z' : 'y';
+          if (scaleDragAxis === depthAxis) {
             mesh.scaling.x = 1;
-            mesh.scaling.y = 1;
-          } else if (scaleDragAxis === 'x' || scaleDragAxis === 'uniform') {
-            // X or uniform: size only — keep Y = X, lock Z
-            mesh.scaling.y = mesh.scaling.x;
-            mesh.scaling.z = textOrigScaleZ;
-          } else if (scaleDragAxis === 'y') {
-            // Y handle: size only — keep X = Y, lock Z
-            mesh.scaling.x = mesh.scaling.y;
-            mesh.scaling.z = textOrigScaleZ;
+            mesh.scaling[heightAxis] = 1;
+          } else if (scaleDragAxis) {
+            const sizeScale =
+              scaleDragAxis === heightAxis ? mesh.scaling[heightAxis] : mesh.scaling.x;
+            mesh.scaling.x = sizeScale;
+            mesh.scaling[heightAxis] = sizeScale;
+            mesh.scaling[depthAxis] = textOrigScale[depthAxis];
           }
           break;
+        }
       }
     }
 
@@ -3359,7 +3392,7 @@ function handleScaleGizmo() {
     const mesh = gizmoManager.attachedMesh;
     flock.ensureUniqueGeometry(mesh);
     originalBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
-    textOrigScaleZ = mesh.scaling.z;
+    textOrigScale = mesh.scaling.clone();
     scaleDragAxis = null;
 
     const motionType = isBodyAlive(mesh.physics) ? mesh.physics.getMotionType() : undefined;

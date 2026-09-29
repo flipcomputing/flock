@@ -3173,7 +3173,22 @@ const toolboxText = {
           shadow: {
             type: 'colour',
             fields: {
-              COLOR: '#FFFFFF',
+              COLOR: '#511d91',
+            },
+          },
+          block: {
+            type: 'lists_create_with',
+            extraState: { itemCount: 1 },
+            inline: true,
+            inputs: {
+              ADD0: {
+                shadow: {
+                  type: 'colour',
+                  fields: {
+                    COLOR: '#511d91',
+                  },
+                },
+              },
             },
           },
         },
@@ -3189,7 +3204,15 @@ const toolboxText = {
           shadow: {
             type: 'math_number',
             fields: {
-              NUM: 1.0,
+              NUM: 0.3,
+            },
+          },
+        },
+        SPACING: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
             },
           },
         },
@@ -4183,6 +4206,39 @@ const toolboxMath = {
       keyword: 'num',
       fields: {
         NUM: 0,
+      },
+    },
+    {
+      kind: 'block',
+      type: 'lists_create_with',
+      keyword: 'numlist',
+      extraState: { itemCount: 3 },
+      inline: true,
+      inputs: {
+        ADD0: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1,
+            },
+          },
+        },
+        ADD1: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 2,
+            },
+          },
+        },
+        ADD2: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
       },
     },
     {

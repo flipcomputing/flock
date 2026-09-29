@@ -314,7 +314,7 @@ export default {
   ui_input: 'wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8',
   describe: 'opisz %1 jako %2',
   create_3d_text:
-    'dodaj tekst 3D %1: %2 czcionka: %3 rozmiar: %4 kolor: %5\ngłębokość: %6 %10 x: %7 y: %8 z: %9',
+    'dodaj tekst 3D %1: %2 czcionka: %3 kolor: %5\nrozmiar: %4 głębokość: %6 odstęp: %12 poziomo: %11 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'losowa liczba całkowita od %1 do %2 z ziarnem: %3',

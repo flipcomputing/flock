@@ -7,6 +7,7 @@ import {
   emitSafeTextArg,
   getVariableInfo,
   maybeParentToGroup,
+  getThenCallback,
 } from './generators-utilities.js';
 
 export function registerTextGenerators(javascriptGenerator) {
@@ -307,10 +308,12 @@ export function registerTextGenerators(javascriptGenerator) {
     const fontKey = block.getFieldValue('FONT') || '__fonts_FreeSans_Bold_json';
     const size = getFieldValue(block, 'SIZE', '50');
     const depth = getFieldValue(block, 'DEPTH', '1.0');
+    const spacing = getFieldValue(block, 'SPACING', '0');
     const x = getFieldValue(block, 'X', '0');
     const y = getFieldValue(block, 'Y', '0');
     const z = getFieldValue(block, 'Z', '0');
     const color = getFieldValue(block, 'COLOR', '"#FFFFFF"');
+    const horizontal = block.getFieldValue('HORIZONTAL') === 'TRUE';
 
     let font = './fonts/FreeSans_Bold.json';
     if (fontKey === '__fonts_FreeSans_Bold_json') font = './fonts/FreeSans_Bold.json';
@@ -331,8 +334,9 @@ export function registerTextGenerators(javascriptGenerator) {
             color: ${color},
             size: ${size},
             depth: ${depth},
-            position: { x: ${x}, y: ${y}, z: ${z} },
-            modelId: ${JSON.stringify(meshId)}${doCode ? `,\n  callback: ${doCode}` : ''}
+            spacing: ${spacing},
+            position: { x: ${x}, y: ${y}, z: ${z} },${horizontal ? '\n            horizontal: true,' : ''}
+            modelId: ${JSON.stringify(meshId)}${doCode ? `,\n  callback: ${doCode}` : ''}${getThenCallback(block, variableName)}
           });\n${maybeParentToGroup(variableName)}`;
   };
 

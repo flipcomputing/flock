@@ -602,6 +602,190 @@ export function runShapesTests(flock) {
 
         expect(firstId).to.not.equal(secondId);
       });
+
+      const createTextAndWait = async (options) => {
+        const id = flock.create3DText({
+          text: 'Hi',
+          font: '/fonts/FreeSansBold.ttf',
+          color: '#ffffff',
+          size: 1,
+          depth: 0.2,
+          position: { x: 0, y: 0, z: 0 },
+          ...options,
+        });
+        createdIds.push(id);
+        await new Promise((resolve, reject) => {
+          flock.whenModelReady(id, resolve);
+          setTimeout(() => reject(new Error('create3DText timed out')), 25000);
+        });
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        return { id, mesh };
+      };
+
+      const extentsOf = (mesh) => {
+        const { minimumWorld: min, maximumWorld: max } = mesh.getBoundingInfo().boundingBox;
+        return { min, max, x: max.x - min.x, y: max.y - min.y, z: max.z - min.z };
+      };
+
+      it('should stand upright by default with depth along Z', async function () {
+        const { mesh } = await createTextAndWait({ modelId: 'uprightText' });
+        const ext = extentsOf(mesh);
+
+        expect(ext.y).to.be.within(0.5, 1.1);
+        expect(ext.z).to.be.closeTo(0.2, 0.01);
+      });
+
+      it('should lie flat with its base at the given y when horizontal', async function () {
+        const { mesh } = await createTextAndWait({
+          modelId: 'horizontalText',
+          position: { x: 2, y: 3, z: 4 },
+          horizontal: true,
+        });
+        const ext = extentsOf(mesh);
+
+        expect(ext.y).to.be.closeTo(0.2, 0.01);
+        expect(ext.z).to.be.within(0.5, 1.1);
+        expect(ext.min.y).to.be.closeTo(3, 0.001);
+        expect(mesh.rotation.x).to.equal(0);
+      });
+
+      it('should widen the text by the spacing between each pair of letters', async function () {
+        const { mesh: plain } = await createTextAndWait({ modelId: 'plainSpacing', text: 'HHH' });
+        const { mesh: spaced } = await createTextAndWait({
+          modelId: 'wideSpacing',
+          text: 'HHH',
+          spacing: 0.5,
+        });
+        const plainExt = extentsOf(plain);
+        const spacedExt = extentsOf(spaced);
+
+        expect(spacedExt.x - plainExt.x).to.be.closeTo(1, 0.01);
+        expect(spacedExt.y).to.be.closeTo(plainExt.y, 0.001);
+      });
+
+      const letterColourOf = (mesh, letter) => {
+        const index = mesh.metadata.textLetterIndex.indexOf(letter);
+        const colours = mesh.getVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
+        return new flock.BABYLON.Color3(
+          colours[index * 4],
+          colours[index * 4 + 1],
+          colours[index * 4 + 2]
+        ).toHexString();
+      };
+
+      it('should tag every vertex with its letter, skipping spaces', async function () {
+        const { mesh } = await createTextAndWait({ modelId: 'letterTags', text: 'H i' });
+        const letters = mesh.metadata.textLetterIndex;
+
+        expect(letters).to.have.length(mesh.getTotalVertices());
+        expect([...new Set(letters)].sort()).to.deep.equal([0, 1]);
+      });
+
+      it('should cycle a colour list through the letters', async function () {
+        const { mesh } = await createTextAndWait({
+          modelId: 'letterColours',
+          text: 'H ii',
+          color: ['#ff0000', '#0000ff'],
+        });
+
+        expect(letterColourOf(mesh, 0)).to.equal('#FF0000');
+        expect(letterColourOf(mesh, 1)).to.equal('#0000FF');
+        expect(letterColourOf(mesh, 2)).to.equal('#FF0000');
+      });
+
+      it('should swap between letter colours and a single colour', async function () {
+        const { mesh } = await createTextAndWait({
+          modelId: 'letterColourSwap',
+          color: ['#ff0000', '#0000ff'],
+        });
+
+        flock.changeColorMesh(mesh, '#00ff00');
+        expect(mesh.getVerticesData(flock.BABYLON.VertexBuffer.ColorKind)).to.not.exist;
+        expect(mesh.metadata.textLetterColors).to.be.undefined;
+
+        flock.changeColorMesh(mesh, ['#00ff00', '#ffff00']);
+        expect(letterColourOf(mesh, 0)).to.equal('#00FF00');
+        expect(letterColourOf(mesh, 1)).to.equal('#FFFF00');
+      });
+
+      const letterZRange = (mesh, letter) => {
+        const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+        let min = Infinity;
+        let max = -Infinity;
+        mesh.metadata.textLetterIndex.forEach((l, i) => {
+          if (l !== letter) return;
+          min = Math.min(min, positions[i * 3 + 2]);
+          max = Math.max(max, positions[i * 3 + 2]);
+        });
+        return { min, max, depth: max - min };
+      };
+
+      it('should cycle a depth list through the letters with a shared back', async function () {
+        const { mesh } = await createTextAndWait({
+          modelId: 'letterDepths',
+          text: 'H HH',
+          depth: [0.2, 0.6],
+        });
+        const [first, second, third] = [0, 1, 2].map((l) => letterZRange(mesh, l));
+
+        expect(first.depth).to.be.closeTo(0.2, 0.001);
+        expect(second.depth).to.be.closeTo(0.6, 0.001);
+        expect(third.depth).to.be.closeTo(0.2, 0.001);
+        expect(first.max).to.be.closeTo(second.max, 0.001);
+      });
+
+      it('should build a depth list of equal values like a single depth', async function () {
+        const { mesh } = await createTextAndWait({ modelId: 'evenDepths', depth: [0.3, 0.3] });
+
+        expect(extentsOf(mesh).z).to.be.closeTo(0.3, 0.001);
+      });
+
+      it('should run the callback before then, both with the mesh id', async function () {
+        const calls = [];
+        let finish;
+        const done = new Promise((resolve) => (finish = resolve));
+        const { id } = await createTextAndWait({
+          modelId: 'textLifecycle',
+          callback: async (name) => {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+            calls.push(['do', name]);
+          },
+          then: (name) => {
+            calls.push(['then', name]);
+            finish();
+          },
+        });
+        await done;
+
+        expect(calls).to.deep.equal([
+          ['do', id],
+          ['then', id],
+        ]);
+      });
+
+      it('should rebuild geometry in place, keeping the mesh and its position', async function () {
+        const { id, mesh } = await createTextAndWait({
+          modelId: 'rebuildText',
+          position: { x: 1, y: 0, z: 0 },
+        });
+
+        await flock._rebuild3DTextGeometry(mesh, {
+          text: 'Hello',
+          font: '/fonts/FreeSansBold.ttf',
+          size: 1,
+          depth: 0.2,
+          horizontal: true,
+        });
+        mesh.computeWorldMatrix(true);
+        const ext = extentsOf(mesh);
+
+        expect(flock.scene.getMeshByName(id)).to.equal(mesh);
+        expect(mesh.position.x).to.equal(1);
+        expect(ext.y).to.be.closeTo(0.2, 0.01);
+        expect(ext.z).to.be.within(0.5, 1.1);
+      });
     });
   });
 }
