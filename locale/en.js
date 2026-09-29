@@ -179,7 +179,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'camera %1 %2',
-  camera_follow: 'camera follow %1 with radius %2 angle %3 front %4',
+  camera_follow: 'camera follow %1 distance: %2 angle: %3 front: %4',
   get_camera: 'get camera as %1',
 
   // Custom block translations - Combine blocks
