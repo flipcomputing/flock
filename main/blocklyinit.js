@@ -2201,7 +2201,7 @@ export function createBlocklyWorkspace() {
     host.addEventListener(
       'keydown',
       (e) => {
-        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';
+        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === 'f';
         if (!isFindShortcut) return;
 
         const activeElement = document.activeElement;
@@ -2261,6 +2261,7 @@ export function createBlocklyWorkspace() {
     toolboxDiv.addEventListener(
       'keydown',
       (e) => {
+        if (typeof e.key !== 'string') return;
         const target = e.target;
 
         const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';

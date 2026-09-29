@@ -27,7 +27,7 @@ export class KeyboardSource {
     this.#onBlur = onBlur ?? null;
 
     this.#onDocKeyDown = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // Don't feed scene/input events to the running project while the user is
       // interacting with an open modal dialog (e.g. navigating the demo picker
       // with arrow keys) — the focused control, not the scene, owns the key.
@@ -36,7 +36,7 @@ export class KeyboardSource {
     };
 
     this.#onKeyDown = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // Shortcut chords (Ctrl+Z undo, ⌘S…) belong to the app/browser, not
       // gameplay — without this, undo on a focused canvas walks the player
       // ("z" is bound to FORWARD for AZERTY keyboards).
@@ -55,7 +55,7 @@ export class KeyboardSource {
       if (!this.#editorOwned) this.#inputManager._setKey(key, true);
     };
     this.#onKeyUp = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // macOS browsers suppress keyup for keys released while ⌘ is held, so
       // anything still tracked when ⌘ comes up would be stuck down forever.
       if (event.key === 'Meta') {

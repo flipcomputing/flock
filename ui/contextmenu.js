@@ -1659,7 +1659,7 @@ export function initContextMenus(workspace) {
     document.addEventListener(
       'keydown',
       (e) => {
-        if (e.key.toLowerCase() !== 'h') return;
+        if (e.key?.toLowerCase() !== 'h') return;
         if (isTypingInInput() || Blockly.getFocusManager().ephemeralFocusTaken()) return;
         if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
         const block = focusedToolbarBlock();
