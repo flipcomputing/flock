@@ -754,7 +754,7 @@ export function initializeBlockHandling() {
         focusKeywordField(keywordBlock);
       }, 100);
     }
-  });
+  }, true);
 
   workspace.addChangeListener((event) => {
     // Track the currently selected block.

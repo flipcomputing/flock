@@ -242,6 +242,8 @@ function handleTap(info, downEvent) {
     for (const field of input.fieldRow || []) {
       const root = field.getClickTarget_?.() ?? field.getSvgRoot?.();
       if (root && node instanceof Node && root.contains(node) && field.isClickable?.()) {
+        Blockly.DropDownDiv.hideWithoutAnimation();
+        Blockly.WidgetDiv.hide();
         try {
           field.showEditor?.(downEvent);
         } catch {
