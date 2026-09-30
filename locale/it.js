@@ -613,7 +613,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Usa la fotocamera del dispositivo come sfondo per la scena. Funziona su mobile e desktop.',
-  set_xr_mode_tooltip: 'Imposta la modalità XR per la scena.\nVisore VR: si avvia solo su un visore, quindi computer e telefono continuano a eseguire il progetto normalmente.\nVisore VR o telefono: offre anche la VR su telefono con un visore di cartone.\nAR: colloca la scena nella stanza.\nMagic Window: guardati intorno muovendo il telefono; un visore ottiene la VR.', // ai
+  set_xr_mode_tooltip: 'Imposta la modalità XR per la scena.\nVisore VR: si avvia solo su un visore, quindi computer e telefono continuano a eseguire il progetto normalmente.\nVisore VR o telefono: offre anche la VR su telefono con un visore di cartone.\nAR: colloca la scena nella stanza.\nMagic Window: guardati intorno muovendo il telefono; un visore ottiene la VR.\nOcchiali rosso/ciano: 3D su qualsiasi schermo nella vista di gioco.', // ai
   play_rumble_pattern_tooltip:
     'Riproduce un motivo di vibrazione predefinito su tutti i controller collegati.',
   controller_rumble_tooltip:
@@ -955,6 +955,7 @@ export default {
   VR_PHONE_option: 'visore VR o telefono', // ai
   AR_option: 'AR (realtà aumentata)',
   MAGIC_WINDOW_option: 'magic window (guarda-intorno)',
+  RED_CYAN_option: 'occhiali rosso/ciano', // ai
 
   circular_depression_png_option: 'avvallamento circolare',
   checkerboard_png_option: 'scacchiera',

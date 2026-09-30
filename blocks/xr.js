@@ -140,6 +140,7 @@ export function defineXRBlocks() {
               getDropdownOption('VR_PHONE'),
               getDropdownOption('AR'),
               getDropdownOption('MAGIC_WINDOW'),
+              getDropdownOption('RED_CYAN'),
             ],
           },
         ],

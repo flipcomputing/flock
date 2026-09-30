@@ -1819,6 +1819,104 @@ export function runXRTests(flock) {
       });
     });
 
+    describe('red/cyan glasses', function () {
+      const Camera = () => flock.BABYLON.Camera;
+      let originalActive;
+      let originalXRMode;
+      let originalEditorView;
+      let first;
+      let second;
+
+      beforeEach(function () {
+        originalActive = flock.scene.activeCamera;
+        originalXRMode = flock._xrMode;
+        originalEditorView = flock._editorView;
+        first = new flock.BABYLON.FreeCamera(
+          'redCyanFirst',
+          flock.BABYLON.Vector3.Zero(),
+          flock.scene
+        );
+        second = new flock.BABYLON.FreeCamera(
+          'redCyanSecond',
+          flock.BABYLON.Vector3.Zero(),
+          flock.scene
+        );
+        flock.scene.activeCamera = first;
+        flock._editorView = false;
+      });
+
+      afterEach(function () {
+        flock._setAnaglyphCamera(null);
+        flock.scene.activeCamera = originalActive;
+        flock._xrMode = originalXRMode;
+        flock._editorView = originalEditorView;
+        first.dispose();
+        second.dispose();
+      });
+
+      it('puts the active camera into anaglyph without starting WebXR', async function () {
+        const originalHelper = flock.xrHelper;
+        flock.xrHelper = null;
+        try {
+          await flock.initializeXR('RED_CYAN');
+
+          expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_STEREOSCOPIC_ANAGLYPH);
+          expect(first._rigCameras[1]._rigPostProcess?.getClassName()).to.equal(
+            'AnaglyphPostProcess'
+          );
+          expect(flock.xrHelper).to.equal(null);
+        } finally {
+          flock.xrHelper = originalHelper;
+        }
+      });
+
+      it('stays plain in the editor and turns on in play view', function () {
+        flock._xrMode = 'RED_CYAN';
+        flock.setEditorView(true);
+        expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_NONE);
+
+        flock.setEditorView(false);
+        expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_STEREOSCOPIC_ANAGLYPH);
+
+        flock.setEditorView(true);
+        expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_NONE);
+      });
+
+      it('moves to the camera the project switches to', function () {
+        flock._xrMode = 'RED_CYAN';
+        flock._applyAnaglyph();
+
+        flock.scene.activeCamera = second;
+        flock._frameXRFromProjectCamera(second);
+
+        expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_NONE);
+        expect(second.cameraRigMode).to.equal(Camera().RIG_MODE_STEREOSCOPIC_ANAGLYPH);
+      });
+
+      it('is cleared when the project picks another mode', async function () {
+        const originalAvailable = flock._vrHeadsetAvailable;
+        flock._vrHeadsetAvailable = async () => false;
+        try {
+          await flock.initializeXR('RED_CYAN');
+          await flock.initializeXR('VR');
+
+          expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_NONE);
+        } finally {
+          flock._vrHeadsetAvailable = originalAvailable;
+        }
+      });
+
+      it('is cleared when XR state resets', function () {
+        flock._xrMode = 'RED_CYAN';
+        flock._applyAnaglyph();
+
+        flock._resetXRState();
+
+        expect(first.cameraRigMode).to.equal(Camera().RIG_MODE_NONE);
+        expect(flock._anaglyphCamera).to.equal(null);
+      });
+    });
+
     describe('enter-VR button on headsets', function () {
       let originalInitializeXR;
       let originalSupported;

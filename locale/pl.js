@@ -606,7 +606,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Użyj kamery urządzenia jako tła sceny. działa na urządzeniach mobilnych i desktopie.',
-  set_xr_mode_tooltip: 'Ustaw tryb XR sceny.\nGogle VR: uruchamiają się tylko w goglach, więc na komputerze i telefonie projekt działa normalnie.\nGogle VR lub telefon: oferuje też VR na telefonie z kartonowym viewerem.\nAR: umieszcza scenę w pokoju.\nMagic Window: rozglądaj się, poruszając telefonem; gogle dostają VR.', // ai
+  set_xr_mode_tooltip: 'Ustaw tryb XR sceny.\nGogle VR: uruchamiają się tylko w goglach, więc na komputerze i telefonie projekt działa normalnie.\nGogle VR lub telefon: oferuje też VR na telefonie z kartonowym viewerem.\nAR: umieszcza scenę w pokoju.\nMagic Window: rozglądaj się, poruszając telefonem; gogle dostają VR.\nOkulary czerwono-cyjanowe: 3D na każdym ekranie w widoku gry.', // ai
   play_rumble_pattern_tooltip:
     'Odtwarza predefiniowany wzór wibracji na wszystkich podłączonych kontrolerach.',
   controller_rumble_tooltip:
@@ -933,6 +933,7 @@ export default {
   VR_PHONE_option: 'gogle VR lub telefon', // ai
   AR_option: 'AR (rzeczywistość rozszerzona)',
   MAGIC_WINDOW_option: 'magic window (rozglądanie)',
+  RED_CYAN_option: 'okulary czerwono-cyjanowe', // ai
 
   circular_depression_png_option: 'okrągłe zagłębienie',
   checkerboard_png_option: 'szachownica',

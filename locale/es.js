@@ -685,7 +685,7 @@ export default {
   device_camera_background_tooltip:
     'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora. En unas gafas de RV la escena aparece en tu habitación.', // ai
   set_xr_mode_tooltip:
-    'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.', // ai
+    'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.\nGafas rojo/cian: 3D en cualquier pantalla en la vista de juego.', // ai
   set_xr_view_mode_tooltip:
     'Elige si observar o encarnar el objeto seguido y cómo se mueve su cámara. En observar, la comodidad de la cámara se ajusta después de detenerse el movimiento; en encarnar, la teletransportación usa el rayo del mando.', // ai
   set_ar_scene_size_tooltip:
@@ -1052,6 +1052,7 @@ export default {
   VR_PHONE_option: 'visor VR o teléfono', // ai
   AR_option: 'RA (realidad aumentada)', // human
   MAGIC_WINDOW_option: 'ventana mágica (mirar alrededor)', // human
+  RED_CYAN_option: 'gafas rojo/cian', // ai
 
   circular_depression_png_option: 'depresión circular', // human
   checkerboard_png_option: 'tablero de damas', // human

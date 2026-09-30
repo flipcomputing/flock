@@ -45,6 +45,7 @@ export const createFlockXRState = () => ({
   _xrEmbodiedVisibility: new Map(),
   _xrMode: undefined,
   _xrVRAllowsPhone: false,
+  _anaglyphCamera: null,
   _teleportAllTargets: false,
   _teleportGroundTarget: true,
   _teleportExplicitTargetNames: new Set(),
@@ -249,6 +250,7 @@ const REST_FRAME_HORIZON_SEGMENTS = 96;
 // A working sensor reports within a frame; this waits out iOS, where the permission needs a
 // user gesture this call never has and so never resolves either way.
 const MAGIC_WINDOW_SENSOR_TIMEOUT_MS = 2500;
+const ANAGLYPH_INTERAXIAL_M = 0.0637;
 
 export const flockXR = {
   _moveUIControls(source, target) {
@@ -513,6 +515,7 @@ export const flockXR = {
     flock._removeXRCameraAddedObserver();
     flock._disposeXRVignette();
     flock._disposeXRRestFrame();
+    flock._setAnaglyphCamera(null);
     flock.xrHelper = null;
     Object.assign(flock, createFlockXRState());
   },
@@ -874,6 +877,7 @@ export const flockXR = {
   // Watch frames the headset the way the project camera frames the character, so a camera the
   // project attaches part way through a session has to reach the wearer too.
   _frameXRFromProjectCamera(camera) {
+    flock._applyAnaglyph();
     flock._syncXRFollowTargetFromCamera(camera);
     flock._applyXRDefaults(flock._xrMode);
     if (!flock._xrSessionActive || flock._xrMode !== 'VR') return;
@@ -1708,6 +1712,31 @@ export const flockXR = {
     if (typeof camera?.inputs?.addDeviceOrientation !== 'function') return;
     if (!camera.inputs.attached.deviceOrientation) camera.inputs.addDeviceOrientation();
   },
+  // The editor keeps a plain view for placing things; the glasses are for playing.
+  setEditorView(active) {
+    flock._editorView = active === true;
+    flock._applyAnaglyph();
+  },
+  _applyAnaglyph() {
+    const wanted = flock._xrMode === 'RED_CYAN' && !flock._editorView;
+    flock._setAnaglyphCamera(wanted ? (flock.scene?.activeCamera ?? null) : null);
+  },
+  _setAnaglyphCamera(camera) {
+    const current = flock._anaglyphCamera;
+    if (current === camera) return;
+    const Camera = flock.BABYLON?.Camera;
+    if (current && !current.isDisposed?.()) {
+      delete current._setRigMode;
+      current.setCameraRigMode(Camera.RIG_MODE_NONE, {});
+    }
+    flock._anaglyphCamera = camera;
+    if (!camera) return;
+    // A plain camera builds the two eyes but only the Anaglyph* classes add the colour filter.
+    camera._setRigMode = () => flock.BABYLON._SetStereoscopicAnaglyphRigMode(camera);
+    camera.setCameraRigMode(Camera.RIG_MODE_STEREOSCOPIC_ANAGLYPH, {
+      interaxialDistance: ANAGLYPH_INTERAXIAL_M,
+    });
+  },
   async initializeXR(mode) {
     const autoHelper = flock.xrHelper && flock._xrHelperAutoCreated ? flock.xrHelper : null;
     if (flock.xrHelper && !autoHelper) return; // Avoid reinitializing
@@ -1719,6 +1748,8 @@ export const flockXR = {
     patchEmulatorOffsetReferenceSpace();
     // Claimed before any await, so the headset auto-button cannot race in and take the mode.
     flock._xrMode = mode;
+    flock._applyAnaglyph();
+    if (mode === 'RED_CYAN') return;
 
     // A headset head-tracks the view already, so looking around there means a session.
     if (mode === 'MAGIC_WINDOW' && (await flock._vrHeadsetAvailable())) {

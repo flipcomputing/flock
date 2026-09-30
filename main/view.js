@@ -642,6 +642,7 @@ export function initializeUI() {
   addSwipeListeners(); // Add swipe event listeners (narrow screens only)
   addButtonListener(); // Add button click listener (narrow screens only)
   addPlayModeExitShortcut();
+  flock.setEditorView(true);
 
   // Initialize currentView based on actual DOM state on narrow screens
   if (isNarrowScreen()) {
@@ -727,6 +728,7 @@ export function togglePlayMode() {
     }
     document.documentElement.style.setProperty('--dynamic-offset', '50px');
     applyPlayModeFov();
+    flock.setEditorView(false);
     // Keyboard play needs the canvas focused; the exit button must not take it.
     document.getElementById('renderCanvas')?.focus({ preventScroll: true });
     announce(translate('exit_play_mode_hint_ui'));
@@ -734,6 +736,7 @@ export function togglePlayMode() {
     playModeActive = false;
     document.body.classList.remove('play-mode');
     restoreCameraFov();
+    flock.setEditorView(true);
     hideInspector();
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';

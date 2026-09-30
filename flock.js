@@ -178,6 +178,7 @@ export const flock = {
   microbitDebug: false,
   lastFrameTime: 0,
   savedCamera: null,
+  _editorView: false,
   ...createFlockXRState(),
   ...flockCSG,
   ...flockAnimate,

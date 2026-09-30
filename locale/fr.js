@@ -618,7 +618,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Utilise la caméra de l’appareil comme arrière-plan pour la scène. Fonctionne sur mobile et ordinateur.',
-  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nCasque VR : ne démarre que sur un casque, l\'ordinateur et le téléphone jouent le projet normalement.\nCasque VR ou téléphone : propose aussi la VR sur téléphone avec un viewer en carton.\nRA : place la scène dans la pièce.\nFenêtre magique : regardez autour en bougeant le téléphone ; un casque obtient la VR.', // ai
+  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nCasque VR : ne démarre que sur un casque, l\'ordinateur et le téléphone jouent le projet normalement.\nCasque VR ou téléphone : propose aussi la VR sur téléphone avec un viewer en carton.\nRA : place la scène dans la pièce.\nFenêtre magique : regardez autour en bougeant le téléphone ; un casque obtient la VR.\nLunettes rouge/cyan : 3D sur tout écran en vue de jeu.', // ai
   play_rumble_pattern_tooltip:
     'Joue un motif de vibration prédéfini sur toutes les manettes connectées.',
   controller_rumble_tooltip:
@@ -948,6 +948,7 @@ export default {
   VR_PHONE_option: 'casque VR ou téléphone', // ai
   AR_option: 'RA (réalité augmentée)',
   MAGIC_WINDOW_option: 'fenêtre magique (regarder autour)',
+  RED_CYAN_option: 'lunettes rouge/cyan', // ai
 
   circular_depression_png_option: 'creux circulaire',
   checkerboard_png_option: 'damier',

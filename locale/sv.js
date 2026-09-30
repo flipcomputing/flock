@@ -609,7 +609,7 @@ export default {
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Använd enhetens kamera som bakgrund för scenen. Fungerar på både mobil och dator.',
-  set_xr_mode_tooltip: 'Ställ in XR-läget för scenen.\nVR-headset: startar bara i ett headset, så dator och mobil kör projektet som vanligt.\nVR-headset eller mobil: erbjuder även mobil-VR med en kartongvisare.\nAR: placerar scenen i rummet.\nMagic Window: titta dig omkring genom att röra mobilen; ett headset får VR.', // ai
+  set_xr_mode_tooltip: 'Ställ in XR-läget för scenen.\nVR-headset: startar bara i ett headset, så dator och mobil kör projektet som vanligt.\nVR-headset eller mobil: erbjuder även mobil-VR med en kartongvisare.\nAR: placerar scenen i rummet.\nMagic Window: titta dig omkring genom att röra mobilen; ett headset får VR.\nRöd/cyan-glasögon: 3D på vilken skärm som helst i spelvyn.', // ai
   play_rumble_pattern_tooltip:
     'Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.',
   controller_rumble_tooltip:
@@ -936,6 +936,7 @@ export default {
   VR_PHONE_option: 'VR-headset eller mobil', // ai
   AR_option: 'AR (förstärkt verklighet)',
   MAGIC_WINDOW_option: 'magic window (titta runt)',
+  RED_CYAN_option: 'röd/cyan-glasögon', // ai
 
   circular_depression_png_option: 'cirkulär sänka',
   checkerboard_png_option: 'schackmönster',

@@ -759,7 +759,7 @@ export default {
   // XR tooltips
   device_camera_background_tooltip:
     'Verwende Gerätekamera als Hintergrund für die Szene. Funktioniert auf Mobilgeräten und Desktop.',
-  set_xr_mode_tooltip: 'Setze XR‑Modus der Szene.\nVR‑Headset: startet nur auf einem Headset, Desktop und Handy spielen das Projekt normal weiter.\nVR‑Headset oder Handy: bietet auch Handy‑VR mit einem Cardboard‑Viewer.\nAR: platziert die Szene im Raum.\nMagic Window: durch Bewegen des Handys umsehen; ein Headset bekommt VR.', // ai
+  set_xr_mode_tooltip: 'Setze XR‑Modus der Szene.\nVR‑Headset: startet nur auf einem Headset, Desktop und Handy spielen das Projekt normal weiter.\nVR‑Headset oder Handy: bietet auch Handy‑VR mit einem Cardboard‑Viewer.\nAR: platziert die Szene im Raum.\nMagic Window: durch Bewegen des Handys umsehen; ein Headset bekommt VR.\nRot/Cyan-Brille: 3D auf jedem Bildschirm in der Spielansicht.', // ai
   play_rumble_pattern_tooltip:
     'Spielt ein vordefiniertes Vibrationsmuster auf allen angeschlossenen Controllern ab.\nStichwort: rumble preset',
   controller_rumble_tooltip:
@@ -948,6 +948,7 @@ export default {
   VR_PHONE_option: 'VR‑Headset oder Handy', // ai
   AR_option: 'AR (Augmented Reality)',
   MAGIC_WINDOW_option: 'Magic Window (Rundumsicht)',
+  RED_CYAN_option: 'Rot/Cyan-Brille', // ai
 
   circular_depression_png_option: 'kreisförmige Senke',
   checkerboard_png_option: 'Schachbrett',

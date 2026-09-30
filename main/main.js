@@ -286,6 +286,7 @@ function applyEmbedMode() {
 
   if (flockLink) flockLink.style.display = 'none';
   flock.embedMode = true;
+  flock.setEditorView(false);
 
   document.documentElement.style.setProperty('--dynamic-offset', '0px');
   document.documentElement.style.background = '#e5e5eb';
