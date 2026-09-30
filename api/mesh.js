@@ -256,7 +256,46 @@ export const flockMesh = {
     return shape;
   },
   // backRatio: signed fraction of mesh size along the chosen axis (e.g., 0.25 = 25% back; -0.25 = 25% forward)
+  createSittingCapsuleFromSkeleton(mesh, scene) {
+    const nodes = mesh.getDescendants(false);
+    const find = (name) => nodes.find((n) => n.name.endsWith(`:${name}`));
+    const joints = ['Hips', 'LeftUpLeg', 'LeftLeg', 'LeftFoot'].map(find);
+    if (joints.some((j) => !j)) return null;
+
+    mesh.computeWorldMatrix(true);
+    const origin = mesh.getAbsolutePosition();
+    const inverseRotation = (
+      mesh.rotationQuaternion ?? flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation)
+    )
+      .clone()
+      .invert();
+    const [hips, upLeg, knee, foot] = joints.map((n) => {
+      n.computeWorldMatrix(true);
+      return n.getAbsolutePosition().subtract(origin).applyRotationQuaternion(inverseRotation);
+    });
+
+    const legLength =
+      flock.BABYLON.Vector3.Distance(upLeg, knee) + flock.BABYLON.Vector3.Distance(knee, foot);
+    if (!(legLength > 1e-4)) return null;
+
+    const bb = mesh.getBoundingInfo().boundingBox;
+    const scaleY = Math.abs(mesh.scaling.y);
+    const radius = legLength * 0.5;
+    const bottom = bb.minimum.y * scaleY + legLength * 0.71;
+    const top = Math.max(bottom + 2 * radius + 1e-3, bb.maximum.y * scaleY - legLength * 0.42);
+    const z = hips.z + legLength * 0.68;
+
+    return new flock.BABYLON.PhysicsShapeCapsule(
+      new flock.BABYLON.Vector3(hips.x, bottom + radius, z),
+      new flock.BABYLON.Vector3(hips.x, top - radius, z),
+      radius,
+      scene
+    );
+  },
   createSittingCapsuleFromBoundingBox(mesh, scene, { backRatio = -1, axis = 'z' } = {}) {
+    const skeletonShape = flock.createSittingCapsuleFromSkeleton(mesh, scene);
+    if (skeletonShape) return skeletonShape;
+
     mesh.computeWorldMatrix(true);
 
     const boundingInfo = mesh.getBoundingInfo();

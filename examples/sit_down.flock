@@ -431,7 +431,7 @@
                                       "type": "math_number",
                                       "id": "+k{YHDB{`Xdy9)S:E_{.",
                                       "fields": {
-                                        "NUM": -0.2
+                                        "NUM": -0.1
                                       }
                                     }
                                   },
@@ -518,28 +518,59 @@
                                         },
                                         "next": {
                                           "block": {
-                                            "type": "play_animation",
-                                            "id": "Vqb39G?eEbWS{S2A;H:v",
+                                            "type": "glide_to_seconds",
+                                            "id": "xpTXZp~kOX?[sDlvd`c#",
                                             "fields": {
-                                              "MODEL": {
+                                              "MESH_VAR": {
                                                 "id": "f=8($HYZoE:IjT|U8x8J"
-                                              }
+                                              },
+                                              "MODE": "START",
+                                              "REVERSE": false,
+                                              "LOOP": false,
+                                              "EASING": "Linear"
                                             },
                                             "inputs": {
-                                              "ANIMATION_NAME": {
+                                              "X": {
                                                 "shadow": {
-                                                  "type": "animation_name",
-                                                  "id": "L3{VZb-KKYIQXA(ng13t",
+                                                  "type": "math_number",
+                                                  "id": "8Uu@`DoH5d=5_Hp7,7;C",
                                                   "fields": {
-                                                    "ANIMATION_NAME": "Sit_Down"
+                                                    "NUM": 3
+                                                  }
+                                                }
+                                              },
+                                              "Y": {
+                                                "shadow": {
+                                                  "type": "math_number",
+                                                  "id": "OY$:eC!~1NJ%7fOyyBzz",
+                                                  "fields": {
+                                                    "NUM": 0
+                                                  }
+                                                }
+                                              },
+                                              "Z": {
+                                                "shadow": {
+                                                  "type": "math_number",
+                                                  "id": "mOZ!IGms/(R[RAW$`v9A",
+                                                  "fields": {
+                                                    "NUM": -0.3
+                                                  }
+                                                }
+                                              },
+                                              "DURATION": {
+                                                "shadow": {
+                                                  "type": "math_number",
+                                                  "id": "j+oru$UeI4k5EY^(IV?_",
+                                                  "fields": {
+                                                    "NUM": 0.5
                                                   }
                                                 }
                                               }
                                             },
                                             "next": {
                                               "block": {
-                                                "type": "switch_animation",
-                                                "id": "Ehp1N)9`^KEj|f5YKQZa",
+                                                "type": "play_animation",
+                                                "id": "Vqb39G?eEbWS{S2A;H:v",
                                                 "fields": {
                                                   "MODEL": {
                                                     "id": "f=8($HYZoE:IjT|U8x8J"
@@ -549,60 +580,29 @@
                                                   "ANIMATION_NAME": {
                                                     "shadow": {
                                                       "type": "animation_name",
-                                                      "id": "bjQgc5%_:j0#gA:kpPfH",
+                                                      "id": "L3{VZb-KKYIQXA(ng13t",
                                                       "fields": {
-                                                        "ANIMATION_NAME": "Sitting"
+                                                        "ANIMATION_NAME": "Sit_Down"
                                                       }
                                                     }
                                                   }
                                                 },
                                                 "next": {
                                                   "block": {
-                                                    "type": "glide_to_seconds",
-                                                    "id": "xpTXZp~kOX?[sDlvd`c#",
+                                                    "type": "switch_animation",
+                                                    "id": "Ehp1N)9`^KEj|f5YKQZa",
                                                     "fields": {
-                                                      "MESH_VAR": {
+                                                      "MODEL": {
                                                         "id": "f=8($HYZoE:IjT|U8x8J"
-                                                      },
-                                                      "MODE": "AWAIT",
-                                                      "REVERSE": false,
-                                                      "LOOP": false,
-                                                      "EASING": "Linear"
+                                                      }
                                                     },
                                                     "inputs": {
-                                                      "X": {
+                                                      "ANIMATION_NAME": {
                                                         "shadow": {
-                                                          "type": "math_number",
-                                                          "id": "8Uu@`DoH5d=5_Hp7,7;C",
+                                                          "type": "animation_name",
+                                                          "id": "bjQgc5%_:j0#gA:kpPfH",
                                                           "fields": {
-                                                            "NUM": 3
-                                                          }
-                                                        }
-                                                      },
-                                                      "Y": {
-                                                        "shadow": {
-                                                          "type": "math_number",
-                                                          "id": "OY$:eC!~1NJ%7fOyyBzz",
-                                                          "fields": {
-                                                            "NUM": 0
-                                                          }
-                                                        }
-                                                      },
-                                                      "Z": {
-                                                        "shadow": {
-                                                          "type": "math_number",
-                                                          "id": "mOZ!IGms/(R[RAW$`v9A",
-                                                          "fields": {
-                                                            "NUM": -0.2
-                                                          }
-                                                        }
-                                                      },
-                                                      "DURATION": {
-                                                        "shadow": {
-                                                          "type": "math_number",
-                                                          "id": "j+oru$UeI4k5EY^(IV?_",
-                                                          "fields": {
-                                                            "NUM": 0.5
+                                                            "ANIMATION_NAME": "Sitting"
                                                           }
                                                         }
                                                       }
