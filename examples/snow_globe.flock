@@ -1527,56 +1527,76 @@
                   },
                   "next": {
                     "block": {
-                      "type": "camera_follow",
-                      "id": "oBUi`!cUZPCDJWY3J!2Q",
+                      "type": "get_camera",
+                      "id": "sgGetCam!01",
                       "fields": {
-                        "MESH_VAR": {
-                          "id": "j1],Vq8{pQxNhx,*Gh,b"
-                        },
-                        "FRONT": true
-                      },
-                      "inputs": {
-                        "RADIUS": {
-                          "shadow": {
-                            "type": "math_number",
-                            "id": "Bb;rj`z4Q/8jSIWFbN}z",
-                            "fields": {
-                              "NUM": 18
-                            }
-                          }
-                        },
-                        "ANGLE": {
-                          "shadow": {
-                            "type": "math_number",
-                            "id": "Ib(P0pf&-/%ID+Z}1IJ!",
-                            "fields": {
-                              "NUM": 90
-                            }
-                          }
+                        "VAR": {
+                          "id": "sgCam#Var0x3y-20zQ1"
                         }
                       },
                       "next": {
                         "block": {
-                          "type": "canvas_controls",
-                          "id": "z3x*R6tGlQd.71bE_Srx",
+                          "type": "move_to_xyz",
+                          "id": "sgMoveCam!02",
                           "fields": {
-                            "CONTROLS": true
+                            "MODEL": {
+                              "id": "sgCam#Var0x3y-20zQ1"
+                            },
+                            "USE_Y": true
+                          },
+                          "inputs": {
+                            "X": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "sgCamX!03",
+                                "fields": {
+                                  "NUM": 0
+                                }
+                              }
+                            },
+                            "Y": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "sgCamY!04",
+                                "fields": {
+                                  "NUM": 3
+                                }
+                              }
+                            },
+                            "Z": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "sgCamZ!05",
+                                "fields": {
+                                  "NUM": -20
+                                }
+                              }
+                            }
                           },
                           "next": {
                             "block": {
-                              "type": "button_controls",
-                              "id": "dXknrcZ[*/qdcO-MBKUN",
+                              "type": "canvas_controls",
+                              "id": "z3x*R6tGlQd.71bE_Srx",
                               "fields": {
-                                "CONTROL": "ARROWS",
-                                "ENABLED": "AUTO"
+                                "CONTROLS": false
                               },
-                              "inputs": {
-                                "COLOR": {
-                                  "shadow": {
-                                    "type": "colour",
-                                    "id": "U8!|RMR4;XoJ%u+M[%0x",
-                                    "fields": {
-                                      "COLOR": "#c0c0c0"
+                              "next": {
+                                "block": {
+                                  "type": "button_controls",
+                                  "id": "dXknrcZ[*/qdcO-MBKUN",
+                                  "fields": {
+                                    "CONTROL": "ARROWS",
+                                    "ENABLED": "AUTO"
+                                  },
+                                  "inputs": {
+                                    "COLOR": {
+                                      "shadow": {
+                                        "type": "colour",
+                                        "id": "U8!|RMR4;XoJ%u+M[%0x",
+                                        "fields": {
+                                          "COLOR": "#c0c0c0"
+                                        }
+                                      }
                                     }
                                   }
                                 }
@@ -1979,6 +1999,10 @@
     {
       "name": "player",
       "id": "j1],Vq8{pQxNhx,*Gh,b"
+    },
+    {
+      "name": "camera",
+      "id": "sgCam#Var0x3y-20zQ1"
     }
   ]
 }
