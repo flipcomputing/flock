@@ -269,11 +269,20 @@
                       },
                       "inputs": {
                         "RADIUS": {
-                          "block": {
+                          "shadow": {
                             "type": "math_number",
                             "id": "`:V4V,?|pQ27CGaOK^$R",
                             "fields": {
                               "NUM": 10
+                            }
+                          }
+                        },
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "9Rpr-iluM=B?WGnBoZBi",
+                            "fields": {
+                              "NUM": 90
                             }
                           }
                         }

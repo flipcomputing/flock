@@ -1040,11 +1040,20 @@
                                       },
                                       "inputs": {
                                         "RADIUS": {
-                                          "block": {
+                                          "shadow": {
                                             "type": "math_number",
                                             "id": "M^j|%efma,sU3146`6+j",
                                             "fields": {
                                               "NUM": 7
+                                            }
+                                          }
+                                        },
+                                        "ANGLE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "*PbQ7]fou#69h$8E^lJQ",
+                                            "fields": {
+                                              "NUM": 90
                                             }
                                           }
                                         }

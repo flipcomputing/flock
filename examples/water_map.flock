@@ -614,7 +614,7 @@
                           }
                         },
                         "ANGLE": {
-                          "block": {
+                          "shadow": {
                             "type": "math_number",
                             "id": "k}Rr|WdfNA/M?WAeFb8W",
                             "fields": {

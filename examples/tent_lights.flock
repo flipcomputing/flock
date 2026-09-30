@@ -1011,6 +1011,15 @@
                                       "NUM": 5
                                     }
                                   }
+                                },
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "i9C3FlvG.Rq`gq9wD~U`",
+                                    "fields": {
+                                      "NUM": 90
+                                    }
+                                  }
                                 }
                               }
                             }

@@ -2425,6 +2425,15 @@
                                   "NUM": 7
                                 }
                               }
+                            },
+                            "ANGLE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "1wvpwf@WFM{~d%vk&ZtO",
+                                "fields": {
+                                  "NUM": 90
+                                }
+                              }
                             }
                           }
                         }

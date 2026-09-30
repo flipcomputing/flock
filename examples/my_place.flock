@@ -630,6 +630,15 @@
                               "NUM": 5
                             }
                           }
+                        },
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "NuhSBq/Yu6-R!vq%E,*9",
+                            "fields": {
+                              "NUM": 90
+                            }
+                          }
                         }
                       }
                     }

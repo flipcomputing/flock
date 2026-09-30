@@ -660,11 +660,20 @@
                               },
                               "inputs": {
                                 "RADIUS": {
-                                  "block": {
+                                  "shadow": {
                                     "type": "math_number",
                                     "id": "Ye+K,/SwM.ae~7ub7^#H",
                                     "fields": {
                                       "NUM": 10
+                                    }
+                                  }
+                                },
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "P`W}n?LW*i)%@7i9AE%I",
+                                    "fields": {
+                                      "NUM": 90
                                     }
                                   }
                                 }
