@@ -412,7 +412,12 @@ export function hintIfXrModeMissing(workspace) {
   }
 }
 
-export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
+export function loadWorkspaceAndExecute(
+  json,
+  workspace,
+  executeCallback,
+  { focusCanvas = false } = {}
+) {
   if (!workspace || !json) {
     throw new Error('Invalid workspace or json data.');
   }
@@ -426,7 +431,7 @@ export function loadWorkspaceAndExecute(json, workspace, executeCallback) {
     syncCollapsedBlockIcons(workspace);
 
     workspace.scroll(0, 0);
-    executeCallback({ focusCanvas: false });
+    executeCallback({ focusCanvas });
     hintIfXrModeMissing(workspace);
   } catch (error) {
     console.error('Failed to load workspace:', error);
@@ -1102,7 +1107,7 @@ export async function loadExample(file, name, executeCallback = window.executeCo
     .then((json) => {
       console.log('Loading:', name || file);
       clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, executeCallback);
+      loadWorkspaceAndExecute(json, workspace, executeCallback, { focusCanvas: true });
     })
     .catch((error) => {
       console.error('Error loading example:', error);
