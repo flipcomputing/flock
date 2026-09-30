@@ -6,7 +6,7 @@
         "type": "procedures_defnoreturn",
         "id": "%6CG-tkp5Z0nX(~e6^Z5",
         "x": 10,
-        "y": 1752,
+        "y": 1737,
         "extraState": {
           "params": [
             {
@@ -673,7 +673,7 @@
                                                                   "block": {
                                                                     "type": "load_multi_object",
                                                                     "id": "i6V@0np8BhR:^b@.XT_r",
-                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                     "fields": {
                                                                       "ID_VAR": {
                                                                         "id": "LOE54v[a8sU%wLiUljwe"
@@ -825,7 +825,7 @@
                                                                       "block": {
                                                                         "type": "load_multi_object",
                                                                         "id": "dLo|/VrDvfF3h`MAiuA2",
-                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                         "fields": {
                                                                           "ID_VAR": {
                                                                             "id": "c$R~ugRwM!vz)Q!Q+b|V"
@@ -946,7 +946,7 @@
                                                                           "block": {
                                                                             "type": "load_multi_object",
                                                                             "id": ",JbveqRTYSbxji6N`%v8",
-                                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                             "fields": {
                                                                               "ID_VAR": {
                                                                                 "id": "VC=w.:}Z1*[,wP2aSL3I"
@@ -1031,7 +1031,7 @@
                                                                                         "type": "colour",
                                                                                         "id": "[,,ql%Wba[2@-~%r`q(g",
                                                                                         "fields": {
-                                                                                          "COLOR": "#009900"
+                                                                                          "COLOR": "#006600"
                                                                                         }
                                                                                       }
                                                                                     },
@@ -1144,7 +1144,7 @@
                         "type": "material",
                         "id": "Q.f9s+zqKHHq7yh(h7H]",
                         "fields": {
-                          "TEXTURE_SET": "none.png"
+                          "TEXTURE_SET": "grass_clumps.png"
                         },
                         "inputs": {
                           "BASE_COLOR": {
@@ -1284,7 +1284,7 @@
         "type": "start",
         "id": "{g$cm45*Z:gTUFuLsUBR",
         "x": 10,
-        "y": 428,
+        "y": 425,
         "inputs": {
           "DO": {
             "block": {
@@ -1434,13 +1434,13 @@
         "type": "start",
         "id": "(H/pB]49WY;0TQ@BI95+",
         "x": 10,
-        "y": 848,
+        "y": 839,
         "inputs": {
           "DO": {
             "block": {
               "type": "load_character",
               "id": "?QNwo%JfFH4ReJd^g9j5",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "{?OSO?CbNQqn6M#)_-vP"
@@ -1462,7 +1462,7 @@
                     "type": "math_number",
                     "id": "Z%BMt~;?BuajE(8s8t?D",
                     "fields": {
-                      "NUM": 0
+                      "NUM": 4
                     }
                   }
                 },
@@ -1660,7 +1660,7 @@
                                 "type": "math_number",
                                 "id": "gRO/z3I}{9+RnhK?nO_F",
                                 "fields": {
-                                  "NUM": 90
+                                  "NUM": 80
                                 }
                               }
                             }
@@ -1679,7 +1679,7 @@
         "type": "start",
         "id": "/#J`?-.g=CCgmamcBCrk",
         "x": 10,
-        "y": 1416,
+        "y": 1401,
         "inputs": {
           "DO": {
             "block": {
@@ -1711,7 +1711,7 @@
         "type": "procedures_defnoreturn",
         "id": "[X?U)b{G)yd?8z-p(,tE",
         "x": 10,
-        "y": 3282,
+        "y": 3262,
         "fields": {
           "NAME": "candy"
         },
@@ -1720,7 +1720,7 @@
             "block": {
               "type": "create_sphere",
               "id": "F%dCixg1d2{=}tMI#d47",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "oa=@{TS4gWA8g,5(1mq8"
@@ -2036,7 +2036,7 @@
                                                       "block": {
                                                         "type": "clone_mesh",
                                                         "id": "BP3hd[qn3w83hpz={W@Q",
-                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                         "fields": {
                                                           "CLONE_VAR": {
                                                             "id": "1fhdB#.CLQj@LzPYip8H"
@@ -2327,7 +2327,8 @@
                                                                                     "type": "colour_from_string",
                                                                                     "id": "s`-_Gkniz=IrrsKus-]G",
                                                                                     "fields": {
-                                                                                      "COLOR": "#008000"
+                                                                                      "HASH_PREFIX": "#",
+                                                                                      "COLOR": "008000"
                                                                                     }
                                                                                   }
                                                                                 }
@@ -2563,7 +2564,8 @@
                                                                                                   "type": "colour_from_string",
                                                                                                   "id": "[7W1%2ThVcF3wg3)hz3S",
                                                                                                   "fields": {
-                                                                                                    "COLOR": "#008000"
+                                                                                                    "HASH_PREFIX": "#",
+                                                                                                    "COLOR": "008000"
                                                                                                   }
                                                                                                 }
                                                                                               }
@@ -2701,7 +2703,8 @@
                                                                                                                   "type": "colour_from_string",
                                                                                                                   "id": "US`uMH}~$9Fw,l~}Y6[T",
                                                                                                                   "fields": {
-                                                                                                                    "COLOR": "#008000"
+                                                                                                                    "HASH_PREFIX": "#",
+                                                                                                                    "COLOR": "008000"
                                                                                                                   }
                                                                                                                 }
                                                                                                               },
@@ -3027,7 +3030,7 @@
         "type": "start",
         "id": "}8B%x5IAHe;v9S:*]B!B",
         "x": 10,
-        "y": 1584,
+        "y": 1569,
         "inputs": {
           "DO": {
             "block": {
@@ -3044,7 +3047,7 @@
         "type": "start",
         "id": "I{qTHiAq|G(by?rggdUq",
         "x": 10,
-        "y": 5542,
+        "y": 5494,
         "inputs": {
           "DO": {
             "block": {
@@ -3662,7 +3665,7 @@
         "type": "forever",
         "id": "$$i@z!T[?b%=ld;r4{i_",
         "x": 10,
-        "y": 6554,
+        "y": 6496,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -4146,8 +4149,7 @@
         "type": "start",
         "id": "?T(?l~c.p?=G#xymQ}Pp",
         "x": 10,
-        "y": 7724,
-        "collapsed": true,
+        "y": 7804,
         "inputs": {
           "DO": {
             "block": {
@@ -4155,6 +4157,16 @@
               "id": "%5vZejilxv@%8fYXiNX@",
               "fields": {
                 "MODE": "VR"
+              },
+              "next": {
+                "block": {
+                  "type": "set_xr_view_mode",
+                  "id": "~~7E7j_1s+k!Pt_L*Dp$",
+                  "fields": {
+                    "VIEW": "watch",
+                    "MOTION": "smooth"
+                  }
+                }
               }
             }
           }
