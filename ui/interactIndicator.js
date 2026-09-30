@@ -6,7 +6,6 @@ import {
   Vector3,
   Mesh,
   ActionManager,
-  ActionEvent,
   Ray,
 } from '@babylonjs/core';
 import { hideFromInspector } from './inspectorVisibility.js';
@@ -99,6 +98,26 @@ function _isDescendantOf(mesh, ancestor) {
   return false;
 }
 
+// Forwarder actions (group shells passing clicks through to members) are
+// pick triggers technically, but the shell itself isn't interactable.
+function _hasRealPickTrigger(mesh) {
+  const manager = mesh?.actionManager;
+  if (!manager?.hasPickTriggers) return false;
+  for (const action of manager.actions || []) {
+    if (!action || action._flockForwarder) continue;
+    if (
+      action.trigger === ActionManager.OnPickTrigger ||
+      action.trigger === ActionManager.OnLeftPickTrigger ||
+      action.trigger === ActionManager.OnDoublePickTrigger ||
+      action.trigger === ActionManager.OnPickDownTrigger ||
+      action.trigger === ActionManager.OnPickUpTrigger
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function attachInteractIndicator(scene, inputManager) {
   // Already attached with a live icon — nothing to do.
   if (_icon && !_icon.isDisposed()) return;
@@ -157,10 +176,17 @@ export function attachInteractIndicator(scene, inputManager) {
     // An actionManager alone doesn't make a mesh interactable — onIntersect
     // attaches one purely for intersection triggers. Require a real pick trigger
     // (matching the OnPickTrigger/OnLeftPickTrigger the BUTTON2 handler fires).
-    if (m === _icon || !m.actionManager?.hasPickTriggers) return false;
-    if (!m.isVisible || !m.isEnabled?.()) return false;
+    if (m === _icon || !m.isVisible || !m.isEnabled?.()) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
-    return true;
+    if (_hasRealPickTrigger(m)) return true;
+    // Bubble: a member without its own trigger still clicks through to a
+    // group/parent handler (see onTrigger's recursive action managers).
+    let node = m.parent;
+    while (node) {
+      if (_hasRealPickTrigger(node)) return true;
+      node = node.parent;
+    }
+    return false;
   };
   _losPredicate = (m) => {
     if (m === _icon || !m.isVisible || !m.isPickable) return false;
@@ -177,16 +203,27 @@ export function attachInteractIndicator(scene, inputManager) {
     _actionCallback = (action) => {
       if (action !== 'BUTTON2') return;
       if (_inputManager?.hasActionOverride('BUTTON2')) return;
-      if (!_currentTarget?.actionManager) return;
+      if (!_currentTarget) return;
       const target = _currentTarget;
-      target.actionManager.processTrigger(
-        ActionManager.OnPickTrigger,
-        ActionEvent.CreateNew(target)
-      );
-      target.actionManager.processTrigger(
-        ActionManager.OnLeftPickTrigger,
-        ActionEvent.CreateNew(target)
-      );
+      // Route like a pointer click: nearest manager up the hierarchy wins,
+      // so a member without its own trigger bubbles to its group/parent.
+      // No pointer coords here, so pass a synthetic event that skips the
+      // shell's occlusion re-delegation (which needs screen coordinates).
+      const fire = (trigger) => {
+        const mgr =
+          typeof target._getActionManagerForTrigger === 'function'
+            ? target._getActionManagerForTrigger(trigger)
+            : null;
+        (mgr ?? target.actionManager)?.processTrigger(trigger, {
+          source: target,
+          meshUnderPointer: target,
+          pointerX: undefined,
+          pointerY: undefined,
+          __flockDelegated: true,
+        });
+      };
+      fire(ActionManager.OnPickTrigger);
+      fire(ActionManager.OnLeftPickTrigger);
       for (const cb of _interactListeners) cb(target);
     };
     // Keep the observer handle: SimpleObservable.remove() matches on the
@@ -254,6 +291,27 @@ function _updateIndicator(scene) {
 
   if (hit?.hit && hit.pickedMesh) {
     target = hit.pickedMesh;
+    // A group shell encloses its members, so the ray hits the shell first
+    // even when aiming at a member. See through it to the aimed-at member.
+    if (
+      (target.visibility === 0 || target.metadata?.shapeType === 'Group') &&
+      typeof scene.multiPickWithRay === 'function'
+    ) {
+      try {
+        const hits = scene.multiPickWithRay(_ray, _predicate);
+        if (hits?.length) {
+          for (const h of hits) {
+            const m = h?.pickedMesh;
+            if (!m || m === target) continue;
+            if (!_isDescendantOf(m, target)) break;
+            target = m;
+            if (m.visibility !== 0) break;
+          }
+        }
+      } catch {
+        // Fall through with the shell target.
+      }
+    }
   } else {
     // Fallback: candidate with smallest angle to camera forward within the half-angle cone.
     let bestCos = _COS_MAX_HALF_ANGLE;
@@ -323,7 +381,8 @@ function _updateIndicator(scene) {
         losHit?.hit &&
         losHit.pickedMesh &&
         losHit.pickedMesh !== target &&
-        !_isDescendantOf(losHit.pickedMesh, target)
+        !_isDescendantOf(losHit.pickedMesh, target) &&
+        !_isDescendantOf(target, losHit.pickedMesh)
       ) {
         target = null;
       }

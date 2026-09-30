@@ -412,7 +412,8 @@ async function buildTextVertexData(
   const bbHeight = mesh.getBoundingInfo().boundingBox.extendSize.y * 2;
   // Use the font's cap height as the normalization reference so that glyphs
   // with a small bounding box (e.g. "*") are not scaled up disproportionately.
-  const normReference = fontReferenceHeight ?? bbHeight;  if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
+  const normReference = fontReferenceHeight ?? bbHeight;
+  if (bbHeight > 0 && Math.abs(normReference - size) > 0.001) {
     const normScale = size / normReference;
     mesh.scaling.x = normScale;
     mesh.scaling.y = normScale;
@@ -529,6 +530,9 @@ export const flockShapes = {
     newGroup.metadata.blockKey = blockKey;
     newGroup.visibility = 0;
     newGroup.metadata.sharedGeometry = false;
+    // The shell encloses its members, so without this it would swallow
+    // their clicks even when the group itself has no click handler.
+    flock.ensureGroupPickForwarder?.(newGroup);
 
     flock.announceMeshReady(newGroup.name, groupName);
     flock._registerInstance(blockKey, newGroup.name);
@@ -687,7 +691,8 @@ export const flockShapes = {
       cylinderShape = new flock.BABYLON.PhysicsShapeConvexHull(newCylinder, flock.scene);
     }
     flock.applyPhysics(newCylinder, cylinderShape);
-    newCylinder.metadata.physicsShapeType = diameterTop === diameterBottom ? 'CYLINDER' : 'CONVEX_HULL';
+    newCylinder.metadata.physicsShapeType =
+      diameterTop === diameterBottom ? 'CYLINDER' : 'CONVEX_HULL';
 
     flock.announceMeshReady(newCylinder.name, groupName);
     flock._registerInstance(blockKey, newCylinder.name);

@@ -743,6 +743,18 @@ export const flockScene = {
           delete node.metadata.blockKey;
         });
 
+        if (clone.metadata?.shapeType === 'Group') {
+          // A cloned action manager would still close over the source shell,
+          // so drop any copied forwarders and bind fresh ones to the clone.
+          if (clone.actionManager) {
+            for (const action of [...clone.actionManager.actions]) {
+              if (action?._flockForwarder) clone.actionManager.unregisterAction(action);
+            }
+          }
+          delete clone.metadata._pickForwarded;
+          flock.ensureGroupPickForwarder?.(clone);
+        }
+
         const cloneNameFor = (sourceNode) => {
           const path = [];
           for (let node = sourceNode; node && node !== sourceMesh; node = node.parent) {
