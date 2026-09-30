@@ -810,6 +810,7 @@ export const flockTransform = {
         mesh.setAbsolutePosition(oldAnchorWorld);
         mesh.computeWorldMatrix(true);
         flock.updatePhysics(mesh);
+        teleportBodyToMesh(mesh);
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
@@ -878,6 +879,7 @@ export const flockTransform = {
     const maxW = bb.maximumWorld;
 
     const pivotSettings = currentAnchorSettings(mesh);
+    let numericAnchorWorld;
 
     function resolveAxis(axisKey, setting) {
       const min = minW[axisKey];
@@ -895,7 +897,13 @@ export const flockTransform = {
         }
       }
 
-      if (typeof setting === 'number') return setting;
+      if (typeof setting === 'number') {
+        numericAnchorWorld ??= flock.BABYLON.Vector3.TransformCoordinates(
+          flock._resolveAnchorLocal(mesh, pivotSettings),
+          mesh.getWorldMatrix()
+        );
+        return numericAnchorWorld[axisKey];
+      }
 
       // Fallback to center
       return (min + max) / 2;

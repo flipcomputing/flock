@@ -65,6 +65,8 @@ const driveOne = (mesh) => {
       body.setMotionType(drive.motionType);
       body.setPrestepType(drive.prestepType);
       body.disablePreStep = drive.disablePreStep;
+      body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+      body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
       teleportOne(mesh);
     },
   };
