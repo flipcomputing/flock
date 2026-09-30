@@ -1173,6 +1173,41 @@ const toolboxSceneCamera = {
   contents: [
     {
       kind: 'block',
+      type: 'create_fly_camera',
+      keyword: 'flycam',
+      inputs: {
+        X: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+        Y: { shadow: { type: 'math_number', fields: { NUM: 2 } } },
+        Z: { shadow: { type: 'math_number', fields: { NUM: -8 } } },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'create_follow_camera',
+      keyword: 'followcam',
+      inputs: {
+        DISTANCE: { shadow: { type: 'math_number', fields: { NUM: 7 } } },
+        UP: { shadow: { type: 'math_number', fields: { NUM: 30 } } },
+        AROUND: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'create_orbit_camera',
+      keyword: 'orbitcam',
+      inputs: {
+        DISTANCE: { shadow: { type: 'math_number', fields: { NUM: 7 } } },
+        UP: { shadow: { type: 'math_number', fields: { NUM: 30 } } },
+        AROUND: { shadow: { type: 'math_number', fields: { NUM: 0 } } },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'switch_camera',
+      keyword: 'switchcam',
+    },
+    {
+      kind: 'block',
       type: 'get_camera',
       keyword: 'cam',
     },

@@ -628,7 +628,45 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     const front = block.getFieldValue('FRONT') === 'TRUE';
 
-    return `await attachCamera(${modelName}, { radius: ${radius}, angle: ${angle}, front: ${front} });\n`;
+    const { generatedName: cameraVar, userVariableName } = getVariableInfo(block, 'CAM_VAR');
+
+    return `${cameraVar} = await attachCamera(${modelName}, { radius: ${radius}, angle: ${angle}, front: ${front}, name: ${JSON.stringify(userVariableName)} });\n`;
+  };
+
+  // Add camera ------------------------------------------------------
+  javascriptGenerator.forBlock['create_fly_camera'] = function (block) {
+    return createMesh(block, 'Camera', [
+      `type: "fly"`,
+      `position: ${getPositionTuple(block)}`,
+      `visible: ${block.getFieldValue('VISIBLE') === 'TRUE'}`,
+    ]);
+  };
+
+  const targetCameraGenerator = (type) => (block) => {
+    const target = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('TARGET'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    return createMesh(block, 'Camera', [
+      `type: ${JSON.stringify(type)}`,
+      `target: ${target}`,
+      `distance: ${getFieldValue(block, 'DISTANCE', '7')}`,
+      `up: ${getFieldValue(block, 'UP', '30')}`,
+      `around: ${getFieldValue(block, 'AROUND', '0')}`,
+      `visible: ${block.getFieldValue('VISIBLE') === 'TRUE'}`,
+    ]);
+  };
+  javascriptGenerator.forBlock['create_follow_camera'] = targetCameraGenerator('follow');
+  javascriptGenerator.forBlock['create_orbit_camera'] = targetCameraGenerator('orbit');
+
+  // Use camera ------------------------------------------------------
+  javascriptGenerator.forBlock['switch_camera'] = function (block) {
+    const cameraName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('CAMERA'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    return `await switchCamera(${cameraName});\n`;
   };
 
   // Camera rotate --------------------------------------------------

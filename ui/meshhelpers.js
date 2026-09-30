@@ -1,5 +1,8 @@
 import { flock } from '../flock.js';
 
+// Where a click can place something: camera frames are skipped.
+export const isPlacementSurface = (mesh) => mesh.isPickable && mesh.metadata?.shape !== 'camera';
+
 export function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
 }
@@ -30,7 +33,7 @@ export function roundVectorToFixed(vector, decimals) {
   );
 }
 
-const PICK_OK = (m) => m && m.isPickable !== false;
+const PICK_OK = (m) => m && m.isPickable !== false && m.metadata?.shape !== 'camera';
 
 function isLeafMesh(m) {
   if (!m || m.isDisposed?.()) return false;

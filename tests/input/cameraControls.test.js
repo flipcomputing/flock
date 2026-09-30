@@ -316,6 +316,50 @@ export function runCameraControlsTests() {
         expect(flock.scene.activeCamera.alpha).to.equal(1);
       });
 
+      it('a project orbit camera rotates and zooms like orbit view', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock.inputManager._setKey('a', true);
+        flock.inputManager._setKey('w', true);
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(camera.alpha).to.be.lessThan(1);
+        expect(camera.beta).to.be.lessThan(1);
+        expect(camera.radius).to.be.lessThan(10);
+      });
+
+      it('the joystick turns an orbit camera', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock._joystickSource = { getMove: () => ({ x: 1, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        flock._joystickSource = null;
+        expect(camera.alpha).to.be.greaterThan(1);
+        expect(camera.beta).to.be.lessThan(1);
+      });
+
+      it('an orbit camera ignores the keys while canvas controls are off', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock._canvasControlsEnabled = false;
+        flock.inputManager._setKey('a', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        flock._canvasControlsEnabled = undefined;
+        expect(camera.alpha).to.equal(1);
+      });
+
+      it('a project follow camera ignores the keys', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'follow' };
+        flock.scene.activeCamera = camera;
+        flock.inputManager._setKey('a', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(camera.alpha).to.equal(1);
+      });
+
       it('a follow camera without orbitView ignores the keys', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
         flock.inputManager._setKey('a', true);

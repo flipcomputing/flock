@@ -22,6 +22,7 @@ import { createThemeConfig } from '../main/themes.js';
 import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
 import { FieldBlockSearch } from './fieldBlockSearch.js';
 import './fieldPickPosition.js'; // registers field_pick_position
+import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
 
 registerFieldColour();
 
@@ -1500,6 +1501,7 @@ export function initializeVariableIndexes() {
     wedge: 1,
     donut: 1,
     plane: 1,
+    camera: 1,
     wall: 1,
     text: 1,
     '3dtext': 1,

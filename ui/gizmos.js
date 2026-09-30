@@ -32,7 +32,12 @@ import {
   isBlockLocked,
   stripLockState,
 } from './blocklyutil.js';
-import { getMeshRotationInDegrees, roundToOneDecimal, pickLeafFromRay } from './meshhelpers.js';
+import {
+  getMeshRotationInDegrees,
+  roundToOneDecimal,
+  pickLeafFromRay,
+  isPlacementSurface,
+} from './meshhelpers.js';
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
@@ -145,6 +150,8 @@ let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
 let orbitDisposeMesh = null; // Mesh the orbit camera targets (window.orbitMesh)
 let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
 let orbitRetargetObserver = null; // Pointer observer that lets a canvas click switch orbit target
+let previewFrame = null; // Camera frame being looked through via the eye gizmo
+let previewSavedCamera = null; // Camera to return to when the preview ends
 
 // Tools that keep the orbit camera active.
 const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select', 'delete']);
@@ -470,7 +477,7 @@ function registerBindings() {
     'Escape',
     noMod(() => {
       try {
-        if (cameraMode === 'fly') handleCameraGizmo();
+        if (cameraMode === 'fly') toggleFlyMode();
         exitGizmoState();
         gizmoManager?.attachToMesh(null);
       } catch {
@@ -1461,7 +1468,7 @@ function attachOrbitView(mesh) {
   const scene = flock.scene;
   // Orbit owns the camera, so drop out of fly mode before capturing the
   // camera to orbit from — otherwise it would orbit from the fly camera.
-  if (cameraMode === 'fly') handleCameraGizmo();
+  if (cameraMode === 'fly') toggleFlyMode();
   const freeCamera = scene.activeCamera;
   if (!freeCamera) return;
 
@@ -1484,14 +1491,7 @@ function attachOrbitView(mesh) {
     target,
     scene
   );
-  // Unconstrained beta; no chase/zoom constraints.
-  orbitCamera.lowerBetaLimit = null;
-  orbitCamera.upperBetaLimit = null;
-  orbitCamera.allowUpsideDown = true;
-  orbitCamera.lowerRadiusLimit = null;
-  orbitCamera.upperRadiusLimit = null;
-  orbitCamera.minZ = 0.1;
-  orbitCamera.wheelDeltaPercentage = 0.01;
+  flock._configureOrbitCamera(orbitCamera);
   // Rotation comes from CameraControls via the InputManager, so drop Babylon's
   // keyboard input to keep physical arrows on a single path.
   orbitCamera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
@@ -1633,6 +1633,222 @@ function disconnectOrbitView() {
   }
 }
 
+function isCameraFrame(mesh) {
+  return mesh?.metadata?.shape === 'camera';
+}
+
+function isTargetCameraFrame(mesh) {
+  return isCameraFrame(mesh) && mesh.metadata.cameraType !== 'fly';
+}
+
+// A follow/orbit camera whose target doesn't exist has nothing to measure a
+// move from, so it can't be moved.
+function isUntargetedCameraFrame(mesh) {
+  return isTargetCameraFrame(mesh) && !mesh.metadata.cameraTarget;
+}
+
+function applyPositionHandles(mesh) {
+  const pg = gizmoManager?.gizmos?.positionGizmo;
+  if (!pg) return;
+  const enabled = !isUntargetedCameraFrame(mesh);
+  const handles = [pg.xGizmo, pg.yGizmo, pg.zGizmo, pg.xPlaneGizmo, pg.yPlaneGizmo, pg.zPlaneGizmo];
+  for (const g of handles) {
+    if (!g) continue;
+    g.isEnabled = enabled;
+    if (enabled) g.attachedMesh = gizmoManager.attachedMesh;
+  }
+}
+
+function isCameraPreviewActive() {
+  return !!previewFrame;
+}
+
+function enterCameraPreview(frame) {
+  const camera = frame?.metadata?.camera;
+  if (!camera || camera.isDisposed()) return false;
+  if (isOrbitViewActive()) disconnectOrbitView();
+  if (cameraMode === 'fly') toggleFlyMode();
+  if (previewFrame) exitCameraPreview();
+
+  const scene = flock.scene;
+  const current = scene.activeCamera;
+  previewFrame = frame;
+  previewSavedCamera = current;
+  if (current !== camera) {
+    current?.detachControl();
+    scene.activeCamera = camera;
+  }
+  flock.inputManager?.setInputOwner('editor');
+  const canvas = scene.getEngine().getRenderingCanvas();
+  if (canvas) {
+    camera.attachControl(canvas, false);
+    canvas.focus();
+  }
+  showStatus(translate('camera_preview_info'), { owner: 'camera-preview', hint: true });
+  return true;
+}
+
+function exitCameraPreview(returnTo = null) {
+  if (!previewFrame) return false;
+  const scene = flock.scene;
+  const previewCamera = previewFrame.metadata?.camera;
+  const saved = previewSavedCamera;
+  previewFrame = null;
+  previewSavedCamera = null;
+  flock.inputManager?.setInputOwner('project');
+  clearStatus('camera-preview');
+  if (!scene || scene.isDisposed) return true;
+
+  const back = [returnTo, saved, flock.mainCamera, flock.defaultCamera].find(
+    (camera) => camera && !camera.isDisposed()
+  );
+  if (back && scene.activeCamera !== back) {
+    (scene.activeCamera ?? previewCamera)?.detachControl();
+    scene.activeCamera = back;
+    const canvas = scene.getEngine().getRenderingCanvas();
+    if (canvas) back.attachControl(canvas, false);
+  }
+  return true;
+}
+
+// The camera frame the camera gizmo and block buttons act on: the selected
+// mesh, or the mesh of the selected camera block.
+function selectedCameraFrame() {
+  const attached = gizmoManager?.attachedMesh;
+  if (isCameraFrame(attached)) return attached;
+  const block = window.currentBlock;
+  if (block && !block.disposed) {
+    const mesh = getMeshFromBlock(block);
+    if (isCameraFrame(mesh)) return mesh;
+  }
+  return null;
+}
+
+// Look through the camera, or when it is already showing, go back to the
+// player's camera (or the built-in fly camera if there isn't one).
+function toggleCameraView(frame) {
+  const camera = frame?.metadata?.camera;
+  if (!camera || camera.isDisposed()) return;
+  if (flock.scene.activeCamera !== camera) {
+    enterCameraPreview(frame);
+    return;
+  }
+  const back = [flock.mainCamera, flock.defaultCamera].find(
+    (candidate) => candidate && candidate !== camera && !candidate.isDisposed()
+  );
+  if (exitCameraPreview(back)) return;
+  if (back) flock._activateCamera(back);
+}
+
+export function viewCameraForBlock(block) {
+  const frame = getMeshFromBlock(block);
+  if (isCameraFrame(frame) && flock.scene.activeCamera !== frame.metadata.camera) {
+    enterCameraPreview(frame);
+  }
+}
+
+// Copy the view you're editing from into the camera block. A fly camera takes
+// its position and rotation; a follow/orbit camera asks for the object to
+// look at, then takes its distance and angles from the view to that object.
+export function captureViewToCameraBlock(block) {
+  const frame = getMeshFromBlock(block);
+  if (!isCameraFrame(frame) || block.disposed) return;
+  const rigCamera = frame.metadata.camera;
+  let view = flock.scene.activeCamera;
+  if (view === rigCamera) view = previewSavedCamera ?? flock.defaultCamera;
+  if (!view || view.isDisposed()) return;
+  view.computeWorldMatrix(true);
+  const eye = view.globalPosition.clone();
+
+  if (block.type === 'create_fly_camera') {
+    const rotation = view.absoluteRotation.clone();
+    inEventGroup(() => {
+      frame.setAbsolutePosition(eye);
+      frame.rotationQuaternion = rotation;
+      frame.computeWorldMatrix(true);
+      writePositionToBlock(block, flock.getBlockPositionFromMesh(frame));
+      updateRotationBlock(frame);
+    });
+    return;
+  }
+
+  pickMeshFromScene(
+    (pickedMesh) => {
+      let target = pickedMesh;
+      if (target?.parent) target = getRootMesh(target.parent);
+      const targetBlock = meshMap[target?.metadata?.blockKey];
+      const targetVar = getOwnVar(targetBlock);
+      const offset = flock.cameraOffsetFromTarget(target, eye);
+      if (!targetVar || !offset || isCameraFrame(target) || block.disposed) return;
+      inEventGroup(() => {
+        block.setFieldValue(targetVar, 'TARGET');
+        setNumberInputs(block, {
+          DISTANCE: offset.distance,
+          UP: offset.up,
+          AROUND: offset.around,
+        });
+      });
+    },
+    false,
+    translate('select_camera_target_prompt')
+  );
+}
+
+function inEventGroup(fn) {
+  Blockly.Events.setGroup(Blockly.utils.idGenerator.genUid());
+  try {
+    fn();
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
+function writeCameraOffsetToBlock(block, frame, eye) {
+  const offset = flock.cameraOffsetFromTarget(frame.name, eye);
+  if (offset) {
+    setNumberInputs(block, { DISTANCE: offset.distance, UP: offset.up, AROUND: offset.around });
+  }
+}
+
+
+const editorCameraOverride = {
+  active: () => cameraMode === 'fly' || isOrbitViewActive() || isCameraPreviewActive(),
+  setReturnCamera(camera) {
+    if (isCameraPreviewActive()) previewSavedCamera = camera;
+    else if (isOrbitViewActive()) orbitSavedCamera = camera;
+    else if (cameraMode === 'fly') flock.savedCamera = camera;
+  },
+  isPreviewing: (frame) => !!frame && previewFrame === frame,
+  // A rebuild keeps the preview open, showing the return camera until the
+  // new camera is ready.
+  cameraDisposed(camera, { rebuilding = false } = {}) {
+    if (previewFrame?.metadata?.camera === camera) {
+      if (rebuilding) showCameraInEditor(previewReturnCamera());
+      else exitCameraPreview();
+    }
+    if (previewSavedCamera === camera) previewSavedCamera = null;
+    if (orbitSavedCamera === camera) orbitSavedCamera = flock.mainCamera ?? flock.defaultCamera;
+  },
+  previewRebuilt(frame, camera) {
+    if (previewFrame === frame) showCameraInEditor(camera);
+  },
+};
+
+function previewReturnCamera() {
+  return [previewSavedCamera, flock.mainCamera, flock.defaultCamera].find(
+    (camera) => camera && !camera.isDisposed()
+  );
+}
+
+function showCameraInEditor(camera) {
+  const scene = flock.scene;
+  if (!scene || !camera || camera.isDisposed() || scene.activeCamera === camera) return;
+  scene.activeCamera?.detachControl();
+  scene.activeCamera = camera;
+  const canvas = scene.getEngine().getRenderingCanvas();
+  if (canvas) camera.attachControl(canvas, false);
+}
+
 function getScaledSize(mesh) {
   let { originalMin, originalMax } = mesh.metadata || {};
   // Empty container (e.g. a group): size lives in the children. Cache it
@@ -1744,6 +1960,17 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     mesh.computeWorldMatrix(true);
     const block = meshMap[mesh?.metadata?.blockKey];
 
+    if (isTargetCameraFrame(mesh)) {
+      const camera = mesh.metadata.camera;
+      flock._releaseFollowCameraLimits(camera);
+      camera?.setPosition(mesh.getAbsolutePosition().clone());
+      flock._settleFollowCameraLimits(camera);
+      if (block && !block.disposed) {
+        inEventGroup(() => writeCameraOffsetToBlock(block, mesh, mesh.getAbsolutePosition()));
+      }
+      return;
+    }
+
     // One event group per nudge so the moved mesh's block and any parented
     // children's blocks revert together as a single undo.
     const groupId = Blockly.utils.idGenerator.genUid();
@@ -1788,12 +2015,35 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
 }
 
 // Rotate a mesh using the keyboard
+// Follow and orbit cameras always face their target, so they can't be rotated.
+function applyRotationHandles(mesh) {
+  const rg = gizmoManager?.gizmos?.rotationGizmo;
+  if (!rg) return;
+  const enabled = !isTargetCameraFrame(mesh);
+  for (const g of [rg.xGizmo, rg.yGizmo, rg.zGizmo]) {
+    if (!g) continue;
+    g.isEnabled = enabled;
+    if (enabled) g.attachedMesh = gizmoManager.attachedMesh;
+  }
+}
+
 function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
   const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
   cleanupScenePick();
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
+  applyRotationHandles(mesh);
+  if (isTargetCameraFrame(mesh)) {
+    const block = meshMap[mesh.metadata?.blockKey];
+    if (block) highlightBlockById(Blockly.getMainWorkspace(), block);
+    showStatus(translate('camera_faces_target_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
+    return;
+  }
 
   const rotateBlock =
     mesh?.metadata?.shapeType === 'Group' ? null : findOrCreateRotateBlock(mesh);
@@ -2024,11 +2274,12 @@ function applyScaleAxisHandles(mesh) {
   if (!sg) return;
   const isGroup = mesh?.metadata?.shapeType === 'Group';
   const isPlane = meshMap[mesh?.metadata?.blockKey]?.type === 'create_plane';
+  const isCamera = isCameraFrame(mesh);
   const enabled = {
-    x: !isGroup,
-    y: !isGroup,
-    z: !isGroup && !isPlane,
-    uniform: !isGroupClone(mesh),
+    x: !isGroup && !isCamera,
+    y: !isGroup && !isCamera,
+    z: !isGroup && !isPlane && !isCamera,
+    uniform: !isGroupClone(mesh) && !isCamera,
   };
   for (const [axis, g] of [
     ['x', sg.xGizmo],
@@ -3004,7 +3255,7 @@ function startDuplicatePlacement() {
       flock.scene.activeCamera
     );
 
-    const pickResult = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
+    const pickResult = flock.scene.pickWithRay(pickRay, isPlacementSurface);
 
     if (pickResult.hit) {
       const pickedPosition = pickResult.pickedPoint;
@@ -3036,7 +3287,7 @@ function startDuplicatePlacement() {
   setTimeout(() => {
     startCanvasKeyboardMode(
       (x, y) => {
-        const pickResult = flock.scene.pick(x, y, (mesh) => mesh.isPickable);
+        const pickResult = flock.scene.pick(x, y, isPlacementSurface);
         if (pickResult?.hit) {
           const workspace = Blockly.getMainWorkspace();
           const originalBlock = workspace.getBlockById(blockId);
@@ -3055,7 +3306,7 @@ function startDuplicatePlacement() {
         }
       },
       false,
-      (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit
+      (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit
     );
     flock.scene.defaultCursor = 'crosshair';
   }, 0);
@@ -3112,6 +3363,14 @@ export function toggleGizmo(gizmoType) {
   if (gizmoType === 'camera' && isOrbitViewActive()) {
     disconnectOrbitView();
     return;
+  }
+  if (gizmoType === 'camera') {
+    const frame = selectedCameraFrame();
+    if (frame) {
+      toggleCameraView(frame);
+      return;
+    }
+    if (exitCameraPreview()) return;
   }
 
   // Is this gizmo already active? If so, toggle it off
@@ -3485,11 +3744,13 @@ function handleRotationGizmo() {
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
-    showStatus(translate('gizmo_controls_hint'), {
-      duration: 10,
-      owner: 'gizmo-controls-hint',
-      hint: true,
-    });
+    if (!isTargetCameraFrame(mesh)) {
+      showStatus(translate('gizmo_controls_hint'), {
+        duration: 10,
+        owner: 'gizmo-controls-hint',
+        hint: true,
+      });
+    }
   } else {
     pickMeshFromScene(
       (pickedMesh) => {
@@ -3508,7 +3769,10 @@ function handleRotationGizmo() {
 
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
-      if (lastRotatedMesh?.metadata?.shapeType !== 'Group') {
+      if (
+        lastRotatedMesh?.metadata?.shapeType !== 'Group' &&
+        !isTargetCameraFrame(lastRotatedMesh)
+      ) {
         updateRotationBlock(lastRotatedMesh); // properly update block if they click out
       }
       updateChildBlockRotations(lastRotatedMesh);
@@ -3519,25 +3783,28 @@ function handleRotationGizmo() {
 
     lastRotatedMesh = mesh;
 
-    showStatus(translate('gizmo_controls_hint'), {
-      duration: 10,
-      owner: 'gizmo-controls-hint',
-      hint: true,
-    });
+    if (!isTargetCameraFrame(mesh)) {
+      showStatus(translate('gizmo_controls_hint'), {
+        duration: 10,
+        owner: 'gizmo-controls-hint',
+        hint: true,
+      });
+    }
     startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
+  onExit(() => applyRotationHandles(null));
 
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
 
-    if (mesh.metadata?.shapeType === 'Group') {
-      const groupBlock = meshMap[mesh.metadata?.blockKey];
-      if (groupBlock) highlightBlockById(Blockly.getMainWorkspace(), groupBlock);
+    if (mesh.metadata?.shapeType === 'Group' || isTargetCameraFrame(mesh)) {
+      const ownerBlock = meshMap[mesh.metadata?.blockKey];
+      if (ownerBlock) highlightBlockById(Blockly.getMainWorkspace(), ownerBlock);
     } else {
       const rotateBlock = findOrCreateRotateBlock(mesh);
       if (rotateBlock) {
@@ -3574,7 +3841,9 @@ function handleRotationGizmo() {
     // writing one axis would disagree with the mesh and jump on re-run.
     // A group's orientation lives in its members (see below), so no
     // rotate_to is written for the group itself - that would apply twice.
-    if (mesh?.metadata?.shapeType !== 'Group') updateRotationBlock(mesh);
+    if (mesh?.metadata?.shapeType !== 'Group' && !isTargetCameraFrame(mesh)) {
+      updateRotationBlock(mesh);
+    }
     updateChildBlockRotations(mesh);
   });
 
@@ -3678,14 +3947,25 @@ function handlePositionGizmo() {
     if (keyboardAttachedMesh === mesh) return;
     keyboardAttachedMesh = mesh;
 
-    showStatus(translate('gizmo_controls_hint'), {
-      duration: 10,
-      owner: 'gizmo-controls-hint',
-      hint: true,
-    });
-    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
-      if (axis) savedHudAxis = axis;
-    });
+    applyPositionHandles(mesh);
+    if (isUntargetedCameraFrame(mesh)) {
+      stopAxisKeyboard?.();
+      stopAxisKeyboard = null;
+      showStatus(translate('camera_needs_target_hint'), {
+        duration: 10,
+        owner: 'gizmo-controls-hint',
+        hint: true,
+      });
+    } else {
+      showStatus(translate('gizmo_controls_hint'), {
+        duration: 10,
+        owner: 'gizmo-controls-hint',
+        hint: true,
+      });
+      startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
+        if (axis) savedHudAxis = axis;
+      });
+    }
 
     const blockKey = mesh?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
@@ -3699,6 +3979,7 @@ function handlePositionGizmo() {
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(posObs));
+  onExit(() => applyPositionHandles(null));
 
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
@@ -3723,6 +4004,7 @@ function handlePositionGizmo() {
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
+    if (isTargetCameraFrame(mesh)) flock._releaseFollowCameraLimits(mesh.metadata.camera);
 
     const motionType = isBodyAlive(mesh.physics) ? mesh.physics.getMotionType() : undefined;
     mesh.savedMotionType = motionType;
@@ -3742,6 +4024,10 @@ function handlePositionGizmo() {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
     mesh.computeWorldMatrix(true);
+    if (isTargetCameraFrame(mesh) && mesh.metadata.camera) {
+      mesh.metadata.camera.setPosition(mesh.getAbsolutePosition().clone());
+      flock._settleFollowCameraLimits(mesh.metadata.camera);
+    }
 
     const block = meshMap[mesh?.metadata?.blockKey];
 
@@ -3750,7 +4036,9 @@ function handlePositionGizmo() {
     const groupId = Blockly.utils.idGenerator.genUid();
     Blockly.Events.setGroup(groupId);
     try {
-      if (block && !block.disposed) {
+      if (block && !block.disposed && isTargetCameraFrame(mesh)) {
+        writeCameraOffsetToBlock(block, mesh, mesh.getAbsolutePosition());
+      } else if (block && !block.disposed) {
         const blockPosition = flock.getBlockPositionFromMesh(mesh);
         writePositionToBlock(block, blockPosition);
       }
@@ -3908,7 +4196,11 @@ function handleCameraGizmo() {
     disconnectOrbitView();
     return;
   }
+  if (exitCameraPreview()) return;
+  toggleFlyMode();
+}
 
+function toggleFlyMode() {
   const cameraButton = document.getElementById('cameraButton');
 
   if (cameraMode === 'play') {
@@ -4067,6 +4359,7 @@ function handleEyeGizmo() {
 }
 
 export function enableGizmos() {
+  flock._editorCameraOverride = editorCameraOverride;
   // Initialize undo handler for DO section cleanup
   addUndoHandler();
 
@@ -4341,6 +4634,7 @@ export function setGizmoManager(value) {
 
 export function disposeGizmoManager() {
   exitGizmoState(); // Clear up gizmo state and event listeners
+  exitCameraPreview();
   if (cameraMode === 'fly') {
     cameraMode = 'play';
     flock.inputManager?.setInputOwner('project');

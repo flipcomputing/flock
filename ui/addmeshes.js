@@ -3,6 +3,7 @@ import { flock } from '../flock.js';
 import {
   extractMaterialInfo,
   getMeshFromBlock,
+  getOwnVar,
   readColourValue,
   readColourList,
   attachToEnclosingGroupIfAny,
@@ -40,6 +41,9 @@ export function createMeshOnCanvas(block) {
     'create_donut',
     'create_plane',
     'create_3d_text',
+    'create_fly_camera',
+    'create_follow_camera',
+    'create_orbit_camera',
   ].includes(block.type);
 
   if (isShape) {
@@ -410,6 +414,28 @@ function applyInitialTransformsWhenReady(block, meshName) {
   });
 }
 
+export function resolveVariableMeshName(block, fieldName) {
+  const variableId = block?.getFieldValue?.(fieldName);
+  if (!variableId) return null;
+  const owner = block.workspace
+    ?.getAllBlocks(false)
+    .find((b) => b !== block && getOwnVar(b) === variableId && getMeshFromBlock(b));
+  return owner ? getMeshFromBlock(owner).name : null;
+}
+
+export function readTargetCameraOptions(block) {
+  const readNumber = (name, fallback) => {
+    const value = parseFloat(block.getInputTargetBlock(name)?.getFieldValue('NUM'));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return {
+    target: resolveVariableMeshName(block, 'TARGET'),
+    distance: readNumber('DISTANCE', 7),
+    up: readNumber('UP', 30),
+    around: readNumber('AROUND', 0),
+  };
+}
+
 function isEligibleForMeshCreation(block) {
   if (!block?.isEnabled?.()) return false;
   if (block.previousConnection && !block.previousConnection.isConnected?.()) {
@@ -630,6 +656,23 @@ function createShapeInternal(block) {
         height: planeHeight,
         position: [position.x, position.y, position.z],
         alpha,
+      });
+      break;
+
+    case 'create_fly_camera':
+      newMesh = flock.createCamera(`camera__${block.id}`, {
+        type: 'fly',
+        position: [position.x, position.y, position.z],
+        visible: block.getFieldValue('VISIBLE') === 'TRUE',
+      });
+      break;
+
+    case 'create_follow_camera':
+    case 'create_orbit_camera':
+      newMesh = flock.createCamera(`camera__${block.id}`, {
+        type: block.type === 'create_follow_camera' ? 'follow' : 'orbit',
+        ...readTargetCameraOptions(block),
+        visible: block.getFieldValue('VISIBLE') === 'TRUE',
       });
       break;
 

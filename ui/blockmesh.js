@@ -7,7 +7,7 @@ import {
 } from '../generators/generators.js';
 import { flock } from '../flock.js';
 import { objectColours } from '../config.js';
-import { createMeshOnCanvas } from './addmeshes.js';
+import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
 
@@ -33,6 +33,12 @@ let _meshAddedHandle = null;
 // a flag not a stored event: its source is a swappable child whose id goes stale
 // on drag-out, so we re-resolve current colour instead. Cleared each run.
 const liveEditsByBlock = new Map();
+
+const CAMERA_BLOCK_TYPES = new Set([
+  'create_fly_camera',
+  'create_follow_camera',
+  'create_orbit_camera',
+]);
 
 // 1:1 block-key → mesh types, so an edit replays onto one fresh mesh unambiguously.
 // Model/character loads are multi-mesh/async — a follow-up.
@@ -1674,6 +1680,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'ACTIVE';
     } else if (block.type === 'create_3d_text' && changeEvent.name === 'HORIZONTAL') {
       changed = 'HORIZONTAL';
+    } else if (CAMERA_BLOCK_TYPES.has(block.type) && ['TARGET', 'VISIBLE'].includes(changeEvent.name)) {
+      changed = changeEvent.name;
     }
   }
 
@@ -1782,6 +1790,17 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   if (block.type === 'create_group' && changed === 'ACTIVE') {
     handleGroupActiveToggle(meshes[0], block);
     return;
+  }
+
+  if (CAMERA_BLOCK_TYPES.has(block.type)) {
+    if (changed === 'VISIBLE') {
+      const visible = block.getFieldValue('VISIBLE') === 'TRUE';
+      meshes.forEach((mesh) => flock.setCameraFrameVisible(mesh.name, visible));
+    } else if (['TARGET', 'DISTANCE', 'UP', 'AROUND'].includes(changed)) {
+      const options = readTargetCameraOptions(block);
+      meshes.forEach((mesh) => flock.updateCameraRig(mesh.name, options));
+    }
+    if (!['X', 'Y', 'Z'].includes(changed)) return;
   }
 
   const colourIsRandom = colourSourceIsRandom(block);

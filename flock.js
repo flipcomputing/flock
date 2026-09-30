@@ -1167,6 +1167,7 @@ export const flock = {
       createWedge: this.createWedge?.bind(this),
       createDonut: this.createDonut?.bind(this),
       createPlane: this.createPlane?.bind(this),
+      createCamera: this.createCamera?.bind(this),
       cloneMesh: this.cloneMesh?.bind(this),
       runDo: this.runDo?.bind(this),
       runThen: this.runThen?.bind(this),
@@ -1192,6 +1193,7 @@ export const flock = {
       buttonControls: this.buttonControls?.bind(this),
       onScreenControls: this.onScreenControls?.bind(this),
       getCamera: this.getCamera?.bind(this),
+      switchCamera: this.switchCamera?.bind(this),
       getMainLight: this.getMainLight?.bind(this),
       cameraControl: this.cameraControl?.bind(this),
       setCameraBackground: this.setCameraBackground?.bind(this),
@@ -1336,6 +1338,7 @@ export const flock = {
       'setActionKey',
       'cameraControl',
       'attachCamera',
+      'switchCamera',
       'setSky',
       'setFog',
       'setCameraBackground',
@@ -1361,6 +1364,7 @@ export const flock = {
       'createWedge',
       'createDonut',
       'createPlane',
+      'createCamera',
       'mergeMeshes',
       'subtractMeshes',
       'intersectMeshes',
@@ -2348,29 +2352,14 @@ export const flock = {
       flock.scene
     );
     flock.savedCamera = camera;
+    flock.defaultCamera = camera;
+    flock.mainCamera = camera;
     camera.minZ = 0;
     camera.setTarget(flock.BABYLON.Vector3.Zero());
     camera.rotation.x = flock.BABYLON.Tools.ToRadians(0);
-    camera.angularSensibilityX = 2000;
-    camera.angularSensibilityY = 2000;
-    camera.speed = 0.25;
+    flock._configureFlyCamera(camera);
     flock.scene.activeCamera = camera;
     camera.attachControl(flock.canvas, false);
-
-    // Extend the fly camera's vertical keyboard bindings to match the
-    // on-screen button layout: BUTTON1 keys + PageUp for up,
-    // BUTTON3 keys + PageDown for down. Babylon's native input handles
-    // these with its built-in inertia/smoothing, keeping it consistent
-    // with gamepad button movement.
-    const KEY_CODE = { PageUp: 33, PageDown: 34, r: 82, 1: 49, f: 70, 3: 51 };
-    const toKeyCodes = (keys) => keys.map((k) => KEY_CODE[k]).filter(Boolean);
-    const kbInput = camera.inputs?.attached?.keyboard;
-    if (kbInput) {
-      kbInput.keysUpward = toKeyCodes([...getBoundKeys('BUTTON1'), 'PageUp']);
-      kbInput.keysDownward = toKeyCodes([...getBoundKeys('BUTTON3'), 'PageDown']);
-      kbInput.keysLeft = [];
-      kbInput.keysRight = [];
-    }
 
     // An engine created while the canvas was hidden keeps a 1x buffer until
     // something resizes it.
@@ -2487,6 +2476,26 @@ export const flock = {
     flock._resetXRState();
   },
   removeEventListeners() {},
+  _configureFlyCamera(camera) {
+    camera.angularSensibilityX = 2000;
+    camera.angularSensibilityY = 2000;
+    camera.speed = 0.25;
+
+    // Extend the fly camera's vertical keyboard bindings to match the
+    // on-screen button layout: BUTTON1 keys + PageUp for up,
+    // BUTTON3 keys + PageDown for down. Babylon's native input handles
+    // these with its built-in inertia/smoothing, keeping it consistent
+    // with gamepad button movement.
+    const KEY_CODE = { PageUp: 33, PageDown: 34, r: 82, 1: 49, f: 70, 3: 51 };
+    const toKeyCodes = (keys) => keys.map((k) => KEY_CODE[k]).filter(Boolean);
+    const kbInput = camera.inputs?.attached?.keyboard;
+    if (kbInput) {
+      kbInput.keysUpward = toKeyCodes([...getBoundKeys('BUTTON1'), 'PageUp']);
+      kbInput.keysDownward = toKeyCodes([...getBoundKeys('BUTTON3'), 'PageDown']);
+      kbInput.keysLeft = [];
+      kbInput.keysRight = [];
+    }
+  },
   whenModelReady(id, callback) {
     // Capture the signal now, never re-read flock.abortController at settle time: stopping a
     // run replaces the controller, so a late promise would see the new run's unaborted signal.

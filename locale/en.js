@@ -179,8 +179,14 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'camera %1 %2',
-  camera_follow: 'camera follow %1 distance: %2 angle: %3 front: %4',
+  camera_follow: 'camera follow %1 distance: %2 angle: %3 front: %4 as %5',
   get_camera: 'get camera as %1',
+  create_fly_camera: 'add fly camera %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7',
+  create_follow_camera:
+    'add follow camera %1 on %2 \n%7 distance: %3 up: %4 around: %5 visible: %6 %8',
+  create_orbit_camera:
+    'add orbit camera %1 around %2 \n%7 distance: %3 up: %4 around: %5 visible: %6 %8',
+  switch_camera: 'switch camera to %1',
 
   // Custom block translations - Combine blocks
   merge_meshes: 'add %1 as merge %2',
@@ -470,6 +476,12 @@ export default {
   camera_follow_tooltip:
     'Make the camera follow an object with a customizable distance (radius) and angle from the target.',
   get_camera_tooltip: 'Get the current scene camera.',
+  create_fly_camera_tooltip: 'Add a camera you can fly around. It looks the way its frame points.',
+  create_follow_camera_tooltip:
+    'Add a camera that follows an object. The player can turn it around the object.',
+  create_orbit_camera_tooltip:
+    'Add a camera that orbits around an object. Drag to orbit and scroll to zoom.',
+  switch_camera_tooltip: 'Switch the view to a camera.',
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Merge a list of objects into one and store the result.',
@@ -1363,6 +1375,14 @@ export default {
   place_duplicate_prompt: 'Click to place a copy.',
   select_mesh_eye_prompt: 'Click an object to orbit around it.',
   orbit_mesh_info: 'Drag to move the camera around the object',
+  camera_preview_info: 'Looking through the camera. Click the camera button to go back.',
+  capture_camera_view_label: 'Set this camera from the current view',
+  select_camera_target_prompt: 'Click the object for this camera to look at.',
+  camera_faces_target_hint:
+    'This camera always faces its target. Move it, or use its camera button to set it from your view.',
+  camera_needs_target_hint:
+    'Choose an object for this camera to look at first: pick one in its block, or use its camera button.',
+  view_camera_label: 'Look through this camera',
   place_object_prompt: 'Click on a surface to place the object.',
   color_picker_paint_prompt: 'Click an object to use the color.',
   pick_position_prompt: 'Pick a position on a surface',

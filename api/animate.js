@@ -418,6 +418,20 @@ export const flockAnimate = {
       }
     }
 
+    // Camera to camera: the first camera moves onto the second one's view.
+    const isCamera = mesh1 instanceof flock.BABYLON.Camera || mesh1.metadata?.shape === 'camera';
+    if (isCamera && mesh2.metadata?.shape === 'camera') {
+      await mesh1.metadata?.cameraReady;
+      await flock._glideCameraTo(mesh1, mesh2, {
+        offset: new flock.BABYLON.Vector3(worldOffsetX, worldOffsetY, worldOffsetZ),
+        duration,
+        easing,
+        reverse,
+        loop,
+      });
+      return;
+    }
+
     await this.glideTo(meshName1, {
       x: baseX + worldOffsetX,
       y: baseY + worldOffsetY,

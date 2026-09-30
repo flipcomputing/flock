@@ -112,12 +112,20 @@ export class CameraControls {
       return;
     }
 
-    // Orbit-view arrows/WASD via the InputManager: one path for physical keys,
-    // on-screen buttons and gamepad.
+    // Orbit arrows/WASD via the InputManager: one path for physical keys,
+    // on-screen buttons and gamepad; the joystick turns the orbit too. Covers
+    // the editor's orbit view and the project's own orbit cameras.
     const isArcRotate = camera.getClassName?.() === 'ArcRotateCamera';
-    const orbitView = isArcRotate && camera.metadata?.orbitView;
-    const keyYaw = orbitView ? this.#orbitKeyYaw() : isArcRotate ? 0 : this.#flyKeyYaw(camera);
-    const keyPitch = orbitView ? this.#orbitKeyPitch() : 0;
+    const orbits =
+      isArcRotate &&
+      (camera.metadata?.orbitView ||
+        (camera.metadata?.cameraRig && camera.metadata.cameraType === 'orbit'));
+    const keyYaw = orbits
+      ? this.#orbitKeyYaw() - (joy?.x ?? 0)
+      : isArcRotate
+        ? 0
+        : this.#flyKeyYaw(camera);
+    const keyPitch = orbits ? this.#orbitKeyPitch() - (joy?.y ?? 0) : 0;
     const yawInput = rightX + shoulderTurn + keyYaw;
     const pitchInput = rightY + keyPitch;
 
@@ -138,7 +146,7 @@ export class CameraControls {
 
       camera.beta = Math.min(upperBeta, Math.max(lowerBeta, camera.beta));
 
-      if (camera.metadata?.orbitView) {
+      if (orbits) {
         const zoom = this.#zoomDirection();
         if (zoom !== 0) {
           let radius = camera.radius * Math.exp(-zoom * ORBIT_ZOOM_RATE * deltaTime);

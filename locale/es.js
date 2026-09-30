@@ -175,8 +175,12 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'cámara %1 %2', // human
-  camera_follow: 'cámara sigue a %1 distancia: %2 ángulo: %3 frente: %4', // human
+  camera_follow: 'cámara sigue a %1 distancia: %2 ángulo: %3 frente: %4 como %5', // AI-generated; needs validation
   get_camera: 'obtener cámara como %1', // human
+  create_fly_camera: 'añadir cámara de vuelo %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'añadir cámara que sigue %1 a %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'añadir cámara en órbita %1 alrededor de %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
+  switch_camera: 'cambiar cámara a %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'añadir %1 como unir %2', // human
@@ -466,6 +470,10 @@ export default {
   camera_follow_tooltip:
     'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.', // human
   get_camera_tooltip: 'Obtén la cámara actual de la escena.', // human
+  create_fly_camera_tooltip: 'Añade una cámara con la que puedes volar. Mira hacia donde apunta su marco.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Añade una cámara que sigue a un objeto. El jugador puede girarla alrededor del objeto.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Añade una cámara que orbita alrededor de un objeto. Arrastra para orbitar y desplaza para hacer zoom.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Cambia la vista a una cámara.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Fusiona una lista de objetos en uno y almacena el resultado.', // human
@@ -1342,6 +1350,14 @@ export default {
   place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'Haz clic en un objeto para orbitar alrededor de él.',
   orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
+  camera_preview_info: 'Mirando a través de la cámara. Haz clic en el botón de la cámara para volver.', // AI-generated; needs validation
+  capture_camera_view_label: 'Ajustar esta cámara a la vista actual', // AI-generated; needs validation
+  select_camera_target_prompt: 'Haz clic en el objeto que debe mirar esta cámara.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Esta cámara siempre mira a su objetivo. Muévela o usa su botón de cámara para ajustarla desde tu vista.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Primero elige un objeto para que esta cámara lo mire: elígelo en su bloque o usa su botón de cámara.',
+  view_camera_label: 'Mirar a través de esta cámara', // AI-generated; needs validation
   place_object_prompt: 'Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:

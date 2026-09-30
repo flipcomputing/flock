@@ -1,6 +1,12 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor } from './blocks.js';
+import {
+  getHelpUrlFor,
+  nextVariableIndexes,
+  handleBlockChange,
+  addDoMutatorWithToggleBehavior,
+  registerBlockHandler,
+} from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
 export function defineCameraBlocks() {
@@ -112,11 +118,89 @@ export function defineCameraBlocks() {
             name: 'FRONT',
             checked: false,
           },
+          {
+            type: 'field_variable',
+            name: 'CAM_VAR',
+            variable: 'playerCamera',
+          },
         ],
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Scene'],
         tooltip: getTooltip('camera_follow'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
+  const cameraButtons = [
+    { type: 'field_capture_view', name: 'CAPTURE_VIEW' },
+    { type: 'field_view_camera', name: 'VIEW_CAMERA' },
+  ];
+
+  const defineCameraBlock = (type, args) => {
+    Blockly.Blocks[type] = {
+      init: function () {
+        const variableNamePrefix = 'camera';
+        const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+        this.jsonInit({
+          type,
+          message0: translate(type),
+          args0: [
+            { type: 'field_variable', name: 'ID_VAR', variable: nextVariableName },
+            ...args,
+            { type: 'field_checkbox', name: 'VISIBLE', checked: false },
+            ...cameraButtons,
+          ],
+          previousStatement: null,
+          nextStatement: null,
+          inputsInline: true,
+          colour: categoryColours['Scene'],
+          tooltip: getTooltip(type),
+        });
+        this.setHelpUrl(getHelpUrlFor(this.type));
+        this.setStyle('scene_blocks');
+
+        registerBlockHandler(this, (changeEvent) =>
+          handleBlockChange(this, changeEvent, variableNamePrefix)
+        );
+        if (type === 'create_fly_camera') addDoMutatorWithToggleBehavior(this);
+      },
+    };
+  };
+
+  defineCameraBlock('create_fly_camera', [
+    { type: 'input_value', name: 'X', check: 'Number' },
+    { type: 'input_value', name: 'Y', check: 'Number' },
+    { type: 'input_value', name: 'Z', check: 'Number' },
+  ]);
+
+  const targetCameraArgs = [
+    { type: 'field_variable', name: 'TARGET', variable: window.currentMesh },
+    { type: 'input_value', name: 'DISTANCE', check: 'Number' },
+    { type: 'input_value', name: 'UP', check: 'Number' },
+    { type: 'input_value', name: 'AROUND', check: 'Number' },
+  ];
+  defineCameraBlock('create_follow_camera', targetCameraArgs);
+  defineCameraBlock('create_orbit_camera', targetCameraArgs);
+
+  Blockly.Blocks['switch_camera'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'switch_camera',
+        message0: translate('switch_camera'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'CAMERA',
+            variable: 'camera1',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('switch_camera'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');

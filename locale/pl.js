@@ -175,8 +175,12 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera śledzi %1, odległość: %2, kąt: %3, przód: %4',
+  camera_follow: 'kamera śledzi %1, odległość: %2, kąt: %3, przód: %4, jako %5', // AI-generated; needs validation
   get_camera: 'pobierz kamerę jako %1',
+  create_fly_camera: 'dodaj kamerę lotu %1 \n%6 x: %2 y: %3 z: %4 widoczna: %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'dodaj kamerę śledzącą %1 na %2 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'dodaj kamerę orbitalną %1 wokół %2 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation
+  switch_camera: 'przełącz kamerę na %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'dodaj %1 jako połączone %2',
@@ -421,6 +425,10 @@ export default {
   camera_control_tooltip: 'Powiąż określony klawisz z akcją sterowania kamerą.',
   camera_follow_tooltip: 'Spraw, by kamera śledziła obiekt z ustawioną odległością (promieniem).',
   get_camera_tooltip: 'Pobierz bieżącą kamerę sceny.',
+  create_fly_camera_tooltip: 'Dodaje kamerę, którą możesz latać. Patrzy tam, gdzie wskazuje jej ramka.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Dodaje kamerę, która śledzi obiekt. Gracz może obracać ją wokół obiektu.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Dodaje kamerę krążącą wokół obiektu. Przeciągnij, aby krążyć, i przewiń, aby przybliżyć.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Przełącz widok na kamerę.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Scal listę obiektów w jedną i zapisz wynik.',
@@ -1181,6 +1189,14 @@ export default {
   place_duplicate_prompt: 'Kliknij, aby umieścić kopię.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'Kliknij obiekt, aby go okrążyć.',
   orbit_mesh_info: 'Przeciągnij, aby przesunąć kamerę wokół obiektu',
+  camera_preview_info: 'Patrzysz przez kamerę. Kliknij przycisk kamery, aby wrócić.', // AI-generated; needs validation
+  capture_camera_view_label: 'Ustaw tę kamerę na bieżący widok', // AI-generated; needs validation
+  select_camera_target_prompt: 'Kliknij obiekt, na który ma patrzeć ta kamera.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Ta kamera zawsze patrzy na swój cel. Przesuń ją lub użyj jej przycisku kamery, aby ustawić ją z bieżącego widoku.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Najpierw wybierz obiekt, na który ma patrzeć ta kamera: w jej bloku albo przyciskiem kamery.',
+  view_camera_label: 'Patrz przez tę kamerę', // AI-generated; needs validation
   place_object_prompt: 'Kliknij na powierzchnię, aby umieścić obiekt.',
   position_readout: 'Pozycja: {position}',
   eyedropper_not_supported_alert: 'Wybieranie koloru jest dostępne w Chrome/Edge na komputerze.', // ai

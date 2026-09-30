@@ -173,8 +173,12 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera följ %1 avstånd: %2 vinkel: %3 fram: %4',
+  camera_follow: 'kamera följ %1 avstånd: %2 vinkel: %3 fram: %4 som %5', // AI-generated; needs validation
   get_camera: 'hämta kamera som %1',
+  create_fly_camera: 'lägg till flygkamera %1 \n%6 x: %2 y: %3 z: %4 synlig: %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'lägg till följkamera %1 på %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'lägg till kretskamera %1 runt %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
+  switch_camera: 'byt kamera till %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'lägg till %1 som sammanfoga %2',
@@ -418,6 +422,10 @@ export default {
   camera_follow_tooltip:
     'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.',
   get_camera_tooltip: 'Hämta den aktuella scenkameran.',
+  create_fly_camera_tooltip: 'Lägg till en kamera som du kan flyga runt med. Den tittar dit dess ram pekar.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Lägg till en kamera som följer ett objekt. Spelaren kan vrida den runt objektet.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Lägg till en kamera som kretsar runt ett objekt. Dra för att kretsa och scrolla för att zooma.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Byt vy till en kamera.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Slå samman en lista med objekt till ett och spara resultatet.',
@@ -1176,6 +1184,14 @@ export default {
   place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
   select_mesh_eye_prompt: 'Klicka på ett objekt för att kretsa runt det.',
   orbit_mesh_info: 'Dra för att flytta kameran runt objektet',
+  camera_preview_info: 'Du tittar genom kameran. Klicka på kameraknappen för att gå tillbaka.', // AI-generated; needs validation
+  capture_camera_view_label: 'Ställ in den här kameran efter den aktuella vyn', // AI-generated; needs validation
+  select_camera_target_prompt: 'Klicka på objektet som den här kameran ska titta på.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Den här kameran tittar alltid på sitt mål. Flytta den, eller använd dess kameraknapp för att ställa in den från din vy.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Välj först ett objekt som kameran ska titta på: välj det i blocket eller använd kameraknappen.',
+  view_camera_label: 'Titta genom den här kameran', // AI-generated; needs validation
   place_object_prompt: 'Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai

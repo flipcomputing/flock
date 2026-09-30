@@ -10,6 +10,7 @@ import { translate } from '../main/translation.js';
 import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js';
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
+import { isPlacementSurface } from './meshhelpers.js';
 
 const STATUS_OWNER = 'pick-position';
 
@@ -73,7 +74,7 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!canvas || !flock.scene) return;
 
-  const isValidHit = (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
+  const isValidHit = (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit;
 
   function commitAt(x, y) {
     const pickRay = flock.scene.createPickingRay(
@@ -82,7 +83,7 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
       flock.BABYLON.Matrix.Identity(),
       flock.scene.activeCamera
     );
-    const pick = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
+    const pick = flock.scene.pickWithRay(pickRay, isPlacementSurface);
     if (!pick?.hit) return;
     setPositionValues(block, pick.pickedPoint, block.type);
     if (CONFIRMATION_PING_BLOCK_TYPES.has(block.type)) {

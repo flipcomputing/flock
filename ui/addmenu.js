@@ -23,6 +23,7 @@ import {
 } from './canvas-utils.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { selectMeshForBlock } from './gizmos.js';
+import { isPlacementSurface } from './meshhelpers.js';
 import { showStatus, clearStatus } from './status.js';
 import { translate } from '../main/translation.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
@@ -384,7 +385,11 @@ function selectCharacter(characterName) {
     }
 
     // Uses scene.pick(x, y) for raycasting
-    const pick = flock.scene.pick(x, y);
+    const pick = flock.scene.pick(
+      x,
+      y,
+      (mesh) => isPlacementSurface(mesh) && mesh.isVisible && mesh.isEnabled()
+    );
     if (!pick?.hit) {
       return cleanup();
     }
@@ -448,7 +453,7 @@ function selectShape(shapeType) {
       flock.scene.activeCamera
     );
 
-    const pickResult = flock.scene.pickWithRay(pickRay, (mesh) => mesh.isPickable);
+    const pickResult = flock.scene.pickWithRay(pickRay, isPlacementSurface);
     if (pickResult && pickResult.hit) {
       // Lay planes flat against the hit face, nudged clear along its normal.
       if (shapeType === 'create_plane') {
@@ -561,7 +566,7 @@ function selectObjectWithCommand(objectName, menu, command) {
       flock.BABYLON.Matrix.Identity(),
       flock.scene.activeCamera
     );
-    const pick = flock.scene.pickWithRay(pickRay, (m) => m.isPickable);
+    const pick = flock.scene.pickWithRay(pickRay, isPlacementSurface);
     if (!pick?.hit) return cleanup();
 
     const pickedPosition = pick.pickedPoint;
@@ -1078,7 +1083,7 @@ function handleShapeMenuKeydown(event) {
 function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
-  const isValidHit = (x, y) => !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
+  const isValidHit = (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit;
 
   startCanvasKeyboardMode(
     (x, y) => {
