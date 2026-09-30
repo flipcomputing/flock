@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <title>3D Glasses</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #000;
+        color: #fff;
+        font-family: system-ui, sans-serif;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+      }
+      #divider {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        margin-left: -1px;
+        background: #444;
+        pointer-events: none;
+      }
+      #start {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 24px;
+        text-align: center;
+        background: #000;
+      }
+      #start p {
+        max-width: 28em;
+        line-height: 1.5;
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        font-size: 1.1rem;
+        padding: 12px 24px;
+        border: 0;
+        border-radius: 8px;
+        background: #511d91;
+        color: #fff;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      #swap {
+        position: fixed;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        opacity: 0.7;
+      }
+      #message {
+        color: #ff8a8a;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="divider" hidden></div>
+    <button id="swap" type="button" hidden>Swap eyes</button>
+    <div id="start">
+      <p>
+        Point your phone at a Flock scene using red/cyan glasses, then put the phone in a cardboard
+        viewer.
+      </p>
+      <button id="go" type="button">Start</button>
+      <p id="message" hidden></p>
+    </div>
+    <script type="module">
+      const canvas = document.getElementById('view');
+      const start = document.getElementById('start');
+      const goButton = document.getElementById('go');
+      const message = document.getElementById('message');
+      const swapButton = document.getElementById('swap');
+      const divider = document.getElementById('divider');
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+
+      const gl = canvas.getContext('webgl', { antialias: false });
+
+      const vertexSource = `
+        attribute vec2 position;
+        varying vec2 local;
+        void main() {
+          local = position * 0.5 + 0.5;
+          gl_Position = vec4(position, 0.0, 1.0);
+        }`;
+      const fragmentSource = `
+        precision mediump float;
+        uniform sampler2D feed;
+        uniform vec2 scale;
+        uniform vec3 keep;
+        varying vec2 local;
+        void main() {
+          vec2 uv = 0.5 + (local - 0.5) * scale;
+          gl_FragColor = vec4(texture2D(feed, uv).rgb * keep, 1.0);
+        }`;
+
+      function compile(type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        return shader;
+      }
+
+      let program;
+      let scaleLocation;
+      let keepLocation;
+      if (gl) {
+        program = gl.createProgram();
+        gl.attachShader(program, compile(gl.VERTEX_SHADER, vertexSource));
+        gl.attachShader(program, compile(gl.FRAGMENT_SHADER, fragmentSource));
+        gl.linkProgram(program);
+        gl.useProgram(program);
+        scaleLocation = gl.getUniformLocation(program, 'scale');
+        keepLocation = gl.getUniformLocation(program, 'keep');
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+        gl.bufferData(
+          gl.ARRAY_BUFFER,
+          new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+          gl.STATIC_DRAW
+        );
+        const position = gl.getAttribLocation(program, 'position');
+        gl.enableVertexAttribArray(position);
+        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+        gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      }
+
+      const RED = [1, 0, 0];
+      const CYAN = [0, 1, 1];
+      let swapped = false;
+
+      function resize() {
+        const ratio = window.devicePixelRatio || 1;
+        const width = Math.round(canvas.clientWidth * ratio);
+        const height = Math.round(canvas.clientHeight * ratio);
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+      }
+
+      function coverScale(width, height) {
+        const halfAspect = width / height;
+        const videoAspect = video.videoWidth / video.videoHeight;
+        return halfAspect > videoAspect
+          ? [1, videoAspect / halfAspect]
+          : [halfAspect / videoAspect, 1];
+      }
+
+      function draw() {
+        requestAnimationFrame(draw);
+        if (video.readyState < video.HAVE_CURRENT_DATA) return;
+        resize();
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+        const half = Math.floor(canvas.width / 2);
+        const eyes = swapped ? [CYAN, RED] : [RED, CYAN];
+        gl.uniform2fv(scaleLocation, coverScale(half, canvas.height));
+        eyes.forEach((keep, index) => {
+          gl.viewport(index * half, 0, half, canvas.height);
+          gl.uniform3fv(keepLocation, keep);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        });
+      }
+
+      function showMessage(text) {
+        message.textContent = text;
+        message.hidden = false;
+      }
+
+      async function begin() {
+        if (!gl) {
+          showMessage('This browser cannot run WebGL.');
+          return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia) {
+          showMessage('The camera needs a secure (https) page.');
+          return;
+        }
+        goButton.disabled = true;
+        const fullscreen = document.documentElement.requestFullscreen?.().catch(() => {});
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 },
+            },
+            audio: false,
+          });
+          video.srcObject = stream;
+          await video.play();
+        } catch {
+          stream?.getTracks().forEach((track) => track.stop());
+          video.srcObject = null;
+          goButton.disabled = false;
+          showMessage('Could not start the camera. Check the camera permission and try again.');
+          return;
+        }
+        start.hidden = true;
+        divider.hidden = false;
+        swapButton.hidden = false;
+        requestAnimationFrame(draw);
+        await fullscreen;
+        screen.orientation?.lock?.('landscape').catch(() => {});
+      }
+
+      goButton.addEventListener('click', begin);
+      swapButton.addEventListener('click', () => {
+        swapped = !swapped;
+      });
+    </script>
+  </body>
+</html>
