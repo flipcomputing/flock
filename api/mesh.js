@@ -37,7 +37,7 @@ export const flockMesh = {
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
       (localMin.z + localMax.z) / 2
-    );
+    ).multiplyInPlace(mesh.scaling);
 
     const segmentStart = new flock.BABYLON.Vector3(
       localCenter.x,
@@ -92,7 +92,7 @@ export const flockMesh = {
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
       (localMin.z + localMax.z) / 2
-    );
+    ).multiplyInPlace(mesh.scaling);
 
     return new flock.BABYLON.PhysicsShapeBox(
       localCenter,
@@ -115,7 +115,7 @@ export const flockMesh = {
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
       (localMin.z + localMax.z) / 2
-    );
+    ).multiplyInPlace(mesh.scaling);
 
     return new flock.BABYLON.PhysicsShapeSphere(
       localCenter,
@@ -137,7 +137,7 @@ export const flockMesh = {
       (localMin.x + localMax.x) / 2,
       (localMin.y + localMax.y) / 2,
       (localMin.z + localMax.z) / 2
-    );
+    ).multiplyInPlace(mesh.scaling);
 
     return new flock.BABYLON.PhysicsShapeCylinder(
       new flock.BABYLON.Vector3(localCenter.x, localCenter.y - height / 2, localCenter.z),
@@ -181,12 +181,12 @@ export const flockMesh = {
         const localMin = bb.minimum;
         const localMax = bb.maximum;
 
-        height = localMax.y - localMin.y;
-        const width = localMax.x - localMin.x;
-        const depth = localMax.z - localMin.z;
+        height = (localMax.y - localMin.y) * Math.abs(mesh.scaling.y);
+        const width = (localMax.x - localMin.x) * Math.abs(mesh.scaling.x);
+        const depth = (localMax.z - localMin.z) * Math.abs(mesh.scaling.z);
         radius = Math.min(width, depth) / 2;
 
-        localCenter = bb.center.clone();
+        localCenter = bb.center.multiply(mesh.scaling);
         baseY = localCenter.y - height / 2;
 
         mesh.metadata = mesh.metadata || {};
@@ -202,7 +202,7 @@ export const flockMesh = {
     if (!localCenter) {
       mesh.computeWorldMatrix(true);
       const boundingInfo = mesh.getBoundingInfo();
-      localCenter = boundingInfo.boundingBox.center.clone();
+      localCenter = boundingInfo.boundingBox.center.multiply(mesh.scaling);
     }
 
     if (baseY === undefined) {
@@ -1330,29 +1330,9 @@ export const flockMesh = {
             return;
           }
 
-          function getLocalPivotOffset(mesh) {
-            const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-              x: 'CENTER',
-              y: 'MIN',
-              z: 'CENTER',
-            };
-
-            const ext = mesh.getBoundingInfo().boundingBox.extendSize;
-
-            function axisOffset(axis) {
-              const half = ext[axis];
-              const setting = pivotSettings[axis];
-              if (setting === 'MIN') return -half;
-              if (setting === 'MAX') return half;
-              return 0;
-            }
-
-            return new flock.BABYLON.Vector3(axisOffset('x'), axisOffset('y'), axisOffset('z'));
-          }
-
           const offsetLocal = new flock.BABYLON.Vector3(offsetX, offsetY, offsetZ);
-          const parentPivotLocal = getLocalPivotOffset(parentMesh);
-          const childPivotLocal = getLocalPivotOffset(childMesh);
+          const parentPivotLocal = flock._resolveAnchorLocal(parentMesh);
+          const childPivotLocal = flock._resolveAnchorLocal(childMesh);
 
           const desiredChildLocalPos = parentPivotLocal.add(offsetLocal).subtract(childPivotLocal);
 

@@ -432,13 +432,14 @@ export const flockPhysics = {
     const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
     const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
     const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
+    const center = boundingBox.center.multiply(mesh.scaling);
 
     let newShape;
     let detectedShapeType;
     if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
       detectedShapeType = 'BOX';
       newShape = new flock.BABYLON.PhysicsShapeBox(
-        flock.BABYLON.Vector3.Zero(),
+        center,
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         new flock.BABYLON.Vector3(width, height, depth),
         flock.scene
@@ -446,15 +447,15 @@ export const flockPhysics = {
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeSphere) {
       detectedShapeType = 'SPHERE';
       newShape = new flock.BABYLON.PhysicsShapeSphere(
-        flock.BABYLON.Vector3.Zero(),
+        center,
         Math.max(width, height, depth) / 2,
         flock.scene
       );
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCylinder) {
       detectedShapeType = 'CYLINDER';
       newShape = new flock.BABYLON.PhysicsShapeCylinder(
-        new flock.BABYLON.Vector3(0, -height / 2, 0),
-        new flock.BABYLON.Vector3(0, height / 2, 0),
+        new flock.BABYLON.Vector3(center.x, center.y - height / 2, center.z),
+        new flock.BABYLON.Vector3(center.x, center.y + height / 2, center.z),
         Math.max(width, depth) / 2,
         flock.scene
       );

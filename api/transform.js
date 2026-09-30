@@ -21,6 +21,15 @@ function usesCenterPivot(mesh) {
   return mesh?.metadata?.shape === 'plane';
 }
 
+function currentAnchorSettings(mesh) {
+  return (
+    mesh.metadata?.pivotSettings ??
+    (usesCenterPivot(mesh)
+      ? { x: 'CENTER', y: 'CENTER', z: 'CENTER' }
+      : { x: 'CENTER', y: 'MIN', z: 'CENTER' })
+  );
+}
+
 function isInGroup(mesh) {
   let ancestor = mesh?.parent;
   while (ancestor) {
@@ -759,81 +768,72 @@ export const flockTransform = {
           return;
         }
 
-        const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-        function resolvePivotValue(value, axis) {
-          if (typeof value === 'string') {
-            switch (value) {
-              case 'MIN':
-                return -bounding[axis];
-              case 'MAX':
-                return bounding[axis];
-              case 'CENTER':
-              default:
-                return 0;
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        const box = mesh.getBoundingInfo().boundingBox;
+        const oldAnchorWorld = flock.BABYLON.Vector3.TransformCoordinates(
+          flock._resolveAnchorLocal(mesh),
+          mesh.getWorldMatrix()
+        );
+        const anchorLocal = flock._resolveAnchorLocal(mesh, { x: xPivot, y: yPivot, z: zPivot });
+
+        if (anchorLocal.lengthSquared() > 0) {
+          const positionKind = flock.BABYLON.VertexBuffer.PositionKind;
+          if (mesh.geometry && mesh.isVerticesDataPresent(positionKind)) {
+            if (mesh.geometry.meshes.length > 1) mesh.makeGeometryUnique();
+            const positions = mesh.getVerticesData(positionKind, true, true);
+            for (let i = 0; i < positions.length; i += 3) {
+              positions[i] -= anchorLocal.x;
+              positions[i + 1] -= anchorLocal.y;
+              positions[i + 2] -= anchorLocal.z;
             }
-          }
-          return typeof value === 'number' ? value : 0;
-        }
-
-        // OLD pivot from metadata; default Y is MIN, X/Z are CENTER
-        const prev = (mesh.metadata && mesh.metadata.pivotSettings) || {
-          x: 'CENTER',
-          y: 'MIN',
-          z: 'CENTER',
-        };
-        const oldPivotLocal = new flock.BABYLON.Vector3(
-          resolvePivotValue(prev.x, 'x'),
-          resolvePivotValue(prev.y, 'y'),
-          resolvePivotValue(prev.z, 'z')
-        );
-
-        // NEW pivot from args (Y defaults to MIN above)
-        const newPivotLocal = new flock.BABYLON.Vector3(
-          resolvePivotValue(xPivot, 'x'),
-          resolvePivotValue(yPivot, 'y'),
-          resolvePivotValue(zPivot, 'z')
-        );
-
-        // World position of OLD pivot (before change)
-        mesh.computeWorldMatrix(true);
-        const wmBefore = mesh.getWorldMatrix().clone();
-        const oldPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(oldPivotLocal, wmBefore);
-
-        mesh.setPivotPoint(newPivotLocal);
-        mesh.getChildMeshes().forEach((child) => child.setPivotPoint(newPivotLocal));
-
-        // World position of NEW pivot (after change)
-        mesh.computeWorldMatrix(true);
-        const wmAfter = mesh.getWorldMatrix().clone();
-        const newPivotWorld = flock.BABYLON.Vector3.TransformCoordinates(newPivotLocal, wmAfter);
-
-        // Reposition to preserve visual placement
-        const delta = oldPivotWorld.subtract(newPivotWorld);
-        mesh.position.addInPlace(delta);
-
-        // Physics sync
-        if (mesh.physics) {
-          if (mesh.physics.getMotionType() !== flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-            mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          }
-          const rq =
-            mesh.rotationQuaternion ||
-            flock.BABYLON.Quaternion.FromEulerAngles(
-              mesh.rotation.x,
-              mesh.rotation.y,
-              mesh.rotation.z
+            mesh.setVerticesData(
+              positionKind,
+              positions,
+              mesh.getVertexBuffer(positionKind).isUpdatable()
             );
-          mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(mesh.position, rq);
+            mesh.refreshBoundingInfo();
+          } else {
+            const { minimum, maximum } = box;
+            mesh.setBoundingInfo(
+              new flock.BABYLON.BoundingInfo(
+                minimum.subtract(anchorLocal),
+                maximum.subtract(anchorLocal)
+              )
+            );
+          }
+          mesh.getChildren(undefined, true).forEach((child) => {
+            child.position?.subtractInPlace(anchorLocal);
+          });
         }
 
+        mesh.setAbsolutePosition(oldAnchorWorld);
         mesh.computeWorldMatrix(true);
+        flock.updatePhysics(mesh);
 
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
         resolve();
       });
     });
+  },
+  _resolveAnchorLocal(mesh, settings = currentAnchorSettings(mesh)) {
+    const box = mesh.getBoundingInfo().boundingBox;
+    const resolveAxis = (value, axis) => {
+      switch (value) {
+        case 'MIN':
+          return box.minimum[axis];
+        case 'MAX':
+          return box.maximum[axis];
+        default:
+          return box.center[axis] + (typeof value === 'number' ? value : 0);
+      }
+    };
+    return new flock.BABYLON.Vector3(
+      resolveAxis(settings.x, 'x'),
+      resolveAxis(settings.y, 'y'),
+      resolveAxis(settings.z, 'z')
+    );
   },
   getBlockPositionFromMesh(mesh) {
     if (!mesh) return { x: 0, y: 0, z: 0 };
@@ -877,12 +877,7 @@ export const flockTransform = {
     const minW = bb.minimumWorld;
     const maxW = bb.maximumWorld;
 
-    // Same defaults as setAnchor: X/Z CENTER, Y MIN (BASE)
-    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-      x: 'CENTER',
-      y: 'MIN',
-      z: 'CENTER',
-    };
+    const pivotSettings = currentAnchorSettings(mesh);
 
     function resolveAxis(axisKey, setting) {
       const min = minW[axisKey];

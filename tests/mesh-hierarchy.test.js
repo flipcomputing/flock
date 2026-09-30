@@ -131,6 +131,58 @@ export function runMeshHierarchyTests(flock) {
         expect(childMesh.position.x).to.be.closeTo(1, 0.01);
         expect(childMesh.position.z).to.be.closeTo(0, 0.01);
       });
+
+      it("should place the child's anchor on an anchored parent's anchor", async function () {
+        const parentId = 'hierarchyAnchoredParent';
+        const childId = 'hierarchyAnchoredChild';
+
+        await flock.createBox(parentId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(childId, {
+          width: 0.5,
+          height: 0.5,
+          depth: 0.5,
+          position: [3, 0, 3],
+        });
+        meshIds.push(parentId, childId);
+
+        await flock.setAnchor(parentId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+        await flock.parentChild(parentId, childId);
+
+        const childMesh = flock.scene.getMeshByName(childId);
+        childMesh.computeWorldMatrix(true);
+        const { minimumWorld, maximumWorld } = childMesh.getBoundingInfo().boundingBox;
+        expect((minimumWorld.x + maximumWorld.x) / 2).to.be.closeTo(0, 0.01);
+        expect(minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect((minimumWorld.z + maximumWorld.z) / 2).to.be.closeTo(0, 0.01);
+      });
+
+      it('should offset a plane child from its centre', async function () {
+        const parentId = 'hierarchyPlaneHinge';
+        const childId = 'hierarchyPlaneCard';
+
+        await flock.createSphere(parentId, {
+          diameterX: 0.01,
+          diameterY: 0.01,
+          diameterZ: 0.01,
+          position: [-3, -1, -0.01],
+        });
+        await flock.createPlane(childId, { width: 6, height: 8, position: [0, -1, 0] });
+        meshIds.push(parentId, childId);
+
+        await flock.parentChild(parentId, childId, 3, 0, -0.01);
+
+        const childMesh = flock.scene.getMeshByName(childId);
+        childMesh.computeWorldMatrix(true);
+        const center = childMesh.getBoundingInfo().boundingBox.centerWorld;
+        expect(center.x).to.be.closeTo(0, 0.01);
+        expect(center.y).to.be.closeTo(-1, 0.01);
+        expect(center.z).to.be.closeTo(-0.02, 0.01);
+      });
     });
 
     describe('createGroup', function () {

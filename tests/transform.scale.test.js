@@ -483,5 +483,162 @@ export function runScaleTests(flock) {
       expect(mesh.metadata.customProperty).to.equal('test-value');
       expect(mesh.metadata.pivotSettings.x).to.equal('MAX');
     });
+
+    it('should place the new anchor where the previous anchor was', async function () {
+      const boxId = flock.createBox('test-box-anchor-lands', {
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [0, 0, 0],
+      });
+      testBoxIds.push(boxId);
+
+      await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+
+      const mesh = flock.scene.getMeshByID(boxId);
+      mesh.computeWorldMatrix(true);
+      const { minimumWorld, maximumWorld } = mesh.getBoundingInfo().boundingBox;
+      expect(minimumWorld.x).to.be.closeTo(0, 0.01);
+      expect(minimumWorld.z).to.be.closeTo(0, 0.01);
+      expect(maximumWorld.x).to.be.closeTo(2, 0.01);
+      expect(maximumWorld.z).to.be.closeTo(2, 0.01);
+      expect(minimumWorld.y).to.be.closeTo(0, 0.01);
+    });
+
+    it("should place a plane's new anchor at its centre", async function () {
+      const planeId = flock.createPlane('test-plane-anchor-lands', {
+        width: 2,
+        height: 4,
+        position: [1, 2, 0],
+      });
+      testBoxIds.push(planeId);
+
+      await flock.setAnchor(planeId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'CENTER' });
+
+      const mesh = flock.scene.getMeshByID(planeId);
+      mesh.computeWorldMatrix(true);
+      const { minimumWorld, maximumWorld } = mesh.getBoundingInfo().boundingBox;
+      expect(minimumWorld.x).to.be.closeTo(1, 0.01);
+      expect(minimumWorld.y).to.be.closeTo(2, 0.01);
+      expect(maximumWorld.x).to.be.closeTo(3, 0.01);
+      expect(maximumWorld.y).to.be.closeTo(6, 0.01);
+    });
+
+    it('should place the physics body at the anchor', async function () {
+      const boxId = flock.createBox('test-box-anchor-body', {
+        width: 0.2,
+        height: 2,
+        depth: 2,
+        position: [5, 0, 0],
+      });
+      testBoxIds.push(boxId);
+
+      await flock.setAnchor(boxId, { xPivot: 'CENTER', yPivot: 'MIN', zPivot: 'MIN' });
+      await flock.rotateTo(boxId, { x: 0, y: -90, z: 0 });
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const mesh = flock.scene.getMeshByID(boxId);
+      mesh.computeWorldMatrix(true);
+      const { minimumWorld, maximumWorld } = mesh.getBoundingInfo().boundingBox;
+      expect(minimumWorld.x).to.be.closeTo(3, 0.01);
+      expect(maximumWorld.x).to.be.closeTo(5, 0.01);
+      expect((minimumWorld.z + maximumWorld.z) / 2).to.be.closeTo(0, 0.01);
+
+      const [bodyPosition, bodyRotation] = flock.hk._hknp.HP_Body_GetQTransform(
+        mesh.physics._pluginData.hpBodyId
+      )[1];
+      const origin = mesh.physics._pluginData.worldRegion?.floatingOrigin ?? { x: 0, y: 0, z: 0 };
+      const absolute = mesh.getAbsolutePosition();
+      expect(bodyPosition[0] + origin.x).to.be.closeTo(absolute.x, 0.01);
+      expect(bodyPosition[1] + origin.y).to.be.closeTo(absolute.y, 0.01);
+      expect(bodyPosition[2] + origin.z).to.be.closeTo(absolute.z, 0.01);
+      const meshRotation = mesh.absoluteRotationQuaternion;
+      expect(Math.abs(bodyRotation[1])).to.be.closeTo(Math.abs(meshRotation.y), 0.01);
+    });
+
+    for (const shapeType of ['BOX', 'SPHERE', 'CYLINDER']) {
+      it(`should fit a ${shapeType.toLowerCase()} collider to a scaled, anchored mesh`, async function () {
+        const boxId = flock.createBox(`test-box-anchor-${shapeType.toLowerCase()}`, {
+          width: 2,
+          height: 2,
+          depth: 2,
+          position: [0, 0, 0],
+        });
+        testBoxIds.push(boxId);
+
+        await flock.setPhysicsShape(boxId, shapeType);
+        await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+        await flock.scale(boxId, { x: 2, y: 2, z: 2 });
+
+        const mesh = flock.scene.getMeshByID(boxId);
+        mesh.computeWorldMatrix(true);
+        const meshCenter = mesh.getBoundingInfo().boundingBox.centerWorld;
+        const shapeBox = flock.hk.getBoundingBox(mesh.physics.shape);
+        const [bodyPosition] = flock.hk._hknp.HP_Body_GetQTransform(
+          mesh.physics._pluginData.hpBodyId
+        )[1];
+        const origin = mesh.physics._pluginData.worldRegion?.floatingOrigin ?? {
+          x: 0,
+          y: 0,
+          z: 0,
+        };
+        const shapeCenter = shapeBox.minimum.add(shapeBox.maximum).scale(0.5);
+        expect(bodyPosition[0] + origin.x + shapeCenter.x).to.be.closeTo(meshCenter.x, 0.02);
+        expect(bodyPosition[1] + origin.y + shapeCenter.y).to.be.closeTo(meshCenter.y, 0.02);
+        expect(bodyPosition[2] + origin.z + shapeCenter.z).to.be.closeTo(meshCenter.z, 0.02);
+      });
+    }
+
+    it('should fit a capsule collider to a scaled, anchored mesh', async function () {
+      const boxId = flock.createBox('test-box-anchor-capsule', {
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      testBoxIds.push(boxId);
+
+      await flock.setAnchor(boxId, { xPivot: 'CENTER', yPivot: 'MIN', zPivot: 'CENTER' });
+      await flock.scale(boxId, { x: 2, y: 2, z: 2 });
+      await flock.setPhysicsShape(boxId, 'CAPSULE');
+
+      const mesh = flock.scene.getMeshByID(boxId);
+      mesh.computeWorldMatrix(true);
+      const meshBox = mesh.getBoundingInfo().boundingBox;
+      const shapeBox = flock.hk.getBoundingBox(mesh.physics.shape);
+      const [bodyPosition] = flock.hk._hknp.HP_Body_GetQTransform(
+        mesh.physics._pluginData.hpBodyId
+      )[1];
+      const originY = mesh.physics._pluginData.worldRegion?.floatingOrigin?.y ?? 0;
+      const bodyY = bodyPosition[1] + originY;
+      expect(bodyY + shapeBox.minimum.y).to.be.closeTo(meshBox.minimumWorld.y, 0.02);
+      expect(bodyY + shapeBox.maximum.y).to.be.closeTo(meshBox.maximumWorld.y, 0.02);
+    });
+
+    it('should keep a child in place when parented to an anchored mesh', async function () {
+      const parentId = flock.createBox('test-box-anchored-parent', {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      const childId = flock.createBox('test-box-anchored-child', {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [3, 0, 1],
+      });
+      testBoxIds.push(parentId, childId);
+
+      await flock.setAnchor(parentId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+      await flock.setParent(parentId, childId);
+
+      const child = flock.scene.getMeshByID(childId);
+      child.computeWorldMatrix(true);
+      const center = child.getBoundingInfo().boundingBox.centerWorld;
+      expect(center.x).to.be.closeTo(3, 0.01);
+      expect(center.y).to.be.closeTo(0.5, 0.01);
+      expect(center.z).to.be.closeTo(1, 0.01);
+    });
   });
 }

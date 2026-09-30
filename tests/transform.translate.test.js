@@ -134,7 +134,7 @@ export function runTranslationTests(flock) {
       if (boxId) flock.dispose(boxId);
     });
 
-    it('should keep requested Y aligned to base/pivot while mesh.position.y stays offset', async function () {
+    it('should keep requested Y aligned to base/pivot with mesh.position at the anchor', async function () {
       await flock.positionAt(boxId, { x: 2, y: 3, z: 4, useY: true });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -143,8 +143,7 @@ export function runTranslationTests(flock) {
 
       expect(bounds.minimumWorld.y).to.be.closeTo(3, 0.01);
       expect(pivotWorld.y).to.be.closeTo(3, 0.01);
-      expect(box.position.y).to.be.greaterThan(3.9);
-      expect(box.position.y).to.be.lessThan(4.1);
+      expect(box.position.y).to.be.closeTo(3, 0.01);
     });
 
     it('should preserve existing Y offset semantics when useY is false', async function () {
