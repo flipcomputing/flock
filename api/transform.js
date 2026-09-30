@@ -1,3 +1,5 @@
+import { isBodyAlive, teleportBodyToMesh } from './physics.js';
+
 let flock;
 
 function resolvePositionInputs(mesh, { x = 0, y = 0, z = 0, useY = true, meshName = '' } = {}) {
@@ -36,20 +38,6 @@ function applyInWorldSpace(mesh, applyFn) {
   } finally {
     if (parent) mesh.setParent(parent);
   }
-}
-
-// Physics bodies live in world space, but mesh.position and
-// mesh.rotationQuaternion are parent-relative. Decompose the world matrix so
-// a grouped member targets its actual pose - a local target sends the body
-// toward the wrong place (observed as the mesh flinging toward the local
-// origin on the next physics step).
-function worldTransformForPhysics(mesh) {
-  const scale = new flock.BABYLON.Vector3();
-  const quat = new flock.BABYLON.Quaternion();
-  const pos = new flock.BABYLON.Vector3();
-  mesh.computeWorldMatrix(true);
-  mesh.getWorldMatrix().decompose(scale, quat, pos);
-  return { pos, quat };
 }
 
 function applyPositionWithCurrentBaseRule(
@@ -187,16 +175,6 @@ export const flockTransform = {
           y = toFinite(y ?? mesh.position.y, mesh.position.y);
         }
 
-        if (mesh.physics) {
-          const mt = mesh.physics.getMotionType();
-          if (
-            mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-            mt !== flock.BABYLON.PhysicsMotionType.ANIMATED
-          ) {
-            mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          }
-        }
-
         await this.setBlockPositionOnMesh(mesh, {
           x,
           y,
@@ -205,13 +183,8 @@ export const flockTransform = {
           meshName,
         });
 
-        // Update physics and world matrix
-        if (mesh.physics) {
-          mesh.physics.disablePreStep = false;
-          const target = worldTransformForPhysics(mesh);
-          mesh.physics.setTargetTransform(target.pos, target.quat);
-        }
         mesh.computeWorldMatrix(true);
+        teleportBodyToMesh(mesh);
 
         resolve();
       });
@@ -274,62 +247,14 @@ export const flockTransform = {
           }
 
           try {
-            let originalMotionType = null;
-            let originalDisablePreStep = null;
-            let motionTypeTemporarilyChanged = false;
-
-            // Store original physics state if physics object
-            if (mesh1.physics) {
-              originalMotionType = mesh1.physics.getMotionType();
-              originalDisablePreStep = mesh1.physics.disablePreStep;
-
-              // Only change motion type if it's not already DYNAMIC or ANIMATED
-              if (
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED
-              ) {
-                mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-                motionTypeTemporarilyChanged = true;
-              }
-            }
-
-            // Calculate target position
             const targetAbsPosition = mesh2.getAbsolutePosition().clone();
             if (!useY) {
               targetAbsPosition.y = mesh1.getAbsolutePosition().y;
             }
 
-            // Perform immediate movement
             mesh1.setAbsolutePosition(targetAbsPosition);
             mesh1.computeWorldMatrix(true);
-
-            // Update physics if present
-            if (mesh1.physics) {
-              mesh1.physics.disablePreStep = false;
-              mesh1.physics.setTargetTransform(mesh1.position, mesh1.rotationQuaternion);
-
-              const restoreDisablePreStep = () => {
-                if (originalDisablePreStep != null) {
-                  mesh1.physics.disablePreStep = originalDisablePreStep;
-                }
-              };
-
-              // Restore original motion type if it was changed and different from ANIMATED
-              if (
-                motionTypeTemporarilyChanged &&
-                originalMotionType &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-                originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC
-              ) {
-                // Use setTimeout to allow physics update to complete first
-                setTimeout(() => {
-                  mesh1.physics.setMotionType(originalMotionType);
-                  restoreDisablePreStep();
-                }, 0);
-              } else {
-                restoreDisablePreStep();
-              }
-            }
+            teleportBodyToMesh(mesh1);
 
             resolve();
           } catch (error) {
@@ -357,57 +282,18 @@ export const flockTransform = {
         }
 
         try {
-          let originalMotionType = null;
-          let originalDisablePreStep = null;
-          let originalVelocity = null;
-          let motionTypeTemporarilyChanged = false;
-
-          if (mesh.physics) {
-            originalMotionType = mesh.physics.getMotionType?.();
-            originalDisablePreStep = mesh.physics.disablePreStep;
-            originalVelocity = mesh.physics.getLinearVelocity?.();
-
-            // Only coerce to ANIMATED if the body is neither DYNAMIC nor ANIMATED.
-            if (
-              originalMotionType !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-              originalMotionType !== flock.BABYLON.PhysicsMotionType.ANIMATED &&
-              originalMotionType != null
-            ) {
-              mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-              motionTypeTemporarilyChanged = true;
-            }
-          }
-
-          // Apply position delta
           mesh.position.addInPlace(new flock.BABYLON.Vector3(x, y, z));
-
-          if (mesh.physics) {
-            const currentMotionType = mesh.physics.getMotionType?.();
-
-            if (currentMotionType === flock.BABYLON.PhysicsMotionType.ANIMATED) {
-              // For ANIMATED bodies, drive transform explicitly.
-              mesh.physics.disablePreStep = false;
-              mesh.physics.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-            } else if (currentMotionType === flock.BABYLON.PhysicsMotionType.DYNAMIC) {
-              // For DYNAMIC bodies, do not call setTargetTransform.
-              if (originalVelocity) {
-                originalVelocity.y = 0;
-                mesh.physics.setLinearVelocity(originalVelocity);
-              }
-            }
-
-            // Restore original motion type sync if we coerced it.
-            if (motionTypeTemporarilyChanged && originalMotionType != null) {
-              mesh.physics.setMotionType(originalMotionType);
-              if (originalDisablePreStep != null) {
-                mesh.physics.disablePreStep = originalDisablePreStep;
-              }
-            } else if (originalDisablePreStep != null) {
-              mesh.physics.disablePreStep = originalDisablePreStep;
-            }
-          }
-
           mesh.computeWorldMatrix(true);
+
+          if (
+            isBodyAlive(mesh.physics) &&
+            mesh.physics.getMotionType() === flock.BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            const velocity = mesh.physics.getLinearVelocity();
+            velocity.y = 0;
+            mesh.physics.setLinearVelocity(velocity);
+          }
+          teleportBodyToMesh(mesh);
           resolve();
         } catch (error) {
           flock.reportBlockError({
@@ -505,12 +391,8 @@ export const flockTransform = {
 
         const incrementalRotation = flock.eulerDegreesToQuat(x, y, z);
         flock.ensureQuaternion(mesh).multiplyInPlace(incrementalRotation).normalize();
-
-        if (mesh.physics) {
-          mesh.physics.disablePreStep = false;
-          mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
-        }
         mesh.computeWorldMatrix(true);
+        teleportBodyToMesh(mesh);
         resolve();
       });
     });
@@ -572,11 +454,7 @@ export const flockTransform = {
           mesh.direction = new flock.BABYLON.Vector3(xRadian, yRadian, zRadian);
         }
 
-        if (mesh.physics) {
-          mesh.physics.disablePreStep = false;
-          const target = worldTransformForPhysics(mesh);
-          mesh.physics.setTargetTransform(target.pos, target.quat);
-        }
+        teleportBodyToMesh(mesh);
         resolve();
       });
     });
@@ -624,20 +502,6 @@ export const flockTransform = {
       return;
     }
 
-    // If the body isn't fully dynamic, drive it as ANIMATED (kinematic-like) so we can set
-    // orientation. Re-setting it when it already holds is a Havok call per frame in a loop.
-    // The promotion is permanent: unlike moveTo/moveByVector this never restores, because
-    // lookAt is usually called every frame and restoring would reinstate that churn.
-    if (mesh1.physics) {
-      const mt = mesh1.physics.getMotionType();
-      if (
-        mt !== flock.BABYLON.PhysicsMotionType.DYNAMIC &&
-        mt !== flock.BABYLON.PhysicsMotionType.ANIMATED
-      ) {
-        mesh1.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-      }
-    }
-
     const p1 = mesh1.absolutePosition;
     const p2 = mesh2.absolutePosition;
     const dir = p2.subtract(p1);
@@ -651,7 +515,7 @@ export const flockTransform = {
 
     await this.rotateTo(meshName, flock.quatToEulerDegrees(q));
 
-    // The kinematic target is already set, so nothing needs waiting for. Resuming on
+    // The body teleport is already queued, so nothing needs waiting for. Resuming on
     // onAfterPhysicsObservable instead re-armed a calling loop mid-physics-phase, which
     // dragged the XR watch camera's follow out of step with the frame.
     if (mesh1.physics) return;
@@ -681,9 +545,6 @@ export const flockTransform = {
         mesh.metadata = mesh.metadata || {};
         mesh.metadata.origin = { xOrigin, yOrigin, zOrigin };
 
-        if (mesh.physics) {
-          mesh.physics.disablePreStep = false;
-        }
         const boundingInfo = mesh.getBoundingInfo();
         const originalMinY = boundingInfo.boundingBox.minimumWorld.y;
         const originalMaxY = boundingInfo.boundingBox.maximumWorld.y;

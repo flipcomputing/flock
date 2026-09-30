@@ -1,5 +1,5 @@
 import { blockNames, modelAnimationNames } from '../config.js';
-import { isBodyAlive } from './physics.js';
+import { driveBody, isBodyAlive, teleportBodyToMesh } from './physics.js';
 
 let flock;
 
@@ -180,17 +180,12 @@ export const flockAnimate = {
         if (instant) {
           mesh.rotationQuaternion = targetQuat;
           mesh.computeWorldMatrix(true);
-
-          if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
-            mesh.physics.setTargetTransform(
-              mesh.absolutePosition,
-              mesh.absoluteRotationQuaternion || mesh.rotationQuaternion
-            );
-          }
-
+          teleportBodyToMesh(mesh);
           resolve();
           return;
         }
+
+        const drive = driveBody(mesh);
 
         const children = mesh.getChildMeshes();
 
@@ -238,13 +233,6 @@ export const flockAnimate = {
         const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
           mesh.computeWorldMatrix(true);
           childData.forEach((data) => data.mesh.computeWorldMatrix(true));
-
-          if (mesh.physics && mesh.physics._pluginData?.hpBodyId) {
-            mesh.physics.setTargetTransform(
-              mesh.absolutePosition,
-              mesh.absoluteRotationQuaternion || mesh.rotationQuaternion
-            );
-          }
         });
 
         const animatable = flock.scene.beginDirectAnimation(
@@ -255,9 +243,11 @@ export const flockAnimate = {
           loop
         );
 
+        animatable.onAnimationLoopObservable.add(() => drive.teleport());
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
           mesh.rotationQuaternion = (reverse ? startQuat : targetQuat).clone();
+          drive.release();
           resolve();
         });
       });
@@ -301,16 +291,7 @@ export const flockAnimate = {
       }
 
       const children = mesh.getChildMeshes();
-      const isPhysicsActive =
-        mesh.physics && mesh.metadata?.physicsType !== 'NONE' && mesh.physics._pluginData?.hpBodyId;
-
-      const originalMotionType = isPhysicsActive ? mesh.physics.getMotionType() : null;
-
-      if (isPhysicsActive) {
-        mesh.physics.disablePreStep = false;
-        mesh.physics.setPrestepType(flock.BABYLON.PhysicsPrestepType.ACTION);
-        mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-      }
+      const drive = driveBody(mesh);
 
       const startAnchor = flock._getAnchor(mesh);
       if (keepX) x = startAnchor.x;
@@ -355,14 +336,6 @@ export const flockAnimate = {
       const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
         mesh.computeWorldMatrix(true);
         children.forEach((c) => c.computeWorldMatrix(true));
-
-        if (isPhysicsActive && isBodyAlive(mesh.physics)) {
-          mesh.physics.setTargetTransform(
-            mesh.absolutePosition,
-            mesh.absoluteRotationQuaternion ||
-              flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation)
-          );
-        }
       });
 
       const animatable = flock.scene.beginDirectAnimation(
@@ -374,6 +347,7 @@ export const flockAnimate = {
       );
 
       mesh.metadata = mesh.metadata || {};
+      animatable.onAnimationLoopObservable.add(() => drive.teleport());
       mesh.metadata._activeGlide = animatable;
       mesh.metadata._glideObserver = syncObserver;
       // Mark a reverse (there-and-back) glide so a re-trigger while it's still in flight
@@ -393,15 +367,7 @@ export const flockAnimate = {
           // interrupted final frame) can't leave the mesh slightly off: the target for a
           // one-way glide, or back at the start for a reverse (there-and-back) glide.
           if (!loop) mesh.position = (reverse ? startPosition : endPosition).clone();
-          if (
-            isPhysicsActive &&
-            originalMotionType !== null &&
-            !loop &&
-            !reverse &&
-            isBodyAlive(mesh.physics)
-          ) {
-            mesh.physics.setMotionType(originalMotionType);
-          }
+          drive.release();
           resolve();
         });
       });
@@ -675,7 +641,11 @@ export const flockAnimate = {
     }
 
     const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
+    const movesBody = property === 'position' || property === 'rotation';
+    const drive = movesBody ? driveBody(mesh) : null;
+
     const animatable = flock.scene.beginAnimation(mesh, 0, lastFrame, loop);
+    if (drive) animatable.onAnimationLoopObservable.add(() => drive.teleport());
 
     mesh.metadata = mesh.metadata || {};
     mesh.metadata[activeKey] = animatable;
@@ -685,6 +655,7 @@ export const flockAnimate = {
         if (mesh.metadata[activeKey] === animatable) {
           mesh.metadata[activeKey] = null;
         }
+        drive?.release();
         resolve();
       });
     });
@@ -952,27 +923,6 @@ export const flockAnimate = {
         api: 'stopAnimationGroup',
         values: { group: groupName },
       });
-    }
-  },
-  // Helper: Get the MIN position of a mesh on a given axis, accounting for its pivot
-  _getMeshPivotPosition(mesh, axis) {
-    // Match setAnchor defaults: x=CENTER, y=MIN, z=CENTER
-    const pivotSettings = (mesh.metadata && mesh.metadata.pivotSettings) || {
-      x: 'CENTER',
-      y: 'MIN',
-      z: 'CENTER',
-    };
-    const bounding = mesh.getBoundingInfo().boundingBox.extendSize;
-    const halfSize = bounding[axis] * mesh.scaling[axis];
-
-    const pivotSetting = pivotSettings[axis];
-
-    if (pivotSetting === 'CENTER') {
-      return mesh.position[axis]; // No adjustment for CENTER
-    } else if (pivotSetting === 'MIN') {
-      return mesh.position[axis] - halfSize;
-    } else if (pivotSetting === 'MAX') {
-      return mesh.position[axis] + halfSize;
     }
   },
   _isUnsafePropertyPath(parts) {

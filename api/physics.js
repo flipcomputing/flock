@@ -2,6 +2,103 @@ let flock;
 
 export const isBodyAlive = (body) => !!body?._pluginData?.hpBodyId;
 
+const activeDrives = new WeakMap();
+
+const isPhysicsEnabled = (mesh) =>
+  isBodyAlive(mesh?.physics) && mesh.metadata?.physicsType !== 'NONE';
+
+const applyDrivenState = (body) => {
+  body.disablePreStep = false;
+  body.setPrestepType(flock.BABYLON.PhysicsPrestepType.ACTION);
+  body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+};
+
+const teleportOne = (mesh) => {
+  if (!isPhysicsEnabled(mesh)) return;
+  const body = mesh.physics;
+  mesh.computeWorldMatrix(true);
+  const prestepType = body.getPrestepType();
+  body.setPrestepType(flock.BABYLON.PhysicsPrestepType.TELEPORT);
+  flock.hk.setPhysicsBodyTransformation(body, mesh);
+  body.setPrestepType(prestepType);
+};
+
+const driveOne = (mesh) => {
+  let drive = activeDrives.get(mesh);
+  if (!drive) {
+    const body = mesh.physics;
+    drive = {
+      count: 0,
+      motionType: body.getMotionType(),
+      disablePreStep: body.disablePreStep,
+      prestepType: body.getPrestepType(),
+      teleportQueued: false,
+      observer: flock.scene.onAfterAnimationsObservable.add(() => mesh.computeWorldMatrix(true)),
+    };
+    activeDrives.set(mesh, drive);
+    applyDrivenState(body);
+  }
+  drive.count += 1;
+
+  let released = false;
+  return {
+    teleport() {
+      if (released || drive.teleportQueued) return;
+      drive.teleportQueued = true;
+      flock.scene.onBeforePhysicsObservable.addOnce(() => {
+        drive.teleportQueued = false;
+        if (released || !isBodyAlive(mesh.physics)) return;
+        mesh.physics.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+        mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+        teleportOne(mesh);
+      });
+    },
+    release() {
+      if (released) return;
+      released = true;
+      drive.count -= 1;
+      if (drive.count > 0) return;
+      activeDrives.delete(mesh);
+      flock.scene.onAfterAnimationsObservable.remove(drive.observer);
+      const body = mesh.physics;
+      if (!isBodyAlive(body)) return;
+      body.setMotionType(drive.motionType);
+      body.setPrestepType(drive.prestepType);
+      body.disablePreStep = drive.disablePreStep;
+      teleportOne(mesh);
+    },
+  };
+};
+
+const adoptPhysicsChangeDuringDrive = (mesh) => {
+  const drive = activeDrives.get(mesh);
+  const body = mesh.physics;
+  if (!drive || !isBodyAlive(body)) return;
+  drive.motionType = body.getMotionType();
+  drive.disablePreStep = body.disablePreStep;
+  drive.prestepType = body.getPrestepType();
+  applyDrivenState(body);
+};
+
+const withPhysicsDescendants = (mesh) =>
+  mesh ? [mesh, ...mesh.getChildMeshes(false)].filter(isPhysicsEnabled) : [];
+
+export const teleportBodyToMesh = (mesh) => {
+  withPhysicsDescendants(mesh).forEach(teleportOne);
+};
+
+export const driveBody = (mesh) => {
+  const drives = withPhysicsDescendants(mesh).map(driveOne);
+  return {
+    teleport() {
+      drives.forEach((drive) => drive.teleport());
+    },
+    release() {
+      drives.forEach((drive) => drive.release());
+    },
+  };
+};
+
 // Restitution lives on the shape material, not mass properties. Reads
 // metadata.bounciness (default 0), so it survives shape/body rebuilds. Combine
 // is MAXIMUM (bounciest surface wins) and must match on every material — objects
@@ -573,6 +670,7 @@ export const flockPhysics = {
         break;
     }
 
+    adoptPhysicsChangeDuringDrive(mesh);
     flock._syncTeleportMeshHierarchy?.(mesh);
     return mesh;
   },

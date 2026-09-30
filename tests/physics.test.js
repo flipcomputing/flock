@@ -1171,4 +1171,157 @@ export function runPhysicsTests(flock) {
       expect(() => flock.jump('nonExistentJumpMesh', { jumpHeight: 1 })).to.not.throw();
     });
   });
+
+  describe('static bodies follow movement blocks @physics', function () {
+    const ids = [];
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 300));
+
+    const createStaticBox = async (id, position = [0, 0, 0]) => {
+      flock.createBox(id, { width: 1, height: 1, depth: 2, position });
+      ids.push(id);
+      await flock.setPhysics(id, 'STATIC');
+      return flock.scene.getMeshByName(id);
+    };
+
+    const expectBodyOnMesh = (mesh) => {
+      mesh.computeWorldMatrix(true);
+      const [bodyPosition, bodyRotation] = flock.hk._hknp.HP_Body_GetQTransform(
+        mesh.physics._pluginData.hpBodyId
+      )[1];
+      const origin = mesh.physics._pluginData.worldRegion?.floatingOrigin ?? { x: 0, y: 0, z: 0 };
+      const position = mesh.getAbsolutePosition();
+      expect(bodyPosition[0] + origin.x, 'body x').to.be.closeTo(position.x, 0.01);
+      expect(bodyPosition[1] + origin.y, 'body y').to.be.closeTo(position.y, 0.01);
+      expect(bodyPosition[2] + origin.z, 'body z').to.be.closeTo(position.z, 0.01);
+      const rotation = mesh.absoluteRotationQuaternion;
+      const dot =
+        bodyRotation[0] * rotation.x +
+        bodyRotation[1] * rotation.y +
+        bodyRotation[2] * rotation.z +
+        bodyRotation[3] * rotation.w;
+      expect(Math.abs(dot), 'body rotation').to.be.closeTo(1, 0.001);
+    };
+
+    const expectStatic = (mesh) => {
+      expect(mesh.physics.getMotionType(), 'motion type').to.equal(
+        flock.BABYLON.PhysicsMotionType.STATIC
+      );
+    };
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    const cases = {
+      positionAt: (id) => flock.positionAt(id, { x: 3, y: 0, z: 2 }),
+      moveByVector: (id) => flock.moveByVector(id, { x: 2, y: 0, z: 1 }),
+      moveTo: async (id) => {
+        await createStaticBox(`${id}Target`, [4, 0, -2]);
+        await flock.moveTo(id, { target: `${id}Target` });
+      },
+      rotate: (id) => flock.rotate(id, { y: 90 }),
+      rotateTo: (id) => flock.rotateTo(id, { x: 0, y: 90, z: 0 }),
+      glideTo: (id) => flock.glideTo(id, { x: 3, y: 0, z: 2, duration: 0.2 }),
+      rotateAnim: (id) => flock.rotateAnim(id, { y: 90, duration: 0.2 }),
+      positionKeyFrames: (id) =>
+        flock.animateKeyFrames(id, {
+          keyframes: [
+            { duration: 0, value: '0 0 0' },
+            { duration: 0.2, value: '3 0 2' },
+          ],
+          property: 'position',
+        }),
+      rotationKeyFrames: (id) =>
+        flock.animateKeyFrames(id, {
+          keyframes: [
+            { duration: 0, value: '0 0 0' },
+            { duration: 0.2, value: '0 90 0' },
+          ],
+          property: 'rotation',
+        }),
+      lookAt: async (id) => {
+        await createStaticBox(`${id}Target`, [4, 0, 4]);
+        await flock.lookAt(id, { target: `${id}Target` });
+      },
+      reverseGlide: (id) => flock.glideTo(id, { x: 3, y: 0, z: 2, duration: 0.2, reverse: true }),
+      glideWhileSpinning: (id) =>
+        Promise.all([
+          flock.glideTo(id, { x: 3, y: 0, z: 2, duration: 0.2 }),
+          flock.rotateAnim(id, { y: 90, duration: 0.4 }),
+        ]),
+    };
+
+    Object.entries(cases).forEach(([name, move]) => {
+      it(`${name} moves the collider and leaves the body static`, async function () {
+        const id = `staticFollow_${name}`;
+        const mesh = await createStaticBox(id);
+        await move(id);
+        await settle();
+        expectBodyOnMesh(mesh);
+        expectStatic(mesh);
+      });
+    });
+
+    const childCases = {
+      rotateAnim: (id) => flock.rotateAnim(id, { y: 90, duration: 0.2 }),
+      positionAt: (id) => flock.positionAt(id, { x: 3, y: 0, z: 2 }),
+    };
+
+    it('keeps a physics type set during a glide once the glide ends', async function () {
+      const id = 'staticFollow_setDuringGlide';
+      const mesh = await createStaticBox(id);
+      await flock.setPhysics(id, 'ANIMATED');
+      const glide = flock.glideTo(id, { x: 3, y: 0, z: 2, duration: 0.4 });
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await flock.setPhysics(id, 'STATIC');
+      await glide;
+      await settle();
+      expectBodyOnMesh(mesh);
+      expectStatic(mesh);
+    });
+
+    it('restores a body rebuilt during a glide', async function () {
+      const id = 'staticFollow_rebuildDuringGlide';
+      const mesh = await createStaticBox(id);
+      const glide = flock.glideTo(id, { x: 3, y: 0, z: 2, duration: 0.4 });
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      await flock.scale(id, { x: 1.5, y: 1.5, z: 1.5 });
+      await glide;
+      await settle();
+      expectBodyOnMesh(mesh);
+      expectStatic(mesh);
+    });
+
+    it('a looping glide jumps its collider back to the start instead of sweeping it', async function () {
+      const id = 'staticFollow_loopWrap';
+      const mesh = await createStaticBox(id);
+      let maxSpeed = 0;
+      const observer = flock.scene.onAfterPhysicsObservable.add(() => {
+        const velocity = mesh.physics?.getLinearVelocity?.();
+        if (velocity) maxSpeed = Math.max(maxSpeed, velocity.length());
+      });
+      flock.glideTo(id, { x: 0, y: 0, z: 5, duration: 0.25, loop: true });
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      flock.scene.onAfterPhysicsObservable.remove(observer);
+      flock.scene.stopAnimation(mesh);
+      await settle();
+
+      expect(maxSpeed, 'collider speed').to.be.lessThan(40);
+      expectStatic(mesh);
+    });
+
+    Object.entries(childCases).forEach(([name, move]) => {
+      it(`${name} of a parent moves a static child's collider too`, async function () {
+        const id = `staticFollowParent_${name}`;
+        await createStaticBox(id);
+        const child = await createStaticBox(`${id}Child`, [0, 0, 3]);
+        await flock.setParent(id, `${id}Child`);
+        await move(id);
+        await settle();
+        expectBodyOnMesh(child);
+        expectStatic(child);
+      });
+    });
+  });
 }

@@ -245,6 +245,37 @@ export function runAnimateTests(flock) {
         expect(endEuler.y).to.be.closeTo(initialRotation.y, 0.01);
         expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
+
+      [0.2, 0].forEach((duration) => {
+        it(`should turn a static body with the mesh and keep it static (duration ${duration})`, async function () {
+          const boxId = `rotateAnimStaticBody${duration * 10}`;
+          await flock.createBox(boxId, {
+            width: 0.2,
+            height: 2,
+            depth: 2,
+            position: [0, 0, 0],
+          });
+          boxIds.push(boxId);
+
+          await flock.setPhysics(boxId, 'STATIC');
+          await flock.rotateAnim(boxId, { y: -90, duration });
+          await new Promise((resolve) => setTimeout(resolve, 200));
+
+          const mesh = flock.scene.getMeshByName(boxId);
+          expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.STATIC);
+
+          const bodyRotation = flock.hk._hknp.HP_Body_GetQTransform(
+            mesh.physics._pluginData.hpBodyId
+          )[1][1];
+          const meshRotation = mesh.absoluteRotationQuaternion;
+          const dot =
+            bodyRotation[0] * meshRotation.x +
+            bodyRotation[1] * meshRotation.y +
+            bodyRotation[2] * meshRotation.z +
+            bodyRotation[3] * meshRotation.w;
+          expect(Math.abs(dot)).to.be.closeTo(1, 0.001);
+        });
+      });
     });
 
     describe('animateProperty function', function () {
