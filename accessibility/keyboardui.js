@@ -5,13 +5,8 @@ import { translate, getCurrentLanguage } from '../main/translation.js';
 import { SHORTCUTS_HELP_URL } from '../config.js';
 import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
-import {
-  InfoPanel,
-  ModalPanelBehaviour,
-  decorateExternalLinks,
-  focusWithVisibleRing,
-} from './infoPanel.js';
-import { HowToPanel } from '../ui/howToPanel.js';
+import { InfoPanel, ModalPanelBehaviour, decorateExternalLinks } from './infoPanel.js';
+import { HowToPanel, drawAttention } from '../ui/howToPanel.js';
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -763,12 +758,22 @@ function wireHelpLinks(list) {
   const toolsLink = list.querySelector('#help-link-tools');
   toolsLink?.addEventListener('click', () => {
     document.getElementById('tools-menu-item')?.click();
-    setTimeout(() => focusWithVisibleRing(document.getElementById('gizmoHintsCheckbox')), 0);
+    setTimeout(() => drawAttention(document.getElementById('gizmoHintsCheckbox')), 0);
   });
 
   const blockInfoLink = list.querySelector('#help-link-blockinfo');
   blockInfoLink?.addEventListener('click', () => {
-    focusWithVisibleRing(document.getElementById('blockHintsBtn'));
+    drawAttention(document.getElementById('blockHintsBtn'));
+  });
+
+  [
+    ['#help-link-howto', 'info-tab-btn-howto'],
+    ['#help-link-shortcuts', 'info-tab-btn-shortcuts'],
+    ['#help-link-player', 'info-tab-btn-player'],
+  ].forEach(([linkSelector, tabId]) => {
+    list.querySelector(linkSelector)?.addEventListener('click', () => {
+      drawAttention(document.getElementById(tabId));
+    });
   });
 }
 
@@ -799,7 +804,6 @@ const HelpPanel = {
           <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
           </div>
         </div>
-        <img class="help-hero" src="./images/Hero-Image-768x348.webp" alt="" width="768" height="348" />
         <div id="help-list"></div>
       `;
     this.panel = panel;

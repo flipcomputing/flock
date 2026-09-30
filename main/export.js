@@ -215,6 +215,9 @@ function keepTextTrueSize(svgBlock, fontSizePt) {
 
     const x = parseFloat(textEl.getAttribute('x')) || 0;
     const y = parseFloat(textEl.getAttribute('y')) || 0;
+    // dy sits inside the scaled-down space, so it needs the same upscale.
+    const dy = parseFloat(textEl.getAttribute('dy'));
+    if (dy) textEl.setAttribute('dy', dy * k);
     const counter = `translate(${x} ${y}) scale(${1 / k}) translate(${-x} ${-y})`;
     const existing = textEl.getAttribute('transform');
     textEl.setAttribute('transform', existing ? `${existing} ${counter}` : counter);

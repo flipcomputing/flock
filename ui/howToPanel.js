@@ -52,6 +52,14 @@ function drawAttention(el) {
 // `icon` (a UI_BUTTON_ICONS key, see below) shows that button's glyph inline
 // at the start of the card — only set for gizmo how-tos, one per gizmo.
 const HOW_TOS = [
+  { slug: 'create-a-new-project', i18nKey: 'howto_create_a_new_project_ui', tone: 28, tags: ['general'] },
+  { slug: 'save-and-open-projects', i18nKey: 'howto_save_and_open_projects_ui', tone: 29, tags: ['general'] },
+  { slug: 'play-and-stop', i18nKey: 'howto_play_and_stop_ui', tone: 30, tags: ['general'] },
+  { slug: 'play-view-and-fullscreen', i18nKey: 'howto_play_view_and_fullscreen_ui', tone: 31, tags: ['general'] },
+  { slug: 'explore-demo-projects', i18nKey: 'howto_explore_demo_projects_ui', tone: 32, tags: ['general'] },
+  { slug: 'change-the-theme', i18nKey: 'howto_change_the_theme_ui', tone: 33, tags: ['general'] },
+  { slug: 'change-the-language', i18nKey: 'howto_change_the_language_ui', tone: 34, tags: ['general'] },
+  { slug: 'use-a-games-controller', i18nKey: 'howto_use_a_games_controller_ui', tone: 35, tags: ['general'] },
   { slug: 'add-sky-and-ground', i18nKey: 'howto_add_sky_and_ground_ui', tone: 1, tags: ['scene'] },
   { slug: 'add-objects', i18nKey: 'howto_add_objects_ui', tone: 2, tags: ['gizmo'], icon: 'addmenu' },
   { slug: 'color-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
@@ -62,12 +70,31 @@ const HOW_TOS = [
   { slug: 'select-an-object', i18nKey: 'howto_select_an_object_ui', tone: 14, tags: ['gizmo'], icon: 'selectgizmo' },
   { slug: 'duplicate-objects', i18nKey: 'howto_duplicate_objects_ui', tone: 4, tags: ['gizmo'], icon: 'duplicategizmo' },
   { slug: 'delete-an-object', i18nKey: 'howto_delete_an_object_ui', tone: 11, tags: ['gizmo'], icon: 'deletegizmo' },
-  { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 6, tags: ['character'] },
+  { slug: 'design-a-character', i18nKey: 'howto_design_a_character_ui', tone: 6, tags: ['scene'] },
   { slug: 'look-around', i18nKey: 'howto_look_around_ui', tone: 5, tags: ['camera'] },
   { slug: 'fly-camera', i18nKey: 'howto_fly_camera_ui', tone: 13, tags: ['gizmo', 'camera'], icon: 'cameragizmo' },
-  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['character', 'camera'] },
+  { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['scene', 'camera'] },
   { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo', 'camera'], icon: 'viewgizmo' },
+  { slug: 'use-the-block-menu', i18nKey: 'howto_use_the_block_menu_ui', tone: 16, tags: ['blocks'] },
+  { slug: 'move-blocks', i18nKey: 'howto_move_blocks_ui', tone: 17, tags: ['blocks'] },
+  { slug: 'use-the-trashcan', i18nKey: 'howto_use_the_trashcan_ui', tone: 18, tags: ['blocks'] },
+  { slug: 'add-comments', i18nKey: 'howto_add_comments_ui', tone: 19, tags: ['blocks'] },
+  { slug: 'import-and-export-code', i18nKey: 'howto_import_and_export_code_ui', tone: 20, tags: ['blocks'] },
+  { slug: 'duplicate-and-copy-blocks', i18nKey: 'howto_duplicate_and_copy_blocks_ui', tone: 21, tags: ['blocks'] },
+  { slug: 'use-block-hints', i18nKey: 'howto_use_block_hints_ui', tone: 22, tags: ['blocks'] },
+  { slug: 'undo-and-redo', i18nKey: 'howto_undo_and_redo_ui', tone: 23, tags: ['blocks'] },
+  { slug: 'zoom', i18nKey: 'howto_zoom_ui', tone: 24, tags: ['blocks'] },
+  { slug: 'search-the-toolbox', i18nKey: 'howto_search_the_toolbox_ui', tone: 25, tags: ['blocks'] },
+  { slug: 'search-the-workspace', i18nKey: 'howto_search_the_workspace_ui', tone: 26, tags: ['blocks'] },
+  { slug: 'add-a-block-by-name', i18nKey: 'howto_add_a_block_by_name_ui', tone: 27, tags: ['blocks'] },
 ];
+
+// Filter chips come in this order, then any other tag in the order it first
+// appears in HOW_TOS.
+const TAG_ORDER = ['general', 'blocks', 'gizmo'];
+
+// The filter chip selected when the How to tab opens.
+const DEFAULT_TAG = 'general';
 
 // How-to text lives in src/how-tos/<lang>/<slug>.html — one locale folder
 // per language, so it can be edited (and translated) without touching code;
@@ -110,6 +137,25 @@ const HOWTO_LINK_TARGETS = {
   newprojectbutton: () => {
     const modalOpen = !document.getElementById('exampleModal')?.classList.contains('hidden');
     drawAttention(document.getElementById(modalOpen ? 'newProjectButton' : 'exampleButton'));
+  },
+  saveproject: () => {
+    const modalOpen = !document.getElementById('exampleModal')?.classList.contains('hidden');
+    drawAttention(document.getElementById(modalOpen ? 'exportCodeButton' : 'exampleButton'));
+  },
+  openproject: () => {
+    const modalOpen = !document.getElementById('exampleModal')?.classList.contains('hidden');
+    drawAttention(document.getElementById(modalOpen ? 'openButton' : 'exampleButton'));
+  },
+  // Same shape as toolsmenu below: the menu item if the menu is open, else
+  // the menu button that opens it.
+  languagemenu: () => {
+    const menuOpen = !document.getElementById('menuDropdown')?.classList.contains('hidden');
+    drawAttention(document.getElementById(menuOpen ? 'language-menu-item' : 'menuBtn'));
+  },
+  playertab: () => drawAttention(document.getElementById('info-tab-btn-player')),
+  thememenu: () => {
+    const menuOpen = !document.getElementById('menuDropdown')?.classList.contains('hidden');
+    drawAttention(document.getElementById(menuOpen ? 'theme-menu-item' : 'menuBtn'));
   },
   // "Menu" → "Tools" → "Gizmo controls" is the same guided-chain shape as
   // "Projects"/"New" above, one level deeper: "Menu" always points at the
@@ -264,6 +310,16 @@ const HOWTO_LINK_TARGETS = {
   // The workspace trashcan (Blockly's own bin, a `.blocklyTrash` SVG group —
   // glow works on SVG the same way, see style.css).
   trashcan: () => drawAttention(document.querySelector('#blocklyDiv .blocklyTrash')),
+  // The pick-position pin (blocks/fieldPickPosition.js) on the selected block,
+  // or on the first block that has one if the selected block doesn't.
+  positionpin: () => {
+    const hasPin = (block) => !!block?.getField?.('PICK_POSITION');
+    const selected = Blockly.getSelected?.();
+    const block = hasPin(selected)
+      ? selected
+      : Blockly.getMainWorkspace()?.getAllBlocks(true)?.find(hasPin);
+    drawAttention(block?.getField('PICK_POSITION').getSvgRoot());
+  },
 };
 
 // Hardcoded copies of the menu-bar button icons, keyed by <ui-button>
@@ -398,7 +454,56 @@ const UI_BUTTON_ICONS = {
 UI_BUTTON_ICONS['block-copy'] = UI_BUTTON_ICONS.duplicategizmo;
 UI_BUTTON_ICONS['block-delete'] = UI_BUTTON_ICONS.deletegizmo;
 UI_BUTTON_ICONS['block-view'] = UI_BUTTON_ICONS.viewgizmo;
-UI_BUTTON_ICONS.trashcan = UI_BUTTON_ICONS.deletegizmo;
+
+// Copies of the workspace trashcan artwork in main/blocklyinit.js, with the
+// lid moved to sit on top of the bin rather than in Blockly's lid group.
+const TRASHCAN_BIN =
+  '<path fill="currentColor" d="M36.965,11.956c.022.112.035.226.035.344v37.899c0,.993-.808,1.801-1.801,1.801H6.801c-.993,0-1.801-.808-1.801-1.801V12.301c0-.118.013-.232.035-.344h-2c-.01.115-.035.226-.035.344v37.899c0,2.099,1.702,3.801,3.801,3.801h28.399c2.099,0,3.801-1.702,3.801-3.801V12.301c0-.118-.024-.229-.035-.344h-2Z"/>' +
+  '<path fill="currentColor" d="M0,3v6h42V3h-10.5l-3-3h-15l-3,3H0Z"/>';
+const TRASHCAN_CONTENTS = [
+  'M8.226,39.333l.757-.08c.302-.032.604.066.83.268l.716.64c.227.203.528.3.831.268l2.216-.233c.266-.028.513-.154.691-.354l.85-.953c.178-.2.425-.326.691-.354l7.902-.833c.591-.062,1.122.367,1.184.958l.799,7.581c.062.591-.367,1.121-.958,1.184l-7.391.779c-.228.024-.443.12-.612.275l-1.355,1.234c-.17.154-.384.251-.612.275l-2.633.277c-.255.027-.511-.038-.722-.183l-1.137-.781c-.211-.145-.467-.21-.722-.183l-.289.03c-.591.062-1.121-.364-1.183-.955l-.809-7.678c-.062-.592.367-1.118.959-1.181Z',
+  'M18.812,24.223l.755.101c.301.04.571.206.744.457l.544.791c.172.25.443.416.744.457l2.209.296c.266.036.535-.029.755-.181l1.051-.726c.22-.152.49-.217.755-.181l7.875,1.056c.589.079,1.003.621.924,1.211l-1.014,7.555c-.079.589-.621,1.003-1.211.924l-7.366-.988c-.227-.03-.458.012-.66.122l-1.608.879c-.201.11-.432.153-.66.122l-2.624-.352c-.254-.034-.488-.158-.659-.348l-.921-1.027c-.171-.191-.405-.314-.659-.348l-.288-.039c-.589-.079-1.004-.618-.925-1.207l1.027-7.652c.079-.59.621-1,1.21-.921Z',
+  'M8.106,13.149l.759-.058c.303-.023.602.083.822.292l.697.66c.221.209.52.315.823.292l2.222-.17c.267-.02.517-.14.701-.335l.877-.929c.184-.195.434-.314.701-.335l7.923-.607c.593-.045,1.111.398,1.156.991l.582,7.601c.045.593-.398,1.111-.991,1.156l-7.411.568c-.229.018-.446.108-.62.257l-1.39,1.195c-.174.149-.391.24-.62.257l-2.64.202c-.256.02-.51-.053-.717-.204l-1.114-.813c-.207-.151-.461-.223-.717-.204l-.29.022c-.593.045-1.11-.395-1.156-.988l-.59-7.698c-.045-.593.399-1.108.992-1.153Z',
+]
+  .map((d) => `<path fill="currentColor" d="${d}"/>`)
+  .join('');
+UI_BUTTON_ICONS.trashcan = { viewBox: '0 0 42 54', inner: TRASHCAN_BIN };
+
+// Upgrades each <workspace-comment>text</workspace-comment> into a picture of
+// a Blockly workspace comment holding that text — drawn in HTML rather than
+// live-rendered like <snippet>, since a real comment's look depends on CSS
+// that only applies inside Blockly's injection div.
+function wireHowToWorkspaceComments(root) {
+  root.querySelectorAll('workspace-comment').forEach((el) => {
+    const text = el.textContent.trim();
+    const note = document.createElement('div');
+    note.className = 'howto-workspace-comment';
+    note.setAttribute('role', 'img');
+    note.setAttribute('aria-label', `${translate('howto_workspace_comment_ui')}: ${text}`);
+    const topbar = document.createElement('div');
+    topbar.className = 'howto-workspace-comment-topbar';
+    topbar.innerHTML = '<svg viewBox="0 0 10 6" aria-hidden="true"><path fill="currentColor" d="M0 0h10L5 6z"/></svg>';
+    const body = document.createElement('div');
+    body.className = 'howto-workspace-comment-body';
+    body.textContent = text;
+    note.append(topbar, body);
+    el.replaceWith(note);
+  });
+}
+
+// Upgrades each <trashcan-icon> (or <trashcan-icon full>) into a larger
+// picture of the workspace trashcan, empty or holding deleted blocks. A
+// picture, not a link — <ui-button target="trashcan"> is the link.
+function wireHowToTrashcanIcons(root) {
+  root.querySelectorAll('trashcan-icon').forEach((el) => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 42 54');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'howto-trashcan-icon');
+    svg.innerHTML = el.hasAttribute('full') ? TRASHCAN_BIN + TRASHCAN_CONTENTS : TRASHCAN_BIN;
+    el.replaceWith(svg);
+  });
+}
 
 // Builds an <img> or <svg> node from a UI_BUTTON_ICONS entry — the shared
 // bit of wireHowToButtons() below and renderGrid()'s card icons, so both
@@ -443,6 +548,7 @@ const BLOCK_ICONS = {
     path: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z',
   },
 };
+UI_BUTTON_ICONS.positionpin = BLOCK_ICONS.pin;
 
 // The color picker (ui/colourpicker.js) is a single instance appended to
 // #canvasArea once at startup and toggled via style.display, never
@@ -716,19 +822,27 @@ function wireHowToRelated(root, onOpenHowTo) {
   root.querySelectorAll('related').forEach((el) => {
     const box = document.createElement('div');
     box.className = 'howto-related';
-    const slugs = [...el.querySelectorAll('related-howto')].map((item) => item.getAttribute('slug'));
-    slugs.forEach((slug, i) => {
-      const howTo = HOW_TOS.find((h) => h.slug === slug);
-      if (!howTo) {
-        console.error(`How-to related-howto "${slug}" has no matching HOW_TOS entry`);
-        return;
+    // A <link-to> in the list was already upgraded by wireHowToLinks(), so it
+    // is kept as-is, in its place among the how-to links.
+    const items = [...el.children].filter(
+      (item) => item.matches('related-howto') || item.matches('button.help-link')
+    );
+    items.forEach((item) => {
+      let btn = item;
+      if (item.matches('related-howto')) {
+        const slug = item.getAttribute('slug');
+        const howTo = HOW_TOS.find((h) => h.slug === slug);
+        if (!howTo) {
+          console.error(`How-to related-howto "${slug}" has no matching HOW_TOS entry`);
+          return;
+        }
+        btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'help-link';
+        btn.textContent = translate(howTo.i18nKey);
+        btn.addEventListener('click', () => onOpenHowTo(slug));
       }
-      if (i > 0) box.appendChild(document.createTextNode(', '));
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'help-link';
-      btn.textContent = translate(howTo.i18nKey);
-      btn.addEventListener('click', () => onOpenHowTo(slug));
+      if (box.childNodes.length) box.appendChild(document.createTextNode(', '));
       box.appendChild(btn);
     });
     el.replaceWith(box);
@@ -813,11 +927,34 @@ async function renderSnippetSVG(blockJson, { selected = false, highlightInput = 
   }
 }
 
+// A picture of the floating block menu for a <snippet block-menu="…">, e.g.
+// block-menu="duplicate copy delete" — one button per name, drawn with the
+// block-<name> icons above. Decorative: the snippet's own label and the
+// how-to text carry the meaning.
+function createBlockMenuPicture(names) {
+  const menu = document.createElement('div');
+  menu.className = 'howto-block-menu';
+  menu.setAttribute('aria-hidden', 'true');
+  for (const name of names) {
+    const iconEl = createIconElement(UI_BUTTON_ICONS[`block-${name}`]);
+    if (!iconEl) {
+      console.error(`How-to snippet block-menu "${name}" has no matching block-${name} icon`);
+      continue;
+    }
+    const btn = document.createElement('span');
+    btn.className = 'howto-block-menu-btn';
+    btn.appendChild(iconEl);
+    menu.appendChild(btn);
+  }
+  return menu;
+}
+
 function wireHowToSnippets(root) {
   root.querySelectorAll('snippet').forEach((el) => {
     const src = el.getAttribute('src');
     const selected = el.hasAttribute('selected');
     const highlightInput = el.getAttribute('highlight-input');
+    const blockMenu = el.getAttribute('block-menu')?.split(/\s+/).filter(Boolean);
     const caption = el.textContent.trim();
     const figure = document.createElement('figure');
     figure.className = 'howto-snippet';
@@ -833,9 +970,10 @@ function wireHowToSnippets(root) {
       console.error(`How-to snippet "${src}" has no matching src/how-tos/snippets/*.json`);
       return;
     }
-    renderSnippetSVG(blockJson, { selected, highlightInput })
+    renderSnippetSVG(blockJson, { selected: selected || !!blockMenu, highlightInput })
       .then(({ svg, label }) => {
         figure.insertAdjacentHTML('afterbegin', svg);
+        if (blockMenu) figure.prepend(createBlockMenuPicture(blockMenu));
         // The figcaption (when present) is the accessible description; the
         // picture itself is decorative on top of that. Without one, the
         // figure reads out the blocks the same way Blockly does on the
@@ -886,7 +1024,7 @@ const HowToPanel = {
   _activeSlug: null,
   // Gizmo is the default filter (not All) since most how-tos are gizmo
   // how-tos — the reader lands on the subset they're most likely to want.
-  _activeTag: 'gizmo',
+  _activeTag: DEFAULT_TAG,
   _modalTitleId: 'howto-panel-title',
   _tabBtnId: 'info-tab-btn-howto',
   _closeLabelKey: 'close',
@@ -932,9 +1070,11 @@ const HowToPanel = {
   },
 
   renderGrid(list) {
-    // Topic filter — one chip per tag (in first-seen order) plus All.
-    // Single-select: picking a tag shows only its cards; All shows everything.
-    const tags = [...new Set(HOW_TOS.flatMap((h) => h.tags ?? []))];
+    // Topic filter — one chip per tag (see TAG_ORDER). Single-select: picking
+    // a tag shows only its cards.
+    const tags = [...new Set([...TAG_ORDER, ...HOW_TOS.flatMap((h) => h.tags ?? [])])].filter((tag) =>
+      HOW_TOS.some((h) => h.tags?.includes(tag))
+    );
     list.innerHTML = `<div class="howto-filter" role="group" aria-label="${translate('howto_filter_label_ui')}"></div><ul class="howto-grid"></ul>`;
     const filter = list.querySelector('.howto-filter');
     const addChip = (tag, label) => {
@@ -949,10 +1089,9 @@ const HowToPanel = {
       });
       filter.appendChild(chip);
     };
-    addChip(null, translate('howto_filter_all_ui'));
     tags.forEach((tag) => addChip(tag, translate(`howto_tag_${tag}_ui`)));
     const grid = list.querySelector('.howto-grid');
-    HOW_TOS.filter((h) => !this._activeTag || (h.tags ?? []).includes(this._activeTag)).forEach(
+    HOW_TOS.filter((h) => (h.tags ?? []).includes(this._activeTag)).forEach(
       (howTo) => {
         const li = document.createElement('li');
         const button = document.createElement('button');
@@ -989,6 +1128,8 @@ const HowToPanel = {
     wireHowToLinks(article, (slug) => this.openHowTo(slug));
     wireHowToButtons(article);
     wireHowToBlockIcons(article);
+    wireHowToTrashcanIcons(article);
+    wireHowToWorkspaceComments(article);
     wireHowToSteps(article);
     wireHowToSnippets(article);
     wireHowToRelated(article, (slug) => this.openHowTo(slug));
@@ -1027,7 +1168,7 @@ const HowToPanel = {
     // Re-opening the tab should land back on the default card grid, not
     // strand the reader mid-article or mid-filter.
     this._activeSlug = null;
-    this._activeTag = 'gizmo';
+    this._activeTag = DEFAULT_TAG;
   },
 
   toggle() {
@@ -1058,4 +1199,4 @@ const HowToPanel = {
   },
 };
 
-export { HowToPanel };
+export { HowToPanel, drawAttention };

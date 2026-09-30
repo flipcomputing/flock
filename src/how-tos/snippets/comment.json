@@ -1,0 +1,13 @@
+{
+  "type": "comment",
+  "inputs": {
+    "COMMENT": {
+      "shadow": {
+        "type": "text_multiline",
+        "fields": {
+          "TEXT": "Make the sky blue"
+        }
+      }
+    }
+  }
+}

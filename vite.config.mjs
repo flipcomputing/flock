@@ -203,9 +203,7 @@ export default {
           }),
         ],
         navigateFallback: `${BASE_URL}index.html`,
-        navigateFallbackAllowlist: [
-          new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/|3dglasses)`),
-        ],
+        navigateFallbackAllowlist: [new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)],
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,mp3,aac,wasm,json,woff,woff2}',
           'models/**/*',
@@ -484,6 +482,6 @@ export default {
   build: {
     assetsInlineLimit: 100000, // include font files inline if needed
     cssCodeSplit: false, // inline CSS into JS
-    rollupOptions: { input: ['index.html', '3dglasses/index.html'] },
+    rollupOptions: { input: 'index.html' },
   },
 };

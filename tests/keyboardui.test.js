@@ -670,15 +670,17 @@ export function runKeyboardUiTests(flock) {
         HowToPanel.hide();
       });
 
-      it('show() activates the how-to tab, defaulting to the Gizmo filter', function () {
+      const chipByLabel = (label) =>
+        [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].find(
+          (c) => c.textContent === label
+        );
+
+      it('show() activates the how-to tab, defaulting to the General filter', function () {
         HowToPanel.show();
         expect(InfoPanel._activeId).to.equal('howto');
         const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
-        expect(tiles.length).to.equal(10);
-        const gizmoChip = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].find(
-          (c) => c.textContent === 'Gizmo'
-        );
-        expect(gizmoChip.getAttribute('aria-pressed')).to.equal('true');
+        expect(tiles.length).to.equal(8);
+        expect(chipByLabel('General').getAttribute('aria-pressed')).to.equal('true');
       });
 
       it("clicking a card swaps the grid for that how-to's article, with a back button", function () {
@@ -708,13 +710,9 @@ export function runKeyboardUiTests(flock) {
 
       it('a <link-to target="howto:…"> opens that how-to', function () {
         HowToPanel.show();
-        [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')]
-          .find((c) => c.textContent === 'All')
-          .click();
+        chipByLabel('Gizmo').click();
         const tiles = HowToPanel.panel.querySelectorAll('.howto-tile');
-        const targetName = [...tiles]
-          .find((t) => t.querySelector('.howto-tile-name').textContent === 'Explore your world')
-          .querySelector('.howto-tile-name').textContent;
+        const targetName = 'Explore your world';
         [...tiles].find((t) => t.textContent.includes('Add an object')).click();
         const link = [...HowToPanel.panel.querySelectorAll('.howto-article button.help-link')].find(
           (b) => b.textContent.includes('Explore')
@@ -737,6 +735,7 @@ export function runKeyboardUiTests(flock) {
 
       it('a <ui-button> renders its label with an icon and no underlined gap', function () {
         HowToPanel.show();
+        chipByLabel('Gizmo').click();
         const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
           t.textContent.includes('Add an object')
         );
@@ -759,37 +758,32 @@ export function runKeyboardUiTests(flock) {
         expect(btn.lastChild.nodeName).to.equal('svg');
       });
 
-      it('shows a filter chip for All plus one per topic tag', function () {
+      it('shows one filter chip per topic tag, General, Blocks and Gizmo first', function () {
         HowToPanel.show();
         const chips = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')];
         expect(chips.map((c) => c.textContent)).to.deep.equal([
-          'All',
-          'Scene',
+          'General',
+          'Blocks',
           'Gizmo',
+          'Scene',
           'Code',
-          'Character',
           'Camera',
         ]);
       });
 
-      it('filtering by Gizmo shows only the gizmo cards, All restores the grid', function () {
+      it('filtering by a chip shows only that topic’s cards', function () {
         HowToPanel.show();
-        const chipByLabel = () =>
-          new Map(
-            [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].map((c) => [
-              c.textContent,
-              c,
-            ])
-          );
-        chipByLabel().get('Gizmo').click();
+        chipByLabel('Gizmo').click();
         expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(10);
-        expect(chipByLabel().get('Gizmo').getAttribute('aria-pressed')).to.equal('true');
-        chipByLabel().get('All').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(15);
+        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('true');
+        chipByLabel('Blocks').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);
+        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('false');
       });
 
       it('the Duplicate an object article teaches the gizmo, not block duplication', function () {
         HowToPanel.show();
+        chipByLabel('Gizmo').click();
         const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
           t.textContent.includes('Duplicate an object')
         );

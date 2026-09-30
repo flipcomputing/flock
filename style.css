@@ -1179,7 +1179,11 @@ button {
 [data-theme='dark'] #help-list a,
 [data-theme='dark-contrast'] #help-list a,
 [data-theme='contrast'] #help-list a,
-[data-theme='low-color'] #help-list a {
+[data-theme='low-color'] #help-list a,
+[data-theme='dark'] .howto-article a,
+[data-theme='dark-contrast'] .howto-article a,
+[data-theme='contrast'] .howto-article a,
+[data-theme='low-color'] .howto-article a {
   color: var(--color-primary-light);
 }
 
@@ -2342,13 +2346,6 @@ details summary:focus-visible,
   z-index: 20;
 }
 
-.force-focus-ring {
-  outline: 3px solid var(--color-focus-outline) !important;
-  outline-offset: 2px;
-  border-radius: 0;
-  z-index: 20;
-}
-
 #info-details table td:first-child {
   min-width: 100px;
   white-space: nowrap;
@@ -3182,18 +3179,8 @@ kbd {
   margin: 0 0 0.3em;
 }
 
-#help-list h3:first-child,
-#help-list p.help-intro + h3 {
+#help-list h3:first-child {
   padding-top: 0;
-}
-
-/* Half the image's intrinsic 768px width, but still shrinks in a narrow panel. */
-.help-hero {
-  display: block;
-  width: 384px;
-  max-width: 100%;
-  height: auto;
-  margin: 0 0 0.75em;
 }
 
 #help-list p {
@@ -3258,17 +3245,20 @@ kbd {
 
 /* Colour comes from the shared 'About' modal link rule; underlined too, so the
    link is distinguishable without relying on colour. */
-#help-list a {
+#help-list a,
+.howto-article a {
   text-decoration: underline;
 }
 
-#help-list a:focus-visible {
+#help-list a:focus-visible,
+.howto-article a:focus-visible {
   outline: 2px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
-/* Appended inside external links by decorateExternalLinks() in accessibility/keyboardui.js. */
-#help-list .external-link-icon {
+/* Appended inside external links by decorateExternalLinks() in accessibility/infoPanel.js. */
+#help-list .external-link-icon,
+.howto-article .external-link-icon {
   display: inline-block;
   width: 0.75em;
   height: 0.75em;
@@ -3386,6 +3376,45 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   vertical-align: -0.125em;
 }
 
+/* <trashcan-icon> — a larger picture of the workspace trashcan, in the
+   same colour as the real one. Written between paragraphs, never in a
+   sentence, so consecutive icons share a line of their own. */
+.howto-article .howto-trashcan-icon {
+  width: auto;
+  height: 2.5em;
+  margin-right: 1.5em;
+  vertical-align: bottom;
+  color: var(--color-primary);
+}
+
+/* <workspace-comment> — a picture of a Blockly workspace comment. Colours
+   match Blockly's --commentBorderColour and --commentFillColour, which are
+   only defined inside the workspace. */
+.howto-article .howto-workspace-comment {
+  max-width: 18em;
+  margin: 0 0 0.75em;
+  border: 2px solid #f2e49b;
+  color: #000;
+}
+
+.howto-article .howto-workspace-comment-topbar {
+  height: 1.2em;
+  padding: 0 0.3em;
+  background-color: #f2e49b;
+}
+
+.howto-article .howto-workspace-comment-topbar svg {
+  width: 0.55em;
+  height: 0.55em;
+  vertical-align: top;
+  margin-top: 0.15em;
+}
+
+.howto-article .howto-workspace-comment-body {
+  padding: 0.3em 0.4em 1em;
+  background-color: #fffcc7;
+}
+
 /* Icon inside a <ui-button> highlight link — gap between the label and icon. */
 .howto-article .help-link .howto-icon {
   margin-left: 0.35em;
@@ -3432,6 +3461,7 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-article goal,
 .howto-article step,
+.howto-article topic,
 .howto-article tip,
 .howto-article .howto-related {
   display: block;
@@ -3452,9 +3482,13 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   margin-right: 0.4em;
 }
 
-.howto-article step {
+.howto-article step,
+.howto-article topic {
   background-color: var(--color-bg);
   border: 1px solid var(--color-border);
+}
+
+.howto-article step {
   counter-increment: howto-step;
   transition:
     background-color 0.2s ease,
@@ -3465,7 +3499,8 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
    above), so each step reads as its own card against the lighter
    --color-menu page behind it (see [data-theme='light'] #info-tab-panel-howto
    above). */
-[data-theme='light'] .howto-article step {
+[data-theme='light'] .howto-article step,
+[data-theme='light'] .howto-article topic {
   background-color: var(--color-panel-bg);
 }
 
@@ -3473,8 +3508,11 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
    prefix itself, so the number and the title read as one heading line —
    important for scanning a list of steps at a glance. Steps without one (a
    step-title is optional, not every step needs a heading) fall back to a
-   bare "Step N" label via the :not(:has(...)) rule below. */
-.howto-article step-title {
+   bare "Step N" label via the :not(:has(...)) rule below. <topic> is an
+   unnumbered card for how-tos whose parts aren't a sequence, so its
+   <topic-title> is the same heading without the prefix. */
+.howto-article step-title,
+.howto-article topic-title {
   display: block;
   font-weight: bold;
   margin-bottom: 0.3em;
@@ -3591,6 +3629,7 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 }
 
 .howto-article step p:last-child,
+.howto-article topic p:last-child,
 .howto-article goal p:last-child,
 .howto-article tip p:last-child {
   margin-bottom: 0;
@@ -3608,6 +3647,69 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 .howto-snippet svg {
   max-width: 100%;
   height: auto;
+}
+
+/* <snippet block-menu="…"> — a static copy of the floating block menu
+   (.fc-block-toolbar) sitting above the selected block. */
+.howto-block-menu {
+  position: relative;
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 5px;
+  background: var(--color-menu, #f9f9f9);
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: 10px;
+  box-shadow: 0 3px 12px var(--color-shadow-medium, rgba(0, 0, 0, 0.2));
+}
+
+.howto-block-menu::after,
+.howto-block-menu::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-bottom: 0;
+}
+
+.howto-block-menu::after {
+  bottom: -7px;
+  border-top-color: var(--color-border, #ddd);
+}
+
+.howto-block-menu::before {
+  bottom: -5px;
+  border-width: 5px;
+  border-bottom: 0;
+  border-top-color: var(--color-menu, #f9f9f9);
+  z-index: 1;
+}
+
+.howto-block-menu + svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.howto-article .howto-block-menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+  background: var(--color-button-bg, #f0f0f0);
+  color: var(--color-text-primary, #000);
+}
+
+[data-theme='light'] .howto-article .howto-block-menu-btn {
+  background: var(--color-panel-bg);
+  color: var(--color-primary);
+}
+
+.howto-article .howto-block-menu-btn .howto-icon {
+  width: 18px;
+  height: 18px;
 }
 
 .howto-snippet figcaption {

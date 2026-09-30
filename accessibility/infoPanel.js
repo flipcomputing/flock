@@ -311,11 +311,4 @@ function decorateExternalLinks(root) {
   });
 }
 
-function focusWithVisibleRing(el) {
-  if (!el) return;
-  el.classList.add('force-focus-ring');
-  el.addEventListener('blur', () => el.classList.remove('force-focus-ring'), { once: true });
-  el.focus();
-}
-
-export { InfoPanel, ModalPanelBehaviour, decorateExternalLinks, focusWithVisibleRing };
+export { InfoPanel, ModalPanelBehaviour, decorateExternalLinks };
