@@ -14,7 +14,7 @@ function ensureDynamicForMovement(mesh) {
 // --- Shared movement/jump tuning ---------------------------------------------
 // These are shared by the grounded-movement core, the ground check and the
 // jump so behaviour is consistent. Kept module-scoped so they are defined once.
-const MAX_SLOPE_ANGLE_DEG = 45; // steeper than this counts as a wall, not ground
+const MAX_SLOPE_ANGLE_DEG = 75; // steeper than this counts as a wall, not ground
 const GROUND_CHECK_DISTANCE = 0.3; // downward capsule probe length
 const COYOTE_TIME_MS = 120; // grace window to still count as grounded after a ledge
 const MAX_VERTICAL_VELOCITY = 3.0; // clamp for normal movement (anti ramp-launch)

@@ -176,7 +176,7 @@
         "type": "start",
         "id": "!9Hv)iQHadkDP@rw/D!%",
         "x": 10,
-        "y": 494,
+        "y": 488,
         "inputs": {
           "DO": {
             "block": {
@@ -209,7 +209,7 @@
                 "block": {
                   "type": "load_model",
                   "id": "VitxB`:]p?2~pxCG5KAx",
-                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                   "fields": {
                     "ID_VAR": {
                       "id": "~rT`.Lt~L~dA;sggApva"
@@ -256,6 +256,7 @@
                     "COLORS": {
                       "shadow": {
                         "type": "lists_create_with",
+                        "id": "n+rDIs%NcI5AIZ13p1Yy",
                         "inline": true,
                         "extraState": {
                           "itemCount": 8
@@ -264,30 +265,34 @@
                           "ADD0": {
                             "shadow": {
                               "type": "colour",
+                              "id": ":rwVhb}?jIRKbcTChXV9",
                               "fields": {
-                                "COLOR": "#511D91"
+                                "COLOR": "#511d91"
                               }
                             }
                           },
                           "ADD1": {
                             "shadow": {
                               "type": "colour",
+                              "id": "=B%1p)Qq!@=[Dlu1NP}[",
                               "fields": {
-                                "COLOR": "#33125B"
+                                "COLOR": "#33125b"
                               }
                             }
                           },
                           "ADD2": {
                             "shadow": {
                               "type": "colour",
+                              "id": "n/G^QA:TP0B=1unO5k/(",
                               "fields": {
-                                "COLOR": "#FFFFFF"
+                                "COLOR": "#ffffff"
                               }
                             }
                           },
                           "ADD3": {
                             "shadow": {
                               "type": "colour",
+                              "id": "j8~]ur#EL[wqZbb8-ked",
                               "fields": {
                                 "COLOR": "#000000"
                               }
@@ -296,22 +301,25 @@
                           "ADD4": {
                             "shadow": {
                               "type": "colour",
+                              "id": ";T2#Z5SJCxvI@#1N=F%v",
                               "fields": {
-                                "COLOR": "#511D91"
+                                "COLOR": "#511d91"
                               }
                             }
                           },
                           "ADD5": {
                             "shadow": {
                               "type": "colour",
+                              "id": ")p(R:BZ@hXJ~G-gtUA.F",
                               "fields": {
-                                "COLOR": "#F77100"
+                                "COLOR": "#f77100"
                               }
                             }
                           },
                           "ADD6": {
                             "shadow": {
                               "type": "colour",
+                              "id": "vC~yp{UHRIDZrmv9EUbJ",
                               "fields": {
                                 "COLOR": "#343434"
                               }
@@ -320,8 +328,9 @@
                           "ADD7": {
                             "shadow": {
                               "type": "colour",
+                              "id": "@-pVpaemyM0=+.+uOqdn",
                               "fields": {
-                                "COLOR": "#511D91"
+                                "COLOR": "#511d91"
                               }
                             }
                           }
@@ -344,6 +353,9 @@
                           "type": "camera_follow",
                           "id": ";G2uq~l|,?]vN(e4l)}~",
                           "fields": {
+                            "CAM_VAR": {
+                              "id": "ijRp9e$e8jm,eyfY^Vug"
+                            },
                             "MESH_VAR": {
                               "id": "~rT`.Lt~L~dA;sggApva"
                             },
@@ -383,7 +395,7 @@
         "type": "start",
         "id": "d:K]5fiAIDRrVZynsvL1",
         "x": 10,
-        "y": 846,
+        "y": 2635,
         "inputs": {
           "DO": {
             "block": {
@@ -640,7 +652,7 @@
                                   "block": {
                                     "type": "create_box",
                                     "id": "$1R7UAk$1}VxHS;Z@I:.",
-                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                     "fields": {
                                       "ID_VAR": {
                                         "id": "k;mr@MX+C+gx7[X_qnJZ"
@@ -1014,10 +1026,7 @@
                                                                     "ADD0": {
                                                                       "shadow": {
                                                                         "type": "midi_note",
-                                                                        "id": "XXrn-;5srhih?VI_t81)",
-                                                                        "fields": {
-                                                                          "NOTE": 60
-                                                                        }
+                                                                        "id": "XXrn-;5srhih?VI_t81)"
                                                                       }
                                                                     }
                                                                   }
@@ -1121,122 +1130,26 @@
         }
       },
       {
-        "type": "on_event",
-        "id": "ZlGS!yscRf+(BR(,GgFy",
+        "type": "start",
+        "id": "|3eBpifznd%eU)3TI|m5",
         "x": 10,
-        "y": 1854,
-        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+        "y": 3622,
+        "collapsed": true,
         "inputs": {
-          "EVENT_NAME": {
-            "shadow": {
-              "type": "text",
-              "id": "drlQYnfwn|=Cx/#E}p(L",
-              "fields": {
-                "TEXT": "landed"
-              }
-            }
-          },
           "DO": {
             "block": {
-              "type": "play_animation",
-              "id": "2RXatOe2yU0s8n6hdO+8",
+              "type": "set_xr_mode",
+              "id": "#sU.ITxD;=0q(X$u~{_*",
               "fields": {
-                "MODEL": {
-                  "id": "~rT`.Lt~L~dA;sggApva"
-                }
-              },
-              "inputs": {
-                "ANIMATION_NAME": {
-                  "shadow": {
-                    "type": "animation_name",
-                    "id": "1b:^dVES3*ID-:G5{M.M",
-                    "fields": {
-                      "ANIMATION_NAME": "Idle"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "type": "on_event",
-        "id": "%J{+AnwD+N3pR-i4,:,_",
-        "x": 10,
-        "y": 2038,
-        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
-        "inputs": {
-          "EVENT_NAME": {
-            "shadow": {
-              "type": "text",
-              "id": "XN.W|2t1@:J(/ix][ygX",
-              "fields": {
-                "TEXT": "jumped"
-              }
-            }
-          },
-          "DO": {
-            "block": {
-              "type": "play_animation",
-              "id": "82dt^mPx2^SN5f/87ZXl",
-              "fields": {
-                "MODEL": {
-                  "id": "~rT`.Lt~L~dA;sggApva"
-                }
-              },
-              "inputs": {
-                "ANIMATION_NAME": {
-                  "shadow": {
-                    "type": "animation_name",
-                    "id": "g]l1|U!Z[|{/{@az.Z5L",
-                    "fields": {
-                      "ANIMATION_NAME": "JumpUp"
-                    }
-                  }
-                }
+                "MODE": "VR"
               },
               "next": {
                 "block": {
-                  "type": "play_animation",
-                  "id": "1/*}^;SvQz4LGlXrJ[}E",
+                  "type": "set_xr_view_mode",
+                  "id": "f7Q6xa@M+2vyuG/eS=W(",
                   "fields": {
-                    "MODEL": {
-                      "id": "~rT`.Lt~L~dA;sggApva"
-                    }
-                  },
-                  "inputs": {
-                    "ANIMATION_NAME": {
-                      "shadow": {
-                        "type": "animation_name",
-                        "id": "DI3dK@}213l3ficAMkot",
-                        "fields": {
-                          "ANIMATION_NAME": "JumpIdle"
-                        }
-                      }
-                    }
-                  },
-                  "next": {
-                    "block": {
-                      "type": "play_animation",
-                      "id": "`(=*};nK,WW$S(-(Q49P",
-                      "fields": {
-                        "MODEL": {
-                          "id": "~rT`.Lt~L~dA;sggApva"
-                        }
-                      },
-                      "inputs": {
-                        "ANIMATION_NAME": {
-                          "shadow": {
-                            "type": "animation_name",
-                            "id": "t{XJNZAwoSpJd2V98kk|",
-                            "fields": {
-                              "ANIMATION_NAME": "JumpLand"
-                            }
-                          }
-                        }
-                      }
-                    }
+                    "VIEW": "embody",
+                    "MOTION": "smooth"
                   }
                 }
               }
@@ -1246,99 +1159,22 @@
       },
       {
         "type": "forever",
-        "id": "zJq%4wR0qp*vu.sbVCFe",
+        "id": "{*YP3{gjxO2S[.XSM`i,",
         "x": 10,
-        "y": 2326,
+        "y": 879,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
             "block": {
-              "type": "if_clause",
-              "id": "XIdiI;$?5QPptt$G~DqK",
-              "extraState": {
-                "mode": "IF",
-                "stashedCondState": null
-              },
-              "fields": {
-                "MODE": "IF"
-              },
+              "type": "comment",
+              "id": "8R4DUlSNAk=w@#9v5]W/",
               "inputs": {
-                "COND": {
-                  "block": {
-                    "type": "logic_operation",
-                    "id": "M(xy?[r8=,(MC-[rl4;g",
+                "COMMENT": {
+                  "shadow": {
+                    "type": "text_multiline",
+                    "id": "kC!XY|Xtg0FjsS(e2vwT",
                     "fields": {
-                      "OP": "AND"
-                    },
-                    "inputs": {
-                      "A": {
-                        "block": {
-                          "type": "variables_get",
-                          "id": "/[Kqvw0PQir^6A4yeGD.",
-                          "fields": {
-                            "VAR": {
-                              "id": "j$+pmKpZh7:*a:POBJ0."
-                            }
-                          }
-                        }
-                      },
-                      "B": {
-                        "block": {
-                          "type": "touching_surface",
-                          "id": "rsSzL]y)z[j@9A6{~kOX",
-                          "fields": {
-                            "MODEL_VAR": {
-                              "id": "~rT`.Lt~L~dA;sggApva"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                "DO": {
-                  "block": {
-                    "type": "variables_set",
-                    "id": "ZAz!):hdSW%:QI06sAiS",
-                    "fields": {
-                      "VAR": {
-                        "id": "j$+pmKpZh7:*a:POBJ0."
-                      }
-                    },
-                    "inputs": {
-                      "VALUE": {
-                        "shadow": {
-                          "type": "math_number",
-                          "id": "}BL`.I@:?`e6$.:fleH+",
-                          "fields": {
-                            "NUM": 0
-                          }
-                        },
-                        "block": {
-                          "type": "logic_boolean",
-                          "id": "ugZ$a9SW{4wfcvX|miOm",
-                          "fields": {
-                            "BOOL": "FALSE"
-                          }
-                        }
-                      }
-                    },
-                    "next": {
-                      "block": {
-                        "type": "broadcast_event",
-                        "id": "vJI3azh8NLVmv5FTr!9$",
-                        "inputs": {
-                          "EVENT_NAME": {
-                            "shadow": {
-                              "type": "text",
-                              "id": "]F`_3ZTnPXSz)g?Nskv0",
-                              "fields": {
-                                "TEXT": "landed"
-                              }
-                            }
-                          }
-                        }
-                      }
+                      "TEXT": "Jumping"
                     }
                   }
                 }
@@ -1346,7 +1182,7 @@
               "next": {
                 "block": {
                   "type": "if_clause",
-                  "id": "}%Znwe8Tt`|gF0CwTwc,",
+                  "id": "94??`WnR[ut};duySE64",
                   "extraState": {
                     "mode": "IF",
                     "stashedCondState": null
@@ -1358,7 +1194,7 @@
                     "COND": {
                       "block": {
                         "type": "logic_operation",
-                        "id": "]8.?]1]|+aysXl9gXbO=",
+                        "id": "33_%kxmyAa%yMwUFSz2}",
                         "fields": {
                           "OP": "AND"
                         },
@@ -1366,7 +1202,7 @@
                           "A": {
                             "block": {
                               "type": "action_pressed",
-                              "id": "n@!XFZp@B0zZAvp_wMZb",
+                              "id": "kseURbIxp8.A=}WkFqeB",
                               "fields": {
                                 "ACTION": "BUTTON4"
                               }
@@ -1375,12 +1211,12 @@
                           "B": {
                             "block": {
                               "type": "logic_negate",
-                              "id": "`^9E5TDPec8sD])Hbdq^",
+                              "id": "8-tdhB,(Umb}_!o,/W^Z",
                               "inputs": {
                                 "BOOL": {
                                   "block": {
                                     "type": "variables_get",
-                                    "id": "p):VpG/lt/syoRs2Y-$Q",
+                                    "id": "CMSot%T_Q^?DsFs9b,4R",
                                     "fields": {
                                       "VAR": {
                                         "id": "j$+pmKpZh7:*a:POBJ0."
@@ -1396,82 +1232,47 @@
                     },
                     "DO": {
                       "block": {
-                        "type": "apply_force",
-                        "id": "PNqZ`K5MMKoteAJh}ZmV",
+                        "type": "variables_set",
+                        "id": "bx+Uko=%93XuaZ8WME2f",
                         "fields": {
-                          "MESH_VAR": {
-                            "id": "~rT`.Lt~L~dA;sggApva"
+                          "VAR": {
+                            "id": "j$+pmKpZh7:*a:POBJ0."
                           }
                         },
                         "inputs": {
-                          "X": {
+                          "VALUE": {
                             "shadow": {
                               "type": "math_number",
-                              "id": "pNWk4TYXN$IDb1H_XG08",
+                              "id": "D=U;EF,[)Q~jkkeDT8yH",
                               "fields": {
                                 "NUM": 0
                               }
-                            }
-                          },
-                          "Y": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "T`E?t];Rv?-H7C-ARg8T",
+                            },
+                            "block": {
+                              "type": "logic_boolean",
+                              "id": "n[h(qug?_uTPHD=DRSME",
                               "fields": {
-                                "NUM": 5
-                              }
-                            }
-                          },
-                          "Z": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "B`;_6k8lQe2E4/$335HM",
-                              "fields": {
-                                "NUM": 0
+                                "BOOL": "TRUE"
                               }
                             }
                           }
                         },
                         "next": {
                           "block": {
-                            "type": "variables_set",
-                            "id": "O1ur~z!/}#A@V{v;CA8-",
+                            "type": "jump",
+                            "id": "PNqZ`K5MMKoteAJh}ZmV",
                             "fields": {
-                              "VAR": {
-                                "id": "j$+pmKpZh7:*a:POBJ0."
+                              "MODEL_VAR": {
+                                "id": "~rT`.Lt~L~dA;sggApva"
                               }
                             },
                             "inputs": {
-                              "VALUE": {
+                              "JUMP_HEIGHT": {
                                 "shadow": {
                                   "type": "math_number",
-                                  "id": "}BL`.I@:?`e6$.:fleH+",
+                                  "id": "pRxPs/Tu3e9.eGGv(6BL",
                                   "fields": {
-                                    "NUM": 0
-                                  }
-                                },
-                                "block": {
-                                  "type": "logic_boolean",
-                                  "id": "1Hl1^qJzb/.y`]77*n71",
-                                  "fields": {
-                                    "BOOL": "TRUE"
-                                  }
-                                }
-                              }
-                            },
-                            "next": {
-                              "block": {
-                                "type": "broadcast_event",
-                                "id": "-z3f4#b:;K%AlF{ufp;[",
-                                "inputs": {
-                                  "EVENT_NAME": {
-                                    "shadow": {
-                                      "type": "text",
-                                      "id": ",XohrMtMVye:0~GbftD9",
-                                      "fields": {
-                                        "TEXT": "jumped"
-                                      }
-                                    }
+                                    "NUM": 1.5
                                   }
                                 }
                               }
@@ -1483,45 +1284,15 @@
                   },
                   "next": {
                     "block": {
-                      "type": "if_clause",
-                      "id": "wSn|Z]S:RxB;HpGK|t56",
-                      "extraState": {
-                        "mode": "IF",
-                        "stashedCondState": null
-                      },
-                      "fields": {
-                        "MODE": "IF"
-                      },
+                      "type": "comment",
+                      "id": "!!+j#1PU9-4TPviKPF;D",
                       "inputs": {
-                        "COND": {
-                          "block": {
-                            "type": "action_pressed",
-                            "id": "5@UCAzdys#f}pVx$doMG",
+                        "COMMENT": {
+                          "shadow": {
+                            "type": "text_multiline",
+                            "id": "DK~Ra{Qq3IQY({y.JgD{",
                             "fields": {
-                              "ACTION": "FORWARD"
-                            }
-                          }
-                        },
-                        "DO": {
-                          "block": {
-                            "type": "move_forward",
-                            "id": "_3DNI(o~2OZfOg.yg8B^",
-                            "fields": {
-                              "MODEL": {
-                                "id": "~rT`.Lt~L~dA;sggApva"
-                              },
-                              "DIRECTION": "forward"
-                            },
-                            "inputs": {
-                              "SPEED": {
-                                "shadow": {
-                                  "type": "math_number",
-                                  "id": "7|i2`^q5AU^E`:tctEi~",
-                                  "fields": {
-                                    "NUM": 7
-                                  }
-                                }
-                              }
+                              "TEXT": "Landing"
                             }
                           }
                         }
@@ -1529,41 +1300,71 @@
                       "next": {
                         "block": {
                           "type": "if_clause",
-                          "id": "(`)LYxE8/?B%25#_H48J",
+                          "id": "027CBK/a1V?3M+r=WA{!",
                           "extraState": {
-                            "mode": "ELSEIF",
+                            "mode": "IF",
                             "stashedCondState": null
                           },
                           "fields": {
-                            "MODE": "ELSEIF"
+                            "MODE": "IF"
                           },
                           "inputs": {
                             "COND": {
                               "block": {
-                                "type": "action_pressed",
-                                "id": "N89}S/E9Y;GXxEh0P]L/",
+                                "type": "logic_operation",
+                                "id": "1y_`AEp2|28}0o,vkxbz",
                                 "fields": {
-                                  "ACTION": "BACKWARD"
+                                  "OP": "AND"
+                                },
+                                "inputs": {
+                                  "A": {
+                                    "block": {
+                                      "type": "variables_get",
+                                      "id": "KKA4-GR$.;}nP]sXF$e?",
+                                      "fields": {
+                                        "VAR": {
+                                          "id": "j$+pmKpZh7:*a:POBJ0."
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "B": {
+                                    "block": {
+                                      "type": "touching_surface",
+                                      "id": "E$:_--EwMiq7Mi[X},XV",
+                                      "fields": {
+                                        "MODEL_VAR": {
+                                          "id": "~rT`.Lt~L~dA;sggApva"
+                                        }
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             },
                             "DO": {
                               "block": {
-                                "type": "move_forward",
-                                "id": "*IVt8qPsX-HwhrJ[Fw!F",
+                                "type": "variables_set",
+                                "id": "*q$_;i-4%P/cf=?Oh23j",
                                 "fields": {
-                                  "MODEL": {
-                                    "id": "~rT`.Lt~L~dA;sggApva"
-                                  },
-                                  "DIRECTION": "forward"
+                                  "VAR": {
+                                    "id": "j$+pmKpZh7:*a:POBJ0."
+                                  }
                                 },
                                 "inputs": {
-                                  "SPEED": {
+                                  "VALUE": {
                                     "shadow": {
                                       "type": "math_number",
-                                      "id": "sAO|B)omb$JS?,1N)([=",
+                                      "id": "D=U;EF,[)Q~jkkeDT8yH",
                                       "fields": {
-                                        "NUM": -7
+                                        "NUM": 0
+                                      }
+                                    },
+                                    "block": {
+                                      "type": "logic_boolean",
+                                      "id": "$e2WREnDI4Ks2_m%T~dG",
+                                      "fields": {
+                                        "BOOL": "FALSE"
                                       }
                                     }
                                   }
@@ -1573,45 +1374,15 @@
                           },
                           "next": {
                             "block": {
-                              "type": "if_clause",
-                              "id": "l9zjrBHVY~fW-VKSL$Q6",
-                              "extraState": {
-                                "mode": "ELSEIF",
-                                "stashedCondState": null
-                              },
-                              "fields": {
-                                "MODE": "ELSEIF"
-                              },
+                              "type": "comment",
+                              "id": "Cb}V9I.}xu#ub:(/oiz|",
                               "inputs": {
-                                "COND": {
-                                  "block": {
-                                    "type": "action_pressed",
-                                    "id": "m2Gg=)zzqhr)hLk:u)jB",
+                                "COMMENT": {
+                                  "shadow": {
+                                    "type": "text_multiline",
+                                    "id": "$H=nDDwY}L,pT,/_du]@",
                                     "fields": {
-                                      "ACTION": "LEFT"
-                                    }
-                                  }
-                                },
-                                "DO": {
-                                  "block": {
-                                    "type": "move_forward",
-                                    "id": "C8SL%5!%(#gQ,=OoYHNo",
-                                    "fields": {
-                                      "MODEL": {
-                                        "id": "~rT`.Lt~L~dA;sggApva"
-                                      },
-                                      "DIRECTION": "sideways"
-                                    },
-                                    "inputs": {
-                                      "SPEED": {
-                                        "shadow": {
-                                          "type": "math_number",
-                                          "id": "w!U7Ed):g+?3ukGBUVCo",
-                                          "fields": {
-                                            "NUM": -5
-                                          }
-                                        }
-                                      }
+                                      "TEXT": "Walking"
                                     }
                                   }
                                 }
@@ -1619,41 +1390,41 @@
                               "next": {
                                 "block": {
                                   "type": "if_clause",
-                                  "id": "4fvqIh6_$N?iFtt/_Sg$",
+                                  "id": "?D:fD?[BDUp?/!_y$CFv",
                                   "extraState": {
-                                    "mode": "ELSEIF",
+                                    "mode": "IF",
                                     "stashedCondState": null
                                   },
                                   "fields": {
-                                    "MODE": "ELSEIF"
+                                    "MODE": "IF"
                                   },
                                   "inputs": {
                                     "COND": {
                                       "block": {
                                         "type": "action_pressed",
-                                        "id": "%o}KkQAs,=)4L|@h6{1/",
+                                        "id": "jx|Y-;_chCel.EUg_1fo",
                                         "fields": {
-                                          "ACTION": "RIGHT"
+                                          "ACTION": "FORWARD"
                                         }
                                       }
                                     },
                                     "DO": {
                                       "block": {
                                         "type": "move_forward",
-                                        "id": "H%_G?Gklrj53qvYHbp3?",
+                                        "id": "_3DNI(o~2OZfOg.yg8B^",
                                         "fields": {
                                           "MODEL": {
                                             "id": "~rT`.Lt~L~dA;sggApva"
                                           },
-                                          "DIRECTION": "sideways"
+                                          "DIRECTION": "forward"
                                         },
                                         "inputs": {
                                           "SPEED": {
                                             "shadow": {
                                               "type": "math_number",
-                                              "id": "$GNS#}ZA-W*5Q6DB(0m)",
+                                              "id": "7|i2`^q5AU^E`:tctEi~",
                                               "fields": {
-                                                "NUM": 5
+                                                "NUM": 9
                                               }
                                             }
                                           }
@@ -1664,166 +1435,389 @@
                                   "next": {
                                     "block": {
                                       "type": "if_clause",
-                                      "id": "_4,.~7E_aKB:nhBT7yA/",
+                                      "id": "X-qsSa^viAU{-7U%hzyy",
                                       "extraState": {
-                                        "mode": "IF",
+                                        "mode": "ELSEIF",
                                         "stashedCondState": null
                                       },
                                       "fields": {
-                                        "MODE": "IF"
+                                        "MODE": "ELSEIF"
                                       },
                                       "inputs": {
                                         "COND": {
                                           "block": {
-                                            "type": "logic_negate",
-                                            "id": "hW((=J_`Ns|;^-GeQBnE",
-                                            "inputs": {
-                                              "BOOL": {
-                                                "block": {
-                                                  "type": "variables_get",
-                                                  "id": "wjH@.q$HQ)1ugO@Z:R%Y",
-                                                  "fields": {
-                                                    "VAR": {
-                                                      "id": "j$+pmKpZh7:*a:POBJ0."
-                                                    }
-                                                  }
-                                                }
-                                              }
+                                            "type": "action_pressed",
+                                            "id": "wuM#{b.9Ovks^0A[w*e+",
+                                            "fields": {
+                                              "ACTION": "BACKWARD"
                                             }
                                           }
                                         },
                                         "DO": {
                                           "block": {
-                                            "type": "if_clause",
-                                            "id": "9ZS}]gNVGr!]{]q/qFZr",
-                                            "extraState": {
-                                              "mode": "IF",
-                                              "stashedCondState": null
-                                            },
+                                            "type": "move_forward",
+                                            "id": ",iz2P3BHLe?^xtOQ80_[",
                                             "fields": {
-                                              "MODE": "IF"
+                                              "MODEL": {
+                                                "id": "~rT`.Lt~L~dA;sggApva"
+                                              },
+                                              "DIRECTION": "forward"
                                             },
                                             "inputs": {
-                                              "COND": {
-                                                "block": {
-                                                  "type": "logic_operation",
-                                                  "id": "e1oSB|/eYE`z+Y`MKDV2",
+                                              "SPEED": {
+                                                "shadow": {
+                                                  "type": "math_number",
+                                                  "id": "^8*cpF2d:{(7(yvs#nA2",
                                                   "fields": {
-                                                    "OP": "OR"
+                                                    "NUM": -9
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "if_clause",
+                                          "id": "Qgxp]8{S992CFQHAF}X!",
+                                          "extraState": {
+                                            "mode": "ELSEIF",
+                                            "stashedCondState": null
+                                          },
+                                          "fields": {
+                                            "MODE": "ELSEIF"
+                                          },
+                                          "inputs": {
+                                            "COND": {
+                                              "block": {
+                                                "type": "action_pressed",
+                                                "id": "E+3Bk4j$f[24w+ahidJl",
+                                                "fields": {
+                                                  "ACTION": "LEFT"
+                                                }
+                                              }
+                                            },
+                                            "DO": {
+                                              "block": {
+                                                "type": "move_forward",
+                                                "id": "C8SL%5!%(#gQ,=OoYHNo",
+                                                "fields": {
+                                                  "MODEL": {
+                                                    "id": "~rT`.Lt~L~dA;sggApva"
                                                   },
-                                                  "inputs": {
-                                                    "A": {
-                                                      "block": {
-                                                        "type": "logic_operation",
-                                                        "id": ")Be@MEq}{m|Y9tcPloa:",
-                                                        "fields": {
-                                                          "OP": "OR"
-                                                        },
-                                                        "inputs": {
-                                                          "A": {
-                                                            "block": {
-                                                              "type": "logic_operation",
-                                                              "id": "%q5W5j^L4BC@Y~[Ieje!",
-                                                              "fields": {
-                                                                "OP": "OR"
-                                                              },
-                                                              "inputs": {
-                                                                "A": {
-                                                                  "block": {
-                                                                    "type": "action_pressed",
-                                                                    "id": "=-ei5Zf-79qm%nVI1.v,",
-                                                                    "fields": {
-                                                                      "ACTION": "FORWARD"
-                                                                    }
-                                                                  }
-                                                                },
-                                                                "B": {
-                                                                  "block": {
-                                                                    "type": "action_pressed",
-                                                                    "id": "7CmSHeyE}!NboiS(,~2X",
-                                                                    "fields": {
-                                                                      "ACTION": "BACKWARD"
-                                                                    }
-                                                                  }
-                                                                }
-                                                              }
-                                                            }
-                                                          },
-                                                          "B": {
-                                                            "block": {
-                                                              "type": "action_pressed",
-                                                              "id": "@Qro_7mA21:-iw,rzI4A",
-                                                              "fields": {
-                                                                "ACTION": "LEFT"
-                                                              }
-                                                            }
-                                                          }
-                                                        }
+                                                  "DIRECTION": "sideways"
+                                                },
+                                                "inputs": {
+                                                  "SPEED": {
+                                                    "shadow": {
+                                                      "type": "math_number",
+                                                      "id": "w!U7Ed):g+?3ukGBUVCo",
+                                                      "fields": {
+                                                        "NUM": -5
                                                       }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "if_clause",
+                                              "id": "5uIF=6WO=iFbxDI3VyQ4",
+                                              "extraState": {
+                                                "mode": "ELSEIF",
+                                                "stashedCondState": null
+                                              },
+                                              "fields": {
+                                                "MODE": "ELSEIF"
+                                              },
+                                              "inputs": {
+                                                "COND": {
+                                                  "block": {
+                                                    "type": "action_pressed",
+                                                    "id": "uO_Is9X7VLBtbFf1.)0W",
+                                                    "fields": {
+                                                      "ACTION": "RIGHT"
+                                                    }
+                                                  }
+                                                },
+                                                "DO": {
+                                                  "block": {
+                                                    "type": "move_forward",
+                                                    "id": "P(2;;]Wp%h.$rU}H7JO=",
+                                                    "fields": {
+                                                      "MODEL": {
+                                                        "id": "~rT`.Lt~L~dA;sggApva"
+                                                      },
+                                                      "DIRECTION": "sideways"
                                                     },
-                                                    "B": {
-                                                      "block": {
-                                                        "type": "action_pressed",
-                                                        "id": "V!V}$%p)yl(pcqLQ$Q?_",
-                                                        "fields": {
-                                                          "ACTION": "RIGHT"
+                                                    "inputs": {
+                                                      "SPEED": {
+                                                        "shadow": {
+                                                          "type": "math_number",
+                                                          "id": "^vmerH%R_Mt9Gw/6N#a4",
+                                                          "fields": {
+                                                            "NUM": 5
+                                                          }
                                                         }
                                                       }
                                                     }
                                                   }
                                                 }
                                               },
-                                              "DO": {
+                                              "next": {
                                                 "block": {
-                                                  "type": "switch_animation",
-                                                  "id": "]0Y;nM7TiOJdNzXpJd/S",
-                                                  "fields": {
-                                                    "MODEL": {
-                                                      "id": "~rT`.Lt~L~dA;sggApva"
-                                                    }
-                                                  },
+                                                  "type": "comment",
+                                                  "id": "WjotZ}%bS%$*y!!/_Ib^",
                                                   "inputs": {
-                                                    "ANIMATION_NAME": {
+                                                    "COMMENT": {
                                                       "shadow": {
-                                                        "type": "animation_name",
-                                                        "id": "~`y|o;;u6By?BRt(Kmb5",
+                                                        "type": "text_multiline",
+                                                        "id": "?Bs?M21H7!w9Y]t!##F8",
                                                         "fields": {
-                                                          "ANIMATION_NAME": "Walk"
+                                                          "TEXT": "Animation"
                                                         }
                                                       }
                                                     }
-                                                  }
-                                                }
-                                              }
-                                            },
-                                            "next": {
-                                              "block": {
-                                                "type": "if_clause",
-                                                "id": "tMKnPuLP/G+tX!JbxtUR",
-                                                "extraState": {
-                                                  "mode": "ELSE",
-                                                  "stashedCondState": null
-                                                },
-                                                "fields": {
-                                                  "MODE": "ELSE"
-                                                },
-                                                "inputs": {
-                                                  "DO": {
+                                                  },
+                                                  "next": {
                                                     "block": {
-                                                      "type": "switch_animation",
-                                                      "id": ",{Be8t$TE{f[+K_44y[7",
+                                                      "type": "if_clause",
+                                                      "id": "JQoJ(cgj!;9qR!YdqdU{",
+                                                      "extraState": {
+                                                        "mode": "IF",
+                                                        "stashedCondState": null
+                                                      },
                                                       "fields": {
-                                                        "MODEL": {
-                                                          "id": "~rT`.Lt~L~dA;sggApva"
-                                                        }
+                                                        "MODE": "IF"
                                                       },
                                                       "inputs": {
-                                                        "ANIMATION_NAME": {
-                                                          "shadow": {
-                                                            "type": "animation_name",
-                                                            "id": "E}Y%i=4N|Wff?Da-N!6_",
+                                                        "COND": {
+                                                          "block": {
+                                                            "type": "logic_compare",
+                                                            "id": "4?D+QQ9e|y@9x#*g%M)g",
                                                             "fields": {
-                                                              "ANIMATION_NAME": "Idle"
+                                                              "OP": "EQ"
+                                                            },
+                                                            "inputs": {
+                                                              "A": {
+                                                                "block": {
+                                                                  "type": "variables_get",
+                                                                  "id": "`{D]VA!2C;@BKEdZS1FG",
+                                                                  "fields": {
+                                                                    "VAR": {
+                                                                      "id": "j$+pmKpZh7:*a:POBJ0."
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "B": {
+                                                                "shadow": {
+                                                                  "type": "math_number",
+                                                                  "id": ",dMk8I;0gcL/QGaqjc/r",
+                                                                  "fields": {
+                                                                    "NUM": 0
+                                                                  }
+                                                                },
+                                                                "block": {
+                                                                  "type": "logic_boolean",
+                                                                  "id": "xa1%@ZoiOgbd!Ns61,#L",
+                                                                  "fields": {
+                                                                    "BOOL": "TRUE"
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        },
+                                                        "DO": {
+                                                          "block": {
+                                                            "type": "switch_animation",
+                                                            "id": "%9,)bh0EO8@,kkH!+.te",
+                                                            "fields": {
+                                                              "MODEL": {
+                                                                "id": "~rT`.Lt~L~dA;sggApva"
+                                                              }
+                                                            },
+                                                            "inputs": {
+                                                              "ANIMATION_NAME": {
+                                                                "shadow": {
+                                                                  "type": "animation_name",
+                                                                  "id": "f|?uy]TkeSc7^SN.[BD}",
+                                                                  "fields": {
+                                                                    "ANIMATION_NAME": "JumpIdle"
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "next": {
+                                                        "block": {
+                                                          "type": "if_clause",
+                                                          "id": "91`c`Bh!}wWGp]0!1/s[",
+                                                          "extraState": {
+                                                            "mode": "ELSE",
+                                                            "stashedCondState": null
+                                                          },
+                                                          "fields": {
+                                                            "MODE": "ELSE"
+                                                          },
+                                                          "inputs": {
+                                                            "DO": {
+                                                              "block": {
+                                                                "type": "if_clause",
+                                                                "id": "|xFCDYmG*Uh9m_$9TE{?",
+                                                                "extraState": {
+                                                                  "mode": "IF",
+                                                                  "stashedCondState": null
+                                                                },
+                                                                "fields": {
+                                                                  "MODE": "IF"
+                                                                },
+                                                                "inputs": {
+                                                                  "COND": {
+                                                                    "block": {
+                                                                      "type": "logic_operation",
+                                                                      "id": "EeW_iwv[x([$}@r18-9L",
+                                                                      "fields": {
+                                                                        "OP": "OR"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "A": {
+                                                                          "block": {
+                                                                            "type": "logic_operation",
+                                                                            "id": "I--aWy!}XpC2ji_b?/1t",
+                                                                            "fields": {
+                                                                              "OP": "OR"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "A": {
+                                                                                "block": {
+                                                                                  "type": "action_pressed",
+                                                                                  "id": "b(1cV=AbeWZqsA|H1sZe",
+                                                                                  "fields": {
+                                                                                    "ACTION": "FORWARD"
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "B": {
+                                                                                "block": {
+                                                                                  "type": "action_pressed",
+                                                                                  "id": "8v0gNlo!KG|-y6|;7Emi",
+                                                                                  "fields": {
+                                                                                    "ACTION": "BACKWARD"
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "B": {
+                                                                          "block": {
+                                                                            "type": "logic_operation",
+                                                                            "id": "(:y-[Bb]]jyxa/WJty;A",
+                                                                            "fields": {
+                                                                              "OP": "OR"
+                                                                            },
+                                                                            "inputs": {
+                                                                              "A": {
+                                                                                "block": {
+                                                                                  "type": "action_pressed",
+                                                                                  "id": "V?f*_XWqYHlm3UD-khT5",
+                                                                                  "fields": {
+                                                                                    "ACTION": "LEFT"
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "B": {
+                                                                                "block": {
+                                                                                  "type": "action_pressed",
+                                                                                  "id": "hw7iVaPF+ff36tu)lRV_",
+                                                                                  "fields": {
+                                                                                    "ACTION": "RIGHT"
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "DO": {
+                                                                    "block": {
+                                                                      "type": "switch_animation",
+                                                                      "id": "~L?Gpe1e`lmp1~,@-$su",
+                                                                      "fields": {
+                                                                        "MODEL": {
+                                                                          "id": "~rT`.Lt~L~dA;sggApva"
+                                                                        }
+                                                                      },
+                                                                      "inputs": {
+                                                                        "ANIMATION_NAME": {
+                                                                          "shadow": {
+                                                                            "type": "animation_name",
+                                                                            "id": "mipG3n=}l?PHFn9~Er})",
+                                                                            "fields": {
+                                                                              "ANIMATION_NAME": "Run"
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                },
+                                                                "next": {
+                                                                  "block": {
+                                                                    "type": "if_clause",
+                                                                    "id": "^AF*rE)aAVR|SGZQ0bNk",
+                                                                    "extraState": {
+                                                                      "mode": "ELSE",
+                                                                      "stashedCondState": {
+                                                                        "type": "touching_surface",
+                                                                        "fields": {
+                                                                          "MODEL_VAR": {
+                                                                            "id": "`_|:Og`.3AQ90Q18ur0@",
+                                                                            "name": "player",
+                                                                            "type": ""
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    },
+                                                                    "fields": {
+                                                                      "MODE": "ELSE"
+                                                                    },
+                                                                    "inputs": {
+                                                                      "DO": {
+                                                                        "block": {
+                                                                          "type": "switch_animation",
+                                                                          "id": "o/e3@_KXZ(:{%{qVvFHA",
+                                                                          "fields": {
+                                                                            "MODEL": {
+                                                                              "id": "~rT`.Lt~L~dA;sggApva"
+                                                                            }
+                                                                          },
+                                                                          "inputs": {
+                                                                            "ANIMATION_NAME": {
+                                                                              "shadow": {
+                                                                                "type": "animation_name",
+                                                                                "id": "9s6aPEc6?lkE4%u2QH^c",
+                                                                                "fields": {
+                                                                                  "ANIMATION_NAME": "Idle"
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
                                                             }
                                                           }
                                                         }
@@ -1847,24 +1841,6 @@
                     }
                   }
                 }
-              }
-            }
-          }
-        }
-      },
-      {
-        "type": "start",
-        "id": "|3eBpifznd%eU)3TI|m5",
-        "x": 10,
-        "y": 3749,
-        "collapsed": true,
-        "inputs": {
-          "DO": {
-            "block": {
-              "type": "set_xr_mode",
-              "id": "#sU.ITxD;=0q(X$u~{_*",
-              "fields": {
-                "MODE": "VR"
               }
             }
           }
@@ -1904,6 +1880,10 @@
     {
       "name": "box1",
       "id": "k;mr@MX+C+gx7[X_qnJZ"
+    },
+    {
+      "name": "playerCamera",
+      "id": "ijRp9e$e8jm,eyfY^Vug"
     }
   ]
 }
