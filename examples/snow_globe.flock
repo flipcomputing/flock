@@ -211,13 +211,13 @@
         "type": "start",
         "id": "Z!t3[*`Ad_U(RSi%xC@@",
         "x": 10,
-        "y": 554,
+        "y": 545,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_sphere",
               "id": "0a,*}cnGtmobkCKD-an*",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": ";AswT#t^WYNfEht#@tyX"
@@ -312,7 +312,7 @@
                     "block": {
                       "type": "create_sphere",
                       "id": "aWmwM{[gaWMKB^_57Ppw",
-                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                       "fields": {
                         "ID_VAR": {
                           "id": "yQ4Q?sbbNU]H#~5:lR_h"
@@ -456,13 +456,13 @@
         "type": "start",
         "id": "g*@UVfHq40Zv19g(D0DZ",
         "x": 10,
-        "y": 1018,
+        "y": 997,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_cylinder",
               "id": "F$-jc0}-cL*zo0Nf(PSJ",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "a?_`SRds~jXui-M:nfQ-"
@@ -546,7 +546,7 @@
                 "block": {
                   "type": "create_cylinder",
                   "id": "l0)7Gvk~Nbd{*@_F:G8O",
-                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                   "fields": {
                     "ID_VAR": {
                       "id": "nl~2WPQfp50i$}b!foO)"
@@ -630,7 +630,7 @@
                     "block": {
                       "type": "create_cylinder",
                       "id": "p-yYgs]#ipK|[=(`31u.",
-                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                       "fields": {
                         "ID_VAR": {
                           "id": "+qBEJiI_7(*S[GBXsnvn"
@@ -749,13 +749,13 @@
         "type": "start",
         "id": "J=,.M(nV+cpgCM#44BUQ",
         "x": 10,
-        "y": 1498,
+        "y": 1419,
         "inputs": {
           "DO": {
             "block": {
               "type": "load_multi_object",
               "id": "I]B3Xl^,iVSwGu[/W8z4",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "bQysh}^{ZdcS-v:e|we*"
@@ -838,13 +838,13 @@
         "type": "start",
         "id": "[%p|Li$}r9m8inHLrGC?",
         "x": 10,
-        "y": 3202,
+        "y": 3123,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_cylinder",
               "id": "W:7,Lr3K+vXy=}3E{d~*",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": ";0.e*/|/{*nuL~*G8k50"
@@ -1118,7 +1118,7 @@
                             "block": {
                               "type": "create_cylinder",
                               "id": "w*k(}bYLL1%T1G{H1%L3",
-                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                               "fields": {
                                 "ID_VAR": {
                                   "id": "k6#EkM%A+kX])6a;aZ5^"
@@ -1410,13 +1410,13 @@
         "type": "start",
         "id": "t**2R/az~T`+IE{L_^fZ",
         "x": 10,
-        "y": 1742,
+        "y": 1663,
         "inputs": {
           "DO": {
             "block": {
               "type": "load_character",
               "id": "y1KuqL?136k.4DY^bisW",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "j1],Vq8{pQxNhx,*Gh,b"
@@ -1617,7 +1617,7 @@
         "type": "forever",
         "id": "H84.GT!y$}q[9kuYkjQ(",
         "x": 10,
-        "y": 2182,
+        "y": 2144,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1939,7 +1939,7 @@
         "type": "start",
         "id": "d$C1?^JCq?],4icLch1M",
         "x": 10,
-        "y": 4008,
+        "y": 4057,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -1948,6 +1948,16 @@
               "id": "ndw{?:S[X.k]+8huSf`M",
               "fields": {
                 "MODE": "VR"
+              },
+              "next": {
+                "block": {
+                  "type": "set_xr_view_mode",
+                  "id": "6(1cUVpcpfThEm-)bVD^",
+                  "fields": {
+                    "VIEW": "embody",
+                    "MOTION": "teleport"
+                  }
+                }
               }
             }
           }

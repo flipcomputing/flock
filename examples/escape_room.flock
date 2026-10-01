@@ -183,7 +183,7 @@
         "type": "start",
         "id": "g.[Bkv:^=0U^qv%]bcxP",
         "x": 10,
-        "y": 5225,
+        "y": 5224,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -731,7 +731,7 @@
         "type": "start",
         "id": "s0EdZbE]OdiUZk{ql5}e",
         "x": 10,
-        "y": 5401,
+        "y": 5400,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -1791,7 +1791,7 @@
                   },
                   "block": {
                     "type": "text_join",
-                    "id": "xH~#CO720hHG]nf3yaeI",
+                    "id": "JVr_XFhM(wZvb~jn~,CZ",
                     "inline": true,
                     "extraState": {
                       "itemCount": 1
@@ -1837,7 +1837,7 @@
                     "ID_VAR": {
                       "id": "IrJ{bt$yt*ssPz0G`O/d"
                     },
-                    "MODELS": "Liz6.glb"
+                    "MODELS": "Liz5.glb"
                   },
                   "inputs": {
                     "SCALE": {
@@ -1881,15 +1881,7 @@
                         "type": "colour",
                         "id": "SzC!`$c.%;,c[kk7i/km",
                         "fields": {
-                          "COLOR": "#000000"
-                        }
-                      },
-                      "block": {
-                        "type": "colour_from_string",
-                        "id": "BwdSct3atq=Jj7+XK:gE",
-                        "fields": {
-                          "HASH_PREFIX": "#",
-                          "COLOR": "a15537"
+                          "COLOR": "#cc33cc"
                         }
                       }
                     },
@@ -1902,11 +1894,10 @@
                         }
                       },
                       "block": {
-                        "type": "colour_from_string",
-                        "id": "flPH1([Xgn.~G:lcd,]0",
+                        "type": "colour",
+                        "id": "6zKLBfel;](9-2:L|M8#",
                         "fields": {
-                          "HASH_PREFIX": "#",
-                          "COLOR": "e1af93"
+                          "COLOR": "#33ff33"
                         }
                       }
                     },
@@ -1915,7 +1906,7 @@
                         "type": "colour",
                         "id": "uk`uhnmHNih{wsY-b)dl",
                         "fields": {
-                          "COLOR": "#33cc00"
+                          "COLOR": "#009900"
                         }
                       }
                     },
@@ -1962,6 +1953,9 @@
                           "type": "camera_follow",
                           "id": "Vd)gn,#qF);CF(]EVv^H",
                           "fields": {
+                            "CAM_VAR": {
+                              "id": "g,h!X/Q-WTFyt@`D7M:H"
+                            },
                             "MESH_VAR": {
                               "id": "IrJ{bt$yt*ssPz0G`O/d"
                             },
@@ -2001,7 +1995,7 @@
         "type": "start",
         "id": "xK=g57Q,U.*CPtKYuSah",
         "x": 10,
-        "y": 5489,
+        "y": 5488,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -3032,7 +3026,7 @@
         "type": "start",
         "id": "Ol/K9|0ge*j5=f)L3aPP",
         "x": 10,
-        "y": 5313,
+        "y": 5312,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -3374,7 +3368,7 @@
         "type": "forever",
         "id": "sTv-i**m{Bt0a6E/c{`S",
         "x": 10,
-        "y": 791,
+        "y": 790,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -3696,7 +3690,7 @@
         "type": "start",
         "id": "YMm8psTrgq5c;.T^_cB?",
         "x": 10,
-        "y": 1770,
+        "y": 1769,
         "inputs": {
           "DO": {
             "block": {
@@ -3858,7 +3852,7 @@
         "type": "start",
         "id": "$(725L}@KcUq#]0tzWG9",
         "x": 10,
-        "y": 2063,
+        "y": 2062,
         "inputs": {
           "DO": {
             "block": {
@@ -4053,7 +4047,7 @@
         "type": "on_collision",
         "id": "oO4~A2GB2h*bIe8|iO$P",
         "x": 10,
-        "y": 2459,
+        "y": 2458,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -4244,7 +4238,7 @@
         "type": "on_collision",
         "id": "xl].`#IpShh6*f)).}Cl",
         "x": 10,
-        "y": 4518,
+        "y": 4517,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -4494,7 +4488,7 @@
         "type": "start",
         "id": "^SKfUX#]XA#4yb$8o{6N",
         "x": 10,
-        "y": 2849,
+        "y": 2848,
         "inputs": {
           "DO": {
             "block": {
@@ -4610,7 +4604,7 @@
                         },
                         "block": {
                           "type": "material",
-                          "id": "g79hEHwzv?]sVEv_CmiH",
+                          "id": "^s9KkJ_qT~x9ske2)EKd",
                           "fields": {
                             "TEXTURE_SET": "windmill.png"
                           },
@@ -5375,6 +5369,10 @@
     {
       "name": "puzzle4",
       "id": "xR(:.Vha8ruG{8GKnDjt"
+    },
+    {
+      "name": "playerCamera",
+      "id": "g,h!X/Q-WTFyt@`D7M:H"
     }
   ]
 }
