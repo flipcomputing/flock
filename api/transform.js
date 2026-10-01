@@ -406,7 +406,7 @@ export const flockTransform = {
       });
     });
   },
-  rotateTo(meshName, { x = 0, y = 0, z = 0 } = {}) {
+  rotateTo(meshName, { x = 0, y = 0, z = 0, world = false } = {}) {
     x = toFinite(x);
     y = toFinite(y);
     z = toFinite(z);
@@ -447,13 +447,11 @@ export const flockTransform = {
           resolve();
           return;
         }
-        const parent = mesh.parent;
-        if (parent) mesh.setParent(null);
-        try {
+        const applyRotation = () => {
           mesh.rotationQuaternion = flock.eulerDegreesToQuat(x, y, z);
-        } finally {
-          if (parent) mesh.setParent(parent);
-        }
+        };
+        if (world || isInGroup(mesh)) applyInWorldSpace(mesh, applyRotation);
+        else applyRotation();
         mesh.computeWorldMatrix(true);
 
         if (mesh.name === 'hemisphericLight') {
@@ -522,7 +520,7 @@ export const flockTransform = {
     const up = flock.BABYLON.Axis.Y; // world up
     const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
 
-    await this.rotateTo(meshName, flock.quatToEulerDegrees(q));
+    await this.rotateTo(meshName, { ...flock.quatToEulerDegrees(q), world: true });
 
     // The body teleport is already queued, so nothing needs waiting for. Resuming on
     // onAfterPhysicsObservable instead re-armed a calling loop mid-physics-phase, which

@@ -228,7 +228,7 @@ function applyLiveRotationWhenReady(blockId, rotation, attempts = 0) {
   // rather than by name.
   const mesh = (flock.scene?.meshes || []).find((m) => m.metadata?.blockKey === blockId);
   if (mesh) {
-    flock.rotateTo(mesh.name, rotation);
+    flock.rotateTo(mesh.name, { ...rotation, world: true });
     return;
   }
   if (attempts < 60) {

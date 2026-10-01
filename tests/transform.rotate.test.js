@@ -763,4 +763,94 @@ export function runRotationTests(flock) {
       expect(replayedWorldMinY).to.be.closeTo(liveWorldMinY, 0.02);
     });
   });
+
+  describe('rotation of parented children @rotation', function () {
+    let parentId, childId, targetId;
+
+    beforeEach(async function () {
+      const stamp = Date.now();
+      parentId = `rotParent_${stamp}`;
+      childId = `rotChild_${stamp}`;
+      targetId = `rotTarget_${stamp}`;
+      await flock.createBox(parentId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox(childId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [0, 0, 10] });
+      await flock.rotateTo(parentId, { x: 0, y: 90, z: 0 });
+      await flock.parentChild(parentId, childId, 2, 0, 0);
+    });
+
+    afterEach(function () {
+      [childId, targetId, parentId].forEach((id) => flock.dispose(id));
+    });
+
+    function worldQuat(id) {
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.computeWorldMatrix(true);
+      const q = new flock.BABYLON.Quaternion();
+      mesh.getWorldMatrix().decompose(undefined, q);
+      return q;
+    }
+
+    function expectSameRotation(actual, expected) {
+      expect(Math.abs(flock.BABYLON.Quaternion.Dot(actual, expected))).to.be.closeTo(1, 1e-3);
+    }
+
+    function lookQuat(fromId, toId) {
+      const from = flock.scene.getMeshByName(fromId);
+      const to = flock.scene.getMeshByName(toId);
+      from.computeWorldMatrix(true);
+      to.computeWorldMatrix(true);
+      const dir = to.getAbsolutePosition().subtract(from.getAbsolutePosition());
+      dir.y = 0;
+      return flock.BABYLON.Quaternion.FromLookDirectionLH(dir.normalize(), flock.BABYLON.Axis.Y);
+    }
+
+    it('rotateTo is relative to the parent', async function () {
+      await flock.rotateTo(childId, { x: 0, y: -90, z: 0 });
+      expectSameRotation(worldQuat(childId), flock.BABYLON.Quaternion.Identity());
+    });
+
+    it('rotateTo and rotateAnim land on the same rotation', async function () {
+      await flock.rotateTo(childId, { x: 0, y: 30, z: 0 });
+      const instant = worldQuat(childId);
+      await flock.rotateTo(childId, { x: 0, y: 0, z: 0 });
+      await flock.rotateAnim(childId, { x: 0, y: 30, z: 0, duration: 0.05 });
+      expectSameRotation(worldQuat(childId), instant);
+    });
+
+    it('rotateTo with world: true sets the world rotation', async function () {
+      await flock.rotateTo(childId, { x: 0, y: 45, z: 0, world: true });
+      expectSameRotation(worldQuat(childId), flock.eulerDegreesToQuat(0, 45, 0));
+    });
+
+    it('lookAt faces the target in world space', async function () {
+      await flock.lookAt(childId, { target: targetId });
+      expectSameRotation(worldQuat(childId), lookQuat(childId, targetId));
+    });
+
+    it('rotateToObject towards faces the target in world space', async function () {
+      const expected = lookQuat(childId, targetId);
+      await flock.rotateToObject(childId, targetId, { mode: 'towards', duration: 0.05 });
+      expectSameRotation(worldQuat(childId), expected);
+    });
+
+    it('rotateToObject same_rotation matches the target world rotation', async function () {
+      await flock.rotateTo(targetId, { x: 0, y: 20, z: 0 });
+      await flock.rotateToObject(childId, targetId, { mode: 'same_rotation', duration: 0.05 });
+      expectSameRotation(worldQuat(childId), worldQuat(targetId));
+    });
+
+    it('removeParent keeps the world rotation and position', async function () {
+      await flock.rotateTo(childId, { x: 0, y: -30, z: 0 });
+      const rotationBefore = worldQuat(childId);
+      const child = flock.scene.getMeshByName(childId);
+      const positionBefore = child.getAbsolutePosition().clone();
+
+      await flock.removeParent(childId);
+
+      expect(child.parent).to.equal(null);
+      expectSameRotation(worldQuat(childId), rotationBefore);
+      expect(child.getAbsolutePosition().equalsWithEpsilon(positionBefore, 1e-3)).to.be.true;
+    });
+  });
 }

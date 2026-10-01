@@ -91,6 +91,32 @@ export function getThenCallback(block, variableName) {
   return code ? `,\nthen: async function(${variableName}) {\n${code}\n}` : '';
 }
 
+const TARGET_VAR_FIELDS = {
+  rotate_to: 'MODEL',
+  resize: 'BLOCK_NAME',
+  move_to_xyz: 'MODEL',
+  change_color: 'MODEL_VAR',
+};
+
+export function getOwnVar(block) {
+  const field = block?.type === 'clone_mesh' ? 'CLONE_VAR' : 'ID_VAR';
+  return block?.getFieldValue?.(field) ?? null;
+}
+
+export function getOwnDoOwner(block) {
+  const targetField = TARGET_VAR_FIELDS[block?.type];
+  if (!targetField || !block.isEnabled?.()) return null;
+
+  let top = block;
+  while (top.getPreviousBlock?.()?.getNextBlock?.() === top) {
+    top = top.getPreviousBlock();
+  }
+
+  const owner = top.getParent?.();
+  const ownVar = owner?.getInputWithBlock?.(top)?.name === 'DO' ? getOwnVar(owner) : null;
+  return ownVar && ownVar === block.getFieldValue(targetField) ? owner : null;
+}
+
 let currentGroupParent = null;
 
 export function withGroupParent(parentVar, generateFn) {

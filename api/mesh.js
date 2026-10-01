@@ -1389,9 +1389,7 @@ export const flockMesh = {
           resolve();
           return;
         }
-        const worldPosition = childMesh.getAbsolutePosition();
-        childMesh.parent = null;
-        childMesh.position = worldPosition;
+        childMesh.setParent(null);
         resolve();
       });
     });

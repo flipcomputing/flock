@@ -171,6 +171,11 @@ export const flockAnimate = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
         if (!mesh) {
+          flock.reportBlockError({
+            key: 'object_not_found',
+            api: 'rotateAnim',
+            values: { object: meshName },
+          });
           resolve();
           return;
         }
@@ -188,13 +193,6 @@ export const flockAnimate = {
         const drive = driveBody(mesh);
 
         const children = mesh.getChildMeshes();
-
-        const childData = children.map((c) => ({
-          mesh: c,
-          localPos: c.position.clone(),
-          localRot: c.rotation.clone(),
-          localQuat: c.rotationQuaternion ? c.rotationQuaternion.clone() : null,
-        }));
 
         // Slerp the quaternion; animating the Euler vector restarts from zero
         // and wraps the long way across ±180°.
@@ -232,7 +230,7 @@ export const flockAnimate = {
 
         const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
           mesh.computeWorldMatrix(true);
-          childData.forEach((data) => data.mesh.computeWorldMatrix(true));
+          children.forEach((c) => c.computeWorldMatrix(true));
         });
 
         const animatable = flock.scene.beginDirectAnimation(
@@ -485,25 +483,13 @@ export const flockAnimate = {
     const mesh2 = await flock.whenModelReady(meshName2);
     if (!mesh2) return;
 
-    let targetRotation;
+    let targetQuaternion;
     const normalizedMode = String(mode || 'towards').toLowerCase();
 
     if (normalizedMode === 'same_rotation') {
       mesh2.computeWorldMatrix(true);
-      const targetQuaternion = new flock.BABYLON.Quaternion();
+      targetQuaternion = new flock.BABYLON.Quaternion();
       mesh2.getWorldMatrix().decompose(undefined, targetQuaternion);
-
-      mesh1.computeWorldMatrix(true);
-      let localTargetQuaternion = targetQuaternion;
-
-      if (mesh1.parent?.getWorldMatrix) {
-        mesh1.parent.computeWorldMatrix(true);
-        const parentRotation = new flock.BABYLON.Quaternion();
-        mesh1.parent.getWorldMatrix().decompose(undefined, parentRotation);
-        localTargetQuaternion = parentRotation.conjugate().multiply(targetQuaternion).normalize();
-      }
-
-      targetRotation = flock.quatToEulerDegrees(localTargetQuaternion);
     } else {
       const p1 = mesh1.getAbsolutePosition?.() ?? mesh1.absolutePosition;
       const p2 = mesh2.getAbsolutePosition?.() ?? mesh2.absolutePosition;
@@ -512,12 +498,18 @@ export const flockAnimate = {
       if (dir.lengthSquared() === 0) return;
 
       dir.normalize();
-      const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, flock.BABYLON.Axis.Y);
-      targetRotation = flock.quatToEulerDegrees(q);
+      targetQuaternion = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, flock.BABYLON.Axis.Y);
+    }
+
+    if (mesh1.parent?.getWorldMatrix) {
+      mesh1.parent.computeWorldMatrix(true);
+      const parentRotation = new flock.BABYLON.Quaternion();
+      mesh1.parent.getWorldMatrix().decompose(undefined, parentRotation);
+      targetQuaternion = parentRotation.conjugate().multiply(targetQuaternion).normalize();
     }
 
     await this.rotateAnim(meshName1, {
-      ...targetRotation,
+      ...flock.quatToEulerDegrees(targetQuaternion),
       duration,
       reverse,
       loop,

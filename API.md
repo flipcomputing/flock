@@ -130,7 +130,7 @@ Rotates a mesh with animation.
 
 - `meshName` (string): Name of the mesh to rotate
 - `options` (object): Rotation configuration
-  - `x`, `y`, `z` (number, default: 0): Rotation angles in degrees
+  - `x`, `y`, `z` (number, default: 0): Rotation angles in degrees, relative to the parent for a child mesh
   - `duration` (number, default: 1): Duration in seconds
   - `easing` (string, default: "Linear"): Easing function
   - `reverse` (boolean, default: false): Whether to reverse
@@ -339,7 +339,7 @@ Rotates a mesh instantly.
 
 #### `rotateTo(meshName, x, y, z)`
 
-Rotates a mesh to a specific 3D rotation instantly.
+Rotates a mesh to a specific 3D rotation instantly. For a child mesh the angles are relative to its parent, as with `rotateAnim`; members of a group use world angles.
 
 #### `scale(meshName, scaling, options)`
 

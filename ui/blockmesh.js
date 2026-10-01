@@ -5,7 +5,10 @@ import {
   blockKeyByBlock,
   blockKeyByBlockId,
 } from '../generators/generators.js';
+import { getOwnDoOwner, getOwnVar } from '../generators/generators-utilities.js';
 import { flock } from '../flock.js';
+
+export { getOwnVar };
 import { objectColours } from '../config.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
@@ -383,27 +386,6 @@ export function getCloneDoOwner(block) {
   return owner?.type === 'clone_mesh' ? owner : null;
 }
 
-const TARGET_VAR_FIELDS = {
-  rotate_to: 'MODEL',
-  resize: 'BLOCK_NAME',
-  move_to_xyz: 'MODEL',
-  change_color: 'MODEL_VAR',
-};
-
-function getOwnDoOwner(block) {
-  const targetField = TARGET_VAR_FIELDS[block?.type];
-  if (!targetField || !block.isEnabled?.()) return null;
-
-  let top = block;
-  while (top.getPreviousBlock?.()?.getNextBlock?.() === top) {
-    top = top.getPreviousBlock();
-  }
-
-  const owner = top.getParent?.();
-  const ownVar = owner?.getInputWithBlock?.(top)?.name === 'DO' ? getOwnVar(owner) : null;
-  return ownVar && ownVar === block.getFieldValue(targetField) ? owner : null;
-}
-
 function applyCloneDoBlock(block, owner) {
   const meshes = getMeshesFromBlock(owner);
   if (block.type === 'move_to_xyz') {
@@ -416,11 +398,6 @@ function applyCloneDoBlock(block, owner) {
   const color = readColourList(block.getInputTargetBlock('COLOR'));
   if (color == null || [].concat(color).includes(null)) return;
   meshes.forEach((mesh) => flock.changeColorMesh(mesh, color));
-}
-
-export function getOwnVar(block) {
-  const field = block?.type === 'clone_mesh' ? 'CLONE_VAR' : 'ID_VAR';
-  return block?.getFieldValue?.(field) ?? null;
 }
 
 export function getMeshFromBlock(block) {
@@ -1548,7 +1525,7 @@ function applyTransformBlockToMeshes(transformBlock, meshes) {
     const rotation = getXYZFromBlock(transformBlock);
     return Promise.all(
       meshes.map((mesh) =>
-        flock.rotateTo(mesh.name, rotation).then(() => {
+        flock.rotateTo(mesh.name, { ...rotation, world: true }).then(() => {
           // Rotating a member reshapes the group bounds - keep the group
           // outline in sync, like moving a child does.
           const groupMesh = mesh?.parent;

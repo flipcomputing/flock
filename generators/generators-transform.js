@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
-import { getFieldValue, maybeParentToGroup } from './generators-utilities.js';
+import { getFieldValue, getOwnDoOwner, maybeParentToGroup } from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
@@ -112,7 +112,9 @@ export function registerTransformGenerators(javascriptGenerator) {
     const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
     const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+    const world = getOwnDoOwner(block) ? ', world: true' : '';
+
+    return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}${world} });\n`;
   };
 
   // Look object at another object
