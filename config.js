@@ -123,6 +123,7 @@ export const multiObjectNames = [
   'flower2.glb',
   'mushroom.glb',
   'mushroom_2.glb',
+  'camera.glb',
 ];
 
 export const objectNames = [
@@ -141,6 +142,7 @@ export const objectNames = [
   'apple.glb',
   'starboppers.glb',
   'headphones.glb',
+  'camera.glb',
 ];
 
 function modelNameToDisplayName(modelName) {
@@ -212,6 +214,7 @@ export const objectDisplayNameTranslationKeys = {
   'Flock_Santa.glb': 'model_display_flock_santa',
   'Character.glb': 'model_display_character',
   'rhino.glb': 'model_display_rhino',
+  'camera.glb': 'model_display_camera',
 };
 
 // Per-model collider override for imported GLBs. Currently supports 'BOX'.
@@ -248,6 +251,7 @@ export const objectColours = {
   'apple.glb': ['#3FAF45', '#A9323F', '#624A20'],
   'starboppers.glb': ['#FFD700', '#FFD700', '#FFD700', '#f9f9f9'],
   'headphones.glb': ['#53E0E7', '#3291E7', '#7D7D7D'],
+  'camera.glb': ['#3A3A3A', '#511D91', '#6A676E', '#D4FBA7'],
 
   'tree.glb': ['#66CDAA', '#CD853F'],
   'tree2.glb': ['#7F9F7F', '#A1623B'],
