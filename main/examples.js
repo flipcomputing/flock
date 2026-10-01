@@ -453,10 +453,10 @@ export function openExampleModal() {
   positionPanel(modal);
 
   setTimeout(() => {
-    const saveButton = document.getElementById('exportCodeButton');
-    if (saveButton) {
-      lastFocusedAction = saveButton;
-      saveButton.focus();
+    const firstAction = getActionButtons()[0];
+    if (firstAction) {
+      lastFocusedAction = firstAction;
+      firstAction.focus();
     } else {
       document.getElementById('closeExampleModal')?.focus();
     }

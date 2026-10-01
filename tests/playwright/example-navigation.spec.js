@@ -7,10 +7,10 @@ test('Projects panel supports arrow navigation between actions, tabs, and exampl
   await page.waitForSelector('#exampleButton:not([disabled])', { timeout: 20000 });
 
   await page.locator('#exampleButton').click();
-  await expect(page.locator('#exportCodeButton')).toBeFocused();
+  await expect(page.locator('#newProjectButton')).toBeFocused();
 
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#openButton')).toBeFocused();
+  await expect(page.locator('#exportCodeButton')).toBeFocused();
 
   await page.keyboard.press('ArrowDown');
   const selectedTab = page.locator('.example-tab[aria-selected="true"]');
@@ -24,7 +24,7 @@ test('Projects panel supports arrow navigation between actions, tabs, and exampl
   await expect(selectedTab).toBeFocused();
 
   await page.keyboard.press('ArrowUp');
-  await expect(page.locator('#openButton')).toBeFocused();
+  await expect(page.locator('#exportCodeButton')).toBeFocused();
 });
 
 test('The main menu comes first in tab order and is the Ctrl+M target', async ({ page }) => {
@@ -62,7 +62,7 @@ test('Projects opens from its button and returns focus on Escape', async ({ page
   await page.locator('#exampleButton').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#newProjectButton')).toBeVisible();
-  await expect(page.locator('#exportCodeButton')).toBeFocused();
+  await expect(page.locator('#newProjectButton')).toBeFocused();
 
   await page.keyboard.press('Escape');
   await expect(page.locator('#exampleButton')).toBeFocused();
