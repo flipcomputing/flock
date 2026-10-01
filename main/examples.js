@@ -41,6 +41,9 @@ export const EXAMPLES = [
     thumbnailSettleMs: 6000,
   },
   { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
+  { i18nKey: 'grid_race', file: 'examples/grid_race.flock', category: 'games' },
+  { i18nKey: 'escape_room', file: 'examples/escape_room.flock', category: 'games' },
+  { i18nKey: 'toy_finder', file: 'examples/toy_finder.flock', category: 'games' },
   /*{
     i18nKey: 'gem_tilt_game',
     file: 'examples/gem_tilt_game.flock',
@@ -67,6 +70,9 @@ export const EXAMPLES = [
   { i18nKey: 'snow_globe', file: 'examples/snow_globe.flock', category: 'create' },
   { i18nKey: 'ur_enough', file: 'examples/ur_enough.flock', category: 'create' },
   { i18nKey: 'flockenspiel', file: 'examples/flockenspiel.flock', category: 'create' },
+  { i18nKey: 'space_scene', file: 'examples/space_scene.flock', category: 'create' },
+  { i18nKey: 'snowman_glide', file: 'examples/snowman_glide.flock', category: 'create' },
+  { i18nKey: 'pancake_flip', file: 'examples/pancake_flip.flock', category: 'create' },
   {
     i18nKey: 'tallest_buildings',
     file: 'examples/tallest_buildings.flock',

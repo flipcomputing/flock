@@ -1020,6 +1020,12 @@ export default {
   shape_push_ui: 'Pchnięcie kształtu',
   alien_planet_ui: 'Obca planeta',
   boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Scena kosmiczna',
+  snowman_glide_ui: 'Ślizgający się bałwan',
+  pancake_flip_ui: 'Przewracanie naleśnika',
+  grid_race_ui: 'Wyścig po siatce',
+  escape_room_ui: 'Escape room',
+  toy_finder_ui: 'Szukacz zabawek',
   character_designer_ui: 'Kreator postaci',
   sit_down_ui: 'Usiądź',
 

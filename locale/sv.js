@@ -1017,6 +1017,12 @@ export default {
   shape_push_ui: 'Skjuta form',
   alien_planet_ui: 'Alienplanet',
   boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Rymdscen',
+  snowman_glide_ui: 'Snögubbe som glider',
+  pancake_flip_ui: 'Pannkaksvändning',
+  grid_race_ui: 'Rutnätsrace',
+  escape_room_ui: 'Escape room',
+  toy_finder_ui: 'Leksaksletare',
   character_designer_ui: 'Karaktärsdesign',
   sit_down_ui: 'Sätt dig',
 

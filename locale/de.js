@@ -1030,6 +1030,12 @@ export default {
   shape_push_ui: 'Form schieben',
   alien_planet_ui: 'Alien-Planet',
   boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Weltraumszene',
+  snowman_glide_ui: 'Schneemann-Gleiten',
+  pancake_flip_ui: 'Pfannkuchen wenden',
+  grid_race_ui: 'Gitterrennen',
+  escape_room_ui: 'Escape-Room',
+  toy_finder_ui: 'Spielzeugsuche',
 
   main_menu_ui: 'Hauptmenü',
   menu_button_sr_label_ui: 'Menü',

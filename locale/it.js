@@ -1038,6 +1038,12 @@ export default {
   shape_push_ui: 'Spinta forma',
   alien_planet_ui: 'Pianeta alieno',
   boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Scena spaziale',
+  snowman_glide_ui: 'Pupazzo di neve scivolante',
+  pancake_flip_ui: 'Lancio del pancake',
+  grid_race_ui: 'Corsa sulla griglia',
+  escape_room_ui: 'Escape room',
+  toy_finder_ui: 'Cerca giocattoli',
 
   main_menu_ui: 'Menu principale',
   menu_button_sr_label_ui: 'Menu',

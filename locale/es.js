@@ -1138,6 +1138,12 @@ export default {
   shape_push_ui: 'Empujar forma', // human
   alien_planet_ui: 'Planeta alienígena', // human
   boat_trip_ui: 'Viaje en barco', // human
+  space_scene_ui: 'Escena espacial',
+  snowman_glide_ui: 'Muñeco de nieve deslizante',
+  pancake_flip_ui: 'Voltear tortitas',
+  grid_race_ui: 'Carrera en cuadrícula',
+  escape_room_ui: 'Sala de escape',
+  toy_finder_ui: 'Buscador de juguetes',
   character_designer_ui: 'Diseñador de personajes', // human
   sit_down_ui: 'Siéntate', // human
 

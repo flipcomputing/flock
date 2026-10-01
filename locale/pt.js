@@ -1023,6 +1023,12 @@ export default {
   shape_push_ui: 'Empurrar forma',
   alien_planet_ui: 'Planeta alienígena',
   boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Cena espacial',
+  snowman_glide_ui: 'Boneco de neve a deslizar',
+  pancake_flip_ui: 'Virar panquecas',
+  grid_race_ui: 'Corrida na grelha',
+  escape_room_ui: 'Sala de fuga',
+  toy_finder_ui: 'Caçador de brinquedos',
   character_designer_ui: 'Criador de personagens',
   sit_down_ui: 'Senta-te',
 
