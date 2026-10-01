@@ -43,7 +43,6 @@ export const EXAMPLES = [
   { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
   { i18nKey: 'grid_race', file: 'examples/grid_race.flock', category: 'games' },
   { i18nKey: 'escape_room', file: 'examples/escape_room.flock', category: 'games' },
-  { i18nKey: 'toy_finder', file: 'examples/toy_finder.flock', category: 'games' },
   /*{
     i18nKey: 'gem_tilt_game',
     file: 'examples/gem_tilt_game.flock',
@@ -53,6 +52,7 @@ export const EXAMPLES = [
   { i18nKey: 'shape_push', file: 'examples/shape_push.flock', category: 'physics' },
   { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', category: 'physics' },
   { i18nKey: 'skittles', file: 'examples/skittles.flock', category: 'physics' },
+  { i18nKey: 'toy_finder', file: 'examples/toy_finder.flock', category: 'physics' },
   { i18nKey: 'alien_planet', file: 'examples/alien_planet.flock', category: 'worlds' },
   { i18nKey: 'my_place', file: 'examples/my_place.flock', category: 'worlds' },
   { i18nKey: 'forest_base', file: 'examples/forest_base.flock', category: 'worlds' },
