@@ -121,6 +121,8 @@ export const multiObjectNames = [
   'boardwalk_straight.glb',
   'flower.glb',
   'flower2.glb',
+  'mushroom.glb',
+  'mushroom_2.glb',
 ];
 
 export const objectNames = [
@@ -134,7 +136,6 @@ export const objectNames = [
   'Key.glb',
   'Wand.glb',
   'Hat.glb',
-  'mushroom.glb',
   'donut.glb',
   'pumpkin.glb',
   'apple.glb',
@@ -202,6 +203,7 @@ export const objectDisplayNameTranslationKeys = {
   'Hat.glb': 'model_display_hat',
   'donut.glb': 'model_display_donut',
   'mushroom.glb': 'model_display_mushroom',
+  'mushroom_2.glb': 'model_display_mushroom_2',
   'pumpkin.glb': 'model_display_pumpkin',
   'apple.glb': 'model_display_apple',
   'starboppers.glb': 'model_display_starboppers',
@@ -241,6 +243,7 @@ export const objectColours = {
   'Hat.glb': ['#9D3F72', '#B5FDFD', '#3D0073'],
   'donut.glb': ['#f9cb9c', '#fba0c3'],
   'mushroom.glb': ['#ffffff', '#E73A49', '#8F7A61'],
+  'mushroom_2.glb': ['#ffffff', '#E73A49', '#8F7A61'],
   'pumpkin.glb': ['#E78632', '#75430F'],
   'apple.glb': ['#3FAF45', '#A9323F', '#624A20'],
   'starboppers.glb': ['#FFD700', '#FFD700', '#FFD700', '#f9f9f9'],
