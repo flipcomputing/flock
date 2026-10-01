@@ -720,6 +720,8 @@ export default {
   snippet_move8_hint: 'Moves the player forward and backward with the player controls.',
   snippet_move4_hint:
     'Moves the player forward, backward, left and right with the player controls.',
+  snippet_movejump_hint:
+    'Moves the player in four directions, jumps with button 4 and switches between idle, run and jump animations.',
   snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
   snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
