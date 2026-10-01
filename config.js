@@ -123,7 +123,6 @@ export const multiObjectNames = [
   'flower2.glb',
   'mushroom.glb',
   'mushroom_2.glb',
-  'camera.glb',
 ];
 
 export const objectNames = [
@@ -142,7 +141,6 @@ export const objectNames = [
   'apple.glb',
   'starboppers.glb',
   'headphones.glb',
-  'camera.glb',
 ];
 
 function modelNameToDisplayName(modelName) {
