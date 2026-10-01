@@ -1126,6 +1126,7 @@ export default {
   toolbox_search_results_aria: 'Résultats de recherche de la boîte à outils.',
   context_delete_option: 'Supprimer',
   context_delete_all_blocks_option: 'Supprimer tous les blocs',
+  context_tidy_workspace_option: 'Ranger',
   context_cleanup_option: 'Nettoyer',
   context_inline_inputs_option: 'Entrées horizontales',
   context_external_inputs_option: 'Entrées verticales',

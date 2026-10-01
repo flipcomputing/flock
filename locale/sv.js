@@ -1114,6 +1114,7 @@ export default {
   toolbox_search_results_aria: 'Verktygslådans sökresultat.',
   context_delete_option: 'Radera',
   context_delete_all_blocks_option: 'Radera alla block',
+  context_tidy_workspace_option: 'Städa',
   context_cleanup_option: 'Städa upp',
   context_inline_inputs_option: 'Horisontella ingångar',
   context_external_inputs_option: 'Vertikala ingångar',

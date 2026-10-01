@@ -400,6 +400,24 @@ export function initContextMenus(workspace) {
     }
   })();
 
+  (function registerTidyWorkspaceContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'flockTidyWorkspace';
+    if (registry.getItem?.(id)) return;
+    registry.register({
+      id,
+      weight: 5,
+      displayText: () => translate('context_tidy_workspace_option'),
+      preconditionFn: (scope) => (scope.workspace?.isFlyout ? 'hidden' : 'enabled'),
+      callback: (scope) => {
+        const ws = scope.workspace ?? workspace;
+        ws.cleanUp();
+        import('../main/files.js').then(({ saveWorkspace }) => saveWorkspace(ws));
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.WORKSPACE,
+    });
+  })();
+
   // Add "Find in workspace" to the workspace context menu.
   (function registerWorkspaceSearchContextMenuItem() {
     const registry = Blockly.ContextMenuRegistry.registry;
