@@ -209,9 +209,18 @@ const applyVelocityDrive = (mesh) => {
 const applyUprightStabiliser = (mesh) => {
   if (!mesh.metadata?.constraint) return;
   try {
-    const v = mesh.physics.getLinearVelocity();
-    mesh.physics.setLinearVelocity(new flock.BABYLON.Vector3(0, v.y, 0));
-    mesh.physics.setAngularVelocity(new flock.BABYLON.Vector3(0, 0, 0));
+    const v = (mesh._stabiliserVelocity ??= new flock.BABYLON.Vector3());
+    mesh.physics.getLinearVelocityToRef(v);
+    const keepHorizontal =
+      v.x * v.x + v.z * v.z > 1e-6 &&
+      mesh.metadata.physicsCapsule &&
+      (!flock.checkGrounded(mesh) || mesh._jumpUntilGrounded);
+    if (!keepHorizontal) {
+      v.x = 0;
+      v.z = 0;
+      mesh.physics.setLinearVelocity(v);
+    }
+    mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.ZeroReadOnly);
   } catch (err) {
     console.warn('Physics body became invalid:', err);
   }
@@ -1357,7 +1366,7 @@ export const flockPhysics = {
         startPosition: start,
         endPosition: end,
         shouldHitTriggers: false,
-        ignoredBodies: [mesh.physics],
+        ignoreBody: mesh.physics,
       },
       castResult,
       hitResult
@@ -1365,7 +1374,7 @@ export const flockPhysics = {
 
     if (!castResult.hasHit) return false;
 
-    const n = castResult.hitNormalWorld;
+    const n = hitResult.hitNormal;
     if (!n) return true;
     const dot = Math.min(Math.max(B.Vector3.Dot(n.normalizeToNew(), B.Vector3.UpReadOnly), -1), 1);
     return (Math.acos(dot) * 180) / Math.PI <= 50; // near-horizontal ground only

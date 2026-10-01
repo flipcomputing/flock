@@ -1237,25 +1237,103 @@
                       "id": "%,4w}j~{Zz3+5q?HGm,s"
                     },
                     "PHYSICS_TYPE": "ANIMATED"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "forever",
+        "id": "sPfocYBELcBmbwWxhcOe",
+        "x": 10,
+        "y": 2990,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "wait_seconds",
+              "id": "iFFH4HRzadT6XhCSIcxQ",
+              "inputs": {
+                "DURATION": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Zl33htfOEid0X0ujUbnK",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "glide_to_seconds",
+                  "id": "mih4xnDOy72fqv1sg5nv",
+                  "fields": {
+                    "MESH_VAR": {
+                      "id": "%,4w}j~{Zz3+5q?HGm,s"
+                    },
+                    "MODE": "AWAIT",
+                    "REVERSE": false,
+                    "LOOP": false,
+                    "EASING": "Linear"
+                  },
+                  "inputs": {
+                    "X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "0YV0zEEK3VgNfkwmpqpc",
+                        "fields": {
+                          "NUM": -25
+                        }
+                      }
+                    },
+                    "Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "Qp0pgYKJQeKZiRLkyROu",
+                        "fields": {
+                          "NUM": 9.5
+                        }
+                      }
+                    },
+                    "Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "ylRgupLSkJ4jE8K14edI",
+                        "fields": {
+                          "NUM": -20
+                        }
+                      }
+                    },
+                    "DURATION": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "GaV2DizvtRzf6RE15Rr3",
+                        "fields": {
+                          "NUM": 3
+                        }
+                      }
+                    }
                   },
                   "next": {
                     "block": {
                       "type": "glide_to_seconds",
-                      "id": "}p_b[_J$SQea]8nGBY,;",
+                      "id": "ibpqSBGrzzIjG5MJccEo",
                       "fields": {
                         "MESH_VAR": {
                           "id": "%,4w}j~{Zz3+5q?HGm,s"
                         },
-                        "MODE": "START",
-                        "REVERSE": true,
-                        "LOOP": true,
+                        "MODE": "AWAIT",
+                        "REVERSE": false,
+                        "LOOP": false,
                         "EASING": "Linear"
                       },
                       "inputs": {
                         "X": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "Q1JHB~lgxI_v$F5Jzi0C",
+                            "id": "ZjpRugpCd0QyiqH8FiyQ",
                             "fields": {
                               "NUM": -25
                             }
@@ -1264,16 +1342,16 @@
                         "Y": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "+E_bTVbcwXhC(6p]4OEM",
+                            "id": "Kb8zPMzu8D34hDx8Aug2",
                             "fields": {
-                              "NUM": 9.5
+                              "NUM": 0
                             }
                           }
                         },
                         "Z": {
                           "shadow": {
                             "type": "math_number",
-                            "id": ",TZb|M9?f|mG$)}JQckW",
+                            "id": "vY2eIu15LFtP8jxhL0rW",
                             "fields": {
                               "NUM": -20
                             }
@@ -1282,7 +1360,7 @@
                         "DURATION": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "w$w.@Oc/2Qh]GRs8vcAD",
+                            "id": "ll1pA77DiR64D9vlid0R",
                             "fields": {
                               "NUM": 3
                             }
@@ -1459,7 +1537,16 @@
                                 "type": "math_number",
                                 "id": "({%2ZEJ^LE](oOFOm9n3",
                                 "fields": {
-                                  "NUM": 7
+                                  "NUM": 10
+                                }
+                              }
+                            },
+                            "ANGLE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "MXrryY9lnXoF15GGn2kB",
+                                "fields": {
+                                  "NUM": 90
                                 }
                               }
                             }
@@ -2750,7 +2837,7 @@
                                               "type": "math_number",
                                               "id": "7|i2`^q5AU^E`:tctEi~",
                                               "fields": {
-                                                "NUM": 8
+                                                "NUM": 9
                                               }
                                             }
                                           }
@@ -2795,7 +2882,7 @@
                                                   "type": "math_number",
                                                   "id": "^8*cpF2d:{(7(yvs#nA2",
                                                   "fields": {
-                                                    "NUM": -8
+                                                    "NUM": -9
                                                   }
                                                 }
                                               }
@@ -3089,7 +3176,7 @@
                                                                             "type": "animation_name",
                                                                             "id": "mipG3n=}l?PHFn9~Er})",
                                                                             "fields": {
-                                                                              "ANIMATION_NAME": "Walk"
+                                                                              "ANIMATION_NAME": "Run"
                                                                             }
                                                                           }
                                                                         }

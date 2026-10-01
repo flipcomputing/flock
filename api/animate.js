@@ -59,7 +59,7 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
 
   const oldShape = physicsMesh.physics.shape;
   physicsMesh.physics.shape = newShape;
-  if (oldShape && oldShape !== newShape) {
+  if (oldShape && oldShape !== newShape && !oldShape._isShared) {
     try {
       oldShape.dispose();
     } catch (e) {

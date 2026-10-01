@@ -18,10 +18,14 @@ const MAX_SLOPE_ANGLE_DEG = 45; // steeper than this counts as a wall, not groun
 const GROUND_CHECK_DISTANCE = 0.3; // downward capsule probe length
 const COYOTE_TIME_MS = 120; // grace window to still count as grounded after a ledge
 const MAX_VERTICAL_VELOCITY = 3.0; // clamp for normal movement (anti ramp-launch)
-const STEP_HEIGHT = 0.3;
+const MAX_FALL_VELOCITY = 25.0;
+const STEP_HEIGHT = 0.55;
 // Below this, the camera's forward is too near vertical for its horizontal part to be a heading
 const MIN_HORIZONTAL_FORWARD_SQ = 0.05;
-const STEP_PROBE_DISTANCE = 0.6;
+const STEP_PROBE_RADIUS = 0.08;
+const STEP_PROBE_REACH = 0.15;
+const STEP_PROBE_CLEARANCE = 0.05;
+const STEP_COOLDOWN_MS = 100;
 const DEFAULT_GRAVITY = 9.81;
 
 // Airborne horizontal handling. Both are expressed per-second and converted to
@@ -33,7 +37,8 @@ const DEFAULT_GRAVITY = 9.81;
 //     direction while a direction is held — lets the player nudge the arc
 //     without erasing momentum. Only applied when there is input.
 const AIR_DRAG_PER_SECOND = 0.8;
-const AIR_CONTROL_RATE = 2.0;
+const AIR_CONTROL_RATE = 6.0;
+const CHARACTER_GRAVITY_FACTOR = 3.0;
 
 // Read the scene's gravity magnitude (falls back to 9.81 for headless tests).
 function sceneGravityMagnitude() {
@@ -43,6 +48,22 @@ function sceneGravityMagnitude() {
 
 function nowMs() {
   return typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now();
+}
+
+function ensureCharacterBody(model) {
+  const body = model.physics;
+  if (model._characterSetupBody === body && model._characterSetupShape === body.shape) return;
+  body.setGravityFactor?.(CHARACTER_GRAVITY_FACTOR);
+  if (body.shape) {
+    body.shape.material = {
+      ...body.shape.material,
+      friction: 0,
+      staticFriction: 0,
+      frictionCombine: flock.BABYLON.PhysicsMaterialCombineMode.MINIMUM,
+    };
+  }
+  model._characterSetupBody = body;
+  model._characterSetupShape = body.shape;
 }
 
 export const flockMovement = {
@@ -60,7 +81,7 @@ export const flockMovement = {
       startPosition: new B.Vector3(),
       endPosition: new B.Vector3(),
       shouldHitTriggers: false,
-      ignoredBodies: [],
+      ignoreBody: null,
       collisionFilterGroup: -1,
       collisionFilterMask: -1,
     });
@@ -71,9 +92,12 @@ export const flockMovement = {
       stepLowHitResult: new B.ShapeCastResult(),
       stepHighResult: new B.ShapeCastResult(),
       stepHighHitResult: new B.ShapeCastResult(),
+      stepDownResult: new B.ShapeCastResult(),
+      stepDownHitResult: new B.ShapeCastResult(),
       groundQuery: makeQuery(),
       stepLowQuery: makeQuery(),
       stepHighQuery: makeQuery(),
+      stepDownQuery: makeQuery(),
       horizontalForward: new B.Vector3(),
       desiredHorizontalVelocity: new B.Vector3(),
       currentVelocity: new B.Vector3(),
@@ -84,9 +108,6 @@ export const flockMovement = {
       normalScratch: new B.Vector3(),
       airSteerScratch: new B.Vector3(),
     };
-    c.groundQuery.ignoredBodies.push(model.physics);
-    c.stepLowQuery.ignoredBodies.push(model.physics);
-    c.stepHighQuery.ignoredBodies.push(model.physics);
     if (!model._queryShapeCleanupRegistered) {
       model._queryShapeCleanupRegistered = true;
       model.onDisposeObservable.add(() => {
@@ -113,7 +134,7 @@ export const flockMovement = {
     const havokPlugin = physicsEngine.getPhysicsPlugin();
 
     const cap = flock.ensurePhysicsCapsule(model);
-    const capsuleRadius = cap.radius;
+    const capsuleRadius = cap.radius * 0.9;
     const capsuleHeightBottomOffset = Math.max(0.001, cap.height * 0.5 - capsuleRadius);
     const c = flock.ensureMovementCache(model);
 
@@ -133,6 +154,7 @@ export const flockMovement = {
 
     const gq = c.groundQuery;
     gq.shape = model._groundQueryShape;
+    gq.ignoreBody = model.physics;
     gq.startPosition.copyFrom(model.position);
     gq.endPosition.copyFrom(model.position);
     gq.endPosition.y -= GROUND_CHECK_DISTANCE;
@@ -146,7 +168,7 @@ export const flockMovement = {
 
     let grounded = false;
     if (c.groundCastResult.hasHit) {
-      const n = c.groundCastResult.hitNormalWorld;
+      const n = c.groundHitResult.hitNormal;
       if (n) {
         c.normalScratch.copyFrom(n);
         c.normalScratch.normalize();
@@ -192,6 +214,7 @@ export const flockMovement = {
     const havokPlugin = physicsEngine.getPhysicsPlugin();
 
     const c = flock.ensureMovementCache(model);
+    ensureCharacterBody(model);
 
     // Desired horizontal velocity comes from the caller; derive the normalised
     // forward direction (for the step probe) from it.
@@ -238,43 +261,83 @@ export const flockMovement = {
     }
 
     // --- Step-up probe to allow ledge hops when near ground ---
-    if (grounded || withinCoyoteTime) {
-      const stepSphereRadius = capsuleRadius * 0.8;
-      if (!model._stepProbeShape || model._stepProbeShapeRadius !== stepSphereRadius) {
+    const rising = model._jumpUntilGrounded && cv.y > 0.1;
+    if (
+      (grounded || withinCoyoteTime) &&
+      !rising &&
+      hLen > 1e-6 &&
+      now - (model._lastStepBoost || 0) > STEP_COOLDOWN_MS
+    ) {
+      const probeRadius = Math.min(STEP_PROBE_RADIUS, capsuleRadius * 0.5);
+      if (!model._stepProbeShape || model._stepProbeShapeRadius !== probeRadius) {
         model._stepProbeShape?.dispose();
         model._stepProbeShape = new B.PhysicsShapeSphere(
           new B.Vector3(0, 0, 0),
-          stepSphereRadius,
+          probeRadius,
           scene
         );
-        model._stepProbeShapeRadius = stepSphereRadius;
+        model._stepProbeShapeRadius = probeRadius;
       }
+
+      const lc = cap.localCenter || B.Vector3.ZeroReadOnly;
+      const feetY = model.position.y + lc.y - cap.height / 2;
+      const stepHeight = Math.min(STEP_HEIGHT, cap.height * 0.25);
+      const reach = capsuleRadius + STEP_PROBE_REACH;
 
       const lq = c.stepLowQuery;
       lq.shape = model._stepProbeShape;
-      lq.startPosition.copyFrom(model.position);
-      lq.startPosition.y += 0.05;
-      c.horizontalForward.scaleToRef(STEP_PROBE_DISTANCE, lq.endPosition);
+      lq.ignoreBody = model.physics;
+      lq.startPosition.set(
+        model.position.x,
+        feetY + probeRadius + STEP_PROBE_CLEARANCE,
+        model.position.z
+      );
+      c.horizontalForward.scaleToRef(reach, lq.endPosition);
       lq.endPosition.addInPlace(lq.startPosition);
-
-      const hq = c.stepHighQuery;
-      hq.shape = model._stepProbeShape;
-      hq.startPosition.copyFrom(lq.startPosition);
-      hq.startPosition.y += STEP_HEIGHT + 0.1;
-      c.horizontalForward.scaleToRef(STEP_PROBE_DISTANCE, hq.endPosition);
-      hq.endPosition.addInPlace(hq.startPosition);
-
       havokPlugin.shapeCast(lq, c.stepLowResult, c.stepLowHitResult);
 
-      if (c.stepLowResult.hasHit) {
+      const riserNormal = c.stepLowResult.hasHit ? c.stepLowHitResult.hitNormal : null;
+      if (
+        riserNormal &&
+        Math.abs(riserNormal.y) < 0.5 &&
+        B.Vector3.Dot(riserNormal, c.horizontalForward) < 0
+      ) {
+        const hq = c.stepHighQuery;
+        hq.shape = model._stepProbeShape;
+        hq.ignoreBody = model.physics;
+        hq.startPosition.set(model.position.x, feetY + stepHeight + probeRadius, model.position.z);
+        c.horizontalForward.scaleToRef(reach, hq.endPosition);
+        hq.endPosition.addInPlace(hq.startPosition);
         havokPlugin.shapeCast(hq, c.stepHighResult, c.stepHighHitResult);
+
         if (!c.stepHighResult.hasHit) {
-          const lastStepBoost = model._lastStepBoost || 0;
-          if (now - lastStepBoost > 400) {
-            model._lastStepBoost = now;
-            c.boostedVelocity.set(ahv.x, Math.max(cv.y, 2.5), ahv.z);
-            model.physics.setLinearVelocity(c.boostedVelocity);
-            return true;
+          const dq = c.stepDownQuery;
+          dq.shape = model._stepProbeShape;
+          dq.ignoreBody = model.physics;
+          dq.startPosition.copyFrom(hq.endPosition);
+          dq.endPosition.copyFrom(hq.endPosition);
+          dq.endPosition.y = feetY + probeRadius;
+          havokPlugin.shapeCast(dq, c.stepDownResult, c.stepDownHitResult);
+
+          if (c.stepDownResult.hasHit) {
+            const stepTopY =
+              dq.startPosition.y +
+              (dq.endPosition.y - dq.startPosition.y) * c.stepDownResult.hitFraction -
+              probeRadius;
+            const rise = stepTopY - feetY + STEP_PROBE_CLEARANCE;
+            if (rise > STEP_PROBE_CLEARANCE) {
+              const stepVelocity = Math.sqrt(
+                2 * sceneGravityMagnitude() * CHARACTER_GRAVITY_FACTOR * rise
+              );
+              model._lastStepBoost = now;
+              model._jumpUntilGrounded = true;
+              model._jumpStartMs = now;
+              model._jumpTakeoffVelocity = stepVelocity;
+              c.boostedVelocity.set(ahv.x, Math.max(cv.y, stepVelocity), ahv.z);
+              model.physics.setLinearVelocity(c.boostedVelocity);
+              model.isGrounded = grounded;
+              return true;
+            }
           }
         }
       }
@@ -283,9 +346,19 @@ export const flockMovement = {
     // --- Vertical: let gravity act; clamp extremes to stop ramp-launching,
     // except while a deliberate jump is in progress (see jump()), so the jump's
     // takeoff velocity survives this per-frame reset until the mesh lands. ---
-    const clampedVertical = model._jumpUntilGrounded
-      ? cv.y
-      : Math.min(Math.max(cv.y, -MAX_VERTICAL_VELOCITY), MAX_VERTICAL_VELOCITY);
+    let clampedVertical;
+    if (model._jumpUntilGrounded) {
+      const jumpElapsed = (now - (model._jumpStartMs ?? now)) / 1000;
+      const ballisticVertical =
+        (model._jumpTakeoffVelocity ?? 0) -
+        sceneGravityMagnitude() * CHARACTER_GRAVITY_FACTOR * jumpElapsed;
+      clampedVertical = Math.max(
+        Math.min(cv.y, Math.max(ballisticVertical, MAX_VERTICAL_VELOCITY)),
+        -MAX_FALL_VELOCITY
+      );
+    } else {
+      clampedVertical = Math.min(Math.max(cv.y, -MAX_FALL_VELOCITY), MAX_VERTICAL_VELOCITY);
+    }
     c.finalVelocity.set(ahv.x, clampedVertical, ahv.z);
     model.physics.setLinearVelocity(c.finalVelocity);
 
@@ -308,7 +381,8 @@ export const flockMovement = {
     flock.ensureVerticalConstraint(model);
 
     const B = flock.BABYLON;
-    const g = sceneGravityMagnitude();
+    ensureCharacterBody(model);
+    const g = sceneGravityMagnitude() * CHARACTER_GRAVITY_FACTOR;
     const vJump = Math.sqrt(2 * g * Math.max(0, jumpHeight));
 
     const v = (model._jumpVelScratch ??= new B.Vector3());
@@ -317,6 +391,8 @@ export const flockMovement = {
     model.physics.setLinearVelocity(v);
 
     model._jumpUntilGrounded = true; // survive the movement vertical clamp until landing
+    model._jumpStartMs = nowMs();
+    model._jumpTakeoffVelocity = vJump;
     model.isGrounded = false;
   },
   moveForward(modelName, speed) {
