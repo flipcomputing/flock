@@ -653,6 +653,33 @@ export function initializeWorkspace() {
     return items;
   });
 
+  workspace.registerToolboxCategoryCallback('PROCEDURE', function (ws) {
+    const items = Blockly.Procedures.flyoutCategory(ws);
+    const variableNames = ws
+      .getVariableMap()
+      .getAllVariables()
+      .map((model) => model.name.toLowerCase());
+    const nextName = (base) => {
+      let suffix = 1;
+      while (variableNames.includes(`${base}${suffix}`.toLowerCase())) suffix++;
+      return `${base}${suffix}`;
+    };
+
+    return items.flatMap((item) => {
+      if (item.kind !== 'block' || item.type !== 'procedures_callreturn') return [item];
+      const { kind: _kind, ...caller } = item;
+      return [
+        item,
+        {
+          kind: 'block',
+          type: 'variables_set',
+          fields: { VAR: { name: nextName(item.extraState?.name ?? 'result') } },
+          inputs: { VALUE: { block: caller } },
+        },
+      ];
+    });
+  });
+
   workspace.registerToolboxCategoryCallback('LIST', function (ws) {
     const xmlList = [];
     const variableMap = ws.getVariableMap();
