@@ -190,6 +190,29 @@ function shrinkInfoPanelForCanvasWidth(canvasArea, canvasWidth) {
 
 // Canvas-region floor for info-panel sizing.
 const MIN_CANVAS_HEIGHT = 120;
+const MIN_PANEL_WIDTH = 300;
+
+// Side by side, a shrinking info panel widens the canvas column into the code
+// panel so the taller region is actually used; floorWidth stops it narrowing.
+function widenCanvasForInfoPanel(canvasArea, floorWidth) {
+  if (gizmosBesideCanvas() || playModeActive) return;
+  const resizer = document.getElementById('resizer');
+  const codePanel = document.getElementById('codePanel');
+  const mainContent = document.getElementById('maincontent');
+  if (!resizer || !codePanel || !mainContent) return;
+  if (getComputedStyle(resizer).display === 'none' || resizer.offsetWidth === 0) return;
+
+  const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(canvasArea);
+  const canvasWidth = canvasArea.getBoundingClientRect().width;
+  const panelWidth = canvasWidth + codePanel.getBoundingClientRect().width;
+  const needed = Math.round(areaHeight * AUTHORING_ASPECT) + horizontalChromeWidth;
+  const target = Math.max(floorWidth, Math.min(needed, panelWidth - MIN_PANEL_WIDTH));
+  if (Math.abs(target - canvasWidth) < 1) return;
+
+  const totalWidth = mainContent.getBoundingClientRect().width;
+  canvasArea.style.flex = `0 0 ${(target / totalWidth) * 100}%`;
+  codePanel.style.flex = `0 0 ${((panelWidth - target) / totalWidth) * 100}%`;
+}
 
 // Window resizes can strand the stored height; re-clamp it so the canvas recovers.
 function clampInfoPanelUserHeight(canvasArea) {
@@ -1311,7 +1334,7 @@ class PanelResizer {
     this.startCodeWidth = 0;
     // Floor for either panel; the canvas side is additionally clamped to the
     // gizmo toolbar's natural width so its buttons never wrap onto a second row.
-    this.minPanelFloor = 300;
+    this.minPanelFloor = MIN_PANEL_WIDTH;
     this.minCanvasWidth = this.minPanelFloor;
     this.maxCanvasWidth = Infinity;
     this.touchActivationPointerId = null;
@@ -1681,12 +1704,16 @@ class InfoPanelResizer {
     return Math.min(max, Math.max(min, Math.round(height)));
   }
 
-  applyHeight(height) {
+  applyHeight(height, floorWidth) {
     const clamped = this.clampHeight(height);
     if (clamped == null) return false;
     // Growable basis absorbs width-bound slack.
     this.infoPanel.style.flex = `1 1 ${clamped}px`;
     infoPanelUserHeight = clamped;
+    widenCanvasForInfoPanel(
+      this.canvasArea,
+      floorWidth ?? this.canvasArea.getBoundingClientRect().width
+    );
     this.triggerContentResize();
     return true;
   }
@@ -1699,6 +1726,7 @@ class InfoPanelResizer {
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     this.startY = clientY;
     this.startHeight = this.infoPanel.getBoundingClientRect().height;
+    this.startCanvasWidth = this.canvasArea.getBoundingClientRect().width;
 
     document.body.style.cursor = 'row-resize';
     if (e.cancelable) e.preventDefault();
@@ -1708,7 +1736,7 @@ class InfoPanelResizer {
     if (!this.enabled || !this.isResizing) return;
 
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    this.applyHeight(this.startHeight - (clientY - this.startY));
+    this.applyHeight(this.startHeight - (clientY - this.startY), this.startCanvasWidth);
 
     if (e.cancelable) e.preventDefault();
   }
