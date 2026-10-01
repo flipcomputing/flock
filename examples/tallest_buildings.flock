@@ -87,6 +87,23 @@
                         }
                       }
                     }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "comment",
+                      "id": ",SlNYzIf`6;II08B*]l$",
+                      "inputs": {
+                        "COMMENT": {
+                          "shadow": {
+                            "type": "text_multiline",
+                            "id": "~/c]WIOxF7V)cY;;^t=g",
+                            "fields": {
+                              "TEXT": "Watch the world's tallest buildings being built in order. At the end you can use the arrow keys or the on-screen pad to move the camera."
+                            }
+                          }
+                        }
+                      }
+                    }
                   }
                 }
               }
@@ -95,27 +112,10 @@
         }
       },
       {
-        "type": "comment",
-        "id": ",SlNYzIf`6;II08B*]l$",
-        "inputs": {
-          "COMMENT": {
-            "shadow": {
-              "type": "text_multiline",
-              "id": "~/c]WIOxF7V)cY;;^t=g",
-              "fields": {
-                "TEXT": "Watch the world's tallest buildings being built in order. At the end you can use the arrow keys or the on-screen pad to move the camera."
-              }
-            }
-          }
-        },
-        "x": 10,
-        "y": 204
-      },
-      {
         "type": "start",
         "id": ":Hp[{`Ym;(nCSico4=gW",
         "x": 10,
-        "y": 254,
+        "y": 364,
         "inputs": {
           "DO": {
             "block": {
@@ -158,13 +158,13 @@
         "type": "start",
         "id": "#oqbP~H7b2=Au1QPgvBW",
         "x": 10,
-        "y": 434,
+        "y": 541,
         "inputs": {
           "DO": {
             "block": {
               "type": "load_character",
               "id": "*??`|O0.Q)k-t+JizH0(",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "!%nyMf|C|*E|k%+ik-yB"
@@ -271,7 +271,7 @@
         "type": "start",
         "id": "Fc/mQ%:G`hzO(*Q0=+0^",
         "x": 10,
-        "y": 670,
+        "y": 777,
         "inputs": {
           "DO": {
             "block": {
@@ -1147,7 +1147,7 @@
         "type": "on_event",
         "id": "n}oAY|ZTI6{x]t]O*,V~",
         "x": 10,
-        "y": 2038,
+        "y": 2109,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -1403,7 +1403,7 @@
         "type": "on_event",
         "id": "Xiz:l=*_yq{4MWTII;sq",
         "x": 10,
-        "y": 2622,
+        "y": 2669,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "EVENT_NAME": {
@@ -1748,7 +1748,7 @@
         "type": "start",
         "id": "O~!::jf5iLs;u}klLe+R",
         "x": 10,
-        "y": 3338,
+        "y": 3352,
         "inputs": {
           "DO": {
             "block": {
@@ -2264,7 +2264,7 @@
                                                           "block": {
                                                             "type": "create_box",
                                                             "id": "z];h3WdjxZDNT;;2H.zf",
-                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                             "fields": {
                                                               "ID_VAR": {
                                                                 "id": "K]KGFNs7^_bUr,7@9/n/"
@@ -2513,7 +2513,7 @@
                                                                       "block": {
                                                                         "type": "create_box",
                                                                         "id": "%s}n@-e5!QKAnWyEghZl",
-                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                         "fields": {
                                                                           "ID_VAR": {
                                                                             "id": "wKB~TD{r{R{al/w(yLmr"
@@ -2662,7 +2662,7 @@
                                                                               "block": {
                                                                                 "type": "create_box",
                                                                                 "id": "C;OGp-(Fgkyk54?X_b/G",
-                                                                                "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                                "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                                 "fields": {
                                                                                   "ID_VAR": {
                                                                                     "id": "Xgs]}b*oGm_tO$1E,amH"
@@ -3766,8 +3766,8 @@
                                                                                                                         "id": "Lb:;^dhPa/x?H!5i$j,m"
                                                                                                                       },
                                                                                                                       "EASING": "LINEAR",
-                                                                                                                      "LOOP": false,
                                                                                                                       "REVERSE": false,
+                                                                                                                      "LOOP": false,
                                                                                                                       "MODE": "CREATE"
                                                                                                                     },
                                                                                                                     "inputs": {
@@ -3953,8 +3953,8 @@
                                                                                                                             "id": "Lb:;^dhPa/x?H!5i$j,m"
                                                                                                                           },
                                                                                                                           "EASING": "LINEAR",
-                                                                                                                          "LOOP": false,
                                                                                                                           "REVERSE": false,
+                                                                                                                          "LOOP": false,
                                                                                                                           "MODE": "CREATE"
                                                                                                                         },
                                                                                                                         "inputs": {
@@ -4044,8 +4044,8 @@
                                                                                                                                 "id": "Lb:;^dhPa/x?H!5i$j,m"
                                                                                                                               },
                                                                                                                               "EASING": "LINEAR",
-                                                                                                                              "LOOP": false,
                                                                                                                               "REVERSE": false,
+                                                                                                                              "LOOP": false,
                                                                                                                               "MODE": "START"
                                                                                                                             },
                                                                                                                             "inputs": {
@@ -4588,7 +4588,7 @@
         "type": "start",
         "id": "_TI;3B8qw9u,C*EGkw6$",
         "x": 10,
-        "y": 6697,
+        "y": 6863,
         "collapsed": true,
         "inputs": {
           "DO": {
