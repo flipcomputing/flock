@@ -835,13 +835,22 @@ export function initializeBlockHandling() {
       }, 300); // adjust if you want snappier/slower cleanup
     }
 
-    // Immediate cleanup when a top-level block is collapsed/expanded via
-    // Blockly's own native collapse (a section's own toggle reflows via
-    // setSectionReflowHook instead).
+    // Cleanup when any block is collapsed/expanded via Blockly's own native
+    // collapse (a section's own toggle reflows via setSectionReflowHook
+    // instead). A nested block resizes its whole stack, and setCollapsed only
+    // queues the re-render, so wait for it before measuring heights.
     if (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'collapsed') {
       const block = workspace.getBlockById(event.blockId);
-      if (block && !block.getParent()) {
-        layoutTopLevelBlocks();
+      if (block) {
+        Blockly.renderManagement.finishQueuedRenders().then(() => {
+          const wasEnabled = Blockly.Events.isEnabled();
+          try {
+            if (wasEnabled) Blockly.Events.disable();
+            layoutTopLevelBlocks();
+          } finally {
+            if (wasEnabled) Blockly.Events.enable();
+          }
+        });
       }
       if (block && event.newValue) {
         updateCollapsedBlockIcon(block);
