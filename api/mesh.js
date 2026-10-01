@@ -1,4 +1,5 @@
 import { attachBlockMapping, attachMixamoMapping, objectColliderShapes } from '../config.js';
+import { teleportBodyToMesh } from './physics.js';
 
 let flock;
 
@@ -1377,6 +1378,8 @@ export const flockMesh = {
 
           childMesh.parent = parentMesh;
           childMesh.position.copyFrom(desiredChildLocalPos);
+          childMesh.computeWorldMatrix(true);
+          teleportBodyToMesh(childMesh);
           resolve();
         });
       });

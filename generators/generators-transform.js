@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
-import { getFieldValue, getOwnDoOwner, maybeParentToGroup } from './generators-utilities.js';
+import { getFieldValue, maybeParentToGroup } from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
@@ -112,9 +112,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
     const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    const world = getOwnDoOwner(block) ? ', world: true' : '';
-
-    return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}${world} });\n`;
+    return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Look object at another object
@@ -326,7 +324,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     );
 
     // Establish the parent-child relationship with offset
-    return `setParent(${parentMesh}, ${childMesh});\n`;
+    return `await setParent(${parentMesh}, ${childMesh});\n`;
   };
 
   // Parent child with offset
@@ -348,7 +346,7 @@ export function registerTransformGenerators(javascriptGenerator) {
       javascriptGenerator.valueToCode(block, 'Z_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     // Establish the parent-child relationship with offset
-    return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
+    return `await parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
   };
 
   // Remove parent from object
@@ -358,7 +356,7 @@ export function registerTransformGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    return `removeParent(${childMesh});\n`;
+    return `await removeParent(${childMesh});\n`;
   };
 
   // Make follower follow target

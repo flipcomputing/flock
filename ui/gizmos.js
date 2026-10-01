@@ -3917,21 +3917,12 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
 }
 
-function isCreatedInside(block, ancestorBlock) {
-  if (!block || !ancestorBlock) return false;
-  for (let b = block.getSurroundParent(); b; b = b.getSurroundParent()) {
-    if (b === ancestorBlock) return true;
-  }
-  return false;
-}
-
 export function updateChildBlockRotations(mesh) {
-  const rootKey = mesh?.metadata?.blockKey;
-  // Only groups persist orientation in their members; other parents keep
-  // the existing rotation-only behaviour.
-  const isGroupRoot = mesh?.metadata?.shapeType === 'Group';
-  const rootBlock = meshMap[rootKey];
-  const children = mesh?.getChildMeshes?.(false) || [];
+  // Only groups persist orientation in their members. Other children's
+  // rotations are relative to their parent, so they just follow it.
+  if (mesh?.metadata?.shapeType !== 'Group') return;
+  const rootKey = mesh.metadata.blockKey;
+  const children = mesh.getChildMeshes(false);
   const seenKeys = new Set();
 
   children.forEach((child) => {
@@ -3939,17 +3930,15 @@ export function updateChildBlockRotations(mesh) {
     if (!key || key === rootKey || seenKeys.has(key)) return;
     seenKeys.add(key);
 
-    if (!isGroupRoot && isCreatedInside(meshMap[key], rootBlock)) return;
-
     const childParent = child.parent;
     child.setParent(null);
     let rotation;
-    let pos = null;
+    let pos;
     try {
       rotation = getMeshRotationInDegrees(child);
       // A rotated group moves its members: persist world positions too, read
       // in the same unparented window, or re-run restores them unrotated.
-      if (isGroupRoot) pos = flock.getBlockPositionFromMesh(child);
+      pos = flock.getBlockPositionFromMesh(child);
     } finally {
       child.setParent(childParent);
     }
@@ -3957,7 +3946,7 @@ export function updateChildBlockRotations(mesh) {
     const rotateBlock = findOrCreateRotateBlock(child);
     if (rotateBlock) setBlockXYZ(rotateBlock, rotation.x, rotation.y, rotation.z);
     let memberBlock = null;
-    if (isGroupRoot && pos) {
+    if (pos) {
       memberBlock = meshMap[key];
       if (memberBlock && !memberBlock.disposed) {
         writePositionToBlock(memberBlock, pos);
@@ -3965,7 +3954,7 @@ export function updateChildBlockRotations(mesh) {
     }
     // Snap live onto the rounded blocks: set the world orientation while
     // unparented, then re-anchor the position to the rounded base.
-    if (isGroupRoot && (rotateBlock || memberBlock)) {
+    if (rotateBlock || memberBlock) {
       const parent = child.parent;
       child.setParent(null);
       try {
@@ -3999,7 +3988,7 @@ export function updateChildBlockRotations(mesh) {
 
   // Rotating re-shapes the content bounds - re-centre the origin so the next
   // transform starts from a consistent pivot.
-  if (isGroupRoot) flock.recomputeGroupGeometry(mesh);
+  flock.recomputeGroupGeometry(mesh);
 }
 
 // Position: Allow the user to move the mesh by dragging it
