@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Funzioni',
   CATEGORY_SNIPPETS: 'Frammenti',
   CATEGORY_MOVEMENT: 'Movimento',
+  CATEGORY_BUILDING: 'Costruzione',
 
   // Color picker translations
   choose_a_color: 'Scegli un colore',

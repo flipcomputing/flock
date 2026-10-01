@@ -431,6 +431,8 @@ function resolveDelegatedMesh(owner, triggerId, evt) {
     return null;
   }
   if (!hits?.length) return null;
+  // multiPick returns hits in scene.meshes order, not nearest first.
+  hits.sort((a, b) => (a?.distance ?? Infinity) - (b?.distance ?? Infinity));
   const ownerManager = owner.actionManager;
   let candidate = null;
   for (const hit of hits) {

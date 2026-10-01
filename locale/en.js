@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Functions',
   CATEGORY_SNIPPETS: 'Snippets',
   CATEGORY_MOVEMENT: 'Movement',
+  CATEGORY_BUILDING: 'Building',
 
   // Color picker translations
   choose_a_color: 'Choose a Color',
@@ -719,6 +720,7 @@ export default {
     'Moves the player forward, backward, left and right with the player controls.',
   snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
   snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
+  snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
 
   // Dropdown option translations
   AWAIT_option: 'await',

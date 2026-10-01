@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Funktioner',
   CATEGORY_SNIPPETS: 'Snippets',
   CATEGORY_MOVEMENT: 'Rörelse',
+  CATEGORY_BUILDING: 'Bygga',
 
   // Color picker translations
   choose_a_color: 'Välj en färg',

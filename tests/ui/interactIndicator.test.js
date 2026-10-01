@@ -137,6 +137,20 @@ export function runInteractIndicatorTests(flock) {
         expect(dist).to.be.lessThan(2);
       });
 
+      it('icon is anchored to the bounding-box centre, not an off-centre pivot', function () {
+        const mesh = makeMesh('_test_corner_pivot', [-0.5, -0.5, -0.5]);
+        mesh.bakeTransformIntoVertices(flock.BABYLON.Matrix.Translation(0.5, 0.5, 0.5));
+        mesh.position.copyFromFloats(-0.5, -0.5, -0.5);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        makeInteractable(mesh);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.true;
+        expect(getIcon().position.y).to.be.closeTo(0, 0.01);
+      });
+
       it('mesh with only an intersection-trigger actionManager is not targeted', function () {
         // onIntersect attaches an actionManager with no pick trigger — clicking
         // it does nothing, so the indicator must not flag it. Regression for a

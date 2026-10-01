@@ -547,7 +547,11 @@ export function runEventsTests(flock) {
         flock.scene.getMeshByName(childA).setParent(group);
         flock.scene.getMeshByName(childB).setParent(group);
         flock.recomputeGroupGeometry(group);
-        return { group, childA: flock.scene.getMeshByName(childA) };
+        return {
+          group,
+          childA: flock.scene.getMeshByName(childA),
+          childB: flock.scene.getMeshByName(childB),
+        };
       }
 
       it('fires the group handler with the group name when a member without its own trigger is clicked', async function () {
@@ -592,6 +596,34 @@ export function runEventsTests(flock) {
         }
         expect(memberHits).to.deep.equal([childA.name]);
         expect(groupHits).to.deep.equal([]);
+      });
+
+      it('delegates to the nearest member even when multiPick lists a farther member first', async function () {
+        const { group, childA, childB } = await makeGroup();
+        const memberHits = [];
+        flock.onTrigger(childA.name, {
+          trigger: 'OnPickTrigger',
+          callback: (name) => memberHits.push(name),
+          applyToGroup: false,
+        });
+        await tick();
+        const realMultiPick = flock.scene.multiPick.bind(flock.scene);
+        flock.scene.multiPick = () => [
+          { pickedMesh: group, distance: 1 },
+          { pickedMesh: childB, distance: 9 },
+          { pickedMesh: childA, distance: 3 },
+        ];
+        try {
+          fire(group, {
+            source: group,
+            meshUnderPointer: group,
+            pointerX: 5,
+            pointerY: 5,
+          });
+        } finally {
+          flock.scene.multiPick = realMultiPick;
+        }
+        expect(memberHits).to.deep.equal([childA.name]);
       });
 
       it('fires the group handler when no member behind the shell has a trigger', async function () {

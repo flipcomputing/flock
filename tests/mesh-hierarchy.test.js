@@ -185,6 +185,94 @@ export function runMeshHierarchyTests(flock) {
       });
     });
 
+    describe('updateChildBlockRotations with a non-group parent', function () {
+      async function setUp(suffix, childNestedInParentDo) {
+        const parentId = `rotSkipParent${suffix}`;
+        const childId = `rotSkipChild${suffix}`;
+        await flock.createBox(parentId, { width: 4, height: 1, depth: 4, position: [0, 0, 0] });
+        await flock.createBox(childId, { width: 1, height: 1, depth: 1, position: [1, 0, 0] });
+        meshIds.push(parentId, childId);
+        const parentMesh = flock.scene.getMeshByName(parentId);
+        const childMesh = flock.scene.getMeshByName(childId);
+        childMesh.setParent(parentMesh);
+
+        const rotY = { _v: 0 };
+        const rotInputs = {};
+        for (const name of ['X', 'Y', 'Z']) {
+          const holder = name === 'Y' ? rotY : { _v: 0 };
+          rotInputs[name] = {
+            connection: {
+              targetBlock: () => ({
+                getField: (f) => (f === 'NUM' ? {} : null),
+                getFieldValue: () => String(holder._v),
+                setFieldValue: (nv) => {
+                  holder._v = Number(nv);
+                },
+              }),
+            },
+          };
+        }
+        const rotateBlock = {
+          id: `rotSkipRotate${suffix}`,
+          type: 'rotate_to',
+          disposed: false,
+          getFieldValue: (f) => (f === 'MODEL' ? `rotSkipVar${suffix}` : null),
+          getInput: (name) => rotInputs[name] || null,
+          getNextBlock: () => null,
+        };
+        const parentBlock = {
+          id: `rotSkipParentBlock${suffix}`,
+          type: 'create_box',
+          disposed: false,
+          getSurroundParent: () => null,
+        };
+        const childBlock = {
+          id: `rotSkipChildBlock${suffix}`,
+          type: 'create_box',
+          disposed: false,
+          getFieldValue: (f) => (f === 'ID_VAR' ? `rotSkipVar${suffix}` : null),
+          getInput: (name) =>
+            name === 'DO' ? { connection: { targetBlock: () => rotateBlock } } : null,
+          getSurroundParent: () => (childNestedInParentDo ? parentBlock : null),
+        };
+        parentMesh.metadata.blockKey = parentBlock.id;
+        childMesh.metadata.blockKey = childBlock.id;
+        meshMap[parentBlock.id] = parentBlock;
+        meshMap[childBlock.id] = childBlock;
+
+        parentMesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 90, 0);
+        parentMesh.computeWorldMatrix(true);
+
+        return {
+          rotY,
+          cleanup: () => {
+            delete meshMap[parentBlock.id];
+            delete meshMap[childBlock.id];
+          },
+        };
+      }
+
+      it("should not write a rotation for a child created inside the parent's DO", async function () {
+        const { rotY, cleanup } = await setUp('Nested', true);
+        try {
+          updateChildBlockRotations(flock.scene.getMeshByName('rotSkipParentNested'));
+          expect(rotY._v, 'child rotate_to untouched').to.equal(0);
+        } finally {
+          cleanup();
+        }
+      });
+
+      it('should still write the world rotation for a child created elsewhere', async function () {
+        const { rotY, cleanup } = await setUp('Outside', false);
+        try {
+          updateChildBlockRotations(flock.scene.getMeshByName('rotSkipParentOutside'));
+          expect(rotY._v, 'child rotate_to holds world yaw').to.be.closeTo(90, 0.1);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
     describe('createGroup', function () {
       const mockBoxBlock = (values) => {
         const holders = {};

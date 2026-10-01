@@ -370,7 +370,7 @@ function _updateIndicator(scene) {
   // interactable is reachable and the check would falsely block via floor/environment geometry.
   if (target && _playerMesh) {
     const playerPos = _playerMesh.getAbsolutePosition();
-    _toMesh.copyFrom(target.getAbsolutePosition()).subtractInPlace(playerPos);
+    _toMesh.copyFrom(target.getBoundingInfo().boundingBox.centerWorld).subtractInPlace(playerPos);
     const losLen = _toMesh.length();
     if (losLen > 0) {
       _losRay.origin.copyFrom(playerPos);
@@ -397,7 +397,7 @@ function _updateIndicator(scene) {
   }
 
   // Position icon to the left of target (camera-relative), scaled to a constant screen size.
-  const meshPos = target.getAbsolutePosition();
+  const meshPos = target.getBoundingInfo().boundingBox.centerWorld;
   const camPos = camera.position;
   const dist = Vector3.Distance(camPos, meshPos);
 

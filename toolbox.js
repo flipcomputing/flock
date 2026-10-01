@@ -5274,6 +5274,398 @@ const toolboxSnippetsMovement = {
   ],
 };
 
+const toolboxSnippetsBuilding = {
+  kind: 'category',
+  icon: './images/house.svg',
+  categorystyle: 'snippets_category',
+  name: '%{BKY_CATEGORY_BUILDING}',
+  contents: [
+    {
+      kind: 'block',
+      type: 'start',
+      keyword: 'hingeddoor',
+      hint: 'snippet_hinged_door_hint',
+      inputs: {
+        DO: {
+          block: {
+            type: 'load_multi_object',
+            fields: {
+              ID_VAR: {
+                name: 'room',
+              },
+              MODELS: 'window_door.glb',
+            },
+            inputs: {
+              SCALE: {
+                shadow: {
+                  type: 'math_number',
+                  fields: {
+                    NUM: 1,
+                  },
+                },
+              },
+              X: {
+                shadow: {
+                  type: 'math_number',
+                  fields: {
+                    NUM: 0,
+                  },
+                },
+              },
+              Y: {
+                shadow: {
+                  type: 'math_number',
+                  fields: {
+                    NUM: 0,
+                  },
+                },
+              },
+              Z: {
+                shadow: {
+                  type: 'math_number',
+                  fields: {
+                    NUM: -10,
+                  },
+                },
+              },
+              COLORS: {
+                shadow: {
+                  type: 'lists_create_with',
+                  extraState: {
+                    itemCount: 3,
+                  },
+                  inline: true,
+                  inputs: {
+                    ADD0: {
+                      shadow: {
+                        type: 'colour',
+                        fields: {
+                          COLOR: '#E7A988',
+                        },
+                      },
+                    },
+                    ADD1: {
+                      shadow: {
+                        type: 'colour',
+                        fields: {
+                          COLOR: '#E74E5F',
+                        },
+                      },
+                    },
+                    ADD2: {
+                      shadow: {
+                        type: 'colour',
+                        fields: {
+                          COLOR: '#E7E7E7',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              DO: {
+                block: {
+                  type: 'add_physics_shape',
+                  fields: {
+                    MODEL_VAR: {
+                      name: 'room',
+                    },
+                    SHAPE_TYPE: 'MESH',
+                  },
+                  next: {
+                    block: {
+                      type: 'create_box',
+                      extraState:
+                        '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>',
+                      fields: {
+                        ID_VAR: {
+                          name: 'door',
+                        },
+                      },
+                      inputs: {
+                        COLOR: {
+                          shadow: {
+                            type: 'colour',
+                            fields: {
+                              COLOR: '#8b5a2b',
+                            },
+                          },
+                        },
+                        WIDTH: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: 0.15,
+                            },
+                          },
+                        },
+                        HEIGHT: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: 3.45,
+                            },
+                          },
+                        },
+                        DEPTH: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: 2.1,
+                            },
+                          },
+                        },
+                        X: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: 4.35,
+                            },
+                          },
+                        },
+                        Y: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: 0.31,
+                            },
+                          },
+                        },
+                        Z: {
+                          shadow: {
+                            type: 'math_number',
+                            fields: {
+                              NUM: -10,
+                            },
+                          },
+                        },
+                        DO: {
+                          block: {
+                            type: 'set_pivot',
+                            fields: {
+                              MESH: {
+                                name: 'door',
+                              },
+                            },
+                            inputs: {
+                              X_PIVOT: {
+                                shadow: {
+                                  type: 'min_centre_max',
+                                  fields: {
+                                    PIVOT_OPTION: 'MIN',
+                                  },
+                                },
+                              },
+                              Y_PIVOT: {
+                                shadow: {
+                                  type: 'min_centre_max',
+                                  fields: {
+                                    PIVOT_OPTION: 'MIN',
+                                  },
+                                },
+                              },
+                              Z_PIVOT: {
+                                shadow: {
+                                  type: 'min_centre_max',
+                                  fields: {
+                                    PIVOT_OPTION: 'MIN',
+                                  },
+                                },
+                              },
+                            },
+                            next: {
+                              block: {
+                                type: 'parent_child',
+                                fields: {
+                                  PARENT_MESH: {
+                                    name: 'room',
+                                  },
+                                  CHILD_MESH: {
+                                    name: 'door',
+                                  },
+                                },
+                                inputs: {
+                                  X_OFFSET: {
+                                    shadow: {
+                                      type: 'math_number',
+                                      fields: {
+                                        NUM: 4.275,
+                                      },
+                                    },
+                                  },
+                                  Y_OFFSET: {
+                                    shadow: {
+                                      type: 'math_number',
+                                      fields: {
+                                        NUM: 0.31,
+                                      },
+                                    },
+                                  },
+                                  Z_OFFSET: {
+                                    shadow: {
+                                      type: 'math_number',
+                                      fields: {
+                                        NUM: -1,
+                                      },
+                                    },
+                                  },
+                                },
+                                next: {
+                                  block: {
+                                    type: 'add_physics',
+                                    fields: {
+                                      MODEL_VAR: {
+                                        name: 'door',
+                                      },
+                                      PHYSICS_TYPE: 'ANIMATED',
+                                    },
+                                    next: {
+                                      block: {
+                                        type: 'when_clicked',
+                                        extraState:
+                                          '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="true"></mutation>',
+                                        fields: {
+                                          MODEL_VAR: {
+                                            name: 'door',
+                                          },
+                                          TRIGGER: 'OnPickTrigger',
+                                        },
+                                        inputs: {
+                                          DO: {
+                                            block: {
+                                              type: 'rotate_anim_seconds',
+                                              fields: {
+                                                MESH_VAR: {
+                                                  name: 'door',
+                                                },
+                                                MODE: 'AWAIT',
+                                                REVERSE: false,
+                                                LOOP: false,
+                                                EASING: 'SineEase',
+                                              },
+                                              inputs: {
+                                                ROT_X: {
+                                                  shadow: {
+                                                    type: 'math_number',
+                                                    fields: {
+                                                      NUM: 0,
+                                                    },
+                                                  },
+                                                },
+                                                ROT_Y: {
+                                                  shadow: {
+                                                    type: 'math_number',
+                                                    fields: {
+                                                      NUM: -90,
+                                                    },
+                                                  },
+                                                },
+                                                ROT_Z: {
+                                                  shadow: {
+                                                    type: 'math_number',
+                                                    fields: {
+                                                      NUM: 0,
+                                                    },
+                                                  },
+                                                },
+                                                DURATION: {
+                                                  shadow: {
+                                                    type: 'math_number',
+                                                    fields: {
+                                                      NUM: 1,
+                                                    },
+                                                  },
+                                                },
+                                              },
+                                              next: {
+                                                block: {
+                                                  type: 'wait_seconds',
+                                                  inputs: {
+                                                    DURATION: {
+                                                      shadow: {
+                                                        type: 'math_number',
+                                                        fields: {
+                                                          NUM: 3,
+                                                        },
+                                                      },
+                                                    },
+                                                  },
+                                                  next: {
+                                                    block: {
+                                                      type: 'rotate_anim_seconds',
+                                                      fields: {
+                                                        MESH_VAR: {
+                                                          name: 'door',
+                                                        },
+                                                        MODE: 'AWAIT',
+                                                        REVERSE: false,
+                                                        LOOP: false,
+                                                        EASING: 'SineEase',
+                                                      },
+                                                      inputs: {
+                                                        ROT_X: {
+                                                          shadow: {
+                                                            type: 'math_number',
+                                                            fields: {
+                                                              NUM: 0,
+                                                            },
+                                                          },
+                                                        },
+                                                        ROT_Y: {
+                                                          shadow: {
+                                                            type: 'math_number',
+                                                            fields: {
+                                                              NUM: 0,
+                                                            },
+                                                          },
+                                                        },
+                                                        ROT_Z: {
+                                                          shadow: {
+                                                            type: 'math_number',
+                                                            fields: {
+                                                              NUM: 0,
+                                                            },
+                                                          },
+                                                        },
+                                                        DURATION: {
+                                                          shadow: {
+                                                            type: 'math_number',
+                                                            fields: {
+                                                              NUM: 1,
+                                                            },
+                                                          },
+                                                        },
+                                                      },
+                                                    },
+                                                  },
+                                                },
+                                              },
+                                            },
+                                          },
+                                        },
+                                      },
+                                    },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                      collapsed: true,
+                    },
+                  },
+                },
+              },
+            },
+            extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>',
+          },
+        },
+      },
+    },
+  ],
+};
+
 const toolboxSnippets = {
   kind: 'category',
   icon: './images/snippets.svg',
@@ -5517,6 +5909,7 @@ const toolboxSnippets = {
     },
     toolboxSnippetsMovement,
     toolboxSnippetsPhysics,
+    toolboxSnippetsBuilding,
   ],
 };
 

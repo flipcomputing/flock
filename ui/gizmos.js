@@ -1954,6 +1954,7 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
   stopAxisKeyboard = null;
 
   const onMove = (dx, dy, dz) => {
+    const startPosition = mesh.getAbsolutePosition().clone();
     mesh.position.x += dx;
     mesh.position.y += dy;
     mesh.position.z += dz;
@@ -1976,11 +1977,7 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
     const groupId = Blockly.utils.idGenerator.genUid();
     Blockly.Events.setGroup(groupId);
     try {
-      if (block && !block.disposed) {
-        const pos = flock.getBlockPositionFromMesh(mesh);
-        writePositionToBlock(block, pos);
-      }
-      updateChildBlockPositions(mesh);
+      commitMoveToBlocks(mesh, startPosition);
     } finally {
       Blockly.Events.setGroup(false);
     }
@@ -3135,6 +3132,56 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
   }
 }
 
+function blockPositionNumbers(block) {
+  const x = getNumberInput(block, 'X');
+  const y = getNumberInput(block, 'Y');
+  const z = getNumberInput(block, 'Z');
+  return [x, y, z].every(Number.isFinite) ? { x, y, z } : null;
+}
+
+function syncMemberBodies(mesh) {
+  const scene = mesh?.getScene?.();
+  if (!scene) return;
+  for (const child of mesh.getChildMeshes?.(false) || []) {
+    const body = child.physics;
+    if (!isBodyAlive(body) || !body.disablePreStep) continue;
+    child.computeWorldMatrix(true);
+    body.disablePreStep = false;
+    scene.onAfterPhysicsObservable.addOnce(() => {
+      if (isBodyAlive(body)) body.disablePreStep = true;
+    });
+  }
+}
+
+function commitMoveToBlocks(mesh, startPosition) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  let delta = null;
+
+  if (mesh?.metadata?.shapeType === 'Group') {
+    if (!startPosition) {
+      updateChildBlockPositions(mesh);
+      return;
+    }
+    const raw = mesh.getAbsolutePosition().subtract(startPosition);
+    delta = {
+      x: roundToOneDecimal(raw.x),
+      y: roundToOneDecimal(raw.y),
+      z: roundToOneDecimal(raw.z),
+    };
+    mesh.setAbsolutePosition(
+      startPosition.add(new flock.BABYLON.Vector3(delta.x, delta.y, delta.z))
+    );
+    mesh.computeWorldMatrix(true);
+  } else if (block && !block.disposed) {
+    const before = block.type === 'clone_mesh' ? null : blockPositionNumbers(block);
+    writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+    const after = before ? blockPositionNumbers(block) : null;
+    if (after) delta = { x: after.x - before.x, y: after.y - before.y, z: after.z - before.z };
+  }
+
+  updateChildBlockPositions(mesh, delta);
+}
+
 // When a mesh is moved, its parented children move with it in world space.
 // Write each child's new position into its own block so re-running the
 // project reproduces what's on screen. Read unparented so the transform is
@@ -3143,10 +3190,11 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
 // the 1dp rounding makes that a small snap onto the rounded values, keeping
 // the scene identical to what Play rebuilds. The caller wraps this (with the
 // parent's own block update) in a single Blockly event group: one undo.
-function updateChildBlockPositions(mesh) {
+function updateChildBlockPositions(mesh, delta = null) {
   const rootKey = mesh?.metadata?.blockKey;
   const children = mesh?.getChildMeshes?.(false) || [];
   const seenKeys = new Set();
+  const suppressed = new Set();
 
   children.forEach((child) => {
     const key = child?.metadata?.blockKey;
@@ -3156,6 +3204,20 @@ function updateChildBlockPositions(mesh) {
     if (!childBlock || childBlock.disposed) return;
 
     seenKeys.add(key);
+
+    const current = childBlock.type === 'clone_mesh' ? null : blockPositionNumbers(childBlock);
+    if (delta && current) {
+      suppressBlockLiveUpdates(childBlock.id);
+      suppressed.add(childBlock.id);
+      setBlockXYZ(
+        childBlock,
+        current.x + delta.x,
+        current.y + delta.y,
+        current.z + delta.z,
+        { decimals: 4 }
+      );
+      return;
+    }
 
     const childParent = child.parent;
     child.setParent(null);
@@ -3168,6 +3230,11 @@ function updateChildBlockPositions(mesh) {
 
     writePositionToBlock(childBlock, pos);
   });
+
+  if (suppressed.size) {
+    syncMemberBodies(mesh);
+    deferClearSuppressedBlocks(suppressed);
+  }
 }
 
 function startDuplicatePlacement() {
@@ -3850,11 +3917,20 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
 }
 
+function isCreatedInside(block, ancestorBlock) {
+  if (!block || !ancestorBlock) return false;
+  for (let b = block.getSurroundParent(); b; b = b.getSurroundParent()) {
+    if (b === ancestorBlock) return true;
+  }
+  return false;
+}
+
 export function updateChildBlockRotations(mesh) {
   const rootKey = mesh?.metadata?.blockKey;
   // Only groups persist orientation in their members; other parents keep
   // the existing rotation-only behaviour.
   const isGroupRoot = mesh?.metadata?.shapeType === 'Group';
+  const rootBlock = meshMap[rootKey];
   const children = mesh?.getChildMeshes?.(false) || [];
   const seenKeys = new Set();
 
@@ -3862,6 +3938,8 @@ export function updateChildBlockRotations(mesh) {
     const key = child?.metadata?.blockKey;
     if (!key || key === rootKey || seenKeys.has(key)) return;
     seenKeys.add(key);
+
+    if (!isGroupRoot && isCreatedInside(meshMap[key], rootBlock)) return;
 
     const childParent = child.parent;
     child.setParent(null);
@@ -4001,9 +4079,11 @@ function handlePositionGizmo() {
     );
   }
 
+  let dragStartPosition = null;
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
+    dragStartPosition = mesh.getAbsolutePosition().clone();
     if (isTargetCameraFrame(mesh)) flock._releaseFollowCameraLimits(mesh.metadata.camera);
 
     const motionType = isBodyAlive(mesh.physics) ? mesh.physics.getMotionType() : undefined;
@@ -4038,12 +4118,12 @@ function handlePositionGizmo() {
     try {
       if (block && !block.disposed && isTargetCameraFrame(mesh)) {
         writeCameraOffsetToBlock(block, mesh, mesh.getAbsolutePosition());
-      } else if (block && !block.disposed) {
-        const blockPosition = flock.getBlockPositionFromMesh(mesh);
-        writePositionToBlock(block, blockPosition);
+        updateChildBlockPositions(mesh);
+      } else {
+        commitMoveToBlocks(mesh, dragStartPosition);
       }
-      updateChildBlockPositions(mesh);
     } finally {
+      dragStartPosition = null;
       Blockly.Events.setGroup(false);
     }
   });
