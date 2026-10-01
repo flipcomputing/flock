@@ -5275,7 +5275,6 @@ const toolboxSnippetsMovement = {
 };
 
 const snippetNum = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
-const snippetNumBlock = (NUM) => ({ block: { type: 'math_number', fields: { NUM } } });
 const snippetVar = (name) => ({ block: { type: 'variables_get', fields: { VAR: { name } } } });
 const snippetMath = (OP, A, B) => ({
   block: { type: 'math_arithmetic', fields: { OP }, inputs: { A, B } },
@@ -5290,6 +5289,26 @@ const snippetBookcasePart = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z) => ({
   },
 });
 const bookcaseParams = ['width', 'height', 'depth', 'shelves', 'material', 'x', 'y', 'z'];
+const bookcaseRowBreaks = ['depth', 'material'];
+const bookcaseDefaults = {
+  width: snippetNum(2),
+  height: snippetNum(3),
+  depth: snippetNum(0.6),
+  shelves: snippetNum(4),
+  material: {
+    shadow: {
+      type: 'material',
+      fields: { TEXTURE_SET: 'wood.png' },
+      inputs: {
+        BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#deb887' } } },
+        ALPHA: snippetNum(1),
+      },
+    },
+  },
+  x: snippetNum(3),
+  y: snippetNum(0),
+  z: snippetNum(0),
+};
 
 const snippetBookcaseBody = snippetChain(
   snippetBookcasePart(
@@ -5394,9 +5413,16 @@ const toolboxSnippetsBuilding = {
       type: 'procedures_defreturn',
       keyword: 'bookcase',
       hint: 'snippet_bookcase_hint',
-      extraState: { params: bookcaseParams.map((name) => ({ name })) },
+      extraState: {
+        params: bookcaseParams.map((name) => ({
+          name,
+          argId: name,
+          ...(bookcaseRowBreaks.includes(name) && { rowBreak: true }),
+        })),
+      },
       fields: { NAME: 'bookcase' },
       inputs: {
+        ...bookcaseDefaults,
         STACK: {
           block: {
             type: 'create_group',
@@ -5422,25 +5448,9 @@ const toolboxSnippetsBuilding = {
                 block: {
                   type: 'procedures_callreturn',
                   extraState: { name: 'bookcase', params: bookcaseParams },
-                  inputs: {
-                    ARG0: snippetNumBlock(2),
-                    ARG1: snippetNumBlock(3),
-                    ARG2: snippetNumBlock(0.6),
-                    ARG3: snippetNumBlock(4),
-                    ARG4: {
-                      block: {
-                        type: 'material',
-                        fields: { TEXTURE_SET: 'wood.png' },
-                        inputs: {
-                          BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#deb887' } } },
-                          ALPHA: snippetNum(1),
-                        },
-                      },
-                    },
-                    ARG5: snippetNumBlock(0),
-                    ARG6: snippetNumBlock(0),
-                    ARG7: snippetNumBlock(0),
-                  },
+                  inputs: Object.fromEntries(
+                    bookcaseParams.map((name, i) => ['ARG' + i, bookcaseDefaults[name]])
+                  ),
                 },
               },
             },

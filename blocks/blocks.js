@@ -23,6 +23,7 @@ import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js'
 import { FieldBlockSearch } from './fieldBlockSearch.js';
 import './fieldPickPosition.js'; // registers field_pick_position
 import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
+import { setupProcedureParams } from './procedureParams.js';
 
 registerFieldColour();
 
@@ -2397,6 +2398,7 @@ Blockly.Blocks['procedures_defreturn'].init = (function (originalInit) {
   return function () {
     // Call the original initialization function to ensure the block retains its default behaviour
     originalInit.call(this);
+    setupProcedureParams(this);
 
     // Use the existing addToggleButton helper to add the button to the block
     addToggleButton(this);
@@ -2437,6 +2439,7 @@ Blockly.Blocks['procedures_defnoreturn'].init = (function (originalInit) {
   return function () {
     // Call the original initialization function to ensure the block retains its default behaviour
     originalInit.call(this);
+    setupProcedureParams(this);
 
     // Use the existing addToggleButton helper to add the button to the block
     addToggleButton(this);

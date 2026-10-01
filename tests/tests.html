@@ -589,6 +589,13 @@
           pattern: '@blocksearch',
         },
         {
+          id: 'procedureparams',
+          name: 'Function Parameter Tests',
+          importPath: './procedureParams.test.js',
+          importFn: 'runProcedureParamsTests',
+          pattern: '@procedureParams',
+        },
+        {
           id: 'blocklyinit',
           name: 'Blockly Init Tests',
           importPath: './blocklyinit.test.js',
@@ -815,6 +822,8 @@
         testSelect.selectedIndex = 0;
         clearMochaFilter();
       });
+
+      window.testSuitesReady = true;
 
       // Show debug layer
       try {

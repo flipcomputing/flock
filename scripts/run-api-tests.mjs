@@ -149,6 +149,11 @@ const AVAILABLE_SUITES = [
     pattern: '@listReorder',
   },
   {
+    id: 'procedureparams',
+    name: 'Function Parameter Tests',
+    pattern: '@procedureParams',
+  },
+  {
     id: 'microbit',
     name: 'micro:bit Tests',
     pattern: '@microbit',
@@ -536,12 +541,9 @@ async function loadTestPage() {
     await page.waitForFunction(
       () => {
         // Check if test suites have been loaded (they load after flock initializes)
-        const testSelect = document.getElementById('testSelect');
-        if (!testSelect) return false;
-
-        // Test suite options are added after initialization
-        const options = testSelect.querySelectorAll('option');
-        return options.length > 2; // More than just the default placeholder options
+        // Set by tests.html once every suite is imported and the selection
+        // listener is attached; options appear earlier, while imports run.
+        return window.testSuitesReady === true;
       },
       { timeout: 90000 }
     );

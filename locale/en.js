@@ -219,6 +219,8 @@ export default {
   section_toggle_alt: 'expand or collapse section',
   section_control: 'section',
   section_none_option: 'none',
+  function_row_break_alt: 'start a new row after this input',
+  function_row_join_alt: 'join the next input onto this row',
 
   // Custom block translations - Effects blocks
   main_light: 'light intensity: %1 color: %2 ground: %3 shading %4',
