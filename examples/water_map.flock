@@ -34,7 +34,7 @@
                           "type": "colour",
                           "id": "eN,Zqf;u^2}n`4hf27P?",
                           "fields": {
-                            "COLOR": "#66ffff"
+                            "COLOR": "#ff6666"
                           }
                         }
                       },
@@ -43,7 +43,7 @@
                           "type": "colour",
                           "id": "C2x0aj`qZ)1KTI9Lk79n",
                           "fields": {
-                            "COLOR": "#33ccff"
+                            "COLOR": "#ffff99"
                           }
                         }
                       }
@@ -91,7 +91,7 @@
                         "type": "material",
                         "id": "?7yGCiB_;_hTE7?0;5kM",
                         "fields": {
-                          "TEXTURE_SET": "rough.png"
+                          "TEXTURE_SET": "fabric.png"
                         },
                         "inputs": {
                           "BASE_COLOR": {
@@ -99,7 +99,7 @@
                               "type": "colour",
                               "id": ",!e5m9MW/)T8#`CGpgW=",
                               "fields": {
-                                "COLOR": "#ffffff"
+                                "COLOR": "#99ff99"
                               }
                             }
                           },
@@ -175,7 +175,7 @@
                                 "type": "colour",
                                 "id": "zrSt(rrLJ(;3eT)qa9p*",
                                 "fields": {
-                                  "COLOR": "#33ccff"
+                                  "COLOR": "#33ffff"
                                 }
                               }
                             }
@@ -208,7 +208,7 @@
                     "type": "math_number",
                     "id": "aVuT)eWbIfAXzAnlOh4@",
                     "fields": {
-                      "NUM": 3.6
+                      "NUM": 3.7
                     }
                   }
                 },
@@ -378,7 +378,7 @@
                         "type": "math_number",
                         "id": "hbofJ|/6^vDg9[c9lkdP",
                         "fields": {
-                          "NUM": 2.2
+                          "NUM": 2.4
                         }
                       }
                     },
@@ -506,7 +506,7 @@
                     "type": "math_number",
                     "id": "`+Q#R9A;N/%f2^GkIw4S",
                     "fields": {
-                      "NUM": -1
+                      "NUM": 0
                     }
                   }
                 },
@@ -598,6 +598,9 @@
                       "type": "camera_follow",
                       "id": "xn%`BTVnc3`5B}6Tlgj+",
                       "fields": {
+                        "CAM_VAR": {
+                          "id": "ye@sq,KO2WF`CTB)=t$8"
+                        },
                         "MESH_VAR": {
                           "id": "YO+)V+eC+$M3-`*)nUT*"
                         },
@@ -635,7 +638,7 @@
         "type": "forever",
         "id": "`[}?hRxo9+b%.`})Y*O@",
         "x": 10,
-        "y": 1254,
+        "y": 1255,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1008,7 +1011,7 @@
         "type": "on_collision",
         "id": "*@D=4foq_AdN!:i/KIF!",
         "x": 10,
-        "y": 2541,
+        "y": 2542,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -1055,7 +1058,7 @@
         "type": "on_collision",
         "id": "F@Y]A=s+bimrmwk1ky[,",
         "x": 10,
-        "y": 2711,
+        "y": 3092,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -1102,7 +1105,7 @@
         "type": "start",
         "id": "lco5.xZ7jJg)x-)U(7.=",
         "x": 10,
-        "y": 4005,
+        "y": 4262,
         "collapsed": true,
         "inputs": {
           "DO": {
@@ -1130,7 +1133,7 @@
         "type": "start",
         "id": "@!Dg52btdzA#j8{ut-Gg",
         "x": 10,
-        "y": 2881,
+        "y": 3262,
         "inputs": {
           "DO": {
             "block": {
@@ -1141,7 +1144,7 @@
                 "ID_VAR": {
                   "id": "/J9*viip,fqASZitlfJi"
                 },
-                "MODELS": "hut2.glb"
+                "MODELS": "hut.glb"
               },
               "inputs": {
                 "SCALE": {
@@ -1194,7 +1197,7 @@
                           "type": "colour",
                           "id": "EH,T,mvwpLlfp7s!QhGw",
                           "fields": {
-                            "COLOR": "#814c22"
+                            "COLOR": "#b66946"
                           }
                         }
                       },
@@ -1203,7 +1206,7 @@
                           "type": "colour",
                           "id": "[s9Vb0U,vyurtQtiR+-{",
                           "fields": {
-                            "COLOR": "#231e1d"
+                            "COLOR": "#5f2524"
                           }
                         }
                       },
@@ -1212,7 +1215,7 @@
                           "type": "colour",
                           "id": "=m$n[#7tqA@;*+*{0R0e",
                           "fields": {
-                            "COLOR": "#fff6a6"
+                            "COLOR": "#c25a5c"
                           }
                         }
                       },
@@ -1221,7 +1224,7 @@
                           "type": "colour",
                           "id": "keq@C}1~H+X$XUpMxeG8",
                           "fields": {
-                            "COLOR": "#e7af3a"
+                            "COLOR": "#e1b46e"
                           }
                         }
                       },
@@ -1230,7 +1233,7 @@
                           "type": "colour",
                           "id": "`Xofcs2$[xr7Z4y6z8aL",
                           "fields": {
-                            "COLOR": "#e73627"
+                            "COLOR": "#3bacba"
                           }
                         }
                       },
@@ -1308,7 +1311,7 @@
                     "ID_VAR": {
                       "id": "[~xOZcB$L,_(NZ/PyYxO"
                     },
-                    "MODELS": "tree4.glb"
+                    "MODELS": "tree.glb"
                   },
                   "inputs": {
                     "SCALE": {
@@ -1361,7 +1364,7 @@
                               "type": "colour",
                               "id": "{/vKODODho*JR3,gW$HU",
                               "fields": {
-                                "COLOR": "#0d5b28"
+                                "COLOR": "#66cdaa"
                               }
                             }
                           },
@@ -1370,7 +1373,7 @@
                               "type": "colour",
                               "id": "WZ8pO80--9gtC`AJdXIX",
                               "fields": {
-                                "COLOR": "#6d6c51"
+                                "COLOR": "#cd853f"
                               }
                             }
                           }
@@ -1381,19 +1384,19 @@
                   "next": {
                     "block": {
                       "type": "load_multi_object",
-                      "id": "t?Y_IUY1!P(?.FXN]?2K",
+                      "id": "@2lcAXxTWtsM=TOVPv~8",
                       "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                       "fields": {
                         "ID_VAR": {
-                          "id": "*vaUaYK^yap/BhnMvM9u"
+                          "id": "kGt1w:VJMXP]ZTwOPNg3"
                         },
-                        "MODELS": "tree4.glb"
+                        "MODELS": "tree.glb"
                       },
                       "inputs": {
                         "SCALE": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "Eu#24D)qga9kVZJ0cDI`",
+                            "id": "u$IboV(@M}i4^8r?:#|7",
                             "fields": {
                               "NUM": 2
                             }
@@ -1402,25 +1405,25 @@
                         "X": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "V#Ep-~Br[B/|tbZ(%.8J",
+                            "id": "N)wR~T6PQZZ@)k]9}mh7",
                             "fields": {
-                              "NUM": 10.2
+                              "NUM": -18
                             }
                           }
                         },
                         "Y": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "K[nFAbd0*]23$ty{9v!O",
+                            "id": "#?#PQJ%7thX|`Ilz2x01",
                             "fields": {
-                              "NUM": 4.05
+                              "NUM": 4
                             }
                           }
                         },
                         "Z": {
                           "shadow": {
                             "type": "math_number",
-                            "id": "1AzW+m(!r)tZNbNVC@-F",
+                            "id": "LBC~:]x/]M798B`aXe8y",
                             "fields": {
                               "NUM": -47.5
                             }
@@ -1429,7 +1432,7 @@
                         "COLORS": {
                           "shadow": {
                             "type": "lists_create_with",
-                            "id": "do7us{n6L$BhUi~2FED$",
+                            "id": "G`I:J_/x*C5EAZ}Uz;:,",
                             "inline": true,
                             "extraState": {
                               "itemCount": 2
@@ -1438,18 +1441,18 @@
                               "ADD0": {
                                 "shadow": {
                                   "type": "colour",
-                                  "id": "BiwqU_X!PW5:`L^OACkp",
+                                  "id": ".6H6m%R6t#?MlBFSLoB5",
                                   "fields": {
-                                    "COLOR": "#ffffff"
+                                    "COLOR": "#66cdaa"
                                   }
                                 }
                               },
                               "ADD1": {
                                 "shadow": {
                                   "type": "colour",
-                                  "id": "+^SBLaj8h%WD3)IET3d+",
+                                  "id": "3+cAV;$B@=vV!4XrtPtz",
                                   "fields": {
-                                    "COLOR": "#6d6c51"
+                                    "COLOR": "#cd853f"
                                   }
                                 }
                               }
@@ -1466,7 +1469,7 @@
                             "ID_VAR": {
                               "id": "[~xOZcB$L,_(NZ/PyYxO"
                             },
-                            "MODELS": "tree4.glb"
+                            "MODELS": "tree.glb"
                           },
                           "inputs": {
                             "SCALE": {
@@ -1519,7 +1522,7 @@
                                       "type": "colour",
                                       "id": "K6Gwb0`@kxF?EpF-q}(j",
                                       "fields": {
-                                        "COLOR": "#0d5b28"
+                                        "COLOR": "#66cdaa"
                                       }
                                     }
                                   },
@@ -1528,7 +1531,7 @@
                                       "type": "colour",
                                       "id": "`!2UYH)ndut[*{/ol~.;",
                                       "fields": {
-                                        "COLOR": "#6d6c51"
+                                        "COLOR": "#cd853f"
                                       }
                                     }
                                   }
@@ -1539,200 +1542,119 @@
                           "next": {
                             "block": {
                               "type": "load_multi_object",
-                              "id": "KYUgc)^!.Ray(3.RZY9(",
-                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                              "id": "A-G^uOmusD=1f,oQ3X9R",
+                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
                               "fields": {
                                 "ID_VAR": {
-                                  "id": "*vaUaYK^yap/BhnMvM9u"
+                                  "id": "8;7VIV]Oky={`#;#6eSi"
                                 },
-                                "MODELS": "tree4.glb"
+                                "MODELS": "boat.glb"
                               },
                               "inputs": {
                                 "SCALE": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "8GEGs%=ChBwh:*[n)oaX",
+                                    "id": "T`x3VUyYd=aLUu@v}(7_",
                                     "fields": {
-                                      "NUM": 2.2
+                                      "NUM": 2
                                     }
                                   }
                                 },
                                 "X": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "]MP^m6fexQ|;qc`;(*/9",
+                                    "id": "Ae;Dkdn+0dsUWRv#R;8C",
                                     "fields": {
-                                      "NUM": 17
+                                      "NUM": 11
                                     }
                                   }
                                 },
                                 "Y": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "Pxy3SLlTwnsiGTGaGm$]",
+                                    "id": "V5#4Ykc=*eSJAN-Sor{.",
                                     "fields": {
-                                      "NUM": 4.05
+                                      "NUM": -1.7
                                     }
                                   }
                                 },
                                 "Z": {
                                   "shadow": {
                                     "type": "math_number",
-                                    "id": "h*,64e5mN33.7zkZGLEm",
+                                    "id": "c8FDJ;n*G)x@}H-6GTfD",
                                     "fields": {
-                                      "NUM": -47.5
+                                      "NUM": 3
                                     }
                                   }
                                 },
                                 "COLORS": {
                                   "shadow": {
                                     "type": "lists_create_with",
-                                    "id": "dNOJd#z$eJM5[LZfe1`r",
+                                    "id": "]r7Qj3L!Vd;v{uOEE-(T",
                                     "inline": true,
                                     "extraState": {
-                                      "itemCount": 2
+                                      "itemCount": 1
                                     },
                                     "inputs": {
                                       "ADD0": {
                                         "shadow": {
                                           "type": "colour",
-                                          "id": "wuUt|tTqL]j{EeM~|(e_",
+                                          "id": "oKW#5f38-R*gv[iZ00^;",
                                           "fields": {
-                                            "COLOR": "#ffffff"
-                                          }
-                                        }
-                                      },
-                                      "ADD1": {
-                                        "shadow": {
-                                          "type": "colour",
-                                          "id": "X(d#z=hibP@{srtt{|gX",
-                                          "fields": {
-                                            "COLOR": "#6d6c51"
+                                            "COLOR": "#660000"
                                           }
                                         }
                                       }
                                     }
                                   }
-                                }
-                              },
-                              "next": {
-                                "block": {
-                                  "type": "load_multi_object",
-                                  "id": "A-G^uOmusD=1f,oQ3X9R",
-                                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
-                                  "fields": {
-                                    "ID_VAR": {
-                                      "id": "8;7VIV]Oky={`#;#6eSi"
-                                    },
-                                    "MODELS": "boat.glb"
-                                  },
-                                  "inputs": {
-                                    "SCALE": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "T`x3VUyYd=aLUu@v}(7_",
-                                        "fields": {
-                                          "NUM": 2
-                                        }
+                                },
+                                "DO": {
+                                  "block": {
+                                    "type": "rotate_to",
+                                    "id": "bRebk94qKOTS;yNI#=67",
+                                    "fields": {
+                                      "MODEL": {
+                                        "id": "8;7VIV]Oky={`#;#6eSi"
                                       }
                                     },
-                                    "X": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "Ae;Dkdn+0dsUWRv#R;8C",
-                                        "fields": {
-                                          "NUM": 11
+                                    "inputs": {
+                                      "X": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "QW7}UF:n%-;C*SF]{[?i",
+                                          "fields": {
+                                            "NUM": -0.6
+                                          }
                                         }
-                                      }
-                                    },
-                                    "Y": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "V5#4Ykc=*eSJAN-Sor{.",
-                                        "fields": {
-                                          "NUM": -1.7
+                                      },
+                                      "Y": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "vf$EVr/O3.gY-bw|m%9l",
+                                          "fields": {
+                                            "NUM": -99.6
+                                          }
                                         }
-                                      }
-                                    },
-                                    "Z": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "c8FDJ;n*G)x@}H-6GTfD",
-                                        "fields": {
-                                          "NUM": 3
-                                        }
-                                      }
-                                    },
-                                    "COLORS": {
-                                      "shadow": {
-                                        "type": "lists_create_with",
-                                        "id": "]r7Qj3L!Vd;v{uOEE-(T",
-                                        "inline": true,
-                                        "extraState": {
-                                          "itemCount": 1
-                                        },
-                                        "inputs": {
-                                          "ADD0": {
-                                            "shadow": {
-                                              "type": "colour",
-                                              "id": "oKW#5f38-R*gv[iZ00^;",
-                                              "fields": {
-                                                "COLOR": "#660000"
-                                              }
-                                            }
+                                      },
+                                      "Z": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "L-@7v2lBoXVNqB,n}H?c",
+                                          "fields": {
+                                            "NUM": -76.9
                                           }
                                         }
                                       }
                                     },
-                                    "DO": {
+                                    "next": {
                                       "block": {
-                                        "type": "rotate_to",
-                                        "id": "bRebk94qKOTS;yNI#=67",
+                                        "type": "add_physics_shape",
+                                        "id": "YJp@^X/sSSIIRV1nkD`b",
                                         "fields": {
-                                          "MODEL": {
+                                          "MODEL_VAR": {
                                             "id": "8;7VIV]Oky={`#;#6eSi"
-                                          }
-                                        },
-                                        "inputs": {
-                                          "X": {
-                                            "shadow": {
-                                              "type": "math_number",
-                                              "id": "QW7}UF:n%-;C*SF]{[?i",
-                                              "fields": {
-                                                "NUM": -0.6
-                                              }
-                                            }
                                           },
-                                          "Y": {
-                                            "shadow": {
-                                              "type": "math_number",
-                                              "id": "vf$EVr/O3.gY-bw|m%9l",
-                                              "fields": {
-                                                "NUM": -99.6
-                                              }
-                                            }
-                                          },
-                                          "Z": {
-                                            "shadow": {
-                                              "type": "math_number",
-                                              "id": "L-@7v2lBoXVNqB,n}H?c",
-                                              "fields": {
-                                                "NUM": -76.9
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "next": {
-                                          "block": {
-                                            "type": "add_physics_shape",
-                                            "id": "YJp@^X/sSSIIRV1nkD`b",
-                                            "fields": {
-                                              "MODEL_VAR": {
-                                                "id": "8;7VIV]Oky={`#;#6eSi"
-                                              },
-                                              "SHAPE_TYPE": "MESH"
-                                            }
-                                          }
+                                          "SHAPE_TYPE": "MESH"
                                         }
                                       }
                                     }
@@ -1741,6 +1663,153 @@
                               }
                             }
                           }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "y.{e,_J3Sh9S@}g[%I`N",
+        "x": 10,
+        "y": 2712,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_wedge",
+              "id": "|7vb$d=_ZJ3i17W-}e$8",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "X@41RAi+)ka(_5+9]%9v"
+                },
+                "AXIS": "X"
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "XJGQ!~oU8ulj%l:=6(Ib",
+                    "fields": {
+                      "COLOR": "#cc33cc"
+                    }
+                  }
+                },
+                "WIDTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "~RQ_j$31t_TiO/TRJCn5",
+                    "fields": {
+                      "NUM": 12
+                    }
+                  }
+                },
+                "HEIGHT": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "j@^#Pi,Gp22Gp:]+NP$/",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "DEPTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "E+hJ+P0Z8YTH9#|fX!gp",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "PEAK": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "wn0C~z*3I{5bw/t%^:G9",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "w5SH,)1:g6)`7HRoEg/H",
+                    "fields": {
+                      "NUM": -2.7
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": ":k6GxMGXOe[Bz#a`76Om",
+                    "fields": {
+                      "NUM": -0.2
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "]n`6~|Q7s5Hd~8h_L$5s",
+                    "fields": {
+                      "NUM": -27
+                    }
+                  }
+                },
+                "DO": {
+                  "block": {
+                    "type": "rotate_to",
+                    "id": "FX{(#?-%q[$BCKEMAIh#",
+                    "fields": {
+                      "MODEL": {
+                        "id": "X@41RAi+)ka(_5+9]%9v"
+                      }
+                    },
+                    "inputs": {
+                      "X": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "kiDpZb4`l8y[BR?(sAax",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      },
+                      "Y": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "0uToOVYlX`=`yB~e[^Li",
+                          "fields": {
+                            "NUM": -90
+                          }
+                        }
+                      },
+                      "Z": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "l{c)P%;3Qt5Ky(I71OU;",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      }
+                    },
+                    "next": {
+                      "block": {
+                        "type": "add_physics_shape",
+                        "id": "GdqSD[EcN^^/^aTeqqT6",
+                        "fields": {
+                          "MODEL_VAR": {
+                            "id": "X@41RAi+)ka(_5+9]%9v"
+                          },
+                          "SHAPE_TYPE": "MESH"
                         }
                       }
                     }
@@ -1775,16 +1844,24 @@
       "id": "[~xOZcB$L,_(NZ/PyYxO"
     },
     {
-      "name": "snow tree",
-      "id": "*vaUaYK^yap/BhnMvM9u"
-    },
-    {
       "name": "house",
       "id": "/J9*viip,fqASZitlfJi"
     },
     {
       "name": "ship",
       "id": "8;7VIV]Oky={`#;#6eSi"
+    },
+    {
+      "name": "playerCamera",
+      "id": "ye@sq,KO2WF`CTB)=t$8"
+    },
+    {
+      "name": "ramp",
+      "id": "X@41RAi+)ka(_5+9]%9v"
+    },
+    {
+      "name": "tree1",
+      "id": "kGt1w:VJMXP]ZTwOPNg3"
     }
   ]
 }
