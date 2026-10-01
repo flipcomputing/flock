@@ -170,6 +170,8 @@ export const flockEffects = {
           const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
           particleSystem.particleEmitterType = meshEmitter;
           particleSystem.blendMode = 4;
+          particleSystem.imageProcessingConfiguration =
+            new flock.BABYLON.ImageProcessingConfiguration();
 
           const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
           const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
