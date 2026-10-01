@@ -180,7 +180,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'camera %1 %2',
-  camera_follow: 'camera follow %1 distance: %2 angle: %3 front: %4 as %5',
+  camera_follow: 'camera %5 follow %1 distance: %2 angle: %3 front: %4',
   get_camera: 'get camera as %1',
   create_fly_camera: 'add fly camera %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7',
   create_follow_camera:

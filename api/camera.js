@@ -7,6 +7,7 @@ export function setFlockReference(ref) {
 }
 
 export const flockCamera = {
+  _cameraModel: null,
   /* 
                 Category: Scene>Camera
         */
@@ -191,26 +192,107 @@ export const flockCamera = {
 
     return frame.name;
   },
-  // A square frustum pointing down local +Z, wide end forward, centred on the eye.
+  // The camera.glb geometry, lens down local +Z, centred on the eye. The frame
+  // starts empty and takes the model's geometry once it has loaded.
   _createCameraFrame(name) {
     const BABYLON = flock.BABYLON;
-    const frame = BABYLON.MeshBuilder.CreateCylinder(
-      name,
+    const frame = new BABYLON.Mesh(name, flock.scene);
+    flockCamera._loadCameraModel().then((model) => {
+      if (frame.isDisposed()) return;
+      if (model) flockCamera._applyCameraModel(frame, model);
+      else flockCamera._applyFallbackFrame(frame);
+    });
+    return frame;
+  },
+  _loadCameraModel() {
+    const BABYLON = flock.BABYLON;
+    const scene = flock.scene;
+    const cached = flockCamera._cameraModel;
+    if (cached?.scene === scene && !scene.isDisposed) return cached.promise;
+
+    const promise = BABYLON.SceneLoader.LoadAssetContainerAsync(
+      flock.modelPath,
+      'camera.glb',
+      scene
+    )
+      .then((container) => {
+        const parts = container.meshes.filter((mesh) => mesh.getTotalVertices() > 0);
+        container.addAllToScene();
+        const merged = BABYLON.Mesh.MergeMeshes(parts, false, true, undefined, false, true);
+        merged.rotation.y = Math.PI / 2;
+        merged.bakeCurrentTransformIntoVertices();
+        const { minimum, maximum } = merged.getBoundingInfo().boundingBox;
+        const size = maximum.subtract(minimum);
+        const scale = 1.8 / Math.max(size.x, size.y, size.z);
+        const centre = minimum.add(maximum).scale(0.5);
+        merged.position = centre.scale(-scale);
+        merged.scaling.setAll(scale);
+        merged.bakeCurrentTransformIntoVertices();
+
+        const model = {
+          vertexData: BABYLON.VertexData.ExtractFromMesh(merged),
+          subMeshes: merged.subMeshes.map((subMesh) => ({
+            materialIndex: subMesh.materialIndex,
+            verticesStart: subMesh.verticesStart,
+            verticesCount: subMesh.verticesCount,
+            indexStart: subMesh.indexStart,
+            indexCount: subMesh.indexCount,
+          })),
+          material: merged.material,
+        };
+        merged.material = null;
+        merged.dispose();
+        container.meshes.forEach((mesh) => mesh.dispose(false, false));
+        container.transformNodes.forEach((node) => node.dispose());
+        flock.releaseContainer(container);
+        hideFromInspector(model.material);
+        model.material.subMaterials.forEach((material) => hideFromInspector(material));
+        return model;
+      })
+      .catch((error) => {
+        console.warn('Camera model failed to load:', error);
+        return null;
+      });
+    flockCamera._cameraModel = { scene, promise };
+    return promise;
+  },
+  _applyCameraModel(frame, model) {
+    const BABYLON = flock.BABYLON;
+    model.vertexData.applyToMesh(frame);
+    frame.subMeshes = [];
+    model.subMeshes.forEach(({ materialIndex, verticesStart, verticesCount, indexStart, indexCount }) => {
+      new BABYLON.SubMesh(
+        materialIndex,
+        verticesStart,
+        verticesCount,
+        indexStart,
+        indexCount,
+        frame
+      );
+    });
+    const material = hideFromInspector(model.material.clone(`${frame.name}_material`));
+    frame.material = material;
+    frame.onDisposeObservable.add(() => material.dispose());
+    frame.refreshBoundingInfo();
+  },
+  // A square frustum, wide end forward, for when camera.glb cannot load.
+  _applyFallbackFrame(frame) {
+    const BABYLON = flock.BABYLON;
+    const frustum = BABYLON.MeshBuilder.CreateCylinder(
+      `${frame.name}_frustum`,
       { diameterTop: 0.9, diameterBottom: 0.35, height: 0.6, tessellation: 4 },
       flock.scene
     );
-    frame.rotation.set(Math.PI / 2, 0, 0);
-    frame.bakeCurrentTransformIntoVertices();
-    frame.rotation.set(0, 0, Math.PI / 4);
-    frame.bakeCurrentTransformIntoVertices();
-    frame.rotation.set(0, 0, 0);
+    frustum.rotation.set(Math.PI / 2, 0, Math.PI / 4);
+    frustum.bakeCurrentTransformIntoVertices();
+    BABYLON.VertexData.ExtractFromMesh(frustum).applyToMesh(frame);
+    frustum.dispose();
 
-    const material = new BABYLON.StandardMaterial(`${name}_material`, flock.scene);
+    const material = new BABYLON.StandardMaterial(`${frame.name}_material`, flock.scene);
     material.diffuseColor = new BABYLON.Color3(0.5, 0.5, 0.5);
     material.specularColor = BABYLON.Color3.Black();
     frame.material = material;
     frame.onDisposeObservable.add(() => material.dispose());
-    return frame;
   },
   // up: 0 is level with the target, 90 straight overhead. around: world
   // degrees, 0 on the -Z side (the default front view), 90 on the +X side.
@@ -299,9 +381,12 @@ export const flockCamera = {
         const direction = camera.getTarget().subtract(eye);
         frame.setAbsolutePosition(eye);
         if (direction.lengthSquared() > 1e-8) {
-          setFrameWorldRotation(
-            BABYLON.Quaternion.FromLookDirectionLH(direction.normalize(), BABYLON.Vector3.Up())
-          );
+          const forward = direction.normalize();
+          let right = BABYLON.Vector3.Cross(BABYLON.Vector3.Up(), forward);
+          if (right.lengthSquared() < 1e-8) right = BABYLON.Vector3.Right();
+          right.normalize();
+          const up = BABYLON.Vector3.Cross(forward, right);
+          setFrameWorldRotation(BABYLON.Quaternion.RotationQuaternionFromAxis(right, up, forward));
         }
       } else {
         frame.setAbsolutePosition(camera.position);

@@ -179,7 +179,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'Kamera %1 %2',
-  camera_follow: 'Kamera folgt %1 Abstand: %2 Winkel: %3 vorne: %4 als %5', // AI-generated; needs validation
+  camera_follow: 'Kamera %5 folgt %1 Abstand: %2 Winkel: %3 vorne: %4', // AI-generated; needs validation
   get_camera: 'Kamera als %1 holen',
   create_fly_camera: 'Flugkamera hinzufügen %1 \n%6 x: %2 y: %3 z: %4 sichtbar: %5 %7', // AI-generated; needs validation
   create_follow_camera: 'Folgekamera hinzufügen %1 auf %2 \n%7 Abstand: %3 hoch: %4 rundum: %5 sichtbar: %6 %8', // AI-generated; needs validation

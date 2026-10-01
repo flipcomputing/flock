@@ -176,7 +176,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera śledzi %1, odległość: %2, kąt: %3, przód: %4, jako %5', // AI-generated; needs validation
+  camera_follow: 'kamera %5 śledzi %1, odległość: %2, kąt: %3, przód: %4', // AI-generated; needs validation
   get_camera: 'pobierz kamerę jako %1',
   create_fly_camera: 'dodaj kamerę lotu %1 \n%6 x: %2 y: %3 z: %4 widoczna: %5 %7', // AI-generated; needs validation
   create_follow_camera: 'dodaj kamerę śledzącą %1 na %2 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation

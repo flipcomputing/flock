@@ -174,7 +174,7 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera följ %1 avstånd: %2 vinkel: %3 fram: %4 som %5', // AI-generated; needs validation
+  camera_follow: 'kamera %5 följ %1 avstånd: %2 vinkel: %3 fram: %4', // AI-generated; needs validation
   get_camera: 'hämta kamera som %1',
   create_fly_camera: 'lägg till flygkamera %1 \n%6 x: %2 y: %3 z: %4 synlig: %5 %7', // AI-generated; needs validation
   create_follow_camera: 'lägg till följkamera %1 på %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
