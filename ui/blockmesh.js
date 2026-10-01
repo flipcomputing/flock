@@ -702,6 +702,10 @@ function isBlockConnectedToEnabledChain(block) {
     parent = parent.getParent?.();
   }
 
+  if (root.type === 'procedures_defnoreturn' || root.type === 'procedures_defreturn') {
+    return false;
+  }
+
   return root?.isEnabled?.() ?? false;
 }
 
