@@ -13,6 +13,7 @@ import {
 import { translate, getTooltip, getOption, getDropdownOption } from '../main/translation.js';
 import { ACTIONS } from '../input/bindings.js';
 import { makeMicrobitStatusIcon } from './blockIcons.js';
+import { outOfScopeParamIds } from './variableScope.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 import { flock } from '../flock.js';
@@ -35,14 +36,17 @@ function microbitVariableName(block) {
   return microbitVariable(block)?.name ?? null;
 }
 
-function microbitDeviceDropdownOptions(workspace, selectedVariableId) {
+function microbitDeviceDropdownOptions(sourceBlock, selectedVariableId) {
   const options = [[translate('microbit_any_option'), MICROBIT_ANY_DEVICE]];
+  const workspace = sourceBlock?.workspace;
   if (!workspace) return options;
+  const hiddenVariableIds = outOfScopeParamIds(sourceBlock);
   const seenVariableIds = new Set();
   for (const block of workspace.getBlocksByType('add_microbit', true)) {
     if (block.isInFlyout) continue;
     const variable = microbitVariable(block);
     if (!variable || seenVariableIds.has(variable.getId())) continue;
+    if (hiddenVariableIds.has(variable.getId())) continue;
     seenVariableIds.add(variable.getId());
     options.push([variable.name, variable.getId()]);
   }
@@ -63,8 +67,10 @@ function microbitDeviceDropdownOptions(workspace, selectedVariableId) {
 export class MicrobitDeviceDropdown extends Blockly.FieldDropdown {
   constructor() {
     super(function () {
-      const workspace = this.sourceBlock_?.workspace;
-      return microbitDeviceDropdownOptions(workspace, this._candidateValue ?? this.getValue());
+      return microbitDeviceDropdownOptions(
+        this.sourceBlock_,
+        this._candidateValue ?? this.getValue()
+      );
     });
     this._candidateValue = null;
   }

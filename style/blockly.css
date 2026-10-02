@@ -783,6 +783,11 @@ body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blo
   stroke-width: 1.5px !important;
 }
 
+[data-theme='low-color'] rect.flockParamPill {
+  stroke: #e0e0e0 !important;
+  stroke-width: 2.5px !important;
+}
+
 [data-theme='low-color'] .blocklyDropdownArrow,
 [data-theme='low-color'] .blocklyDropdownArrow > path {
   fill: #cfcfcf !important;

@@ -5,6 +5,8 @@ import { translate } from '../main/translation.js';
 
 const PARAM_DEFAULT_SHADOW = { type: 'math_number', fields: { NUM: 0 } };
 const CALLER_ROW_PREFIX = 'ROW_';
+const PARAM_PILL_HEIGHT = 40;
+const PARAM_PILL_X_PADDING = 12;
 
 const rowIcon = (on) =>
   'data:image/svg+xml,' +
@@ -74,18 +76,97 @@ function applyRowBreaks(block, flags) {
   if (changed) Blockly.Procedures.mutateCallers(block);
 }
 
+const paramPresses = new WeakMap();
+
+export class ParamNameField extends Blockly.FieldTextInput {
+  constructor(name, validator, { editable = true } = {}) {
+    super(name, validator);
+    if (!editable) {
+      this.EDITABLE = false;
+      this.SERIALIZABLE = false;
+    }
+  }
+
+  initView() {
+    super.initView();
+    this.textElement_.classList.add('blocklyDropdownText');
+    this.borderRect_?.classList.add('flockParamPill');
+  }
+
+  applyColour() {
+    super.applyColour();
+    if (!this.borderRect_) return;
+    const style = this.getConstants().getBlockStyle('variable_blocks');
+    this.borderRect_.style.setProperty('fill', style.colourPrimary, 'important');
+    this.borderRect_.style.setProperty('stroke', style.colourTertiary);
+  }
+
+  updateSize_() {
+    super.updateSize_(PARAM_PILL_X_PADDING);
+    if (this.size_.height >= PARAM_PILL_HEIGHT) return;
+    this.size_.height = PARAM_PILL_HEIGHT;
+    this.positionTextElement_(PARAM_PILL_X_PADDING, this.size_.width - 2 * PARAM_PILL_X_PADDING);
+    this.positionBorderRect_();
+  }
+
+  positionBorderRect_() {
+    super.positionBorderRect_();
+    const radius = String(this.size_.height / 2);
+    this.borderRect_?.setAttribute('rx', radius);
+    this.borderRect_?.setAttribute('ry', radius);
+  }
+
+  onMouseDown_(e) {
+    super.onMouseDown_(e);
+    const gesture = this.getSourceBlock()?.workspace.getGesture(e);
+    if (gesture) paramPresses.set(gesture, this);
+  }
+}
+
+function pressedParamGetter(block, e) {
+  if (!(e instanceof PointerEvent) || block.isInFlyout) return null;
+  const gesture = block.workspace.getGesture(e);
+  const field = paramPresses.get(gesture);
+  paramPresses.delete(gesture);
+  const arg = field && block.argData_.find((element) => element.argId === field.name);
+  if (!arg) return null;
+  const rect = field.getSvgRoot().getBoundingClientRect();
+  const position = Blockly.utils.svgMath.screenToWsCoordinates(
+    block.workspace,
+    new Blockly.utils.Coordinate(rect.left, rect.top)
+  );
+  return Blockly.serialization.blocks.append(
+    {
+      type: 'variables_get',
+      fields: { VAR: { id: arg.model.getId() } },
+      x: position.x,
+      y: position.y,
+    },
+    block.workspace,
+    { recordUndo: true }
+  );
+}
+
 export function setupProcedureParams(block, { fixedParams = {} } = {}) {
   block.setInputsInline(true);
   const isFixed = (argId) => Object.hasOwn(fixedParams, argId);
 
+  const startDrag = block.startDrag;
+  if (startDrag) {
+    block.startDrag = function (e) {
+      const getter = pressedParamGetter(this, e);
+      return getter ? getter.startDrag(e) : startDrag.call(this, e);
+    };
+  }
+
   block.addVarInput_ = function (name, argId) {
     const input = this.appendValueInput(argId).setCheck(null);
     if (isFixed(argId)) {
-      input.appendField(new Blockly.FieldLabel(name), argId);
+      input.appendField(new ParamNameField(name, null, { editable: false }), argId);
       input.connection.setShadowState(fixedParams[argId]);
       return;
     }
-    const nameField = new Blockly.FieldTextInput(name, this.validator_);
+    const nameField = new ParamNameField(name, this.validator_);
     nameField.onFinishEditing_ = this.finishEditing_.bind(nameField);
     nameField.varIdsToDelete_ = [];
     nameField.preEditVarModel_ = null;

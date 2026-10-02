@@ -43,6 +43,7 @@ import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { paramOnlyVariableIds } from '../blocks/variableScope.js';
 import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
 import { initContextMenus } from '../ui/contextmenu.js';
@@ -632,7 +633,15 @@ export function initializeWorkspace() {
 
   // Register variable category callback
   workspace.registerToolboxCategoryCallback('VARIABLE', function (ws) {
-    const items = Blockly.Variables.flyoutCategory(ws);
+    const paramOnly = paramOnlyVariableIds(ws);
+    const variables = ws
+      .getVariableMap()
+      .getVariablesOfType('')
+      .filter((variable) => !paramOnly.has(variable.getId()));
+    const items = [
+      ...Blockly.Variables.flyoutCategory(ws).filter((item) => item.kind !== 'block'),
+      ...Blockly.Variables.jsonFlyoutCategoryBlocks(ws, variables, true),
+    ];
 
     // Blockly leaves the set block's socket empty; fill it with a number, and
     // follow it with a copy holding text, so both kinds are one drag away.

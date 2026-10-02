@@ -73,7 +73,8 @@ export function runPrefabTests(flock) {
     it('gives a new definition a fixed material parameter above x, y and z', function () {
       const definition = appendDefinition(workspace);
       expect(definition.argData_.map((arg) => arg.argId)).to.deep.equal([MATERIAL_ARG]);
-      expect(definition.getField(MATERIAL_ARG)).to.be.instanceOf(Blockly.FieldLabel);
+      expect(definition.getField(MATERIAL_ARG).EDITABLE).to.equal(false);
+      expect(definition.getField(MATERIAL_ARG).SERIALIZABLE).to.equal(false);
       const expected = [
         'PARAMS_ROW',
         MATERIAL_ARG,

@@ -9,6 +9,7 @@ import {
 import { audioNames, themeNames, getSoundDisplayName, getThemeDisplayName } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { announceToScreenReader } from '../main/input.js';
+import { VariableNameDropdown } from './variableScope.js';
 
 // ---------------------------------------------------------------------------
 // Custom multi-line text field for ABC notation input
@@ -1494,15 +1495,7 @@ export function defineSoundBlocks() {
           .appendField(new Blockly.FieldTextInput(title || ''), 'TITLE')
           .appendField(' on ')
           .appendField(
-            new Blockly.FieldDropdown(function () {
-              const options = [[translate('everywhere_option'), '__everywhere__']];
-              const ws = this.sourceBlock_?.workspace;
-              if (ws)
-                ws.getVariableMap()
-                  .getAllVariables()
-                  .forEach((v) => options.push([v.name, v.name]));
-              return options;
-            }),
+            new VariableNameDropdown(() => [[translate('everywhere_option'), '__everywhere__']]),
             'MESH_NAME'
           );
 

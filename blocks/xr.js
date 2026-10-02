@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor } from './blocks.js';
+import { VariableNameDropdown } from './variableScope.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import {
   syncMicrobitDeviceField,
@@ -32,18 +33,10 @@ function wireMicrobitDeviceBlock(block) {
 export function defineXRBlocks() {
   if (!Blockly.Extensions.isRegistered('teleport_target_dropdown')) {
     Blockly.Extensions.register('teleport_target_dropdown', function () {
-      const dropdown = new Blockly.FieldDropdown(function () {
-        const options = [
-          [translate('all_option'), 'all'],
-          [translate('ground_option'), 'ground'],
-        ];
-        const workspace = this.sourceBlock_?.workspace;
-        workspace
-          ?.getVariableMap()
-          .getAllVariables()
-          .forEach((variable) => options.push([variable.name, variable.name]));
-        return options;
-      });
+      const dropdown = new VariableNameDropdown(() => [
+        [translate('all_option'), 'all'],
+        [translate('ground_option'), 'ground'],
+      ]);
       this.getInput('TARGET_INPUT').appendField(dropdown, 'TARGET');
     });
   }

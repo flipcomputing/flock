@@ -24,6 +24,7 @@ import { FieldBlockSearch } from './fieldBlockSearch.js';
 import './fieldPickPosition.js'; // registers field_pick_position
 import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
 import { setupProcedureParams } from './procedureParams.js';
+import { outOfScopeParamIds, VariableNameDropdown } from './variableScope.js';
 
 registerFieldColour();
 
@@ -1640,17 +1641,9 @@ export function defineBlocks() {
   };
 
   Blockly.Extensions.register('dynamic_mesh_dropdown', function () {
-    const dropdown = new Blockly.FieldDropdown(function () {
-      const options = [[translate('everywhere_option'), '__everywhere__']];
-      const workspace = this.sourceBlock_ && this.sourceBlock_.workspace;
-      if (workspace) {
-        const variables = workspace.getVariableMap().getAllVariables();
-        variables.forEach((v) => {
-          options.push([v.name, v.name]);
-        });
-      }
-      return options;
-    });
+    const dropdown = new VariableNameDropdown(() => [
+      [translate('everywhere_option'), '__everywhere__'],
+    ]);
 
     // Attach the dropdown to the block
     this.getInput('MESH_INPUT').appendField(dropdown, 'MESH_NAME');
@@ -2457,9 +2450,12 @@ Blockly.FieldVariable.DELETE_VARIABLE_ID = 'DELETE_VARIABLE_ID';
 
 // Extend `getOptions` to include "New variable..." at the top of the dropdown
 const originalGetOptions = Blockly.FieldVariable.prototype.getOptions;
-Blockly.FieldVariable.prototype.getOptions = function () {
+Blockly.FieldVariable.prototype.getOptions = function (...args) {
   // Retrieve the default options
-  const options = originalGetOptions.call(this);
+  let options = originalGetOptions.apply(this, args);
+
+  const hidden = outOfScopeParamIds(this.getSourceBlock());
+  if (hidden.size) options = options.filter(([, id]) => !hidden.has(id));
 
   // Add the "New variable..." option at the beginning
   options.unshift([translate('new_variable_decision'), Blockly.FieldVariable.ADD_VARIABLE_ID]);

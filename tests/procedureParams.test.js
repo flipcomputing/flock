@@ -3,6 +3,7 @@ import * as Blockly from 'blockly';
 import '../generators/generators.js';
 import '../blocks/blocks.js';
 import { getParamDefaultShadowState } from '../blocks/procedureParams.js';
+import { paramOnlyVariableIds } from '../blocks/variableScope.js';
 
 function appendDefinition(workspace, params, inputs = {}) {
   return Blockly.serialization.blocks.append(
@@ -178,6 +179,75 @@ export function runProcedureParamsTests() {
 
       expect(definition.argData_.map((arg) => arg.argId)).to.deep.equal(['x', 'y']);
       expect(definition.getInput('y').connection.targetBlock()).to.equal(five);
+    });
+
+    describe('variable dropdown scope', function () {
+      const getter = (variable) => ({
+        type: 'variables_get',
+        fields: { VAR: { id: variable.getId() } },
+      });
+      const optionNames = (block) =>
+        block
+          .getField('VAR')
+          .getOptions(false)
+          .map(([name]) => name);
+
+      it('lists a parameter only inside its function', function () {
+        const score = workspace.getVariableMap().createVariable('score');
+        const definition = appendDefinition(workspace, ['size'], {
+          STACK: {
+            block: {
+              type: 'variables_set',
+              fields: { VAR: { id: score.getId() } },
+              inputs: { VALUE: { block: getter(score) } },
+            },
+          },
+        });
+        const inside = definition.getInput('STACK').connection.targetBlock();
+        const outside = Blockly.serialization.blocks.append(getter(score), workspace);
+
+        expect(optionNames(inside)).to.include.members(['score', 'size']);
+        expect(optionNames(outside)).to.include('score');
+        expect(optionNames(outside)).to.not.include('size');
+      });
+
+      it('lists a parameter outside its function when it is also used as a global', function () {
+        appendDefinition(workspace, ['size']);
+        const size = workspace.getVariableMap().getVariable('size');
+        const score = workspace.getVariableMap().createVariable('score');
+        Blockly.serialization.blocks.append(getter(size), workspace);
+        const outside = Blockly.serialization.blocks.append(getter(score), workspace);
+
+        expect(optionNames(outside)).to.include.members(['score', 'size']);
+      });
+
+      it('treats a parameter as parameter-only until it is used outside its function', function () {
+        appendDefinition(workspace, ['size']);
+        const size = workspace.getVariableMap().getVariable('size');
+        expect([...paramOnlyVariableIds(workspace)]).to.deep.equal([size.getId()]);
+
+        Blockly.serialization.blocks.append(getter(size), workspace);
+        expect(paramOnlyVariableIds(workspace).size).to.equal(0);
+      });
+
+      it('scopes name-based variable menus and keeps a loaded parameter selection', function () {
+        workspace.getVariableMap().createVariable('score');
+        const definition = appendDefinition(workspace, ['size'], {
+          STACK: { block: { type: 'play_theme', fields: { MESH_NAME: 'size' } } },
+        });
+        const inside = definition.getInput('STACK').connection.targetBlock();
+        const outside = Blockly.serialization.blocks.append({ type: 'play_theme' }, workspace);
+        const meshNames = (block) =>
+          block
+            .getField('MESH_NAME')
+            .getOptions(false)
+            .map(([, value]) => value);
+
+        expect(inside.getFieldValue('MESH_NAME')).to.equal('size');
+        expect(meshNames(inside)).to.include.members(['score', 'size']);
+        expect(meshNames(outside)).to.include('score');
+        expect(meshNames(outside)).to.not.include('size');
+      });
     });
   });
 }
