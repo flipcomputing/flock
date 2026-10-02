@@ -6081,7 +6081,7 @@ const snippetBookcasePart = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z) => ({
     inputs: { COLOR: snippetVar('material'), WIDTH, HEIGHT, DEPTH, X, Y, Z },
   },
 });
-const bookcaseParams = ['width', 'height', 'depth', 'shelves', 'material', 'x', 'y', 'z'];
+const bookcaseParams = ['width', 'height', 'depth', 'shelves', 'material', 'x', 'y', 'z', 'rotation y'];
 const bookcaseRowBreaks = ['depth', 'material'];
 const bookcaseDefaults = {
   width: snippetNum(2),
@@ -6101,6 +6101,7 @@ const bookcaseDefaults = {
   x: snippetNum(3),
   y: snippetNum(0),
   z: snippetNum(0),
+  'rotation y': snippetNum(0),
 };
 
 const snippetBookcaseBody = snippetChain(
@@ -6219,8 +6220,20 @@ const toolboxSnippetsBuilding = {
         STACK: {
           block: {
             type: 'create_group',
+            collapsed: true,
             fields: { ID_VAR: { name: 'bookcase group' }, ACTIVE: true },
             inputs: { DO: snippetBookcaseBody },
+            next: {
+              block: {
+                type: 'rotate_to',
+                fields: { MODEL: { name: 'bookcase group' } },
+                inputs: {
+                  X: snippetNum(0),
+                  Y: snippetVar('rotation y'),
+                  Z: snippetNum(0),
+                },
+              },
+            },
           },
         },
         RETURN: snippetVar('bookcase group'),

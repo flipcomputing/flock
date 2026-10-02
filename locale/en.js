@@ -733,7 +733,7 @@ export default {
   snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
   snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
-  snippet_bookcase_hint: 'A bookcase function. Give it a width, height, depth, number of shelves, material and position. It gives back the bookcase as a group.',
+  snippet_bookcase_hint: 'A bookcase function. Give it a width, height, depth, number of shelves, material, position and y rotation. It gives back the bookcase as a group.',
   snippet_bookcase_call_hint: 'Builds a wooden bookcase with 4 shelves and stores it in bookcase1 so you can move it. Add the bookcase function too.',
 
   // Dropdown option translations
