@@ -3051,12 +3051,11 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
 
   // A picked 3D text letter recolours its own entry in a colour list, which
   // the letters cycle through.
-  const colourList = block.getInputTargetBlock('COLOR');
-  if (
-    block.type === 'create_3d_text' &&
-    letter !== undefined &&
-    colourList?.type === 'lists_create_with'
-  ) {
+  const colourList =
+    block.type === 'create_3d_text' && letter !== undefined
+      ? block.getInputTargetBlock('COLOR')
+      : null;
+  if (colourList?.type === 'lists_create_with') {
     const slots = colourList.inputList.filter((input) => /^ADD\d+$/.test(input.name));
     if (slots.length) {
       withUndoGroup(() => {

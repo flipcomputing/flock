@@ -74,6 +74,8 @@ test('Help precedes the other info panel buttons in the custom tab order', async
 
   await page.locator('#info-tab-btn-help').focus();
   await page.keyboard.press('Tab');
+  await expect(page.locator('#info-tab-btn-howto')).toBeFocused();
+  await page.keyboard.press('Tab');
   await expect(page.locator('#info-tab-btn-shortcuts')).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(page.locator('#info-tab-btn-player')).toBeFocused();
