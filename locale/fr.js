@@ -289,7 +289,10 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'ajouter coin %1 %2 largeur: %3 hauteur: %4 profondeur: %5\nsommet: %6 le long de: %7\n%11 x: %8 y: %9 z: %10', // ai
-  create_donut: 'ajouter donut %1 %2 diamètre: %3 épaisseur: %4 côtés: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_donut:
+    'ajouter donut %1 %2 extérieur: %3 intérieur: %4 épaisseur: %5 côtés: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'ajouter anneau %1 %2 hauteur: %3 extérieur: %4 intérieur: %5 épaisseur: %6 côtés: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -556,7 +559,9 @@ export default {
   create_wedge_tooltip:
     'Ajoute un coin — un prisme triangulaire pour construire des rampes, des pentes et des toits. Change le sommet pour changer la forme : 0 donne une rampe, 0.5 un toit.', // ai
   create_donut_tooltip:
-    'Ajoute un donut — une forme d’anneau. Le diamètre définit la largeur de l’anneau, l’épaisseur celle du tube et les côtés sa douceur.', // ai
+    'Ajoute une forme de donut. Extérieur et intérieur sont les diamètres du donut et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. Les côtés définissent sa douceur.', // ai
+  create_ring_tooltip:
+    'Ajoute un anneau à bords plats, comme une rondelle ou un tuyau. Extérieur et intérieur sont les diamètres de l’anneau et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. La hauteur définit sa hauteur et les côtés sa douceur.', // ai
   create_plane_tooltip: 'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.',
 
   // Tooltip translations - Sound blocks

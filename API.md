@@ -267,9 +267,23 @@ Creates a donut (torus) geometry.
 
 **Options:**
 
-- `diameter` (number): Diameter of the ring
-- `thickness` (number): Diameter of the tube, so the donut is `diameter + thickness` across and `thickness` tall. Clamped to at most 90% of `diameter` — a thicker tube would fold through the middle and close the hole
+- `diameter` (number): Outside diameter
+- `innerDiameter` (number): Diameter of the hole. Used only when `thickness` is not given
+- `thickness` (number): Diameter of the tube, so `innerDiameter` is `diameter - 2 * thickness` and the donut is `thickness` tall. Clamped to at most half of `diameter`, where the hole closes
 - `tessellation` (number): Sides around the ring — 3 gives a triangle, 24 looks smooth
+- `color` (string), `position` (array), `alpha` (number)
+
+#### `createRing(name, options)`
+
+Creates a flat-edged ring, like a washer or a short pipe.
+
+**Options:**
+
+- `diameter` (number): Outside diameter
+- `innerDiameter` (number): Diameter of the hole. Used only when `thickness` is not given
+- `thickness` (number): Width of the wall, so `innerDiameter` is `diameter - 2 * thickness`. Clamped to at most 90% of the radius so the hole stays open
+- `height` (number): Height of the ring
+- `tessellation` (number): Sides around the ring — 6 gives a hex nut, 24 looks smooth
 - `color` (string), `position` (array), `alpha` (number)
 
 #### `createPlane(name, options)`

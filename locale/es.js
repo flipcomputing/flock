@@ -327,7 +327,10 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\n%11 x: %8 y: %9 z: %10', // ai
-  create_donut: 'añadir rosquilla %1 %2 diámetro: %3 grosor: %4 lados: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_donut:
+    'añadir rosquilla %1 %2 exterior: %3 interior: %4 grosor: %5 lados: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'añadir anillo %1 %2 altura: %3 exterior: %4 interior: %5 grosor: %6 lados: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \n%8 x: %5 y: %6 z: %7', // human
 
   // Custom block translations - Sound blocks
@@ -614,7 +617,9 @@ export default {
   create_wedge_tooltip:
     'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.', // ai
   create_donut_tooltip:
-    'Añade una rosquilla: una forma de anillo. El diámetro define lo ancho que es el anillo, el grosor lo grueso que es el tubo y los lados lo suave que se ve.', // ai
+    'Añade una forma de rosquilla. Exterior e interior son los diámetros de la rosquilla y del agujero; al cambiar el interior o el grosor, el otro se actualiza. Los lados definen lo suave que se ve.', // ai
+  create_ring_tooltip:
+    'Añade un anillo de bordes planos, como una arandela o un tubo. Exterior e interior son los diámetros del anillo y del agujero; al cambiar el interior o el grosor, el otro se actualiza. La altura define lo alto que es y los lados lo suave que se ve.', // ai
   create_plane_tooltip: 'Crea un plano 2D de color con ancho, alto y posición especificadas.', // human
 
   // Tooltip translations - Sound blocks

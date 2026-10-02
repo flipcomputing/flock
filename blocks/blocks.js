@@ -1501,6 +1501,7 @@ export function initializeVariableIndexes() {
     capsule: 1,
     wedge: 1,
     donut: 1,
+    ring: 1,
     plane: 1,
     camera: 1,
     wall: 1,

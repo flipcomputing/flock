@@ -133,7 +133,7 @@ let scaleDragAxis = null;
 let textOrigScale = { x: 1, y: 1, z: 1 };
 
 // Round shapes have a single horizontal dimension: X and Z always match.
-const RADIAL_BLOCK_TYPES = new Set(['create_capsule', 'create_cylinder']);
+const RADIAL_BLOCK_TYPES = new Set(['create_capsule', 'create_cylinder', 'create_ring']);
 
 // Track state
 let cameraMode = 'play';
@@ -2663,6 +2663,20 @@ function snapMemberPositionToBlock(member) {
   flock.updatePhysics?.(member);
 }
 
+function setWallSizeInputs(block, { diameter, thickness, height }) {
+  setNumberInputs(block, { DIAMETER: diameter, HEIGHT: height });
+  setNumberInputs(block, { THICKNESS: thickness }, { decimals: 2 });
+  const roundedDiameter = getNumberInput(block, 'DIAMETER');
+  const roundedThickness = getNumberInput(block, 'THICKNESS');
+  if (Number.isFinite(roundedDiameter) && Number.isFinite(roundedThickness)) {
+    setNumberInputs(
+      block,
+      { INNER_DIAMETER: Math.max(0, roundedDiameter - 2 * roundedThickness) },
+      { decimals: 2 }
+    );
+  }
+}
+
 // Multiply a member's size inputs by a uniform factor, mirroring the
 // updateScaleBlock cases. Models keep their size in a resize block; its id
 // needs suppressing too (the entity's own block is covered by the caller).
@@ -2689,9 +2703,17 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
       mul(block, 'DIAMETER');
       break;
     case 'create_donut':
-      mul(block, 'DIAMETER');
-      mul(block, 'THICKNESS');
+    case 'create_ring': {
+      const dims = mesh.metadata?.ringDimensions ?? mesh.metadata?.donutDimensions;
+      if (dims) {
+        setWallSizeInputs(block, {
+          diameter: dims.diameter * factor,
+          thickness: dims.thickness * factor,
+          height: dims.height * factor,
+        });
+      }
       break;
+    }
     case 'create_cylinder':
       mul(block, 'HEIGHT');
       mul(block, 'DIAMETER_TOP');
@@ -3025,10 +3047,16 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
         setNumberInputs(block, { HEIGHT: h, DIAMETER: w });
         break;
 
-      // Bounding box is (diameter + thickness) wide and thickness tall.
       case 'create_donut':
-        setNumberInputs(block, { DIAMETER: Math.max(0, w - h), THICKNESS: h });
+        setWallSizeInputs(block, { diameter: w, thickness: h });
         break;
+
+      case 'create_ring': {
+        const dims = mesh.metadata?.ringDimensions;
+        const wallRatio = dims ? dims.thickness / dims.diameter : 0.125;
+        setWallSizeInputs(block, { diameter: w, thickness: w * wallRatio, height: h });
+        break;
+      }
 
       case 'create_cylinder': {
         const newScaledDiameter = w;
@@ -3663,7 +3691,8 @@ function handleScaleGizmo() {
     if (gizmoManager.scaleGizmoEnabled) {
       switch (block?.type) {
         case 'create_capsule':
-        case 'create_cylinder': {
+        case 'create_cylinder':
+        case 'create_ring': {
           // Babylon has no independent depth here, so whichever horizontal
           // handle was dragged drives both X and Z.
           const diameter = scaleDragAxis === 'z' ? mesh.scaling.z : mesh.scaling.x;

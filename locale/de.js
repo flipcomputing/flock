@@ -293,7 +293,9 @@ export default {
   create_wedge:
     'Keil hinzufügen %1 %2 Breite: %3 Höhe: %4 Tiefe: %5\nSpitze: %6 entlang: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_donut:
-    'Donut hinzufügen %1 %2 Durchmesser: %3 Dicke: %4 Seiten: %5\n%9 x: %6 y: %7 z: %8', // ai
+    'Donut hinzufügen %1 %2 außen: %3 innen: %4 Dicke: %5 Seiten: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'Ring hinzufügen %1 %2 Höhe: %3 außen: %4 innen: %5 Dicke: %6 Seiten: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\n%8 x: %5 y: %6 z: %7',
 
   // Sound blocks
@@ -694,7 +696,9 @@ export default {
   create_wedge_tooltip:
     'Fügt einen Keil hinzu — ein dreieckiges Prisma für Rampen, Schrägen und Dächer. Ändere die Spitze, um die Form zu ändern: 0 ergibt eine Rampe, 0.5 ein Dach.', // ai
   create_donut_tooltip:
-    'Fügt einen Donut hinzu — eine Ringform. Der Durchmesser bestimmt die Breite des Rings, die Dicke, wie dick die Röhre ist und die Seiten, wie glatt er aussieht.', // ai
+    'Fügt eine Donutform hinzu. Außen und innen sind die Durchmesser des Donuts und des Lochs; ändert man innen oder die Dicke, passt sich das andere an. Die Seiten bestimmen, wie glatt er aussieht.', // ai
+  create_ring_tooltip:
+    'Fügt einen Ring mit flachen Kanten hinzu, wie eine Unterlegscheibe oder ein Rohr. Außen und innen sind die Durchmesser des Rings und des Lochs; ändert man innen oder die Dicke, passt sich das andere an. Die Höhe bestimmt, wie hoch er ist, und die Seiten, wie glatt er aussieht.', // ai
   create_plane_tooltip: 'Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.',
 
   // Tooltip translations - Sound blocks

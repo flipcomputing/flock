@@ -10,6 +10,48 @@ import {
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
+const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
+
+function readNumberInput(block, inputName) {
+  const target = block.getInputTargetBlock(inputName);
+  return target?.getField?.('NUM') ? Number(target.getFieldValue('NUM')) : NaN;
+}
+
+function linkWallInputs(block, changeEvent) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
+    changeEvent.element !== 'field' ||
+    changeEvent.name !== 'NUM' ||
+    !changeEvent.recordUndo
+  ) {
+    return;
+  }
+
+  const edited = WALL_INPUTS.find(
+    (name) => block.getInputTargetBlock(name)?.id === changeEvent.blockId
+  );
+  if (!edited) return;
+
+  const [diameter, innerDiameter, thickness] = WALL_INPUTS.map((name) =>
+    readNumberInput(block, name)
+  );
+  if (![diameter, innerDiameter, thickness].every(Number.isFinite)) return;
+
+  const [target, current, value] =
+    edited === 'INNER_DIAMETER'
+      ? ['THICKNESS', thickness, (diameter - innerDiameter) / 2]
+      : ['INNER_DIAMETER', innerDiameter, diameter - 2 * thickness];
+  const linked = Math.max(0, Math.round(value * 1000) / 1000);
+  if (Math.abs(linked - current) < 0.0015) return;
+
+  Blockly.Events.setGroup(changeEvent.group || true);
+  try {
+    block.getInputTargetBlock(target).setFieldValue(String(linked), 'NUM');
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
 export function defineShapeBlocks() {
   // Define the particle effect block.
   Blockly.Blocks['create_particle_effect'] = {
@@ -949,6 +991,11 @@ export function defineShapeBlocks() {
           },
           {
             type: 'input_value',
+            name: 'INNER_DIAMETER',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
             name: 'THICKNESS',
             check: 'Number',
           },
@@ -986,9 +1033,90 @@ export function defineShapeBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
 
-      registerBlockHandler(this, (changeEvent) =>
-        handleBlockChange(this, changeEvent, variableNamePrefix)
-      );
+      registerBlockHandler(this, (changeEvent) => {
+        linkWallInputs(this, changeEvent);
+        handleBlockChange(this, changeEvent, variableNamePrefix);
+      });
+      addDoMutatorWithToggleBehavior(this);
+    },
+  };
+
+  Blockly.Blocks['create_ring'] = {
+    init: function () {
+      const variableNamePrefix = 'ring';
+      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'create_ring',
+        message0: translate('create_ring'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'input_value',
+            name: 'COLOR',
+            check: ['Colour', 'Material'],
+          },
+          {
+            type: 'input_value',
+            name: 'HEIGHT',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'DIAMETER',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'INNER_DIAMETER',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'THICKNESS',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'SIDES',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_ring'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+
+      registerBlockHandler(this, (changeEvent) => {
+        linkWallInputs(this, changeEvent);
+        handleBlockChange(this, changeEvent, variableNamePrefix);
+      });
       addDoMutatorWithToggleBehavior(this);
     },
   };

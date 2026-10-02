@@ -52,6 +52,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_capsule',
   'create_wedge',
   'create_donut',
+  'create_ring',
   'create_plane',
   'create_3d_text',
 ]);
@@ -1192,16 +1193,23 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
       break;
     }
 
-    case 'create_donut': {
-      if (['DIAMETER', 'THICKNESS', 'SIDES'].includes(changed)) {
-        const d = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
-        const t = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
-        const sides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
-
-        updateDonutGeometry(mesh, d, t, sides);
-
-        // Sides alone leaves the size unchanged, so the anchor still holds.
-        if (['DIAMETER', 'THICKNESS'].includes(changed)) {
+    case 'create_donut':
+    case 'create_ring': {
+      if (['HEIGHT', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'].includes(changed)) {
+        const readNumber = (name) =>
+          Number(block.getInput(name)?.connection.targetBlock()?.getFieldValue('NUM') ?? NaN);
+        const requested = {
+          diameter: readNumber('DIAMETER'),
+          innerDiameter: readNumber('INNER_DIAMETER'),
+          thickness: readNumber('THICKNESS'),
+          height: readNumber('HEIGHT'),
+          tessellation: readNumber('SIDES'),
+        };
+        const resized =
+          block.type === 'create_donut'
+            ? updateDonutGeometry(mesh, requested)
+            : updateRingGeometry(mesh, requested);
+        if (resized && changed !== 'SIDES') {
           repositionPrimitiveFromBlock();
         }
       }
@@ -1972,6 +1980,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
         newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
         break;
       case 'Donut':
+      case 'Ring':
         newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
         break;
       default:
@@ -2178,18 +2187,32 @@ function updateWedgeGeometry(mesh, width, height, depth, peak, axis) {
   mesh.computeWorldMatrix(true);
 }
 
-// Rebuilt rather than scaled: scaling a torus squashes the tube into an ellipse.
-function updateDonutGeometry(mesh, diameter, thickness, sides) {
-  // This path skips createDonut, so clamp the topology here too.
-  ({
-    diameter,
-    thickness,
-    tessellation: sides,
-  } = flock.donutDimensions({
-    diameter,
-    thickness,
-    tessellation: sides,
-  }));
+function updateDonutGeometry(mesh, requested) {
+  return rebuildWalledGeometry(mesh, 'donutDimensions', flock.donutDimensions(requested), (dims) => {
+    const tempMesh = flock.BABYLON.MeshBuilder.CreateTorus(
+      '',
+      { ...flock.donutTorusOptions(dims), updatable: true },
+      mesh.getScene()
+    );
+    const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
+    tempMesh.dispose();
+    return vertexData;
+  });
+}
+
+function updateRingGeometry(mesh, requested) {
+  return rebuildWalledGeometry(mesh, 'ringDimensions', flock.ringDimensions(requested), (dims) =>
+    flock.ringVertexData(dims)
+  );
+}
+
+function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
+  const previous = mesh.metadata?.[metadataKey];
+  const unchanged =
+    previous &&
+    mesh.scaling.equalsToFloats(1, 1, 1) &&
+    Object.keys(dimensions).every((key) => previous[key] === dimensions[key]);
+  if (unchanged) return false;
 
   const worldMatrix = mesh.computeWorldMatrix(true);
   const currentScale = new flock.BABYLON.Vector3();
@@ -2204,32 +2227,24 @@ function updateDonutGeometry(mesh, diameter, thickness, sides) {
   mesh = moveMeshToOrigin(mesh);
   mesh.scaling = flock.BABYLON.Vector3.One();
 
-  const tempMesh = flock.BABYLON.MeshBuilder.CreateTorus(
-    '',
-    { diameter, thickness, tessellation: sides, updatable: true },
-    mesh.getScene()
-  );
-
-  const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(tempMesh);
   const newGeometry = new flock.BABYLON.Geometry(
     mesh.name + '_geometry',
     mesh.getScene(),
-    vertexData,
+    buildVertexData(dimensions),
     true,
     mesh
   );
   newGeometry.applyToMesh(mesh);
   mesh.makeGeometryUnique();
-  tempMesh.dispose();
 
   mesh.position = currentPosition;
   mesh.rotationQuaternion = currentRotationQuaternion;
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   mesh.metadata = mesh.metadata || {};
-  mesh.metadata.donutThickness = thickness;
+  mesh.metadata[metadataKey] = dimensions;
 
-  if (mesh.physics && mesh.metadata?.shapeType === 'Donut') {
+  if (mesh.physics) {
     const newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
     if (newShape) {
       mesh.physics.shape?.dispose?.();
@@ -2238,6 +2253,7 @@ function updateDonutGeometry(mesh, diameter, thickness, sides) {
   }
 
   mesh.computeWorldMatrix(true);
+  return true;
 }
 
 function replaceMeshModel(currentMesh, block) {

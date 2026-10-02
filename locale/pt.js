@@ -290,7 +290,10 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'adicionar cunha %1 %2 largura: %3 altura: %4 profundidade: %5\npico: %6 ao longo de: %7\n%11 x: %8 y: %9 z: %10', // ai
-  create_donut: 'adicionar donut %1 %2 diâmetro: %3 espessura: %4 lados: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_donut:
+    'adicionar donut %1 %2 externo: %3 interno: %4 espessura: %5 lados: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'adicionar anel %1 %2 altura: %3 externo: %4 interno: %5 espessura: %6 lados: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'adicionar plano %1 %2 largura: %3 altura: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -551,7 +554,9 @@ export default {
   create_wedge_tooltip:
     'Adiciona uma cunha — um prisma triangular para construir rampas, declives e telhados. Muda o pico para mudar a forma: 0 faz uma rampa, 0.5 faz um telhado.', // ai
   create_donut_tooltip:
-    'Adiciona um donut — uma forma de anel. O diâmetro define a largura do anel, a espessura quão espesso é o tubo e os lados o quão suave parece.', // ai
+    'Adiciona uma forma de donut. Externo e interno são os diâmetros do donut e do furo; ao mudar o interno ou a espessura, o outro é atualizado. Os lados definem o quão suave parece.', // ai
+  create_ring_tooltip:
+    'Adiciona um anel de bordas planas, como uma arruela ou um tubo. Externo e interno são os diâmetros do anel e do furo; ao mudar o interno ou a espessura, o outro é atualizado. A altura define o quão alto é e os lados o quão suave parece.', // ai
   create_plane_tooltip: 'Cria um plano 2D colorido com largura, altura e posição especificadas.',
 
   // Tooltip translations - Sound blocks

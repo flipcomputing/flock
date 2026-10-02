@@ -10,6 +10,17 @@ import {
   withGroupParent,
 } from './generators-utilities.js';
 
+function wallParam(block, defaultThickness, defaultInnerDiameter) {
+  const isNumber = (name) => block.getInputTargetBlock(name)?.type === 'math_number';
+  const innerDiameterDrivesWall =
+    isNumber('THICKNESS') &&
+    block.getInputTargetBlock('INNER_DIAMETER') &&
+    !isNumber('INNER_DIAMETER');
+  return innerDiameterDrivesWall
+    ? `innerDiameter: ${getFieldValue(block, 'INNER_DIAMETER', defaultInnerDiameter)}`
+    : `thickness: ${getFieldValue(block, 'THICKNESS', defaultThickness)}`;
+}
+
 export function registerSceneGenerators(javascriptGenerator) {
   // -------------------------------
   // SCENE
@@ -300,7 +311,7 @@ export function registerSceneGenerators(javascriptGenerator) {
   // Add capsule --------------------------------------------------------
   javascriptGenerator.forBlock['create_capsule'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#9932CC"');
-    const diameter = getFieldValue(block, 'DIAMETER', '1');
+    const diameter = getFieldValue(block, 'DIAMETER', '1.5');
     const height = getFieldValue(block, 'HEIGHT', '2');
 
     const positionSource = getPositionTuple(block);
@@ -342,8 +353,7 @@ export function registerSceneGenerators(javascriptGenerator) {
   // Add donut ----------------------------------------------------------
   javascriptGenerator.forBlock['create_donut'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#9932CC"');
-    const diameter = getFieldValue(block, 'DIAMETER', '2');
-    const thickness = getFieldValue(block, 'THICKNESS', '0.5');
+    const diameter = getFieldValue(block, 'DIAMETER', '1');
     const sides = getFieldValue(block, 'SIDES', '24');
 
     const positionSource = getPositionTuple(block);
@@ -351,12 +361,33 @@ export function registerSceneGenerators(javascriptGenerator) {
     const params = [
       `color: ${color}`,
       `diameter: ${diameter}`,
-      `thickness: ${thickness}`,
+      wallParam(block, '0.5', '0.5'),
       `tessellation: ${sides}`,
       `position: ${positionSource}`,
     ];
 
     return createMesh(block, 'Donut', params, 'donut');
+  };
+
+  // Add ring -----------------------------------------------------------
+  javascriptGenerator.forBlock['create_ring'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameter = getFieldValue(block, 'DIAMETER', '2');
+    const height = getFieldValue(block, 'HEIGHT', '0.5');
+    const sides = getFieldValue(block, 'SIDES', '24');
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `diameter: ${diameter}`,
+      wallParam(block, '0.25', '1.5'),
+      `height: ${height}`,
+      `tessellation: ${sides}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Ring', params, 'ring');
   };
 
   // Add plane ----------------------------------------------------------

@@ -152,8 +152,25 @@ const __CREATE_SPEC = {
     inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH', 'PEAK'],
   },
   create_donut: {
-    defaults: ({ c }) => ({ COLOR: c, DIAMETER: 2, THICKNESS: 0.5, SIDES: 24 }),
-    inputs: ['COLOR', 'DIAMETER', 'THICKNESS', 'SIDES'],
+    defaults: ({ c }) => ({
+      COLOR: c,
+      DIAMETER: 1.5,
+      INNER_DIAMETER: 0.5,
+      THICKNESS: 0.5,
+      SIDES: 24,
+    }),
+    inputs: ['COLOR', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'],
+  },
+  create_ring: {
+    defaults: ({ c }) => ({
+      COLOR: c,
+      HEIGHT: 0.5,
+      DIAMETER: 2,
+      INNER_DIAMETER: 1.5,
+      THICKNESS: 0.25,
+      SIDES: 24,
+    }),
+    inputs: ['COLOR', 'HEIGHT', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'],
   },
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
@@ -1047,6 +1064,7 @@ function handleShapeMenuKeydown(event) {
                 capsule: 'create_capsule',
                 wedge: 'create_wedge',
                 donut: 'create_donut',
+                ring: 'create_ring',
                 plane: 'create_plane',
                 '3d text': 'create_3d_text',
               };

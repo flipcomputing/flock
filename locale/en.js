@@ -336,7 +336,10 @@ export default {
   create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
   create_wedge:
     'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\n%11 x: %8 y: %9 z: %10',
-  create_donut: 'add donut %1 %2 diameter: %3 thickness: %4 sides: %5\n%9 x: %6 y: %7 z: %8',
+  create_donut:
+    'add donut %1 %2 outer: %3 inner: %4 thickness: %5 sides: %6\n%10 x: %7 y: %8 z: %9',
+  create_ring:
+    'add ring %1 %2 height: %3 outer: %4 inner: %5 thickness: %6 sides: %7\n%11 x: %8 y: %9 z: %10',
   create_plane: 'add plane %1 %2 width: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -628,7 +631,9 @@ export default {
   create_wedge_tooltip:
     'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.',
   create_donut_tooltip:
-    'Add a donut \u2014 a ring shape. Diameter sets how wide the ring is, thickness how thick the tube is, and sides how smooth it looks.',
+    'Add a donut shape. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Sides sets how smooth it looks.',
+  create_ring_tooltip:
+    'Add a ring with flat edges, like a washer or a pipe. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Height sets how tall it is, and sides how smooth it looks.',
   create_plane_tooltip: 'Create a colored 2D plane with specified width, height, and position.',
 
   // Tooltip translations - Sound blocks

@@ -39,6 +39,7 @@ export function createMeshOnCanvas(block) {
     'create_capsule',
     'create_wedge',
     'create_donut',
+    'create_ring',
     'create_plane',
     'create_3d_text',
     'create_fly_camera',
@@ -103,8 +104,14 @@ export function createMeshOnCanvas(block) {
     wedgePeak,
     wedgeAxis,
     donutDiameter,
+    donutInnerDiameter,
     donutThickness,
     donutSides,
+    ringDiameter,
+    ringInnerDiameter,
+    ringThickness,
+    ringHeight,
+    ringSides,
     planeWidth,
     planeHeight;
 
@@ -362,6 +369,10 @@ export function createMeshOnCanvas(block) {
     case 'create_donut':
       color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
       donutDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      donutInnerDiameter = block
+        .getInput('INNER_DIAMETER')
+        .connection.targetBlock()
+        .getFieldValue('NUM');
       donutThickness = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
       donutSides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
 
@@ -372,8 +383,35 @@ export function createMeshOnCanvas(block) {
       newMesh = flock.createDonut(meshId, {
         color,
         diameter: donutDiameter,
+        innerDiameter: donutInnerDiameter,
         thickness: donutThickness,
         tessellation: donutSides,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case 'create_ring':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      ringDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      ringInnerDiameter = block
+        .getInput('INNER_DIAMETER')
+        .connection.targetBlock()
+        .getFieldValue('NUM');
+      ringThickness = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
+      ringHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      ringSides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
+
+      meshId = `ring__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createRing(meshId, {
+        color,
+        diameter: ringDiameter,
+        innerDiameter: ringInnerDiameter,
+        thickness: ringThickness,
+        height: ringHeight,
+        tessellation: ringSides,
         position: [position.x, position.y, position.z],
       });
       break;
@@ -472,8 +510,14 @@ function createShapeInternal(block) {
     wedgePeak,
     wedgeAxis,
     donutDiameter,
+    donutInnerDiameter,
     donutThickness,
     donutSides,
+    ringDiameter,
+    ringInnerDiameter,
+    ringThickness,
+    ringHeight,
+    ringSides,
     planeWidth,
     planeHeight;
 
@@ -631,15 +675,37 @@ function createShapeInternal(block) {
 
     case 'create_donut':
       ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
-      donutDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '2'));
+      donutDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '1.5'));
+      donutInnerDiameter = parseFloat(getConnectedFieldValue('INNER_DIAMETER', 'NUM', '0.5'));
       donutThickness = parseFloat(getConnectedFieldValue('THICKNESS', 'NUM', '0.5'));
       donutSides = parseFloat(getConnectedFieldValue('SIDES', 'NUM', '24'));
 
       newMesh = flock.createDonut(`donut__${block.id}`, {
         color,
         diameter: donutDiameter,
+        innerDiameter: donutInnerDiameter,
         thickness: donutThickness,
         tessellation: donutSides,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_ring':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      ringDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '2'));
+      ringInnerDiameter = parseFloat(getConnectedFieldValue('INNER_DIAMETER', 'NUM', '1.5'));
+      ringThickness = parseFloat(getConnectedFieldValue('THICKNESS', 'NUM', '0.25'));
+      ringHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '0.5'));
+      ringSides = parseFloat(getConnectedFieldValue('SIDES', 'NUM', '24'));
+
+      newMesh = flock.createRing(`ring__${block.id}`, {
+        color,
+        diameter: ringDiameter,
+        innerDiameter: ringInnerDiameter,
+        thickness: ringThickness,
+        height: ringHeight,
+        tessellation: ringSides,
         position: [position.x, position.y, position.z],
         alpha,
       });

@@ -859,8 +859,9 @@ export const flockShapes = {
     donutId,
     {
       color = '#9932CC',
-      diameter = 2,
-      thickness = 0.5,
+      diameter = 1.5,
+      innerDiameter,
+      thickness,
       tessellation = 24,
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
@@ -868,11 +869,12 @@ export const flockShapes = {
     } = {}
   ) {
     if (!validateShapeId(donutId, 'createDonut')) return null;
-    ({ diameter, thickness, tessellation } = flock.donutDimensions({
+    const dimensions = flock.donutDimensions({
       diameter,
+      innerDiameter,
       thickness,
       tessellation,
-    }));
+    });
     alpha = toAlpha(alpha);
 
     let blockKey = donutId;
@@ -887,9 +889,11 @@ export const flockShapes = {
     if (flock.maxMeshesReached()) return null;
     flock._recycleOldestByKey(blockKey);
 
-    const dimensions = { diameter, thickness, tessellation };
-
-    const vertexData = flock.getOrCreateGeometry('Donut', dimensions, flock.scene);
+    const vertexData = flock.getOrCreateGeometry(
+      'Donut',
+      flock.donutTorusOptions(dimensions),
+      flock.scene
+    );
 
     const newDonut = new flock.BABYLON.Mesh(donutId, flock.scene);
     vertexData.applyToMesh(newDonut);
@@ -902,7 +906,7 @@ export const flockShapes = {
     newDonut.metadata = newDonut.metadata || {};
     newDonut.metadata.blockKey = blockKey;
     newDonut.metadata.sectionOwner = flock._currentSection;
-    newDonut.metadata.donutThickness = thickness;
+    newDonut.metadata.donutDimensions = dimensions;
 
     // A mesh shape leaves the hole open; a hull would fill it in.
     const donutShape = new flock.BABYLON.PhysicsShapeMesh(newDonut, flock.scene);
@@ -916,6 +920,66 @@ export const flockShapes = {
     }
 
     return newDonut.name;
+  },
+  createRing(
+    ringId,
+    {
+      color = '#9932CC',
+      diameter = 2,
+      innerDiameter,
+      thickness,
+      height = 0.5,
+      tessellation = 24,
+      position = new flock.BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    } = {}
+  ) {
+    if (!validateShapeId(ringId, 'createRing')) return null;
+    const dimensions = flock.ringDimensions({
+      diameter,
+      innerDiameter,
+      thickness,
+      height,
+      tessellation,
+    });
+    alpha = toAlpha(alpha);
+
+    let blockKey = ringId;
+
+    if (ringId.includes('__')) {
+      [ringId, blockKey] = ringId.split('__');
+    }
+
+    let groupName = ringId;
+    ringId = flock._reserveName(ringId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const vertexData = flock.getOrCreateGeometry('Ring', dimensions, flock.scene);
+
+    const newRing = new flock.BABYLON.Mesh(ringId, flock.scene);
+    vertexData.applyToMesh(newRing);
+
+    flock.initializeMesh(newRing, position, color, 'Ring', alpha);
+
+    newRing.metadata = newRing.metadata || {};
+    newRing.metadata.blockKey = blockKey;
+    newRing.metadata.sectionOwner = flock._currentSection;
+    newRing.metadata.ringDimensions = dimensions;
+
+    const ringShape = new flock.BABYLON.PhysicsShapeMesh(newRing, flock.scene);
+    flock.applyPhysics(newRing, ringShape);
+
+    flock.announceMeshReady(newRing.name, groupName);
+    flock._registerInstance(blockKey, newRing.name);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return newRing.name;
   },
   createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
     if (!validateShapeId(planeId, 'createPlane')) return null;

@@ -614,7 +614,15 @@ const toolboxSceneMeshes = {
           shadow: {
             type: 'math_number',
             fields: {
-              NUM: 2,
+              NUM: 1.5,
+            },
+          },
+        },
+        INNER_DIAMETER: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.5,
             },
           },
         },
@@ -623,6 +631,85 @@ const toolboxSceneMeshes = {
             type: 'math_number',
             fields: {
               NUM: 0.5,
+            },
+          },
+        },
+        SIDES: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 24,
+            },
+          },
+        },
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'create_ring',
+      keyword: 'ring',
+      inputs: {
+        COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#66ccff',
+            },
+          },
+        },
+        HEIGHT: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.5,
+            },
+          },
+        },
+        DIAMETER: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 2,
+            },
+          },
+        },
+        INNER_DIAMETER: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1.5,
+            },
+          },
+        },
+        THICKNESS: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.25,
             },
           },
         },

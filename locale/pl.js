@@ -290,7 +290,10 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'dodaj klin %1 %2 szerokość: %3 wysokość: %4 głębokość: %5\nszczyt: %6 wzdłuż: %7\n%11 x: %8 y: %9 z: %10', // ai
-  create_donut: 'dodaj pączek %1 %2 średnica: %3 grubość: %4 boki: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_donut:
+    'dodaj pączek %1 %2 zewnętrzna: %3 wewnętrzna: %4 grubość: %5 boki: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'dodaj pierścień %1 %2 wysokość: %3 zewnętrzna: %4 wewnętrzna: %5 grubość: %6 boki: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -545,7 +548,9 @@ export default {
   create_wedge_tooltip:
     'Dodaj klin — graniastosłup trójkątny do budowania ramp, zboczy i dachów. Zmień szczyt, aby zmienić kształt: 0 tworzy rampę, 0.5 tworzy dach.', // ai
   create_donut_tooltip:
-    'Dodaj pączek — kształt pierścienia. Średnica określa szerokość pierścienia, grubość — grubość rurki, a boki — gładkość kształtu.', // ai
+    'Dodaj kształt pączka. Zewnętrzna i wewnętrzna to średnice pączka i otworu; zmiana wewnętrznej lub grubości aktualizuje drugą wartość. Boki określają gładkość kształtu.', // ai
+  create_ring_tooltip:
+    'Dodaj pierścień o płaskich krawędziach, jak podkładka lub rura. Zewnętrzna i wewnętrzna to średnice pierścienia i otworu; zmiana wewnętrznej lub grubości aktualizuje drugą wartość. Wysokość określa, jak wysoki jest pierścień, a boki — gładkość kształtu.', // ai
   create_plane_tooltip:
     'Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7',
 

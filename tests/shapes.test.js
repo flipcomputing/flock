@@ -293,6 +293,15 @@ export function runShapesTests(flock) {
         expect(mesh.metadata.shapeType).to.equal('Donut');
       });
 
+      const donutHoleRadius = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        let closest = Infinity;
+        for (let i = 0; i < positions.length; i += 3) {
+          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
+        }
+        return closest;
+      };
+
       it('should bake the requested size into the geometry', function () {
         const id = flock.createDonut('testDonut3', {
           diameter: 2,
@@ -303,14 +312,13 @@ export function runShapesTests(flock) {
 
         const mesh = flock.scene.getMeshByName(id);
         const { size } = extents(mesh);
-        // The tube adds its own diameter across, and is the full height.
-        expect(size[0]).to.be.closeTo(2.5, 0.01);
-        expect(size[2]).to.be.closeTo(2.5, 0.01);
+        expect(size[0]).to.be.closeTo(2, 0.01);
+        expect(size[2]).to.be.closeTo(2, 0.01);
         expect(size[1]).to.be.closeTo(0.5, 0.01);
         expect(mesh.scaling.x).to.equal(1);
       });
 
-      it('should leave a hole in the middle', function () {
+      it('should leave a hole of diameter minus twice the thickness', function () {
         const id = flock.createDonut('testDonutHole', {
           diameter: 2,
           thickness: 0.5,
@@ -318,16 +326,30 @@ export function runShapesTests(flock) {
         });
         createdIds.push(id);
 
-        const positions = flock.scene.getMeshByName(id).getVerticesData('position');
-        let closest = Infinity;
-        for (let i = 0; i < positions.length; i += 3) {
-          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
-        }
-
-        expect(closest).to.be.closeTo(0.75, 0.01);
+        expect(donutHoleRadius(flock.scene.getMeshByName(id))).to.be.closeTo(0.5, 0.01);
       });
 
-      it('should keep the hole open when thickness exceeds diameter', function () {
+      it('should size the hole from innerDiameter when thickness is not given', function () {
+        const id = flock.createDonut('testDonutInner', { diameter: 2, innerDiameter: 1.2 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(donutHoleRadius(mesh)).to.be.closeTo(0.6, 0.01);
+        expect(mesh.metadata.donutDimensions.thickness).to.be.closeTo(0.4, 0.001);
+      });
+
+      it('should default to 1.5 across with a 0.5 hole', function () {
+        const id = flock.createDonut('testDonutDefault');
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.closeTo(1.5, 0.01);
+        expect(size[1]).to.be.closeTo(0.5, 0.01);
+        expect(mesh.metadata.donutDimensions.innerDiameter).to.equal(0.5);
+      });
+
+      it('should cap thickness where the hole closes', function () {
         const id = flock.createDonut('testDonutFat', {
           diameter: 2,
           thickness: 5,
@@ -336,15 +358,21 @@ export function runShapesTests(flock) {
         createdIds.push(id);
 
         const mesh = flock.scene.getMeshByName(id);
-        const positions = mesh.getVerticesData('position');
-        let closest = Infinity;
-        for (let i = 0; i < positions.length; i += 3) {
-          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
-        }
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.closeTo(2, 0.01);
+        expect(donutHoleRadius(mesh)).to.be.closeTo(0, 0.01);
+        expect(mesh.metadata.donutDimensions.thickness).to.equal(1);
+      });
 
-        // Thickness is capped at 90% of the diameter, leaving a 0.1 radius hole.
-        expect(closest).to.be.closeTo(0.1, 0.01);
-        expect(mesh.metadata.donutThickness).to.equal(1.8);
+      it('should treat a null innerDiameter as not given', function () {
+        const id = flock.createDonut('testDonutNullInner', {
+          diameter: 2,
+          innerDiameter: null,
+          thickness: null,
+        });
+        createdIds.push(id);
+
+        expect(flock.scene.getMeshByName(id).metadata.donutDimensions.thickness).to.equal(0.5);
       });
 
       it('should give zero or negative sizes a positive minimum', function () {
@@ -394,6 +422,173 @@ export function runShapesTests(flock) {
       it('should avoid collisions for repeated donut ids', function () {
         const firstId = flock.createDonut('reserveDonut', { diameter: 1 });
         const secondId = flock.createDonut('reserveDonut', { diameter: 1 });
+        createdIds.push(firstId, secondId);
+
+        expect(firstId).to.not.equal(secondId);
+      });
+    });
+
+    describe('createRing', function () {
+      const extents = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        const min = [Infinity, Infinity, Infinity];
+        const max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < positions.length; i += 3) {
+          for (let axis = 0; axis < 3; axis++) {
+            min[axis] = Math.min(min[axis], positions[i + axis]);
+            max[axis] = Math.max(max[axis], positions[i + axis]);
+          }
+        }
+        return { min, max, size: max.map((v, i) => v - min[i]) };
+      };
+
+      const holeRadius = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        let closest = Infinity;
+        for (let i = 0; i < positions.length; i += 3) {
+          closest = Math.min(closest, Math.hypot(positions[i], positions[i + 2]));
+        }
+        return closest;
+      };
+
+      it('should return a string id and create the mesh in the scene', function () {
+        const id = flock.createRing('testRing1', {
+          color: '#66ccff',
+          diameter: 2,
+          thickness: 0.25,
+          height: 0.5,
+          position: [0, 1, 0],
+        });
+        createdIds.push(id);
+
+        expect(id).to.be.a('string');
+        expect(flock.scene.getMeshByName(id)).to.exist;
+      });
+
+      it('should set blockKey and shapeType metadata', function () {
+        const id = flock.createRing('testRing2', { diameter: 1, thickness: 0.1 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata.blockKey).to.be.a('string');
+        expect(mesh.metadata.shapeType).to.equal('Ring');
+      });
+
+      it('should bake the requested size into the geometry', function () {
+        const id = flock.createRing('testRing3', {
+          diameter: 2,
+          thickness: 0.25,
+          height: 0.5,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.closeTo(2, 0.01);
+        expect(size[2]).to.be.closeTo(2, 0.01);
+        expect(size[1]).to.be.closeTo(0.5, 0.01);
+        expect(mesh.scaling.x).to.equal(1);
+      });
+
+      it('should leave a hole of diameter minus twice the thickness', function () {
+        const id = flock.createRing('testRingHole', { diameter: 2, thickness: 0.25 });
+        createdIds.push(id);
+
+        expect(holeRadius(flock.scene.getMeshByName(id))).to.be.closeTo(0.75, 0.001);
+      });
+
+      it('should size the hole from innerDiameter when thickness is not given', function () {
+        const id = flock.createRing('testRingInner', { diameter: 2, innerDiameter: 1.2 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(holeRadius(mesh)).to.be.closeTo(0.6, 0.001);
+        expect(mesh.metadata.ringDimensions.thickness).to.be.closeTo(0.4, 0.001);
+      });
+
+      it('should prefer thickness when both thickness and innerDiameter are given', function () {
+        const id = flock.createRing('testRingBoth', {
+          diameter: 2,
+          innerDiameter: 1.2,
+          thickness: 0.25,
+        });
+        createdIds.push(id);
+
+        expect(holeRadius(flock.scene.getMeshByName(id))).to.be.closeTo(0.75, 0.001);
+      });
+
+      it('should keep the hole open when the wall is too thick', function () {
+        const id = flock.createRing('testRingFat', { diameter: 2, thickness: 5 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(holeRadius(mesh)).to.be.closeTo(0.1, 0.001);
+        expect(mesh.metadata.ringDimensions.thickness).to.be.closeTo(0.9, 0.001);
+      });
+
+      it('should treat a null innerDiameter as not given', function () {
+        const id = flock.createRing('testRingNullInner', {
+          diameter: 2,
+          innerDiameter: null,
+          thickness: null,
+        });
+        createdIds.push(id);
+
+        expect(flock.scene.getMeshByName(id).metadata.ringDimensions.thickness).to.equal(0.25);
+      });
+
+      it('should give zero or negative sizes a positive minimum', function () {
+        const id = flock.createRing('testRingZero', { diameter: 0, thickness: -1, height: -1 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const { size } = extents(mesh);
+        expect(size[0]).to.be.greaterThan(0);
+        expect(size[1]).to.be.greaterThan(0);
+        expect(mesh.physics).to.exist;
+      });
+
+      it('should use tessellation for the number of sides and clamp it to 3', function () {
+        const coarse = flock.createRing('testRingCoarse', { diameter: 2, tessellation: 1 });
+        const smooth = flock.createRing('testRingSmooth', { diameter: 2, tessellation: 24 });
+        createdIds.push(coarse, smooth);
+
+        const count = (id) => flock.scene.getMeshByName(id).getVerticesData('position').length / 3;
+        expect(count(coarse)).to.equal(4 * 2 * (3 + 1));
+        expect(count(smooth)).to.equal(4 * 2 * (24 + 1));
+      });
+
+      it('should face every normal away from the solid', function () {
+        const id = flock.createRing('testRingNormals', { diameter: 2, thickness: 0.25 });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData('position');
+        const normals = mesh.getVerticesData('normal');
+        const computed = [];
+        flock.BABYLON.VertexData.ComputeNormals(positions, mesh.getIndices(), computed);
+        for (let i = 0; i < normals.length; i += 3) {
+          const dot =
+            normals[i] * computed[i] +
+            normals[i + 1] * computed[i + 1] +
+            normals[i + 2] * computed[i + 2];
+          expect(dot).to.be.greaterThan(0.9);
+        }
+      });
+
+      it('should give the ring a mesh physics shape', function () {
+        const id = flock.createRing('testRingPhysics', { diameter: 2, position: [0, 1, 0] });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics).to.exist;
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeMesh);
+      });
+
+      it('should avoid collisions for repeated ring ids', function () {
+        const firstId = flock.createRing('reserveRing', { diameter: 1 });
+        const secondId = flock.createRing('reserveRing', { diameter: 1 });
         createdIds.push(firstId, secondId);
 
         expect(firstId).to.not.equal(secondId);

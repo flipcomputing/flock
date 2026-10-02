@@ -288,7 +288,10 @@ export default {
   Z_option: 'z', // ai
   create_wedge:
     'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\n%11 x: %8 y: %9 z: %10', // ai
-  create_donut: 'lägg till munk %1 %2 diameter: %3 tjocklek: %4 sidor: %5\n%9 x: %6 y: %7 z: %8', // ai
+  create_donut:
+    'lägg till munk %1 %2 ytter: %3 inner: %4 tjocklek: %5 sidor: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'lägg till ring %1 %2 höjd: %3 ytter: %4 inner: %5 tjocklek: %6 sidor: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
 
   // Custom block translations - Sound blocks
@@ -544,7 +547,9 @@ export default {
   create_wedge_tooltip:
     'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.', // ai
   create_donut_tooltip:
-    'Lägger till en munk — en ringform. Diametern anger hur bred ringen är, tjockleken hur tjockt röret är och sidorna hur slät den ser ut.', // ai
+    'Lägger till en munkform. Ytter och inner är diametrarna för munken och hålet; ändrar du inner eller tjockleken uppdateras den andra. Sidorna anger hur slät den ser ut.', // ai
+  create_ring_tooltip:
+    'Lägger till en ring med platta kanter, som en bricka eller ett rör. Ytter och inner är diametrarna för ringen och hålet; ändrar du inner eller tjockleken uppdateras den andra. Höjden anger hur hög den är och sidorna hur slät den ser ut.', // ai
   create_plane_tooltip: 'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.',
 
   // Tooltip translations - Sound blocks

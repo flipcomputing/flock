@@ -7,6 +7,18 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const MIN_SIZE = 0.01;
+
+function toDim(value, fallback) {
+  if (value == null || value === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
+function toSides(value) {
+  return Math.max(3, Math.round(toDim(value, 24)));
+}
+
 export const flockMesh = {
   createCapsuleFromBoundingBox(mesh, scene) {
     const CAPSULE_DEGENERATE_EPSILON = 0.01;
@@ -639,20 +651,120 @@ export const flockMesh = {
     };
   },
 
-  // At thickness >= diameter the tube folds through the axis and closes the hole.
-  donutDimensions({ diameter, thickness, tessellation } = {}) {
-    const toDim = (value, fallback) => {
-      const n = Number(value);
-      return Number.isFinite(n) && n >= 0 ? n : fallback;
-    };
-    const MIN_SIZE = 0.01;
-    const ring = Math.max(MIN_SIZE, toDim(diameter, 2));
+  wallDimensions({ diameter, innerDiameter, thickness }, defaults, maxWallFraction = 0.9) {
+    const outer = Math.max(MIN_SIZE, toDim(diameter, defaults.diameter));
+    const givenWall = toDim(thickness, NaN);
+    const requestedWall = Number.isFinite(givenWall)
+      ? givenWall
+      : (outer - toDim(innerDiameter, outer - 2 * defaults.thickness)) / 2;
+    const wall = Math.min(Math.max(MIN_SIZE, requestedWall), (outer / 2) * maxWallFraction);
 
+    return { diameter: outer, innerDiameter: Math.max(0, outer - 2 * wall), thickness: wall };
+  },
+
+  donutDimensions({ diameter, innerDiameter, thickness, tessellation } = {}) {
     return {
-      diameter: ring,
-      thickness: Math.min(Math.max(MIN_SIZE, toDim(thickness, 0.5)), ring * 0.9),
-      tessellation: Math.max(3, Math.round(toDim(tessellation, 24))),
+      ...flock.wallDimensions(
+        { diameter, innerDiameter, thickness },
+        { diameter: 1.5, thickness: 0.5 },
+        1
+      ),
+      tessellation: toSides(tessellation),
     };
+  },
+
+  donutTorusOptions({ diameter, thickness, tessellation }) {
+    return { diameter: diameter - thickness, thickness, tessellation };
+  },
+
+  ringDimensions({ diameter, innerDiameter, thickness, height, tessellation } = {}) {
+    return {
+      ...flock.wallDimensions(
+        { diameter, innerDiameter, thickness },
+        { diameter: 2, thickness: 0.25 }
+      ),
+      height: Math.max(MIN_SIZE, toDim(height, 0.5)),
+      tessellation: toSides(tessellation),
+    };
+  },
+
+  ringVertexData({ diameter, innerDiameter, height, tessellation }) {
+    const outerRadius = diameter / 2;
+    const innerRadius = innerDiameter / 2;
+    const top = height / 2;
+    const bottom = -top;
+    const faces = [
+      { from: [outerRadius, bottom], to: [outerRadius, top], normal: [1, 0] },
+      { from: [innerRadius, top], to: [innerRadius, bottom], normal: [-1, 0] },
+      { from: [outerRadius, top], to: [innerRadius, top], normal: [0, 1] },
+      { from: [innerRadius, bottom], to: [outerRadius, bottom], normal: [0, -1] },
+    ];
+
+    const positions = [];
+    const normals = [];
+    const indices = [];
+
+    for (const { from, to, normal } of faces) {
+      const base = positions.length / 3;
+      for (let i = 0; i <= tessellation; i++) {
+        const angle = (i / tessellation) * Math.PI * 2;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        for (const [radius, y] of [from, to]) {
+          positions.push(radius * cos, y, radius * sin);
+          normals.push(normal[0] * cos, normal[1], normal[0] * sin);
+        }
+      }
+      for (let i = 0; i < tessellation; i++) {
+        const a = base + i * 2;
+        indices.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+      }
+    }
+
+    const vertexData = new flock.BABYLON.VertexData();
+    vertexData.positions = positions;
+    vertexData.normals = normals;
+    vertexData.indices = indices;
+    vertexData.uvs = flock.ringUVs(positions);
+    return vertexData;
+  },
+
+  ringUVs(positions, texturePhysicalSize = 4, scale = null) {
+    const sx = scale ? Math.abs(scale.x) : 1;
+    const sy = scale ? Math.abs(scale.y) : 1;
+    const sz = scale ? Math.abs(scale.z) : 1;
+    const vertexCount = positions.length / 3;
+    const verticesPerFace = vertexCount / 4;
+    const tessellation = verticesPerFace / 2 - 1;
+    const uvs = new Array(vertexCount * 2);
+
+    for (let k = 0; k < vertexCount; k++) {
+      const x = positions[k * 3];
+      const y = positions[k * 3 + 1];
+      const z = positions[k * 3 + 2];
+      const isWall = Math.floor(k / verticesPerFace) < 2;
+
+      if (isWall) {
+        const around = Math.floor((k % verticesPerFace) / 2) / tessellation;
+        const radius = Math.hypot(x, z) * ((sx + sz) / 2);
+        uvs[k * 2] = (around * 2 * Math.PI * radius) / texturePhysicalSize;
+        uvs[k * 2 + 1] = (y * sy) / texturePhysicalSize;
+      } else {
+        uvs[k * 2] = (x * sx) / texturePhysicalSize;
+        uvs[k * 2 + 1] = (z * sz) / texturePhysicalSize;
+      }
+    }
+    return uvs;
+  },
+
+  setRingUVs(mesh, texturePhysicalSize = 4, scale = null) {
+    const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
+    if (!positions) return;
+    mesh.setVerticesData(
+      flock.BABYLON.VertexBuffer.UVKind,
+      flock.ringUVs(positions, texturePhysicalSize, scale),
+      true
+    );
   },
 
   getOrCreateGeometry(shapeType, dimensions, scene) {
@@ -674,6 +786,9 @@ export const flockMesh = {
         initialMesh = flock.BABYLON.MeshBuilder.CreateCapsule(geometryKey, dimensions, scene);
       } else if (shapeType === 'Donut') {
         initialMesh = flock.BABYLON.MeshBuilder.CreateTorus(geometryKey, dimensions, scene);
+      } else if (shapeType === 'Ring') {
+        flock.geometryCache[geometryKey] = flock.ringVertexData(dimensions);
+        return flock.geometryCache[geometryKey];
       } else if (shapeType === 'Wedge') {
         initialMesh = flock.BABYLON.MeshBuilder.CreatePolyhedron(
           geometryKey,
@@ -846,6 +961,9 @@ export const flockMesh = {
         return true;
       case 'Plane':
         flock.setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize, scale);
+        return true;
+      case 'Ring':
+        flock.setRingUVs(mesh, texturePhysicalSize, scale);
         return true;
       default:
         return false;
