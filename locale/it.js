@@ -194,6 +194,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'genitore %1 figlio %2',
+  parent_children: 'genitore %1 figli %2',
   parent_child: 'genitore %1 figlio %2\noffset x: %3 y: %4 z: %5',
   remove_parent: 'rimuovi genitore da %1',
   stop_follow: 'smetti di seguire %1',
@@ -448,6 +449,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Imposta una relazione genitore-figlio tra due oggetto mantenendo il figlio in posizione mondiale.',
+  parent_children_tooltip:
+    'Imposta una relazione genitore-figlio tra un oggetto e un elenco di figli mantenendo ogni figlio in posizione mondiale.',
   parent_child_tooltip: 'Imposta una relazione genitore-figlio con offset specificati in x, y e z.',
   remove_parent_tooltip: "Rimuove la relazione di parentela dall'oggetto specificata.",
   stop_follow_tooltip: "Ferma l'oggetto indicato dal seguire un’altra.",

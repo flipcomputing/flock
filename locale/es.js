@@ -191,6 +191,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'hacer padre a %1 hijo %2', // human
+  parent_children: 'hacer padre a %1 hijos %2',
   parent_child: 'hacer padre a %1 hijo %2\ndesplazamiento x: %3 y: %4 z: %5', // human
   remove_parent: 'quitar padre de %1', // human
   stop_follow: 'parar seguimiento de %1', // human
@@ -490,6 +491,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.', // human
+  parent_children_tooltip:
+    'Establece relación padre‑hijo entre un objeto y una lista de hijos conservando la posición mundial de cada hijo.',
   parent_child_tooltip:
     'Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.', // human
   remove_parent_tooltip: 'Elimina la relación de paternidad del objeto especificado.', // human

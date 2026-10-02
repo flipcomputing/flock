@@ -190,6 +190,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'parent %1 enfant %2',
+  parent_children: 'parent %1 enfants %2',
   parent_child: 'parent %1 enfant %2\ndécalage x: %3 y: %4 z: %5',
   remove_parent: 'retirer le parent de %1',
   stop_follow: 'arrêter de suivre %1',
@@ -446,6 +447,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde.",
+  parent_children_tooltip:
+    "Définit une relation parent-enfant entre un objet et une liste d'enfants en maintenant chaque enfant dans sa position dans le monde.",
   parent_child_tooltip:
     'Définit une relation parent-enfant entre deux objets avec un décalage spécifié dans les directions x, y et z.',
   remove_parent_tooltip: "Supprime la relation de parenté de l'objet spécifié.",

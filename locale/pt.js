@@ -190,6 +190,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'pai %1 filho %2',
+  parent_children: 'pai %1 filhos %2',
   parent_child: 'pai %1 filho %2\ndeslocamento x: %3 y: %4 z: %5',
   remove_parent: 'remover pai de %1',
   stop_follow: 'parar de seguir %1',
@@ -446,6 +447,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Define uma relação pai-filho entre dois objetos e mantém o filho em sua posição global.',
+  parent_children_tooltip:
+    'Define uma relação pai-filho entre um objeto e uma lista de filhos e mantém cada filho em sua posição global.',
   parent_child_tooltip:
     'Define uma relação pai-filho entre dois objetos com deslocamento especificado em x, y e z.',
   remove_parent_tooltip: 'Remove a relação de parentesco do objeto especificado.',

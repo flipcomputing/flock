@@ -191,6 +191,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'ustaw rodzica %1 dla dziecka %2',
+  parent_children: 'ustaw rodzica %1 dla dzieci %2',
   parent_child: 'ustaw rodzica %1 dla dziecka %2\noffset x: %3, y: %4, z: %5',
   remove_parent: 'usuń rodzica z %1',
   stop_follow: 'zatrzymaj śledzenie %1',
@@ -443,6 +444,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Ustaw relację rodzic‑dziecko między dwiema obiektami, pozostawiając dziecko w miejscu.',
+  parent_children_tooltip:
+    'Ustaw relację rodzic‑dziecko między obiektem a listą dzieci, pozostawiając każde dziecko w miejscu.',
   parent_child_tooltip:
     'Ustaw relację rodzic‑dziecko między obiektami z przesunięciem w osiach x, y, z.',
   remove_parent_tooltip: 'Usuń relację rodzica z podanej obiekty.',

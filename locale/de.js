@@ -194,6 +194,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'Elternteil %1 Kind %2',
+  parent_children: 'Elternteil %1 Kinder %2',
   parent_child: 'Elternteil %1 Kind %2\nOffset x: %3 y: %4 z: %5',
   remove_parent: 'Elternteil von %1 entfernen',
   stop_follow: 'Folgen von %1 beenden',
@@ -596,6 +597,8 @@ export default {
 
   // Connect tooltips
   parent_tooltip: 'Setze eine Eltern‑Kind‑Beziehung, hält Kind in Weltposition.',
+  parent_children_tooltip:
+    'Setze eine Eltern‑Kind‑Beziehung zu einer Liste von Kindern, hält jedes Kind in Weltposition.',
   parent_child_tooltip: 'Setze Eltern‑Kind‑Beziehung mit Versatz in X, Y, Z.',
   remove_parent_tooltip: 'Entferne Elternbeziehung eines Objekts.',
   stop_follow_tooltip: 'Stoppt das Folgen eines Objekts durch ein zweites.',

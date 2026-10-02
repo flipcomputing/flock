@@ -1654,8 +1654,29 @@ const toolboxTransformConnect = {
     },
     {
       kind: 'block',
-      type: 'parent',
+      type: 'parent_children',
       keyword: 'parent',
+      inputs: {
+        MESH_LIST: {
+          block: {
+            type: 'lists_create_with',
+            inline: true,
+            extraState: {
+              itemCount: 1,
+            },
+            inputs: {
+              ADD0: {
+                block: {
+                  type: 'variables_get',
+                  fields: {
+                    VAR: 'object',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     {
       kind: 'block',

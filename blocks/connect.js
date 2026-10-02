@@ -34,6 +34,34 @@ export function defineConnectBlocks() {
     },
   };
 
+  Blockly.Blocks['parent_children'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'parent_children',
+        message0: translate('parent_children'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'PARENT_MESH',
+            variable: 'parent',
+          },
+          {
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        inputsInline: true,
+        tooltip: getTooltip('parent_children'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
   Blockly.Blocks['parent_child'] = {
     init: function () {
       this.jsonInit({

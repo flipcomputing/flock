@@ -12,7 +12,8 @@ export function runTransformGeneratorTests() {
       const originalNameDB = javascriptGenerator.nameDB_;
       const originalValueToCode = javascriptGenerator.valueToCode;
       javascriptGenerator.nameDB_ = { getName: (id) => id };
-      javascriptGenerator.valueToCode = (_block, name) => ({ X: '1', Y: '2', Z: '3' })[name] ?? '0';
+      javascriptGenerator.valueToCode = (_block, name) =>
+        ({ X: '1', Y: '2', Z: '3', MESH_LIST: '[item1, item2]' })[name] ?? '0';
       try {
         return javascriptGenerator.forBlock[type](block);
       } finally {
@@ -27,6 +28,11 @@ export function runTransformGeneratorTests() {
     it('awaits parent', function () {
       const code = generate('parent', fields({ PARENT_MESH: 'box1', CHILD_MESH: 'item1' }));
       expect(code).to.equal('await setParent(box1, item1);\n');
+    });
+
+    it('awaits parent_children with the child list', function () {
+      const code = generate('parent_children', fields({ PARENT_MESH: 'box1' }));
+      expect(code).to.equal('await setParent(box1, [item1, item2]);\n');
     });
 
     it('awaits parent_child', function () {

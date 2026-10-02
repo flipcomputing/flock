@@ -189,6 +189,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'förälder %1 barn %2',
+  parent_children: 'förälder %1 barn %2',
   parent_child: 'förälder %1 barn %2\nförskjutning x: %3 y: %4 z: %5',
   remove_parent: 'ta bort förälder från %1',
   stop_follow: 'sluta följa %1',
@@ -442,6 +443,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition.',
+  parent_children_tooltip:
+    'Skapa en förälder-barn-relation mellan ett objekt och en lista med barn och behåll varje barns världsposition.',
   parent_child_tooltip:
     'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.',
   remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.',

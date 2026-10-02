@@ -421,6 +421,27 @@ export function runMeshHierarchyTests(flock) {
         expect(groupMesh.position.z).to.be.closeTo(0, 0.01);
       });
 
+      it('should parent every child in a list, keeping world positions', async function () {
+        const groupId = 'hierarchyGroupList';
+        const childIdA = 'hierarchyGroupListA';
+        const childIdB = 'hierarchyGroupListB';
+
+        await flock.createGroup(groupId, { position: [2, 0, 0] });
+        await flock.createBox(childIdA, { width: 1, height: 1, depth: 1, position: [0, 1, 0] });
+        await flock.createBox(childIdB, { width: 1, height: 1, depth: 1, position: [3, 1, 0] });
+        meshIds.push(groupId, childIdA, childIdB);
+
+        await flock.setParent(groupId, [childIdA, childIdB]);
+
+        const groupMesh = flock.scene.getMeshByName(groupId);
+        const childMeshA = flock.scene.getMeshByName(childIdA);
+        const childMeshB = flock.scene.getMeshByName(childIdB);
+        expect(childMeshA.parent).to.equal(groupMesh);
+        expect(childMeshB.parent).to.equal(groupMesh);
+        expect(childMeshA.getAbsolutePosition().x).to.be.closeTo(0, 0.01);
+        expect(childMeshB.getAbsolutePosition().x).to.be.closeTo(3, 0.01);
+      });
+
       it('should place two children with different world positions at their own correct positions, regardless of add order', async function () {
         const groupId = 'hierarchyGroup7';
         const childIdA = 'hierarchyGroupChild7a';

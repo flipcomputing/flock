@@ -327,6 +327,17 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `await setParent(${parentMesh}, ${childMesh});\n`;
   };
 
+  javascriptGenerator.forBlock['parent_children'] = function (block) {
+    const parentMesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('PARENT_MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const meshList =
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
+
+    return `await setParent(${parentMesh}, ${meshList});\n`;
+  };
+
   // Parent child with offset
   javascriptGenerator.forBlock['parent_child'] = function (block) {
     const parentMesh = javascriptGenerator.nameDB_.getName(

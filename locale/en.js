@@ -197,6 +197,7 @@ export default {
 
   // Custom block translations - Connect blocks
   parent: 'parent %1 child %2',
+  parent_children: 'parent %1 children %2',
   parent_child: 'parent %1 child %2\noffset x: %3 y: %4 z: %5',
   remove_parent: 'remove parent from %1',
   stop_follow: 'stop following %1',
@@ -498,6 +499,8 @@ export default {
   // Tooltip translations - Connect blocks
   parent_tooltip:
     'Set a parent-child relationship between two objects and keep the child in its world position.',
+  parent_children_tooltip:
+    'Set a parent-child relationship between an object and a list of children, keeping each child in its world position.',
   parent_child_tooltip:
     'Set a parent-child relationship between two objects with a specified offset in x, y, and z directions.',
   remove_parent_tooltip: 'Remove the parent relationship from the specified object.',
