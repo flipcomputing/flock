@@ -14,6 +14,7 @@ export const TOP_BLOCK_TYPES = Object.freeze([
   'section',
   'procedures_defnoreturn',
   'procedures_defreturn',
+  'procedures_defprefab',
   'microbit_input',
 ]);
 

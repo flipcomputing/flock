@@ -6074,35 +6074,40 @@ const snippetMath = (OP, A, B) => ({
 });
 const snippetChain = (...items) =>
   items.reduceRight((next, item) => ({ block: { ...item.block, next } }));
-const snippetBookcasePart = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z) => ({
+const snippetBookcasePart = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z, COLOR = snippetVar('material')) => ({
   block: {
     type: 'create_box',
     fields: { ID_VAR: { name } },
-    inputs: { COLOR: snippetVar('material'), WIDTH, HEIGHT, DEPTH, X, Y, Z },
+    inputs: { COLOR, WIDTH, HEIGHT, DEPTH, X, Y, Z },
   },
 });
-const bookcaseParams = ['width', 'height', 'depth', 'shelves', 'material', 'x', 'y', 'z', 'rotation y'];
-const bookcaseRowBreaks = ['depth', 'material'];
+const snippetWood = (COLOR) => ({
+  shadow: {
+    type: 'material',
+    fields: { TEXTURE_SET: 'wood.png' },
+    inputs: {
+      BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR } } },
+      ALPHA: snippetNum(1),
+    },
+  },
+});
+const bookcaseParams = ['width', 'height', 'depth', 'shelves', 'shelf material', 'material'];
 const bookcaseDefaults = {
   width: snippetNum(2),
   height: snippetNum(3),
   depth: snippetNum(0.6),
   shelves: snippetNum(4),
-  material: {
-    shadow: {
-      type: 'material',
-      fields: { TEXTURE_SET: 'wood.png' },
-      inputs: {
-        BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#deb887' } } },
-        ALPHA: snippetNum(1),
-      },
-    },
-  },
-  x: snippetNum(3),
-  y: snippetNum(0),
-  z: snippetNum(0),
-  'rotation y': snippetNum(0),
+  'shelf material': snippetWood('#a0522d'),
+  material: snippetWood('#deb887'),
 };
+const bookcasePlacement = {
+  X: snippetNum(3),
+  Y: snippetNum(0),
+  Z: snippetNum(0),
+  ROTATE_Y: snippetNum(0),
+};
+const snippetBookcaseHalf = (size) =>
+  snippetMath('MINUS', snippetMath('DIVIDE', snippetVar(size), snippetNum(2)), snippetNum(0.05));
 
 const snippetBookcaseBody = snippetChain(
   snippetBookcasePart(
@@ -6110,57 +6115,45 @@ const snippetBookcaseBody = snippetChain(
     snippetNum(0.1),
     snippetVar('height'),
     snippetVar('depth'),
-    snippetMath(
-      'MINUS',
-      snippetVar('x'),
-      snippetMath('MINUS', snippetMath('DIVIDE', snippetVar('width'), snippetNum(2)), snippetNum(0.05))
-    ),
-    snippetVar('y'),
-    snippetVar('z')
+    snippetMath('MINUS', snippetNum(0), snippetBookcaseHalf('width')),
+    snippetNum(0),
+    snippetNum(0)
   ),
   snippetBookcasePart(
     'right side',
     snippetNum(0.1),
     snippetVar('height'),
     snippetVar('depth'),
-    snippetMath(
-      'ADD',
-      snippetVar('x'),
-      snippetMath('MINUS', snippetMath('DIVIDE', snippetVar('width'), snippetNum(2)), snippetNum(0.05))
-    ),
-    snippetVar('y'),
-    snippetVar('z')
+    snippetBookcaseHalf('width'),
+    snippetNum(0),
+    snippetNum(0)
   ),
   snippetBookcasePart(
     'bottom',
     snippetVar('width'),
     snippetNum(0.1),
     snippetVar('depth'),
-    snippetVar('x'),
-    snippetVar('y'),
-    snippetVar('z')
+    snippetNum(0),
+    snippetNum(0),
+    snippetNum(0)
   ),
   snippetBookcasePart(
     'top',
     snippetVar('width'),
     snippetNum(0.1),
     snippetVar('depth'),
-    snippetVar('x'),
-    snippetMath('ADD', snippetVar('y'), snippetMath('MINUS', snippetVar('height'), snippetNum(0.1))),
-    snippetVar('z')
+    snippetNum(0),
+    snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
+    snippetNum(0)
   ),
   snippetBookcasePart(
     'back',
     snippetVar('width'),
     snippetVar('height'),
     snippetNum(0.1),
-    snippetVar('x'),
-    snippetVar('y'),
-    snippetMath(
-      'ADD',
-      snippetVar('z'),
-      snippetMath('MINUS', snippetMath('DIVIDE', snippetVar('depth'), snippetNum(2)), snippetNum(0.05))
-    )
+    snippetNum(0),
+    snippetNum(0),
+    snippetBookcaseHalf('depth')
   ),
   {
     block: {
@@ -6175,21 +6168,18 @@ const snippetBookcaseBody = snippetChain(
           snippetMath('MINUS', snippetVar('width'), snippetNum(0.2)),
           snippetNum(0.1),
           snippetMath('MINUS', snippetVar('depth'), snippetNum(0.1)),
-          snippetVar('x'),
+          snippetNum(0),
           snippetMath(
-            'ADD',
-            snippetVar('y'),
+            'DIVIDE',
             snippetMath(
-              'DIVIDE',
-              snippetMath(
-                'MULTIPLY',
-                snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
-                snippetVar('shelf number')
-              ),
-              snippetMath('ADD', snippetVar('shelves'), snippetNum(1))
-            )
+              'MULTIPLY',
+              snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
+              snippetVar('shelf number')
+            ),
+            snippetMath('ADD', snippetVar('shelves'), snippetNum(1))
           ),
-          snippetMath('MINUS', snippetVar('z'), snippetNum(0.05))
+          snippetNum(-0.05),
+          snippetVar('shelf material')
         ),
       },
     },
@@ -6204,39 +6194,22 @@ const toolboxSnippetsBuilding = {
   contents: [
     {
       kind: 'block',
-      type: 'procedures_defreturn',
+      type: 'procedures_defprefab',
       keyword: 'bookcase',
       hint: 'snippet_bookcase_hint',
       extraState: {
         params: bookcaseParams.map((name) => ({
           name,
-          argId: name,
-          ...(bookcaseRowBreaks.includes(name) && { rowBreak: true }),
+          argId: name === 'material' ? 'MATERIAL' : name,
         })),
       },
       fields: { NAME: 'bookcase' },
       inputs: {
-        ...bookcaseDefaults,
-        STACK: {
-          block: {
-            type: 'create_group',
-            collapsed: true,
-            fields: { ID_VAR: { name: 'bookcase group' }, ACTIVE: true },
-            inputs: { DO: snippetBookcaseBody },
-            next: {
-              block: {
-                type: 'rotate_to',
-                fields: { MODEL: { name: 'bookcase group' } },
-                inputs: {
-                  X: snippetNum(0),
-                  Y: snippetVar('rotation y'),
-                  Z: snippetNum(0),
-                },
-              },
-            },
-          },
-        },
-        RETURN: snippetVar('bookcase group'),
+        ...Object.fromEntries(
+          bookcaseParams.map((name) => [name === 'material' ? 'MATERIAL' : name, bookcaseDefaults[name]])
+        ),
+        ...bookcasePlacement,
+        STACK: snippetBookcaseBody,
       },
     },
     {
@@ -6247,18 +6220,14 @@ const toolboxSnippetsBuilding = {
       inputs: {
         DO: {
           block: {
-            type: 'variables_set',
-            fields: { VAR: { name: 'bookcase1' } },
+            type: 'procedures_callprefab',
+            extraState: { name: 'bookcase', params: bookcaseParams },
+            fields: { ID_VAR: { name: 'bookcase1' } },
             inputs: {
-              VALUE: {
-                block: {
-                  type: 'procedures_callreturn',
-                  extraState: { name: 'bookcase', params: bookcaseParams },
-                  inputs: Object.fromEntries(
-                    bookcaseParams.map((name, i) => ['ARG' + i, bookcaseDefaults[name]])
-                  ),
-                },
-              },
+              ...Object.fromEntries(
+                bookcaseParams.map((name, i) => ['ARG' + i, bookcaseDefaults[name]])
+              ),
+              ...bookcasePlacement,
             },
           },
         },

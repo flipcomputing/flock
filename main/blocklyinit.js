@@ -23,6 +23,7 @@ import {
 } from '../blocks/blocks';
 import { defineBaseBlocks } from '../blocks/base';
 import { defineShapeBlocks } from '../blocks/shapes';
+import { definePrefabBlocks, prefabFlyoutItems } from '../blocks/prefabs';
 import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineModelBlocks } from '../blocks/models.js';
 import { defineEffectsBlocks } from '../blocks/effects.js';
@@ -311,6 +312,7 @@ export function initializeBlocks() {
   defineSceneBlocks();
   defineModelBlocks();
   defineShapeBlocks();
+  definePrefabBlocks();
   defineEffectsBlocks();
   defineCameraBlocks();
   defineXRBlocks();
@@ -665,7 +667,11 @@ export function initializeWorkspace() {
       return `${base}${suffix}`;
     };
 
-    return items.flatMap((item) => {
+    const prefabs = prefabFlyoutItems(ws, nextName);
+    const definitionIndex = items.findIndex((item) => item.type === 'procedures_defreturn');
+    items.splice(definitionIndex + 1, 0, prefabs.definition);
+
+    return [...items, ...prefabs.callers].flatMap((item) => {
       if (item.kind !== 'block' || item.type !== 'procedures_callreturn') return [item];
       const { kind: _kind, ...caller } = item;
       return [

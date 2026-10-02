@@ -72,6 +72,13 @@ function toSpacing(v) {
   return Number.isFinite(n) ? n : 0;
 }
 
+// User code runs in another realm, so its objects have a different Object.prototype.
+function isPlainObject(value) {
+  if (!value || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === null || Object.getPrototypeOf(proto) === null;
+}
+
 function toAlpha(v) {
   const n = Number(v);
   return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
@@ -542,6 +549,34 @@ export const flockShapes = {
     }
 
     return newGroup.name;
+  },
+  async addPrefab(groupId, { x = 0, y = 0, z = 0, rotationY = 0, args = [], build = null } = {}) {
+    const groupName = flock.createGroup(groupId);
+    if (!groupName) return null;
+    const group = flock.scene.getMeshByName(groupName);
+    group.metadata.isPrefab = true;
+    group.setEnabled(false);
+    // Material arguments carry their index so the meshes they colour can be found for
+    // live edits. The last argument is the prefab's own material.
+    const tagged = args.map((arg, index) => {
+      const value =
+        index === args.length - 1 && typeof arg === 'string'
+          ? { color: arg, materialName: 'none.png', alpha: 1 }
+          : arg;
+      if (!isPlainObject(value)) return value;
+      const copy = { ...value };
+      Object.defineProperty(copy, '__prefabSlot', { value: index });
+      return copy;
+    });
+    try {
+      if (build) await build(groupName, tagged);
+      await flock._whenHierarchySettled(group);
+      await flock.rotateTo(groupName, { y: rotationY });
+      await flock.positionAt(groupName, { x, y, z });
+    } finally {
+      if (!group.isDisposed()) group.setEnabled(true);
+    }
+    return groupName;
   },
   createSphere(
     sphereId,

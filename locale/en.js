@@ -222,6 +222,15 @@ export default {
   section_none_option: 'none',
   function_row_break_alt: 'start a new row after this input',
   function_row_join_alt: 'join the next input onto this row',
+  procedures_defprefab: 'add %1 %2',
+  procedures_callprefab: 'add',
+  prefab_default_name: 'prefab',
+  prefab_variable: 'prefab1',
+  prefab_material_param: 'material',
+  prefab_x_label: 'x:',
+  prefab_y_label: 'y:',
+  prefab_z_label: 'z:',
+  prefab_rotate_y_label: 'rotate y:',
 
   // Custom block translations - Effects blocks
   main_light: 'light intensity: %1 color: %2 ground: %3 shading %4',
@@ -626,6 +635,10 @@ export default {
   control_particle_system_tooltip:
     'Control the particle system by starting, stopping, or resetting it.',
   create_box_tooltip: 'Create a colored box with specified dimensions and position.',
+  procedures_defprefab_tooltip:
+    'Define a prefab: blocks that build an object. Use the add block for it in Functions to place one at a position, with a material and a y rotation.',
+  procedures_callprefab_tooltip:
+    'Add a prefab at a position, with a material and a y rotation. Store it in a variable so you can move it.',
   create_group_tooltip:
     'Create a group. The objects inside move together. Uncheck active to change individual objects.',
   create_sphere_tooltip: 'Create a colored sphere with specified dimensions and position.',
@@ -733,8 +746,8 @@ export default {
   snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
   snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
-  snippet_bookcase_hint: 'A bookcase function. Give it a width, height, depth, number of shelves, material, position and y rotation. It gives back the bookcase as a group.',
-  snippet_bookcase_call_hint: 'Builds a wooden bookcase with 4 shelves and stores it in bookcase1 so you can move it. Add the bookcase function too.',
+  snippet_bookcase_hint: 'A bookcase prefab. Give it a width, height, depth, number of shelves, a shelf material and a material for the frame. Use add bookcase to place one with a position and y rotation.',
+  snippet_bookcase_call_hint: 'Adds a wooden bookcase with 4 shelves as bookcase1 so you can move it. Add the bookcase prefab too.',
 
   // Dropdown option translations
   AWAIT_option: 'await',

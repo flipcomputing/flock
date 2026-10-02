@@ -401,6 +401,7 @@ export const flockMesh = {
       });
     }
 
+    if (color?.__prefabSlot !== undefined) mesh.metadata.prefabMaterialIndex = color.__prefabSlot;
     mesh.metadata.sharedMaterial = !applyColor;
     mesh.isVisible = true;
     mesh.setEnabled(true);

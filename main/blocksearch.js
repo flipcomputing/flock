@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { translate } from './translation.js';
 
 // Shared by the toolbox search flyout and the add-block-by-name field, so one
 // query gives the same answers everywhere.
@@ -48,6 +49,7 @@ export function getBlockSearchLabel(workspace, blockDefOrType) {
 export const PROCEDURE_SEARCH_BLOCKS = [
   { kind: 'block', type: 'procedures_defnoreturn', keyword: 'function' },
   { kind: 'block', type: 'procedures_defreturn', keyword: 'function' },
+  { kind: 'block', type: 'procedures_defprefab', keyword: 'prefab' },
 ];
 
 // The blocks that work on one variable, in the order the Variables flyout
@@ -107,8 +109,9 @@ function variableBlockDefinitions(workspace, query, index, types) {
 // results. Null when the block already names itself or the message is absent.
 export function procedureDefDefaultFields(def) {
   const type = typeof def === 'string' ? def : def?.type;
-  if (type !== 'procedures_defnoreturn' && type !== 'procedures_defreturn') return null;
   if (typeof def === 'object' && def?.fields?.NAME) return null;
+  if (type === 'procedures_defprefab') return { NAME: translate('prefab_default_name') };
+  if (type !== 'procedures_defnoreturn' && type !== 'procedures_defreturn') return null;
   const messageKey =
     type === 'procedures_defreturn'
       ? 'PROCEDURES_DEFRETURN_PROCEDURE'
@@ -122,12 +125,12 @@ export function procedureDefDefaultFields(def) {
 export function getWorkspaceProcedures(workspace) {
   const seen = new Set();
   const procedures = [];
-  const add = (name, params, hasReturn) => {
+  const add = (name, params, hasReturn, isPrefab = false) => {
     if (!name) return;
     const key = String(name).toLowerCase();
     if (seen.has(key)) return;
     seen.add(key);
-    procedures.push({ name, params: params ?? [], hasReturn: !!hasReturn });
+    procedures.push({ name, params: params ?? [], hasReturn: !!hasReturn, isPrefab });
   };
 
   try {
@@ -148,11 +151,11 @@ export function getWorkspaceProcedures(workspace) {
   }
 
   try {
-    for (const type of ['procedures_defnoreturn', 'procedures_defreturn']) {
+    for (const type of ['procedures_defnoreturn', 'procedures_defreturn', 'procedures_defprefab']) {
       for (const block of workspace.getBlocksByType?.(type, false) ?? []) {
         try {
           const [name, params] = block.getProcedureDef?.() ?? [];
-          add(name, params, type === 'procedures_defreturn');
+          add(name, params, type === 'procedures_defreturn', type === 'procedures_defprefab');
         } catch {
           // Skip blocks whose definition cannot be read.
         }
@@ -175,14 +178,19 @@ function procedureBlockDefinitions(workspace, query, valueOnly) {
   return getWorkspaceProcedures(workspace)
     .filter(
       (procedure) =>
-        procedure.name.toLowerCase().includes(query) || 'function'.startsWith(query)
+        procedure.name.toLowerCase().includes(query) ||
+        (procedure.isPrefab ? 'prefab' : 'function').startsWith(query)
     )
     .filter((procedure) => !valueOnly || procedure.hasReturn)
     .map((procedure) => ({
       kind: 'block',
-      type: procedure.hasReturn ? 'procedures_callreturn' : 'procedures_callnoreturn',
+      type: procedure.isPrefab
+        ? 'procedures_callprefab'
+        : procedure.hasReturn
+          ? 'procedures_callreturn'
+          : 'procedures_callnoreturn',
       keyword: procedure.name,
-      searchLabel: `call ${procedure.name} ( )`,
+      searchLabel: procedure.isPrefab ? `add ${procedure.name}` : `call ${procedure.name} ( )`,
       extraState: { name: procedure.name, params: procedure.params },
     }));
 }

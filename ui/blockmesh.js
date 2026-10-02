@@ -703,7 +703,7 @@ function isBlockConnectedToEnabledChain(block) {
     parent = parent.getParent?.();
   }
 
-  if (root.type === 'procedures_defnoreturn' || root.type === 'procedures_defreturn') {
+  if (root.type.startsWith('procedures_def')) {
     return false;
   }
 
@@ -879,6 +879,22 @@ export function getColorRoot(mesh) {
     current = current.parent;
   }
   return mesh;
+}
+
+export function updatePrefabMaterial(prefabBlock, index) {
+  const entry = prefabBlock.getInputTargetBlock('ARG' + index);
+  if (!entry) return;
+  const materialInfo = entry.type === 'material' ? extractMaterialInfo(entry) : null;
+  const color = materialInfo ? materialInfo.baseColor : readColourValue(entry).value;
+  if (!color) return;
+  for (const group of getMeshesFromBlock(prefabBlock)) {
+    if (!group.metadata?.isPrefab) continue;
+    for (const part of group.getChildMeshes(false)) {
+      if (part.metadata?.prefabMaterialIndex === index) {
+        handleMaterialOrColorChange(part, entry, 'COLOR', color, materialInfo);
+      }
+    }
+  }
 }
 
 export function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
@@ -2968,6 +2984,24 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
       setColorOnTargetOrField(found.targetBlock, found.ownerBlock, selectedColor);
       block.initSvg?.();
       highlightBlockById(Blockly.getMainWorkspace(), block);
+    });
+    return;
+  }
+
+  let prefab = null;
+  let slot;
+  for (let node = mesh; node; node = node.parent) {
+    if (node.metadata?.isPrefab) prefab = node;
+    slot ??= node.metadata?.prefabMaterialIndex;
+  }
+  const prefabBlock = meshMap?.[prefab?.metadata?.blockKey];
+  if (prefabBlock && !prefabBlock.disposed) {
+    const input = prefabBlock.getInput('ARG' + (slot ?? prefabBlock.arguments_.length - 1));
+    const found = findNestedColorTarget(ensureColorTargetOnInput(input));
+    if (!found) return;
+    withUndoGroup(() => {
+      setColorOnTargetOrField(found.targetBlock, found.ownerBlock, selectedColor);
+      highlightBlockById(Blockly.getMainWorkspace(), prefabBlock);
     });
     return;
   }

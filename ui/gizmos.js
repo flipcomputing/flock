@@ -2017,10 +2017,15 @@ function applyRotationHandles(mesh) {
   const rg = gizmoManager?.gizmos?.rotationGizmo;
   if (!rg) return;
   const enabled = !isTargetCameraFrame(mesh);
-  for (const g of [rg.xGizmo, rg.yGizmo, rg.zGizmo]) {
+  const yOnly = isPrefab(mesh);
+  for (const [axis, g] of [
+    ['x', rg.xGizmo],
+    ['y', rg.yGizmo],
+    ['z', rg.zGizmo],
+  ]) {
     if (!g) continue;
-    g.isEnabled = enabled;
-    if (enabled) g.attachedMesh = gizmoManager.attachedMesh;
+    g.isEnabled = enabled && (!yOnly || axis === 'y');
+    if (g.isEnabled) g.attachedMesh = gizmoManager.attachedMesh;
   }
 }
 
@@ -2079,7 +2084,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   };
   const onMove = (dx, dy, dz) => {
     syncWorkingToMesh();
-    const deltas = { x: dx, y: dy, z: dz };
+    const deltas = isPrefab(mesh) ? { x: 0, y: dy, z: 0 } : { x: dx, y: dy, z: dz };
     const changedAxes = [];
     for (const axisKey of ['x', 'y', 'z']) {
       if (deltas[axisKey]) {
@@ -2134,7 +2139,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     initialKeyboardAxis,
     initialHudAxis: savedHudAxis,
   });
-  if (mesh?.metadata?.shapeType !== 'Group') {
+  if (mesh?.metadata?.shapeType !== 'Group' || isPrefab(mesh)) {
     stopAxisKeyboard = stopInput;
     return;
   }
@@ -2164,7 +2169,7 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
-  if (isGroupClone(mesh)) {
+  if (isGroupClone(mesh) || isPrefab(mesh)) {
     showNotAllowedCursor();
     return;
   }
@@ -2260,6 +2265,10 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
 
 // A cloned group's members have no blocks to bake a scale into, and groups
 // never keep a scale of their own, so its size can't be saved.
+function isPrefab(mesh) {
+  return Boolean(mesh?.metadata?.isPrefab);
+}
+
 function isGroupClone(mesh) {
   return (
     mesh?.metadata?.shapeType === 'Group' && meshMap[mesh.metadata.blockKey]?.type === 'clone_mesh'
@@ -2276,7 +2285,7 @@ function applyScaleAxisHandles(mesh) {
     x: !isGroup && !isCamera,
     y: !isGroup && !isCamera,
     z: !isGroup && !isPlane && !isCamera,
-    uniform: !isGroupClone(mesh) && !isCamera,
+    uniform: !isGroupClone(mesh) && !isPrefab(mesh) && !isCamera,
   };
   for (const [axis, g] of [
     ['x', sg.xGizmo],
@@ -3008,7 +3017,7 @@ export function bakeGroupScale(groupMesh) {
 
 export function updateScaleBlock(mesh, originalBottomY = null) {
   const block = meshMap[mesh?.metadata?.blockKey];
-  if (!block) return;
+  if (!block || isPrefab(mesh)) return;
 
   flock.updatePhysics(mesh);
   mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
@@ -3184,6 +3193,11 @@ function syncMemberBodies(mesh) {
 function commitMoveToBlocks(mesh, startPosition) {
   const block = meshMap[mesh?.metadata?.blockKey];
   let delta = null;
+
+  if (isPrefab(mesh)) {
+    if (block && !block.disposed) writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+    return;
+  }
 
   if (mesh?.metadata?.shapeType === 'Group') {
     if (!startPosition) {
@@ -3947,6 +3961,13 @@ function handleRotationGizmo() {
 }
 
 export function updateChildBlockRotations(mesh) {
+  if (isPrefab(mesh)) {
+    const block = meshMap[mesh.metadata.blockKey];
+    if (block && !block.disposed) {
+      inEventGroup(() => setBlockAxisValue(block, 'ROTATE_Y', getMeshRotationInDegrees(mesh).y));
+    }
+    return;
+  }
   // Only groups persist orientation in their members. Other children's
   // rotations are relative to their parent, so they just follow it.
   if (mesh?.metadata?.shapeType !== 'Group') return;

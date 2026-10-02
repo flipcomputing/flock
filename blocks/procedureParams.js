@@ -14,7 +14,7 @@ const rowIcon = (on) =>
     }<path d="M18 5v6a3 3 0 0 1-3 3H7m3-4-4 4 4 4" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
   );
 
-const rowInputName = (argId) => argId + '_ROW';
+export const rowInputName = (argId) => argId + '_ROW';
 
 function paramAnchor(block) {
   return block.getInput('STACK') ? 'STACK' : 'RETURN';
@@ -74,17 +74,22 @@ function applyRowBreaks(block, flags) {
   if (changed) Blockly.Procedures.mutateCallers(block);
 }
 
-export function setupProcedureParams(block) {
+export function setupProcedureParams(block, { fixedParams = {} } = {}) {
   block.setInputsInline(true);
+  const isFixed = (argId) => Object.hasOwn(fixedParams, argId);
 
   block.addVarInput_ = function (name, argId) {
+    const input = this.appendValueInput(argId).setCheck(null);
+    if (isFixed(argId)) {
+      input.appendField(new Blockly.FieldLabel(name), argId);
+      input.connection.setShadowState(fixedParams[argId]);
+      return;
+    }
     const nameField = new Blockly.FieldTextInput(name, this.validator_);
     nameField.onFinishEditing_ = this.finishEditing_.bind(nameField);
     nameField.varIdsToDelete_ = [];
     nameField.preEditVarModel_ = null;
-
-    const input = this.appendValueInput(argId)
-      .setCheck(null)
+    input
       .appendField(createMinusField(Blockly.Msg['ARIA_LABEL_REMOVE_INPUT'], argId))
       .appendField(nameField, argId);
     input.connection.setShadowState(PARAM_DEFAULT_SHADOW);
@@ -94,21 +99,27 @@ export function setupProcedureParams(block) {
   const addArg = block.addArg_;
   block.addArg_ = function (...args) {
     addArg.apply(this, args);
-    const { argId } = this.argData_[this.argData_.length - 1];
-    this.moveInputBefore(rowInputName(argId), paramAnchor(this));
+    const arg = this.argData_.pop();
+    const firstFixed = this.argData_.findIndex((element) => isFixed(element.argId));
+    if (!isFixed(arg.argId) && firstFixed >= 0) this.argData_.splice(firstFixed, 0, arg);
+    else this.argData_.push(arg);
+    if (!isFixed(arg.argId)) this.moveInputBefore(rowInputName(arg.argId), paramAnchor(this));
+    this.layoutInputs_?.();
   };
 
   const removeArg = block.removeArg_;
   block.removeArg_ = function (argId) {
     this.removeInput(rowInputName(argId), true);
     removeArg.call(this, argId);
+    this.layoutInputs_?.();
   };
 
   block.setRowBreak_ = function (argId, on) {
     const arg = this.argData_.find((element) => element.argId === argId);
-    if (!arg) return;
+    if (!arg || isFixed(argId)) return;
     arg.rowBreak = on;
     addRowInput(this, argId, on);
+    this.layoutInputs_?.();
   };
 
   block.updateShape_ = function (names, varIds, argIds) {
@@ -119,8 +130,9 @@ export function setupProcedureParams(block) {
     this.argData_ = names.map((name, i) => {
       const existing = argIds[i] && this.argData_.find((arg) => arg.argId === argIds[i]);
       if (!existing) {
+        const before = new Set(this.argData_);
         this.addArg_(name, varIds[i], argIds[i]);
-        return this.argData_[this.argData_.length - 1];
+        return this.argData_.find((arg) => !before.has(arg));
       }
       existing.model = Blockly.Variables.getOrCreateVariablePackage(
         this.workspace,
@@ -134,8 +146,9 @@ export function setupProcedureParams(block) {
     const anchor = paramAnchor(this);
     for (const { argId } of this.argData_) {
       this.moveInputBefore(argId, anchor);
-      this.moveInputBefore(rowInputName(argId), anchor);
+      if (!isFixed(argId)) this.moveInputBefore(rowInputName(argId), anchor);
     }
+    this.layoutInputs_?.();
     Blockly.Procedures.mutateCallers(this);
   };
 
@@ -252,7 +265,7 @@ function syncCallerRows(caller, definition) {
   });
 }
 
-function setupCaller(blockType) {
+export function setupCaller(blockType) {
   const blockDefinition = Blockly.Blocks[blockType];
   const init = blockDefinition.init;
   blockDefinition.init = function () {

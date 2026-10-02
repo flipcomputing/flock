@@ -154,6 +154,11 @@ const AVAILABLE_SUITES = [
     pattern: '@procedureParams',
   },
   {
+    id: 'prefabs',
+    name: 'Prefab Tests',
+    pattern: '@prefabs',
+  },
+  {
     id: 'microbit',
     name: 'micro:bit Tests',
     pattern: '@microbit',
