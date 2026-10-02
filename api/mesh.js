@@ -1536,20 +1536,40 @@ export const flockMesh = {
           followerMesh._followObserver &&
             flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
 
-          let getYPosition = () => {
-            if (followPosition === 'TOP') {
-              return targetMesh.position.y + targetMesh.scaling.y;
-            } else if (followPosition === 'CENTER') {
-              return targetMesh.position.y + targetMesh.scaling.y / 2;
-            } else {
-              return targetMesh.position.y;
-            }
+          const offset = new flock.BABYLON.Vector3(
+            parseFloat(offsetX) || 0,
+            parseFloat(offsetY) || 0,
+            parseFloat(offsetZ) || 0
+          );
+
+          const followPoint = () => {
+            targetMesh.computeWorldMatrix(true);
+            const { min, max } =
+              targetMesh.getTotalVertices() > 0
+                ? {
+                    min: targetMesh.getBoundingInfo().boundingBox.minimumWorld,
+                    max: targetMesh.getBoundingInfo().boundingBox.maximumWorld,
+                  }
+                : targetMesh.getHierarchyBoundingVectors(true);
+            const y =
+              followPosition === 'TOP'
+                ? max.y
+                : followPosition === 'CENTER'
+                  ? (min.y + max.y) / 2
+                  : min.y;
+            const origin = targetMesh.getAbsolutePosition();
+            return new flock.BABYLON.Vector3(origin.x, y, origin.z).addInPlace(offset);
           };
 
           followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
-            followerMesh.position.x = targetMesh.position.x + parseFloat(offsetX);
-            followerMesh.position.y = getYPosition() + parseFloat(offsetY);
-            followerMesh.position.z = targetMesh.position.z + parseFloat(offsetZ);
+            followerMesh.computeWorldMatrix(true);
+            const anchorWorld = flock.BABYLON.Vector3.TransformCoordinates(
+              flock._resolveAnchorLocal(followerMesh),
+              followerMesh.getWorldMatrix()
+            );
+            followerMesh.setAbsolutePosition(
+              followerMesh.getAbsolutePosition().add(followPoint().subtract(anchorWorld))
+            );
           });
           resolve();
         });

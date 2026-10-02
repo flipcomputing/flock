@@ -2282,6 +2282,76 @@ export function runMeshHierarchyTests(flock) {
         const followerMesh = flock.scene.getMeshByName(followerId);
         expect(followerMesh._followObserver).to.not.exist;
       });
+
+      const followerBounds = async (followerId, targetId, position, offsetY = 0) => {
+        await flock.makeFollow(followerId, targetId, position, 0, offsetY, 0);
+        flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
+        return flock.getEffectiveWorldBounds(flock.scene.getMeshByName(followerId));
+      };
+
+      const createFollowPair = async (suffix) => {
+        const followerId = `followerAt${suffix}`;
+        const targetId = `followTargetAt${suffix}`;
+        await flock.createBox(followerId, {
+          width: 0.5,
+          height: 0.5,
+          depth: 0.5,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(targetId, {
+          width: 1,
+          height: 2,
+          depth: 1,
+          position: [3, 0, 1],
+        });
+        meshIds.push(followerId, targetId);
+        return { followerId, targetId };
+      };
+
+      it('should rest the follower base on the top of the target', async function () {
+        const { followerId, targetId } = await createFollowPair('Top');
+        const { min, max } = await followerBounds(followerId, targetId, 'TOP');
+
+        expect(min.y).to.be.closeTo(2, 0.001);
+        expect((min.x + max.x) / 2).to.be.closeTo(3, 0.001);
+        expect((min.z + max.z) / 2).to.be.closeTo(1, 0.001);
+      });
+
+      it('should use the target centre and bottom from its bounds', async function () {
+        const centre = await createFollowPair('Centre');
+        const centreBounds = await followerBounds(centre.followerId, centre.targetId, 'CENTER');
+        expect(centreBounds.min.y).to.be.closeTo(1, 0.001);
+
+        const bottom = await createFollowPair('Bottom');
+        const bottomBounds = await followerBounds(bottom.followerId, bottom.targetId, 'BOTTOM');
+        expect(bottomBounds.min.y).to.be.closeTo(0, 0.001);
+      });
+
+      it('should add the offset to the follow point', async function () {
+        const { followerId, targetId } = await createFollowPair('Offset');
+        const { min } = await followerBounds(followerId, targetId, 'TOP', 0.5);
+
+        expect(min.y).to.be.closeTo(2.5, 0.001);
+      });
+
+      it('should follow the top of a target scaled about its base anchor', async function () {
+        const { followerId, targetId } = await createFollowPair('Scaled');
+        await flock.setAnchor(targetId, { xPivot: 'CENTER', yPivot: 'MIN', zPivot: 'CENTER' });
+        flock.scene.getMeshByName(targetId).scaling.y = 3;
+
+        const { min } = await followerBounds(followerId, targetId, 'TOP');
+
+        expect(min.y).to.be.closeTo(6, 0.001);
+      });
+
+      it('should place the follower by its own anchor', async function () {
+        const { followerId, targetId } = await createFollowPair('Anchor');
+        await flock.setAnchor(followerId, { xPivot: 'CENTER', yPivot: 'CENTER', zPivot: 'CENTER' });
+
+        const { min, max } = await followerBounds(followerId, targetId, 'TOP');
+
+        expect((min.y + max.y) / 2).to.be.closeTo(2, 0.001);
+      });
     });
 
     describe('hold, attach, and drop @slow', function () {
