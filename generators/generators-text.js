@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { textMultiline, FieldMultilineInput } from '@blockly/field-multilineinput';
-import { meshMap, meshBlockIdMap, generateUniqueId } from './mesh-state.js';
+import { meshMap, meshBlockIdMap } from './mesh-state.js';
 import {
   getFieldValue,
   sanitizeForCode,
@@ -150,13 +150,9 @@ export function registerTextGenerators(javascriptGenerator) {
       javascriptGenerator.ORDER_ATOMIC
     );
 
-    // Get the button variable
-    const buttonVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('BUTTON_VAR'),
-      Blockly.VARIABLE_CATEGORY_NAME
-    );
+    const { generatedName: buttonVar, userVariableName } = getVariableInfo(block, 'BUTTON_VAR');
 
-    const buttonId = `Button_${generateUniqueId()}`;
+    const buttonId = `${userVariableName}__${block.id}`;
 
     const code = `${buttonVar} = UIButton({
                     text: ${text},

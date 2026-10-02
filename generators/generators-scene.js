@@ -441,9 +441,9 @@ export function registerSceneGenerators(javascriptGenerator) {
     );
 
     // Get the target clone variable
-    const cloneVariableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('CLONE_VAR'),
-      Blockly.Names.NameType.VARIABLE
+    const { generatedName: cloneVariableName, userVariableName: cloneUserName } = getVariableInfo(
+      block,
+      'CLONE_VAR'
     );
 
     // Generate a unique ID for the clone
@@ -464,6 +464,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
                           cloneId: '${cloneId}',
+                          cloneName: ${JSON.stringify(cloneUserName)},
                           blockKey: ${JSON.stringify(block.id)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
   };

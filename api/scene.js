@@ -635,7 +635,14 @@ export const flockScene = {
       if (mesh) flock.disposeMesh(mesh);
     });
   },
-  cloneMesh({ sourceMeshName, cloneId, blockKey = cloneId, callback = null, then = null } = {}) {
+  cloneMesh({
+    sourceMeshName,
+    cloneId,
+    cloneName = null,
+    blockKey = cloneId,
+    callback = null,
+    then = null,
+  } = {}) {
     if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
       console.warn('cloneMesh: invalid sourceMeshName');
       return null;
@@ -786,6 +793,12 @@ export const flockScene = {
 
         resolveReady(clone);
         flock.announceMeshReady(clone.name, clone.name);
+        if (typeof cloneName === 'string' && cloneName) {
+          const cloneFamily = flock._familyOf(cloneName);
+          if (cloneFamily !== flock._familyOf(clone.name)) {
+            flock._flushPendingTriggers(clone.name, cloneFamily);
+          }
+        }
 
         if (dos.length || thens.length) {
           requestAnimationFrame(async () => {

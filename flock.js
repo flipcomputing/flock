@@ -2817,57 +2817,60 @@ export const flock = {
     attachObservers();
     return promise;
   },
-  announceMeshReady(meshName, groupName) {
-    flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
+  _flushPendingTriggers(meshName, groupName) {
+    if (!flock.pendingTriggers.has(groupName)) return;
 
-    groupName = flock._familyOf(flock._nameRegistry.has(meshName) ? meshName : groupName);
+    const triggers = flock.pendingTriggers.get(groupName);
+    const remaining = [];
 
-    if (flock.pendingTriggers.has(groupName)) {
-      const triggers = flock.pendingTriggers.get(groupName);
-      const remaining = [];
+    for (const pending of triggers) {
+      const {
+        meshName: pendingMeshName,
+        trigger,
+        callback,
+        mode,
+        applyToGroup,
+        owningSignal,
+      } = pending;
+      const targetMeshName = pendingMeshName ?? meshName;
 
-      for (const pending of triggers) {
-        const {
-          meshName: pendingMeshName,
+      if (applyToGroup) {
+        // Register trigger only on the newly announced mesh; keep pending for future siblings.
+        flock.onTrigger(meshName, {
           trigger,
           callback,
           mode,
-          applyToGroup,
-          owningSignal,
-        } = pending;
-        const targetMeshName = pendingMeshName ?? meshName;
+          applyToGroup: false,
+          __owningSignal: owningSignal,
+        });
+        remaining.push(pending);
+      } else {
+        const guiControl = flock.scene?.UITexture?.getControlByName?.(targetMeshName) ?? null;
+        const targetExists = flock.scene?.getMeshByName(targetMeshName) || guiControl;
 
-        if (applyToGroup) {
-          // Register trigger only on the newly announced mesh; keep pending for future siblings.
-          flock.onTrigger(meshName, {
+        if (targetExists) {
+          // ✅ Apply to the original target this pending registration was created for.
+          flock.onTrigger(targetMeshName, {
             trigger,
             callback,
             mode,
             applyToGroup: false,
             __owningSignal: owningSignal,
           });
-          remaining.push(pending);
         } else {
-          const guiControl = flock.scene?.UITexture?.getControlByName?.(targetMeshName) ?? null;
-          const targetExists = flock.scene?.getMeshByName(targetMeshName) || guiControl;
-
-          if (targetExists) {
-            // ✅ Apply to the original target this pending registration was created for.
-            flock.onTrigger(targetMeshName, {
-              trigger,
-              callback,
-              mode,
-              applyToGroup: false,
-              __owningSignal: owningSignal,
-            });
-          } else {
-            remaining.push(pending);
-          }
+          remaining.push(pending);
         }
       }
-
-      flock.pendingTriggers.set(groupName, remaining);
     }
+
+    flock.pendingTriggers.set(groupName, remaining);
+  },
+  announceMeshReady(meshName, groupName) {
+    flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
+
+    groupName = flock._familyOf(flock._nameRegistry.has(meshName) ? meshName : groupName);
+
+    flock._flushPendingTriggers(meshName, groupName);
 
     if (flock.pendingIntersections.has(groupName)) {
       const intersections = flock.pendingIntersections.get(groupName);

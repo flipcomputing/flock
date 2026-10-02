@@ -397,6 +397,8 @@ export const flockUI = {
       h: scaledHeight,
     });
 
+    flock._flushPendingTriggers(buttonId, flock._familyOf(buttonId));
+
     return buttonId;
   },
   async UIInput({
