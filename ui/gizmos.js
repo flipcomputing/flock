@@ -1651,7 +1651,7 @@ function applyPositionHandles(mesh) {
   const pg = gizmoManager?.gizmos?.positionGizmo;
   if (!pg) return;
   const enabled = !isUntargetedCameraFrame(mesh);
-  const handles = [pg.xGizmo, pg.yGizmo, pg.zGizmo, pg.xPlaneGizmo, pg.yPlaneGizmo, pg.zPlaneGizmo];
+  const handles = [pg.xGizmo, pg.yGizmo, pg.zGizmo];
   for (const g of handles) {
     if (!g) continue;
     g.isEnabled = enabled;
