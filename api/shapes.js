@@ -946,6 +946,7 @@ export const flockShapes = {
     // A mesh shape leaves the hole open; a hull would fill it in.
     const donutShape = new flock.BABYLON.PhysicsShapeMesh(newDonut, flock.scene);
     flock.applyPhysics(newDonut, donutShape);
+    newDonut.metadata.physicsShapeType = 'MESH';
 
     flock.announceMeshReady(newDonut.name, groupName);
     flock._registerInstance(blockKey, newDonut.name);
@@ -1006,6 +1007,7 @@ export const flockShapes = {
 
     const ringShape = new flock.BABYLON.PhysicsShapeMesh(newRing, flock.scene);
     flock.applyPhysics(newRing, ringShape);
+    newRing.metadata.physicsShapeType = 'MESH';
 
     flock.announceMeshReady(newRing.name, groupName);
     flock._registerInstance(blockKey, newRing.name);

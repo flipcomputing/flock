@@ -370,6 +370,8 @@ Applies physics properties to a mesh.
 - `meshName` (string): Name of the mesh
 - `physicsType` (string): Type of physics ("DYNAMIC", "STATIC", "KINEMATIC")
 
+Note: hollow rings and donuts made `DYNAMIC` use a segmented container shape so the hole stays open (a convex hull would fill it in and a triangle mesh is static-only).
+
 **Example:**
 
 ```javascript

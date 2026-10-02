@@ -1997,7 +1997,23 @@ function setAbsoluteSize(mesh, width, height, depth) {
         break;
       case 'Donut':
       case 'Ring':
-        newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+        try {
+          const motionType = mesh.physics.getMotionType?.();
+          if (
+            typeof flock.isHollowWalledMesh === 'function' &&
+            flock.isHollowWalledMesh(mesh) &&
+            motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+            typeof flock.createHollowContainerShape === 'function'
+          ) {
+            newShape = flock.createHollowContainerShape(mesh, mesh.getScene());
+            if (newShape) mesh.metadata.physicsShapeType = 'CONTAINER';
+          } else {
+            newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+            if (newShape) mesh.metadata.physicsShapeType = 'MESH';
+          }
+        } catch {
+          newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+        }
         break;
       default:
         console.log('Unknown or unsupported physics shape type: ' + shapeType);
@@ -2261,7 +2277,27 @@ function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
   mesh.metadata[metadataKey] = dimensions;
 
   if (mesh.physics) {
-    const newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+    // A dynamic ring/donut needs the hollow container; a static one keeps the
+    // exact triangle mesh. Match setPhysicsForMesh so live edits don't flip
+    // the behaviour the user saw (edit "fixing" the fall).
+    let newShape = null;
+    try {
+      const motionType = mesh.physics.getMotionType?.();
+      if (
+        typeof flock.isHollowWalledMesh === 'function' &&
+        flock.isHollowWalledMesh(mesh) &&
+        motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC &&
+        typeof flock.createHollowContainerShape === 'function'
+      ) {
+        newShape = flock.createHollowContainerShape(mesh, mesh.getScene());
+        if (newShape) mesh.metadata.physicsShapeType = 'CONTAINER';
+      } else {
+        newShape = new flock.BABYLON.PhysicsShapeMesh(mesh, mesh.getScene());
+        if (newShape) mesh.metadata.physicsShapeType = 'MESH';
+      }
+    } catch {
+      newShape = null;
+    }
     if (newShape) {
       mesh.physics.shape?.dispose?.();
       mesh.physics.shape = newShape;

@@ -251,6 +251,11 @@ const ensurePostPhysicsUpkeep = (mesh) => {
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
+  if (
+    flock?.BABYLON?.PhysicsShapeContainer &&
+    shape instanceof flock.BABYLON.PhysicsShapeContainer
+  )
+    return 'CONTAINER';
   if (flock?.BABYLON?.PhysicsShapeCapsule && shape instanceof flock.BABYLON.PhysicsShapeCapsule)
     return 'CAPSULE';
   if (
@@ -322,7 +327,81 @@ const disposePhysics = (targetMesh) => {
   targetMesh.physics = null;
 };
 
+// Rings and donuts are hollow: a CONVEX_HULL shrink-wraps the hole shut, so a
+// dynamic ring balances on a pole instead of sliding down it. A container of
+// box segments leaves the hole open while staying dynamic-capable (a triangle
+// MESH shape is static-only in Havok).
+const HOLLOW_SEGMENTS = 12;
+
+const isHollowWalledMesh = (mesh) => {
+  const shapeType = mesh?.metadata?.shapeType;
+  if (shapeType !== 'Ring' && shapeType !== 'Donut') return false;
+  const dims = mesh?.metadata?.ringDimensions ?? mesh?.metadata?.donutDimensions;
+  if (!dims) return true;
+  return Number(dims.innerDiameter) > 1e-6;
+};
+
+const createHollowContainerShape = (mesh, scene) => {
+  const B = flock.BABYLON;
+  const shapeType = mesh?.metadata?.shapeType;
+  const sx = Math.abs(mesh?.scaling?.x ?? 1) || 1;
+  const sy = Math.abs(mesh?.scaling?.y ?? 1) || 1;
+  const sz = Math.abs(mesh?.scaling?.z ?? 1) || 1;
+  const radialScale = (sx + sz) / 2;
+
+  let meanRadius;
+  let wallRadial;
+  let height;
+  if (shapeType === 'Ring') {
+    const dims = mesh.metadata?.ringDimensions;
+    if (!dims) return null;
+    const outerR = (dims.diameter / 2) * radialScale;
+    const innerR = (dims.innerDiameter / 2) * radialScale;
+    if (!(outerR > 0) || !(innerR > 1e-6)) return null;
+    meanRadius = (outerR + innerR) / 2;
+    wallRadial = outerR - innerR;
+    height = dims.height * sy;
+  } else if (shapeType === 'Donut') {
+    const dims = mesh.metadata?.donutDimensions;
+    if (!dims) return null;
+    const tube = dims.thickness * radialScale;
+    if (!(tube > 0)) return null;
+    meanRadius = ((dims.diameter - dims.thickness) / 2) * radialScale;
+    if (!(meanRadius > 1e-6)) return null;
+    wallRadial = tube;
+    height = tube * sy;
+  } else {
+    return null;
+  }
+  if (!(meanRadius > 0) || !(wallRadial > 0) || !(height > 0)) return null;
+
+  const segments = HOLLOW_SEGMENTS;
+  // Overlap tangentially to seal corner gaps, but keep the radial depth exact:
+  // oversizing radially shrinks the hole (apothem = meanRadius - depth/2) and
+  // the pole then catches the rim and orbits instead of threading it.
+  const tangential = 2 * meanRadius * Math.tan(Math.PI / segments) * 1.25;
+  const container = new B.PhysicsShapeContainer(scene);
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    const child = new B.PhysicsShapeBox(
+      B.Vector3.Zero(),
+      B.Quaternion.Identity(),
+      new B.Vector3(tangential, height, wallRadial),
+      scene
+    );
+    container.addChild(
+      child,
+      new B.Vector3(meanRadius * Math.cos(angle), 0, meanRadius * Math.sin(angle)),
+      B.Quaternion.RotationYawPitchRoll(-angle - Math.PI / 2, 0, 0)
+    );
+  }
+  return container;
+};
+
 const createPhysicsShape = (mesh, shapeType) => {
+  if (shapeType === 'CONTAINER') {
+    return createHollowContainerShape(mesh, flock.scene);
+  }
   if (shapeType === 'CAPSULE') {
     mesh.computeWorldMatrix(true);
     return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
@@ -342,7 +421,14 @@ const createPhysicsShape = (mesh, shapeType) => {
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
 
-const SHAPE_TYPES_KEPT_ON_REBUILD = ['CAPSULE', 'CONVEX_HULL', 'BOX', 'SPHERE', 'CYLINDER'];
+const SHAPE_TYPES_KEPT_ON_REBUILD = [
+  'CAPSULE',
+  'CONVEX_HULL',
+  'BOX',
+  'SPHERE',
+  'CYLINDER',
+  'CONTAINER',
+];
 
 const applyPhysicsShape = (
   targetMesh,
@@ -481,6 +567,8 @@ function hasRealPickTrigger(mesh) {
 }
 
 export const flockPhysics = {
+  isHollowWalledMesh,
+  createHollowContainerShape,
   createPhysicsBody(mesh, shape, motionType = flock.BABYLON.PhysicsMotionType.STATIC) {
     const physicsBody = new flock.BABYLON.PhysicsBody(mesh, motionType, false, flock.scene);
     physicsBody.shape = shape;
@@ -564,11 +652,33 @@ export const flockPhysics = {
       newShape = createPhysicsShape(mesh, 'CONVEX_HULL');
       if (!newShape) return;
     } else if (
+      flock?.BABYLON?.PhysicsShapeContainer &&
+      physicsShape instanceof flock.BABYLON.PhysicsShapeContainer
+    ) {
+      detectedShapeType = 'CONTAINER';
+      if (isHollowWalledMesh(parent)) {
+        newShape = createHollowContainerShape(parent, flock.scene);
+      } else {
+        detectedShapeType = parent.metadata?.physicsShapeType || 'MESH';
+        newShape = createPhysicsShape(mesh, detectedShapeType);
+      }
+      if (!newShape) return;
+    } else if (
       flock?.BABYLON?.PhysicsShapeMesh &&
       physicsShape instanceof flock.BABYLON.PhysicsShapeMesh
     ) {
-      detectedShapeType = 'MESH';
-      newShape = createPhysicsShape(mesh, 'MESH');
+      // A live edit may have rebuilt a dynamic ring as a hollow MESH; repair
+      // it to the dynamic-capable container so the hole stays open.
+      if (
+        isHollowWalledMesh(parent) &&
+        motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC
+      ) {
+        detectedShapeType = 'CONTAINER';
+        newShape = createHollowContainerShape(parent, flock.scene);
+      } else {
+        detectedShapeType = 'MESH';
+        newShape = createPhysicsShape(mesh, 'MESH');
+      }
       if (!newShape) return;
     } else {
       detectedShapeType =
@@ -732,13 +842,33 @@ export const flockPhysics = {
 
     switch (physicsType) {
       case 'STATIC':
+        if (
+          getShapeTypeFromPhysics(mesh.physics) === 'CONTAINER' &&
+          isHollowWalledMesh(mesh)
+        ) {
+          disposePhysics(mesh);
+          applyPhysicsShape(mesh, 'MESH', flock.BABYLON.PhysicsMotionType.STATIC, true);
+          break;
+        }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
         mesh.physics.disablePreStep = true;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
       case 'DYNAMIC':
-        if (getShapeTypeFromPhysics(mesh.physics) === 'MESH') {
+        if (isHollowWalledMesh(mesh)) {
+          const current = getShapeTypeFromPhysics(mesh.physics);
+          if (current !== 'CONTAINER') {
+            disposePhysics(mesh);
+            applyPhysicsShape(
+              mesh,
+              'CONTAINER',
+              flock.BABYLON.PhysicsMotionType.DYNAMIC,
+              false
+            );
+            break;
+          }
+        } else if (getShapeTypeFromPhysics(mesh.physics) === 'MESH') {
           disposePhysics(mesh);
           applyPhysicsShape(mesh, 'CONVEX_HULL', flock.BABYLON.PhysicsMotionType.DYNAMIC, false);
           break;
@@ -850,7 +980,21 @@ export const flockPhysics = {
 
           disposePhysics(targetMesh);
 
-          const physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          // A dynamic ring/donut keeps its hole via the container; rebuilding
+          // a triangle MESH here would undo that and restore an unsupported
+          // dynamic-mesh body.
+          let physicsShape;
+          let shapeType = 'MESH';
+          if (
+            isHollowWalledMesh(targetMesh) &&
+            motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            physicsShape = createHollowContainerShape(targetMesh, flock.scene);
+            if (physicsShape) shapeType = 'CONTAINER';
+            else physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          } else {
+            physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          }
 
           const physicsBody = new flock.BABYLON.PhysicsBody(
             targetMesh,
@@ -865,11 +1009,11 @@ export const flockPhysics = {
 
           targetMesh.physics = physicsBody;
 
-          targetMesh.metadata.physicsShapeType = 'MESH';
+          targetMesh.metadata.physicsShapeType = shapeType;
           targetMesh.metadata.physicsCache = {
             motionType: physicsBody.getMotionType?.(),
             disablePreStep: physicsBody.disablePreStep,
-            shapeType: 'MESH',
+            shapeType,
           };
         };
 

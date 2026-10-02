@@ -419,6 +419,27 @@ export function runShapesTests(flock) {
         expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeMesh);
       });
 
+      it('should give a dynamic donut a hollow container shape, not a solid hull', async function () {
+        const id = flock.createDonut('testDonutDynamic', {
+          diameter: 2,
+          thickness: 0.5,
+          position: [0, 3, 0],
+        });
+        createdIds.push(id);
+        await flock.setPhysics(id, 'DYNAMIC');
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeContainer);
+        expect(mesh.physics.shape).to.not.be.instanceOf(
+          flock.BABYLON.PhysicsShapeConvexHull
+        );
+
+        await flock.setPhysics(id, 'STATIC');
+        expect(flock.scene.getMeshByName(id).physics.shape).to.be.instanceOf(
+          flock.BABYLON.PhysicsShapeMesh
+        );
+      });
+
       it('should avoid collisions for repeated donut ids', function () {
         const firstId = flock.createDonut('reserveDonut', { diameter: 1 });
         const secondId = flock.createDonut('reserveDonut', { diameter: 1 });
@@ -584,6 +605,57 @@ export function runShapesTests(flock) {
         const mesh = flock.scene.getMeshByName(id);
         expect(mesh.physics).to.exist;
         expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeMesh);
+      });
+
+      it('should give a dynamic ring a hollow container shape, not a solid hull', async function () {
+        const id = flock.createRing('testRingDynamic', {
+          diameter: 2,
+          innerDiameter: 0.35,
+          height: 0.25,
+          position: [0, 3, 0],
+        });
+        createdIds.push(id);
+        await flock.setPhysics(id, 'DYNAMIC');
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeContainer);
+        expect(mesh.physics.shape).to.not.be.instanceOf(
+          flock.BABYLON.PhysicsShapeConvexHull
+        );
+
+        await flock.setPhysics(id, 'STATIC');
+        expect(flock.scene.getMeshByName(id).physics.shape).to.be.instanceOf(
+          flock.BABYLON.PhysicsShapeMesh
+        );
+      });
+
+      it('should let a dynamic ring slide down a pole through its hole @slow', async function () {
+        this.timeout(30000);
+        const poleId = flock.createCylinder('testPoleThread', {
+          height: 2,
+          diameterTop: 0.3,
+          diameterBottom: 0.3,
+          position: [-2, 0.5, 2],
+        });
+        createdIds.push(poleId);
+        const ringId = flock.createRing('testRingThread', {
+          diameter: 2,
+          innerDiameter: 0.35,
+          height: 0.25,
+          position: [-2, 2.6, 2],
+        });
+        createdIds.push(ringId);
+        await flock.setPhysics(ringId, 'DYNAMIC');
+
+        await new Promise((r) => setTimeout(r, 3000));
+
+        const ring = flock.scene.getMeshByName(ringId);
+        // Threaded: slid down the 2.5-high pole top. Balanced on top would
+        // still sit at ~2.7; tipped off and fell beside it would be >0.5 away.
+        expect(ring.position.y).to.be.below(2.0);
+        const dx = ring.position.x - -2;
+        const dz = ring.position.z - 2;
+        expect(Math.hypot(dx, dz)).to.be.below(0.5);
       });
 
       it('should avoid collisions for repeated ring ids', function () {
