@@ -164,9 +164,15 @@ export const flockAnimate = {
     const rawDuration = Number(duration);
     duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
     const instant = Number.isFinite(rawDuration) && rawDuration === 0;
-    x = Number.isFinite(Number(x)) ? Number(x) : 0;
-    y = Number.isFinite(Number(y)) ? Number(y) : 0;
-    z = Number.isFinite(Number(z)) ? Number(z) : 0;
+    const angle = (v) => {
+      const n = Number(v);
+      if (!Number.isFinite(n)) return 0;
+      if (Math.abs(n) <= 360) return n;
+      return n % 360 || Math.sign(n) * 360;
+    };
+    x = angle(x);
+    y = angle(y);
+    z = angle(z);
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
@@ -211,22 +217,83 @@ export const flockAnimate = {
             : flock.BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT
         );
 
-        const rotateKeys = [
-          { frame: 0, value: startQuat },
-          { frame: frames, value: targetQuat },
-          ...(reverse ? [{ frame: frames * 2, value: startQuat }] : []),
-        ];
-        rotateAnimation.setKeys(rotateKeys);
-
+        let ease = null;
         if (
           easing !== 'Linear' &&
           typeof flock.BABYLON[easing] === 'function' &&
           flock.BABYLON[easing].prototype instanceof flock.BABYLON.EasingFunction
         ) {
-          const ease = new flock.BABYLON[easing]();
+          ease = new flock.BABYLON[easing]();
           ease.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-          rotateAnimation.setEasingFunction(ease);
         }
+
+        const startEuler = flock.quatToEulerDegrees(startQuat);
+        let longWay = false;
+        const start = {};
+        const delta = {};
+        for (const [axis, target] of [
+          ['x', x],
+          ['y', y],
+          ['z', z],
+        ]) {
+          let s = startEuler[axis];
+          if (Math.abs(target) < 180) {
+            let d = target - s;
+            d -= 360 * Math.round(d / 360);
+            delta[axis] = d;
+          } else {
+            if (target > 0) {
+              if (s < 0) s += 360;
+              if (s > 360 - 1e-6) s -= 360;
+            } else {
+              if (s > 0) s -= 360;
+              if (s < -360 + 1e-6) s += 360;
+            }
+            delta[axis] = target - s;
+          }
+          start[axis] = s;
+          if (Math.abs(delta[axis]) >= 180) longWay = true;
+        }
+
+        let rotateKeys;
+        if (longWay) {
+          const maxDelta = Math.max(Math.abs(delta.x), Math.abs(delta.y), Math.abs(delta.z));
+          const steps = Math.max(60, Math.ceil(maxDelta / 5));
+          rotateKeys = [];
+          for (let i = 0; i <= steps; i++) {
+            const g = i / steps;
+            const t = ease ? ease.ease(g) : g;
+            rotateKeys.push({
+              frame: frames * g,
+              value:
+                i === 0
+                  ? startQuat.clone()
+                  : i === steps
+                    ? targetQuat.clone()
+                    : flock.eulerDegreesToQuat(
+                      start.x + delta.x * t,
+                      start.y + delta.y * t,
+                      start.z + delta.z * t
+                    ),
+            });
+          }
+          if (reverse) {
+            for (let i = steps - 1; i >= 0; i--) {
+              rotateKeys.push({
+                frame: frames * 2 - rotateKeys[i].frame,
+                value: rotateKeys[i].value.clone(),
+              });
+            }
+          }
+        } else {
+          rotateKeys = [
+            { frame: 0, value: startQuat },
+            { frame: frames, value: targetQuat },
+            ...(reverse ? [{ frame: frames * 2, value: startQuat }] : []),
+          ];
+          if (ease) rotateAnimation.setEasingFunction(ease);
+        }
+        rotateAnimation.setKeys(rotateKeys);
 
         const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
           mesh.computeWorldMatrix(true);

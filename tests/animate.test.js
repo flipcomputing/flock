@@ -219,6 +219,104 @@ export function runAnimateTests(flock) {
         expect(midYaw).to.be.greaterThan(Math.PI / 6); // well above the ~6° a zero start would give
       });
 
+      for (const [target, sign] of [
+        [360, 1],
+        [-360, -1],
+        [359, 1],
+        [270, 1],
+      ]) {
+        it(`should turn the long way in the sign's direction for y: ${target}`, async function () {
+          const boxId = `rotateAnimLongWay${target}`;
+          await flock.createBox(boxId, {
+            width: 1,
+            height: 1,
+            depth: 1,
+            position: [0, 0, 0],
+          });
+          boxIds.push(boxId);
+          const mesh = flock.scene.getMeshByName(boxId);
+
+          const animPromise = flock.rotateAnim(boxId, { y: target, duration: 2 });
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const quarterYaw = effectiveEuler(mesh).y;
+          flock.scene.stopAnimation(mesh);
+          await animPromise;
+
+          expect(quarterYaw * sign).to.be.greaterThan(Math.PI / 6);
+        });
+      }
+
+      const yawKeys = async (boxId, startYaw, target) => {
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        if (startYaw) await flock.rotateTo(boxId, { x: 0, y: startYaw, z: 0 });
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        const animPromise = flock.rotateAnim(boxId, { y: target, duration: 2 });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const keys = flock.scene.getAnimatableByTarget(mesh).getAnimations()[0].animation.getKeys();
+        flock.scene.stopAnimation(mesh);
+        await animPromise;
+        return keys;
+      };
+
+      const signedYawTurn = (keys) => {
+        let total = 0;
+        for (let i = 1; i < keys.length; i++) {
+          const rel = keys[i].value.multiply(flock.BABYLON.Quaternion.Inverse(keys[i - 1].value));
+          const s = rel.w < 0 ? -1 : 1;
+          total += 2 * Math.atan2(rel.y * s, rel.w * s);
+        }
+        return flock.BABYLON.Tools.ToDegrees(total);
+      };
+
+      for (const [startYaw, target, turn] of [
+        [0, 720, 360],
+        [0, -1080, -360],
+        [0, 400, 40],
+        [45, 400, -5],
+        [45, -360, -45],
+        [270, 360, 90],
+        [270, 270, 0],
+        [-170, 180, -10],
+        [170, 180, 10],
+      ]) {
+        it(`should turn ${turn}° from y ${startYaw} to y ${target}`, async function () {
+          const keys = await yawKeys(`rotateAnimTurn${startYaw}_${target}`, startYaw, target);
+          expect(signedYawTurn(keys)).to.be.closeTo(turn, 0.5);
+        });
+      }
+
+      it('should reduce huge angles mod 360', async function () {
+        const keys = await yawKeys('rotateAnimHuge', 0, 1e9);
+        expect(keys.length).to.be.at.most(73);
+        expect(signedYawTurn(keys)).to.be.closeTo(1e9 % 360, 0.5);
+      });
+
+      it('should end at the start orientation after a full turn', async function () {
+        const boxId = 'rotateAnimFullTurn';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        await flock.rotateAnim(boxId, { y: 360, duration: 0.1 });
+
+        const endEuler = effectiveEuler(mesh);
+        expect(Math.abs(endEuler.x)).to.be.lessThan(0.01);
+        expect(Math.abs(endEuler.y)).to.be.lessThan(0.01);
+        expect(Math.abs(endEuler.z)).to.be.lessThan(0.01);
+      });
+
       it('should return to the start rotation when reverse is true', async function () {
         const boxId = 'rotateAnimReverse';
         await flock.createBox(boxId, {
