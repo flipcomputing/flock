@@ -12,7 +12,7 @@ import { defineXRBlocks } from './blocks/xr.js';
 import { defineEventsBlocks } from './blocks/events.js';
 import { definePhysicsBlocks } from './blocks/physics.js';
 import { defineConnectBlocks } from './blocks/connect.js';
-import { defineCombineBlocks } from './blocks/combine.js';
+import { defineModifyBlocks } from './blocks/modify.js';
 import { defineTransformBlocks } from './blocks/transform.js';
 import { defineControlBlocks } from './blocks/control.js';
 import { defineSectionBlock } from './blocks/section.js';
@@ -44,7 +44,7 @@ function registerBlocksAndGenerators() {
     defineEventsBlocks,
     definePhysicsBlocks,
     defineConnectBlocks,
-    defineCombineBlocks,
+    defineModifyBlocks,
     defineTransformBlocks,
     defineControlBlocks,
     defineSectionBlock,

@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformieren',
   CATEGORY_PHYSICS: 'Physik',
   CATEGORY_CONNECT: 'Verbinden',
-  CATEGORY_COMBINE: 'Kombinieren',
+  CATEGORY_MODIFY: 'Modifizieren',
   CATEGORY_ANIMATE: 'Animieren',
   CATEGORY_KEYFRAME: 'Schlüsselbild',
   CATEGORY_CONTROL: 'Steuerung',

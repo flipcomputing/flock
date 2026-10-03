@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformar', // human
   CATEGORY_PHYSICS: 'Física', // human
   CATEGORY_CONNECT: 'Conectar', // human
-  CATEGORY_COMBINE: 'Combinar', // human
+  CATEGORY_MODIFY: 'Modificar',
   CATEGORY_ANIMATE: 'Animar', // human
   CATEGORY_KEYFRAME: 'Fotograma clave', // human
   CATEGORY_CONTROL: 'Control', // human

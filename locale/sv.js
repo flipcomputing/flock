@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformera',
   CATEGORY_PHYSICS: 'Fysik',
   CATEGORY_CONNECT: 'Anslut',
-  CATEGORY_COMBINE: 'Kombinera',
+  CATEGORY_MODIFY: 'Modifiera',
   CATEGORY_ANIMATE: 'Animera',
   CATEGORY_KEYFRAME: 'Nyckelram',
   CATEGORY_CONTROL: 'Kontroll',

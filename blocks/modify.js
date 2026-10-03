@@ -6,9 +6,9 @@ import {
   handleBlockCreateEvent,
   registerBlockHandler,
 } from './blocks.js';
-import { translate, getTooltip } from '../main/translation.js';
+import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
-export function defineCombineBlocks() {
+export function defineModifyBlocks() {
   Blockly.Blocks['merge_meshes'] = {
     init: function () {
       const variableNamePrefix = 'merged';
@@ -175,6 +175,38 @@ export function defineCombineBlocks() {
           'RESULT_VAR'
         )
       );
+    },
+  };
+
+  Blockly.Blocks['flip'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'flip',
+        message0: translate('flip'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'AXIS',
+            options: [
+              getDropdownOption('x_coordinate'),
+              getDropdownOption('y_coordinate'),
+              getDropdownOption('z_coordinate'),
+            ],
+          },
+        ],
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('flip'),
+        previousStatement: null,
+        nextStatement: null,
+      });
+
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
     },
   };
 }

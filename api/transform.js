@@ -613,6 +613,40 @@ export const flockTransform = {
       });
     });
   },
+  flip(meshName, axis = 'x') {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (!flock.requireMesh(mesh, { api: 'flip', name: meshName })) {
+          resolve();
+          return;
+        }
+        const normalized = String(axis ?? 'x').toLowerCase();
+        const key = normalized.includes('y') ? 'y' : normalized.includes('z') ? 'z' : 'x';
+        const hierarchy = [mesh, ...(mesh.getChildMeshes?.() ?? [])];
+        // Skinned meshes bind vertices to bones in one orientation; mirroring
+        // the transform without re-targeting the skeleton would distort them.
+        if (hierarchy.some((m) => m?.skeleton)) {
+          resolve();
+          return;
+        }
+        // Mirror in local space; children follow via the world matrix.
+        mesh.scaling[key] *= -1;
+        hierarchy.forEach((m) => {
+          if (m?.getTotalVertices?.() > 0 && typeof m.flipFaces === 'function') m.flipFaces();
+        });
+        mesh.refreshBoundingInfo?.(true);
+        // Recompute parent-first so descendants pick up the mirrored matrix.
+        hierarchy.forEach((m) => m.computeWorldMatrix?.(true));
+        // No updatePhysics: it clamps scaling back to positive, and physics
+        // shapes use absolute extents which mirroring preserves. Re-sync any
+        // live bodies to the mirrored transforms instead.
+        hierarchy.forEach((m) => {
+          if (isBodyAlive(m?.physics)) teleportBodyToMesh(m);
+        });
+        resolve();
+      });
+    });
+  },
   // Keep material textures from stretching when a mesh is scaled by tiling
   // them to the mesh's world-space dimensions. Shared by resize() and the
   // interactive scale gizmo so both stay consistent.

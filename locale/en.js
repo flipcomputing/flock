@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transform',
   CATEGORY_PHYSICS: 'Physics',
   CATEGORY_CONNECT: 'Connect',
-  CATEGORY_COMBINE: 'Combine',
+  CATEGORY_MODIFY: 'Modify',
   CATEGORY_ANIMATE: 'Animate',
   CATEGORY_KEYFRAME: 'Keyframe',
   CATEGORY_CONTROL: 'Control',
@@ -194,6 +194,7 @@ export default {
   subtract_meshes: 'add %1 as %2 subtract %3',
   intersection_meshes: 'add %1 as intersect %2',
   hull_meshes: 'add %1 as hull of %2',
+  flip: 'flip %1 %2',
 
   // Custom block translations - Connect blocks
   parent: 'parent %1 child %2',
@@ -504,6 +505,7 @@ export default {
   subtract_meshes_tooltip: 'Subtract a list of objects from a base object and store the result.',
   intersection_meshes_tooltip: 'Intersect a list of objects and store the resulting geometry.',
   hull_meshes_tooltip: 'Create a convex hull from a list of objects and store the result.',
+  flip_tooltip: 'Mirror an object across an axis. Does nothing on animated characters.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:

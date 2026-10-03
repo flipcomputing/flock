@@ -1820,9 +1820,9 @@ const toolboxTransformConnect = {
   ],
 };
 
-const toolboxTransformCombine = {
+const toolboxTransformModify = {
   kind: 'category',
-  name: '%{BKY_CATEGORY_COMBINE}',
+  name: '%{BKY_CATEGORY_MODIFY}',
   icon: './images/combine.svg',
   //colour: categoryColours["Transform"],
   categorystyle: 'transform_category',
@@ -1934,6 +1934,11 @@ const toolboxTransformCombine = {
           },
         },
       },
+    },
+    {
+      kind: 'block',
+      type: 'flip',
+      keyword: 'flip',
     },
   ],
 };
@@ -2234,7 +2239,7 @@ const toolboxTransform = {
     },
     toolboxTransformPhysics,
     toolboxTransformConnect,
-    toolboxTransformCombine,
+    toolboxTransformModify,
   ],
 };
 

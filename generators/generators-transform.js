@@ -522,6 +522,23 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
+  // Mirror an object across one axis
+  javascriptGenerator.forBlock['flip'] = function (block) {
+    const meshName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    const axis = block.getFieldValue('AXIS') || 'x_coordinate';
+    const normalized = String(axis).toLowerCase().includes('y')
+      ? 'y'
+      : String(axis).toLowerCase().includes('z')
+        ? 'z'
+        : 'x';
+
+    return `await flip(${meshName}, '${normalized}');\n`;
+  };
+
   // Used as an input inside set_pivot
   // (not a block in its own right)
   javascriptGenerator.forBlock['min_centre_max'] = function (block) {

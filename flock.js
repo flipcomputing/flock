@@ -1254,6 +1254,7 @@ export const flock = {
       randomColour: this.randomColour?.bind(this),
       scale: this.scale?.bind(this),
       resize: this.resize?.bind(this),
+      flip: this.flip?.bind(this),
       changeColor: this.changeColor?.bind(this),
       changeMaterial: this.changeMaterial?.bind(this),
       setMaterial: this.setMaterial?.bind(this),
