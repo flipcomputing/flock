@@ -260,6 +260,41 @@ export function runGlideToTests(flock) {
       expect(camera.position.z).to.be.closeTo(targetPosition.z, 0.1);
     });
 
+    it('moves a child of a rotated group along the parent-relative direction @slow', async function () {
+      this.timeout(5000);
+
+      const group = await flock.createGroup('glideParent');
+      const child = await flock.createBox('glideChild', {
+        color: '#996633',
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      try {
+        // Parent first, then rotate: mirrors addPrefab (build, rotate,
+        // position) so the member rotates rigidly with the group instead of
+        // being counter-rotated by world-preserving setParent.
+        await flock.setParent(group, child);
+        await flock.rotateTo(group, { y: 180 });
+
+        const childMesh = flock.scene.getMeshByName(child);
+        const startLocal = childMesh.position.clone();
+        const startWorld = childMesh.getAbsolutePosition().clone();
+
+        // The group's -Z faces world +Z after a 180 yaw: gliding 'forward'
+        // must move the child towards world +Z, i.e. local -Z.
+        await flock.glideDirection(child, { direction: 'forward', distance: 0.5, duration: 0.5 });
+
+        expect(childMesh.position.x).to.be.closeTo(startLocal.x, 0.05);
+        expect(childMesh.position.z).to.be.closeTo(startLocal.z - 0.5, 0.05);
+        expect(childMesh.getAbsolutePosition().z).to.be.closeTo(startWorld.z + 0.5, 0.05);
+      } finally {
+        flock.dispose(child);
+        flock.dispose(group);
+      }
+    });
+
     it('should wait for mesh creation when glideTo is called early', async function () {
       const boxId = 'glideToDelayedCreation';
 

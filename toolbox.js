@@ -6074,6 +6074,25 @@ const snippetMath = (OP, A, B) => ({
 });
 const snippetChain = (...items) =>
   items.reduceRight((next, item) => ({ block: { ...item.block, next } }));
+const snippetPrefabGroup = (groupName, commentText, body) =>
+  snippetChain(
+    {
+      block: {
+        type: 'comment',
+        inputs: {
+          COMMENT: { shadow: { type: 'text_multiline', fields: { TEXT: commentText } } },
+        },
+      },
+    },
+    {
+      block: {
+        type: 'create_group',
+        collapsed: true,
+        fields: { ID_VAR: { name: groupName }, ACTIVE: true },
+        inputs: { DO: body },
+      },
+    }
+  );
 const snippetBookcasePart = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z, COLOR = snippetVar('material')) => ({
   block: {
     type: 'create_box',
@@ -6085,6 +6104,16 @@ const snippetWood = (COLOR) => ({
   shadow: {
     type: 'material',
     fields: { TEXTURE_SET: 'wood.png' },
+    inputs: {
+      BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR } } },
+      ALPHA: snippetNum(1),
+    },
+  },
+});
+const snippetNone = (COLOR) => ({
+  shadow: {
+    type: 'material',
+    fields: { TEXTURE_SET: 'none.png' },
     inputs: {
       BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR } } },
       ALPHA: snippetNum(1),
@@ -6186,6 +6215,207 @@ const snippetBookcaseBody = snippetChain(
   }
 );
 
+const deskParams = ['width', 'height', 'depth', 'drawer material', 'material'];
+const deskDefaults = {
+  width: snippetNum(3),
+  height: snippetNum(1.35),
+  depth: snippetNum(1.5),
+  'drawer material': snippetNone('#a0522d'),
+  material: snippetNone('#deb887'),
+};
+const deskPlacement = {
+  X: snippetNum(-3),
+  Y: snippetNum(0),
+  Z: snippetNum(0),
+  ROTATE_Y: snippetNum(0),
+};
+const snippetDeskDrawerClick = (name) => ({
+  block: {
+    type: 'when_clicked',
+    extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="true"></mutation>',
+    fields: { MODEL_VAR: { name }, TRIGGER: 'OnPickTrigger' },
+    inputs: {
+      DO: snippetChain(
+        {
+          block: {
+            type: 'glide_to_axis',
+            fields: {
+              MESH_VAR: { name },
+              AXIS: 'forward',
+              MODE: 'AWAIT',
+              REVERSE: false,
+              LOOP: false,
+              EASING: 'SineEase',
+            },
+            inputs: { TARGET: snippetNum(1), DURATION: snippetNum(0.6) },
+          },
+        },
+        { block: { type: 'wait_seconds', inputs: { DURATION: snippetNum(4) } } },
+        {
+          block: {
+            type: 'glide_to_axis',
+            fields: {
+              MESH_VAR: { name },
+              AXIS: 'forward',
+              MODE: 'AWAIT',
+              REVERSE: false,
+              LOOP: false,
+              EASING: 'SineEase',
+            },
+            inputs: { TARGET: snippetNum(-1), DURATION: snippetNum(0.6) },
+          },
+        }
+      ),
+    },
+  },
+});
+const snippetDeskBox = (name, WIDTH, HEIGHT, DEPTH, X, Y, Z, DO) => ({
+  block: {
+    type: 'create_box',
+    ...(DO
+      ? { extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>' }
+      : {}),
+    fields: { ID_VAR: { name } },
+    inputs: {
+      COLOR: snippetVar('drawer material'),
+      WIDTH,
+      HEIGHT,
+      DEPTH,
+      X,
+      Y,
+      Z,
+      ...(DO ? { DO } : {}),
+    },
+  },
+});
+const snippetDeskDrawer = () => {
+  const front = 'drawer front';
+  const bottom = 'drawer bottom';
+  const back = 'drawer back';
+  const leftWall = 'drawer left wall';
+  const rightWall = 'drawer right wall';
+  const half = snippetMath('DIVIDE', snippetVar('width'), snippetNum(2));
+  const quarter = snippetMath('DIVIDE', snippetVar('width'), snippetNum(4));
+  const centerX = snippetMath('MINUS', quarter, snippetNum(0.05));
+  const drawerWidth = snippetMath('MINUS', half, snippetNum(0.1));
+  const bottomDepth = snippetMath('MINUS', snippetVar('depth'), snippetNum(0.05));
+  const wallDepth = snippetMath('MINUS', snippetVar('depth'), snippetNum(0.1));
+  const frontZ = snippetMath('MINUS', snippetNum(0.025), snippetMath('DIVIDE', snippetVar('depth'), snippetNum(2)));
+  const backZ = snippetMath('MINUS', snippetMath('DIVIDE', snippetVar('depth'), snippetNum(2)), snippetNum(0.025));
+  const baseY = snippetMath('MINUS', snippetVar('height'), snippetNum(0.45));
+  const rimY = snippetMath('MINUS', snippetVar('height'), snippetNum(0.4));
+  return [
+    snippetDeskBox(
+      front,
+      drawerWidth,
+      snippetNum(0.35),
+      snippetNum(0.05),
+      centerX,
+      baseY,
+      frontZ,
+      snippetDeskDrawerClick(front)
+    ),
+    snippetDeskBox(
+      bottom,
+      drawerWidth,
+      snippetNum(0.05),
+      bottomDepth,
+      centerX,
+      baseY,
+      snippetNum(0.025)
+    ),
+    snippetDeskBox(
+      leftWall,
+      snippetNum(0.05),
+      snippetNum(0.3),
+      wallDepth,
+      snippetNum(0.025),
+      rimY,
+      snippetNum(0)
+    ),
+    snippetDeskBox(
+      rightWall,
+      snippetNum(0.05),
+      snippetNum(0.3),
+      wallDepth,
+      snippetMath('MINUS', half, snippetNum(0.125)),
+      rimY,
+      snippetNum(0)
+    ),
+    snippetDeskBox(
+      back,
+      drawerWidth,
+      snippetNum(0.3),
+      snippetNum(0.05),
+      centerX,
+      rimY,
+      backZ
+    ),
+    {
+      block: {
+        type: 'parent_children',
+        fields: { PARENT_MESH: { name: front } },
+        inputs: {
+          MESH_LIST: {
+            block: {
+              type: 'lists_create_with',
+              inline: true,
+              extraState: { itemCount: 4 },
+              inputs: {
+                ADD0: { block: { type: 'variables_get', fields: { VAR: { name: bottom } } } },
+                ADD1: {
+                  block: {
+                    type: 'variables_get',
+                    fields: { VAR: { name: leftWall } },
+                  },
+                },
+                ADD2: {
+                  block: {
+                    type: 'variables_get',
+                    fields: { VAR: { name: rightWall } },
+                  },
+                },
+                ADD3: { block: { type: 'variables_get', fields: { VAR: { name: back } } } },
+              },
+            },
+          },
+        },
+      },
+    },
+  ];
+};
+
+const snippetDeskBody = snippetChain(
+  snippetBookcasePart(
+    'left side',
+    snippetNum(0.1),
+    snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
+    snippetVar('depth'),
+    snippetMath('MINUS', snippetNum(0), snippetBookcaseHalf('width')),
+    snippetNum(0),
+    snippetNum(0)
+  ),
+  snippetBookcasePart(
+    'right side',
+    snippetNum(0.1),
+    snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
+    snippetVar('depth'),
+    snippetBookcaseHalf('width'),
+    snippetNum(0),
+    snippetNum(0)
+  ),
+  snippetBookcasePart(
+    'top',
+    snippetVar('width'),
+    snippetNum(0.1),
+    snippetVar('depth'),
+    snippetNum(0),
+    snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
+    snippetNum(0)
+  ),
+  ...snippetDeskDrawer()
+);
+
 const toolboxSnippetsBuilding = {
   kind: 'category',
   icon: './images/house.svg',
@@ -6209,28 +6439,31 @@ const toolboxSnippetsBuilding = {
           bookcaseParams.map((name) => [name === 'material' ? 'MATERIAL' : name, bookcaseDefaults[name]])
         ),
         ...bookcasePlacement,
-        STACK: snippetBookcaseBody,
+        STACK: snippetPrefabGroup(
+          'bookcase group',
+          'Adds a function for creating a bookcase.',
+          snippetBookcaseBody
+        ),
       },
     },
     {
       kind: 'block',
-      type: 'start',
-      keyword: 'addbookcase',
-      hint: 'snippet_bookcase_call_hint',
+      type: 'procedures_defprefab',
+      keyword: 'desk',
+      hint: 'snippet_desk_hint',
+      extraState: {
+        params: deskParams.map((name) => ({
+          name,
+          argId: name === 'material' ? 'MATERIAL' : name,
+        })),
+      },
+      fields: { NAME: 'desk' },
       inputs: {
-        DO: {
-          block: {
-            type: 'procedures_callprefab',
-            extraState: { name: 'bookcase', params: bookcaseParams },
-            fields: { ID_VAR: { name: 'bookcase1' } },
-            inputs: {
-              ...Object.fromEntries(
-                bookcaseParams.map((name, i) => ['ARG' + i, bookcaseDefaults[name]])
-              ),
-              ...bookcasePlacement,
-            },
-          },
-        },
+        ...Object.fromEntries(
+          deskParams.map((name) => [name === 'material' ? 'MATERIAL' : name, deskDefaults[name]])
+        ),
+        ...deskPlacement,
+        STACK: snippetPrefabGroup('desk group', 'Adds a function for creating a desk.', snippetDeskBody),
       },
     },
     {

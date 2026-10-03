@@ -367,7 +367,20 @@ export const flockAnimate = {
         new flock.BABYLON.Vector3(startAnchor.x, startAnchor.y, startAnchor.z)
       );
       const startPosition = mesh.position.clone();
-      const endPosition = startPosition.add(anchorDelta);
+      // mesh.position lives in the parent's frame but anchorDelta is world-space:
+      // express the delta locally so glides on rotated/scaled members (e.g.
+      // prefab parts) travel the intended world direction. Unparented meshes
+      // keep the previous behaviour exactly.
+      const parent = mesh.parent;
+      let localDelta = anchorDelta;
+      if (parent?.getWorldMatrix) {
+        parent.computeWorldMatrix(true);
+        localDelta = flock.BABYLON.Vector3.TransformNormal(
+          anchorDelta,
+          parent.getWorldMatrix().clone().invert()
+        );
+      }
+      const endPosition = startPosition.add(localDelta);
       const fps = 30;
       const frames = fps * duration;
 

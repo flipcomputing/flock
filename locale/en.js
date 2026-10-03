@@ -746,8 +746,8 @@ export default {
   snippet_skyworld_hint: 'Adds a gradient sky and a ground map to the scene.',
   snippet_player_camera_hint: 'A player character with physics and a camera that follows them.',
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
-  snippet_bookcase_hint: 'A bookcase prefab. Give it a width, height, depth, number of shelves, a shelf material and a material for the frame. Use add bookcase to place one with a position and y rotation.',
-  snippet_bookcase_call_hint: 'Adds a wooden bookcase with 4 shelves as bookcase1 so you can move it. Add the bookcase prefab too.',
+  snippet_bookcase_hint: 'A bookcase prefab. Give it a width, height, depth, number of shelves, a shelf material and a material for the frame.',
+  snippet_desk_hint: 'A desk prefab. Give it a width, height, depth, a drawer material and a material for the frame. Its half-width top drawer sits to the right with open knee space beside it, and slides open when clicked, then shuts after a few seconds. The full-depth drawer is an open box you can place objects inside.',
 
   // Dropdown option translations
   AWAIT_option: 'await',
