@@ -1143,6 +1143,7 @@ export const flockPhysics = {
     }
   ) {
     const groupName = flock._familyOf(meshName);
+    if (flock._isTag(meshName)) applyToGroup = true;
     const getAllGuiControls = () => {
       const root = flock.scene?.UITexture?._rootContainer ?? flock.scene?.UITexture?.rootContainer;
       if (!root) return [];
@@ -1172,12 +1173,12 @@ export const flockPhysics = {
 
     if (applyToGroup) {
       let matchingButtons = [];
-      if (flock.scene.UITexture) {
+      if (flock.scene.UITexture && !flock._isTag(groupName)) {
         matchingButtons = getAllGuiControls().filter(
           (control) => control?.name && flock._familyOf(control.name) === groupName
         );
       }
-      const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
+      const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
 
       if (matchingButtons.length > 0) {
         for (const btn of matchingButtons) {
@@ -1389,6 +1390,8 @@ export const flockPhysics = {
       return flock._familyOf(rawName);
     };
 
+    if (flock._isTag(otherMeshName)) applyToGroupOther = true;
+
     if (applyToGroupSelf) {
       const groupName = resolveCanonicalGroupName(meshName);
 
@@ -1404,7 +1407,7 @@ export const flockPhysics = {
       flock.pendingSelfIntersections.get(groupName).push(pendingEntry);
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
         const promises = [];
         for (let i = 0; i < matching.length; i++) {
           for (let j = i + 1; j < matching.length; j++) {
@@ -1427,6 +1430,26 @@ export const flockPhysics = {
       }
 
       return;
+    }
+
+    const isTag = flock._isTag(meshName);
+    const mayBecomeTag =
+      applyToGroupOther &&
+      !flock._nameRegistry.has(meshName) &&
+      !flock.scene?.getMeshByName(meshName);
+    if (isTag || mayBecomeTag) {
+      const registered = new Set();
+      const register = (name) => {
+        if (registered.has(name)) return Promise.resolve();
+        registered.add(name);
+        return flock.onIntersect(name, otherMeshName, { trigger, callback, applyToGroupOther });
+      };
+      flock.pendingTagIntersections ??= new Map();
+      if (!flock.pendingTagIntersections.has(meshName)) {
+        flock.pendingTagIntersections.set(meshName, []);
+      }
+      flock.pendingTagIntersections.get(meshName).push({ register });
+      if (isTag) return Promise.all(flock.getObjectsWithTag(meshName).map(register));
     }
 
     if (applyToGroupOther) {
@@ -1457,7 +1480,7 @@ export const flockPhysics = {
       };
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => flock._familyOf(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
         const matchingNames = [...new Set(matching.map((m) => m.name))];
         return Promise.all(matchingNames.map((name) => registerForOther(name)));
       }

@@ -1237,6 +1237,9 @@ export const flock = {
       positionAtSingleCoordinate: this.positionAtSingleCoordinate?.bind(this),
       distanceTo: this.distanceTo?.bind(this),
       waitUntil: this.waitUntil?.bind(this),
+      createTag: this.createTag?.bind(this),
+      tagObject: this.tagObject?.bind(this),
+      getObjectsWithTag: this.getObjectsWithTag?.bind(this),
       show: this.show?.bind(this),
       hide: this.hide?.bind(this),
       clearEffects: this.clearEffects?.bind(this),
@@ -1372,6 +1375,8 @@ export const flock = {
       'createRing',
       'createPlane',
       'createCamera',
+      'createTag',
+      'tagObject',
       'mergeMeshes',
       'subtractMeshes',
       'intersectMeshes',
@@ -2099,6 +2104,7 @@ export const flock = {
         flock.pendingTriggers = new Map();
         flock.pendingIntersections = new Map();
         flock.pendingSelfIntersections = new Map();
+        flock.pendingTagIntersections = new Map();
         flock._nameRegistry = new Map();
         flock._liveNameCache = new Map();
         flock._ambiguousLiveNames = new Set();
@@ -2212,6 +2218,7 @@ export const flock = {
     flock.pendingTriggers = new Map();
     flock.pendingIntersections = new Map();
     flock.pendingSelfIntersections = new Map();
+    flock.pendingTagIntersections = new Map();
     flock._nameRegistry = new Map();
     flock._liveNameCache = new Map();
     flock.modelReadyPromises = new Map();
@@ -2872,7 +2879,22 @@ export const flock = {
 
     groupName = flock._familyOf(flock._nameRegistry.has(meshName) ? meshName : groupName);
 
+    flock._applyGroupHandlers(meshName, groupName);
+    const mesh = flock.scene?.getMeshByName(meshName);
+    for (const node of mesh ? [mesh, ...mesh.getDescendants(false)] : []) {
+      for (const tag of node.metadata?.tags ?? []) {
+        flock._applyGroupHandlers(node.name, tag);
+      }
+    }
+  },
+  _applyGroupHandlers(meshName, groupName) {
     flock._flushPendingTriggers(meshName, groupName);
+
+    if (flock._isTag(groupName)) {
+      for (const pending of flock.pendingTagIntersections?.get(groupName) ?? []) {
+        pending.register(meshName);
+      }
+    }
 
     if (flock.pendingIntersections.has(groupName)) {
       const intersections = flock.pendingIntersections.get(groupName);
@@ -2893,7 +2915,7 @@ export const flock = {
       if (newMesh) {
         for (const pending of flock.pendingSelfIntersections.get(groupName)) {
           const existing = flock.scene.meshes.filter(
-            (m) => flock._familyOf(m.name) === groupName && m.name !== meshName
+            (m) => flock._inGroup(m, groupName) && m.name !== meshName
           );
           for (const existingMesh of existing) {
             const meshA = existingMesh.uniqueId < newMesh.uniqueId ? existingMesh : newMesh;
@@ -2919,6 +2941,7 @@ export const flock = {
     while (has(name)) {
       name = `${desired}_${flock.scene.getUniqueId()}`;
     }
+    if (flock._isTag(family)) family = `${family}__object`;
     flock._nameRegistry.set(name, { pending: true, exists: false, family });
     return name;
   },
@@ -2942,6 +2965,14 @@ export const flock = {
       if (parentFamily) return parentFamily;
     }
     return name.includes('__') ? name.split('__')[0] : name;
+  },
+
+  _isTag(name) {
+    return !!flock._nameRegistry.get(name)?.tag;
+  },
+
+  _inGroup(mesh, groupName) {
+    return flock._familyOf(mesh.name) === groupName || !!mesh.metadata?.tags?.includes(groupName);
   },
 
   /** Release a reservation on failure/disposal. */

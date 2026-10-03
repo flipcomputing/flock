@@ -727,6 +727,9 @@ export const flockTransform = {
       // The source's own DO (e.g. rotate_to) would overwrite the reflection.
       inheritConstruction: false,
       transform: async (clone, sourceMesh) => {
+        for (const node of [clone, ...clone.getDescendants(false)]) {
+          delete node.metadata?.tags;
+        }
         if (isSkinned(sourceMesh)) {
           console.warn(`mirror: ${sourceMeshName} is an animated character, which can't be mirrored`);
           flock.disposeMesh(clone);

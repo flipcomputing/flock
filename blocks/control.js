@@ -1,6 +1,12 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor, applyInputAriaLabels } from './blocks.js';
+import {
+  getHelpUrlFor,
+  applyInputAriaLabels,
+  nextVariableIndexes,
+  handleBlockCreateEvent,
+  registerBlockHandler,
+} from './blocks.js';
 import { translate, getTooltip } from '../main/translation.js';
 
 export function defineControlBlocks() {
@@ -89,6 +95,83 @@ export function defineControlBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('control_blocks');
+    },
+  };
+
+  Blockly.Blocks['add_tag'] = {
+    init: function () {
+      const variableNamePrefix = 'tag';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+
+      this.jsonInit({
+        type: 'add_tag',
+        message0: translate('add_tag'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Control'],
+        tooltip: getTooltip('add_tag'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('control_blocks');
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes)
+      );
+    },
+  };
+
+  Blockly.Blocks['tag_object'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'tag_object',
+        message0: translate('tag_object'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MODEL_VAR',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_variable',
+            name: 'TAG_VAR',
+            variable: 'tag1',
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Control'],
+        tooltip: getTooltip('tag_object'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('control_blocks');
+    },
+  };
+
+  Blockly.Blocks['all_with_tag'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'all_with_tag',
+        message0: translate('all_with_tag'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'TAG_VAR',
+            variable: 'tag1',
+          },
+        ],
+        output: 'Array',
+        colour: categoryColours['Lists'],
+        tooltip: getTooltip('all_with_tag'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('list_blocks');
     },
   };
 

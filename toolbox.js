@@ -2713,6 +2713,16 @@ const toolboxControl = {
     },
     {
       kind: 'block',
+      type: 'add_tag',
+      keyword: 'tag',
+    },
+    {
+      kind: 'block',
+      type: 'tag_object',
+      keyword: 'tag',
+    },
+    {
+      kind: 'block',
       type: 'wait',
       keyword: 'wait',
       inputs: {
@@ -4161,6 +4171,11 @@ const toolboxLists = {
       inline: true,
       inputs: {},
       keyword: 'these',
+    },
+    {
+      kind: 'block',
+      type: 'all_with_tag',
+      keyword: 'tagged',
     },
     {
       kind: 'block',

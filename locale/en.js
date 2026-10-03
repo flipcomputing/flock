@@ -214,6 +214,9 @@ export default {
   wait_seconds: 'wait %1 seconds',
   wait_until: 'wait until %1',
   local_variable: 'local %1',
+  add_tag: 'add tag %1',
+  tag_object: 'tag %1 with %2',
+  all_with_tag: 'all with tag %1',
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
   for_loop: 'for each %1 from %2 to %3 by %4 do %5',
   get_lexical_variable: '%1',
@@ -534,6 +537,10 @@ export default {
   wait_until_tooltip: 'Wait until the condition is true.',
   local_variable_tooltip:
     'Create a local version of a selected variable. This hides the global variable and can have a different value.',
+  add_tag_tooltip:
+    'Create a tag. Use it in when clicked or on collision blocks to respond to every object with the tag.',
+  tag_object_tooltip: 'Give an object a tag. Copies of the object get the tag too.',
+  all_with_tag_tooltip: 'A list of all the objects with this tag.',
   for_loop2_tooltip: 'Loop from a starting number to an ending number by a given step.',
   for_loop_tooltip:
     'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',

@@ -774,12 +774,14 @@ export const flockScene = {
 
         clone.metadata = { ...(sourceMesh.metadata || {}) };
         clone.metadata.clones = [];
+        if (clone.metadata.tags) clone.metadata.tags = [...clone.metadata.tags];
         clone.metadata.sourceBlockKey ??= sourceMesh.metadata?.blockKey;
         clone.metadata.blockKey = blockKey;
         setMetadata(clone);
         clone.getDescendants().forEach((node) => {
           setMetadata(node);
           node.metadata = { ...node.metadata };
+          if (node.metadata.tags) node.metadata.tags = [...node.metadata.tags];
           delete node.metadata.blockKey;
           delete node.metadata.mirror;
         });

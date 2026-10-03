@@ -396,7 +396,8 @@ export const flockUI = {
       h: scaledHeight,
     });
 
-    flock._flushPendingTriggers(buttonId, flock._familyOf(buttonId));
+    const buttonFamily = flock._familyOf(buttonId);
+    if (!flock._isTag(buttonFamily)) flock._flushPendingTriggers(buttonId, buttonFamily);
 
     return buttonId;
   },

@@ -802,6 +802,7 @@ export function initializeWorkspace() {
     [
       'lists_create_empty',
       'lists_create_with',
+      'all_with_tag',
       'lists_repeat',
       'lists_length',
       'lists_isEmpty',

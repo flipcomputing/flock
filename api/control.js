@@ -111,4 +111,44 @@ export const flockControl = {
       );
     });
   },
+  createTag(tagName) {
+    if (typeof tagName !== 'string' || !tagName) {
+      console.warn('createTag: tagName must be a non-empty string');
+      return null;
+    }
+    for (const [name, rec] of flock._nameRegistry) {
+      if (rec.tag && rec.tagName === tagName) return name;
+    }
+    const families = new Set([
+      ...[...flock._nameRegistry.values()].map((rec) => rec.family),
+      ...(flock.scene?.meshes ?? []).map((mesh) => flock._familyOf(mesh.name)),
+    ]);
+    const used = (name) =>
+      flock._nameRegistry.has(name) || !!flock.scene?.getMeshByName(name) || families.has(name);
+    let tag = tagName;
+    while (used(tag)) {
+      tag = `${tagName}_${flock.scene.getUniqueId()}`;
+    }
+    flock._nameRegistry.set(tag, { pending: false, exists: true, family: tag, tag: true, tagName });
+    return tag;
+  },
+  tagObject(meshName, tag) {
+    if (!flock._isTag(tag)) {
+      flock.reportBlockError({ key: 'tag_not_found', api: 'tagObject', values: { tag } });
+      return Promise.resolve();
+    }
+    return flock.whenModelReady(meshName, (mesh) => {
+      if (!flock.requireMesh(mesh, { api: 'tagObject', name: meshName })) return;
+      mesh.metadata ??= {};
+      mesh.metadata.tags ??= [];
+      if (mesh.metadata.tags.includes(tag)) return;
+      mesh.metadata.tags.push(tag);
+      flock._applyGroupHandlers(mesh.name, tag);
+    });
+  },
+  getObjectsWithTag(tag) {
+    return (flock.scene?.meshes ?? [])
+      .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.tags?.includes(tag))
+      .map((mesh) => mesh.name);
+  },
 };
