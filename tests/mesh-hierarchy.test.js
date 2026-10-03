@@ -2722,6 +2722,34 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.metadata._preAttachWorldRotation).to.be.undefined;
       });
 
+      it('attach should remove physics and drop should restore the previous physics type', async function () {
+        await pumpAnimation(flock, flock.drop(treeId));
+        await pumpAnimation(flock, flock.setPhysics(treeId, 'STATIC'));
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        expect(treeMesh.physics, 'physics before attach').to.exist;
+
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
+        expect(treeMesh.physics, 'physics while attached').to.not.exist;
+
+        await pumpAnimation(flock, flock.drop(treeId));
+        expect(treeMesh.physics, 'physics after drop').to.exist;
+        expect(treeMesh.metadata.physicsType).to.equal('STATIC');
+        expect(treeMesh.metadata._preAttachPhysicsType).to.be.undefined;
+      });
+
+      it('attach to a missing bone should keep physics', async function () {
+        await pumpAnimation(flock, flock.drop(treeId));
+        await pumpAnimation(flock, flock.setPhysics(treeId, 'STATIC'));
+
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'NoSuchBone' }));
+
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        expect(treeMesh.parent).to.be.null;
+        expect(treeMesh.physics).to.exist;
+        expect(treeMesh.metadata._preAttachPhysicsType).to.be.undefined;
+      });
+
       it('drop should detach the tree so it no longer follows Liz', async function () {
         await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
         await pumpAnimation(flock, flock.drop(treeId));

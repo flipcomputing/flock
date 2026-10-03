@@ -1331,17 +1331,6 @@ export const flockMesh = {
             (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation = rotation.clone();
           }
 
-          if (
-            !alreadyAttached &&
-            meshToAttachInstance.physics &&
-            meshToAttachInstance.physics._pluginData
-          ) {
-            flock.hk._hknp.HP_World_RemoveBody(
-              flock.hk.world,
-              meshToAttachInstance.physics._pluginData.hpBodyId
-            );
-          }
-
           const logicalBoneName = boneName;
           boneName = targetMeshInstance?.metadata?.modelName?.startsWith('Character')
             ? attachBlockMapping[boneName]
@@ -1354,6 +1343,19 @@ export const flockMesh = {
           if (targetWithSkeleton) {
             const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === boneName);
             if (bone) {
+              if (!alreadyAttached && meshToAttachInstance.physics) {
+                const M = flock.BABYLON.PhysicsMotionType;
+                const motionTypeNames = {
+                  [M.STATIC]: 'STATIC',
+                  [M.ANIMATED]: 'ANIMATED',
+                  [M.DYNAMIC]: 'DYNAMIC',
+                };
+                meshToAttachInstance.metadata._preAttachPhysicsType =
+                  meshToAttachInstance.metadata.physicsType ||
+                  motionTypeNames[meshToAttachInstance.physics.getMotionType?.()];
+                flock.setPhysicsForMesh(meshToAttachInstance, 'NONE');
+              }
+
               meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
 
               (meshToAttachInstance.metadata ||= {})._attachedBoneName = logicalBoneName;
@@ -1436,6 +1438,7 @@ export const flockMesh = {
 
         const md = mesh.metadata || {};
         const restoreRotation = md._preAttachWorldRotation || rotationNow;
+        const restorePhysicsType = md._preAttachPhysicsType;
 
         // Remove from target's attachment tracking list
         const targetName = md._attachedTargetName;
@@ -1458,6 +1461,7 @@ export const flockMesh = {
           delete mesh.metadata._attachedBoneName;
           delete mesh.metadata._attachedOffset;
           delete mesh.metadata._preAttachWorldRotation;
+          delete mesh.metadata._preAttachPhysicsType;
         }
         flock._syncTeleportMeshHierarchy?.(mesh);
 
@@ -1466,22 +1470,7 @@ export const flockMesh = {
         mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
         mesh.computeWorldMatrix(true);
 
-        const body = mesh.physics;
-        if (body && body._pluginData) {
-          body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
-          if (body.setTargetTransform)
-            body.setTargetTransform(mesh.position, mesh.rotationQuaternion);
-          body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
-          body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-
-          flock.hk._hknp.HP_World_AddBody(flock.hk.world, body._pluginData.hpBodyId, true);
-
-          flock.scene.onBeforeRenderObservable.addOnce(() => {
-            body.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
-            body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
-            body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
-          });
-        }
+        if (restorePhysicsType) flock.setPhysicsForMesh(mesh, restorePhysicsType);
         resolve();
       });
     });
