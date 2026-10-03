@@ -253,6 +253,102 @@ export function runMeshHierarchyTests(flock) {
         expect(center.y).to.be.closeTo(-1, 0.01);
         expect(center.z).to.be.closeTo(-0.02, 0.01);
       });
+
+      it('should keep a child in place when its size is edited under a spinning parent', async function () {
+        this.timeout(15000);
+        const parentId = 'hierarchySizeEditParent';
+        const childId = 'hierarchySizeEditChild';
+        await flock.createBox(parentId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        await flock.createBox(childId, { width: 1, height: 2, depth: 1, position: [2, 0, 0] });
+        meshIds.push(parentId, childId);
+
+        await flock.parentChild(parentId, childId, 2, 0, 0);
+        await flock.rotateTo(parentId, { x: 40, y: 0, z: 0, world: true });
+
+        if (!Blockly.getMainWorkspace()) {
+          Blockly.common?.setMainWorkspace?.(new Blockly.Workspace());
+        }
+        const ws = Blockly.getMainWorkspace();
+        const block = ws.newBlock('create_box');
+        const shadows = Object.fromEntries(
+          Object.entries({ WIDTH: 1, HEIGHT: 2, DEPTH: 1 }).map(([input, v]) => {
+            const n = ws.newBlock('math_number');
+            n.setFieldValue(String(v), 'NUM');
+            n.setShadow(true);
+            block.getInput(input).connection.connect(n.outputConnection);
+            return [input, n];
+          })
+        );
+        const edit = (input, v) => {
+          shadows[input].setFieldValue(String(v), 'NUM');
+          updateMeshFromBlock([childMesh], block, {
+            type: Blockly.Events.BLOCK_CHANGE,
+            element: 'field',
+            name: 'NUM',
+            blockId: shadows[input].id,
+          });
+        };
+
+        const parentMesh = flock.scene.getMeshByName(parentId);
+        const childMesh = flock.scene.getMeshByName(childId);
+        const frames = async (n) => {
+          for (let i = 0; i < n; i++) {
+            flock.scene.render();
+            await new Promise((resolve) => setTimeout(resolve, 16));
+          }
+        };
+        const localBase = () => {
+          childMesh.computeWorldMatrix(true);
+          childMesh.refreshBoundingInfo();
+          const minY = childMesh.getBoundingInfo().boundingBox.minimum.y;
+          const p = childMesh.position;
+          return { x: p.x, y: p.y + minY * childMesh.scaling.y, z: p.z };
+        };
+
+        flock.rotateAnim(parentId, { x: 40, y: 180, z: 0, duration: 0.5, loop: true });
+        try {
+          await frames(10);
+          const beforeQ = flock.ensureQuaternion(childMesh).clone();
+          const beforeBase = localBase();
+
+          edit('WIDTH', 3);
+          await frames(5);
+          edit('HEIGHT', 4);
+          await frames(20);
+
+          childMesh.refreshBoundingInfo();
+          const local = childMesh.getBoundingInfo().boundingBox;
+          expect(local.maximum.x - local.minimum.x, 'width applied').to.be.closeTo(3, 0.05);
+          expect(local.maximum.y - local.minimum.y, 'height applied').to.be.closeTo(4, 0.05);
+
+          const [, [shapeMin, shapeMax]] = flock.hk._hknp.HP_Shape_GetBoundingBox(
+            childMesh.physics.shape._pluginData,
+            [[0, 0, 0], [0, 0, 0, 1]]
+          );
+          expect(shapeMax[0] - shapeMin[0], 'shape width').to.be.closeTo(3, 0.1);
+          expect(shapeMax[1] - shapeMin[1], 'shape height').to.be.closeTo(4, 0.1);
+          expect(shapeMax[2] - shapeMin[2], 'shape depth').to.be.closeTo(1, 0.1);
+
+          const after = localBase();
+          expect(after.x, 'local anchor x').to.be.closeTo(beforeBase.x, 0.01);
+          expect(after.y, 'local anchor y').to.be.closeTo(beforeBase.y, 0.01);
+          expect(after.z, 'local anchor z').to.be.closeTo(beforeBase.z, 0.01);
+          expect(
+            Math.abs(flock.BABYLON.Quaternion.Dot(beforeQ, flock.ensureQuaternion(childMesh))),
+            'local orientation preserved'
+          ).to.be.closeTo(1, 0.001);
+          expect(childMesh.parent).to.equal(parentMesh);
+        } finally {
+          flock.scene.stopAnimation(parentMesh);
+          [block, ...Object.values(shadows)].forEach((b) => {
+            try {
+              b.dispose();
+            } catch {
+              /* already gone */
+            }
+          });
+        }
+      });
     });
 
     describe('updateChildBlockRotations with a non-group parent', function () {
@@ -720,24 +816,22 @@ export function runMeshHierarchyTests(flock) {
         expect(getColorRoot(childMeshB)).to.equal(childMeshB);
         expect(getColorRoot(groupMesh)).to.equal(groupMesh);
 
-        // A nested part rides with its member top, not the group.
         const partName = await flock.createBox('hierarchyGroupColorRootPart', {
           width: 0.5, height: 0.5, depth: 0.5, position: [0, 2, 0],
         });
         const partMesh = flock.scene.getMeshByName(partName);
         partMesh.setParent(childMeshA);
         try {
-          expect(getColorRoot(partMesh)).to.equal(childMeshA);
+          expect(getColorRoot(partMesh)).to.equal(partMesh);
         } finally {
           partMesh.setParent(null);
           flock.dispose(partName);
         }
 
-        // Outside groups, hierarchies still resolve together.
         childMeshB.setParent(null);
         childMeshB.setParent(childMeshA);
         try {
-          expect(getColorRoot(childMeshB)).to.equal(childMeshA);
+          expect(getColorRoot(childMeshB)).to.equal(childMeshB);
           expect(getColorRoot(childMeshA)).to.equal(childMeshA);
         } finally {
           childMeshB.setParent(null);
@@ -773,6 +867,27 @@ export function runMeshHierarchyTests(flock) {
 
         expect(diffuse(childMeshA)?.toLowerCase()).to.equal('#ff0000');
         expect(diffuse(childMeshB)).to.equal(beforeB);
+      });
+
+      it('should paint a parent and its child object independently', async function () {
+        const parentId = 'hierarchyColorParent';
+        const childId = 'hierarchyColorChild';
+        await flock.createBox(parentId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        await flock.createBox(childId, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
+        meshIds.push(parentId, childId);
+        await flock.parentChild(parentId, childId, 2, 0, 0);
+
+        const parentMesh = flock.scene.getMeshByName(parentId);
+        const childMesh = flock.scene.getMeshByName(childId);
+        const diffuse = (m) => m.material?.diffuseColor?.toHexString?.()?.toLowerCase() ?? null;
+
+        handleMaterialOrColorChange(parentMesh, {}, 'COLOR', '#ff0000', null);
+        expect(diffuse(parentMesh), 'parent painted').to.equal('#ff0000');
+        expect(diffuse(childMesh), 'child untouched').to.not.equal('#ff0000');
+
+        handleMaterialOrColorChange(childMesh, {}, 'COLOR', '#00ff00', null);
+        expect(diffuse(childMesh), 'child painted').to.equal('#00ff00');
+        expect(diffuse(parentMesh), 'parent untouched').to.equal('#ff0000');
       });
 
       it("should write the picked member's own colour target, not the group's", async function () {

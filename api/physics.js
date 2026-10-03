@@ -82,6 +82,12 @@ const adoptPhysicsChangeDuringDrive = (mesh) => {
   applyDrivenState(body);
 };
 
+const redriveRebuiltBody = (mesh) => {
+  const body = mesh.physics;
+  if (!activeDrives.has(mesh) || !isBodyAlive(body)) return;
+  applyDrivenState(body);
+};
+
 const withPhysicsDescendants = (mesh) =>
   mesh ? [mesh, ...mesh.getChildMeshes(false)].filter(isPhysicsEnabled) : [];
 
@@ -607,10 +613,13 @@ export const flockPhysics = {
     if (!physicsShape) return;
 
     const boundingBox = mesh.getBoundingInfo().boundingBox;
-    const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-    const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-    const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
-    const center = boundingBox.center.multiply(mesh.scaling);
+    const size = boundingBox.maximum
+      .subtract(boundingBox.minimum)
+      .multiplyInPlace(mesh.absoluteScaling);
+    const width = Math.abs(size.x);
+    const height = Math.abs(size.y);
+    const depth = Math.abs(size.z);
+    const center = boundingBox.center.multiply(mesh.absoluteScaling);
 
     let newShape;
     let detectedShapeType;
@@ -717,6 +726,7 @@ export const flockPhysics = {
       disablePreStep: physicsBody.disablePreStep,
       shapeType: detectedShapeType,
     };
+    redriveRebuiltBody(parent);
   },
   addBeforePhysicsObservable(scene, ...meshes) {
     const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(() => {

@@ -1743,13 +1743,36 @@ export const flockMaterial = {
     flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
-  getColorSlots(rootMesh, { includeRoot = false } = {}) {
+  _ownerBlockKey(node) {
+    for (let current = node; current; current = current.parent) {
+      if (current.metadata?.blockKey !== undefined) return current.metadata.blockKey;
+    }
+    return undefined;
+  },
+  _isSeparateObject(node) {
+    const key = node?.metadata?.blockKey;
+    if (key === undefined || !node.parent) return false;
+    return key !== flock._ownerBlockKey(node.parent);
+  },
+  _ownDescendants(rootMesh) {
+    const own = [];
+    const walk = (node) => {
+      for (const child of node.getChildren()) {
+        if (flock._isSeparateObject(child)) continue;
+        own.push(child);
+        walk(child);
+      }
+    };
+    walk(rootMesh);
+    return own;
+  },
+  getColorSlots(rootMesh, { includeRoot = false, ownOnly = false } = {}) {
     const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
     const hasGeometry = (n) =>
       n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n);
 
-    const geometryMeshes = rootMesh
-      .getDescendants(false)
+    const descendants = ownOnly ? flock._ownDescendants(rootMesh) : rootMesh.getDescendants(false);
+    const geometryMeshes = descendants
       .filter(hasGeometry)
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, {
@@ -1799,7 +1822,10 @@ export const flockMaterial = {
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
     if (flock._applyTextLetterColors(rootMesh, colorInput, opts)) return rootMesh;
 
-    const slots = flock.getColorSlots(rootMesh, { includeRoot: opts.includeRoot });
+    const slots = flock.getColorSlots(rootMesh, {
+      includeRoot: opts.includeRoot,
+      ownOnly: opts.ownOnly,
+    });
 
     const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 

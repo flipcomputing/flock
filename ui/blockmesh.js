@@ -864,10 +864,6 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
   }
 }
 
-// Colour applies per member inside groups: climb to the topmost mesh that is
-// not itself parented to a group. Bone-attachments still win, exactly as
-// before; non-group parents (e.g. parent-block children) still paint the
-// whole hierarchy together.
 export function getColorRoot(mesh) {
   let current = mesh;
   while (current) {
@@ -875,7 +871,13 @@ export function getColorRoot(mesh) {
       flock.setPhysics(current.name, 'NONE');
       return current;
     }
-    if (!current.parent || current.parent.metadata?.shapeType === 'Group') return current;
+    if (
+      !current.parent ||
+      current.parent.metadata?.shapeType === 'Group' ||
+      flock._isSeparateObject(current)
+    ) {
+      return current;
+    }
     current = current.parent;
   }
   return mesh;
@@ -914,7 +916,7 @@ export function handleMaterialOrColorChange(mesh, block, changed, color, materia
   let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
 
   if (!rawColor) {
-    const firstMat = root.getDescendants(false).find((m) => m.material)?.material;
+    const firstMat = [root, ...flock._ownDescendants(root)].find((m) => m.material)?.material;
     rawColor = firstMat?.diffuseColor?.toHexString() || '#ffffff';
   }
 
@@ -935,6 +937,7 @@ export function handleMaterialOrColorChange(mesh, block, changed, color, materia
     applyColor: true,
     alpha,
     blockKey: root.metadata?.blockKey,
+    ownOnly: true,
   });
 
   return root;
@@ -1100,7 +1103,14 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
   const anchor = flock.getBlockPositionFromMesh(mesh);
 
   const repositionPrimitiveFromBlock = () => {
-    flock.positionAt(mesh.name, { ...anchor, useY: true });
+    if (mesh.isDisposed?.()) return;
+    const parentMesh = detachFromParent(mesh);
+    try {
+      flock.setBlockPositionOnMesh(mesh, { ...anchor, useY: true });
+    } finally {
+      reattachToParent(mesh, parentMesh);
+    }
+    flock.updatePhysics?.(mesh);
   };
 
   const applyPrimitiveUVTiling = (shapeType, dims) => {
@@ -1497,22 +1507,17 @@ function recomputeGroupPivot(groupBlock) {
   flock.recomputeGroupGeometry(groupMesh);
 }
 
-// Size edits on grouped members run unparented - exactly how Play builds
-// them (create, then parent). The geometry helpers decompose world
-// transforms into local fields, which mis-anchors under a transformed
-// parent: moveMeshToOrigin zeroes local fields while bakeCurrentTransform-
-// IntoVertices bakes the world matrix, so a rotated parent's orientation
-// would end up baked into the vertices and restored wrong.
-function detachGroupedMember(mesh) {
-  const groupMesh = mesh?.parent?.metadata?.shapeType === 'Group' ? mesh.parent : null;
-  if (groupMesh && !mesh.isDisposed?.()) mesh.setParent(null);
-  return groupMesh;
+function detachFromParent(mesh) {
+  const parentMesh = mesh?.parent ?? null;
+  if (parentMesh && !mesh.isDisposed?.()) mesh.parent = null;
+  return parentMesh;
 }
 
-function reattachGroupedMember(mesh, groupMesh) {
-  if (!groupMesh || groupMesh.isDisposed?.() || mesh.isDisposed?.()) return;
-  if (mesh.parent !== groupMesh) mesh.setParent(groupMesh);
-  const groupBlock = meshMap[groupMesh.metadata?.blockKey];
+function reattachToParent(mesh, parentMesh) {
+  if (!parentMesh || parentMesh.isDisposed?.() || mesh.isDisposed?.()) return;
+  if (mesh.parent !== parentMesh) mesh.parent = parentMesh;
+  if (parentMesh.metadata?.shapeType !== 'Group') return;
+  const groupBlock = meshMap[parentMesh.metadata?.blockKey];
   if (groupBlock) recomputeGroupPivot(groupBlock);
 }
 
@@ -1819,11 +1824,11 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   if (block.type.startsWith('load_') && changed === 'SCALE') {
     meshes.forEach((mesh) => {
-      const groupMesh = detachGroupedMember(mesh);
+      const parentMesh = detachFromParent(mesh);
       try {
         updateLoadBlockScaleFromEvent(mesh, block, changeEvent);
       } finally {
-        reattachGroupedMember(mesh, groupMesh);
+        reattachToParent(mesh, parentMesh);
       }
       reattachToBone(mesh);
     });
@@ -1835,11 +1840,11 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   meshes.forEach((mesh) => {
-    const groupMesh = detachGroupedMember(mesh);
+    const parentMesh = detachFromParent(mesh);
     try {
       handlePrimitiveGeometryChange(mesh, block, changed);
     } finally {
-      reattachGroupedMember(mesh, groupMesh);
+      reattachToParent(mesh, parentMesh);
     }
 
     // Random colour rolls per mesh; resolving once would paint all copies alike.
@@ -3084,7 +3089,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
 
   if (block.type === 'load_model') {
     const index =
-      colorIndex ?? flock.getColorSlots(root).find((slot) => slot.mesh === mesh)?.index;
+      colorIndex ??
+      flock.getColorSlots(root, { ownOnly: true }).find((slot) => slot.mesh === mesh)?.index;
     if (index === undefined) return;
     withUndoGroup(() => {
       block.updateColorAtIndex?.(selectedColor, index);
