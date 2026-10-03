@@ -195,6 +195,7 @@ export default {
   intersection_meshes: 'add %1 as intersect %2',
   hull_meshes: 'add %1 as hull of %2',
   flip: 'flip %1 %2',
+  mirror_mesh: 'add %1 as mirror of %2 along %3 about %4',
 
   // Custom block translations - Connect blocks
   parent: 'parent %1 child %2',
@@ -506,6 +507,8 @@ export default {
   intersection_meshes_tooltip: 'Intersect a list of objects and store the resulting geometry.',
   hull_meshes_tooltip: 'Create a convex hull from a list of objects and store the result.',
   flip_tooltip: 'Mirror an object across an axis. Does nothing on animated characters.',
+  mirror_mesh_tooltip:
+    'Add a mirrored copy of an object across an axis, through the centre of another object. Does nothing on animated characters.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:

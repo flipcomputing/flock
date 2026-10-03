@@ -1,5 +1,5 @@
 import { attachBlockMapping, attachMixamoMapping, objectColliderShapes } from '../config.js';
-import { teleportBodyToMesh } from './physics.js';
+import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
 
 let flock;
 
@@ -1489,7 +1489,9 @@ export const flockMesh = {
             resolve();
             return;
           }
+          const wasChild = childMesh.parent === parentMesh;
           childMesh.setParent(parentMesh);
+          if (!wasChild) joinActiveDrives(childMesh);
 
           if (parentMesh.metadata?.shapeType === 'Group') {
             flock.recomputeGroupGeometry(parentMesh);

@@ -72,6 +72,16 @@ const driveOne = (mesh) => {
   };
 };
 
+// A body cloned mid-drive would keep the drive's temporary ANIMATED state for
+// good, which pins the clone in place; give it the source's resting state.
+export const restoreRestingState = (sourceMesh, body) => {
+  const drive = activeDrives.get(sourceMesh);
+  if (!drive || !isBodyAlive(body)) return;
+  body.setMotionType(drive.motionType);
+  body.setPrestepType(drive.prestepType);
+  body.disablePreStep = drive.disablePreStep;
+};
+
 const adoptPhysicsChangeDuringDrive = (mesh) => {
   const drive = activeDrives.get(mesh);
   const body = mesh.physics;
@@ -95,16 +105,40 @@ export const teleportBodyToMesh = (mesh) => {
   withPhysicsDescendants(mesh).forEach(teleportOne);
 };
 
+// Meshes under an active drive, so a child parented mid-motion can join it.
+const activeDriveRoots = new Map();
+
 export const driveBody = (mesh) => {
   const drives = withPhysicsDescendants(mesh).map(driveOne);
-  return {
+  const controller = {
     teleport() {
       drives.forEach((drive) => drive.teleport());
     },
     release() {
       drives.forEach((drive) => drive.release());
+      const controllers = activeDriveRoots.get(mesh);
+      controllers?.delete(controller);
+      if (!controllers?.size) activeDriveRoots.delete(mesh);
+    },
+    adopt(child) {
+      withPhysicsDescendants(child).forEach((childMesh) => {
+        const drive = driveOne(childMesh);
+        drives.push(drive);
+        drive.teleport();
+      });
     },
   };
+  if (!activeDriveRoots.has(mesh)) activeDriveRoots.set(mesh, new Set());
+  activeDriveRoots.get(mesh).add(controller);
+  return controller;
+};
+
+// Without this, a child parented under a gliding group keeps a static body
+// where it was attached while its mesh travels on with the group.
+export const joinActiveDrives = (child) => {
+  for (let node = child?.parent; node; node = node.parent) {
+    activeDriveRoots.get(node)?.forEach((controller) => controller.adopt(child));
+  }
 };
 
 // Restitution lives on the shape material, not mass properties. Reads
@@ -601,9 +635,11 @@ export const flockPhysics = {
   },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
-    if (mesh.scaling.x < 0.01) mesh.scaling.x = Math.max(0.01, Math.abs(mesh.scaling.x));
-    if (mesh.scaling.y < 0.01) mesh.scaling.y = Math.max(0.01, Math.abs(mesh.scaling.y));
-    if (mesh.scaling.z < 0.01) mesh.scaling.z = Math.max(0.01, Math.abs(mesh.scaling.z));
+    // Keeps the sign: a negative axis is a deliberate mirror (flip, mirror).
+    for (const axis of ['x', 'y', 'z']) {
+      const value = mesh.scaling[axis];
+      if (Math.abs(value) < 0.01) mesh.scaling[axis] = value < 0 ? -0.01 : 0.01;
+    }
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
     if (!isBodyAlive(parent.physics)) return;

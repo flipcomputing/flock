@@ -1,6 +1,11 @@
 import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
-import { getFieldValue, maybeParentToGroup } from './generators-utilities.js';
+import {
+  getFieldValue,
+  getVariableInfo,
+  getThenCallback,
+  maybeParentToGroup,
+} from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
@@ -537,6 +542,37 @@ export function registerTransformGenerators(javascriptGenerator) {
         : 'x';
 
     return `await flip(${meshName}, '${normalized}');\n`;
+  };
+
+  javascriptGenerator.forBlock['mirror_mesh'] = function (block) {
+    const sourceMeshName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('SOURCE_MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const { generatedName: mirrorVar, userVariableName: mirrorName } = getVariableInfo(
+      block,
+      'ID_VAR'
+    );
+    const axis = String(block.getFieldValue('AXIS') || 'x_coordinate').toLowerCase();
+    const key = axis.includes('y') ? 'y' : axis.includes('z') ? 'z' : 'x';
+    const about = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('ABOUT'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+
+    const doBody = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') : '';
+    const callback = doBody ? `,\ncallback: async function(${mirrorVar}) {\n${doBody}\n}` : '';
+
+    return `${mirrorVar} = mirror(${sourceMeshName}, {
+                          mirrorId: ${JSON.stringify(mirrorName)},
+                          mirrorName: ${JSON.stringify(mirrorName)},
+                          axis: '${key}',
+                          aboutMeshName: ${about},
+                          blockKey: ${JSON.stringify(block.id)}${callback}${getThenCallback(block, mirrorVar)}
+                  });\n${maybeParentToGroup(mirrorVar)}`;
   };
 
   // Used as an input inside set_pivot

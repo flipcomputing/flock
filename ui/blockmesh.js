@@ -379,16 +379,17 @@ export function getInitialTransformOwner(transformBlock) {
   return isTransformBlock(transformBlock) ? getOwnDoOwner(transformBlock) : null;
 }
 
-// move_to_xyz / change_color only update live under a clone, whose own
-// block has no position or colour inputs.
+const CLONE_LIKE_TYPES = new Set(['clone_mesh', 'mirror_mesh']);
+
+// move_to_xyz / change_color only update live under a clone or mirror,
+// whose own block has no position or colour inputs.
 export function getCloneDoOwner(block) {
   if (block?.type !== 'move_to_xyz' && block?.type !== 'change_color') return null;
   const owner = getOwnDoOwner(block);
-  return owner?.type === 'clone_mesh' ? owner : null;
+  return CLONE_LIKE_TYPES.has(owner?.type) ? owner : null;
 }
 
-function applyCloneDoBlock(block, owner) {
-  const meshes = getMeshesFromBlock(owner);
+function applyCloneDoBlock(block, owner, meshes = getMeshesFromBlock(owner)) {
   if (block.type === 'move_to_xyz') {
     const position = getXYZFromBlock(block);
     const useY = block.getFieldValue('USE_Y') === 'TRUE';
@@ -679,6 +680,10 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
         changeEvent?.type === Blockly.Events.BLOCK_CREATE ||
         changeEvent?.type === Blockly.Events.BLOCK_MOVE
     );
+  }
+  if (block.type === 'mirror_mesh') {
+    scheduleMirrorRebuild(block);
+    return;
   }
   if (
     (changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
@@ -1457,6 +1462,124 @@ export function setGroupSelectionFollower(fn) {
 }
 
 let groupActiveToggleListener = null;
+
+// True while a mirror is under a gizmo: disposing it would end the tool, so
+// its rebuild waits and only its placement follows. Owned by gizmos.js.
+let mirrorInUse = null;
+
+export function setMirrorInUseCheck(fn) {
+  mirrorInUse = typeof fn === 'function' ? fn : null;
+}
+
+// Long enough for the source's own live update (often async) to land first.
+const MIRROR_REBUILD_DELAY_MS = 150;
+const MIRROR_SOURCE_RETRIES = 10;
+const mirrorRebuildTimers = new Map();
+// Mirrors already rebuilt in the dependency chain that led to a pending
+// rebuild, so mirrors built from each other can't rebuild each other forever.
+const mirrorRebuildChains = new Map();
+const MIRROR_EVENT_TYPES = new Set([
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_DELETE,
+  Blockly.Events.BLOCK_MOVE,
+]);
+
+function ownerBlocksOfVariable(block, fieldName) {
+  const variableId = block.getFieldValue(fieldName);
+  if (!variableId) return [];
+  return block.workspace
+    .getAllBlocks(false)
+    .filter((b) => b !== block && getOwnVar(b) === variableId);
+}
+
+// A mirror tracks its source and about object while editing: any edit
+// inside either one's block rebuilds it. Unplugging fires a move before a
+// delete, so moves cover blocks deleted from inside them.
+export function watchMirrorSources(block, changeEvent) {
+  if (!MIRROR_EVENT_TYPES.has(changeEvent.type) || block.disposed) return;
+  if (window.loadingCode && !changeEvent.recordUndo) return;
+  if (!isMainWorkspaceEvent(changeEvent, block)) return;
+
+  if (changeEvent.type === Blockly.Events.BLOCK_DELETE) {
+    if (getMeshFromBlock(block)) scheduleMirrorRebuild(block);
+    return;
+  }
+
+  const touched = [
+    changeEvent.blockId,
+    ...(changeEvent.ids ?? []),
+    changeEvent.oldParentId,
+    changeEvent.newParentId,
+  ].filter(Boolean);
+  const roots = [
+    ...ownerBlocksOfVariable(block, 'SOURCE_MESH'),
+    ...ownerBlocksOfVariable(block, 'ABOUT'),
+  ];
+  if (roots.some((root) => touched.some((id) => isBlockIdDescendantOf(root, id)))) {
+    scheduleMirrorRebuild(block);
+  }
+}
+
+function scheduleMirrorRebuild(block, attempt = 0, chain = new Set()) {
+  clearTimeout(mirrorRebuildTimers.get(block.id));
+  mirrorRebuildChains.set(block.id, chain);
+  mirrorRebuildTimers.set(
+    block.id,
+    setTimeout(() => {
+      mirrorRebuildTimers.delete(block.id);
+      rebuildMirror(block, attempt);
+    }, MIRROR_REBUILD_DELAY_MS)
+  );
+}
+
+function rebuildMirror(block, attempt) {
+  if (block.disposed) return;
+  const oldMesh = getMeshFromBlock(block);
+  if (oldMesh && mirrorInUse?.(oldMesh)) {
+    const source = getMeshFromBlockKey(oldMesh.metadata?.mirror?.sourceBlockKey);
+    if (source) flock.placeReflected(oldMesh, source, oldMesh.metadata.mirror);
+    scheduleMirrorRebuild(block, attempt, mirrorRebuildChains.get(block.id));
+    return;
+  }
+  deleteMeshFromBlock(block.id);
+  if (!isBlockConnectedToEnabledChain(block)) return;
+
+  const sourceOwner = ownerBlocksOfVariable(block, 'SOURCE_MESH')[0];
+  if (!getMeshFromBlock(sourceOwner)) {
+    // The source may itself be mid-rebuild (e.g. a model reloading).
+    if (sourceOwner && attempt < MIRROR_SOURCE_RETRIES) {
+      scheduleMirrorRebuild(block, attempt + 1, mirrorRebuildChains.get(block.id));
+    }
+    return;
+  }
+  createMeshOnCanvas(block);
+}
+
+// Re-applies the mirror's own DO edits that the live editor handles, as Play
+// would after building it. Takes the mesh: the block index may not have it yet.
+export function applyMirrorDoBlocks(block, mesh) {
+  for (let cur = block.getInputTargetBlock('DO'); cur; cur = cur.getNextBlock()) {
+    if (cur.isEnabled() && getCloneDoOwner(cur) === block) applyCloneDoBlock(cur, block, [mesh]);
+  }
+}
+
+// A rebuilt mirror makes no block events, so mirrors built from it follow here.
+export function rebuildDependentMirrors(block) {
+  const chain = new Set(mirrorRebuildChains.get(block.id)).add(block.id);
+  mirrorRebuildChains.delete(block.id);
+  const variableId = getOwnVar(block);
+  if (!variableId) return;
+  for (const other of block.workspace.getBlocksByType('mirror_mesh', false)) {
+    if (chain.has(other.id)) continue;
+    if (
+      other.getFieldValue('SOURCE_MESH') === variableId ||
+      other.getFieldValue('ABOUT') === variableId
+    ) {
+      scheduleMirrorRebuild(other, 0, chain);
+    }
+  }
+}
 
 export function setGroupActiveToggleListener(fn) {
   groupActiveToggleListener = typeof fn === 'function' ? fn : null;
@@ -3049,7 +3172,7 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
 
   const owner = findParentWithBlockId(mesh);
   const ownerBlock = meshMap?.[owner?.metadata?.blockKey];
-  if (ownerBlock?.type === 'clone_mesh') {
+  if (CLONE_LIKE_TYPES.has(ownerBlock?.type)) {
     withUndoGroup(() => setCloneColor(ownerBlock, owner, mesh, selectedColor));
     return;
   }

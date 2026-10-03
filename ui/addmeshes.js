@@ -8,6 +8,8 @@ import {
   readColourList,
   attachToEnclosingGroupIfAny,
   applyInitialTransformsFromBlock,
+  applyMirrorDoBlocks,
+  rebuildDependentMirrors,
   readNumberOrList,
 } from './blockmesh.js';
 
@@ -57,6 +59,11 @@ export function createMeshOnCanvas(block) {
 
   if (block.type === 'create_group') {
     createGroupInternal(block);
+    return;
+  }
+
+  if (block.type === 'mirror_mesh') {
+    createMirrorInternal(block);
     return;
   }
 
@@ -785,6 +792,33 @@ function createShapeInternal(block) {
     attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
   }
   return newMesh;
+}
+
+// Live-editor counterpart of the mirror_mesh generator, followed by the DO
+// edits the live editor applies to clones.
+function createMirrorInternal(block) {
+  const sourceName = resolveVariableMeshName(block, 'SOURCE_MESH');
+  if (!sourceName) return;
+  const mirrorName = block.getField('ID_VAR')?.getText() || 'mirror';
+  const axis = String(block.getFieldValue('AXIS') || 'x_coordinate').toLowerCase();
+
+  const newMesh = flock.mirror(sourceName, {
+    mirrorId: mirrorName,
+    mirrorName,
+    axis: axis.includes('y') ? 'y' : axis.includes('z') ? 'z' : 'x',
+    aboutMeshName: resolveVariableMeshName(block, 'ABOUT'),
+    blockKey: block.id,
+  });
+  if (!newMesh || newMesh.startsWith('error_')) return;
+
+  meshMap[block.id] = block;
+  meshBlockIdMap[block.id] = block.id;
+  flock.whenModelReady(newMesh, (mesh) => {
+    if (!mesh || block.disposed) return;
+    attachToEnclosingGroupIfAny(block, mesh);
+    applyMirrorDoBlocks(block, mesh);
+    rebuildDependentMirrors(block);
+  });
 }
 
 // Live-editor counterpart of the create_group generator: an empty group

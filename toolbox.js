@@ -1940,6 +1940,11 @@ const toolboxTransformModify = {
       type: 'flip',
       keyword: 'flip',
     },
+    {
+      kind: 'block',
+      type: 'mirror_mesh',
+      keyword: 'mirror',
+    },
   ],
 };
 

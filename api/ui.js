@@ -20,8 +20,7 @@ const CONTROL_BUTTON_SIZE = 62;
 const CONTROL_CELL_SIZE = 72;
 const CONTROLS_EDGE_MARGIN = 5;
 // Distance from the canvas edge to the nearest button face.
-const CONTROLS_EDGE_INSET =
-  CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;
+const CONTROLS_EDGE_INSET = CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;
 
 // Canvas-painted GUI text can't inherit the browser's font-size preferences,
 // so approximate them from the root font-size. baseCssPx is the size at a 16px
@@ -936,6 +935,7 @@ export const flockUI = {
           plane.isPickable = false;
           plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
+          const parentScale = new flock.BABYLON.Vector3();
           // FIX: Cleanup observer to prevent memory leak
           const observer = flock.scene.onBeforeRenderObservable.add(() => {
             if (targetMesh.isDisposed()) {
@@ -958,10 +958,14 @@ export const flockUI = {
             plane.metadata.isXREmbodiedHUD = false;
             if (plane.parent !== targetMesh) plane.parent = targetMesh;
             plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
-            const boundingInfo = targetMesh.getBoundingInfo();
-            const parentScale = targetMesh.scaling;
+            // A billboard child sees only its parent's decomposed scale and
+            // translation, and decompose moves a mirror's negative sign to y,
+            // so size and lift the plane by that rather than mesh.scaling.
+            const world = targetMesh.getWorldMatrix();
+            world.decompose(parentScale);
             plane.scaling.set(1 / parentScale.x, 1 / parentScale.y, 1 / parentScale.z);
-            plane.position.y = boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
+            const top = targetMesh.getBoundingInfo().boundingBox.maximumWorld.y - world.m[13];
+            plane.position.y = (top + 2.1) / parentScale.y;
           });
 
           plane.onDisposeObservable.add(() => {

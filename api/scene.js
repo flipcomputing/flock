@@ -1,4 +1,44 @@
+import { isBodyAlive, restoreRestingState } from './physics.js';
+
 let flock;
+
+// Babylon's clone gives every cloned node a copy of its source's body and
+// also copies the source's `physics` reference, so a node can end up with
+// several bodies syncing it (one cloned mid-glide pins it in place). Replace
+// them with one body per node, cloned from its source in its resting state.
+function clonePhysicsHierarchy(sourceMesh, clone) {
+  // Babylon names a cloned child "<parent clone name>.<source name>".
+  const sourceName = (node) => (node === clone ? '' : node.name.slice(node.parent.name.length + 1));
+  const pathOf = (node, root, nameOf) => {
+    const path = [];
+    for (let n = node; n && n !== root; n = n.parent) path.unshift(nameOf(n));
+    return path.join('/');
+  };
+  const sourceByPath = new Map(
+    [sourceMesh, ...sourceMesh.getDescendants(false)].map((node) => [
+      pathOf(node, sourceMesh, (n) => n.name),
+      node,
+    ])
+  );
+  const cloneNodes = [clone, ...clone.getDescendants(false)];
+  const cloneSet = new Set(cloneNodes);
+  flock.scene
+    .getPhysicsEngine?.()
+    ?.getBodies?.()
+    .filter((body) => cloneSet.has(body.transformNode))
+    .forEach((body) => body.dispose());
+
+  for (const node of cloneNodes) {
+    node.physics = null;
+    const source = sourceByPath.get(pathOf(node, clone, sourceName));
+    if (!isBodyAlive(source?.physics)) continue;
+    node.physics = source.physics.clone(node);
+    restoreRestingState(source, node.physics);
+    // PhysicsBody.clone() shares the shape; mark it so disposePhysics on
+    // one mesh won't destroy the other's.
+    if (source.physics.shape) source.physics.shape._isShared = true;
+  }
+}
 
 const sceneReady = () => !!(flock && flock.scene && flock.BABYLON);
 
@@ -642,6 +682,9 @@ export const flockScene = {
     blockKey = cloneId,
     callback = null,
     then = null,
+    transform = null,
+    inheritConstruction = true,
+    family = null,
   } = {}) {
     if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
       console.warn('cloneMesh: invalid sourceMeshName');
@@ -661,7 +704,7 @@ export const flockScene = {
     }
     if (flock.maxMeshesReached()) return 'error_' + cloneId;
 
-    const uniqueCloneId = flock._reserveName(cloneId, flock._familyOf(sourceMeshName));
+    const uniqueCloneId = flock._reserveName(cloneId, family ?? flock._familyOf(sourceMeshName));
 
     const signal = flock.abortController?.signal;
 
@@ -718,17 +761,7 @@ export const flockScene = {
         clone.rotationQuaternion = worldRotation.clone();
         clone.scaling.copyFrom(sourceMesh.scaling);
 
-        // Clone and synchronise the physics body
-        if (sourceMesh.physics) {
-          const cloneBody = sourceMesh.physics.clone(clone);
-          clone.physics = cloneBody;
-          // PhysicsBody.clone() shares the same shape object between source and clone.
-          // Mark it so disposePhysics won't destroy it when physics is removed from
-          // one of the meshes (which would corrupt the other's physics body).
-          if (sourceMesh.physics.shape) {
-            sourceMesh.physics.shape._isShared = true;
-          }
-        }
+        clonePhysicsHierarchy(sourceMesh, clone);
 
         const setMetadata = (mesh) => {
           // Ensure metadata exists
@@ -748,7 +781,10 @@ export const flockScene = {
           setMetadata(node);
           node.metadata = { ...node.metadata };
           delete node.metadata.blockKey;
+          delete node.metadata.mirror;
         });
+        // A copy of a mirror is not a mirror itself; mirror() sets its own.
+        delete clone.metadata.mirror;
 
         if (clone.metadata?.shapeType === 'Group') {
           // A cloned action manager would still close over the source shell,
@@ -784,7 +820,18 @@ export const flockScene = {
           flock.say(cloneTargetName, { text: '', duration: 0 })?.catch?.(() => {});
         }
 
-        const inherited = flock._constructionOf(sourceMesh);
+        if (typeof transform === 'function') {
+          const kept = await transform(clone, sourceMesh);
+          if (signal?.aborted) return;
+          if (kept === false || clone.isDisposed()) {
+            resolveReady(null);
+            return;
+          }
+        }
+
+        const inherited = inheritConstruction
+          ? flock._constructionOf(sourceMesh)
+          : { dos: [], thens: [] };
         flock._rememberConstruction(clone, {
           dos: [...inherited.dos, callback],
           thens: [...inherited.thens, then],

@@ -30,6 +30,83 @@ function currentAnchorSettings(mesh) {
   );
 }
 
+function axisKey(axis) {
+  const normalized = String(axis ?? 'x').toLowerCase();
+  return normalized.includes('y') ? 'y' : normalized.includes('z') ? 'z' : 'x';
+}
+
+// Skinned meshes bind vertices to bones in one orientation; mirroring
+// the transform without re-targeting the skeleton would distort them.
+function isSkinned(mesh) {
+  return [mesh, ...(mesh.getChildMeshes?.() ?? [])].some((m) => m?.skeleton);
+}
+
+// Mirror in local space; children follow via the world matrix.
+function negateAxis(mesh, key) {
+  const hierarchy = [mesh, ...(mesh.getChildMeshes?.() ?? [])];
+  mesh.scaling[key] *= -1;
+  hierarchy.forEach((m) => {
+    if (m?.getTotalVertices?.() > 0 && typeof m.flipFaces === 'function') m.flipFaces();
+  });
+  mesh.refreshBoundingInfo?.(true);
+  // Recompute parent-first so descendants pick up the mirrored matrix.
+  hierarchy.forEach((m) => m.computeWorldMatrix?.(true));
+  // No updatePhysics: physics shapes use absolute extents, which mirroring
+  // preserves. Re-sync any live bodies to the mirrored transforms instead.
+  hierarchy.forEach((m) => {
+    if (isBodyAlive(m?.physics)) teleportBodyToMesh(m);
+  });
+}
+
+// Like Blender's mirror object, the plane follows the about object's own
+// axes, so it turns with a rotated group; without one it uses world axes.
+function mirrorPlane(about, key) {
+  const B = flock.BABYLON;
+  const normal = B.Vector3.Zero();
+  normal[key] = 1;
+  if (!about) return { normal, point: B.Vector3.Zero() };
+  about.computeWorldMatrix(true);
+  return {
+    normal: B.Vector3.TransformNormal(normal, about.getWorldMatrix()).normalize(),
+    point: hierarchyCentre(about),
+  };
+}
+
+function applyReflectedWorld(target, world, { normal, point }) {
+  const B = flock.BABYLON;
+  const reflection = B.Matrix.Reflection(B.Plane.FromPositionAndNormal(point, normal));
+  let local = world.multiply(reflection);
+  if (target.parent) {
+    target.parent.computeWorldMatrix(true);
+    local = local.multiply(B.Matrix.Invert(target.parent.getWorldMatrix()));
+  }
+  const scaling = new B.Vector3();
+  const rotation = new B.Quaternion();
+  // Keep target's own scaling signs so a mirror stays negative on its axis.
+  local.decompose(scaling, rotation, target.position, target, false);
+  target.scaling.copyFrom(scaling);
+  target.rotationQuaternion = rotation;
+  target.computeWorldMatrix(true);
+  if (isBodyAlive(target.physics)) teleportBodyToMesh(target);
+}
+
+function hierarchyCentre(mesh) {
+  mesh.computeWorldMatrix(true);
+  const { min, max } = mesh.getHierarchyBoundingVectors(true);
+  return min.add(max).scale(0.5);
+}
+
+// Babylon names a cloned descendant by joining the names along its path.
+function removeCounterpart(clone, sourceMesh, sourceNode) {
+  const path = [];
+  for (let node = sourceNode; node && node !== sourceMesh; node = node.parent) {
+    path.unshift(node.name);
+  }
+  const cloneName = [clone.name, ...path].join('.');
+  const counterpart = clone.getDescendants(false).find((node) => node.name === cloneName);
+  if (counterpart) flock.disposeMesh(counterpart);
+}
+
 function isInGroup(mesh) {
   let ancestor = mesh?.parent;
   while (ancestor) {
@@ -620,32 +697,76 @@ export const flockTransform = {
           resolve();
           return;
         }
-        const normalized = String(axis ?? 'x').toLowerCase();
-        const key = normalized.includes('y') ? 'y' : normalized.includes('z') ? 'z' : 'x';
-        const hierarchy = [mesh, ...(mesh.getChildMeshes?.() ?? [])];
-        // Skinned meshes bind vertices to bones in one orientation; mirroring
-        // the transform without re-targeting the skeleton would distort them.
-        if (hierarchy.some((m) => m?.skeleton)) {
-          resolve();
-          return;
-        }
-        // Mirror in local space; children follow via the world matrix.
-        mesh.scaling[key] *= -1;
-        hierarchy.forEach((m) => {
-          if (m?.getTotalVertices?.() > 0 && typeof m.flipFaces === 'function') m.flipFaces();
-        });
-        mesh.refreshBoundingInfo?.(true);
-        // Recompute parent-first so descendants pick up the mirrored matrix.
-        hierarchy.forEach((m) => m.computeWorldMatrix?.(true));
-        // No updatePhysics: it clamps scaling back to positive, and physics
-        // shapes use absolute extents which mirroring preserves. Re-sync any
-        // live bodies to the mirrored transforms instead.
-        hierarchy.forEach((m) => {
-          if (isBodyAlive(m?.physics)) teleportBodyToMesh(m);
-        });
+        if (!isSkinned(mesh)) negateAxis(mesh, axisKey(axis));
         resolve();
       });
     });
+  },
+  mirror(
+    sourceMeshName,
+    {
+      mirrorId,
+      mirrorName = null,
+      axis = 'x',
+      aboutMeshName = null,
+      blockKey = mirrorId,
+      callback = null,
+      then = null,
+    } = {}
+  ) {
+    const key = axisKey(axis);
+    return flock.cloneMesh({
+      sourceMeshName,
+      cloneId: mirrorId,
+      cloneName: mirrorName,
+      blockKey,
+      callback,
+      then,
+      // Its own family, so the source's event handlers don't fire on it.
+      family: mirrorName ?? mirrorId,
+      // The source's own DO (e.g. rotate_to) would overwrite the reflection.
+      inheritConstruction: false,
+      transform: async (clone, sourceMesh) => {
+        if (isSkinned(sourceMesh)) {
+          console.warn(`mirror: ${sourceMeshName} is an animated character, which can't be mirrored`);
+          flock.disposeMesh(clone);
+          return false;
+        }
+
+        const about = aboutMeshName ? await flock.whenModelReady(aboutMeshName) : null;
+        if (clone.isDisposed()) return false;
+        const plane = mirrorPlane(about, key);
+
+        // Before mirroring: the recompute resets negative scaling.
+        if (about && about !== sourceMesh && about.isDescendantOf(sourceMesh)) {
+          removeCounterpart(clone, sourceMesh, about);
+          flock.recomputeGroupGeometry(clone);
+        }
+
+        // flipFaces below would otherwise flip the source too.
+        [clone, ...clone.getChildMeshes()].forEach((m) => {
+          if (m.getTotalVertices?.() > 0) {
+            m.makeGeometryUnique();
+            m.metadata = { ...m.metadata, sharedGeometry: false };
+          }
+        });
+        const world = clone.computeWorldMatrix(true).clone();
+        negateAxis(clone, key);
+        applyReflectedWorld(clone, world, plane);
+
+        clone.metadata.mirror = {
+          sourceBlockKey: sourceMesh.metadata?.blockKey ?? null,
+          ...plane,
+          aboutBlockKey: about?.metadata?.blockKey ?? null,
+        };
+        return true;
+      },
+    });
+  },
+  // Sets target's transform to from's reflected across a mirror's plane,
+  // which pairs a mirror with its source in either direction.
+  placeReflected(target, from, plane) {
+    applyReflectedWorld(target, from.computeWorldMatrix(true), plane);
   },
   // Keep material textures from stretching when a mesh is scaled by tiling
   // them to the mesh's world-space dimensions. Shared by resize() and the

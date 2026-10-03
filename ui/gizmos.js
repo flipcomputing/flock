@@ -15,6 +15,7 @@ import {
   getSuppressedHitCount,
   setGroupSelectionFollower,
   setGroupActiveToggleListener,
+  setMirrorInUseCheck,
 } from './blockmesh.js';
 import {
   highlightBlockById,
@@ -2047,15 +2048,19 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     return;
   }
 
+  // Keyboard rotation works on the source; the ring gizmo still drives it.
+  const mirrorSource = mirrorSourceOf(mesh);
+  const blockMesh = mirrorSource ?? mesh;
   const rotateBlock =
-    mesh?.metadata?.shapeType === 'Group' ? null : findOrCreateRotateBlock(mesh);
+    blockMesh?.metadata?.shapeType === 'Group' ? null : findOrCreateRotateBlock(blockMesh);
   if (rotateBlock) {
     highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
   } else {
-    const blockKey = mesh?.metadata?.blockKey;
+    const blockKey = blockMesh?.metadata?.blockKey;
     const creationBlock = blockKey ? meshMap[blockKey] : null;
     if (creationBlock) highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
   }
+  if (mirrorSource) return;
 
   // Track rotation as Euler degrees (the block's representation), not
   // quaternion increments: a single-axis drag then changes only that axis,
@@ -2169,7 +2174,7 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
   stopAxisKeyboard?.();
   stopAxisKeyboard = null;
 
-  if (isGroupClone(mesh) || isPrefab(mesh)) {
+  if (isGroupClone(mesh) || isPrefab(mesh) || mesh?.metadata?.mirror) {
     showNotAllowedCursor();
     return;
   }
@@ -2275,17 +2280,50 @@ function isGroupClone(mesh) {
   );
 }
 
+// A mirror's transform drives its source: the mirror is rebuilt from the
+// source once the source's blocks are written.
+function mirrorSourceOf(mesh) {
+  const key = mesh?.metadata?.mirror?.sourceBlockKey;
+  const source = key ? getMeshFromBlockKey(key) : null;
+  return source && !source.isDisposed() ? source : null;
+}
+
+// Keeps mirrors level with a drag in progress: a dragged mirror moves its
+// source, and mirrors of whatever is dragged (but outside it) move too.
+function syncMirrorsDuringDrag(mesh) {
+  if (!mesh) return;
+  const source = mirrorSourceOf(mesh);
+  if (source && !source.isDescendantOf(mesh) && !mesh.isDescendantOf(source)) {
+    flock.placeReflected(source, mesh, mesh.metadata.mirror);
+  }
+  const moved = new Set(
+    [mesh, ...mesh.getChildMeshes()].map((m) => m.metadata?.blockKey).filter(Boolean)
+  );
+  for (const mirror of flock.scene.meshes) {
+    const key = mirror.metadata?.mirror?.sourceBlockKey;
+    if (!key || !moved.has(key) || mirror === mesh || mirror.isDescendantOf(mesh)) continue;
+    const mirrorSource = mirrorSourceOf(mirror);
+    if (mirrorSource) flock.placeReflected(mirror, mirrorSource, mirror.metadata.mirror);
+  }
+}
+
+function reflectPoint(point, { normal, point: planePoint }) {
+  const distance = flock.BABYLON.Vector3.Dot(point.subtract(planePoint), normal);
+  return point.subtract(normal.scale(2 * distance));
+}
+
 function applyScaleAxisHandles(mesh) {
   const sg = gizmoManager?.gizmos?.scaleGizmo;
   if (!sg) return;
   const isGroup = mesh?.metadata?.shapeType === 'Group';
   const isPlane = meshMap[mesh?.metadata?.blockKey]?.type === 'create_plane';
   const isCamera = isCameraFrame(mesh);
+  const isMirror = !!mesh?.metadata?.mirror;
   const enabled = {
-    x: !isGroup && !isCamera,
-    y: !isGroup && !isCamera,
-    z: !isGroup && !isPlane && !isCamera,
-    uniform: !isGroupClone(mesh) && !isPrefab(mesh) && !isCamera,
+    x: !isGroup && !isCamera && !isMirror,
+    y: !isGroup && !isCamera && !isMirror,
+    z: !isGroup && !isPlane && !isCamera && !isMirror,
+    uniform: !isGroupClone(mesh) && !isPrefab(mesh) && !isCamera && !isMirror,
   };
   for (const [axis, g] of [
     ['x', sg.xGizmo],
@@ -2434,6 +2472,13 @@ function writePositionToBlock(block, pos) {
 // Update the blockly block after a rotation.
 // axisFilter: optional { x, y, z } booleans — only those axes are written.
 export function updateRotationBlock(mesh, axisFilter = null) {
+  const mirrorSource = mirrorSourceOf(mesh);
+  if (mirrorSource) {
+    flock.placeReflected(mirrorSource, mesh, mesh.metadata.mirror);
+    updateRotationBlock(mirrorSource);
+    return;
+  }
+
   const rotateBlock = findOrCreateRotateBlock(mesh);
   if (!rotateBlock) return;
 
@@ -3191,6 +3236,14 @@ function syncMemberBodies(mesh) {
 }
 
 function commitMoveToBlocks(mesh, startPosition) {
+  const mirrorSource = mirrorSourceOf(mesh);
+  if (mirrorSource) {
+    flock.placeReflected(mirrorSource, mesh, mesh.metadata.mirror);
+    const sourceStart = startPosition && reflectPoint(startPosition, mesh.metadata.mirror);
+    commitMoveToBlocks(mirrorSource, sourceStart);
+    return;
+  }
+
   const block = meshMap[mesh?.metadata?.blockKey];
   let delta = null;
 
@@ -3911,12 +3964,13 @@ function handleRotationGizmo() {
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
+    const blockMesh = mirrorSourceOf(mesh) ?? mesh;
 
-    if (mesh.metadata?.shapeType === 'Group' || isTargetCameraFrame(mesh)) {
-      const ownerBlock = meshMap[mesh.metadata?.blockKey];
+    if (blockMesh.metadata?.shapeType === 'Group' || isTargetCameraFrame(blockMesh)) {
+      const ownerBlock = meshMap[blockMesh.metadata?.blockKey];
       if (ownerBlock) highlightBlockById(Blockly.getMainWorkspace(), ownerBlock);
     } else {
-      const rotateBlock = findOrCreateRotateBlock(mesh);
+      const rotateBlock = findOrCreateRotateBlock(blockMesh);
       if (rotateBlock) {
         highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
       }
@@ -3935,6 +3989,12 @@ function handleRotationGizmo() {
 
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragStartObservable.remove(rotDragStart));
 
+  const rotDrag = gizmoManager.gizmos.rotationGizmo.onDragObservable.add(() =>
+    syncMirrorsDuringDrag(gizmoManager.attachedMesh)
+  );
+
+  onExit(() => gizmoManager.gizmos.rotationGizmo.onDragObservable.remove(rotDrag));
+
   const rotDragEnd = gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
     let mesh = gizmoManager.attachedMesh;
     while (mesh?.parent && !mesh.parent.physics) {
@@ -3945,6 +4005,9 @@ function handleRotationGizmo() {
     if (isBodyAlive(mesh?.physics) && mesh.savedMotionType != null) {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
+
+    syncMirrorsDuringDrag(mesh);
+    mesh = mirrorSourceOf(mesh) ?? mesh;
 
     // Write all three Euler values: one gizmo ring rotates about a world
     // axis, which a single YawPitchRoll value generally cannot represent, so
@@ -4135,6 +4198,12 @@ function handlePositionGizmo() {
   });
 
   onExit(() => gizmoManager.gizmos.positionGizmo.onDragStartObservable.remove(posDragStart));
+
+  const posDrag = gizmoManager.gizmos.positionGizmo.onDragObservable.add(() =>
+    syncMirrorsDuringDrag(gizmoManager.attachedMesh)
+  );
+
+  onExit(() => gizmoManager.gizmos.positionGizmo.onDragObservable.remove(posDrag));
 
   const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
     const mesh = gizmoManager.attachedMesh;
@@ -4598,6 +4667,8 @@ export function setGizmoManager(value) {
     if (block) highlightBlockById(Blockly.getMainWorkspace(), block);
     gizmoManager.attachToMesh(groupMesh);
   });
+
+  setMirrorInUseCheck((mirror) => !!gizmoManager && gizmoManager.attachedMesh === mirror);
 
   setGroupActiveToggleListener((affectedMeshes) => {
     const attached = gizmoManager?.attachedMesh;

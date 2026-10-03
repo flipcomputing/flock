@@ -1255,6 +1255,7 @@ export const flock = {
       scale: this.scale?.bind(this),
       resize: this.resize?.bind(this),
       flip: this.flip?.bind(this),
+      mirror: this.mirror?.bind(this),
       changeColor: this.changeColor?.bind(this),
       changeMaterial: this.changeMaterial?.bind(this),
       setMaterial: this.setMaterial?.bind(this),
