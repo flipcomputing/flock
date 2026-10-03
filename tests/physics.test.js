@@ -1055,7 +1055,8 @@ export function runPhysicsTests(flock) {
   describe('jump method @physics', function () {
     const ids = [];
     const V3 = (x, y, z) => new flock.BABYLON.Vector3(x, y, z);
-    const G = 9.81;
+    // Characters fall at 3x scene gravity (CHARACTER_GRAVITY_FACTOR in api/movement.js).
+    const G = 9.81 * 3;
 
     beforeEach(function () {
       flock.scene ??= {};
