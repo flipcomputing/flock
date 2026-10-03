@@ -1527,7 +1527,6 @@ export function initializeVariableIndexes() {
     intersection: 1,
     hull: 1,
     mirror: 1,
-    tag: 1,
   });
 
   const workspace = Blockly.getMainWorkspace();

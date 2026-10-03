@@ -1027,6 +1027,7 @@ export default {
   microbit_monkey_ui: 'Macaco micro:bit',
   ar_demo_ui: 'Demo de RA',
   vr_demo_ui: 'Demo de RV',
+  tower_of_hanoi_ui: 'Torre de Hanói',
   tree_jump_ui: 'Salto da árvore',
   shape_push_ui: 'Empurrar forma',
   alien_planet_ui: 'Planeta alienígena',

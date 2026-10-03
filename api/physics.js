@@ -1175,7 +1175,10 @@ export const flockPhysics = {
       let matchingButtons = [];
       if (flock.scene.UITexture && !flock._isTag(groupName)) {
         matchingButtons = getAllGuiControls().filter(
-          (control) => control?.name && flock._familyOf(control.name) === groupName
+          (control) =>
+            control instanceof flock.GUI.Button &&
+            control.name &&
+            flock._familyOf(control.name) === groupName
         );
       }
       const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));

@@ -277,21 +277,14 @@ export function registerControlGenerators(javascriptGenerator) {
     return code;
   };
 
-  javascriptGenerator.forBlock['add_tag'] = function (block) {
-    const { generatedName, userVariableName } = getVariableInfo(block, 'ID_VAR');
-    return `${generatedName} = createTag(${JSON.stringify(userVariableName)});\n`;
-  };
-
   javascriptGenerator.forBlock['tag_object'] = function (block) {
-    const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('MODEL_VAR'),
-      Blockly.Names.NameType.VARIABLE
+    const objects =
+      javascriptGenerator.valueToCode(block, 'OBJECTS', javascriptGenerator.ORDER_NONE) || '[]';
+    const { generatedName, userVariableName } = getVariableInfo(block, 'TAG_VAR');
+    return (
+      `${generatedName} = createTag(${JSON.stringify(userVariableName)});\n` +
+      `await tagObject(${objects}, ${generatedName});\n`
     );
-    const tagName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('TAG_VAR'),
-      Blockly.Names.NameType.VARIABLE
-    );
-    return `await tagObject(${modelName}, ${tagName});\n`;
   };
 
   javascriptGenerator.forBlock['all_with_tag'] = function (block) {

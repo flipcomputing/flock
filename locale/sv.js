@@ -1021,6 +1021,7 @@ export default {
   microbit_monkey_ui: 'micro:bit-apa',
   ar_demo_ui: 'AR-demo',
   vr_demo_ui: 'VR-demo',
+  tower_of_hanoi_ui: 'Tornen i Hanoi',
   tree_jump_ui: 'Träd-hopp',
   shape_push_ui: 'Skjuta form',
   alien_planet_ui: 'Alienplanet',

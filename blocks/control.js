@@ -1,12 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import {
-  getHelpUrlFor,
-  applyInputAriaLabels,
-  nextVariableIndexes,
-  handleBlockCreateEvent,
-  registerBlockHandler,
-} from './blocks.js';
+import { getHelpUrlFor, applyInputAriaLabels } from './blocks.js';
 import { translate, getTooltip } from '../main/translation.js';
 
 export function defineControlBlocks() {
@@ -98,35 +92,6 @@ export function defineControlBlocks() {
     },
   };
 
-  Blockly.Blocks['add_tag'] = {
-    init: function () {
-      const variableNamePrefix = 'tag';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
-
-      this.jsonInit({
-        type: 'add_tag',
-        message0: translate('add_tag'),
-        args0: [
-          {
-            type: 'field_variable',
-            name: 'ID_VAR',
-            variable: nextVariableName,
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours['Control'],
-        tooltip: getTooltip('add_tag'),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('control_blocks');
-
-      registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes)
-      );
-    },
-  };
-
   Blockly.Blocks['tag_object'] = {
     init: function () {
       this.jsonInit({
@@ -134,9 +99,9 @@ export function defineControlBlocks() {
         message0: translate('tag_object'),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MODEL_VAR',
-            variable: window.currentMesh,
+            type: 'input_value',
+            name: 'OBJECTS',
+            check: 'Array',
           },
           {
             type: 'field_variable',
@@ -144,6 +109,7 @@ export function defineControlBlocks() {
             variable: 'tag1',
           },
         ],
+        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Control'],

@@ -1042,6 +1042,7 @@ export default {
   microbit_monkey_ui: 'micro:bit scimmia',
   ar_demo_ui: 'Demo AR',
   vr_demo_ui: 'Demo VR',
+  tower_of_hanoi_ui: 'Torre di Hanoi',
   tree_jump_ui: "Salto dall'albero",
   shape_push_ui: 'Spinta forma',
   alien_planet_ui: 'Pianeta alieno',

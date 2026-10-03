@@ -675,9 +675,9 @@ Creates a tag and returns its name, which has a numeric suffix if `tagName` is a
 
 The callback receives the names of the actual meshes involved, never the tag. `onTrigger` passes the clicked mesh. `onIntersect(first, second, …)` passes `(firstMesh, secondMesh)` in the same order as the arguments, so `onIntersect(ball, ring, …)` gives the ball and then the ring that was hit.
 
-#### `tagObject(meshName, tag)`
+#### `tagObject(meshNames, tag)`
 
-Gives a mesh a tag. Copies made with `cloneMesh` keep their source's tags; mirrored copies do not.
+Gives each mesh in a list a tag. A single mesh name works too. Copies made with `cloneMesh` keep their source's tags; mirrored copies do not.
 
 #### `getObjectsWithTag(tag)`
 
@@ -687,8 +687,7 @@ Returns the names of all meshes with the tag, in creation order.
 
 ```javascript
 const ring = createTag('ring');
-await tagObject(bigRing, ring);
-await tagObject(smallRing, ring);
+await tagObject([bigRing, smallRing], ring);
 onTrigger(ring, {
   trigger: 'OnPickTrigger',
   callback: async (picked) => await changeColor(picked, { color: '#ff0000' }),

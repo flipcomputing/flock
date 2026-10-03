@@ -214,7 +214,6 @@ export default {
   wait_seconds: 'wait %1 seconds',
   wait_until: 'wait until %1',
   local_variable: 'local %1',
-  add_tag: 'add tag %1',
   tag_object: 'tag %1 with %2',
   all_with_tag: 'all with tag %1',
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
@@ -537,9 +536,8 @@ export default {
   wait_until_tooltip: 'Wait until the condition is true.',
   local_variable_tooltip:
     'Create a local version of a selected variable. This hides the global variable and can have a different value.',
-  add_tag_tooltip:
-    'Create a tag. Use it in when clicked or on collision blocks to respond to every object with the tag.',
-  tag_object_tooltip: 'Give an object a tag. Copies of the object get the tag too.',
+  tag_object_tooltip:
+    'Give a list of objects a tag. Copies of the objects get the tag too. Use the tag in when clicked or on collision blocks to respond to every object with the tag.',
   all_with_tag_tooltip: 'A list of all the objects with this tag.',
   for_loop2_tooltip: 'Loop from a starting number to an ending number by a given step.',
   for_loop_tooltip:
@@ -1199,6 +1197,7 @@ export default {
   microbit_monkey_ui: 'micro:bit monkey',
   ar_demo_ui: 'AR Demo',
   vr_demo_ui: 'VR Demo',
+  tower_of_hanoi_ui: 'Tower of Hanoi',
   tree_jump_ui: 'Tree jump',
   shape_push_ui: 'Shape push',
   alien_planet_ui: 'Alien planet',

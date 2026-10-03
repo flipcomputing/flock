@@ -138,6 +138,18 @@ export function runTagsTests(flock) {
       expect(flock.getObjectsWithTag(tag)).to.deep.equal([a, c]);
     });
 
+    it('tags every object in a list', async function () {
+      const tag = flock.createTag('tagmany');
+      const a = await box('tagmanya__b1');
+      const b = await box('tagmanyb__b2', 2);
+      const c = await box('tagmanyc__b3', 4);
+      meshIds.push(a, b, c);
+
+      await flock.tagObject([a, c], tag);
+
+      expect(flock.getObjectsWithTag(tag)).to.deep.equal([a, c]);
+    });
+
     it('fires a click handler on objects tagged before and after it', async function () {
       const tag = flock.createTag('tagclick');
       const early = await box('tagclicke__b1');

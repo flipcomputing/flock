@@ -2713,13 +2713,30 @@ const toolboxControl = {
     },
     {
       kind: 'block',
-      type: 'add_tag',
-      keyword: 'tag',
-    },
-    {
-      kind: 'block',
       type: 'tag_object',
       keyword: 'tag',
+      inputsInline: true,
+      inputs: {
+        OBJECTS: {
+          block: {
+            type: 'lists_create_with',
+            inline: true,
+            extraState: {
+              itemCount: 1,
+            },
+            inputs: {
+              ADD0: {
+                block: {
+                  type: 'variables_get',
+                  fields: {
+                    VAR: 'mesh1',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     {
       kind: 'block',

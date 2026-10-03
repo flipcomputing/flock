@@ -1031,6 +1031,7 @@ export default {
   microbit_monkey_ui: 'Singe micro:bit',
   ar_demo_ui: 'Démo RA',
   vr_demo_ui: 'Démo RV',
+  tower_of_hanoi_ui: 'Tours de Hanoï',
   tree_jump_ui: 'Saut d’arbre',
   shape_push_ui: 'Pousser la forme',
   alien_planet_ui: 'Planète alien',

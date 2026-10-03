@@ -575,6 +575,7 @@ export const flockCSG = {
     return merged;
   },
   mergeMeshes(modelId, meshList) {
+    meshList = [meshList].flat(Infinity);
     const { modelId: resolvedModelId, blockKey } = resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
 
@@ -1086,6 +1087,7 @@ export const flockCSG = {
     });
   },
   subtractMeshes(modelId, baseMeshName, meshNames, optionsOrApproach = 'merge') {
+    meshNames = [meshNames].flat(Infinity);
     const options =
       optionsOrApproach && typeof optionsOrApproach === 'object' ? optionsOrApproach : {};
     const approach =
@@ -1098,6 +1100,7 @@ export const flockCSG = {
     }
   },
   intersectMeshes(modelId, meshList) {
+    meshList = [meshList].flat(Infinity);
     const { modelId: resolvedModelId, blockKey } = resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
 
@@ -1217,6 +1220,7 @@ export const flockCSG = {
     );
   },
   createHull(modelId, meshList) {
+    meshList = [meshList].flat(Infinity);
     const { modelId: resolvedModelId, blockKey } = resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
 

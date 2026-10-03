@@ -1033,6 +1033,7 @@ export default {
   microbit_monkey_ui: 'micro:bit-Affe',
   ar_demo_ui: 'AR-Demo',
   vr_demo_ui: 'VR-Demo',
+  tower_of_hanoi_ui: 'Türme von Hanoi',
   tree_jump_ui: 'Baum-Sprung',
   shape_push_ui: 'Form schieben',
   alien_planet_ui: 'Alien-Planet',

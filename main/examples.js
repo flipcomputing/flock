@@ -86,6 +86,7 @@ export const EXAMPLES = [
   },
   { i18nKey: 'ar_demo', file: 'examples/ardemo.flock', category: 'xr' },
   { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', category: 'xr' },
+  { i18nKey: 'tower_of_hanoi', file: 'examples/tower_of_hanoi.flock', category: 'xr' },
 ];
 
 let previouslyFocused = null;

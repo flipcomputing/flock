@@ -132,19 +132,24 @@ export const flockControl = {
     flock._nameRegistry.set(tag, { pending: false, exists: true, family: tag, tag: true, tagName });
     return tag;
   },
-  tagObject(meshName, tag) {
+  tagObject(meshNames, tag) {
     if (!flock._isTag(tag)) {
       flock.reportBlockError({ key: 'tag_not_found', api: 'tagObject', values: { tag } });
       return Promise.resolve();
     }
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!flock.requireMesh(mesh, { api: 'tagObject', name: meshName })) return;
-      mesh.metadata ??= {};
-      mesh.metadata.tags ??= [];
-      if (mesh.metadata.tags.includes(tag)) return;
-      mesh.metadata.tags.push(tag);
-      flock._applyGroupHandlers(mesh.name, tag);
-    });
+    const names = [meshNames].flat(Infinity).filter((name) => name != null);
+    return Promise.all(
+      names.map((meshName) =>
+        flock.whenModelReady(meshName, (mesh) => {
+          if (!flock.requireMesh(mesh, { api: 'tagObject', name: meshName })) return;
+          mesh.metadata ??= {};
+          mesh.metadata.tags ??= [];
+          if (mesh.metadata.tags.includes(tag)) return;
+          mesh.metadata.tags.push(tag);
+          flock._applyGroupHandlers(mesh.name, tag);
+        })
+      )
+    );
   },
   getObjectsWithTag(tag) {
     return (flock.scene?.meshes ?? [])
