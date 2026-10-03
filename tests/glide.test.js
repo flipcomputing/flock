@@ -110,31 +110,65 @@ export function runGlideToTests(flock) {
       expect(box.position.z).to.equal(start.z);
     });
 
-    it('ignores a re-trigger mid-flight and still returns to start (no fly-up) @slow', async function () {
+    it('restarts a reverse re-triggered mid-flight and still returns to start (no fly-up) @slow', async function () {
       this.timeout(8000);
 
       const box = flock.scene.getMeshByName(box1);
       const start = box.position.clone();
 
-      // Fire-and-forget reverse glide up and back (mimics an event-triggered key).
       flock.glideTo(box1, { x: 0, y: 5, z: 0, duration: 1, reverse: true });
 
-      // Re-trigger while the box is still airborne, part way through the glide.
       await new Promise((resolve) => setTimeout(resolve, 500));
+      const airborneY = box.position.y;
       expect(
-        box.position.y,
+        airborneY,
         'box should be airborne mid-glide for the test to be meaningful'
       ).to.be.greaterThan(start.y + 1);
-      flock.glideTo(box1, { x: 0, y: 5, z: 0, duration: 1, reverse: true });
+      const retrigger = flock.glideTo(box1, { x: 0, y: 5, z: 0, duration: 1, reverse: true });
 
-      // Let the original glide run to completion.
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(box.position.y, 'restart must not snap').to.be.closeTo(airborneY, 1);
 
-      // The re-trigger must be ignored, not interrupt mid-air: the box returns home
-      // rather than climbing away from where it was stopped.
+      await retrigger;
+
       expect(box.position.x).to.be.closeTo(start.x, 0.01);
       expect(box.position.y).to.be.closeTo(start.y, 0.01);
       expect(box.position.z).to.be.closeTo(start.z, 0.01);
+    });
+
+    it('continues from the current position when a one-way glide is re-triggered @slow', async function () {
+      this.timeout(5000);
+
+      const box = flock.scene.getMeshByName(box1);
+
+      flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      const midX = box.position.x;
+      expect(midX).to.be.within(0.5, 5.5);
+
+      const retrigger = flock.glideTo(box1, { x: -6, y: 0, z: 0, duration: 1 });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(box.position.x, 'interrupt must not snap to the old target').to.be.below(midX + 0.1);
+
+      await retrigger;
+      expect(box.position.x).to.equal(-6);
+    });
+
+    it('does not slow down when the same glide is re-triggered repeatedly @slow', async function () {
+      this.timeout(5000);
+
+      const box = flock.scene.getMeshByName(box1);
+      const started = performance.now();
+      let last = flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1 });
+      for (let i = 0; i < 3; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+        last = flock.glideTo(box1, { x: 6, y: 0, z: 0, duration: 1 });
+      }
+      await last;
+      const elapsed = performance.now() - started;
+
+      expect(box.position.x).to.equal(6);
+      expect(elapsed).to.be.below(1400);
     });
 
     it('should handle looping', function (done) {

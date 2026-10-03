@@ -7,6 +7,26 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const interruptMotion = (mesh, slot) => {
+  const active = mesh.metadata?.[slot];
+  if (!active) return null;
+  active.interrupted = true;
+  active.animatable.stop();
+  return active;
+};
+
+const joinIfSame = (mesh, slot, key) => {
+  const active = mesh.metadata?.[slot];
+  if (!key || active?.key !== key) return null;
+  return new Promise((resolve) => active.animatable.onAnimationEndObservable.add(() => resolve()));
+};
+
+const motionKey = ({ x, y, z, duration, reverse, loop, easing }) =>
+  reverse && !loop ? null : JSON.stringify([x, y, z, duration, reverse, loop, easing]);
+
+const remainingFraction =(remaining, full) =>
+  full > 1e-3 ? Math.min(1, remaining / full) : 1;
+
 const determineDesiredShapeType = (animationName) => {
   if (animationName === 'Fly') return 'horizontal-fly';
   if (animationName === 'Fall') return 'horizontal-fall';
@@ -186,7 +206,15 @@ export const flockAnimate = {
           return;
         }
 
+        const key = instant ? null : motionKey({ x, y, z, duration, reverse, loop, easing });
+        const joined = joinIfSame(mesh, '_activeRotate', key);
+        if (joined) {
+          joined.then(resolve);
+          return;
+        }
+
         const targetQuat = flock.eulerDegreesToQuat(x, y, z);
+        const prior = interruptMotion(mesh, '_activeRotate');
 
         if (instant) {
           mesh.rotationQuaternion = targetQuat;
@@ -203,6 +231,8 @@ export const flockAnimate = {
         // Slerp the quaternion; animating the Euler vector restarts from zero
         // and wraps the long way across ±180°.
         const startQuat = flock.ensureQuaternion(mesh).clone();
+        const homeQuat = reverse || loop ? (prior?.home ?? startQuat).clone() : null;
+        const originQuat = homeQuat ?? prior?.origin ?? startQuat;
 
         const fps = 30;
         const frames = fps * duration;
@@ -227,72 +257,79 @@ export const flockAnimate = {
           ease.setEasingMode(flock.BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
         }
 
-        const startEuler = flock.quatToEulerDegrees(startQuat);
-        let longWay = false;
-        const start = {};
-        const delta = {};
-        for (const [axis, target] of [
-          ['x', x],
-          ['y', y],
-          ['z', z],
-        ]) {
-          let s = startEuler[axis];
-          if (Math.abs(target) < 180) {
-            let d = target - s;
-            d -= 360 * Math.round(d / 360);
-            delta[axis] = d;
-          } else {
-            if (target > 0) {
-              if (s < 0) s += 360;
-              if (s > 360 - 1e-6) s -= 360;
+        const eulerPath = (fromQuat) => {
+          const fromEuler = flock.quatToEulerDegrees(fromQuat);
+          let longWay = false;
+          const start = {};
+          const delta = {};
+          for (const [axis, target] of [
+            ['x', x],
+            ['y', y],
+            ['z', z],
+          ]) {
+            let s = fromEuler[axis];
+            if (Math.abs(target) < 180) {
+              let d = target - s;
+              d -= 360 * Math.round(d / 360);
+              delta[axis] = d;
             } else {
-              if (s > 0) s -= 360;
-              if (s < -360 + 1e-6) s += 360;
+              if (target > 0) {
+                if (s < 0) s += 360;
+                if (s > 360 - 1e-6) s -= 360;
+              } else {
+                if (s > 0) s -= 360;
+                if (s < -360 + 1e-6) s += 360;
+              }
+              delta[axis] = target - s;
             }
-            delta[axis] = target - s;
+            start[axis] = s;
+            if (Math.abs(delta[axis]) >= 180) longWay = true;
           }
-          start[axis] = s;
-          if (Math.abs(delta[axis]) >= 180) longWay = true;
-        }
+          return { start, delta, longWay };
+        };
 
-        let rotateKeys;
-        if (longWay) {
-          const maxDelta = Math.max(Math.abs(delta.x), Math.abs(delta.y), Math.abs(delta.z));
-          const steps = Math.max(60, Math.ceil(maxDelta / 5));
-          rotateKeys = [];
-          for (let i = 0; i <= steps; i++) {
-            const g = i / steps;
-            const t = ease ? ease.ease(g) : g;
-            rotateKeys.push({
-              frame: frames * g,
-              value:
-                i === 0
-                  ? startQuat.clone()
-                  : i === steps
-                    ? targetQuat.clone()
-                    : flock.eulerDegreesToQuat(
-                      start.x + delta.x * t,
-                      start.y + delta.y * t,
-                      start.z + delta.z * t
-                    ),
-            });
+        const outPath = eulerPath(startQuat);
+        const homePath = homeQuat ? eulerPath(homeQuat) : outPath;
+        const longWay = outPath.longWay || homePath.longWay;
+        const maxDelta = Math.max(
+          ...[outPath, homePath].flatMap((p) => Object.values(p.delta).map(Math.abs))
+        );
+        const steps = longWay ? Math.max(60, Math.ceil(maxDelta / 5)) : 1;
+        const span = (path) => Math.max(...Object.values(path.delta).map(Math.abs));
+        const outFrames =
+          prior && !loop
+            ? Math.max(1, frames * remainingFraction(span(outPath), span(eulerPath(originQuat))))
+            : frames;
+
+        const legValues = (path, fromQuat, toQuat, invert) => {
+          const values = [fromQuat.clone()];
+          for (let i = 1; i < steps; i++) {
+            const t = ease ? ease.ease(i / steps) : i / steps;
+            const u = invert ? 1 - t : t;
+            values.push(
+              flock.eulerDegreesToQuat(
+                path.start.x + path.delta.x * u,
+                path.start.y + path.delta.y * u,
+                path.start.z + path.delta.z * u
+              )
+            );
           }
-          if (reverse) {
-            for (let i = steps - 1; i >= 0; i--) {
-              rotateKeys.push({
-                frame: frames * 2 - rotateKeys[i].frame,
-                value: rotateKeys[i].value.clone(),
-              });
-            }
-          }
-        } else {
-          rotateKeys = [
-            { frame: 0, value: startQuat },
-            { frame: frames, value: targetQuat },
-            ...(reverse ? [{ frame: frames * 2, value: startQuat }] : []),
-          ];
-          if (ease) rotateAnimation.setEasingFunction(ease);
+          values.push(toQuat.clone());
+          return values;
+        };
+
+        const rotateKeys = legValues(outPath, startQuat, targetQuat, false).map((value, i) => ({
+          frame: (outFrames * i) / steps,
+          value,
+        }));
+        if (reverse) {
+          legValues(homePath, targetQuat, homeQuat, true)
+            .slice(1)
+            .forEach((value, i) =>
+              rotateKeys.push({ frame: outFrames + (frames * (i + 1)) / steps, value })
+            );
         }
+        if (ease && !longWay) rotateAnimation.setEasingFunction(ease);
         rotateAnimation.setKeys(rotateKeys);
 
         const syncObserver = flock.scene.onAfterAnimationsObservable.add(() => {
@@ -304,14 +341,28 @@ export const flockAnimate = {
           mesh,
           [rotateAnimation],
           0,
-          reverse ? frames * 2 : frames,
+          reverse ? outFrames + frames : outFrames,
           loop
         );
 
+        const motion = { animatable, key, home: homeQuat, origin: originQuat, interrupted: false };
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata._activeRotate = motion;
+
+        if (homeQuat && !homeQuat.equalsWithEpsilon(startQuat)) {
+          animatable.onAnimationLoopObservable.addOnce(() => {
+            legValues(homePath, homeQuat, targetQuat, false).forEach((value, i) => {
+              rotateKeys[i].value = value;
+            });
+          });
+        }
         animatable.onAnimationLoopObservable.add(() => drive.teleport());
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-          mesh.rotationQuaternion = (reverse ? startQuat : targetQuat).clone();
+          if (mesh.metadata?._activeRotate === motion) mesh.metadata._activeRotate = null;
+          if (!motion.interrupted) {
+            mesh.rotationQuaternion = (reverse ? homeQuat : targetQuat).clone();
+          }
           drive.release();
           resolve();
         });
@@ -335,26 +386,23 @@ export const flockAnimate = {
     await flock.whenModelReady(meshName, async (mesh) => {
       if (!mesh) return;
 
-      if (mesh.metadata?._activeGlide) {
-        // A reverse (there-and-back) glide is meant to finish where it started. If it's
-        // still running when re-triggered (e.g. a fire-and-forget glide fired again by an
-        // event before the key has landed), leave it alone and ignore the new trigger.
-        // Stopping it mid-flight would capture a mid-air startPosition below and the key
-        // would climb away instead of returning home.
-        if (mesh.metadata._glideReverse) {
-          return;
-        }
-        mesh.metadata._activeGlide.stop();
-        flock.scene.onAfterAnimationsObservable.remove(mesh.metadata._glideObserver);
-      }
+      mesh.metadata = mesh.metadata || {};
+      const ticket = (mesh.metadata._glideTicket ?? 0) + 1;
+      mesh.metadata._glideTicket = ticket;
 
       const groundLevelSentinel = -999999;
       const numericY = typeof y === 'string' ? Number(y) : y;
       if (y === '__ground__level__' || numericY === groundLevelSentinel) {
         await flock.waitForGroundReady();
+        if (mesh.metadata?._glideTicket !== ticket) return;
         y = flock.getGroundLevelAt(x, z);
       }
 
+      const key = motionKey({ x, y, z, duration, reverse, loop, easing });
+      const joined = joinIfSame(mesh, '_activeGlide', key);
+      if (joined) return joined;
+
+      const prior = interruptMotion(mesh, '_activeGlide');
       const children = mesh.getChildMeshes();
       const drive = driveBody(mesh);
 
@@ -367,6 +415,8 @@ export const flockAnimate = {
         new flock.BABYLON.Vector3(startAnchor.x, startAnchor.y, startAnchor.z)
       );
       const startPosition = mesh.position.clone();
+      const homePosition = reverse || loop ? (prior?.home ?? startPosition).clone() : null;
+      const originPosition = homePosition ?? prior?.origin ?? startPosition;
       // mesh.position lives in the parent's frame but anchorDelta is world-space:
       // express the delta locally so glides on rotated/scaled members (e.g.
       // prefab parts) travel the intended world direction. Unparented meshes
@@ -383,6 +433,17 @@ export const flockAnimate = {
       const endPosition = startPosition.add(localDelta);
       const fps = 30;
       const frames = fps * duration;
+      const outFrames =
+        prior && !loop
+          ? Math.max(
+              1,
+              frames *
+                remainingFraction(
+                  flock.BABYLON.Vector3.Distance(startPosition, endPosition),
+                  flock.BABYLON.Vector3.Distance(originPosition, endPosition)
+                )
+            )
+          : frames;
 
       const glideAnimation = new flock.BABYLON.Animation(
         'glide',
@@ -396,9 +457,9 @@ export const flockAnimate = {
 
       const glideKeys = [
         { frame: 0, value: startPosition },
-        { frame: frames, value: endPosition },
+        { frame: outFrames, value: endPosition },
       ];
-      if (reverse) glideKeys.push({ frame: frames * 2, value: startPosition });
+      if (reverse) glideKeys.push({ frame: outFrames + frames, value: homePosition });
       glideAnimation.setKeys(glideKeys);
 
       if (
@@ -420,31 +481,37 @@ export const flockAnimate = {
         mesh,
         [glideAnimation],
         0,
-        reverse ? frames * 2 : frames,
+        reverse ? outFrames + frames : outFrames,
         loop
       );
 
+      const motion = {
+        animatable,
+        key,
+        home: homePosition,
+        origin: originPosition,
+        interrupted: false,
+      };
       mesh.metadata = mesh.metadata || {};
+      mesh.metadata._activeGlide = motion;
+
+      if (homePosition && !homePosition.equalsWithEpsilon(startPosition)) {
+        animatable.onAnimationLoopObservable.addOnce(() => {
+          glideKeys[0].value = homePosition.clone();
+        });
+      }
       animatable.onAnimationLoopObservable.add(() => drive.teleport());
-      mesh.metadata._activeGlide = animatable;
-      mesh.metadata._glideObserver = syncObserver;
-      // Mark a reverse (there-and-back) glide so a re-trigger while it's still in flight
-      // is ignored rather than interrupting it mid-air (which would strand the mesh up
-      // high). Cleared when the glide finishes.
-      mesh.metadata._glideReverse = reverse;
 
       return new Promise((resolve) => {
         animatable.onAnimationEndObservable.add(() => {
           flock.scene.onAfterAnimationsObservable.remove(syncObserver);
-          if (mesh.metadata._activeGlide === animatable) {
-            mesh.metadata._activeGlide = null;
-            mesh.metadata._glideObserver = null;
-            mesh.metadata._glideReverse = null;
+          if (mesh.metadata?._activeGlide === motion) mesh.metadata._activeGlide = null;
+          // Snap exactly onto the intended resting position so float drift can't
+          // leave the mesh slightly off: the target for a one-way glide, or home for
+          // a reverse (there-and-back) glide.
+          if (!loop && !motion.interrupted) {
+            mesh.position = (reverse ? homePosition : endPosition).clone();
           }
-          // Snap exactly onto the intended resting position so float drift (or an
-          // interrupted final frame) can't leave the mesh slightly off: the target for a
-          // one-way glide, or back at the start for a reverse (there-and-back) glide.
-          if (!loop) mesh.position = (reverse ? startPosition : endPosition).clone();
           drive.release();
           resolve();
         });

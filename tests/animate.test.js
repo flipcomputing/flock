@@ -344,6 +344,90 @@ export function runAnimateTests(flock) {
         expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
 
+      it('should restart a reverse re-triggered mid-flight and still return to the start', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimReverseRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        flock.rotateAnim(boxId, { y: 90, duration: 0.6, reverse: true });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const midYaw = effectiveEuler(mesh).y;
+        expect(midYaw).to.be.greaterThan(Math.PI / 8);
+
+        const retrigger = flock.rotateAnim(boxId, { y: 90, duration: 0.6, reverse: true });
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(effectiveEuler(mesh).y, 'restart must not snap').to.be.closeTo(midYaw, 0.4);
+        await retrigger;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(0, 0.01);
+        expect(flock.scene.getAnimatableByTarget(mesh)).to.not.exist;
+      });
+
+      it('should continue from the current pose when a one-way rotation is re-triggered', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const midYaw = effectiveEuler(mesh).y;
+        expect(midYaw).to.be.within(0.2, 1.4);
+
+        const retrigger = flock.rotateAnim(boxId, { y: -90, duration: 0.5 });
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(effectiveEuler(mesh).y, 'interrupt must not snap to the old target').to.be.below(
+          midYaw + 0.1
+        );
+        await retrigger;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(-Math.PI / 2, 0.01);
+      });
+
+      it('should not slow down when the same rotation is re-triggered repeatedly', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimRetriggerSpeed';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        const started = performance.now();
+        let last = flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        for (let i = 0; i < 3; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          last = flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        }
+        await last;
+        const elapsed = performance.now() - started;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(Math.PI / 2, 0.01);
+        expect(elapsed).to.be.below(1400);
+      });
+
+      it('should keep a looping rotation running unchanged when re-triggered', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimLoopRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+        const args = { x: 0, y: 0, z: 360, duration: 4, loop: true };
+
+        flock.rotateAnim(boxId, args);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const animatable = flock.scene.getAnimatableByTarget(mesh);
+        expect(animatable).to.exist;
+
+        const joined = flock.rotateAnim(boxId, args);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        expect(flock.scene.getAnimatableByTarget(mesh)).to.equal(animatable);
+
+        flock.scene.stopAnimation(mesh);
+        await joined;
+      });
+
       [0.2, 0].forEach((duration) => {
         it(`should turn a static body with the mesh and keep it static (duration ${duration})`, async function () {
           const boxId = `rotateAnimStaticBody${duration * 10}`;
