@@ -41,6 +41,26 @@ You can either:
 
 ---
 
+## [Optional] Alignment Parts for Rooms and Buildings
+
+When someone positions an object using the pin on its block, Flock XR shows alignment handles on the outside of every other model. Learners click a handle to place their object against a side, lined up with an edge or tucked into a corner.
+
+For models with useful surfaces inside or around them, such as rooms, buildings and furniture, you can give individual parts their own handles. For example, a floor, the inside of a wall or a window sill.
+
+1. In Blender, keep each part you want handles on as a **separate object** with its own geometry.
+2. Give it a name that starts with **`align_`**, for example `align_floor`, `align_wall_left` or `align_sill`. Capitals don't matter.
+3. Make each part's shape match the surface learners will use. Handles go on the part's bounding box, so a floor that runs underneath the walls puts its corner handles inside the walls. Model the floor to fit inside the room instead.
+4. Apply scale as usual. For a part that sits at an angle, such as a wall on a slant, keep its rotation on the object rather than applying it. See the note on rotation below.
+
+Things to know:
+
+- Only parts named `align_` get handles; all other parts are ignored. Mark only the surfaces learners will want to line things up with.
+- A part's handles appear when the camera is close enough for the part to look a reasonable size on screen. At most 20 nearby parts show handles at once.
+- Handles follow the object's rotation in Blender. If you apply the rotation, it's baked into the mesh and the handles line up with the world axes instead of the part.
+- If a Blender object uses several materials, it may export as several meshes that all share its name, and each one gets handles. Give the surface a single material, or split it into its own object.
+
+---
+
 ## Process for Adding a Model Directly to Flock XR
 
 1. **Fork** the GitHub repository for the development version of Flock XR.

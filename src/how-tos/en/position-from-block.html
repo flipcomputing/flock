@@ -1,0 +1,88 @@
+<!-- Content of the "Position from block" how-to. Edit freely — see README.md in src/how-tos. -->
+<goal>Set an object's position from its code block by picking a spot on the canvas, or by lining it up with another object.</goal>
+
+<step>
+  <step-title>Find the object's block</step-title>
+  <p>
+    Click <ui-button target="selectgizmo">Select</ui-button> in the gizmo bar, then click the
+    object you want to position. Its block is highlighted on the <vocab>workspace</vocab>.
+  </p>
+  <p>
+    Alternative: Use the <strong>arrow keys</strong> to move the cursor over the object, then press
+    <strong>Enter</strong>.
+  </p>
+</step>
+
+<step>
+  <step-title>Click the pin</step-title>
+  <p>
+    Click the <ui-button target="positionpin">position pin</ui-button> on the object's code
+    block. The object you are positioning is selected, with a box outline around it, so you can
+    see which object will move.
+  </p>
+  <p>Alternative: Move to the pin on the block with the keyboard and press <strong>Enter</strong>.</p>
+</step>
+
+<step>
+  <step-title>Pick a spot</step-title>
+  <p>
+    Click any surface on the <vocab>canvas</vocab>. The block's <axis-x>X</axis-x>,
+    <axis-y>Y</axis-y>, and <axis-z>Z</axis-z> values update and the object moves so it rests
+    against the surface at the spot you picked: on a floor, against a wall, or under a ceiling.
+    Inside a room, click its floor or one of its walls.
+  </p>
+  <p>
+    You can drag to turn the camera while you pick; dragging doesn't change the position. To stop
+    without changing the position, click off the canvas.
+  </p>
+  <p>
+    Alternative: Use the <strong>arrow keys</strong> to move the yellow cursor over a surface and
+    press <strong>Enter</strong>. Hold <strong>Shift</strong> with the arrow keys to move the
+    cursor in smaller steps. Press <strong>Escape</strong> to stop without changing the position.
+  </p>
+</step>
+
+<step>
+  <step-title>Line up with another object</step-title>
+  <p>
+    While the pin is active, alignment handles appear on the sides of other objects that face
+    you. Each handle places your object so it touches that side:
+  </p>
+  <ul>
+    <li>A <strong>dot</strong> in the middle of a side places your object in the middle of it.</li>
+    <li>A <strong>bar</strong> along an edge also lines your object up with that edge.</li>
+    <li>An <strong>L shape</strong> in a corner tucks your object into that corner.</li>
+  </ul>
+  <p>
+    The colors show which way each handle lines your object up, matching the gizmo arrows:
+    <axis-x>X</axis-x> is blue, <axis-y>Y</axis-y> is green, and <axis-z>Z</axis-z> is orange.
+  </p>
+  <p>
+    Move the pointer over a handle so it turns yellow, then click. To stack one object on top of
+    another, click the dot on top of it.
+  </p>
+  <p>
+    Alternative: Use the <strong>arrow keys</strong> to move the yellow cursor over a handle
+    until it turns yellow, then press <strong>Enter</strong>.
+  </p>
+</step>
+
+<step>
+  <step-title>Check the rotation</step-title>
+  <p>
+    Picking a position never changes your object's rotation. If the two objects are turned
+    differently, they touch but may not sit flat against each other. Use
+    <ui-button target="rotategizmo">Rotate</ui-button> to turn your object first.
+  </p>
+</step>
+
+<tip>
+  Handles only appear on sides that face you. On small or distant objects you may only see the
+  dots, so zoom in to see the edge and corner handles. Glide and keyframe blocks only pick a
+  spot; they don't show alignment handles.
+</tip>
+
+<related>
+  <related-howto slug="position-objects"></related-howto>
+  <related-howto slug="position-with-code"></related-howto>
+</related>

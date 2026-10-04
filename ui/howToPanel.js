@@ -75,6 +75,7 @@ const HOW_TOS = [
   { slug: 'fly-camera', i18nKey: 'howto_fly_camera_ui', tone: 13, tags: ['gizmo', 'camera'], icon: 'cameragizmo' },
   { slug: 'walk-around', i18nKey: 'howto_walk_around_ui', tone: 7, tags: ['scene', 'camera'] },
   { slug: 'view-an-object', i18nKey: 'howto_view_an_object_ui', tone: 12, tags: ['gizmo', 'camera'], icon: 'viewgizmo' },
+  { slug: 'position-from-block', i18nKey: 'howto_position_from_block_ui', tone: 36, tags: ['gizmo'], icon: 'positionpin' },
   { slug: 'use-the-block-menu', i18nKey: 'howto_use_the_block_menu_ui', tone: 16, tags: ['blocks'] },
   { slug: 'move-blocks', i18nKey: 'howto_move_blocks_ui', tone: 17, tags: ['blocks'] },
   { slug: 'use-the-trashcan', i18nKey: 'howto_use_the_trashcan_ui', tone: 18, tags: ['blocks'] },

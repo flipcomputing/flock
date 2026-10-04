@@ -4,6 +4,7 @@ import {
   stopCanvasKeyboardMode,
   setCrosshairCursor,
   setDefaultCursor,
+  getCanvasCirclePosition,
 } from './canvas-utils.js';
 import { showStatus, clearStatus } from './status.js';
 import { translate } from '../main/translation.js';
@@ -11,6 +12,16 @@ import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js'
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
 import { isPlacementSurface } from './meshhelpers.js';
+import { startAlignBlobs, getAlignedBlockPosition, getSurfaceBlockPosition } from './alignBlobs.js';
+
+let getMeshFromBlock = () => null;
+let selectMeshForBlock = () => {};
+Promise.all([import('./blockmesh.js'), import('./gizmos.js')])
+  .then(([blockmesh, gizmos]) => {
+    getMeshFromBlock = blockmesh.getMeshFromBlock;
+    selectMeshForBlock = gizmos.selectMeshForBlock;
+  })
+  .catch((error) => console.warn('Position pick alignment unavailable:', error));
 
 const STATUS_OWNER = 'pick-position';
 
@@ -18,6 +29,7 @@ const STATUS_OWNER = 'pick-position';
 // needs its own visible confirmation.
 const CONFIRMATION_PING_BLOCK_TYPES = new Set(['glide_to', 'glide_to_seconds', 'xyz_keyframe']);
 const PING_DURATION_MS = 650;
+const DRAG_THRESHOLD_PX = 6;
 const PING_COLOUR_HEX = '#fff200';
 
 function showPositionPickedPing(position) {
@@ -74,18 +86,45 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!canvas || !flock.scene) return;
 
-  const isValidHit = (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit;
+  let pointer = null;
+  let pressStart = null;
+  const mover = CONFIRMATION_PING_BLOCK_TYPES.has(block.type) ? null : getMeshFromBlock(block);
+  if (mover) selectMeshForBlock(block);
+  const align = mover ? startAlignBlobs(mover, () => getCanvasCirclePosition() ?? pointer) : null;
+
+  const isSurface = (mesh) =>
+    isPlacementSurface(mesh) && !(mover && (mesh === mover || mesh.isDescendantOf(mover)));
+
+  const isValidHit = (x, y) => !!align?.markerAt(x, y) || !!flock.scene.pick(x, y, isSurface)?.hit;
+
+  function surfacePosition(pick, ray) {
+    const normal = mover ? pick.getNormal(true, true) : null;
+    if (!normal) return null;
+    if (flock.BABYLON.Vector3.Dot(normal, ray.direction) > 0) normal.scaleInPlace(-1);
+    return getSurfaceBlockPosition(mover, pick.pickedPoint, normal);
+  }
 
   function commitAt(x, y) {
+    const marker = align?.markerAt(x, y);
+    if (marker) {
+      setPositionValues(block, getAlignedBlockPosition(mover, marker), block.type, 2);
+      announceToScreenReader(formatPickedPositionAnnouncement(block), {
+        requireCanvasFocus: false,
+      });
+      cleanup();
+      return;
+    }
     const pickRay = flock.scene.createPickingRay(
       x,
       y,
       flock.BABYLON.Matrix.Identity(),
       flock.scene.activeCamera
     );
-    const pick = flock.scene.pickWithRay(pickRay, isPlacementSurface);
+    const pick = flock.scene.pickWithRay(pickRay, isSurface);
     if (!pick?.hit) return;
-    setPositionValues(block, pick.pickedPoint, block.type);
+    const placed = surfacePosition(pick, pickRay);
+    if (placed) setPositionValues(block, placed, block.type, 2);
+    else setPositionValues(block, pick.pickedPoint, block.type);
     if (CONFIRMATION_PING_BLOCK_TYPES.has(block.type)) {
       showPositionPickedPing(pick.pickedPoint);
     }
@@ -95,7 +134,16 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     cleanup();
   }
 
+  function onPointerDown(event) {
+    pressStart = { x: event.clientX, y: event.clientY };
+  }
+
   function onWindowClick(event) {
+    const dragged =
+      pressStart &&
+      Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > DRAG_THRESHOLD_PX;
+    pressStart = null;
+    if (dragged) return;
     const rect = canvas.getBoundingClientRect();
     if (
       event.clientX < rect.left ||
@@ -110,6 +158,15 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     commitAt(x, y);
   }
 
+  function onPointerMove(event) {
+    const [x, y] = getCanvasXAndCanvasYValues(event, canvas.getBoundingClientRect());
+    pointer = { x, y };
+  }
+
+  function onPointerLeave() {
+    pointer = null;
+  }
+
   function onKeyDown(event) {
     if (event.key !== 'Escape') return;
     event.preventDefault();
@@ -120,7 +177,11 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     if (activeCleanup !== cleanup) return;
     activeCleanup = null;
     window.removeEventListener('click', onWindowClick, true);
+    window.removeEventListener('pointerdown', onPointerDown, true);
     document.removeEventListener('keydown', onKeyDown, true);
+    canvas.removeEventListener('pointermove', onPointerMove);
+    canvas.removeEventListener('pointerleave', onPointerLeave);
+    align?.dispose();
     stopCanvasKeyboardMode();
     setDefaultCursor();
     clearStatus(STATUS_OWNER);
@@ -130,8 +191,14 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
 
   startCanvasKeyboardMode((x, y) => commitAt(x, y), showCircleImmediately, isValidHit);
   setCrosshairCursor();
-  showStatus(translate('pick_position_prompt'), { owner: STATUS_OWNER, hint: true });
+  showStatus(translate(align ? 'pick_position_align_prompt' : 'pick_position_prompt'), {
+    owner: STATUS_OWNER,
+    hint: true,
+  });
   document.addEventListener('keydown', onKeyDown, true);
+  window.addEventListener('pointerdown', onPointerDown, true);
+  canvas.addEventListener('pointermove', onPointerMove);
+  canvas.addEventListener('pointerleave', onPointerLeave);
 
   // Defer so the activating click/Enter doesn't immediately fire this too.
   setTimeout(() => {

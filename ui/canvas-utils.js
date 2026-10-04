@@ -19,6 +19,10 @@ export function getCanvasCircle() {
   return canvasCircle;
 }
 
+export function getCanvasCirclePosition() {
+  return canvasCircle ? { ...canvasCirclePosition } : null;
+}
+
 // Destroys the canvasCircle if it exists
 export function destroyCanvasCircle() {
   if (canvasCircle) {
