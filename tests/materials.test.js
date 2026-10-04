@@ -196,6 +196,62 @@ export function runMaterialsTests(flock) {
       expect(rgbaParts[3]).to.be.closeTo(0, 0.01);
     });
 
+    it('sizes say() textures to the plane instead of always using 1024px', async function () {
+      const smallId = flock.createPlane('planeSaySmall', {
+        color: '#ff0000',
+        width: 0.4,
+        height: 0.4,
+        position: [0, 0, 0],
+      });
+      boxIds.push(smallId);
+
+      await flock.say(smallId, { text: 'Q', duration: 0 });
+
+      const smallMesh = flock.scene.getMeshByName(smallId);
+      const smallSize = smallMesh.advancedTexture.getSize();
+      expect(smallSize.width).to.equal(256);
+      expect(smallSize.height).to.equal(256);
+
+      const smallText = smallMesh.advancedTexture
+        .getDescendants()
+        .find((c) => c.getClassName() === 'TextBlock');
+      expect(smallText.text).to.equal('Q');
+      // Default size 24 -> 24 * 8px at 1024, scaled by 256/1024.
+      expect(parseFloat(smallText.fontSize)).to.be.closeTo(48, 0.5);
+
+      const bigId = flock.createPlane('planeSayBig', {
+        color: '#00ff00',
+        width: 4,
+        height: 4,
+        position: [10, 0, 0],
+      });
+      boxIds.push(bigId);
+
+      await flock.say(bigId, { text: 'Q', duration: 0 });
+
+      const bigMesh = flock.scene.getMeshByName(bigId);
+      const bigSize = bigMesh.advancedTexture.getSize();
+      expect(bigSize.width).to.equal(1024);
+      expect(bigSize.height).to.equal(1024);
+    });
+
+    it('keeps say() aspect handling with proportional textures', async function () {
+      const wideId = flock.createPlane('planeSayWide', {
+        color: '#0000ff',
+        width: 2,
+        height: 1,
+        position: [20, 0, 0],
+      });
+      boxIds.push(wideId);
+
+      await flock.say(wideId, { text: 'Q', duration: 0 });
+
+      const wideMesh = flock.scene.getMeshByName(wideId);
+      const wideSize = wideMesh.advancedTexture.getSize();
+      expect(wideSize.width).to.equal(1024);
+      expect(wideSize.height).to.equal(512);
+    });
+
     it('should clear effects from a mesh', async function () {
       const { id, color } = await createBoxWithColorAndPosition('boxClear');
       boxIds.push(id);

@@ -982,14 +982,31 @@ export const flockUI = {
         }
 
         let advancedTexture;
+        let uiScale = 1;
         if (!plane.advancedTexture) {
           const planeBoundingInfo = plane.getBoundingInfo();
           const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
           const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
           const aspectRatio = planeWidth / planeHeight;
-          const baseResolution = 1024;
-          const textureWidth = baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
-          const textureHeight = baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+          // Size the canvas to the plane's world size so a small label doesn't
+          // each cost a full 1024px texture. Pixel metrics below scale with
+          // uiScale so the layout stays proportionally identical.
+          plane.computeWorldMatrix(true);
+          const worldBox = plane.getBoundingInfo().boundingBox;
+          const worldSize = Math.max(
+            worldBox.maximumWorld.x - worldBox.minimumWorld.x,
+            worldBox.maximumWorld.y - worldBox.minimumWorld.y,
+            worldBox.maximumWorld.z - worldBox.minimumWorld.z
+          );
+          const baseResolution =
+            Number.isFinite(worldSize) && worldSize > 0
+              ? Math.min(1024, Math.max(256, Math.round(worldSize * 512)))
+              : 1024;
+          uiScale = baseResolution / 1024;
+          const textureWidth = Math.round(baseResolution * (aspectRatio > 1 ? 1 : aspectRatio));
+          const textureHeight = Math.round(
+            baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1)
+          );
 
           advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
             plane,
@@ -1017,10 +1034,14 @@ export const flockUI = {
           stackPanel.resizeToFit = true;
           stackPanel.forceResizeWidth = true;
           stackPanel.forceResizeHeight = true;
-          stackPanel.spacing = 4;
+          stackPanel.spacing = 4 * uiScale;
           advancedTexture.addControl(stackPanel);
         } else {
           advancedTexture = plane.advancedTexture;
+          const existingSize = advancedTexture.getSize?.();
+          if (existingSize && existingSize.width > 0 && existingSize.height > 0) {
+            uiScale = Math.max(existingSize.width, existingSize.height) / 1024;
+          }
         }
 
         const stackPanel = advancedTexture.getControlByName('stackPanel');
@@ -1033,7 +1054,7 @@ export const flockUI = {
           bg.background = flock.hexToRgba(backgroundColor, alpha);
           bg.adaptWidthToChildren = true;
           bg.adaptHeightToChildren = true;
-          bg.cornerRadius = 30;
+          bg.cornerRadius = 30 * uiScale;
           bg.thickness = 0;
           bg.resizeToFit = true;
           bg.forceResizeWidth = true;
@@ -1041,7 +1062,7 @@ export const flockUI = {
           bg.isPickable = false;
           stackPanel.addControl(bg);
 
-          const scale = 8;
+          const scale = 8 * uiScale;
           const textBlock = new flock.GUI.TextBlock();
           textBlock.text = String(text);
           textBlock.color = textColor;
@@ -1050,10 +1071,10 @@ export const flockUI = {
           textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
           textBlock.resizeToFit = true;
           textBlock.forceResizeWidth = true;
-          textBlock.paddingLeft = 50;
-          textBlock.paddingRight = 50;
-          textBlock.paddingTop = 20;
-          textBlock.paddingBottom = 20;
+          textBlock.paddingLeft = 50 * uiScale;
+          textBlock.paddingRight = 50 * uiScale;
+          textBlock.paddingTop = 20 * uiScale;
+          textBlock.paddingBottom = 20 * uiScale;
           textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
           textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
           bg.addControl(textBlock);
