@@ -16,9 +16,11 @@ function resolvePositionInputs(mesh, { x = 0, y = 0, z = 0, useY = true, meshNam
   };
 }
 
-// Planes pivot at their centre, exempt from the base-rule lift.
+// Planes and cameras pivot at their centre (a camera's eye), exempt from the
+// base-rule lift.
 function usesCenterPivot(mesh) {
-  return mesh?.metadata?.shape === 'plane';
+  const shape = mesh?.metadata?.shape;
+  return shape === 'plane' || shape === 'camera';
 }
 
 function currentAnchorSettings(mesh) {

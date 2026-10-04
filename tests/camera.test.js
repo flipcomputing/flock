@@ -236,6 +236,23 @@ export function runCameraTests(flock) {
         ).to.be.closeTo(1, 1e-3);
       });
 
+      it('should keep its eye at the block Y once the camera model has loaded', async function () {
+        const { name, frame, camera } = await addCamera('camEyeY', { position: [2, 3, -4] });
+        for (let i = 0; i < 100 && frame.getTotalVertices() === 0; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
+        expect(frame.getTotalVertices()).to.be.above(0);
+
+        expect(frame.getAbsolutePosition().y).to.be.closeTo(3, 1e-3);
+        expect(flock.getBlockPositionFromMesh(frame).y).to.be.closeTo(3, 1e-3);
+
+        await flock.positionAt(name, { x: 2, y: 5, z: -4, useY: true });
+        renderFrame();
+        expect(frame.getAbsolutePosition().y).to.be.closeTo(5, 1e-3);
+        expect(camera.position.y).to.be.closeTo(5, 1e-3);
+        expect(flock.getBlockPositionFromMesh(frame).y).to.be.closeTo(5, 1e-3);
+      });
+
       it('should switch to a camera and hide its own frame while active', async function () {
         const { name, frame, camera } = await addCamera('camSwitch', { position: [0, 2, -6] });
 

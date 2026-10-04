@@ -1748,15 +1748,14 @@ export function viewCameraForBlock(block) {
   }
 }
 
-// Copy the view you're editing from into the camera block. A fly camera takes
-// its position and rotation; a follow/orbit camera asks for the object to
-// look at, then takes its distance and angles from the view to that object.
+// Copy the view on screen into the camera block, including while looking
+// through this camera. A fly camera takes its position and rotation; a
+// follow/orbit camera asks for the object to look at, then takes its distance
+// and angles from the view to that object.
 export function captureViewToCameraBlock(block) {
   const frame = getMeshFromBlock(block);
   if (!isCameraFrame(frame) || block.disposed) return;
-  const rigCamera = frame.metadata.camera;
-  let view = flock.scene.activeCamera;
-  if (view === rigCamera) view = previewSavedCamera ?? flock.defaultCamera;
+  const view = flock.scene.activeCamera;
   if (!view || view.isDisposed()) return;
   view.computeWorldMatrix(true);
   const eye = view.globalPosition.clone();
