@@ -3,6 +3,8 @@ import { flock } from '../flock.js';
 // Where a click can place something: camera frames are skipped.
 export const isPlacementSurface = (mesh) => mesh.isPickable && mesh.metadata?.shape !== 'camera';
 
+export const SELECTED_HIDDEN_VISIBILITY = 0.001;
+
 export function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
 }

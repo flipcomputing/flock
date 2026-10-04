@@ -233,6 +233,10 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
   }, 0);
 }
 
+export function isPositionPickActive() {
+  return activeCleanup !== null;
+}
+
 export function cancelPositionPick() {
   activeCleanup?.();
 }

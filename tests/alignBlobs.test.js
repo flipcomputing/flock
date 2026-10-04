@@ -5,6 +5,7 @@ import {
   getSurfaceBlockPosition,
   getAlignParts,
 } from '../ui/alignBlobs.js';
+import { SELECTED_HIDDEN_VISIBILITY } from '../ui/meshhelpers.js';
 
 export function runAlignBlobsTests(flock) {
   describe('ui/alignBlobs @alignblobs', function () {
@@ -150,6 +151,123 @@ export function runAlignBlobsTests(flock) {
       expect(moved.min.y).to.be.closeTo(0.5, 1e-3);
       expect((moved.min.x + moved.max.x) / 2).to.be.closeTo(1, 1e-3);
       expect((moved.min.z + moved.max.z) / 2).to.be.closeTo(2, 1e-3);
+    });
+
+    it('rests a tilted mover on its lowest geometry, centred on its facing end', async function () {
+      const mover = box('align-mover-tilted', [5, 3, 5], [2, 1, 1]);
+      await flock.rotateTo(mover.name, { x: 0, y: 0, z: 30 });
+
+      await placeOnSurface(mover, [1, 0.5, 2], [0, 1, 0]);
+      const centre = baseCentre(mover);
+
+      expect(worldRange(mover, 'y').min).to.be.closeTo(0.5, 1e-3);
+      expect(centre.x).to.be.closeTo(1, 1e-3);
+      expect(centre.z).to.be.closeTo(2, 1e-3);
+    });
+
+    function worldRange(mesh, axis) {
+      const { Vector3, VertexBuffer } = flock.BABYLON;
+      const world = mesh.computeWorldMatrix(true);
+      const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+      const values = [];
+      for (let i = 0; i < positions.length; i += 3) {
+        values.push(Vector3.TransformCoordinates(Vector3.FromArray(positions, i), world)[axis]);
+      }
+      return { min: Math.min(...values), max: Math.max(...values) };
+    }
+
+    it('lines up the geometry of a tilted mover, not its box corner, with an edge', async function () {
+      const target = box('align-target-tilt-edge', [0, 0, 0], [2, 2, 2]);
+      const moverId = flock.createCylinder('align-mover-tilt-edge', {
+        diameterTop: 0.2,
+        diameterBottom: 1,
+        height: 3,
+        position: [5, 3, 5],
+      });
+      created.push(moverId);
+      const mover = flock.scene.getMeshByName(moverId);
+      await flock.rotateTo(mover.name, { x: 0, y: 0, z: -70 });
+
+      await placeAgainst(mover, markerAtPoint(target, [1, 0, 0], [1, 0, 0]));
+      const fixed = bounds(target);
+
+      expect(worldRange(mover, 'x').min).to.be.closeTo(fixed.max.x, 1e-3);
+      expect(worldRange(mover, 'y').min).to.be.closeTo(fixed.min.y, 1e-3);
+    });
+
+    it('ignores the hidden root box of a selected model', async function () {
+      this.timeout(20000);
+      const target = box('align-target-model', [0, 0, 0], [2, 2, 2]);
+      const id = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'align-mover-model',
+        position: { x: 5, y: 3, z: 5 },
+      });
+      created.push(id);
+      const tree = await flock.whenModelReady(id);
+      await flock._whenHierarchySettled(tree);
+      await flock.rotateTo(tree.name, { x: 0, y: 0, z: -70 });
+      tree.visibility = SELECTED_HIDDEN_VISIBILITY;
+
+      await placeAgainst(tree, faceWithNormal(target, 1, 0, 0));
+      const geometry = tree.getChildMeshes(false).filter((m) => m.getTotalVertices() > 0);
+
+      expect(geometry).to.not.be.empty;
+      expect(Math.min(...geometry.map((m) => worldRange(m, 'x').min))).to.be.closeTo(
+        bounds(target).max.x,
+        1e-3
+      );
+    });
+
+    function cone(id, rotation) {
+      const coneId = flock.createCylinder(id, {
+        diameterTop: 0,
+        diameterBottom: 0.5,
+        height: 1.4,
+        position: [5, 3, 5],
+      });
+      created.push(coneId);
+      const mesh = flock.scene.getMeshByName(coneId);
+      return flock.rotateTo(coneId, rotation).then(() => mesh);
+    }
+
+    function baseCentre(mesh) {
+      const { Vector3 } = flock.BABYLON;
+      const box = mesh.getBoundingInfo().boundingBox;
+      const local = new Vector3(box.center.x, box.minimum.y, box.center.z);
+      return Vector3.TransformCoordinates(local, mesh.computeWorldMatrix(true));
+    }
+
+    it('centres the facing end of a nearly square mover on a centre dot', async function () {
+      const sphereId = flock.createSphere('align-head', {
+        color: '#ffffff',
+        diameterX: 2.7,
+        diameterY: 2.7,
+        diameterZ: 2.7,
+        position: [1.8, 5, 4.4],
+      });
+      created.push(sphereId);
+      const face = faceWithNormal(flock.scene.getMeshByName(sphereId), 0, 0, -1);
+      const nose = await cone('align-nose', { x: -88.3, y: 0, z: 0 });
+
+      await placeAgainst(nose, face);
+      const centre = baseCentre(nose);
+
+      expect(centre.x).to.be.closeTo(face.point.x, 1e-3);
+      expect(centre.y).to.be.closeTo(face.point.y, 1e-3);
+      expect(worldRange(nose, 'z').max).to.be.closeTo(face.point.z, 1e-3);
+    });
+
+    it('centres the facing end on a picked point of a sloping surface', async function () {
+      const { Vector3 } = flock.BABYLON;
+      const nose = await cone('align-nose-slope', { x: -90, y: 0, z: 0 });
+      const normal = new Vector3(0, 0.5, -Math.sqrt(3) / 2);
+
+      await placeOnSurface(nose, [1, 2, 3], [normal.x, normal.y, normal.z]);
+      const offset = baseCentre(nose).subtract(new Vector3(1, 2, 3));
+
+      expect(Vector3.Cross(offset, normal).length()).to.be.closeTo(0, 1e-3);
+      expect(Vector3.Dot(offset, normal)).to.be.greaterThan(0);
     });
 
     it('hangs the mover from a ceiling at the picked point', async function () {

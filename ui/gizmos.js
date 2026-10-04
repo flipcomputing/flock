@@ -38,6 +38,7 @@ import {
   roundToOneDecimal,
   pickLeafFromRay,
   isPlacementSurface,
+  SELECTED_HIDDEN_VISIBILITY,
 } from './meshhelpers.js';
 import {
   startCanvasKeyboardMode,
@@ -53,6 +54,7 @@ import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { isBodyAlive } from '../api/physics.js';
+import { isPositionPickActive } from './pickposition.js';
 export let gizmoManager;
 
 // Enable debug messages
@@ -675,9 +677,9 @@ function applyColorAtPosition(canvasX, canvasY) {
 }
 
 // For composite meshes where visibility needs setting to
-// 0.001 in order to show parent mesh's bounding box
+// SELECTED_HIDDEN_VISIBILITY in order to show parent mesh's bounding box
 function resetBoundingBoxVisibilityIfManuallyChanged(mesh) {
-  if (mesh && mesh.visibility === 0.001) mesh.visibility = 0;
+  if (mesh && mesh.visibility === SELECTED_HIDDEN_VISIBILITY) mesh.visibility = 0;
 }
 
 function hideBoundingBox(mesh) {
@@ -1415,7 +1417,7 @@ function applyMeshSelection(pickedMesh, pickedPoint) {
   if (pickedMesh && pickedMesh.name !== 'ground') {
     if (pickedMesh.parent) {
       pickedMesh = getRootMesh(pickedMesh.parent);
-      pickedMesh.visibility = 0.001;
+      pickedMesh.visibility = SELECTED_HIDDEN_VISIBILITY;
     }
     const block = meshMap[pickedMesh?.metadata?.blockKey];
     highlightBlockById(Blockly.getMainWorkspace(), block);
@@ -2496,11 +2498,11 @@ export function updateRotationBlock(mesh, axisFilter = null) {
 }
 
 // Composite models (e.g. imported glTF) have no geometry on the root mesh;
-// their bounding box only renders when visibility > 0, so we use 0.001.
+// their bounding box only renders when visibility > 0, so we use SELECTED_HIDDEN_VISIBILITY.
 function enableBoundingBox(mesh) {
   if (!mesh) return;
   if (!mesh.visibility || mesh.visibility === 0) {
-    mesh.visibility = 0.001;
+    mesh.visibility = SELECTED_HIDDEN_VISIBILITY;
   }
   mesh.showBoundingBox = true;
   ensureOrbitBoundingBoxColorHook();
@@ -4503,6 +4505,7 @@ function watchEyeGizmoRetarget() {
     if (event.type !== flock.BABYLON.PointerEventTypes.POINTERPICK) return;
     if (document.querySelector('.gizmo-button.active:not(#eyeButton)')) return;
     if (!scene.activeCamera?.metadata?.orbitView) return;
+    if (isPositionPickActive()) return;
 
     let pickedMesh = event.pickInfo?.pickedMesh;
     if (!pickedMesh || pickedMesh.name === 'ground') return;

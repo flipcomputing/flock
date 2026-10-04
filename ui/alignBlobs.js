@@ -1,6 +1,6 @@
 import { flock } from '../flock.js';
 import { hideFromInspector } from './inspectorVisibility.js';
-import { isPlacementSurface } from './meshhelpers.js';
+import { isPlacementSurface, SELECTED_HIDDEN_VISIBILITY } from './meshhelpers.js';
 
 const HANDLE_PX = 12;
 const SNAP_RADIUS_PX = 18;
@@ -16,6 +16,7 @@ const PART_PREFIX = /^align_/i;
 const EXCLUDED_NAMES = new Set(['ground', 'sky', '__root__']);
 const HANDLE_STENCIL_BIT = 0x80;
 const MOVER_RENDERING_GROUP = 1;
+const CONTACT_TOLERANCE = 0.02;
 
 function isAlignTarget(mesh, mover) {
   const key = mesh.metadata?.blockKey;
@@ -117,8 +118,88 @@ function extentAlong(box, normal) {
   );
 }
 
+function worldVertices(root) {
+  const { Vector3, VertexBuffer } = flock.BABYLON;
+  return [root, ...root.getChildMeshes(false)]
+    .filter(
+      (mesh) =>
+        mesh.isEnabled() &&
+        mesh.isVisible !== false &&
+        mesh.visibility > SELECTED_HIDDEN_VISIBILITY &&
+        mesh.getTotalVertices?.() > 0
+    )
+    .flatMap((mesh) => {
+      const positions = mesh.getVerticesData(VertexBuffer.PositionKind) ?? [];
+      const world = mesh.computeWorldMatrix(true);
+      const points = [];
+      for (let i = 0; i < positions.length; i += 3) {
+        const point = new Vector3();
+        Vector3.TransformCoordinatesFromFloatsToRef(
+          positions[i],
+          positions[i + 1],
+          positions[i + 2],
+          world,
+          point
+        );
+        points.push(point);
+      }
+      return points;
+    });
+}
+
+function freeAxes(marker) {
+  const { Vector3 } = flock.BABYLON;
+  if (marker.tangents.length) return marker.tangents.filter((t) => !t.a).map((t) => t.axis);
+  const helper = Math.abs(marker.normal.y) < 0.9 ? Vector3.Up() : Vector3.Right();
+  const u = Vector3.Cross(marker.normal, helper).normalize();
+  return [u, Vector3.Cross(marker.normal, u).normalize()];
+}
+
+function range(points, axis) {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const p of points) {
+    const along = flock.BABYLON.Vector3.Dot(p, axis);
+    min = Math.min(min, along);
+    max = Math.max(max, along);
+  }
+  return { min, max };
+}
+
+function facingEnd(points, axes, normal) {
+  const { Vector3 } = flock.BABYLON;
+  const towards = axes
+    .flatMap((axis) => [axis, axis.negate()])
+    .reduce((best, axis) => (Vector3.Dot(axis, normal) < Vector3.Dot(best, normal) ? axis : best));
+  const extent = range(points, towards);
+  const tolerance = Math.max(1e-4, (extent.max - extent.min) * CONTACT_TOLERANCE);
+  return points.filter((p) => Vector3.Dot(p, towards) >= extent.max - tolerance);
+}
+
+function geometryAlignDelta(points, axes, marker) {
+  const { Vector3 } = flock.BABYLON;
+  const { normal, faceCentre } = marker;
+  const depth = range(points, normal);
+  const contact = facingEnd(points, axes, normal);
+
+  const delta = normal.scale(Vector3.Dot(faceCentre, normal) - depth.min);
+  for (const t of marker.tangents.filter((t) => t.a)) {
+    const outward = t.axis.scale(t.a);
+    const edge = Vector3.Dot(faceCentre, outward) + t.extent;
+    delta.addInPlace(outward.scale(edge - range(points, outward).max));
+  }
+  for (const axis of freeAxes(marker)) {
+    const { min, max } = range(contact, axis);
+    delta.addInPlace(axis.scale(Vector3.Dot(faceCentre, axis) - (min + max) / 2));
+  }
+  return delta;
+}
+
 export function getAlignDelta(mover, marker) {
   const box = orientedBox(mover);
+  const points = worldVertices(mover);
+  if (points.length) return geometryAlignDelta(points, box.axes, marker);
+
   const targetCentre = marker.tangents.reduce(
     (sum, t) => sum.add(t.axis.scale(t.a * (t.extent - extentAlong(box, t.axis)))),
     marker.faceCentre.add(marker.normal.scale(extentAlong(box, marker.normal)))
