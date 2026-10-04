@@ -2669,6 +2669,11 @@ function setupAutoValueBehavior(workspace) {
                 newBlock.setShadow(true);
               }
 
+              const extraState = originalBlock.saveExtraState?.();
+              if (extraState != null && newBlock.loadExtraState) {
+                newBlock.loadExtraState(extraState);
+              }
+
               var fieldMap = {
                 math_number: 'NUM',
                 text: 'TEXT',

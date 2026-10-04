@@ -246,7 +246,10 @@ export default {
   colour_from_string: '- %1 -', // human
   colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
   random_colour: 'color aleatorio', // human
-  material: 'material %1 %2 alfa %3', // human
+  material: 'material %1 %2', // human
+  material_alpha: 'alfa',
+  material_scale: 'escala',
+  material_angle: 'ángulo',
   gradient_material: 'material %1 alfa %2', // human
   gradient_colour: 'degradado %1 dirección %2°', // ai
   set_material: 'establecer material de %1 a %2', // human

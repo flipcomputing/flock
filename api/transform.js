@@ -773,33 +773,6 @@ export const flockTransform = {
   placeReflected(target, from, plane) {
     applyReflectedWorld(target, from.computeWorldMatrix(true), plane);
   },
-  // Keep material textures from stretching when a mesh is scaled by tiling
-  // them to the mesh's world-space dimensions. Shared by resize() and the
-  // interactive scale gizmo so both stay consistent.
-  applyTextureScaleToMesh(mesh, width, height, depth, unitsPerTile = 4.0) {
-    if (!mesh) return;
-    const allMeshes = [mesh, ...(mesh.getChildMeshes?.() || [])];
-    allMeshes.forEach((m) => {
-      if (!m.material) return;
-      const mats = m.material.subMaterials || [m.material];
-      mats.forEach((mat) => {
-        const textures = [
-          mat.albedoTexture,
-          mat.diffuseTexture,
-          mat.bumpTexture,
-          mat.metadata?.pendingTexture,
-        ];
-        textures.forEach((tex) => {
-          if (tex && typeof tex.uScale === 'number') {
-            tex.uScale = width / unitsPerTile;
-            tex.vScale = Math.max(height, depth) / unitsPerTile;
-            tex.wrapU = 1;
-            tex.wrapV = 1;
-          }
-        });
-      });
-    });
-  },
   resize(
     meshName,
     {
@@ -869,26 +842,7 @@ export const flockTransform = {
           Math.max(0.01, Math.abs(scaleZ))
         );
 
-        // An empty container (e.g. a group) stretches its children via the
-        // scaling transform - retiling their textures against the group's
-        // overall size would be wrong, since each child has its own size.
-        if (maintainTextureScale && mesh.getTotalVertices() > 0) {
-          // Use the intended target dimensions for consistency
-          const currentW = width !== null ? width : origWidth * scaleX;
-          const currentH = height !== null ? height : origHeight * scaleY;
-          const currentD = depth !== null ? depth : origDepth * scaleZ;
-          // Primitives carry per-vertex size-based UVs — re-tile those (with the
-          // new scaling folded in) so they don't get uScale/vScale tiling stacked
-          // on top, which would double-tile. Models fall back to uScale/vScale.
-          const retiled = flock.retilePrimitiveUVs(
-            mesh,
-            { width: currentW, height: currentH, depth: currentD },
-            mesh.scaling
-          );
-          if (!retiled) {
-            flock.applyTextureScaleToMesh(mesh, currentW, currentH, currentD);
-          }
-        }
+        if (maintainTextureScale) flock.retileTextures(mesh);
 
         const { min: newMinWorld, max: newMaxWorld } = flock.getEffectiveWorldBounds(mesh);
 

@@ -247,7 +247,10 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valore colore CSS non valido.', // ai
   random_colour: 'colore casuale',
-  material: 'materiale %1 %2 alpha %3',
+  material: 'materiale %1 %2',
+  material_alpha: 'alpha',
+  material_scale: 'scala',
+  material_angle: 'angolo',
   gradient_material: 'materiale %1 alpha %2',
   set_material: 'imposta materiale di %1 a %2',
 

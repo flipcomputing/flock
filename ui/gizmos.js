@@ -1877,22 +1877,6 @@ function getScaledSize(mesh) {
   };
 }
 
-// During a live scale-gizmo drag a primitive's geometry stays at its creation
-// size while mesh.scaling stretches it, which stretches the texture. Re-run the
-// size-based UV mapping with the current scaling folded in (plus the scaled
-// world dimensions) so the tile size stays constant in world units — matching
-// what the mesh looks like after the block updates and the program re-runs.
-// Delegates to flock.retilePrimitiveUVs so the gizmo and resize() stay in sync.
-function retilePrimitiveUVsForScale(mesh) {
-  if (!mesh) return false;
-  const size = getScaledSize(mesh); // world dimensions = local size * scaling
-  return flock.retilePrimitiveUVs(
-    mesh,
-    { width: size.x, height: size.y, depth: size.z },
-    mesh.scaling
-  );
-}
-
 // Clean up gizmo state if aborted
 export function exitGizmoState(options = {}) {
   const { preserveOrbit = false } = options ?? {};
@@ -3757,6 +3741,20 @@ function handleScaleGizmo() {
   // Track bottom for correct visual anchoring
   let originalBottomY = 0;
 
+  let retileFrame = null;
+  let retiledScale = null;
+  const cancelRetileFrame = () => {
+    if (retileFrame !== null) cancelAnimationFrame(retileFrame);
+    retileFrame = null;
+  };
+  const retileForScale = (mesh) => {
+    if (!mesh || mesh.isDisposed()) return;
+    const scale = `${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z}`;
+    if (scale === retiledScale) return;
+    retiledScale = scale;
+    flock.retileTextures(mesh);
+  };
+
   const scaleDrag = gizmoManager.gizmos.scaleGizmo.onDragObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
 
@@ -3806,30 +3804,22 @@ function handleScaleGizmo() {
     }
 
     // Re-tile textures live so materials don't stretch while dragging.
-    const applyModelTiling = () => {
-      // Models use uScale/vScale tiling; the formula matches
-      // flock.resize()'s maintainTextureScale so the look stays consistent.
-      const size = getScaledSize(mesh);
-      flock.applyTextureScaleToMesh(mesh, size.x, size.y, size.z);
-    };
-    if (block && MODEL_BLOCK_TYPES.has(block.type)) {
-      applyModelTiling();
-    } else {
-      // Primitives use size-based per-vertex UVs (set at creation / on block
-      // edit via TILE_SIZE = 4). Re-run that mapping with the live scaling
-      // folded in so the tile size stays constant in world units instead of
-      // stretching with the geometry. Passing the scaled (world) size plus the
-      // scale makes the live result match a re-baked mesh / program re-run.
-      const retiled = retilePrimitiveUVsForScale(mesh);
-      if (!retiled && block?.type === 'clone_mesh') applyModelTiling();
+    if (retileFrame === null) {
+      retileFrame = requestAnimationFrame(() => {
+        retileFrame = null;
+        retileForScale(mesh);
+      });
     }
   });
 
   onExit(() => gizmoManager.gizmos.scaleGizmo.onDragObservable.remove(scaleDrag));
+  onExit(cancelRetileFrame);
 
   const scaleDragStart = gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     flock.ensureUniqueGeometry(mesh);
+    cancelRetileFrame();
+    retiledScale = `${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z}`;
     originalBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
     textOrigScale = mesh.scaling.clone();
     scaleDragAxis = null;
@@ -3867,6 +3857,8 @@ function handleScaleGizmo() {
   const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     scaleDragAxis = null;
+    cancelRetileFrame();
+    retileForScale(mesh);
 
     if (mesh.savedMotionType != null && isBodyAlive(mesh.physics)) {
       mesh.physics.setMotionType(mesh.savedMotionType);

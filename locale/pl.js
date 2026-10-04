@@ -243,7 +243,10 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Nieprawidłowa wartość koloru CSS.', // ai
   random_colour: 'losowy kolor',
-  material: 'materiał %1 %2 przezroczystość: %3',
+  material: 'materiał %1 %2',
+  material_alpha: 'przezroczystość:',
+  material_scale: 'skala:',
+  material_angle: 'kąt:',
   gradient_material: 'gradientowy materiał %1 przezroczystość: %2',
   set_material: 'ustaw materiał %2 na %1',
 

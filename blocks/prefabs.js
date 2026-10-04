@@ -26,7 +26,6 @@ const MATERIAL_SHADOW = {
   type: 'material',
   inputs: {
     BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#6666cc' } } },
-    ALPHA: { shadow: { type: 'math_number', fields: { NUM: 1 } } },
   },
 };
 const POSITION_INPUTS = [

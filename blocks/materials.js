@@ -1,6 +1,12 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor, handleCloneDoBlockChange, registerBlockHandler } from './blocks.js';
+import {
+  DO_MUTATOR_MINUS,
+  DO_MUTATOR_PLUS,
+  getHelpUrlFor,
+  handleCloneDoBlockChange,
+  registerBlockHandler,
+} from './blocks.js';
 import { materialNames } from '../config.js';
 import { flock } from '../flock.js';
 import { translate, getTooltip } from '../main/translation.js';
@@ -14,6 +20,12 @@ import {
   respawnMaterialShadow,
   cacheMaterialState,
 } from './scene.js';
+
+const MATERIAL_OPTION_INPUTS = [
+  ['ALPHA', 'material_alpha', 1],
+  ['SCALE', 'material_scale', 1],
+  ['ANGLE', 'material_angle', 0],
+];
 
 export function defineMaterialsBlocks() {
   Blockly.Blocks['change_color'] = {
@@ -665,14 +677,6 @@ export function defineMaterialsBlocks() {
             // No Gradient: a texture and a gradient can't share one material.
             check: ['Colour', 'Array'],
           },
-          {
-            type: 'input_value',
-            name: 'ALPHA',
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.01,
-          },
         ],
         output: 'Material',
         inputsInline: true,
@@ -681,6 +685,45 @@ export function defineMaterialsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
+      this.appendDummyInput('OPTIONS').appendField(
+        new Blockly.FieldImage(DO_MUTATOR_MINUS, 24, 24, 'toggle material options', () =>
+          this.toggleOptions_()
+        ),
+        'OPTIONS_BUTTON'
+      );
+      for (const [name, label, value] of MATERIAL_OPTION_INPUTS) {
+        this.appendValueInput(name)
+          .appendField(translate(label))
+          .connection.setShadowState({ type: 'math_number', fields: { NUM: value } });
+      }
+      this.setOptionsShown_(false);
+    },
+
+    saveExtraState: function () {
+      return this.optionsShown_ ? { options: true } : null;
+    },
+
+    loadExtraState: function (state) {
+      this.setOptionsShown_(state?.options === true);
+    },
+
+    setOptionsShown_: function (show) {
+      this.optionsShown_ = show;
+      for (const [name] of MATERIAL_OPTION_INPUTS) this.getInput(name).setVisible(show);
+      this.getField('OPTIONS_BUTTON')?.setValue(show ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+    },
+
+    toggleOptions_: function () {
+      const oldState = JSON.stringify(this.saveExtraState());
+      this.setOptionsShown_(!this.optionsShown_);
+      if (this.rendered) {
+        this.render();
+        this.bumpNeighbours();
+      }
+      const newState = JSON.stringify(this.saveExtraState());
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState)
+      );
     },
   };
 

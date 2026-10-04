@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import * as Blockly from 'blockly';
 import {
   handleBlockCreateEvent,
   initializeVariableIndexes,
@@ -410,6 +411,83 @@ export function runBlocksTests() {
 
         newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
         expect(newVariable.name).to.equal('myCustomStar2');
+      });
+    });
+
+    describe('material options toggle', function () {
+      let workspace;
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      const savedMaterial = (alpha) => ({
+        type: 'material',
+        fields: { TEXTURE_SET: 'bricks.png' },
+        inputs: {
+          BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#ff0000' } } },
+          ALPHA: { shadow: { type: 'math_number', fields: { NUM: alpha } } },
+        },
+      });
+
+      it('puts the toggle straight after the colour', function () {
+        const block = Blockly.serialization.blocks.append({ type: 'material' }, workspace);
+        const names = block.inputList.map((input) => input.name);
+        expect(names.slice(names.indexOf('BASE_COLOR'))).to.deep.equal([
+          'BASE_COLOR',
+          'OPTIONS',
+          'ALPHA',
+          'SCALE',
+          'ANGLE',
+        ]);
+        expect(block.getInputTargetBlock('ANGLE').getFieldValue('NUM')).to.equal(0);
+      });
+
+      it('loads a project saved with alpha folded, keeping its value', function () {
+        const block = Blockly.serialization.blocks.append(savedMaterial(0.5), workspace);
+        expect(block.getInput('ALPHA').isVisible()).to.equal(false);
+        expect(block.getInput('SCALE').isVisible()).to.equal(false);
+        expect(Number(block.getInputTargetBlock('ALPHA').getFieldValue('NUM'))).to.equal(0.5);
+        expect(block.getInputTargetBlock('SCALE').getFieldValue('NUM')).to.equal(1);
+      });
+
+      it('round-trips the shown state through save and load', function () {
+        const block = Blockly.serialization.blocks.append({ type: 'material' }, workspace);
+        expect(Blockly.serialization.blocks.save(block).extraState).to.equal(undefined);
+
+        block.toggleOptions_();
+        const state = Blockly.serialization.blocks.save(block);
+        expect(state.extraState).to.deep.equal({ options: true });
+        const reloaded = Blockly.serialization.blocks.append(state, workspace);
+        expect(reloaded.getInput('SCALE').isVisible()).to.equal(true);
+
+        reloaded.toggleOptions_();
+        expect(reloaded.getInput('ALPHA').isVisible()).to.equal(false);
+        expect(Blockly.serialization.blocks.save(reloaded).extraState).to.equal(undefined);
+      });
+
+      it('keeps hidden values and blocks when folded', function () {
+        const block = Blockly.serialization.blocks.append(savedMaterial(0.5), workspace);
+        block.toggleOptions_();
+        const scale = workspace.newBlock('math_number');
+        scale.setFieldValue(3, 'NUM');
+        block.getInput('SCALE').connection.connect(scale.outputConnection);
+
+        block.toggleOptions_();
+        expect(block.getInput('SCALE').isVisible()).to.equal(false);
+        expect(Number(block.getInputTargetBlock('ALPHA').getFieldValue('NUM'))).to.equal(0.5);
+        expect(block.getInputTargetBlock('SCALE')).to.equal(scale);
+
+        const reloaded = Blockly.serialization.blocks.append(
+          Blockly.serialization.blocks.save(block),
+          workspace
+        );
+        expect(reloaded.getInput('ALPHA').isVisible()).to.equal(false);
+        expect(Number(reloaded.getInputTargetBlock('SCALE').getFieldValue('NUM'))).to.equal(3);
       });
     });
   });

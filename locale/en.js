@@ -272,7 +272,10 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Not a valid CSS color value.',
   random_colour: 'random color',
-  material: 'material %1 %2 alpha %3',
+  material: 'material %1 %2',
+  material_alpha: 'alpha',
+  material_scale: 'scale',
+  material_angle: 'angle',
   gradient_material: 'material %1 alpha %2',
   gradient_colour: 'gradient %1 direction %2°',
   set_material: 'set material of %1 to %2',
@@ -589,7 +592,8 @@ export default {
   skin_colour_tooltip: 'Pick a skin color.',
   greyscale_colour_tooltip: 'Pick a greyscale color for elevation.',
   random_colour_tooltip: 'Generate a random color.',
-  material_tooltip: 'Define material properties.',
+  material_tooltip:
+    'Define material properties. Use + to set transparency, pattern scale (2 makes the pattern twice as big) and pattern angle in degrees.',
   gradient_material_tooltip:
     'Define a material using a color, gradient, or list of colors, with adjustable alpha (transparency).',
   gradient_colour_tooltip:

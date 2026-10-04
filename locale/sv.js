@@ -241,7 +241,10 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Ogiltigt CSS-färgvärde.', // ai
   random_colour: 'slumpmässig färg',
-  material: 'material %1 %2 alfa %3',
+  material: 'material %1 %2',
+  material_alpha: 'alfa',
+  material_scale: 'skala',
+  material_angle: 'vinkel',
   gradient_material: 'material %1 alfa %2',
   set_material: 'ställ in material för %1 till %2',
 

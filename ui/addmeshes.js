@@ -146,9 +146,9 @@ export function createMeshOnCanvas(block) {
       const mapName = block.getFieldValue('MAP_NAME') || 'NONE';
       const materialBlock = block.getInputTargetBlock('MATERIAL');
 
-      let textureSet, baseColor, alpha;
+      let textureSet, baseColor, alpha, scale, angle;
       if (materialBlock) {
-        ({ textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock));
+        ({ textureSet, baseColor, alpha, scale, angle } = extractMaterialInfo(materialBlock));
       } else {
         textureSet = null;
         baseColor = '#808080';
@@ -159,6 +159,8 @@ export function createMeshOnCanvas(block) {
         color: baseColor,
         materialName: textureSet,
         alpha,
+        scale,
+        angle,
       });
 
       console.log('Create mesh on canvas');
@@ -585,6 +587,8 @@ function createShapeInternal(block) {
             materialName: materialInfo.textureSet,
             color: baseColor,
             alpha,
+            scale: materialInfo.scale,
+            angle: materialInfo.angle,
           }
         : baseColor;
     } else {

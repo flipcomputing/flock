@@ -432,6 +432,8 @@ export const materialNames = [
   'gridxy.png',
 ];
 
+export const TEXTURE_TILE_SIZE = 4;
+
 export const attachNames = [
   'LeftHand',
   'RightHand',

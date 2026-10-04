@@ -1388,15 +1388,6 @@ const toolboxScene = {
                   },
                 },
               },
-
-              ALPHA: {
-                shadow: {
-                  type: 'math_number',
-                  fields: {
-                    NUM: 1.0, // Default alpha value: 1 (fully opaque)
-                  },
-                },
-              },
             },
           },
         },
@@ -3788,15 +3779,6 @@ const toolboxMaterials = {
                   },
                 },
               },
-
-              ALPHA: {
-                shadow: {
-                  type: 'math_number',
-                  fields: {
-                    NUM: 1.0, // Default alpha value: 1 (fully opaque)
-                  },
-                },
-              },
             },
           },
         },
@@ -3818,11 +3800,30 @@ const toolboxMaterials = {
             },
           },
         },
-        ALPHA: {
-          shadow: {
-            type: 'math_number',
+      },
+    },
+    {
+      kind: 'block',
+      type: 'lists_create_with',
+      keyword: 'materiallist',
+      extraState: { itemCount: 1 },
+      inline: true,
+      inputs: {
+        ADD0: {
+          block: {
+            type: 'material',
             fields: {
-              NUM: 1, // Default alpha value: 1 (fully opaque)
+              TEXTURE_SET: 'bricks.png',
+            },
+            inputs: {
+              BASE_COLOR: {
+                shadow: {
+                  type: 'colour',
+                  fields: {
+                    COLOR: '#B5523B',
+                  },
+                },
+              },
             },
           },
         },
@@ -6148,7 +6149,6 @@ const snippetWood = (COLOR) => ({
     fields: { TEXTURE_SET: 'wood.png' },
     inputs: {
       BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR } } },
-      ALPHA: snippetNum(1),
     },
   },
 });
@@ -6158,7 +6158,6 @@ const snippetNone = (COLOR) => ({
     fields: { TEXTURE_SET: 'none.png' },
     inputs: {
       BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR } } },
-      ALPHA: snippetNum(1),
     },
   },
 });
@@ -6960,7 +6959,6 @@ const toolboxSnippets = {
                   MATERIAL: {
                     shadow: {
                       type: 'material',
-
                       fields: {
                         TEXTURE_SET: 'none.png',
                       },
@@ -6971,15 +6969,6 @@ const toolboxSnippets = {
 
                             fields: {
                               COLOR: '#71bc78',
-                            },
-                          },
-                        },
-                        ALPHA: {
-                          shadow: {
-                            type: 'math_number',
-
-                            fields: {
-                              NUM: 1,
                             },
                           },
                         },

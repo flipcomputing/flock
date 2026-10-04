@@ -9,7 +9,7 @@ import { getOwnDoOwner, getOwnVar } from '../generators/generators-utilities.js'
 import { flock } from '../flock.js';
 
 export { getOwnVar };
-import { objectColours } from '../config.js';
+import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
@@ -466,6 +466,11 @@ export function readColourValue(block) {
         continue;
       }
 
+      if (tb.type === 'material') {
+        list.push(materialDescriptor(tb));
+        continue;
+      }
+
       const c = safeGetFieldValue(tb, 'COLOR') ?? safeGetFieldValue(tb, 'COLOUR') ?? null;
 
       if (c) list.push(c);
@@ -493,9 +498,24 @@ export function readColourValue(block) {
     };
   }
 
+  if (block.type === 'material') {
+    return { value: materialDescriptor(block), kind: 'material' };
+  }
+
   const single = safeGetFieldValue(block, 'COLOR') ?? safeGetFieldValue(block, 'COLOUR') ?? null;
 
   return { value: single, kind: single ? 'single' : 'none' };
+}
+
+function materialDescriptor(block) {
+  const { textureSet, baseColor, alpha, scale, angle } = extractMaterialInfo(block);
+  return {
+    color: baseColor ?? '#ffffff',
+    materialName: textureSet && textureSet !== 'NONE' ? textureSet : 'none.png',
+    alpha,
+    scale,
+    angle,
+  };
 }
 
 export function readColourList(block) {
@@ -541,7 +561,7 @@ export function readColourFromInputOrShadow(parent, inputName) {
 
 // Extract texture set, base colour (single or list), and alpha.
 export function extractMaterialInfo(materialBlock) {
-  if (!materialBlock) return { textureSet: 'NONE', baseColor: null, alpha: 1 };
+  if (!materialBlock) return { textureSet: 'NONE', baseColor: null, alpha: 1, scale: 1, angle: 0 };
 
   const textureSet =
     getBlockValue(materialBlock, 'TEXTURE_SET') ??
@@ -552,8 +572,10 @@ export function extractMaterialInfo(materialBlock) {
   const baseColor = read.value ?? null;
 
   const alpha = readNumberInput(materialBlock, 'ALPHA', 1);
+  const scale = readNumberInput(materialBlock, 'SCALE', 1);
+  const angle = readNumberInput(materialBlock, 'ANGLE', 0);
 
-  return { textureSet, baseColor, alpha };
+  return { textureSet, baseColor, alpha, scale, angle };
 }
 
 function applyBackgroundColorFromBlock(block) {
@@ -752,7 +774,7 @@ function updateSkyFromBlock(block) {
   if (!colorInput) return;
 
   if (colorInput && colorInput.type === 'material') {
-    const { textureSet, baseColor, alpha } = extractMaterialInfo(colorInput);
+    const { textureSet, baseColor, alpha, scale, angle } = extractMaterialInfo(colorInput);
     let read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
 
     const colorValue = read.value ?? baseColor;
@@ -762,6 +784,8 @@ function updateSkyFromBlock(block) {
         color: colorValue,
         materialName: textureSet,
         alpha,
+        scale,
+        angle,
       });
       return;
     }
@@ -906,7 +930,10 @@ export function updatePrefabMaterial(prefabBlock, index) {
 
 export function handleMaterialOrColorChange(mesh, block, changed, color, materialInfo) {
   if (
-    !(['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA'].includes(changed) || changed.startsWith?.('ADD'))
+    !(
+      ['COLOR', 'COLORS', 'BASE_COLOR', 'ALPHA', 'MATERIAL_OPTION'].includes(changed) ||
+      changed.startsWith?.('ADD')
+    )
   ) {
     if (flock.meshDebug) console.log('Returning');
     return mesh;
@@ -933,6 +960,8 @@ export function handleMaterialOrColorChange(mesh, block, changed, color, materia
       color: rawColor,
       alpha,
       materialName: textureSet,
+      scale: materialInfo?.scale ?? 1,
+      angle: materialInfo?.angle ?? 0,
     };
   } else {
     input = rawColor;
@@ -977,10 +1006,10 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   const isMaterialBlock = materialBlock.type === 'material';
   let read, mapArg;
   if (isMaterialBlock) {
-    const { textureSet, alpha } = extractMaterialInfo(materialBlock);
+    const { textureSet, alpha, scale, angle } = extractMaterialInfo(materialBlock);
     read = readColourFromInputOrShadow(materialBlock, 'BASE_COLOR');
     const materialName = !textureSet || textureSet === 'NONE' ? 'none.png' : textureSet;
-    mapArg = { color: read.value, materialName, alpha };
+    mapArg = { color: read.value, materialName, alpha, scale, angle };
   } else {
     read = readColourValue(materialBlock);
     mapArg = read.value;
@@ -1119,7 +1148,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
   };
 
   const applyPrimitiveUVTiling = (shapeType, dims) => {
-    const TILE_SIZE = 4;
+    const TILE_SIZE = TEXTURE_TILE_SIZE;
     switch (shapeType) {
       case 'Box':
       case 'Wedge':
@@ -1320,13 +1349,14 @@ function handleLoadBlockChange(meshes, block, changed, changeEvent) {
 
   // Extra handling for load_character colour fields
   if (block.type === 'load_character' && changed in colorFields) {
+    const read = (name) => readColourValue(block.getInputTargetBlock(name)).value;
     const colors = {
-      hair: block.getInput('HAIR_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      skin: block.getInput('SKIN_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      eyes: block.getInput('EYES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      tshirt: block.getInput('TSHIRT_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      shorts: block.getInput('SHORTS_COLOR').connection.targetBlock().getFieldValue('COLOR'),
-      sleeves: block.getInput('SLEEVES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+      hair: read('HAIR_COLOR'),
+      skin: read('SKIN_COLOR'),
+      eyes: read('EYES_COLOR'),
+      tshirt: read('TSHIRT_COLOR'),
+      shorts: read('SHORTS_COLOR'),
+      sleeves: read('SLEEVES_COLOR'),
     };
 
     meshes.forEach((mesh) => {
@@ -1828,6 +1858,23 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         return id === changedBlock.id;
       })?.name || changed;
 
+    if (parent.type === 'material' && ['SCALE', 'ANGLE'].includes(changed)) {
+      changed = 'MATERIAL_OPTION';
+    }
+
+    const leftColourInput =
+      changeEvent.oldParentId === block.id && changeEvent.oldInputName in colorFields;
+    if (!changed && leftColourInput) changed = changeEvent.oldInputName;
+
+    if (block.type === 'load_character') {
+      const touched = [changeEvent.blockId, changeEvent.newParentId, changeEvent.oldParentId];
+      const colourInput = Object.keys(colorFields).find((name) => {
+        const target = block.getInputTargetBlock(name);
+        return touched.some((id) => isBlockIdDescendantOf(target, id));
+      });
+      if (colourInput) changed = colourInput;
+    }
+
     if (changed && flock.meshDebug) {
       console.log(`Change detected in input: ${changed}`);
     }
@@ -1842,8 +1889,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
   }
 
   // Special handling for material blocks - check if change is in material subtree
-  if (!changed) {
-    const colorInput = block.getInputTargetBlock('COLOR');
+  for (const inputName of ['COLOR', 'COLORS']) {
+    if (changed) break;
+    const colorInput = block.getInputTargetBlock(inputName);
     if (colorInput) {
       // Check if the changed block is the color input or in its subtree
       const isMaterialChange =
@@ -1853,8 +1901,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         isBlockIdDescendantOf(colorInput, changeEvent.oldParentId);
 
       if (isMaterialChange) {
-        changed = 'COLOR';
-        if (flock.meshDebug) console.log('Material change detected in COLOR input subtree');
+        changed = inputName;
+        if (flock.meshDebug) console.log(`Material change detected in ${inputName} input subtree`);
       }
     }
   }

@@ -21,6 +21,7 @@ import {
 } from '../config.js';
 import { flock } from '../flock.js';
 import { translate, getTooltip } from '../main/translation.js';
+import { updateOrCreateMeshFromBlock } from '../ui/blockmesh.js';
 
 function updateColorsListField(block) {
   const selectedObject = block.getFieldValue('MODELS');
@@ -128,15 +129,28 @@ function isInSubtree(rootBlock, blockId) {
   return !!blockId && rootBlock.getDescendants(false).some((b) => b.id === blockId);
 }
 
-function isColorsListEdit(block, changeEvent) {
-  const list = block.getInputTargetBlock('COLORS');
+const CHARACTER_COLOR_INPUTS = [
+  'HAIR_COLOR',
+  'SKIN_COLOR',
+  'EYES_COLOR',
+  'TSHIRT_COLOR',
+  'SHORTS_COLOR',
+  'SLEEVES_COLOR',
+];
+
+function isColorsListEdit(block, changeEvent, inputNames = ['COLORS']) {
+  const targets = inputNames.map((name) => block.getInputTargetBlock(name)).filter(Boolean);
 
   if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
-    if (changeEvent.newParentId === block.id && changeEvent.newInputName === 'COLORS') return true;
-    if (changeEvent.oldParentId === block.id && changeEvent.oldInputName === 'COLORS') return true;
-    return (
-      !!list &&
-      (isInSubtree(list, changeEvent.newParentId) || isInSubtree(list, changeEvent.oldParentId))
+    if (changeEvent.newParentId === block.id && inputNames.includes(changeEvent.newInputName)) {
+      return true;
+    }
+    if (changeEvent.oldParentId === block.id && inputNames.includes(changeEvent.oldInputName)) {
+      return true;
+    }
+    return targets.some(
+      (target) =>
+        isInSubtree(target, changeEvent.newParentId) || isInSubtree(target, changeEvent.oldParentId)
     );
   }
 
@@ -144,10 +158,21 @@ function isColorsListEdit(block, changeEvent) {
     changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
     (changeEvent.element === 'field' || changeEvent.element === 'mutation')
   ) {
-    return !!list && isInSubtree(list, changeEvent.blockId);
+    return targets.some((target) => isInSubtree(target, changeEvent.blockId));
   }
 
   return false;
+}
+
+function handleColorsListMove(block, changeEvent, inputNames = ['COLORS']) {
+  if (
+    changeEvent.type !== Blockly.Events.BLOCK_MOVE ||
+    !isColorsListEdit(block, changeEvent, inputNames)
+  ) {
+    return false;
+  }
+  updateOrCreateMeshFromBlock(block, changeEvent);
+  return true;
 }
 
 export function defineModelBlocks() {
@@ -203,32 +228,32 @@ export function defineModelBlocks() {
           {
             type: 'input_value',
             name: 'HAIR_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'input_value',
             name: 'SKIN_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'input_value',
             name: 'EYES_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'input_value',
             name: 'TSHIRT_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'input_value',
             name: 'SHORTS_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'input_value',
             name: 'SLEEVES_COLOR',
-            check: 'Colour',
+            check: ['Colour', 'Material'],
           },
           {
             type: 'field_pick_position',
@@ -257,6 +282,8 @@ export function defineModelBlocks() {
         if (changeEvent.blockId === this.id || isThisBlockCreated) {
           if (handleMeshLifecycleChange(this, changeEvent)) return;
         }
+
+        if (handleColorsListMove(this, changeEvent, CHARACTER_COLOR_INPUTS)) return;
 
         // Linked children like MODELS or color inputs
         if (handleParentLinkedUpdate(this, changeEvent)) {
@@ -493,6 +520,7 @@ export function defineModelBlocks() {
 
         // For attached children or value inputs
         if (
+          handleColorsListMove(this, changeEvent) ||
           handleParentLinkedUpdate(this, changeEvent) ||
           handleFieldOrChildChange(this, changeEvent)
         ) {
@@ -621,6 +649,7 @@ export function defineModelBlocks() {
         }
 
         if (
+          handleColorsListMove(this, changeEvent) ||
           handleParentLinkedUpdate(this, changeEvent) ||
           handleFieldOrChildChange(this, changeEvent)
         ) {

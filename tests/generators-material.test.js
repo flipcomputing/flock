@@ -60,6 +60,28 @@ export function runMaterialGeneratorTests() {
       expect(gradientColour('["#ff5733", "#fdfd96"]', 0)).to.not.include('alpha');
     });
 
+    function materialCode(inputs) {
+      const originalValueToCode = javascriptGenerator.valueToCode;
+      javascriptGenerator.valueToCode = (_block, name) => inputs[name] ?? '';
+      try {
+        const block = { getFieldValue: () => 'bricks.png' };
+        const [code] = javascriptGenerator.forBlock['material'](block);
+        return code.replace(/\s+/g, ' ');
+      } finally {
+        javascriptGenerator.valueToCode = originalValueToCode;
+      }
+    }
+
+    it('passes the material scale through', function () {
+      expect(
+        materialCode({ BASE_COLOR: '"#ff0000"', ALPHA: '0.5', SCALE: '2', ANGLE: '45' })
+      ).to.include('alpha: 0.5, scale: 2, angle: 45');
+    });
+
+    it('defaults alpha, scale and angle when their inputs are empty', function () {
+      expect(materialCode({ BASE_COLOR: '"#ff0000"' })).to.include('alpha: 1, scale: 1, angle: 0');
+    });
+
     it('defaults to an empty list and zero degrees', function () {
       expect(gradientColour('', undefined)).to.equal(
         '{ color: [], materialName: "none.png", direction: 0 }'

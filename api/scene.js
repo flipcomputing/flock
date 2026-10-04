@@ -1,3 +1,4 @@
+import { TEXTURE_TILE_SIZE } from '../config.js';
 import { isBodyAlive, restoreRestingState } from './physics.js';
 
 let flock;
@@ -96,7 +97,11 @@ export const flockScene = {
       !(color instanceof flock.BABYLON.Material) &&
       !Array.isArray(color)
     ) {
+      const scale = Number(color.scale);
       color = flock.createMaterial(color);
+      if (Number.isFinite(scale) && scale > 0 && scale !== 1) {
+        color.metadata = { ...color.metadata, textureScale: scale };
+      }
     }
 
     if (!color) return;
@@ -139,7 +144,7 @@ export const flockScene = {
       const tex = flock.materialTexture(color);
 
       if (tex || isShader) {
-        const scaleValue = 10;
+        const scaleValue = 10 / (color.metadata?.textureScale ?? 1);
         const verticalScale = flipV ? -scaleValue : scaleValue;
 
         if (tex) {
@@ -265,7 +270,7 @@ export const flockScene = {
   createMap(image, material) {
     if (!sceneReady() || !material) return;
 
-    const mapTexturePhysicalSize = 4;
+    const mapTexturePhysicalSize = TEXTURE_TILE_SIZE;
 
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];

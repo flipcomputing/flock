@@ -123,6 +123,7 @@ const listCreateWithBlockType = Blockly.Blocks['lists_create_with'];
 if (listCreateWithBlockType && !listCreateWithBlockType[flockListCreateWithStylePatchKey]) {
   const stylesByOutputCheck = [
     { check: 'Colour', style: 'materials_blocks' },
+    { check: 'Material', style: 'materials_blocks' },
     { check: 'Number', style: 'math_blocks' },
     { check: 'String', style: 'text_blocks' },
   ];
@@ -2155,10 +2156,10 @@ const DO_MUTATOR_ICON = (glyph) =>
   );
 // Plus while the DO part is absent, minus once it is present, both boxed so the
 // bare minus stays legible against the block.
-const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
+export const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
   '<path fill="white" d="M13.5 8h3v5.5H22v3h-5.5V22h-3v-5.5H8v-3h5.5z"/>'
 );
-const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
+export const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
 
 export function addDoMutatorWithToggleBehavior(block) {
   // The "then" toggle button only exists while DO does; keep it in sync and

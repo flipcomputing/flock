@@ -134,13 +134,19 @@ export function registerMaterialGenerators(javascriptGenerator) {
     const textureSet = block.getFieldValue('TEXTURE_SET');
     const alpha =
       javascriptGenerator.valueToCode(block, 'ALPHA', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const scale =
+      javascriptGenerator.valueToCode(block, 'SCALE', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const angle =
+      javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     // Always return a standard data object.
     // Logic that uses this block (like set_material) will handle the application.
-    const code = `{ 
-                  color: ${baseColor}, 
-                  materialName: "${textureSet}", 
-                  alpha: ${alpha} 
+    const code = `{
+                  color: ${baseColor},
+                  materialName: "${textureSet}",
+                  alpha: ${alpha},
+                  scale: ${scale},
+                  angle: ${angle}
               }`;
 
     return [code, javascriptGenerator.ORDER_ATOMIC];

@@ -1,4 +1,9 @@
-import { attachBlockMapping, attachMixamoMapping, objectColliderShapes } from '../config.js';
+import {
+  attachBlockMapping,
+  attachMixamoMapping,
+  objectColliderShapes,
+  TEXTURE_TILE_SIZE,
+} from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
 
 let flock;
@@ -17,6 +22,77 @@ function toDim(value, fallback) {
 
 function toSides(value) {
   return Math.max(3, Math.round(toDim(value, 24)));
+}
+
+const TILING_PRIMITIVES = new Set([
+  'Box',
+  'Wedge',
+  'Sphere',
+  'Cylinder',
+  'Capsule',
+  'Plane',
+  'Ring',
+]);
+
+function primitiveShape(mesh) {
+  return mesh?.metadata?.shapeType || (mesh?.metadata?.shape === 'plane' ? 'Plane' : null);
+}
+
+function aroundFractions(positions, indices, include = () => true) {
+  const count = positions.length / 3;
+  const TWO_PI = Math.PI * 2;
+  const angles = new Float64Array(count);
+  const radii = new Float64Array(count);
+  let maxRadius = 0;
+  for (let i = 0; i < count; i++) {
+    radii[i] = Math.hypot(positions[i * 3], positions[i * 3 + 2]);
+    angles[i] = Math.atan2(positions[i * 3 + 2], positions[i * 3]);
+    if (include(i)) maxRadius = Math.max(maxRadius, radii[i]);
+  }
+  const isPole = (i) => radii[i] <= maxRadius * 1e-4;
+
+  let seamAngle = Math.PI;
+  const seen = new Set();
+  for (let i = 0; i < count; i++) {
+    if (!include(i) || isPole(i)) continue;
+    const key = [0, 1, 2].map((k) => Math.round(positions[i * 3 + k] * 1e4) || 0).join(',');
+    if (seen.has(key)) {
+      seamAngle = angles[i];
+      break;
+    }
+    seen.add(key);
+  }
+
+  const fractions = new Float64Array(count).fill(NaN);
+  const unresolved = [];
+  const poles = [];
+  for (let i = 0; i < count; i++) {
+    if (!include(i)) continue;
+    if (isPole(i)) {
+      poles.push(i);
+      continue;
+    }
+    const t = (((angles[i] - seamAngle) % TWO_PI) + TWO_PI) % TWO_PI;
+    if (t < 1e-6 || TWO_PI - t < 1e-6) unresolved.push(i);
+    else fractions[i] = t / TWO_PI;
+  }
+
+  const triangles = indices ?? Array.from({ length: count }, (_, i) => i);
+  const neighbours = new Map([...unresolved, ...poles].map((i) => [i, []]));
+  for (let t = 0; t + 2 < triangles.length; t += 3) {
+    for (let k = 0; k < 3; k++) {
+      const list = neighbours.get(triangles[t + k]);
+      if (list) list.push(triangles[t + ((k + 1) % 3)], triangles[t + ((k + 2) % 3)]);
+    }
+  }
+  const neighbourMean = (i) => {
+    const known = neighbours.get(i).filter((j) => Number.isFinite(fractions[j]));
+    return known.length ? known.reduce((sum, j) => sum + fractions[j], 0) / known.length : 0;
+  };
+
+  for (const i of unresolved) fractions[i] = neighbourMean(i) > 0.5 ? 1 : 0;
+  for (const i of poles) fractions[i] = neighbourMean(i);
+  return fractions;
 }
 
 // Snap a bone-attached mesh so its front faces the character's forward,
@@ -465,7 +541,14 @@ export const flockMesh = {
   // 1 tile = `texturePhysicalSize` world units
   // Sets edge-aligned, per-face planar UVs for a bSox so the pattern has constant physical size.
   // Works for non-cubes (width ≠ height ≠ depth). Keeps seams consistent by flipping some faces.
-  setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize = 4, scale = null) {
+  setSizeBasedBoxUVs(
+    mesh,
+    width,
+    height,
+    depth,
+    texturePhysicalSize = TEXTURE_TILE_SIZE,
+    scale = null
+  ) {
     // Ensure we can read/write UVs
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     const normals = mesh.getVerticesData(flock.BABYLON.VertexBuffer.NormalKind);
@@ -583,21 +666,8 @@ export const flockMesh = {
 
     // Apply updated UVs
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
-
-    // Make sure any assigned texture will actually tile
-    const tilingTexture = flock.materialTexture(mesh.material);
-    if (tilingTexture) {
-      const t = tilingTexture;
-      t.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      t.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      // Per-vertex UVs already encode the repeats; keep global scales neutral
-      t.uScale = 1;
-      t.vScale = 1;
-      t.uOffset = 0;
-      t.vOffset = 0;
-    }
   },
-  setSphereUVs(mesh, diameter, texturePhysicalSize = 4, scale = null) {
+  setSphereUVs(mesh, diameter, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     const uvs =
       mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
@@ -610,23 +680,28 @@ export const flockMesh = {
     const sy = scale && typeof scale.y === 'number' ? Math.abs(scale.y) : 1;
     const sz = scale && typeof scale.z === 'number' ? Math.abs(scale.z) : 1;
 
+    let rx = 0;
+    let ry = 0;
+    let rz = 0;
+    for (let i = 0; i < positions.length; i += 3) {
+      rx = Math.max(rx, Math.abs(positions[i]));
+      ry = Math.max(ry, Math.abs(positions[i + 1]));
+      rz = Math.max(rz, Math.abs(positions[i + 2]));
+    }
+    ry ||= diameter / 2 || 1;
+
     // Tile by physical size (1 tile per texturePhysicalSize world units), like
     // the box/cylinder/plane mappers, so bigger spheres get more repeats instead
     // of stretched ones.
-    const radius = diameter / 2;
-    const circumference = 2 * Math.PI * radius; // around the equator
-    const meridian = Math.PI * radius; // pole-to-pole arc length
+    const horizontalRadius = (rx * sx + rz * sz) / 2;
+    const circumference = 2 * Math.PI * horizontalRadius; // around the equator
+    const meridian = (Math.PI * (horizontalRadius + ry * sy)) / 2; // pole-to-pole arc length
+    const around = aroundFractions(positions, mesh.getIndices());
 
     for (let i = 0; i < positions.length / 3; i++) {
-      const x = positions[i * 3] * sx;
-      const y = positions[i * 3 + 1] * sy;
-      const z = positions[i * 3 + 2] * sz;
+      const phi = Math.acos(Math.max(-1, Math.min(1, positions[i * 3 + 1] / ry))); // Latitude angle
 
-      // Calculate longitude (theta) and latitude (phi)
-      const theta = Math.atan2(z, x); // Longitude angle
-      const phi = Math.acos(Math.max(-1, Math.min(1, y / radius))); // Latitude angle
-
-      uvs[i * 2] = (theta / (2 * Math.PI) + 0.5) * (circumference / texturePhysicalSize); // U
+      uvs[i * 2] = around[i] * (circumference / texturePhysicalSize); // U
       uvs[i * 2 + 1] = (phi / Math.PI) * (meridian / texturePhysicalSize); // V
     }
 
@@ -760,7 +835,7 @@ export const flockMesh = {
     return vertexData;
   },
 
-  ringUVs(positions, texturePhysicalSize = 4, scale = null) {
+  ringUVs(positions, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
     const sx = scale ? Math.abs(scale.x) : 1;
     const sy = scale ? Math.abs(scale.y) : 1;
     const sz = scale ? Math.abs(scale.z) : 1;
@@ -788,7 +863,7 @@ export const flockMesh = {
     return uvs;
   },
 
-  setRingUVs(mesh, texturePhysicalSize = 4, scale = null) {
+  setRingUVs(mesh, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     if (!positions) return;
     mesh.setVerticesData(
@@ -844,7 +919,7 @@ export const flockMesh = {
     height,
     diameterTop,
     diameterBottom,
-    texturePhysicalSize = 4,
+    texturePhysicalSize = TEXTURE_TILE_SIZE,
     scale = null
   ) {
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
@@ -860,53 +935,32 @@ export const flockMesh = {
     const sy = scale ? Math.abs(scale.y) : 1;
     const sz = scale ? Math.abs(scale.z) : 1;
 
-    const radiusTop = diameterTop / 2;
-    const radiusBottom = diameterBottom / 2;
+    const averageRadius = (diameterTop + diameterBottom) / 4;
+    const circumference = 2 * Math.PI * averageRadius;
+    const isSide = (i) =>
+      Math.abs(normals[i * 3 + 1]) <
+      Math.max(Math.abs(normals[i * 3]), Math.abs(normals[i * 3 + 2]));
+    const around = aroundFractions(positions, mesh.getIndices(), isSide);
 
     for (let i = 0; i < positions.length / 3; i++) {
-      const normal = new flock.BABYLON.Vector3(
-        normals[i * 3],
-        normals[i * 3 + 1],
-        normals[i * 3 + 2]
-      );
+      const x = positions[i * 3] * sx;
+      const y = positions[i * 3 + 1] * sy;
+      const z = positions[i * 3 + 2] * sz;
 
-      const position = new flock.BABYLON.Vector3(
-        positions[i * 3] * sx,
-        positions[i * 3 + 1] * sy,
-        positions[i * 3 + 2] * sz
-      );
-
-      let u = 0,
-        v = 0;
-
-      // Side faces (curved surface) - unchanged
-      if (Math.abs(normal.y) < Math.max(Math.abs(normal.x), Math.abs(normal.z))) {
-        const angle = Math.atan2(position.z, position.x); // Angle around the Y-axis
-        const averageRadius = (radiusTop + radiusBottom) / 2;
-        const circumference = 2 * Math.PI * averageRadius;
-        u = (angle / (2 * Math.PI)) * (circumference / texturePhysicalSize); // Scale based on circumference
-        v = (position.y + height / 2) / texturePhysicalSize; // Scale along height
+      if (isSide(i)) {
+        uvs[i * 2] = around[i] * (circumference / texturePhysicalSize);
+        uvs[i * 2 + 1] = (y + height / 2) / texturePhysicalSize;
+      } else {
+        uvs[i * 2] = x / texturePhysicalSize;
+        uvs[i * 2 + 1] = z / texturePhysicalSize;
       }
-      // Top cap
-      else if (normal.y > 0) {
-        u = position.x / radiusTop / (texturePhysicalSize / 2) + 0.5; // Adjust scaling by factor of 2
-        v = position.z / radiusTop / (texturePhysicalSize / 2) + 0.5;
-      }
-      // Bottom cap
-      else {
-        u = position.x / radiusBottom / (texturePhysicalSize / 2) + 0.5; // Adjust scaling by factor of 2
-        v = position.z / radiusBottom / (texturePhysicalSize / 2) + 0.5;
-      }
-
-      uvs[i * 2] = u;
-      uvs[i * 2 + 1] = v;
     }
 
     // Apply updated UV mapping
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
 
-  setCapsuleUVs(mesh, radius, height, texturePhysicalSize = 4, scale = null) {
+  setCapsuleUVs(mesh, radius, height, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     const uvs =
       mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
@@ -915,30 +969,25 @@ export const flockMesh = {
     // Optional per-axis scale (a Vector3-like) lets the live scale gizmo map UVs
     // as if the local geometry were baked to its scaled (world) size. Guard
     // against a non-vector being passed positionally so it can't yield NaN.
-    const sx = scale && typeof scale.x === 'number' ? Math.abs(scale.x) : 1;
     const sy = scale && typeof scale.y === 'number' ? Math.abs(scale.y) : 1;
-    const sz = scale && typeof scale.z === 'number' ? Math.abs(scale.z) : 1;
 
     const circumference = 2 * Math.PI * radius; // Circumference of the cylinder
+    const around = aroundFractions(positions, mesh.getIndices());
 
     for (let i = 0; i < positions.length / 3; i++) {
-      const x = positions[i * 3] * sx;
       const y = positions[i * 3 + 1] * sy;
-      const z = positions[i * 3 + 2] * sz;
-
-      const theta = Math.atan2(z, x); // Longitude angle
 
       // Tile by physical size (1 tile per texturePhysicalSize world units), like
       // the cylinder mapper: U around the circumference, V linearly along height.
       // This keeps vertical tiles constant in world units instead of being
       // normalised to the body height (which stretched on resize).
-      uvs[i * 2] = (theta / (2 * Math.PI) + 0.5) * (circumference / texturePhysicalSize); // U
+      uvs[i * 2] = around[i] * (circumference / texturePhysicalSize); // U
       uvs[i * 2 + 1] = (y + height / 2) / texturePhysicalSize; // V
     }
     mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
   },
 
-  setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = 4, scale = null) {
+  setSizeBasedPlaneUVs(mesh, width, height, texturePhysicalSize = TEXTURE_TILE_SIZE, scale = null) {
     const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
     const uvs =
       mesh.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ||
@@ -973,10 +1022,14 @@ export const flockMesh = {
   // for the scale gizmo and resize() so primitives keep using per-vertex UVs
   // and never get the uScale/vScale tiling meant for models (which would
   // double-tile them). Returns true if the mesh was a recognised primitive.
-  retilePrimitiveUVs(mesh, { width, height, depth }, scale = null, texturePhysicalSize = 4) {
+  retilePrimitiveUVs(
+    mesh,
+    { width, height, depth },
+    scale = null,
+    texturePhysicalSize = TEXTURE_TILE_SIZE
+  ) {
     if (!mesh) return false;
-    const shape = mesh.metadata?.shapeType || (mesh.metadata?.shape === 'plane' ? 'Plane' : null);
-    switch (shape) {
+    switch (primitiveShape(mesh)) {
       case 'Box':
       case 'Wedge':
         flock.setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize, scale);
@@ -999,6 +1052,37 @@ export const flockMesh = {
       default:
         return false;
     }
+  },
+  isTilingPrimitive(mesh) {
+    return TILING_PRIMITIVES.has(primitiveShape(mesh));
+  },
+  retileMeshTexture(mesh) {
+    if (!(mesh instanceof flock.BABYLON.Mesh) || mesh.metadata?.skipAutoTiling) return;
+    if (!mesh.getTotalVertices()) return;
+    const primitive = flock.isTilingPrimitive(mesh);
+    const texName = mesh.material?.metadata?.texName;
+    if (!primitive && (!texName || texName === 'none.png')) return;
+
+    if (mesh.metadata?.sharedGeometry) flock.ensureUniqueGeometry(mesh);
+    if (!primitive && mesh.geometry?.meshes.length > 1) {
+      mesh.makeGeometryUnique();
+      mesh.metadata = { ...mesh.metadata, sharedGeometry: false };
+    }
+
+    mesh.computeWorldMatrix(true);
+    const scale = mesh.absoluteScaling;
+    const { minimum, maximum } = mesh.getBoundingInfo().boundingBox;
+    const width = (maximum.x - minimum.x) * Math.abs(scale.x);
+    const height = (maximum.y - minimum.y) * Math.abs(scale.y);
+    const depth = (maximum.z - minimum.z) * Math.abs(scale.z);
+
+    if (!flock.retilePrimitiveUVs(mesh, { width, height, depth }, scale)) {
+      flock.setSizeBasedBoxUVs(mesh, width, height, depth, TEXTURE_TILE_SIZE, scale);
+    }
+  },
+  retileTextures(rootMesh) {
+    if (!rootMesh) return;
+    [rootMesh, ...rootMesh.getDescendants(false)].forEach((m) => flock.retileMeshTexture(m));
   },
   ensureUniqueGeometry(mesh) {
     // Add safety checks

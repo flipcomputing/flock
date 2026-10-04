@@ -1,3 +1,5 @@
+import { TEXTURE_TILE_SIZE } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -186,9 +188,9 @@ function applyBoxProjectionUV(mesh, uvScale = 1) {
   mesh.setVerticesData(normalKind, normals, true);
 
   // Keep UV behavior aligned with regular box/material workflows:
-  // createBox uses setSizeBasedBoxUVs(..., texturePhysicalSize=4) by default.
+  // createBox uses setSizeBasedBoxUVs(..., TEXTURE_TILE_SIZE) by default.
   const scale = Number.isFinite(uvScale) && uvScale !== 0 ? uvScale : 1;
-  const texturePhysicalSize = 4 / scale;
+  const texturePhysicalSize = TEXTURE_TILE_SIZE / scale;
 
   let minX = Infinity;
   let minY = Infinity;
