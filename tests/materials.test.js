@@ -141,6 +141,32 @@ export function runMaterialsTests(flock) {
       expect(flock.highlighter.hasMesh(mesh)).to.be.true;
     });
 
+    it('should not highlight the say helper plane', async function () {
+      const { id } = await createBoxWithColorAndPosition('boxHighlightSay');
+      boxIds.push(id);
+
+      await flock.say(id, { text: 'hi', duration: 0 });
+      await flock.highlight(id, { color: '#ffff00' });
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(flock.highlighter.hasMesh(mesh)).to.be.true;
+      for (const child of mesh.getChildMeshes()) {
+        if (flock._isSayHelperMesh(child)) {
+          expect(flock.highlighter.hasMesh(child)).to.be.false;
+        }
+      }
+    });
+
+    it('should still highlight a regular mesh named textPlane', async function () {
+      const { id } = await createBoxWithColorAndPosition('textPlane');
+      boxIds.push(id);
+
+      await flock.highlight(id, { color: '#ffff00' });
+
+      const mesh = flock.scene.getMeshByName(id);
+      expect(flock.highlighter.hasMesh(mesh)).to.be.true;
+    });
+
     it('should set alpha value for a mesh and its children', async function () {
       const { id } = await createBoxWithColorAndPosition('boxAlpha');
       boxIds.push(id);

@@ -172,6 +172,15 @@ function textLetterColors(mesh, colorInput) {
 }
 
 export const flockMaterial = {
+  // The floating billboard plane created by say(), or a plane using a say GUI
+  // texture. These helpers must never take part in tint/highlight/glow.
+  // Metadata decides: a user mesh merely named 'textPlane' is still a real
+  // target unless it carries a say relationship.
+  _isSayHelperMesh(mesh) {
+    if (!mesh) return false;
+    if (mesh.metadata?.isTextPlane || mesh.metadata?.hasSayTexture) return true;
+    return mesh.name === 'textPlane' && mesh.metadata?.sayTarget != null;
+  },
   _paintTextLetters(mesh, colors) {
     const letterIndex = mesh.metadata.textLetterIndex;
     const palette = colors.map((c) =>
@@ -309,14 +318,14 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        if (mesh.material) {
+        if (mesh.material && !flock._isSayHelperMesh(mesh)) {
           mesh.renderOverlay = true;
           mesh.overlayAlpha = 0.5;
           mesh.overlayColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
         }
 
         mesh.getChildMeshes().forEach(function (childMesh) {
-          if (childMesh.material) {
+          if (childMesh.material && !flock._isSayHelperMesh(childMesh)) {
             childMesh.renderOverlay = true;
             childMesh.overlayAlpha = 0.5;
             childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
@@ -332,7 +341,7 @@ export const flockMaterial = {
   highlight(meshName, { color } = {}) {
     if (flock.materialsDebug) console.log(`Highlighting ${meshName} with ${color}`);
     const applyHighlight = (mesh) => {
-      if (mesh.material) {
+      if (mesh.material && !flock._isSayHelperMesh(mesh)) {
         flock.highlighter.addMesh(
           mesh,
           flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
@@ -366,6 +375,16 @@ export const flockMaterial = {
           flock.glowLayer.intensity = 0.5;
           if (flock.sky) {
             flock.glowLayer.addExcludedMesh(flock.sky);
+          }
+          // Say helpers created before this layer existed were never excluded.
+          for (const m of flock.scene.meshes) {
+            if (flock._isSayHelperMesh(m)) {
+              try {
+                flock.glowLayer.addExcludedMesh(m);
+              } catch {
+                // Non-fatal: glowMesh() still skips helpers.
+              }
+            }
           }
           flock.glowLayer.customEmissiveColorSelector = (
             glowingMesh,
@@ -432,7 +451,7 @@ export const flockMaterial = {
   glowMesh(mesh, glowColor = null) {
     const applyGlow = (m) => {
       // Don't glow the separate say helper plane or planes using say GUI textures.
-      if (m.name === 'textPlane' || m.metadata?.isTextPlane || m.metadata?.hasSayTexture) {
+      if (flock._isSayHelperMesh(m)) {
         return;
       }
 

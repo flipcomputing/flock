@@ -981,6 +981,27 @@ export const flockUI = {
           targetMesh.metadata = { ...(targetMesh.metadata || {}), sayPlane: plane };
         }
 
+        // Say surfaces are labels, not scene geometry: keep the selected plane
+        // out of both effect layers in every case (new helper, reused helper,
+        // or plane target carrying a say texture). Removal first so a plane
+        // highlighted before say() stops receiving the effect.
+        try {
+          flock.highlighter?.removeMesh?.(plane);
+        } catch {
+          // Highlight layer may be unavailable in some pass-throughs.
+        }
+        try {
+          flock.highlighter?.addExcludedMesh?.(plane);
+        } catch {
+          // Older Babylon pass-throughs may not expose exclusions; the
+          // highlight()/tint() guards still skip these helpers.
+        }
+        try {
+          flock.glowLayer?.addExcludedMesh?.(plane);
+        } catch {
+          // Glow layer is created lazily; glowMesh() also skips helpers.
+        }
+
         let advancedTexture;
         let uiScale = 1;
         if (!plane.advancedTexture) {
