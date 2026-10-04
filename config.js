@@ -124,6 +124,8 @@ export const multiObjectNames = [
   'flower2.glb',
   'mushroom.glb',
   'mushroom_2.glb',
+  'icecrystals.glb',
+  'stalagmite.glb',
 ];
 
 export const objectNames = [
@@ -205,6 +207,8 @@ export const objectDisplayNameTranslationKeys = {
   'donut.glb': 'model_display_donut',
   'mushroom.glb': 'model_display_mushroom',
   'mushroom_2.glb': 'model_display_mushroom_2',
+  'icecrystals.glb': 'model_display_icecrystals',
+  'stalagmite.glb': 'model_display_stalagmite',
   'pumpkin.glb': 'model_display_pumpkin',
   'apple.glb': 'model_display_apple',
   'starboppers.glb': 'model_display_starboppers',
