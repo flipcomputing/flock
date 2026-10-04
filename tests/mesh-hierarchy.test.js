@@ -1031,7 +1031,7 @@ export function runMeshHierarchyTests(flock) {
         }
       });
 
-      it('should write scale-baked member values at 1dp and snap live onto them', async function () {
+      it('should write scale-baked member values at 2dp and snap live onto them', async function () {
         this.timeout(15000);
 
         const groupName = await flock.createGroup('hierarchyGroupBake1dp', { position: [0, 0, 0] });
@@ -1068,21 +1068,22 @@ export function runMeshHierarchyTests(flock) {
         meshMap['bake1dpA'] = mockA.block;
         meshMap['bake1dpB'] = mockB.block;
         try {
-          // Irrational factor: exact live values cannot be 1dp, so the blocks
+          // Irrational factor: exact live values cannot be 2dp, so the blocks
           // must round and the scene must snap onto the rounded values.
           groupMesh.scaling.set(Math.SQRT2, Math.SQRT2, Math.SQRT2);
           groupMesh.computeWorldMatrix(true);
 
           expect(bakeGroupScale(groupMesh)).to.be.true;
 
-          const is1dp = (v) => Math.abs(v * 10 - Math.round(v * 10)) < 1e-6;
+          const is2dp = (v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
           for (const holders of [mockA.holders, mockB.holders]) {
             for (const v of Object.values(holders).map((h) => h._v)) {
-              expect(v, 'baked block value at 1dp').to.satisfy(is1dp);
+              expect(v, 'baked block value at 2dp').to.satisfy(is2dp);
             }
           }
+          expect(mockA.holders.WIDTH._v).to.equal(1.41);
 
-          // Far tighter than the ±0.05 rounding band: live was snapped.
+          // Far tighter than the ±0.005 rounding band: live was snapped.
           for (const [mesh, holders] of [
             [childMeshA, mockA.holders],
             [childMeshB, mockB.holders],
@@ -1098,7 +1099,7 @@ export function runMeshHierarchyTests(flock) {
         }
       });
 
-      it('should write rotation-baked member values at 1dp and snap live onto them', async function () {
+      it('should write rotation-baked member positions at 2dp and snap live onto them', async function () {
         this.timeout(15000);
 
         const groupName = await flock.createGroup('hierarchyGroupRot1dp', { position: [0, 0, 0] });
@@ -1185,8 +1186,9 @@ export function runMeshHierarchyTests(flock) {
           updateChildBlockRotations(groupMesh);
 
           const is1dp = (v) => Math.abs(v * 10 - Math.round(v * 10)) < 1e-6;
+          const is2dp = (v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
           for (const v of Object.values(memberHolders).map((h) => h._v)) {
-            expect(v, 'baked position at 1dp').to.satisfy(is1dp);
+            expect(v, 'baked position at 2dp').to.satisfy(is2dp);
           }
           for (const v of Object.values(rot.holders).map((h) => h._v)) {
             expect(v, 'baked rotation at 1dp').to.satisfy(is1dp);

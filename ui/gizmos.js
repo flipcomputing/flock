@@ -2465,9 +2465,13 @@ function findOrCreateMoveBlock(block) {
   return moveBlock;
 }
 
-function writePositionToBlock(block, pos) {
+// Group members keep 2dp: group scales and rotations derive their values, and
+// 1dp rounding visibly breaks flush alignments between members.
+const MEMBER_DECIMALS = 2;
+
+function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
   const target = block.type === 'clone_mesh' ? findOrCreateMoveBlock(block) : block;
-  setBlockXYZ(target, pos.x, pos.y, pos.z);
+  setBlockXYZ(target, pos.x, pos.y, pos.z, { decimals });
 }
 
 // Update the blockly block after a rotation.
@@ -2697,7 +2701,7 @@ function findOrCreateResizeBlock(mesh) {
   return resizeBlock;
 }
 
-// Blocks hold 1dp values; after a bake rounds member values, snap the live
+// Blocks hold rounded values; after a bake rounds member values, snap the live
 // meshes back onto them so the scene is exactly what Play rebuilds. Sizes
 // stay exact (like every plain-mesh scale): rebuilding geometry here would
 // risk the physics corruption the suppression machinery guards against.
@@ -2718,8 +2722,8 @@ function snapMemberPositionToBlock(member) {
   flock.updatePhysics?.(member);
 }
 
-function setWallSizeInputs(block, { diameter, thickness, height }) {
-  setNumberInputs(block, { DIAMETER: diameter, HEIGHT: height });
+function setWallSizeInputs(block, { diameter, thickness, height }, { decimals = 1 } = {}) {
+  setNumberInputs(block, { DIAMETER: diameter, HEIGHT: height }, { decimals });
   setNumberInputs(block, { THICKNESS: thickness }, { decimals: 2 });
   const roundedDiameter = getNumberInput(block, 'DIAMETER');
   const roundedThickness = getNumberInput(block, 'THICKNESS');
@@ -2740,7 +2744,9 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
   if (!block || block.disposed) return;
   const mul = (target, name) => {
     const cur = getNumberInput(target, name);
-    if (Number.isFinite(cur)) setNumberInputs(target, { [name]: cur * factor });
+    if (Number.isFinite(cur)) {
+      setNumberInputs(target, { [name]: cur * factor }, { decimals: MEMBER_DECIMALS });
+    }
   };
   switch (block.type) {
     case 'create_plane':
@@ -2761,11 +2767,15 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
     case 'create_ring': {
       const dims = mesh.metadata?.ringDimensions ?? mesh.metadata?.donutDimensions;
       if (dims) {
-        setWallSizeInputs(block, {
-          diameter: dims.diameter * factor,
-          thickness: dims.thickness * factor,
-          height: dims.height * factor,
-        });
+        setWallSizeInputs(
+          block,
+          {
+            diameter: dims.diameter * factor,
+            thickness: dims.thickness * factor,
+            height: dims.height * factor,
+          },
+          { decimals: MEMBER_DECIMALS }
+        );
       }
       break;
     }
@@ -2992,7 +3002,7 @@ export function bakeGroupScale(groupMesh) {
       const childBlock = meshMap[key];
       if (childBlock && !childBlock.disposed) {
         const pos = flock.getBlockPositionFromMesh(m);
-        writePositionToBlock(childBlock, pos);
+        writePositionToBlock(childBlock, pos, { decimals: MEMBER_DECIMALS });
       }
     }
     groupMesh.scaling.set(1, 1, 1);
@@ -3022,7 +3032,7 @@ export function bakeGroupScale(groupMesh) {
       } finally {
         m.setParent(parent);
       }
-      writePositionToBlock(childBlock, pos);
+      writePositionToBlock(childBlock, pos, { decimals: MEMBER_DECIMALS });
       snappedSubs.push(m);
     }
     // Snap live members onto the rounded blocks (positions only; sizes stay
@@ -3206,7 +3216,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
     if (block.type !== 'create_group' && block.type !== 'clone_mesh') {
       const pos = flock.getBlockPositionFromMesh(mesh);
       const stale = ['x', 'y', 'z'].some(
-        (axis) => getNumberInput(block, axis.toUpperCase()) !== roundToOneDecimal(pos[axis])
+        (axis) => !(Math.abs(getNumberInput(block, axis.toUpperCase()) - pos[axis]) <= 0.05)
       );
       if (stale) writePositionToBlock(block, pos);
     }
@@ -3283,7 +3293,7 @@ function commitMoveToBlocks(mesh, startPosition) {
 // project reproduces what's on screen. Read unparented so the transform is
 // world-space, then restore the parent. Writing the block fires
 // updateMeshFromBlock, which applies the change back on a deferred microtask;
-// the 1dp rounding makes that a small snap onto the rounded values, keeping
+// the rounding makes that a small snap onto the rounded values, keeping
 // the scene identical to what Play rebuilds. The caller wraps this (with the
 // parent's own block update) in a single Blockly event group: one undo.
 export function moveGroupBy(groupMesh, delta) {
@@ -3330,7 +3340,7 @@ function updateChildBlockPositions(mesh, delta = null) {
       child.setParent(childParent);
     }
 
-    writePositionToBlock(childBlock, pos);
+    writePositionToBlock(childBlock, pos, { decimals: MEMBER_DECIMALS });
   });
 
   if (suppressed.size) {
@@ -4069,7 +4079,7 @@ export function updateChildBlockRotations(mesh) {
     if (pos) {
       memberBlock = meshMap[key];
       if (memberBlock && !memberBlock.disposed) {
-        writePositionToBlock(memberBlock, pos);
+        writePositionToBlock(memberBlock, pos, { decimals: MEMBER_DECIMALS });
       }
     }
     // Snap live onto the rounded blocks: set the world orientation while
