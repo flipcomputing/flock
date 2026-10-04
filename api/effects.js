@@ -16,6 +16,19 @@ function updateHeadlampIntensity() {
     : 0;
 }
 
+function castsShadowWhenAll(mesh) {
+  if (flock.shadowCasters.has(mesh)) return true;
+  if (mesh === flock.ground || mesh === flock.sky) return false;
+  if (!mesh.isEnabled() || !mesh.isVisible || mesh.getTotalVertices() === 0) return false;
+  let root = mesh;
+  while (true) {
+    if (flock.shadowExcluded.has(root)) return false;
+    if (!root.parent) break;
+    root = root.parent;
+  }
+  return root.metadata?.blockKey !== undefined;
+}
+
 export const flockEffects = {
   /*    Category: Scene>Effects  */
   // Called by flockEffects itself and by flock.js on scene init.
@@ -64,7 +77,7 @@ export const flockEffects = {
   getMainLight() {
     return '__main_light__';
   },
-  enableShadows({ enabled = true } = {}) {
+  enableShadows({ enabled = true, all = false } = {}) {
     if (!flock.shadowLight) {
       console.warn('Shadow light is not defined. Please ensure flock.shadowLight exists.');
       return;
@@ -82,9 +95,9 @@ export const flockEffects = {
       flock.shadowLight.intensity = 0.4;
       if (flock.ground) flock.ground.receiveShadows = true;
       // Register any meshes already marked as casters (order-independent).
-      flock.shadowCasters.forEach((m) => {
-        if (!m.isDisposed()) flock.shadowGenerator.addShadowCaster(m);
-      });
+      const shadowMap = flock.shadowGenerator.getShadowMap();
+      shadowMap.renderListPredicate = all ? castsShadowWhenAll : null;
+      shadowMap.renderList = [...flock.shadowCasters].filter((m) => !m.isDisposed());
       // A scaled-down AR scene catches its shadow on the room's floor instead.
       flock._syncARGround?.();
     } else {
@@ -102,12 +115,18 @@ export const flockEffects = {
   setShadow(meshName, { cast = true } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        const meshes = [mesh, ...mesh.getDescendants()].filter(
+        const nodes = [mesh, ...mesh.getDescendants()];
+        const meshes = nodes.filter(
           (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
         );
         // Marking a caster does NOT turn shadows on — enableShadows is the
         // master switch. Track the intent and apply it live if a generator
         // already exists.
+        if (cast) {
+          nodes.forEach((n) => flock.shadowExcluded.delete(n));
+        } else {
+          flock.shadowExcluded.add(mesh);
+        }
         meshes.forEach((m) => {
           if (cast) {
             flock.shadowCasters.add(m);

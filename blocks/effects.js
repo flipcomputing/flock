@@ -102,12 +102,45 @@ export function defineEffectsBlocks() {
             name: 'ENABLED',
             checked: true,
           },
+          {
+            type: 'field_checkbox',
+            name: 'ALL',
+            checked: false,
+          },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Scene'],
         tooltip: getTooltip('enable_shadows'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+    },
+  };
+
+  Blockly.Blocks['set_shadow'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_shadow',
+        message0: translate('set_shadow'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_checkbox',
+            name: 'CAST',
+            checked: true,
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('set_shadow'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');

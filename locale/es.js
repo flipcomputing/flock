@@ -236,7 +236,7 @@ export default {
   highlight: 'resaltar %1 %2', // human
   glow: 'resplandor en %1', // human
   set_shadow: 'proyectar sombra de %1 %2', // ai
-  enable_shadows: 'activar sombras %1', // ai
+  enable_shadows: 'activar sombras %1 todos %2', // ai
   tint: 'tinte %1 %2', // human
   set_alpha: 'establecer alfa de %1 a %2', // human
   clear_effects: 'limpiar efectos de %1', // human
@@ -550,7 +550,7 @@ export default {
   highlight_tooltip: 'Resalta el objeto seleccionado.', // human
   glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.', // human
   set_shadow_tooltip: 'Activa o desactiva si un objeto proyecta sombra.', // ai
-  enable_shadows_tooltip: 'Activa o desactiva las sombras de la escena.', // ai
+  enable_shadows_tooltip: 'Activa o desactiva las sombras de la escena. Marca todos para que todos los objetos proyecten sombra.', // ai
   tint_tooltip: 'Añade un tinte de color.', // human
   set_alpha_tooltip:
     'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.', // human

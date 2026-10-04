@@ -490,7 +490,18 @@ export function registerSceneGenerators(javascriptGenerator) {
   // Enable shadows -------------------------------------------------
   javascriptGenerator.forBlock['enable_shadows'] = function (block) {
     const enabled = block.getFieldValue('ENABLED') === 'TRUE';
-    return `enableShadows({ enabled: ${enabled} });\n`;
+    const all = block.getFieldValue('ALL') === 'TRUE';
+    return `enableShadows({ enabled: ${enabled}, all: ${all} });\n`;
+  };
+
+  // Set shadow casting of object -------------------------------
+  javascriptGenerator.forBlock['set_shadow'] = function (block) {
+    const modelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const cast = block.getFieldValue('CAST') === 'TRUE';
+    return `await setShadow(${modelName}, { cast: ${cast} });\n`;
   };
 
   // Get light as --------------------------------------------------

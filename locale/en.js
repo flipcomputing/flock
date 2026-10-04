@@ -262,7 +262,7 @@ export default {
   highlight: 'highlight %1 %2',
   glow: 'glow %1',
   set_shadow: 'cast shadow from %1 %2',
-  enable_shadows: 'enable shadows %1',
+  enable_shadows: 'enable shadows %1 all %2',
   tint: 'tint %1 %2',
   set_alpha: 'set alpha of %1 to %2',
   clear_effects: 'clear effects %1',
@@ -580,7 +580,7 @@ export default {
   highlight_tooltip: 'Highlight the selected object.',
   glow_tooltip: 'Add a glow effect to the selected object.',
   set_shadow_tooltip: 'Toggle whether an object casts a shadow.',
-  enable_shadows_tooltip: 'Turn scene shadows on or off.',
+  enable_shadows_tooltip: 'Turn scene shadows on or off. Tick all to make every object cast a shadow.',
   tint_tooltip: 'Add color tint effect.',
   set_alpha_tooltip:
     'Set the alpha (transparency) of the material(s) on a specified object. Values should be 0 to 1.',

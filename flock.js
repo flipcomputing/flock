@@ -138,6 +138,7 @@ export const flock = {
   shadowLight: null,
   shadowGenerator: null,
   shadowCasters: new Set(),
+  shadowExcluded: new Set(),
   xrFramebufferScale: 1.2,
   xrFixedFoveation: 0.5,
   hk: null,
@@ -2432,6 +2433,7 @@ export const flock = {
     flock.shadowLight = shadowLight;
     flock.shadowGenerator = null;
     flock.shadowCasters.clear();
+    flock.shadowExcluded.clear();
 
     // Headlamp: fills in faces the hemispheric light leaves dark, by always
     // pointing where the camera looks. No specular — its direction tracks
