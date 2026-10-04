@@ -3284,6 +3284,12 @@ function commitMoveToBlocks(mesh, startPosition) {
 // the 1dp rounding makes that a small snap onto the rounded values, keeping
 // the scene identical to what Play rebuilds. The caller wraps this (with the
 // parent's own block update) in a single Blockly event group: one undo.
+export function moveGroupBy(groupMesh, delta) {
+  groupMesh.setAbsolutePosition(groupMesh.getAbsolutePosition().add(delta));
+  groupMesh.computeWorldMatrix(true);
+  inEventGroup(() => updateChildBlockPositions(groupMesh, delta));
+}
+
 function updateChildBlockPositions(mesh, delta = null) {
   const rootKey = mesh?.metadata?.blockKey;
   const children = mesh?.getChildMeshes?.(false) || [];

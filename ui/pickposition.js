@@ -12,14 +12,21 @@ import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js'
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
 import { isPlacementSurface } from './meshhelpers.js';
-import { startAlignBlobs, getAlignedBlockPosition, getSurfaceBlockPosition } from './alignBlobs.js';
+import {
+  startAlignBlobs,
+  getAlignDelta,
+  getAlignedBlockPosition,
+  surfaceMarker,
+} from './alignBlobs.js';
 
 let getMeshFromBlock = () => null;
 let selectMeshForBlock = () => {};
+let moveGroupBy = null;
 Promise.all([import('./blockmesh.js'), import('./gizmos.js')])
   .then(([blockmesh, gizmos]) => {
     getMeshFromBlock = blockmesh.getMeshFromBlock;
     selectMeshForBlock = gizmos.selectMeshForBlock;
+    moveGroupBy = gizmos.moveGroupBy;
   })
   .catch((error) => console.warn('Position pick alignment unavailable:', error));
 
@@ -78,6 +85,14 @@ function formatPickedPositionAnnouncement(block) {
     .replace('%3', z ?? '0');
 }
 
+function activeGroupOf(mesh) {
+  let group = null;
+  for (let node = mesh?.parent; node?.metadata?.shapeType === 'Group'; node = node.parent) {
+    group = node;
+  }
+  return group;
+}
+
 let activeCleanup = null;
 
 export function startPositionPick(block, { showCircleImmediately = false } = {}) {
@@ -88,7 +103,9 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
 
   let pointer = null;
   let pressStart = null;
-  const mover = CONFIRMATION_PING_BLOCK_TYPES.has(block.type) ? null : getMeshFromBlock(block);
+  const member = CONFIRMATION_PING_BLOCK_TYPES.has(block.type) ? null : getMeshFromBlock(block);
+  const group = moveGroupBy ? activeGroupOf(member) : null;
+  const mover = group ?? member;
   if (mover) selectMeshForBlock(block);
   const align = mover ? startAlignBlobs(mover, () => getCanvasCirclePosition() ?? pointer) : null;
 
@@ -97,17 +114,27 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
 
   const isValidHit = (x, y) => !!align?.markerAt(x, y) || !!flock.scene.pick(x, y, isSurface)?.hit;
 
-  function surfacePosition(pick, ray) {
+  function surfaceMarkerAt(pick, ray) {
     const normal = mover ? pick.getNormal(true, true) : null;
     if (!normal) return null;
     if (flock.BABYLON.Vector3.Dot(normal, ray.direction) > 0) normal.scaleInPlace(-1);
-    return getSurfaceBlockPosition(mover, pick.pickedPoint, normal);
+    return surfaceMarker(pick.pickedPoint, normal);
+  }
+
+  function placeAgainst(marker) {
+    if (!group) {
+      setPositionValues(block, getAlignedBlockPosition(mover, marker), block.type, 2);
+      return;
+    }
+    const delta = getAlignDelta(group, marker);
+    for (const axis of ['x', 'y', 'z']) delta[axis] = Math.round(delta[axis] * 100) / 100;
+    moveGroupBy(group, delta);
   }
 
   function commitAt(x, y) {
     const marker = align?.markerAt(x, y);
     if (marker) {
-      setPositionValues(block, getAlignedBlockPosition(mover, marker), block.type, 2);
+      placeAgainst(marker);
       announceToScreenReader(formatPickedPositionAnnouncement(block), {
         requireCanvasFocus: false,
       });
@@ -122,8 +149,8 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     );
     const pick = flock.scene.pickWithRay(pickRay, isSurface);
     if (!pick?.hit) return;
-    const placed = surfacePosition(pick, pickRay);
-    if (placed) setPositionValues(block, placed, block.type, 2);
+    const surface = surfaceMarkerAt(pick, pickRay);
+    if (surface) placeAgainst(surface);
     else setPositionValues(block, pick.pickedPoint, block.type);
     if (CONFIRMATION_PING_BLOCK_TYPES.has(block.type)) {
       showPositionPickedPing(pick.pickedPoint);

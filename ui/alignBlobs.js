@@ -14,6 +14,8 @@ const PART_MIN_PX = 40;
 const MAX_PARTS = 20;
 const PART_PREFIX = /^align_/i;
 const EXCLUDED_NAMES = new Set(['ground', 'sky', '__root__']);
+const HANDLE_STENCIL_BIT = 0x80;
+const MOVER_RENDERING_GROUP = 1;
 
 function isAlignTarget(mesh, mover) {
   const key = mesh.metadata?.blockKey;
@@ -115,13 +117,17 @@ function extentAlong(box, normal) {
   );
 }
 
-export function getAlignedBlockPosition(mover, marker) {
+export function getAlignDelta(mover, marker) {
   const box = orientedBox(mover);
   const targetCentre = marker.tangents.reduce(
     (sum, t) => sum.add(t.axis.scale(t.a * (t.extent - extentAlong(box, t.axis)))),
     marker.faceCentre.add(marker.normal.scale(extentAlong(box, marker.normal)))
   );
-  const delta = targetCentre.subtract(box.centre);
+  return targetCentre.subtract(box.centre);
+}
+
+export function getAlignedBlockPosition(mover, marker) {
+  const delta = getAlignDelta(mover, marker);
   const origin = mover.getAbsolutePosition();
 
   let baseY = origin.y;
@@ -138,7 +144,52 @@ export function getAlignedBlockPosition(mover, marker) {
 }
 
 export function getSurfaceBlockPosition(mover, point, normal) {
-  return getAlignedBlockPosition(mover, { faceCentre: point, normal, tangents: [] });
+  return getAlignedBlockPosition(mover, surfaceMarker(point, normal));
+}
+
+export function surfaceMarker(point, normal) {
+  return { faceCentre: point, normal, tangents: [] };
+}
+
+function drawMoverBehindHandles(scene, mover) {
+  const meshes = [mover, ...mover.getChildMeshes(false)];
+  const materials = [
+    ...new Set(meshes.flatMap((mesh) => [mesh.material, ...(mesh.material?.subMaterials ?? [])])),
+  ].filter((material) => material?.stencil);
+  const groups = meshes.map((mesh) => mesh.renderingGroupId);
+  const stencils = materials.map(({ stencil }) => ({
+    enabled: stencil.enabled,
+    func: stencil.func,
+    funcRef: stencil.funcRef,
+    funcMask: stencil.funcMask,
+    mask: stencil.mask,
+  }));
+  const clear = { ...scene.getAutoClearDepthStencilSetup(MOVER_RENDERING_GROUP) };
+
+  scene.setRenderingAutoClearDepthStencil(MOVER_RENDERING_GROUP, false, false, false);
+  meshes.forEach((mesh) => (mesh.renderingGroupId = MOVER_RENDERING_GROUP));
+  materials.forEach(({ stencil }) =>
+    Object.assign(stencil, {
+      enabled: true,
+      func: flock.BABYLON.Constants.NOTEQUAL,
+      funcRef: HANDLE_STENCIL_BIT,
+      funcMask: HANDLE_STENCIL_BIT,
+      mask: 0,
+    })
+  );
+
+  return () => {
+    meshes.forEach((mesh, i) => {
+      if (!mesh.isDisposed()) mesh.renderingGroupId = groups[i];
+    });
+    materials.forEach((material, i) => Object.assign(material.stencil, stencils[i]));
+    scene.setRenderingAutoClearDepthStencil(
+      MOVER_RENDERING_GROUP,
+      clear.autoClear,
+      clear.depth,
+      clear.stencil
+    );
+  };
 }
 
 export function startAlignBlobs(mover, getCursor) {
@@ -170,6 +221,13 @@ export function startAlignBlobs(mover, getCursor) {
     mat.emissiveColor = BABYLON.Color3.FromHexString(hex);
     mat.disableLighting = true;
     mat.backFaceCulling = false;
+    Object.assign(mat.stencil, {
+      enabled: true,
+      func: BABYLON.Constants.ALWAYS,
+      funcRef: HANDLE_STENCIL_BIT,
+      opStencilDepthPass: BABYLON.Constants.REPLACE,
+      mask: HANDLE_STENCIL_BIT,
+    });
     mesh.material = mat;
     hideFromInspector(mesh);
     mesh.isPickable = false;
@@ -196,6 +254,7 @@ export function startAlignBlobs(mover, getCursor) {
   };
   const highlightSlots = { dot: [0], bar: [0, 1] };
   const meshSets = [handles, highlight];
+  const restoreMover = drawMoverBehindHandles(scene, mover);
 
   const hidden = BABYLON.Matrix.Scaling(0, 0, 0);
   const engine = scene.getEngine();
@@ -339,7 +398,10 @@ export function startAlignBlobs(mover, getCursor) {
     const toPoint = anchor.subtract(origin);
     const distance = toPoint.length();
     const ray = new BABYLON.Ray(origin, toPoint.normalize(), distance);
-    const hit = scene.pickWithRay(ray, isPlacementSurface);
+    const hit = scene.pickWithRay(
+      ray,
+      (mesh) => isPlacementSurface(mesh) && mesh !== mover && !mesh.isDescendantOf(mover)
+    );
     return !!hit?.hit && hit.distance < distance - (0.01 + unit);
   }
 
@@ -373,6 +435,7 @@ export function startAlignBlobs(mover, getCursor) {
 
   function dispose() {
     scene.onBeforeRenderObservable.remove(observer);
+    restoreMover();
     for (const set of meshSets) {
       for (const { mesh } of Object.values(set)) {
         mesh.material.dispose();
