@@ -676,8 +676,17 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     meshes.length === 0;
 
   if (!isConnectedToEnabledChain) {
-    if (meshes.length) {
-      deleteMeshFromBlock(block.id);
+    if (!isInsideDefinition(block)) {
+      if (meshes.length) deleteMeshFromBlock(block.id);
+      return;
+    }
+    const previewMeshes = meshes.filter((mesh) => getPrefabPreviewGroup(mesh, block));
+    if (
+      previewMeshes.length &&
+      changeEvent?.type === Blockly.Events.BLOCK_CHANGE &&
+      !(window.loadingCode && !changeEvent?.recordUndo)
+    ) {
+      updatePrefabPreviewFromBlock(previewMeshes, block, changeEvent);
     }
     return;
   }
@@ -714,6 +723,61 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     (meshes.length || sceneControllerTypes.includes(block.type))
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
+  }
+}
+
+function isInsideDefinition(block) {
+  return Boolean(block?.getRootBlock?.()?.type?.startsWith('procedures_def'));
+}
+
+function getPrefabPreviewGroup(mesh, block) {
+  const definition = block.getRootBlock();
+  if (definition.getField('PREVIEW')?.getValue() !== 'TRUE') return null;
+  for (let node = mesh.parent; node; node = node.parent) {
+    if (node.metadata?.isPrefab) return node.metadata.blockKey === definition.id ? node : null;
+  }
+  return null;
+}
+
+// Definition blocks are positioned relative to the prefab, so with the preview
+// back where it was built, its meshes are updated as unparented top-level meshes.
+function updatePrefabPreviewFromBlock(meshes, block, changeEvent) {
+  const groups = new Set(meshes.map((mesh) => getPrefabPreviewGroup(mesh, block)));
+  const savedGroups = [...groups].map((group) => {
+    const state = {
+      group,
+      position: group.position.clone(),
+      rotation: group.rotation.clone(),
+      quaternion: group.rotationQuaternion?.clone() ?? null,
+    };
+    group.position.copyFrom(group.metadata.buildPosition ?? flock.BABYLON.Vector3.Zero());
+    group.rotation.setAll(0);
+    if (group.rotationQuaternion) group.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+    group.computeWorldMatrix(true);
+    return state;
+  });
+  const parents = meshes.map((mesh) => {
+    const parent = mesh.parent;
+    mesh.setParent(null);
+    return parent;
+  });
+
+  try {
+    updateMeshFromBlock(meshes, block, changeEvent);
+  } finally {
+    meshes.forEach((mesh, i) => {
+      if (!mesh.isDisposed() && !parents[i].isDisposed()) mesh.setParent(parents[i]);
+    });
+    for (const { group, position, rotation, quaternion } of savedGroups) {
+      if (group.isDisposed()) continue;
+      group.position.copyFrom(position);
+      group.rotation.copyFrom(rotation);
+      if (quaternion) group.rotationQuaternion = quaternion;
+      group.computeWorldMatrix(true);
+    }
+    meshes.forEach((mesh) => {
+      if (!mesh.isDisposed()) flock.updatePhysics(mesh);
+    });
   }
 }
 

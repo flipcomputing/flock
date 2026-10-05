@@ -152,6 +152,34 @@ export function runCreateObjectTests(flock) {
       });
     });
 
+    it('reveals an object built inside a prefab', async function () {
+      let tree;
+      const group = await flock.addPrefab('prefab_reveal__prefab_reveal', {
+        x: 24,
+        z: 10.8,
+        build: async (groupName) => {
+          tree = flock.createObject({
+            modelName: 'tree.glb',
+            modelId: 'tree.glb__prefab_reveal',
+            color: ['#66cdaa', '#cd853f'],
+            position: { x: 0, y: 0, z: 0 },
+          });
+          flock.setParent(groupName, tree);
+        },
+      });
+      expect(group).to.be.a('string');
+
+      try {
+        await pumpUntil(
+          flock,
+          () => flock.scene.getMeshByName(tree)?.getChildMeshes(false).some((p) => p.isEnabled()),
+          { label: 'reveal inside prefab' }
+        );
+      } finally {
+        flock.disposeMesh(flock.scene.getMeshByName(group));
+      }
+    });
+
     it('runs then() after the constructor callback and after the object is revealed', async function () {
       const order = [];
       let revealedWhenThenRan = null;

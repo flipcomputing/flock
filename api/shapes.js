@@ -571,6 +571,7 @@ export const flockShapes = {
     try {
       if (build) await build(groupName, tagged);
       await flock._whenHierarchySettled(group);
+      group.metadata.buildPosition = group.position.clone();
       await flock.rotateTo(groupName, { y: rotationY });
       await flock.positionAt(groupName, { x, y, z });
     } finally {

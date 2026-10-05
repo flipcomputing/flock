@@ -230,6 +230,7 @@ export default {
   procedures_callprefab: 'add',
   prefab_default_name: 'prefab',
   prefab_variable: 'prefab1',
+  prefab_preview_label: 'preview:',
   prefab_material_param: 'material',
   prefab_x_label: 'x:',
   prefab_y_label: 'y:',

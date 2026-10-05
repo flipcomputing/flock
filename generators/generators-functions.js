@@ -96,7 +96,36 @@ export function registerFunctionsGenerators(javascriptGenerator) {
         javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || ''
     );
 
-    return `async function ${functionName}(${[...args, group].join(', ')}) {\n${branch}\n}`;
+    const code = `async function ${functionName}(${[...args, group].join(', ')}) {\n${branch}\n}`;
+    if (block.getFieldValue('PREVIEW') !== 'TRUE') return code;
+
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+    const previewGroup = javascriptGenerator.nameDB_.getDistinctName(
+      'prefab',
+      Blockly.Names.NameType.VARIABLE
+    );
+    const values = javascriptGenerator.nameDB_.getDistinctName(
+      'args',
+      Blockly.Names.NameType.VARIABLE
+    );
+    const defaults = block.argData_.map(
+      ({ argId }) =>
+        javascriptGenerator.valueToCode(block, argId, javascriptGenerator.ORDER_NONE) || 'null'
+    );
+    const value = (name) =>
+      javascriptGenerator.valueToCode(block, name, javascriptGenerator.ORDER_NONE) || '0';
+
+    return `${code}\nawait addPrefab(${JSON.stringify(`${block.getFieldValue('NAME')}__${block.id}`)}, {
+  x: ${value('X')},
+  y: ${value('Y')},
+  z: ${value('Z')},
+  rotationY: ${value('ROTATE_Y')},
+  args: [${defaults.join(', ')}],
+  build: async function (${previewGroup}, ${values}) {
+    await ${functionName}(...${values}, ${previewGroup});
+  },
+});\n`;
   };
 
   // Add prefab ----------------------------------------------------

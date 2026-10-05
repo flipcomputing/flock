@@ -95,6 +95,9 @@ export function definePrefabBlocks() {
         mutator: 'procedure_def_mutator',
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
+      this.getInput('TOP')
+        .appendField(translate('prefab_preview_label'))
+        .appendField(new Blockly.FieldCheckbox('FALSE'), 'PREVIEW');
       setupProcedureParams(this, { fixedParams: { [MATERIAL_ARG]: MATERIAL_SHADOW } });
       addToggleButton(this);
       this.appendEndRowInput(TRANSFORM_ROW);
@@ -102,6 +105,7 @@ export function definePrefabBlocks() {
       appendNumberInput(this, 'ROTATE_Y', 'prefab_rotate_y_label');
       this.addArg_(translate('prefab_material_param'), null, MATERIAL_ARG);
       this.getInput('TOP').removeField('WITH', true);
+      registerBlockHandler(this, (changeEvent) => updateLive(this, changeEvent));
     },
 
     getProcedureDef: function () {

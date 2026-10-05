@@ -237,6 +237,25 @@ export function runPrefabTests(flock) {
       expect(groupParam).to.match(/^prefab/);
     });
 
+    it('adds a preview instance with the definition defaults only when preview is ticked', function () {
+      const definition = appendDefinition(workspace, ['width'], {
+        inputs: {
+          width: { shadow: { type: 'math_number', fields: { NUM: 4 } } },
+          Z: { shadow: { type: 'math_number', fields: { NUM: 5 } } },
+        },
+      });
+      javascriptGenerator.init(workspace);
+      expect(javascriptGenerator.blockToCode(definition)).not.to.include('addPrefab');
+
+      definition.setFieldValue('TRUE', 'PREVIEW');
+      javascriptGenerator.init(workspace);
+      const code = javascriptGenerator.blockToCode(definition);
+      const meshId = JSON.stringify(`bookcase__${definition.id}`);
+      expect(code).to.include(`await addPrefab(${meshId}, {`);
+      expect(code).to.include('z: 5');
+      expect(code).to.match(/args: \[4, \{.*\}\],\n/s);
+    });
+
     it('declares the add block variable', function () {
       appendDefinition(workspace);
       const start = Blockly.serialization.blocks.append({ type: 'start' }, workspace);

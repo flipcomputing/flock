@@ -364,7 +364,7 @@ export const flockModels = {
       return Promise.race([Promise.all(compiled), deadline]).then(() => {
         if (signal?.aborted || mesh.isDisposed()) return;
         // A hide() during this window disables the wrapper; don't undo it.
-        if (mesh.parent?.isEnabled?.() === false) return;
+        if (mesh.parent?.isEnabled?.(false) === false) return;
         setInstanceFlags(mesh);
       });
     };
