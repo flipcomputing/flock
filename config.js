@@ -328,7 +328,7 @@ export const objectColours = {
   'flower2.glb': ['#7C38E7', '#4AB700', '#E7D535'],
 };
 
-export const modelNames = ['Flock.glb', 'bunny.glb', 'lion.glb', 'rhino.glb'];
+export const modelNames = ['Flock.glb', 'Bunny.glb', 'lion.glb', 'rhino.glb'];
 
 export const blockNames = [
   'Character1.glb',
