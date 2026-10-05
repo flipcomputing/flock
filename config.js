@@ -295,7 +295,7 @@ export const objectColours = {
   'skateboard.glb': ['#E769D3', '#484848', '#251BE7'],
 
   'Flock.glb': [
-    '#55C7C3',
+    '#511D91',
     '#33125B',
     '#FFFFFF',
     '#000000',
@@ -306,18 +306,17 @@ export const objectColours = {
   ],
 
     'Bunny.glb': [
-    '#511D91',
+    '#55C7C3',
+    '#55C7C3',
+    '#55C7C3',
     '#68445F',
-    '#F28C7F',
-    '#000000',
-    '#F2C96D',
-    '#CE4A93',
     '#E7E7E7',
-    '#511D91',
+    '#CE4A93',
     '#000000',
     '#000000',
     '#FFFFFF',
   ],
+  
   'rhino.glb': ['#6D6B6C', '#F6F6F6', '#373737', '#230F0F'],
   'lion.glb': ['#000000', '#DECC9C', '#8A4900', '#C69452'],
 
@@ -328,7 +327,7 @@ export const objectColours = {
   'flower2.glb': ['#7C38E7', '#4AB700', '#E7D535'],
 };
 
-export const modelNames = ['Flock.glb', 'bunny.glb', 'lion.glb', 'rhino.glb'];
+export const modelNames = ['Flock.glb', 'Bunny.glb', 'lion.glb', 'rhino.glb'];
 
 export const blockNames = [
   'Character1.glb',
