@@ -2227,6 +2227,7 @@ export const flock = {
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
     flock.materialCache = {};
+    flock._fogAwareShaderMaterials = new Set();
     flock.physicsShapeCache = {};
     flock.havokAbortHandled = false;
     flock.disposed = false;

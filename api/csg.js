@@ -535,26 +535,6 @@ export const flockCSG = {
   },
   toolMeshesUseTextures(meshes) {
     if (!Array.isArray(meshes) || meshes.length === 0) return false;
-    const hasRenderableTexture = (texture) => {
-      if (!texture) return false;
-      const textureName = String(texture.name || '').toLowerCase();
-      if (!textureName) return false;
-      if (textureName.endsWith('undefined')) return false;
-      if (textureName.includes('none.png')) return false;
-      return true;
-    };
-    const materialHasTexture = (material) => {
-      if (!material) return false;
-      if (
-        hasRenderableTexture(material.diffuseTexture) ||
-        hasRenderableTexture(material.albedoTexture)
-      )
-        return true;
-      if (material.subMaterials && Array.isArray(material.subMaterials)) {
-        return material.subMaterials.some((sub) => materialHasTexture(sub));
-      }
-      return false;
-    };
     return meshes.some((mesh) => {
       if (materialHasTexture(mesh?.material)) return true;
       if (!mesh?.getChildMeshes) return false;

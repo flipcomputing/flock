@@ -156,6 +156,8 @@ function readGradientDirection(value) {
 }
 
 const characterPartOriginals = new WeakMap();
+// Held off-mesh for later reuse, so replacing them on a mesh must not dispose them.
+const retainedMaterials = new WeakSet();
 
 function readTextureOption(value, key) {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
@@ -759,14 +761,8 @@ export const flockMaterial = {
     replaceIfPBRMaterial(mesh);
     // Replace materials on all child meshes
     mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-    // Dispose replaced PBR materials only if no other mesh still references them
-    // (the cached template may still hold references to the same material objects)
-    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      const stillInUse = flock.scene.meshes.some(
-        (m) => !m.isDisposed() && m.material === oldMaterial
-      );
-      if (!stillInUse) oldMaterial.dispose();
-    });
+    // The cached template may still hold the same material objects.
+    replacedMaterialsMap.forEach((_, oldMaterial) => flock.disposeOldMaterial(oldMaterial));
   },
   changeColor(meshName, { color } = {}) {
     return new Promise((resolve) => {
@@ -1049,8 +1045,10 @@ export const flockMaterial = {
         material: original,
         uvs: Array.from(part.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ?? []),
       });
+      flock.retainMaterial(original);
       part.onDisposeObservable.addOnce(() => {
-        if (!flock.isMaterialStillInUse(original, [part])) original.dispose();
+        retainedMaterials.delete(original);
+        flock.disposeOldMaterial(original, [part]);
       });
     }
     flock.setMaterialWithCleanup(part, descriptor);
@@ -1171,13 +1169,18 @@ export const flockMaterial = {
     material.metadata ??= {};
     material.metadata.pendingTexture = texture;
 
+    let loaded = false;
     const observer = texture.onLoadObservable.addOnce(() => {
+      loaded = true;
       material.diffuseTexture = texture;
       if (material.metadata?.pendingTexture === texture) {
         delete material.metadata.pendingTexture;
       }
     });
-    material.onDisposeObservable.addOnce(() => texture.onLoadObservable.remove(observer));
+    material.onDisposeObservable.addOnce(() => {
+      texture.onLoadObservable.remove(observer);
+      if (!loaded) flock._disposeTextureIfUnused(texture);
+    });
 
     return texture;
   },
@@ -1194,13 +1197,18 @@ export const flockMaterial = {
     clone.metadata ??= {};
     clone.metadata.pendingTexture = pending;
 
+    let loaded = false;
     const observer = pending.onLoadObservable.addOnce(() => {
+      loaded = true;
       clone.diffuseTexture = pending.clone();
       if (clone.metadata?.pendingTexture === pending) {
         delete clone.metadata.pendingTexture;
       }
     });
-    clone.onDisposeObservable.addOnce(() => pending.onLoadObservable.remove(observer));
+    clone.onDisposeObservable.addOnce(() => {
+      pending.onLoadObservable.remove(observer);
+      if (!loaded) flock._disposeTextureIfUnused(pending);
+    });
 
     return clone;
   },
@@ -1263,10 +1271,12 @@ export const flockMaterial = {
 
     // Assign the material to the mesh and its descendants
     const allMeshes = [mesh].concat(mesh.getDescendants()).filter((part) => !isTextPlaneMesh(part));
+    const oldMaterials = new Set(allMeshes.map((part) => part.material).filter(Boolean));
     allMeshes.forEach((part) => {
       part.material = material;
       flock.adjustMaterialTilingToMesh(part, material);
     });
+    oldMaterials.forEach((old) => flock.disposeOldMaterial(old));
 
     if (mesh.metadata?.glow) {
       flock.glowMesh(mesh);
@@ -1580,10 +1590,15 @@ export const flockMaterial = {
         // White resolves to the first colour below, so the mesh shows flat
         // colour rather than vanishing until the image arrives.
         shaderMaterial.setTexture('textureSampler', placeholder);
+        let loaded = false;
         const observer = texture.onLoadObservable.addOnce(() => {
+          loaded = true;
           shaderMaterial.setTexture('textureSampler', texture);
         });
-        shaderMaterial.onDisposeObservable.addOnce(() => texture.onLoadObservable.remove(observer));
+        shaderMaterial.onDisposeObservable.addOnce(() => {
+          texture.onLoadObservable.remove(observer);
+          if (!loaded) flock._disposeTextureIfUnused(texture);
+        });
       } else {
         shaderMaterial.setTexture('textureSampler', texture);
       }
@@ -1756,26 +1771,41 @@ export const flockMaterial = {
       );
     });
   },
-  disposeManagedMaterial(material, excludeMeshes = []) {
-    if (!material?.metadata?.isManaged) return;
-    if (flock.isMaterialStillInUse(material, excludeMeshes)) return;
-
-    const cacheKey = material.metadata.cacheKey;
-    if (cacheKey && flock.materialCache?.[cacheKey]) {
-      delete flock.materialCache[cacheKey];
-    }
-    material.dispose(true, true);
+  retainMaterial(material) {
+    if (material) retainedMaterials.add(material);
+  },
+  // A texture another material samples, or is still waiting to load, stays alive.
+  _disposeTextureIfUnused(texture) {
+    const scene = texture?.getScene?.();
+    if (!scene?.textures.includes(texture)) return;
+    if (texture === scene.reservedDataStore?.flockWhitePlaceholder) return;
+    const inUse = scene.materials.some(
+      (m) => m.hasTexture?.(texture) || m.metadata?.pendingTexture === texture
+    );
+    if (!inUse) texture.dispose();
   },
   disposeOldMaterial(material, excludeMeshes = []) {
-    if (!material) return;
+    const scene = material?.getScene?.();
+    const isMulti = material instanceof flock.BABYLON.MultiMaterial;
+    if (!(isMulti ? scene?.multiMaterials : scene?.materials)?.includes(material)) return;
+    if (material === scene._defaultMaterial || retainedMaterials.has(material)) return;
+    if (flock.isMaterialStillInUse(material, excludeMeshes)) return;
 
-    if (material instanceof flock.BABYLON.MultiMaterial) {
-      material.subMaterials.forEach((sub) => flock.disposeManagedMaterial(sub, excludeMeshes));
-      if (!flock.isMaterialStillInUse(material, excludeMeshes)) material.dispose();
+    const cacheKey = material.metadata?.cacheKey;
+    if (cacheKey && flock.materialCache?.[cacheKey] === material) {
+      delete flock.materialCache[cacheKey];
+    }
+
+    if (isMulti) {
+      const subMaterials = material.subMaterials.filter(Boolean);
+      material.dispose();
+      subMaterials.forEach((sub) => flock.disposeOldMaterial(sub, excludeMeshes));
       return;
     }
 
-    flock.disposeManagedMaterial(material, excludeMeshes);
+    const textures = material.getActiveTextures?.() ?? [];
+    material.dispose();
+    textures.forEach((texture) => flock._disposeTextureIfUnused(texture));
   },
   setMaterialWithCleanup(mesh, materialData) {
     if (!mesh) return;

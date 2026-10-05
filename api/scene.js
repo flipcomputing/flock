@@ -319,24 +319,7 @@ export const flockScene = {
         standardMat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         mesh.material = standardMat;
-        // Clean up the displaced material, respecting the managed-material
-        // lifecycle used by setMaterialWithCleanup for non-gradient materials.
-        if (oldMat && oldMat !== standardMat) {
-          if (oldMat.metadata?.isManaged) {
-            const isStillInUse = flock.scene.meshes.some(
-              (m) => m !== mesh && !m.isDisposed() && m.material === oldMat
-            );
-            if (!isStillInUse) {
-              const cacheKey = oldMat.metadata.cacheKey;
-              if (cacheKey && flock.materialCache[cacheKey]) {
-                delete flock.materialCache[cacheKey];
-              }
-              oldMat.dispose(false, true);
-            }
-          } else if (oldMat.name === 'mapGradientMat') {
-            oldMat.dispose(false, true);
-          }
-        }
+        flock.disposeOldMaterial(oldMat, [mesh]);
       } else {
         // Re-scale UVs for tiled textures in case they were previously
         // normalised for a gradient (switching back from gradient to texture).
@@ -560,9 +543,9 @@ export const flockScene = {
     if (!mesh) return;
 
     if (mesh.name === 'ground') {
-      if (mesh.material && !mesh.material.metadata?.isManaged) {
-        mesh.material.dispose(true, true);
-      }
+      const material = mesh.material;
+      mesh.material = null;
+      flock.disposeOldMaterial(material, [mesh]);
       if (mesh.physicsShape) {
         mesh.physicsShape.dispose();
       }
@@ -571,7 +554,9 @@ export const flockScene = {
       return;
     }
     if (mesh.name === 'sky') {
-      mesh.material?.dispose();
+      const material = mesh.material;
+      mesh.material = null;
+      flock.disposeOldMaterial(material, [mesh]);
       mesh.dispose();
       flock.sky = null;
       return;
@@ -620,14 +605,7 @@ export const flockScene = {
       if (!material) return;
 
       currentMesh.material = null;
-
-      if (material instanceof flock.BABYLON.MultiMaterial) {
-        flock.disposeOldMaterial(material, meshesToDispose);
-      } else if (material.metadata?.isManaged) {
-        flock.disposeManagedMaterial(material, meshesToDispose);
-      } else if (currentMesh.metadata?.sharedMaterial === false) {
-        material.dispose();
-      }
+      flock.disposeOldMaterial(material, meshesToDispose);
     });
 
     meshesToDispose.forEach((currentMesh) => {

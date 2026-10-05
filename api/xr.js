@@ -2124,6 +2124,7 @@ export const flockXR = {
     if (!flock.ShadowOnlyMaterial || !flock.scene) return null;
     const material = new flock.ShadowOnlyMaterial('arGroundShadow', flock.scene);
     material.activeLight = flock.shadowLight;
+    flock.retainMaterial(material);
     flock._arShadowMaterial = material;
     return material;
   },
