@@ -43,7 +43,7 @@ You can either:
 
 ## [Optional] Alignment Parts for Rooms and Buildings
 
-When someone positions an object using the pin on its block, Flock XR shows alignment handles on the outside of every other model. Learners click a handle to place their object against a side, lined up with an edge or tucked into a corner.
+When someone positions an object using the pin on its block, Flock XR shows alignment handles on the outside of other models near the camera. Learners click a handle to place their object against a side, lined up with an edge or tucked into a corner.
 
 For models with useful surfaces inside or around them, such as rooms, buildings and furniture, you can give individual parts their own handles. For example, a floor, the inside of a wall or a window sill.
 

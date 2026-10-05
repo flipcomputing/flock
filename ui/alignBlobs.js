@@ -11,6 +11,7 @@ const CORNER_ARM = 1.6;
 const AXIS_COLOUR_HEX = ['#0072B2', '#009E73', '#D55E00'];
 const HIGHLIGHT_COLOUR_HEX = '#fff200';
 const PART_MIN_PX = 40;
+const MAX_TARGET_DISTANCE = 20;
 const MAX_PARTS = 20;
 const PART_PREFIX = /^align_/i;
 const EXCLUDED_NAMES = new Set(['ground', 'sky', '__root__']);
@@ -109,6 +110,12 @@ function nearbyParts(scene, targets) {
     )
     .slice(0, MAX_PARTS)
     .map(({ part }) => part);
+}
+
+function distanceToBox(point, mesh) {
+  const { minimumWorld: min, maximumWorld: max } = mesh.getBoundingInfo().boundingBox;
+  const clamped = flock.BABYLON.Vector3.Clamp(point, min, max);
+  return flock.BABYLON.Vector3.Distance(point, clamped);
 }
 
 function extentAlong(box, normal) {
@@ -339,6 +346,16 @@ export function startAlignBlobs(mover, getCursor) {
 
   const hidden = BABYLON.Matrix.Scaling(0, 0, 0);
   const engine = scene.getEngine();
+  const markerMeshes = [...new Set(markers.map((marker) => marker.mesh))];
+  let nearMeshes = new Set();
+
+  function refreshNearMeshes() {
+    const viewpoint = scene.activeCamera.globalPosition;
+    nearMeshes = new Set(
+      markerMeshes.filter((mesh) => distanceToBox(viewpoint, mesh) <= MAX_TARGET_DISTANCE)
+    );
+  }
+  refreshNearMeshes();
 
   function worldSizeAt(point, px) {
     return px / pixelsPerUnitAt(scene, point);
@@ -377,6 +394,7 @@ export function startAlignBlobs(mover, getCursor) {
   }
 
   function layout(marker) {
+    if (!nearMeshes.has(marker.mesh)) return null;
     const toCamera = scene.activeCamera.globalPosition.subtract(marker.faceCentre);
     if (BABYLON.Vector3.Dot(marker.normal, toCamera) <= 0) return null;
     let unit = worldSizeAt(marker.faceCentre, HANDLE_PX);
@@ -503,6 +521,7 @@ export function startAlignBlobs(mover, getCursor) {
   }
 
   const observer = scene.onBeforeRenderObservable.add(() => {
+    refreshNearMeshes();
     markers.forEach((marker, i) => writeMarker(marker, layout(marker), 1, handles, slots[i]));
 
     const cursor = getCursor();
