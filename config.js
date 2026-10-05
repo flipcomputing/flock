@@ -295,7 +295,7 @@ export const objectColours = {
   'skateboard.glb': ['#E769D3', '#484848', '#251BE7'],
 
   'Flock.glb': [
-    '#55C7C3',
+    '#511D91',
     '#33125B',
     '#FFFFFF',
     '#000000',
@@ -306,11 +306,11 @@ export const objectColours = {
   ],
 
     'Bunny.glb': [
-    '#511D91',
+    '#55C7C3',
     '#68445F',
-    '#F28C7F',
+    '#55C7C3',
     '#000000',
-    '#F2C96D',
+    '#55C7C3',
     '#CE4A93',
     '#E7E7E7',
     '#511D91',
