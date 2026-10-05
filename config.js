@@ -215,6 +215,7 @@ export const objectDisplayNameTranslationKeys = {
   'headphones.glb': 'model_display_headphones',
   'Flock.glb': 'model_display_flock',
   'Bunny.glb': 'model_display_bunny',
+  'Tiger.glb': 'model_display_tiger',
   'Flock_Santa.glb': 'model_display_flock_santa',
   'Character.glb': 'model_display_character',
   'rhino.glb': 'model_display_rhino',
@@ -316,6 +317,18 @@ export const objectColours = {
     '#000000',
     '#FFFFFF',
   ],
+
+     'Tiger.glb': [
+    '#8A4E45',
+    '#5C430A',
+    '#C76E61',
+    '#AE6B5D',
+    '#68445F',
+    '#CE4A93',
+    '#000000',
+    '#FFFFFF',
+    '#FFFFFF',
+  ],
   
   'rhino.glb': ['#6D6B6C', '#F6F6F6', '#373737', '#230F0F'],
   'lion.glb': ['#000000', '#DECC9C', '#8A4900', '#C69452'],
@@ -327,7 +340,7 @@ export const objectColours = {
   'flower2.glb': ['#7C38E7', '#4AB700', '#E7D535'],
 };
 
-export const modelNames = ['Flock.glb', 'Bunny.glb', 'lion.glb', 'rhino.glb'];
+export const modelNames = ['Flock.glb', 'Bunny.glb', 'Tiger.glb', 'lion.glb', 'rhino.glb'];
 
 export const blockNames = [
   'Character1.glb',
@@ -336,6 +349,7 @@ export const blockNames = [
   'Character4.glb',
   'Flock.glb',
   'Bunny.glb',
+  'Tiger.glb',
   'Flock_Santa.glb',
   'Character.glb',
   'lion.glb',
@@ -345,6 +359,7 @@ export const blockNames = [
 export const modelAnimationNames = [
   'Flock.glb',
   'Bunny.glb',
+  'Tiger.glb',
   'rhino.glb',
   'lion.glb',
   'airplane.glb',
