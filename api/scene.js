@@ -47,6 +47,27 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Two sky stops become a shaped multi-stop ramp for the clamped texture
+// machinery: the blend eases across the visible band (cosine, flat at both
+// ends so there is no seam) and the top colour holds to the zenith. Ramp
+// values stay literal colours, so unlike Babylon's GradientMaterial mix
+// factor (unclamped above 1) this can never overshoot past either stop.
+function skyTwoStopRamp(bottom, top) {
+  const stops = 17;
+  const lo = 0.42;
+  const hi = 0.75;
+  const c0 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(bottom));
+  const c1 = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(top));
+  const ramp = [];
+  for (let i = 0; i < stops; i++) {
+    const t = i / (stops - 1);
+    const u = Math.min(1, Math.max(0, (t - lo) / (hi - lo)));
+    const e = (1 - Math.cos(u * Math.PI)) / 2;
+    ramp.push(c0.scale(1 - e).add(c1.scale(e)).toHexString());
+  }
+  return ramp;
+}
+
 export const flockScene = {
   /*
    Category: Scene
@@ -176,25 +197,13 @@ export const flockScene = {
       flock.sky = skySphere;
       if (flock.glowLayer) flock.glowLayer.addExcludedMesh(flock.sky);
 
-      if (color.length === 2) {
-        // Tuned to the band of sphere in shot; the block gradient's linear ramp
-        // does not reproduce this curve.
-        const mat = new flock.GradientMaterial('skyGradient', flock.scene);
-        mat.bottomColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[0]));
-        mat.topColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color[1]));
-        mat.offset = 0.8;
-        mat.smoothness = 0.5;
-        mat.scale = 0.01;
-        mat.backFaceCulling = false;
-        mat.disableLighting = true;
-        skySphere.material = mat;
-        flock.matchClearColorToSky(color);
-        return;
-      }
-
+      // Two stops expand to a shaped ramp through the same clamped texture
+      // machinery as longer ramps; the clear colour still comes from the
+      // original pair.
+      const ramp = color.length === 2 ? skyTwoStopRamp(color[0], color[1]) : color;
       // Colours come through the lit diffuse, so an unlit sky needs a white
       // emissive or the lighting term multiplies it to black.
-      const mat = flock.createGradientMaterial('skyGradient', color);
+      const mat = flock.createGradientMaterial('skyGradient', ramp);
       mat.backFaceCulling = false;
       mat.disableLighting = true;
       mat.emissiveColor = flock.BABYLON.Color3.White();
