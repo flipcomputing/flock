@@ -2704,11 +2704,6 @@ const toolboxControl = {
     },
     {
       kind: 'block',
-      type: 'local_variable',
-      keyword: 'local',
-    },
-    {
-      kind: 'block',
       type: 'tag_object',
       keyword: 'tag',
       inputsInline: true,
@@ -4246,6 +4241,20 @@ const toolboxLists = {
 // `custom` supplies the flyout, so these contents are never rendered; they are
 // here so the variable blocks reach the block search index, which is built from
 // the toolbox definition.
+export const localVariableBlock = {
+  kind: 'block',
+  type: 'local_variable',
+  keyword: 'local',
+  inputs: {
+    VALUE: {
+      shadow: {
+        type: 'math_number',
+        fields: { NUM: 0 },
+      },
+    },
+  },
+};
+
 const toolboxVariables = {
   kind: 'category',
   name: '%{BKY_CATEGORY_VARIABLES_SUBCATEGORY}',
@@ -4267,6 +4276,7 @@ const toolboxVariables = {
         },
       },
     },
+    localVariableBlock,
     {
       kind: 'block',
       type: 'math_change',

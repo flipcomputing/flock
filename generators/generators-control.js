@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { SECTION_NAME_TYPE, findOwningSection } from '../blocks/sectionContainment.js';
 import { getVariableInfo } from './generators-utilities.js';
+import { localVariableIds } from '../blocks/variableScope.js';
 
 function budgetYield(generator, label) {
   const timingVar = generator.nameDB_.getDistinctName(
@@ -242,7 +243,11 @@ export function registerControlGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    const assignment = generator.INDENT + variable0 + ' = ' + listVar + '[' + indexVar + '];\n';
+    const declaration = localVariableIds(block.workspace).has(block.getFieldValue('VAR'))
+      ? 'let '
+      : '';
+    const assignment =
+      generator.INDENT + declaration + variable0 + ' = ' + listVar + '[' + indexVar + '];\n';
 
     const y = budgetYield(generator, variable0 + '_each');
     // tick after the item assignment so a `continue` in the body can't skip it.
@@ -272,9 +277,8 @@ export function registerControlGenerators(javascriptGenerator) {
       Blockly.VARIABLE_CATEGORY_NAME
     );
 
-    // Generate a local 'let' declaration for the selected variable
-    const code = `let ${variable};\n`;
-    return code;
+    const value = generator.valueToCode(block, 'VALUE', generator.ORDER_ASSIGNMENT);
+    return value ? `let ${variable} = ${value};\n` : `let ${variable};\n`;
   };
 
   javascriptGenerator.forBlock['tag_object'] = function (block) {

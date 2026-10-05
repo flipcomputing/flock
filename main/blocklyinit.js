@@ -43,7 +43,8 @@ import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
-import { paramOnlyVariableIds } from '../blocks/variableScope.js';
+import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
+import { localVariableBlock } from '../toolbox.js';
 import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
 import { initContextMenus } from '../ui/contextmenu.js';
@@ -626,55 +627,113 @@ function initializeIfClauseConnectionChecker(workspace) {
   validateIfClausePositions();
 }
 
+function nextFreeVariableName(ws, base) {
+  const names = ws
+    .getVariableMap()
+    .getAllVariables()
+    .map((model) => model.name.toLowerCase());
+  let suffix = 1;
+  while (names.includes(`${base}${suffix}`.toLowerCase())) suffix++;
+  return `${base}${suffix}`;
+}
+
+export function variableFlyoutItems(ws) {
+  const local = localVariableIds(ws);
+  const variables = ws
+    .getVariableMap()
+    .getVariablesOfType('')
+    .filter((variable) => !local.has(variable.getId()));
+  const items = [
+    ...Blockly.Variables.flyoutCategory(ws).filter((item) => item.kind !== 'block'),
+    ...Blockly.Variables.jsonFlyoutCategoryBlocks(ws, variables, true),
+  ];
+
+  const freshVar = { name: nextFreeVariableName(ws, 'variable') };
+  const declarations = [
+    {
+      kind: 'block',
+      type: 'variables_set',
+      fields: { VAR: freshVar },
+      inputs: { VALUE: { shadow: { type: 'math_number', fields: { NUM: 0 } } } },
+    },
+    { ...localVariableBlock, fields: { VAR: freshVar } },
+  ];
+
+  // Blockly leaves the set block's socket empty; fill it with a number, and
+  // follow it with a copy holding text, so both kinds are one drag away.
+  const setItem = items.find((item) => item.kind === 'block' && item.type === 'variables_set');
+  if (!setItem) return [...items, ...declarations];
+
+  const withValue = (shadow) => ({
+    ...setItem,
+    fields: { ...setItem.fields },
+    inputs: { ...setItem.inputs, VALUE: { shadow } },
+  });
+
+  items.splice(
+    items.indexOf(setItem),
+    1,
+    ...declarations,
+    withValue({ type: 'math_number', fields: { NUM: 0 } }),
+    withValue({ type: 'text', fields: { TEXT: '' } })
+  );
+
+  return items;
+}
+
+export function installVariableScopeWarnings(workspace) {
+  const VARIABLE_SCOPE_WARNING = 'variable-scope';
+  const variableWarnings = new WeakMap();
+
+  function warnUnavailableVariables() {
+    const uses = unavailableVariableUses(workspace);
+    const variableMap = workspace.getVariableMap();
+    for (const block of workspace.getAllBlocks(false)) {
+      const names = (uses.get(block) ?? [])
+        .map((id) => variableMap.getVariableById(id)?.name)
+        .filter(Boolean);
+      const text = names.length
+        ? translate('variable_unavailable_warning').replace('%1', names.join("', '"))
+        : null;
+      if ((variableWarnings.get(block) ?? null) === text) continue;
+      variableWarnings.set(block, text);
+      block.setWarningText(text, VARIABLE_SCOPE_WARNING);
+    }
+  }
+
+  const isVariableFieldChange = (event) =>
+    event.element === 'mutation' ||
+    (event.element === 'field' &&
+      workspace.getBlockById(event.blockId)?.getField(event.name) instanceof
+        Blockly.FieldVariable);
+
+  workspace.addChangeListener(function (event) {
+    if (event.isUiEvent && event.type !== Blockly.Events.FINISHED_LOADING) return;
+    if (
+      event.type === Blockly.Events.BLOCK_MOVE ||
+      event.type === Blockly.Events.BLOCK_CREATE ||
+      event.type === Blockly.Events.BLOCK_DELETE ||
+      event.type === Blockly.Events.VAR_RENAME ||
+      event.type === Blockly.Events.FINISHED_LOADING ||
+      (event.type === Blockly.Events.BLOCK_CHANGE && isVariableFieldChange(event))
+    ) {
+      warnUnavailableVariables();
+    }
+  });
+
+  warnUnavailableVariables();
+}
+
 export function initializeWorkspace() {
   // Set Blockly color configuration
   Blockly.utils.colour.setHsvSaturation(0.3);
   Blockly.utils.colour.setHsvValue(0.85);
 
-  // Register variable category callback
-  workspace.registerToolboxCategoryCallback('VARIABLE', function (ws) {
-    const paramOnly = paramOnlyVariableIds(ws);
-    const variables = ws
-      .getVariableMap()
-      .getVariablesOfType('')
-      .filter((variable) => !paramOnly.has(variable.getId()));
-    const items = [
-      ...Blockly.Variables.flyoutCategory(ws).filter((item) => item.kind !== 'block'),
-      ...Blockly.Variables.jsonFlyoutCategoryBlocks(ws, variables, true),
-    ];
-
-    // Blockly leaves the set block's socket empty; fill it with a number, and
-    // follow it with a copy holding text, so both kinds are one drag away.
-    const setItem = items.find((item) => item.kind === 'block' && item.type === 'variables_set');
-    if (!setItem) return items;
-
-    const withValue = (shadow) => ({
-      ...setItem,
-      fields: { ...setItem.fields },
-      inputs: { ...setItem.inputs, VALUE: { shadow } },
-    });
-
-    items.splice(
-      items.indexOf(setItem),
-      1,
-      withValue({ type: 'math_number', fields: { NUM: 0 } }),
-      withValue({ type: 'text', fields: { TEXT: '' } })
-    );
-
-    return items;
-  });
+  workspace.registerToolboxCategoryCallback('VARIABLE', variableFlyoutItems);
 
   workspace.registerToolboxCategoryCallback('PROCEDURE', function (ws) {
     const items = Blockly.Procedures.flyoutCategory(ws);
-    const variableNames = ws
-      .getVariableMap()
-      .getAllVariables()
-      .map((model) => model.name.toLowerCase());
-    const nextName = (base) => {
-      let suffix = 1;
-      while (variableNames.includes(`${base}${suffix}`.toLowerCase())) suffix++;
-      return `${base}${suffix}`;
-    };
+    const nextName = (base) => nextFreeVariableName(ws, base);
 
     const prefabs = prefabFlyoutItems(ws, nextName);
     const definitionIndex = items.findIndex((item) => item.type === 'procedures_defreturn');
@@ -2482,6 +2541,7 @@ export function createBlocklyWorkspace() {
   })();
 
   initializeIfClauseConnectionChecker(workspace);
+  installVariableScopeWarnings(workspace);
 
   (function wireToolboxSearchArrowDown() {
     const host = workspace.getInjectionDiv?.() || document;

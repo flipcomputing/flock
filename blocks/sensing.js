@@ -13,7 +13,7 @@ import {
 import { translate, getTooltip, getOption, getDropdownOption } from '../main/translation.js';
 import { ACTIONS } from '../input/bindings.js';
 import { makeMicrobitStatusIcon } from './blockIcons.js';
-import { outOfScopeParamIds } from './variableScope.js';
+import { outOfScopeLocalIds } from './variableScope.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 import { flock } from '../flock.js';
@@ -40,7 +40,7 @@ function microbitDeviceDropdownOptions(sourceBlock, selectedVariableId) {
   const options = [[translate('microbit_any_option'), MICROBIT_ANY_DEVICE]];
   const workspace = sourceBlock?.workspace;
   if (!workspace) return options;
-  const hiddenVariableIds = outOfScopeParamIds(sourceBlock);
+  const hiddenVariableIds = outOfScopeLocalIds(sourceBlock);
   const seenVariableIds = new Set();
   for (const block of workspace.getBlocksByType('add_microbit', true)) {
     if (block.isInFlyout) continue;

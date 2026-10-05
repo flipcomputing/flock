@@ -213,7 +213,8 @@ export default {
   wait: 'wait %1 ms',
   wait_seconds: 'wait %1 seconds',
   wait_until: 'wait until %1',
-  local_variable: 'local %1',
+  local_variable: 'local %1 = %2',
+  variable_unavailable_warning: "'%1' isn't available here.",
   tag_object: 'tag %1 with %2',
   all_with_tag: 'all with tag %1',
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
@@ -539,7 +540,7 @@ export default {
   wait_seconds_tooltip: 'Wait for a specified time in seconds.',
   wait_until_tooltip: 'Wait until the condition is true.',
   local_variable_tooltip:
-    'Create a local version of a selected variable. This hides the global variable and can have a different value.',
+    'Create a variable that only exists from here to the end of this section. It hides any variable with the same name and starts with the given value.',
   tag_object_tooltip:
     'Give a list of objects a tag. Copies of the objects get the tag too. Use the tag in when clicked or on collision blocks to respond to every object with the tag.',
   all_with_tag_tooltip: 'A list of all the objects with this tag.',

@@ -203,7 +203,7 @@ export default {
   wait: 'vänta %1 ms',
   wait_seconds: 'vänta %1 sekunder',
   wait_until: 'vänta tills %1',
-  local_variable: 'lokal %1',
+  local_variable: 'lokal %1 = %2',
   for_loop2: 'för varje %1 från %2 till %3 med steg %4 gör %5',
   for_loop: 'för varje %1 från %2 till %3 med steg %4 gör %5',
   get_lexical_variable: '%1',

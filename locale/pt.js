@@ -204,7 +204,7 @@ export default {
   wait: 'esperar %1 ms',
   wait_seconds: 'esperar %1 segundos',
   wait_until: 'esperar até %1',
-  local_variable: 'variável local %1',
+  local_variable: 'variável local %1 = %2',
   for_loop2: 'para cada %1 de %2 até %3 passo %4 faça %5',
   for_loop: 'para cada %1 de %2 até %3 passo %4 faça %5',
   get_lexical_variable: '%1',

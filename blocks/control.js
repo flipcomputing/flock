@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor, applyInputAriaLabels } from './blocks.js';
 import { translate, getTooltip } from '../main/translation.js';
+import { grabVariableOnDrag } from './procedureParams.js';
 
 export function defineControlBlocks() {
   Blockly.Blocks['wait'] = {
@@ -77,18 +78,24 @@ export function defineControlBlocks() {
         message0: translate('local_variable'),
         args0: [
           {
-            type: 'field_variable',
+            type: 'field_grabbable_variable',
             name: 'VAR',
             variable: 'item', // default variable name
           },
+          {
+            type: 'input_value',
+            name: 'VALUE',
+          },
         ],
+        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours['Control'],
+        colour: categoryColours['Variables'],
         tooltip: getTooltip('local_variable'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle('control_blocks');
+      this.setStyle('variable_blocks');
+      grabVariableOnDrag(this, (field) => field.getValue());
     },
   };
 

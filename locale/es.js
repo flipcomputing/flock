@@ -205,7 +205,7 @@ export default {
   wait: 'esperar %1 ms', // human
   wait_seconds: 'esperar %1 segundos', // human
   wait_until: 'esperar hasta %1', // human
-  local_variable: 'local %1', // human
+  local_variable: 'local %1 = %2',
   for_loop2: 'para cada %1 desde %2 hasta %3 de %4 haz %5', // human
   for_loop: 'para cada %1 desde %2 hasta %3 de %4 haz %5', // human
   get_lexical_variable: '%1', // human

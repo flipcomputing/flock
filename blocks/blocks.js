@@ -24,7 +24,7 @@ import { FieldBlockSearch } from './fieldBlockSearch.js';
 import './fieldPickPosition.js'; // registers field_pick_position
 import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
 import { setupProcedureParams } from './procedureParams.js';
-import { outOfScopeParamIds, VariableNameDropdown } from './variableScope.js';
+import { outOfScopeLocalIds, VariableNameDropdown } from './variableScope.js';
 
 registerFieldColour();
 
@@ -2456,7 +2456,7 @@ Blockly.FieldVariable.prototype.getOptions = function (...args) {
   // Retrieve the default options
   let options = originalGetOptions.apply(this, args);
 
-  const hidden = outOfScopeParamIds(this.getSourceBlock());
+  const hidden = outOfScopeLocalIds(this.getSourceBlock());
   if (hidden.size) options = options.filter(([, id]) => !hidden.has(id));
 
   // Add the "New variable..." option at the beginning

@@ -208,7 +208,7 @@ export default {
   wait: 'warte %1 ms',
   wait_seconds: 'warte %1 Sekunden',
   wait_until: 'warte bis %1',
-  local_variable: 'lokal %1',
+  local_variable: 'lokal %1 = %2',
   for_loop2: 'für %1 von %2 bis %3 mit Schritt %4 dann %5',
   for_loop: 'für %1 von %2 bis %3 mit Schritt %4 dann %5',
   get_lexical_variable: '%1',

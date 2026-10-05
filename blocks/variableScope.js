@@ -5,50 +5,133 @@ const PROCEDURE_DEFINITION_TYPES = new Set([
   'procedures_defreturn',
   'procedures_defprefab',
 ]);
+const DECLARING_FIELDS = ['ID_VAR', 'CLONE_VAR'];
+const LOCAL_BLOCK_TYPE = 'local_variable';
+const LOOP_TYPES = new Set(['controls_for', 'controls_forEach']);
+const WRITING_FIELDS = { variables_set: ['VAR'], math_change: ['VAR'] };
 
 function procedureParamIds(block) {
   if (!PROCEDURE_DEFINITION_TYPES.has(block.type)) return [];
   return (block.argData_ ?? []).map((arg) => arg.model.getId());
 }
 
-function paramIdsInScope(block) {
+function variableFieldIds(block, names) {
+  const fields = names ? names.map((name) => block.getField(name)) : [...block.getFields()];
+  return fields
+    .filter((field) => field instanceof Blockly.FieldVariable && field.getValue())
+    .map((field) => field.getValue());
+}
+
+function declaredVariableIds(block) {
+  return variableFieldIds(block, DECLARING_FIELDS);
+}
+
+function localBlockVariableIds(block) {
+  if (block.type !== LOCAL_BLOCK_TYPE) return [];
+  const id = block.getFieldValue('VAR');
+  return id ? [id] : [];
+}
+
+function scopedVariableIds(block) {
+  if (block.type === LOCAL_BLOCK_TYPE) return localBlockVariableIds(block);
+  if (LOOP_TYPES.has(block.type)) {
+    const id = block.getFieldValue('VAR');
+    return id ? [id] : [];
+  }
+  if (!PROCEDURE_DEFINITION_TYPES.has(block.type)) return [];
+  const body = block.getInputTargetBlock('STACK')?.getDescendants(false) ?? [];
+  return [...procedureParamIds(block), ...body.flatMap(declaredVariableIds)];
+}
+
+function coversChild(ancestor, child) {
+  return !child || !LOOP_TYPES.has(ancestor.type) || child !== ancestor.getNextBlock();
+}
+
+function idsInScope(block, scopeOf = scopedVariableIds) {
   const ids = new Set();
   for (
-    let ancestor = block.getSurroundParent();
+    let child = null, ancestor = block;
     ancestor;
-    ancestor = ancestor.getSurroundParent()
+    child = ancestor, ancestor = ancestor.getParent()
   ) {
-    procedureParamIds(ancestor).forEach((id) => ids.add(id));
+    if (coversChild(ancestor, child)) scopeOf(ancestor).forEach((id) => ids.add(id));
   }
   return ids;
 }
 
-export function paramOnlyVariableIds(workspace) {
+function alwaysLocalVariableIds(block) {
+  if (PROCEDURE_DEFINITION_TYPES.has(block.type)) return procedureParamIds(block);
+  if (block.type === LOCAL_BLOCK_TYPE || LOOP_TYPES.has(block.type)) {
+    return scopedVariableIds(block);
+  }
+  return [];
+}
+
+function writtenVariableIds(block) {
+  return variableFieldIds(block, [...DECLARING_FIELDS, ...(WRITING_FIELDS[block.type] ?? [])]);
+}
+
+function analyseScopes(workspace) {
   const blocks = workspace.getAllBlocks(false);
-  const ids = new Set(blocks.flatMap(procedureParamIds));
-  if (!ids.size) return ids;
+  const scopes = new Map(
+    blocks.map((block) => [block, scopedVariableIds(block)]).filter(([, ids]) => ids.length)
+  );
+  const local = new Set([...scopes.values()].flat());
+  const declaredLocal = new Set(blocks.flatMap(alwaysLocalVariableIds));
+  const outsideReads = new Map();
   for (const block of blocks) {
-    const usedIds = [...block.getFields()]
-      .filter((field) => field instanceof Blockly.FieldVariable && ids.has(field.getValue()))
-      .map((field) => field.getValue());
+    const usedIds = variableFieldIds(block).filter((id) => local.has(id));
     if (!usedIds.length) continue;
-    const scope = paramIdsInScope(block);
-    usedIds.filter((id) => !scope.has(id)).forEach((id) => ids.delete(id));
+    const scope = idsInScope(block, (ancestor) => scopes.get(ancestor) ?? []);
+    const written = writtenVariableIds(block);
+    for (const id of usedIds.filter((used) => !scope.has(used))) {
+      if (declaredLocal.has(id) && !written.includes(id)) {
+        outsideReads.set(block, [...(outsideReads.get(block) ?? []), id]);
+      } else {
+        local.delete(id);
+      }
+    }
   }
-  return ids;
+  for (const [block, ids] of outsideReads) {
+    const unavailable = ids.filter((id) => local.has(id));
+    if (unavailable.length) outsideReads.set(block, unavailable);
+    else outsideReads.delete(block);
+  }
+  return { local, outsideReads };
 }
 
-export function outOfScopeParamIds(block) {
+export function localVariableIds(workspace) {
+  return analyseScopes(workspace).local;
+}
+
+export function unavailableVariableUses(workspace) {
+  return analyseScopes(workspace).outsideReads;
+}
+
+export function outOfScopeLocalIds(block) {
   if (!block?.workspace || block.isInFlyout || block.isDeadOrDying()) return new Set();
-  const hidden = paramOnlyVariableIds(block.workspace);
-  paramIdsInScope(block).forEach((id) => hidden.delete(id));
+  const hidden = localVariableIds(block.workspace);
+  idsInScope(block).forEach((id) => hidden.delete(id));
   return hidden;
+}
+
+export function procedureLocalVariables(definition) {
+  const local = localVariableIds(definition.workspace);
+  procedureParamIds(definition).forEach((id) => local.delete(id));
+  for (let block = definition.getInputTargetBlock('STACK'); block; block = block.getNextBlock()) {
+    localBlockVariableIds(block).forEach((id) => local.delete(id));
+  }
+  const variableMap = definition.workspace.getVariableMap();
+  return [...new Set(scopedVariableIds(definition))]
+    .filter((id) => local.has(id))
+    .map((id) => variableMap.getVariableById(id))
+    .filter(Boolean);
 }
 
 function variableNameOptions(block, keepName) {
   const workspace = block?.workspace;
   if (!workspace) return [];
-  const hidden = outOfScopeParamIds(block);
+  const hidden = outOfScopeLocalIds(block);
   return workspace
     .getVariableMap()
     .getAllVariables()

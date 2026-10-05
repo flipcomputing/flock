@@ -3,6 +3,7 @@ import { javascriptGenerator } from 'blockly/javascript';
 import '@blockly/block-plus-minus';
 import '../blocks/text_join_shadow.js';
 import { clearMeshMaps } from './mesh-state.js';
+import { localVariableIds } from '../blocks/variableScope.js';
 
 // Import the generator registration functions for different categories of blocks
 import { registerSceneGenerators } from './generators-scene.js';
@@ -87,7 +88,10 @@ export function defineGenerators() {
     }
 
     // Add user variables, but only ones that are being used.
-    const variables = Blockly.Variables.allUsedVarModels(workspace);
+    const local = localVariableIds(workspace);
+    const variables = Blockly.Variables.allUsedVarModels(workspace).filter(
+      (variable) => !local.has(variable.getId())
+    );
     for (let i = 0; i < variables.length; i++) {
       const variableModel = variables[i];
       const generatedName = javascriptGenerator.nameDB_.getName(

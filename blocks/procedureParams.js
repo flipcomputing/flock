@@ -40,7 +40,9 @@ function onRowButton(block, argId) {
   Blockly.Procedures.mutateCallers(block);
   const newState = getExtraBlockState(block);
   if (oldState !== newState) {
-    Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', null, oldState, newState));
+    Blockly.Events.fire(
+      new Blockly.Events.BlockChange(block, 'mutation', null, oldState, newState)
+    );
   }
   Blockly.Events.setGroup(false);
 }
@@ -76,7 +78,12 @@ function applyRowBreaks(block, flags) {
   if (changed) Blockly.Procedures.mutateCallers(block);
 }
 
-const paramPresses = new WeakMap();
+const fieldPresses = new WeakMap();
+
+function recordFieldPress(field, e) {
+  const gesture = field.getSourceBlock()?.workspace.getGesture(e);
+  if (gesture) fieldPresses.set(gesture, field);
+}
 
 export class ParamNameField extends Blockly.FieldTextInput {
   constructor(name, validator, { editable = true } = {}) {
@@ -118,18 +125,26 @@ export class ParamNameField extends Blockly.FieldTextInput {
 
   onMouseDown_(e) {
     super.onMouseDown_(e);
-    const gesture = this.getSourceBlock()?.workspace.getGesture(e);
-    if (gesture) paramPresses.set(gesture, this);
+    recordFieldPress(this, e);
   }
 }
 
-function pressedParamGetter(block, e) {
+export class GrabbableVariableField extends Blockly.FieldVariable {
+  onMouseDown_(e) {
+    super.onMouseDown_(e);
+    recordFieldPress(this, e);
+  }
+}
+
+Blockly.fieldRegistry.register('field_grabbable_variable', GrabbableVariableField);
+
+function pressedGetter(block, e, variableIdOf) {
   if (!(e instanceof PointerEvent) || block.isInFlyout) return null;
   const gesture = block.workspace.getGesture(e);
-  const field = paramPresses.get(gesture);
-  paramPresses.delete(gesture);
-  const arg = field && block.argData_.find((element) => element.argId === field.name);
-  if (!arg) return null;
+  const field = fieldPresses.get(gesture);
+  fieldPresses.delete(gesture);
+  const variableId = field && variableIdOf(field);
+  if (!variableId) return null;
   const rect = field.getSvgRoot().getBoundingClientRect();
   const position = Blockly.utils.svgMath.screenToWsCoordinates(
     block.workspace,
@@ -138,7 +153,7 @@ function pressedParamGetter(block, e) {
   return Blockly.serialization.blocks.append(
     {
       type: 'variables_get',
-      fields: { VAR: { id: arg.model.getId() } },
+      fields: { VAR: { id: variableId } },
       x: position.x,
       y: position.y,
     },
@@ -147,17 +162,22 @@ function pressedParamGetter(block, e) {
   );
 }
 
+export function grabVariableOnDrag(block, variableIdOf) {
+  const startDrag = block.startDrag;
+  if (!startDrag) return;
+  block.startDrag = function (e) {
+    const getter = pressedGetter(this, e, variableIdOf);
+    return getter ? getter.startDrag(e) : startDrag.call(this, e);
+  };
+}
+
 export function setupProcedureParams(block, { fixedParams = {} } = {}) {
   block.setInputsInline(true);
   const isFixed = (argId) => Object.hasOwn(fixedParams, argId);
 
-  const startDrag = block.startDrag;
-  if (startDrag) {
-    block.startDrag = function (e) {
-      const getter = pressedParamGetter(this, e);
-      return getter ? getter.startDrag(e) : startDrag.call(this, e);
-    };
-  }
+  grabVariableOnDrag(block, (field) =>
+    block.argData_.find((arg) => arg.argId === field.name)?.model.getId()
+  );
 
   block.addVarInput_ = function (name, argId) {
     const input = this.appendValueInput(argId).setCheck(null);
@@ -284,13 +304,15 @@ export function setupProcedureParams(block, { fixedParams = {} } = {}) {
 }
 
 function canBeShadow(block) {
-  return block.getDescendants(false).every(
-    (descendant) =>
-      !descendant.type.startsWith('procedures_call') &&
-      descendant.inputList.every((input) =>
-        input.fieldRow.every((field) => !(field instanceof Blockly.FieldVariable))
-      )
-  );
+  return block
+    .getDescendants(false)
+    .every(
+      (descendant) =>
+        !descendant.type.startsWith('procedures_call') &&
+        descendant.inputList.every((input) =>
+          input.fieldRow.every((field) => !(field instanceof Blockly.FieldVariable))
+        )
+    );
 }
 
 function toShadowState(state) {

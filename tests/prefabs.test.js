@@ -5,6 +5,8 @@ import { defineGenerators } from '../generators/generators.js';
 import '../blocks/blocks.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
+import { defineShapeBlocks } from '../blocks/shapes.js';
+import { localVariableIds } from '../blocks/variableScope.js';
 import {
   definePrefabBlocks,
   prefabFlyoutItems,
@@ -55,6 +57,7 @@ export function runPrefabTests(flock) {
     before(function () {
       if (!Blockly.Blocks['material']) defineMaterialsBlocks();
       if (!Blockly.Blocks['colour']) defineColourBlocks();
+      if (!Blockly.Blocks['create_box']) defineShapeBlocks();
       if (!Blockly.Blocks[PREFAB_DEF_TYPE]) definePrefabBlocks();
       if (!javascriptGenerator.forBlock[PREFAB_CALL_TYPE]) defineGenerators();
     });
@@ -279,6 +282,64 @@ export function runPrefabTests(flock) {
       javascriptGenerator.init(workspace);
       const code = javascriptGenerator.blockToCode(definition);
       expect(code).to.match(/^async function bookcase\(material, prefab\w*\)/);
+    });
+
+    describe('add blocks in the body', function () {
+      const getter = (variable) => ({
+        type: 'variables_get',
+        fields: { VAR: { id: variable.getId() } },
+      });
+      const optionNames = (block) =>
+        block
+          .getField('VAR')
+          .getOptions(false)
+          .map(([name]) => name);
+      const appendWithShelf = () =>
+        appendDefinition(workspace, [], {
+          inputs: {
+            STACK: {
+              block: {
+                type: 'create_box',
+                fields: { ID_VAR: { name: 'shelf' } },
+                next: { block: { type: 'variables_set', fields: { VAR: { name: 'shelf' } } } },
+              },
+            },
+          },
+        });
+
+      it('lists the variable only inside the prefab', function () {
+        const definition = appendWithShelf();
+        const shelf = workspace.getVariableMap().getVariable('shelf');
+        const score = workspace.getVariableMap().createVariable('score');
+        const inside = definition.getInput('STACK').connection.targetBlock().getNextBlock();
+        const outside = Blockly.serialization.blocks.append(getter(score), workspace);
+
+        expect(localVariableIds(workspace).has(shelf.getId())).to.equal(true);
+        expect(optionNames(inside)).to.include('shelf');
+        expect(optionNames(outside)).to.not.include('shelf');
+      });
+
+      it('treats the variable as global once it is used outside the prefab', function () {
+        appendWithShelf();
+        const shelf = workspace.getVariableMap().getVariable('shelf');
+        Blockly.serialization.blocks.append(getter(shelf), workspace);
+
+        expect(localVariableIds(workspace).has(shelf.getId())).to.equal(false);
+      });
+
+      it('declares the variable inside the prefab function', function () {
+        const definition = appendWithShelf();
+        javascriptGenerator.init(workspace);
+        const code = javascriptGenerator.blockToCode(definition);
+        expect(code).to.match(/^async function bookcase\([^)]*\) \{\n {2}let shelf = "shelf";\n/);
+
+        Blockly.serialization.blocks.append(
+          getter(workspace.getVariableMap().getVariable('shelf')),
+          workspace
+        );
+        javascriptGenerator.init(workspace);
+        expect(javascriptGenerator.blockToCode(definition)).to.not.include('let shelf');
+      });
     });
   });
 

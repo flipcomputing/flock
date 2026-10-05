@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { translate } from './translation.js';
-import { paramOnlyVariableIds } from '../blocks/variableScope.js';
+import { localVariableIds } from '../blocks/variableScope.js';
 
 // Shared by the toolbox search flyout and the add-block-by-name field, so one
 // query gives the same answers everywhere.
@@ -84,9 +84,9 @@ function variableRank(variable, query) {
 // box3 as well.
 function variableBlockDefinitions(workspace, query, index, types) {
   const variables = workspace.getVariableMap?.()?.getAllVariables?.() ?? [];
-  const paramOnly = workspace.getAllBlocks ? paramOnlyVariableIds(workspace) : new Set();
+  const local = workspace.getAllBlocks ? localVariableIds(workspace) : new Set();
   const [variable] = variables
-    .filter((candidate) => !paramOnly.has(candidate.getId?.()))
+    .filter((candidate) => !local.has(candidate.getId?.()))
     .filter((candidate) => variableName(candidate).toLowerCase().includes(query))
     .sort(
       (a, b) =>

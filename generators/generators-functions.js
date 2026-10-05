@@ -1,8 +1,20 @@
 import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
 import { getVariableInfo, maybeParentToGroup, withGroupParent } from './generators-utilities.js';
+import { procedureLocalVariables } from '../blocks/variableScope.js';
 
 export function registerFunctionsGenerators(javascriptGenerator) {
+  const localDeclarations = (block) =>
+    procedureLocalVariables(block)
+      .map((variable) => {
+        const name = javascriptGenerator.nameDB_.getName(
+          variable.getId(),
+          Blockly.Names.NameType.VARIABLE
+        );
+        return `  let ${name} = ${JSON.stringify(variable.name)};\n`;
+      })
+      .join('');
+
   // -------------------------------
   // FUNCTIONS
   // -------------------------------
@@ -21,7 +33,7 @@ export function registerFunctionsGenerators(javascriptGenerator) {
     const branch =
       javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || '';
 
-    const code = `async function ${functionName}(${params}) {\n${branch}\n}`;
+    const code = `async function ${functionName}(${params}) {\n${localDeclarations(block)}${branch}\n}`;
     return code;
   };
 
@@ -40,7 +52,7 @@ export function registerFunctionsGenerators(javascriptGenerator) {
     const returnValue =
       javascriptGenerator.valueToCode(block, 'RETURN', javascriptGenerator.ORDER_NONE) || '';
 
-    const code = `async function ${functionName}(${params}) {\n${branch}return ${returnValue};\n}`;
+    const code = `async function ${functionName}(${params}) {\n${localDeclarations(block)}${branch}return ${returnValue};\n}`;
     return code;
   };
 
@@ -96,7 +108,7 @@ export function registerFunctionsGenerators(javascriptGenerator) {
         javascriptGenerator.statementToCode(block, 'STACK', javascriptGenerator.ORDER_NONE) || ''
     );
 
-    const code = `async function ${functionName}(${[...args, group].join(', ')}) {\n${branch}\n}`;
+    const code = `async function ${functionName}(${[...args, group].join(', ')}) {\n${localDeclarations(block)}${branch}\n}`;
     if (block.getFieldValue('PREVIEW') !== 'TRUE') return code;
 
     meshMap[block.id] = block;
