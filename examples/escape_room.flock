@@ -84,6 +84,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "e*]n1Sdj~d##J3QL_V2J",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "gpJQwz5(^QN4)07L!rkT",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       },
@@ -119,6 +137,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "..]mGah5W%QIw1AM;s5P",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "cus1R;!uGp#cGebPU5VY",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       }
@@ -129,9 +165,9 @@
                       "type": "on_screen_controls",
                       "id": "|7K=;3y4Lnp-5?cCB`)v",
                       "fields": {
-                        "MOVEMENT": "NONE",
+                        "MOVEMENT": "JOYSTICK",
                         "ACTIONS": "NO",
-                        "ENABLED": "DISABLED"
+                        "ENABLED": "ENABLED"
                       },
                       "inputs": {
                         "COLOR": {
@@ -296,6 +332,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "dPo@HcI3-F)`^3TQx6l7",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": ";ldfNe1#F=z8vG/w?82j",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       },
@@ -329,6 +383,24 @@
                               "id": "ishe9n]ey|numA-a,aC|",
                               "fields": {
                                 "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "%55F+^}eoXD[ixOYa3p+",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "?-|!abXp_5H7`wzcQ^^P",
+                              "fields": {
+                                "NUM": 0
                               }
                             }
                           }
@@ -446,6 +518,24 @@
                                         "NUM": 1
                                       }
                                     }
+                                  },
+                                  "SCALE": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "4RlMlI9lo:8[U[@XLVxU",
+                                      "fields": {
+                                        "NUM": 1
+                                      }
+                                    }
+                                  },
+                                  "ANGLE": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": ";?J[9P.|%UQF,O[CW1#j",
+                                      "fields": {
+                                        "NUM": 0
+                                      }
+                                    }
                                   }
                                 }
                               },
@@ -479,6 +569,24 @@
                                       "id": "Q6=5*7N!}-PBU~bPON3m",
                                       "fields": {
                                         "NUM": 1
+                                      }
+                                    }
+                                  },
+                                  "SCALE": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "9W,+*g/+IWTiMmJi{H;p",
+                                      "fields": {
+                                        "NUM": 1
+                                      }
+                                    }
+                                  },
+                                  "ANGLE": {
+                                    "shadow": {
+                                      "type": "math_number",
+                                      "id": "ihlLDlL/VqOqTBDW0_R,",
+                                      "fields": {
+                                        "NUM": 0
                                       }
                                     }
                                   }
@@ -596,6 +704,24 @@
                                                 "NUM": 1
                                               }
                                             }
+                                          },
+                                          "SCALE": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "Gr|=pbJF!Kny*^STojeO",
+                                              "fields": {
+                                                "NUM": 1
+                                              }
+                                            }
+                                          },
+                                          "ANGLE": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "Ti*-e{xaEWv:Zt{[r]r~",
+                                              "fields": {
+                                                "NUM": 0
+                                              }
+                                            }
                                           }
                                         }
                                       },
@@ -629,6 +755,24 @@
                                               "id": "~;e!Y!2}LGpo3X{4*Rzq",
                                               "fields": {
                                                 "NUM": 1
+                                              }
+                                            }
+                                          },
+                                          "SCALE": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "UPSd2P2rI]`pgJFia.|V",
+                                              "fields": {
+                                                "NUM": 1
+                                              }
+                                            }
+                                          },
+                                          "ANGLE": {
+                                            "shadow": {
+                                              "type": "math_number",
+                                              "id": "t9@qeGK(lU%dyTt#GFb1",
+                                              "fields": {
+                                                "NUM": 0
                                               }
                                             }
                                           }
@@ -3810,6 +3954,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "HuhA8X]$^e+/:)1-TR6{",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "@1nUrccEtKf(9T6SDTBk",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       },
@@ -3835,6 +3997,24 @@
                               "id": "PWm];V[j_yZtg?@$-t;{",
                               "fields": {
                                 "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "Blz=~sJ,}An~dGNu=`Ul",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "3/-d[Z~Sja1*EWtE+Lsg",
+                              "fields": {
+                                "NUM": 0
                               }
                             }
                           }
@@ -4416,6 +4596,24 @@
                                                                         "NUM": 1
                                                                       }
                                                                     }
+                                                                  },
+                                                                  "SCALE": {
+                                                                    "shadow": {
+                                                                      "type": "math_number",
+                                                                      "id": ":~6~{b%o_X6x4qk/1C-g",
+                                                                      "fields": {
+                                                                        "NUM": 1
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "ANGLE": {
+                                                                    "shadow": {
+                                                                      "type": "math_number",
+                                                                      "id": ".kw^4:!QlwR%D-OXAiC4",
+                                                                      "fields": {
+                                                                        "NUM": 0
+                                                                      }
+                                                                    }
                                                                   }
                                                                 }
                                                               },
@@ -4599,6 +4797,24 @@
                                   "NUM": 1
                                 }
                               }
+                            },
+                            "SCALE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "zlBByT];%1{khJ.YeA)z",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            },
+                            "ANGLE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "p]FY7iKPLKZ8^=$uOX7%",
+                                "fields": {
+                                  "NUM": 0
+                                }
+                              }
                             }
                           }
                         },
@@ -4624,6 +4840,24 @@
                                 "id": "s~s1JFw;@.UL55yoPCpo",
                                 "fields": {
                                   "NUM": 1
+                                }
+                              }
+                            },
+                            "SCALE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "KE8ll!d`stc5?XGsqfqr",
+                                "fields": {
+                                  "NUM": 1
+                                }
+                              }
+                            },
+                            "ANGLE": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "9gbK*iE`c5X{:be.B$[e",
+                                "fields": {
+                                  "NUM": 0
                                 }
                               }
                             }
@@ -4769,6 +5003,24 @@
                                       "NUM": 1
                                     }
                                   }
+                                },
+                                "SCALE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "=`X^ccVzgcL!R8Zjvb%k",
+                                    "fields": {
+                                      "NUM": 1
+                                    }
+                                  }
+                                },
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "cRaFZo8ZdR?HC:5C7p~F",
+                                    "fields": {
+                                      "NUM": 0
+                                    }
+                                  }
                                 }
                               }
                             },
@@ -4794,6 +5046,24 @@
                                     "id": "k3})*/LF.Ea`KJYHx_*+",
                                     "fields": {
                                       "NUM": 1
+                                    }
+                                  }
+                                },
+                                "SCALE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "_km/zdafvs2khA+[,!`P",
+                                    "fields": {
+                                      "NUM": 1
+                                    }
+                                  }
+                                },
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "}~LpkKPPD/{4KVzg$ma:",
+                                    "fields": {
+                                      "NUM": 0
                                     }
                                   }
                                 }
@@ -4939,6 +5209,24 @@
                                           "NUM": 1
                                         }
                                       }
+                                    },
+                                    "SCALE": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "%)t^pIb#q~*0%083fR.m",
+                                        "fields": {
+                                          "NUM": 1
+                                        }
+                                      }
+                                    },
+                                    "ANGLE": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "3oNz((#F03.Qz{`Zpf_$",
+                                        "fields": {
+                                          "NUM": 0
+                                        }
+                                      }
                                     }
                                   }
                                 },
@@ -4964,6 +5252,24 @@
                                         "id": "(a+DR)C}8Fb_7;s|HUEK",
                                         "fields": {
                                           "NUM": 1
+                                        }
+                                      }
+                                    },
+                                    "SCALE": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "o/32/?lykDFuk$ns9l90",
+                                        "fields": {
+                                          "NUM": 1
+                                        }
+                                      }
+                                    },
+                                    "ANGLE": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "@MSU5UU[/W/q]oK%_LoV",
+                                        "fields": {
+                                          "NUM": 0
                                         }
                                       }
                                     }
@@ -5109,6 +5415,24 @@
                                               "NUM": 1
                                             }
                                           }
+                                        },
+                                        "SCALE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": ":fVqbLf/*hc{6AW=ygom",
+                                            "fields": {
+                                              "NUM": 1
+                                            }
+                                          }
+                                        },
+                                        "ANGLE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "!}[ew9sobQ6d1eBmWIJ/",
+                                            "fields": {
+                                              "NUM": 0
+                                            }
+                                          }
                                         }
                                       }
                                     },
@@ -5134,6 +5458,24 @@
                                             "id": "A_};NBk9;,/Ekm$~r{r0",
                                             "fields": {
                                               "NUM": 1
+                                            }
+                                          }
+                                        },
+                                        "SCALE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "v(n@hOx#=vbH?*IYT!])",
+                                            "fields": {
+                                              "NUM": 1
+                                            }
+                                          }
+                                        },
+                                        "ANGLE": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "po[+/OOhsXe?X/$!*tIn",
+                                            "fields": {
+                                              "NUM": 0
                                             }
                                           }
                                         }
