@@ -3216,6 +3216,33 @@ function blockPositionNumbers(block) {
   return [x, y, z].every(Number.isFinite) ? { x, y, z } : null;
 }
 
+function holdCameraTargetDuringDrag(mesh) {
+  const camera = flock.scene?.activeCamera;
+  const tracks = (node) => node === mesh || !!node?.isDescendantOf?.(mesh);
+  if (!camera) return null;
+
+  const host = camera.targetHost;
+  if (host && tracks(host)) {
+    camera.setTarget(camera.target.clone(), false, true);
+    return () => {
+      if (camera.isDisposed() || host.isDisposed?.()) return;
+      camera.setTarget(host);
+    };
+  }
+
+  const locked = camera.lockedTarget;
+  if (locked && tracks(locked)) {
+    const pinned = locked.getAbsolutePosition().clone();
+    camera.lockedTarget = null;
+    camera.setTarget(pinned, false, true);
+    return () => {
+      if (camera.isDisposed() || locked.isDisposed?.()) return;
+      camera.lockedTarget = locked;
+    };
+  }
+  return null;
+}
+
 function syncMemberBodies(mesh) {
   const scene = mesh?.getScene?.();
   if (!scene) return;
@@ -4191,10 +4218,12 @@ function handlePositionGizmo() {
   }
 
   let dragStartPosition = null;
+  let restoreCameraTarget = null;
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
     dragStartPosition = mesh.getAbsolutePosition().clone();
+    restoreCameraTarget = holdCameraTargetDuringDrag(mesh);
     if (isTargetCameraFrame(mesh)) flock._releaseFollowCameraLimits(mesh.metadata.camera);
 
     const motionType = isBodyAlive(mesh.physics) ? mesh.physics.getMotionType() : undefined;
@@ -4213,9 +4242,15 @@ function handlePositionGizmo() {
   );
 
   onExit(() => gizmoManager.gizmos.positionGizmo.onDragObservable.remove(posDrag));
+  onExit(() => {
+    restoreCameraTarget?.();
+    restoreCameraTarget = null;
+  });
 
   const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
     const mesh = gizmoManager.attachedMesh;
+    restoreCameraTarget?.();
+    restoreCameraTarget = null;
 
     if (mesh.savedMotionType != null && isBodyAlive(mesh.physics)) {
       mesh.physics.setMotionType(mesh.savedMotionType);
