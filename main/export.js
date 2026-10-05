@@ -225,8 +225,45 @@ function keepTextTrueSize(svgBlock, fontSizePt) {
 }
 
 function getFieldTextFontSizePt(block) {
-  const size = block.workspace?.getRenderer?.().getConstants?.().FIELD_TEXT_FONTSIZE;
+  const size = block.workspace?.getRenderer?.()?.getConstants?.()?.FIELD_TEXT_FONTSIZE;
   return typeof size === 'number' && size > 0 ? size : DEFAULT_FIELD_TEXT_FONTSIZE;
+}
+
+function removeUnresolvedInlinePaint(el) {
+  if (!el?.style) return;
+  for (const prop of ['fill', 'stroke']) {
+    const value = el.style.getPropertyValue(prop);
+    if (value && (value.includes('var(') || value.includes('color-mix'))) {
+      el.style.removeProperty(prop);
+    }
+  }
+}
+
+function bakeResolvedRectPaint(clonedRect, liveRect) {
+  removeUnresolvedInlinePaint(clonedRect);
+  if (!liveRect) return;
+  let computed;
+  try {
+    computed = getComputedStyle(liveRect);
+  } catch {
+    return;
+  }
+  const fill = computed.fill;
+  if (fill && fill !== 'none') clonedRect.setAttribute('fill', fill);
+  const stroke = computed.stroke;
+  if (stroke && stroke !== 'none') clonedRect.setAttribute('stroke', stroke);
+}
+
+function bakeResolvedTextPaint(clonedText, liveText) {
+  removeUnresolvedInlinePaint(clonedText);
+  if (!liveText) return;
+  let computed;
+  try {
+    computed = getComputedStyle(liveText);
+  } catch {
+    return;
+  }
+  if (computed.fill && computed.fill !== 'none') clonedText.style.fill = computed.fill;
 }
 
 export async function generateSVG(block, { rasterSafe = false, keepSelected = false } = {}) {
@@ -234,8 +271,17 @@ export async function generateSVG(block, { rasterSafe = false, keepSelected = fa
   if (isSection) beginSectionDragFollow(block);
 
   let svgBlock, serializer, bbox;
+  // Live paint for editable fields uses CSS vars / color-mix() that cannot
+  // resolve once the SVG is standalone (exported <img> / canvas), leaving
+  // text comment fields as a black box. Capture the resolved values now so
+  // the clone below can bake them in and match the workspace.
+  let liveRects = [];
+  let liveTexts = [];
   try {
-    svgBlock = block.getSvgRoot().cloneNode(true);
+    const liveRoot = block.getSvgRoot();
+    liveRects = Array.from(liveRoot.querySelectorAll('rect.blocklyFieldRect'));
+    liveTexts = Array.from(liveRoot.querySelectorAll('text.blocklyText'));
+    svgBlock = liveRoot.cloneNode(true);
 
     svgBlock.querySelectorAll('.blocklyHighlightedConnectionPath').forEach((el) => el.remove());
 
@@ -318,29 +364,37 @@ export async function generateSVG(block, { rasterSafe = false, keepSelected = fa
   }
 
   const uiElements = svgBlock.querySelectorAll('rect.blocklyFieldRect');
-  uiElements.forEach((rect) => {
-    const parentBlock = rect.closest('.blocklyDraggable');
+  uiElements.forEach((rect, index) => {
+    bakeResolvedRectPaint(rect, liveRects[index]);
 
     if (rect.classList.contains('blocklyDropdownRect')) {
-      const blockFill = parentBlock?.querySelector('.blocklyPath')?.getAttribute('fill');
-      if (blockFill) rect.setAttribute('fill', blockFill);
-      rect.setAttribute('stroke', '#999999');
-      rect.setAttribute('stroke-width', '1px');
+      // Preserve existing dropdown behaviour when live paint is unavailable.
+      if (!rect.getAttribute('fill')) {
+        const parentBlock = rect.closest('.blocklyDraggable');
+        const blockFill = parentBlock?.querySelector('.blocklyPath')?.getAttribute('fill');
+        if (blockFill) rect.setAttribute('fill', blockFill);
+      }
+      if (!rect.getAttribute('stroke')) rect.setAttribute('stroke', '#999999');
+      if (!rect.getAttribute('stroke-width')) rect.setAttribute('stroke-width', '1px');
       return;
     }
 
     // v12: checkbox background is typically just a fieldRect (no checkbox class),
-    // so default all field rects to a white background for export.
-    rect.setAttribute('fill', '#ffffff');
-    rect.setAttribute('stroke', '#999999');
-    rect.setAttribute('stroke-width', '1px');
+    // so default all field rects to a white background for export when live
+    // paint could not be resolved.
+    if (!rect.getAttribute('fill')) rect.setAttribute('fill', '#ffffff');
+    if (!rect.getAttribute('stroke')) rect.setAttribute('stroke', '#999999');
+    if (!rect.getAttribute('stroke-width')) rect.setAttribute('stroke-width', '1px');
   });
 
   const uiTexts = svgBlock.querySelectorAll('text.blocklyText');
-  uiTexts.forEach((textElement) => {
+  uiTexts.forEach((textElement, index) => {
     const isCheckbox = textElement.classList.contains('blocklyCheckbox');
 
-    textElement.style.fill = '#000000';
+    bakeResolvedTextPaint(textElement, liveTexts[index]);
+    if (!textElement.style.fill && !textElement.getAttribute('fill')) {
+      textElement.style.fill = '#000000';
+    }
 
     if (isCheckbox) {
       return;
@@ -367,9 +421,6 @@ export async function generateSVG(block, { rasterSafe = false, keepSelected = fa
 	.blocklyText {
 	  font-family: "Atkinson Hyperlegible Next", sans-serif;
 	  font-weight: 500;
-	}
-	.blocklyEditableText rect.blocklyFieldRect:not(.blocklyDropdownRect) {
-	  fill: #ffffff !important;
 	}
   `;
   svgBlock.insertBefore(style, svgBlock.firstChild);
