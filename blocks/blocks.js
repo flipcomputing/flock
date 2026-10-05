@@ -1502,6 +1502,7 @@ export function initializeVariableIndexes() {
     cylinder: 1,
     capsule: 1,
     wedge: 1,
+    freeform: 1,
     donut: 1,
     ring: 1,
     plane: 1,
@@ -1728,6 +1729,38 @@ export function defineBlocks() {
         output: 'Number',
         colour: 230,
         tooltip: getTooltip('random_seeded_int'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('math_blocks');
+    },
+  };
+
+  Blockly.Blocks['vector'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'vector',
+        message0: translate('vector'),
+        args0: [
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        output: 'Vector',
+        colour: 230,
+        tooltip: getTooltip('vector'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('math_blocks');

@@ -355,6 +355,9 @@ export default {
   create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
   create_wedge:
     'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\n%11 x: %8 y: %9 z: %10',
+  create_freeform: 'add freeform %1 %2 edit: %7\n%6 x: %3 y: %4 z: %5',
+  freeform_points: 'points',
+  freeform_invalid: 'That change would make the shape cross itself or break apart, so it was undone.',
   create_donut:
     'add donut %1 %2 outer: %3 inner: %4 thickness: %5 sides: %6\n%10 x: %7 y: %8 z: %9',
   create_ring:
@@ -395,6 +398,7 @@ export default {
   // Custom block translations - Math blocks
   random_seeded_int: 'random integer from %1 to %2 seed: %3',
   to_number: 'convert %1 to %2',
+  vector: 'vector x: %1 y: %2 z: %3',
 
   // Custom block translations - Transform blocks
   move_by_xyz: 'change position of %1 by x: %2 y: %3 z: %4',
@@ -662,6 +666,8 @@ export default {
   create_capsule_tooltip: 'Create a colored capsule with specified dimensions and position.',
   create_wedge_tooltip:
     'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.',
+  create_freeform_tooltip:
+    'Add a shape you can reshape. Tick edit to drag its points and pull faces out with the arrows. Click + to see the list of points.',
   create_donut_tooltip:
     'Add a donut shape. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Sides sets how smooth it looks.',
   create_ring_tooltip:
@@ -707,6 +713,7 @@ export default {
   // Tooltip translations - Math blocks
   random_seeded_int_tooltip: 'Generate a random integer with a seed.',
   to_number_tooltip: 'Convert a string to an integer or float.',
+  vector_tooltip: 'A position or direction made from x, y and z.',
 
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Move an object a given amount in x y and z directions.',

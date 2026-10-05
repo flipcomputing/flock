@@ -149,6 +149,16 @@ const AVAILABLE_SUITES = [
     pattern: '@listReorder',
   },
   {
+    id: 'freeformgeometry',
+    name: 'Freeform Geometry Tests',
+    pattern: '@freeformgeometry',
+  },
+  {
+    id: 'freeformblock',
+    name: 'Freeform Block Tests',
+    pattern: '@freeformblock',
+  },
+  {
     id: 'procedureparams',
     name: 'Function Parameter Tests',
     pattern: '@procedureParams',

@@ -55,6 +55,8 @@ import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { isBodyAlive } from '../api/physics.js';
 import { isPositionPickActive } from './pickposition.js';
+import { shapeError } from '../api/freeformgeometry.js';
+import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
 export let gizmoManager;
 
 // Enable debug messages
@@ -112,6 +114,7 @@ function isOrbitedMesh(mesh) {
 
 const FAST_CURSOR = 1; // Step for moving KB cursor quickly
 const DEFAULT_CURSOR = 0.1; // Step for moving KB cursor slowly (default)
+const FREEFORM_FAST_STEP = 0.5;
 const FAST_ROTATION = 0.5;
 const DEFAULT_ROTATION = 0.05;
 const FAST_SCALE = 0.5;
@@ -1932,6 +1935,36 @@ export function exitGizmoState(options = {}) {
 }
 
 // Start the keyboard handler for moving a mesh
+// Keys and buttons for a selected point (moved along an axis) or face
+// (stepped out or in, so it has no axis).
+function startFreeformKeyboard(editor, kind) {
+  cleanupScenePick();
+  stopAxisKeyboard?.();
+  stopAxisKeyboard = null;
+  const positionGizmo = gizmoManager.gizmos?.positionGizmo;
+  const point = kind === 'point';
+  stopAxisKeyboard = createAdaptiveInput({
+    onMove: point
+      ? (dx, dy, dz) => editor.nudgePoint(dx, dy, dz)
+      : (dx, dy, dz) => editor.extrudeSelected(Math.sign(dx + dy + dz) * FREEFORM_STEP),
+    onConfirm: () => {
+      exitTransformState();
+      document.getElementById('positionButton')?.focus();
+    },
+    onCancel: () => editor.select(null),
+    stepNormal: FREEFORM_STEP,
+    stepFast: point ? FREEFORM_FAST_STEP : FREEFORM_STEP,
+    mode: 'arrows',
+    stepLabels: ['-', '+'],
+    ...(point
+      ? {
+          onAxisChange: (axis) => highlightGizmoAxis(positionGizmo, axis),
+          onHudHide: () => highlightGizmoAxis(positionGizmo, null),
+        }
+      : { showUniform: true, uniformOnly: true }),
+  });
+}
+
 function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
   const initialKeyboardAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   document.body.style.cursor = 'default';
@@ -2536,7 +2569,7 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
       const alt = nearestUnlockedMesh(x ?? flock.scene.pointerX, y ?? flock.scene.pointerY);
       if (alt) mesh = alt;
     }
-    onPicked(mesh, pickedPoint);
+    onPicked(mesh, pickedPoint, x, y);
   };
 
   const pointerObservable = flock.scene.onPointerObservable;
@@ -2555,7 +2588,9 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
         handlePicked(pick?.pickedMesh, pick?.pickedPoint, x, y);
       },
       false,
-      (x, y) => !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== 'ground')?.hit
+      (x, y) =>
+        !!freeformHandleAt(x, y) ||
+        !!flock.scene.pick(x, y, (m) => m.isPickable && m.name !== 'ground')?.hit
     );
     document.body.style.cursor = 'crosshair';
     flock.scene.defaultCursor = 'crosshair';
@@ -2768,6 +2803,16 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
       mul(block, 'DIAMETER_TOP');
       mul(block, 'DIAMETER_BOTTOM');
       break;
+    // Live rebuilds of a freeform don't reset its scaling the way box resizes
+    // do, so bake the scale into the mesh now as well as the block.
+    case 'create_freeform': {
+      const shape = scaledFreeformShape(mesh, { x: factor, y: factor, z: factor }, MEMBER_DECIMALS);
+      if (!shape) break;
+      block.writeShape(shape.points, shape.faces);
+      mesh.scaling.setAll(1);
+      flock.setFreeformShape(mesh, shape.points, shape.faces);
+      break;
+    }
     case 'create_sphere':
       mul(block, 'DIAMETER_X');
       mul(block, 'DIAMETER_Y');
@@ -3055,6 +3100,40 @@ export function bakeGroupScale(groupMesh) {
   return true;
 }
 
+// Bakes a scale into a freeform's points; null if the rounded result would
+// break the shape. Two decimals, as one tenth would swallow a 5% scale step.
+function scaledFreeformShape(mesh, scale, decimals = MEMBER_DECIMALS) {
+  const step = 10 ** decimals;
+  // Halves round away from zero, so a symmetric shape stays symmetric.
+  const round = (v) => (Math.sign(v) * Math.round(Math.abs(v) * step)) / step + 0;
+  const points = mesh.metadata.freeformPoints.map(([x, y, z]) => [
+    round(x * scale.x),
+    round(y * scale.y),
+    round(z * scale.z),
+  ]);
+  const faces = mesh.metadata.freeformFaces;
+  return shapeError(points, faces) ? null : { points, faces };
+}
+
+// A freeform has no size inputs: the scale goes into its points, and a scale
+// that would break the shape is dropped.
+function commitFreeformScale(mesh, block, originalBottomY, ensureFreshBounds) {
+  const bottomY = originalBottomY ?? ensureFreshBounds(mesh).minimumWorld.y;
+  const shape = scaledFreeformShape(mesh, mesh.scaling);
+  mesh.scaling.setAll(1);
+  if (shape) flock.setFreeformShape(mesh, shape.points, shape.faces);
+  mesh.position.y += bottomY - ensureFreshBounds(mesh).minimumWorld.y;
+  flock.updatePhysics(mesh);
+
+  Blockly.Events.setGroup(true);
+  try {
+    if (shape) block.writeShape(shape.points, shape.faces);
+    writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
 export function updateScaleBlock(mesh, originalBottomY = null) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block || isPrefab(mesh)) return;
@@ -3081,6 +3160,11 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
     const w = sizeLocal.x * Math.abs(mesh.scaling.x);
     const h = sizeLocal.y * Math.abs(mesh.scaling.y);
     const d = sizeLocal.z * Math.abs(mesh.scaling.z);
+
+    if (block.type === 'create_freeform') {
+      commitFreeformScale(mesh, block, originalBottomY, ensureFreshBounds);
+      return;
+    }
 
     switch (block.type) {
       case 'create_plane':
@@ -4154,6 +4238,73 @@ function handlePositionGizmo() {
 
   let keyboardAttachedMesh = null;
   let savedHudAxis = null;
+  const startShapeKeyboard = (mesh) =>
+    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
+      if (axis) savedHudAxis = axis;
+    });
+
+  // On a shape in edit mode, a selected point or face takes over the gizmo
+  // and keys from the whole shape.
+  let freeformEditor = null;
+  const applyFreeformSelection = (mesh, selection) => {
+    const positionGizmo = gizmoManager.gizmos.positionGizmo;
+    if (selection?.kind === 'point') {
+      positionGizmo.attachedNode = freeformEditor.pointNode;
+      startFreeformKeyboard(freeformEditor, 'point');
+    } else if (selection?.kind === 'face') {
+      positionGizmo.attachedNode = null;
+      startFreeformKeyboard(freeformEditor, 'face');
+    } else {
+      positionGizmo.attachedMesh = mesh;
+      applyPositionHandles(mesh);
+      startShapeKeyboard(mesh);
+    }
+  };
+  const releaseFreeformEditor = () => {
+    if (!freeformEditor) return;
+    freeformEditor.onSelectionChange = null;
+    freeformEditor.select(null);
+    freeformEditor = null;
+  };
+  const watchFreeformSelection = (mesh) => {
+    releaseFreeformEditor();
+    freeformEditor = freeformEditorFor(mesh);
+    if (freeformEditor) {
+      freeformEditor.onSelectionChange = (selection) => applyFreeformSelection(mesh, selection);
+    }
+  };
+  onExit(releaseFreeformEditor);
+  // Re-ticking edit gives the same mesh a new editor, and attaching an
+  // already-attached mesh never reaches the watch above, so rebind here.
+  const selectFreeformHandle = (handle) => {
+    if (gizmoManager.attachedMesh !== handle.editor.mesh) {
+      gizmoManager.attachToMesh(handle.editor.mesh);
+    }
+    if (freeformEditor !== handle.editor) watchFreeformSelection(handle.editor.mesh);
+    handle.editor.select(handle.selection);
+  };
+
+  // Clicking a handle selects it; clicking the shape itself goes back to
+  // moving the whole shape. Handle presses never reach onPointerObservable:
+  // the utility layer claims them first.
+  const freeformHandleObserver = flock.scene.onPrePointerObservable.add((pointerInfo) => {
+    if (pointerInfo.type !== flock.BABYLON.PointerEventTypes.POINTERDOWN) return;
+    if (pointerInfo.event?.button !== 0) return;
+    const handle = freeformHandleAt(flock.scene.pointerX, flock.scene.pointerY);
+    if (handle) selectFreeformHandle(handle);
+  });
+  const freeformShapeObserver = flock.scene.onPointerObservable.add((pointerInfo) => {
+    if (pointerInfo.type !== flock.BABYLON.PointerEventTypes.POINTERPICK) return;
+    if (pointerInfo.event?.button !== 0) return;
+    if (freeformEditor && pointerInfo.pickInfo?.pickedMesh === freeformEditor.mesh) {
+      freeformEditor.select(null);
+    }
+  });
+  onExit(() => {
+    flock.scene?.onPrePointerObservable.remove(freeformHandleObserver);
+    flock.scene?.onPointerObservable.remove(freeformShapeObserver);
+  });
+
   const activatePositionKeyboardForMesh = (mesh) => {
     if (!mesh) {
       exitTransformState();
@@ -4164,6 +4315,7 @@ function handlePositionGizmo() {
     keyboardAttachedMesh = mesh;
 
     applyPositionHandles(mesh);
+    watchFreeformSelection(mesh);
     if (isUntargetedCameraFrame(mesh)) {
       stopAxisKeyboard?.();
       stopAxisKeyboard = null;
@@ -4178,9 +4330,7 @@ function handlePositionGizmo() {
         owner: 'gizmo-controls-hint',
         hint: true,
       });
-      startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
-        if (axis) savedHudAxis = axis;
-      });
+      startShapeKeyboard(mesh);
     }
 
     const blockKey = mesh?.metadata?.blockKey;
@@ -4202,7 +4352,12 @@ function handlePositionGizmo() {
     activatePositionKeyboardForMesh(mesh);
   } else {
     pickMeshFromScene(
-      (pickedMesh) => {
+      (pickedMesh, _pickedPoint, x, y) => {
+        const handle = x == null ? null : freeformHandleAt(x, y);
+        if (handle) {
+          selectFreeformHandle(handle);
+          return;
+        }
         if (!pickedMesh || pickedMesh.name === 'ground') {
           exitTransformState();
           return;
@@ -4220,6 +4375,10 @@ function handlePositionGizmo() {
   let dragStartPosition = null;
   let restoreCameraTarget = null;
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
+    if (freeformEditor?.selection?.kind === 'point') {
+      freeformEditor.beginPointDrag();
+      return;
+    }
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
     dragStartPosition = mesh.getAbsolutePosition().clone();
@@ -4237,9 +4396,13 @@ function handlePositionGizmo() {
 
   onExit(() => gizmoManager.gizmos.positionGizmo.onDragStartObservable.remove(posDragStart));
 
-  const posDrag = gizmoManager.gizmos.positionGizmo.onDragObservable.add(() =>
-    syncMirrorsDuringDrag(gizmoManager.attachedMesh)
-  );
+  const posDrag = gizmoManager.gizmos.positionGizmo.onDragObservable.add(() => {
+    if (freeformEditor?.selection?.kind === 'point') {
+      freeformEditor.dragPointTo(freeformEditor.pointNode.getAbsolutePosition());
+      return;
+    }
+    syncMirrorsDuringDrag(gizmoManager.attachedMesh);
+  });
 
   onExit(() => gizmoManager.gizmos.positionGizmo.onDragObservable.remove(posDrag));
   onExit(() => {
@@ -4248,6 +4411,10 @@ function handlePositionGizmo() {
   });
 
   const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
+    if (freeformEditor?.selection?.kind === 'point') {
+      freeformEditor.endPointDrag();
+      return;
+    }
     const mesh = gizmoManager.attachedMesh;
     restoreCameraTarget?.();
     restoreCameraTarget = null;

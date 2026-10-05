@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { CUBE_FACES } from '../api/freeformgeometry.js';
 import { meshMap, meshBlockIdMap, generateUniqueId } from './mesh-state.js';
 import {
   getFieldValue,
@@ -348,6 +349,23 @@ export function registerSceneGenerators(javascriptGenerator) {
     ];
 
     return createMesh(block, 'Wedge', params, 'wedge');
+  };
+
+  // Add freeform -------------------------------------------------------
+  javascriptGenerator.forBlock['create_freeform'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const vertices =
+      javascriptGenerator.valueToCode(block, 'VERTICES', javascriptGenerator.ORDER_NONE) ||
+      'null';
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [`color: ${color}`, `vertices: ${vertices}`];
+    const faces = JSON.stringify(block.getFaces?.() ?? CUBE_FACES);
+    if (faces !== JSON.stringify(CUBE_FACES)) params.push(`faces: ${faces}`);
+    params.push(`position: ${positionSource}`);
+
+    return createMesh(block, 'Freeform', params, 'freeform');
   };
 
   // Add donut ----------------------------------------------------------

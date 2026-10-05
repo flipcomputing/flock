@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { CUBE_FACES, extrudeFace } from '../api/freeformgeometry.js';
 
 export function runShapesTests(flock) {
   describe('Shapes API @shapes', function () {
@@ -248,6 +249,147 @@ export function runShapesTests(flock) {
       it('should avoid collisions for repeated wedge ids', function () {
         const firstId = flock.createWedge('reserveWedge', { width: 1, height: 1, depth: 1 });
         const secondId = flock.createWedge('reserveWedge', { width: 1, height: 1, depth: 1 });
+        createdIds.push(firstId, secondId);
+
+        expect(firstId).to.not.equal(secondId);
+      });
+    });
+
+    describe('createFreeform', function () {
+      const extents = (mesh) => {
+        const positions = mesh.getVerticesData('position');
+        const min = [Infinity, Infinity, Infinity];
+        const max = [-Infinity, -Infinity, -Infinity];
+        for (let i = 0; i < positions.length; i += 3) {
+          for (let axis = 0; axis < 3; axis++) {
+            min[axis] = Math.min(min[axis], positions[i + axis]);
+            max[axis] = Math.max(max[axis], positions[i + axis]);
+          }
+        }
+        return { min, max, size: max.map((v, i) => v - min[i]) };
+      };
+
+      const cube = () => [
+        [-0.5, -0.5, -0.5],
+        [0.5, -0.5, -0.5],
+        [0.5, -0.5, 0.5],
+        [-0.5, -0.5, 0.5],
+        [-0.5, 0.5, -0.5],
+        [0.5, 0.5, -0.5],
+        [0.5, 0.5, 0.5],
+        [-0.5, 0.5, 0.5],
+      ];
+
+      it('should build a unit cube from the default points', function () {
+        const id = flock.createFreeform('testFreeformCube', {
+          vertices: cube().map(([x, y, z]) => flock.createVector3(x, y, z)),
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+        expect(mesh.metadata.shapeType).to.equal('Freeform');
+        extents(mesh).size.forEach((s) => expect(s).to.be.closeTo(1, 0.001));
+        expect(mesh.metadata.freeformPoints).to.deep.equal(cube());
+      });
+
+      it('should face every normal outwards', function () {
+        const id = flock.createFreeform('testFreeformNormals', { vertices: cube() });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const positions = mesh.getVerticesData('position');
+        const normals = mesh.getVerticesData('normal');
+        for (let i = 0; i < positions.length; i += 3) {
+          const dot =
+            positions[i] * normals[i] +
+            positions[i + 1] * normals[i + 1] +
+            positions[i + 2] * normals[i + 2];
+          expect(dot).to.be.greaterThan(0);
+        }
+      });
+
+      it('should follow a moved point', function () {
+        const points = cube();
+        points[6] = [1.5, 2, 0.5];
+        const id = flock.createFreeform('testFreeformMoved', { vertices: points });
+        createdIds.push(id);
+
+        const { max } = extents(flock.scene.getMeshByName(id));
+        expect(max[0]).to.be.closeTo(1.5, 0.001);
+        expect(max[1]).to.be.closeTo(2, 0.001);
+      });
+
+      it('should rest its lowest point on the given y', function () {
+        const id = flock.createFreeform('testFreeformBase', {
+          vertices: cube(),
+          position: [2, 3, 4],
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        expect(mesh.getBoundingInfo().boundingBox.minimumWorld.y).to.be.closeTo(3, 0.001);
+        expect(mesh.position.x).to.be.closeTo(2, 0.001);
+        expect(mesh.position.z).to.be.closeTo(4, 0.001);
+      });
+
+      it('should fall back to a cube when the points do not fit the faces', function () {
+        [null, [[0, 0, 0]], cube().map(() => ['a', 0, 0])].forEach((vertices, index) => {
+          const id = flock.createFreeform(`testFreeformFallback${index}`, { vertices });
+          createdIds.push(id);
+
+          const mesh = flock.scene.getMeshByName(id);
+          expect(mesh.metadata.freeformPoints).to.deep.equal(cube());
+        });
+      });
+
+      it('should reshape when given new points', function () {
+        const id = flock.createFreeform('testFreeformReshape', { vertices: cube() });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        const points = cube();
+        points[0] = [-2, -0.5, -0.5];
+        flock.setFreeformShape(mesh, points, mesh.metadata.freeformFaces);
+
+        expect(extents(mesh).min[0]).to.be.closeTo(-2, 0.001);
+        expect(mesh.metadata.freeformPoints[0]).to.deep.equal([-2, -0.5, -0.5]);
+      });
+
+      it('should build from given faces', function () {
+        const { points, faces } = extrudeFace(cube(), CUBE_FACES, 1, 1);
+        const id = flock.createFreeform('testFreeformFaces', { vertices: points, faces });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata.freeformFaces).to.deep.equal(faces);
+        expect(extents(mesh).size[1]).to.be.closeTo(2, 0.001);
+      });
+
+      it('should fall back to a cube when the faces leave the shape open', function () {
+        const id = flock.createFreeform('testFreeformOpen', {
+          vertices: cube(),
+          faces: CUBE_FACES.slice(1),
+        });
+        createdIds.push(id);
+
+        expect(flock.scene.getMeshByName(id).metadata.freeformFaces).to.deep.equal(CUBE_FACES);
+      });
+
+      it('should give the freeform a convex hull physics body', function () {
+        const id = flock.createFreeform('testFreeformPhysics', { vertices: cube() });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeConvexHull);
+      });
+
+      it('should avoid collisions for repeated freeform ids', function () {
+        const firstId = flock.createFreeform('reserveFreeform', {});
+        const secondId = flock.createFreeform('reserveFreeform', {});
         createdIds.push(firstId, secondId);
 
         expect(firstId).to.not.equal(secondId);

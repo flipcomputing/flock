@@ -27,6 +27,15 @@ export function registerMathGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
+  // Vector -------------------------------------------------------------
+  javascriptGenerator.forBlock['vector'] = function (block) {
+    const x = getFieldValue(block, 'X', 0);
+    const y = getFieldValue(block, 'Y', 0);
+    const z = getFieldValue(block, 'Z', 0);
+
+    return [`createVector3(${x}, ${y}, ${z})`, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
   // Integer - uses Blockly default
 
   // Convert to integer -----------------------------------------------

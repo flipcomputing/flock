@@ -7,8 +7,12 @@ import {
   handleBlockCreateEvent,
   getHelpUrlFor,
   registerBlockHandler,
+  DO_MUTATOR_MINUS,
+  DO_MUTATOR_PLUS,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
+import { CUBE_FACES, shapeError } from '../api/freeformgeometry.js';
+import { setFreeformEditing } from '../ui/freeformedit.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
 
@@ -50,6 +54,54 @@ function linkWallInputs(block, changeEvent) {
   } finally {
     Blockly.Events.setGroup(false);
   }
+}
+
+const cloneFaces = (faces) => faces.map((face) => [...face]);
+
+function parseFaces(text) {
+  if (!text) return cloneFaces(CUBE_FACES);
+  try {
+    const faces = JSON.parse(text);
+    if (Array.isArray(faces) && faces.every((f) => Array.isArray(f) && f.every(Number.isInteger))) {
+      return faces;
+    }
+  } catch {
+    // Unreadable faces fall back to the cube below.
+  }
+  return cloneFaces(CUBE_FACES);
+}
+
+function extraStateText(block) {
+  if (block.saveExtraState) {
+    const state = block.saveExtraState();
+    return state ? JSON.stringify(state) : '';
+  }
+  const dom = block.mutationToDom?.();
+  return dom ? Blockly.Xml.domToText(dom) : '';
+}
+
+function vectorNumberBlocks(vector) {
+  if (vector?.type !== 'vector') return null;
+  const numbers = ['X', 'Y', 'Z'].map((axis) => vector.getInputTargetBlock(axis));
+  return numbers.every((n) => n?.type === 'math_number') ? numbers : null;
+}
+
+function vectorState([x, y, z]) {
+  const num = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
+  return { type: 'vector', inputs: { X: num(x), Y: num(y), Z: num(z) } };
+}
+
+function touchesPointList(block, event) {
+  if (
+    (event.newParentId === block.id && event.newInputName === 'VERTICES') ||
+    (event.oldParentId === block.id && event.oldInputName === 'VERTICES')
+  ) {
+    return true;
+  }
+  const list = block.getInputTargetBlock('VERTICES');
+  if (!list) return false;
+  const ids = new Set(list.getDescendants(false).map((b) => b.id));
+  return ids.has(event.blockId) || ids.has(event.newParentId) || ids.has(event.oldParentId);
 }
 
 export function defineShapeBlocks() {
@@ -963,6 +1015,214 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+    },
+  };
+
+  Blockly.Blocks['create_freeform'] = {
+    init: function () {
+      const variableNamePrefix = 'freeform';
+      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      this.jsonInit({
+        type: 'create_freeform',
+        message0: translate('create_freeform'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'input_value',
+            name: 'COLOR',
+            check: ['Colour', 'Material'],
+          },
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
+          {
+            type: 'field_checkbox',
+            name: 'EDIT',
+            checked: false,
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_freeform'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+
+      registerBlockHandler(this, (changeEvent) => {
+        this.rejectBrokenShape_(changeEvent);
+        if (changeEvent.blockId === this.id || changeEvent.type === Blockly.Events.FINISHED_LOADING) {
+          setFreeformEditing(this, this.getFieldValue('EDIT') === 'TRUE' && !this.isInFlyout);
+        }
+        handleBlockChange(this, changeEvent, variableNamePrefix);
+      });
+      addDoMutatorWithToggleBehavior(this);
+      this.faces_ = cloneFaces(CUBE_FACES);
+
+      this.appendEndRowInput('POINTS_TOGGLE')
+        .appendField(translate('freeform_points'))
+        .appendField(
+          new Blockly.FieldImage(DO_MUTATOR_PLUS, 24, 24, 'toggle points', () =>
+            this.togglePoints_()
+          ),
+          'POINTS_BUTTON'
+        );
+      this.appendValueInput('VERTICES').setCheck('Array');
+      this.setPointsShown_(false);
+
+      const doMutationToDom = this.mutationToDom;
+      const doDomToMutation = this.domToMutation;
+      this.mutationToDom = function () {
+        const container = doMutationToDom.call(this);
+        if (this.pointsShown_) container.setAttribute('points', 'true');
+        if (JSON.stringify(this.faces_) !== JSON.stringify(CUBE_FACES)) {
+          container.setAttribute('faces', JSON.stringify(this.faces_));
+        }
+        return container;
+      };
+      this.domToMutation = function (xmlElement) {
+        doDomToMutation.call(this, xmlElement);
+        this.setPointsShown_(xmlElement.getAttribute('points') === 'true');
+        this.faces_ = parseFaces(xmlElement.getAttribute('faces'));
+      };
+    },
+
+    setPointsShown_: function (show) {
+      this.pointsShown_ = show;
+      this.getInput('VERTICES').setVisible(show);
+      this.getField('POINTS_BUTTON')?.setValue(show ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+    },
+
+    togglePoints_: function () {
+      const oldState = Blockly.Xml.domToText(this.mutationToDom());
+      this.setPointsShown_(!this.pointsShown_);
+      if (this.rendered) {
+        this.render();
+        this.bumpNeighbours();
+      }
+      const newState = Blockly.Xml.domToText(this.mutationToDom());
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState)
+      );
+    },
+
+    getFaces: function () {
+      return cloneFaces(this.faces_);
+    },
+
+    // Writes points and faces as one undo step, growing the list as needed.
+    writeShape: function (points, faces) {
+      const list = this.getInputTargetBlock('VERTICES');
+      if (list?.type !== 'lists_create_with') return;
+
+      const ownGroup = !Blockly.Events.getGroup();
+      if (ownGroup) Blockly.Events.setGroup(true);
+      try {
+        const oldListState = extraStateText(list);
+        while (list.itemCount_ < points.length) list.plus();
+        while (list.itemCount_ > points.length) {
+          list.getInputTargetBlock('ADD' + (list.itemCount_ - 1))?.dispose(false);
+          list.minus();
+        }
+        const newListState = extraStateText(list);
+        if (oldListState !== newListState) {
+          Blockly.Events.fire(
+            new Blockly.Events.BlockChange(list, 'mutation', null, oldListState, newListState)
+          );
+        }
+
+        points.forEach((point, i) => {
+          const input = list.getInput('ADD' + i);
+          const numbers = vectorNumberBlocks(input.connection.targetBlock());
+          if (numbers) {
+            numbers.forEach((n, axis) => n.setFieldValue(String(point[axis]), 'NUM'));
+            return;
+          }
+          input.connection.targetBlock()?.unplug(false);
+          const vector = Blockly.serialization.blocks.append(vectorState(point), this.workspace);
+          input.connection.connect(vector.outputConnection);
+        });
+
+        const oldState = extraStateText(this);
+        this.faces_ = cloneFaces(faces);
+        const newState = extraStateText(this);
+        if (oldState !== newState) {
+          Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState));
+        }
+      } finally {
+        if (ownGroup) Blockly.Events.setGroup(false);
+      }
+    },
+
+    // Hand edits that would break the shape are undone straight away. Undo and
+    // redo are skipped: every state on the stack was already checked.
+    rejectBrokenShape_: function (event) {
+      if (window.loadingCode || this.isInFlyout || !event.recordUndo || this.checkPending_) return;
+      if (!touchesPointList(this, event)) return;
+      this.checkPending_ = true;
+      setTimeout(() => {
+        this.checkPending_ = false;
+        if (this.disposed) return;
+        const points = this.getPoints();
+        if (points === null) return;
+        const error = points.some((p) => !p.every(Number.isFinite))
+          ? 'missing point'
+          : shapeError(points, this.faces_);
+        if (!error) {
+          this.setWarningText?.(null, 'freeform');
+          return;
+        }
+        this.workspace.undo(false);
+        const redo = this.workspace.getRedoStack();
+        const group = redo.at(-1)?.group;
+        do redo.pop();
+        while (group && redo.at(-1)?.group === group);
+        this.setWarningText?.(translate('freeform_invalid'), 'freeform');
+      });
+    },
+
+    // Number blocks for each point's X/Y/Z, or null where a point isn't plain numbers.
+    getPointNumberBlocks: function () {
+      const list = this.getInputTargetBlock('VERTICES');
+      if (list?.type !== 'lists_create_with') return [];
+      return list.inputList
+        .filter((input) => input.connection)
+        .map((input) => vectorNumberBlocks(input.connection.targetBlock()));
+    },
+
+    // The points as [x, y, z], or null if any can only be worked out by running
+    // the code. An empty slot reads as NaN so it counts as a broken point.
+    getPoints: function () {
+      const list = this.getInputTargetBlock('VERTICES');
+      if (list?.type !== 'lists_create_with') return list ? null : [];
+      const items = list.inputList
+        .filter((input) => input.connection)
+        .map((input) => input.connection.targetBlock());
+      if (items.some((item) => item && !vectorNumberBlocks(item))) return null;
+      return items.map((item) =>
+        item ? vectorNumberBlocks(item).map((n) => Number(n.getFieldValue('NUM'))) : [NaN, NaN, NaN]
+      );
     },
   };
 

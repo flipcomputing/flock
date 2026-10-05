@@ -891,6 +891,69 @@ export const flockShapes = {
 
     return newWedge.name;
   },
+  createFreeform(
+    freeformId,
+    {
+      vertices,
+      faces,
+      color = '#9932CC',
+      position = new flock.BABYLON.Vector3(0, 0, 0),
+      alpha = 1,
+      callback = null,
+    } = {}
+  ) {
+    if (!validateShapeId(freeformId, 'createFreeform')) return null;
+    alpha = toAlpha(alpha);
+
+    let blockKey = freeformId;
+
+    if (freeformId.includes('__')) {
+      [freeformId, blockKey] = freeformId.split('__');
+    }
+
+    let groupName = freeformId;
+    freeformId = flock._reserveName(freeformId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const newFreeform = new flock.BABYLON.Mesh(freeformId, flock.scene);
+    const shape = flock.freeformShape(vertices, faces);
+    flock.setFreeformShape(newFreeform, shape.points, shape.faces);
+
+    flock.initializeMesh(newFreeform, position, color, 'Freeform', alpha);
+
+    newFreeform.metadata.blockKey = blockKey;
+    newFreeform.metadata.sectionOwner = flock._currentSection;
+    newFreeform.metadata.sharedGeometry = false;
+
+    const hullShape = new flock.BABYLON.PhysicsShapeConvexHull(newFreeform, flock.scene);
+    flock.applyPhysics(newFreeform, hullShape);
+    newFreeform.metadata.physicsShapeType = 'CONVEX_HULL';
+
+    flock.announceMeshReady(newFreeform.name, groupName);
+    flock._registerInstance(blockKey, newFreeform.name);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return newFreeform.name;
+  },
+  setFreeformShape(mesh, points, faces) {
+    flock.freeformVertexData(points, faces).applyToMesh(mesh, true);
+    mesh.refreshBoundingInfo();
+    const { minimum, maximum } = mesh.getBoundingInfo().boundingBox;
+    flock.setSizeBasedBoxUVs(
+      mesh,
+      maximum.x - minimum.x,
+      maximum.y - minimum.y,
+      maximum.z - minimum.z
+    );
+    mesh.metadata = mesh.metadata || {};
+    mesh.metadata.freeformPoints = points.map((p) => [...p]);
+    mesh.metadata.freeformFaces = faces.map((f) => [...f]);
+  },
   createDonut(
     donutId,
     {

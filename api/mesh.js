@@ -5,6 +5,7 @@ import {
   TEXTURE_TILE_SIZE,
 } from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
+import { CUBE_POINTS, CUBE_FACES, topologyError } from './freeformgeometry.js';
 
 let flock;
 
@@ -27,6 +28,7 @@ function toSides(value) {
 const TILING_PRIMITIVES = new Set([
   'Box',
   'Wedge',
+  'Freeform',
   'Sphere',
   'Cylinder',
   'Capsule',
@@ -757,6 +759,41 @@ export const flockMesh = {
     };
   },
 
+  freeformShape(vertices, faces = CUBE_FACES) {
+    const points = Array.isArray(vertices)
+      ? vertices.map((v) => {
+          const [x, y, z] = Array.isArray(v) ? v : [v?.x, v?.y, v?.z];
+          return [Number(x), Number(y), Number(z)];
+        })
+      : [];
+    const error = points.every((p) => p.every(Number.isFinite))
+      ? topologyError(points.length, faces)
+      : 'points must be numbers';
+    if (error) {
+      if (vertices != null) console.warn(`createFreeform: ${error}, using a cube`);
+      return { points: CUBE_POINTS.map((p) => [...p]), faces: CUBE_FACES.map((f) => [...f]) };
+    }
+    return { points, faces: faces.map((f) => [...f]) };
+  },
+
+  freeformVertexData(points, faces) {
+    const positions = [];
+    const indices = [];
+    for (const face of faces) {
+      const start = positions.length / 3;
+      for (const i of face) positions.push(...points[i]);
+      for (let k = 1; k < face.length - 1; k++) indices.push(start, start + k + 1, start + k);
+    }
+    const normals = [];
+    flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);
+    const vertexData = new flock.BABYLON.VertexData();
+    vertexData.positions = positions;
+    vertexData.indices = indices;
+    vertexData.normals = normals;
+    vertexData.uvs = new Array((positions.length / 3) * 2).fill(0);
+    return vertexData;
+  },
+
   wallDimensions({ diameter, innerDiameter, thickness }, defaults, maxWallFraction = 0.9) {
     const outer = Math.max(MIN_SIZE, toDim(diameter, defaults.diameter));
     const givenWall = toDim(thickness, NaN);
@@ -1032,6 +1069,7 @@ export const flockMesh = {
     switch (primitiveShape(mesh)) {
       case 'Box':
       case 'Wedge':
+      case 'Freeform':
         flock.setSizeBasedBoxUVs(mesh, width, height, depth, texturePhysicalSize, scale);
         return true;
       case 'Sphere':

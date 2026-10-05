@@ -40,6 +40,7 @@ export function createMeshOnCanvas(block) {
     'create_cylinder',
     'create_capsule',
     'create_wedge',
+    'create_freeform',
     'create_donut',
     'create_ring',
     'create_plane',
@@ -679,6 +680,18 @@ function createShapeInternal(block) {
         depth: wedgeDepth,
         peak: wedgePeak,
         axis: wedgeAxis,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_freeform':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+
+      newMesh = flock.createFreeform(`freeform__${block.id}`, {
+        color,
+        vertices: block.getPoints(),
+        faces: block.getFaces(),
         position: [position.x, position.y, position.z],
         alpha,
       });

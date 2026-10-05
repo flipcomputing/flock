@@ -10,6 +10,7 @@ import { flock } from '../flock.js';
 
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
+import { shapeError } from '../api/freeformgeometry.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
@@ -51,6 +52,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_cylinder',
   'create_capsule',
   'create_wedge',
+  'create_freeform',
   'create_donut',
   'create_ring',
   'create_plane',
@@ -1317,6 +1319,18 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
       break;
     }
 
+    case 'create_freeform': {
+      if (changed === 'VERTICES') {
+        const points = block.getPoints();
+        const faces = block.getFaces();
+        if (points && !shapeError(points, faces)) {
+          flock.setFreeformShape(mesh, points, faces);
+          repositionPrimitiveFromBlock();
+        }
+      }
+      break;
+    }
+
     case 'create_donut':
     case 'create_ring': {
       if (['HEIGHT', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'].includes(changed)) {
@@ -1969,6 +1983,20 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         if (flock.meshDebug) console.log(`Material change detected in ${inputName} input subtree`);
       }
     }
+  }
+
+  // Inside the list, the parent lookup above names the vector's own X/Y/Z
+  // input, which would read as the shape's position.
+  if (block.type === 'create_freeform') {
+    const list = block.getInputTargetBlock('VERTICES');
+    const touched =
+      (changeEvent.blockId === block.id && changeEvent.element === 'mutation') ||
+      changeEvent.newInputName === 'VERTICES' ||
+      changeEvent.oldInputName === 'VERTICES' ||
+      isBlockIdDescendantOf(list, changeEvent.blockId) ||
+      isBlockIdDescendantOf(list, changeEvent.newParentId) ||
+      isBlockIdDescendantOf(list, changeEvent.oldParentId);
+    if (touched) changed = 'VERTICES';
   }
 
   if (!changed && block.type === 'create_map') {

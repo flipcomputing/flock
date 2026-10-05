@@ -20,6 +20,11 @@ export const categoryColours = {
   Procedures: '%{BKY_PROCEDURES_HUE}',
 };
 
+function vectorBlockSpec(x, y, z) {
+  const num = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
+  return { type: 'vector', inputs: { X: num(x), Y: num(y), Z: num(z) } };
+}
+
 const toolboxSearch = {
   kind: 'search',
   name: 'Search',
@@ -774,6 +779,64 @@ const toolboxSceneMeshes = {
             fields: {
               NUM: 2,
             },
+          },
+        },
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'create_freeform',
+      keyword: 'freeform',
+      inputs: {
+        COLOR: {
+          shadow: {
+            type: 'colour',
+            fields: {
+              COLOR: '#66cc99',
+            },
+          },
+        },
+        VERTICES: {
+          block: {
+            type: 'lists_create_with',
+            extraState: { itemCount: 8 },
+            inline: false,
+            inputs: Object.fromEntries(
+              [
+                [-0.5, -0.5, -0.5],
+                [0.5, -0.5, -0.5],
+                [0.5, -0.5, 0.5],
+                [-0.5, -0.5, 0.5],
+                [-0.5, 0.5, -0.5],
+                [0.5, 0.5, -0.5],
+                [0.5, 0.5, 0.5],
+                [-0.5, 0.5, 0.5],
+              ].map((point, i) => [`ADD${i}`, { block: vectorBlockSpec(...point) }])
+            ),
           },
         },
         X: {
@@ -4436,6 +4499,12 @@ const toolboxMath = {
           },
         },
       },
+    },
+    {
+      kind: 'block',
+      type: 'vector',
+      keyword: 'vec',
+      ...vectorBlockSpec(0, 0, 0),
     },
     {
       kind: 'block',

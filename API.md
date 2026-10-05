@@ -261,6 +261,16 @@ Creates a wedge (triangular prism) geometry.
 - `peak` (number, 0-1): Where the ridge sits on that axis — 0 or 1 for a ramp, 0.5 for a roof
 - `color` (string), `position` (array), `alpha` (number)
 
+#### `createFreeform(name, options)`
+
+Creates a closed shape from a list of points and the faces that join them.
+
+**Options:**
+
+- `vertices` (array): Points, each a `Vector3` or `[x, y, z]`, relative to the shape's position
+- `faces` (array): Each face is a list of indices into `vertices`, clockwise seen from outside. Every edge must be shared by exactly two faces. Defaults to a box joining 8 points in this order: the bottom corners (-x -z, +x -z, +x +z, -x +z), then the top corners in the same order. Points and faces that don't make a closed shape give a 1 × 1 × 1 cube
+- `color` (string), `position` (array), `alpha` (number)
+
 #### `createDonut(name, options)`
 
 Creates a donut (torus) geometry.
