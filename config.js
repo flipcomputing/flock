@@ -312,7 +312,6 @@ export const objectColours = {
     '#68445F',
     '#E7E7E7',
     '#CE4A93',
-    '#E7E7E7',
     '#000000',
     '#000000',
     '#FFFFFF',
