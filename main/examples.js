@@ -464,7 +464,7 @@ export function openExampleModal() {
   }, 0);
 }
 
-export function hideExampleModal() {
+export function hideExampleModal({ restoreFocus = true } = {}) {
   const modal = document.getElementById('exampleModal');
   if (!modal) return;
 
@@ -472,10 +472,12 @@ export function hideExampleModal() {
   // move focus, so the screen reader announces the Projects button exactly once.
   modal.classList.add('hidden');
 
-  if (canRestoreFocus(previouslyFocused)) {
-    previouslyFocused.focus();
-  } else {
-    document.getElementById('exampleButton')?.focus();
+  if (restoreFocus) {
+    if (canRestoreFocus(previouslyFocused)) {
+      previouslyFocused.focus();
+    } else {
+      document.getElementById('exampleButton')?.focus();
+    }
   }
   previouslyFocused = null;
 }
@@ -499,7 +501,13 @@ export function initExampleGallery() {
   // Re-localise tile names when the language changes.
   document.addEventListener('translationsapplied', localizeTiles);
 
-  trigger.addEventListener('click', openExampleModal);
+  trigger.addEventListener('click', () => {
+    if (modal.classList.contains('hidden')) {
+      openExampleModal();
+    } else {
+      hideExampleModal();
+    }
+  });
   closeButton?.addEventListener('click', hideExampleModal);
   newButton?.addEventListener('click', () => {
     hideExampleModal();
@@ -553,26 +561,12 @@ export function initExampleGallery() {
     }
   });
 
-  // Click on the backdrop (outside the content) closes the modal. The modal
-  // is a fixed, full-viewport element, so it stacks above the docked
-  // bottom-left info panel (Help/How to/Shortcuts/Player) and would
-  // otherwise intercept clicks meant for it as "outside" clicks — e.g. the
-  // How to tab points readers at the real Projects/New buttons while this
-  // modal is open, and a click meant for the how-to panel shouldn't close
-  // the very modal it's guiding them through.
-  window.addEventListener('click', (e) => {
-    if (e.target !== modal) return;
-    const infoPanel = document.getElementById('info-panel');
-    const panelRect = infoPanel?.getBoundingClientRect();
-    if (
-      panelRect &&
-      e.clientX >= panelRect.left &&
-      e.clientX <= panelRect.right &&
-      e.clientY >= panelRect.top &&
-      e.clientY <= panelRect.bottom
-    ) {
-      return;
-    }
-    hideExampleModal();
+  const content = modal.querySelector('.example-modal-content');
+  const panelLinkTargets = ['newprojectbutton', 'saveproject', 'openproject'];
+  document.addEventListener('click', (e) => {
+    if (modal.classList.contains('hidden')) return;
+    if (content?.contains(e.target) || trigger.contains(e.target)) return;
+    if (panelLinkTargets.includes(e.target.closest?.('.help-link')?.dataset.target)) return;
+    hideExampleModal({ restoreFocus: false });
   });
 }

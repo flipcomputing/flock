@@ -1852,6 +1852,11 @@ body.embed-mode #infoResizer {
    popover anchored to Projects. */
 #exampleModal {
   background-color: transparent;
+  pointer-events: none;
+}
+
+#exampleModal .example-modal-content {
+  pointer-events: auto;
 }
 
 .example-modal-content {
