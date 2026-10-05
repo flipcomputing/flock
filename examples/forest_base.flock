@@ -84,6 +84,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "D@8SEQuRCAWizDV}7.S}",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "Wn2`r4z3t~VnJs{?!tP#",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       },
@@ -109,6 +127,24 @@
                               "id": "bSeFhwLRy)4zp1-uH%hF",
                               "fields": {
                                 "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "*|7TSE8?BbrveA[L99%M",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "6{g9v]T;;6IazUW59uz1",
+                              "fields": {
+                                "NUM": 0
                               }
                             }
                           }
@@ -169,6 +205,24 @@
                           "id": ";ThspFvdw@%hW.?S80RZ",
                           "fields": {
                             "NUM": 1
+                          }
+                        }
+                      },
+                      "SCALE": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "gASvuD@{?v@Q=hNw0~Mq",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      },
+                      "ANGLE": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "9-V]86-r5G2u3uj5:YmW",
+                          "fields": {
+                            "NUM": 0
                           }
                         }
                       }
@@ -1558,6 +1612,18 @@
                                                                                   }
                                                                                 }
                                                                               }
+                                                                            },
+                                                                            "next": {
+                                                                              "block": {
+                                                                                "type": "add_physics",
+                                                                                "id": "]wDRH;Ka8je2GsOq^rnZ",
+                                                                                "fields": {
+                                                                                  "MODEL_VAR": {
+                                                                                    "id": "VC=w.:}Z1*[,wP2aSL3I"
+                                                                                  },
+                                                                                  "PHYSICS_TYPE": "NONE"
+                                                                                }
+                                                                              }
                                                                             }
                                                                           }
                                                                         }
@@ -1941,7 +2007,7 @@
         "type": "start",
         "id": "yUZh8V|?4%EDC+/`B)yN",
         "x": 10,
-        "y": 3675,
+        "y": 3725,
         "collapsed": true,
         "inputs": {
           "DO": {
