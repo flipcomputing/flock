@@ -126,6 +126,21 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   };
 }
 
+{
+  const proto = Blockly.Gesture.prototype;
+  for (const name of ['handleUp', 'cancel']) {
+    const original = proto[name];
+    proto[name] = function (...args) {
+      try {
+        return original.apply(this, args);
+      } catch (error) {
+        this.dispose();
+        throw error;
+      }
+    };
+  }
+}
+
 // Prefix a simple reporter's field with its parent slot label ("x, number: 0") in
 // recomputeAriaContext, NOT computeAriaLabel — the parent would then say the slot twice.
 {
