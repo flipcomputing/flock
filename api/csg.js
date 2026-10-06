@@ -889,9 +889,10 @@ export const flockCSG = {
                         )
                       : partClones[0];
                   if (unified) {
-                    unified.forceSharedVertices();
-                    if (mesh.metadata?.modelName && typeof unified.flipFaces === 'function')
-                      unified.flipFaces();
+                    if (mesh.metadata?.modelName) {
+                      unified.forceSharedVertices();
+                      if (typeof unified.flipFaces === 'function') unified.flipFaces();
+                    }
                     subtractDuplicates.push(unified);
                   }
                 }
