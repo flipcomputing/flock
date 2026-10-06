@@ -166,6 +166,10 @@ function readTextureOption(value, key) {
   return Number(isInnerObject && inner[key] !== undefined ? inner[key] : value[key]);
 }
 
+const textureTilingFactors = {
+  'tiles.png': 0.8,
+};
+
 function readTextureScale(value) {
   const scale = readTextureOption(value, 'scale');
   return Number.isFinite(scale) && scale > 0 ? scale : 1;
@@ -1324,7 +1328,9 @@ export const flockMaterial = {
     scale = 1,
     angle = 0,
   } = {}) {
-    const tiling = 1 / (Number.isFinite(scale) && scale > 0 ? scale : 1);
+    const tiling =
+      (textureTilingFactors[materialName] ?? 1) /
+      (Number.isFinite(scale) && scale > 0 ? scale : 1);
     const rotation = ((Number(angle) || 0) * Math.PI) / 180;
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
