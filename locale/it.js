@@ -189,6 +189,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'aggiungi %1 come unione %2',
   subtract_meshes: 'aggiungi %1 come %2 meno %3',
+  embed_meshes: 'aggiungi %1 come %2 incorpora %3',
   intersection_meshes: 'aggiungi %1 come intersezione %2',
   hull_meshes: 'aggiungi %1 come involucro di %2',
 
@@ -446,6 +447,8 @@ export default {
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Unisci un elenco di oggetti in una sola e salva il risultato.',
   subtract_meshes_tooltip: 'Sottrai un elenco di oggetti da un oggetto base e salva il risultato.',
+  embed_meshes_tooltip:
+    'Ritaglia un elenco di oggetti in un oggetto base e salva il risultato. Gli oggetti vengono mantenuti.',
   intersection_meshes_tooltip: 'Interseca un elenco di oggetti e salva la geometria risultante.',
   hull_meshes_tooltip: 'Crea un involucro convesso da un elenco di oggetti e salva il risultato.',
 

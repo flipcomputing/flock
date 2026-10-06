@@ -482,6 +482,33 @@ function captureOriginalIdentities(meshNames) {
   ).then((entries) => new Map(entries.filter(Boolean)));
 }
 
+function resolveMeshes(meshNames) {
+  return Promise.all(
+    (meshNames || []).map(
+      (name) => new Promise((resolve) => flock.whenModelReady(name, (mesh) => resolve(mesh)))
+    )
+  ).then((meshes) => meshes.filter(Boolean));
+}
+
+// Embedding keeps the tool meshes, so they mustn't be renamed to the result.
+function prepareSubtractTools(modelId, meshNames, blockKey, keepTools) {
+  if (keepTools) {
+    return resolveMeshes(meshNames).then((validMeshes) => ({ validMeshes }));
+  }
+  return captureOriginalIdentities(meshNames).then((originalIdentities) =>
+    flock
+      .prepareMeshes(modelId, meshNames, blockKey)
+      .then((validMeshes) => ({ validMeshes, originalIdentities }))
+  );
+}
+
+// Kept tools parented under the base would otherwise go with it when it's disposed.
+function detachFromBase(baseMesh, meshes) {
+  meshes.forEach((mesh) => {
+    if (mesh.isDescendantOf(baseMesh)) mesh.setParent(baseMesh.parent);
+  });
+}
+
 function isDescendantOfGroup(mesh) {
   let node = mesh?.parent;
   while (node) {
@@ -772,6 +799,7 @@ export const flockCSG = {
   subtractMeshesMerge(modelId, baseMeshName, meshNames, options = {}) {
     const { modelId: resolvedModelId, blockKey } = resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
+    const keepTools = options.keepTools === true;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -823,8 +851,8 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        captureOriginalIdentities(meshNames).then((originalIdentities) => {
-          flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+        prepareSubtractTools(modelId, meshNames, blockKey, keepTools).then(
+          ({ validMeshes, originalIdentities }) => {
             const inferredUvProjection =
               options.uvProjection === undefined && flock.toolMeshesUseTextures(validMeshes)
                 ? 'auto'
@@ -931,17 +959,21 @@ export const flockCSG = {
 
             baseDuplicate.dispose();
             subtractDuplicates.forEach((m) => m.dispose());
+            if (keepTools) detachFromBase(baseMesh, validMeshes);
             ghostOrDisposeCsgSource(baseMesh);
-            validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
+            if (!keepTools) {
+              validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
+            }
             resolve(modelId);
-          });
-        });
+          }
+        );
       });
     });
   },
   subtractMeshesIndividual(modelId, baseMeshName, meshNames, options = {}) {
     const { modelId: resolvedModelId, blockKey } = resolveCsgModelIdentity(modelId);
     modelId = resolvedModelId;
+    const keepTools = options.keepTools === true;
 
     const collectMaterialMeshesDeep = (root) => {
       const out = [];
@@ -972,8 +1004,8 @@ export const flockCSG = {
           return resolve(null);
         }
 
-        captureOriginalIdentities(meshNames).then((originalIdentities) => {
-          flock.prepareMeshes(modelId, meshNames, blockKey).then((validMeshes) => {
+        prepareSubtractTools(modelId, meshNames, blockKey, keepTools).then(
+          ({ validMeshes, originalIdentities }) => {
             const inferredUvProjection =
               options.uvProjection === undefined && flock.toolMeshesUseTextures(validMeshes)
                 ? 'auto'
@@ -1060,11 +1092,14 @@ export const flockCSG = {
 
             baseDuplicate.dispose();
             allToolParts.forEach((t) => t.dispose());
+            if (keepTools) detachFromBase(baseMesh, validMeshes);
             ghostOrDisposeCsgSource(baseMesh);
-            validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
+            if (!keepTools) {
+              validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
+            }
             resolve(modelId);
-          });
-        });
+          }
+        );
       });
     });
   },
@@ -1080,6 +1115,9 @@ export const flockCSG = {
     } else {
       return this.subtractMeshesMerge(modelId, baseMeshName, meshNames, options);
     }
+  },
+  embedMeshes(modelId, baseMeshName, meshNames, options = {}) {
+    return this.subtractMeshes(modelId, baseMeshName, meshNames, { ...options, keepTools: true });
   },
   intersectMeshes(modelId, meshList) {
     meshList = [meshList].flat(Infinity);

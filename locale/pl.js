@@ -186,6 +186,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'dodaj %1 jako połączone %2',
   subtract_meshes: 'dodaj %1 jako %2 minus %3',
+  embed_meshes: 'dodaj %1 jako %2 osadź %3',
   intersection_meshes: 'dodaj %1 jako przecięcie %2',
   hull_meshes: 'dodaj %1 jako otoczkę obiektu %2',
 
@@ -441,6 +442,8 @@ export default {
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Scal listę obiektów w jedną i zapisz wynik.',
   subtract_meshes_tooltip: 'Odejmij listę obiektów od obiektu bazowego i zapisz wynik.',
+  embed_meshes_tooltip:
+    'Wytnij listę obiektów w obiekcie bazowym i zapisz wynik. Obiekty pozostają.',
   intersection_meshes_tooltip: 'Obetnij listę obiektów, zachowując wspólną geometrię.',
   hull_meshes_tooltip: 'Stwórz wypukłą otoczkę z listy obiektów i zapisz wynik.',
 

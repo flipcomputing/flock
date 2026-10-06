@@ -184,6 +184,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'lägg till %1 som sammanfoga %2',
   subtract_meshes: 'lägg till %1 som %2 subtrahera %3',
+  embed_meshes: 'lägg till %1 som %2 bädda in %3',
   intersection_meshes: 'lägg till %1 som snitta %2',
   hull_meshes: 'lägg till %1 som hölje av %2',
 
@@ -439,6 +440,8 @@ export default {
   merge_meshes_tooltip: 'Slå samman en lista med objekt till ett och spara resultatet.',
   subtract_meshes_tooltip:
     'Subtrahera en lista med objekt från ett basobjekt och spara resultatet.',
+  embed_meshes_tooltip:
+    'Skär ut en lista med objekt ur ett basobjekt och spara resultatet. Objekten behålls.',
   intersection_meshes_tooltip:
     'Skapa en geometri genom att skära en lista med objekt och spara resultatet.',
   hull_meshes_tooltip: 'Skapa ett konvext hölje från en lista med objekt och spara resultatet.',

@@ -189,6 +189,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'füge %1 als Vereinigung von %2 hinzu',
   subtract_meshes: 'füge %1 als %2 minus %3 hinzu',
+  embed_meshes: 'füge %1 als %2 mit eingebettetem %3 hinzu',
   intersection_meshes: 'füge %1 als Schnitt von %2 hinzu',
   hull_meshes: 'füge %1 als Hülle von %2 hinzu',
 
@@ -594,6 +595,8 @@ export default {
     'Fasse eine Liste von Objekten zu einem zusammen und speichere das Ergebnis.',
   subtract_meshes_tooltip:
     'Subtrahiere eine Liste von Objekten von einem Basisobjekt und speichere das Ergebnis.',
+  embed_meshes_tooltip:
+    'Schneide eine Liste von Objekten in ein Basisobjekt ein und speichere das Ergebnis. Die Objekte bleiben erhalten.',
   intersection_meshes_tooltip:
     'Erstelle die Schnittmenge mehrerer Objekte und speichere die resultierende Geometrie.',
   hull_meshes_tooltip: 'Erstelle eine konvexe Hülle aus einer Liste von Objekten.',

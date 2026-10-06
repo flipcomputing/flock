@@ -24,6 +24,16 @@ export function runTransformGeneratorTests() {
 
     const fields = (values) => ({ getFieldValue: (name) => values[name] ?? null });
 
+    it('awaits embed_meshes with the base and tool list', function () {
+      const code = generate('embed_meshes', {
+        id: 'blockId',
+        ...fields({ RESULT_VAR: 'embedded1', BASE_MESH: 'object' }),
+      });
+      expect(code).to.match(
+        /^embedded1 = await embedMeshes\("embedded1__blockId", object, \[item1, item2\]\);\n/
+      );
+    });
+
     // Later blocks rely on the hierarchy existing, so parenting must finish first.
     it('awaits parent', function () {
       const code = generate('parent', fields({ PARENT_MESH: 'box1', CHILD_MESH: 'item1' }));

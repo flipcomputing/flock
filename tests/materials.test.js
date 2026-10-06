@@ -1387,6 +1387,95 @@ export function runMaterialsTests(flock) {
         expect(collapsed).to.deep.equal([]);
       });
     });
+
+    describe('embedMeshes @materials', function () {
+      const meshIds = [];
+
+      afterEach(function () {
+        meshIds.forEach((meshId) => {
+          flock.dispose(meshId);
+        });
+        meshIds.length = 0;
+      });
+
+      const createPair = async (baseId, toolId) => {
+        await flock.createBox(baseId, {
+          color: '#3388ff',
+          width: 2,
+          height: 2,
+          depth: 2,
+          position: [0, 0, 0],
+        });
+        await flock.createBox(toolId, {
+          color: '#ff3366',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 1, 0],
+        });
+        meshIds.push(baseId, toolId);
+      };
+
+      it('cuts the tool out of the base and keeps the tool', async function () {
+        await createPair('embedBase', 'embedTool');
+        const tool = flock.scene.getMeshByName('embedTool');
+
+        const id = await flock.embedMeshes('embedResult', 'embedBase', ['embedTool']);
+        meshIds.push(id);
+
+        const result = flock.scene.getMeshByName(id);
+        expect(result).to.exist;
+        expect(result.getTotalVertices()).to.be.greaterThan(24);
+        expect(flock.scene.getMeshByName('embedBase')).to.equal(null);
+
+        expect(tool.isDisposed()).to.equal(false);
+        expect(tool.name).to.equal('embedTool');
+        expect(tool.isVisible).to.equal(true);
+        expect(flock.scene.getMeshByName('embedTool')).to.equal(tool);
+      });
+
+      it('keeps a tool that is parented under the base', async function () {
+        await createPair('embedParentBase', 'embedChildTool');
+        await flock.setParent('embedParentBase', 'embedChildTool');
+        const tool = flock.scene.getMeshByName('embedChildTool');
+        const worldBefore = tool.getAbsolutePosition().clone();
+
+        const id = await flock.embedMeshes('embedParentResult', 'embedParentBase', [
+          'embedChildTool',
+        ]);
+        meshIds.push(id);
+
+        expect(flock.scene.getMeshByName(id)).to.exist;
+        expect(flock.scene.getMeshByName('embedParentBase')).to.equal(null);
+        expect(tool.isDisposed()).to.equal(false);
+        expect(tool.isEnabled()).to.equal(true);
+        expect(tool.parent).to.equal(null);
+        expect(tool.getAbsolutePosition().subtract(worldBefore).length()).to.be.lessThan(1e-6);
+      });
+
+      it('lets the kept tool be used in a later operation', async function () {
+        await createPair('embedBaseA', 'embedToolShared');
+        await flock.createBox('embedBaseB', {
+          color: '#33ff88',
+          width: 2,
+          height: 2,
+          depth: 2,
+          position: [0, 0, 0],
+        });
+        meshIds.push('embedBaseB');
+
+        const first = await flock.embedMeshes('embedResultA', 'embedBaseA', ['embedToolShared']);
+        meshIds.push(first);
+        const second = await flock.subtractMeshes('embedResultB', 'embedBaseB', [
+          'embedToolShared',
+        ]);
+        meshIds.push(second);
+
+        expect(flock.scene.getMeshByName(first)).to.exist;
+        expect(flock.scene.getMeshByName(second)).to.exist;
+        expect(flock.scene.getMeshByName('embedToolShared')).to.equal(null);
+      });
+    });
     describe('randomColour', function () {
       it('should return a lowercase hex colour string', function () {
         const colour = flock.randomColour();

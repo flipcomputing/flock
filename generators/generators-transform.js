@@ -491,6 +491,26 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
+  javascriptGenerator.forBlock['embed_meshes'] = function (block) {
+    const resultVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const baseMesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('BASE_MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    const meshList =
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
+
+    const meshId = `${resultVar}__${block.id}`;
+    meshMap[meshId] = block;
+    meshBlockIdMap[meshId] = block.id;
+
+    return `${resultVar} = await embedMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
+  };
+
   // Add intersection as intersect list
   javascriptGenerator.forBlock['intersection_meshes'] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(

@@ -192,6 +192,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'add %1 as merge %2',
   subtract_meshes: 'add %1 as %2 subtract %3',
+  embed_meshes: 'add %1 as %2 embed %3',
   intersection_meshes: 'add %1 as intersect %2',
   hull_meshes: 'add %1 as hull of %2',
   flip: 'flip %1 %2',
@@ -515,6 +516,8 @@ export default {
   // Tooltip translations - Combine blocks
   merge_meshes_tooltip: 'Merge a list of objects into one and store the result.',
   subtract_meshes_tooltip: 'Subtract a list of objects from a base object and store the result.',
+  embed_meshes_tooltip:
+    'Cut a list of objects into a base object and store the result. The objects are kept.',
   intersection_meshes_tooltip: 'Intersect a list of objects and store the resulting geometry.',
   hull_meshes_tooltip: 'Create a convex hull from a list of objects and store the result.',
   flip_tooltip: 'Mirror an object across an axis. Does nothing on animated characters.',

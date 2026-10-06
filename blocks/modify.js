@@ -99,6 +99,52 @@ export function defineModifyBlocks() {
     },
   };
 
+  Blockly.Blocks['embed_meshes'] = {
+    init: function () {
+      const variableNamePrefix = 'embedded';
+      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+
+      this.jsonInit({
+        type: 'embed_meshes',
+        message0: translate('embed_meshes'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'RESULT_VAR',
+            variable: nextVariableName,
+          },
+          {
+            type: 'field_variable',
+            name: 'BASE_MESH',
+            variable: 'object',
+          },
+          {
+            type: 'input_value',
+            name: 'MESH_LIST',
+            check: 'Array',
+          },
+        ],
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('embed_meshes'),
+        previousStatement: null,
+        nextStatement: null,
+      });
+
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockCreateEvent(
+          this,
+          changeEvent,
+          variableNamePrefix,
+          nextVariableIndexes,
+          'RESULT_VAR'
+        )
+      );
+    },
+  };
+
   Blockly.Blocks['intersection_meshes'] = {
     init: function () {
       const variableNamePrefix = 'intersection';

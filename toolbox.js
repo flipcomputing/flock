@@ -1942,6 +1942,33 @@ const toolboxTransformModify = {
     },
     {
       kind: 'block',
+      type: 'embed_meshes',
+      keyword: 'embed',
+      inputsInline: true,
+      inputs: {
+        MESH_LIST: {
+          block: {
+            type: 'lists_create_with',
+            inline: true,
+            extraState: {
+              itemCount: 1,
+            },
+            inputs: {
+              ADD0: {
+                block: {
+                  type: 'variables_get',
+                  fields: {
+                    VAR: 'object2',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'intersection_meshes',
       keyword: 'intersect',
       inputsInline: true,

@@ -1526,6 +1526,7 @@ export function initializeVariableIndexes() {
     particleEffect: 1,
     merged: 1,
     subtracted: 1,
+    embedded: 1,
     intersection: 1,
     hull: 1,
     mirror: 1,

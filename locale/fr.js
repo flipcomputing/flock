@@ -185,6 +185,7 @@ export default {
   // Custom block translations - Combine blocks
   merge_meshes: 'ajouter %1 en tant que fusion de %2',
   subtract_meshes: 'ajouter %1 en tant que %2 moins %3',
+  embed_meshes: 'ajouter %1 en tant que %2 incruster %3',
   intersection_meshes: 'ajouter %1 en tant qu’intersection de %2',
   hull_meshes: 'ajouter %1 en tant qu’enveloppe de %2',
 
@@ -443,6 +444,8 @@ export default {
   merge_meshes_tooltip: "Fusionner une liste d'objets en un seul et stocker le résultat.",
   subtract_meshes_tooltip:
     "Soustraire une liste d'objets d’un objet de base et stocker le résultat.",
+  embed_meshes_tooltip:
+    "Découpe une liste d'objets dans un objet de base et stocke le résultat. Les objets sont conservés.",
   intersection_meshes_tooltip: "Intersecter une liste d'objets et stocker la géométrie résultante.",
   hull_meshes_tooltip:
     "Créer une enveloppe convexe à partir d’une liste d'objets et stocker le résultat.",
