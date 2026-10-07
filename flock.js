@@ -933,7 +933,9 @@ export const flock = {
       // `.constructor` (sandbox escape). Must run before lockdown.
       const wrapScript = doc.createElement('script');
       wrapScript.type = 'text/javascript';
-      wrapScript.text = 'window.__flockWrapHostFn = (fn) => (...args) => fn(...args);';
+      wrapScript.text = `
+        const toRealm = (v) => (Array.isArray(v) ? Array.from(v, toRealm) : v);
+        window.__flockWrapHostFn = (fn) => (...args) => toRealm(fn(...args));`;
       doc.head.appendChild(wrapScript);
 
       // Lock down the iframe realm. Disable SES's own unhandled-rejection

@@ -119,6 +119,11 @@ const AVAILABLE_SUITES = [
     pattern: '@math',
   },
   {
+    id: 'sandbox',
+    name: 'Sandbox Boundary Tests',
+    pattern: '@sandbox',
+  },
+  {
     id: 'shapes',
     name: 'Shapes API Tests',
     pattern: '@shapes',
