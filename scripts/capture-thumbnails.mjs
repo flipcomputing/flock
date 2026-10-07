@@ -45,12 +45,14 @@ function grabFrame({ w, h }) {
   return { dataUrl: out.toDataURL('image/webp', 0.85), flat: max - min < 8 };
 }
 
-// Runs in the page: print output and say bubbles are passing chat, not part of
-// how the project looks. Print stays hidden either way; `restoreSay` puts the
-// bubbles back for a project that draws nothing else (see the capture loop).
+// Runs in the page: print output and say bubbles are passing chat, and the
+// on-screen controls are input, not part of how the project looks. Print and
+// controls stay hidden either way; `restoreSay` puts the bubbles back for a
+// project that draws nothing else (see the capture loop).
 async function setProjectText(restoreSay) {
   const { flock } = await import('/flock.js');
   if (flock.stackPanel) flock.stackPanel.isVisible = false;
+  if (flock.controlsTexture) flock.controlsTexture.rootContainer.isVisible = false;
 
   if (restoreSay) {
     for (const mesh of window.__hiddenProjectText ?? []) mesh.isVisible = true;
