@@ -16,6 +16,13 @@ export function runMathTests(flock) {
         expect(v.y).to.equal(0);
         expect(v.z).to.equal(10.5);
       });
+
+      it('should return a frozen vector with no prototype chain to escape through', function () {
+        const v = flock.createVector3(1, 2, 3);
+        expect(Object.getPrototypeOf(v)).to.equal(null);
+        expect(v['con' + 'structor']).to.equal(undefined);
+        expect(Object.isFrozen(v)).to.equal(true);
+      });
     });
 
     describe('randomInteger', function () {

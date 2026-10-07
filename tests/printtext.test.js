@@ -46,6 +46,12 @@ export function runPrintTextTests(flock) {
       expect(textBlock.text).to.equal('Hello World');
     });
 
+    it('should display a vector as (x, y, z)', function () {
+      flock.printText({ text: flock.createVector3(1, -2, 3.5), duration: 9999 });
+      const textBlock = advancedTexture.getControlByName('textBlock');
+      expect(textBlock.text).to.equal('(1, -2, 3.5)');
+    });
+
     it('should use white as the default text color', function () {
       flock.printText({ text: 'Default color', duration: 9999 });
       const textBlock = advancedTexture.getControlByName('textBlock');

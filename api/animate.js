@@ -1,5 +1,6 @@
 import { blockNames, modelAnimationNames } from '../config.js';
 import { driveBody, isBodyAlive, teleportBodyToMesh } from './physics.js';
+import { isVector } from './math.js';
 
 let flock;
 
@@ -735,7 +736,7 @@ export const flockAnimate = {
       if (property === 'color') {
         value = flock.BABYLON.Color3.FromHexString(keyframe.value);
       } else if (['position', 'rotation', 'scaling'].includes(property)) {
-        if (keyframe.value instanceof flock.BABYLON.Vector3) {
+        if (isVector(keyframe.value)) {
           value =
             property === 'rotation'
               ? new flock.BABYLON.Vector3(
@@ -743,7 +744,7 @@ export const flockAnimate = {
                   flock.BABYLON.Tools.ToRadians(keyframe.value.y),
                   flock.BABYLON.Tools.ToRadians(keyframe.value.z)
                 )
-              : keyframe.value;
+              : new flock.BABYLON.Vector3(keyframe.value.x, keyframe.value.y, keyframe.value.z);
         } else if (typeof keyframe.value === 'string') {
           const v = keyframe.value.match(/-?\d+(\.\d+)?/g).map(parseFloat);
           value =
@@ -1212,7 +1213,7 @@ export const flockAnimate = {
 
     // Handle full Vector3 rotations
     if (property.startsWith('rotation')) {
-      if (value instanceof flock.BABYLON.Vector3) {
+      if (isVector(value)) {
         return new flock.BABYLON.Vector3(
           flock.BABYLON.Tools.ToRadians(value.x || 0),
           flock.BABYLON.Tools.ToRadians(value.y || 0),
@@ -1235,8 +1236,8 @@ export const flockAnimate = {
 
     // Handle position and scaling as Vector3
     if (['position', 'scaling'].some((p) => property.startsWith(p))) {
-      if (value instanceof flock.BABYLON.Vector3) {
-        return value;
+      if (isVector(value)) {
+        return new flock.BABYLON.Vector3(value.x, value.y, value.z);
       } else if (typeof value === 'string') {
         const vectorValues = value.match(/-?\d+(\.\d+)?/g).map(Number);
         return new flock.BABYLON.Vector3(

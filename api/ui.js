@@ -1,4 +1,5 @@
 import { getBoundKeys } from '../input/bindings.js';
+import { isVector } from './math.js';
 import { JoystickSource } from '../input/joystickSource.js';
 import {
   registerUIButton,
@@ -1128,6 +1129,7 @@ export const flockUI = {
     }
   },
   printText({ text, duration = 30, color = 'white' } = {}) {
+    if (isVector(text)) text = `(${text.x}, ${text.y}, ${text.z})`;
     console.log(text);
 
     if (!flock.scene || !flock.stackPanel) return;

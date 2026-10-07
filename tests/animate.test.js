@@ -808,6 +808,33 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
       });
 
+      it('should animate position keyframes given as vectors', async function () {
+        const boxId = 'animateKeyFramesVector';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+
+        const end = flock.createVector3(2, 1, 3);
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0, value: flock.createVector3(0, 0, 0) },
+            { duration: 0.1, value: end },
+          ],
+          property: 'position',
+        });
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        expect(mesh.position).to.be.instanceOf(flock.BABYLON.Vector3);
+        expect(mesh.position.x).to.be.closeTo(2, 0.01);
+        expect(mesh.position.y).to.be.closeTo(1, 0.01);
+        expect(mesh.position.z).to.be.closeTo(3, 0.01);
+        expect(mesh.position).to.not.equal(end);
+      });
+
       it('should animate rotation keyframes', async function () {
         const boxId = 'animateKeyFramesRotation';
         await flock.createBox(boxId, {
