@@ -1164,6 +1164,7 @@ export default {
   JumpIdle_option: 'jump idle',
   JumpLand_option: 'jump land',
   Punch_option: 'punch',
+  Angry_option: 'angry',
   HitReact_option: 'hit react',
   Idle_Hold_option: 'idle hold',
   Walk_Hold_option: 'walk hold',
