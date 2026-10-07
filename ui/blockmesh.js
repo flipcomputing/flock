@@ -979,7 +979,7 @@ export function getColorRoot(mesh) {
 }
 
 export function updatePrefabMaterial(prefabBlock, index) {
-  const entry = prefabBlock.getInputTargetBlock('ARG' + index);
+  const entry = prefabBlock.getInputTargetBlock(prefabBlock.argInputNames_()[index]);
   if (!entry) return;
   const materialInfo = entry.type === 'material' ? extractMaterialInfo(entry) : null;
   const color = materialInfo ? materialInfo.baseColor : readColourValue(entry).value;
@@ -3300,7 +3300,8 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
   }
   const prefabBlock = meshMap?.[prefab?.metadata?.blockKey];
   if (prefabBlock && !prefabBlock.disposed) {
-    const input = prefabBlock.getInput('ARG' + (slot ?? prefabBlock.arguments_.length - 1));
+    const inputs = prefabBlock.argInputNames_();
+    const input = prefabBlock.getInput(inputs[slot ?? inputs.length - 1]);
     const found = findNestedColorTarget(ensureColorTargetOnInput(input));
     if (!found) return;
     withUndoGroup(() => {

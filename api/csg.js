@@ -518,6 +518,13 @@ function isDescendantOfGroup(mesh) {
   return false;
 }
 
+function inheritPrefabMaterialIndex(mergedMesh, sources) {
+  const [index, ...rest] = sources.map((mesh) => mesh.metadata?.prefabMaterialIndex);
+  if (index !== undefined && rest.every((other) => other === index)) {
+    mergedMesh.metadata.prefabMaterialIndex = index;
+  }
+}
+
 // Keeps a CSG source mesh alive (hidden, no physics) instead of disposing it
 // when it's inside a group, so the gizmo group-move sync can still write its
 // new position back to its own block.
@@ -627,6 +634,7 @@ export const flockCSG = {
             mergedMesh.metadata.blockKey = blockKey;
             mergedMesh.metadata.sectionOwner = flock._currentSection;
             mergedMesh.metadata.sharedMaterial = false;
+            inheritPrefabMaterialIndex(mergedMesh, validMeshes);
 
             return modelId;
           }
@@ -724,6 +732,7 @@ export const flockCSG = {
           mergedMesh.metadata.blockKey = blockKey;
           mergedMesh.metadata.sectionOwner = flock._currentSection;
           mergedMesh.metadata.sharedMaterial = false;
+          inheritPrefabMaterialIndex(mergedMesh, validMeshes);
 
           const isDefaultMaterial = (material) => {
             return (

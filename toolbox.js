@@ -6282,6 +6282,23 @@ const bookcasePlacement = {
   Z: snippetNum(0),
   ROTATE_Y: snippetNum(0),
 };
+const snippetMerge = (name, parts) => ({
+  block: {
+    type: 'merge_meshes',
+    inputsInline: true,
+    fields: { RESULT_VAR: { name } },
+    inputs: {
+      MESH_LIST: {
+        block: {
+          type: 'lists_create_with',
+          inline: true,
+          extraState: { itemCount: parts.length },
+          inputs: Object.fromEntries(parts.map((part, i) => [`ADD${i}`, snippetVar(part)])),
+        },
+      },
+    },
+  },
+});
 const snippetBookcaseHalf = (size) =>
   snippetMath('MINUS', snippetMath('DIVIDE', snippetVar(size), snippetNum(2)), snippetNum(0.05));
 
@@ -6331,6 +6348,7 @@ const snippetBookcaseBody = snippetChain(
     snippetNum(0),
     snippetBookcaseHalf('depth')
   ),
+  snippetMerge('frame', ['left side', 'right side', 'bottom', 'top', 'back']),
   {
     block: {
       type: 'controls_for',
@@ -6560,6 +6578,7 @@ const snippetDeskBody = snippetChain(
     snippetMath('MINUS', snippetVar('height'), snippetNum(0.1)),
     snippetNum(0)
   ),
+  snippetMerge('frame', ['left side', 'right side', 'top']),
   ...snippetDeskDrawer()
 );
 

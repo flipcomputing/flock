@@ -38,7 +38,8 @@ function argIndexOf(block, changed) {
   for (let child = changed; child; child = child.getParent()) {
     if (child.getParent() !== block) continue;
     const name = block.inputList.find((input) => input.connection?.targetBlock() === child)?.name;
-    return /^ARG\d+$/.test(name ?? '') ? Number(name.slice(3)) : null;
+    const index = block.argInputNames_().indexOf(name);
+    return index === -1 ? null : index;
   }
   return null;
 }
@@ -112,6 +113,10 @@ export function definePrefabBlocks() {
       return [this.getFieldValue('NAME'), this.argData_.map((arg) => arg.model.name), false];
     },
 
+    argInputNames_: function () {
+      return this.argData_.map(({ argId }) => argId);
+    },
+
     layoutInputs_: function () {
       const params = this.argData_.filter(({ argId }) => argId !== MATERIAL_ARG);
       this.removeInput(PARAMS_ROW, true);
@@ -163,6 +168,10 @@ export function definePrefabBlocks() {
     getVarModels: function () {
       const variable = this.getField('ID_VAR').getVariable();
       return variable ? [...this.argumentVarModels_, variable] : this.argumentVarModels_;
+    },
+
+    argInputNames_: function () {
+      return this.arguments_.map((_, i) => 'ARG' + i);
     },
 
     renameProcedure: function (oldName, newName) {
