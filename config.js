@@ -406,6 +406,7 @@ export function animationNames() {
     getDropdownOption('Dance2'),
     getDropdownOption('Dance3'),
     getDropdownOption('Dance4'),
+    getDropdownOption('Angry'),
     getDropdownOption('Punch'),
     getDropdownOption('HitReact'),
     getDropdownOption('Idle_Hold'),
