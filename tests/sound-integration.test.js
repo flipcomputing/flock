@@ -45,28 +45,41 @@ export function runSoundIntegrationTests(flock) {
         const boxId = flock.createBox('testSoundBox', { x: 0, y: 0, z: 0 });
 
         // Play first sound
-        const firstSound = await flock.playSound(boxId, {
+        await flock.playSound(boxId, {
+          id: 'first',
           soundName: 'test.mp3',
           loop: true,
         });
 
         const mesh = await waitForSoundOnMesh(boxId);
-        chai.expect(mesh.metadata.currentSound).to.equal(firstSound);
+        const firstSound = mesh.metadata.currentSound;
+        chai.expect(firstSound.id).to.equal('first');
         chai.expect(firstSound.name).to.equal('test.mp3');
 
         // Play second sound (should replace first)
         // Note: Using loop=true so promise resolves when attached, not when sound ends
-        const secondSound = await flock.playSound(boxId, {
+        await flock.playSound(boxId, {
+          id: 'second',
           soundName: 'test2.mp3',
           loop: true,
         });
 
         // Verify replacement occurred
-        chai.expect(secondSound).to.not.be.undefined;
+        const secondSound = mesh.metadata.currentSound;
         chai.expect(secondSound).to.not.equal(firstSound);
+        chai.expect(secondSound.id).to.equal('second');
         chai.expect(secondSound.name).to.equal('test2.mp3');
-        chai.expect(mesh.metadata.currentSound).to.equal(secondSound);
-        chai.expect(mesh.metadata.currentSound.name).to.equal('test2.mp3');
+      });
+
+      it('should resolve to nothing and register a looping global sound under its id', async function () {
+        const result = await flock.playSound('__everywhere__', {
+          id: 'globalLoop',
+          soundName: 'test.mp3',
+          loop: true,
+        });
+
+        chai.expect(result).to.equal(undefined);
+        chai.expect(flock.globalSounds.some((sound) => sound.id === 'globalLoop')).to.equal(true);
       });
 
       it('should handle rapid sound replacements', async function () {

@@ -1599,7 +1599,9 @@ export const flockMesh = {
   },
   setParent(parentModelName, childModelName) {
     if (Array.isArray(childModelName)) {
-      return Promise.all(childModelName.map((child) => flock.setParent(parentModelName, child)));
+      return Promise.all(
+        childModelName.map((child) => flock.setParent(parentModelName, child))
+      ).then(() => {});
     }
     const attached = new Promise((resolve) => {
       flock.whenModelReady(parentModelName, (parentMesh) => {

@@ -76,7 +76,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
   // Colour -----------------------------------------------------
   javascriptGenerator.forBlock['colour'] = function (block) {
     const colour = block.getFieldValue('COLOR');
-    const code = `"${colour}"`;
+    const code = JSON.stringify(colour);
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
@@ -143,7 +143,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
     // Logic that uses this block (like set_material) will handle the application.
     const code = `{
                   color: ${baseColor},
-                  materialName: "${textureSet}",
+                  materialName: ${JSON.stringify(textureSet)},
                   alpha: ${alpha},
                   scale: ${scale},
                   angle: ${angle}
@@ -154,7 +154,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
 
   javascriptGenerator.forBlock['skin_colour'] = function (block) {
     const colour = block.getFieldValue('COLOR');
-    const code = `"${colour}"`;
+    const code = JSON.stringify(colour);
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 

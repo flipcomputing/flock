@@ -351,7 +351,7 @@ export const flockScene = {
 
     if (flock.ground && flock.ground.metadata?.heightMapImage === image) {
       applyMaterialToGround(flock.ground, material);
-      return flock.ground;
+      return;
     }
 
     if (flock.ground) {
@@ -461,8 +461,6 @@ export const flockScene = {
       );
       flock.ground = ground;
     }
-
-    return ground;
   },
   getGroundLevelAt(x = 0, z = 0, { rayStartY = 1000, rayLength = 5000 } = {}) {
     if (!sceneReady()) return 0;

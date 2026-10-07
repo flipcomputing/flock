@@ -245,13 +245,23 @@ export function runSoundVerificationTests(flock) {
     });
 
     describe('Instrument Creation', function () {
+      it('should return a string ID rather than an object', function () {
+        chai.expect(flock.createInstrument('sine')).to.be.a('string');
+      });
+
+      it('should return the same ID for the same settings', function () {
+        const id = flock.createInstrument('square', { attack: 0.2 });
+        chai.expect(flock.createInstrument('square', { attack: 0.2 })).to.equal(id);
+        chai.expect(flock.createInstrument('square', { attack: 0.3 })).to.not.equal(id);
+      });
+
       it('should create sine wave instrument', function () {
         // Create a fresh audio context if current one is closed
         if (!flock.audioContext || flock.audioContext.state === 'closed') {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument('sine');
+        const instrument = flock.getInstrument(flock.createInstrument('sine'));
         chai.expect(instrument).to.not.be.undefined;
         chai.expect(instrument.type).to.equal('sine');
       });
@@ -265,7 +275,7 @@ export function runSoundVerificationTests(flock) {
         const types = ['sine', 'square', 'sawtooth', 'triangle'];
 
         types.forEach((type) => {
-          const instrument = flock.createInstrument(type);
+          const instrument = flock.getInstrument(flock.createInstrument(type));
           chai.expect(instrument).to.not.be.undefined;
           chai.expect(instrument.type).to.equal(type);
         });
@@ -277,12 +287,12 @@ export function runSoundVerificationTests(flock) {
           flock.audioContext = new AudioContext();
         }
 
-        const instrument = flock.createInstrument('sine', {
+        const instrument = flock.getInstrument(flock.createInstrument('sine', {
           attack: 0.1,
           decay: 0.2,
           sustain: 0.7,
           release: 0.3,
-        });
+        }));
 
         chai.expect(instrument).to.not.be.undefined;
         chai.expect(instrument.type).to.equal('sine');

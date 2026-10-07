@@ -4,7 +4,6 @@ import { meshMap, meshBlockIdMap } from './mesh-state.js';
 import {
   getFieldValue,
   sanitizeForCode,
-  emitSafeTextArg,
   getVariableInfo,
   maybeParentToGroup,
   getThenCallback,
@@ -43,9 +42,7 @@ export function registerTextGenerators(javascriptGenerator) {
 
     const color = getFieldValue(block, 'COLOR', '"#9932CC"');
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
-    return `printText({ text: ${safeTextArg}, duration: ${durationCode}, color: ${color} });\n`;
+    return `printText({ text: ${textCode}, duration: ${durationCode}, color: ${color} });\n`;
   };
 
   // Subtitle -----------------------------------------------
@@ -55,9 +52,7 @@ export function registerTextGenerators(javascriptGenerator) {
     const durationCode =
       javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '0';
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
-    return `showSubtitle(${safeTextArg}, ${durationCode});\n`;
+    return `showSubtitle(${textCode}, ${durationCode});\n`;
   };
 
   // Say ----------------------------------------------------
@@ -83,9 +78,7 @@ export function registerTextGenerators(javascriptGenerator) {
     const asyncMode = block.getFieldValue('ASYNC');
     const asyncWrapper = asyncMode === 'AWAIT' ? 'await ' : '';
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
-    return `${asyncWrapper}say(${meshVariable}, { text: ${safeTextArg}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)} });\n`;
+    return `${asyncWrapper}say(${meshVariable}, { text: ${textCode}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)} });\n`;
   };
 
   // UI Text ------------------------------------------------
@@ -116,10 +109,8 @@ export function registerTextGenerators(javascriptGenerator) {
       Blockly.VARIABLE_CATEGORY_NAME
     );
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
     return `${textBlockVar} = UIText({
-            text: ${safeTextArg},
+            text: ${textCode},
             x: ${xCode},
             y: ${yCode},
             fontSize: ${fontSizeCode},
@@ -137,8 +128,8 @@ export function registerTextGenerators(javascriptGenerator) {
     const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC);
     const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC);
     const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC);
-    const width = `"${block.getFieldValue('SIZE')}"`; // Fix: Use "SIZE" instead of "WIDTH"
-    const textSize = `"${block.getFieldValue('TEXT_SIZE')}"`; // Fix: Add text size support
+    const width = JSON.stringify(block.getFieldValue('SIZE')); // Fix: Use "SIZE" instead of "WIDTH"
+    const textSize = JSON.stringify(block.getFieldValue('TEXT_SIZE')); // Fix: Add text size support
     const textColor = javascriptGenerator.valueToCode(
       block,
       'TEXT_COLOR',
@@ -162,7 +153,7 @@ export function registerTextGenerators(javascriptGenerator) {
                     textSize: ${textSize},
                     textColor: ${textColor},
                     backgroundColor: ${backgroundColor},
-                    buttonId: "${buttonId}"
+                    buttonId: ${JSON.stringify(buttonId)}
                   });\n`;
     return code;
   };
@@ -194,13 +185,11 @@ export function registerTextGenerators(javascriptGenerator) {
 
     const size = block.getFieldValue('SIZE') || 'medium';
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
     return `${varName} = await UIInput({
-              text: ${safeTextArg},
+              text: ${textCode},
               x: ${xCode},
               y: ${yCode},
-              size: "${size}",
+              size: ${JSON.stringify(size)},
               fontSize: ${fontSizeCode},
               textColor: ${textColorCode},
               backgroundColor: ${backgroundColorCode},
@@ -228,12 +217,12 @@ export function registerTextGenerators(javascriptGenerator) {
     const background =
       javascriptGenerator.valueToCode(block, 'BACKGROUND', javascriptGenerator.ORDER_NONE) ||
       '"#ffffff"';
-    const size = `"${block.getFieldValue('SIZE') || 'MEDIUM'}"`;
+    const size = JSON.stringify(block.getFieldValue('SIZE') || 'MEDIUM');
 
-    const id = `"${varName}_slider"`;
+    const id = JSON.stringify(`${varName}_slider`);
     const code = `
                   ${varName} = ${value};
-                  const ${varName}_slider = UISlider({
+                  UISlider({
                     id: ${id},
                     min: ${min},
                     max: ${max},
@@ -242,10 +231,10 @@ export function registerTextGenerators(javascriptGenerator) {
                     y: ${y},
                     size: ${size},
                     textColor: ${color},
-                    backgroundColor: ${background}
-                  });
-                  ${varName}_slider.onValueChangedObservable.add(value => {
-                    try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', '${varName}'); }
+                    backgroundColor: ${background},
+                    onChange: (value) => {
+                      try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', ${JSON.stringify(varName)}); }
+                    }
                   });
                   `;
 
@@ -287,9 +276,7 @@ export function registerTextGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    const safeTextArg = emitSafeTextArg(textCode);
-
-    return `await describeMesh(${meshVariable}, ${safeTextArg});\n`;
+    return `await describeMesh(${meshVariable}, ${textCode});\n`;
   };
 
   // Add 3D text --------------------------------------------
@@ -326,7 +313,7 @@ export function registerTextGenerators(javascriptGenerator) {
 
     return `${variableName} = create3DText({
             text: ${textLiteral},
-            font: '${font}',
+            font: ${JSON.stringify(font)},
             color: ${color},
             size: ${size},
             depth: ${depth},

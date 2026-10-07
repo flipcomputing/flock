@@ -46,9 +46,9 @@ export function registerEventsGenerators(javascriptGenerator) {
 
     const code =
       `onTrigger(${modelName}, {\n` +
-      `  trigger: "${trigger}",\n` +
+      `  trigger: ${JSON.stringify(trigger)},\n` +
       `  callback: [\n${actionFunctions.join(',\n')}\n],\n` +
-      `  mode: "${mode}"` +
+      `  mode: ${JSON.stringify(mode)}` +
       (isTopLevel ? `,\n  applyToGroup: true` : '') +
       `\n});\n`;
 
@@ -89,7 +89,7 @@ export function registerEventsGenerators(javascriptGenerator) {
           : ',\n            applyToGroupOther: true'
         : '';
       return `onIntersect(${modelName}, ${otherModelName}, {
-            trigger: "${trigger}",
+            trigger: ${JSON.stringify(trigger)},
             callback: async function(${modelName}, ${param2}) {
           ${doCode}
             }${groupLine}
@@ -105,7 +105,7 @@ export function registerEventsGenerators(javascriptGenerator) {
     const event = block.getFieldValue('EVENT');
     const statements_do = javascriptGenerator.statementToCode(block, 'DO');
 
-    return `whenActionEvent("${action}", async () => {${statements_do}}, ${event === 'released'});\n`;
+    return `whenActionEvent(${JSON.stringify(action)}, async () => {${statements_do}}, ${event === 'released'});\n`;
   };
 
   // Broadcast event -------------------------------------------

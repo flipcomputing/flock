@@ -149,7 +149,7 @@ export const flockControl = {
           flock._applyGroupHandlers(mesh.name, tag);
         })
       )
-    );
+    ).then(() => {});
   },
   getObjectsWithTag(tag) {
     return (flock.scene?.meshes ?? [])

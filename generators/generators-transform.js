@@ -72,7 +72,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const coordinate = block.getFieldValue('COORDINATE') || 'x_coordinate';
     const value = getFieldValue(block, 'VALUE', '0');
 
-    return `await positionAtSingleCoordinate(${meshName}, "${coordinate}", ${value});\n`;
+    return `await positionAtSingleCoordinate(${meshName}, ${JSON.stringify(coordinate)}, ${value});\n`;
   };
 
   // Set position of object to another object's position
@@ -152,7 +152,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const yOrigin = block.getFieldValue('Y_ORIGIN') || "'CENTRE'";
     const zOrigin = block.getFieldValue('Z_ORIGIN') || "'CENTRE'";
 
-    return `await scale(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+    return `await scale(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: ${JSON.stringify(xOrigin)}, yOrigin: ${JSON.stringify(yOrigin)}, zOrigin: ${JSON.stringify(zOrigin)} });\n`;
   };
 
   // Resize object by xyz coordinates
@@ -170,7 +170,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const yOrigin = block.getFieldValue('Y_ORIGIN') || "'CENTRE'";
     const zOrigin = block.getFieldValue('Z_ORIGIN') || "'CENTRE'";
 
-    return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+    return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: ${JSON.stringify(xOrigin)}, yOrigin: ${JSON.stringify(yOrigin)}, zOrigin: ${JSON.stringify(zOrigin)} });\n`;
   };
 
   // Set anchor of object by xyz coordinates
@@ -204,7 +204,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const physicsType = block.getFieldValue('PHYSICS_TYPE');
 
     // Note: Ensure that the execution environment supports async/await at this level
-    return `await setPhysics(${modelName}, "${physicsType}");\n`;
+    return `await setPhysics(${modelName}, ${JSON.stringify(physicsType)});\n`;
   };
 
   // Add physics shape to object
@@ -217,7 +217,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const shapeType = block.getFieldValue('SHAPE_TYPE');
 
     // Note: Ensure that the execution environment supports async/await at this level
-    return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
+    return `await setPhysicsShape(${modelName}, ${JSON.stringify(shapeType)});\n`;
   };
 
   // Apply force to object
@@ -265,7 +265,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const speed =
       javascriptGenerator.valueToCode(block, 'SPEED', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    return `setSpeed(${mesh}, '${direction}', ${speed});\n`;
+    return `setSpeed(${mesh}, ${JSON.stringify(direction)}, ${speed});\n`;
   };
 
   // Set how bouncy an object is (restitution, 0..1)
@@ -396,7 +396,7 @@ export function registerTransformGenerators(javascriptGenerator) {
 
     // Use the helper method makeFollow for following the target
     const code = `
-                        makeFollow(${followerMesh}, ${targetMesh}, "${followPosition}", ${xOffset}, ${yOffset}, ${zOffset});
+                        makeFollow(${followerMesh}, ${targetMesh}, ${JSON.stringify(followPosition)}, ${xOffset}, ${yOffset}, ${zOffset});
                 `;
     return code;
   };
@@ -409,7 +409,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     );
 
     // Generate code to call the stopFollow helper function
-    const code = `stopFollow("${followerModelName}");\n`;
+    const code = `stopFollow(${JSON.stringify(followerModelName)});\n`;
     return code;
   };
 
@@ -561,7 +561,7 @@ export function registerTransformGenerators(javascriptGenerator) {
         ? 'z'
         : 'x';
 
-    return `await flip(${meshName}, '${normalized}');\n`;
+    return `await flip(${meshName}, ${JSON.stringify(normalized)});\n`;
   };
 
   javascriptGenerator.forBlock['mirror_mesh'] = function (block) {
@@ -589,7 +589,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `${mirrorVar} = mirror(${sourceMeshName}, {
                           mirrorId: ${JSON.stringify(mirrorName)},
                           mirrorName: ${JSON.stringify(mirrorName)},
-                          axis: '${key}',
+                          axis: ${JSON.stringify(key)},
                           aboutMeshName: ${about},
                           blockKey: ${JSON.stringify(block.id)}${callback}${getThenCallback(block, mirrorVar)}
                   });\n${maybeParentToGroup(mirrorVar)}`;
@@ -601,6 +601,6 @@ export function registerTransformGenerators(javascriptGenerator) {
     const pivotOption = block.getFieldValue('PIVOT_OPTION');
 
     // Return the string value as a quoted literal
-    return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
+    return [JSON.stringify(pivotOption), javascriptGenerator.ORDER_ATOMIC];
   };
 }

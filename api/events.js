@@ -39,7 +39,7 @@ export const flockEvents = {
       };
       observer = flock.events[eventName].add(wrappedHandler);
     } else {
-      observer = flock.events[eventName].add(handler);
+      observer = flock.events[eventName].add((data) => handler(data));
     }
 
     const cleanup = () => flock.events[eventName]?.remove(observer);
@@ -152,7 +152,7 @@ export const flockEvents = {
     flock.sectionSignal?.()?.addEventListener('abort', unsubscribe, { once: true });
   },
   start(action) {
-    flock.scene.onBeforeRenderObservable.addOnce(action);
+    flock.scene.onBeforeRenderObservable.addOnce(() => action());
   },
   async forever(action) {
     let isDisposed = false;

@@ -248,14 +248,16 @@ export function runUITests(flock) {
     // UISlider Tests
     describe('UISlider function tests', function () {
       it('should create a slider with the correct min, max, and value', function () {
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 100,
-          value: 50,
-          x: 100,
-          y: 100,
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 100,
+            value: 50,
+            x: 100,
+            y: 100,
+          })
+        );
 
         expect(slider).to.exist;
         expect(slider.minimum).to.equal(0);
@@ -264,14 +266,16 @@ export function runUITests(flock) {
       });
 
       it('should use MEDIUM dimensions by default', function () {
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 10,
-          value: 5,
-          x: 100,
-          y: 100,
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 10,
+            value: 5,
+            x: 100,
+            y: 100,
+          })
+        );
 
         // MEDIUM size (200x30) scaled by displayScale
         expect(slider.width).to.equal(`${Math.round(200 * flock.displayScale)}px`);
@@ -279,15 +283,17 @@ export function runUITests(flock) {
       });
 
       it('should use SMALL dimensions when specified', function () {
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 10,
-          value: 5,
-          x: 100,
-          y: 100,
-          size: 'SMALL',
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 10,
+            value: 5,
+            x: 100,
+            y: 100,
+            size: 'SMALL',
+          })
+        );
 
         // SMALL size (100x20) scaled by displayScale
         expect(slider.width).to.equal(`${Math.round(100 * flock.displayScale)}px`);
@@ -295,30 +301,34 @@ export function runUITests(flock) {
       });
 
       it('should apply the specified colors', function () {
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 10,
-          value: 5,
-          x: 100,
-          y: 100,
-          textColor: 'blue',
-          backgroundColor: 'lightgray',
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 10,
+            value: 5,
+            x: 100,
+            y: 100,
+            textColor: 'blue',
+            backgroundColor: 'lightgray',
+          })
+        );
 
         expect(slider.color).to.equal('blue');
         expect(slider.background).to.equal('lightgray');
       });
 
       it('should use right alignment for negative x', function () {
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 10,
-          value: 5,
-          x: -100,
-          y: 100,
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 10,
+            value: 5,
+            x: -100,
+            y: 100,
+          })
+        );
 
         expect(slider.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT);
       });
@@ -333,20 +343,45 @@ export function runUITests(flock) {
           y: 100,
         });
 
-        const slider = flock.UISlider({
-          id: 'mySlider',
-          min: 0,
-          max: 20,
-          value: 15,
-          x: 100,
-          y: 100,
-        });
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({
+            id: 'mySlider',
+            min: 0,
+            max: 20,
+            value: 15,
+            x: 100,
+            y: 100,
+          })
+        );
 
         expect(slider.minimum).to.equal(0);
         expect(slider.maximum).to.equal(20);
         expect(slider.value).to.equal(15);
         // Only one slider with this id should exist
         expect(flock.scene.UITexture.getControlByName('mySlider')).to.equal(slider);
+      });
+
+      it('should return the slider id', function () {
+        expect(flock.UISlider({ id: 'mySlider', min: 0, max: 10, value: 5, x: 0, y: 0 })).to.equal(
+          'mySlider'
+        );
+      });
+
+      it('should call onChange with only the new value', function () {
+        const calls = [];
+        const id = flock.UISlider({
+          id: 'mySlider',
+          min: 0,
+          max: 10,
+          value: 5,
+          x: 0,
+          y: 0,
+          onChange: (...args) => calls.push(args),
+        });
+
+        flock.scene.UITexture.getControlByName(id).value = 7;
+
+        expect(calls).to.deep.equal([[7]]);
       });
     });
 

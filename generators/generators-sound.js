@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { getVariableInfo } from './generators-utilities.js';
 
 export function registerSoundGenerators(javascriptGenerator) {
   // -------------------------------
@@ -6,10 +7,8 @@ export function registerSoundGenerators(javascriptGenerator) {
   // -------------------------------
   // Play theme -----------------------------------------------
   javascriptGenerator.forBlock['play_theme'] = function (block) {
-    const idVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('ID_VAR'),
-      Blockly.Names.NameType.VARIABLE
-    );
+    const { generatedName: idVar, userVariableName } = getVariableInfo(block, 'ID_VAR');
+    const soundId = JSON.stringify(`${userVariableName}__${block.id}`);
 
     const meshNameField = block.getFieldValue('MESH_NAME');
     const meshName = JSON.stringify(meshNameField ?? '__everywhere__');
@@ -25,17 +24,15 @@ export function registerSoundGenerators(javascriptGenerator) {
     const loop = block.getFieldValue('MODE') === 'LOOP';
     const asyncMode = block.getFieldValue('ASYNC');
 
-    const code = `${idVar} = ${asyncMode === 'AWAIT' ? 'await ' : ''}playSound(${meshName}, { soundName: "${themeName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
+    const code = `${idVar} = ${soundId};\n${asyncMode === 'AWAIT' ? 'await ' : ''}playSound(${meshName}, { id: ${soundId}, soundName: ${JSON.stringify(themeName)}, loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
 
     return code;
   };
 
   // Play sound -----------------------------------------------
   javascriptGenerator.forBlock['play_sound'] = function (block) {
-    const idVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('ID_VAR'),
-      Blockly.Names.NameType.VARIABLE
-    );
+    const { generatedName: idVar, userVariableName } = getVariableInfo(block, 'ID_VAR');
+    const soundId = JSON.stringify(`${userVariableName}__${block.id}`);
 
     const meshNameField = block.getFieldValue('MESH_NAME');
     const meshName = JSON.stringify(meshNameField ?? '__everywhere__');
@@ -52,7 +49,7 @@ export function registerSoundGenerators(javascriptGenerator) {
     const asyncMode = block.getFieldValue('ASYNC');
 
     // Build the final code line
-    const code = `${idVar} = ${asyncMode === 'AWAIT' ? 'await ' : ''}playSound(${meshName}, { soundName: "${soundName}", loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
+    const code = `${idVar} = ${soundId};\n${asyncMode === 'AWAIT' ? 'await ' : ''}playSound(${meshName}, { id: ${soundId}, soundName: ${JSON.stringify(soundName)}, loop: ${loop}, volume: ${volumeCode}, playbackRate: ${speedCode} });\n`;
 
     return code;
   };
@@ -189,7 +186,7 @@ export function registerSoundGenerators(javascriptGenerator) {
       javascriptGenerator.valueToCode(block, 'RELEASE', javascriptGenerator.ORDER_ATOMIC) || '1';
 
     // Assign the instrument to a variable
-    return `${instrumentVar} = createInstrument('${type}', { volume: ${volume}, effect: '${effect}', effectRate: ${effectRate}, effectDepth: ${effectDepth}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
+    return `${instrumentVar} = createInstrument(${JSON.stringify(type)}, { volume: ${volume}, effect: ${JSON.stringify(effect)}, effectRate: ${effectRate}, effectDepth: ${effectDepth}, attack: ${attack}, decay: ${decay}, sustain: ${sustain}, release: ${release} });\n`;
   };
 
   // Speak ------------------------------------------------------
@@ -226,7 +223,7 @@ export function registerSoundGenerators(javascriptGenerator) {
     const safeAsyncMode = asyncMode || 'START';
     const asyncWrapper = safeAsyncMode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: "${voice}", rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: "${language}", mode: "${safeAsyncMode.toLowerCase()}" });\n`;
+    return `${asyncWrapper}speak(${meshVariable}, ${text}, { voice: ${JSON.stringify(voice)}, rate: ${rate}, pitch: ${pitch}, volume: ${volume}, language: ${JSON.stringify(language)}, mode: ${JSON.stringify(safeAsyncMode.toLowerCase())} });\n`;
   };
 
   javascriptGenerator.forBlock['enable_subtitles'] = function (block) {

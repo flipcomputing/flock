@@ -366,7 +366,7 @@ A: Add test code to the appropriate `tests/*.test.js` file, following the existi
 A:
 
 1. Add implementation to appropriate `api/*.js` file with JSDoc
-2. Add binding to `flock.js` in the `api` below `Flock API methods` (currently lines 865-987)
+2. Add binding to `flock.js` in `createWhitelist`, below `Flock API methods`, and follow the return-value rules in [SANDBOX.md](SANDBOX.md)
 3. Add documentation to `API.md`
 4. Write tests in appropriate `tests/*.test.js` file
 5. Run `npm run docs:coverage` to verify it's tracked

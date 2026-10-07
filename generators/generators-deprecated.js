@@ -11,7 +11,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
   javascriptGenerator.forBlock['play_rumble_pattern'] = function (block) {
     const pattern = block.getFieldValue('PATTERN');
-    return `playRumblePattern("${pattern}");\n`;
+    return `playRumblePattern(${JSON.stringify(pattern)});\n`;
   };
 
   javascriptGenerator.forBlock['controller_rumble'] = function (block) {
@@ -21,7 +21,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     const duration =
       javascriptGenerator.valueToCode(block, 'DURATION', javascriptGenerator.ORDER_NONE) || '500';
 
-    return `controllerRumble("${motor}", ${strength}, ${duration});\n`;
+    return `controllerRumble(${JSON.stringify(motor)}, ${strength}, ${duration});\n`;
   };
 
   javascriptGenerator.forBlock['controller_rumble_pattern'] = function (block) {
@@ -37,7 +37,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     const repeats =
       javascriptGenerator.valueToCode(block, 'REPEATS', javascriptGenerator.ORDER_NONE) || '3';
 
-    return `controllerRumblePattern("${motor}", ${strength}, ${onDuration}, ${offDuration}, ${repeats});\n`;
+    return `controllerRumblePattern(${JSON.stringify(motor)}, ${strength}, ${onDuration}, ${offDuration}, ${repeats});\n`;
   };
 
   javascriptGenerator.forBlock['create_custom_map'] = function (block) {
@@ -79,7 +79,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     if (trigger === 'OnIntersectionEnterTrigger' || trigger === 'OnIntersectionExitTrigger') {
       const groupLine = block.callbackVar2Id ? ',\n          applyToGroupSelf: true' : '';
       return `onIntersect(${modelName}, ${otherModelName}, {
-          trigger: "${trigger}",
+          trigger: ${JSON.stringify(trigger)},
           callback: async function(${modelName}, ${param2}) {
         ${doCode}
           }${groupLine}
@@ -106,7 +106,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     const loop = block.getFieldValue('LOOP') === 'TRUE';
     const easing = block.getFieldValue('EASING');
 
-    const code = `${mode === 'AWAIT' ? 'await ' : ''}glideTo(${meshVar}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration} / 1000, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    const code = `${mode === 'AWAIT' ? 'await ' : ''}glideTo(${meshVar}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration} / 1000, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
 
     return code;
   };
@@ -127,7 +127,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   javascriptGenerator.forBlock['controls_doWhile'] = function (block) {
@@ -149,7 +149,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     const statements_do = javascriptGenerator.statementToCode(block, 'DO');
 
     // Pass "true" if event is "released" for the whenKeyEvent helper function
-    return `whenKeyEvent("${key}", async () => {${statements_do}}, ${event === 'released'});\n`;
+    return `whenKeyEvent(${JSON.stringify(key)}, async () => {${statements_do}}, ${event === 'released'});\n`;
   };
 
   javascriptGenerator.forBlock['change_material'] = function (block) {
@@ -160,12 +160,12 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     const material = block.getFieldValue('MATERIALS');
     const color = getFieldValue(block, 'COLOR', '"#ffffff"');
 
-    return `await changeMaterial(${modelName}, "${material}", ${color});\n`;
+    return `await changeMaterial(${modelName}, ${JSON.stringify(material)}, ${color});\n`;
   };
 
   javascriptGenerator.forBlock['greyscale_colour'] = function (block) {
     const colour = block.getFieldValue('COLOR');
-    const code = `"${colour}"`;
+    const code = JSON.stringify(colour);
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
@@ -217,7 +217,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
   javascriptGenerator.forBlock['key_pressed'] = function (block) {
     const key = block.getFieldValue('KEY');
-    return [`keyPressed("${key}")`, javascriptGenerator.ORDER_NONE];
+    return [`keyPressed(${JSON.stringify(key)})`, javascriptGenerator.ORDER_NONE];
   };
 
   javascriptGenerator.forBlock['xyz'] = function (block) {
@@ -244,6 +244,6 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
 
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}animateProperty(${meshName}, { property: "${property}", targetValue: ${targetValue}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, mode: "${mode}" });\n`;
+    return `${asyncWrapper}animateProperty(${meshName}, { property: ${JSON.stringify(property)}, targetValue: ${targetValue}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, mode: ${JSON.stringify(mode)} });\n`;
   };
 }

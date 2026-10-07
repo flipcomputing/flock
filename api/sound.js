@@ -18,6 +18,8 @@ const SPEECH_UNAVAILABLE = new Set([
 // --- Native Web Audio helpers for playSound ---
 
 const soundBufferCache = new Map(); // soundUrl → Promise<AudioBuffer>
+const instruments = new Map();
+const instrumentIds = new Map();
 
 // Smoothing constants — one-pole lowpass applied per render frame.
 // α = 0.4 gives a ~33 ms time constant at 60 fps, enough to damp
@@ -57,7 +59,12 @@ async function loadAudioBuffer(url, context) {
   return soundBufferCache.get(url);
 }
 
-function playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate, owningSignal }) {
+function playBufferEverywhere(
+  context,
+  buffer,
+  soundName,
+  { id, loop, volume, playbackRate, owningSignal }
+) {
   const gainNode = context.createGain();
   gainNode.gain.value = volume;
   gainNode.connect(context.destination);
@@ -87,6 +94,7 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   };
 
   const soundRef = {
+    id,
     name: soundName,
     stop() {
       finish();
@@ -109,7 +117,7 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   return soundRef;
 }
 
-function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate }) {
+function playBufferOnMesh(context, mesh, buffer, soundName, { id, loop, volume, playbackRate }) {
   if (!mesh.metadata || typeof mesh.metadata !== 'object') mesh.metadata = {};
 
   const currentSound = mesh.metadata.currentSound;
@@ -198,6 +206,7 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
   };
 
   const soundRef = {
+    id,
     name: soundName,
     _attachedMesh: mesh,
     stop() {
@@ -340,6 +349,7 @@ export const flockSound = {
   async playSound(
     meshName,
     {
+      id = null,
       soundName,
       loop = false,
       volume = 1,
@@ -379,17 +389,20 @@ export const flockSound = {
     if (context.state === 'closed') return;
 
     if (meshName === '__everywhere__') {
-      return playBufferEverywhere(context, buffer, soundName, {
+      await playBufferEverywhere(context, buffer, soundName, {
+        id,
         loop,
         volume,
         playbackRate,
         owningSignal: __owningSignal,
       });
+      return;
     }
 
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh && !mesh.isDisposed?.()) {
-      return playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate });
+      await playBufferOnMesh(context, mesh, buffer, soundName, { id, loop, volume, playbackRate });
+      return;
     }
 
     return new Promise((resolve) => {
@@ -403,12 +416,13 @@ export const flockSound = {
           resolve();
           return;
         }
-        const result = await playBufferOnMesh(context, resolvedMesh, buffer, soundName, {
+        await playBufferOnMesh(context, resolvedMesh, buffer, soundName, {
+          id,
           loop,
           volume,
           playbackRate,
         });
-        resolve(result);
+        resolve();
       });
     });
   },
@@ -668,8 +682,9 @@ export const flockSound = {
       });
     });
   },
-  playMidiNote(context, mesh, note, duration, bpm, playTime, instrument = null, owningSignal = null) {
+  playMidiNote(context, mesh, note, duration, bpm, playTime, instrumentId = null, owningSignal = null) {
     if (!context || context.state === 'closed') return;
+    const instrument = flock.getInstrument(instrumentId);
 
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
       console.warn('playMidiNote: Invalid parameters', {
@@ -816,8 +831,7 @@ export const flockSound = {
     effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
     effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
 
-    // Return configuration only — audio nodes are created fresh per note in playMidiNote
-    return {
+    const config = {
       type,
       volume,
       attack,
@@ -828,6 +842,17 @@ export const flockSound = {
       effectRate,
       effectDepth,
     };
+    const key = JSON.stringify(config);
+    let id = instrumentIds.get(key);
+    if (!id) {
+      id = `instrument_${instrumentIds.size + 1}`;
+      instrumentIds.set(key, id);
+      instruments.set(id, config);
+    }
+    return id;
+  },
+  getInstrument(id) {
+    return instruments.get(id) ?? null;
   },
   setBPM(meshName, bpm) {
     const safeBpm = Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;

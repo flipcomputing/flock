@@ -217,29 +217,3 @@ export function sanitizeForCode(input) {
 
   return s;
 }
-
-export function emitSafeTextArg(code) {
-  if (!code) return '""';
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) return code;
-
-  const q = m[1];
-  const body = m[2];
-
-  // If the body contains an unescaped quote of the same kind, `code` is not a
-  // single string literal but an expression that merely starts and ends with a
-  // quote — e.g. a concatenation like `'a' + 'b'` produced by text_join. In
-  // that case leave it untouched so the expression is emitted as real code
-  // (otherwise the literal ` + ` ends up baked into the displayed string).
-  if (body.replace(/\\./g, '').includes(q)) return code;
-
-  // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
-  let decoded;
-  try {
-    decoded = JSON.parse(q + body + q);
-  } catch {
-    decoded = body.replace(/\\"/g, '"').replace(/\\'/g, "'").replace(/\\\\/g, '\\');
-  }
-
-  return JSON.stringify(sanitizeForCode(decoded));
-}

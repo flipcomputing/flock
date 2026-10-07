@@ -155,40 +155,46 @@ export function runSceneTests(flock) {
       });
 
       it('should create a ground mesh for a plain color list', function () {
-        const ground = flock.createMap('NONE', ['#336633', '#88cc88']);
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        const ground = flock.ground;
         expect(ground).to.exist;
         expect(ground.name).to.equal('ground');
       });
 
       it('should create a ground mesh for a material object with color list', function () {
-        const ground = flock.createMap('NONE', {
+        flock.createMap('NONE', {
           color: ['#336633', '#88cc88'],
           materialName: 'none.png',
         });
+        const ground = flock.ground;
         expect(ground).to.exist;
         expect(ground.name).to.equal('ground');
       });
 
-      it('should set flock.ground to the returned mesh', function () {
-        const ground = flock.createMap('NONE', ['#336633', '#88cc88']);
-        expect(flock.ground).to.equal(ground);
+      it('should return nothing', function () {
+        expect(flock.createMap('NONE', ['#336633', '#88cc88'])).to.equal(undefined);
+        expect(flock.ground).to.exist;
       });
 
       it('should set correct metadata on the ground mesh', function () {
-        const ground = flock.createMap('NONE', ['#336633', '#88cc88']);
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        const ground = flock.ground;
         expect(ground.metadata).to.exist;
         expect(ground.metadata.blockKey).to.equal('ground');
         expect(ground.metadata.heightMapImage).to.equal('NONE');
       });
 
       it('should attach a physics body to the ground mesh', function () {
-        const ground = flock.createMap('NONE', ['#336633', '#88cc88']);
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        const ground = flock.ground;
         expect(ground.physics).to.exist;
       });
 
       it('should reuse the same mesh when called again with the same image', function () {
-        const first = flock.createMap('NONE', ['#336633', '#88cc88']);
-        const second = flock.createMap('NONE', ['#cc8833', '#88cc88']);
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        const first = flock.ground;
+        flock.createMap('NONE', ['#cc8833', '#88cc88']);
+        const second = flock.ground;
         expect(second).to.equal(first);
         const groundMeshes = flock.scene.meshes.filter((m) => m.name === 'ground');
         expect(groundMeshes.length).to.equal(1);
@@ -204,7 +210,8 @@ export function runSceneTests(flock) {
 
       it('should apply a texture material to a flat ground', function () {
         const mat = flock.createMaterial({ materialName: 'test.png' });
-        const ground = flock.createMap('NONE', mat);
+        flock.createMap('NONE', mat);
+        const ground = flock.ground;
         expect(ground).to.exist;
         expect(ground.name).to.equal('ground');
         expect(ground.material).to.exist;

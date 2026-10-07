@@ -946,7 +946,7 @@ export const flockPhysics = {
       ? flock.ensureModelReadyPromise(meshName)
       : new Promise((resolve) => flock.whenModelReady(meshName, resolve)));
 
-    if (flock.abortController?.signal?.aborted || !mesh) return mesh;
+    if (flock.abortController?.signal?.aborted || !mesh) return;
 
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
@@ -961,13 +961,13 @@ export const flockPhysics = {
     if (mesh.parent) {
       await waitForSceneTransformFlush(flock.scene);
 
-      if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return mesh;
+      if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return;
 
       mesh.computeWorldMatrix?.(true);
       mesh.refreshBoundingInfo?.();
     }
 
-    return flock.setPhysicsForMesh(mesh, physicsType);
+    flock.setPhysicsForMesh(mesh, physicsType);
   },
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
@@ -1429,7 +1429,7 @@ export const flockPhysics = {
             }
           }
         }
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => {});
       }
 
       return;
@@ -1452,7 +1452,7 @@ export const flockPhysics = {
         flock.pendingTagIntersections.set(meshName, []);
       }
       flock.pendingTagIntersections.get(meshName).push({ register });
-      if (isTag) return Promise.all(flock.getObjectsWithTag(meshName).map(register));
+      if (isTag) return Promise.all(flock.getObjectsWithTag(meshName).map(register)).then(() => {});
     }
 
     if (applyToGroupOther) {
@@ -1485,7 +1485,7 @@ export const flockPhysics = {
       if (flock.scene) {
         const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
         const matchingNames = [...new Set(matching.map((m) => m.name))];
-        return Promise.all(matchingNames.map((name) => registerForOther(name)));
+        return Promise.all(matchingNames.map((name) => registerForOther(name))).then(() => {});
       }
 
       return;

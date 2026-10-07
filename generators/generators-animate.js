@@ -54,7 +54,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
 
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Glide to object
@@ -81,7 +81,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
     const easing = block.getFieldValue('EASING');
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Glide along a single axis, fixing other axes to current position
@@ -102,7 +102,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
     if (axis === 'forward' || axis === 'sideways') {
-      return `${asyncWrapper}glideDirection(${meshName}, { direction: "${axis}", distance: ${target}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+      return `${asyncWrapper}glideDirection(${meshName}, { direction: ${JSON.stringify(axis)}, distance: ${target}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
     }
 
     let x, y, z;
@@ -120,7 +120,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
       z = target;
     }
 
-    return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}glideTo(${meshName}, { x: ${x}, y: ${y}, z: ${z}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Rotate object to coordinates
@@ -140,7 +140,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
 
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}rotateAnim(${meshName}, { x: ${rotX}, y: ${rotY}, z: ${rotZ}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Rotate object towards object
@@ -163,7 +163,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
 
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: "${apiRotateMode}", duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: "${easing}" });\n`;
+    return `${asyncWrapper}rotateToObject(${meshName1}, ${meshName2}, { mode: ${JSON.stringify(apiRotateMode)}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Stop animations on object
@@ -277,12 +277,12 @@ export function registerAnimateGenerators(javascriptGenerator) {
                     ${animationGroupVar},
                     ${meshVariable},
                     {
-                          property: "${property}",
+                          property: ${JSON.stringify(property)},
                           keyframes: [${keyframesCode}],
-                          easing: "${easing}",
+                          easing: ${JSON.stringify(easing)},
                           reverse: ${reverse},
                           loop: ${loop},
-                          mode: "${mode}"
+                          mode: ${JSON.stringify(mode)}
                     }
                   );
             `;
@@ -375,7 +375,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
       .join(', ');
 
     // Return the final code, passing keyframes with durations and properties
-    return `${asyncWrapper}animateKeyFrames(${meshVar}, { keyframes: [${keyframesCode}], property: "${property}", easing: "${easing}", reverse: ${reverse}, loop: ${loop} });\n`;
+    return `${asyncWrapper}animateKeyFrames(${meshVar}, { keyframes: [${keyframesCode}], property: ${JSON.stringify(property)}, easing: ${JSON.stringify(easing)}, reverse: ${reverse}, loop: ${loop} });\n`;
   };
 
   // Animation group

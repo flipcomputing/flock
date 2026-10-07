@@ -61,7 +61,13 @@ import {
 import { flockMath, setFlockReference as setFlockMath } from './api/math';
 import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
 import { translate } from './main/translation.js';
-import { handleError, dismissBanner, showBanner, markReported } from './ui/notifications.js';
+import {
+  handleError,
+  dismissBanner,
+  showBanner,
+  markReported,
+  isBenignAbort,
+} from './ui/notifications.js';
 import { attachInteractIndicator, detachInteractIndicator } from './ui/interactIndicator.js';
 import { getShowInternalNodes, setShowInternalNodes } from './ui/inspectorVisibility.js';
 import { InputManager } from './input/inputManager.js';
@@ -934,8 +940,65 @@ export const flock = {
       const wrapScript = doc.createElement('script');
       wrapScript.type = 'text/javascript';
       wrapScript.text = `
-        const toRealm = (v) => (Array.isArray(v) ? Array.from(v, toRealm) : v);
-        window.__flockWrapHostFn = (fn) => (...args) => toRealm(fn(...args));`;
+        const report = window.__flockReportHostError;
+        const halt = () => Object.defineProperty(new Error('aborted'), 'name', { value: 'AbortError' });
+        const toRealm = (v, source) => {
+          if (v === null || (typeof v !== 'object' && typeof v !== 'function')) return v;
+          if (Array.isArray(v)) {
+            return v instanceof Array ? v : Array.from(v, (item) => toRealm(item, source));
+          }
+          if (v instanceof Object || Object.getPrototypeOf(v) === null) return v;
+          if (typeof v.then === 'function') {
+            return new Promise((resolve, reject) =>
+              v.then(
+                (r) => resolve(toRealm(r, source)),
+                (e) => {
+                  report(e);
+                  reject(halt());
+                }
+              )
+            );
+          }
+          console.warn('Flock sandbox: dropped a host object from ' + source);
+          return undefined;
+        };
+        const userFns = new WeakMap();
+        const toHost = (v, depth) => {
+          if (typeof v === 'function') {
+            if (!userFns.has(v)) {
+              userFns.set(v, (...args) =>
+                v(...args.map((arg) => toRealm(arg, 'a callback argument')))
+              );
+            }
+            return userFns.get(v);
+          }
+          if (depth > 2 || v === null || typeof v !== 'object' || !(v instanceof Object)) return v;
+          const isArray = Array.isArray(v);
+          if (!isArray && Object.getPrototypeOf(v) !== Object.prototype) return v;
+          let copy = null;
+          for (const key of Object.keys(v)) {
+            const converted = toHost(v[key], depth + 1);
+            if (converted !== v[key]) {
+              copy ??= isArray ? [...v] : { ...v };
+              copy[key] = converted;
+            }
+          }
+          return copy ?? v;
+        };
+        window.__flockWrapHostFn = (fn, name) => (...args) => {
+          let result;
+          try {
+            result = fn(...args.map((arg) => toHost(arg, 0)));
+          } catch (e) {
+            report(e);
+            throw halt();
+          }
+          return toRealm(result, name);
+        };`;
+      // Host errors never reach user code; they're reported on the host page.
+      win.__flockReportHostError = (error) => {
+        if (!isBenignAbort(error)) Promise.reject(error);
+      };
       doc.head.appendChild(wrapScript);
 
       // Lock down the iframe realm. Disable SES's own unhandled-rejection
@@ -974,7 +1037,7 @@ export const flock = {
         if (t === 'function') {
           // Wrap into the iframe realm: a host-realm fn leaks the untamed host
           // Function via `.constructor` (sandbox escape). bind(null) drops host `this`.
-          endowments[key] = win.__flockWrapHostFn(value.bind(null));
+          endowments[key] = win.__flockWrapHostFn(value.bind(null), key);
         } else if (value == null || (t !== 'object' && t !== 'symbol')) {
           // primitives only
           endowments[key] = value;
@@ -998,10 +1061,14 @@ export const flock = {
         (settle) => hostRequestAnimationFrame(settle),
         signal
       );
-      endowments.requestAnimationFrame = win.__flockWrapHostFn((callback) =>
-        frameYield(guard(callback))
+      endowments.requestAnimationFrame = win.__flockWrapHostFn(
+        (callback) => frameYield(guard(callback)),
+        'requestAnimationFrame'
       );
-      endowments.__flockLoopYield = win.__flockWrapHostFn(flock.makeLoopYield(guard, signal));
+      endowments.__flockLoopYield = win.__flockWrapHostFn(
+        flock.makeLoopYield(guard, signal),
+        '__flockLoopYield'
+      );
 
       endowments.Date = new win.Object();
       endowments.Date.now = win.Date.now.bind(win.Date);
@@ -3034,7 +3101,7 @@ export const flock = {
       if (typeof root.getChildMeshes === 'function') {
         root.getChildMeshes(false).forEach(setOnChildren);
       }
-    });
+    }).then(() => {});
   },
 
   sanitizeInlineText(input) {

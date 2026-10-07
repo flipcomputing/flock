@@ -46,7 +46,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     const meshId = 'ground';
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
-    return `createMap("${mapName}", ${material});\n`;
+    return `createMap(${JSON.stringify(mapName)}, ${material});\n`;
   };
 
   // Background -------------------------------------------------------
@@ -133,7 +133,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createModel({
-                        modelName: '${modelName}',
+                        modelName: ${JSON.stringify(modelName)},
                         modelId: ${JSON.stringify(meshId)},${colors ? `\n                        colors: ${colors},` : ''}
                         scale: ${scale},
                         position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
@@ -168,7 +168,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createCharacter({
-                  modelName: '${modelName}',
+                  modelName: ${JSON.stringify(modelName)},
                   modelId: ${JSON.stringify(meshId)},
                   scale: ${scale},
                   position: { x: ${x}, y: ${y}, z: ${z} },
@@ -208,7 +208,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
-                          modelName: '${modelName}',
+                          modelName: ${JSON.stringify(modelName)},
                           modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
@@ -239,7 +239,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
-                        modelName: '${modelName}',
+                        modelName: ${JSON.stringify(modelName)},
                         modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
@@ -481,7 +481,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
-                          cloneId: '${cloneId}',
+                          cloneId: ${JSON.stringify(cloneId)},
                           cloneName: ${JSON.stringify(cloneUserName)},
                           blockKey: ${JSON.stringify(block.id)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
@@ -502,7 +502,7 @@ export function registerSceneGenerators(javascriptGenerator) {
       '#808080';
     const style = block.getFieldValue('STYLE') || 'SOFT';
 
-    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\nlightStyle("${style}");\n`;
+    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\nlightStyle(${JSON.stringify(style)});\n`;
   };
 
   // Enable shadows -------------------------------------------------
@@ -618,7 +618,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                     min: ${minLifetime},
                     max: ${maxLifetime}
                   },
-                  shape: "${shape}",
+                  shape: ${JSON.stringify(shape)},
                   gravity: ${gravity},
                   direction: { x: ${x}, y: ${y}, z: ${z} },
                   rotation: {
@@ -633,7 +633,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                   }
             }`;
 
-    return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
+    return `${variableName} = createParticleEffect(${JSON.stringify(variableName)}, ${options.trim()});\n`;
   };
 
   // Particle system ------------------------------------------------
@@ -658,7 +658,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     const fogEnd =
       javascriptGenerator.valueToCode(block, 'END', javascriptGenerator.ORDER_ATOMIC) || '100'; // Default end
 
-    return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
+    return `setFog({ fogColorHex: ${fogColorHex}, fogMode: ${JSON.stringify(fogMode)}, fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
   };
 
   // -------------------------------
@@ -735,7 +735,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     const key = block.getFieldValue('KEY');
     const action = block.getFieldValue('ACTION');
 
-    return `cameraControl(${JSON.stringify(key)}, "${action}");\n`;
+    return `cameraControl(${JSON.stringify(key)}, ${JSON.stringify(action)});\n`;
   };
 
   // -------------------------------
@@ -745,14 +745,14 @@ export function registerSceneGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock['device_camera_background'] = function (block) {
     const cameraType = block.getFieldValue('CAMERA');
 
-    return `setCameraBackground("${cameraType}");\n`;
+    return `setCameraBackground(${JSON.stringify(cameraType)});\n`;
   };
 
   // Set XR mode to -------------------------------------------------
   javascriptGenerator.forBlock['set_xr_mode'] = function (block) {
     const mode = block.getFieldValue('MODE');
 
-    return `await setXRMode("${mode}");\n`;
+    return `await setXRMode(${JSON.stringify(mode)});\n`;
   };
 
   javascriptGenerator.forBlock['set_xr_view_mode'] = function (block) {
@@ -802,6 +802,6 @@ export function registerSceneGenerators(javascriptGenerator) {
     const format = block.getFieldValue('FORMAT');
 
     // Generate the code that calls the helper function
-    return `exportMesh(${meshVar}, "${format}");\n`;
+    return `exportMesh(${meshVar}, ${JSON.stringify(format)});\n`;
   };
 }
