@@ -218,6 +218,7 @@ Summary Statistics:
 - `dev-docs/archive/github-ci-debugging/TEST_RUNNER_SERVER_STARTUP.md` - Server startup technical details
 - `docs/docs.md` - User documentation
 - `docs/models.md` - 3D models documentation
+- `docs/materials.md` - Material textures documentation
 
 **Reports:**
 
