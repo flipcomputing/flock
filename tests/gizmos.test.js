@@ -411,6 +411,23 @@ export function runGizmoTests(flock) {
         }
       });
 
+      it('rotate offers only the y ring for a group, and all rings again for a mesh', function () {
+        const box = makeBox('gizmoToolRotateLoose');
+        mgr.attachToMesh(groupMesh);
+        toggleGizmo('rotation');
+        const rg = mgr.gizmos.rotationGizmo;
+        expect(rg.xGizmo.isEnabled).to.be.false;
+        expect(rg.zGizmo.isEnabled).to.be.false;
+        expect(rg.yGizmo.isEnabled).to.be.true;
+        expect(rg.yGizmo.attachedMesh).to.equal(groupMesh);
+
+        mgr.attachToMesh(box);
+        for (const g of [rg.xGizmo, rg.yGizmo, rg.zGizmo]) {
+          expect(g.isEnabled).to.be.true;
+          expect(g.attachedMesh).to.equal(box);
+        }
+      });
+
       it('clears the gizmo from the group or its members when active is toggled, leaving others alone', async function () {
         const ws = Blockly.getMainWorkspace();
         const groupBlock = Blockly.serialization.blocks.append(

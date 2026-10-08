@@ -2204,17 +2204,23 @@ export function addDoMutatorWithToggleBehavior(block) {
   // it in sync and refresh both icons (+ while closed, - while open). The
   // "then" label rides on the button's row - only while "then" is open - so a
   // translated word never widens the statement rows below it.
+  // A block with an options row (hasOptionsRow_) opens that row from the main
+  // button instead; DO then has its own DO_BUTTON on that row and only shows
+  // while the row is open.
   const isOpen = (name) => Boolean(block.getInput(name)?.isVisible());
+  const optionsOpen = () => !block.hasOptionsRow_ || block.optionsOpen_;
+  block.doHidden_ = false;
+  block.optionsOpen_ = false;
 
   const syncMutatorButtons = function () {
+    block.getInput('DO')?.setVisible(optionsOpen() && !block.doHidden_);
     const hasDo = isOpen('DO');
     block.getInput('THEN')?.setVisible(hasDo && !block.thenHidden_);
     const hasThen = isOpen('THEN');
 
-    const doField = block.getField('TOGGLE_BUTTON');
-    if (doField) {
-      doField.setValue(hasDo ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
-    }
+    const mainOpen = block.hasOptionsRow_ ? block.optionsOpen_ : hasDo;
+    block.getField('TOGGLE_BUTTON')?.setValue(mainOpen ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+    block.getField('DO_BUTTON')?.setValue(hasDo ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
 
     if (block.getInput('DO') && !block.getInput('THEN_BUTTON')) {
       const thenButton = new Blockly.FieldImage(DO_MUTATOR_PLUS, 30, 30, 'toggle then block', () =>
@@ -2241,6 +2247,8 @@ export function addDoMutatorWithToggleBehavior(block) {
     if (thenField) {
       thenField.setValue(hasThen ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
     }
+
+    block.syncOptionsRow_?.();
   };
 
   const mutationText = function () {
@@ -2274,11 +2282,38 @@ export function addDoMutatorWithToggleBehavior(block) {
     return isOpen('DO');
   };
 
-  // Toggle the "do" (constructor) section. Closing it also hides "then".
+  // Toggle the "do" (constructor) section. Closing it also hides "then";
+  // opening it also opens the options row.
   block.toggleDoBlock = function () {
     const oldState = mutationText();
-    showSection('DO', !isOpen('DO'));
+    const show = !isOpen('DO');
+    showSection('DO', show);
+    this.doHidden_ = !show;
+    if (show) this.optionsOpen_ = true;
     finishMutation(oldState);
+  };
+
+  // Show or hide the options row, and with it DO and "then".
+  block.setOptionsOpen = function (open) {
+    if (!this.hasOptionsRow_ || this.optionsOpen_ === open) return false;
+    const oldState = mutationText();
+    this.optionsOpen_ = open;
+    finishMutation(oldState);
+    return true;
+  };
+
+  block.removeDoSection = function () {
+    if (!this.getInput('DO')) return;
+    const oldState = mutationText();
+    for (const name of ['THEN', 'THEN_BUTTON', 'DO']) this.removeInput(name, true);
+    this.doHidden_ = false;
+    this.thenHidden_ = true;
+    finishMutation(oldState);
+  };
+
+  block.toggleMainSection = function () {
+    if (this.hasOptionsRow_) this.setOptionsOpen(!this.optionsOpen_);
+    else this.toggleDoBlock();
   };
 
   // Toggle the "then" section, which runs once the constructor has completed.
@@ -2296,7 +2331,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     30,
     30,
     'toggle do block', // Width, Height, Alt text
-    () => block.toggleDoBlock()
+    () => block.toggleMainSection()
   );
 
   // Add the button to the block
@@ -2311,14 +2346,16 @@ export function addDoMutatorWithToggleBehavior(block) {
     const hasDo = Boolean(this.getInput('DO'));
     container.setAttribute('has_do', hasDo ? 'true' : 'false');
     container.setAttribute('has_then', hasDo && this.getInput('THEN') ? 'true' : 'false');
-    if (hasDo && !isOpen('DO')) container.setAttribute('do_hidden', 'true');
+    if (hasDo && this.doHidden_) container.setAttribute('do_hidden', 'true');
     if (hasDo && this.getInput('THEN') && this.thenHidden_) {
       container.setAttribute('then_hidden', 'true');
     }
+    if (this.hasOptionsRow_) container.setAttribute('options', String(this.optionsOpen_));
     return container;
   };
 
-  // Restore the mutation state
+  // Restore the mutation state. Saves from before the options row have no
+  // "options" attribute; their row was open exactly when DO was.
   block.domToMutation = function (xmlElement) {
     const hasDo = xmlElement.getAttribute('has_do') === 'true';
     const hasThen = xmlElement.getAttribute('has_then') === 'true';
@@ -2328,7 +2365,9 @@ export function addDoMutatorWithToggleBehavior(block) {
     if (hasDo && hasThen && !this.getInput('THEN')) {
       this.appendStatementInput('THEN').setCheck(null).appendField('');
     }
-    this.getInput('DO')?.setVisible(hasDo && xmlElement.getAttribute('do_hidden') !== 'true');
+    this.doHidden_ = !hasDo || xmlElement.getAttribute('do_hidden') === 'true';
+    const options = xmlElement.getAttribute('options');
+    this.optionsOpen_ = options === null ? !this.doHidden_ : options === 'true';
     this.thenHidden_ = !hasThen || xmlElement.getAttribute('then_hidden') === 'true';
     syncMutatorButtons();
   };

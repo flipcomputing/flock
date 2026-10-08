@@ -86,7 +86,7 @@ export function runInitialTransformTests(flock) {
     }
 
     describe('ensureInitialRotation', function () {
-      it('opens DO and turns on the rotate row, seeded', function () {
+      it('opens the row, not DO, and turns on rotate, seeded', function () {
         const box = ws.newBlock('create_box');
         const result = ensureInitialRotation(box, { x: 0, y: 90, z: 0 });
 
@@ -94,7 +94,8 @@ export function runInitialTransformTests(flock) {
         expect(result.addedDoSection).to.be.true;
         expect(result.block).to.equal(box);
         expect(box.rotateShown_).to.be.true;
-        expect(doTypes(box)).to.deep.equal([]);
+        expect(box.getInput('ROTATE_X').isVisible()).to.be.true;
+        expect(box.getInput('DO')).to.be.null;
         expect(getInitialRotationValues(box)).to.deep.equal({ x: 0, y: 90, z: 0 });
       });
 

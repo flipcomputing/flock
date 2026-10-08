@@ -125,6 +125,9 @@ export function foldLegacyInitialTransforms(owner, mesh = null) {
       resize.dispose(true);
     }
     if (anchor) writeMovedPosition(owner, anchor, { decimals: 2 });
+    if (!owner.getInputTargetBlock('DO') && !owner.getInputTargetBlock('THEN')) {
+      owner.removeDoSection?.();
+    }
   } finally {
     Blockly.Events.enable();
   }

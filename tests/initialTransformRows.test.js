@@ -7,7 +7,7 @@ import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { registerTextGenerators } from '../generators/generators-text.js';
 import { registerSceneGenerators } from '../generators/generators-scene.js';
-import { DO_MUTATOR_PLUS } from '../blocks/blocks.js';
+import { DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from '../blocks/blocks.js';
 
 export function runInitialTransformRowsTests() {
   describe('add block rotate and resize rows @initialtransformrows', function () {
@@ -75,14 +75,78 @@ export function runInitialTransformRowsTests() {
       const box = makeBox();
       expect(visible(box, 'ROTATE_TOGGLE')).to.be.false;
 
-      box.toggleDoBlock();
+      box.toggleMainSection();
       expect(visible(box, 'ROTATE_TOGGLE')).to.be.true;
       expect(visible(box, 'ROTATE_X')).to.be.false;
     });
 
-    it('shows x, y and z at 0 when rotate is pressed', function () {
+    it('opens the row without DO, and the + on the row adds DO', function () {
+      const box = makeBox();
+      box.getField('TOGGLE_BUTTON').showEditor_();
+      expect(visible(box, 'DO_TOGGLE')).to.be.true;
+      expect(box.getInput('DO')).to.be.null;
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DO_MUTATOR_MINUS);
+      expect(box.getField('DO_BUTTON').getValue()).to.equal(DO_MUTATOR_PLUS);
+
+      box.getField('DO_BUTTON').showEditor_();
+      expect(visible(box, 'DO')).to.be.true;
+      expect(box.getField('DO_BUTTON').getValue()).to.equal(DO_MUTATOR_MINUS);
+      const names = box.inputList.map((input) => input.name);
+      expect(names.indexOf('DO_TOGGLE')).to.be.lessThan(names.indexOf('DO'));
+
+      box.getField('DO_BUTTON').showEditor_();
+      expect(visible(box, 'DO')).to.be.false;
+      expect(visible(box, 'ROTATE_TOGGLE')).to.be.true;
+    });
+
+    it('closes the row with DO and then, and reopens them as they were', function () {
       const box = makeBox();
       box.toggleDoBlock();
+      box.toggleThenBlock();
+      box.toggleMainSection();
+      for (const name of ['DO_TOGGLE', 'DO', 'THEN', 'THEN_BUTTON']) {
+        expect(visible(box, name)).to.be.false;
+      }
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DO_MUTATOR_PLUS);
+
+      box.toggleMainSection();
+      expect(visible(box, 'DO')).to.be.true;
+      expect(visible(box, 'THEN')).to.be.true;
+    });
+
+    it('opens the row when DO is opened from code', function () {
+      const box = makeBox();
+      box.toggleDoBlock();
+      expect(visible(box, 'ROTATE_TOGGLE')).to.be.true;
+      expect(visible(box, 'DO')).to.be.true;
+    });
+
+    it('restores an open row without DO, and a closed row over DO', function () {
+      const box = makeBox();
+      box.toggleMainSection();
+      const open = reload(box);
+      expect(visible(open, 'ROTATE_TOGGLE')).to.be.true;
+      expect(open.getInput('DO')).to.be.null;
+
+      open.toggleDoBlock();
+      open.toggleMainSection();
+      const closed = reload(open);
+      expect(visible(closed, 'ROTATE_TOGGLE')).to.be.false;
+      expect(visible(closed, 'DO')).to.be.false;
+      closed.toggleMainSection();
+      expect(visible(closed, 'DO')).to.be.true;
+    });
+
+    it('loads an older closed DO with the row closed', function () {
+      const box = makeBox('<mutation has_do="true" do_hidden="true"></mutation>');
+      expect(visible(box, 'ROTATE_TOGGLE')).to.be.false;
+      box.toggleMainSection();
+      expect(visible(box, 'DO')).to.be.false;
+    });
+
+    it('shows x, y and z at 0 when rotate is pressed', function () {
+      const box = makeBox();
+      box.toggleMainSection();
       box.toggleRotate();
 
       for (const axis of ['X', 'Y', 'Z']) {
@@ -99,25 +163,24 @@ export function runInitialTransformRowsTests() {
       expect(code).to.not.include('size');
     });
 
-    it('hides the rows with DO but keeps applying them', function () {
+    it('hides the rows when closed but keeps applying them', function () {
       const box = makeBox();
-      box.toggleDoBlock();
+      box.toggleMainSection();
       box.toggleRotate();
-      box.toggleDoBlock();
+      box.toggleMainSection();
 
-      expect(visible(box, 'DO')).to.be.false;
       expect(visible(box, 'TRANSFORM_ROW')).to.be.false;
       expect(visible(box, 'ROTATE_TOGGLE')).to.be.false;
       expect(visible(box, 'ROTATE_Y')).to.be.false;
       expect(generate(box)).to.include('rotation: { x: 0, y: 0, z: 0 }');
 
-      box.toggleDoBlock();
+      box.toggleMainSection();
       expect(visible(box, 'ROTATE_Y')).to.be.true;
     });
 
     it('hides the axis inputs when rotate is turned off', function () {
       const box = makeBox();
-      box.toggleDoBlock();
+      box.toggleMainSection();
       box.toggleRotate();
       box.toggleRotate();
 
@@ -133,14 +196,14 @@ export function runInitialTransformRowsTests() {
 
       const restored = reload(box);
       expect(visible(restored, 'ROTATE_X')).to.be.false;
-      restored.toggleDoBlock();
+      restored.toggleMainSection();
       expect(visible(restored, 'ROTATE_X')).to.be.true;
       expect(generate(restored)).to.include('rotation: { x: 0, y: 0, z: 45 }');
     });
 
     it('loads an existing project with a DO section unchanged', function () {
       const box = makeBox('<mutation has_do="true" has_then="false"></mutation>');
-      expect(box.getInput('DO')).to.not.be.null;
+      expect(visible(box, 'DO')).to.be.true;
       expect(visible(box, 'ROTATE_TOGGLE')).to.be.true;
       expect(visible(box, 'ROTATE_X')).to.be.false;
       expect(generate(box)).to.not.include('rotation');
@@ -152,7 +215,7 @@ export function runInitialTransformRowsTests() {
 
     it('replaces scale with sizes when resize is on', function () {
       const model = makeModel();
-      model.toggleDoBlock();
+      model.toggleMainSection();
       model.setResizeShown(true, { x: 2, y: 3.14, z: 4 });
 
       expect(visible(model, 'SCALE')).to.be.false;
@@ -167,11 +230,11 @@ export function runInitialTransformRowsTests() {
       expect(generate(model)).to.not.include('size:');
     });
 
-    it('keeps scale hidden while resize is on and DO is closed', function () {
+    it('keeps scale hidden while resize is on and the row is closed', function () {
       const model = makeModel();
-      model.toggleDoBlock();
+      model.toggleMainSection();
       model.setResizeShown(true, { x: 1, y: 1, z: 1 });
-      model.toggleDoBlock();
+      model.toggleMainSection();
 
       expect(visible(model, 'RESIZE_TOGGLE')).to.be.false;
       expect(visible(model, 'SIZE_Y')).to.be.false;
@@ -269,7 +332,7 @@ export function runInitialTransformRowsTests() {
 
     it('gives a clone rotation and size rows that pass to cloneMesh', function () {
       const clone = Blockly.serialization.blocks.append({ type: 'clone_mesh' }, ws);
-      clone.toggleDoBlock();
+      clone.toggleMainSection();
       clone.toggleRotate();
       clone.setResizeShown(true, { x: 2, y: 2, z: 2 });
 
@@ -285,7 +348,7 @@ export function runInitialTransformRowsTests() {
         ws
       );
       expect(text.getInput('RESIZE_TOGGLE')).to.be.null;
-      text.toggleDoBlock();
+      text.toggleMainSection();
       text.toggleRotate();
       expect(generate(text)).to.include('rotation: { x: 0, y: 0, z: 0 },');
     });

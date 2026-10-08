@@ -14,6 +14,7 @@ export function createGizmoMobileHud({
   mode = 'slider',
   showUniform = false,
   uniformOnly = false,
+  onlyAxis = null,
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   onCollapsedChange = null,
@@ -38,14 +39,16 @@ export function createGizmoMobileHud({
 
   // ── Axis state ────────────────────────────────────────────────────────────
   const UNIFORM_DEF = { key: 'all', label: '=', color: '#aaaaaa' };
+  const SINGLE_AXIS_DEFS = [
+    { key: 'x', label: 'X', color: '#0072B2' },
+    { key: 'y', label: 'Y', color: '#009E73' },
+    { key: 'z', label: 'Z', color: '#D55E00' },
+  ];
   const AXIS_DEFS = uniformOnly
     ? [UNIFORM_DEF]
-    : [
-        { key: 'x', label: 'X', color: '#0072B2' },
-        { key: 'y', label: 'Y', color: '#009E73' },
-        { key: 'z', label: 'Z', color: '#D55E00' },
-        ...(showUniform ? [UNIFORM_DEF] : []),
-      ];
+    : onlyAxis
+      ? SINGLE_AXIS_DEFS.filter((def) => def.key === onlyAxis)
+      : [...SINGLE_AXIS_DEFS, ...(showUniform ? [UNIFORM_DEF] : [])];
   const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
   let axis = initialAxis && AXIS_DEFS.find((d) => d.key === initialAxis) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;

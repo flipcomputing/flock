@@ -114,7 +114,8 @@ export function runLegacyTransformTests(flock) {
       );
       expect(foldLegacyInitialTransforms(owner, mesh)).to.be.true;
 
-      expect(doTypes(owner)).to.deep.equal([]);
+      expect(owner.getInput('DO')).to.be.null;
+      expect(owner.getInput('ROTATE_X').isVisible()).to.be.true;
       expect(owner.rotateShown_).to.be.true;
       expect(getInitialRotationValues(owner)).to.deep.equal({ x: 0, y: 0, z: 45 });
       expectSameBounds(bounds(mesh), legacy, 1e-6);
@@ -214,6 +215,7 @@ export function runLegacyTransformTests(flock) {
       ]);
       expect(foldLegacyInitialTransforms(owner)).to.be.true;
       expect(doTypes(owner)).to.deep.equal(['move_to_xyz']);
+      expect(owner.getInput('DO').isVisible()).to.be.true;
       expect(getInitialRotationValues(owner)).to.deep.equal({ x: 0, y: 45, z: 0 });
       expect(getInitialSizeValues(owner)).to.deep.equal({ x: 2, y: 2, z: 2 });
     });

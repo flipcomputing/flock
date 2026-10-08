@@ -207,6 +207,7 @@ function createAdaptiveInput({
   mode,
   showUniform,
   uniformOnly = false,
+  onlyAxis = null,
   stepLabels,
   onHudHide,
   onAxisChange,
@@ -261,6 +262,7 @@ function createAdaptiveInput({
       mode,
       showUniform,
       uniformOnly,
+      onlyAxis,
       stepLabels,
       onAxisChange: onHudAxisChange,
       onCollapsedChange: () => reportAxis(visibleAxis()),
@@ -281,6 +283,7 @@ function createAdaptiveInput({
     initialAxis: initialKeyboardAxis,
     allowUniform: showUniform,
     uniformOnly,
+    onlyAxis,
   });
   // The HUD lands on an axis (X by default) and normalises saved ones, so take
   // its choice over the raw value.
@@ -2086,7 +2089,7 @@ function applyRotationHandles(mesh) {
   const rg = gizmoManager?.gizmos?.rotationGizmo;
   if (!rg) return;
   const enabled = !isTargetCameraFrame(mesh);
-  const yOnly = isPrefab(mesh);
+  const yOnly = mesh?.metadata?.shapeType === 'Group';
   for (const [axis, g] of [
     ['x', rg.xGizmo],
     ['y', rg.yGizmo],
@@ -2156,7 +2159,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   };
   const onMove = (dx, dy, dz) => {
     syncWorkingToMesh();
-    const deltas = isPrefab(mesh) ? { x: 0, y: dy, z: 0 } : { x: dx, y: dy, z: dz };
+    const deltas =
+      mesh?.metadata?.shapeType === 'Group' ? { x: 0, y: dy, z: 0 } : { x: dx, y: dy, z: dz };
     const changedAxes = [];
     for (const axisKey of ['x', 'y', 'z']) {
       if (deltas[axisKey]) {
@@ -2199,6 +2203,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
+    onlyAxis: mesh?.metadata?.shapeType === 'Group' ? 'y' : null,
     getValues,
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
     onAxisChange: (axis) => {

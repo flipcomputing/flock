@@ -150,6 +150,32 @@ export function runAxisKeyboardTests(_flock) {
       });
     });
 
+    describe('onlyAxis', function () {
+      it('starts locked to that axis whatever the initial axis', function () {
+        make({ onlyAxis: 'y', initialAxis: 'x' });
+        expect(stop.getAxis()).to.equal('y');
+      });
+
+      it('ignores x/y/z/u and keeps the lock', function () {
+        make({ onlyAxis: 'y' });
+        for (const key of ['x', 'Y', 'z', 'u']) topHandler()(makeEvent({ key }));
+        expect(stop.getAxis()).to.equal('y');
+        expect(axisChanges).to.deep.equal([]);
+      });
+
+      it('moves only that axis on an arrow key', function () {
+        make({ onlyAxis: 'y' });
+        topHandler()(makeEvent({ key: 'ArrowRight' }));
+        expect(moves).to.deep.equal([[0, 1, 0]]);
+      });
+
+      it('setAxis cannot leave that axis', function () {
+        make({ onlyAxis: 'y' });
+        stop.setAxis('x');
+        expect(stop.getAxis()).to.equal('y');
+      });
+    });
+
     describe('initialAxis / normalizeAxis', function () {
       it("collapses an initial 'all' to 'x' when allowUniform is false", function () {
         make({ initialAxis: 'all', allowUniform: false });

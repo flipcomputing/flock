@@ -29,12 +29,14 @@ export function createAxisKeyboardHandler({
   initialAxis = null,
   allowUniform = false,
   uniformOnly = false,
+  onlyAxis = null,
 }) {
   // "all" (uniform) is only valid when uniform mode is enabled. In non-uniform
   // tools, collapse any inherited/incoming "all" (e.g. carried over from the
   // scale tool) to a single axis so Arrow/Page movement stays axis-constrained.
   const normalizeAxis = (a) => {
     if (uniformOnly) return 'all';
+    if (onlyAxis) return onlyAxis;
     return a === 'all' && !allowUniform ? 'x' : a;
   };
   let axis = normalizeAxis(initialAxis);
@@ -51,7 +53,7 @@ export function createAxisKeyboardHandler({
     const step = event.shiftKey ? stepNormal : stepFast;
 
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (uniformOnly && 'xyzuXYZU'.includes(event.key)) return;
+    if ((uniformOnly || onlyAxis) && 'xyzuXYZU'.includes(event.key)) return;
 
     switch (event.key) {
       case 'x':

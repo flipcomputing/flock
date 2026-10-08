@@ -60,8 +60,15 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
     appendAxisInputs(block, sizeInputName);
   }
 
+  block
+    .appendDummyInput('DO_TOGGLE')
+    .setAlign(Blockly.inputs.Align.RIGHT)
+    .appendField(toggleButton('toggle do block', () => block.toggleDoBlock()), 'DO_BUTTON');
+  block.hasOptionsRow_ = true;
+
   block.syncInitialTransformRows_ = function () {
-    const open = this.isDoOpen();
+    const open = this.optionsOpen_;
+    this.getInput('DO_TOGGLE').setVisible(open);
     this.getInput('TRANSFORM_ROW').setVisible(open);
     this.getInput('ROTATE_TOGGLE').setVisible(open);
     for (const axis of AXES) {
@@ -127,15 +134,7 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
     this.setResizeShown(!this.resizeShown_);
   };
 
-  const toggleDoBlock = block.toggleDoBlock;
-  block.toggleDoBlock = function () {
-    toggleDoBlock.call(this);
-    this.syncInitialTransformRows_();
-    if (this.rendered) {
-      this.render();
-      this.bumpNeighbours();
-    }
-  };
+  block.syncOptionsRow_ = block.syncInitialTransformRows_;
 
   const doMutationToDom = block.mutationToDom;
   const doDomToMutation = block.domToMutation;

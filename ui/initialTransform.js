@@ -68,6 +68,7 @@ function findOwnDoBlock(owner, { type, varField }) {
 }
 
 function openDoSection(owner) {
+  if (hasInitialTransformRows(owner)) return owner.setOptionsOpen(true);
   if (isDoOpen(owner)) return false;
   // The mutator keeps the +/- and "then" buttons in sync.
   if (typeof owner.toggleDoBlock === 'function') {
