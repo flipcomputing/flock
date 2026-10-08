@@ -510,7 +510,7 @@ export default {
   create_follow_camera_tooltip:
     'Add a camera that follows an object. The player can turn it around the object.',
   create_orbit_camera_tooltip:
-    'Add a camera that orbits around an object. Drag to orbit and scroll to zoom.',
+    'Add a camera that orbits around an object or the origin. Drag to orbit and scroll to zoom.',
   switch_camera_tooltip: 'Switch the view to a camera.',
 
   // Tooltip translations - Combine blocks
@@ -1059,6 +1059,7 @@ export default {
   ONCE_option: 'once',
   LOOP_option: 'loop',
   everywhere_option: 'everywhere',
+  origin_option: 'origin',
 
   theme_bright_option: 'bright',
   theme_calm_option: 'calm',
@@ -1438,7 +1439,7 @@ export default {
   select_mesh_delete_prompt: 'Click an object to delete it.',
   select_mesh_duplicate_prompt: 'Select an object to duplicate.',
   place_duplicate_prompt: 'Click to place a copy.',
-  select_mesh_eye_prompt: 'Click an object to orbit around it.',
+  orbit_origin_info: 'Drag to move the camera around the origin. Click an object to orbit around it.',
   orbit_mesh_info: 'Drag to move the camera around the object',
   camera_preview_info: 'Looking through the camera. Click the camera button to go back.',
   capture_camera_view_label: 'Set this camera from the current view',

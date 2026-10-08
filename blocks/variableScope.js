@@ -128,23 +128,23 @@ export function procedureLocalVariables(definition) {
     .filter(Boolean);
 }
 
-function variableNameOptions(block, keepName) {
+function variableOptions(block, keep, valueOf) {
   const workspace = block?.workspace;
   if (!workspace) return [];
   const hidden = outOfScopeLocalIds(block);
   return workspace
     .getVariableMap()
     .getAllVariables()
-    .filter((variable) => variable.name === keepName || !hidden.has(variable.getId()))
-    .map((variable) => [variable.name, variable.name]);
+    .filter((variable) => valueOf(variable) === keep || !hidden.has(variable.getId()))
+    .map((variable) => [variable.name, valueOf(variable)]);
 }
 
 export class VariableNameDropdown extends Blockly.FieldDropdown {
-  constructor(fixedOptions) {
+  constructor(fixedOptions, valueOf = (variable) => variable.name) {
     super(function () {
       return [
         ...fixedOptions(),
-        ...variableNameOptions(this.getSourceBlock(), this.candidateValue_ ?? this.getValue()),
+        ...variableOptions(this.getSourceBlock(), this.candidateValue_ ?? this.getValue(), valueOf),
       ];
     });
     this.candidateValue_ = null;
@@ -158,5 +158,53 @@ export class VariableNameDropdown extends Blockly.FieldDropdown {
     } finally {
       this.candidateValue_ = null;
     }
+  }
+}
+
+// Like VariableNameDropdown, but stores the variable's id, so it serializes as
+// field_variable does ({ id }) and follows renames.
+export class VariableIdDropdown extends VariableNameDropdown {
+  constructor(fixedOptions) {
+    super(fixedOptions, (variable) => variable.getId());
+  }
+
+  referencesVariables() {
+    return true;
+  }
+
+  getVariable() {
+    return this.getSourceBlock()?.workspace?.getVariableMap().getVariableById(this.getValue()) ?? null;
+  }
+
+  getText_() {
+    return this.getVariable()?.name ?? super.getText_();
+  }
+
+  refreshVariableName() {
+    this.forceRerender();
+  }
+
+  saveState(doFullSerialization) {
+    const variable = this.getVariable();
+    if (!variable) return this.getValue();
+    const state = { id: variable.getId() };
+    if (doFullSerialization) {
+      state.name = variable.name;
+      state.type = variable.type;
+    }
+    return state;
+  }
+
+  loadState(state) {
+    if (state && typeof state === 'object') {
+      const workspace = this.getSourceBlock()?.workspace;
+      const variable =
+        workspace && state.name
+          ? Blockly.Variables.getOrCreateVariablePackage(workspace, state.id, state.name, state.type ?? '')
+          : null;
+      this.setValue(variable?.getId() ?? state.id);
+      return;
+    }
+    this.setValue(state);
   }
 }

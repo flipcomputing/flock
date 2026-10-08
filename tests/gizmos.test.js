@@ -831,6 +831,34 @@ export function runGizmoTests(flock) {
           expect(mgr.attachedMesh).to.equal(gizmoMeshC);
         });
 
+        it('eye button with no selection orbits the origin', function () {
+          mgr.attachToMesh(null);
+          toggleGizmo('eye');
+          const cam = flock.scene.activeCamera;
+          expect(cam.metadata?.orbitView).to.be.true;
+          expect(cam.target.length()).to.be.closeTo(0, 1e-6);
+          expect(cam.radius).to.be.greaterThan(50);
+          expect(window.orbitMesh).to.be.null;
+          expect(document.getElementById('eyeButton').classList.contains('active')).to.be.true;
+        });
+
+        it('clicking a mesh while orbiting the origin retargets orbit to it', function () {
+          mgr.attachToMesh(null);
+          toggleGizmo('eye');
+          const box = makeBox('orbitFromOriginBox');
+          box.position.set(5, 0, 0);
+          box.computeWorldMatrix(true);
+          flock.scene.onPointerObservable.notifyObservers(
+            new BABYLON.PointerInfo(BABYLON.PointerEventTypes.POINTERPICK, fakeMouseEvent(0), {
+              pickedMesh: box,
+            })
+          );
+          const cam = flock.scene.activeCamera;
+          expect(cam.metadata?.orbitView).to.be.true;
+          expect(window.orbitMesh).to.equal(box);
+          expect(cam.target.x).to.be.closeTo(5, 1e-6);
+        });
+
         it('position keeps the orbit camera with both buttons lit', function () {
           orbitWithButtons();
           expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;

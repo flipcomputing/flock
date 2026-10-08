@@ -509,6 +509,23 @@ export function runCameraTests(flock) {
         expect(overhead.up).to.be.closeTo(90, 1e-3);
       });
 
+      it('should orbit the origin when the target is __origin__', async function () {
+        const { name, camera, frame } = await addCamera('camOrbitOrigin', {
+          type: 'orbit',
+          target: '__origin__',
+          distance: 10,
+          up: 30,
+          around: 0,
+        });
+
+        expect(camera).to.be.instanceOf(flock.BABYLON.ArcRotateCamera);
+        expect(camera.getTarget().length()).to.be.closeTo(0, 1e-6);
+        expect(frame.metadata.cameraTarget).to.exist;
+        const offset = flock.cameraOffsetFromTarget(name, camera.position);
+        expect(offset.distance).to.be.closeTo(10, 1e-3);
+        expect(offset.up).to.be.closeTo(30, 1e-3);
+      });
+
       it('should not dispose an active rig camera when a follow camera is attached', async function () {
         const targetId = 'camAttachTarget';
         await flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });

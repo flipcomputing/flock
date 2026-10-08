@@ -1468,7 +1468,8 @@ export function viewMeshWithCamera(block) {
   if (mesh) attachOrbitView(mesh);
 }
 
-// Attach an ArcRotateCamera that orbits the given mesh (free-camera mode only).
+// Attach an ArcRotateCamera that orbits the given mesh, or the world origin
+// when there's no mesh (free-camera mode only).
 function attachOrbitView(mesh) {
   const BABYLON = flock.BABYLON;
   const scene = flock.scene;
@@ -1478,16 +1479,21 @@ function attachOrbitView(mesh) {
   const freeCamera = scene.activeCamera;
   if (!freeCamera) return;
 
-  // Orbit target and gizmo selection are independent.
-  applyMeshSelection(mesh);
-  const selectedMesh = gizmoManager.attachedMesh ?? mesh;
+  let selectedMesh = null;
+  let target = BABYLON.Vector3.Zero();
+  let radius = 8;
+  if (mesh) {
+    // Orbit target and gizmo selection are independent.
+    applyMeshSelection(mesh);
+    selectedMesh = gizmoManager.attachedMesh ?? mesh;
 
-  mesh.computeWorldMatrix(true);
-  const { min, max } = mesh.getHierarchyBoundingVectors(true);
-  const target = BABYLON.Vector3.Center(min, max);
-  const size = max.subtract(min);
-  const extent = Math.max(size.x, size.y, size.z);
-  const radius = Math.max(extent * 3, 8);
+    mesh.computeWorldMatrix(true);
+    const { min, max } = mesh.getHierarchyBoundingVectors(true);
+    target = BABYLON.Vector3.Center(min, max);
+    const size = max.subtract(min);
+    const extent = Math.max(size.x, size.y, size.z);
+    radius = Math.max(extent * 3, 8);
+  }
 
   const orbitCamera = new BABYLON.ArcRotateCamera(
     'orbitViewCamera',
@@ -1498,6 +1504,7 @@ function attachOrbitView(mesh) {
     scene
   );
   flock._configureOrbitCamera(orbitCamera);
+  if (!mesh) frameWholeGround(orbitCamera);
   // Rotation comes from CameraControls via the InputManager, so drop Babylon's
   // keyboard input to keep physical arrows on a single path.
   orbitCamera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
@@ -1533,10 +1540,22 @@ function attachOrbitView(mesh) {
     });
   }
   window.orbitViewActive = true;
-  window.orbitBlock = window.currentBlock ?? null;
+  window.orbitBlock = mesh ? (window.currentBlock ?? null) : null;
   window.orbitMesh = selectedMesh;
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
   watchEyeGizmoRetarget();
+}
+
+function frameWholeGround(orbitCamera) {
+  const ground = flock.ground;
+  const groundRadius =
+    ground && !ground.isDisposed?.() ? ground.getBoundingInfo().boundingSphere.radiusWorld : 71;
+  const engine = flock.scene.getEngine();
+  const aspect = engine.getAspectRatio(orbitCamera) || 1;
+  const halfFov = orbitCamera.fov / 2;
+  const halfFovX = Math.atan(Math.tan(halfFov) * aspect);
+  orbitCamera.beta = Math.PI / 3;
+  orbitCamera.radius = (0.5 * groundRadius) / Math.sin(Math.min(halfFov, halfFovX));
 }
 
 // Restore the stashed free camera, disposing the orbit camera. Does not
@@ -1774,6 +1793,11 @@ export function captureViewToCameraBlock(block) {
       writePositionToBlock(block, flock.getBlockPositionFromMesh(frame));
       updateRotationBlock(frame);
     });
+    return;
+  }
+
+  if (block.getFieldValue('TARGET') === '__origin__') {
+    inEventGroup(() => writeCameraOffsetToBlock(block, frame, eye));
     return;
   }
 
@@ -4731,7 +4755,7 @@ function clearOrbitRetargetObserver() {
   orbitRetargetObserver = null;
 }
 
-// Eye: Orbit camera around selected or picked mesh
+// Eye: Orbit camera around the selected mesh, or the origin with no selection
 function handleEyeGizmo() {
   watchClickAwayFromCanvas();
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
@@ -4743,19 +4767,8 @@ function handleEyeGizmo() {
     return;
   }
 
-  pickMeshFromScene(
-    (pickedMesh) => {
-      if (!pickedMesh || pickedMesh.name === 'ground') {
-        exitGizmoState();
-        return;
-      }
-      attachMeshForActiveTool(pickedMesh);
-      attachOrbitView(pickedMesh);
-      showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
-    },
-    false,
-    translate('select_mesh_eye_prompt')
-  );
+  attachOrbitView(null);
+  showStatus(translate('orbit_origin_info'), { owner: 'eye-gizmo', hint: true });
 }
 
 export function enableGizmos() {

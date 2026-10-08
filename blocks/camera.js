@@ -8,6 +8,18 @@ import {
   registerBlockHandler,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
+import { VariableIdDropdown } from './variableScope.js';
+
+class OrbitTargetDropdown extends VariableIdDropdown {
+  constructor() {
+    super(() => [[translate('origin_option'), '__origin__']]);
+  }
+
+  static fromJson() {
+    return new OrbitTargetDropdown();
+  }
+}
+Blockly.fieldRegistry.register('field_orbit_target', OrbitTargetDropdown);
 
 export function defineCameraBlocks() {
   Blockly.Blocks['camera_control'] = {
@@ -183,7 +195,10 @@ export function defineCameraBlocks() {
     { type: 'input_value', name: 'AROUND', check: 'Number' },
   ];
   defineCameraBlock('create_follow_camera', targetCameraArgs);
-  defineCameraBlock('create_orbit_camera', targetCameraArgs);
+  defineCameraBlock('create_orbit_camera', [
+    { type: 'field_orbit_target', name: 'TARGET' },
+    ...targetCameraArgs.slice(1),
+  ]);
 
   Blockly.Blocks['switch_camera'] = {
     init: function () {

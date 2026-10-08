@@ -704,10 +704,11 @@ export function registerSceneGenerators(javascriptGenerator) {
   };
 
   const targetCameraGenerator = (type) => (block) => {
-    const target = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue('TARGET'),
-      Blockly.Names.NameType.VARIABLE
-    );
+    const targetId = block.getFieldValue('TARGET');
+    const target =
+      targetId === '__origin__'
+        ? '"__origin__"'
+        : javascriptGenerator.nameDB_.getName(targetId, Blockly.Names.NameType.VARIABLE);
     return createMesh(block, 'Camera', [
       `type: ${JSON.stringify(type)}`,
       `target: ${target}`,

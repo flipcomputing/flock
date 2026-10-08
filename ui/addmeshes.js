@@ -477,7 +477,10 @@ export function readTargetCameraOptions(block) {
     return Number.isFinite(value) ? value : fallback;
   };
   return {
-    target: resolveVariableMeshName(block, 'TARGET'),
+    target:
+      block.getFieldValue('TARGET') === '__origin__'
+        ? '__origin__'
+        : resolveVariableMeshName(block, 'TARGET'),
     distance: readNumber('DISTANCE', 7),
     up: readNumber('UP', 30),
     around: readNumber('AROUND', 0),

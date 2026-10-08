@@ -454,6 +454,13 @@ export const flockCamera = {
         return;
       }
 
+      if (target === '__origin__') {
+        const origin = flockCamera._originNode();
+        frame.metadata.cameraTarget = origin;
+        finish(flockCamera._createTargetCamera(frame, cameraType, origin, { distance, up, around }));
+        return;
+      }
+
       flock.whenModelReady(target, (targetMesh) => {
         if (!targetMesh || frame.isDisposed()) {
           finish(null);
@@ -470,6 +477,14 @@ export const flockCamera = {
       });
     });
     return frame.metadata.cameraReady;
+  },
+  _originNode() {
+    const scene = flock.scene;
+    const existing = scene.getTransformNodeByName('__origin__');
+    if (existing && !existing.isDisposed()) return existing;
+    const origin = new flock.BABYLON.TransformNode('__origin__', scene);
+    origin.doNotSerialize = true;
+    return hideFromInspector(origin);
   },
   async updateCameraRig(frameName, options = {}) {
     const frame = flock.scene?.getMeshByName(frameName);

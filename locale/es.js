@@ -481,7 +481,7 @@ export default {
   get_camera_tooltip: 'Obtén la cámara actual de la escena.', // human
   create_fly_camera_tooltip: 'Añade una cámara con la que puedes volar. Mira hacia donde apunta su marco.', // AI-generated; needs validation
   create_follow_camera_tooltip: 'Añade una cámara que sigue a un objeto. El jugador puede girarla alrededor del objeto.', // AI-generated; needs validation
-  create_orbit_camera_tooltip: 'Añade una cámara que orbita alrededor de un objeto. Arrastra para orbitar y desplaza para hacer zoom.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Añade una cámara que orbita alrededor de un objeto o del origen. Arrastra para orbitar y desplaza para hacer zoom.', // AI-generated; needs validation
   switch_camera_tooltip: 'Cambia la vista a una cámara.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
@@ -999,6 +999,7 @@ export default {
   ONCE_option: 'una vez', // human
   LOOP_option: 'bucle', // human
   everywhere_option: 'en todas partes', // human
+  origin_option: 'origen', // AI-generated; needs validation
 
   theme_bright_option: 'brillante', // human
   theme_calm_option: 'tranquilo', // human
@@ -1372,7 +1373,7 @@ export default {
   select_mesh_delete_prompt: 'Haz clic en un objeto para eliminarlo.', // Google translate
   select_mesh_duplicate_prompt: 'Selecciona un objeto para duplicar.', // Google (had to update it)
   place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'Haz clic en un objeto para orbitar alrededor de él.',
+  orbit_origin_info: 'Arrastra para mover la cámara alrededor del origen. Haz clic en un objeto para orbitar alrededor de él.',
   orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
   camera_preview_info: 'Mirando a través de la cámara. Haz clic en el botón de la cámara para volver.', // AI-generated; needs validation
   capture_camera_view_label: 'Ajustar esta cámara a la vista actual', // AI-generated; needs validation

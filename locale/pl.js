@@ -1211,7 +1211,7 @@ export default {
   select_mesh_delete_prompt: 'Kliknij obiekt, aby go usunąć.',
   select_mesh_duplicate_prompt: 'Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'Kliknij, aby umieścić kopię.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'Kliknij obiekt, aby go okrążyć.',
+  orbit_origin_info: 'Przeciągnij, aby przesunąć kamerę wokół punktu początkowego. Kliknij obiekt, aby go okrążyć.',
   orbit_mesh_info: 'Przeciągnij, aby przesunąć kamerę wokół obiektu',
   camera_preview_info: 'Patrzysz przez kamerę. Kliknij przycisk kamery, aby wrócić.', // AI-generated; needs validation
   capture_camera_view_label: 'Ustaw tę kamerę na bieżący widok', // AI-generated; needs validation
