@@ -1532,6 +1532,7 @@ export function initializeVariableIndexes() {
     embedded: 1,
     intersection: 1,
     hull: 1,
+    combined: 1,
     mirror: 1,
   });
 

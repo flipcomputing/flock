@@ -518,6 +518,36 @@ function isDescendantOfGroup(mesh) {
   return false;
 }
 
+async function collectCombineParts(build, blockKey) {
+  if (typeof build !== 'function') return [];
+  const groupName = flock.createGroup(`combine__${blockKey}_parts`);
+  if (!groupName) return [];
+  const group = flock.scene.getMeshByName(groupName);
+  group.setEnabled(false);
+  try {
+    await build(groupName);
+    await flock._whenHierarchySettled(group);
+    return takeCombineParts(group).map((mesh) => mesh.name);
+  } finally {
+    flock.disposeMesh(group);
+  }
+}
+
+function takeCombineParts(group) {
+  const objects = group
+    .getChildMeshes(true)
+    .flatMap((child) => [
+      child,
+      ...child.getChildMeshes(false).filter((mesh) => flock._nameRegistry.has(mesh.name)),
+    ]);
+  objects.forEach((mesh) => mesh.setParent(null));
+  return objects.filter((mesh) => {
+    if (mesh.metadata?.shapeType !== 'Group') return true;
+    flock.disposeMesh(mesh);
+    return false;
+  });
+}
+
 function inheritPrefabMaterialIndex(mergedMesh, sources) {
   const [index, ...rest] = sources.map((mesh) => mesh.metadata?.prefabMaterialIndex);
   if (index !== undefined && rest.every((other) => other === index)) {
@@ -635,6 +665,17 @@ export const flockCSG = {
             mergedMesh.metadata.sectionOwner = flock._currentSection;
             mergedMesh.metadata.sharedMaterial = false;
             inheritPrefabMaterialIndex(mergedMesh, validMeshes);
+
+            if (mergedMesh !== singleMesh) {
+              mergedMesh.setParent(null);
+              try {
+                const physicsShape = new flock.BABYLON.PhysicsShapeMesh(mergedMesh, flock.scene);
+                flock.applyPhysics(mergedMesh, physicsShape);
+              } catch (e) {
+                console.warn('Suppressed non-critical error:', e);
+              }
+              validMeshes.forEach((mesh) => ghostOrDisposeCsgSource(mesh, originalIdentities));
+            }
 
             return modelId;
           }
@@ -1348,6 +1389,32 @@ export const flockCSG = {
     vertexData.applyToMesh(hullMesh);
 
     return hullMesh;
+  },
+  async combineMeshes(modelId, { operation = 'merge', build = null, tools = null } = {}) {
+    if (typeof modelId !== 'string') return null;
+    const separator = modelId.lastIndexOf('__');
+    const [name, blockKey] =
+      separator === -1
+        ? [modelId, modelId]
+        : [modelId.slice(0, separator), modelId.slice(separator + 2)];
+
+    const parts = await collectCombineParts(build, blockKey);
+    if (operation === 'subtract' || operation === 'embed') {
+      const toolParts = await collectCombineParts(tools, blockKey);
+      if (!parts.length) return null;
+      const base =
+        parts.length > 1 ? await this.mergeMeshes(`${name}_base__${blockKey}`, parts) : parts[0];
+      if (!base) return null;
+      return operation === 'embed'
+        ? this.embedMeshes(modelId, base, toolParts)
+        : this.subtractMeshes(modelId, base, toolParts);
+    }
+
+    const combine = { merge: 'mergeMeshes', intersect: 'intersectMeshes', hull: 'createHull' }[
+      operation
+    ];
+    if (!combine || !parts.length) return null;
+    return this[combine](modelId, parts);
   },
   prepareMeshes(modelId, meshNames, blockId) {
     return Promise.all(

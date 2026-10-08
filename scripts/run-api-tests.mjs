@@ -174,6 +174,11 @@ const AVAILABLE_SUITES = [
     pattern: '@prefabs',
   },
   {
+    id: 'combine',
+    name: 'Combine Tests',
+    pattern: '@combine',
+  },
+  {
     id: 'microbit',
     name: 'micro:bit Tests',
     pattern: '@microbit',

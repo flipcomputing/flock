@@ -662,6 +662,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     return;
   }
 
+  if (isInsideActiveCombine(block)) return;
+
   const meshes = getMeshesFromBlock(block);
   const isConnectedToEnabledChain = isBlockConnectedToEnabledChain(block);
   if (flock.meshDebug) console.log(meshes);
@@ -730,6 +732,13 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
   ) {
     updateMeshFromBlock(meshes, block, changeEvent);
   }
+}
+
+function isInsideActiveCombine(block) {
+  for (let parent = block.getSurroundParent?.(); parent; parent = parent.getSurroundParent()) {
+    if (parent.type === 'combine' && parent.getFieldValue('ACTIVE') === 'TRUE') return true;
+  }
+  return false;
 }
 
 function isInsideDefinition(block) {

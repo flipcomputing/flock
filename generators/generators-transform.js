@@ -5,6 +5,7 @@ import {
   getVariableInfo,
   getThenCallback,
   maybeParentToGroup,
+  withGroupParent,
 } from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
@@ -545,6 +546,33 @@ export function registerTransformGenerators(javascriptGenerator) {
 
     // Use helper function to create the hull
     return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
+  };
+
+  javascriptGenerator.forBlock['combine'] = function (block) {
+    const hasTools = Boolean(block.getInput('TOOLS'));
+    const statements = (name) => javascriptGenerator.statementToCode(block, name) || '';
+
+    if (block.getFieldValue('ACTIVE') !== 'TRUE') {
+      return statements('PARTS') + (hasTools ? statements('TOOLS') : '');
+    }
+
+    const { generatedName: resultVar, userVariableName } = getVariableInfo(block, 'RESULT_VAR');
+    const meshId = `${userVariableName}__${block.id}`;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+
+    const compartment = (key, name) => {
+      const group = javascriptGenerator.nameDB_.getDistinctName(
+        name.toLowerCase(),
+        Blockly.Names.NameType.VARIABLE
+      );
+      const body = withGroupParent(group, () => statements(name));
+      return `  ${key}: async function (${group}) {\n${body}  },\n`;
+    };
+
+    return `${resultVar} = await combineMeshes(${JSON.stringify(meshId)}, {
+  operation: ${JSON.stringify(block.getFieldValue('OPERATION'))},
+${compartment('build', 'PARTS')}${hasTools ? compartment('tools', 'TOOLS') : ''}});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Mirror an object across one axis

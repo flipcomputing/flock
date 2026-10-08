@@ -197,6 +197,9 @@ export default {
   embed_meshes: 'add %1 as %2 embed %3',
   intersection_meshes: 'add %1 as intersect %2',
   hull_meshes: 'add %1 as hull of %2',
+  combine: 'combine %1 %2 active: %3',
+  combine_subtract_label: 'subtract',
+  combine_embed_label: 'embed',
   flip: 'flip %1 %2',
   mirror_mesh: 'add %1 as mirror of %2 along %3 about %4',
 
@@ -522,6 +525,8 @@ export default {
     'Cut a list of objects into a base object and store the result. The objects are kept.',
   intersection_meshes_tooltip: 'Intersect a list of objects and store the resulting geometry.',
   hull_meshes_tooltip: 'Create a convex hull from a list of objects and store the result.',
+  combine_tooltip:
+    'Combine the objects inside into one and store the result. Subtract and embed use the objects in the second section as tools. Uncheck active to change individual objects.',
   flip_tooltip: 'Mirror an object across an axis. Does nothing on animated characters.',
   mirror_mesh_tooltip:
     'Add a mirrored copy of an object across an axis, through the centre of another object. Does nothing on animated characters.',
@@ -778,6 +783,11 @@ export default {
   snippet_desk_hint: 'A desk prefab. Give it a width, height, depth, a drawer material and a material for the frame. Its half-width top drawer sits to the right with open knee space beside it, and slides open when clicked, then shuts after a few seconds. The full-depth drawer is an open box you can place objects inside.',
 
   // Dropdown option translations
+  merge_option: 'merge',
+  subtract_option: 'subtract',
+  embed_option: 'embed',
+  intersect_option: 'intersect',
+  hull_option: 'hull',
   AWAIT_option: 'await',
   START_option: 'start',
   CREATE_option: 'create',

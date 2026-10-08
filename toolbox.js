@@ -1888,6 +1888,11 @@ const toolboxTransformModify = {
   contents: [
     {
       kind: 'block',
+      type: 'combine',
+      keyword: 'combine',
+    },
+    {
+      kind: 'block',
       type: 'merge_meshes',
       keyword: 'merge',
       inputsInline: true,
