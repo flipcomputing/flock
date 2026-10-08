@@ -56,7 +56,7 @@ import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { isBodyAlive } from '../api/physics.js';
-import { isPositionPickActive } from './pickposition.js';
+import { isPositionPickActive, startPositionPick } from './pickposition.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
 export let gizmoManager;
@@ -757,6 +757,7 @@ function blockedToolActive() {
     'scaleButton',
     'colorPickerButton',
     'deleteButton',
+    'positionPinButton',
   ].some((id) => document.getElementById(id)?.classList.contains('active'));
 }
 
@@ -1095,6 +1096,45 @@ export function copyCanvasSelection() {
     z: pos.z,
   };
   return true;
+}
+
+function pinBlockForMesh(mesh) {
+  if (!mesh || mesh.name === 'ground' || mesh.isDisposed?.()) return null;
+  const blockKey = findParentWithBlockId(mesh)?.metadata?.blockKey;
+  const blockId = blockKey != null ? meshBlockIdMap[blockKey] : null;
+  const block = blockId ? Blockly.getMainWorkspace?.()?.getBlockById(blockId) : null;
+  return block?.getField?.('PICK_POSITION') ? block : null;
+}
+
+export function pickSelectedMeshPosition() {
+  const button = document.getElementById('positionPinButton');
+  if (button?.classList.contains('active')) {
+    exitGizmoState();
+    return;
+  }
+
+  const selected = pinBlockForMesh(gizmoManager?.attachedMesh);
+  if (selected) {
+    startPositionPick(selected);
+    return;
+  }
+
+  exitGizmoState();
+  watchClickAwayFromCanvas();
+  setGizmoButtonActive(button, true);
+  const prompt = translate('select_mesh_position_prompt');
+  const onPicked = (pickedMesh) => {
+    const block = pinBlockForMesh(pickedMesh);
+    if (!block) {
+      setTimeout(() => {
+        if (button?.classList.contains('active')) pickMeshFromScene(onPicked, false, prompt);
+      }, 0);
+      return;
+    }
+    setGizmoButtonActive(button, false);
+    startPositionPick(block);
+  };
+  pickMeshFromScene(onPicked, false, prompt);
 }
 
 export function cutCanvasSelection() {
@@ -4791,6 +4831,7 @@ export function enableGizmos() {
   const deleteButton = document.getElementById('deleteButton');
   const cameraButton = document.getElementById('cameraButton');
   const eyeButton = document.getElementById('eyeButton');
+  const positionPinButton = document.getElementById('positionPinButton');
   const showShapesButton = document.getElementById('showShapesButton');
   const colorPickerButton = document.getElementById('colorPickerButton');
   const aboutButton = document.getElementById('logo');
@@ -4815,6 +4856,7 @@ export function enableGizmos() {
     deleteButton,
     cameraButton,
     eyeButton,
+    positionPinButton,
     showShapesButton,
     colorPickerButton,
     aboutButton,
@@ -4857,6 +4899,7 @@ export function enableGizmos() {
   selectButton.addEventListener('click', () => toggleGizmo('select'));
   cameraButton.addEventListener('click', () => toggleGizmo('camera'));
   eyeButton.addEventListener('click', () => toggleGizmo('eye'));
+  positionPinButton?.addEventListener('click', () => pickSelectedMeshPosition());
   duplicateButton.addEventListener('click', () => toggleGizmo('duplicate'));
   deleteButton.addEventListener('click', () => toggleGizmo('delete'));
   showShapesButton.addEventListener('click', () => {

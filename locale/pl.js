@@ -1097,6 +1097,7 @@ export default {
   duplicate_block_button_ui: 'Duplikuj blok',
   camera_button_ui: 'Kontrola kamery',
   eye_button_ui: 'Obracaj wokół wybranego obiektu',
+  position_pin_button_ui: 'Wybierz pozycję zaznaczonego obiektu',
 
   info_panel_link_ui: 'Odwiedź stronę Flock XR (otwiera się w nowej karcie)',
   skip_to_scene_ui: 'Przejdź do sceny 3D', // ai
@@ -1209,6 +1210,7 @@ export default {
     'Kamera lotu, użyj sterowania na ekranie i przeciągnij, aby się rozejrzeć',
   select_mesh_prompt: 'Wybierz obiekt lub użyj klawiszy strzałek, aby przesunąć kursor.',
   select_mesh_delete_prompt: 'Kliknij obiekt, aby go usunąć.',
+  select_mesh_position_prompt: 'Wybierz obiekt do umieszczenia.',
   select_mesh_duplicate_prompt: 'Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'Kliknij, aby umieścić kopię.', // AI-generated; needs validation
   orbit_origin_info: 'Przeciągnij, aby przesunąć kamerę wokół punktu początkowego. Kliknij obiekt, aby go okrążyć.',

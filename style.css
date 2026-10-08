@@ -957,10 +957,16 @@ button {
   .gizmo-undo-redo {
     display: flex;
     flex: 1 1 0;
+    flex-direction: column;
     align-self: flex-end;
-    justify-content: flex-end;
+    align-items: flex-end;
     gap: 4px;
     padding: 0 8px 8px 0;
+  }
+
+  .gizmo-undo-redo-row {
+    display: flex;
+    gap: 4px;
   }
 
   .gizmo-undo-redo .bigbutton {
@@ -987,13 +993,15 @@ button {
 }
 
 /* No rule between neighbours in a pill: the padding does the separating. */
-.gizmo-buttons-inner .gizmo-button {
+.gizmo-buttons-inner .gizmo-button,
+.gizmo-undo-redo .gizmo-button {
   padding: 7px;
   background-color: transparent;
   border-radius: 0;
 }
 
-.gizmo-buttons-inner .gizmo-button path {
+.gizmo-buttons-inner .gizmo-button path,
+.gizmo-undo-redo .gizmo-button path {
   fill: var(--color-bg);
 }
 
@@ -1038,7 +1046,8 @@ button {
   background-color: var(--color-focus-outline);
 }
 
-.gizmo-buttons-inner .gizmo-button.active {
+.gizmo-buttons-inner .gizmo-button.active,
+.gizmo-undo-redo .gizmo-button.active {
   background-color: var(--color-focus-outline);
 }
 
@@ -1051,26 +1060,31 @@ button {
   background-color: var(--color-menu);
 }
 
-[data-theme='light'] .gizmo-buttons-inner .gizmo-button path {
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button path,
+[data-theme='light'] .gizmo-undo-redo .gizmo-button path {
   fill: var(--color-light-tool-ink);
 }
 
-[data-theme='light'] .gizmo-buttons-inner .gizmo-button:hover:not(:disabled):not(.active) {
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button:hover:not(:disabled):not(.active),
+[data-theme='light'] .gizmo-undo-redo .gizmo-button:hover:not(:disabled):not(.active) {
   background-color: var(--color-light-icon-hover);
 }
 
-[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active {
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active,
+[data-theme='light'] .gizmo-undo-redo .gizmo-button.active {
   background-color: var(--color-light-tool-ink);
 }
 
-[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active path {
+[data-theme='light'] .gizmo-buttons-inner .gizmo-button.active path,
+[data-theme='light'] .gizmo-undo-redo .gizmo-button.active path {
   fill: var(--color-light-icon-bar);
 }
 
 /* Sprung off the button so a band of pill shows through, micro:bit style, in
    a bright blue rather than the app's yellow. No radius of its own: the ring
    follows the button, so only the pill's outer corners are rounded. */
-.gizmo-buttons-inner .gizmo-button:focus-visible {
+.gizmo-buttons-inner .gizmo-button:focus-visible,
+.gizmo-undo-redo .gizmo-button:focus-visible {
   outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }

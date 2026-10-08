@@ -1094,6 +1094,7 @@ export default {
   duplicate_block_button_ui: 'Duplicera block',
   camera_button_ui: 'Kamerakontroller',
   eye_button_ui: 'Kretsa runt valt objekt',
+  position_pin_button_ui: 'Välj position för valt objekt',
 
   info_panel_link_ui: 'Besök Flock XR:s webbplats (öppnas i ny flik)',
   skip_to_scene_ui: 'Hoppa till 3D-scenen', // ai
@@ -1204,6 +1205,7 @@ export default {
     'Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
   select_mesh_prompt: 'Välj ett objekt, eller använd piltangenterna för att flytta kursorn.',
   select_mesh_delete_prompt: 'Klicka på ett objekt för att ta bort det.',
+  select_mesh_position_prompt: 'Välj ett objekt att placera.',
   select_mesh_duplicate_prompt: 'Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
   orbit_origin_info: 'Dra för att flytta kameran runt origo. Klicka på ett objekt för att kretsa runt det.',

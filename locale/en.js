@@ -1286,6 +1286,7 @@ export default {
   paste_block_button_ui: 'Paste block',
   camera_button_ui: 'Camera controls',
   eye_button_ui: 'Orbit around selected object',
+  position_pin_button_ui: 'Pick position for selected object',
   close_status_message_ui: 'Close message',
 
   info_panel_link_ui: 'Visit Flock XR website (opens in new tab)',
@@ -1437,6 +1438,7 @@ export default {
   fly_camera_instructions_touch: 'Fly camera, use the on-screen controls and drag to look around',
   select_mesh_prompt: 'Select an object, or use arrow keys to move the cursor.',
   select_mesh_delete_prompt: 'Click an object to delete it.',
+  select_mesh_position_prompt: 'Select an object to place.',
   select_mesh_duplicate_prompt: 'Select an object to duplicate.',
   place_duplicate_prompt: 'Click to place a copy.',
   orbit_origin_info: 'Drag to move the camera around the origin. Click an object to orbit around it.',

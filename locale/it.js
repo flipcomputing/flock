@@ -1114,6 +1114,7 @@ export default {
   duplicate_block_button_ui: 'Duplica blocco',
   camera_button_ui: 'Controlli camera',
   eye_button_ui: "Orbita attorno all'oggetto selezionato",
+  position_pin_button_ui: "Scegli la posizione dell'oggetto selezionato",
 
   info_panel_link_ui: 'Visita il sito Flock XR (apre in una nuova scheda)',
   skip_to_scene_ui: 'Vai alla scena 3D', // ai
@@ -1228,6 +1229,7 @@ export default {
     'Telecamera volante, usa i controlli a schermo e trascina per guardarti intorno',
   select_mesh_prompt: 'Seleziona un oggetto, oppure usa le frecce per spostare il cursore.',
   select_mesh_delete_prompt: 'Clicca su un oggetto per eliminarlo.',
+  select_mesh_position_prompt: 'Seleziona un oggetto da posizionare.',
   select_mesh_duplicate_prompt: 'Seleziona un oggetto da duplicare.',
   place_duplicate_prompt: 'Fai clic per posizionare una copia.', // AI-generated; needs validation
   orbit_origin_info: "Trascina per muovere la telecamera intorno all'origine. Clicca su un oggetto per orbitargli attorno.",
