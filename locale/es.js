@@ -145,6 +145,8 @@ export default {
   load_object: 'añadir %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7', // human
   load_multi_object: 'añadir %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncolores: %7', // human
   load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncolores: %8', // human
+  initial_rotation_label: 'rotación',
+  initial_size_label: 'tamaño',
   then_label: 'luego', // human
 
   // Custom block translations - Animate blocks

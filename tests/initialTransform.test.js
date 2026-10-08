@@ -17,7 +17,7 @@ import {
   setInitialSizeValues,
   placeMoveAfterInitialTransforms,
 } from '../ui/initialTransform.js';
-import { updateMeshFromBlock } from '../ui/blockmesh.js';
+import { updateMeshFromBlock, applyInitialTransformRows } from '../ui/blockmesh.js';
 
 export function runInitialTransformTests(flock) {
   describe('ui/initialTransform @initialtransform', function () {
@@ -86,38 +86,46 @@ export function runInitialTransformTests(flock) {
     }
 
     describe('ensureInitialRotation', function () {
-      it('opens DO through the mutator and adds a seeded rotate_to for the own variable', function () {
+      it('opens DO and turns on the rotate row, seeded', function () {
         const box = ws.newBlock('create_box');
         const result = ensureInitialRotation(box, { x: 0, y: 90, z: 0 });
 
         expect(result.created).to.be.true;
         expect(result.addedDoSection).to.be.true;
-        expect(box.mutationToDom().getAttribute('has_do')).to.equal('true');
-        expect(doTypes(box)).to.deep.equal(['rotate_to']);
-        expect(result.block.getFieldValue('MODEL')).to.equal(ownVar(box));
-        expect(getInitialRotationValues(result.block)).to.deep.equal({ x: 0, y: 90, z: 0 });
+        expect(result.block).to.equal(box);
+        expect(box.rotateShown_).to.be.true;
+        expect(doTypes(box)).to.deep.equal([]);
+        expect(getInitialRotationValues(box)).to.deep.equal({ x: 0, y: 90, z: 0 });
       });
 
-      it('returns the existing rotate_to rather than adding another', function () {
+      it('returns the row again rather than reseeding it', function () {
         const box = ws.newBlock('create_box');
-        const first = ensureInitialRotation(box);
+        ensureInitialRotation(box, { x: 0, y: 90, z: 0 });
         const second = ensureInitialRotation(box);
 
         expect(second.created).to.be.false;
-        expect(second.addedDoSection).to.be.false;
-        expect(second.block).to.equal(first.block);
-        expect(doTypes(box)).to.deep.equal(['rotate_to']);
+        expect(second.block).to.equal(box);
+        expect(getInitialRotationValues(box).y).to.equal(90);
       });
 
-      it('appends after existing DO statements', function () {
+      it('keeps writing to an existing rotate_to in DO', function () {
         const box = ws.newBlock('create_box');
-        const other = otherVariable();
-        appendTransform(box, 'rotate_to', other.getId());
-        ensureInitialRotation(box);
+        const legacy = appendTransform(box, 'rotate_to', ownVar(box));
+        const result = ensureInitialRotation(box);
 
-        const first = box.getInputTargetBlock('DO');
+        expect(result.block).to.equal(legacy);
+        expect(box.rotateShown_).to.be.false;
+      });
+
+      it('adds a rotate_to after existing DO statements for a block without rows', function () {
+        const freeform = ws.newBlock('create_freeform');
+        const other = otherVariable();
+        appendTransform(freeform, 'rotate_to', other.getId());
+        ensureInitialRotation(freeform);
+
+        const first = freeform.getInputTargetBlock('DO');
         expect(first.getFieldValue('MODEL')).to.equal(other.getId());
-        expect(first.getNextBlock().getFieldValue('MODEL')).to.equal(ownVar(box));
+        expect(first.getNextBlock().getFieldValue('MODEL')).to.equal(ownVar(freeform));
       });
     });
 
@@ -130,14 +138,25 @@ export function runInitialTransformTests(flock) {
     });
 
     describe('ensureInitialSize', function () {
-      it('splices the resize ahead of an existing rotate_to', function () {
+      it('turns on the resize row, measured', function () {
         const model = ws.newBlock('load_model');
-        ensureInitialRotation(model);
-        const result = ensureInitialSize(model, null, () => ({ x: 2, y: 3.14, z: 0 }));
+        const result = ensureInitialSize(model, null, () => ({ x: 2, y: 3.14, z: 1 }));
 
         expect(result.created).to.be.true;
-        expect(doTypes(model)).to.deep.equal(['resize', 'rotate_to']);
-        expect(result.block.getFieldValue('BLOCK_NAME')).to.equal(ownVar(model));
+        expect(result.block).to.equal(model);
+        expect(model.resizeShown_).to.be.true;
+        expect(doTypes(model)).to.deep.equal([]);
+        expect(getInitialSizeValues(model)).to.deep.equal({ x: 2, y: 3.1, z: 1 });
+      });
+
+      it('splices a resize ahead of an existing rotate_to for a block without rows', function () {
+        const group = ws.newBlock('create_group');
+        ensureInitialRotation(group);
+        const result = ensureInitialSize(group, null, () => ({ x: 2, y: 3.14, z: 0 }));
+
+        expect(result.created).to.be.true;
+        expect(doTypes(group)).to.deep.equal(['resize', 'rotate_to']);
+        expect(result.block.getFieldValue('BLOCK_NAME')).to.equal(ownVar(group));
         expect(getInitialSizeValues(result.block)).to.deep.equal({ x: 2, y: 3.1, z: 1 });
       });
 
@@ -195,8 +214,8 @@ export function runInitialTransformTests(flock) {
     describe('getInitialTransformOwner', function () {
       it('is the add block for its own enabled transform', function () {
         const box = ws.newBlock('create_box');
-        const { block } = ensureInitialRotation(box);
-        expect(getInitialTransformOwner(block)).to.equal(box);
+        const rotate = appendTransform(box, 'rotate_to', ownVar(box));
+        expect(getInitialTransformOwner(rotate)).to.equal(box);
       });
 
       it('is null for a transform naming another variable', function () {
@@ -207,9 +226,9 @@ export function runInitialTransformTests(flock) {
 
       it('is null for a disabled transform', function () {
         const box = ws.newBlock('create_box');
-        const { block } = ensureInitialRotation(box);
-        block.setDisabledReason(true, 'test');
-        expect(getInitialTransformOwner(block)).to.be.null;
+        const rotate = appendTransform(box, 'rotate_to', ownVar(box));
+        rotate.setDisabledReason(true, 'test');
+        expect(getInitialTransformOwner(rotate)).to.be.null;
       });
     });
 
@@ -218,8 +237,8 @@ export function runInitialTransformTests(flock) {
         const clone = ws.newBlock('clone_mesh');
         const cloneVar = clone.getFieldValue('CLONE_VAR');
         appendTransform(clone, 'move_to_xyz', cloneVar);
-        ensureInitialRotation(clone);
-        ensureInitialSize(clone, null, () => ({ x: 1, y: 1, z: 1 }));
+        appendTransform(clone, 'resize', cloneVar);
+        appendTransform(clone, 'rotate_to', cloneVar);
         placeMoveAfterInitialTransforms(clone);
 
         expect(doTypes(clone)).to.deep.equal(['resize', 'rotate_to', 'move_to_xyz']);
@@ -229,7 +248,7 @@ export function runInitialTransformTests(flock) {
         const clone = ws.newBlock('clone_mesh');
         const cloneVar = clone.getFieldValue('CLONE_VAR');
         appendTransform(clone, 'move_to_xyz', cloneVar);
-        ensureInitialRotation(clone);
+        appendTransform(clone, 'rotate_to', cloneVar);
         appendTransform(clone, 'rotate_to', otherVariable().getId());
         placeMoveAfterInitialTransforms(clone);
 
@@ -247,10 +266,18 @@ export function runInitialTransformTests(flock) {
           positionAt: flock.positionAt,
           _positionAtBase: flock._positionAtBase,
           updatePhysics: flock.updatePhysics,
+          _getAnchor: flock._getAnchor,
+          _applyInitialTransform: flock._applyInitialTransform,
+          getBlockPositionFromMesh: flock.getBlockPositionFromMesh,
+          setBlockPositionOnMesh: flock.setBlockPositionOnMesh,
         };
         flock.positionAt = (name, opts) => calls.push({ rule: 'anchor', name, opts });
         flock._positionAtBase = (name, opts) => calls.push({ rule: 'base', name, opts });
         flock.updatePhysics = () => {};
+        flock._getAnchor = () => ({ x: 0, y: 0, z: 0 });
+        flock._applyInitialTransform = () => {};
+        flock.getBlockPositionFromMesh = () => ({ x: 0, y: 0, z: 0 });
+        flock.setBlockPositionOnMesh = () => {};
         restore = () => Object.assign(flock, originals);
       });
 
@@ -280,15 +307,146 @@ export function runInitialTransformTests(flock) {
 
       it('places an add block by its unrotated base, as creation does', function () {
         const box = makeBox();
-        ensureInitialRotation(box, { x: 0, y: 0, z: 45 });
+        appendTransform(box, 'rotate_to', ownVar(box));
         editY(box, 2);
         expect(calls.map((c) => c.rule)).to.deep.equal(['base']);
         expect(Number(calls[0].opts.y)).to.equal(2);
       });
 
+      it('places an add block with rows by its anchor, as creation does', function () {
+        const box = makeBox();
+        ensureInitialRotation(box, { x: 0, y: 0, z: 45 });
+        editY(box, 2);
+        expect(calls.map((c) => c.rule)).to.deep.equal(['anchor']);
+      });
+
       it('places a prefab by its anchor, as creation does', function () {
         editY(makeBox(), 2, { isPrefab: true });
         expect(calls.map((c) => c.rule)).to.deep.equal(['anchor']);
+      });
+    });
+
+    describe('live row edits', function () {
+      const created = [];
+
+      afterEach(function () {
+        created.splice(0).forEach((id) => flock.dispose(id));
+      });
+
+      function makeBoxWithMesh(position) {
+        const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+        const box = Blockly.serialization.blocks.append(
+          {
+            type: 'create_box',
+            inputs: { X: number(position.x), Y: number(position.y), Z: number(position.z) },
+          },
+          ws
+        );
+        const id = flock.createBox(`liveRowBox_${Date.now()}`, {
+          width: 1,
+          height: 2,
+          depth: 1,
+          position: [position.x, position.y, position.z],
+        });
+        created.push(id);
+        return { box, mesh: flock.scene.getMeshByName(id) };
+      }
+
+      function worldBox(mesh) {
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        return mesh.getBoundingInfo().boundingBox;
+      }
+
+      it('rotates the mesh and rests its anchor on the block position, as Play does', function () {
+        const { box, mesh } = makeBoxWithMesh({ x: 2, y: 0, z: -1 });
+        ensureInitialRotation(box, { x: 0, y: 0, z: 90 });
+        applyInitialTransformRows(box, [mesh]);
+
+        const bounds = worldBox(mesh);
+        expect(bounds.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(bounds.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(bounds.centerWorld.z).to.be.closeTo(-1, 0.01);
+        expect(bounds.maximumWorld.x - bounds.minimumWorld.x).to.be.closeTo(2, 0.01);
+      });
+
+      it('keeps a rotated plane centred on its block position, clear of a wall', function () {
+        const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+        const block = Blockly.serialization.blocks.append(
+          { type: 'create_plane', inputs: { X: number(1.02), Y: number(1), Z: number(0) } },
+          ws
+        );
+        const id = flock.createPlane(`liveRowPlane_${Date.now()}`, {
+          width: 2,
+          height: 2,
+          position: [1.02, 1, 0],
+        });
+        created.push(id);
+        const plane = flock.scene.getMeshByName(id);
+        ensureInitialRotation(block, { x: 0, y: -90, z: 0 });
+        applyInitialTransformRows(block, [plane]);
+
+        const bounds = worldBox(plane);
+        expect(bounds.minimumWorld.x).to.be.closeTo(1.02, 0.001);
+        expect(bounds.maximumWorld.x).to.be.closeTo(1.02, 0.001);
+        expect(bounds.centerWorld.y).to.be.closeTo(1, 0.001);
+      });
+
+      it('turns a rotation edit about the centre and records the new centre base', function () {
+        const { box, mesh } = makeBoxWithMesh({ x: 2, y: 0, z: -1 });
+        ensureInitialRotation(box, { x: 0, y: 0, z: 90 });
+        applyInitialTransformRows(box, [mesh], { aboutCentre: true });
+
+        const bounds = worldBox(mesh);
+        expect(bounds.centerWorld.y).to.be.closeTo(1, 0.01);
+        expect(bounds.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(getInitialRotationValues(box).z).to.equal(90);
+        expect(Number(box.getInputTargetBlock('Y').getFieldValue('NUM'))).to.equal(0.5);
+        expect(Number(box.getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(2);
+        expect(Number(box.getInputTargetBlock('Z').getFieldValue('NUM'))).to.equal(-1);
+      });
+
+      it('records a rotated clone in its move, and places it there after', async function () {
+        const sourceId = flock.createBox(`liveRowCloneSource_${Date.now()}`, {
+          width: 1,
+          height: 2,
+          depth: 1,
+          position: [3, 0, 0],
+        });
+        created.push(sourceId);
+        const cloneId = flock.cloneMesh({
+          sourceMeshName: sourceId,
+          cloneId: `liveRowClone_${Date.now()}`,
+        });
+        created.push(cloneId);
+        const cloneMesh = await flock.whenModelReady(cloneId);
+        const clone = Blockly.serialization.blocks.append({ type: 'clone_mesh' }, ws);
+
+        ensureInitialRotation(clone, { x: 0, y: 0, z: 90 });
+        applyInitialTransformRows(clone, [cloneMesh], { aboutCentre: true });
+        const move = clone.getInputTargetBlock('DO');
+        expect(move?.type).to.equal('move_to_xyz');
+        const read = (name) => Number(move.getInputTargetBlock(name).getFieldValue('NUM'));
+        expect(read('Y')).to.equal(0.5);
+        expect(worldBox(cloneMesh).centerWorld.y).to.be.closeTo(1, 0.01);
+
+        move.getInputTargetBlock('X').setFieldValue('-2', 'NUM');
+        applyInitialTransformRows(clone, [cloneMesh]);
+        const bounds = worldBox(cloneMesh);
+        expect(bounds.centerWorld.x).to.be.closeTo(-2, 0.01);
+        expect(bounds.minimumWorld.y).to.be.closeTo(0.5, 0.01);
+      });
+
+      it('stands the mesh back up when rotate is turned off', function () {
+        const { box, mesh } = makeBoxWithMesh({ x: 0, y: 0, z: 0 });
+        ensureInitialRotation(box, { x: 0, y: 0, z: 90 });
+        applyInitialTransformRows(box, [mesh]);
+        box.setRotateShown(false);
+        applyInitialTransformRows(box, [mesh]);
+
+        const bounds = worldBox(mesh);
+        expect(bounds.maximumWorld.y - bounds.minimumWorld.y).to.be.closeTo(2, 0.01);
+        expect(bounds.minimumWorld.y).to.be.closeTo(0, 0.01);
       });
     });
   });

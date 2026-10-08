@@ -12,6 +12,7 @@ import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js'
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
 import { isPlacementSurface } from './meshhelpers.js';
+import { usesAnchorPosition } from './initialTransform.js';
 import {
   startAlignBlobs,
   getAlignDelta,
@@ -123,7 +124,8 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
 
   function placeAgainst(marker) {
     if (!group) {
-      setPositionValues(block, getAlignedBlockPosition(mover, marker), block.type, 2);
+      const anchored = usesAnchorPosition(block) || Boolean(mover.metadata?.isPrefab);
+      setPositionValues(block, getAlignedBlockPosition(mover, marker, { anchored }), block.type, 2);
       return;
     }
     const delta = getAlignDelta(group, marker);

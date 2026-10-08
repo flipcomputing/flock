@@ -100,6 +100,26 @@ function aroundFractions(positions, indices, include = () => true) {
 // Snap a bone-attached mesh so its front faces the character's forward,
 // compensating for the bone's rest orientation. Post-attach rotates stay
 // in bone space, so Y remains character-relative yaw for user tweaks.
+// Attachments are fitted to the character standing upright, so a tilted
+// character carries them along instead of changing the fit.
+function withUprightTarget(target, fitFn) {
+  const savedQuaternion = target.rotationQuaternion?.clone() ?? null;
+  const savedRotation = target.rotation.clone();
+  const refresh = () =>
+    [target, ...target.getChildMeshes(false)].forEach((mesh) => mesh.computeWorldMatrix(true));
+  const parentRotation = flock.BABYLON.Quaternion.Identity();
+  target.parent?.computeWorldMatrix(true).decompose(undefined, parentRotation);
+  target.rotationQuaternion = flock.BABYLON.Quaternion.Inverse(parentRotation);
+  refresh();
+  try {
+    fitFn();
+  } finally {
+    target.rotationQuaternion = savedQuaternion;
+    target.rotation.copyFrom(savedRotation);
+    refresh();
+  }
+}
+
 function alignAttachedToCharacterFacing(attachedMesh, targetMesh) {
   try {
     const B = flock?.BABYLON;
@@ -1505,46 +1525,48 @@ export const flockMesh = {
                 offset: { x, y, z },
               });
 
-              meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+              withUprightTarget(targetMeshInstance, () => {
+                meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
 
-              alignAttachedToCharacterFacing(meshToAttachInstance, targetMeshInstance);
+                alignAttachedToCharacterFacing(meshToAttachInstance, targetMeshInstance);
 
-              if (logicalBoneName === 'Head') {
-                // Rest accessories on top of the head, not at the neck joint the bone sits
-                // at. The crown bone (if the rig has one) gives the head's real length —
-                // computed in world space so it already reflects any character scaling.
-                const headBasePos = bone.getAbsolutePosition(targetWithSkeleton);
-                const crownBone = bone.children?.[0];
-                const headLength = crownBone
-                  ? flock.BABYLON.Vector3.Distance(
-                      headBasePos,
-                      crownBone.getAbsolutePosition(targetWithSkeleton)
-                    )
-                  : 0;
-                const targetBaseY = headBasePos.y + headLength + Number(y || 0);
+                if (logicalBoneName === 'Head') {
+                  // Rest accessories on top of the head, not at the neck joint the bone sits
+                  // at. The crown bone (if the rig has one) gives the head's real length —
+                  // computed in world space so it already reflects any character scaling.
+                  const headBasePos = bone.getAbsolutePosition(targetWithSkeleton);
+                  const crownBone = bone.children?.[0];
+                  const headLength = crownBone
+                    ? flock.BABYLON.Vector3.Distance(
+                        headBasePos,
+                        crownBone.getAbsolutePosition(targetWithSkeleton)
+                      )
+                    : 0;
+                  const targetBaseY = headBasePos.y + headLength + Number(y || 0);
 
-                // A change to the mesh's local Y doesn't move its world Y 1:1 — the bone,
-                // skeleton mesh and character can all be scaled — so measure the actual
-                // local-to-world ratio along Y instead of assuming it's 1.
-                const baseLocalY = meshToAttachInstance.position.y;
-                meshToAttachInstance.computeWorldMatrix(true);
-                const w0 = meshToAttachInstance.getHierarchyBoundingVectors(
-                  true,
-                  (m) => m !== meshToAttachInstance
-                ).min.y;
-                meshToAttachInstance.position.y = baseLocalY + 1;
-                meshToAttachInstance.computeWorldMatrix(true);
-                const w1 = meshToAttachInstance.getHierarchyBoundingVectors(
-                  true,
-                  (m) => m !== meshToAttachInstance
-                ).min.y;
-                const worldPerLocalY = w1 - w0;
+                  // A change to the mesh's local Y doesn't move its world Y 1:1 — the bone,
+                  // skeleton mesh and character can all be scaled — so measure the actual
+                  // local-to-world ratio along Y instead of assuming it's 1.
+                  const baseLocalY = meshToAttachInstance.position.y;
+                  meshToAttachInstance.computeWorldMatrix(true);
+                  const w0 = meshToAttachInstance.getHierarchyBoundingVectors(
+                    true,
+                    (m) => m !== meshToAttachInstance
+                  ).min.y;
+                  meshToAttachInstance.position.y = baseLocalY + 1;
+                  meshToAttachInstance.computeWorldMatrix(true);
+                  const w1 = meshToAttachInstance.getHierarchyBoundingVectors(
+                    true,
+                    (m) => m !== meshToAttachInstance
+                  ).min.y;
+                  const worldPerLocalY = w1 - w0;
 
-                meshToAttachInstance.position.y = worldPerLocalY
-                  ? baseLocalY + (targetBaseY - w0) / worldPerLocalY
-                  : baseLocalY;
-                meshToAttachInstance.computeWorldMatrix(true);
-              }
+                  meshToAttachInstance.position.y = worldPerLocalY
+                    ? baseLocalY + (targetBaseY - w0) / worldPerLocalY
+                    : baseLocalY;
+                  meshToAttachInstance.computeWorldMatrix(true);
+                }
+              });
 
               flock._applyXRViewVisibility?.();
               flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);

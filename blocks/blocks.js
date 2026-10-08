@@ -8,6 +8,7 @@ import { flock } from '../flock.js';
 import {
   deleteMeshFromBlock,
   updateOrCreateMeshFromBlock,
+  handleInitialTransformRowsChange,
   getMeshFromBlock,
   getMeshesFromBlock,
   getActiveSceneControllerBlockId,
@@ -733,6 +734,8 @@ export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   if (changeEvent.blockId === block.id || isThisBlockCreated) {
     if (handleMeshLifecycleChange(block, changeEvent)) return;
   }
+
+  if (handleInitialTransformRowsChange(block, changeEvent)) return;
 
   // Handle field changes on self or attached unchainable children
   if (handleFieldOrChildChange(block, changeEvent)) return;
@@ -2196,34 +2199,33 @@ export const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
 export const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
 
 export function addDoMutatorWithToggleBehavior(block) {
-  // The "then" toggle button only exists while DO does; keep it in sync and
-  // refresh both icons (+ with the section absent, - with it present). The
-  // "then" label rides on the button's row - only while the section exists -
-  // so a translated word never widens the statement rows below it.
+  // Closing a section hides it rather than removing it, so its blocks are kept
+  // and still run. The "then" toggle button only exists while DO is open; keep
+  // it in sync and refresh both icons (+ while closed, - while open). The
+  // "then" label rides on the button's row - only while "then" is open - so a
+  // translated word never widens the statement rows below it.
+  const isOpen = (name) => Boolean(block.getInput(name)?.isVisible());
+
   const syncMutatorButtons = function () {
-    const hasDo = Boolean(block.getInput('DO'));
-    const hasThen = Boolean(block.getInput('THEN'));
+    const hasDo = isOpen('DO');
+    block.getInput('THEN')?.setVisible(hasDo && !block.thenHidden_);
+    const hasThen = isOpen('THEN');
 
     const doField = block.getField('TOGGLE_BUTTON');
     if (doField) {
       doField.setValue(hasDo ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
     }
 
-    if (hasDo && !block.getInput('THEN_BUTTON')) {
-      const thenButton = new Blockly.FieldImage(
-        DO_MUTATOR_PLUS,
-        30,
-        30,
-        'toggle then block',
-        block.toggleThenBlock.bind(block)
+    if (block.getInput('DO') && !block.getInput('THEN_BUTTON')) {
+      const thenButton = new Blockly.FieldImage(DO_MUTATOR_PLUS, 30, 30, 'toggle then block', () =>
+        block.toggleThenBlock()
       );
       block.appendDummyInput('THEN_BUTTON').appendField(thenButton, 'THEN_TOGGLE_BUTTON');
-      if (hasThen) {
+      if (block.getInput('THEN')) {
         block.moveInputBefore('THEN_BUTTON', 'THEN');
       }
-    } else if (!hasDo && block.getInput('THEN_BUTTON')) {
-      block.removeInput('THEN_BUTTON');
     }
+    block.getInput('THEN_BUTTON')?.setVisible(hasDo);
 
     const thenButtonInput = block.getInput('THEN_BUTTON');
     if (thenButtonInput) {
@@ -2262,27 +2264,29 @@ export function addDoMutatorWithToggleBehavior(block) {
     }
   };
 
-  // Toggle the "do" (constructor) section. Removing it also drops "then".
+  const showSection = function (name, show) {
+    const input = block.getInput(name);
+    if (input) input.setVisible(show);
+    else if (show) block.appendStatementInput(name).setCheck(null).appendField('');
+  };
+
+  block.isDoOpen = function () {
+    return isOpen('DO');
+  };
+
+  // Toggle the "do" (constructor) section. Closing it also hides "then".
   block.toggleDoBlock = function () {
     const oldState = mutationText();
-    if (this.getInput('DO')) {
-      if (this.getInput('THEN')) this.removeInput('THEN');
-      this.removeInput('DO');
-    } else {
-      this.appendStatementInput('DO').setCheck(null).appendField('');
-    }
+    showSection('DO', !isOpen('DO'));
     finishMutation(oldState);
   };
 
   // Toggle the "then" section, which runs once the constructor has completed.
   block.toggleThenBlock = function () {
-    if (!this.getInput('DO')) return;
+    if (!isOpen('DO')) return;
     const oldState = mutationText();
-    if (this.getInput('THEN')) {
-      this.removeInput('THEN');
-    } else {
-      this.appendStatementInput('THEN').setCheck(null).appendField('');
-    }
+    this.thenHidden_ = isOpen('THEN');
+    if (!this.thenHidden_) showSection('THEN', true);
     finishMutation(oldState);
   };
 
@@ -2292,7 +2296,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     30,
     30,
     'toggle do block', // Width, Height, Alt text
-    block.toggleDoBlock.bind(block) // Bind the event handler to the block
+    () => block.toggleDoBlock()
   );
 
   // Add the button to the block
@@ -2307,6 +2311,10 @@ export function addDoMutatorWithToggleBehavior(block) {
     const hasDo = Boolean(this.getInput('DO'));
     container.setAttribute('has_do', hasDo ? 'true' : 'false');
     container.setAttribute('has_then', hasDo && this.getInput('THEN') ? 'true' : 'false');
+    if (hasDo && !isOpen('DO')) container.setAttribute('do_hidden', 'true');
+    if (hasDo && this.getInput('THEN') && this.thenHidden_) {
+      container.setAttribute('then_hidden', 'true');
+    }
     return container;
   };
 
@@ -2314,12 +2322,14 @@ export function addDoMutatorWithToggleBehavior(block) {
   block.domToMutation = function (xmlElement) {
     const hasDo = xmlElement.getAttribute('has_do') === 'true';
     const hasThen = xmlElement.getAttribute('has_then') === 'true';
-    if (hasDo) {
+    if (hasDo && !this.getInput('DO')) {
       this.appendStatementInput('DO').setCheck(null).appendField('');
-      if (hasThen) {
-        this.appendStatementInput('THEN').setCheck(null).appendField('');
-      }
     }
+    if (hasDo && hasThen && !this.getInput('THEN')) {
+      this.appendStatementInput('THEN').setCheck(null).appendField('');
+    }
+    this.getInput('DO')?.setVisible(hasDo && xmlElement.getAttribute('do_hidden') !== 'true');
+    this.thenHidden_ = !hasThen || xmlElement.getAttribute('then_hidden') === 'true';
     syncMutatorButtons();
   };
 }

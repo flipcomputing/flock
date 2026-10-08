@@ -16,6 +16,7 @@ import {
   setGroupSelectionFollower,
   setGroupActiveToggleListener,
   setMirrorInUseCheck,
+  writeClonePosition,
 } from './blockmesh.js';
 import {
   highlightBlockById,
@@ -32,6 +33,7 @@ import {
   getNumberInput,
   isBlockLocked,
   stripLockState,
+  isDoOpen,
 } from './blocklyutil.js';
 import {
   getMeshRotationInDegrees,
@@ -64,6 +66,11 @@ import {
   findInitialSize,
   ensureInitialRotation,
   ensureInitialSize,
+  measureInitialSize,
+  usesAnchorPosition,
+  readBlockPosition,
+  placeAtBlockPosition,
+  writeMovedPosition,
   getInitialRotationValues,
   setInitialRotationValues,
   getInitialSizeValues,
@@ -1163,7 +1170,7 @@ export function pasteCanvasClipboard() {
   // clipboard (e.g. copied in the code view, pasted on the canvas).
   if (canvasClipboard?.snapshot) {
     const pastePos = root
-      ? flock.getBlockPositionFromMesh(root)
+      ? blockPositionOf(root)
       : { x: canvasClipboard.x, y: canvasClipboard.y, z: canvasClipboard.z };
     const source = canvasClipboard.blockId ? workspace.getBlockById(canvasClipboard.blockId) : null;
     const sourceAlive = source && !source.disposed ? source : null;
@@ -1921,32 +1928,6 @@ function showCameraInEditor(camera) {
   if (canvas) camera.attachControl(canvas, false);
 }
 
-function getScaledSize(mesh) {
-  let { originalMin, originalMax } = mesh.metadata || {};
-  // Empty container (e.g. a group): size lives in the children. Cache it
-  // like flock.resize() does rather than re-measuring every call.
-  if ((!originalMin || !originalMax) && mesh.getTotalVertices() === 0) {
-    const bounds = flock.getHierarchyLocalBounds(mesh);
-    mesh.metadata = mesh.metadata || {};
-    mesh.metadata.originalMin = bounds.min.clone();
-    mesh.metadata.originalMax = bounds.max.clone();
-    originalMin = mesh.metadata.originalMin;
-    originalMax = mesh.metadata.originalMax;
-  }
-  const min = originalMin ?? mesh.getBoundingInfo().boundingBox.minimum;
-  const max = originalMax ?? mesh.getBoundingInfo().boundingBox.maximum;
-
-  const baseX = max.x - min.x;
-  const baseY = max.y - min.y;
-  const baseZ = max.z - min.z;
-
-  return {
-    x: baseX * Math.abs(mesh.scaling.x),
-    y: baseY * Math.abs(mesh.scaling.y),
-    z: baseZ * Math.abs(mesh.scaling.z),
-  };
-}
-
 // Clean up gizmo state if aborted
 export function exitGizmoState(options = {}) {
   const { preserveOrbit = false } = options ?? {};
@@ -2195,6 +2176,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
       mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
     }
     setInitialRotationValues(rotateBlock, working, { axes: changedAxes });
+    writeAnchorAfterRotation(mesh, rotateBlock);
   };
   const onConfirm = () => {
     exitTransformState();
@@ -2429,7 +2411,7 @@ function setBlockAxisValue(block, inputName, value) {
 }
 
 function trackGizmoCreated(ownerBlock, result) {
-  if (result?.created) {
+  if (result?.created && result.block !== ownerBlock) {
     gizmoCreatedBlocks.set(result.block.id, {
       parentId: ownerBlock.id,
       createdDoSection: result.addedDoSection,
@@ -2477,10 +2459,16 @@ function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
 }
 
 function blockPositionOf(mesh) {
+  return readBlockPosition(mesh, meshMap[mesh?.metadata?.blockKey]);
+}
+
+// Rotating can move the anchor, so a block placed by its anchor gets the new one.
+function writeAnchorAfterRotation(mesh, rotateBlock) {
   const block = meshMap[mesh?.metadata?.blockKey];
-  return block?.type === 'clone_mesh' || isPrefab(mesh)
-    ? flock._getAnchor(mesh)
-    : flock.getBlockPositionFromMesh(mesh);
+  if (rotateBlock !== block || !usesAnchorPosition(block)) return;
+  const anchor = flock._getAnchor(mesh);
+  if (block.type === 'clone_mesh') writeClonePosition(block, anchor);
+  else writeMovedPosition(block, anchor);
 }
 
 // Update the blockly block after a rotation.
@@ -2501,6 +2489,7 @@ export function updateRotationBlock(mesh, axisFilter = null) {
 
   const axes = axisFilter ? ['x', 'y', 'z'].filter((axis) => axisFilter[axis]) : undefined;
   setInitialRotationValues(rotateBlock, getMeshRotationInDegrees(mesh), { axes });
+  writeAnchorAfterRotation(mesh, rotateBlock);
   Blockly.Events.setGroup(null);
 }
 
@@ -2593,7 +2582,7 @@ function findOrCreateResizeBlock(mesh) {
   const measureSize = () => {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
-    return getScaledSize(mesh);
+    return measureInitialSize(mesh);
   };
   return inEventGroup(() => {
     const resizeBlock = trackGizmoCreated(block, ensureInitialSize(block, mesh, measureSize));
@@ -2611,14 +2600,13 @@ function snapMemberPositionToBlock(member) {
   if (!key || member.isDisposed?.()) return;
   const memberBlock = meshMap[key];
   if (!memberBlock || memberBlock.disposed) return;
-  const live = flock.getBlockPositionFromMesh(member);
+  const live = readBlockPosition(member, memberBlock);
   const p = getXYZFromBlock(memberBlock);
   const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
-  flock.setBlockPositionOnMesh(member, {
+  placeAtBlockPosition(member, memberBlock, {
     x: num(p.x, live.x),
     y: num(p.y, live.y),
     z: num(p.z, live.z),
-    useY: true,
   });
   flock.updatePhysics?.(member);
 }
@@ -2915,7 +2903,7 @@ export function bakeGroupScale(groupMesh) {
       scaleMemberSizeInputs(m, factors.get(key), suppress);
       const childBlock = meshMap[key];
       if (childBlock && !childBlock.disposed) {
-        const pos = flock.getBlockPositionFromMesh(m);
+        const pos = readBlockPosition(m, childBlock);
         writePositionToBlock(childBlock, pos, { decimals: MEMBER_DECIMALS });
       }
     }
@@ -2942,7 +2930,7 @@ export function bakeGroupScale(groupMesh) {
       m.setParent(null);
       let pos;
       try {
-        pos = flock.getBlockPositionFromMesh(m);
+        pos = readBlockPosition(m, childBlock);
       } finally {
         m.setParent(parent);
       }
@@ -2970,7 +2958,7 @@ export function bakeGroupScale(groupMesh) {
     const resizeBlock = findExistingResizeBlock(groupMesh);
     if (resizeBlock) {
       suppress(resizeBlock.id);
-      setInitialSizeValues(resizeBlock, getScaledSize(groupMesh));
+      setInitialSizeValues(resizeBlock, measureInitialSize(groupMesh));
     }
     flock.updatePhysics?.(groupMesh);
   } finally {
@@ -3152,7 +3140,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
-        setInitialSizeValues(resizeBlock, getScaledSize(mesh));
+        setInitialSizeValues(resizeBlock, measureInitialSize(mesh));
         break;
       }
     }
@@ -3160,7 +3148,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
     // The drag re-anchors the world bottom, which on a rotated mesh is not
     // the unrotated base Play positions by - persist where it ended up.
     if (block.type !== 'create_group' && block.type !== 'clone_mesh') {
-      const pos = flock.getBlockPositionFromMesh(mesh);
+      const pos = blockPositionOf(mesh);
       const stale = ['x', 'y', 'z'].some(
         (axis) => !(Math.abs(getNumberInput(block, axis.toUpperCase()) - pos[axis]) <= 0.05)
       );
@@ -3308,7 +3296,7 @@ function updateChildBlockPositions(mesh, delta = null) {
     child.setParent(null);
     let pos;
     try {
-      pos = flock.getBlockPositionFromMesh(child);
+      pos = readBlockPosition(child, childBlock);
     } finally {
       child.setParent(childParent);
     }
@@ -4039,6 +4027,7 @@ export function updateChildBlockRotations(mesh) {
     if (!key || key === rootKey || seenKeys.has(key)) return;
     seenKeys.add(key);
 
+    const rotateBlock = findOrCreateRotateBlock(child);
     const childParent = child.parent;
     child.setParent(null);
     let rotation;
@@ -4047,12 +4036,11 @@ export function updateChildBlockRotations(mesh) {
       rotation = getMeshRotationInDegrees(child);
       // A rotated group moves its members: persist world positions too, read
       // in the same unparented window, or re-run restores them unrotated.
-      pos = flock.getBlockPositionFromMesh(child);
+      pos = readBlockPosition(child, meshMap[key]);
     } finally {
       child.setParent(childParent);
     }
 
-    const rotateBlock = findOrCreateRotateBlock(child);
     setInitialRotationValues(rotateBlock, rotation);
     let memberBlock = null;
     if (pos) {
@@ -4075,13 +4063,12 @@ export function updateChildBlockRotations(mesh) {
         }
         if (memberBlock && !memberBlock.disposed) {
           const p = getXYZFromBlock(memberBlock);
-          const live = flock.getBlockPositionFromMesh(child);
+          const live = readBlockPosition(child, memberBlock);
           const num = (v, fallback) => (Number.isFinite(Number(v)) ? Number(v) : fallback);
-          flock.setBlockPositionOnMesh(child, {
+          placeAtBlockPosition(child, memberBlock, {
             x: num(p.x, live.x),
             y: num(p.y, live.y),
             z: num(p.z, live.z),
-            useY: true,
           });
         }
         flock.updatePhysics?.(child);
@@ -4552,7 +4539,7 @@ function addUndoHandler() {
             }
 
             // Remove DO section if it should be removed
-            if (shouldRemoveDoSection && doInput) {
+            if (shouldRemoveDoSection && isDoOpen(parentBlock)) {
               // Mirror toggleDoBlock so the mutator button reverts to "+".
               if (typeof parentBlock.toggleDoBlock === 'function') {
                 parentBlock.toggleDoBlock();

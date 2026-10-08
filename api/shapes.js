@@ -1185,6 +1185,7 @@ export const flockShapes = {
     modelId,
     spacing = 0,
     horizontal = false,
+    rotation = null,
     callback = null,
     then = null,
     useManifold = true,
@@ -1236,6 +1237,7 @@ export const flockShapes = {
         mesh.metadata.textSize = size;
         if (letterIndex) mesh.metadata.textLetterIndex = letterIndex;
         mesh.position.set(x, y, z);
+        if (rotation) flock._applyInitialTransform(mesh, { position, rotation });
 
         const colors = Array.isArray(color) ? color : [color];
         const perLetter = letterIndex && colors.length > 1;

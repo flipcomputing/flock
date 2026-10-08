@@ -10,7 +10,8 @@ import {
   registerBlockHandler,
 } from './blocks.js';
 import { mapNames } from '../config.js';
-import { updateOrCreateMeshFromBlock } from '../ui/blockmesh.js';
+import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
+import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip, getOption } from '../main/translation.js';
 
 function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
@@ -493,11 +494,13 @@ export function defineSceneBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleInitialTransformRowsChange(this, changeEvent);
       });
 
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
     },
   };
 }

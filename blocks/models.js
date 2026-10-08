@@ -20,6 +20,7 @@ import {
   getModelDisplayName,
 } from '../config.js';
 import { flock } from '../flock.js';
+import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { updateOrCreateMeshFromBlock } from '../ui/blockmesh.js';
 
@@ -298,6 +299,7 @@ export function defineModelBlocks() {
       });
 
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
     },
   };
 
@@ -411,6 +413,7 @@ export function defineModelBlocks() {
       });
 
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
     },
   };
 
@@ -529,6 +532,7 @@ export function defineModelBlocks() {
       });
 
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
     },
   };
 
@@ -658,6 +662,7 @@ export function defineModelBlocks() {
       });
 
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
 
       const doMutationToDom = this.mutationToDom;
       this.mutationToDom = function () {

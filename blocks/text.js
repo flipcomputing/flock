@@ -10,6 +10,7 @@ import {
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { attachShadowContainerOnChange } from './scene.js';
+import { addInitialTransformRows } from './initialTransformRows.js';
 
 // print_text keeps a text_join in its TEXT input as a "shadow container": it is
 // promoted to a real block on the canvas (so blocks can be dropped into its
@@ -540,6 +541,7 @@ export function defineTextBlocks() {
         handleBlockChange(this, changeEvent, variableNamePrefix)
       );
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 }

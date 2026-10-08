@@ -214,9 +214,13 @@ export function getAlignDelta(mover, marker) {
   return targetCentre.subtract(box.centre);
 }
 
-export function getAlignedBlockPosition(mover, marker) {
+export function getAlignedBlockPosition(
+  mover,
+  marker,
+  { anchored = Boolean(mover.metadata?.isPrefab) } = {}
+) {
   const delta = getAlignDelta(mover, marker);
-  if (mover.metadata?.isPrefab) {
+  if (anchored) {
     const anchor = flock._getAnchor(mover);
     return { x: anchor.x + delta.x, y: anchor.y + delta.y, z: anchor.z + delta.z };
   }

@@ -83,6 +83,21 @@ export function getPositionTuple(block) {
   return `[${posX}, ${posY}, ${posZ}]`;
 }
 
+export function getInitialTransformParams(block) {
+  const params = [];
+  if (block.rotateShown_) {
+    const [x, y, z] = ['X', 'Y', 'Z'].map((axis) => getFieldValue(block, `ROTATE_${axis}`, '0'));
+    params.push(`rotation: { x: ${x}, y: ${y}, z: ${z} }`);
+  }
+  if (block.resizeShown_) {
+    const [width, height, depth] = ['X', 'Y', 'Z'].map((axis) =>
+      getFieldValue(block, `SIZE_${axis}`, '1')
+    );
+    params.push(`size: { width: ${width}, height: ${height}, depth: ${depth} }`);
+  }
+  return params;
+}
+
 // The "then" mutator section, wrapped for an options object: it runs once the
 // constructor callback has completed. Returns '' when the section is absent.
 export function getThenCallback(block, variableName) {
@@ -153,7 +168,7 @@ export function createMesh(block, meshType, params) {
     ? `await runThen(${variableName}, async function(${variableName}) {\n${thenBody}\n});\n`
     : '';
 
-  const options = [...params];
+  const options = [...params, ...getInitialTransformParams(block)];
 
   // parentCode repeats after doCode/thenCode so a rotate_to/resize in this
   // entity's own DO (how the live editor bakes group transforms into a

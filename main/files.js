@@ -8,6 +8,7 @@ import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
+import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -432,6 +433,7 @@ export function loadWorkspaceAndExecute(
 
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas });
+    convertLegacyInitialTransforms(workspace);
     hintIfXrModeMissing(workspace);
   } catch (error) {
     console.error('Failed to load workspace:', error);

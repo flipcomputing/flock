@@ -17,6 +17,7 @@ import {
   updateScaleBlock,
 } from '../ui/gizmos.js';
 import { showStatus, clearStatus } from '../ui/status.js';
+import { getNumberInput } from '../ui/blocklyutil.js';
 import { meshMap } from '../generators/generators.js';
 import { blockHandlerRegistry } from '../blocks/blocks.js';
 import { updateMeshFromBlock, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
@@ -1311,25 +1312,7 @@ export function runGizmoTests(flock) {
 
     // ─── rotate/resize block ordering ───────────────────────────────────────
 
-    describe('rotate/resize block ordering', function () {
-      // A move after scaling commits the live (already anchor-shifted)
-      // position in the unrotated-base convention, so Play must resize
-      // (upright box) before it rotates - otherwise the rotated anchor shift
-      // applies twice and the mesh jumps. The resize block therefore always
-      // runs before rotate_to for the same model, regardless of which gizmo
-      // the user drags first.
-      function collectDoTypes(modelBlock) {
-        const types = [];
-        for (
-          let cur = modelBlock.getInput('DO')?.connection?.targetBlock?.();
-          cur;
-          cur = cur.getNextBlock?.()
-        ) {
-          types.push(cur.type);
-        }
-        return types;
-      }
-
+    describe('add block rotate and resize rows', function () {
       function makeModelFixture(ws, varName) {
         // Stand-in for an imported model (e.g. a tree): the block type, not
         // the mesh type, decides the resize code path (see
@@ -1346,19 +1329,15 @@ export function runGizmoTests(flock) {
         return { mesh, modelBlock };
       }
 
-      function expectResizeFirst(ws, varName, first, second) {
+      function expectRows(ws, varName, first, second) {
         withHeadlessBlocks(() => {
           const { mesh, modelBlock } = makeModelFixture(ws, varName);
           try {
             first(mesh);
             second(mesh);
-            const types = collectDoTypes(modelBlock);
-            expect(types).to.include('rotate_to');
-            expect(types).to.include('resize');
-            expect(
-              types.indexOf('resize'),
-              'resize must run before rotate_to regardless of gizmo drag order'
-            ).to.be.lessThan(types.indexOf('rotate_to'));
+            expect(modelBlock.getInputTargetBlock('DO')).to.be.null;
+            expect(modelBlock.rotateShown_).to.be.true;
+            expect(modelBlock.resizeShown_).to.be.true;
           } finally {
             delete meshMap[modelBlock.id];
             if (!modelBlock.disposed) modelBlock.dispose(true);
@@ -1366,16 +1345,69 @@ export function runGizmoTests(flock) {
         });
       }
 
-      it('rotate-then-resize drag order plays back resize before rotate', function () {
+      it('writes rotate then resize into the rows, not DO', function () {
         const ws = Blockly.getMainWorkspace();
-        expect(ws, 'main workspace present').to.exist;
-        expectResizeFirst(ws, 'gizmoOrderTreeVarA', updateRotationBlock, updateScaleBlock);
+        expectRows(ws, 'gizmoOrderTreeVarA', updateRotationBlock, updateScaleBlock);
       });
 
-      it('resize-then-rotate drag order plays back resize before rotate', function () {
+      it('writes resize then rotate into the rows, not DO', function () {
         const ws = Blockly.getMainWorkspace();
-        expect(ws, 'main workspace present').to.exist;
-        expectResizeFirst(ws, 'gizmoOrderTreeVarB', updateScaleBlock, updateRotationBlock);
+        expectRows(ws, 'gizmoOrderTreeVarB', updateScaleBlock, updateRotationBlock);
+      });
+
+      it('keeps a plane off its surface when rotated', function () {
+        withHeadlessBlocks(() => {
+          const ws = Blockly.getMainWorkspace();
+          const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+          const planeBlock = Blockly.serialization.blocks.append(
+            { type: 'create_plane', inputs: { X: number(0), Y: number(0.5), Z: number(-0.52) } },
+            ws
+          );
+          const id = flock.createPlane(`gizmoRotatedPlane__${planeBlock.id}`, {
+            width: 1,
+            height: 1,
+            position: [0, 0.5, -0.52],
+          });
+          const plane = flock.scene.getMeshByName(id);
+          meshMap[planeBlock.id] = planeBlock;
+          try {
+            plane.rotationQuaternion = flock.eulerDegreesToQuat(0, 0, 45);
+            plane.computeWorldMatrix(true);
+            updateRotationBlock(plane);
+
+            expect(getNumberInput(planeBlock, 'ROTATE_Z')).to.be.closeTo(45, 0.05);
+            expect(getNumberInput(planeBlock, 'Z')).to.equal(-0.52);
+          } finally {
+            delete meshMap[planeBlock.id];
+            flock.dispose(id);
+            if (!planeBlock.disposed) planeBlock.dispose(true);
+          }
+        });
+      });
+
+      it('writes the anchor of a tilted mesh into its position', function () {
+        withHeadlessBlocks(() => {
+          const ws = Blockly.getMainWorkspace();
+          const { mesh, modelBlock } = makeModelFixture(ws, 'gizmoAnchorTreeVar');
+          try {
+            for (const name of ['X', 'Y', 'Z']) {
+              modelBlock.getInput(name).connection.setShadowState({ type: 'math_number' });
+            }
+            mesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 0, 45);
+            mesh.computeWorldMatrix(true);
+            updateRotationBlock(mesh);
+
+            const anchor = flock._getAnchor(mesh);
+            const read = (name) => getNumberInput(modelBlock, name);
+            expect(read('ROTATE_Z')).to.be.closeTo(45, 0.05);
+            expect(read('X')).to.be.closeTo(anchor.x, 0.05);
+            expect(read('Y')).to.be.closeTo(anchor.y, 0.05);
+            expect(read('Z')).to.be.closeTo(anchor.z, 0.05);
+          } finally {
+            delete meshMap[modelBlock.id];
+            if (!modelBlock.disposed) modelBlock.dispose(true);
+          }
+        });
       });
     });
 
@@ -1405,7 +1437,7 @@ export function runGizmoTests(flock) {
         else codePanel.style.display = codePanelDisplay;
       });
 
-      async function makeCloneFixture({ group = false } = {}) {
+      async function makeCloneFixture({ group = false, sourceBlock = false } = {}) {
         seq += 1;
         const ws = Blockly.getMainWorkspace();
         const cloneBlock = ws.newBlock('clone_mesh');
@@ -1414,6 +1446,7 @@ export function runGizmoTests(flock) {
         meshMap[cloneBlock.id] = cloneBlock;
 
         const ids = [];
+        const blocks = [cloneBlock];
         let sourceId;
         if (group) {
           sourceId = flock.createGroup(`gizmoCloneGroup${seq}`);
@@ -1429,6 +1462,14 @@ export function runGizmoTests(flock) {
             ids.push(memberId);
             flock.setParent(sourceId, memberId);
           });
+        } else if (sourceBlock) {
+          const boxBlock = ws.newBlock('create_box');
+          blocks.push(boxBlock);
+          const boxVar = ws.getVariableMap().createVariable(`gizmoCloneSrcVar${seq}`);
+          boxBlock.getField('ID_VAR').setValue(boxVar.getId());
+          cloneBlock.getField('SOURCE_MESH').setValue(boxVar.getId());
+          sourceId = flock.createBox(`gizmoCloneSrc${seq}__${boxBlock.id}`, { color: '#ff0000' });
+          ids.push(sourceId);
         } else {
           sourceId = flock.createBox(`gizmoCloneSrc${seq}`, { color: '#ff0000' });
           ids.push(sourceId);
@@ -1441,7 +1482,7 @@ export function runGizmoTests(flock) {
         });
         ids.push(cloneId);
         const clone = await flock.whenModelReady(cloneId);
-        fixture = { cloneBlock, cloneVarId: cloneVar.getId(), clone, sourceId, ids };
+        fixture = { cloneBlock, cloneVarId: cloneVar.getId(), clone, sourceId, ids, blocks };
         return fixture;
       }
 
@@ -1457,22 +1498,21 @@ export function runGizmoTests(flock) {
         if (!fixture) return;
         fixture.ids.forEach((id) => flock.dispose(id));
         delete meshMap[fixture.cloneBlock.id];
-        if (!fixture.cloneBlock.disposed) fixture.cloneBlock.dispose(true);
+        fixture.blocks.forEach((block) => block.disposed || block.dispose(true));
         fixture = null;
       });
 
-      it('writes a rotation into a rotate_to for the clone variable', async function () {
-        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+      it('writes a clone rotation into its rotation row, adding no move when it stays put', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture({ sourceBlock: true });
         clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 45, 0);
         withHeadlessBlocks(() => updateRotationBlock(clone));
 
-        const [rotate] = doBlocks(cloneBlock);
-        expect(rotate.type).to.equal('rotate_to');
-        expect(rotate.getFieldValue('MODEL')).to.equal(cloneVarId);
-        expect(Number(rotate.getInputTargetBlock('Y').getFieldValue('NUM'))).to.be.closeTo(45, 0.1);
+        expect(cloneBlock.rotateShown_).to.be.true;
+        expect(getNumberInput(cloneBlock, 'ROTATE_Y')).to.be.closeTo(45, 0.1);
+        expect(doBlocks(cloneBlock)).to.be.empty;
       });
 
-      it('writes a move into a move_to_xyz after the rotate_to', async function () {
+      it('writes a clone move into its move_to_xyz', async function () {
         const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
         clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 0);
         withHeadlessBlocks(() => updateRotationBlock(clone));
@@ -1487,12 +1527,12 @@ export function runGizmoTests(flock) {
         dragEnd();
 
         const blocks = doBlocks(cloneBlock);
-        expect(blocks.map((b) => b.type)).to.deep.equal(['rotate_to', 'move_to_xyz']);
-        expect(blocks[1].getFieldValue('MODEL')).to.equal(cloneVarId);
-        expect(Number(blocks[1].getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(5);
+        expect(blocks.map((b) => b.type)).to.deep.equal(['move_to_xyz']);
+        expect(blocks[0].getFieldValue('MODEL')).to.equal(cloneVarId);
+        expect(Number(blocks[0].getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(5);
       });
 
-      it('keeps the move after a rotate_to and resize added later', async function () {
+      it('keeps the move when rotation and size are added later', async function () {
         const { cloneBlock, clone } = await makeCloneFixture();
         mgr.attachToMesh(clone);
         withHeadlessBlocks(() => toggleGizmo('position'));
@@ -1504,11 +1544,9 @@ export function runGizmoTests(flock) {
         clone.scaling.set(2, 1, 1);
         withHeadlessBlocks(() => updateScaleBlock(clone));
 
-        expect(doBlocks(cloneBlock).map((b) => b.type)).to.deep.equal([
-          'resize',
-          'rotate_to',
-          'move_to_xyz',
-        ]);
+        expect(doBlocks(cloneBlock).map((b) => b.type)).to.deep.equal(['move_to_xyz']);
+        expect(cloneBlock.rotateShown_).to.be.true;
+        expect(cloneBlock.resizeShown_).to.be.true;
       });
 
       it('writes the anchor of a tilted clone into its move', async function () {
@@ -1611,15 +1649,14 @@ export function runGizmoTests(flock) {
         }
       });
 
-      it('writes a primitive clone resize into a resize block', async function () {
-        const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
+      it('writes a primitive clone resize into its size row', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
         clone.scaling.set(2, 1, 1);
         withHeadlessBlocks(() => updateScaleBlock(clone));
 
-        const [resize] = doBlocks(cloneBlock);
-        expect(resize.type).to.equal('resize');
-        expect(resize.getFieldValue('BLOCK_NAME')).to.equal(cloneVarId);
-        expect(Number(resize.getInputTargetBlock('X').getFieldValue('NUM'))).to.be.closeTo(2, 0.1);
+        expect(cloneBlock.resizeShown_).to.be.true;
+        expect(getNumberInput(cloneBlock, 'SIZE_X')).to.be.closeTo(2, 0.1);
+        expect(doBlocks(cloneBlock)).to.be.empty;
       });
 
       it('writes no resize for a cloned group', async function () {

@@ -7,6 +7,7 @@ import {
   getVariableInfo,
   maybeParentToGroup,
   getThenCallback,
+  getInitialTransformParams,
 } from './generators-utilities.js';
 
 export function registerTextGenerators(javascriptGenerator) {
@@ -311,6 +312,10 @@ export function registerTextGenerators(javascriptGenerator) {
     }
     doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
+    const initialTransform = getInitialTransformParams(block)
+      .map((param) => `\n            ${param},`)
+      .join('');
+
     return `${variableName} = create3DText({
             text: ${textLiteral},
             font: ${JSON.stringify(font)},
@@ -318,7 +323,7 @@ export function registerTextGenerators(javascriptGenerator) {
             size: ${size},
             depth: ${depth},
             spacing: ${spacing},
-            position: { x: ${x}, y: ${y}, z: ${z} },${horizontal ? '\n            horizontal: true,' : ''}
+            position: { x: ${x}, y: ${y}, z: ${z} },${horizontal ? '\n            horizontal: true,' : ''}${initialTransform}
             modelId: ${JSON.stringify(meshId)}${doCode ? `,\n  callback: ${doCode}` : ''}${getThenCallback(block, variableName)}
           });\n${maybeParentToGroup(variableName)}`;
   };

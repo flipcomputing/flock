@@ -10,6 +10,7 @@ import {
   DO_MUTATOR_MINUS,
   DO_MUTATOR_PLUS,
 } from './blocks.js';
+import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { CUBE_FACES, shapeError } from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
@@ -721,6 +722,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -792,6 +794,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -868,6 +871,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -934,6 +938,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -1015,6 +1020,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -1298,6 +1304,7 @@ export function defineShapeBlocks() {
         handleBlockChange(this, changeEvent, variableNamePrefix);
       });
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -1378,6 +1385,7 @@ export function defineShapeBlocks() {
         handleBlockChange(this, changeEvent, variableNamePrefix);
       });
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 
@@ -1444,6 +1452,7 @@ export function defineShapeBlocks() {
       );
       // Add the mutator with toggle behaviour.
       addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this);
     },
   };
 

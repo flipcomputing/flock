@@ -611,5 +611,24 @@ export function runTranslationTests(flock) {
       expect(box.centerWorld.x).to.be.closeTo(3, 0.01);
       expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
     });
+
+    it('rests 3D text created tilted on its Y, centred on X and Z', async function () {
+      this.timeout(30000);
+      const id = flock.create3DText({
+        text: 'Hi',
+        font: '/fonts/FreeSansBold.ttf',
+        size: 1,
+        depth: 0.2,
+        position: { x: 2, y: 1, z: -1 },
+        rotation: { x: 0, y: 0, z: 30 },
+        modelId: `initTiltText_${Date.now()}`,
+      });
+      created.push(id);
+      const text = await flock.whenModelReady(id);
+      const box = worldBox(text);
+      expect(box.minimumWorld.y).to.be.closeTo(1, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(-1, 0.01);
+    });
   });
 }

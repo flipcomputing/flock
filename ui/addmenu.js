@@ -230,26 +230,6 @@ function planeRotationForNormal(normal) {
   return { x: toDeg(euler.x), y: toDeg(euler.y), z: toDeg(euler.z) };
 }
 
-// Apply a flat-lying rotation to the live preview mesh. The preview mesh is
-// created from the block on a later tick (Blockly fires create events
-// asynchronously), and we look it up by metadata.blockKey rather than by name,
-// which whenModelReady cannot do. So poll for the mesh, then rotate it
-// directly (with physics) the way the rotate gizmo does.
-function applyLiveRotationWhenReady(blockId, rotation, attempts = 0) {
-  if (!rotation) return;
-  // createPlane strips the "<name>__<blockId>" suffix off the mesh name and
-  // stores the block id in metadata.blockKey, so look the mesh up by that
-  // rather than by name.
-  const mesh = (flock.scene?.meshes || []).find((m) => m.metadata?.blockKey === blockId);
-  if (mesh) {
-    flock.rotateTo(mesh.name, { ...rotation, world: true });
-    return;
-  }
-  if (attempts < 60) {
-    requestAnimationFrame(() => applyLiveRotationWhenReady(blockId, rotation, attempts + 1));
-  }
-}
-
 function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null) {
   const workspace = Blockly.getMainWorkspace();
 
@@ -300,10 +280,6 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
       }
     }
 
-    // For a plane placed flat against a surface, nest a rotate_to block
-    // inside the create block's DO section — the same shape the rotate gizmo
-    // produces — so the orientation lives with the plane and is captured in
-    // the program.
     if (rotation) {
       try {
         ensureInitialRotation(block, rotation);
@@ -463,11 +439,7 @@ function selectShape(shapeType) {
           // Centre-pivot planes need no base-rule compensation.
           const position = base.add(normal.scale(0.02));
 
-          const planeBlock = addShapeToWorkspace(shapeType, position, 2, rotation);
-
-          if (rotation && planeBlock) {
-            applyLiveRotationWhenReady(planeBlock.id, rotation);
-          }
+          addShapeToWorkspace(shapeType, position, 2, rotation);
         } else {
           addShapeToWorkspace(shapeType, pickResult.pickedPoint);
         }

@@ -14,7 +14,21 @@ import { shapeError } from '../api/freeformgeometry.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
-import { isInitialTransformBlock, getInitialTransformOwner } from './initialTransform.js';
+import {
+  isInitialTransformBlock,
+  getInitialTransformOwner,
+  hasInitialTransformRows,
+  usesAnchorPosition,
+  readBlockPosition,
+  placeAtBlockPosition,
+  writeMovedPosition,
+  findOwnMove,
+  ensureOwnMove,
+  findLegacyInitialRotation,
+  findLegacyInitialSize,
+  getInitialRotationValues,
+  getInitialSizeValues,
+} from './initialTransform.js';
 
 const colorFields = {
   HAIR_COLOR: true,
@@ -1190,13 +1204,13 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
   // Re-pin to this mesh's own anchor, not the block's authored position, so
   // loop-spawned copies aren't all yanked together. Capture before resizing.
-  const anchor = flock.getBlockPositionFromMesh(mesh);
+  const anchor = readBlockPosition(mesh, block);
 
   const repositionPrimitiveFromBlock = () => {
     if (mesh.isDisposed?.()) return;
     const parentMesh = detachFromParent(mesh);
     try {
-      flock.setBlockPositionOnMesh(mesh, { ...anchor, useY: true });
+      placeAtBlockPosition(mesh, block, anchor);
     } finally {
       reattachToParent(mesh, parentMesh);
     }
@@ -1728,6 +1742,149 @@ function recomputeGroupPivot(groupBlock) {
   flock.recomputeGroupGeometry(groupMesh);
 }
 
+// A clone has no position of its own: its move places it, or it keeps its spot.
+function initialPosition(block, mesh) {
+  if (block.type !== 'clone_mesh') return getXYZFromBlock(block);
+  const anchor = flock._getAnchor(mesh);
+  const move = findOwnMove(block);
+  if (!move?.isEnabled()) return anchor;
+  const target = getXYZFromBlock(move);
+  return move.getFieldValue('USE_Y') === 'TRUE' ? target : { ...target, y: anchor.y };
+}
+
+function restoreInitialScale(block, mesh) {
+  if (block.type !== 'clone_mesh') {
+    restoreLoadScale(mesh);
+    return;
+  }
+  const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
+  if (source) mesh.scaling.copyFrom(source.scaling);
+}
+
+function restoreLoadScale(mesh) {
+  const unit = mesh.metadata?.__unitScale;
+  const scale = mesh.metadata?.__lastAppliedScale ?? 1;
+  if (unit) mesh.scaling.set(unit.x * scale, unit.y * scale, unit.z * scale);
+  else mesh.scaling.set(1, 1, 1);
+  mesh.computeWorldMatrix(true);
+}
+
+function readInitialSize(block) {
+  if (!block.resizeShown_) return null;
+  const { x, y, z } = getInitialSizeValues(block);
+  if (![x, y, z].every((value) => Number.isFinite(value) && value > 0)) return null;
+  return { width: x, height: y, depth: z };
+}
+
+function worldCentre(mesh) {
+  mesh.computeWorldMatrix(true);
+  return mesh.getBoundingInfo().boundingBox.centerWorld.clone();
+}
+
+// A rotation edit turns the mesh about its centre and then records where its
+// position ended up; other edits place the mesh at the block's position.
+export function applyInitialTransformRows(
+  block,
+  meshes = getMeshesFromBlock(block),
+  { aboutCentre = false } = {}
+) {
+  if (!meshes.length) return;
+  const rotation = block.rotateShown_
+    ? getInitialRotationValues(block)
+    : findLegacyInitialRotation(block)
+      ? null
+      : { x: 0, y: 0, z: 0 };
+  const size = readInitialSize(block);
+  const restoreScale =
+    block.hasResizeRow_ && !block.resizeShown_ && !findLegacyInitialSize(block, meshes[0]);
+
+  for (const mesh of meshes) {
+    if (mesh.isDisposed?.() || isBoneAttached(mesh)) continue;
+    const parentMesh = detachFromParent(mesh);
+    try {
+      if (restoreScale) restoreInitialScale(block, mesh);
+      const centre = aboutCentre ? worldCentre(mesh) : null;
+      const position = centre ? null : initialPosition(block, mesh);
+      if (usesAnchorPosition(block)) {
+        flock._applyInitialTransform(mesh, { position, rotation, size });
+      } else {
+        if (rotation) {
+          mesh.rotationQuaternion = flock.eulerDegreesToQuat(rotation.x, rotation.y, rotation.z);
+        }
+        if (!centre) flock.setBlockPositionOnMesh(mesh, { ...position, useY: true });
+      }
+      if (centre) {
+        mesh.position.addInPlace(centre.subtract(worldCentre(mesh)));
+        mesh.computeWorldMatrix(true);
+      }
+    } finally {
+      reattachToParent(mesh, parentMesh);
+    }
+    flock.updatePhysics(mesh);
+  }
+  if (aboutCentre) {
+    const position = readBlockPosition(meshes[0], block);
+    if (block.type === 'clone_mesh') writeClonePosition(block, position);
+    else writeMovedPosition(block, position);
+  }
+}
+
+// Without a move a clone keeps its source's anchor, so a move is only added
+// once the clone's anchor is somewhere else.
+export function writeClonePosition(block, anchor) {
+  const move = findOwnMove(block);
+  if (move) {
+    writeMovedPosition(move, anchor);
+    return;
+  }
+  const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
+  const start = source && flock._getAnchor(source);
+  if (start && ['x', 'y', 'z'].every((axis) => Math.abs(start[axis] - anchor[axis]) <= 0.001)) {
+    return;
+  }
+  writeMovedPosition(ensureOwnMove(block), anchor);
+}
+
+function inEventGroupOf(changeEvent, fn) {
+  const previous = Blockly.Events.getGroup();
+  if (changeEvent.group) Blockly.Events.setGroup(changeEvent.group);
+  try {
+    fn();
+  } finally {
+    Blockly.Events.setGroup(previous);
+  }
+}
+
+function rowInputEdited(block, changeEvent) {
+  if (changeEvent.element !== 'field') return null;
+  const changed = block.workspace.getBlockById(changeEvent.blockId);
+  if (!changed || changed.getParent() !== block) return null;
+  const name = block.getInputWithBlock(changed)?.name;
+  return /^(ROTATE|SIZE)_[XYZ]$/.test(name ?? '') ? name : null;
+}
+
+export function handleInitialTransformRowsChange(block, changeEvent) {
+  if (!hasInitialTransformRows(block)) return false;
+  if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE) return false;
+  if (window.loadingCode && !changeEvent.recordUndo) return false;
+
+  const edited = rowInputEdited(block, changeEvent);
+  if (edited) {
+    const aboutCentre = edited.startsWith('ROTATE_') && changeEvent.recordUndo !== false;
+    inEventGroupOf(changeEvent, () => applyInitialTransformRows(block, undefined, { aboutCentre }));
+    return true;
+  }
+
+  if (changeEvent.element !== 'mutation' || changeEvent.blockId !== block.id) return false;
+  const rowState = (text) => [/rotate="true"/.test(text ?? ''), /resize="true"/.test(text ?? '')];
+  const [oldRotate, oldResize] = rowState(changeEvent.oldValue);
+  const [newRotate, newResize] = rowState(changeEvent.newValue);
+  if (oldRotate === newRotate && oldResize === newResize) return false;
+  const aboutCentre = oldRotate !== newRotate && changeEvent.recordUndo !== false;
+  inEventGroupOf(changeEvent, () => applyInitialTransformRows(block, undefined, { aboutCentre }));
+  return true;
+}
+
 function detachFromParent(mesh) {
   const parentMesh = mesh?.parent ?? null;
   if (parentMesh && !mesh.isDisposed?.()) mesh.parent = null;
@@ -1835,6 +1992,7 @@ export function applyRetargetedTransform(transformBlock) {
 // pasted/duplicated block would lose its initial transforms until Play.
 // Replay them in order, as Play would.
 export async function applyInitialTransformsFromBlock(block, mesh) {
+  if (usesAnchorPosition(block)) applyInitialTransformRows(block, [mesh]);
   for (let child = block.getInputTargetBlock?.('DO'); child; child = child.getNextBlock()) {
     if (block.disposed || mesh.isDisposed?.()) return;
     if (getInitialTransformOwner(child) !== block) continue;
@@ -2164,7 +2322,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         scheduleChildPositionApply(mesh, block);
         return;
       }
-      const place = mesh.metadata?.isPrefab ? flock.positionAt : flock._positionAtBase;
+      const anchored = mesh.metadata?.isPrefab || usesAnchorPosition(block);
+      const place = anchored ? flock.positionAt : flock._positionAtBase;
       place.call(flock, mesh.name, { ...position, useY: true });
     });
   }

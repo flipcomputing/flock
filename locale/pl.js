@@ -145,6 +145,8 @@ export default {
   load_object: 'dodaj %1 %2 %3, skala: %4, %8 x: %5, y: %6, z: %7',
   load_multi_object: 'dodaj %1 %2, skala: %3, %8 x: %4, y: %5, z: %6\nkolory: %7',
   load_model: 'dodaj model %1 %2, skala: %3, %7 x: %4, y: %5, z: %6\nkolory: %8',
+  initial_rotation_label: 'obrót',
+  initial_size_label: 'rozmiar',
 
   // Custom block translations - Animate blocks
   glide_to: 'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 ms\n%6 powrót? %7 pętla? %8 %9',

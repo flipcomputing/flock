@@ -403,6 +403,44 @@ export const flockTransform = {
     }
     if (isBodyAlive(mesh.physics)) teleportBodyToMesh(mesh);
   },
+  // Where the anchor would sit if the mesh were placed the old way (unrotated
+  // base, or origin, at position, then a DO resize and rotate_to), without
+  // moving it.
+  _legacyInitialAnchor(mesh, { position, placeByOrigin = false, rotation = null, size = null }) {
+    const parent = mesh.parent;
+    if (parent) mesh.setParent(null);
+    const saved = {
+      position: mesh.position.clone(),
+      rotationQuaternion: mesh.rotationQuaternion?.clone() ?? null,
+      rotation: mesh.rotation.clone(),
+      scaling: mesh.scaling.clone(),
+    };
+    try {
+      mesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+      if (size) mesh.scaling.set(1, 1, 1);
+      mesh.computeWorldMatrix(true);
+      if (placeByOrigin) mesh.position.set(position.x, position.y, position.z);
+      else applyPositionWithCurrentBaseRule(mesh, { ...position, useY: true });
+      mesh.computeWorldMatrix(true);
+      if (size) resizeMesh(mesh, { ...size, maintainTextureScale: false });
+      if (rotation) {
+        mesh.rotationQuaternion = flock.eulerDegreesToQuat(
+          toFinite(rotation.x),
+          toFinite(rotation.y),
+          toFinite(rotation.z)
+        );
+      }
+      mesh.computeWorldMatrix(true);
+      return flock._getAnchor(mesh);
+    } finally {
+      mesh.position.copyFrom(saved.position);
+      mesh.rotation.copyFrom(saved.rotation);
+      mesh.rotationQuaternion = saved.rotationQuaternion;
+      mesh.scaling.copyFrom(saved.scaling);
+      mesh.computeWorldMatrix(true);
+      if (parent) mesh.setParent(parent);
+    }
+  },
   _positionAtBase(meshName, options) {
     return flock._positionMeshAt(meshName, options, { byAnchor: false });
   },

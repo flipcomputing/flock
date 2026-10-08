@@ -7,9 +7,17 @@ import {
   getPositionTuple,
   createMesh,
   getThenCallback,
+  getInitialTransformParams,
   maybeParentToGroup,
   withGroupParent,
 } from './generators-utilities.js';
+
+function initialTransform(block) {
+  return getInitialTransformParams(block)
+    .map((param) => `,
+${param}`)
+    .join('');
+}
 
 function wallParam(block, defaultThickness, defaultInnerDiameter) {
   const isNumber = (name) => block.getInputTargetBlock(name)?.type === 'math_number';
@@ -136,7 +144,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         modelName: ${JSON.stringify(modelName)},
                         modelId: ${JSON.stringify(meshId)},${colors ? `\n                        colors: ${colors},` : ''}
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                 });\n${maybeParentToGroup(variableName)}`;
   };
 
@@ -171,7 +179,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                   modelName: ${JSON.stringify(modelName)},
                   modelId: ${JSON.stringify(meshId)},
                   scale: ${scale},
-                  position: { x: ${x}, y: ${y}, z: ${z} },
+                  position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)},
                   colors: {
                         hair: ${hairColor},
                         skin: ${skinColor},
@@ -212,7 +220,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                           modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
-                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                          position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                   });\n${maybeParentToGroup(variableName)}`;
   };
   // Add object -------------------------------------------------------
@@ -243,7 +251,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                         modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                        position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
                 });\n${maybeParentToGroup(variableName)}`;
   };
 
@@ -483,7 +491,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                           sourceMeshName: ${sourceMeshName},
                           cloneId: ${JSON.stringify(cloneId)},
                           cloneName: ${JSON.stringify(cloneUserName)},
-                          blockKey: ${JSON.stringify(block.id)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
+                          blockKey: ${JSON.stringify(block.id)}${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------

@@ -3,6 +3,7 @@ import * as Blockly from 'blockly';
 import { meshMap } from '../generators/generators.js';
 import { bakeGroupScale, healGroupOrigin, settleGroupRotation, updateChildBlockRotations, updateScaleBlock, setGizmoManager, gizmoManager } from '../ui/gizmos.js';
 import { suppressBlockLiveUpdates, unsuppressBlockLiveUpdates, updateMeshFromBlock, syncGroupParentOnMove, setGroupSelectionFollower, getColorRoot, handleMaterialOrColorChange, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
+import { findInitialSize, getInitialSizeValues } from '../ui/initialTransform.js';
 
 function configureDraco(BABYLON) {
   const base = import.meta?.env?.BASE_URL ?? '/';
@@ -2011,16 +2012,8 @@ export function runMeshHierarchyTests(flock) {
         groupMesh.metadata.blockKey = groupBlock.id;
         meshMap[groupBlock.id] = groupBlock;
 
-        const findResizeBlock = () => {
-          let cur = modelBlock.getInput('DO')?.connection?.targetBlock?.();
-          while (cur) {
-            if (cur.type === 'resize') return cur;
-            cur = cur.getNextBlock?.();
-          }
-          return null;
-        };
-        const numVal = (b, name) =>
-          Number(b.getInput(name).connection.targetBlock().getFieldValue('NUM'));
+        const findResizeBlock = () => findInitialSize(modelBlock, null);
+        const numVal = (b, name) => getInitialSizeValues(b)[name.toLowerCase()];
 
         try {
           // First bake: no resize block exists yet - findOrCreateResizeBlock
@@ -2627,6 +2620,64 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.position.x).to.equal(0);
         expect(treeMesh.position.z).to.equal(0);
         expect(renderedBaseY(treeId)).to.be.closeTo(restedBaseY + 0.25, 1e-3);
+      });
+
+      it('attach to Head fits a tilted character as it would an upright one', async function () {
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+        const uprightPosition = treeMesh.position.clone();
+        const uprightRotation = treeMesh.rotationQuaternion.clone();
+
+        treeMesh.detachFromBone?.();
+        treeMesh.parent = null;
+        const savedRotation = lizMesh.rotationQuaternion?.clone() ?? null;
+        lizMesh.rotationQuaternion = flock.eulerDegreesToQuat(35, -10, 0);
+        try {
+          await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+          expect(treeMesh.position.subtract(uprightPosition).length()).to.be.lessThan(1e-4);
+          expect(
+            Math.abs(flock.BABYLON.Quaternion.Dot(treeMesh.rotationQuaternion, uprightRotation))
+          ).to.be.closeTo(1, 1e-6);
+          expect(
+            Math.abs(
+              flock.BABYLON.Quaternion.Dot(
+                lizMesh.rotationQuaternion,
+                flock.eulerDegreesToQuat(35, -10, 0)
+              )
+            )
+          ).to.be.closeTo(1, 1e-6);
+        } finally {
+          lizMesh.rotationQuaternion = savedRotation;
+        }
+      });
+
+      it('attach to Head fits a character under a tilted parent as it would an upright one', async function () {
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        const treeMesh = flock.scene.getMeshByName(treeId);
+        await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+        const uprightPosition = treeMesh.position.clone();
+        const uprightRotation = treeMesh.rotationQuaternion.clone();
+
+        treeMesh.detachFromBone?.();
+        treeMesh.parent = null;
+        const parent = new flock.BABYLON.TransformNode('tiltedAttachParent', flock.scene);
+        parent.rotationQuaternion = flock.eulerDegreesToQuat(30, 0, 20);
+        lizMesh.setParent(parent);
+        const localRotation = lizMesh.rotationQuaternion.clone();
+        try {
+          await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+          expect(treeMesh.position.subtract(uprightPosition).length()).to.be.lessThan(1e-4);
+          expect(
+            Math.abs(flock.BABYLON.Quaternion.Dot(treeMesh.rotationQuaternion, uprightRotation))
+          ).to.be.closeTo(1, 1e-6);
+          expect(
+            Math.abs(flock.BABYLON.Quaternion.Dot(lizMesh.rotationQuaternion, localRotation))
+          ).to.be.closeTo(1, 1e-6);
+        } finally {
+          lizMesh.setParent(null);
+          parent.dispose();
+        }
       });
 
       it('attach should record the raw offset for model-switch re-attachment', async function () {
