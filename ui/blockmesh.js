@@ -14,6 +14,7 @@ import { shapeError } from '../api/freeformgeometry.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
+import { isInitialTransformBlock, getInitialTransformOwner } from './initialTransform.js';
 
 const colorFields = {
   HAIR_COLOR: true,
@@ -370,17 +371,6 @@ export function getMeshesFromBlockKey(blockKey) {
   return set ? [...set] : [];
 }
 
-function isTransformBlock(block) {
-  return block?.type === 'rotate_to' || block?.type === 'resize';
-}
-
-// A rotate_to/resize is an add block's initial transform only when it sits
-// directly in that block's DO stack, is enabled, and names the block's own
-// variable - the only case where Play applies it to that mesh unconditionally.
-export function getInitialTransformOwner(transformBlock) {
-  return isTransformBlock(transformBlock) ? getOwnDoOwner(transformBlock) : null;
-}
-
 const CLONE_LIKE_TYPES = new Set(['clone_mesh', 'mirror_mesh']);
 
 // move_to_xyz / change_color only update live under a clone or mirror,
@@ -411,7 +401,7 @@ export function getMeshFromBlock(block) {
     return flock?.scene?.getMeshByName('ground');
   }
 
-  if (isTransformBlock(block)) {
+  if (isInitialTransformBlock(block)) {
     block = getInitialTransformOwner(block);
     if (!block) return null;
   }
@@ -430,7 +420,7 @@ export function getMeshesFromBlock(block) {
     return mesh ? [mesh] : [];
   }
 
-  if (isTransformBlock(block)) {
+  if (isInitialTransformBlock(block)) {
     block = getInitialTransformOwner(block);
     if (!block) return [];
   }
@@ -2127,11 +2117,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     // Decide which block actually owns the X/Y/Z inputs:
     // - rotate_to / resize child (nested inside DO)
     // - otherwise the root block itself
-    const contextBlock =
-      parent && (parent.type === 'rotate_to' || parent.type === 'resize') ? parent : block;
+    const contextBlock = isInitialTransformBlock(parent) ? parent : block;
 
     // rotate_to / resize: also allow gizmo / non-field events
-    if (contextBlock.type === 'rotate_to' || contextBlock.type === 'resize') {
+    if (isInitialTransformBlock(contextBlock)) {
       applyTransformBlockToMeshes(contextBlock, meshes);
       return;
     }

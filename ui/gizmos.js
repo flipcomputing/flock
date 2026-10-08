@@ -59,6 +59,16 @@ import { isBodyAlive } from '../api/physics.js';
 import { isPositionPickActive, startPositionPick } from './pickposition.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
+import {
+  supportsInitialSize,
+  findInitialSize,
+  ensureInitialRotation,
+  ensureInitialSize,
+  getInitialRotationValues,
+  setInitialRotationValues,
+  getInitialSizeValues,
+  setInitialSizeValues,
+} from './initialTransform.js';
 export let gizmoManager;
 
 // Enable debug messages
@@ -121,17 +131,6 @@ const FAST_ROTATION = 0.5;
 const DEFAULT_ROTATION = 0.05;
 const FAST_SCALE = 0.5;
 const DEFAULT_SCALE = 0.05;
-
-const MODEL_BLOCK_TYPES = new Set([
-  'load_model',
-  'load_multi_object',
-  'load_object',
-  'load_character',
-]);
-
-// Block types with no dimension fields of their own: like models, they get a
-// resize block instead. A group is an empty container sized by its children.
-const RESIZE_BLOCK_TYPES = new Set([...MODEL_BLOCK_TYPES, 'create_group', 'clone_mesh']);
 
 window.selectedColor = '#ffffff'; // Default color
 let colorPicker = null;
@@ -1869,7 +1868,7 @@ export function captureViewToCameraBlock(block) {
 function inEventGroup(fn) {
   Blockly.Events.setGroup(Blockly.utils.idGenerator.genUid());
   try {
-    fn();
+    return fn();
   } finally {
     Blockly.Events.setGroup(false);
   }
@@ -2157,7 +2156,6 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     const e = getMeshRotationInDegrees(mesh);
     return { x: e.x, y: e.y, z: e.z };
   })();
-  const axisInput = { x: 'X', y: 'Y', z: 'Z' };
   // The mouse gizmo rotates the mesh without touching `working`; re-seed
   // from the mesh on divergence so the next slider touch doesn't jump.
   const syncWorkingToMesh = () => {
@@ -2195,11 +2193,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
       mesh.physics.disablePreStep = false;
       mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
     }
-    if (rotateBlock && !rotateBlock.disposed) {
-      for (const axisKey of changedAxes) {
-        setBlockAxisValue(rotateBlock, axisInput[axisKey], working[axisKey]);
-      }
-    }
+    setInitialRotationValues(rotateBlock, working, { axes: changedAxes });
   };
   const onConfirm = () => {
     exitTransformState();
@@ -2270,11 +2264,11 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
   if (creationBlock) {
     if (creationBlock.type === 'create_group') {
       highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
-    } else if (RESIZE_BLOCK_TYPES.has(creationBlock.type)) {
-      const existingResize = findExistingResizeBlock(mesh);
-      highlightBlockById(Blockly.getMainWorkspace(), existingResize ?? creationBlock);
     } else {
-      highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
+      highlightBlockById(
+        Blockly.getMainWorkspace(),
+        findExistingResizeBlock(mesh) ?? creationBlock
+      );
     }
   }
   if (mesh?.metadata?.shapeType === 'Group') {
@@ -2433,122 +2427,38 @@ function setBlockAxisValue(block, inputName, value) {
   }
 }
 
-// Find an existing rotate_to block in mesh's DO section without creating one.
-function _findExistingRotateBlock(mesh) {
-  const block = meshMap[mesh?.metadata?.blockKey];
-  if (!block) return null;
-  const modelVariable = getOwnVar(block);
-  const statementConnection = block.getInput('DO')?.connection;
-  if (!statementConnection) return null;
-  let current = statementConnection.targetBlock();
-  while (current) {
-    if (current.type === 'rotate_to' && current.getFieldValue('MODEL') === modelVariable) {
-      return current;
-    }
-    current = current.getNextBlock();
-  }
-  return null;
-}
-
-// Find the existing rotate_to block in mesh's DO section, or create one.
-// Returns the rotateBlock, or null if there is no associated Blockly block.
-function findOrCreateRotateBlock(mesh) {
-  const block = meshMap[mesh?.metadata?.blockKey];
-  if (!block) return null;
-
-  const groupId = Blockly.utils.idGenerator.genUid();
-  Blockly.Events.setGroup(groupId);
-
-  let addedDoSection = false;
-  if (!block.getInput('DO')) {
-    // Route through the block's own mutator so the +/- toggle button and any
-    // "then" button stay in sync; a bare appendStatementInput would not.
-    if (typeof block.toggleDoBlock === 'function') {
-      block.toggleDoBlock();
-    } else {
-      block.appendStatementInput('DO').setCheck(null).appendField('');
-    }
-    addedDoSection = true;
-  }
-
-  let rotateBlock = null;
-  const modelVariable = getOwnVar(block);
-  const statementConnection = block.getInput('DO').connection;
-  if (statementConnection?.targetBlock()) {
-    let currentBlock = statementConnection.targetBlock();
-    while (currentBlock) {
-      if (
-        currentBlock.type === 'rotate_to' &&
-        currentBlock.getFieldValue('MODEL') === modelVariable
-      ) {
-        rotateBlock = currentBlock;
-        break;
-      }
-      currentBlock = currentBlock.getNextBlock();
-    }
-  }
-
-  if (!rotateBlock) {
-    rotateBlock = Blockly.getMainWorkspace().newBlock('rotate_to');
-    rotateBlock.setFieldValue(modelVariable, 'MODEL');
-    rotateBlock.initSvg();
-    rotateBlock.render();
-    ['X', 'Y', 'Z'].forEach((axis) => {
-      const input = rotateBlock.getInput(axis);
-      const shadow = Blockly.getMainWorkspace().newBlock('math_number');
-      shadow.setFieldValue('0', 'NUM');
-      shadow.setShadow(true);
-      shadow.initSvg();
-      shadow.render();
-      input.connection.connect(shadow.outputConnection);
-    });
-    rotateBlock.render();
-
-    // Make sure not to replace any existing blocks in DO
-    const firstBlock = statementConnection.targetBlock();
-    if (firstBlock) {
-      let tail = firstBlock;
-      while (tail.getNextBlock()) tail = tail.getNextBlock();
-      tail.nextConnection.connect(rotateBlock.previousConnection);
-    } else {
-      block.getInput('DO').connection.connect(rotateBlock.previousConnection);
-    }
-
-    gizmoCreatedBlocks.set(rotateBlock.id, {
-      parentId: block.id,
-      createdDoSection: addedDoSection,
+function trackGizmoCreated(ownerBlock, result) {
+  if (result?.created) {
+    gizmoCreatedBlocks.set(result.block.id, {
+      parentId: ownerBlock.id,
+      createdDoSection: result.addedDoSection,
       timestamp: Date.now(),
     });
   }
+  return result?.block ?? null;
+}
 
-  Blockly.Events.setGroup(null);
-  return rotateBlock;
+function findOrCreateRotateBlock(mesh) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  if (!block) return null;
+  return inEventGroup(() => trackGizmoCreated(block, ensureInitialRotation(block)));
 }
 
 function findOrCreateMoveBlock(block) {
   const zero = { shadow: { type: 'math_number', fields: { NUM: 0 } } };
-  const {
-    block: moveBlock,
-    created,
-    addedDoSection,
-  } = findOrCreateDoBlock(
+  return trackGizmoCreated(
     block,
-    {
-      type: 'move_to_xyz',
-      varField: 'MODEL',
-      varId: getOwnVar(block),
-      inputs: { X: zero, Y: zero, Z: zero },
-    },
-    { atStart: true }
+    findOrCreateDoBlock(
+      block,
+      {
+        type: 'move_to_xyz',
+        varField: 'MODEL',
+        varId: getOwnVar(block),
+        inputs: { X: zero, Y: zero, Z: zero },
+      },
+      { atStart: true }
+    )
   );
-  if (created) {
-    gizmoCreatedBlocks.set(moveBlock.id, {
-      parentId: block.id,
-      createdDoSection: addedDoSection,
-      timestamp: Date.now(),
-    });
-  }
-  return moveBlock;
 }
 
 // Group members keep 2dp: group scales and rotations derive their values, and
@@ -2576,14 +2486,8 @@ export function updateRotationBlock(mesh, axisFilter = null) {
   const groupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(groupId);
 
-  const currentRotation = getMeshRotationInDegrees(mesh);
-  if (axisFilter) {
-    if (axisFilter.x) setBlockAxisValue(rotateBlock, 'X', currentRotation.x);
-    if (axisFilter.y) setBlockAxisValue(rotateBlock, 'Y', currentRotation.y);
-    if (axisFilter.z) setBlockAxisValue(rotateBlock, 'Z', currentRotation.z);
-  } else {
-    setBlockXYZ(rotateBlock, currentRotation.x, currentRotation.y, currentRotation.z);
-  }
+  const axes = axisFilter ? ['x', 'y', 'z'].filter((axis) => axisFilter[axis]) : undefined;
+  setInitialRotationValues(rotateBlock, getMeshRotationInDegrees(mesh), { axes });
   Blockly.Events.setGroup(null);
 }
 
@@ -2666,127 +2570,19 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
   }, 0);
 }
 
-// Find an existing resize block in mesh's DO section without creating one.
-function supportsResizeBlock(block, mesh) {
-  if (!block || !RESIZE_BLOCK_TYPES.has(block.type)) return false;
-  return block.type !== 'clone_mesh' || mesh?.metadata?.shapeType !== 'Group';
-}
-
 function findExistingResizeBlock(mesh) {
-  const block = meshMap[mesh?.metadata?.blockKey];
-  if (!supportsResizeBlock(block, mesh)) return null;
-  const modelVariable = getOwnVar(block);
-  const stmt = block.getInput('DO')?.connection?.targetBlock?.();
-  for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-    if (cur.type === 'resize' && cur.getFieldValue?.('BLOCK_NAME') === modelVariable) {
-      return cur;
-    }
-  }
-  return null;
+  return findInitialSize(meshMap[mesh?.metadata?.blockKey], mesh);
 }
 
-// Find the existing resize block in mesh's DO section, or create one.
-// Returns the resizeBlock, or null if mesh's block type has no resize support.
 function findOrCreateResizeBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
-  if (!supportsResizeBlock(block, mesh)) return null;
-
-  const groupId = Blockly.utils.idGenerator.genUid();
-  Blockly.Events.setGroup(groupId);
-
-  let addedDoSection = false;
-  if (!block.getInput('DO')) {
-    // Route through the block's own mutator so the +/- toggle button and any
-    // "then" button stay in sync; a bare appendStatementInput would not.
-    if (typeof block.toggleDoBlock === 'function') {
-      block.toggleDoBlock();
-    } else {
-      block.appendStatementInput('DO').setCheck(null).appendField('');
-    }
-    addedDoSection = true;
-  }
-
-  const modelVariable = getOwnVar(block);
-  const stmt = block.getInput('DO')?.connection?.targetBlock?.();
-  let resizeBlock = null;
-  for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-    if (cur.type === 'resize' && cur.getFieldValue?.('BLOCK_NAME') === modelVariable) {
-      resizeBlock = cur;
-      break;
-    }
-  }
-
-  if (!resizeBlock) {
-    resizeBlock = Blockly.getMainWorkspace().newBlock('resize');
-    resizeBlock.setFieldValue(modelVariable, 'BLOCK_NAME');
-    resizeBlock.initSvg();
-    resizeBlock.render();
-
+  if (!supportsInitialSize(block, mesh)) return null;
+  const measureSize = () => {
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
-    const initialSize = getScaledSize(mesh);
-    const axisValues = { X: initialSize.x, Y: initialSize.y, Z: initialSize.z };
-
-    ['X', 'Y', 'Z'].forEach((axis) => {
-      const input = resizeBlock.getInput(axis);
-      const shadow = Blockly.getMainWorkspace().newBlock('math_number');
-      const value = axisValues[axis];
-      const num = Number.isFinite(value) && value > 0 ? value : 1;
-      shadow.setFieldValue(String(Math.round(num * 10) / 10), 'NUM');
-      shadow.setShadow(true);
-      shadow.initSvg();
-      shadow.render();
-      input.connection.connect(shadow.outputConnection);
-    });
-
-    resizeBlock.render();
-
-    // Creation applies Y as the *unrotated* base (see
-    // applyPositionWithCurrentBaseRule) and the position gizmo commits that
-    // same convention - so a move after scaling leaves creation holding a
-    // post-scale position. Replaying rotate-then-resize would re-apply the
-    // rotated anchor shift on top of it and the mesh jumps on Play. Running
-    // the resize first measures the upright box, matching the convention the
-    // creation position was written in, regardless of which gizmo the user
-    // dragged first. (Tilt-then-scale with no later move replays closest in
-    // drag order instead; that residual heals the moment the mesh is nudged.)
-    let rotateTarget = null;
-    for (let cur = stmt; cur; cur = cur.getNextBlock?.()) {
-      if (cur.type === 'rotate_to' && cur.getFieldValue?.('MODEL') === modelVariable) {
-        rotateTarget = cur;
-        break;
-      }
-    }
-
-    if (rotateTarget) {
-      // targetConnection is either the DO input's own connection (when
-      // rotateTarget is the first block in the stack) or a sibling's
-      // nextConnection - either way, splice resizeBlock in ahead of it by
-      // reattaching that same connection.
-      const targetConnection = rotateTarget.previousConnection.targetConnection;
-      rotateTarget.previousConnection.disconnect();
-      targetConnection.connect(resizeBlock.previousConnection);
-      resizeBlock.nextConnection.connect(rotateTarget.previousConnection);
-    } else {
-      const doFirstBlock = block.getInput('DO').connection.targetBlock();
-      if (doFirstBlock) {
-        let tail = doFirstBlock;
-        while (tail.getNextBlock()) tail = tail.getNextBlock();
-        tail.nextConnection.connect(resizeBlock.previousConnection);
-      } else {
-        block.getInput('DO').connection.connect(resizeBlock.previousConnection);
-      }
-    }
-
-    gizmoCreatedBlocks.set(resizeBlock.id, {
-      parentId: block.id,
-      createdDoSection: addedDoSection,
-      timestamp: Date.now(),
-    });
-  }
-
-  Blockly.Events.setGroup(null);
-  return resizeBlock;
+    return getScaledSize(mesh);
+  };
+  return inEventGroup(() => trackGizmoCreated(block, ensureInitialSize(block, mesh, measureSize)));
 }
 
 // Blocks hold rounded values; after a bake rounds member values, snap the live
@@ -2909,9 +2705,12 @@ function scaleMemberSizeInputs(mesh, factor, suppress) {
       if (!resizeBlock) break;
       suppress?.(resizeBlock.id);
       if (existed) {
-        mul(resizeBlock, 'X');
-        mul(resizeBlock, 'Y');
-        mul(resizeBlock, 'Z');
+        const size = getInitialSizeValues(resizeBlock);
+        setInitialSizeValues(
+          resizeBlock,
+          { x: size.x * factor, y: size.y * factor, z: size.z * factor },
+          { decimals: MEMBER_DECIMALS }
+        );
       }
       break;
     }
@@ -3154,8 +2953,7 @@ export function bakeGroupScale(groupMesh) {
     const resizeBlock = findExistingResizeBlock(groupMesh);
     if (resizeBlock) {
       suppress(resizeBlock.id);
-      const sized = getScaledSize(groupMesh);
-      setNumberInputs(resizeBlock, { X: sized.x, Y: sized.y, Z: sized.z });
+      setInitialSizeValues(resizeBlock, getScaledSize(groupMesh));
     }
     flock.updatePhysics?.(groupMesh);
   } finally {
@@ -3337,13 +3135,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
 
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
-        const sizeLocalScaled = getScaledSize(mesh);
-
-        setNumberInputs(resizeBlock, {
-          X: sizeLocalScaled.x,
-          Y: sizeLocalScaled.y,
-          Z: sizeLocalScaled.z,
-        });
+        setInitialSizeValues(resizeBlock, getScaledSize(mesh));
         break;
       }
     }
@@ -4018,15 +3810,11 @@ function handleScaleGizmo() {
     if (creationBlock) {
       if (creationBlock.type === 'create_group') {
         highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
-      } else if (RESIZE_BLOCK_TYPES.has(creationBlock.type)) {
-        const resizeBlock = findOrCreateResizeBlock(mesh);
-        if (resizeBlock) {
-          highlightBlockById(Blockly.getMainWorkspace(), resizeBlock);
-        } else {
-          highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
-        }
       } else {
-        highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
+        highlightBlockById(
+          Blockly.getMainWorkspace(),
+          findOrCreateResizeBlock(mesh) ?? creationBlock
+        );
       }
     }
     if (mesh?.metadata?.shapeType === 'Group') {
@@ -4248,7 +4036,7 @@ export function updateChildBlockRotations(mesh) {
     }
 
     const rotateBlock = findOrCreateRotateBlock(child);
-    if (rotateBlock) setBlockXYZ(rotateBlock, rotation.x, rotation.y, rotation.z);
+    setInitialRotationValues(rotateBlock, rotation);
     let memberBlock = null;
     if (pos) {
       memberBlock = meshMap[key];
@@ -4263,13 +4051,9 @@ export function updateChildBlockRotations(mesh) {
       child.setParent(null);
       try {
         if (rotateBlock && !rotateBlock.disposed) {
-          const r = getXYZFromBlock(rotateBlock);
-          if ([r.x, r.y, r.z].every((v) => Number.isFinite(Number(v)))) {
-            child.rotationQuaternion = flock.eulerDegreesToQuat(
-              Number(r.x),
-              Number(r.y),
-              Number(r.z)
-            );
+          const r = getInitialRotationValues(rotateBlock);
+          if ([r.x, r.y, r.z].every(Number.isFinite)) {
+            child.rotationQuaternion = flock.eulerDegreesToQuat(r.x, r.y, r.z);
           }
         }
         if (memberBlock && !memberBlock.disposed) {
