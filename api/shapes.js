@@ -450,6 +450,7 @@ export const flockShapes = {
       color = '#9932CC',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -490,7 +491,7 @@ export const flockShapes = {
     newBox.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newBox, position, color, 'Box', alpha);
+    flock.initializeMesh(newBox, position, color, 'Box', alpha, true, { rotation });
 
     newBox.metadata = newBox.metadata || {};
     newBox.metadata.blockKey = blockKey;
@@ -588,6 +589,7 @@ export const flockShapes = {
       diameterZ = 1,
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -627,7 +629,7 @@ export const flockShapes = {
     newSphere.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newSphere, position, color, 'Sphere', alpha);
+    flock.initializeMesh(newSphere, position, color, 'Sphere', alpha, true, { rotation });
 
     newSphere.metadata = newSphere.metadata || {};
     newSphere.metadata.blockKey = blockKey;
@@ -661,6 +663,7 @@ export const flockShapes = {
       tessellation = 24,
       position,
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -706,7 +709,7 @@ export const flockShapes = {
     newCylinder.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newCylinder, position, color, 'Cylinder', alpha);
+    flock.initializeMesh(newCylinder, position, color, 'Cylinder', alpha, true, { rotation });
     // Initialise the mesh with position, color, and other properties
 
     newCylinder.metadata = newCylinder.metadata || {};
@@ -739,7 +742,10 @@ export const flockShapes = {
 
     return newCylinder.name;
   },
-  createCapsule(capsuleId, { color, diameter, height, position, alpha = 1, callback = null } = {}) {
+  createCapsule(
+    capsuleId,
+    { color, diameter, height, position, alpha = 1, rotation = null, callback = null } = {}
+  ) {
     if (!validateShapeId(capsuleId, 'createCapsule')) return null;
     diameter = toDim(diameter, 1);
     height = toDim(height, 2);
@@ -778,7 +784,7 @@ export const flockShapes = {
     newCapsule.scaling.set(1, 1, 1);
 
     // Initialise the mesh with position, color, and other properties
-    flock.initializeMesh(newCapsule, position, color, 'Capsule', alpha);
+    flock.initializeMesh(newCapsule, position, color, 'Capsule', alpha, true, { rotation });
 
     flock.setCapsuleUVs(newCapsule, radius, height);
 
@@ -833,6 +839,7 @@ export const flockShapes = {
       color = '#9932CC',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -868,7 +875,7 @@ export const flockShapes = {
     newWedge.bakeCurrentTransformIntoVertices();
     newWedge.scaling.set(1, 1, 1);
 
-    flock.initializeMesh(newWedge, position, color, 'Wedge', alpha);
+    flock.initializeMesh(newWedge, position, color, 'Wedge', alpha, true, { rotation });
 
     newWedge.metadata = newWedge.metadata || {};
     newWedge.metadata.blockKey = blockKey;
@@ -899,6 +906,7 @@ export const flockShapes = {
       color = '#9932CC',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -921,7 +929,7 @@ export const flockShapes = {
     const shape = flock.freeformShape(vertices, faces);
     flock.setFreeformShape(newFreeform, shape.points, shape.faces);
 
-    flock.initializeMesh(newFreeform, position, color, 'Freeform', alpha);
+    flock.initializeMesh(newFreeform, position, color, 'Freeform', alpha, true, { rotation });
 
     newFreeform.metadata.blockKey = blockKey;
     newFreeform.metadata.sectionOwner = flock._currentSection;
@@ -964,6 +972,7 @@ export const flockShapes = {
       tessellation = 24,
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -1000,7 +1009,7 @@ export const flockShapes = {
     newDonut.bakeCurrentTransformIntoVertices();
     newDonut.scaling.set(1, 1, 1);
 
-    flock.initializeMesh(newDonut, position, color, 'Donut', alpha);
+    flock.initializeMesh(newDonut, position, color, 'Donut', alpha, true, { rotation });
 
     newDonut.metadata = newDonut.metadata || {};
     newDonut.metadata.blockKey = blockKey;
@@ -1032,6 +1041,7 @@ export const flockShapes = {
       tessellation = 24,
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
+      rotation = null,
       callback = null,
     } = {}
   ) {
@@ -1062,7 +1072,7 @@ export const flockShapes = {
     const newRing = new flock.BABYLON.Mesh(ringId, flock.scene);
     vertexData.applyToMesh(newRing);
 
-    flock.initializeMesh(newRing, position, color, 'Ring', alpha);
+    flock.initializeMesh(newRing, position, color, 'Ring', alpha, true, { rotation });
 
     newRing.metadata = newRing.metadata || {};
     newRing.metadata.blockKey = blockKey;
@@ -1082,7 +1092,10 @@ export const flockShapes = {
 
     return newRing.name;
   },
-  createPlane(planeId, { color, width, height, position = [0, 0, 0], callback = null } = {}) {
+  createPlane(
+    planeId,
+    { color, width, height, position = [0, 0, 0], rotation = null, callback = null } = {}
+  ) {
     if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);
     height = toDim(height, 1);
@@ -1119,6 +1132,7 @@ export const flockShapes = {
       useY: true,
       meshName: newPlane.name,
     });
+    if (rotation) flock._applyInitialTransform(newPlane, { position, rotation });
 
     const planeBody = new flock.BABYLON.PhysicsBody(
       newPlane,

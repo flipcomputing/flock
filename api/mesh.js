@@ -480,7 +480,15 @@ export const flockMesh = {
     return null;
   },
 
-  initializeMesh(mesh, position, color, shapeType, alpha = 1, applyColor = true) {
+  initializeMesh(
+    mesh,
+    position,
+    color,
+    shapeType,
+    alpha = 1,
+    applyColor = true,
+    { rotation = null } = {}
+  ) {
     const px = Array.isArray(position) ? position[0] : (position?.x ?? 0);
     const py = Array.isArray(position) ? position[1] : (position?.y ?? 0);
     const pz = Array.isArray(position) ? position[2] : (position?.z ?? 0);
@@ -499,6 +507,8 @@ export const flockMesh = {
     mesh.metadata = { ...(mesh.metadata || {}), shapeType };
     mesh.metadata.blockKey = mesh.name;
     mesh.metadata.sectionOwner = flock._currentSection;
+
+    if (rotation) flock._applyInitialTransform(mesh, { position, rotation });
 
     if (applyColor) {
       const colorInput = Array.isArray(color) ? color.flat() : color;
@@ -523,7 +533,7 @@ export const flockMesh = {
 
     mesh.metadata.sharedGeometry = true;
 
-    if (shouldResolveGroundLevel && !flock.ground) {
+    if (shouldResolveGroundLevel && !flock.ground && !rotation) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(px, pz);
         flock.setBlockPositionOnMesh(mesh, {

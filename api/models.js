@@ -20,6 +20,8 @@ export const flockModels = {
       shorts: '#00ff00',
       tshirt: '#0000ff',
     },
+    rotation = null,
+    size = null,
     callback = () => {},
     then = null,
   }) {
@@ -179,6 +181,9 @@ export const flockModels = {
 
         const mesh = container.meshes[0];
         const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        if (rotation || size) {
+          flock._applyInitialTransform(bb, { position: { x, y, z }, rotation, size });
+        }
         flock._rememberConstruction(bb, { dos: [callback], thens: [then] });
 
         // materials & colors
@@ -291,6 +296,8 @@ export const flockModels = {
     color = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
+    rotation = null,
+    size = null,
     callback = null,
     then = null,
     applyColor = true,
@@ -438,6 +445,7 @@ export const flockModels = {
         position.z,
         color
       );
+      if (rotation || size) flock._applyInitialTransform(root, { position, rotation, size });
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
       mesh.refreshBoundingInfo(true);
@@ -599,6 +607,8 @@ export const flockModels = {
     colors = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
+    rotation = null,
+    size = null,
     callback = null,
     then = null,
   }) {
@@ -608,6 +618,8 @@ export const flockModels = {
       color: colors,
       scale,
       position,
+      rotation,
+      size,
       callback,
       then,
       applyColor: false,

@@ -670,6 +670,8 @@ export const flockScene = {
     cloneId,
     cloneName = null,
     blockKey = cloneId,
+    rotation = null,
+    size = null,
     callback = null,
     then = null,
     transform = null,
@@ -819,6 +821,11 @@ export const flockScene = {
             resolveReady(null);
             return;
           }
+        }
+
+        if (rotation || size) {
+          const position = flock._getAnchor(clone);
+          flock._applyInitialTransform(clone, { position, rotation, size });
         }
 
         const inherited = inheritConstruction
