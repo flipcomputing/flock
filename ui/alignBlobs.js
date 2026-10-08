@@ -4,13 +4,13 @@ import { isPlacementSurface, SELECTED_HIDDEN_VISIBILITY } from './meshhelpers.js
 
 const HANDLE_PX = 12;
 const SNAP_RADIUS_PX = 18;
+const CENTRE_SCALE = 1.5;
 const MIN_FACE_PX = 36;
 const MIN_FIT = 1 / 3;
 const BAR_WIDTH = 0.45;
 const CORNER_ARM = 1.6;
 const AXIS_COLOUR_HEX = ['#0072B2', '#009E73', '#D55E00'];
-const HIGHLIGHT_COLOUR_HEX = '#fff200';
-const PART_MIN_PX = 40;
+const HIGHLIGHT_COLOUR_HEX = '#fff200';const PART_MIN_PX = 40;
 const MAX_TARGET_DISTANCE = 20;
 const MAX_PARTS = 20;
 const PART_PREFIX = /^align_/i;
@@ -280,6 +280,79 @@ function drawMoverBehindHandles(scene, mover) {
   };
 }
 
+function toScreen(scene, point) {
+  const engine = scene.getEngine();
+  const viewport = scene.activeCamera.viewport.toGlobal(
+    engine.getRenderWidth(),
+    engine.getRenderHeight()
+  );
+  const projected = flock.BABYLON.Vector3.Project(
+    point,
+    flock.BABYLON.Matrix.Identity(),
+    scene.getTransformMatrix(),
+    viewport
+  );
+  if (projected.z < 0 || projected.z > 1) return null;
+  const scale = engine.getHardwareScalingLevel();
+  return { x: projected.x * scale, y: projected.y * scale };
+}
+
+export function startCentreHandle(getMesh, getCursor) {
+  const scene = flock.scene;
+  const BABYLON = flock.BABYLON;
+  const dot = BABYLON.MeshBuilder.CreateSphere(
+    '__flock_centre_handle',
+    { diameter: 2, segments: 8 },
+    scene
+  );
+  const mat = new BABYLON.StandardMaterial('__flock_centre_handle_mat', scene);
+  mat.disableLighting = true;
+  mat.backFaceCulling = false;
+  dot.material = mat;
+  hideFromInspector(dot);
+  dot.isPickable = false;
+  dot.checkCollisions = false;
+  dot.renderingGroupId = 1;
+  mat.emissiveColor = BABYLON.Color3.FromHexString(HIGHLIGHT_COLOUR_HEX);
+
+  function centre() {
+    const mesh = getMesh();
+    if (!mesh || mesh.isDisposed() || !mesh.getBoundingInfo) return null;
+    mesh.computeWorldMatrix(true);
+    return mesh.getBoundingInfo().boundingBox.centerWorld.clone();
+  }
+
+  function isOver(point, x, y) {
+    const screen = toScreen(scene, point);
+    return !!screen && Math.hypot(screen.x - x, screen.y - y) <= SNAP_RADIUS_PX * CENTRE_SCALE;
+  }
+
+  function isAt(x, y) {
+    const point = centre();
+    return !!point && isOver(point, x, y);
+  }
+
+  const observer = scene.onBeforeRenderObservable.add(() => {
+    const point = centre();
+    dot.isVisible = !!point;
+    if (!point) return;
+    const cursor = getCursor();
+    const active = !!cursor && isOver(point, cursor.x, cursor.y);
+    dot.position.copyFrom(point);
+    dot.scaling.setAll(
+      ((HANDLE_PX / 2) * CENTRE_SCALE * (active ? 1.4 : 1)) / pixelsPerUnitAt(scene, point)
+    );
+  });
+
+  function dispose() {
+    scene.onBeforeRenderObservable.remove(observer);
+    mat.dispose();
+    dot.dispose();
+  }
+
+  return { isAt, dispose };
+}
+
 export function startAlignBlobs(mover, getCursor) {
   const scene = flock.scene;
   const BABYLON = flock.BABYLON;
@@ -345,7 +418,6 @@ export function startAlignBlobs(mover, getCursor) {
   const restoreMover = drawMoverBehindHandles(scene, mover);
 
   const hidden = BABYLON.Matrix.Scaling(0, 0, 0);
-  const engine = scene.getEngine();
   const markerMeshes = [...new Set(markers.map((marker) => marker.mesh))];
   let nearMeshes = new Set();
 
@@ -361,23 +433,9 @@ export function startAlignBlobs(mover, getCursor) {
     return px / pixelsPerUnitAt(scene, point);
   }
 
-  function toScreen(point) {
-    const camera = scene.activeCamera;
-    const viewport = camera.viewport.toGlobal(engine.getRenderWidth(), engine.getRenderHeight());
-    const projected = BABYLON.Vector3.Project(
-      point,
-      BABYLON.Matrix.Identity(),
-      scene.getTransformMatrix(),
-      viewport
-    );
-    if (projected.z < 0 || projected.z > 1) return null;
-    const scale = engine.getHardwareScalingLevel();
-    return { x: projected.x * scale, y: projected.y * scale };
-  }
-
   function screenLength(origin, offset) {
-    const from = toScreen(origin);
-    const to = toScreen(origin.add(offset));
+    const from = toScreen(scene, origin);
+    const to = toScreen(scene, origin.add(offset));
     return from && to ? Math.hypot(to.x - from.x, to.y - from.y) : 0;
   }
 
@@ -487,8 +545,8 @@ export function startAlignBlobs(mover, getCursor) {
       (sum, t, i) => sum.add(t.axis.scale((sizes[i] - shortest) / 2)),
       BABYLON.Vector3.Zero()
     );
-    const a = toScreen(piece.centre.subtract(span));
-    const b = toScreen(piece.centre.add(span));
+    const a = toScreen(scene, piece.centre.subtract(span));
+    const b = toScreen(scene, piece.centre.add(span));
     return a && b ? distanceToSegment(x, y, a, b) : Infinity;
   }
 

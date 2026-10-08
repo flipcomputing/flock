@@ -44,9 +44,11 @@ import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
   getCanvasCircle,
+  getCanvasCirclePosition,
   setCrosshairCursor,
   setDefaultCursor,
 } from './canvas-utils.js';
+import { startCentreHandle } from './alignBlobs.js';
 import { createAxisKeyboardHandler } from './axis-keyboard.js';
 import { showStatus, clearStatus } from './status.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
@@ -146,6 +148,7 @@ let cameraMode = 'play';
 let activePick = null; // [Select mesh?]
 let activeDuplicatePickHandler = null; // [Clone mesh?]
 let activeDuplicatePickTimer = null; // Deferred-listener timer for the above
+let activeDuplicateCentreHandle = null;
 let stopAxisKeyboard = null; // Axis keyboard active?
 let duplicateModeActive = false;
 let duplicateRafId = null;
@@ -1928,6 +1931,8 @@ export function exitGizmoState(options = {}) {
     window.removeEventListener('click', activeDuplicatePickHandler);
     activeDuplicatePickHandler = null;
   }
+  activeDuplicateCentreHandle?.dispose();
+  activeDuplicateCentreHandle = null;
 
   // Stop the axis keyboard
   stopAxisKeyboard?.();
@@ -3534,6 +3539,27 @@ function startDuplicatePlacement() {
     duplicateRafId = requestAnimationFrame(resolveSourceMesh);
   };
 
+  // A null position keeps the original block's position values.
+  const placeCopy = (position) => {
+    const workspace = Blockly.getMainWorkspace();
+    const originalBlock = workspace.getBlockById(blockId);
+    // If they deleted the original block while picking, exit gracefully
+    if (!originalBlock) {
+      meshToClone.showBoundingBox = false;
+      exitTransformState();
+      return;
+    }
+    const newBlock = duplicateBlockAndInsert(originalBlock, workspace, position);
+    updateDuplicateChainSource(newBlock, workspace);
+  };
+
+  activeDuplicateCentreHandle?.dispose();
+  const centreHandle = startCentreHandle(
+    () => meshToClone,
+    () => getCanvasCirclePosition() ?? { x: flock.scene.pointerX, y: flock.scene.pointerY }
+  );
+  activeDuplicateCentreHandle = centreHandle;
+
   onPickMesh = function (event) {
     const canvasRect = canvas.getBoundingClientRect();
 
@@ -3546,6 +3572,11 @@ function startDuplicatePlacement() {
 
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
+    if (centreHandle.isAt(canvasX, canvasY)) {
+      placeCopy(null);
+      return;
+    }
+
     const pickRay = flock.scene.createPickingRay(
       canvasX,
       canvasY,
@@ -3555,20 +3586,7 @@ function startDuplicatePlacement() {
 
     const pickResult = flock.scene.pickWithRay(pickRay, isPlacementSurface);
 
-    if (pickResult.hit) {
-      const pickedPosition = pickResult.pickedPoint;
-      const workspace = Blockly.getMainWorkspace();
-      const originalBlock = workspace.getBlockById(blockId);
-      // If they deleted the original block while picking, exit gracefully
-      if (!originalBlock) {
-        meshToClone.showBoundingBox = false;
-        exitTransformState();
-        return;
-      }
-      // Otherwise carry on adding the new block
-      const newBlock = duplicateBlockAndInsert(originalBlock, workspace, pickedPosition);
-      updateDuplicateChainSource(newBlock, workspace);
-    }
+    if (pickResult.hit) placeCopy(pickResult.pickedPoint);
   };
 
   // Store a reference to this listener so we can get rid of it
@@ -3585,26 +3603,15 @@ function startDuplicatePlacement() {
   setTimeout(() => {
     startCanvasKeyboardMode(
       (x, y) => {
-        const pickResult = flock.scene.pick(x, y, isPlacementSurface);
-        if (pickResult?.hit) {
-          const workspace = Blockly.getMainWorkspace();
-          const originalBlock = workspace.getBlockById(blockId);
-          // If they deleted the original block while picking, exit gracefully
-          if (!originalBlock) {
-            meshToClone.showBoundingBox = false;
-            exitTransformState();
-            return;
-          }
-          const newBlock = duplicateBlockAndInsert(
-            originalBlock,
-            workspace,
-            pickResult.pickedPoint
-          );
-          updateDuplicateChainSource(newBlock, workspace);
+        if (centreHandle.isAt(x, y)) {
+          placeCopy(null);
+          return;
         }
+        const pickResult = flock.scene.pick(x, y, isPlacementSurface);
+        if (pickResult?.hit) placeCopy(pickResult.pickedPoint);
       },
       false,
-      (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit
+      (x, y) => centreHandle.isAt(x, y) || !!flock.scene.pick(x, y, isPlacementSurface)?.hit
     );
     flock.scene.defaultCursor = 'crosshair';
   }, 0);
