@@ -2164,7 +2164,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
         scheduleChildPositionApply(mesh, block);
         return;
       }
-      flock.positionAt(mesh.name, { ...position, useY: true });
+      const place = mesh.metadata?.isPrefab ? flock.positionAt : flock._positionAtBase;
+      place.call(flock, mesh.name, { ...position, useY: true });
     });
   }
 

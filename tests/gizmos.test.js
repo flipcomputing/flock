@@ -1472,7 +1472,7 @@ export function runGizmoTests(flock) {
         expect(Number(rotate.getInputTargetBlock('Y').getFieldValue('NUM'))).to.be.closeTo(45, 0.1);
       });
 
-      it('writes a move into a move_to_xyz at the start of the DO', async function () {
+      it('writes a move into a move_to_xyz after the rotate_to', async function () {
         const { cloneBlock, cloneVarId, clone } = await makeCloneFixture();
         clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 0);
         withHeadlessBlocks(() => updateRotationBlock(clone));
@@ -1487,9 +1487,46 @@ export function runGizmoTests(flock) {
         dragEnd();
 
         const blocks = doBlocks(cloneBlock);
-        expect(blocks.map((b) => b.type)).to.deep.equal(['move_to_xyz', 'rotate_to']);
-        expect(blocks[0].getFieldValue('MODEL')).to.equal(cloneVarId);
-        expect(Number(blocks[0].getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(5);
+        expect(blocks.map((b) => b.type)).to.deep.equal(['rotate_to', 'move_to_xyz']);
+        expect(blocks[1].getFieldValue('MODEL')).to.equal(cloneVarId);
+        expect(Number(blocks[1].getInputTargetBlock('X').getFieldValue('NUM'))).to.equal(5);
+      });
+
+      it('keeps the move after a rotate_to and resize added later', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        clone.position.x = 4;
+        withHeadlessBlocks(() => mgr.gizmos.positionGizmo.onDragEndObservable.notifyObservers({}));
+
+        clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 0);
+        withHeadlessBlocks(() => updateRotationBlock(clone));
+        clone.scaling.set(2, 1, 1);
+        withHeadlessBlocks(() => updateScaleBlock(clone));
+
+        expect(doBlocks(cloneBlock).map((b) => b.type)).to.deep.equal([
+          'resize',
+          'rotate_to',
+          'move_to_xyz',
+        ]);
+      });
+
+      it('writes the anchor of a tilted clone into its move', async function () {
+        const { cloneBlock, clone } = await makeCloneFixture();
+        clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 0, 45);
+        withHeadlessBlocks(() => updateRotationBlock(clone));
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        clone.position.y = 3;
+        withHeadlessBlocks(() => mgr.gizmos.positionGizmo.onDragEndObservable.notifyObservers({}));
+
+        clone.computeWorldMatrix(true);
+        clone.refreshBoundingInfo();
+        const move = doBlocks(cloneBlock).find((b) => b.type === 'move_to_xyz');
+        expect(Number(move.getInputTargetBlock('Y').getFieldValue('NUM'))).to.be.closeTo(
+          clone.getBoundingInfo().boundingBox.minimumWorld.y,
+          0.05
+        );
       });
 
       async function editField(ownerBlock, targetBlock, fieldName, value) {

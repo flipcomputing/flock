@@ -318,7 +318,7 @@ export function runNameRegistryTests(flock) {
         const meshBxBefore = meshB.position.x;
         await flock.positionAt(meshAId, { x: 5, y: 0, z: 0 });
         flock.scene.render();
-        expect(meshA.position.x).to.be.closeTo(5, 1e-3);
+        expect(flock._getAnchor(meshA).x).to.be.closeTo(5, 1e-3);
         expect(meshB.position.x).to.equal(meshBxBefore);
 
         // Each name resolves to its own mesh, after the move too.

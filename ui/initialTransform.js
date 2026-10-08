@@ -4,6 +4,7 @@ import { setNumberInputs, getNumberInput } from './blocklyutil.js';
 
 const ROTATE = { type: 'rotate_to', varField: 'MODEL' };
 const RESIZE = { type: 'resize', varField: 'BLOCK_NAME' };
+const MOVE = { type: 'move_to_xyz', varField: 'MODEL' };
 
 const SIZE_OWNER_TYPES = new Set([
   'load_model',
@@ -127,6 +128,27 @@ export function ensureInitialSize(owner, mesh, measureSize) {
     appendToDo(owner, block);
   }
   return { block, created: true, addedDoSection };
+}
+
+function isAfter(block, reference) {
+  for (let cur = reference.getNextBlock(); cur; cur = cur.getNextBlock()) {
+    if (cur === block) return true;
+  }
+  return false;
+}
+
+export function placeMoveAfterInitialTransforms(owner) {
+  const move = owner ? findOwnDoBlock(owner, MOVE) : null;
+  if (!move) return;
+  const transforms = [findOwnDoBlock(owner, ROTATE), findOwnDoBlock(owner, RESIZE)].filter(Boolean);
+  const last = transforms.find((t) => transforms.every((o) => o === t || isAfter(t, o)));
+  if (!last || isAfter(move, last)) return;
+
+  move.unplug(true);
+  const following = last.getNextBlock();
+  if (following) last.nextConnection.disconnect();
+  last.nextConnection.connect(move.previousConnection);
+  if (following) move.nextConnection.connect(following.previousConnection);
 }
 
 const AXIS_INPUTS = { x: 'X', y: 'Y', z: 'Z' };

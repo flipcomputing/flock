@@ -68,6 +68,7 @@ import {
   setInitialRotationValues,
   getInitialSizeValues,
   setInitialSizeValues,
+  placeMoveAfterInitialTransforms,
 } from './initialTransform.js';
 export let gizmoManager;
 
@@ -1049,7 +1050,7 @@ function duplicateCanvasTargetInPlace(target) {
     const meshForPos = root && getBlockForCanvasRoot(root) === target
       ? root
       : getMeshFromBlock(target);
-    pastePos = meshForPos ? flock.getBlockPositionFromMesh(meshForPos) : null;
+    pastePos = meshForPos ? blockPositionOf(meshForPos) : null;
   } catch {
     pastePos = null;
   }
@@ -1085,7 +1086,7 @@ export function copyCanvasSelection() {
     return false;
   }
   if (snapshot?.next) delete snapshot.next;
-  const pos = flock.getBlockPositionFromMesh(mesh);
+  const pos = blockPositionOf(mesh);
   canvasClipboard = {
     snapshot,
     blockId: block.id,
@@ -2441,7 +2442,11 @@ function trackGizmoCreated(ownerBlock, result) {
 function findOrCreateRotateBlock(mesh) {
   const block = meshMap[mesh?.metadata?.blockKey];
   if (!block) return null;
-  return inEventGroup(() => trackGizmoCreated(block, ensureInitialRotation(block)));
+  return inEventGroup(() => {
+    const rotateBlock = trackGizmoCreated(block, ensureInitialRotation(block));
+    if (block.type === 'clone_mesh') placeMoveAfterInitialTransforms(block);
+    return rotateBlock;
+  });
 }
 
 function findOrCreateMoveBlock(block) {
@@ -2468,6 +2473,14 @@ const MEMBER_DECIMALS = 2;
 function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
   const target = block.type === 'clone_mesh' ? findOrCreateMoveBlock(block) : block;
   setBlockXYZ(target, pos.x, pos.y, pos.z, { decimals });
+  if (block.type === 'clone_mesh') placeMoveAfterInitialTransforms(block);
+}
+
+function blockPositionOf(mesh) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  return block?.type === 'clone_mesh' || isPrefab(mesh)
+    ? flock._getAnchor(mesh)
+    : flock.getBlockPositionFromMesh(mesh);
 }
 
 // Update the blockly block after a rotation.
@@ -2582,7 +2595,11 @@ function findOrCreateResizeBlock(mesh) {
     mesh.refreshBoundingInfo();
     return getScaledSize(mesh);
   };
-  return inEventGroup(() => trackGizmoCreated(block, ensureInitialSize(block, mesh, measureSize)));
+  return inEventGroup(() => {
+    const resizeBlock = trackGizmoCreated(block, ensureInitialSize(block, mesh, measureSize));
+    if (block.type === 'clone_mesh') placeMoveAfterInitialTransforms(block);
+    return resizeBlock;
+  });
 }
 
 // Blocks hold rounded values; after a bake rounds member values, snap the live
@@ -2995,7 +3012,7 @@ function commitFreeformScale(mesh, block, originalBottomY, ensureFreshBounds) {
   Blockly.Events.setGroup(true);
   try {
     if (shape) block.writeShape(shape.points, shape.faces);
-    writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+    writePositionToBlock(block, blockPositionOf(mesh));
   } finally {
     Blockly.Events.setGroup(false);
   }
@@ -3215,7 +3232,7 @@ function commitMoveToBlocks(mesh, startPosition) {
   let delta = null;
 
   if (isPrefab(mesh)) {
-    if (block && !block.disposed) writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+    if (block && !block.disposed) writePositionToBlock(block, blockPositionOf(mesh));
     return;
   }
 
@@ -3236,7 +3253,7 @@ function commitMoveToBlocks(mesh, startPosition) {
     mesh.computeWorldMatrix(true);
   } else if (block && !block.disposed) {
     const before = block.type === 'clone_mesh' ? null : blockPositionNumbers(block);
-    writePositionToBlock(block, flock.getBlockPositionFromMesh(mesh));
+    writePositionToBlock(block, blockPositionOf(mesh));
     const after = before ? blockPositionNumbers(block) : null;
     if (after) delta = { x: after.x - before.x, y: after.y - before.y, z: after.z - before.z };
   }
@@ -4338,7 +4355,7 @@ function _handleBoundsGizmo() {
     const block = meshMap[mesh?.metadata?.blockKey];
 
     if (block && !block.disposed) {
-      const blockPosition = flock.getBlockPositionFromMesh(mesh);
+      const blockPosition = blockPositionOf(mesh);
       writePositionToBlock(block, blockPosition);
     }
   });
@@ -4354,7 +4371,7 @@ function handleSelectGizmo() {
     // A pick can land on a child; the attached mesh is the root owning the block.
     const attached = gizmoManager.attachedMesh;
     if (attached) {
-      showStatus(positionStatus(flock.getBlockPositionFromMesh(attached)), {
+      showStatus(positionStatus(blockPositionOf(attached)), {
         duration: 10,
         owner: 'position-readout',
       });

@@ -175,6 +175,33 @@ function applyPositionWithCurrentBaseRule(
   };
 }
 
+function isGroundLevel(y) {
+  return y === '__ground__level__' || Number(y) === -999999;
+}
+
+async function placeAnchorAt(mesh, { x, y, z, useY = true }) {
+  const current = flock._getAnchor(mesh);
+  const target = {
+    x: toFinite(x ?? current.x, current.x),
+    y: current.y,
+    z: toFinite(z ?? current.z, current.z),
+  };
+  if (useY && isGroundLevel(y)) {
+    await flock.waitForGroundReady();
+    target.y = flock.getGroundLevelAt(target.x, target.z);
+  } else if (useY) {
+    target.y = toFinite(y ?? current.y, current.y);
+  }
+
+  applyInWorldSpace(mesh, () => {
+    const anchor = flock._getAnchor(mesh);
+    mesh.position.x += target.x - anchor.x;
+    mesh.position.y += target.y - anchor.y;
+    mesh.position.z += target.z - anchor.z;
+    mesh.computeWorldMatrix(true);
+  });
+}
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -242,7 +269,13 @@ export const flockTransform = {
       });
     });
   },
-  positionAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}) {
+  positionAt(meshName, options) {
+    return flock._positionMeshAt(meshName, options, { byAnchor: true });
+  },
+  _positionAtBase(meshName, options) {
+    return flock._positionMeshAt(meshName, options, { byAnchor: false });
+  },
+  _positionMeshAt(meshName, { x = 0, y = 0, z = 0, useY = true } = {}, { byAnchor }) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
         // The active camera is positioned by the rule below but is not a mesh.
@@ -257,19 +290,23 @@ export const flockTransform = {
           return;
         }
 
-        x = toFinite(x ?? mesh.position.x, mesh.position.x);
-        z = toFinite(z ?? mesh.position.z, mesh.position.z);
-        if (y !== '__ground__level__') {
-          y = toFinite(y ?? mesh.position.y, mesh.position.y);
-        }
+        if (byAnchor && !isCamera && mesh.metadata?.shape !== 'camera') {
+          await placeAnchorAt(mesh, { x, y, z, useY });
+        } else {
+          x = toFinite(x ?? mesh.position.x, mesh.position.x);
+          z = toFinite(z ?? mesh.position.z, mesh.position.z);
+          if (y !== '__ground__level__') {
+            y = toFinite(y ?? mesh.position.y, mesh.position.y);
+          }
 
-        await this.setBlockPositionOnMesh(mesh, {
-          x,
-          y,
-          z,
-          useY,
-          meshName,
-        });
+          await this.setBlockPositionOnMesh(mesh, {
+            x,
+            y,
+            z,
+            useY,
+            meshName,
+          });
+        }
 
         mesh.computeWorldMatrix(true);
         teleportBodyToMesh(mesh);

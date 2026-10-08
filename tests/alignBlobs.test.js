@@ -46,7 +46,7 @@ export function runAlignBlobsTests(flock) {
     }
 
     async function placeAgainst(mover, face) {
-      await flock.positionAt(mover.name, getAlignedBlockPosition(mover, face));
+      await flock._positionAtBase(mover.name, getAlignedBlockPosition(mover, face));
       return bounds(mover);
     }
 
@@ -129,7 +129,7 @@ export function runAlignBlobsTests(flock) {
         new Vector3(...point),
         new Vector3(...normal)
       );
-      await flock.positionAt(mover.name, position);
+      await flock._positionAtBase(mover.name, position);
       return bounds(mover);
     }
 

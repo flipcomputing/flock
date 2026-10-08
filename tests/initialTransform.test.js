@@ -15,9 +15,11 @@ import {
   setInitialRotationValues,
   getInitialSizeValues,
   setInitialSizeValues,
+  placeMoveAfterInitialTransforms,
 } from '../ui/initialTransform.js';
+import { updateMeshFromBlock } from '../ui/blockmesh.js';
 
-export function runInitialTransformTests() {
+export function runInitialTransformTests(flock) {
   describe('ui/initialTransform @initialtransform', function () {
     let ws;
     let stubs;
@@ -67,7 +69,7 @@ export function runInitialTransformTests() {
       const block = Blockly.serialization.blocks.append(
         {
           type,
-          fields: { [type === 'rotate_to' ? 'MODEL' : 'BLOCK_NAME']: { id: varId } },
+          fields: { [type === 'resize' ? 'BLOCK_NAME' : 'MODEL']: { id: varId } },
           inputs: { X: number(1), Y: number(2), Z: number(3) },
         },
         ws
@@ -208,6 +210,85 @@ export function runInitialTransformTests() {
         const { block } = ensureInitialRotation(box);
         block.setDisabledReason(true, 'test');
         expect(getInitialTransformOwner(block)).to.be.null;
+      });
+    });
+
+    describe('placeMoveAfterInitialTransforms', function () {
+      it('moves a clone move below its own rotate and resize', function () {
+        const clone = ws.newBlock('clone_mesh');
+        const cloneVar = clone.getFieldValue('CLONE_VAR');
+        appendTransform(clone, 'move_to_xyz', cloneVar);
+        ensureInitialRotation(clone);
+        ensureInitialSize(clone, null, () => ({ x: 1, y: 1, z: 1 }));
+        placeMoveAfterInitialTransforms(clone);
+
+        expect(doTypes(clone)).to.deep.equal(['resize', 'rotate_to', 'move_to_xyz']);
+      });
+
+      it('leaves statements after the move in place', function () {
+        const clone = ws.newBlock('clone_mesh');
+        const cloneVar = clone.getFieldValue('CLONE_VAR');
+        appendTransform(clone, 'move_to_xyz', cloneVar);
+        ensureInitialRotation(clone);
+        appendTransform(clone, 'rotate_to', otherVariable().getId());
+        placeMoveAfterInitialTransforms(clone);
+
+        expect(doTypes(clone)).to.deep.equal(['rotate_to', 'move_to_xyz', 'rotate_to']);
+      });
+    });
+
+    describe('live position edits', function () {
+      let calls;
+      let restore;
+
+      beforeEach(function () {
+        calls = [];
+        const originals = {
+          positionAt: flock.positionAt,
+          _positionAtBase: flock._positionAtBase,
+          updatePhysics: flock.updatePhysics,
+        };
+        flock.positionAt = (name, opts) => calls.push({ rule: 'anchor', name, opts });
+        flock._positionAtBase = (name, opts) => calls.push({ rule: 'base', name, opts });
+        flock.updatePhysics = () => {};
+        restore = () => Object.assign(flock, originals);
+      });
+
+      afterEach(function () {
+        restore();
+      });
+
+      function editY(box, value, { isPrefab = false } = {}) {
+        const shadow = box.getInputTargetBlock('Y');
+        shadow.setFieldValue(String(value), 'NUM');
+        const mesh = { name: 'liveBox', parent: null, metadata: { blockKey: box.id, isPrefab } };
+        updateMeshFromBlock(mesh, box, {
+          type: Blockly.Events.BLOCK_CHANGE,
+          element: 'field',
+          name: 'NUM',
+          blockId: shadow.id,
+        });
+      }
+
+      function makeBox() {
+        const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+        return Blockly.serialization.blocks.append(
+          { type: 'create_box', inputs: { X: number(0), Y: number(0), Z: number(0) } },
+          ws
+        );
+      }
+
+      it('places an add block by its unrotated base, as creation does', function () {
+        const box = makeBox();
+        ensureInitialRotation(box, { x: 0, y: 0, z: 45 });
+        editY(box, 2);
+        expect(calls.map((c) => c.rule)).to.deep.equal(['base']);
+        expect(Number(calls[0].opts.y)).to.equal(2);
+      });
+
+      it('places a prefab by its anchor, as creation does', function () {
+        editY(makeBox(), 2, { isPrefab: true });
+        expect(calls.map((c) => c.rule)).to.deep.equal(['anchor']);
       });
     });
   });

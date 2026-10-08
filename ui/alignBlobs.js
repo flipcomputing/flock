@@ -216,6 +216,10 @@ export function getAlignDelta(mover, marker) {
 
 export function getAlignedBlockPosition(mover, marker) {
   const delta = getAlignDelta(mover, marker);
+  if (mover.metadata?.isPrefab) {
+    const anchor = flock._getAnchor(mover);
+    return { x: anchor.x + delta.x, y: anchor.y + delta.y, z: anchor.z + delta.z };
+  }
   const origin = mover.getAbsolutePosition();
 
   let baseY = origin.y;

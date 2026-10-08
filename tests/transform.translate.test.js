@@ -444,4 +444,65 @@ export function runTranslationTests(flock) {
       expect(mesh.position.z).to.be.closeTo(-3, 0.01);
     });
   });
+
+  describe('positionAt places the anchor of a rotated mesh @translation', function () {
+    let boxId;
+
+    const worldBox = () => {
+      const mesh = flock.scene.getMeshByName(boxId);
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      return mesh.getBoundingInfo().boundingBox;
+    };
+
+    beforeEach(async function () {
+      boxId = `anchorBox_${Date.now()}`;
+      flock.createBox(boxId, { width: 1, height: 2, depth: 1, position: [0, 0, 0] });
+      await flock.rotateTo(boxId, { x: 0, y: 0, z: 45 });
+    });
+
+    afterEach(function () {
+      flock.dispose(boxId);
+    });
+
+    it('rests a tilted box on Y, centred on X and Z', async function () {
+      await flock.positionAt(boxId, { x: 2, y: 3, z: -1 });
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(-1, 0.01);
+    });
+
+    it('keeps the resting Y when useY is false', async function () {
+      await flock.positionAt(boxId, { x: 0, y: 3, z: 0 });
+      await flock.positionAt(boxId, { x: 5, y: 99, z: 5, useY: false });
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(5, 0.01);
+    });
+
+    it('keeps the other anchor coordinates when setting one', async function () {
+      await flock.positionAt(boxId, { x: 2, y: 0, z: 5 });
+      await flock.positionAtSingleCoordinate(boxId, 'y_coordinate', 4);
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(4, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(5, 0.01);
+    });
+
+    it('honours an anchor set with setAnchor', async function () {
+      await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'CENTER' });
+      await flock.positionAt(boxId, { x: 2, y: 3, z: 0 });
+      const box = worldBox();
+      expect(box.minimumWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+    });
+
+    it('_positionAtBase still places the unrotated base', async function () {
+      await flock._positionAtBase(boxId, { x: 0, y: 3, z: 0 });
+      const mesh = flock.scene.getMeshByName(boxId);
+      expect(flock.getBlockPositionFromMesh(mesh).y).to.be.closeTo(3, 0.01);
+      expect(worldBox().minimumWorld.y).to.be.closeTo(4 - 1.5 / Math.SQRT2, 0.01);
+    });
+  });
 }
