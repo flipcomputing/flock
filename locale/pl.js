@@ -1040,6 +1040,7 @@ export default {
   space_scene_ui: 'Scena kosmiczna',
   snowman_glide_ui: 'Ślizgający się bałwan',
   pancake_flip_ui: 'Przewracanie naleśnika',
+  backpack_customizer_ui: 'Projektant plecaka',
   grid_race_ui: 'Wyścig po siatce',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Szukacz zabawek',

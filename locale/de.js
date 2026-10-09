@@ -1049,6 +1049,7 @@ export default {
   space_scene_ui: 'Weltraumszene',
   snowman_glide_ui: 'Schneemann-Gleiten',
   pancake_flip_ui: 'Pfannkuchen wenden',
+  backpack_customizer_ui: 'Rucksack-Designer',
   grid_race_ui: 'Gitterrennen',
   escape_room_ui: 'Escape-Room',
   toy_finder_ui: 'Spielzeugsuche',

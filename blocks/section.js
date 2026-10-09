@@ -57,6 +57,10 @@ function sectionDropdownOptions() {
 // FieldDropdown caches the selected label at set-time, so a section rename
 // wouldn't otherwise show until reopened - look the name up by id on render.
 class SectionRefDropdown extends Blockly.FieldDropdown {
+  doClassValidation_(newValue) {
+    return typeof newValue === 'string' ? newValue : super.doClassValidation_(newValue);
+  }
+
   getText_() {
     const ws = this.sourceBlock_?.workspace;
     const target = ws?.getBlockById(this.getValue());
@@ -86,6 +90,14 @@ function defineSectionControlBlock() {
       this.setColour(categoryColours['Control']);
       this.setTooltip(getTooltip('section_control'));
       this.setHelpUrl(getHelpUrlFor('section_control'));
+    },
+    onchange: function (event) {
+      const loaded = event.type === Blockly.Events.FINISHED_LOADING;
+      const renamed =
+        event.type === Blockly.Events.BLOCK_CHANGE &&
+        event.name === 'NAME' &&
+        event.blockId === this.getFieldValue('SECTION');
+      if (loaded || renamed) this.getField('SECTION')?.forceRerender();
     },
   };
 }

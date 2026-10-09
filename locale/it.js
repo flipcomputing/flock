@@ -1058,6 +1058,7 @@ export default {
   space_scene_ui: 'Scena spaziale',
   snowman_glide_ui: 'Pupazzo di neve scivolante',
   pancake_flip_ui: 'Lancio del pancake',
+  backpack_customizer_ui: 'Personalizza lo zaino',
   grid_race_ui: 'Corsa sulla griglia',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Cerca giocattoli',

@@ -1235,6 +1235,7 @@ export default {
   space_scene_ui: 'Space scene',
   snowman_glide_ui: 'Snowman glide',
   pancake_flip_ui: 'Pancake flip',
+  backpack_customizer_ui: 'Backpack customizer',
   grid_race_ui: 'Grid race',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Toy finder',

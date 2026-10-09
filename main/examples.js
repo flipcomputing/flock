@@ -74,6 +74,11 @@ export const EXAMPLES = [
   { i18nKey: 'snowman_glide', file: 'examples/snowman_glide.flock', category: 'create' },
   { i18nKey: 'pancake_flip', file: 'examples/pancake_flip.flock', category: 'create' },
   {
+    i18nKey: 'backpack_customizer',
+    file: 'examples/backpack_customizer.flock',
+    category: 'create',
+  },
+  {
     i18nKey: 'tallest_buildings',
     file: 'examples/tallest_buildings.flock',
     category: 'data',

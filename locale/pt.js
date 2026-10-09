@@ -1043,6 +1043,7 @@ export default {
   space_scene_ui: 'Cena espacial',
   snowman_glide_ui: 'Boneco de neve a deslizar',
   pancake_flip_ui: 'Virar panquecas',
+  backpack_customizer_ui: 'Personalizar mochila',
   grid_race_ui: 'Corrida na grelha',
   escape_room_ui: 'Sala de fuga',
   toy_finder_ui: 'Caçador de brinquedos',
