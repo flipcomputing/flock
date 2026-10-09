@@ -120,6 +120,44 @@ function withUprightTarget(target, fitFn) {
   }
 }
 
+// Group shells have no body of their own, so their members' bodies must go too.
+function removeAttachedPhysics(root) {
+  const M = flock.BABYLON.PhysicsMotionType;
+  const motionTypeNames = {
+    [M.STATIC]: 'STATIC',
+    [M.ANIMATED]: 'ANIMATED',
+    [M.DYNAMIC]: 'DYNAMIC',
+  };
+  [root, ...root.getChildMeshes(false)].forEach((mesh) => {
+    if (!mesh.physics || mesh.metadata?.isGhost) return;
+    (mesh.metadata ||= {})._preAttachPhysicsType =
+      mesh.metadata.physicsType || motionTypeNames[mesh.physics.getMotionType?.()];
+    flock.setPhysicsForMesh(mesh, 'NONE');
+  });
+}
+
+function restoreAttachedPhysics(root) {
+  [root, ...root.getChildMeshes(false)].forEach((mesh) => {
+    const physicsType = mesh.metadata?._preAttachPhysicsType;
+    if (!physicsType) return;
+    delete mesh.metadata._preAttachPhysicsType;
+    mesh.computeWorldMatrix(true);
+    flock.setPhysicsForMesh(mesh, physicsType);
+  });
+}
+
+// Members joining or leaving an attached group after attach would otherwise
+// keep pushing the character, or be missed by drop.
+function syncAttachedPhysics(mesh) {
+  for (let node = mesh; node; node = node.parent) {
+    if (node.metadata?._attachedTargetName) {
+      removeAttachedPhysics(mesh);
+      return;
+    }
+  }
+  restoreAttachedPhysics(mesh);
+}
+
 function alignAttachedToCharacterFacing(attachedMesh, targetMesh) {
   try {
     const B = flock?.BABYLON;
@@ -1428,6 +1466,7 @@ export const flockMesh = {
           if (targetWithSkeleton) {
             const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === 'Hold');
             if (bone) {
+              removeAttachedPhysics(meshToAttachInstance);
               meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
               meshToAttachInstance.position = new flock.BABYLON.Vector3(xOffset, yOffset, zOffset);
               alignAttachedToCharacterFacing(meshToAttachInstance, targetMeshInstance);
@@ -1495,18 +1534,7 @@ export const flockMesh = {
           if (targetWithSkeleton) {
             const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === boneName);
             if (bone) {
-              if (!alreadyAttached && meshToAttachInstance.physics) {
-                const M = flock.BABYLON.PhysicsMotionType;
-                const motionTypeNames = {
-                  [M.STATIC]: 'STATIC',
-                  [M.ANIMATED]: 'ANIMATED',
-                  [M.DYNAMIC]: 'DYNAMIC',
-                };
-                meshToAttachInstance.metadata._preAttachPhysicsType =
-                  meshToAttachInstance.metadata.physicsType ||
-                  motionTypeNames[meshToAttachInstance.physics.getMotionType?.()];
-                flock.setPhysicsForMesh(meshToAttachInstance, 'NONE');
-              }
+              if (!alreadyAttached) removeAttachedPhysics(meshToAttachInstance);
 
               meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
 
@@ -1592,7 +1620,6 @@ export const flockMesh = {
 
         const md = mesh.metadata || {};
         const restoreRotation = md._preAttachWorldRotation || rotationNow;
-        const restorePhysicsType = md._preAttachPhysicsType;
 
         // Remove from target's attachment tracking list
         const targetName = md._attachedTargetName;
@@ -1615,7 +1642,6 @@ export const flockMesh = {
           delete mesh.metadata._attachedBoneName;
           delete mesh.metadata._attachedOffset;
           delete mesh.metadata._preAttachWorldRotation;
-          delete mesh.metadata._preAttachPhysicsType;
         }
         flock._syncTeleportMeshHierarchy?.(mesh);
 
@@ -1624,10 +1650,13 @@ export const flockMesh = {
         mesh.position = position.add(new flock.BABYLON.Vector3(0, 0.002, 0));
         mesh.computeWorldMatrix(true);
 
-        if (restorePhysicsType) flock.setPhysicsForMesh(mesh, restorePhysicsType);
+        restoreAttachedPhysics(mesh);
         resolve();
       });
     });
+  },
+  _syncAttachedPhysics(mesh) {
+    syncAttachedPhysics(mesh);
   },
   setParent(parentModelName, childModelName) {
     if (Array.isArray(childModelName)) {
@@ -1648,6 +1677,7 @@ export const flockMesh = {
           const wasChild = childMesh.parent === parentMesh;
           childMesh.setParent(parentMesh);
           if (!wasChild) joinActiveDrives(childMesh);
+          syncAttachedPhysics(childMesh);
 
           if (parentMesh.metadata?.shapeType === 'Group') {
             flock.recomputeGroupGeometry(parentMesh);
@@ -1695,6 +1725,7 @@ export const flockMesh = {
           return;
         }
         childMesh.setParent(null);
+        syncAttachedPhysics(childMesh);
         resolve();
       });
     });

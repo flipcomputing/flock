@@ -1564,6 +1564,7 @@ export function attachToEnclosingGroupIfAny(block, mesh) {
   const groupMesh = resolveGroupMesh(groupBlock);
   if (!groupMesh || groupMesh === mesh) return;
   mesh.setParent(groupMesh);
+  flock._syncAttachedPhysics?.(mesh);
 
   const eventGroupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(eventGroupId);
@@ -1728,6 +1729,7 @@ export function syncGroupParentOnMove(mesh, block) {
     mesh.setParent(null);
   }
 
+  flock._syncAttachedPhysics?.(mesh);
   flock.updatePhysics?.(mesh);
 
   const eventGroupId = Blockly.utils.idGenerator.genUid();
@@ -1929,12 +1931,18 @@ function handleGroupActiveToggle(groupMesh, groupBlock) {
   if (groupBlock.getFieldValue('ACTIVE') === 'TRUE') {
     getDirectGroupMemberBlocks(groupBlock).forEach((memberBlock) => {
       getMeshesFromBlock(memberBlock).forEach((mesh) => {
-        if (mesh && mesh !== groupMesh && mesh.parent !== groupMesh) mesh.setParent(groupMesh);
+        if (mesh && mesh !== groupMesh && mesh.parent !== groupMesh) {
+          mesh.setParent(groupMesh);
+          flock._syncAttachedPhysics?.(mesh);
+        }
       });
     });
     flock.recomputeGroupGeometry(groupMesh);
   } else {
-    groupMesh.getChildMeshes(true).forEach((child) => child.setParent(null));
+    groupMesh.getChildMeshes(true).forEach((child) => {
+      child.setParent(null);
+      flock._syncAttachedPhysics?.(child);
+    });
     flock.rebuildGroupGeometry(groupMesh, 0.01, 0.01, 0.01);
   }
   flock.updatePhysics?.(groupMesh);

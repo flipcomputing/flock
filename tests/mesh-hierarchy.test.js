@@ -2906,6 +2906,98 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.metadata._preAttachPhysicsType).to.be.undefined;
       });
 
+      it('attach should remove physics from group members and drop should restore it', async function () {
+        const groupId = flock.createGroup('holdTestGroup');
+        const boxId = flock.createBox('holdTestGroupBox', {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await pumpAnimation(flock, flock.setParent(groupId, boxId));
+        await pumpAnimation(flock, flock.setPhysics(boxId, 'STATIC'));
+
+        try {
+          const boxMesh = flock.scene.getMeshByName(boxId);
+          expect(boxMesh.physics, 'member physics before attach').to.exist;
+
+          await pumpAnimation(flock, flock.attach(groupId, lizId, { boneName: 'Hold' }));
+          expect(boxMesh.physics, 'member physics while attached').to.not.exist;
+
+          await pumpAnimation(flock, flock.drop(groupId));
+          expect(boxMesh.physics, 'member physics after drop').to.exist;
+          expect(boxMesh.metadata.physicsType).to.equal('STATIC');
+          expect(boxMesh.metadata._preAttachPhysicsType).to.be.undefined;
+        } finally {
+          flock.dispose(boxId);
+          flock.dispose(groupId);
+        }
+      });
+
+      it('removing a member from an attached group should restore its physics', async function () {
+        const groupId = flock.createGroup('holdTestGroupLeave');
+        const boxId = flock.createBox('holdTestGroupLeaveBox', {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        await pumpAnimation(flock, flock.setParent(groupId, boxId));
+        await pumpAnimation(flock, flock.setPhysics(boxId, 'STATIC'));
+
+        try {
+          const boxMesh = flock.scene.getMeshByName(boxId);
+          await pumpAnimation(flock, flock.attach(groupId, lizId, { boneName: 'Hold' }));
+          expect(boxMesh.physics, 'member physics while attached').to.not.exist;
+
+          await pumpAnimation(flock, flock.removeParent(boxId));
+          expect(boxMesh.physics, 'member physics after leaving').to.exist;
+          expect(boxMesh.metadata.physicsType).to.equal('STATIC');
+          expect(boxMesh.metadata._preAttachPhysicsType).to.be.undefined;
+
+          await pumpAnimation(flock, flock.drop(groupId));
+        } finally {
+          flock.dispose(boxId);
+          flock.dispose(groupId);
+        }
+      });
+
+      it('adding a member to an attached group should remove its physics until drop', async function () {
+        const groupId = flock.createGroup('holdTestGroupJoin');
+        const firstId = flock.createBox('holdTestGroupJoinFirst', {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        const lateId = flock.createBox('holdTestGroupJoinLate', {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [2, 0, 0],
+        });
+        await pumpAnimation(flock, flock.setParent(groupId, firstId));
+        await pumpAnimation(flock, flock.setPhysics(lateId, 'STATIC'));
+
+        try {
+          const lateMesh = flock.scene.getMeshByName(lateId);
+          await pumpAnimation(flock, flock.attach(groupId, lizId, { boneName: 'Hold' }));
+          expect(lateMesh.physics, 'late member physics before joining').to.exist;
+
+          await pumpAnimation(flock, flock.setParent(groupId, lateId));
+          expect(lateMesh.physics, 'late member physics after joining').to.not.exist;
+
+          await pumpAnimation(flock, flock.drop(groupId));
+          expect(lateMesh.physics, 'late member physics after drop').to.exist;
+          expect(lateMesh.metadata.physicsType).to.equal('STATIC');
+          expect(lateMesh.metadata._preAttachPhysicsType).to.be.undefined;
+        } finally {
+          flock.dispose(firstId);
+          flock.dispose(lateId);
+          flock.dispose(groupId);
+        }
+      });
+
       it('attach to a missing bone should keep physics', async function () {
         await pumpAnimation(flock, flock.drop(treeId));
         await pumpAnimation(flock, flock.setPhysics(treeId, 'STATIC'));
