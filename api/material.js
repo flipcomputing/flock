@@ -978,6 +978,7 @@ export const flockMaterial = {
       if (mesh.metadata.shapeType === 'Cylinder') {
         mesh.forceSharedVertices();
         mesh.convertToFlatShadedMesh();
+        mesh.refreshBoundingInfo();
       }
     } catch (e) {
       console.log('Error converting mesh to flat shaded:', e);
