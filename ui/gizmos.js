@@ -1557,7 +1557,7 @@ function attachOrbitView(mesh) {
     scene
   );
   flock._configureOrbitCamera(orbitCamera);
-  if (!mesh) frameWholeGround(orbitCamera);
+  if (!mesh && !frameSceneObjects(orbitCamera)) frameWholeGround(orbitCamera);
   // Rotation comes from CameraControls via the InputManager, so drop Babylon's
   // keyboard input to keep physical arrows on a single path.
   orbitCamera.inputs.removeByType('ArcRotateCameraKeyboardMoveInput');
@@ -1597,6 +1597,61 @@ function attachOrbitView(mesh) {
   window.orbitMesh = selectedMesh;
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
   watchEyeGizmoRetarget();
+}
+
+function frameSceneObjects(orbitCamera) {
+  const BABYLON = flock.BABYLON;
+  orbitCamera.beta = Math.PI / 3;
+  const view = orbitCamera.getViewMatrix(true);
+  const startRadius = orbitCamera.radius;
+  const depthSign = flock.scene.useRightHandedSystem ? -1 : 1;
+  const corners = [];
+  for (const mesh of flock.scene.meshes) {
+    if (!mesh.metadata?.blockKey || mesh.parent?.metadata?.blockKey) continue;
+    if (mesh === flock.ground || mesh.name === 'ground' || mesh.name === 'sky') continue;
+    if (mesh.metadata.shape === 'camera' || !mesh.isEnabled()) continue;
+    mesh.computeWorldMatrix(true);
+    const { min, max } = mesh.getHierarchyBoundingVectors(true);
+    if (!Number.isFinite(min.x) || !Number.isFinite(max.x)) continue;
+    for (const x of [min.x, max.x]) {
+      for (const y of [min.y, max.y]) {
+        for (const z of [min.z, max.z]) {
+          const v = BABYLON.Vector3.TransformCoordinates(new BABYLON.Vector3(x, y, z), view);
+          corners.push({ x: v.x, y: v.y, depth: depthSign * v.z - startRadius });
+        }
+      }
+    }
+  }
+  if (!corners.length) return false;
+
+  const margin = 1.1;
+  const slopeY = Math.tan(orbitCamera.fov / 2) / margin;
+  const slopeX = slopeY * (flock.scene.getEngine().getAspectRatio(orbitCamera) || 1);
+  // Range of view-space offsets that keeps every corner inside the frame at
+  // this radius, or null when none does.
+  const offsetRange = (radius, axis, slope) => {
+    let lo = -Infinity;
+    let hi = Infinity;
+    for (const corner of corners) {
+      const reach = (corner.depth + radius) * slope;
+      lo = Math.max(lo, -reach - corner[axis]);
+      hi = Math.min(hi, reach - corner[axis]);
+    }
+    return lo <= hi ? (lo + hi) / 2 : null;
+  };
+  const fits = (radius) => offsetRange(radius, 'x', slopeX) !== null && offsetRange(radius, 'y', slopeY) !== null;
+
+  let near = Math.max(...corners.map((corner) => -corner.depth)) + orbitCamera.minZ;
+  let far = Math.max(near * 2, 1);
+  while (!fits(far)) far *= 2;
+  for (let i = 0; i < 40; i++) {
+    const mid = (near + far) / 2;
+    if (fits(mid)) far = mid;
+    else near = mid;
+  }
+  orbitCamera.radius = far;
+  orbitCamera.targetScreenOffset.set(offsetRange(far, 'x', slopeX), offsetRange(far, 'y', slopeY));
+  return true;
 }
 
 function frameWholeGround(orbitCamera) {

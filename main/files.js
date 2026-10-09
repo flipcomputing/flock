@@ -170,7 +170,7 @@ function validateBlocklyJson(json) {
       const suspiciousPatterns = [
         /<\s*script/i,
         /javascript\s*:/i,
-        /on\w+\s*=/i, // Event handlers like onclick=
+        /\bon\w+\s*=/i, // Event handlers like onclick=
         /\beval\s*\(/i,
         /\bFunction\s*\(/i,
         /\bnew\s+Function/i,
