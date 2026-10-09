@@ -75,6 +75,31 @@ export function runKeyboardSourceTests() {
       });
     });
 
+    describe('focus', function () {
+      let el;
+
+      beforeEach(function () {
+        el = new EventTarget();
+        el.ownerDocument = { activeElement: el };
+      });
+
+      it('a focused element target tracks the key', function () {
+        source = new KeyboardSource(manager, { target: el });
+        source.start();
+        keydown(el, '3');
+        expect(source.isKeyDown('3')).to.be.true;
+      });
+
+      it('ignores a keydown whose focus moved away during dispatch, so its keyup elsewhere cannot strand it', function () {
+        el.addEventListener('keydown', () => (el.ownerDocument.activeElement = null));
+        source = new KeyboardSource(manager, { target: el });
+        source.start();
+        keydown(el, '3');
+        expect(source.isKeyDown('3')).to.be.false;
+        expect(manager.isKeyDown('3')).to.be.false;
+      });
+    });
+
     describe('blur handling', function () {
       it('blur on target clears all keys', function () {
         source.start();

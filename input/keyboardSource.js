@@ -41,6 +41,10 @@ export class KeyboardSource {
       // gameplay — without this, undo on a focused canvas walks the player
       // ("z" is bound to FORWARD for AZERTY keyboards).
       if (event.ctrlKey || event.metaKey || event.altKey) return;
+      // A document-level shortcut can move focus away mid-dispatch; the keyup
+      // would then go elsewhere and leave the key held forever.
+      const doc = this.#target.ownerDocument;
+      if (doc && doc.activeElement !== this.#target) return;
       const key = normaliseKey(event.key);
       if (event.repeat) {
         // OS auto-repeat while held: drive "while held" event blocks via the

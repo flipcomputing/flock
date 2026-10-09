@@ -21,7 +21,9 @@ import { getNumberInput } from '../ui/blocklyutil.js';
 import { meshMap } from '../generators/generators.js';
 import { blockHandlerRegistry } from '../blocks/blocks.js';
 import { updateMeshFromBlock, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
-import { topHandler, makeKeyEvent } from './utils/keyboardDispatcherTestUtils.js';
+import { topHandler, makeKeyEvent, dispatchKeyup } from './utils/keyboardDispatcherTestUtils.js';
+import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { getCanvasCircle } from '../ui/canvas-utils.js';
 
 export function runGizmoTests(flock) {
   const BABYLON = flock.BABYLON;
@@ -740,10 +742,22 @@ export function runGizmoTests(flock) {
 
       it('V again toggles back to the free camera and restores pointer-to-attach', function () {
         mgr.usePointerToAttachGizmos = true;
-        orbitBox();
+        const box = orbitBox();
+        mgr.attachToMesh(box);
         viewMeshWithCamera(); // toggle off
         expect(flock.scene.activeCamera).to.equal(freeCamera);
         expect(mgr.usePointerToAttachGizmos).to.be.true;
+      });
+
+      it('orbiting does not select the orbited mesh, and ending orbit does not select it either', function () {
+        const box = orbitBox();
+        expect(window.orbitMesh).to.equal(box);
+        expect(mgr.attachedMesh).to.be.null;
+        expect(box.showBoundingBox).to.be.true;
+        viewMeshWithCamera(); // toggle off
+        expect(flock.scene.activeCamera).to.equal(freeCamera);
+        expect(mgr.attachedMesh).to.be.null;
+        expect(box.showBoundingBox).to.not.be.true;
       });
 
       it('deselecting the gizmo keeps the orbit camera (independent selection)', function () {
@@ -877,6 +891,69 @@ export function runGizmoTests(flock) {
           expect(cam.target.x).to.be.closeTo(5, 1e-6);
         });
 
+        describe('eye keyboard cursor', function () {
+          const nextTick = () => new Promise((resolve) => setTimeout(resolve, 0));
+          const cursorModeActive = () => KeyboardDispatcher._modeStack.at(-1)?.name === 'canvas-cursor';
+
+          function press(key) {
+            topHandler()(makeKeyEvent({ key }));
+            dispatchKeyup(key);
+          }
+
+          async function eyeOnOrigin() {
+            mgr.attachToMesh(null);
+            toggleGizmo('eye');
+            await nextTick();
+          }
+
+          it('arrow keys show the canvas cursor while eye is the only tool', async function () {
+            await eyeOnOrigin();
+            expect(cursorModeActive()).to.be.true;
+            press('ArrowRight');
+            expect(getCanvasCircle()).to.exist;
+          });
+
+          it('Enter over a mesh retargets orbit and hides the cursor so the canvas has focus for WASD', async function () {
+            await eyeOnOrigin();
+            const box = makeBox('orbitKeyboardRetargetBox');
+            box.position.set(5, 0, 0);
+            box.computeWorldMatrix(true);
+            flock.scene.pick = () => ({ hit: true, pickedMesh: box });
+            try {
+              press('ArrowRight');
+              press('Enter');
+            } finally {
+              delete flock.scene.pick;
+            }
+            expect(window.orbitMesh).to.equal(box);
+            expect(flock.scene.activeCamera.target.x).to.be.closeTo(5, 1e-6);
+            expect(getCanvasCircle()).to.be.null;
+            const canvas = flock.scene.getEngine().getRenderingCanvas();
+            if (canvas) expect(document.activeElement).to.equal(canvas);
+            await nextTick();
+            expect(cursorModeActive()).to.be.true;
+          });
+
+          it('eye gets the cursor back when a transform closes by clicking away', async function () {
+            await eyeOnOrigin();
+            toggleGizmo('position');
+            await new Promise((resolve) => setTimeout(resolve, 120));
+            window.dispatchEvent(
+              new MouseEvent('click', { bubbles: true, cancelable: true, clientX: -1000, clientY: -1000 })
+            );
+            expect(document.getElementById('positionButton').classList.contains('active')).to.be.false;
+            expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+            await nextTick();
+            expect(cursorModeActive()).to.be.true;
+          });
+
+          it('turning eye off ends the cursor mode', async function () {
+            await eyeOnOrigin();
+            toggleGizmo('eye');
+            expect(cursorModeActive()).to.be.false;
+          });
+        });
+
         it('position keeps the orbit camera with both buttons lit', function () {
           orbitWithButtons();
           expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
@@ -975,8 +1052,16 @@ export function runGizmoTests(flock) {
           }
         });
 
+        it('a transform started while orbiting begins with nothing picked', function () {
+          orbitWithButtons('orbitNothingPicked');
+          toggleGizmo('position');
+          expect(mgr.attachedMesh).to.be.null;
+          expect(mgr.positionGizmoEnabled).to.be.true;
+        });
+
         it('transform can retarget to another mesh without leaving orbit', function () {
           const first = orbitWithButtons('orbitRetargetA');
+          mgr.attachToMesh(first);
           toggleGizmo('position');
           expect(mgr.attachedMesh).to.equal(first);
           const second = makeBox('orbitRetargetB');
@@ -1009,6 +1094,7 @@ export function runGizmoTests(flock) {
 
         it('a drag (POINTERDOWN with no matching POINTERPICK) does not retarget the gizmo', function () {
           const first = orbitWithButtons('orbitDragNoRetargetA');
+          mgr.attachToMesh(first);
           toggleGizmo('position');
           const second = makeBox('orbitDragNoRetargetB');
 
@@ -1024,6 +1110,7 @@ export function runGizmoTests(flock) {
 
         it('a secondary-button (right) click does not retarget the gizmo', function () {
           const first = orbitWithButtons('orbitRightClickNoRetargetA');
+          mgr.attachToMesh(first);
           toggleGizmo('position');
           const second = makeBox('orbitRightClickNoRetargetB');
 
@@ -1103,8 +1190,9 @@ export function runGizmoTests(flock) {
       });
 
       it('focusOnMesh (J) during orbit exits orbit instead of mutating the orbit camera', function () {
-        orbitBox('focusDuringOrbitBox');
+        const box = orbitBox('focusDuringOrbitBox');
         expect(flock.scene.activeCamera.metadata?.orbitView).to.be.true;
+        mgr.attachToMesh(box);
         focusOnMesh();
         expect(flock.scene.activeCamera.metadata?.orbitView).to.not.equal(true);
         expect(flock.scene.activeCamera).to.equal(freeCamera);

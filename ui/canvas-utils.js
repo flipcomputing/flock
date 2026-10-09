@@ -95,6 +95,11 @@ export function clickCanvasCircle(callback) {
   }
 }
 
+// With a callback, only true when that callback's mode is the active one
+export function isCanvasKeyboardModeActive(callback = null) {
+  return keyboardCursorActive && (!callback || keyboardCursorCallback === callback);
+}
+
 // Start keyboard mode on the canvas
 export function startCanvasKeyboardMode(
   callback,

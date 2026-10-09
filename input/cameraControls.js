@@ -64,18 +64,23 @@ export class CameraControls {
     );
   }
 
+  // The editor's orbit view leaves the arrows to the canvas keyboard cursor,
+  // even when the project has bound an action to one.
+  #orbitKeys(action, fallback, arrow, useArrows) {
+    const keys = this.#flock.inputManager?._getActionKeys?.(action) ?? fallback;
+    return useArrows ? [...keys, arrow] : keys.filter((k) => !k.startsWith('Arrow'));
+  }
+
   // Native ArcRotate directions: Left/Up decrease alpha/beta.
-  #orbitKeyYaw() {
-    const im = this.#flock.inputManager;
-    const left = [...(im?._getActionKeys?.('LEFT') ?? ['a', 'q']), 'ArrowLeft'];
-    const right = [...(im?._getActionKeys?.('RIGHT') ?? ['d']), 'ArrowRight'];
+  #orbitKeyYaw(useArrows) {
+    const left = this.#orbitKeys('LEFT', ['a', 'q'], 'ArrowLeft', useArrows);
+    const right = this.#orbitKeys('RIGHT', ['d'], 'ArrowRight', useArrows);
     return (this.#isKeyDownAny(left) ? 1 : 0) - (this.#isKeyDownAny(right) ? 1 : 0);
   }
 
-  #orbitKeyPitch() {
-    const im = this.#flock.inputManager;
-    const up = [...(im?._getActionKeys?.('FORWARD') ?? ['w', 'z']), 'ArrowUp'];
-    const down = [...(im?._getActionKeys?.('BACKWARD') ?? ['s']), 'ArrowDown'];
+  #orbitKeyPitch(useArrows) {
+    const up = this.#orbitKeys('FORWARD', ['w', 'z'], 'ArrowUp', useArrows);
+    const down = this.#orbitKeys('BACKWARD', ['s'], 'ArrowDown', useArrows);
     return (this.#isKeyDownAny(up) ? 1 : 0) - (this.#isKeyDownAny(down) ? 1 : 0);
   }
 
@@ -120,12 +125,13 @@ export class CameraControls {
       isArcRotate &&
       (camera.metadata?.orbitView ||
         (camera.metadata?.cameraRig && camera.metadata.cameraType === 'orbit'));
+    const orbitArrows = !camera.metadata?.orbitView;
     const keyYaw = orbits
-      ? this.#orbitKeyYaw() - (joy?.x ?? 0)
+      ? this.#orbitKeyYaw(orbitArrows) - (joy?.x ?? 0)
       : isArcRotate
         ? 0
         : this.#flyKeyYaw(camera);
-    const keyPitch = orbits ? this.#orbitKeyPitch() - (joy?.y ?? 0) : 0;
+    const keyPitch = orbits ? this.#orbitKeyPitch(orbitArrows) - (joy?.y ?? 0) : 0;
     const yawInput = rightX + shoulderTurn + keyYaw;
     const pitchInput = rightY + keyPitch;
 

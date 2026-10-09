@@ -65,6 +65,12 @@ function makeOrbitCamera() {
   return camera;
 }
 
+function makeProjectOrbitCamera() {
+  const camera = makeArcRotateCamera();
+  camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+  return camera;
+}
+
 function makeFlock() {
   const camera = makeFreeCamera();
   return {
@@ -240,24 +246,24 @@ export function runCameraControlsTests() {
       });
 
       it('ArrowLeft/ArrowRight rotate alpha like the native keys', function () {
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowLeft', true);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
         flock.inputManager._setKey('ArrowLeft', false);
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowRight', true);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.greaterThan(1);
       });
 
       it('ArrowUp/ArrowDown pitch beta like the native keys', function () {
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowUp', true);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.beta).to.be.lessThan(1);
         flock.inputManager._setKey('ArrowUp', false);
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowDown', true);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.beta).to.be.greaterThan(1);
@@ -279,12 +285,12 @@ export function runCameraControlsTests() {
       });
 
       it('letter and arrow for the same direction take one step, not two', function () {
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowUp', true);
         flock.scene.onBeforeRenderObservable.fire();
         const single = flock.scene.activeCamera.beta;
         flock.inputManager._clearAllKeys();
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('w', true);
         flock.inputManager._setKey('ArrowUp', true);
         flock.scene.onBeforeRenderObservable.fire();
@@ -292,7 +298,7 @@ export function runCameraControlsTests() {
       });
 
       it('physical keys rotate via KeyboardSource', function () {
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
@@ -303,15 +309,33 @@ export function runCameraControlsTests() {
       // OnScreenSource's own always-live button state).
       it('on-screen button presses rotate via OnScreenSource', function () {
         flock.scene.activeCamera = makeOrbitCamera();
-        flock._onScreenSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock._onScreenSource = { isKeyDown: (k) => k === 'a' || k === 'ArrowLeft' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
       });
 
       it('opposing keys cancel out', function () {
-        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
         flock.inputManager._setKey('ArrowLeft', true);
         flock.inputManager._setKey('ArrowRight', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+      });
+
+      it('orbit view leaves the arrows to the canvas keyboard cursor', function () {
+        for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']) {
+          flock.scene.activeCamera = makeOrbitCamera();
+          flock._keyboardSource = { isKeyDown: (k) => k === key };
+          flock.scene.onBeforeRenderObservable.fire();
+          expect(flock.scene.activeCamera.alpha).to.equal(1);
+          expect(flock.scene.activeCamera.beta).to.equal(1);
+        }
+      });
+
+      it('orbit view ignores an arrow the project bound to an action', function () {
+        flock.inputManager.setActionKey('LEFT', 'ArrowLeft');
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.equal(1);
       });

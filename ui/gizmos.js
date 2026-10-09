@@ -45,6 +45,7 @@ import {
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
+  isCanvasKeyboardModeActive,
   getCanvasCircle,
   getCanvasCirclePosition,
   setCrosshairCursor,
@@ -166,6 +167,7 @@ let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
 let orbitDisposeMesh = null; // Mesh the orbit camera targets (window.orbitMesh)
 let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
 let orbitRetargetObserver = null; // Pointer observer that lets a canvas click switch orbit target
+let eyeKeyboardCallback = null; // Pick callback of the eye gizmo's canvas keyboard mode
 let previewFrame = null; // Camera frame being looked through via the eye gizmo
 let previewSavedCamera = null; // Camera to return to when the preview ends
 
@@ -181,6 +183,7 @@ function exitTransformState() {
   const preserve = isOrbitViewActive();
   exitGizmoState(preserve ? { preserveOrbit: true } : undefined);
   if (preserve && gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
+  if (preserve) scheduleEyeKeyboardMode();
 }
 
 // Keep track of things to clean up
@@ -1536,9 +1539,7 @@ function attachOrbitView(mesh) {
   let target = BABYLON.Vector3.Zero();
   let radius = 8;
   if (mesh) {
-    // Orbit target and gizmo selection are independent.
-    applyMeshSelection(mesh);
-    selectedMesh = gizmoManager.attachedMesh ?? mesh;
+    selectedMesh = mesh.parent ? getRootMesh(mesh.parent) : mesh;
 
     mesh.computeWorldMatrix(true);
     const { min, max } = mesh.getHierarchyBoundingVectors(true);
@@ -1571,7 +1572,7 @@ function attachOrbitView(mesh) {
   orbitSavedCamera = freeCamera;
   freeCamera.detachControl();
   scene.activeCamera = orbitCamera;
-  // Orbit-view keys (WASD/arrows) are read straight off the physical keyboard
+  // Orbit-view keys (WASD) are read straight off the physical keyboard
   // by CameraControls, same as fly mode — the project shouldn't see them too.
   flock.inputManager?.setInputOwner('editor');
   const canvas = scene.getEngine().getRenderingCanvas();
@@ -1595,6 +1596,11 @@ function attachOrbitView(mesh) {
   window.orbitViewActive = true;
   window.orbitBlock = mesh ? (window.currentBlock ?? null) : null;
   window.orbitMesh = selectedMesh;
+  // Orbiting never selects: tools started while orbiting begin with nothing picked.
+  if (selectedMesh) {
+    if (gizmoManager.attachedMesh === selectedMesh) gizmoManager.attachToMesh(null);
+    enableBoundingBox(selectedMesh);
+  }
   setGizmoButtonActive(document.getElementById('eyeButton'), true);
   watchEyeGizmoRetarget();
 }
@@ -1740,20 +1746,8 @@ function disconnectOrbitView() {
   window.orbitMesh = null;
   clearOrbitRetargetObserver();
   setGizmoButtonActive(document.getElementById('eyeButton'), false);
-  // Re-attach the orbit target only when nothing else is selected.
-  if (!gizmoManager.attachedMesh && prevMesh && !prevMesh.isDisposed?.()) {
-    gizmoManager.attachToMesh(prevMesh);
-    enableBoundingBox(prevMesh);
-  } else if (
-    prevMesh &&
-    prevMesh !== gizmoManager.attachedMesh &&
-    !prevMesh.isDisposed?.()
-  ) {
-    // The transform gizmo was retargeted elsewhere while orbiting (see the
-    // click-retarget observer below), which keeps prevMesh's box on for as
-    // long as it's still the orbit target. Orbit is ending on it now — since
-    // nothing else references prevMesh, its box would otherwise be left on
-    // indefinitely.
+  // The orbit target's box was only lit for orbiting; keep it if a tool has it.
+  if (prevMesh && prevMesh !== gizmoManager.attachedMesh && !prevMesh.isDisposed?.()) {
     hideBoundingBox(prevMesh);
   }
   const canvas = flock.scene.getEngine().getRenderingCanvas();
@@ -3595,8 +3589,7 @@ export function toggleGizmo(gizmoType) {
     }
     // Turning a compatible tool off while orbiting stays in orbit.
     if (ORBIT_COMPATIBLE_GIZMOS.has(gizmoType) && isOrbitViewActive()) {
-      exitGizmoState({ preserveOrbit: true });
-      if (gizmoManager) gizmoManager.usePointerToAttachGizmos = false;
+      exitTransformState();
       clearSelection();
       return;
     }
@@ -4626,25 +4619,58 @@ function watchEyeGizmoRetarget() {
   if (orbitRetargetObserver) scene.onPointerObservable.remove(orbitRetargetObserver);
   orbitRetargetObserver = scene.onPointerObservable.add((event) => {
     if (event.type !== flock.BABYLON.PointerEventTypes.POINTERPICK) return;
-    if (document.querySelector('.gizmo-button.active:not(#eyeButton)')) return;
+    if (!isEyeGizmoAlone()) return;
     if (!scene.activeCamera?.metadata?.orbitView) return;
     if (isPositionPickActive()) return;
 
-    let pickedMesh = event.pickInfo?.pickedMesh;
-    if (!pickedMesh || pickedMesh.name === 'ground') return;
-    if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
-    if (!pickedMesh || pickedMesh === window.orbitMesh) return;
-
-    disconnectOrbitView();
-    attachMeshForActiveTool(pickedMesh);
-    attachOrbitView(pickedMesh); // re-registers this observer for the new target
-    showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
+    const target = orbitRetargetMesh(event.pickInfo?.pickedMesh);
+    if (target) retargetOrbitView(target); // re-registers this observer for the new target
   });
+  scheduleEyeKeyboardMode();
+}
+
+function isEyeGizmoAlone() {
+  return !document.querySelector('.gizmo-button.active:not(#eyeButton)');
+}
+
+function orbitRetargetMesh(pickedMesh) {
+  if (!pickedMesh || pickedMesh.name === 'ground') return null;
+  if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+  if (!pickedMesh || pickedMesh === window.orbitMesh) return null;
+  return pickedMesh;
+}
+
+function retargetOrbitView(mesh) {
+  disconnectOrbitView();
+  attachOrbitView(mesh);
+  showStatus(translate('orbit_mesh_info'), { owner: 'eye-gizmo', hint: true });
+}
+
+// Arrows place the canvas cursor while eye is the only tool; Enter retargets
+// the orbit like a click. Deferred so the key that chose the tool isn't seen.
+function scheduleEyeKeyboardMode() {
+  setTimeout(() => {
+    if (isCanvasKeyboardModeActive() || !isOrbitViewActive() || !isEyeGizmoAlone()) return;
+    startEyeKeyboardMode();
+  }, 0);
+}
+
+// Retargeting ends this mode (dropping the cursor so the canvas, which WASD
+// needs, gets focus back) and attachOrbitView schedules a fresh one.
+function startEyeKeyboardMode() {
+  const targetAt = (x, y) => orbitRetargetMesh(flock.scene.pick(x, y)?.pickedMesh);
+  eyeKeyboardCallback = (x, y) => {
+    const target = targetAt(x, y);
+    if (target) retargetOrbitView(target);
+  };
+  startCanvasKeyboardMode(eyeKeyboardCallback, false, (x, y) => !!targetAt(x, y));
 }
 
 // Detach the eye-gizmo retarget-on-click observer. Called from every path
 // that ends orbit view, so it never outlives the orbit camera it depends on.
 function clearOrbitRetargetObserver() {
+  if (eyeKeyboardCallback && isCanvasKeyboardModeActive(eyeKeyboardCallback)) stopCanvasKeyboardMode();
+  eyeKeyboardCallback = null;
   if (!orbitRetargetObserver) return;
   flock.scene?.onPointerObservable?.remove(orbitRetargetObserver);
   orbitRetargetObserver = null;

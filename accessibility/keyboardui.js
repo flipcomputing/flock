@@ -363,8 +363,11 @@ const GizmoMenuManager = {
 
     // Activate gizmo buttons with number keys
     for (let i = 0; i <= 9; i++) {
-      KeyboardDispatcher.on('*', `Digit${i}`, () => {
+      KeyboardDispatcher.on('*', `Digit${i}`, (e) => {
         if (!this.isOpen()) return;
+        // The digit is for the gizmo menu, not the canvas (3 is also orbit zoom out).
+        e.preventDefault();
+        e.stopPropagation();
         const entry = this.buttons.find((b) => b.label === String(i));
         if (entry) this.activateButton(entry);
       });

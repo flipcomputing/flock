@@ -7,6 +7,7 @@ import {
   AreaManager,
 } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { makeKeyEvent } from './utils/keyboardDispatcherTestUtils.js';
 
 export function runKeyboardUiTests(flock) {
   describe('accessibility/keyboardui @keyboardui', function () {
@@ -145,8 +146,17 @@ export function runKeyboardUiTests(flock) {
           const btn = addButton('positionButton');
           btn.addEventListener('click', () => (clicked = true));
           GizmoMenuManager.toggle(true);
-          KeyboardDispatcher._registry['*:Digit3']();
+          KeyboardDispatcher._registry['*:Digit3'](makeKeyEvent({ key: '3', code: 'Digit3' }));
           expect(clicked).to.equal(true);
+        });
+
+        it('consumes the digit while the menu is open, so the canvas never sees it (3 is orbit zoom out)', function () {
+          addButton('positionButton');
+          GizmoMenuManager.toggle(true);
+          const event = makeKeyEvent({ key: '3', code: 'Digit3' });
+          KeyboardDispatcher._registry['*:Digit3'](event);
+          expect(event.defaultPrevented).to.equal(true);
+          expect(event.propagationStopped).to.equal(true);
         });
       });
 
