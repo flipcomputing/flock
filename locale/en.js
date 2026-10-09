@@ -1223,6 +1223,7 @@ export default {
   candy_dash_ui: 'Candy dash',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: '3D-printable pendant',
+  flockxr_keyring_ui: 'Flock XR keyring',
   tent_lights_ui: 'Festival tent',
   my_place_ui: 'My place',
   microbit_monkey_ui: 'micro:bit monkey',

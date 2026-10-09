@@ -1031,6 +1031,7 @@ export default {
   candy_dash_ui: 'Corrida Doce',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: 'Pingente 3D imprimível',
+  flockxr_keyring_ui: 'Porta-chaves Flock XR',
   tent_lights_ui: 'Tenda de Festival',
   my_place_ui: 'O Meu Espaço',
   microbit_monkey_ui: 'Macaco micro:bit',

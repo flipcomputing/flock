@@ -1025,6 +1025,7 @@ export default {
   candy_dash_ui: 'Godisjakt',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: '3D-utskrivbart hänge',
+  flockxr_keyring_ui: 'Flock XR-nyckelring',
   tent_lights_ui: 'Festivaltält',
   my_place_ui: 'Mitt ställe',
   microbit_monkey_ui: 'micro:bit-apa',

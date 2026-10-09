@@ -1028,6 +1028,7 @@ export default {
   candy_dash_ui: 'Candy dash',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: 'Zawieszka 3D do druku',
+  flockxr_keyring_ui: 'Brelok Flock XR',
   tent_lights_ui: 'Światełka namiotu',
   my_place_ui: 'Moje miejsce',
   microbit_monkey_ui: 'małpa micro:bit',

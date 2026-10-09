@@ -85,6 +85,11 @@ export const EXAMPLES = [
   },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
+    i18nKey: 'flockxr_keyring',
+    file: 'examples/flockxr_keyring.flock',
+    category: 'xr',
+  },
+  {
     i18nKey: 'microbit_monkey',
     file: 'examples/microbit_monkey.flock',
     category: 'xr',

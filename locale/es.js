@@ -1147,6 +1147,7 @@ export default {
   candy_dash_ui: 'Carrera de Dulces', // human
   flockenspiel_ui: 'Flockenspiel', // human
   pendant_ui: 'Colgante imprimible en 3D', // human
+  flockxr_keyring_ui: 'Llavero de Flock XR', // ai
   tent_lights_ui: 'Carpa de Festival', // human
   my_place_ui: 'Mi Lugar', // human
   microbit_monkey_ui: 'Mono micro:bit', // human

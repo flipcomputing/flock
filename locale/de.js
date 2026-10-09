@@ -1037,6 +1037,7 @@ export default {
   candy_dash_ui: 'Süßigkeiten-Dash',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: '3D-Anhänger',
+  flockxr_keyring_ui: 'Flock XR-Schlüsselanhänger',
   tent_lights_ui: 'Zeltlichter',
   my_place_ui: 'Mein Ort',
   microbit_monkey_ui: 'micro:bit-Affe',

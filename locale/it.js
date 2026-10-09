@@ -1046,6 +1046,7 @@ export default {
   candy_dash_ui: 'Corsa alle caramelle',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: 'Pendente stampabile 3D',
+  flockxr_keyring_ui: 'Portachiavi Flock XR',
   tent_lights_ui: 'Tenda festival',
   my_place_ui: 'Il mio posto',
   microbit_monkey_ui: 'micro:bit scimmia',

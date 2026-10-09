@@ -1035,6 +1035,7 @@ export default {
   candy_dash_ui: 'Course aux bonbons',
   flockenspiel_ui: 'Flockenspiel',
   pendant_ui: 'Pendentif imprimable en 3D',
+  flockxr_keyring_ui: 'Porte-clés Flock XR',
   tent_lights_ui: 'Tente de festival',
   my_place_ui: 'Mon endroit',
   microbit_monkey_ui: 'Singe micro:bit',
