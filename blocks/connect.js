@@ -345,9 +345,30 @@ export function defineConnectBlocks() {
         nextStatement: null,
         colour: categoryColours['Scene'],
         tooltip: getTooltip('export_mesh'),
+        inputsInline: true,
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
+      this.appendDummyInput('UNIT_ROW')
+        .appendField(translate('export_mesh_unit_label'))
+        .appendField(new Blockly.FieldNumber(10, 0), 'UNIT_SIZE')
+        .appendField(
+          new Blockly.FieldDropdown([
+            ['mm', 'mm'],
+            ['cm', 'cm'],
+            ['m', 'm'],
+          ]),
+          'UNIT'
+        );
+      this.getField('FORMAT').setValidator((format) => {
+        const previous = this.getFieldValue('FORMAT');
+        if ((previous === 'STL') !== (format === 'STL')) {
+          const [unitSize, unit] = format === 'STL' ? [10, 'mm'] : [0.5, 'm'];
+          this.setFieldValue(unitSize, 'UNIT_SIZE');
+          this.setFieldValue(unit, 'UNIT');
+        }
+        return format;
+      });
     },
   };
 }

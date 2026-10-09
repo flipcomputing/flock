@@ -205,6 +205,7 @@ export default {
   drop: '%1 fallen lassen',
   follow: 'mache, dass %1 %2 bei %3 folgt\nOffset x: %4 y: %5 z: %6',
   export_mesh: '%1 als %2 exportieren',
+  export_mesh_unit_label: '1 Einheit =',
   attach: 'befestige %1 an %2 bei %3\nOffset x: %4 y: %5 z: %6',
 
   // Custom block translations - Control blocks

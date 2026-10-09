@@ -1315,13 +1315,32 @@
                           },
                           "next": {
                             "block": {
-                              "type": "export_mesh",
-                              "id": "sao?HS{Ha[mvzpVuXh#!",
-                              "fields": {
-                                "MESH_VAR": {
-                                  "id": "=zJrbh7ph)8wgc~RUi[q"
-                                },
-                                "FORMAT": "STL"
+                              "type": "comment",
+                              "id": "hNx2@tQ8vLk#Ru5Ws!Pz",
+                              "inputs": {
+                                "COMMENT": {
+                                  "shadow": {
+                                    "type": "text_multiline",
+                                    "id": "c7Yq$Fm3]Jd^Ga9Ke;Tb",
+                                    "fields": {
+                                      "TEXT": "1 unit = 10mm gives a small 6cm base that is quick to print. Increase to 20mm or more for a larger set."
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "export_mesh",
+                                  "id": "sao?HS{Ha[mvzpVuXh#!",
+                                  "fields": {
+                                    "MESH_VAR": {
+                                      "id": "=zJrbh7ph)8wgc~RUi[q"
+                                    },
+                                    "FORMAT": "STL",
+                                    "UNIT_SIZE": 10,
+                                    "UNIT": "mm"
+                                  }
+                                }
                               }
                             }
                           }

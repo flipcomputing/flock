@@ -809,8 +809,10 @@ export function registerSceneGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
     const format = block.getFieldValue('FORMAT');
+    const unitSize = Number(block.getFieldValue('UNIT_SIZE'));
+    const unit = block.getFieldValue('UNIT');
 
     // Generate the code that calls the helper function
-    return `exportMesh(${meshVar}, ${JSON.stringify(format)});\n`;
+    return `exportMesh(${meshVar}, ${JSON.stringify(format)}, { unitSize: ${unitSize}, unit: ${JSON.stringify(unit)} });\n`;
   };
 }

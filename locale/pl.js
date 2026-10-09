@@ -202,6 +202,7 @@ export default {
   drop: '%1 upuść',
   follow: 'spraw, by %1 śledził %2 przy %3\noffset x: %4, y: %5, z: %6',
   export_mesh: 'eksportuj %1 jako %2',
+  export_mesh_unit_label: '1 jednostka =',
   attach: 'przyłącz %1 do %2 w punkcie %3\noffset x: %4, y: %5, z: %6',
 
   // Custom block translations - Control blocks

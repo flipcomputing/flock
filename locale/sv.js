@@ -200,6 +200,7 @@ export default {
   drop: 'släpp %1',
   follow: 'gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6',
   export_mesh: 'exportera %1 som %2',
+  export_mesh_unit_label: '1 enhet =',
   attach: 'fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6',
 
   // Custom block translations - Control blocks

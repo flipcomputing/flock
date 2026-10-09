@@ -213,6 +213,7 @@ export default {
   drop: 'drop %1',
   follow: 'make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6',
   export_mesh: 'export %1 as %2',
+  export_mesh_unit_label: '1 unit =',
   attach: 'attach %1 to %2 at %3\noffset x: %4 y: %5 z: %6',
 
   // Custom block translations - Control blocks
@@ -545,7 +546,7 @@ export default {
   drop_tooltip: 'Detach an object from its currently attached bone.',
   follow_tooltip:
     'Make one object follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.',
-  export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB.',
+  export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB. Choose how big 1 unit is in the exported file.',
 
   // Tooltip translations - Control blocks
   if_clause_tooltip:

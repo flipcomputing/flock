@@ -19,6 +19,68 @@ function optionalCentimetres(value, maxCm) {
   return Math.min(maxCm, centimetres);
 }
 
+const MM_PER_UNIT = { mm: 1, cm: 10, m: 1000 };
+const EXPORT_UNIT_DEFAULTS = {
+  STL: { unitSize: 10, unit: 'mm' },
+  OBJ: { unitSize: 0.5, unit: 'm' },
+  GLB: { unitSize: 0.5, unit: 'm' },
+};
+
+function exportScale(format, { unitSize, unit } = {}) {
+  const defaults = EXPORT_UNIT_DEFAULTS[format] ?? EXPORT_UNIT_DEFAULTS.GLB;
+  const size = Number(unitSize);
+  const valid = Number.isFinite(size) && size > 0;
+  const mm = valid
+    ? size * (MM_PER_UNIT[unit] ?? MM_PER_UNIT[defaults.unit])
+    : defaults.unitSize * MM_PER_UNIT[defaults.unit];
+  return format === 'STL' ? mm : mm / 1000;
+}
+
+function downloadBlob(blob, fileName) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
+async function scaleGlb(data, scale) {
+  const bytes = new Uint8Array(await new Blob([data]).arrayBuffer());
+  if (scale === 1) return bytes;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const jsonLength = view.getUint32(12, true);
+  const json = JSON.parse(new TextDecoder().decode(bytes.subarray(20, 20 + jsonLength)));
+  const rest = bytes.subarray(20 + jsonLength);
+
+  json.nodes ??= [];
+  for (const scene of json.scenes ?? []) {
+    json.nodes.push({ name: 'units', scale: [scale, scale, scale], children: scene.nodes ?? [] });
+    scene.nodes = [json.nodes.length - 1];
+  }
+
+  const encoded = new TextEncoder().encode(JSON.stringify(json));
+  const paddedLength = Math.ceil(encoded.length / 4) * 4;
+  const out = new Uint8Array(20 + paddedLength + rest.length);
+  const outView = new DataView(out.buffer);
+  out.set(bytes.subarray(0, 12));
+  outView.setUint32(8, out.length, true);
+  outView.setUint32(12, paddedLength, true);
+  outView.setUint32(16, 0x4e4f534a, true);
+  out.fill(0x20, 20, 20 + paddedLength);
+  out.set(encoded, 20);
+  out.set(rest, 20 + paddedLength);
+  return out;
+}
+
+async function downloadScaledGlb(glb, scale) {
+  for (const [fileName, data] of Object.entries(glb?.files ?? {})) {
+    const blob = fileName.endsWith('.glb')
+      ? new Blob([await scaleGlb(data, scale)], { type: 'model/gltf-binary' })
+      : new Blob([data]);
+    downloadBlob(blob, fileName);
+  }
+}
+
 export function setFlockReference(ref) {
   flock = ref;
   setXRDebugFlockReference(ref);
@@ -2367,7 +2429,7 @@ export const flockXR = {
     const mesh = isNamedTarget ? flock.scene?.getMeshByName?.(target) : target;
     flock._syncTeleportMeshHierarchy?.(mesh);
   },
-  exportMesh(meshName, format) {
+  exportMesh(meshName, format, options = {}) {
     //meshName = "scene";
 
     if (meshName === 'scene' && format === 'GLB') {
@@ -2435,7 +2497,7 @@ export const flockXR = {
         exportTextures: true,
         shouldExportNode,
       })
-        .then((glb) => glb.downloadFiles())
+        .then((glb) => downloadScaledGlb(glb, exportScale('GLB', options)))
         .finally(() => {
           // Restore originals
           for (const { mesh, prev } of patches) mesh.material = prev;
@@ -2474,10 +2536,21 @@ export const flockXR = {
 
         const childMeshes = mesh.getChildMeshes(false);
         const meshList = [mesh, ...childMeshes];
+        const scale = exportScale(format, options);
         if (format === 'STL') {
-          flock.EXPORT.STLExport.CreateSTL(meshList, true, mesh.name, false, false);
+          const stl = flock.EXPORT.STLExport.CreateSTL(meshList, false, mesh.name, false, false);
+          const scaled = stl.replace(
+            /vertex (\S+) (\S+) (\S+)/g,
+            (_, x, y, z) => `vertex ${x * scale} ${y * scale} ${z * scale}`
+          );
+          downloadBlob(new Blob([scaled], { type: 'application/octet-stream' }), mesh.name + '.stl');
         } else if (format === 'OBJ') {
-          flock.EXPORT.OBJExport.OBJ(mesh);
+          const obj = flock.EXPORT.OBJExport.OBJ(meshList, false, undefined, true);
+          const scaled = obj.replace(
+            /^v (\S+) (\S+) (\S+)/gm,
+            (_, x, y, z) => `v ${x * scale} ${y * scale} ${z * scale}`
+          );
+          downloadBlob(new Blob([scaled], { type: 'text/plain' }), mesh.name + '.obj');
         } else if (format === 'GLB') {
           const ghostMat = new flock.BABYLON.PBRMaterial('_tmpExportWrapperGhost', flock.scene);
           ghostMat.alpha = 0;
@@ -2500,9 +2573,7 @@ export const flockXR = {
           try {
             await flock.EXPORT.GLTF2Export.GLBAsync(flock.scene, mesh.name + '.glb', {
               shouldExportNode: (node) => allowedNodes.has(node),
-            }).then((glb) => {
-              glb.downloadFiles();
-            });
+            }).then((glb) => downloadScaledGlb(glb, scale));
           } finally {
             mesh.flipFaces();
             for (const { wrapperMesh, prevMaterial } of wrapperPatches) {
