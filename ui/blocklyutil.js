@@ -543,7 +543,9 @@ export function insertBlockSnapshot(snapshotJson, workspace, pickedPosition, con
     const snapshot = JSON.parse(JSON.stringify(snapshotJson));
     stripLockState(snapshot);
 
-    duplicateBlock = Blockly.serialization.blocks.append(snapshot, workspace);
+    duplicateBlock = Blockly.serialization.blocks.append(snapshot, workspace, {
+      recordUndo: true,
+    });
 
     setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
 
