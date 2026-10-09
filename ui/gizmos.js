@@ -3278,7 +3278,7 @@ function commitMoveToBlocks(mesh, startPosition) {
     return;
   }
 
-  if (mesh?.metadata?.shapeType === 'Group') {
+  if (mesh?.metadata?.shapeType === 'Group' || block?.type === 'combine') {
     if (!startPosition) {
       updateChildBlockPositions(mesh);
       return;
@@ -3293,6 +3293,7 @@ function commitMoveToBlocks(mesh, startPosition) {
       startPosition.add(new flock.BABYLON.Vector3(delta.x, delta.y, delta.z))
     );
     mesh.computeWorldMatrix(true);
+    if (block?.type === 'combine' && !block.disposed) shiftCombineParts(block, delta);
   } else if (block && !block.disposed) {
     const before = block.type === 'clone_mesh' ? null : blockPositionNumbers(block);
     writePositionToBlock(block, blockPositionOf(mesh));
@@ -3332,6 +3333,11 @@ function updateChildBlockPositions(mesh, delta = null) {
 
     seenKeys.add(key);
 
+    if (childBlock.type === 'combine') {
+      if (delta) shiftCombineParts(childBlock, delta);
+      return;
+    }
+
     const current = childBlock.type === 'clone_mesh' ? null : blockPositionNumbers(childBlock);
     if (delta && current) {
       suppressBlockLiveUpdates(childBlock.id);
@@ -3361,6 +3367,23 @@ function updateChildBlockPositions(mesh, delta = null) {
   if (suppressed.size) {
     syncMemberBodies(mesh);
     deferClearSuppressedBlocks(suppressed);
+  }
+}
+
+function shiftCombineParts(containerBlock, delta) {
+  for (const input of containerBlock.inputList) {
+    if (input.type !== Blockly.inputs.inputTypes.STATEMENT) continue;
+    for (let cur = input.connection?.targetBlock(); cur; cur = cur.getNextBlock()) {
+      if (cur.type === 'combine' || cur.type === 'create_group') {
+        shiftCombineParts(cur, delta);
+        continue;
+      }
+      const current = cur.type === 'clone_mesh' ? null : blockPositionNumbers(cur);
+      if (!current) continue;
+      setBlockXYZ(cur, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
+        decimals: 4,
+      });
+    }
   }
 }
 
