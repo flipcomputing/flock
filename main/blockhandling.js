@@ -365,10 +365,45 @@ function initializeFlyoutHints() {
   });
 }
 
+function rebindRenamedFlyoutVariables(block) {
+  const flyoutVariables = workspace.getFlyout()?.getWorkspace()?.getPotentialVariableMap();
+  if (!flyoutVariables) return false;
+  const variableMap = workspace.getVariableMap();
+  let rebound = false;
+  for (const descendant of block.getDescendants(false)) {
+    for (const field of descendant.getFields()) {
+      if (!(field instanceof Blockly.FieldVariable)) continue;
+      const shown = flyoutVariables.getVariableById(field.getValue());
+      const bound = variableMap.getVariableById(field.getValue());
+      if (!shown || !bound || shown.name === bound.name) continue;
+      const target =
+        variableMap.getVariable(shown.name, shown.type) ??
+        variableMap.createVariable(shown.name, shown.type);
+      field.setValue(target.getId());
+      rebound = true;
+    }
+  }
+  return rebound;
+}
+
 export function initializeBlockHandling() {
   observeBlocklyInputs();
   initializeFlyoutHints();
   attachSectionBehaviour(workspace);
+
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.BLOCK_CREATE || !event.recordUndo) return;
+    const block = workspace.getBlockById(event.blockId);
+    if (!block) return;
+    const previousGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(event.group);
+    try {
+      if (rebindRenamedFlyoutVariables(block))
+        Blockly.renderManagement.triggerQueuedRenders(workspace);
+    } finally {
+      Blockly.Events.setGroup(previousGroup);
+    }
+  });
 
   // Capture-phase so this runs before Blockly's own gesture handling decides
   // whether the click selects a block or just edits a field in place.
