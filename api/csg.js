@@ -581,6 +581,11 @@ function ghostOrDisposeCsgSource(mesh, originalIdentities) {
   }
 }
 
+function announceCsgResult(modelId) {
+  flock.announceMeshReady(modelId, modelId);
+  return modelId;
+}
+
 export const flockCSG = {
   shouldPreserveToolMaterialForSubtract(meshes) {
     if (!Array.isArray(meshes) || meshes.length === 0) return false;
@@ -677,7 +682,7 @@ export const flockCSG = {
               validMeshes.forEach((mesh) => ghostOrDisposeCsgSource(mesh, originalIdentities));
             }
 
-            return modelId;
+            return announceCsgResult(modelId);
           }
 
           const originalMaterial = referenceMesh.material;
@@ -839,7 +844,7 @@ export const flockCSG = {
             if (mesh !== mergedMesh) ghostOrDisposeCsgSource(mesh, originalIdentities);
           });
 
-          return modelId;
+          return announceCsgResult(modelId);
         } else {
           return null;
         }
@@ -1015,7 +1020,7 @@ export const flockCSG = {
             if (!keepTools) {
               validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
             }
-            resolve(modelId);
+            resolve(announceCsgResult(modelId));
           }
         );
       });
@@ -1148,7 +1153,7 @@ export const flockCSG = {
             if (!keepTools) {
               validMeshes.forEach((m) => ghostOrDisposeCsgSource(m, originalIdentities));
             }
-            resolve(modelId);
+            resolve(announceCsgResult(modelId));
           }
         );
       });
@@ -1282,7 +1287,7 @@ export const flockCSG = {
 
           validMeshes.forEach((mesh) => ghostOrDisposeCsgSource(mesh, originalIdentities));
 
-          return modelId; // Return the modelId as per original functionality
+          return announceCsgResult(modelId);
         } else {
           console.warn('No valid meshes to intersect.');
           return null;
@@ -1367,7 +1372,7 @@ export const flockCSG = {
           validMeshes.forEach((mesh) => ghostOrDisposeCsgSource(mesh, originalIdentities));
           mergedMesh.dispose();
 
-          return modelId; // Return the debug mesh for further use
+          return announceCsgResult(modelId);
         } else {
           console.warn('No valid meshes to create a hull.');
           return null;

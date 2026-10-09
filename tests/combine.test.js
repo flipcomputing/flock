@@ -180,6 +180,27 @@ export function runCombineTests(flock) {
       expect(flock.scene.getMeshByName(id).physicsBody).to.exist;
     });
 
+    it('applies a click handler registered before the combine runs', async function () {
+      let count = 0;
+      flock.onTrigger('combineClick', {
+        trigger: 'OnPickTrigger',
+        callback: () => count++,
+        applyToGroup: true,
+      });
+      const id = await flock.combineMeshes('combineClick__combineClick', {
+        build: async (group) => {
+          addBox(group, 'combineClickA', 0);
+          addBox(group, 'combineClickB', 2);
+        },
+      });
+      created.push(id);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      flock.scene
+        .getMeshByName(id)
+        .actionManager?.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      expect(count).to.equal(1);
+    });
+
     it('includes objects parented to a mesh in the compartment', async function () {
       let child;
       const id = await flock.combineMeshes('combineNested__combineNested', {
