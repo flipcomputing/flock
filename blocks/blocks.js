@@ -1360,9 +1360,8 @@ class CustomZelosDrawer extends Blockly.zelos.Drawer {
       (input) => input.connection === targetConn
     );
     if (!parentInput) return;
-    if (parentInput.name === 'X' || parentInput.name === 'Y' || parentInput.name === 'Z') {
-      svgRoot.setAttribute('data-axis', parentInput.name);
-    }
+    const axis = parentInput.name.match(/^(?:(?:ROTATE|SIZE)_)?([XYZ])$/)?.[1];
+    if (axis) svgRoot.setAttribute('data-axis', axis);
   }
 
   draw() {
