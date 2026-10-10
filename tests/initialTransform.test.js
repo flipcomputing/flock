@@ -4,6 +4,7 @@ import { defineModelBlocks } from '../blocks/models.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineTransformBlocks } from '../blocks/transform.js';
+import { defineModifyBlocks } from '../blocks/modify.js';
 import {
   supportsInitialSize,
   getInitialTransformOwner,
@@ -30,6 +31,7 @@ export function runInitialTransformTests(flock) {
       if (!Blockly.Blocks['create_box']) defineShapeBlocks();
       if (!Blockly.Blocks['clone_mesh']) defineSceneBlocks();
       if (!Blockly.Blocks['rotate_to']) defineTransformBlocks();
+      if (!Blockly.Blocks['mirror_mesh']) defineModifyBlocks();
       if (!Blockly.getMainWorkspace()) Blockly.common.setMainWorkspace(new Blockly.Workspace());
       ws = Blockly.getMainWorkspace();
     });
@@ -119,14 +121,24 @@ export function runInitialTransformTests(flock) {
       });
 
       it('adds a rotate_to after existing DO statements for a block without rows', function () {
-        const freeform = ws.newBlock('create_freeform');
+        const mirror = ws.newBlock('mirror_mesh');
         const other = otherVariable();
-        appendTransform(freeform, 'rotate_to', other.getId());
-        ensureInitialRotation(freeform);
+        appendTransform(mirror, 'rotate_to', other.getId());
+        ensureInitialRotation(mirror);
 
-        const first = freeform.getInputTargetBlock('DO');
+        const first = mirror.getInputTargetBlock('DO');
         expect(first.getFieldValue('MODEL')).to.equal(other.getId());
-        expect(first.getNextBlock().getFieldValue('MODEL')).to.equal(ownVar(freeform));
+        expect(first.getNextBlock().getFieldValue('MODEL')).to.equal(ownVar(mirror));
+      });
+
+      it('rotates a freeform with its own row', function () {
+        const freeform = ws.newBlock('create_freeform');
+        const result = ensureInitialRotation(freeform, { x: 0, y: 45, z: 0 });
+
+        expect(result.block).to.equal(freeform);
+        expect(freeform.rotateShown_).to.be.true;
+        expect(freeform.getInput('DO')).to.be.null;
+        expect(getInitialRotationValues(freeform)).to.deep.equal({ x: 0, y: 45, z: 0 });
       });
     });
 

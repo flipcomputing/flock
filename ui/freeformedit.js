@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { flock } from '../flock.js';
-import { setNumberInputs } from './blocklyutil.js';
 import { getMeshFromBlock } from './blockmesh.js';
+import { readBlockPosition, writeMovedPosition } from './initialTransform.js';
 import { roundToOneDecimal } from './meshhelpers.js';
 import {
   extrudeFace,
@@ -458,13 +458,14 @@ function attachEditor(mesh, block) {
   };
 }
 
-// Points, faces and Y go in together: the base moves when a bottom point
-// does, and Y keeps the shape where it was edited.
+// Points, faces and position go in together, so the shape stays where it was
+// edited: the base moves when a bottom point does, and with the rotate row
+// open the position is the shape's centre, which moves with any point.
 function commitShape(mesh, block) {
   Blockly.Events.setGroup(true);
   try {
     block.writeShape(mesh.metadata.freeformPoints, mesh.metadata.freeformFaces);
-    setNumberInputs(block, { Y: flock.getBlockPositionFromMesh(mesh).y });
+    writeMovedPosition(block, readBlockPosition(mesh, block));
   } finally {
     Blockly.Events.setGroup(false);
   }

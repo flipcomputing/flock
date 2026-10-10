@@ -1139,6 +1139,17 @@ export function defineShapeBlocks() {
         this.setPointsShown_(xmlElement.getAttribute('points') === 'true');
         this.faces_ = parseFaces(xmlElement.getAttribute('faces'));
       };
+      // A freeform's size lives in its points, so like the other shapes it
+      // gets a rotate row but no resize row.
+      addInitialTransformRows(this);
+      // The points row already ends its line, so the rotate row's own line
+      // break is only needed below the point list.
+      const syncRows = this.syncInitialTransformRows_;
+      this.syncInitialTransformRows_ = this.syncOptionsRow_ = function () {
+        syncRows.call(this);
+        this.getInput('TRANSFORM_ROW').setVisible(this.optionsOpen_ && this.pointsShown_);
+      };
+      this.syncInitialTransformRows_();
     },
 
     // Radius only matters for edges.
@@ -1160,6 +1171,7 @@ export function defineShapeBlocks() {
       this.pointsShown_ = show;
       this.getInput('VERTICES').setVisible(show);
       this.getField('POINTS_BUTTON')?.setValue(show ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+      this.syncInitialTransformRows_?.();
     },
 
     togglePoints_: function () {
