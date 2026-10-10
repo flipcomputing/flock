@@ -351,9 +351,12 @@ export function extrudeFace(points, faces, faceIndex, distance) {
 }
 
 export const ROUNDINGS = ['none', 'edges', 'smooth'];
-const EDGE_ROUNDING_LEVELS = 1;
-const SMOOTH_LEVELS = 3;
-const EDGE_ROUNDING_FRACTION = 0.1;
+export const DEFAULT_ROUNDING_RADIUS = 0.1;
+// Level 1 looks lumpy and level 3 adds little beyond 2 but four times the triangles.
+const SMOOTH_LEVEL = 2;
+// Kept low for low-end Chromebooks; a rounded shape that would need more
+// falls back to a plainer version.
+export const MAX_ROUNDED_TRIANGLES = 3000;
 const SUPPORT_FRACTION = 0.25;
 const MAX_INSET_FRACTION = 0.4;
 
@@ -425,9 +428,10 @@ export function subdivide(points, faces) {
 }
 
 // Cuts every edge and corner: each face shrinks inwards, a strip fills each
-// edge and a small face fills each corner. The cut is a fraction of the
-// shorter edge at each corner, so it keeps to scale with the shape.
-export function bevel(points, faces, fraction = EDGE_ROUNDING_FRACTION) {
+// edge and a small face fills each corner. The cut is `size` from each edge,
+// or that fraction of the shorter edge at each corner when `relative`, and
+// never more than 40% of it.
+export function bevel(points, faces, size = DEFAULT_ROUNDING_RADIUS, relative = false) {
   const corners = [];
   const cornerIds = faces.map((face) => {
     const normal = faceNormal(points, face);
@@ -444,7 +448,7 @@ export function bevel(points, faces, fraction = EDGE_ROUNDING_FRACTION) {
       if (dot(direction, inward) < 0) direction = scale(direction, -1);
       const spread = length(sub(u1, u2));
       const distance = Math.min(
-        (2 * fraction * shorter) / Math.max(spread, EPS),
+        (2 * (relative ? size * shorter : size)) / Math.max(spread, EPS),
         MAX_INSET_FRACTION * shorter
       );
       corners.push(add(p, scale(direction, distance / length(direction))));
@@ -495,14 +499,45 @@ export function bevel(points, faces, fraction = EDGE_ROUNDING_FRACTION) {
   return { points: corners, faces: newFaces };
 }
 
-// The surface drawn for a shape: its own faces, or a rounded version.
-export function roundedShape(points, faces, rounding) {
-  let shape = { points, faces };
-  if (rounding === 'edges') {
-    shape = bevel(points, faces);
-    shape = bevel(shape.points, shape.faces, SUPPORT_FRACTION);
+export function roundingSettings({ rounding, radius } = {}) {
+  const given = Number(radius ?? DEFAULT_ROUNDING_RADIUS);
+  const r = Number.isFinite(given) ? given : DEFAULT_ROUNDING_RADIUS;
+  const type = ROUNDINGS.includes(rounding) ? rounding : 'none';
+  return {
+    rounding: type === 'edges' && r <= 0 ? 'none' : type,
+    radius: r,
+  };
+}
+
+const cornerCount = (faces) => faces.reduce((total, face) => total + face.length, 0);
+const triangleCount = (faces) => cornerCount(faces) - 2 * faces.length;
+// Each subdivision turns every corner into a quad, then each quad into four.
+const subdividedTriangles = (faces, levels) => 2 * cornerCount(faces) * 4 ** (levels - 1);
+
+// The surface drawn for a shape: its own faces, or a rounded version that
+// stays within MAX_ROUNDED_TRIANGLES.
+export function roundedShape(points, faces, settings) {
+  const { rounding, radius } = roundingSettings(settings);
+  if (rounding === 'smooth') {
+    for (let levels = SMOOTH_LEVEL; levels > 0; levels--) {
+      if (subdividedTriangles(faces, levels) > MAX_ROUNDED_TRIANGLES) continue;
+      let shape = { points, faces };
+      for (let i = 0; i < levels; i++) shape = subdivide(shape.points, shape.faces);
+      return shape;
+    }
   }
-  const levels = { edges: EDGE_ROUNDING_LEVELS, smooth: SMOOTH_LEVELS }[rounding] ?? 0;
-  for (let i = 0; i < levels; i++) shape = subdivide(shape.points, shape.faces);
-  return shape;
+  if (rounding === 'edges') {
+    // Best first: a second, tighter cut keeps the faces flat up to the curve;
+    // without it the curve is softer, and without smoothing it is a flat cut.
+    const cut = bevel(points, faces, radius);
+    const supported = bevel(cut.points, cut.faces, SUPPORT_FRACTION, true);
+    if (subdividedTriangles(supported.faces, 1) <= MAX_ROUNDED_TRIANGLES) {
+      return subdivide(supported.points, supported.faces);
+    }
+    if (subdividedTriangles(cut.faces, 1) <= MAX_ROUNDED_TRIANGLES) {
+      return subdivide(cut.points, cut.faces);
+    }
+    if (triangleCount(cut.faces) <= MAX_ROUNDED_TRIANGLES) return cut;
+  }
+  return { points, faces };
 }

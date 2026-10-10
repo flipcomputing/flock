@@ -367,7 +367,7 @@ export function runShapesTests(flock) {
         createdIds.push(id);
 
         const mesh = flock.scene.getMeshByName(id);
-        expect(mesh.metadata.freeformRounding).to.equal('smooth');
+        expect(mesh.metadata.freeformRounding).to.deep.include({ rounding: 'smooth' });
         expect(mesh.getTotalVertices()).to.be.greaterThan(24);
         expect(extents(mesh).max[0]).to.be.lessThan(0.45);
 

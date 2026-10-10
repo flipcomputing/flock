@@ -12,7 +12,12 @@ import {
 } from './blocks.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
-import { CUBE_FACES, ROUNDINGS, shapeError } from '../api/freeformgeometry.js';
+import {
+  CUBE_FACES,
+  ROUNDINGS,
+  roundingSettings,
+  shapeError,
+} from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
@@ -1074,6 +1079,15 @@ export function defineShapeBlocks() {
               rounding,
             ]),
           },
+          {
+            type: 'input_dummy',
+            name: 'ROUNDING_ROW',
+          },
+          {
+            type: 'input_value',
+            name: 'RADIUS',
+            check: 'Number',
+          },
         ],
         previousStatement: null,
         nextStatement: null,
@@ -1083,6 +1097,11 @@ export function defineShapeBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
+      this.getField('ROUNDING').setValidator((rounding) => {
+        this.showRoundingInputs_(rounding);
+        return rounding;
+      });
+      this.showRoundingInputs_('none');
 
       registerBlockHandler(this, (changeEvent) => {
         this.rejectBrokenShape_(changeEvent);
@@ -1120,6 +1139,21 @@ export function defineShapeBlocks() {
         this.setPointsShown_(xmlElement.getAttribute('points') === 'true');
         this.faces_ = parseFaces(xmlElement.getAttribute('faces'));
       };
+    },
+
+    // Radius only matters for edges.
+    showRoundingInputs_: function (rounding) {
+      this.getInput('RADIUS').setVisible(rounding === 'edges');
+      if (this.rendered) this.queueRender();
+    },
+
+    // The rounding as createFreeform takes it. A radius worked out by code
+    // can't be read here, so `codeRadius` stands in for it.
+    getRounding: function (codeRadius) {
+      const radiusBlock = this.getInputTargetBlock('RADIUS');
+      const radius =
+        radiusBlock?.type === 'math_number' ? Number(radiusBlock.getFieldValue('NUM')) : codeRadius;
+      return roundingSettings({ rounding: this.getFieldValue('ROUNDING'), radius });
     },
 
     setPointsShown_: function (show) {

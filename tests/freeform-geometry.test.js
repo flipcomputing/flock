@@ -11,6 +11,8 @@ import {
   subdivide,
   bevel,
   roundedShape,
+  roundingSettings,
+  MAX_ROUNDED_TRIANGLES,
 } from '../api/freeformgeometry.js';
 
 const cubePoints = () => CUBE_POINTS.map((p) => [...p]);
@@ -236,7 +238,7 @@ export function runFreeformGeometryTests() {
       });
 
       it('leaves the shape alone with no rounding', function () {
-        const shape = roundedShape(CUBE_POINTS, CUBE_FACES, 'none');
+        const shape = roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'none' });
         expect(shape.points).to.equal(CUBE_POINTS);
         expect(shape.faces).to.equal(CUBE_FACES);
       });
@@ -247,21 +249,65 @@ export function runFreeformGeometryTests() {
           ['L', lShape()],
           ['twisted face', { points: moved(6, [0.5, 0.9, 0.5]), faces: CUBE_FACES }],
         ]) {
-          for (const rounding of ['edges', 'smooth']) {
-            const { points, faces } = roundedShape(shape.points, shape.faces, rounding);
-            expect(shapeError(points, faces), `${name} ${rounding}`).to.equal(null);
+          for (const settings of [
+            { rounding: 'edges' },
+            { rounding: 'edges', radius: 0.4 },
+            { rounding: 'smooth' },
+          ]) {
+            const { points, faces } = roundedShape(shape.points, shape.faces, settings);
+            expect(shapeError(points, faces), `${name} ${JSON.stringify(settings)}`).to.equal(null);
           }
         }
       });
 
       it('keeps the faces of a box out at their points with rounded edges', function () {
-        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, 'edges');
+        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'edges' });
         extents({ points }).forEach((max) => expect(max).to.be.closeTo(0.5, 0.01));
       });
 
+      it('rounds further in from a corner with a bigger radius', function () {
+        const nearest = (radius) => {
+          const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'edges', radius });
+          return Math.min(...points.map((p) => Math.hypot(p[0] - 0.5, p[1] - 0.5, p[2] - 0.5)));
+        };
+        expect(nearest(0.3)).to.be.greaterThan(nearest(0.1));
+      });
+
       it('pulls a smooth shape in from its points', function () {
-        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, 'smooth');
+        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'smooth' });
         extents({ points }).forEach((max) => expect(max).to.be.lessThan(0.45));
+      });
+
+      it('smooths a cube into 96 quads', function () {
+        expect(roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'smooth' }).faces).to.have.length(96);
+      });
+
+      it('falls back to fewer triangles than the cap on a big shape', function () {
+        let big = { points: CUBE_POINTS, faces: CUBE_FACES };
+        for (let i = 0; i < 12; i++) big = extrudeFace(big.points, big.faces, 1 + (i % 5), 0.5);
+        for (const settings of [{ rounding: 'smooth' }, { rounding: 'edges' }]) {
+          const { faces } = roundedShape(big.points, big.faces, settings);
+          const triangles = faces.reduce((total, face) => total + face.length - 2, 0);
+          expect(triangles, settings.rounding).to.be.at.most(MAX_ROUNDED_TRIANGLES);
+          expect(faces.length, settings.rounding).to.be.greaterThan(big.faces.length);
+        }
+      });
+
+      // The mesh builder keeps flat shading by checking for the same faces array.
+      it('hands back the same arrays when a shape is too big to round at all', function () {
+        let tower = { points: CUBE_POINTS, faces: CUBE_FACES };
+        for (let i = 0; i < 100; i++) tower = extrudeFace(tower.points, tower.faces, 1, 0.5);
+        for (const rounding of ['smooth', 'edges']) {
+          const shape = roundedShape(tower.points, tower.faces, { rounding });
+          expect(shape.points, rounding).to.equal(tower.points);
+          expect(shape.faces, rounding).to.equal(tower.faces);
+        }
+      });
+
+      it('reads rounding settings forgivingly', function () {
+        expect(roundingSettings({ rounding: 'wobbly' }).rounding).to.equal('none');
+        expect(roundingSettings({ rounding: 'edges', radius: 0 }).rounding).to.equal('none');
+        expect(roundingSettings({ rounding: 'edges', radius: 'x' }).radius).to.equal(0.1);
       });
     });
   });

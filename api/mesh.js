@@ -845,18 +845,18 @@ export const flockMesh = {
   },
 
   // Flat faces get their own corners; a rounded surface shares them so it
-  // shades smoothly.
-  freeformVertexData(points, faces, rounding = 'none') {
+  // shades smoothly. `rounding` is { rounding, radius }.
+  freeformVertexData(points, faces, rounding = null) {
     const positions = [];
     const indices = [];
-    if (rounding === 'none') {
+    const surface = rounding ? roundedShape(points, faces, rounding) : { points, faces };
+    if (surface.faces === faces) {
       for (const face of faces) {
         const start = positions.length / 3;
         for (const i of face) positions.push(...points[i]);
         for (let k = 1; k < face.length - 1; k++) indices.push(start, start + k + 1, start + k);
       }
     } else {
-      const surface = roundedShape(points, faces, rounding);
       for (const point of surface.points) positions.push(...point);
       for (const face of surface.faces) {
         for (let k = 1; k < face.length - 1; k++) indices.push(face[0], face[k + 1], face[k]);

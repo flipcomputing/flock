@@ -863,6 +863,14 @@ const toolboxSceneMeshes = {
             },
           },
         },
+        RADIUS: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0.1,
+            },
+          },
+        },
       },
     },
     {

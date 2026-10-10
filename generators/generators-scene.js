@@ -372,7 +372,13 @@ export function registerSceneGenerators(javascriptGenerator) {
     const faces = JSON.stringify(block.getFaces?.() ?? CUBE_FACES);
     if (faces !== JSON.stringify(CUBE_FACES)) params.push(`faces: ${faces}`);
     const rounding = block.getFieldValue('ROUNDING') ?? 'none';
-    if (rounding !== 'none') params.push(`rounding: ${JSON.stringify(rounding)}`);
+    if (rounding === 'edges') {
+      const radius =
+        javascriptGenerator.valueToCode(block, 'RADIUS', javascriptGenerator.ORDER_NONE) || '0.1';
+      params.push('rounding: "edges"', `radius: ${radius}`);
+    } else if (rounding === 'smooth') {
+      params.push('rounding: "smooth"');
+    }
     params.push(`position: ${positionSource}`);
 
     return createMesh(block, 'Freeform', params, 'freeform');

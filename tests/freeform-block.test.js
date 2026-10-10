@@ -159,6 +159,27 @@ export function runFreeformBlockTests() {
       expect(javascriptGenerator.blockToCode(block)).to.not.include('rounding:');
       block.setFieldValue('smooth', 'ROUNDING');
       expect(javascriptGenerator.blockToCode(block)).to.include('rounding: "smooth"');
+      block.setFieldValue('edges', 'ROUNDING');
+      expect(javascriptGenerator.blockToCode(block)).to.include('rounding: "edges", radius: 0.1');
+    });
+
+    it('shows radius only for edges', function () {
+      const block = Blockly.serialization.blocks.append(freeformState(), workspace);
+      const shown = () => block.getInput('RADIUS').isVisible();
+      expect(shown()).to.equal(false);
+      block.setFieldValue('smooth', 'ROUNDING');
+      expect(shown()).to.equal(false);
+      block.setFieldValue('edges', 'ROUNDING');
+      expect(shown()).to.equal(true);
+    });
+
+    it('reads the rounding from the block', function () {
+      const state = freeformState();
+      state.fields = { ROUNDING: 'edges' };
+      state.inputs.RADIUS = { shadow: { type: 'math_number', fields: { NUM: 0.25 } } };
+      const block = Blockly.serialization.blocks.append(state, workspace);
+      expect(block.getRounding()).to.deep.equal({ rounding: 'edges', radius: 0.25 });
+      expect(block.getInput('RADIUS').isVisible()).to.equal(true);
     });
 
     it('leaves faces out of the code for the plain cube', function () {

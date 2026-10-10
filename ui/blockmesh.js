@@ -1340,8 +1340,8 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           flock.setFreeformShape(mesh, points, faces);
           repositionPrimitiveFromBlock();
         }
-      } else if (changed === 'ROUNDING') {
-        mesh.metadata.freeformRounding = block.getFieldValue('ROUNDING');
+      } else if (changed === 'ROUNDING' || changed === 'RADIUS') {
+        mesh.metadata.freeformRounding = block.getRounding(mesh.metadata.freeformRounding?.radius);
         flock.setFreeformShape(mesh, mesh.metadata.freeformPoints, mesh.metadata.freeformFaces);
         repositionPrimitiveFromBlock();
       }
