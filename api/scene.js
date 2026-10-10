@@ -281,6 +281,11 @@ export const flockScene = {
 
     const mapTexturePhysicalSize = TEXTURE_TILE_SIZE;
 
+    const biasGroundDepth = (groundMat) => {
+      groundMat.zOffset = 1;
+      groundMat.zOffsetUnits = 4;
+    };
+
     const applyMaterialToGround = (mesh, mat) => {
       if (Array.isArray(mat) && mat.length === 1) mat = mat[0];
 
@@ -327,6 +332,7 @@ export const flockScene = {
         standardMat.specularColor = new flock.BABYLON.Color3(0, 0, 0);
         standardMat.diffuseTexture.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         standardMat.diffuseTexture.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        biasGroundDepth(standardMat);
         mesh.material = standardMat;
         flock.disposeOldMaterial(oldMat, [mesh]);
       } else {
@@ -345,7 +351,11 @@ export const flockScene = {
             mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
           }
         }
-        flock.setMaterialWithCleanup(mesh, mat);
+        const oldMat = mesh.material;
+        const groundMat = flock.getOrCreateMaterial(mat, oldMat?.alpha ?? 1, { cached: false });
+        biasGroundDepth(groundMat);
+        mesh.material = groundMat;
+        flock.disposeOldMaterial(oldMat, [mesh]);
       }
     };
 

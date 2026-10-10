@@ -1828,7 +1828,7 @@ export const flockMaterial = {
     mesh.material = newMat;
     flock.disposeOldMaterial(oldMat, [mesh]);
   },
-  getOrCreateMaterial(colorInput, alpha = 1) {
+  getOrCreateMaterial(colorInput, alpha = 1, { cached = true } = {}) {
     const isObject =
       typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
 
@@ -1892,7 +1892,7 @@ export const flockMaterial = {
     );
 
     if (!flock.materialCache) flock.materialCache = {};
-    if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
+    if (cached && flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
 
     const materialParams = {
       color: rawColor,
@@ -1921,7 +1921,7 @@ export const flockMaterial = {
       flock.setDepthPrePass(newMat, true);
     }
 
-    flock.materialCache[cacheKey] = newMat;
+    if (cached) flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
   _ownerBlockKey(node) {
