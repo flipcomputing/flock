@@ -28,6 +28,7 @@ import { ensureInitialRotation } from './initialTransform.js';
 import { showStatus, clearStatus } from './status.js';
 import { translate } from '../main/translation.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { CUBE_POINTS } from '../api/freeformgeometry.js';
 
 const colorFields = {
   HAIR_COLOR: '#000000', // Hair: black
@@ -68,6 +69,9 @@ export function createBlockWithShadows(shapeType, position, colour, decimals = 1
     data.inputs[name] = spec.listInputs?.includes(name)
       ? { shadow, block: makeListSpec(shadow) }
       : { shadow };
+  }
+  for (const [name, makeBlock] of Object.entries(spec.blocks ?? {})) {
+    data.inputs[name] = { block: makeBlock() };
   }
 
   const existingGroup = Blockly.Events.getGroup();
@@ -111,6 +115,28 @@ function makeShadowSpec(type, fields) {
 
 // A one-item list holding a copy of the shadow, as the toolbox sets up
 // colour inputs that also take a list.
+function makeVectorSpec(point) {
+  const inputs = Object.fromEntries(
+    ['X', 'Y', 'Z'].map((axis, i) => [
+      axis,
+      { shadow: makeShadowSpec('math_number', { NUM: point[i] }) },
+    ])
+  );
+  return { type: 'vector', inputs };
+}
+
+// The cube a freeform starts as, one vector per point, as in the toolbox.
+function makeCubePointsSpec() {
+  return {
+    type: 'lists_create_with',
+    extraState: { itemCount: CUBE_POINTS.length },
+    inline: false,
+    inputs: Object.fromEntries(
+      CUBE_POINTS.map((point, i) => [`ADD${i}`, { block: makeVectorSpec(point) }])
+    ),
+  };
+}
+
 function makeListSpec(shadow) {
   return {
     type: 'lists_create_with',
@@ -176,6 +202,11 @@ const __CREATE_SPEC = {
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
     inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
+  },
+  create_freeform: {
+    defaults: ({ c }) => ({ COLOR: c, RADIUS: 0.1 }),
+    inputs: ['COLOR', 'RADIUS'],
+    blocks: { VERTICES: makeCubePointsSpec },
   },
   create_3d_text: {
     defaults: () => ({
@@ -992,6 +1023,7 @@ function handleShapeMenuKeydown(event) {
                 ring: 'create_ring',
                 plane: 'create_plane',
                 '3d text': 'create_3d_text',
+                freeform: 'create_freeform',
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
               if (shapeType) selectShape(shapeType);

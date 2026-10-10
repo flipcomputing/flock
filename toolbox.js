@@ -816,7 +816,7 @@ const toolboxSceneMeshes = {
           shadow: {
             type: 'colour',
             fields: {
-              COLOR: '#66cc99',
+              COLOR: '#ef7a7a',
             },
           },
         },

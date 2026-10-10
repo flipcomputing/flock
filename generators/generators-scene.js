@@ -361,7 +361,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
   // Add freeform -------------------------------------------------------
   javascriptGenerator.forBlock['create_freeform'] = function (block) {
-    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const color = getFieldValue(block, 'COLOR', '"#ef7a7a"');
     const vertices =
       javascriptGenerator.valueToCode(block, 'VERTICES', javascriptGenerator.ORDER_NONE) ||
       'null';

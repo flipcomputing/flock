@@ -906,7 +906,7 @@ export const flockShapes = {
       faces,
       rounding = 'none',
       radius,
-      color = '#9932CC',
+      color = '#ef7a7a',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
       rotation = null,
