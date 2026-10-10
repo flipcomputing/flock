@@ -152,6 +152,15 @@ export function runFreeformBlockTests() {
       expect(workspace.getBlocksByType('vector', false)).to.have.length(7);
     });
 
+    it('passes rounding to createFreeform only when it is set', function () {
+      const block = Blockly.serialization.blocks.append(freeformState(), workspace);
+      javascriptGenerator.init(workspace);
+      expect(block.getFieldValue('ROUNDING')).to.equal('none');
+      expect(javascriptGenerator.blockToCode(block)).to.not.include('rounding:');
+      block.setFieldValue('smooth', 'ROUNDING');
+      expect(javascriptGenerator.blockToCode(block)).to.include('rounding: "smooth"');
+    });
+
     it('leaves faces out of the code for the plain cube', function () {
       const block = Blockly.serialization.blocks.append(freeformState(), workspace);
       javascriptGenerator.init(workspace);

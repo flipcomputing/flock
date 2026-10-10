@@ -359,6 +359,35 @@ export function runShapesTests(flock) {
         expect(mesh.metadata.freeformPoints[0]).to.deep.equal([-2, -0.5, -0.5]);
       });
 
+      it('should round the shape and keep the rounding when reshaped', function () {
+        const id = flock.createFreeform('testFreeformRounded', {
+          vertices: cube(),
+          rounding: 'smooth',
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata.freeformRounding).to.equal('smooth');
+        expect(mesh.getTotalVertices()).to.be.greaterThan(24);
+        expect(extents(mesh).max[0]).to.be.lessThan(0.45);
+
+        const points = cube();
+        points[6] = [2, 0.5, 0.5];
+        flock.setFreeformShape(mesh, points, mesh.metadata.freeformFaces);
+        expect(extents(mesh).max[0]).to.be.greaterThan(0.5);
+        expect(extents(mesh).max[0]).to.be.lessThan(2);
+        expect(mesh.metadata.freeformPoints[6]).to.deep.equal([2, 0.5, 0.5]);
+      });
+
+      it('should ignore an unknown rounding', function () {
+        const id = flock.createFreeform('testFreeformBadRounding', {
+          vertices: cube(),
+          rounding: 'wobbly',
+        });
+        createdIds.push(id);
+        expect(flock.scene.getMeshByName(id).getTotalVertices()).to.equal(24);
+      });
+
       it('should build from given faces', function () {
         const { points, faces } = extrudeFace(cube(), CUBE_FACES, 1, 1);
         const id = flock.createFreeform('testFreeformFaces', { vertices: points, faces });

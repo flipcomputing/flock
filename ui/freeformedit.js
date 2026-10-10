@@ -345,17 +345,29 @@ function attachEditor(mesh, block) {
     if (selection && selection.index >= count) api.select(null);
   };
 
+  // The edges are drawn from an unseen copy of the unrounded shape, so a
+  // rounded shape shows the faces its points make. It follows the mesh
+  // without being its child, so it stays out of the mesh's bounds.
+  const cage = new BABYLON.Mesh('freeformCage', scene);
+  cage.isPickable = false;
+  cage.material = new BABYLON.StandardMaterial('freeformCageMaterial', scene);
+  cage.material.disableColorWrite = true;
+  cage.material.disableDepthWrite = true;
+  const cageMatrix = new BABYLON.Matrix();
   let edgesFor = null;
   let edgesColor = '';
-  const syncEdges = (points) => {
+  const syncEdges = (points, faces, world) => {
+    cageMatrix.copyFrom(world);
+    cage.freezeWorldMatrix(cageMatrix);
     const material = mesh.material;
     const base = material?.diffuseColor ?? material?.albedoColor ?? BABYLON.Color3.Gray();
     const color = base.scale(EDGE_DARKEN);
     if (edgesFor === points && edgesColor === color.toHexString()) return;
-    mesh.disableEdgesRendering();
-    mesh.enableEdgesRendering(EDGE_EPSILON, true);
-    mesh.edgesWidth = EDGE_WIDTH;
-    mesh.edgesColor = color.toColor4(1);
+    flock.freeformVertexData(points, faces).applyToMesh(cage, true);
+    cage.disableEdgesRendering();
+    cage.enableEdgesRendering(EDGE_EPSILON, true);
+    cage.edgesWidth = EDGE_WIDTH;
+    cage.edgesColor = color.toColor4(1);
     edgesFor = points;
     edgesColor = color.toHexString();
   };
@@ -365,9 +377,9 @@ function attachEditor(mesh, block) {
     if (mesh.isDisposed()) return;
     const { points, faces } = shape();
     if (!drag && builtFor !== `${points.length}/${faces.length}`) build();
-    syncEdges(points);
 
     const world = mesh.computeWorldMatrix(true);
+    syncEdges(points, faces, world);
     const cameraPosition = scene.activeCamera?.globalPosition;
     if (!cameraPosition) return;
     const { selection } = api;
@@ -436,7 +448,8 @@ function attachEditor(mesh, block) {
     finishDrag();
     api.select(null);
     meshEditors.delete(mesh);
-    if (!mesh.isDisposed()) mesh.disableEdgesRendering();
+    cage.material?.dispose();
+    cage.dispose();
     [...markers, ...arrows].forEach((handle) => handle.dispose());
     api.pointNode.dispose();
     pointMaterial.dispose();

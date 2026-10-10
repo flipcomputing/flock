@@ -12,7 +12,7 @@ import {
 } from './blocks.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
-import { CUBE_FACES, shapeError } from '../api/freeformgeometry.js';
+import { CUBE_FACES, ROUNDINGS, shapeError } from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
@@ -1065,6 +1065,14 @@ export function defineShapeBlocks() {
             type: 'field_checkbox',
             name: 'EDIT',
             checked: false,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'ROUNDING',
+            options: ROUNDINGS.map((rounding) => [
+              translate(`freeform_rounding_${rounding}`),
+              rounding,
+            ]),
           },
         ],
         previousStatement: null,

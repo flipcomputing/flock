@@ -5,7 +5,7 @@ import {
   TEXTURE_TILE_SIZE,
 } from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
-import { CUBE_POINTS, CUBE_FACES, topologyError } from './freeformgeometry.js';
+import { CUBE_POINTS, CUBE_FACES, topologyError, roundedShape } from './freeformgeometry.js';
 
 let flock;
 
@@ -844,13 +844,23 @@ export const flockMesh = {
     return { points, faces: faces.map((f) => [...f]) };
   },
 
-  freeformVertexData(points, faces) {
+  // Flat faces get their own corners; a rounded surface shares them so it
+  // shades smoothly.
+  freeformVertexData(points, faces, rounding = 'none') {
     const positions = [];
     const indices = [];
-    for (const face of faces) {
-      const start = positions.length / 3;
-      for (const i of face) positions.push(...points[i]);
-      for (let k = 1; k < face.length - 1; k++) indices.push(start, start + k + 1, start + k);
+    if (rounding === 'none') {
+      for (const face of faces) {
+        const start = positions.length / 3;
+        for (const i of face) positions.push(...points[i]);
+        for (let k = 1; k < face.length - 1; k++) indices.push(start, start + k + 1, start + k);
+      }
+    } else {
+      const surface = roundedShape(points, faces, rounding);
+      for (const point of surface.points) positions.push(...point);
+      for (const face of surface.faces) {
+        for (let k = 1; k < face.length - 1; k++) indices.push(face[0], face[k + 1], face[k]);
+      }
     }
     const normals = [];
     flock.BABYLON.VertexData.ComputeNormals(positions, indices, normals);

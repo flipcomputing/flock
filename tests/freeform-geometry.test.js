@@ -8,6 +8,9 @@ import {
   extrudeFace,
   faceNormal,
   mergePoints,
+  subdivide,
+  bevel,
+  roundedShape,
 } from '../api/freeformgeometry.js';
 
 const cubePoints = () => CUBE_POINTS.map((p) => [...p]);
@@ -207,6 +210,58 @@ export function runFreeformGeometryTests() {
         // Push the +x cap back through the cube body.
         const pushed = extrudeFace(shape.points, shape.faces, 5, -3);
         expect(shapeError(pushed.points, pushed.faces)).to.not.equal(null);
+      });
+    });
+
+    describe('rounding', function () {
+      const extents = ({ points }) => [0, 1, 2].map((axis) => Math.max(...points.map((p) => p[axis])));
+      // An L: the cube with a block out to +x, and another out of that towards +z.
+      const lShape = () => {
+        let shape = extrudeFace(CUBE_POINTS, CUBE_FACES, 5, 1);
+        return extrudeFace(shape.points, shape.faces, shape.faces.length - 4, 1);
+      };
+
+      it('subdivides every face into one quad per corner', function () {
+        const { points, faces } = subdivide(CUBE_POINTS, CUBE_FACES);
+        expect(faces).to.have.length(24);
+        expect(points).to.have.length(8 + 12 + 6);
+        expect(shapeError(points, faces)).to.equal(null);
+      });
+
+      it('bevels each edge with a strip and each corner with a face', function () {
+        const { points, faces } = bevel(CUBE_POINTS, CUBE_FACES);
+        expect(faces).to.have.length(6 + 12 + 8);
+        expect(faces.slice(18).every((face) => face.length === 3)).to.equal(true);
+        expect(shapeError(points, faces)).to.equal(null);
+      });
+
+      it('leaves the shape alone with no rounding', function () {
+        const shape = roundedShape(CUBE_POINTS, CUBE_FACES, 'none');
+        expect(shape.points).to.equal(CUBE_POINTS);
+        expect(shape.faces).to.equal(CUBE_FACES);
+      });
+
+      it('keeps rounded shapes closed and valid, dents included', function () {
+        for (const [name, shape] of [
+          ['cube', { points: CUBE_POINTS, faces: CUBE_FACES }],
+          ['L', lShape()],
+          ['twisted face', { points: moved(6, [0.5, 0.9, 0.5]), faces: CUBE_FACES }],
+        ]) {
+          for (const rounding of ['edges', 'smooth']) {
+            const { points, faces } = roundedShape(shape.points, shape.faces, rounding);
+            expect(shapeError(points, faces), `${name} ${rounding}`).to.equal(null);
+          }
+        }
+      });
+
+      it('keeps the faces of a box out at their points with rounded edges', function () {
+        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, 'edges');
+        extents({ points }).forEach((max) => expect(max).to.be.closeTo(0.5, 0.01));
+      });
+
+      it('pulls a smooth shape in from its points', function () {
+        const { points } = roundedShape(CUBE_POINTS, CUBE_FACES, 'smooth');
+        extents({ points }).forEach((max) => expect(max).to.be.lessThan(0.45));
       });
     });
   });

@@ -362,7 +362,10 @@ export default {
   create_capsule: 'add capsule %1 %2 diameter: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
   create_wedge:
     'add wedge %1 %2 width: %3 height: %4 depth: %5\npeak: %6 along: %7\n%11 x: %8 y: %9 z: %10',
-  create_freeform: 'add freeform %1 %2 edit: %7\n%6 x: %3 y: %4 z: %5',
+  create_freeform: 'add freeform %1 %2 rounding: %8 edit: %7\n%6 x: %3 y: %4 z: %5',
+  freeform_rounding_none: 'none',
+  freeform_rounding_edges: 'edges',
+  freeform_rounding_smooth: 'smooth',
   freeform_points: 'points',
   freeform_invalid: 'That change would make the shape cross itself or break apart, so it was undone.',
   create_donut:
@@ -678,7 +681,7 @@ export default {
   create_wedge_tooltip:
     'Add a wedge \u2014 a triangular prism for building ramps, slopes and roofs. Move the peak to change the shape: 0 makes a ramp, 0.5 makes a roof.',
   create_freeform_tooltip:
-    'Add a shape you can reshape. Tick edit to drag its points and pull faces out with the arrows. Click + to see the list of points.',
+    'Add a shape you can reshape. Tick edit to drag its points and pull faces out with the arrows. Rounding softens its edges or smooths the whole shape. Click + to see the list of points.',
   create_donut_tooltip:
     'Add a donut shape. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Sides sets how smooth it looks.',
   create_ring_tooltip:

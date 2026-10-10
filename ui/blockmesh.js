@@ -1340,6 +1340,10 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
           flock.setFreeformShape(mesh, points, faces);
           repositionPrimitiveFromBlock();
         }
+      } else if (changed === 'ROUNDING') {
+        mesh.metadata.freeformRounding = block.getFieldValue('ROUNDING');
+        flock.setFreeformShape(mesh, mesh.metadata.freeformPoints, mesh.metadata.freeformFaces);
+        repositionPrimitiveFromBlock();
       }
       break;
     }
@@ -2086,6 +2090,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'ACTIVE';
     } else if (block.type === 'create_3d_text' && changeEvent.name === 'HORIZONTAL') {
       changed = 'HORIZONTAL';
+    } else if (block.type === 'create_freeform' && changeEvent.name === 'ROUNDING') {
+      changed = 'ROUNDING';
     } else if (CAMERA_BLOCK_TYPES.has(block.type) && ['TARGET', 'VISIBLE'].includes(changeEvent.name)) {
       changed = changeEvent.name;
     }

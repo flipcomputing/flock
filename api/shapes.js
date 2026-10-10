@@ -1,6 +1,7 @@
 import earcut from 'earcut';
 import Module from 'manifold-3d';
 import opentype from 'opentype.js';
+import { ROUNDINGS } from './freeformgeometry.js';
 
 let flock;
 let manifoldModule = null;
@@ -903,6 +904,7 @@ export const flockShapes = {
     {
       vertices,
       faces,
+      rounding = 'none',
       color = '#9932CC',
       position = new flock.BABYLON.Vector3(0, 0, 0),
       alpha = 1,
@@ -926,6 +928,7 @@ export const flockShapes = {
     flock._recycleOldestByKey(blockKey);
 
     const newFreeform = new flock.BABYLON.Mesh(freeformId, flock.scene);
+    newFreeform.metadata = { freeformRounding: ROUNDINGS.includes(rounding) ? rounding : 'none' };
     const shape = flock.freeformShape(vertices, faces);
     flock.setFreeformShape(newFreeform, shape.points, shape.faces);
 
@@ -949,7 +952,8 @@ export const flockShapes = {
     return newFreeform.name;
   },
   setFreeformShape(mesh, points, faces) {
-    flock.freeformVertexData(points, faces).applyToMesh(mesh, true);
+    const rounding = mesh.metadata?.freeformRounding ?? 'none';
+    flock.freeformVertexData(points, faces, rounding).applyToMesh(mesh, true);
     mesh.refreshBoundingInfo();
     const { minimum, maximum } = mesh.getBoundingInfo().boundingBox;
     flock.setSizeBasedBoxUVs(

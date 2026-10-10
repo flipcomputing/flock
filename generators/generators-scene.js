@@ -371,6 +371,8 @@ export function registerSceneGenerators(javascriptGenerator) {
     const params = [`color: ${color}`, `vertices: ${vertices}`];
     const faces = JSON.stringify(block.getFaces?.() ?? CUBE_FACES);
     if (faces !== JSON.stringify(CUBE_FACES)) params.push(`faces: ${faces}`);
+    const rounding = block.getFieldValue('ROUNDING') ?? 'none';
+    if (rounding !== 'none') params.push(`rounding: ${JSON.stringify(rounding)}`);
     params.push(`position: ${positionSource}`);
 
     return createMesh(block, 'Freeform', params, 'freeform');

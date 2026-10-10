@@ -349,3 +349,160 @@ export function extrudeFace(points, faces, faceIndex, distance) {
   });
   return { points: newPoints, faces: newFaces };
 }
+
+export const ROUNDINGS = ['none', 'edges', 'smooth'];
+const EDGE_ROUNDING_LEVELS = 1;
+const SMOOTH_LEVELS = 3;
+const EDGE_ROUNDING_FRACTION = 0.1;
+const SUPPORT_FRACTION = 0.25;
+const MAX_INSET_FRACTION = 0.4;
+
+const edgeKey = (a, b) => (a < b ? `${a},${b}` : `${b},${a}`);
+
+// One Catmull-Clark step: every face becomes one quad per corner, and the
+// shape shrinks towards a smooth surface. Winding is kept.
+export function subdivide(points, faces) {
+  const facePoints = faces.map((face) => faceCentre(points, face));
+  const edgeIds = new Map();
+  const edges = [];
+  faces.forEach((face, f) =>
+    face.forEach((a, i) => {
+      const b = face[(i + 1) % face.length];
+      const key = edgeKey(a, b);
+      if (!edgeIds.has(key)) {
+        edgeIds.set(key, edges.length);
+        edges.push({ a, b, faces: [] });
+      }
+      edges[edgeIds.get(key)].faces.push(f);
+    })
+  );
+
+  const edgePoints = edges.map(({ a, b, faces: [f, g] }) =>
+    g === undefined
+      ? scale(add(points[a], points[b]), 0.5)
+      : scale(add(add(points[a], points[b]), add(facePoints[f], facePoints[g])), 0.25)
+  );
+
+  const faceSums = points.map(() => ({ sum: [0, 0, 0], count: 0 }));
+  faces.forEach((face, f) =>
+    face.forEach((v) => {
+      faceSums[v].sum = add(faceSums[v].sum, facePoints[f]);
+      faceSums[v].count++;
+    })
+  );
+  const edgeSums = points.map(() => ({ sum: [0, 0, 0], count: 0 }));
+  edges.forEach(({ a, b }) => {
+    const middle = scale(add(points[a], points[b]), 0.5);
+    for (const v of [a, b]) {
+      edgeSums[v].sum = add(edgeSums[v].sum, middle);
+      edgeSums[v].count++;
+    }
+  });
+  const vertexPoints = points.map((p, v) => {
+    const n = edgeSums[v].count;
+    if (n < 3 || faceSums[v].count !== n) return [...p];
+    const faceAverage = scale(faceSums[v].sum, 1 / n);
+    const edgeAverage = scale(edgeSums[v].sum, 1 / n);
+    return scale(add(add(faceAverage, scale(edgeAverage, 2)), scale(p, n - 3)), 1 / n);
+  });
+
+  const edgeOffset = points.length;
+  const faceOffset = edgeOffset + edges.length;
+  const newFaces = [];
+  faces.forEach((face, f) =>
+    face.forEach((v, i) => {
+      const next = face[(i + 1) % face.length];
+      const prev = face[(i - 1 + face.length) % face.length];
+      newFaces.push([
+        v,
+        edgeOffset + edgeIds.get(edgeKey(v, next)),
+        faceOffset + f,
+        edgeOffset + edgeIds.get(edgeKey(prev, v)),
+      ]);
+    })
+  );
+  return { points: [...vertexPoints, ...edgePoints, ...facePoints], faces: newFaces };
+}
+
+// Cuts every edge and corner: each face shrinks inwards, a strip fills each
+// edge and a small face fills each corner. The cut is a fraction of the
+// shorter edge at each corner, so it keeps to scale with the shape.
+export function bevel(points, faces, fraction = EDGE_ROUNDING_FRACTION) {
+  const corners = [];
+  const cornerIds = faces.map((face) => {
+    const normal = faceNormal(points, face);
+    return face.map((v, i) => {
+      const p = points[v];
+      const toNext = sub(points[face[(i + 1) % face.length]], p);
+      const toPrev = sub(points[face[(i - 1 + face.length) % face.length]], p);
+      const shorter = Math.min(length(toNext), length(toPrev));
+      const u1 = scale(toNext, 1 / length(toNext));
+      const u2 = scale(toPrev, 1 / length(toPrev));
+      const inward = cross(normal, u1);
+      let direction = add(u1, u2);
+      if (length(direction) < EPS) direction = inward;
+      if (dot(direction, inward) < 0) direction = scale(direction, -1);
+      const spread = length(sub(u1, u2));
+      const distance = Math.min(
+        (2 * fraction * shorter) / Math.max(spread, EPS),
+        MAX_INSET_FRACTION * shorter
+      );
+      corners.push(add(p, scale(direction, distance / length(direction))));
+      return corners.length - 1;
+    });
+  });
+
+  const cornerOf = new Map();
+  faces.forEach((face, f) => face.forEach((v, i) => cornerOf.set(`${f}:${v}`, cornerIds[f][i])));
+  const faceWithEdge = new Map();
+  faces.forEach((face, f) =>
+    face.forEach((a, i) => faceWithEdge.set(`${a},${face[(i + 1) % face.length]}`, f))
+  );
+
+  const newFaces = cornerIds.map((ids) => [...ids]);
+  faces.forEach((face, f) =>
+    face.forEach((a, i) => {
+      const b = face[(i + 1) % face.length];
+      const g = faceWithEdge.get(`${b},${a}`);
+      if (g === undefined || a > b) return;
+      newFaces.push([
+        cornerOf.get(`${f}:${b}`),
+        cornerOf.get(`${f}:${a}`),
+        cornerOf.get(`${g}:${a}`),
+        cornerOf.get(`${g}:${b}`),
+      ]);
+    })
+  );
+
+  // Around each point, step from a face to the one across its incoming edge.
+  const done = new Set();
+  faces.forEach((face, start) =>
+    face.forEach((v) => {
+      if (done.has(v)) return;
+      done.add(v);
+      const ring = [];
+      let f = start;
+      do {
+        ring.push(cornerOf.get(`${f}:${v}`));
+        const current = faces[f];
+        const prev = current[(current.indexOf(v) - 1 + current.length) % current.length];
+        f = faceWithEdge.get(`${v},${prev}`);
+      } while (f !== undefined && f !== start && ring.length <= faces.length);
+      if (f === start && ring.length >= 3) newFaces.push(ring);
+    })
+  );
+
+  return { points: corners, faces: newFaces };
+}
+
+// The surface drawn for a shape: its own faces, or a rounded version.
+export function roundedShape(points, faces, rounding) {
+  let shape = { points, faces };
+  if (rounding === 'edges') {
+    shape = bevel(points, faces);
+    shape = bevel(shape.points, shape.faces, SUPPORT_FRACTION);
+  }
+  const levels = { edges: EDGE_ROUNDING_LEVELS, smooth: SMOOTH_LEVELS }[rounding] ?? 0;
+  for (let i = 0; i < levels; i++) shape = subdivide(shape.points, shape.faces);
+  return shape;
+}
