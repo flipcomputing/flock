@@ -1023,6 +1023,7 @@ export default {
   collect_the_gems_ui: 'Apanha as Gemas',
   water_map_ui: 'Mapa de Água',
   skittles_ui: 'Skittles',
+  block_tower_ui: 'Torre de blocos',
   beetle_ui: 'Escaravelho',
   roominator_ui: 'Roominator',
   ball_pit_ui: 'Piscina de Bolas',

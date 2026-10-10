@@ -1028,6 +1028,7 @@ export default {
   collect_the_gems_ui: 'Sammle die Edelsteine',
   water_map_ui: 'Wasserkarte',
   skittles_ui: 'Kegeln',
+  block_tower_ui: 'Klotzturm',
   beetle_ui: 'Käfer',
   roominator_ui: 'Raum-Designer',
   sit_down_ui: 'Hinsetzen',

@@ -1017,6 +1017,7 @@ export default {
   collect_the_gems_ui: 'Samla ädelstenarna',
   water_map_ui: 'Vattenkarta',
   skittles_ui: 'Käglor',
+  block_tower_ui: 'Klosstorn',
   beetle_ui: 'Skalbagge',
   roominator_ui: 'Rumsdesign',
   ball_pit_ui: 'Bollhav',

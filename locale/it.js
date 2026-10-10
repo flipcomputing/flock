@@ -1037,6 +1037,7 @@ export default {
   collect_the_gems_ui: 'Raccogli le gemme',
   water_map_ui: 'Mappa d’acqua',
   skittles_ui: 'Birilli',
+  block_tower_ui: 'Torre di blocchi',
   beetle_ui: 'Coleottero',
   roominator_ui: 'Roominator',
   sit_down_ui: 'Siediti',

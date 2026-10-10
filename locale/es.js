@@ -1138,6 +1138,7 @@ export default {
   collect_the_gems_ui: 'Recoger las Gemas', // human
   water_map_ui: 'Mapa de Agua', // human
   skittles_ui: 'Bolos', // human
+  block_tower_ui: 'Torre de bloques', // ai
   beetle_ui: 'Escarabajo', // human
   gem_tilt_game_ui: 'Inclina la Gema', // ai
   roominator_ui: 'Habitación', // human

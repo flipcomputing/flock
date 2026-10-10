@@ -1213,6 +1213,7 @@ export default {
   collect_the_gems_ui: 'Collect the gems',
   water_map_ui: 'Water map',
   skittles_ui: 'Skittles',
+  block_tower_ui: 'Block tower',
   beetle_ui: 'Beetle',
   gem_tilt_game_ui: 'Gem tilt',
   roominator_ui: 'Roominator',
