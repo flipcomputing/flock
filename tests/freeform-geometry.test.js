@@ -13,6 +13,7 @@ import {
   roundedShape,
   roundingSettings,
   MAX_ROUNDED_TRIANGLES,
+  fitBox,
 } from '../api/freeformgeometry.js';
 
 const cubePoints = () => CUBE_POINTS.map((p) => [...p]);
@@ -302,6 +303,39 @@ export function runFreeformGeometryTests() {
           expect(shape.points, rounding).to.equal(tower.points);
           expect(shape.faces, rounding).to.equal(tower.faces);
         }
+      });
+
+      describe('fitBox', function () {
+        const normals = ({ points, faces }) => faces.map((face) => faceNormal(points, face));
+        const turn = ([x, y, z]) => [x * 0.8 - y * 0.6, x * 0.6 + y * 0.8, z];
+
+        it('fits a cube square on', function () {
+          const box = fitBox(CUBE_POINTS, normals({ points: CUBE_POINTS, faces: CUBE_FACES }));
+          expect(box.size).to.deep.equal([1, 1, 1]);
+          expect(box.axes).to.deep.equal([
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1],
+          ]);
+        });
+
+        it('lies along a tilted plank, holding every point', function () {
+          const points = CUBE_POINTS.map(([x, y, z]) => turn([x * 4, y * 0.2, z * 0.5]));
+          const box = fitBox(points, normals({ points, faces: CUBE_FACES }));
+          const size = [...box.size].sort((a, b) => a - b);
+          [0.2, 0.5, 4].forEach((expected, i) => expect(size[i]).to.be.closeTo(expected, 1e-6));
+          for (const p of points) {
+            box.axes.forEach((axis, i) => {
+              const offset = axis.reduce((sum, a, k) => sum + a * (p[k] - box.centre[k]), 0);
+              expect(Math.abs(offset)).to.be.at.most(box.size[i] / 2 + 1e-6);
+            });
+          }
+        });
+
+        it('stays square on for a smooth shape that is only slightly smaller tilted', function () {
+          const shape = roundedShape(CUBE_POINTS, CUBE_FACES, { rounding: 'smooth' });
+          expect(fitBox(shape.points, normals(shape)).axes[0]).to.deep.equal([1, 0, 0]);
+        });
       });
 
       it('reads rounding settings forgivingly', function () {

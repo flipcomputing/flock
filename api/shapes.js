@@ -939,9 +939,9 @@ export const flockShapes = {
     newFreeform.metadata.sectionOwner = flock._currentSection;
     newFreeform.metadata.sharedGeometry = false;
 
-    const hullShape = new flock.BABYLON.PhysicsShapeConvexHull(newFreeform, flock.scene);
-    flock.applyPhysics(newFreeform, hullShape);
-    newFreeform.metadata.physicsShapeType = 'CONVEX_HULL';
+    // A box is cheap on low-end machines; the physics shape block can swap it.
+    flock.applyPhysics(newFreeform, flock.createFreeformBox(newFreeform, flock.scene));
+    newFreeform.metadata.physicsShapeType = 'BOX';
 
     flock.announceMeshReady(newFreeform.name, groupName);
     flock._registerInstance(blockKey, newFreeform.name);

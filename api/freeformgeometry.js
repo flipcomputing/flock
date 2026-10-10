@@ -541,3 +541,131 @@ export function roundedShape(points, faces, settings) {
   }
   return { points, faces };
 }
+
+const normalize = (a) => {
+  const len = length(a);
+  return len > EPS ? scale(a, 1 / len) : null;
+};
+
+// The direction of most spread among points, for a 3 × 3 symmetric matrix by
+// Jacobi rotations; returns the eigenvectors as rows.
+function principalAxes(points) {
+  const n = points.length;
+  const mean = scale(points.reduce(add, [0, 0, 0]), 1 / n);
+  const a = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0],
+  ];
+  for (const p of points) {
+    const d = sub(p, mean);
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) a[i][j] += d[i] * d[j];
+  }
+  const v = [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
+  for (let sweep = 0; sweep < 20; sweep++) {
+    for (const [p, q] of [
+      [0, 1],
+      [0, 2],
+      [1, 2],
+    ]) {
+      if (Math.abs(a[p][q]) < 1e-12) continue;
+      const theta = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+      const t = Math.sign(theta || 1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
+      const c = 1 / Math.sqrt(t * t + 1);
+      const s = t * c;
+      for (let k = 0; k < 3; k++) {
+        const akp = a[k][p];
+        const akq = a[k][q];
+        a[k][p] = c * akp - s * akq;
+        a[k][q] = s * akp + c * akq;
+      }
+      for (let k = 0; k < 3; k++) {
+        const apk = a[p][k];
+        const aqk = a[q][k];
+        a[p][k] = c * apk - s * aqk;
+        a[q][k] = s * apk + c * aqk;
+      }
+      for (let k = 0; k < 3; k++) {
+        const vkp = v[k][p];
+        const vkq = v[k][q];
+        v[k][p] = c * vkp - s * vkq;
+        v[k][q] = s * vkp + c * vkq;
+      }
+    }
+  }
+  return [0, 1, 2].map((col) => [v[0][col], v[1][col], v[2][col]]);
+}
+
+// Within the plane across `normal`, the direction the points spread most.
+function spreadAcross(points, normal) {
+  const seed = Math.abs(normal[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  const u = normalize(cross(normal, seed));
+  const v = cross(normal, u);
+  let cuu = 0;
+  let cvv = 0;
+  let cuv = 0;
+  const mean = scale(points.reduce(add, [0, 0, 0]), 1 / points.length);
+  for (const p of points) {
+    const d = sub(p, mean);
+    const x = dot(d, u);
+    const y = dot(d, v);
+    cuu += x * x;
+    cvv += y * y;
+    cuv += x * y;
+  }
+  const angle = 0.5 * Math.atan2(2 * cuv, cuu - cvv);
+  return add(scale(u, Math.cos(angle)), scale(v, Math.sin(angle)));
+}
+
+const MIN_BOX_SIZE = 0.01;
+// A tilted box replaces a square one only when it is clearly smaller.
+const TILT_MIN_SAVING = 0.9;
+
+// The smallest of a few boxes around the points: square to the shape's own
+// axes, along its main spread, or lying flat on one of `normals`. Returns the
+// box's centre, its axes and its size along each.
+export function fitBox(points, normals = []) {
+  const frames = [
+    [
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+  ];
+  const [main, second] = principalAxes(points);
+  frames.push([main, second, cross(main, second)]);
+  const seen = [];
+  for (const normal of normals) {
+    const n = normalize(normal);
+    if (!n || seen.some((s) => Math.abs(dot(s, n)) > 0.999)) continue;
+    seen.push(n);
+    const along = spreadAcross(points, n);
+    frames.push([n, along, cross(n, along)]);
+  }
+
+  let best = null;
+  for (const axes of frames) {
+    const min = [Infinity, Infinity, Infinity];
+    const max = [-Infinity, -Infinity, -Infinity];
+    for (const p of points) {
+      axes.forEach((axis, i) => {
+        const t = dot(p, axis);
+        if (t < min[i]) min[i] = t;
+        if (t > max[i]) max[i] = t;
+      });
+    }
+    const size = max.map((m, i) => Math.max(m - min[i], MIN_BOX_SIZE));
+    const volume = size[0] * size[1] * size[2];
+    if (best && volume >= best.volume * TILT_MIN_SAVING) continue;
+    const centre = axes.reduce(
+      (total, axis, i) => add(total, scale(axis, (min[i] + max[i]) / 2)),
+      [0, 0, 0]
+    );
+    best = { centre, axes, size, volume };
+  }
+  return { centre: best.centre, axes: best.axes, size: best.size };
+}

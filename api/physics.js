@@ -450,7 +450,9 @@ const createPhysicsShape = (mesh, shapeType) => {
     return new flock.BABYLON.PhysicsShapeConvexHull(mesh, flock.scene);
   }
   if (shapeType === 'BOX') {
-    return flock.createBoxFromBoundingBox(mesh, flock.scene);
+    return mesh.metadata?.shapeType === 'Freeform'
+      ? flock.createFreeformBox(mesh, flock.scene)
+      : flock.createBoxFromBoundingBox(mesh, flock.scene);
   }
   if (shapeType === 'SPHERE') {
     return flock.createSphereFromBoundingBox(mesh, flock.scene);
@@ -659,7 +661,13 @@ export const flockPhysics = {
 
     let newShape;
     let detectedShapeType;
-    if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
+    if (
+      physicsShape instanceof flock.BABYLON.PhysicsShapeBox &&
+      mesh.metadata?.shapeType === 'Freeform'
+    ) {
+      detectedShapeType = 'BOX';
+      newShape = flock.createFreeformBox(mesh, flock.scene);
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
       detectedShapeType = 'BOX';
       newShape = new flock.BABYLON.PhysicsShapeBox(
         center,

@@ -5,7 +5,14 @@ import {
   TEXTURE_TILE_SIZE,
 } from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
-import { CUBE_POINTS, CUBE_FACES, topologyError, roundedShape } from './freeformgeometry.js';
+import {
+  CUBE_POINTS,
+  CUBE_FACES,
+  topologyError,
+  roundedShape,
+  faceNormal,
+  fitBox,
+} from './freeformgeometry.js';
 
 let flock;
 
@@ -277,6 +284,31 @@ export const flockMesh = {
       localCenter,
       flock.BABYLON.Quaternion.Identity(),
       new flock.BABYLON.Vector3(width, height, depth),
+      scene
+    );
+  },
+  // A freeform's box is fitted to the surface it draws, and may lie at an
+  // angle, so a diagonal plank gets a plank-shaped box rather than a big
+  // square one around it.
+  createFreeformBox(mesh, scene) {
+    const B = flock.BABYLON;
+    const positions = mesh.getVerticesData(B.VertexBuffer.PositionKind) ?? [];
+    if (!positions.length) return flock.createBoxFromBoundingBox(mesh, scene);
+    const { x: sx, y: sy, z: sz } = mesh.scaling;
+    const points = [];
+    for (let i = 0; i < positions.length; i += 3) {
+      points.push([positions[i] * sx, positions[i + 1] * sy, positions[i + 2] * sz]);
+    }
+    const { freeformPoints, freeformFaces } = mesh.metadata ?? {};
+    const normals = freeformFaces?.map((face) => faceNormal(freeformPoints, face)) ?? [];
+    const { centre, axes, size } = fitBox(points, normals);
+    const [xAxis, yAxis, zAxis] = axes.map((axis) => B.Vector3.FromArray(axis));
+    const frame = new B.Matrix();
+    B.Matrix.FromXYZAxesToRef(xAxis, yAxis, zAxis, frame);
+    return new B.PhysicsShapeBox(
+      B.Vector3.FromArray(centre),
+      B.Quaternion.FromRotationMatrix(frame),
+      B.Vector3.FromArray(size),
       scene
     );
   },

@@ -408,12 +408,38 @@ export function runShapesTests(flock) {
         expect(flock.scene.getMeshByName(id).metadata.freeformFaces).to.deep.equal(CUBE_FACES);
       });
 
-      it('should give the freeform a convex hull physics body', function () {
+      it('should give the freeform a box physics body', function () {
         const id = flock.createFreeform('testFreeformPhysics', { vertices: cube() });
         createdIds.push(id);
 
         const mesh = flock.scene.getMeshByName(id);
-        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeConvexHull);
+        expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeBox);
+        expect(mesh.metadata.physicsShapeType).to.equal('BOX');
+      });
+
+      it('should fit the physics box to a diagonal plank, not the box around it', async function () {
+        // 4 long, 0.2 tall, 0.5 wide, turned 45° about y.
+        const turn = ([x, y, z]) => [(x - z) / Math.SQRT2, y, (x + z) / Math.SQRT2];
+        const plank = cube().map(([x, y, z]) => turn([x * 4, y * 0.2, z * 0.5]));
+        const id = flock.createFreeform('testFreeformPlank', {
+          vertices: plank,
+          position: [40, 10, 40],
+        });
+        createdIds.push(id);
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
+        const B = flock.BABYLON;
+        const hitsAt = (dx, dz) => {
+          const result = new B.PhysicsRaycastResult();
+          flock.scene
+            .getPhysicsEngine()
+            .raycastToRef(new B.Vector3(40 + dx, 15, 40 + dz), new B.Vector3(40 + dx, 9.5, 40 + dz), result);
+          return result.hasHit && result.body === flock.scene.getMeshByName(id).physics;
+        };
+        // Along the plank, and in a corner of its square bounds that the plank misses.
+        expect(hitsAt(0.6, 0.6), 'on the plank').to.equal(true);
+        expect(hitsAt(-1.2, -1.2), 'other end of the plank').to.equal(true);
+        expect(hitsAt(0.9, -0.9), 'beside the plank').to.equal(false);
       });
 
       it('should avoid collisions for repeated freeform ids', function () {
