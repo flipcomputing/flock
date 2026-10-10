@@ -19,6 +19,9 @@ const SELECTED_GROWTH = 1.4;
 const POINT_COLOR = '#ffcc33';
 const ARROW_COLOR = '#33ccff';
 const SELECTED_COLOR = '#ffffff';
+const EDGE_DARKEN = 0.5;
+const EDGE_WIDTH = 4;
+const EDGE_EPSILON = 0.95;
 export const FREEFORM_STEP = 0.1;
 
 const ENGINE_RETRY_MS = 250;
@@ -342,16 +345,42 @@ function attachEditor(mesh, block) {
     if (selection && selection.index >= count) api.select(null);
   };
 
+  let edgesFor = null;
+  let edgesColor = '';
+  const syncEdges = (points) => {
+    const material = mesh.material;
+    const base = material?.diffuseColor ?? material?.albedoColor ?? BABYLON.Color3.Gray();
+    const color = base.scale(EDGE_DARKEN);
+    if (edgesFor === points && edgesColor === color.toHexString()) return;
+    mesh.disableEdgesRendering();
+    mesh.enableEdgesRendering(EDGE_EPSILON, true);
+    mesh.edgesWidth = EDGE_WIDTH;
+    mesh.edgesColor = color.toColor4(1);
+    edgesFor = points;
+    edgesColor = color.toHexString();
+  };
+
   const up = BABYLON.Vector3.Up();
   const syncObserver = scene.onBeforeRenderObservable.add(() => {
     if (mesh.isDisposed()) return;
     const { points, faces } = shape();
     if (!drag && builtFor !== `${points.length}/${faces.length}`) build();
+    syncEdges(points);
 
     const world = mesh.computeWorldMatrix(true);
     const cameraPosition = scene.activeCamera?.globalPosition;
     if (!cameraPosition) return;
     const { selection } = api;
+
+    // Whether the shape itself lies between the camera and a handle. The
+    // margin keeps handles on the surface or silhouette from hiding themselves.
+    const covered = (target, margin) => {
+      const offset = target.subtract(cameraPosition);
+      const length = offset.length() - margin;
+      if (length <= 0) return false;
+      const ray = new BABYLON.Ray(cameraPosition, offset.normalize(), length);
+      return scene.pickWithRay(ray, (m) => m === mesh).hit;
+    };
 
     // A point drag keeps the markers in their original order, even while a
     // merge preview has renumbered the shape's points.
@@ -368,9 +397,11 @@ function attachEditor(mesh, block) {
       marker.material = selected ? selectedMaterial : pointMaterial;
       let grow = selected ? SELECTED_GROWTH : 1;
       if (merging && index === drag.mergeInto) grow = MERGE_TARGET_GROWTH;
-      marker.scaling.setAll(
-        BABYLON.Vector3.Distance(cameraPosition, marker.position) * POINT_SIZE_PER_DISTANCE * grow
-      );
+      const size =
+        BABYLON.Vector3.Distance(cameraPosition, marker.position) * POINT_SIZE_PER_DISTANCE * grow;
+      marker.scaling.setAll(size);
+      const held = selected || drag?.index === index || (merging && index === drag.mergeInto);
+      marker.setEnabled(held || !covered(marker.position, size / 2));
       // The gizmo moves the node itself while it drags.
       if (selected && !drag) api.pointNode.position.copyFrom(marker.position);
     });
@@ -387,10 +418,11 @@ function attachEditor(mesh, block) {
         world
       ).normalize();
       const selected = selection?.kind === 'face' && selection.index === faceIndex;
-      const facing = BABYLON.Vector3.Dot(normal, cameraPosition.subtract(centre)) > 0;
-      arrow.setEnabled(!merging && (facing || selected || drag?.faceIndex === faceIndex));
-      arrow.material = selected ? selectedMaterial : arrowMaterial;
       const size = BABYLON.Vector3.Distance(cameraPosition, centre) * ARROW_SIZE_PER_DISTANCE;
+      const facing = BABYLON.Vector3.Dot(normal, cameraPosition.subtract(centre)) > 0;
+      const visible = facing && !covered(centre, size * 0.2);
+      arrow.setEnabled(!merging && (visible || selected || drag?.faceIndex === faceIndex));
+      arrow.material = selected ? selectedMaterial : arrowMaterial;
       arrow.scaling.setAll(size);
       arrow.position = centre.add(normal.scale(size * 0.2));
       BABYLON.Quaternion.FromUnitVectorsToRef(up, normal, arrow.rotationQuaternion);
@@ -404,6 +436,7 @@ function attachEditor(mesh, block) {
     finishDrag();
     api.select(null);
     meshEditors.delete(mesh);
+    if (!mesh.isDisposed()) mesh.disableEdgesRendering();
     [...markers, ...arrows].forEach((handle) => handle.dispose());
     api.pointNode.dispose();
     pointMaterial.dispose();
