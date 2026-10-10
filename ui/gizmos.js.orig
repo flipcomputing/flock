@@ -77,7 +77,6 @@ import {
   getInitialSizeValues,
   setInitialSizeValues,
   placeMoveAfterInitialTransforms,
-  hasInitialTransformRows,
 } from './initialTransform.js';
 export let gizmoManager;
 
@@ -2139,7 +2138,7 @@ function applyRotationHandles(mesh) {
   const rg = gizmoManager?.gizmos?.rotationGizmo;
   if (!rg) return;
   const enabled = !isTargetCameraFrame(mesh);
-  const yOnly = keepsTransformInParts(mesh);
+  const yOnly = mesh?.metadata?.shapeType === 'Group';
   for (const [axis, g] of [
     ['x', rg.xGizmo],
     ['y', rg.yGizmo],
@@ -2172,7 +2171,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   // Keyboard rotation works on the source; the ring gizmo still drives it.
   const mirrorSource = mirrorSourceOf(mesh);
   const blockMesh = mirrorSource ?? mesh;
-  const rotateBlock = keepsTransformInParts(blockMesh) ? null : findOrCreateRotateBlock(blockMesh);
+  const rotateBlock =
+    blockMesh?.metadata?.shapeType === 'Group' ? null : findOrCreateRotateBlock(blockMesh);
   if (rotateBlock) {
     highlightBlockById(Blockly.getMainWorkspace(), rotateBlock);
   } else {
@@ -2181,7 +2181,6 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     if (creationBlock) highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
   }
   if (mirrorSource) return;
-  markCombineFrames(mesh);
 
   // Track rotation as Euler degrees (the block's representation), not
   // quaternion increments: a single-axis drag then changes only that axis,
@@ -2209,7 +2208,8 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
   };
   const onMove = (dx, dy, dz) => {
     syncWorkingToMesh();
-    const deltas = keepsTransformInParts(mesh) ? { x: 0, y: dy, z: 0 } : { x: dx, y: dy, z: dz };
+    const deltas =
+      mesh?.metadata?.shapeType === 'Group' ? { x: 0, y: dy, z: 0 } : { x: dx, y: dy, z: dz };
     const changedAxes = [];
     for (const axisKey of ['x', 'y', 'z']) {
       if (deltas[axisKey]) {
@@ -2224,7 +2224,6 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     );
     // Groups keep orientation in their members, never on the group node.
     if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh);
-    if (isCombine(mesh)) syncCombineParts(mesh);
     if (isBodyAlive(mesh.physics)) {
       mesh.physics.disablePreStep = false;
       mesh.physics.setTargetTransform(mesh.absolutePosition, mesh.rotationQuaternion);
@@ -2253,7 +2252,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     stepNormal: DEFAULT_ROTATION,
     stepFast: FAST_ROTATION,
     mode: 'slider',
-    onlyAxis: keepsTransformInParts(mesh) ? 'y' : null,
+    onlyAxis: mesh?.metadata?.shapeType === 'Group' ? 'y' : null,
     getValues,
     onHudHide: () => highlightGizmoAxis(gizmoManager.gizmos?.rotationGizmo, null),
     onAxisChange: (axis) => {
@@ -2284,7 +2283,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
 // Scale a mesh using the keyboard. Defaults to uniform (=) so the first
 // arrow press scales all axes; the user can then pick X/Y/Z if needed.
 function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = null) {
-  const isGroup = keepsTransformInParts(mesh);
+  const isGroup = mesh?.metadata?.shapeType === 'Group';
   const carriedAxis = stopAxisKeyboard?.getAxis?.() ?? null;
   const defaultAxis = isGroup ? 'all' : (savedHudAxis ?? carriedAxis ?? 'all');
   applyScaleAxisHandles(mesh);
@@ -2297,7 +2296,6 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
     showNotAllowedCursor();
     return;
   }
-  markCombineFrames(mesh);
 
   const creationBlock = meshMap[mesh?.metadata?.blockKey];
   if (creationBlock) {
@@ -2400,14 +2398,6 @@ function isGroupClone(mesh) {
   );
 }
 
-function isCombine(mesh) {
-  return meshMap[mesh?.metadata?.blockKey]?.type === 'combine';
-}
-
-function keepsTransformInParts(mesh) {
-  return mesh?.metadata?.shapeType === 'Group' || isCombine(mesh);
-}
-
 // A mirror's transform drives its source: the mirror is rebuilt from the
 // source once the source's blocks are written.
 function mirrorSourceOf(mesh) {
@@ -2443,7 +2433,7 @@ function reflectPoint(point, { normal, point: planePoint }) {
 function applyScaleAxisHandles(mesh) {
   const sg = gizmoManager?.gizmos?.scaleGizmo;
   if (!sg) return;
-  const isGroup = keepsTransformInParts(mesh);
+  const isGroup = mesh?.metadata?.shapeType === 'Group';
   const isPlane = meshMap[mesh?.metadata?.blockKey]?.type === 'create_plane';
   const isCamera = isCameraFrame(mesh);
   const isMirror = !!mesh?.metadata?.mirror;
@@ -2692,7 +2682,8 @@ function setWallSizeInputs(block, { diameter, thickness, height }, { decimals = 
 // Multiply a member's size inputs by a uniform factor, mirroring the
 // updateScaleBlock cases. Models keep their size in a resize block; its id
 // needs suppressing too (the entity's own block is covered by the caller).
-function scaleMemberSizeInputs(block, factor, { mesh = null, suppress = null } = {}) {
+function scaleMemberSizeInputs(mesh, factor, suppress) {
+  const block = meshMap[mesh?.metadata?.blockKey];
   if (!block || block.disposed) return;
   const mul = (target, name) => {
     const cur = getNumberInput(target, name);
@@ -2717,10 +2708,8 @@ function scaleMemberSizeInputs(block, factor, { mesh = null, suppress = null } =
       break;
     case 'create_donut':
     case 'create_ring': {
-      const dims = mesh?.metadata?.ringDimensions ?? mesh?.metadata?.donutDimensions;
-      if (!mesh) {
-        ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'HEIGHT'].forEach((name) => mul(block, name));
-      } else if (dims) {
+      const dims = mesh.metadata?.ringDimensions ?? mesh.metadata?.donutDimensions;
+      if (dims) {
         setWallSizeInputs(
           block,
           {
@@ -2741,14 +2730,6 @@ function scaleMemberSizeInputs(block, factor, { mesh = null, suppress = null } =
     // Live rebuilds of a freeform don't reset its scaling the way box resizes
     // do, so bake the scale into the mesh now as well as the block.
     case 'create_freeform': {
-      if (!mesh) {
-        const list = block.getInputTargetBlock('VERTICES');
-        for (const input of list?.inputList ?? []) {
-          const vector = input.name?.startsWith('ADD') && list.getInputTargetBlock(input.name);
-          if (vector?.type === 'vector') ['X', 'Y', 'Z'].forEach((axis) => mul(vector, axis));
-        }
-        break;
-      }
       const shape = scaledFreeformShape(mesh, { x: factor, y: factor, z: factor }, MEMBER_DECIMALS);
       if (!shape) break;
       block.writeShape(shape.points, shape.faces);
@@ -2776,20 +2757,6 @@ function scaleMemberSizeInputs(block, factor, { mesh = null, suppress = null } =
     case 'load_multi_object':
     case 'load_object':
     case 'load_character': {
-      if (!mesh) {
-        const sizeBlock = findInitialSize(block);
-        if (!sizeBlock) {
-          mul(block, 'SCALE');
-          break;
-        }
-        const size = getInitialSizeValues(sizeBlock);
-        setInitialSizeValues(
-          sizeBlock,
-          { x: size.x * factor, y: size.y * factor, z: size.z * factor },
-          { decimals: MEMBER_DECIMALS }
-        );
-        break;
-      }
       // A fresh resize block is seeded from the mesh's current (already
       // scaled) size, so only a pre-existing one needs multiplying.
       const existed = !!findExistingResizeBlock(mesh);
@@ -2987,12 +2954,8 @@ export function bakeGroupScale(groupMesh) {
     }
     for (const m of entities) {
       const key = m.metadata?.blockKey;
+      scaleMemberSizeInputs(m, factors.get(key), suppress);
       const childBlock = meshMap[key];
-      if (isCombine(m)) {
-        syncCombineParts(m, { updatePhysics: false });
-        continue;
-      }
-      scaleMemberSizeInputs(childBlock, factors.get(key), { mesh: m, suppress });
       if (childBlock && !childBlock.disposed) {
         const pos = readBlockPosition(m, childBlock);
         writePositionToBlock(childBlock, pos, { decimals: MEMBER_DECIMALS });
@@ -3221,10 +3184,6 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
         bakeGroupScale(mesh);
         break;
 
-      case 'combine':
-        syncCombineParts(mesh);
-        break;
-
       case 'load_model':
       case 'load_multi_object':
       case 'load_object':
@@ -3242,7 +3201,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
 
     // The drag re-anchors the world bottom, which on a rotated mesh is not
     // the unrotated base Play positions by - persist where it ended up.
-    if (!['create_group', 'clone_mesh', 'combine'].includes(block.type)) {
+    if (block.type !== 'create_group' && block.type !== 'clone_mesh') {
       const pos = blockPositionOf(mesh);
       const stale = ['x', 'y', 'z'].some(
         (axis) => !(Math.abs(getNumberInput(block, axis.toUpperCase()) - pos[axis]) <= 0.05)
@@ -3411,100 +3370,21 @@ function updateChildBlockPositions(mesh, delta = null) {
   }
 }
 
-function forEachCombinePart(containerBlock, visit) {
+function shiftCombineParts(containerBlock, delta) {
   for (const input of containerBlock.inputList) {
     if (input.type !== Blockly.inputs.inputTypes.STATEMENT) continue;
     for (let cur = input.connection?.targetBlock(); cur; cur = cur.getNextBlock()) {
       if (cur.type === 'combine' || cur.type === 'create_group') {
-        forEachCombinePart(cur, visit);
+        shiftCombineParts(cur, delta);
         continue;
       }
       const current = cur.type === 'clone_mesh' ? null : blockPositionNumbers(cur);
-      if (current) visit(cur, current);
+      if (!current) continue;
+      setBlockXYZ(cur, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
+        decimals: 4,
+      });
     }
   }
-}
-
-function shiftCombineParts(containerBlock, delta) {
-  forEachCombinePart(containerBlock, (part, current) =>
-    setBlockXYZ(part, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
-      decimals: 4,
-    })
-  );
-}
-
-function isShapePart(block) {
-  return (
-    hasInitialTransformRows(block) ||
-    typeof block.toggleDoBlock === 'function' ||
-    !!block.getInput('DO')
-  );
-}
-
-function combineFrameOf(mesh) {
-  mesh.computeWorldMatrix(true);
-  return {
-    centre: mesh.getAbsolutePosition().clone(),
-    yaw: mesh.absoluteRotationQuaternion.toEulerAngles().y,
-    scale: mesh.absoluteScaling.x,
-  };
-}
-
-function markCombineFrames(mesh) {
-  for (const m of [mesh, ...(mesh?.getChildMeshes?.(false) ?? [])]) {
-    if (isCombine(m) && !m.isDisposed()) m.metadata.partsFrame = combineFrameOf(m);
-  }
-}
-
-function syncCombineParts(mesh, { updatePhysics = true } = {}) {
-  const block = meshMap[mesh?.metadata?.blockKey];
-  const from = mesh?.metadata?.partsFrame;
-  if (!from || !block || block.disposed) return;
-  const to = combineFrameOf(mesh);
-  const angle = to.yaw - from.yaw;
-  const factor = to.scale / from.scale;
-  const turned = Math.abs(Math.sin(angle / 2)) > 1e-6;
-  const scaled = Math.abs(factor - 1) > 1e-4;
-  const moved = flock.BABYLON.Vector3.DistanceSquared(to.centre, from.centre) > 1e-10;
-  if (!turned && !scaled && !moved) return;
-
-  const turn = flock.BABYLON.Matrix.RotationY(angle);
-  const degrees = flock.BABYLON.Tools.ToDegrees(angle);
-  const writeParts = () =>
-    forEachCombinePart(block, (part, current) => {
-      if (!isShapePart(part)) return;
-      const offset = flock.BABYLON.Vector3.TransformCoordinates(
-        new flock.BABYLON.Vector3(
-          current.x - from.centre.x,
-          current.y - from.centre.y,
-          current.z - from.centre.z
-        ),
-        turn
-      ).scaleInPlace(factor);
-      setBlockXYZ(part, to.centre.x + offset.x, to.centre.y + offset.y, to.centre.z + offset.z, {
-        decimals: MEMBER_DECIMALS,
-      });
-      if (scaled) scaleMemberSizeInputs(part, factor);
-      if (!turned) return;
-      const rotateBlock = trackGizmoCreated(part, ensureInitialRotation(part));
-      if (!rotateBlock) return;
-      const y = getInitialRotationValues(rotateBlock).y;
-      const yaw = (((((Number.isFinite(y) ? y : 0) + degrees + 180) % 360) + 360) % 360) - 180;
-      setInitialRotationValues(rotateBlock, { y: yaw }, { axes: ['y'] });
-    });
-  if (Blockly.Events.getGroup()) writeParts();
-  else inEventGroup(writeParts);
-
-  if (scaled) {
-    const s = mesh.scaling;
-    flock.ensureUniqueGeometry(mesh);
-    mesh.bakeTransformIntoVertices(flock.BABYLON.Matrix.Scaling(s.x, s.y, s.z));
-    s.setAll(1);
-    mesh.computeWorldMatrix(true);
-    mesh.refreshBoundingInfo();
-    if (updatePhysics) flock.updatePhysics(mesh);
-  }
-  mesh.metadata.partsFrame = combineFrameOf(mesh);
 }
 
 function startDuplicatePlacement() {
@@ -3993,7 +3873,6 @@ function handleScaleGizmo() {
   const scaleDragStart = gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     flock.ensureUniqueGeometry(mesh);
-    markCombineFrames(mesh);
     cancelRetileFrame();
     retiledScale = `${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z}`;
     originalBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
@@ -4113,7 +3992,10 @@ function handleRotationGizmo() {
 
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
-      if (!keepsTransformInParts(lastRotatedMesh) && !isTargetCameraFrame(lastRotatedMesh)) {
+      if (
+        lastRotatedMesh?.metadata?.shapeType !== 'Group' &&
+        !isTargetCameraFrame(lastRotatedMesh)
+      ) {
         updateRotationBlock(lastRotatedMesh); // properly update block if they click out
       }
       updateChildBlockRotations(lastRotatedMesh);
@@ -4143,9 +4025,8 @@ function handleRotationGizmo() {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
     const blockMesh = mirrorSourceOf(mesh) ?? mesh;
-    markCombineFrames(blockMesh);
 
-    if (keepsTransformInParts(blockMesh) || isTargetCameraFrame(blockMesh)) {
+    if (blockMesh.metadata?.shapeType === 'Group' || isTargetCameraFrame(blockMesh)) {
       const ownerBlock = meshMap[blockMesh.metadata?.blockKey];
       if (ownerBlock) highlightBlockById(Blockly.getMainWorkspace(), ownerBlock);
     } else {
@@ -4193,10 +4074,6 @@ function handleRotationGizmo() {
     // writing one axis would disagree with the mesh and jump on re-run.
     // A group's orientation lives in its members (see below), so no
     // rotate_to is written for the group itself - that would apply twice.
-    if (isCombine(gizmoManager.attachedMesh)) {
-      syncCombineParts(gizmoManager.attachedMesh);
-      return;
-    }
     if (mesh?.metadata?.shapeType !== 'Group' && !isTargetCameraFrame(mesh)) {
       updateRotationBlock(mesh);
     }
@@ -4225,11 +4102,6 @@ export function updateChildBlockRotations(mesh) {
     const key = child?.metadata?.blockKey;
     if (!key || key === rootKey || seenKeys.has(key)) return;
     seenKeys.add(key);
-
-    if (isCombine(child)) {
-      syncCombineParts(child);
-      return;
-    }
 
     const rotateBlock = findOrCreateRotateBlock(child);
     const childParent = child.parent;
