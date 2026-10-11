@@ -145,10 +145,9 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
     return container;
   };
   block.domToMutation = function (xmlElement) {
-    doDomToMutation.call(this, xmlElement);
     this.rotateShown_ = xmlElement.getAttribute('rotate') === 'true';
     this.resizeShown_ = this.hasResizeRow_ && xmlElement.getAttribute('resize') === 'true';
-    this.syncInitialTransformRows_();
+    doDomToMutation.call(this, xmlElement);
   };
 
   block.syncInitialTransformRows_();

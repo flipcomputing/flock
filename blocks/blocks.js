@@ -2198,6 +2198,12 @@ export const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
 );
 export const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
 
+export function fireLayoutMove(block) {
+  const event = new Blockly.Events.BlockMove(block);
+  event.recordUndo = false;
+  Blockly.Events.fire(event);
+}
+
 export function addDoMutatorWithToggleBehavior(block) {
   // Closing a section hides it rather than removing it, so its blocks are kept
   // and still run. The "then" toggle button only exists while DO is open; keep
@@ -2268,7 +2274,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     const newState = mutationText();
     if (oldState !== newState) {
       Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', '', oldState, newState));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(block));
+      fireLayoutMove(block);
     }
   };
 
@@ -2370,6 +2376,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     this.optionsOpen_ = options === null ? !this.doHidden_ : options === 'true';
     this.thenHidden_ = !hasThen || xmlElement.getAttribute('then_hidden') === 'true';
     syncMutatorButtons();
+    if (this.rendered) this.render();
   };
 }
 
@@ -2504,7 +2511,7 @@ Blockly.Extensions.register('custom_procedure_ui_extension', function () {
 
     // Fire Blockly events so undo/redo and UI updates are tracked
     Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-    Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+    fireLayoutMove(this);
   };
 });
 

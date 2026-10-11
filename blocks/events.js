@@ -7,6 +7,7 @@ import {
   domToMutation,
   updateShape,
   updateToggleButtonIcon,
+  fireLayoutMove,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import {
@@ -101,7 +102,7 @@ export function defineEventsBlocks() {
       }
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
   };
 
@@ -216,7 +217,7 @@ export function defineEventsBlocks() {
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
 
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
   };
 
@@ -345,7 +346,7 @@ export function defineEventsBlocks() {
       }
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
   };
 
@@ -458,7 +459,7 @@ export function defineEventsBlocks() {
       }
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
   };
 
@@ -531,7 +532,7 @@ export function defineEventsBlocks() {
       }
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
   };
 
@@ -655,7 +656,7 @@ export function defineEventsBlocks() {
       }
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      Blockly.Events.fire(new Blockly.Events.BlockMove(this));
+      fireLayoutMove(this);
     },
     onchange: function () {
       if (!this.workspace || this.isInFlyout) return;
