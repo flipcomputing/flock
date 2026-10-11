@@ -151,6 +151,115 @@ export function runInteractIndicatorTests(flock) {
         expect(getIcon().position.y).to.be.closeTo(0, 0.01);
       });
 
+      it('a say() label on an interactable is never the target', function () {
+        const mesh = makeMesh('_test_speaker', [3, 0, 0]);
+        makeInteractable(mesh);
+        const label = flock.BABYLON.MeshBuilder.CreatePlane(
+          'textPlane',
+          { width: 4, height: 4 },
+          flock.scene
+        );
+        label.parent = mesh;
+        label.position.set(-3, 0, 0);
+        label.metadata = { isTextPlane: true, sayTarget: mesh };
+        label.isPickable = false;
+        label.computeWorldMatrix(true);
+        testMeshes.push(label);
+
+        fireFrame();
+
+        expect(getIcon().isVisible).to.be.false;
+      });
+
+      it('icon sits beside the geometry, not the world bounding box corner', function () {
+        const mesh = flock.BABYLON.MeshBuilder.CreateSphere(
+          '_test_rotated_sphere',
+          { diameter: 1, segments: 32 },
+          flock.scene
+        );
+        mesh.rotation.y = Math.PI / 4;
+        mesh.computeWorldMatrix(true);
+        testMeshes.push(mesh);
+        makeInteractable(mesh);
+
+        fireFrame();
+
+        const icon = getIcon();
+        expect(icon.isVisible).to.be.true;
+        expect(icon.position.x).to.be.closeTo(-(0.5 + icon.scaling.x / 2), 0.02);
+        expect(icon.position.y).to.be.closeTo(0, 0.01);
+      });
+
+      it('icon stays put when the aimed-at part of one interactable changes', function () {
+        const parent = makeMesh('_test_parts_parent', [0, 0, 0]);
+        parent.visibility = 0;
+        makeInteractable(parent);
+        const top = makeMesh('_test_part_top', [0, 0.6, 0]);
+        const bottom = makeMesh('_test_part_bottom', [0, -0.6, 0]);
+        top.parent = parent;
+        bottom.parent = parent;
+        top.computeWorldMatrix(true);
+        bottom.computeWorldMatrix(true);
+
+        const cam = flock.scene.activeCamera;
+        cam.setTarget(new flock.BABYLON.Vector3(0, 0.6, 0));
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
+        const first = getIcon().position.clone();
+
+        cam.setTarget(new flock.BABYLON.Vector3(0, -0.6, 0));
+        fireFrame();
+        expect(getIcon().isVisible).to.be.true;
+        expect(flock.BABYLON.Vector3.Distance(first, getIcon().position)).to.be.lessThan(0.2);
+      });
+
+      it('icon hugs geometry at its own height, ignoring a wide part above', function () {
+        const body = flock.BABYLON.MeshBuilder.CreateBox(
+          '_test_band_body',
+          { width: 0.4, height: 2, depth: 0.4 },
+          flock.scene
+        );
+        testMeshes.push(body);
+        makeInteractable(body);
+        const hat = flock.BABYLON.MeshBuilder.CreateBox(
+          '_test_band_hat',
+          { width: 2, height: 0.2, depth: 0.4 },
+          flock.scene
+        );
+        hat.parent = body;
+        hat.position.y = 0.9;
+        hat.computeWorldMatrix(true);
+        body.computeWorldMatrix(true);
+        testMeshes.push(hat);
+
+        fireFrame();
+
+        const icon = getIcon();
+        expect(icon.isVisible).to.be.true;
+        expect(icon.position.x).to.be.closeTo(-(0.2 + icon.scaling.x / 2), 0.02);
+      });
+
+      it('parts hidden while loading are used once they are shown', function () {
+        const parent = makeMesh('_test_loading_parent', [0, 0, 0]);
+        parent.scaling.setAll(4);
+        parent.visibility = 0;
+        parent.computeWorldMatrix(true);
+        makeInteractable(parent);
+        const part = makeMesh('_test_loading_part', [0, 0, 0]);
+        part.parent = parent;
+        part.scaling.setAll(0.125);
+        part.isVisible = false;
+        part.computeWorldMatrix(true);
+
+        fireFrame();
+        part.isVisible = true;
+        fireFrame();
+
+        const icon = getIcon();
+        expect(icon.isVisible).to.be.true;
+        expect(icon.position.x).to.be.closeTo(-(0.25 + icon.scaling.x / 2), 0.02);
+      });
+
       it('mesh with only an intersection-trigger actionManager is not targeted', function () {
         // onIntersect attaches an actionManager with no pick trigger — clicking
         // it does nothing, so the indicator must not flag it. Regression for a

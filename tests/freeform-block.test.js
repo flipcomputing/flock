@@ -153,6 +153,26 @@ export function runFreeformBlockTests() {
       expect(workspace.getBlocksByType('vector', false)).to.have.length(7);
     });
 
+    it('removes the added vectors when an extrude is undone', async function () {
+      const flush = () => new Promise((resolve) => setTimeout(resolve, 60));
+      const block = Blockly.serialization.blocks.append(freeformState(), workspace);
+      await flush();
+      const { points, faces } = extrudeFace(cube, CUBE_FACES, 1, 1);
+      block.writeShape(points, faces);
+      await flush();
+
+      workspace.undo(false);
+      await flush();
+      expect(block.getPoints()).to.deep.equal(cube);
+      expect(workspace.getTopBlocks(false)).to.have.length(1);
+      expect(workspace.getBlocksByType('vector', false)).to.have.length(8);
+
+      workspace.undo(true);
+      await flush();
+      expect(block.getPoints()).to.deep.equal(points);
+      expect(workspace.getTopBlocks(false)).to.have.length(1);
+    });
+
     it('passes rounding to createFreeform only when it is set', function () {
       const block = Blockly.serialization.blocks.append(freeformState(), workspace);
       javascriptGenerator.init(workspace);

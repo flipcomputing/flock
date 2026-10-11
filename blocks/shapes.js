@@ -1220,7 +1220,9 @@ export function defineShapeBlocks() {
             return;
           }
           input.connection.targetBlock()?.unplug(false);
-          const vector = Blockly.serialization.blocks.append(vectorState(point), this.workspace);
+          const vector = Blockly.serialization.blocks.append(vectorState(point), this.workspace, {
+            recordUndo: true,
+          });
           input.connection.connect(vector.outputConnection);
         });
 
