@@ -450,6 +450,38 @@ export function runInitialTransformTests(flock) {
         expect(bounds.minimumWorld.y).to.be.closeTo(0.5, 0.01);
       });
 
+      it('applies a rotated group member\'s rows in world space, turning with the group', async function () {
+        const { box, mesh } = makeBoxWithMesh({ x: 4, y: 0, z: 0 });
+        const groupId = await flock.createGroup(`liveRowGroup_${Date.now()}`, {
+          position: [0, 0, 0],
+        });
+        created.push(groupId);
+        const group = flock.scene.getMeshByName(groupId);
+        mesh.setParent(group);
+        group.rotationQuaternion = flock.eulerDegreesToQuat(0, 90, 0);
+        group.computeWorldMatrix(true);
+
+        ensureInitialRotation(box, { x: 0, y: 90, z: 0 });
+        box.getInputTargetBlock('X').setFieldValue('0', 'NUM');
+        box.getInputTargetBlock('Z').setFieldValue('-4', 'NUM');
+        const centre = worldBox(mesh).centerWorld.clone();
+        const worldYaw = () => {
+          mesh.computeWorldMatrix(true);
+          return flock.quatToEulerDegrees(mesh.absoluteRotationQuaternion).y;
+        };
+
+        for (const options of [{ aboutCentre: true }, {}]) {
+          applyInitialTransformRows(box, [mesh], options);
+
+          expect(mesh.parent).to.equal(group);
+          expect(worldYaw()).to.be.closeTo(90, 0.1);
+          const after = worldBox(mesh).centerWorld;
+          expect(after.x).to.be.closeTo(centre.x, 0.01);
+          expect(after.y).to.be.closeTo(centre.y, 0.01);
+          expect(after.z).to.be.closeTo(centre.z, 0.01);
+        }
+      });
+
       it('stands the mesh back up when rotate is turned off', function () {
         const { box, mesh } = makeBoxWithMesh({ x: 0, y: 0, z: 0 });
         ensureInitialRotation(box, { x: 0, y: 0, z: 90 });

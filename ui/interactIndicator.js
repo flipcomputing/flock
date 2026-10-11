@@ -401,7 +401,7 @@ function _updateIndicator(scene) {
   const camPos = camera.position;
   const dist = Vector3.Distance(camPos, meshPos);
 
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const dpr = 1 / engine.getHardwareScalingLevel();
   const worldSize = (ICON_SIZE_PX * dpr * 2 * dist * Math.tan(camera.fov / 2)) / renderH;
 
   // Offset icon toward camera slightly to prevent z-fighting.

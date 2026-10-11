@@ -1947,14 +1947,20 @@ export function handleInitialTransformRowsChange(block, changeEvent) {
 
 function detachFromParent(mesh) {
   const parentMesh = mesh?.parent ?? null;
-  if (parentMesh && !mesh.isDisposed?.()) mesh.parent = null;
+  if (!parentMesh || mesh.isDisposed?.()) return parentMesh;
+  if (parentMesh.metadata?.shapeType === 'Group') mesh.setParent(null);
+  else mesh.parent = null;
   return parentMesh;
 }
 
 function reattachToParent(mesh, parentMesh) {
   if (!parentMesh || parentMesh.isDisposed?.() || mesh.isDisposed?.()) return;
-  if (mesh.parent !== parentMesh) mesh.parent = parentMesh;
-  if (parentMesh.metadata?.shapeType !== 'Group') return;
+  const isGroup = parentMesh.metadata?.shapeType === 'Group';
+  if (mesh.parent !== parentMesh) {
+    if (isGroup) mesh.setParent(parentMesh);
+    else mesh.parent = parentMesh;
+  }
+  if (!isGroup) return;
   const groupBlock = meshMap[parentMesh.metadata?.blockKey];
   if (groupBlock) recomputeGroupPivot(groupBlock);
 }

@@ -27,7 +27,10 @@ const CONTROLS_EDGE_INSET = CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_
 // so approximate them from the root font-size. baseCssPx is the size at a 16px
 // root.
 function uiFontSizePx(baseCssPx = 16) {
-  const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  const hardwareScaling = flock?.engine?.getHardwareScalingLevel?.();
+  const dpr = hardwareScaling
+    ? 1 / hardwareScaling
+    : (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
   let rootPx = 16;
   try {
     const px = parseFloat(getComputedStyle(document.documentElement).fontSize);
