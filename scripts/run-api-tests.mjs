@@ -124,6 +124,11 @@ const AVAILABLE_SUITES = [
     pattern: '@sandbox',
   },
   {
+    id: 'memory',
+    name: 'Memory Between Runs Tests',
+    pattern: '@memory',
+  },
+  {
     id: 'shapes',
     name: 'Shapes API Tests',
     pattern: '@shapes',

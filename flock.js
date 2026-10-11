@@ -2204,6 +2204,7 @@ export const flock = {
         flock._liveNameCache = new Map();
         flock._ambiguousLiveNames = new Set();
         flock._animationFileCache = {};
+        flock._modelInstances = Object.create(null);
         flock.ground = null;
         flock.sky = null;
 
@@ -2318,6 +2319,7 @@ export const flock = {
     flock._liveNameCache = new Map();
     flock.modelReadyPromises = new Map();
     flock._animationFileCache = {};
+    flock._modelInstances = Object.create(null);
     flock.materialCache = {};
     flock._fogAwareShaderMaterials = new Set();
     flock.physicsShapeCache = {};
