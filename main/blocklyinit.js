@@ -1149,14 +1149,32 @@ export function initializeWorkspace() {
   wsMobileClose.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobileClose.addEventListener('click', () => workspaceSearch.close());
 
+  const searchFocusManager = Blockly.getFocusManager();
+  const takeSearchFocus = () => {
+    if (!workspaceSearch.returnEphemeralFocus && !searchFocusManager.ephemeralFocusTaken()) {
+      workspaceSearch.returnEphemeralFocus = searchFocusManager.takeEphemeralFocus(wsMobileInput);
+    }
+  };
+  const releaseSearchFocus = () => {
+    if (!workspaceSearch.returnEphemeralFocus) return;
+    const returnFocus = workspaceSearch.returnEphemeralFocus;
+    workspaceSearch.returnEphemeralFocus = null;
+    returnFocus();
+  };
+  const originalTakeEphemeralFocus = searchFocusManager.takeEphemeralFocus.bind(searchFocusManager);
+  searchFocusManager.takeEphemeralFocus = function (element) {
+    if (element !== wsMobileInput) releaseSearchFocus();
+    return originalTakeEphemeralFocus(element);
+  };
+  wsMobileInput.addEventListener('focus', () => {
+    if (wsMobileBar.isConnected) takeSearchFocus();
+  });
+
   workspaceSearch.open = function () {
     setBlockHintsSuppressed(true);
     document.body.appendChild(wsMobileBar);
     wsMobileInput.value = workspaceSearch.searchText || '';
-    const focusManager = Blockly.FocusManager.getFocusManager();
-    if (!workspaceSearch.returnEphemeralFocus && !focusManager.ephemeralFocusTaken()) {
-      workspaceSearch.returnEphemeralFocus = focusManager.takeEphemeralFocus(wsMobileInput);
-    }
+    takeSearchFocus();
     if (wsMobileInput.value) {
       workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
     }
@@ -1170,10 +1188,7 @@ export function initializeWorkspace() {
       wsMobileInput.value = '';
       wsMobileBar.remove();
     }
-    if (workspaceSearch.returnEphemeralFocus) {
-      workspaceSearch.returnEphemeralFocus();
-      workspaceSearch.returnEphemeralFocus = null;
-    }
+    releaseSearchFocus();
     originalClose();
     blocklyDiv?.classList.remove('blockly-search-active');
     if (currentResult && !currentResult.isDisposed()) currentResult.select();
