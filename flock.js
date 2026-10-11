@@ -32,6 +32,24 @@ import { characterNames, getModelDisplayName } from './config';
 import { FlowGraphLog10Block } from '@babylonjs/core';
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
 const globalEarcutTarget = typeof globalThis !== 'undefined' ? globalThis : undefined;
+const MAX_RENDER_PIXELS = 2560 * 1440;
+
+function isRenderResolutionCapEnabled() {
+  try {
+    return new URLSearchParams(window.location.search).get('capResolution') === '1';
+  } catch {
+    return false;
+  }
+}
+
+function renderPixelRatio() {
+  const dpr = window.devicePixelRatio || 1;
+  const screenPixels = (window.screen?.width || 0) * (window.screen?.height || 0);
+  if (!isRenderResolutionCapEnabled() || !screenPixels) return dpr;
+  return Math.max(1, Math.min(dpr, Math.sqrt(MAX_RENDER_PIXELS / screenPixels)));
+}
+
+
 if (globalEarcutTarget) {
   Object.assign(globalEarcutTarget, optionalBabylonDeps);
 }
@@ -1601,7 +1619,7 @@ export const flock = {
       // for replugs. No-op where WebUSB is unavailable.
       microbitManager.init();
     }
-    flock.displayScale = (window.devicePixelRatio || 1) * 0.75;
+    flock.displayScale = renderPixelRatio() * 0.75;
     flock.BABYLON.Database.IDBStorageEnabled = true;
     flock.BABYLON.Engine.CollisionsEpsilon = 0.00005;
     await flock.document.fonts.ready; // Wait for all fonts to be loaded
@@ -1801,7 +1819,7 @@ export const flock = {
     }
 
     flock.engine.enableOfflineSupport = false;
-    flock.engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+    flock.engine.setHardwareScalingLevel(1 / renderPixelRatio());
   },
   async disposeOldScene() {
     flock.flockNotReady = true;
