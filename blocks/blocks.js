@@ -2376,7 +2376,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     this.optionsOpen_ = options === null ? !this.doHidden_ : options === 'true';
     this.thenHidden_ = !hasThen || xmlElement.getAttribute('then_hidden') === 'true';
     syncMutatorButtons();
-    if (this.rendered) this.render();
+    if (this.rendered) this.queueRender();
   };
 }
 
