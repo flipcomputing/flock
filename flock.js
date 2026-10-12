@@ -185,8 +185,8 @@ export const flock = {
   _escalationTimer: null,
   _webglVisibilityListenerAdded: false,
   _webglContextLostListenerAdded: false,
-  _audioVisibilityListenerAdded: false,
-  _audioSuspendedByVisibility: false,
+  _audioFreezeListenerAdded: false,
+  _audioSuspendedByFreeze: false,
   document: document,
   disposed: null,
   events: {},
@@ -604,45 +604,117 @@ export const flock = {
 
     handleError(error, { source: 'physics-oom', fatal: true });
   },
-  // Wrap a yield primitive so it holds while the tab is hidden: a background
-  // tab must spend no real time running loops, matching wait() and the game
-  // clock. A stopped run abandons the held yield exactly as it would while
-  // visible, so abort only needs to detach the listener.
-  makeHiddenAwareYield(nativeYield, signal) {
-    const doc = typeof document !== 'undefined' ? document : null;
+  // Frozen: the tab is hidden or the project is paused, and the project's code
+  // must spend no time. Everything that holds while frozen (game clock, wait,
+  // timers, loop yields, audio) listens for 'change' on freezeEvents. A change
+  // can repeat the current state, so listeners must be idempotent.
+  // A hidden tab also stops rendering; a paused project keeps rendering so the
+  // gizmos work, with physics, animations and the project's per-frame and
+  // input handlers held instead.
+  freezeEvents: new EventTarget(),
+  _userPaused: false,
+  isFrozen() {
+    return Boolean(globalThis.document?.hidden) || flock._userPaused;
+  },
+  isPaused() {
+    return flock._userPaused;
+  },
+  setPaused(paused) {
+    paused = Boolean(paused);
+    if (flock._userPaused === paused) return;
+    flock._userPaused = paused;
+    flock._applyPauseToScene();
+    flock.freezeEvents.dispatchEvent(new Event('change'));
+  },
+  _applyPauseToScene() {
+    const scene = flock.scene;
+    if (!scene) return;
+    const running = !flock._userPaused;
+    // _animate is skipped while disabled, so its clock would otherwise jump
+    // by the whole pause on the first frame back.
+    if (running && !scene.animationsEnabled) scene.resetLastAnimationTimeFrame?.();
+    scene.animationsEnabled = running;
+    scene.physicsEnabled = running;
+    for (const system of scene.particleSystems ?? []) {
+      if (running) flock._thawParticleSystem(system);
+      else flock._freezeParticleSystem(system);
+    }
+  },
+  // A zero update speed holds particles where they are and emits no more,
+  // while they still render.
+  _frozenParticleSpeeds: new WeakMap(),
+  _freezeParticleSystem(system) {
+    if (flock._frozenParticleSpeeds.has(system)) return;
+    flock._frozenParticleSpeeds.set(system, system.updateSpeed);
+    system.updateSpeed = 0;
+  },
+  _thawParticleSystem(system) {
+    if (!flock._frozenParticleSpeeds.has(system)) return;
+    system.updateSpeed = flock._frozenParticleSpeeds.get(system);
+    flock._frozenParticleSpeeds.delete(system);
+  },
+  // Run callback now, or as soon as the project is resumed.
+  whenRunning(callback) {
+    if (!flock._userPaused) {
+      callback();
+      return;
+    }
+    const onChange = () => {
+      if (flock._userPaused) return;
+      flock.freezeEvents.removeEventListener('change', onChange);
+      callback();
+    };
+    flock.freezeEvents.addEventListener('change', onChange);
+  },
+  // Restart after a gap (hidden tab, context lost) unless stopped or still
+  // hidden. Frame timing is reset so the first frame doesn't advance
+  // animations and physics by the whole gap.
+  _resumeRenderLoop() {
+    const engine = flock.engine;
+    if (!engine || !flock._renderLoop || flock._renderLoopStopped) return;
+    if (globalThis.document?.hidden || engine.isContextLost?.()) return;
+    if (engine.activeRenderLoops?.includes(flock._renderLoop)) return;
+    flock.scene?.resetLastAnimationTimeFrame?.();
+    engine.performanceMonitor?.reset?.();
+    engine.runRenderLoop(flock._renderLoop);
+  },
+  // Wrap a yield primitive so it holds while frozen: a background tab or a
+  // paused project must spend no real time running loops, matching wait() and
+  // the game clock. A stopped run abandons the held yield exactly as it would
+  // otherwise, so abort only needs to detach the listener.
+  makeFreezeAwareYield(nativeYield, signal) {
     return (settle) => {
-      if (!doc?.hidden) {
+      if (!flock.isFrozen()) {
         nativeYield(settle);
         return;
       }
-      const onVisible = () => {
-        if (doc.hidden) return;
-        doc.removeEventListener('visibilitychange', onVisible);
+      const onThaw = () => {
+        if (flock.isFrozen()) return;
+        flock.freezeEvents.removeEventListener('change', onThaw);
         signal?.removeEventListener('abort', onAbort);
         nativeYield(settle);
       };
-      const onAbort = () => doc.removeEventListener('visibilitychange', onVisible);
-      doc.addEventListener('visibilitychange', onVisible);
+      const onAbort = () => flock.freezeEvents.removeEventListener('change', onThaw);
+      flock.freezeEvents.addEventListener('change', onThaw);
       signal?.addEventListener('abort', onAbort, { once: true });
     };
   },
   // Counted-loop yield: scheduler.yield() resumes when the browser is free (not
   // at the next paint); fall back to rAF where unavailable. Guarded like rAF so
-  // a stopped run never resumes; held while the tab is hidden.
+  // a stopped run never resumes; held while frozen.
   makeLoopYield(guard, signal) {
     const schedulerYield = window.scheduler?.yield?.bind(window.scheduler) ?? null;
     const requestAnimationFrame = window.requestAnimationFrame.bind(window);
     const nativeYield = (settle) =>
       schedulerYield ? schedulerYield().then(settle, settle) : requestAnimationFrame(settle);
-    const held = flock.makeHiddenAwareYield(nativeYield, signal);
+    const held = flock.makeFreezeAwareYield(nativeYield, signal);
     return (callback) => held(guard(callback));
   },
-  // setTimeout that spends no hidden-tab time: it pauses while the tab is
-  // hidden and resumes with the delay that was left, so a block's "for N
-  // seconds" means N visible seconds — the same rule as wait(). Returns a
-  // handle whose cancel() stops it and detaches the listener.
-  hiddenAwareTimeout(callback, ms) {
-    const doc = typeof document !== 'undefined' ? document : null;
+  // setTimeout that spends no frozen time: it holds while the tab is hidden or
+  // the project is paused and resumes with the delay that was left, so a
+  // block's "for N seconds" means N running seconds — the same rule as wait().
+  // Returns a handle whose cancel() stops it and detaches the listener.
+  freezeAwareTimeout(callback, ms) {
     let remaining = Math.max(0, Number(ms) || 0);
     let startedAt = 0;
     let running = false;
@@ -654,7 +726,7 @@ export const flock = {
       done = true;
       running = false;
       clearTimeout(id);
-      doc?.removeEventListener('visibilitychange', onVisibility);
+      flock.freezeEvents.removeEventListener('change', onFreezeChange);
     };
     const fire = () => {
       cancel();
@@ -665,8 +737,8 @@ export const flock = {
       running = true;
       id = setTimeout(fire, remaining);
     };
-    const onVisibility = () => {
-      if (doc.hidden) {
+    const onFreezeChange = () => {
+      if (flock.isFrozen()) {
         if (!running) return;
         running = false;
         clearTimeout(id);
@@ -676,8 +748,8 @@ export const flock = {
       }
     };
 
-    doc?.addEventListener('visibilitychange', onVisibility);
-    if (!doc?.hidden) arm();
+    flock.freezeEvents.addEventListener('change', onFreezeChange);
+    if (!flock.isFrozen()) arm();
     return { cancel };
   },
   validateCode(code) {
@@ -1075,7 +1147,7 @@ export const flock = {
       // to cancel implicitly) or a stale run's frames fire into the next run.
       // Wrapped so the endowment carries no host `.constructor`.
       const hostRequestAnimationFrame = window.requestAnimationFrame.bind(window);
-      const frameYield = flock.makeHiddenAwareYield(
+      const frameYield = flock.makeFreezeAwareYield(
         (settle) => hostRequestAnimationFrame(settle),
         signal
       );
@@ -1758,12 +1830,7 @@ export const flock = {
       flock._contextLostAt = null;
       dismissBanner('webgl-lost');
       flock.engine.resize();
-      // Don't resume behind the stopped overlay if Stop was pressed while the
-      // context was lost, nor into a hidden tab (the visibilitychange handler
-      // resumes the loop when the tab is shown again).
-      if (flock._renderLoop && !flock._renderLoopStopped && !document.hidden) {
-        flock.engine.runRenderLoop(flock._renderLoop);
-      }
+      flock._resumeRenderLoop();
     });
 
     if (!flock._webglVisibilityListenerAdded) {
@@ -1778,42 +1845,38 @@ export const flock = {
       });
     }
 
-    if (!flock._audioVisibilityListenerAdded) {
-      flock._audioVisibilityListenerAdded = true;
-      document.addEventListener('visibilitychange', () => {
-        flock.syncAudioWithPageState?.();
+    if (!flock._audioFreezeListenerAdded) {
+      flock._audioFreezeListenerAdded = true;
+      flock.freezeEvents.addEventListener('change', () => {
+        flock.syncAudioWithFreeze?.();
       });
     }
 
-    if (!flock._renderVisibilityListenerAdded) {
-      flock._renderVisibilityListenerAdded = true;
-      document.addEventListener('visibilitychange', () => {
+    if (!flock._renderFreezeListenerAdded) {
+      flock._renderFreezeListenerAdded = true;
+      flock.freezeEvents.addEventListener('change', () => {
         if (document.hidden) {
           // Stop outright rather than leaning on the browser to throttle rAF:
           // everything driven by scene.render() (physics, animations, forever,
           // waitUntil) then freezes with the clock, audio and loop yields
           // instead of crawling on in the background.
           flock.engine?.stopRenderLoop();
-        } else if (
-          flock._renderLoop &&
-          !flock._renderLoopStopped &&
-          !flock.engine?.isContextLost?.()
-        ) {
-          flock.engine.runRenderLoop(flock._renderLoop);
+        } else {
+          flock._resumeRenderLoop();
         }
       });
     }
 
-    if (!flock._gameClockVisibilityListenerAdded) {
-      flock._gameClockVisibilityListenerAdded = true;
-      flock._hiddenAccumMs = 0;
-      flock._hiddenAt = document.visibilityState === 'hidden' ? Date.now() : null;
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-          flock._hiddenAt ??= Date.now();
-        } else if (flock._hiddenAt != null) {
-          flock._hiddenAccumMs += Date.now() - flock._hiddenAt;
-          flock._hiddenAt = null;
+    if (!flock._gameClockFreezeListenerAdded) {
+      flock._gameClockFreezeListenerAdded = true;
+      flock._frozenAccumMs = 0;
+      flock._frozenAt = flock.isFrozen() ? Date.now() : null;
+      flock.freezeEvents.addEventListener('change', () => {
+        if (flock.isFrozen()) {
+          flock._frozenAt ??= Date.now();
+        } else if (flock._frozenAt != null) {
+          flock._frozenAccumMs += Date.now() - flock._frozenAt;
+          flock._frozenAt = null;
         }
       });
     }
@@ -2266,6 +2329,13 @@ export const flock = {
               return;
             }
             flock.audioEngine = audioEngine;
+            // resumeOnInteraction resumes on any click on the page, which
+            // would restart audio that a pause suspended.
+            audioEngine.stateChangedObservable?.add((state) => {
+              if (state === 'running' && flock._audioSuspendedByFreeze) {
+                audioEngine.pauseAsync().catch(() => {});
+              }
+            });
             dismissBanner('audio');
             flock.audioContext = audioEngine._audioContext ?? flock.audioContext;
             flock.globalStartTime = flock.audioContext?.currentTime ?? 0;
@@ -2432,6 +2502,7 @@ export const flock = {
     await flock.ensurePhysicsInstance();
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+    flock._applyPauseToScene();
     setFlockCSG(flock);
     setFlockAnimate(flock);
     setFlockSound(flock);
@@ -2481,7 +2552,7 @@ export const flock = {
 
     // Start the render loop now that a camera exists
     flock._renderLoopStopped = false;
-    flock.engine.runRenderLoop(flock._renderLoop);
+    flock._resumeRenderLoop();
     flock._gamepadSource = new GamepadSource(flock.inputManager, {
       scene: flock.scene,
       canvas: flock.canvas,
@@ -3374,6 +3445,10 @@ export function initializeFlock() {
 window.setBPM = flockSound.setBPM;
 window.updateListenerPositionAndOrientation = flockSound.updateListenerPositionAndOrientation;
 window.speak = flockSound.speak;
+
+document.addEventListener('visibilitychange', () => {
+  flock.freezeEvents.dispatchEvent(new Event('change'));
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const scriptElement = document.getElementById('flock');

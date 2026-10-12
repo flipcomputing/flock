@@ -247,7 +247,7 @@ function getOrCreateContext() {
     // Fallback only: Babylon's engine has its own watchdog and a second would race it.
     ctx.addEventListener('statechange', () => {
       if (flock.audioContext !== ctx) return;
-      if (flock._audioSuspendedByVisibility) return;
+      if (flock._audioSuspendedByFreeze) return;
       safeResume(ctx).catch(() => {});
     });
     flock.audioContext = ctx;
@@ -430,7 +430,7 @@ export const flockSound = {
     // The generation bump drops any speak() still awaiting voices.
     if (flock) {
       flock._speechGeneration = (flock._speechGeneration ?? 0) + 1;
-      flock._speechPausedByVisibility = false;
+      flock._speechPausedByFreeze = false;
     }
     try {
       window.speechSynthesis?.cancel();
@@ -487,12 +487,12 @@ export const flockSound = {
   // Babylon must be paused via pauseAsync(): its resumeOnPause watchdog
   // undoes a raw context.suspend(). Only resume suspensions we caused —
   // resuming without a user gesture throws NotAllowedError on iOS.
-  async syncAudioWithPageState() {
-    if (document.visibilityState === 'hidden') {
+  async syncAudioWithFreeze() {
+    if (flock.isFrozen()) {
       // Ahead of the engine handling, which can bail early.
       const synth = window.speechSynthesis;
       if (synth?.speaking && !synth.paused) {
-        flock._speechPausedByVisibility = true;
+        flock._speechPausedByFreeze = true;
         try {
           synth.pause();
         } catch {
@@ -505,20 +505,20 @@ export const flockSound = {
       const engine = flock.audioEngine;
       if (engine) {
         if (!resumable(engine.state)) return;
-        flock._audioSuspendedByVisibility = true;
+        flock._audioSuspendedByFreeze = true;
         if (engine.state === 'running') await engine.pauseAsync().catch(() => {});
       } else {
         const ctx = flock.audioContext;
         if (ctx && resumable(ctx.state)) {
-          flock._audioSuspendedByVisibility = true;
+          flock._audioSuspendedByFreeze = true;
           if (ctx.state === 'running') await ctx.suspend().catch(() => {});
         }
       }
       return;
     }
 
-    if (flock._speechPausedByVisibility) {
-      flock._speechPausedByVisibility = false;
+    if (flock._speechPausedByFreeze) {
+      flock._speechPausedByFreeze = false;
       try {
         window.speechSynthesis?.resume();
       } catch {
@@ -526,8 +526,8 @@ export const flockSound = {
       }
     }
 
-    if (!flock._audioSuspendedByVisibility) return;
-    flock._audioSuspendedByVisibility = false;
+    if (!flock._audioSuspendedByFreeze) return;
+    flock._audioSuspendedByFreeze = false;
     if (flock.audioEngine) {
       // If this rejects (no gesture yet), resumeOnInteraction takes over.
       await flock.audioEngine.resumeAsync().catch(() => {});

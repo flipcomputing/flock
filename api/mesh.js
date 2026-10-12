@@ -1819,6 +1819,7 @@ export const flockMesh = {
           };
 
           followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
+            if (flock.isPaused()) return;
             followerMesh.computeWorldMatrix(true);
             const anchorWorld = flock.BABYLON.Vector3.TransformCoordinates(
               flock._resolveAnchorLocal(followerMesh),

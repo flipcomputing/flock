@@ -44,6 +44,46 @@ export function runControlTests(flock) {
         }
       });
 
+      it('resumes with the remaining duration after a pause', async function () {
+        try {
+          const pending = flock.wait(0.4);
+
+          await new Promise((r) => setTimeout(r, 300));
+          flock.setPaused(true);
+          await new Promise((r) => setTimeout(r, 300));
+          const resumedAt = performance.now();
+          flock.setPaused(false);
+
+          await pending;
+          const afterResume = performance.now() - resumedAt;
+          expect(afterResume).to.be.greaterThan(40);
+          expect(afterResume).to.be.lessThan(250);
+        } finally {
+          flock.setPaused(false);
+        }
+      });
+
+      it('stays held when the tab is shown again while paused', async function () {
+        try {
+          let done = false;
+          const pending = flock.wait(0.05).then(() => {
+            done = true;
+          });
+          flock.setPaused(true);
+          setHidden(true);
+          setHidden(false);
+          await new Promise((r) => setTimeout(r, 150));
+          expect(done).to.equal(false);
+
+          flock.setPaused(false);
+          await pending;
+          expect(done).to.equal(true);
+        } finally {
+          clearHidden();
+          flock.setPaused(false);
+        }
+      });
+
       it('still rejects on abort while paused', async function () {
         const previous = flock.abortController;
         flock.abortController = new AbortController();
@@ -138,6 +178,31 @@ export function runControlTests(flock) {
         }
       });
 
+      it('holds the yield while paused and resumes on resume', async function () {
+        const prev = window.scheduler;
+        window.scheduler = { yield: () => Promise.resolve() };
+        try {
+          flock.setPaused(true);
+          const yieldFn = flock.makeLoopYield(identityGuard);
+          let resumed = false;
+          const pending = new Promise((resolve) =>
+            yieldFn(() => {
+              resumed = true;
+              resolve();
+            })
+          );
+          await new Promise((r) => setTimeout(r, 20));
+          expect(resumed).to.equal(false);
+
+          flock.setPaused(false);
+          await pending;
+          expect(resumed).to.equal(true);
+        } finally {
+          window.scheduler = prev;
+          flock.setPaused(false);
+        }
+      });
+
       it('detaches its visibility listener on abort without resuming', async function () {
         const prev = window.scheduler;
         window.scheduler = { yield: () => Promise.resolve() };
@@ -215,7 +280,7 @@ export function runControlTests(flock) {
       });
     });
 
-    describe('hiddenAwareTimeout', function () {
+    describe('freezeAwareTimeout', function () {
       const setHidden = (value) => {
         Object.defineProperty(document, 'hidden', {
           configurable: true,
@@ -229,7 +294,7 @@ export function runControlTests(flock) {
 
       it('fires after roughly the requested delay when visible', async function () {
         const started = performance.now();
-        await new Promise((resolve) => flock.hiddenAwareTimeout(resolve, 100));
+        await new Promise((resolve) => flock.freezeAwareTimeout(resolve, 100));
         expect(performance.now() - started).to.be.greaterThan(80);
       });
 
@@ -237,7 +302,7 @@ export function runControlTests(flock) {
         try {
           let fired = false;
           const startedAt = performance.now();
-          flock.hiddenAwareTimeout(() => {
+          flock.freezeAwareTimeout(() => {
             fired = true;
           }, 400);
 
@@ -258,10 +323,28 @@ export function runControlTests(flock) {
         }
       });
 
+      it('holds while paused and fires with the remaining delay', async function () {
+        try {
+          let fired = false;
+          flock.freezeAwareTimeout(() => {
+            fired = true;
+          }, 100);
+          flock.setPaused(true);
+          await new Promise((r) => setTimeout(r, 200));
+          expect(fired).to.equal(false);
+
+          flock.setPaused(false);
+          await new Promise((r) => setTimeout(r, 200));
+          expect(fired).to.equal(true);
+        } finally {
+          flock.setPaused(false);
+        }
+      });
+
       it('does not fire after cancel()', async function () {
         try {
           let fired = false;
-          const handle = flock.hiddenAwareTimeout(() => {
+          const handle = flock.freezeAwareTimeout(() => {
             fired = true;
           }, 50);
           handle.cancel();

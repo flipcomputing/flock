@@ -326,5 +326,70 @@ export function runEffectsTests(flock) {
       expect(ps._particles).to.have.lengthOf(0);
       expect(ps._stockParticles).to.have.lengthOf(0);
     });
+
+    describe('while paused', function () {
+      const particleOptions = (overrides = {}) => ({
+        emitRate: 10,
+        colors: { start: '#ffffff', end: '#ffffff' },
+        alphas: { start: 1, end: 0 },
+        sizes: { start: 1, end: 1 },
+        lifetime: { min: 0.1, max: 0.2 },
+        shape: 'flare.png',
+        ...overrides,
+      });
+
+      async function createEffect(name, overrides) {
+        const emitterId = flock.createBox(`${name}Emitter`, {
+          color: '#FF0000',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdMeshes.push(emitterId);
+        const effectName = flock.createParticleEffect(name, {
+          emitterMesh: emitterId,
+          ...particleOptions(overrides),
+        });
+        createdEffects.push(effectName);
+        return flock.modelReadyPromises.get(effectName);
+      }
+
+      afterEach(function () {
+        flock.setPaused(false);
+      });
+
+      it('records the block that created the effect', async function () {
+        const system = await createEffect('keyedEffect', { blockKey: 'block-123' });
+        expect(system.metadata.blockKey).to.equal('block-123');
+      });
+
+      it('freezes particle effects and restores them on resume', async function () {
+        const system = await createEffect('frozenEffect');
+        const speed = system.updateSpeed;
+        flock.setPaused(true);
+        expect(system.updateSpeed).to.equal(0);
+        flock.setPaused(false);
+        expect(system.updateSpeed).to.equal(speed);
+      });
+
+      it('creates an effect frozen when the project is already paused', async function () {
+        flock.setPaused(true);
+        const system = await createEffect('pausedEffect');
+        expect(system.updateSpeed).to.equal(0);
+      });
+
+      it('lets an edited effect run and applies the change', async function () {
+        const system = await createEffect('editedEffect');
+        const speed = system.updateSpeed;
+        flock.setPaused(true);
+        flock.updateParticleEffect(system, particleOptions({ emitRate: 42 }));
+        expect(system.emitRate).to.equal(42);
+        expect(system.updateSpeed).to.equal(speed);
+
+        flock.setPaused(false);
+        expect(system.updateSpeed).to.equal(speed);
+      });
+    });
   });
 }

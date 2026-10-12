@@ -407,6 +407,72 @@ export function runSceneTests(flock) {
           setHidden(false);
           expect(runArgs).to.not.include(flock._renderLoop);
         });
+
+        it('keeps rendering while paused so the gizmos still work', function () {
+          try {
+            flock.setPaused(true);
+            expect(stopCalls).to.equal(0);
+          } finally {
+            flock.setPaused(false);
+          }
+        });
+
+        it('resumes rendering when the tab is shown while paused', function () {
+          try {
+            flock.setPaused(true);
+            setHidden(true);
+            setHidden(false);
+            expect(runArgs).to.include(flock._renderLoop);
+          } finally {
+            flock.setPaused(false);
+          }
+        });
+      });
+
+      describe('pause', function () {
+        it('switches physics and animations off while paused', function () {
+          if (!flock.scene) this.skip();
+          try {
+            flock.setPaused(true);
+            expect(flock.scene.physicsEnabled).to.equal(false);
+            expect(flock.scene.animationsEnabled).to.equal(false);
+            flock.setPaused(false);
+            expect(flock.scene.physicsEnabled).to.equal(true);
+            expect(flock.scene.animationsEnabled).to.equal(true);
+          } finally {
+            flock.setPaused(false);
+          }
+        });
+
+        it('resets animation timing on resume so the paused gap is not replayed', function () {
+          if (!flock.scene) this.skip();
+          const origReset = flock.scene.resetLastAnimationTimeFrame;
+          let resets = 0;
+          flock.scene.resetLastAnimationTimeFrame = () => resets++;
+          try {
+            flock.setPaused(true);
+            flock.setPaused(false);
+            expect(resets).to.equal(1);
+          } finally {
+            flock.scene.resetLastAnimationTimeFrame = origReset;
+            flock.setPaused(false);
+          }
+        });
+
+        it('defers whenRunning callbacks until resume', function () {
+          let ran = 0;
+          try {
+            flock.setPaused(true);
+            flock.whenRunning(() => ran++);
+            expect(ran).to.equal(0);
+            flock.setPaused(false);
+            expect(ran).to.equal(1);
+            flock.whenRunning(() => ran++);
+            expect(ran).to.equal(2);
+          } finally {
+            flock.setPaused(false);
+          }
+        });
       });
     });
 

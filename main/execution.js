@@ -13,13 +13,11 @@ import { resetLiveEditsForRun } from '../ui/blockmesh.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
 import { generateWorkspaceCode } from '../blocks/sectionContainment.js';
+import { showStatus, clearStatus } from '../ui/status.js';
+import { translate } from './translation.js';
+import { isMac } from '../accessibility/keyboardui.js';
 
 let isExecuting = false;
-
-// Stop pressed while a run is still waiting for the engine. The abort
-// controller can't carry this: the pending run has aborted the old one and not
-// yet made its own, so Stop has nothing to signal.
-let stopRequested = false;
 
 const ENGINE_READY_TIMEOUT_MS = 10000;
 
@@ -29,17 +27,16 @@ export async function executeCode(options = {}) {
   }
 
   isExecuting = true;
-  stopRequested = false;
 
   // finally must reset isExecuting: a throw anywhere below must not leave Play
   // permanently disabled.
   try {
-    hideStoppedOverlay();
-
     // Abort early: runCode aborts too, but only after async delays, leaving a
     // gap where the old run's audio can race the new one.
     flock.abortController?.abort();
     flock.stopAllSounds();
+    // Play while paused starts afresh rather than resuming.
+    resumeCode();
 
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -51,7 +48,6 @@ export async function executeCode(options = {}) {
         return;
       }
       await delay(100);
-      if (stopRequested) return;
     }
 
     if (isNarrowScreen() && currentView === 'code') {
@@ -74,7 +70,7 @@ export async function executeCode(options = {}) {
       const code = generateWorkspaceCode(workspace, javascriptGenerator);
       await flock.runCode(code, options);
     } catch (error) {
-      // A stopped run is a normal stop: skip the banner and the gizmo/debug
+      // An aborted run (Play pressed again) is not a failure: skip the banner and the gizmo/debug
       // restore below. A real failure falls through so the editor UI that
       // disposeGizmoManager tore down above still gets rebuilt.
       if (isBenignAbort(error)) {
@@ -106,69 +102,47 @@ export async function executeCode(options = {}) {
   }
 }
 
-function getStoppedOverlay() {
-  return document.getElementById('canvasStoppedOverlay');
-}
+const PAUSE_ICON =
+  'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM224 192l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32zm128 0l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32z';
+// The usual play/pause combination, cut from a solid circle like the other run buttons.
+const UNPAUSE_ICON =
+  'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM136 168l0 176l128-88zM316 168a20 20 0 0 1 20 20v136a20 20 0 0 1-40 0v-136a20 20 0 0 1 20-20zM380 168a20 20 0 0 1 20 20v136a20 20 0 0 1-40 0v-136a20 20 0 0 1 20-20z';
 
-let overlayResizeHandler = null;
-
-// Size the overlay to the rendered canvas box so it covers only the Babylon
-// canvas, not the surrounding canvas area or the (hidden) gizmo buttons.
-function positionStoppedOverlay() {
-  const overlay = getStoppedOverlay();
-  const canvas = document.getElementById('renderCanvas');
-  if (!overlay || !canvas) return;
-  overlay.style.left = `${canvas.offsetLeft}px`;
-  overlay.style.top = `${canvas.offsetTop}px`;
-  overlay.style.width = `${canvas.offsetWidth}px`;
-  overlay.style.height = `${canvas.offsetHeight}px`;
-}
-
-function showStoppedOverlay() {
-  const overlay = getStoppedOverlay();
-  if (!overlay) return;
-  // Hides the gizmo buttons (via CSS) and covers the canvas; the canvas is made
-  // inert below so screen reader and keyboard users skip the frozen scene.
-  document.getElementById('canvasArea')?.classList.add('is-stopped');
-  const canvas = document.getElementById('renderCanvas');
-  if (canvas) canvas.inert = true;
-  positionStoppedOverlay();
-  overlay.hidden = false;
-  overlay.querySelector('#overlayPlayButton')?.focus({ preventScroll: true });
-  if (!overlayResizeHandler) {
-    overlayResizeHandler = () => positionStoppedOverlay();
-    window.addEventListener('resize', overlayResizeHandler);
+// The label changes with the icon, so the button is not also aria-pressed.
+function setPausedUI(paused) {
+  const key = paused ? 'unpause_code_button' : 'pause_code_button';
+  const label = translate(`${key}_ui`);
+  for (const button of document.querySelectorAll('.pause-toggle')) {
+    button.querySelector('path')?.setAttribute('d', paused ? UNPAUSE_ICON : PAUSE_ICON);
+    if (button.dataset.i18n) button.dataset.i18n = key;
+    button.title = label;
+    button.setAttribute('aria-label', label);
   }
 }
 
-function hideStoppedOverlay() {
-  const overlay = getStoppedOverlay();
-  if (overlay) overlay.hidden = true;
-  document.getElementById('canvasArea')?.classList.remove('is-stopped');
-  const canvas = document.getElementById('renderCanvas');
-  if (canvas) canvas.inert = false;
-  if (overlayResizeHandler) {
-    window.removeEventListener('resize', overlayResizeHandler);
-    overlayResizeHandler = null;
-  }
+export function pauseCode() {
+  if (flock.isPaused()) return;
+  flock.setPaused(true);
+  setPausedUI(true);
+  const keys = `${isMac() ? '⌘' : 'Ctrl'} + K`;
+  // Not a gizmo hint, so the Tools panel's hint setting doesn't hide it: it
+  // explains why everything has stopped.
+  showStatus(translate('pause_hint').replace('{keys}', keys), { duration: 15, owner: 'pause' });
 }
 
-export function stopCode() {
-  stopRequested = true;
-  flock.abortController?.abort();
-  flock.stopAllSounds();
-  // Flag as well as stop: a context restore would otherwise resume rendering
-  // behind the stopped overlay.
-  flock._renderLoopStopped = true;
-  flock.engine?.stopRenderLoop();
-  showStoppedOverlay();
-  flock.removeEventListeners();
-
-  if (isNarrowScreen() && currentView === 'code') {
-    showCanvasView();
-  }
+export function resumeCode() {
+  if (!flock.isPaused()) return;
+  flock.setPaused(false);
+  setPausedUI(false);
+  clearStatus('pause');
 }
 
-window.stopCode = stopCode;
+export function togglePause({ focusCanvas = false } = {}) {
+  if (flock.isPaused()) resumeCode();
+  else pauseCode();
+  // Like Play: the button hands focus to the scene, while the shortcut leaves
+  // it where it was, so you can keep working on your code.
+  if (focusCanvas) document.getElementById('renderCanvas')?.focus({ preventScroll: true });
+}
 
 window.executeCode = executeCode;

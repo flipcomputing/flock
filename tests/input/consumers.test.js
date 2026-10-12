@@ -9,6 +9,7 @@ function makeFlock() {
   const flock = {
     inputManager,
     abortController: new AbortController(),
+    isPaused: () => false,
     ...flockSensing,
     ...flockEvents,
   };

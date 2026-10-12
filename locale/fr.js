@@ -1082,8 +1082,9 @@ export default {
   low_color_theme_ui: 'Couleur réduite', // ai
 
   run_code_button_ui: 'Exécuter votre code',
-  stop_code_button_ui: 'Arrêter votre code',
-  canvas_overlay_play_ui: 'Appuyez sur Lecture pour démarrer', // ai
+  pause_code_button_ui: 'Mettre votre code en pause', // ai
+  unpause_code_button_ui: 'Enlever la pause de votre code', // ai
+  pause_hint: 'En pause. Votre code est arrêté, mais vous pouvez toujours utiliser les gizmos. Appuyez sur Pause ou {keys} pour enlever la pause de votre code.', // ai
   open_button_ui: 'Ouvrir un projet depuis un fichier sur votre ordinateur',
   open_file_input_label_ui: 'Sélectionnez le fichier projet à ouvrir',
   export_code_button_ui: 'Enregistrer ce projet dans un fichier sur votre ordinateur.',
@@ -1342,6 +1343,7 @@ export default {
   shortcut_confirm: 'Confirmer',
   shortcut_exit: 'Quitter',
   shortcut_play: 'Lancer',
+  shortcut_pause: 'Pause', // ai
   shortcut_undo: 'Annuler',
   shortcut_redo: 'Rétablir',
   shortcut_browser_nav:

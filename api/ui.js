@@ -310,7 +310,7 @@ export const flockUI = {
     });
 
     if (duration > 0) {
-      const expireTimer = flock.hiddenAwareTimeout(() => {
+      const expireTimer = flock.freezeAwareTimeout(() => {
         const ctl = flock.scene.UITexture.getControlByName(bgId);
         if (ctl) {
           ctl.dispose();
@@ -1108,7 +1108,7 @@ export const flockUI = {
           bg.addControl(textBlock);
 
           if (duration > 0) {
-            const sayTimer = flock.hiddenAwareTimeout(() => {
+            const sayTimer = flock.freezeAwareTimeout(() => {
               stackPanel.removeControl(bg);
               bg.dispose();
               textBlock.dispose();
@@ -1198,7 +1198,7 @@ export const flockUI = {
 
       let fadeTimer = null;
       if (safeDuration > 0) {
-        fadeTimer = flock.hiddenAwareTimeout(fadeOut, safeDuration * 1000);
+        fadeTimer = flock.freezeAwareTimeout(fadeOut, safeDuration * 1000);
       }
 
       flock.abortController?.signal.addEventListener(
@@ -1355,7 +1355,7 @@ export const flockUI = {
 
       const seconds = Number(duration);
       if (isFinite(seconds) && seconds > 0) {
-        flock._subtitleTimer = flock.hiddenAwareTimeout(() => {
+        flock._subtitleTimer = flock.freezeAwareTimeout(() => {
           if (flock._subtitleToken === token) flock.clearSubtitle();
         }, seconds * 1000);
       }

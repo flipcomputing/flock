@@ -169,6 +169,22 @@ export function runEventsTests(flock) {
         await flock.wait(0.1);
         expect(called).to.be.true;
       });
+
+      it('waits for resume when the project is paused', async function () {
+        let called = false;
+        try {
+          flock.setPaused(true);
+          flock.start(() => {
+            called = true;
+          });
+          await new Promise((r) => setTimeout(r, 150));
+          expect(called).to.be.false;
+          flock.setPaused(false);
+          expect(called).to.be.true;
+        } finally {
+          flock.setPaused(false);
+        }
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -201,6 +217,27 @@ export function runEventsTests(flock) {
         expect(concurrent).to.be.false;
         expect(count).to.be.at.least(1);
       });
+
+      it('does not tick while paused and carries on after resume', async function () {
+        let count = 0;
+        try {
+          flock.forever(async () => {
+            count++;
+          });
+          await flock.wait(0.2);
+          flock.setPaused(true);
+          // Let an in-flight tick settle before counting.
+          await new Promise((r) => setTimeout(r, 50));
+          const atPause = count;
+          await new Promise((r) => setTimeout(r, 300));
+          expect(count).to.equal(atPause);
+          flock.setPaused(false);
+          await flock.wait(0.2);
+          expect(count).to.be.greaterThan(atPause);
+        } finally {
+          flock.setPaused(false);
+        }
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -212,6 +249,20 @@ export function runEventsTests(flock) {
         });
         flock.inputManager.onKeyDownObservable.notifyObservers('x');
         expect(called).to.be.true;
+      });
+
+      it('does not call callback while paused', function () {
+        let called = false;
+        flock.whenKeyEvent('x', () => {
+          called = true;
+        });
+        try {
+          flock.setPaused(true);
+          flock.inputManager.onKeyDownObservable.notifyObservers('x');
+          expect(called).to.be.false;
+        } finally {
+          flock.setPaused(false);
+        }
       });
 
       it('does not call callback for a different key', function () {

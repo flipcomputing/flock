@@ -1301,7 +1301,9 @@ export const flockPhysics = {
             actionSequence = actionSequence.then(
               new flock.BABYLON.ExecuteCodeAction(
                 flock.BABYLON.ActionManager[trigger],
-                async () => await callbacks[i]()
+                async () => {
+                  if (!flock.isPaused()) await callbacks[i]();
+                }
               )
             );
           }
@@ -1322,6 +1324,7 @@ export const flockPhysics = {
         }
 
         async function executeAction(meshId) {
+          if (flock.isPaused()) return;
           if (mode === 'once' && hasExecuted) return;
           if (mode === 'wait' && isExecuting) return;
           if (mode === 'once') hasExecuted = true;
@@ -1556,6 +1559,7 @@ export const flockPhysics = {
               },
             },
             async function (evt) {
+              if (flock.isPaused()) return;
               const evtMesh = evt?.additionalData ?? evt?.mesh;
               if (evtMesh && evtMesh !== otherMesh) return;
               await callback(mesh.name, otherMesh.name);

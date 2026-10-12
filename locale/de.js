@@ -1080,8 +1080,9 @@ export default {
   low_color_theme_ui: 'Wenig Farbe', // ai
   contrast_theme_ui: 'Kontrast',
   run_code_button_ui: 'Code ausführen',
-  stop_code_button_ui: 'Code stoppen',
-  canvas_overlay_play_ui: 'Zum Starten auf Play drücken', // ai
+  pause_code_button_ui: 'Code pausieren', // ai
+  unpause_code_button_ui: 'Pause beenden', // ai
+  pause_hint: 'Pausiert. Dein Code ist angehalten, aber du kannst die Gizmos weiter benutzen. Drücke Pause oder {keys}, um die Pause zu beenden.', // ai
   open_button_ui: 'Projekt von Datei öffnen',
   open_file_input_label_ui: 'Projektdatei zum Öffnen auswählen',
   export_code_button_ui: 'Projekt speichern',
@@ -1322,6 +1323,7 @@ export default {
   shortcut_confirm: 'Bestätigen',
   shortcut_exit: 'Beenden',
   shortcut_play: 'Abspielen',
+  shortcut_pause: 'Pausieren', // ai
   shortcut_undo: 'Rückgängig',
   shortcut_redo: 'Wiederholen',
   shortcut_browser_nav:

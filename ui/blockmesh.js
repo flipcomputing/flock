@@ -610,6 +610,66 @@ export function readColourFromInputOrShadow(parent, inputName) {
   return shadowValue ? { value: shadowValue, kind: 'shadow' } : { value: null, kind: 'none' };
 }
 
+// A running particle effect follows edits to its block. An input holding
+// anything other than a literal keeps the effect's current value.
+export function updateParticleEffectFromBlock(block) {
+  if (window.loadingCode || !block || block.disposed) return;
+  const systems = (flock.scene?.particleSystems ?? []).filter(
+    (system) => system.metadata?.blockKey === block.id
+  );
+  for (const system of systems) {
+    flock.updateParticleEffect(system, readParticleOptions(block, system));
+  }
+}
+
+function readParticleOptions(block, system) {
+  const toDeg = 180 / Math.PI;
+  const colour = (inputName, current) => {
+    const { value } = readColourFromInputOrShadow(block, inputName);
+    if (typeof value === 'string') return value;
+    return new flock.BABYLON.Color3(current.r, current.g, current.b).toHexString();
+  };
+  const number = (inputName, current) => readNumberInput(block, inputName, current);
+  const emitter = system.particleEmitterType;
+  const currentDirection = emitter?.useMeshNormalsForDirection
+    ? { x: 0, y: 0, z: 0 }
+    : (emitter?.direction1 ?? { x: 0, y: 0, z: 0 });
+
+  return {
+    emitRate: number('RATE', system.emitRate),
+    colors: {
+      start: colour('START_COLOR', system.color1),
+      end: colour('END_COLOR', system.color2),
+    },
+    alphas: {
+      start: number('START_ALPHA', system.color1.a),
+      end: number('END_ALPHA', system.color2.a),
+    },
+    sizes: { start: number('MIN_SIZE', system.minSize), end: number('MAX_SIZE', system.maxSize) },
+    lifetime: {
+      min: number('MIN_LIFETIME', system.minLifeTime),
+      max: number('MAX_LIFETIME', system.maxLifeTime),
+    },
+    shape: block.getFieldValue('SHAPE'),
+    gravity: block.getFieldValue('GRAVITY') === 'TRUE',
+    direction: {
+      x: number('X', currentDirection.x),
+      y: number('Y', currentDirection.y),
+      z: number('Z', currentDirection.z),
+    },
+    rotation: {
+      angularSpeed: {
+        min: number('MIN_ANGULAR_SPEED', system.minAngularSpeed * toDeg),
+        max: number('MAX_ANGULAR_SPEED', system.maxAngularSpeed * toDeg),
+      },
+      initialRotation: {
+        min: number('MIN_INITIAL_ROTATION', system.minInitialRotation * toDeg),
+        max: number('MAX_INITIAL_ROTATION', system.maxInitialRotation * toDeg),
+      },
+    },
+  };
+}
+
 // Extract texture set, base colour (single or list), and alpha.
 export function extractMaterialInfo(materialBlock) {
   if (!materialBlock) return { textureSet: 'NONE', baseColor: null, alpha: 1, scale: 1, angle: 0 };

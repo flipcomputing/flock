@@ -8,7 +8,7 @@ import { flock } from '../flock.js';
 import { initializeVariableIndexes } from '../blocks/blocks';
 import { enableGizmos } from '../ui/gizmos.js';
 import { handleError, installGlobalErrorHandlers } from '../ui/notifications.js';
-import { executeCode, stopCode } from './execution.js';
+import { executeCode, togglePause } from './execution.js';
 import '../ui/addmeshes.js';
 import '../ui/colourpicker.js';
 import { TOP_BLOCK_TYPES, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
@@ -133,10 +133,11 @@ function addEmbedPlaybackControls() {
   });
   buttonRow.appendChild(playButton);
 
-  const stopButton = createActionButton('stopCodeButton', 'Stop', () => {
-    stopCode();
+  const pauseButton = createActionButton('pauseCodeButton', 'Pause', () => {
+    togglePause({ focusCanvas: true });
   });
-  buttonRow.appendChild(stopButton);
+  pauseButton.classList.add('pause-toggle');
+  buttonRow.appendChild(pauseButton);
   topBar.appendChild(buttonRow);
 
   const actions = document.createElement('div');
@@ -771,21 +772,16 @@ function initializeApp() {
   const inspectorCheckbox = document.getElementById('inspectorCheckbox');
   const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
-  const stopCodeButton = document.getElementById('stopCodeButton');
+  const pauseCodeButton = document.getElementById('pauseCodeButton');
   const fileInput = document.getElementById('fileInput');
   const exportCodeButton = document.getElementById('exportCodeButton');
   const openButton = document.getElementById('openButton');
   const mainMenuButton = document.getElementById('menuBtn');
-  if (!runCodeButton || !stopCodeButton || !exportCodeButton || !fileInput) {
+  if (!runCodeButton || !pauseCodeButton || !exportCodeButton || !fileInput) {
     return;
   }
   runCodeButton.addEventListener('click', executeCode);
-  stopCodeButton.addEventListener('click', stopCode);
-  // Clicking anywhere on the stopped overlay (not just the play button) starts
-  // the scene — matches the pointer cursor shown across the whole overlay. The
-  // inner button's click bubbles up here, and executeCode's isExecuting guard
-  // makes the resulting second call a no-op.
-  document.getElementById('canvasStoppedOverlay')?.addEventListener('click', executeCode);
+  pauseCodeButton.addEventListener('click', () => togglePause({ focusCanvas: true }));
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
 
   // Add toolbar buttons
@@ -849,6 +845,11 @@ function initializeApp() {
     // match the visible Play button exactly, including restarting a running scene.
     e.preventDefault();
     void executeCode();
+  });
+  KeyboardDispatcher.on('*', 'Mod+KeyK', (e) => {
+    // Matches the Pause button, so it works while editing code as well.
+    e.preventDefault();
+    togglePause();
   });
   KeyboardDispatcher.on('*', 'Mod+Slash', (e) => {
     e.preventDefault();
