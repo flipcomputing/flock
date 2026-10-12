@@ -6,6 +6,10 @@ import {
   isBenignAbort,
   isXRAssetFetch,
   reportXRModelUnavailable,
+  isResizeObserverLoop,
+  isOpaqueScriptError,
+  isExtensionError,
+  isChunkLoadError,
 } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
 
@@ -88,6 +92,69 @@ export function runNotificationTests() {
 
     it('does not treat ordinary errors as benign', function () {
       expect(isBenignAbort(new Error('something else broke'))).to.equal(false);
+    });
+
+    it('treats ResizeObserver loop warnings as browser noise', function () {
+      expect(
+        isResizeObserverLoop('ResizeObserver loop completed with undelivered notifications.')
+      ).to.equal(true);
+      expect(isResizeObserverLoop('ResizeObserver loop limit exceeded')).to.equal(true);
+      expect(isResizeObserverLoop('ResizeObserver is not defined')).to.equal(false);
+    });
+
+    it('treats a detail-free cross-origin Script error as noise', function () {
+      expect(isOpaqueScriptError({ message: 'Script error.', error: null })).to.equal(true);
+      expect(isOpaqueScriptError({ message: 'Script error.', error: new Error('real') })).to.equal(
+        false
+      );
+    });
+
+    it('treats errors thrown from a browser extension as noise', function () {
+      expect(isExtensionError(null, 'chrome-extension://abc/content.js')).to.equal(true);
+      const fromExtension = new Error('x');
+      fromExtension.stack = [
+        'Error: x',
+        '    at f (moz-extension://abc/inject.js:1:1)',
+        '    at g (https://flipcomputing.github.io/flock/a.js:1:1)',
+      ].join('\n');
+      expect(isExtensionError(fromExtension)).to.equal(true);
+      const throughExtension = new Error('y');
+      throughExtension.stack = [
+        'Error: y',
+        '    at f (https://flipcomputing.github.io/flock/a.js:1:1)',
+        '    at g (chrome-extension://abc/hook.js:1:1)',
+      ].join('\n');
+      expect(isExtensionError(throughExtension)).to.equal(false);
+      expect(
+        isExtensionError(new Error('plain'), 'https://flipcomputing.github.io/flock/a.js')
+      ).to.equal(false);
+    });
+
+    it('recognises a failed chunk load in each browser wording', function () {
+      expect(
+        isChunkLoadError(
+          new TypeError('Failed to fetch dynamically imported module: https://x/assets/a.js')
+        )
+      ).to.equal(true);
+      expect(
+        isChunkLoadError(
+          new TypeError('error loading dynamically imported module: https://x/assets/a.js')
+        )
+      ).to.equal(true);
+      expect(isChunkLoadError(new TypeError('Importing a module script failed.'))).to.equal(true);
+      expect(isChunkLoadError(new Error('Unable to preload CSS for /assets/a.css'))).to.equal(true);
+      expect(isChunkLoadError(new Error('mesh is not defined'))).to.equal(false);
+    });
+
+    it('shows a reloadable chunk-load banner, not a project crash', function () {
+      handleError(new TypeError('Failed to fetch dynamically imported module'), {
+        source: 'chunk-load',
+        fatal: true,
+      });
+      const banner = document.querySelector('.flock-banner');
+      expect(banner.textContent).to.contain(translate('error_chunk_load'));
+      expect(banner.textContent).to.not.contain(translate('error_project_crash'));
+      expect(banner.querySelector('.flock-banner__action')).to.exist;
     });
 
     it('treats a failed XR model fetch as an asset fetch, however it is reported', function () {

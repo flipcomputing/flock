@@ -1230,6 +1230,8 @@ export default {
     'L’ispettore richiede una connessione a internet la prima volta che lo usi. Connettiti e riprova.', // ai
   error_xr_models_offline:
     'Connettiti a internet per caricare i modelli dei controller e delle mani (facoltativi). La XR funziona lo stesso senza di essi.', // ai
+  error_chunk_load:
+    'Non è stato possibile caricare una parte di Flock. Controlla la connessione a internet, poi ricarica la pagina.', // ai
   xr_mode_message: 'Modalità XR!',
   fly_camera_instructions: 'Guarda intorno con le frecce e Pag su/giù o Fn + ↑ ↓',
   fly_camera_instructions_touch:

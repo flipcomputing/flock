@@ -1367,6 +1367,8 @@ export default {
     'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   error_xr_models_offline:
     'Conéctate a internet para cargar los modelos de los mandos y las manos (opcionales). La XR funciona igual sin ellos.', // ai
+  error_chunk_load:
+    'No se ha podido cargar una parte de Flock. Comprueba tu conexión a internet y vuelve a cargar la página.', // ai
   recursion_too_deep:
     'Una función se seguía llamando a sí misma, así que se detuvo. Comprueba que pueda terminar.', // ai
   unhandled_rejection: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai

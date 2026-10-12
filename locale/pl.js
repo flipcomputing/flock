@@ -1211,6 +1211,8 @@ export default {
     'Inspektor wymaga połączenia z internetem przy pierwszym użyciu. Połącz się z internetem i spróbuj ponownie.', // ai
   error_xr_models_offline:
     'Połącz się z internetem, aby wczytać modele kontrolerów i dłoni (opcjonalne). XR działa również bez nich.', // ai
+  error_chunk_load:
+    'Nie udało się wczytać części Flock. Sprawdź połączenie z internetem, a następnie odśwież stronę.', // ai
   xr_mode_message: 'Tryb XR!',
   fly_camera_instructions: 'Rozglądaj się za pomocą klawiszy strzałek i Page Up/Down lub Fn + ↑ ↓',
   fly_camera_instructions_touch:

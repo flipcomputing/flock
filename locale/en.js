@@ -1450,6 +1450,8 @@ export default {
     'The inspector needs an internet connection the first time you use it. Connect and try again.',
   error_xr_models_offline:
     'Connect to the internet to load the controller and hand models (optional). XR still works without them.',
+  error_chunk_load:
+    "Part of Flock couldn't load. Check your internet connection, then reload the page.",
   // Block error messages (onBlockError key → text). Keys match the `key`
   // passed to flock.reportBlockError so a handler can look them up directly.
   recursion_too_deep:

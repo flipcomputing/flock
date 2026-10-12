@@ -1206,6 +1206,8 @@ export default {
     'Inspektören behöver en internetanslutning första gången du använder den. Anslut till internet och försök igen.', // ai
   error_xr_models_offline:
     'Anslut till internet för att ladda modellerna för handkontrollerna och händerna (valfria). XR fungerar ändå utan dem.', // ai
+  error_chunk_load:
+    'En del av Flock kunde inte laddas. Kontrollera din internetanslutning och ladda sedan om sidan.', // ai
   xr_mode_message: 'XR-läge!',
   fly_camera_instructions: 'Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:

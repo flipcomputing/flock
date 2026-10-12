@@ -1198,6 +1198,8 @@ export default {
     'Der Inspektor benötigt bei der ersten Nutzung eine Internetverbindung. Stelle eine Verbindung her und versuche es erneut.', // ai
   error_xr_models_offline:
     'Stelle eine Internetverbindung her, um die Controller- und Handmodelle zu laden (optional). XR funktioniert auch ohne sie.', // ai
+  error_chunk_load:
+    'Ein Teil von Flock konnte nicht geladen werden. Prüfe deine Internetverbindung und lade die Seite dann neu.', // ai
   xr_mode_message: 'XR-Modus!',
   fly_camera_instructions: 'Schau dich um mit Pfeiltasten und Bild auf/ab oder Fn + ↑ ↓',
   fly_camera_instructions_touch: 'Flugkamera, nutze die Bildschirmsteuerung und ziehe zum Umsehen',

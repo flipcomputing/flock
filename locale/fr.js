@@ -1220,6 +1220,8 @@ export default {
     'L’inspecteur nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   error_xr_models_offline:
     'Connectez-vous à Internet pour charger les modèles des manettes et des mains (facultatifs). La XR fonctionne quand même sans eux.', // ai
+  error_chunk_load:
+    "Une partie de Flock n'a pas pu se charger. Vérifiez votre connexion Internet, puis rechargez la page.", // ai
   xr_mode_message: 'Mode XR !',
   fly_camera_instructions: 'Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
