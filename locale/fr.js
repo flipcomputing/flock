@@ -1065,6 +1065,21 @@ export default {
   project_open_ui: 'Ouvrir',
   project_save_ui: 'Enregistrer',
   tools_submenu_ui: 'Outils',
+  tools_options_tab_ui: 'Options', // ai
+  tools_export_tab_ui: 'Exporter', // ai
+  export_web_page_heading_ui: 'Page web', // ai
+  export_web_page_description_ui: 'Enregistre un seul fichier qui lit ton projet dans un navigateur web.', // ai
+  export_web_page_button_ui: 'Enregistrer comme page web', // ai
+  export_web_zip_button_ui: 'Enregistrer en ZIP web', // ai
+  export_embed_heading_ui: "Code d'intégration", // ai
+  export_embed_description_ui: 'Copie ce code et colle-le dans un autre site web pour y montrer ton projet.', // ai
+  export_embed_copy_button_ui: 'Copier le code', // ai
+  export_hosted_heading_ui: 'Code d’intégration pour un projet hébergé', // ai
+  export_hosted_comment: 'Remplace l’adresse après project= par l’adresse de ton propre fichier de projet, comme un lien raw de GitHub.', // ai
+  export_embed_copied: 'Copié.', // ai
+  export_embed_copy_failed: 'Impossible de copier. Sélectionne le code et copie-le toi-même.', // ai
+  export_web_page_file_description: 'Page web', // ai
+  export_web_zip_file_description: 'Fichier ZIP', // ai
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai
@@ -1193,7 +1208,7 @@ export default {
   snippet_file_description: 'Extrait Flock XR',
   snippet_filename_prompt: "Entrez un nom de fichier pour l'extrait:",
   project_file_description: 'Projet Flock XR',
-  file_too_large_alert: 'Fichier trop volumineux. La taille maximale est de 5 Mo.',
+  file_too_large_alert: 'Ce projet est trop volumineux.', // ai
   invalid_filetype_alert: 'Seuls les fichiers .json ou .flock sont autorisés.',
   invalid_project_alert: "Ce fichier n'est pas un projet Flock XR valide.",
   failed_to_read_file_alert: 'Échec de lecture du fichier.',
@@ -1220,6 +1235,8 @@ export default {
     'L’inspecteur nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
   error_xr_models_offline:
     'Connectez-vous à Internet pour charger les modèles des manettes et des mains (facultatifs). La XR fonctionne quand même sans eux.', // ai
+  error_chunk_load:
+    "Une partie de Flock n'a pas pu se charger. Vérifiez votre connexion Internet, puis rechargez la page.", // ai
   xr_mode_message: 'Mode XR !',
   fly_camera_instructions: 'Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:

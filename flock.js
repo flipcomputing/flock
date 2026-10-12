@@ -977,7 +977,7 @@ export const flock = {
     });
   },
   async runCode(code, options = {}) {
-    const { focusCanvas = true } = options;
+    const { focusCanvas = true, startCamera = null } = options;
 
     try {
       flock.validateUserCodeAST(code);
@@ -1009,10 +1009,7 @@ export const flock = {
       }
 
       // --- create fresh same-origin iframe ---
-      const { win, doc } = await flock.replaceSandboxIframe({
-        id: 'flock-iframe',
-        sameOrigin: true,
-      });
+      const { win, doc } = await flock.replaceSandboxIframe({ id: 'flock-iframe' });
 
       // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
       const sesResp = await fetch(flockRuntimeUrl('vendor/ses/lockdown.umd.min.js'));
@@ -1098,6 +1095,10 @@ export const flock = {
 
       // initialise scene
       await this.initializeNewScene?.();
+      if (startCamera && this.defaultCamera) {
+        this.defaultCamera.position.copyFrom(startCamera.position);
+        this.defaultCamera.setTarget(startCamera.target);
+      }
       if (this.memoryDebug) this.startMemoryMonitoring?.();
 
       // abort plumbing
@@ -1564,7 +1565,7 @@ export const flock = {
       return api;
     }
   },
-  async replaceSandboxIframe({ id = 'flock-iframe', sameOrigin = true, srcdocHtml } = {}) {
+  async replaceSandboxIframe({ id = 'flock-iframe', srcdocHtml } = {}) {
     const old = document.getElementById(id);
 
     // --- 1) Hard teardown of the old iframe (if any) ---
@@ -1610,9 +1611,6 @@ export const flock = {
     const iframe = document.createElement('iframe');
     iframe.id = id;
     iframe.style.display = 'none';
-
-    // Keep same-origin only if you need to touch iframe DOM/Canvas/WebGL from parent
-    iframe.sandbox = `allow-scripts${sameOrigin ? ' allow-same-origin' : ''}`;
 
     // Prefer srcdoc so CSP is present before any script runs
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
@@ -3362,7 +3360,7 @@ function injectStandaloneChrome() {
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     open.textContent = 'Open in Flock';
-    open.href = 'https://flipcomputing.github.io/flock/';
+    open.href = flockRuntimeBase();
 
     footer.append(made, open);
     body.appendChild(footer);
@@ -3381,17 +3379,57 @@ function hideStandaloneLoadingScreen() {
   setTimeout(() => el.remove(), 600);
 }
 
+const MAX_EDITOR_LINK_LENGTH = 1500000;
+
+async function compressedProjectFragment(text) {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 function wireOpenInEditorLink() {
   const link = flock.document.querySelector('[data-flock-open-in-editor]');
   if (!link) return;
-  const here = window.location;
-  if (here.protocol !== 'http:' && here.protocol !== 'https:') {
-    link.hidden = true;
+  const cfg = (typeof window !== 'undefined' && window.FLOCK_CONFIG) || {};
+  const editor = new URL(flockConfigUrl(cfg.editorUrl) || flockRuntimeBase());
+  link.hidden = true;
+  const showPageAddressLink = () => {
+    const here = window.location;
+    if (here.protocol !== 'http:' && here.protocol !== 'https:') return;
+    const pageLink = new URL(editor);
+    pageLink.searchParams.set('project', here.href);
+    pageLink.hash = '';
+    link.href = pageLink.href;
+    link.hidden = false;
+  };
+
+  const scriptElement = flock.document.getElementById('flock');
+  const type = (scriptElement?.type || '').toLowerCase();
+  const isProjectJson = type === 'application/flock+json' || type === 'application/vnd.flock+json';
+  if (!/^https?:$/.test(editor.protocol)) return;
+  if (!isProjectJson) {
+    showPageAddressLink();
     return;
   }
-  const cfg = (typeof window !== 'undefined' && window.FLOCK_CONFIG) || {};
-  const editor = flockConfigUrl(cfg.editorUrl) || 'https://flipcomputing.github.io/flock/';
-  link.href = `${editor}?project=${encodeURIComponent(here.href)}`;
+
+  compressedProjectFragment(scriptElement.textContent.trim())
+    .then((data) => {
+      editor.hash = `project=${data}`;
+      if (editor.href.length > MAX_EDITOR_LINK_LENGTH) {
+        showPageAddressLink();
+        return;
+      }
+      link.href = editor.href;
+      link.hidden = false;
+    })
+    .catch((error) => {
+      console.warn('Could not build Open in Flock link:', error);
+      showPageAddressLink();
+    });
 }
 
 const MAX_STANDALONE_PROJECT_LENGTH = 4 * 1024 * 1024;

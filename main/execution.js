@@ -8,7 +8,12 @@ import {
   showInspector,
 } from './view.js';
 import { handleError, isBenignAbort, isReported } from '../ui/notifications.js';
-import { setGizmoManager, disposeGizmoManager } from '../ui/gizmos.js';
+import {
+  setGizmoManager,
+  disposeGizmoManager,
+  editorCameraPose,
+  resumeEditorCamera,
+} from '../ui/gizmos.js';
 import { resetLiveEditsForRun } from '../ui/blockmesh.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { workspace } from './blocklyinit.js';
@@ -54,6 +59,7 @@ export async function executeCode(options = {}) {
       showCanvasView();
     }
 
+    const editorPose = editorCameraPose();
     disposeGizmoManager();
 
     const showDebug = flock.scene?.debugLayer?.isVisible();
@@ -68,7 +74,7 @@ export async function executeCode(options = {}) {
       // The code we're about to generate bakes current block values — nothing stale.
       resetLiveEditsForRun();
       const code = generateWorkspaceCode(workspace, javascriptGenerator);
-      await flock.runCode(code, options);
+      await flock.runCode(code, { ...options, startCamera: editorPose });
     } catch (error) {
       // An aborted run (Play pressed again) is not a failure: skip the banner and the gizmo/debug
       // restore below. A real failure falls through so the editor UI that
@@ -93,6 +99,7 @@ export async function executeCode(options = {}) {
     // Guard the scene: a failed run may have left none, and GizmoManager(null) throws.
     if (flock.scene) {
       setGizmoManager(new flock.BABYLON.GizmoManager(flock.scene, 8));
+      resumeEditorCamera(editorPose);
     }
 
     // Debounce so rapid re-presses of Play are ignored until the scene settles.

@@ -39,10 +39,20 @@
       }
       gtag('js', new Date());
 
-      gtag('config', 'G-QCGT3X072N', {
-        client_storage: 'none', // Prevents setting cookies
-        anonymize_ip: true, // Hides IP addresses for privacy
-      });
+      {
+        const pageUrl = new URL(location.href);
+        pageUrl.hash = '';
+        const project = pageUrl.searchParams.get('project');
+        if (project && project !== 'starter' && project !== 'new') {
+          pageUrl.searchParams.set('project', 'link');
+        }
+
+        gtag('config', 'G-QCGT3X072N', {
+          page_location: pageUrl.href,
+          client_storage: 'none', // Prevents setting cookies
+          anonymize_ip: true, // Hides IP addresses for privacy
+        });
+      }
     </script>
 
     <script>
@@ -710,7 +720,41 @@
                   <span aria-hidden="true"></span>
                 </button>
                 <h2 id="tools-modal-title" data-i18n="tools_submenu">Tools</h2>
-                <div class="tools-options">
+                <div
+                  class="example-tabs tools-tabs"
+                  role="tablist"
+                  aria-labelledby="tools-modal-title"
+                >
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsOptionsTab"
+                    aria-controls="toolsOptionsPanel"
+                    aria-selected="true"
+                    data-i18n="tools_options_tab"
+                  >
+                    Options
+                  </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsExportTab"
+                    aria-controls="toolsExportPanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_export_tab"
+                  >
+                    Export
+                  </button>
+                </div>
+                <div
+                  class="tools-options"
+                  id="toolsOptionsPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsOptionsTab"
+                >
                   <label class="tools-option" for="playerControlsCheckbox">
                     <input type="checkbox" id="playerControlsCheckbox" />
                     <span data-i18n="player_controls_option">Player controls</span>
@@ -727,6 +771,90 @@
                     <input type="checkbox" id="inspectorCheckbox" />
                     <span data-i18n="inspector_tool">Inspector</span>
                   </label>
+                </div>
+                <div
+                  class="tools-export"
+                  id="toolsExportPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsExportTab"
+                  hidden
+                >
+                  <section class="tools-export-section" aria-labelledby="exportWebPageHeading">
+                    <h3 id="exportWebPageHeading" data-i18n="export_web_page_heading">Web page</h3>
+                    <p id="exportWebPageDescription" data-i18n="export_web_page_description">
+                      Save a single file that plays your project in a web browser.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button project-action-button--primary"
+                        id="exportWebPageButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_page_button"
+                      >
+                        Save as web page
+                      </button>
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportWebZipButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_zip_button"
+                      >
+                        Save as web zip
+                      </button>
+                    </div>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportEmbedHeading">
+                    <h3 id="exportEmbedHeading" data-i18n="export_embed_heading">Embed code</h3>
+                    <p id="exportEmbedDescription" data-i18n="export_embed_description">
+                      Copy this code and paste it into another website to show your project there.
+                    </p>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportEmbedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportEmbedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportEmbedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportEmbedHeading"
+                      aria-describedby="exportEmbedDescription"
+                    ></textarea>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportHostedHeading">
+                    <h3 id="exportHostedHeading" data-i18n="export_hosted_heading">
+                      Embed code for a hosted project
+                    </h3>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportHostedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportHostedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportHostedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportHostedHeading"
+                    ></textarea>
+                  </section>
                 </div>
               </div>
             </div>
@@ -779,52 +907,6 @@
                     data-i18n="unsaved_changes_save_button"
                   >
                     Save to file
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div
-              id="untrustedProjectUrlModal"
-              class="modal hidden"
-              role="dialog"
-              aria-labelledby="untrusted-project-url-modal-title"
-              aria-modal="true"
-            >
-              <div class="modal-content" tabindex="-1">
-                <button
-                  type="button"
-                  class="close-button flock-close-icon"
-                  id="closeUntrustedProjectUrlModal"
-                  data-i18n="close_untrusted_project_url"
-                  data-i18n-attrs="aria-label"
-                  aria-label="Close"
-                >
-                  <span aria-hidden="true"></span>
-                </button>
-                <h2 id="untrusted-project-url-modal-title" data-i18n="untrusted_project_url_title">
-                  Open project from another website?
-                </h2>
-                <p data-i18n="untrusted_project_url_message">
-                  This project link isn't on Flock XR's trusted list. Only continue if you trust the
-                  source — it will run in your browser.
-                </p>
-                <p><strong id="untrustedProjectUrlOrigin"></strong></p>
-                <div class="unsaved-changes-actions">
-                  <button
-                    type="button"
-                    class="project-action-button"
-                    id="untrustedProjectUrlCancelButton"
-                    data-i18n="untrusted_project_url_cancel_button"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    class="project-action-button project-action-button--primary"
-                    id="untrustedProjectUrlOpenButton"
-                    data-i18n="untrusted_project_url_open_button"
-                  >
-                    Open project
                   </button>
                 </div>
               </div>
@@ -1623,6 +1705,61 @@
 
       <!-- Live region for dynamic announcements -->
       <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    </div>
+    <div
+      id="untrustedProjectUrlModal"
+      class="modal hidden"
+      role="dialog"
+      aria-labelledby="untrusted-project-url-modal-title"
+      aria-modal="true"
+    >
+      <div class="modal-content" tabindex="-1">
+        <button
+          type="button"
+          class="close-button flock-close-icon"
+          id="closeUntrustedProjectUrlModal"
+          data-i18n="close_untrusted_project_url"
+          data-i18n-attrs="aria-label"
+          aria-label="Close"
+        >
+          <span aria-hidden="true"></span>
+        </button>
+        <h2 id="untrusted-project-url-modal-title" data-i18n="untrusted_project_url_title">
+          Open project from another website?
+        </h2>
+        <p id="untrustedProjectUrlMessage" data-i18n="untrusted_project_url_message">
+          This project link isn't on Flock XR's trusted list. Only continue if you trust the source
+          — it will run in your browser.
+        </p>
+        <p><strong id="untrustedProjectUrlOrigin"></strong></p>
+        <div class="unsaved-changes-actions">
+          <button
+            type="button"
+            class="project-action-button"
+            id="untrustedProjectUrlCancelButton"
+            data-i18n="untrusted_project_url_cancel_button"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="project-action-button project-action-button--primary"
+            id="untrustedProjectUrlOpenButton"
+            data-i18n="untrusted_project_url_open_button"
+          >
+            Open project
+          </button>
+          <a
+            class="project-action-button project-action-button--primary hidden"
+            id="untrustedProjectUrlNewTabLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="untrusted_project_url_new_tab_link"
+          >
+            Open in new tab
+          </a>
+        </div>
+      </div>
     </div>
     <script>
       window.BABYLON_SKIP_FONT_LOADING = true;

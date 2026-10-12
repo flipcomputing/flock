@@ -1257,6 +1257,21 @@ export default {
   project_open_ui: 'Open',
   project_save_ui: 'Save',
   tools_submenu_ui: 'Tools',
+  tools_options_tab_ui: 'Options',
+  tools_export_tab_ui: 'Export',
+  export_web_page_heading_ui: 'Web page',
+  export_web_page_description_ui: 'Save a single file that plays your project in a web browser.',
+  export_web_page_button_ui: 'Save as web page',
+  export_web_zip_button_ui: 'Save as web zip',
+  export_embed_heading_ui: 'Embed code',
+  export_embed_description_ui: 'Copy this code and paste it into another website to show your project there.',
+  export_embed_copy_button_ui: 'Copy code',
+  export_hosted_heading_ui: 'Embed code for a hosted project',
+  export_hosted_comment: 'Replace the address after project= with your own project file address, such as a raw GitHub link.',
+  export_embed_copied: 'Copied.',
+  export_embed_copy_failed: "Couldn't copy. Select the code and copy it yourself.",
+  export_web_page_file_description: 'Web page',
+  export_web_zip_file_description: 'ZIP file',
   inspector_tool_ui: 'Inspector',
   player_controls_option_ui: 'Player controls',
   gizmo_controls_option_ui: 'Gizmo controls',
@@ -1406,10 +1421,12 @@ export default {
   snippet_file_description: 'Flock XR Snippet',
   snippet_filename_prompt: 'Enter a filename for the snippet:',
   project_file_description: 'Flock XR Project',
-  file_too_large_alert: 'File too large. Maximum size is 5MB.',
+  file_too_large_alert: 'This project is too large.',
   invalid_filetype_alert: 'Only .json or .flock project files are allowed.',
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: 'Failed to read file.',
+  project_url_load_failed_alert:
+    "Flock XR couldn't load this project. The link may be wrong, or the website may not allow other sites to open its files.",
   drag_drop_hint: 'Drop to open project or import snippet',
   drop_unsupported_file_alert: 'Only .flock, .json, .fsnip, or .png files can be dropped.',
   unsaved_changes_title_ui: 'Unsaved changes',
@@ -1422,6 +1439,12 @@ export default {
   untrusted_project_url_title_ui: 'Open project from another website?',
   untrusted_project_url_message_ui:
     "This project link isn't on Flock XR's trusted list. Only continue if you trust the source — it will run in your browser.",
+  untrusted_project_url_framed_message_ui:
+    "This project link isn't on Flock XR's trusted list, so it opens in a new tab where you can decide whether to run it.",
+  untrusted_project_url_new_tab_link_ui: 'Open in new tab',
+  untrusted_project_link_title_ui: 'Open this project?',
+  untrusted_project_link_message_ui:
+    "This project came inside a link, so Flock XR can't tell where it's from. Only continue if you trust where you got the link — it will run in your browser.",
   untrusted_project_url_cancel_button_ui: 'Cancel',
   untrusted_project_url_open_button_ui: 'Open project',
   close_untrusted_project_url_ui: 'Close',
@@ -1450,6 +1473,8 @@ export default {
     'The inspector needs an internet connection the first time you use it. Connect and try again.',
   error_xr_models_offline:
     'Connect to the internet to load the controller and hand models (optional). XR still works without them.',
+  error_chunk_load:
+    "Part of Flock couldn't load. Check your internet connection, then reload the page.",
   // Block error messages (onBlockError key → text). Keys match the `key`
   // passed to flock.reportBlockError so a handler can look them up directly.
   recursion_too_deep:

@@ -102,6 +102,14 @@ const SHORTCUTS_FONT_SIZES = [0.8, 1.0, 1.2, 1.4, 1.6, 1.8];
 const SHORTCUTS_FONT_SIZE_KEY = 'flock-shortcuts-font-size';
 const SHORTCUTS_FONT_SIZE_DEFAULT = 1.2;
 
+function storedFontSize() {
+  try {
+    return parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT;
+  } catch {
+    return SHORTCUTS_FONT_SIZE_DEFAULT;
+  }
+}
+
 // Every panel that has text-size controls, so one panel's A- / A+ resizes them all.
 const FONT_SIZED_PANELS = new Set();
 
@@ -109,8 +117,7 @@ const FONT_SIZED_PANELS = new Set();
 // must set _modalTitleId, _tabBtnId, _closeLabelKey, _listId.
 const ModalPanelBehaviour = {
   // Spread into each panel, so every panel starts at the shared stored size.
-  fontSize:
-    parseFloat(localStorage.getItem(SHORTCUTS_FONT_SIZE_KEY)) || SHORTCUTS_FONT_SIZE_DEFAULT,
+  fontSize: storedFontSize(),
 
   shouldBeModal() {
     return isNarrowLayout() || isDockedAreaTooShort(this.fontSize);
@@ -149,7 +156,11 @@ const ModalPanelBehaviour = {
     const idx = sizes.indexOf(this.fontSize);
     const next = sizes[Math.max(0, Math.min(sizes.length - 1, idx + delta))];
     if (next === this.fontSize) return;
-    localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
+    try {
+      localStorage.setItem(SHORTCUTS_FONT_SIZE_KEY, next);
+    } catch {
+      /* storage disabled — the size still applies for this visit */
+    }
     FONT_SIZED_PANELS.forEach((p) => {
       p.fontSize = next;
       p.applyFontSize();

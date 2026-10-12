@@ -13,6 +13,7 @@ const MESSAGE_KEYS = {
   startup: 'error_startup',
   'project-run': 'error_project_crash',
   'webgl-lost': 'error_webgl_lost',
+  'chunk-load': 'error_chunk_load',
   'physics-oom': 'error_physics_oom',
   'physics-unsupported': 'error_physics_unsupported',
   audio: 'error_audio',
@@ -158,6 +159,29 @@ export function isBenignAbort(error) {
   return message.includes('aborted') || message === 'abort';
 }
 
+export function isResizeObserverLoop(message) {
+  return /^ResizeObserver loop /.test(`${message ?? ''}`);
+}
+
+export function isOpaqueScriptError(event) {
+  return !event?.error && event?.message === 'Script error.';
+}
+
+const EXTENSION_URL = /(chrome|moz|safari-web)-extension:\/\//;
+
+export function isExtensionError(error, filename) {
+  if (EXTENSION_URL.test(`${filename ?? ''}`)) return true;
+  const topFrame = `${error?.stack ?? ''}`.split('\n').find((line) => line.includes('://'));
+  return EXTENSION_URL.test(topFrame ?? '');
+}
+
+export function isChunkLoadError(error) {
+  const message = `${error?.message ?? error ?? ''}`;
+  return /dynamically imported module|Importing a module script failed|Unable to preload CSS/i.test(
+    message
+  );
+}
+
 const XR_MODEL_HOSTS = [
   'immersive-web.github.io/webxr-input-profiles',
   'assets.babylonjs.com/core/HandMeshes',
@@ -186,6 +210,12 @@ export function installGlobalErrorHandlers() {
 
   window.addEventListener('error', (event) => {
     if (isBenignAbort(event.error) || isReported(event.error)) return;
+    if (isResizeObserverLoop(event.message) || isOpaqueScriptError(event)) return;
+    if (isExtensionError(event.error, event.filename)) return;
+    if (isChunkLoadError(event.error ?? event.message)) {
+      handleError(event.error ?? event.message, { source: 'chunk-load', fatal: true });
+      return;
+    }
     if (isXRAssetFetch(event.error) || isXRAssetFetch(event.message)) {
       reportXRModelUnavailable(event.error ?? event.message);
       return;
@@ -197,6 +227,11 @@ export function installGlobalErrorHandlers() {
 
   window.addEventListener('unhandledrejection', (event) => {
     if (isBenignAbort(event.reason) || isReported(event.reason)) return;
+    if (isExtensionError(event.reason)) return;
+    if (isChunkLoadError(event.reason)) {
+      handleError(event.reason, { source: 'chunk-load', fatal: true });
+      return;
+    }
     if (isXRAssetFetch(event.reason)) {
       reportXRModelUnavailable(event.reason);
       return;

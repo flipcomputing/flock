@@ -1,5 +1,7 @@
 // UI-only confirm modal for opening a project from a URL outside the trusted list.
 
+import { translate } from '../main/translation.js';
+
 let previouslyFocused = null;
 let activeResolve = null;
 
@@ -38,14 +40,37 @@ function closeModal(result) {
   resolve?.(result);
 }
 
+function setTranslatedText(id, key) {
+  const element = document.getElementById(id);
+  if (!element) return;
+  element.dataset.i18n = key;
+  element.textContent = translate(`${key}_ui`);
+}
+
 // Resolves 'open' or 'cancel'; 'cancel' if the modal markup is missing.
-export function openUntrustedProjectUrlModal(origin) {
+// With newTabHref the project can only be opened in a new tab, never here.
+export function openUntrustedProjectUrlModal(origin, { newTabHref = null } = {}) {
   const modal = getModal();
   if (!modal) return Promise.resolve('cancel');
+
+  const kind = origin ? 'url' : 'link';
+  setTranslatedText('untrusted-project-url-modal-title', `untrusted_project_${kind}_title`);
+  setTranslatedText(
+    'untrustedProjectUrlMessage',
+    newTabHref ? 'untrusted_project_url_framed_message' : `untrusted_project_${kind}_message`
+  );
+
+  const newTabLink = document.getElementById('untrustedProjectUrlNewTabLink');
+  newTabLink?.classList.toggle('hidden', !newTabHref);
+  if (newTabLink && newTabHref) newTabLink.href = newTabHref;
+  document
+    .getElementById('untrustedProjectUrlOpenButton')
+    ?.classList.toggle('hidden', !!newTabHref);
 
   const originElement = document.getElementById('untrustedProjectUrlOrigin');
   if (originElement) {
     originElement.textContent = origin;
+    originElement.parentElement.hidden = !origin;
   }
 
   return new Promise((resolve) => {
@@ -67,6 +92,9 @@ function installModal() {
   document
     .getElementById('untrustedProjectUrlOpenButton')
     ?.addEventListener('click', () => closeModal('open'));
+  document
+    .getElementById('untrustedProjectUrlNewTabLink')
+    ?.addEventListener('click', () => closeModal('cancel'));
   document
     .getElementById('untrustedProjectUrlCancelButton')
     ?.addEventListener('click', () => closeModal('cancel'));

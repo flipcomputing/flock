@@ -1176,6 +1176,21 @@ export default {
   project_open_ui: 'Abrir', // human
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
+  tools_options_tab_ui: 'Opciones', // ai
+  tools_export_tab_ui: 'Exportar', // ai
+  export_web_page_heading_ui: 'Página web', // ai
+  export_web_page_description_ui: 'Guarda un único archivo que reproduce tu proyecto en un navegador web.', // ai
+  export_web_page_button_ui: 'Guardar como página web', // ai
+  export_web_zip_button_ui: 'Guardar como ZIP web', // ai
+  export_embed_heading_ui: 'Código para insertar', // ai
+  export_embed_description_ui: 'Copia este código y pégalo en otro sitio web para mostrar tu proyecto allí.', // ai
+  export_embed_copy_button_ui: 'Copiar código', // ai
+  export_hosted_heading_ui: 'Código para insertar un proyecto alojado', // ai
+  export_hosted_comment: 'Sustituye la dirección después de project= por la dirección de tu propio archivo de proyecto, como un enlace raw de GitHub.', // ai
+  export_embed_copied: 'Copiado.', // ai
+  export_embed_copy_failed: 'No se pudo copiar. Selecciona el código y cópialo tú.', // ai
+  export_web_page_file_description: 'Página web', // ai
+  export_web_zip_file_description: 'Archivo ZIP', // ai
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai
@@ -1321,10 +1336,12 @@ export default {
   snippet_file_description: 'Fragmento de Flock XR', // human
   snippet_filename_prompt: 'Introduce un nombre de archivo para el fragmento:', // human
   project_file_description: 'Proyecto de Flock XR', // human
-  file_too_large_alert: 'Archivo demasiado grande. El tamaño máximo es 5 MB.', // human
+  file_too_large_alert: 'Este proyecto es demasiado grande.', // ai
   invalid_filetype_alert: 'Solo se permiten archivos de proyecto .json o .flock.', // human
   invalid_project_alert: 'Este archivo no es un proyecto válido de Flock XR.', // human
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
+  project_url_load_failed_alert:
+    'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
   unsaved_changes_title_ui: 'Cambios sin guardar', // ai
@@ -1337,6 +1354,12 @@ export default {
   untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
   untrusted_project_url_message_ui:
     'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
+  untrusted_project_url_framed_message_ui:
+    'Este enlace de proyecto no está en la lista de confianza de Flock XR, así que se abre en una pestaña nueva donde puedes decidir si ejecutarlo.', // ai
+  untrusted_project_url_new_tab_link_ui: 'Abrir en una pestaña nueva', // ai
+  untrusted_project_link_title_ui: '¿Abrir este proyecto?', // ai
+  untrusted_project_link_message_ui:
+    'Este proyecto venía dentro de un enlace, así que Flock XR no puede saber de dónde viene. Continúa solo si confías en el lugar donde conseguiste el enlace — se ejecutará en tu navegador.', // ai
   untrusted_project_url_cancel_button_ui: 'Cancelar', // ai
   untrusted_project_url_open_button_ui: 'Abrir proyecto', // ai
   close_untrusted_project_url_ui: 'Cerrar', // ai
@@ -1367,6 +1390,8 @@ export default {
     'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
   error_xr_models_offline:
     'Conéctate a internet para cargar los modelos de los mandos y las manos (opcionales). La XR funciona igual sin ellos.', // ai
+  error_chunk_load:
+    'No se ha podido cargar una parte de Flock. Comprueba tu conexión a internet y vuelve a cargar la página.', // ai
   recursion_too_deep:
     'Una función se seguía llamando a sí misma, así que se detuvo. Comprueba que pueda terminar.', // ai
   unhandled_rejection: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai

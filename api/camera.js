@@ -28,6 +28,7 @@ export const flockCamera = {
           return;
         }
         flock.ensureVerticalConstraint(mesh);
+        flock._editorCameraOverride?.yieldToProject?.();
 
         const existingCamera = flock.scene.activeCamera;
         const isRig = existingCamera?.metadata?.cameraRig;
@@ -706,6 +707,7 @@ export const flockCamera = {
   // switch then only changes the camera they return to.
   _setProjectCamera(camera) {
     const override = flock._editorCameraOverride;
+    override?.yieldToProject?.();
     if (override?.active()) {
       override.setReturnCamera(camera);
       return;

@@ -288,6 +288,31 @@ function csgSourceFor(mesh, name, temporaries, options = { stripAttributes: fals
   return prepareMeshForCSG(mesh);
 }
 
+function csgFromMesh(mesh) {
+  const csg = flock.BABYLON.CSG2.FromMesh(mesh, false);
+  if (!(csg._manifold?.volume?.() < 0)) return csg;
+  csg.dispose();
+  const flipped = mesh.clone(`${mesh.name}_flipped`, mesh.parent, true);
+  try {
+    flipped.makeGeometryUnique();
+    flipped.flipFaces();
+    return flock.BABYLON.CSG2.FromMesh(flipped, false);
+  } finally {
+    flipped.dispose();
+  }
+}
+
+function csgApply(csg, operation, mesh) {
+  const other = csgFromMesh(mesh);
+  try {
+    const result = csg[operation](other);
+    csg.dispose();
+    return result;
+  } finally {
+    other.dispose();
+  }
+}
+
 function materialReferenceFor(mesh) {
   return mesh.metadata?.modelName ? flock._findFirstDescendantWithMaterial(mesh) || mesh : mesh;
 }
@@ -867,9 +892,8 @@ export const flockCSG = {
           });
 
           if (!csgUnsafe) {
+            let currentMesh = meshesToMerge[0];
             try {
-              let currentMesh = meshesToMerge[0];
-
               for (let i = 1; i < meshesToMerge.length; i++) {
                 const nextMesh = meshesToMerge[i];
 
@@ -877,17 +901,20 @@ export const flockCSG = {
                 const pair = [currentMesh, nextMesh];
                 normalizeMeshAttributesForMerge(pair, { logWarning: false });
 
-                const leftCSG = flock.BABYLON.CSG2.FromMesh(currentMesh, false);
-                const rightCSG = flock.BABYLON.CSG2.FromMesh(nextMesh, false);
-                const combinedCSG = leftCSG.add(rightCSG);
-
                 const oldIntermediate = currentMesh;
 
-                // Convert back to mesh to "bake" geometry before the next addition
-                currentMesh = combinedCSG.toMesh('temp_step_' + i, referenceMesh.getScene(), {
-                  centerMesh: false,
-                  rebuildNormals: true,
-                });
+                let stepCSG = csgFromMesh(currentMesh);
+                try {
+                  stepCSG = csgApply(stepCSG, 'add', nextMesh);
+
+                  // Convert back to mesh to "bake" geometry before the next addition
+                  currentMesh = stepCSG.toMesh('temp_step_' + i, referenceMesh.getScene(), {
+                    centerMesh: false,
+                    rebuildNormals: true,
+                  });
+                } finally {
+                  stepCSG.dispose();
+                }
 
                 // Dispose the intermediate mesh if it's not part of the original source list
                 if (i > 1 || oldIntermediate !== meshesToMerge[0]) {
@@ -904,6 +931,7 @@ export const flockCSG = {
                 mergedMesh = null;
               }
             } catch (error) {
+              if (!meshesToMerge.includes(currentMesh)) currentMesh.dispose();
               const emptyMeshes = flock.scene.meshes.filter(
                 (m) => m.name === modelId && m.getTotalVertices() === 0
               );
@@ -1051,7 +1079,7 @@ export const flockCSG = {
             const baseDuplicate =
               (baseMesh.metadata?.modelName && modelCloneForCSG(baseMesh, 'baseDuplicate')) ||
               cloneForCSG(actualBase, 'baseDuplicate');
-            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            let outerCSG = csgFromMesh(baseDuplicate);
             const subtractDuplicates = [];
 
             validMeshes.forEach((mesh, meshIndex) => {
@@ -1096,8 +1124,7 @@ export const flockCSG = {
 
             subtractDuplicates.forEach((m, idx) => {
               try {
-                const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
-                outerCSG = outerCSG.subtract(meshCSG);
+                outerCSG = csgApply(outerCSG, 'subtract', m);
               } catch (e) {
                 console.warn(`[subtractMeshesMerge] Subtraction ${idx} failed:`, e.message);
               }
@@ -1130,6 +1157,8 @@ export const flockCSG = {
               baseDuplicate.dispose();
               subtractDuplicates.forEach((m) => m.dispose());
               return resolve(null);
+            } finally {
+              outerCSG.dispose();
             }
 
             resultMesh.position.set(0, 0, 0);
@@ -1200,7 +1229,7 @@ export const flockCSG = {
               baseDuplicate.computeWorldMatrix(true);
             }
 
-            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            let outerCSG = csgFromMesh(baseDuplicate);
             const allToolParts = [];
             validMeshes.forEach((mesh, meshIndex) => {
               if (mesh.metadata?.modelName) {
@@ -1215,8 +1244,7 @@ export const flockCSG = {
 
             allToolParts.forEach((part) => {
               try {
-                const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
-                outerCSG = outerCSG.subtract(partCSG);
+                outerCSG = csgApply(outerCSG, 'subtract', part);
               } catch (e) {
                 console.warn(e);
               }
@@ -1249,6 +1277,8 @@ export const flockCSG = {
               baseDuplicate.dispose();
               allToolParts.forEach((t) => t.dispose());
               return resolve(null);
+            } finally {
+              outerCSG.dispose();
             }
 
             const localCenter = resultMesh.getBoundingInfo().boundingBox.center.clone();
@@ -1324,7 +1354,7 @@ export const flockCSG = {
           // Create the base CSG
           let baseCSG;
           try {
-            baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
+            baseCSG = csgFromMesh(firstMesh);
           } catch (e) {
             console.warn('[intersectMeshes] CSG2.FromMesh failed on first mesh:', e.message);
             console.warn(
@@ -1347,8 +1377,7 @@ export const flockCSG = {
             }
 
             try {
-              const meshCSG = flock.BABYLON.CSG2.FromMesh(source, false);
-              baseCSG = baseCSG.intersect(meshCSG);
+              baseCSG = csgApply(baseCSG, 'intersect', source);
             } catch (e) {
               console.warn('[intersectMeshes] CSG intersect failed:', e.message);
               csgFailed = true;
@@ -1357,6 +1386,7 @@ export const flockCSG = {
           disposeTemporaries();
 
           if (csgFailed) {
+            baseCSG.dispose();
             console.warn(
               '[intersectMeshes] Note: CSG operations require watertight (manifold) geometry.'
             );
@@ -1390,6 +1420,8 @@ export const flockCSG = {
               .forEach((m) => m.dispose());
 
             return null;
+          } finally {
+            baseCSG.dispose();
           }
 
           // Keep local origin aligned with mesh bounds while preserving world placement.

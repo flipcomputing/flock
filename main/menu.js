@@ -18,6 +18,7 @@ const closeToolsModal = document.getElementById('closeToolsModal');
 const playerControlsCheckbox = document.getElementById('playerControlsCheckbox');
 const gizmoControlsCheckbox = document.getElementById('gizmoControlsCheckbox');
 const gizmoHintsCheckbox = document.getElementById('gizmoHintsCheckbox');
+const toolsTabs = toolsModal ? Array.from(toolsModal.querySelectorAll('[role="tab"]')) : [];
 let previouslyFocused = null;
 
 function canRestoreFocus(element) {
@@ -85,8 +86,36 @@ function syncToolsModal() {
   document.dispatchEvent(new CustomEvent('toolspanelsync'));
 }
 
+function selectToolsTab(selectedTab, { focus = false } = {}) {
+  toolsTabs.forEach((tab) => {
+    const selected = tab === selectedTab;
+    tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+    tab.tabIndex = selected ? 0 : -1;
+    document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+  });
+  if (focus) selectedTab.focus();
+  document.dispatchEvent(new CustomEvent('toolstabselect', { detail: { tab: selectedTab.id } }));
+}
+
+toolsTabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectToolsTab(tab));
+  tab.addEventListener('keydown', (e) => {
+    const last = toolsTabs.length - 1;
+    const next = {
+      ArrowRight: index === last ? 0 : index + 1,
+      ArrowLeft: index === 0 ? last : index - 1,
+      Home: 0,
+      End: last,
+    }[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    selectToolsTab(toolsTabs[next], { focus: true });
+  });
+});
+
 function openToolsModal() {
   syncToolsModal();
+  if (toolsTabs.length) selectToolsTab(toolsTabs[0]);
   openModal(toolsModal, playerControlsCheckbox ?? closeToolsModal);
 }
 

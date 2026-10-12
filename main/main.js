@@ -47,6 +47,7 @@ import { initializeBlockHandling, showSelectedBlockHint } from './blockhandling.
 import { announceToScreenReader, setupInput } from './input.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
+import { initExportPanel } from '../ui/exportPanel.js';
 import {
   setLanguage,
   initializeLanguageMenu,
@@ -783,6 +784,7 @@ function initializeApp() {
   runCodeButton.addEventListener('click', executeCode);
   pauseCodeButton.addEventListener('click', () => togglePause({ focusCanvas: true }));
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
+  initExportPanel(workspace);
 
   // Add toolbar buttons
   const zoomInBtn = document.getElementById('zoomInBtn');

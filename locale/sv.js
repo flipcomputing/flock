@@ -1054,6 +1054,21 @@ export default {
   project_open_ui: 'Öppna',
   project_save_ui: 'Spara',
   tools_submenu_ui: 'Verktyg',
+  tools_options_tab_ui: 'Alternativ', // ai
+  tools_export_tab_ui: 'Exportera', // ai
+  export_web_page_heading_ui: 'Webbsida', // ai
+  export_web_page_description_ui: 'Spara en enda fil som spelar upp ditt projekt i en webbläsare.', // ai
+  export_web_page_button_ui: 'Spara som webbsida', // ai
+  export_web_zip_button_ui: 'Spara som webb-zip', // ai
+  export_embed_heading_ui: 'Inbäddningskod', // ai
+  export_embed_description_ui: 'Kopiera den här koden och klistra in den på en annan webbplats för att visa ditt projekt där.', // ai
+  export_embed_copy_button_ui: 'Kopiera kod', // ai
+  export_hosted_heading_ui: 'Inbäddningskod för ett projekt på webben', // ai
+  export_hosted_comment: 'Byt ut adressen efter project= mot adressen till din egen projektfil, till exempel en raw-länk från GitHub.', // ai
+  export_embed_copied: 'Kopierat.', // ai
+  export_embed_copy_failed: 'Det gick inte att kopiera. Markera koden och kopiera den själv.', // ai
+  export_web_page_file_description: 'Webbsida', // ai
+  export_web_zip_file_description: 'ZIP-fil', // ai
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai
@@ -1182,7 +1197,7 @@ export default {
   snippet_file_description: 'Flock XR-snippet',
   snippet_filename_prompt: 'Ange ett filnamn för snippeten:',
   project_file_description: 'Flock XR-projekt',
-  file_too_large_alert: 'Filen är för stor. Maxstorlek är 5 MB.',
+  file_too_large_alert: 'Det här projektet är för stort.', // ai
   invalid_filetype_alert: 'Endast .json- eller .flock-projektfiler är tillåtna.',
   invalid_project_alert: 'Den här filen är inte ett giltigt Flock XR-projekt.',
   failed_to_read_file_alert: 'Det gick inte att läsa filen.',
@@ -1206,6 +1221,8 @@ export default {
     'Inspektören behöver en internetanslutning första gången du använder den. Anslut till internet och försök igen.', // ai
   error_xr_models_offline:
     'Anslut till internet för att ladda modellerna för handkontrollerna och händerna (valfria). XR fungerar ändå utan dem.', // ai
+  error_chunk_load:
+    'En del av Flock kunde inte laddas. Kontrollera din internetanslutning och ladda sedan om sidan.', // ai
   xr_mode_message: 'XR-läge!',
   fly_camera_instructions: 'Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:

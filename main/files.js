@@ -2,7 +2,7 @@ import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
 import { getMetadata } from 'meta-png';
-import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
+import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED, FLOCK_FORMAT_VERSION } from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
@@ -13,17 +13,29 @@ import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
+// A JavaScript string unit takes at most 3 bytes in UTF-8.
+const MAX_PROJECT_TEXT_UTF8_BYTES = 3 * MAX_PROJECT_TEXT_LENGTH;
 
 // project= URLs are auto-fetched and their contents auto-executed as code,
 // so anything outside this list needs explicit user consent first.
 const TRUSTED_PROJECT_URL_PREFIXES = [
   'https://github.com/flipcomputing/flockxr-projects',
-  'https://app.flockxr.com',
-  'https://flockxr.com',
+  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
 ];
+
+// The domain itself and every subdomain.
+const TRUSTED_PROJECT_DOMAINS = ['flockxr.com'];
+
+function isTrustedProjectDomain(url) {
+  if (url.protocol !== 'https:' || url.port !== '') return false;
+  return TRUSTED_PROJECT_DOMAINS.some(
+    (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+  );
+}
 
 export function isTrustedProjectUrl(url) {
   if (url.origin === window.location.origin) return true;
+  if (isTrustedProjectDomain(url)) return true;
   return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
     const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
     return url.href === prefix || url.href.startsWith(boundary);
@@ -45,9 +57,17 @@ class ProjectReadError extends Error {
   }
 }
 
+class ProjectFetchError extends Error {
+  constructor(message, options) {
+    super(message, options);
+    this.name = 'ProjectFetchError';
+  }
+}
+
 function alertKeyForProjectError(error) {
   if (error instanceof ProjectTooLargeError) return 'file_too_large_alert';
   if (error instanceof ProjectReadError) return 'failed_to_read_file_alert';
+  if (error instanceof ProjectFetchError) return 'project_url_load_failed_alert';
   return 'invalid_project_alert';
 }
 
@@ -101,11 +121,15 @@ async function confirmDiscardIfModified() {
   return true;
 }
 
+export function serializeProject(ws) {
+  return { version: FLOCK_FORMAT_VERSION, ...Blockly.serialization.workspaces.save(ws) };
+}
+
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
   try {
     if (!workspace || !workspace.getAllBlocks) return;
-    const state = Blockly.serialization.workspaces.save(workspace);
+    const state = serializeProject(workspace);
     // Never overwrite a good autosave with an empty/transient workspace —
     // the error banner's Reload action restores the project from this entry.
     if (!state || !state.blocks || !state.blocks.blocks?.length) return;
@@ -192,8 +216,12 @@ function validateBlocklyJson(json) {
 
   // 3. Validate it's actually a Blockly workspace structure
   function validateBlocklyStructure(data) {
+    if (data.version !== undefined && typeof data.version !== 'string') {
+      throw new Error('Invalid project version');
+    }
+
     // Empty workspace is valid
-    if (Object.keys(data).length === 0) {
+    if (Object.keys(data).every((key) => key === 'version')) {
       return;
     }
 
@@ -204,7 +232,7 @@ function validateBlocklyJson(json) {
     }
 
     // Whitelist allowed properties at root level
-    const allowedRootKeys = ['blocks', 'variables', 'workspaceComments'];
+    const allowedRootKeys = ['version', 'blocks', 'variables', 'workspaceComments'];
     const rootKeys = Object.keys(data);
 
     for (const key of rootKeys) {
@@ -388,7 +416,9 @@ export function extractEmbeddedProjectJson(htmlText) {
 
 function parseProjectJsonResponse(response) {
   if (!response.ok) {
-    throw new Error(`Failed to load project (${response.status} ${response.statusText})`);
+    throw new ProjectFetchError(
+      `Failed to load project (${response.status} ${response.statusText})`
+    );
   }
 
   const contentType = (response.headers.get('content-type') || '').toLowerCase();
@@ -458,6 +488,46 @@ async function readProjectFile(file) {
   });
 }
 
+const PROJECT_HASH_PREFIX = '#project=';
+
+function isFramedByOtherSite() {
+  if (window.top === window.self) return false;
+  try {
+    return window.top.location.origin !== window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
+async function readProjectFromHash(encoded) {
+  if (encoded.length > MAX_PROJECT_FILE_BYTES) {
+    throw new ProjectTooLargeError();
+  }
+
+  const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const reader = new Blob([bytes])
+    .stream()
+    .pipeThrough(new DecompressionStream('gzip'))
+    .getReader();
+
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_PROJECT_TEXT_UTF8_BYTES) {
+      await reader.cancel();
+      throw new ProjectTooLargeError();
+    }
+    chunks.push(value);
+  }
+
+  const text = new TextDecoder().decode(await new Blob(chunks).arrayBuffer());
+  return parseProjectText(text, { describeParseError: 'Failed to parse project from link' });
+}
+
 // Function to load workspace from various sources
 export async function loadWorkspace(workspace, executeCallback) {
   const urlParams = new URLSearchParams(window.location.search);
@@ -486,6 +556,23 @@ export async function loadWorkspace(workspace, executeCallback) {
     return;
   }
 
+  if (window.location.hash.startsWith(PROJECT_HASH_PREFIX)) {
+    const encoded = window.location.hash.slice(PROJECT_HASH_PREFIX.length);
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    if (isFramedByOtherSite()) {
+      console.warn('Ignoring project link: Flock is embedded in another site.');
+    } else if ((await openUntrustedProjectUrlModal('')) === 'open') {
+      try {
+        loadWorkspaceAndExecute(await readProjectFromHash(encoded), workspace, effectiveCallback);
+        return;
+      } catch (error) {
+        console.error('Error loading project from link:', error);
+        alert(translate(alertKeyForProjectError(error)));
+      }
+    }
+  }
+
   if (projectUrl) {
     if (projectUrl === 'starter') {
       loadStarter();
@@ -506,8 +593,8 @@ export async function loadWorkspace(workspace, executeCallback) {
           throw new Error('Project URL must use http or https protocol');
         }
         const path = validatedUrl.pathname.toLowerCase();
-        if (!/\.(json|flock|html?)$/.test(path)) {
-          throw new Error('Project URL must point to a .flock, .json or .html file');
+        if (!/(\.(json|flock|html?)|\/)$/.test(path)) {
+          throw new Error('Project URL must point to a .flock, .json or .html file, or a folder');
         }
       } catch (error) {
         console.error('Invalid project URL:', error);
@@ -515,8 +602,12 @@ export async function loadWorkspace(workspace, executeCallback) {
         return;
       }
 
+      const newTabHref = isFramedByOtherSite()
+        ? `${window.location.origin}${window.location.pathname}?project=${encodeURIComponent(validatedUrl.href)}`
+        : null;
+
       if (!isTrustedProjectUrl(validatedUrl)) {
-        const choice = await openUntrustedProjectUrlModal(validatedUrl.origin);
+        const choice = await openUntrustedProjectUrlModal(validatedUrl.origin, { newTabHref });
         if (choice !== 'open') {
           loadStarter();
           return;
@@ -524,12 +615,14 @@ export async function loadWorkspace(workspace, executeCallback) {
       }
 
       try {
-        const response = await fetch(validatedUrl.href);
+        const response = await fetch(validatedUrl.href).catch((error) => {
+          throw new ProjectFetchError('Failed to fetch project', { cause: error });
+        });
         // fetch follows redirects transparently, so the origin that actually
         // served the response can differ from the one the user approved.
         const finalUrl = new URL(response.url);
         if (finalUrl.origin !== validatedUrl.origin && !isTrustedProjectUrl(finalUrl)) {
-          const choice = await openUntrustedProjectUrlModal(finalUrl.origin);
+          const choice = await openUntrustedProjectUrlModal(finalUrl.origin, { newTabHref });
           if (choice !== 'open') {
             loadStarter();
             return;
@@ -539,6 +632,7 @@ export async function loadWorkspace(workspace, executeCallback) {
         loadWorkspaceAndExecute(json, workspace, effectiveCallback);
       } catch (error) {
         console.error('Error loading project from URL:', error);
+        alert(translate(alertKeyForProjectError(error)));
         loadStarter();
       }
     }
@@ -628,7 +722,7 @@ export async function exportCode(workspace) {
       }
     }
 
-    const json = Blockly.serialization.workspaces.save(ws);
+    const json = serializeProject(ws);
     const jsonString = JSON.stringify(json, null, 2);
 
     // Custom MIME type for Flock project files
@@ -692,7 +786,7 @@ export async function autoSaveToFile(workspace) {
     const ws = workspace && workspace.getAllBlocks ? workspace : Blockly.getMainWorkspace();
     if (!ws || !ws.getAllBlocks) return;
 
-    const json = Blockly.serialization.workspaces.save(ws);
+    const json = serializeProject(ws);
     const jsonString = JSON.stringify(json, null, 2);
     const writable = await currentFileHandle.createWritable();
     await writable.write(jsonString);
@@ -826,7 +920,7 @@ function isValidProjectFileJson(json) {
     return false;
   }
 
-  if (Object.keys(json).length === 0) {
+  if (Object.keys(json).every((key) => key === 'version')) {
     return true;
   }
 
