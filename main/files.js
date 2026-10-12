@@ -2,7 +2,7 @@ import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
 import { getMetadata } from 'meta-png';
-import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
+import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED, FLOCK_FORMAT_VERSION } from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
@@ -121,11 +121,15 @@ async function confirmDiscardIfModified() {
   return true;
 }
 
+export function serializeProject(ws) {
+  return { version: FLOCK_FORMAT_VERSION, ...Blockly.serialization.workspaces.save(ws) };
+}
+
 // Function to save the current workspace state
 export function saveWorkspace(workspace) {
   try {
     if (!workspace || !workspace.getAllBlocks) return;
-    const state = Blockly.serialization.workspaces.save(workspace);
+    const state = serializeProject(workspace);
     // Never overwrite a good autosave with an empty/transient workspace —
     // the error banner's Reload action restores the project from this entry.
     if (!state || !state.blocks || !state.blocks.blocks?.length) return;
@@ -212,8 +216,12 @@ function validateBlocklyJson(json) {
 
   // 3. Validate it's actually a Blockly workspace structure
   function validateBlocklyStructure(data) {
+    if (data.version !== undefined && typeof data.version !== 'string') {
+      throw new Error('Invalid project version');
+    }
+
     // Empty workspace is valid
-    if (Object.keys(data).length === 0) {
+    if (Object.keys(data).every((key) => key === 'version')) {
       return;
     }
 
@@ -224,7 +232,7 @@ function validateBlocklyJson(json) {
     }
 
     // Whitelist allowed properties at root level
-    const allowedRootKeys = ['blocks', 'variables', 'workspaceComments'];
+    const allowedRootKeys = ['version', 'blocks', 'variables', 'workspaceComments'];
     const rootKeys = Object.keys(data);
 
     for (const key of rootKeys) {
@@ -714,7 +722,7 @@ export async function exportCode(workspace) {
       }
     }
 
-    const json = Blockly.serialization.workspaces.save(ws);
+    const json = serializeProject(ws);
     const jsonString = JSON.stringify(json, null, 2);
 
     // Custom MIME type for Flock project files
@@ -778,7 +786,7 @@ export async function autoSaveToFile(workspace) {
     const ws = workspace && workspace.getAllBlocks ? workspace : Blockly.getMainWorkspace();
     if (!ws || !ws.getAllBlocks) return;
 
-    const json = Blockly.serialization.workspaces.save(ws);
+    const json = serializeProject(ws);
     const jsonString = JSON.stringify(json, null, 2);
     const writable = await currentFileHandle.createWritable();
     await writable.write(jsonString);
@@ -912,7 +920,7 @@ function isValidProjectFileJson(json) {
     return false;
   }
 
-  if (Object.keys(json).length === 0) {
+  if (Object.keys(json).every((key) => key === 'version')) {
     return true;
   }
 

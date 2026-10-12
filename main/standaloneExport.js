@@ -1,4 +1,4 @@
-const FLOCK_FORMAT_VERSION = '2.0.0';
+import { FLOCK_FORMAT_VERSION } from '../config.js';
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 

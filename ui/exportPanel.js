@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
+import { serializeProject } from '../main/files.js';
 import {
   downloadStandaloneHtml,
   downloadStandaloneZip,
@@ -9,7 +10,7 @@ import {
 } from '../main/standaloneExport.js';
 
 function exportOptions(workspace) {
-  const project = Blockly.serialization.workspaces.save(workspace);
+  const project = serializeProject(workspace);
   const used = new Set(Blockly.Variables.allUsedVarModels(workspace).map((model) => model.getId()));
   if (project.variables) project.variables = project.variables.filter((v) => used.has(v.id));
   return {
