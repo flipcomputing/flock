@@ -751,6 +751,24 @@ function nearestUnlockedMesh(x, y) {
   return null;
 }
 
+function preferNewestCoincident(mesh, x, y) {
+  if (!mesh || mesh.name === 'ground') return mesh;
+  const hits = flock.scene.multiPick(x, y, (m) => m.isPickable && m.name !== 'ground');
+  if (!hits?.length) return mesh;
+  const nearest = Math.min(...hits.map((h) => h.distance));
+  const roots = new Set();
+  for (const h of hits) {
+    if (!h.pickedMesh || h.distance > nearest + 1e-3) continue;
+    roots.add(h.pickedMesh.parent ? getRootMesh(h.pickedMesh.parent) : h.pickedMesh);
+  }
+  if (roots.size < 2) return mesh;
+  const attached = gizmoManager?.attachedMesh;
+  if (attached && roots.has(attached)) return attached;
+  let newest = null;
+  for (const r of roots) if (!newest || r.uniqueId > newest.uniqueId) newest = r;
+  return newest ?? mesh;
+}
+
 // Force the "no entry" cursor. Babylon re-applies its scene cursors on pointer
 // move, so set those as well as the DOM cursor.
 function showNotAllowedCursor() {
@@ -2600,7 +2618,11 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
       hasPicked = true;
       cleanupScenePick();
     }
-    let mesh = pickedMesh;
+    let mesh = preferNewestCoincident(
+      pickedMesh,
+      x ?? flock.scene.pointerX,
+      y ?? flock.scene.pointerY
+    );
     // For tools that can't act on a locked mesh (transform/colour/delete), if
     // the topmost hit is locked, fall through to the nearest non-locked mesh at
     // the same point — i.e. the visible/operable one (e.g. an unlocked
@@ -5113,6 +5135,7 @@ export function setGizmoManager(value) {
       let pickedMesh = event.pickInfo?.pickedMesh;
       if (!pickedMesh || pickedMesh.name === 'ground') return;
       if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
+      pickedMesh = preferNewestCoincident(pickedMesh, flock.scene.pointerX, flock.scene.pointerY);
       if (!pickedMesh || pickedMesh === gizmoManager.attachedMesh) return;
 
       // Wrapped attachToMesh (above) already handles locked meshes, parent
