@@ -977,7 +977,7 @@ export const flock = {
     });
   },
   async runCode(code, options = {}) {
-    const { focusCanvas = true } = options;
+    const { focusCanvas = true, startCamera = null } = options;
 
     try {
       flock.validateUserCodeAST(code);
@@ -1095,6 +1095,10 @@ export const flock = {
 
       // initialise scene
       await this.initializeNewScene?.();
+      if (startCamera && this.defaultCamera) {
+        this.defaultCamera.position.copyFrom(startCamera.position);
+        this.defaultCamera.setTarget(startCamera.target);
+      }
       if (this.memoryDebug) this.startMemoryMonitoring?.();
 
       // abort plumbing

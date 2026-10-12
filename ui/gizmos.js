@@ -172,6 +172,7 @@ let orbitRetargetObserver = null; // Pointer observer that lets a canvas click s
 let eyeKeyboardCallback = null; // Pick callback of the eye gizmo's canvas keyboard mode
 let previewFrame = null; // Camera frame being looked through via the eye gizmo
 let previewSavedCamera = null; // Camera to return to when the preview ends
+let resumedEditorCamera = null; // Orbit/fly camera Play turned back on, until the project takes over
 
 // Tools that keep the orbit camera active.
 const ORBIT_COMPATIBLE_GIZMOS = new Set(['position', 'rotation', 'scale', 'duplicate', 'select', 'delete']);
@@ -1601,6 +1602,13 @@ function attachOrbitView(mesh) {
     canvas.focus();
   }
 
+  window.orbitViewActive = true;
+  bindOrbitMesh(selectedMesh, mesh ? (window.currentBlock ?? null) : null);
+  setGizmoButtonActive(document.getElementById('eyeButton'), true);
+  watchEyeGizmoRetarget();
+}
+
+function bindOrbitMesh(selectedMesh, block) {
   // Only disposing the orbited mesh exits orbit on its own.
   if (orbitDisposeObserver && orbitDisposeMesh) {
     orbitDisposeMesh.onDisposeObservable.remove(orbitDisposeObserver);
@@ -1613,16 +1621,46 @@ function attachOrbitView(mesh) {
       disconnectOrbitView();
     });
   }
-  window.orbitViewActive = true;
-  window.orbitBlock = mesh ? (window.currentBlock ?? null) : null;
+  window.orbitBlock = block;
   window.orbitMesh = selectedMesh;
   // Orbiting never selects: tools started while orbiting begin with nothing picked.
   if (selectedMesh) {
     if (gizmoManager.attachedMesh === selectedMesh) gizmoManager.attachToMesh(null);
     enableBoundingBox(selectedMesh);
   }
-  setGizmoButtonActive(document.getElementById('eyeButton'), true);
-  watchEyeGizmoRetarget();
+}
+
+// Play rebuilds the scene; turn the orbit or fly view back on with the same framing.
+// The project's own camera still wins: one already active skips the resume, a later one ends it.
+export function resumeEditorCamera(pose) {
+  if (!pose || !gizmoManager || !flock.scene) return;
+  if (flock.scene.activeCamera !== flock.defaultCamera) return;
+  if (!pose.orbit) {
+    if (cameraMode !== 'fly') toggleFlyMode({ hint: false });
+    resumedEditorCamera = flock.scene.activeCamera;
+    return;
+  }
+  watchClickAwayFromCanvas();
+  attachOrbitView(null);
+  const orbitCamera = flock.scene.activeCamera;
+  if (!orbitCamera?.metadata?.orbitView) return;
+  resumedEditorCamera = orbitCamera;
+  orbitCamera.setTarget(pose.orbit.target.clone());
+  orbitCamera.alpha = pose.orbit.alpha;
+  orbitCamera.beta = pose.orbit.beta;
+  orbitCamera.radius = pose.orbit.radius;
+  orbitCamera.targetScreenOffset.copyFrom(pose.orbit.targetScreenOffset);
+
+  const { blockKey } = pose.orbit;
+  if (!blockKey) return;
+  const bind = (mesh) => {
+    if (!mesh || mesh.isDisposed?.() || flock.scene?.activeCamera !== orbitCamera) return;
+    const root = mesh.parent ? getRootMesh(mesh.parent) : mesh;
+    bindOrbitMesh(root, meshMap[blockKey] ?? null);
+  };
+  const mesh = getMeshFromBlockKey(blockKey);
+  if (mesh) bind(mesh);
+  else flock.whenModelReady(blockKey, bind);
 }
 
 function frameSceneObjects(orbitCamera) {
@@ -1732,9 +1770,31 @@ function restoreFreeCameraFromOrbit() {
   return true;
 }
 
+// The orbit or fly view on screen, so Play can carry it into the rebuilt scene.
+export function editorCameraPose() {
+  const camera = flock.scene?.activeCamera;
+  const orbiting = !!camera?.metadata?.orbitView;
+  if (!camera || (!orbiting && cameraMode !== 'fly')) return null;
+  // From the view matrix, not position/target: the framing's targetScreenOffset shifts the eye.
+  const position = camera.getWorldMatrix().getTranslation();
+  const forward = flock.BABYLON.Vector3.Forward(flock.scene.useRightHandedSystem);
+  const pose = { position, target: position.add(camera.getDirection(forward)) };
+  if (!orbiting) return pose;
+  pose.orbit = {
+    blockKey: window.orbitMesh?.metadata?.blockKey ?? null,
+    target: camera.target.clone(),
+    alpha: camera.alpha,
+    beta: camera.beta,
+    radius: camera.radius,
+    targetScreenOffset: camera.targetScreenOffset.clone(),
+  };
+  return pose;
+}
+
 // Standard orbit-view exit: return to the free camera.
 function disconnectOrbitView() {
   const prevMesh = window.orbitMesh;
+  resumedEditorCamera = null;
   // Scene gone (disposal path): wipe all orbit globals so stale state never
   // persists across a scene reset, even though no camera restore is possible.
   if (!flock.scene?.activeCamera?.metadata?.orbitView) {
@@ -1968,6 +2028,13 @@ const editorCameraOverride = {
     if (isCameraPreviewActive()) previewSavedCamera = camera;
     else if (isOrbitViewActive()) orbitSavedCamera = camera;
     else if (cameraMode === 'fly') flock.savedCamera = camera;
+  },
+  yieldToProject() {
+    const camera = resumedEditorCamera;
+    resumedEditorCamera = null;
+    if (!camera || flock.scene?.activeCamera !== camera) return;
+    if (camera.metadata?.orbitView) disconnectOrbitView();
+    else if (cameraMode === 'fly') toggleFlyMode();
   },
   isPreviewing: (frame) => !!frame && previewFrame === frame,
   // A rebuild keeps the preview open, showing the return camera until the
@@ -4693,16 +4760,19 @@ function handleCameraGizmo() {
   toggleFlyMode();
 }
 
-function toggleFlyMode() {
+function toggleFlyMode({ hint = true } = {}) {
   const cameraButton = document.getElementById('cameraButton');
+  resumedEditorCamera = null;
 
   if (cameraMode === 'play') {
     cameraMode = 'fly';
     flock.inputManager?.setInputOwner('editor');
-    showStatus(
-      translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
-      { duration: 15, owner: 'camera', hint: true }
-    );
+    if (hint) {
+      showStatus(
+        translate(isTouchDevice() ? 'fly_camera_instructions_touch' : 'fly_camera_instructions'),
+        { duration: 15, owner: 'camera', hint: true }
+      );
+    }
     setGizmoButtonActive(cameraButton, true);
   } else {
     cameraMode = 'play';
