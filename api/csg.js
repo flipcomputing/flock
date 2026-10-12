@@ -302,6 +302,17 @@ function csgFromMesh(mesh) {
   }
 }
 
+function csgApply(csg, operation, mesh) {
+  const other = csgFromMesh(mesh);
+  try {
+    const result = csg[operation](other);
+    csg.dispose();
+    return result;
+  } finally {
+    other.dispose();
+  }
+}
+
 function materialReferenceFor(mesh) {
   return mesh.metadata?.modelName ? flock._findFirstDescendantWithMaterial(mesh) || mesh : mesh;
 }
@@ -881,9 +892,8 @@ export const flockCSG = {
           });
 
           if (!csgUnsafe) {
+            let currentMesh = meshesToMerge[0];
             try {
-              let currentMesh = meshesToMerge[0];
-
               for (let i = 1; i < meshesToMerge.length; i++) {
                 const nextMesh = meshesToMerge[i];
 
@@ -891,17 +901,20 @@ export const flockCSG = {
                 const pair = [currentMesh, nextMesh];
                 normalizeMeshAttributesForMerge(pair, { logWarning: false });
 
-                const leftCSG = csgFromMesh(currentMesh);
-                const rightCSG = csgFromMesh(nextMesh);
-                const combinedCSG = leftCSG.add(rightCSG);
-
                 const oldIntermediate = currentMesh;
 
-                // Convert back to mesh to "bake" geometry before the next addition
-                currentMesh = combinedCSG.toMesh('temp_step_' + i, referenceMesh.getScene(), {
-                  centerMesh: false,
-                  rebuildNormals: true,
-                });
+                let stepCSG = csgFromMesh(currentMesh);
+                try {
+                  stepCSG = csgApply(stepCSG, 'add', nextMesh);
+
+                  // Convert back to mesh to "bake" geometry before the next addition
+                  currentMesh = stepCSG.toMesh('temp_step_' + i, referenceMesh.getScene(), {
+                    centerMesh: false,
+                    rebuildNormals: true,
+                  });
+                } finally {
+                  stepCSG.dispose();
+                }
 
                 // Dispose the intermediate mesh if it's not part of the original source list
                 if (i > 1 || oldIntermediate !== meshesToMerge[0]) {
@@ -918,6 +931,7 @@ export const flockCSG = {
                 mergedMesh = null;
               }
             } catch (error) {
+              if (!meshesToMerge.includes(currentMesh)) currentMesh.dispose();
               const emptyMeshes = flock.scene.meshes.filter(
                 (m) => m.name === modelId && m.getTotalVertices() === 0
               );
@@ -1110,8 +1124,7 @@ export const flockCSG = {
 
             subtractDuplicates.forEach((m, idx) => {
               try {
-                const meshCSG = csgFromMesh(m);
-                outerCSG = outerCSG.subtract(meshCSG);
+                outerCSG = csgApply(outerCSG, 'subtract', m);
               } catch (e) {
                 console.warn(`[subtractMeshesMerge] Subtraction ${idx} failed:`, e.message);
               }
@@ -1144,6 +1157,8 @@ export const flockCSG = {
               baseDuplicate.dispose();
               subtractDuplicates.forEach((m) => m.dispose());
               return resolve(null);
+            } finally {
+              outerCSG.dispose();
             }
 
             resultMesh.position.set(0, 0, 0);
@@ -1229,8 +1244,7 @@ export const flockCSG = {
 
             allToolParts.forEach((part) => {
               try {
-                const partCSG = csgFromMesh(part);
-                outerCSG = outerCSG.subtract(partCSG);
+                outerCSG = csgApply(outerCSG, 'subtract', part);
               } catch (e) {
                 console.warn(e);
               }
@@ -1263,6 +1277,8 @@ export const flockCSG = {
               baseDuplicate.dispose();
               allToolParts.forEach((t) => t.dispose());
               return resolve(null);
+            } finally {
+              outerCSG.dispose();
             }
 
             const localCenter = resultMesh.getBoundingInfo().boundingBox.center.clone();
@@ -1361,8 +1377,7 @@ export const flockCSG = {
             }
 
             try {
-              const meshCSG = csgFromMesh(source);
-              baseCSG = baseCSG.intersect(meshCSG);
+              baseCSG = csgApply(baseCSG, 'intersect', source);
             } catch (e) {
               console.warn('[intersectMeshes] CSG intersect failed:', e.message);
               csgFailed = true;
@@ -1371,6 +1386,7 @@ export const flockCSG = {
           disposeTemporaries();
 
           if (csgFailed) {
+            baseCSG.dispose();
             console.warn(
               '[intersectMeshes] Note: CSG operations require watertight (manifold) geometry.'
             );
@@ -1404,6 +1420,8 @@ export const flockCSG = {
               .forEach((m) => m.dispose());
 
             return null;
+          } finally {
+            baseCSG.dispose();
           }
 
           // Keep local origin aligned with mesh bounds while preserving world placement.
