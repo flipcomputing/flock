@@ -288,6 +288,20 @@ function csgSourceFor(mesh, name, temporaries, options = { stripAttributes: fals
   return prepareMeshForCSG(mesh);
 }
 
+function csgFromMesh(mesh) {
+  const csg = flock.BABYLON.CSG2.FromMesh(mesh, false);
+  if (!(csg._manifold?.volume?.() < 0)) return csg;
+  csg.dispose();
+  const flipped = mesh.clone(`${mesh.name}_flipped`, mesh.parent, true);
+  try {
+    flipped.makeGeometryUnique();
+    flipped.flipFaces();
+    return flock.BABYLON.CSG2.FromMesh(flipped, false);
+  } finally {
+    flipped.dispose();
+  }
+}
+
 function materialReferenceFor(mesh) {
   return mesh.metadata?.modelName ? flock._findFirstDescendantWithMaterial(mesh) || mesh : mesh;
 }
@@ -877,8 +891,8 @@ export const flockCSG = {
                 const pair = [currentMesh, nextMesh];
                 normalizeMeshAttributesForMerge(pair, { logWarning: false });
 
-                const leftCSG = flock.BABYLON.CSG2.FromMesh(currentMesh, false);
-                const rightCSG = flock.BABYLON.CSG2.FromMesh(nextMesh, false);
+                const leftCSG = csgFromMesh(currentMesh);
+                const rightCSG = csgFromMesh(nextMesh);
                 const combinedCSG = leftCSG.add(rightCSG);
 
                 const oldIntermediate = currentMesh;
@@ -1051,7 +1065,7 @@ export const flockCSG = {
             const baseDuplicate =
               (baseMesh.metadata?.modelName && modelCloneForCSG(baseMesh, 'baseDuplicate')) ||
               cloneForCSG(actualBase, 'baseDuplicate');
-            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            let outerCSG = csgFromMesh(baseDuplicate);
             const subtractDuplicates = [];
 
             validMeshes.forEach((mesh, meshIndex) => {
@@ -1096,7 +1110,7 @@ export const flockCSG = {
 
             subtractDuplicates.forEach((m, idx) => {
               try {
-                const meshCSG = flock.BABYLON.CSG2.FromMesh(m, false);
+                const meshCSG = csgFromMesh(m);
                 outerCSG = outerCSG.subtract(meshCSG);
               } catch (e) {
                 console.warn(`[subtractMeshesMerge] Subtraction ${idx} failed:`, e.message);
@@ -1200,7 +1214,7 @@ export const flockCSG = {
               baseDuplicate.computeWorldMatrix(true);
             }
 
-            let outerCSG = flock.BABYLON.CSG2.FromMesh(baseDuplicate, false);
+            let outerCSG = csgFromMesh(baseDuplicate);
             const allToolParts = [];
             validMeshes.forEach((mesh, meshIndex) => {
               if (mesh.metadata?.modelName) {
@@ -1215,7 +1229,7 @@ export const flockCSG = {
 
             allToolParts.forEach((part) => {
               try {
-                const partCSG = flock.BABYLON.CSG2.FromMesh(part, false);
+                const partCSG = csgFromMesh(part);
                 outerCSG = outerCSG.subtract(partCSG);
               } catch (e) {
                 console.warn(e);
@@ -1324,7 +1338,7 @@ export const flockCSG = {
           // Create the base CSG
           let baseCSG;
           try {
-            baseCSG = flock.BABYLON.CSG2.FromMesh(firstMesh, false);
+            baseCSG = csgFromMesh(firstMesh);
           } catch (e) {
             console.warn('[intersectMeshes] CSG2.FromMesh failed on first mesh:', e.message);
             console.warn(
@@ -1347,7 +1361,7 @@ export const flockCSG = {
             }
 
             try {
-              const meshCSG = flock.BABYLON.CSG2.FromMesh(source, false);
+              const meshCSG = csgFromMesh(source);
               baseCSG = baseCSG.intersect(meshCSG);
             } catch (e) {
               console.warn('[intersectMeshes] CSG intersect failed:', e.message);
