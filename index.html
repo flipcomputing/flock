@@ -720,7 +720,41 @@
                   <span aria-hidden="true"></span>
                 </button>
                 <h2 id="tools-modal-title" data-i18n="tools_submenu">Tools</h2>
-                <div class="tools-options">
+                <div
+                  class="example-tabs tools-tabs"
+                  role="tablist"
+                  aria-labelledby="tools-modal-title"
+                >
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsOptionsTab"
+                    aria-controls="toolsOptionsPanel"
+                    aria-selected="true"
+                    data-i18n="tools_options_tab"
+                  >
+                    Options
+                  </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsExportTab"
+                    aria-controls="toolsExportPanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_export_tab"
+                  >
+                    Export
+                  </button>
+                </div>
+                <div
+                  class="tools-options"
+                  id="toolsOptionsPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsOptionsTab"
+                >
                   <label class="tools-option" for="playerControlsCheckbox">
                     <input type="checkbox" id="playerControlsCheckbox" />
                     <span data-i18n="player_controls_option">Player controls</span>
@@ -737,6 +771,90 @@
                     <input type="checkbox" id="inspectorCheckbox" />
                     <span data-i18n="inspector_tool">Inspector</span>
                   </label>
+                </div>
+                <div
+                  class="tools-export"
+                  id="toolsExportPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsExportTab"
+                  hidden
+                >
+                  <section class="tools-export-section" aria-labelledby="exportWebPageHeading">
+                    <h3 id="exportWebPageHeading" data-i18n="export_web_page_heading">Web page</h3>
+                    <p id="exportWebPageDescription" data-i18n="export_web_page_description">
+                      Save a single file that plays your project in a web browser.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button project-action-button--primary"
+                        id="exportWebPageButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_page_button"
+                      >
+                        Save as web page
+                      </button>
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportWebZipButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_zip_button"
+                      >
+                        Save as web zip
+                      </button>
+                    </div>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportEmbedHeading">
+                    <h3 id="exportEmbedHeading" data-i18n="export_embed_heading">Embed code</h3>
+                    <p id="exportEmbedDescription" data-i18n="export_embed_description">
+                      Copy this code and paste it into another website to show your project there.
+                    </p>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportEmbedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportEmbedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportEmbedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportEmbedHeading"
+                      aria-describedby="exportEmbedDescription"
+                    ></textarea>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportHostedHeading">
+                    <h3 id="exportHostedHeading" data-i18n="export_hosted_heading">
+                      Embed code for a hosted project
+                    </h3>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportHostedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportHostedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportHostedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportHostedHeading"
+                    ></textarea>
+                  </section>
                 </div>
               </div>
             </div>

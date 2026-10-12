@@ -1065,6 +1065,21 @@ export default {
   project_open_ui: 'Ouvrir',
   project_save_ui: 'Enregistrer',
   tools_submenu_ui: 'Outils',
+  tools_options_tab_ui: 'Options', // ai
+  tools_export_tab_ui: 'Exporter', // ai
+  export_web_page_heading_ui: 'Page web', // ai
+  export_web_page_description_ui: 'Enregistre un seul fichier qui lit ton projet dans un navigateur web.', // ai
+  export_web_page_button_ui: 'Enregistrer comme page web', // ai
+  export_web_zip_button_ui: 'Enregistrer en ZIP web', // ai
+  export_embed_heading_ui: "Code d'intégration", // ai
+  export_embed_description_ui: 'Copie ce code et colle-le dans un autre site web pour y montrer ton projet.', // ai
+  export_embed_copy_button_ui: 'Copier le code', // ai
+  export_hosted_heading_ui: 'Code d’intégration pour un projet hébergé', // ai
+  export_hosted_comment: 'Remplace l’adresse après project= par l’adresse de ton propre fichier de projet, comme un lien raw de GitHub.', // ai
+  export_embed_copied: 'Copié.', // ai
+  export_embed_copy_failed: 'Impossible de copier. Sélectionne le code et copie-le toi-même.', // ai
+  export_web_page_file_description: 'Page web', // ai
+  export_web_zip_file_description: 'Fichier ZIP', // ai
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai

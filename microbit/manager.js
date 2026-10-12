@@ -110,10 +110,18 @@ async function defaultFetchFirmware() {
   return response.text();
 }
 
+function defaultStorage() {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export class MicrobitManager {
   constructor({
     createTransport = defaultCreateTransport,
-    storage = globalThis.localStorage,
+    storage = defaultStorage(),
     usb = globalThis.navigator?.usb,
     fetchFirmware = defaultFetchFirmware,
     confirmFlash = null,

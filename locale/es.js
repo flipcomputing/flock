@@ -1176,6 +1176,21 @@ export default {
   project_open_ui: 'Abrir', // human
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
+  tools_options_tab_ui: 'Opciones', // ai
+  tools_export_tab_ui: 'Exportar', // ai
+  export_web_page_heading_ui: 'Página web', // ai
+  export_web_page_description_ui: 'Guarda un único archivo que reproduce tu proyecto en un navegador web.', // ai
+  export_web_page_button_ui: 'Guardar como página web', // ai
+  export_web_zip_button_ui: 'Guardar como ZIP web', // ai
+  export_embed_heading_ui: 'Código para insertar', // ai
+  export_embed_description_ui: 'Copia este código y pégalo en otro sitio web para mostrar tu proyecto allí.', // ai
+  export_embed_copy_button_ui: 'Copiar código', // ai
+  export_hosted_heading_ui: 'Código para insertar un proyecto alojado', // ai
+  export_hosted_comment: 'Sustituye la dirección después de project= por la dirección de tu propio archivo de proyecto, como un enlace raw de GitHub.', // ai
+  export_embed_copied: 'Copiado.', // ai
+  export_embed_copy_failed: 'No se pudo copiar. Selecciona el código y cópialo tú.', // ai
+  export_web_page_file_description: 'Página web', // ai
+  export_web_zip_file_description: 'Archivo ZIP', // ai
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai

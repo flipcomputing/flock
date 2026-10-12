@@ -3392,28 +3392,40 @@ function wireOpenInEditorLink() {
   if (!link) return;
   const cfg = (typeof window !== 'undefined' && window.FLOCK_CONFIG) || {};
   const editor = new URL(flockConfigUrl(cfg.editorUrl) || flockRuntimeBase());
-  const here = window.location;
-  if (here.protocol === 'http:' || here.protocol === 'https:') {
-    editor.searchParams.set('project', here.href);
-    editor.hash = '';
-    link.href = editor.href;
-    return;
-  }
-
   link.hidden = true;
+  const showPageAddressLink = () => {
+    const here = window.location;
+    if (here.protocol !== 'http:' && here.protocol !== 'https:') return;
+    const pageLink = new URL(editor);
+    pageLink.searchParams.set('project', here.href);
+    pageLink.hash = '';
+    link.href = pageLink.href;
+    link.hidden = false;
+  };
+
   const scriptElement = flock.document.getElementById('flock');
   const type = (scriptElement?.type || '').toLowerCase();
   const isProjectJson = type === 'application/flock+json' || type === 'application/vnd.flock+json';
-  if (!isProjectJson || !/^https?:$/.test(editor.protocol)) return;
+  if (!/^https?:$/.test(editor.protocol)) return;
+  if (!isProjectJson) {
+    showPageAddressLink();
+    return;
+  }
 
   compressedProjectFragment(scriptElement.textContent.trim())
     .then((data) => {
       editor.hash = `project=${data}`;
-      if (editor.href.length > MAX_EDITOR_LINK_LENGTH) return;
+      if (editor.href.length > MAX_EDITOR_LINK_LENGTH) {
+        showPageAddressLink();
+        return;
+      }
       link.href = editor.href;
       link.hidden = false;
     })
-    .catch((error) => console.warn('Could not build Open in Flock link:', error));
+    .catch((error) => {
+      console.warn('Could not build Open in Flock link:', error);
+      showPageAddressLink();
+    });
 }
 
 const MAX_STANDALONE_PROJECT_LENGTH = 4 * 1024 * 1024;
