@@ -1071,8 +1071,9 @@ export default {
   low_color_theme_ui: 'Lite färg', // ai
 
   run_code_button_ui: 'Kör din kod',
-  stop_code_button_ui: 'Stoppa din kod',
-  canvas_overlay_play_ui: 'Tryck på Spela för att börja', // ai
+  pause_code_button_ui: 'Pausa din kod', // ai
+  unpause_code_button_ui: 'Avsluta pausen i din kod', // ai
+  pause_hint: 'Pausad. Din kod har stannat, men du kan fortfarande använda gizmona. Tryck på Pausa eller {keys} för att avsluta pausen i din kod.', // ai
   open_button_ui: 'Öppna ett projekt från en fil på din dator',
   open_file_input_label_ui: 'Välj projektfil att öppna',
   export_code_button_ui: 'Spara detta projekt till en fil på din dator.',
@@ -1324,6 +1325,7 @@ export default {
   shortcut_confirm: 'Bekräfta',
   shortcut_exit: 'Avsluta',
   shortcut_play: 'Kör',
+  shortcut_pause: 'Pausa', // ai
   shortcut_undo: 'Ångra',
   shortcut_redo: 'Gör om',
   shortcut_browser_nav: 'Webbläsarens adressfält (blockerade genvägar fungerar härifrån)',

@@ -1074,8 +1074,9 @@ export default {
   low_color_theme_ui: 'Mało koloru', // ai
 
   run_code_button_ui: 'Uruchom kod',
-  stop_code_button_ui: 'Zatrzymaj kod',
-  canvas_overlay_play_ui: 'Naciśnij Play, aby rozpocząć', // ai
+  pause_code_button_ui: 'Wstrzymaj kod', // ai
+  unpause_code_button_ui: 'Wznów kod', // ai
+  pause_hint: 'Wstrzymano. Twój kod jest zatrzymany, ale nadal możesz używać gizmo. Naciśnij Wstrzymaj lub {keys}, aby zakończyć wstrzymanie kodu.', // ai
   open_button_ui: 'Otwórz projekt z pliku na komputerze',
   open_file_input_label_ui: 'Wybierz plik projektu do otwarcia',
   export_code_button_ui: 'Zapisz projekt do pliku na komputerze',
@@ -1330,6 +1331,7 @@ export default {
   shortcut_confirm: 'Potwierdź',
   shortcut_exit: 'Wyjdź',
   shortcut_play: 'Uruchom',
+  shortcut_pause: 'Wstrzymaj', // ai
   shortcut_undo: 'Cofnij',
   shortcut_redo: 'Ponów',
   shortcut_browser_nav: 'Pasek adresu przeglądarki (zablokowane skróty działają stąd)',

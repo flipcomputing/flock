@@ -1077,8 +1077,9 @@ export default {
   low_color_theme_ui: 'Cor reduzida', // ai
 
   run_code_button_ui: 'Executar o teu código',
-  stop_code_button_ui: 'Parar o teu código',
-  canvas_overlay_play_ui: 'Pressiona Play para começar', // ai
+  pause_code_button_ui: 'Pausar o teu código', // ai
+  unpause_code_button_ui: 'Tirar a pausa ao teu código', // ai
+  pause_hint: 'Em pausa. O teu código parou, mas ainda podes usar os gizmos. Pressiona Pausa ou {keys} para tirar a pausa ao teu código.', // ai
   open_button_ui: 'Abrir um projeto a partir de um ficheiro no teu computador',
   open_file_input_label_ui: 'Selecione o arquivo de projeto para abrir',
   export_code_button_ui: 'Guardar este projeto num ficheiro no teu computador.',
@@ -1333,6 +1334,7 @@ export default {
   shortcut_confirm: 'Confirmar',
   shortcut_exit: 'Sair',
   shortcut_play: 'Executar',
+  shortcut_pause: 'Pausar', // ai
   shortcut_undo: 'Desfazer',
   shortcut_redo: 'Refazer',
   shortcut_browser_nav: 'Barra de endereço do navegador (atalhos bloqueados funcionam daqui)',

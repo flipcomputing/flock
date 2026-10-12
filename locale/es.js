@@ -1194,8 +1194,9 @@ export default {
   low_color_theme_ui: 'Color reducido', // ai
 
   run_code_button_ui: 'Ejecutar tu código', // human
-  stop_code_button_ui: 'Detener tu código', // human
-  canvas_overlay_play_ui: 'Pulsa Play para empezar', // ai
+  pause_code_button_ui: 'Pausar tu código', // ai
+  unpause_code_button_ui: 'Quitar la pausa a tu código', // ai
+  pause_hint: 'En pausa. Tu código se ha detenido, pero puedes seguir usando los gizmos. Pulsa Pausa o {keys} para quitar la pausa a tu código.', // ai
   open_button_ui: 'Abrir un proyecto desde un archivo en tu computadora', // human
   open_file_input_label_ui: 'Selecciona el archivo de proyecto para abrir', // human
   export_code_button_ui: 'Guardar este proyecto en un archivo en tu computadora.', // human
@@ -1353,7 +1354,7 @@ export default {
     'La voz no está disponible en este momento. Tu proyecto se ejecutará sin palabras habladas.', // ai
   error_startup: 'Flock no se pudo iniciar. Intenta recargar la página.', // human
   error_project_crash:
-    'Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.', // human
+    'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
   error_physics_oom:
@@ -1546,6 +1547,7 @@ export default {
   shortcut_confirm: 'Confirmar',
   shortcut_exit: 'Salir',
   shortcut_play: 'Reproducir',
+  shortcut_pause: 'Pausar', // ai
   shortcut_undo: 'Deshacer',
   shortcut_redo: 'Rehacer',
   shortcut_browser_nav:

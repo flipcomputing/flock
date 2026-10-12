@@ -1276,8 +1276,9 @@ export default {
   contrast_theme_ui: 'Contrast',
 
   run_code_button_ui: 'Run your code',
-  stop_code_button_ui: 'Stop your code',
-  canvas_overlay_play_ui: 'Press Play to start',
+  pause_code_button_ui: 'Pause your code',
+  unpause_code_button_ui: 'Unpause your code',
+  pause_hint: 'Paused. Your code has stopped, but you can still use the gizmos. Press Pause or {keys} to unpause your code.',
   open_button_ui: 'Open a project from a file on your computer',
   open_file_input_label_ui: 'Select project file to open',
   export_code_button_ui: 'Save this project to a file on your computer.',
@@ -1436,7 +1437,7 @@ export default {
   error_speech: 'Speech is not available right now. Your project will run without spoken words.',
   error_startup: "Flock couldn't start up. Try reloading the page.",
   error_project_crash:
-    'Your project hit a problem. Press Stop, check your blocks, then press Play again.',
+    'Your project hit a problem. Check your blocks, then press Play again.',
   error_webgl_restoring: '3D view paused, restoring…',
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
   error_physics_oom:
@@ -1588,7 +1589,7 @@ export default {
   howto_panel_title: 'How to',
   howto_create_a_new_project_ui: 'Create a new project',
   howto_save_and_open_projects_ui: 'Save and open projects',
-  howto_play_and_stop_ui: 'Play and stop your project',
+  howto_play_and_pause_ui: 'Play and pause your project',
   howto_play_view_and_fullscreen_ui: 'Play view and fullscreen',
   howto_explore_demo_projects_ui: 'Explore demo projects',
   howto_use_a_games_controller_ui: 'Use a games controller',
@@ -1680,6 +1681,7 @@ export default {
   shortcut_confirm: 'Confirm',
   shortcut_exit: 'Exit',
   shortcut_play: 'Play',
+  shortcut_pause: 'Pause',
   shortcut_undo: 'Undo',
   shortcut_redo: 'Redo',
   shortcut_browser_nav: 'Browser navigation bar (overridden shortcuts work from here)',

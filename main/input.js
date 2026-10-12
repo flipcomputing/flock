@@ -260,7 +260,7 @@ export function setupInput() {
         '#menuBtn',
         '#exampleButton',
         '#runCodeButton',
-        '#stopCodeButton',
+        '#pauseCodeButton',
         '#colorPickerButton',
         '#projectName',
         '#togglePlay',

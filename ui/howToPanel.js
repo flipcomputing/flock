@@ -54,7 +54,7 @@ function drawAttention(el) {
 const HOW_TOS = [
   { slug: 'create-a-new-project', i18nKey: 'howto_create_a_new_project_ui', tone: 28, tags: ['general'] },
   { slug: 'save-and-open-projects', i18nKey: 'howto_save_and_open_projects_ui', tone: 29, tags: ['general'] },
-  { slug: 'play-and-stop', i18nKey: 'howto_play_and_stop_ui', tone: 30, tags: ['general'] },
+  { slug: 'play-and-pause', i18nKey: 'howto_play_and_pause_ui', tone: 30, tags: ['general'] },
   { slug: 'play-view-and-fullscreen', i18nKey: 'howto_play_view_and_fullscreen_ui', tone: 31, tags: ['general'] },
   { slug: 'explore-demo-projects', i18nKey: 'howto_explore_demo_projects_ui', tone: 32, tags: ['general'] },
   { slug: 'change-the-theme', i18nKey: 'howto_change_the_theme_ui', tone: 33, tags: ['general'] },
@@ -262,7 +262,7 @@ const HOWTO_LINK_TARGETS = {
   mainmenu: () => drawAttention(document.getElementById('menuBtn')),
   projects: () => drawAttention(document.getElementById('exampleButton')),
   run: () => drawAttention(document.getElementById('runCodeButton')),
-  stop: () => drawAttention(document.getElementById('stopCodeButton')),
+  pause: () => drawAttention(document.getElementById('pauseCodeButton')),
   playmode: () => drawAttention(document.getElementById('togglePlay')),
   fullscreen: () => drawAttention(document.getElementById('fullscreenToggle')),
   // Block workspace toolbar buttons.
@@ -381,9 +381,9 @@ const UI_BUTTON_ICONS = {
     viewBox: '0 0 512 512',
     path: 'M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z',
   },
-  stop: {
+  pause: {
     viewBox: '0 0 512 512',
-    path: 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM192 160l128 0c17.7 0 32 14.3 32 32l0 128c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32z',
+    path: 'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM224 192l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32zm128 0l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32z',
   },
   playmode: {
     viewBox: '0 0 640 512',

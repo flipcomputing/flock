@@ -108,7 +108,9 @@ export class CameraControls {
       return;
     }
 
-    if (flock._canvasControlsEnabled === false) {
+    // Canvas controls off is the project's choice for its own camera; the
+    // editor's fly and orbit views keep their controls.
+    if (flock._canvasControlsEnabled === false && flock.inputManager.inputOwner !== 'editor') {
       return;
     }
 

@@ -15,7 +15,6 @@ export const flockControl = {
         ? Math.min(Number(duration) * 1000, 2147483647)
         : 0;
     const signal = flock.abortController?.signal;
-    const doc = typeof document !== 'undefined' ? document : null;
     return new Promise((resolve, reject) => {
       // Reject (not resolve) on abort so cooperative loops stop on Stop.
       if (signal?.aborted) {
@@ -23,46 +22,18 @@ export const flockControl = {
         return;
       }
 
-      let remaining = ms;
-      let startedAt = 0;
-      let running = false;
-      let timeoutId = null;
-
-      const cleanup = () => {
-        running = false;
-        clearTimeout(timeoutId);
+      // Holds while the tab is hidden or the project is paused, so frozen
+      // time is not spent waiting.
+      const timer = flock.freezeAwareTimeout(() => {
         signal?.removeEventListener('abort', onAbort);
-        doc?.removeEventListener('visibilitychange', onVisibility);
-      };
-      const finish = () => {
-        cleanup();
         resolve();
-      };
+      }, ms);
       const onAbort = () => {
-        cleanup();
+        timer.cancel();
         reject(flock.makeAbortError());
-      };
-      const arm = () => {
-        startedAt = performance.now();
-        running = true;
-        timeoutId = setTimeout(finish, remaining);
-      };
-      // Pause the countdown while the tab is hidden and resume with the
-      // time that was left, so background time is not spent waiting.
-      const onVisibility = () => {
-        if (doc.hidden) {
-          if (!running) return;
-          running = false;
-          clearTimeout(timeoutId);
-          remaining = Math.max(0, remaining - (performance.now() - startedAt));
-        } else if (!running) {
-          arm();
-        }
       };
 
       signal?.addEventListener('abort', onAbort);
-      doc?.addEventListener('visibilitychange', onVisibility);
-      if (!doc?.hidden) arm();
     });
   },
   makeAbortError() {
@@ -99,7 +70,10 @@ export const flockControl = {
           reject(error);
         }
       };
-      const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
+      // The condition is project code, so it isn't checked while paused.
+      const observer = flock.scene.onBeforeRenderObservable.add(() => {
+        if (!flock.isPaused()) checkCondition();
+      });
 
       signal?.addEventListener(
         'abort',

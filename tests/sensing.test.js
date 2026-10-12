@@ -81,31 +81,45 @@ export function runSensingTests(flock) {
         let savedAccum, savedHiddenAt;
 
         beforeEach(function () {
-          savedAccum = flock._hiddenAccumMs;
-          savedHiddenAt = flock._hiddenAt;
+          savedAccum = flock._frozenAccumMs;
+          savedHiddenAt = flock._frozenAt;
         });
 
         afterEach(function () {
-          flock._hiddenAccumMs = savedAccum;
-          flock._hiddenAt = savedHiddenAt;
+          flock._frozenAccumMs = savedAccum;
+          flock._frozenAt = savedHiddenAt;
         });
 
         it('should not advance while the tab is hidden', async function () {
-          flock._hiddenAccumMs = 0;
-          flock._hiddenAt = Date.now();
+          flock._frozenAccumMs = 0;
+          flock._frozenAt = Date.now();
           const before = flock.getTime('milliseconds');
           await new Promise((resolve) => setTimeout(resolve, 30));
           expect(flock.getTime('milliseconds')).to.equal(before);
+        });
+
+        it('should not advance while the project is paused', async function () {
+          try {
+            flock.setPaused(true);
+            const before = flock.getTime('milliseconds');
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            expect(flock.getTime('milliseconds')).to.equal(before);
+            flock.setPaused(false);
+            await new Promise((resolve) => setTimeout(resolve, 30));
+            expect(flock.getTime('milliseconds') - before).to.be.lessThan(150);
+          } finally {
+            flock.setPaused(false);
+          }
         });
 
         it('should exclude accumulated hidden time', function () {
           const realNow = Date.now;
           Date.now = () => 1_000_000_000_000;
           try {
-            flock._hiddenAt = null;
-            flock._hiddenAccumMs = 0;
+            flock._frozenAt = null;
+            flock._frozenAccumMs = 0;
             const unpaused = flock.getTime('milliseconds');
-            flock._hiddenAccumMs = 5000;
+            flock._frozenAccumMs = 5000;
             const paused = flock.getTime('milliseconds');
             expect(unpaused - paused).to.equal(5000);
           } finally {

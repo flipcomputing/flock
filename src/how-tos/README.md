@@ -72,7 +72,7 @@ label-only highlight link.
 | `mainmenu` | Main menu (`#menuBtn`) | `<ui-button target="mainmenu">Menu</ui-button>` |
 | `projects` | Projects (`#exampleButton`, label only) | `<ui-button target="projects">Projects</ui-button>` |
 | `run` | Run (`#runCodeButton`) | `<ui-button target="run">Play</ui-button>` |
-| `stop` | Stop (`#stopCodeButton`) | `<ui-button target="stop">Stop</ui-button>` |
+| `pause` | Pause (`#pauseCodeButton`) | `<ui-button target="pause">Pause</ui-button>` |
 | `playmode` | Play view (`#togglePlay`) | `<ui-button target="playmode">Play view</ui-button>` |
 | `fullscreen` | Fullscreen (`#fullscreenToggle`) | `<ui-button target="fullscreen">Fullscreen</ui-button>` |
 | `blockhints` | Block hints (`#blockHintsBtn`) | `<ui-button target="blockhints">Block hints</ui-button>` |

@@ -345,12 +345,17 @@ export function runSoundTests(flock) {
         configurable: true,
         get: () => state,
       });
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: () => state === 'hidden',
+      });
     }
 
     afterEach(() => {
       // Remove the own-property override so the prototype getter takes over again
       delete document.visibilityState;
-      flock._audioSuspendedByVisibility = false;
+      delete document.hidden;
+      flock._audioSuspendedByFreeze = false;
     });
 
     function dispatchVisibility(state) {
@@ -379,11 +384,11 @@ export function runSoundTests(flock) {
     it('pauses audio when hidden and resumes when visible', async function () {
       const context = await getRunningContext();
       if (!context) this.skip();
-      expect(flock._audioVisibilityListenerAdded).to.be.true;
+      expect(flock._audioFreezeListenerAdded).to.be.true;
 
       dispatchVisibility('hidden');
       expect(await waitForState(context, 'suspended')).to.equal('suspended');
-      expect(flock._audioSuspendedByVisibility).to.be.true;
+      expect(flock._audioSuspendedByFreeze).to.be.true;
 
       // Babylon's resumeOnPause watchdog fires on a 1s interval; wait past it
       // to prove pauseAsync stood it down and the suspension sticks.
@@ -394,7 +399,7 @@ export function runSoundTests(flock) {
 
       dispatchVisibility('visible');
       expect(await waitForState(context, 'running')).to.equal('running');
-      expect(flock._audioSuspendedByVisibility).to.be.false;
+      expect(flock._audioSuspendedByFreeze).to.be.false;
     });
 
     it('keeps playing when the window loses focus but stays visible', async function () {
@@ -404,7 +409,7 @@ export function runSoundTests(flock) {
       window.dispatchEvent(new Event('blur'));
       await new Promise((r) => setTimeout(r, 300));
       expect(context.state).to.equal('running');
-      expect(flock._audioSuspendedByVisibility).to.be.false;
+      expect(flock._audioSuspendedByFreeze).to.be.false;
     });
 
     // Chromium never produces 'interrupted', so stub the engine.
@@ -421,12 +426,12 @@ export function runSoundTests(flock) {
         await new Promise((r) => setTimeout(r, 100));
         // Nothing to suspend, but the return trip must still resume it.
         expect(calls).to.not.include('pause');
-        expect(flock._audioSuspendedByVisibility).to.be.true;
+        expect(flock._audioSuspendedByFreeze).to.be.true;
 
         dispatchVisibility('visible');
         await new Promise((r) => setTimeout(r, 100));
         expect(calls).to.include('resume');
-        expect(flock._audioSuspendedByVisibility).to.be.false;
+        expect(flock._audioSuspendedByFreeze).to.be.false;
       } finally {
         flock.audioEngine = realEngine;
       }

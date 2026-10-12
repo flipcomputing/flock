@@ -7,6 +7,7 @@ import {
   handleBlockCreateEvent,
   getHelpUrlFor,
   registerBlockHandler,
+  isValueInputDescendantOf,
   DO_MUTATOR_MINUS,
   DO_MUTATOR_PLUS,
 } from './blocks.js';
@@ -19,6 +20,7 @@ import {
   shapeError,
 } from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
+import { updateParticleEffectFromBlock } from '../ui/blockmesh.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
 
@@ -653,9 +655,16 @@ export function defineShapeBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
 
-      registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes)
-      );
+      registerBlockHandler(this, (changeEvent) => {
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE || changeEvent.element !== 'field') {
+          return;
+        }
+        const changed = this.workspace.getBlockById(changeEvent.blockId);
+        if (changed === this || isValueInputDescendantOf(this, changed)) {
+          updateParticleEffectFromBlock(this);
+        }
+      });
     },
   };
 

@@ -187,6 +187,14 @@ export function runCameraControlsTests() {
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
+
+      it("the editor's fly camera still flies when canvas controls are disabled", function () {
+        flock._canvasControlsEnabled = false;
+        flock.inputManager.setInputOwner('editor');
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
     });
 
     describe('look input', function () {

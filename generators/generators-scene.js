@@ -646,7 +646,8 @@ export function registerSceneGenerators(javascriptGenerator) {
                           min: ${minInitialRotation},
                           max: ${maxInitialRotation}
                     }
-                  }
+                  },
+                  blockKey: ${JSON.stringify(block.id)}
             }`;
 
     return `${variableName} = createParticleEffect(${JSON.stringify(variableName)}, ${options.trim()});\n`;

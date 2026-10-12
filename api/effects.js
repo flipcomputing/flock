@@ -7,6 +7,69 @@ export function setFlockReference(ref) {
 // Headlamp tracks this fraction of the main light's intensity, so it stays
 // proportional to lightIntensity() and goes to 0 when that does.
 const HEADLAMP_INTENSITY_RATIO = 0.4;
+const MAX_EMIT_RATE = 500;
+
+function applyParticleOptions(
+  particleSystem,
+  { emitRate, colors, alphas, sizes, lifetime, shape, gravity, direction, rotation }
+) {
+  if (shape && particleSystem.metadata?.shape !== shape) {
+    particleSystem.particleTexture?.dispose();
+    particleSystem.particleTexture = new flock.BABYLON.Texture(
+      flock.texturePath + shape,
+      flock.scene
+    );
+    particleSystem.metadata = { ...particleSystem.metadata, shape };
+  }
+
+  const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
+  const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
+  particleSystem.color1 = new flock.BABYLON.Color4(
+    startColor.r,
+    startColor.g,
+    startColor.b,
+    alphas.start
+  );
+  particleSystem.color2 = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, alphas.end);
+  particleSystem.colorDead = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, 0);
+
+  particleSystem.minSize = sizes.start;
+  particleSystem.maxSize = sizes.end;
+
+  particleSystem.minLifeTime = lifetime.min;
+  particleSystem.maxLifeTime = lifetime.max;
+
+  particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
+
+  particleSystem.gravity = gravity
+    ? new flock.BABYLON.Vector3(0, -9.81, 0)
+    : flock.BABYLON.Vector3.Zero();
+
+  const meshEmitter = particleSystem.particleEmitterType;
+  if (direction && (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)) {
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 3;
+    meshEmitter.useMeshNormalsForDirection = false;
+    meshEmitter.direction1 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
+    meshEmitter.direction2 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
+  } else {
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 1;
+    meshEmitter.useMeshNormalsForDirection = true;
+  }
+
+  if (rotation) {
+    const toRad = Math.PI / 180;
+    if (rotation.angularSpeed) {
+      particleSystem.minAngularSpeed = rotation.angularSpeed.min * toRad;
+      particleSystem.maxAngularSpeed = rotation.angularSpeed.max * toRad;
+    }
+    if (rotation.initialRotation) {
+      particleSystem.minInitialRotation = rotation.initialRotation.min * toRad;
+      particleSystem.maxInitialRotation = rotation.initialRotation.max * toRad;
+    }
+  }
+}
 
 function updateHeadlampIntensity() {
   if (!flock.headlampLight) return;
@@ -153,6 +216,7 @@ export const flockEffects = {
       gravity,
       direction,
       rotation,
+      blockKey = null,
     } = {}
   ) {
     const resultName = flock._reserveName(name);
@@ -182,80 +246,26 @@ export const flockEffects = {
           }
 
           const particleSystem = new flock.BABYLON.ParticleSystem(resultName, 500, flock.scene);
-          const texturePath = flock.texturePath + shape;
-          particleSystem.particleTexture = new flock.BABYLON.Texture(texturePath, flock.scene);
+          particleSystem.metadata = { blockKey };
           particleSystem.emitter = meshInstance;
-
-          const meshEmitter = new flock.BABYLON.MeshParticleEmitter(meshInstance);
-          particleSystem.particleEmitterType = meshEmitter;
+          particleSystem.particleEmitterType = new flock.BABYLON.MeshParticleEmitter(meshInstance);
           particleSystem.blendMode = 4;
           particleSystem.imageProcessingConfiguration =
             new flock.BABYLON.ImageProcessingConfiguration();
-
-          const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
-          const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
-
-          particleSystem.color1 = new flock.BABYLON.Color4(
-            startColor.r,
-            startColor.g,
-            startColor.b,
-            alphas.start
-          );
-          particleSystem.color2 = new flock.BABYLON.Color4(
-            endColor.r,
-            endColor.g,
-            endColor.b,
-            alphas.end
-          );
-          particleSystem.colorDead = new flock.BABYLON.Color4(
-            endColor.r,
-            endColor.g,
-            endColor.b,
-            0
-          );
-
-          particleSystem.minSize = sizes.start;
-          particleSystem.maxSize = sizes.end;
-
-          particleSystem.minLifeTime = lifetime.min;
-          particleSystem.maxLifeTime = lifetime.max;
-
-          const MAX_EMIT_RATE = 500;
-          particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
-
-          particleSystem.gravity = gravity
-            ? new flock.BABYLON.Vector3(0, -9.81, 0)
-            : flock.BABYLON.Vector3.Zero();
-
-          if (direction && (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)) {
-            particleSystem.minEmitPower = 1;
-            particleSystem.maxEmitPower = 3;
-            meshEmitter.useMeshNormalsForDirection = false;
-            meshEmitter.direction1 = new flock.BABYLON.Vector3(
-              direction.x,
-              direction.y,
-              direction.z
-            );
-            meshEmitter.direction2 = new flock.BABYLON.Vector3(
-              direction.x,
-              direction.y,
-              direction.z
-            );
-          }
-
-          if (rotation) {
-            const toRad = Math.PI / 180;
-            if (rotation.angularSpeed) {
-              particleSystem.minAngularSpeed = rotation.angularSpeed.min * toRad;
-              particleSystem.maxAngularSpeed = rotation.angularSpeed.max * toRad;
-            }
-            if (rotation.initialRotation) {
-              particleSystem.minInitialRotation = rotation.initialRotation.min * toRad;
-              particleSystem.maxInitialRotation = rotation.initialRotation.max * toRad;
-            }
-          }
+          applyParticleOptions(particleSystem, {
+            emitRate,
+            colors,
+            alphas,
+            sizes,
+            lifetime,
+            shape,
+            gravity,
+            direction,
+            rotation,
+          });
 
           particleSystem.start();
+          if (flock.isPaused()) flock._freezeParticleSystem(particleSystem);
           resolve(particleSystem);
         } catch (error) {
           flock.reportBlockError({
@@ -271,6 +281,13 @@ export const flockEffects = {
 
     flock.modelReadyPromises.set(resultName, particlePromise);
     return resultName;
+  },
+  // Live edit of a running effect's block: apply the new settings in place
+  // and, if paused, let it run so the change can be seen.
+  updateParticleEffect(particleSystem, options) {
+    if (!particleSystem) return;
+    applyParticleOptions(particleSystem, options);
+    flock._thawParticleSystem(particleSystem);
   },
   startParticleSystem(systemName) {
     const particleSystem = flock.scene.particleSystems.find((system) => system.name === systemName);

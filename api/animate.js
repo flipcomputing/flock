@@ -1771,6 +1771,7 @@ export const flockAnimate = {
       const now = performance.now();
       const dt = (now - lastBlendTime) / 1000;
       lastBlendTime = now;
+      if (flock.isPaused()) return;
       elapsed += dt;
       const t = Math.min(elapsed / blendDuration, 1);
       incomingGroup.setWeightForAllAnimatables(t);

@@ -1091,8 +1091,9 @@ export default {
   contrast_theme_ui: 'Contrasto',
 
   run_code_button_ui: 'Esegui il tuo codice',
-  stop_code_button_ui: 'Ferma il tuo codice',
-  canvas_overlay_play_ui: 'Premi Play per iniziare', // ai
+  pause_code_button_ui: 'Metti in pausa il tuo codice', // ai
+  unpause_code_button_ui: 'Togli la pausa al tuo codice', // ai
+  pause_hint: 'In pausa. Il tuo codice è fermo, ma puoi ancora usare i gizmo. Premi Pausa o {keys} per togliere la pausa al tuo codice.', // ai
   open_button_ui: 'Apri un progetto da un file sul tuo computer',
   open_file_input_label_ui: 'Seleziona il file di progetto da aprire',
   export_code_button_ui: 'Salva questo progetto in un file sul tuo computer.',
@@ -1344,6 +1345,7 @@ export default {
   shortcut_confirm: 'Conferma',
   shortcut_exit: 'Esci',
   shortcut_play: 'Avvia',
+  shortcut_pause: 'Pausa', // ai
   shortcut_undo: 'Annulla',
   shortcut_redo: 'Ripristina',
   shortcut_browser_nav:

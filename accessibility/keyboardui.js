@@ -425,7 +425,7 @@ const GizmoMenuManager = {
 // Modal showing all keyboard shortcuts, accessed with Ctrl + /
 
 // Check their platform (Mac or not Mac) to show the correct modifier key
-function isMac() {
+export function isMac() {
   return (navigator.userAgentData?.platform ?? navigator.platform).toUpperCase().includes('MAC');
 }
 
@@ -457,6 +457,11 @@ function getShortcuts() {
     {
       label: translate('shortcut_play'),
       keys: `${mod} + P`,
+      category: translate('shortcut_category_main'),
+    },
+    {
+      label: translate('shortcut_pause'),
+      keys: `${mod} + K`,
       category: translate('shortcut_category_main'),
     },
     {

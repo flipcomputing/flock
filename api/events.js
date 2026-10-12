@@ -76,7 +76,7 @@ export const flockEvents = {
     if (signal?.aborted) return;
 
     const handler = (a) => {
-      if (a === action) callback();
+      if (a === action && !flock.isPaused()) callback();
     };
 
     const onStop = (cleanup) => {
@@ -110,7 +110,7 @@ export const flockEvents = {
     if (signal?.aborted) return;
 
     const handler = (k) => {
-      if (k === key) callback();
+      if (k === key && !flock.isPaused()) callback();
     };
 
     const onStop = (cleanup) => {
@@ -146,13 +146,13 @@ export const flockEvents = {
     // All micro:bit events are momentary edges — no repeat semantics.
     // Registering against a variable with no bound board is valid and silent.
     const unsubscribe = getMicrobitManager().subscribe(variableName, (char) => {
-      if (char === eventChar) callback();
+      if (char === eventChar && !flock.isPaused()) callback();
     });
     signal?.addEventListener('abort', unsubscribe, { once: true });
     flock.sectionSignal?.()?.addEventListener('abort', unsubscribe, { once: true });
   },
   start(action) {
-    flock.scene.onBeforeRenderObservable.addOnce(() => action());
+    flock.scene.onBeforeRenderObservable.addOnce(() => flock.whenRunning(action));
   },
   async forever(action) {
     let isDisposed = false;
@@ -167,6 +167,13 @@ export const flockEvents = {
 
       if (isActionRunning) {
         return; // Exit if the action is already running
+      }
+
+      if (flock.isPaused()) {
+        flock.whenRunning(() => {
+          if (!isDisposed) flock.scene.onBeforeRenderObservable.addOnce(runAction);
+        });
+        return;
       }
 
       isActionRunning = true;
