@@ -1009,10 +1009,7 @@ export const flock = {
       }
 
       // --- create fresh same-origin iframe ---
-      const { win, doc } = await flock.replaceSandboxIframe({
-        id: 'flock-iframe',
-        sameOrigin: true,
-      });
+      const { win, doc } = await flock.replaceSandboxIframe({ id: 'flock-iframe' });
 
       // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
       const sesResp = await fetch(flockRuntimeUrl('vendor/ses/lockdown.umd.min.js'));
@@ -1564,7 +1561,7 @@ export const flock = {
       return api;
     }
   },
-  async replaceSandboxIframe({ id = 'flock-iframe', sameOrigin = true, srcdocHtml } = {}) {
+  async replaceSandboxIframe({ id = 'flock-iframe', srcdocHtml } = {}) {
     const old = document.getElementById(id);
 
     // --- 1) Hard teardown of the old iframe (if any) ---
@@ -1610,9 +1607,6 @@ export const flock = {
     const iframe = document.createElement('iframe');
     iframe.id = id;
     iframe.style.display = 'none';
-
-    // Keep same-origin only if you need to touch iframe DOM/Canvas/WebGL from parent
-    iframe.sandbox = `allow-scripts${sameOrigin ? ' allow-same-origin' : ''}`;
 
     // Prefer srcdoc so CSP is present before any script runs
     const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
