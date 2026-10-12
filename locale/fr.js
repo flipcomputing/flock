@@ -1193,7 +1193,7 @@ export default {
   snippet_file_description: 'Extrait Flock XR',
   snippet_filename_prompt: "Entrez un nom de fichier pour l'extrait:",
   project_file_description: 'Projet Flock XR',
-  file_too_large_alert: 'Fichier trop volumineux. La taille maximale est de 5 Mo.',
+  file_too_large_alert: 'Ce projet est trop volumineux.', // ai
   invalid_filetype_alert: 'Seuls les fichiers .json ou .flock sont autorisés.',
   invalid_project_alert: "Ce fichier n'est pas un projet Flock XR valide.",
   failed_to_read_file_alert: 'Échec de lecture du fichier.',

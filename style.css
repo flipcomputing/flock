@@ -1846,6 +1846,10 @@ body.embed-mode #infoResizer {
   touch-action: manipulation;
 }
 
+a.project-action-button {
+  text-decoration: none;
+}
+
 .project-action-button:hover {
   background-color: var(--color-button-bg-hover);
 }

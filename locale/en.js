@@ -1406,10 +1406,12 @@ export default {
   snippet_file_description: 'Flock XR Snippet',
   snippet_filename_prompt: 'Enter a filename for the snippet:',
   project_file_description: 'Flock XR Project',
-  file_too_large_alert: 'File too large. Maximum size is 5MB.',
+  file_too_large_alert: 'This project is too large.',
   invalid_filetype_alert: 'Only .json or .flock project files are allowed.',
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: 'Failed to read file.',
+  project_url_load_failed_alert:
+    "Flock XR couldn't load this project. The link may be wrong, or the website may not allow other sites to open its files.",
   drag_drop_hint: 'Drop to open project or import snippet',
   drop_unsupported_file_alert: 'Only .flock, .json, .fsnip, or .png files can be dropped.',
   unsaved_changes_title_ui: 'Unsaved changes',
@@ -1422,6 +1424,12 @@ export default {
   untrusted_project_url_title_ui: 'Open project from another website?',
   untrusted_project_url_message_ui:
     "This project link isn't on Flock XR's trusted list. Only continue if you trust the source — it will run in your browser.",
+  untrusted_project_url_framed_message_ui:
+    "This project link isn't on Flock XR's trusted list, so it opens in a new tab where you can decide whether to run it.",
+  untrusted_project_url_new_tab_link_ui: 'Open in new tab',
+  untrusted_project_link_title_ui: 'Open this project?',
+  untrusted_project_link_message_ui:
+    "This project came inside a link, so Flock XR can't tell where it's from. Only continue if you trust where you got the link — it will run in your browser.",
   untrusted_project_url_cancel_button_ui: 'Cancel',
   untrusted_project_url_open_button_ui: 'Open project',
   close_untrusted_project_url_ui: 'Close',

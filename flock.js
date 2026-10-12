@@ -3356,7 +3356,7 @@ function injectStandaloneChrome() {
     open.target = '_blank';
     open.rel = 'noopener noreferrer';
     open.textContent = 'Open in Flock';
-    open.href = 'https://flipcomputing.github.io/flock/';
+    open.href = flockRuntimeBase();
 
     footer.append(made, open);
     body.appendChild(footer);
@@ -3375,17 +3375,45 @@ function hideStandaloneLoadingScreen() {
   setTimeout(() => el.remove(), 600);
 }
 
+const MAX_EDITOR_LINK_LENGTH = 1500000;
+
+async function compressedProjectFragment(text) {
+  const stream = new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
+  const bytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 function wireOpenInEditorLink() {
   const link = flock.document.querySelector('[data-flock-open-in-editor]');
   if (!link) return;
+  const cfg = (typeof window !== 'undefined' && window.FLOCK_CONFIG) || {};
+  const editor = new URL(flockConfigUrl(cfg.editorUrl) || flockRuntimeBase());
   const here = window.location;
-  if (here.protocol !== 'http:' && here.protocol !== 'https:') {
-    link.hidden = true;
+  if (here.protocol === 'http:' || here.protocol === 'https:') {
+    editor.searchParams.set('project', here.href);
+    editor.hash = '';
+    link.href = editor.href;
     return;
   }
-  const cfg = (typeof window !== 'undefined' && window.FLOCK_CONFIG) || {};
-  const editor = flockConfigUrl(cfg.editorUrl) || 'https://flipcomputing.github.io/flock/';
-  link.href = `${editor}?project=${encodeURIComponent(here.href)}`;
+
+  link.hidden = true;
+  const scriptElement = flock.document.getElementById('flock');
+  const type = (scriptElement?.type || '').toLowerCase();
+  const isProjectJson = type === 'application/flock+json' || type === 'application/vnd.flock+json';
+  if (!isProjectJson || !/^https?:$/.test(editor.protocol)) return;
+
+  compressedProjectFragment(scriptElement.textContent.trim())
+    .then((data) => {
+      editor.hash = `project=${data}`;
+      if (editor.href.length > MAX_EDITOR_LINK_LENGTH) return;
+      link.href = editor.href;
+      link.hidden = false;
+    })
+    .catch((error) => console.warn('Could not build Open in Flock link:', error));
 }
 
 const MAX_STANDALONE_PROJECT_LENGTH = 4 * 1024 * 1024;

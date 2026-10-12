@@ -1185,7 +1185,7 @@ export default {
   snippet_file_description: 'Fragment Flock XR',
   snippet_filename_prompt: 'Podaj nazwę pliku dla fragmentu:',
   project_file_description: 'Projekt Flock XR',
-  file_too_large_alert: 'Plik jest za duży. Maksymalny rozmiar to 5 MB.',
+  file_too_large_alert: 'Ten projekt jest za duży.', // ai
   invalid_filetype_alert: 'Dozwolone są tylko pliki projektu .json lub .flock.',
   invalid_project_alert: 'Ten plik nie jest prawidłowym projektem Flock XR.',
   failed_to_read_file_alert: 'Nie udało się odczytać pliku.',

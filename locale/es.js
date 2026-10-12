@@ -1321,10 +1321,12 @@ export default {
   snippet_file_description: 'Fragmento de Flock XR', // human
   snippet_filename_prompt: 'Introduce un nombre de archivo para el fragmento:', // human
   project_file_description: 'Proyecto de Flock XR', // human
-  file_too_large_alert: 'Archivo demasiado grande. El tamaño máximo es 5 MB.', // human
+  file_too_large_alert: 'Este proyecto es demasiado grande.', // ai
   invalid_filetype_alert: 'Solo se permiten archivos de proyecto .json o .flock.', // human
   invalid_project_alert: 'Este archivo no es un proyecto válido de Flock XR.', // human
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
+  project_url_load_failed_alert:
+    'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
   unsaved_changes_title_ui: 'Cambios sin guardar', // ai
@@ -1337,6 +1339,12 @@ export default {
   untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
   untrusted_project_url_message_ui:
     'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
+  untrusted_project_url_framed_message_ui:
+    'Este enlace de proyecto no está en la lista de confianza de Flock XR, así que se abre en una pestaña nueva donde puedes decidir si ejecutarlo.', // ai
+  untrusted_project_url_new_tab_link_ui: 'Abrir en una pestaña nueva', // ai
+  untrusted_project_link_title_ui: '¿Abrir este proyecto?', // ai
+  untrusted_project_link_message_ui:
+    'Este proyecto venía dentro de un enlace, así que Flock XR no puede saber de dónde viene. Continúa solo si confías en el lugar donde conseguiste el enlace — se ejecutará en tu navegador.', // ai
   untrusted_project_url_cancel_button_ui: 'Cancelar', // ai
   untrusted_project_url_open_button_ui: 'Abrir proyecto', // ai
   close_untrusted_project_url_ui: 'Cerrar', // ai

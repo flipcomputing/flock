@@ -1202,7 +1202,7 @@ export default {
   snippet_file_description: 'Snippet Flock XR',
   snippet_filename_prompt: 'Inserisci un nome file per lo snippet:',
   project_file_description: 'Progetto Flock XR',
-  file_too_large_alert: 'File troppo grande. La dimensione massima è 5 MB.',
+  file_too_large_alert: 'Questo progetto è troppo grande.', // ai
   invalid_filetype_alert: 'Sono consentiti solo file di progetto .json o .flock.',
   invalid_project_alert: 'Questo file non è un progetto Flock XR valido.',
   failed_to_read_file_alert: 'Impossibile leggere il file.',

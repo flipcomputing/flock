@@ -1182,7 +1182,7 @@ export default {
   snippet_file_description: 'Flock XR-snippet',
   snippet_filename_prompt: 'Ange ett filnamn för snippeten:',
   project_file_description: 'Flock XR-projekt',
-  file_too_large_alert: 'Filen är för stor. Maxstorlek är 5 MB.',
+  file_too_large_alert: 'Det här projektet är för stort.', // ai
   invalid_filetype_alert: 'Endast .json- eller .flock-projektfiler är tillåtna.',
   invalid_project_alert: 'Den här filen är inte ett giltigt Flock XR-projekt.',
   failed_to_read_file_alert: 'Det gick inte att läsa filen.',
