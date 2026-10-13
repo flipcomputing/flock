@@ -1382,6 +1382,9 @@ export default {
     'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
+  error_webgl_unavailable: 'Flock XR no puede iniciar la vista 3D. Intenta recargar la página.', // ai
+  error_webgl_unsupported:
+    'Este navegador no puede mostrar gráficos 3D, así que Flock XR no puede funcionar aquí.', // ai
   error_physics_oom:
     'Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.', // human
   error_physics_unsupported:

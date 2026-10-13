@@ -1464,6 +1464,8 @@ export default {
     'Your project hit a problem. Check your blocks, then press Play again.',
   error_webgl_restoring: '3D view paused, restoring…',
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
+  error_webgl_unavailable: "Flock XR can't start the 3D view. Try reloading the page.",
+  error_webgl_unsupported: "This browser can't show 3D graphics, so Flock XR can't run here.",
   error_physics_oom:
     'Your project ran out of memory. Try reloading the page and using fewer blocks.',
   error_physics_unsupported:

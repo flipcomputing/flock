@@ -13,6 +13,8 @@ const MESSAGE_KEYS = {
   startup: 'error_startup',
   'project-run': 'error_project_crash',
   'webgl-lost': 'error_webgl_lost',
+  'webgl-unavailable': 'error_webgl_unavailable',
+  'webgl-unsupported': 'error_webgl_unsupported',
   'chunk-load': 'error_chunk_load',
   'physics-oom': 'error_physics_oom',
   'physics-unsupported': 'error_physics_unsupported',

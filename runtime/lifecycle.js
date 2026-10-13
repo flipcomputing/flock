@@ -189,10 +189,17 @@ export const flockLifecycle = {
         powerPreference: 'default',
       });
     } catch (error) {
-      // WebGL unavailable or blacklisted: a device problem, not the project's.
-      handleError(error, { source: 'webgl-lost', fatal: true });
+      // A device problem, not the project's. With no WebGL API at all, reloading can't help;
+      // otherwise it's disabled, blocklisted or blocked after GPU crashes, which can be temporary.
+      const unsupported = typeof WebGLRenderingContext === 'undefined';
+      handleError(error, {
+        source: unsupported ? 'webgl-unsupported' : 'webgl-unavailable',
+        fatal: !unsupported,
+      });
       throw markReported(error);
     }
+    // Play retries a failed engine, so a temporary failure can recover without a reload.
+    dismissBanner('webgl-unavailable');
 
     flock.engine.disableUniformBuffers = true; // Meshes with alpha black on Samsung A14
 
