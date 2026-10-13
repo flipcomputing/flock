@@ -1436,7 +1436,7 @@ export const flockPhysics = {
       const exact = scene?.getMeshByName?.(rawName);
       if (exact?.name) return flock._familyOf(exact.name);
 
-      let normalized = rawName.includes('__') ? rawName.split('__')[0] : rawName;
+      let normalized = flock._userName(rawName);
       normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (normalized && normalized !== rawName) {

@@ -4,6 +4,9 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// `${name}__${blockId}`, with Blockly's 20-character ID alphabet.
+const GENERATED_ID = /^(.+)__([!#$%()*+,\-./:;=?@[\]^`{|}~\w]{20})$/;
+
 export const flockReadiness = {
   whenModelReady(id, callback) {
     // Capture the signal now, never re-read flock.abortController at settle time: stopping a
@@ -106,7 +109,7 @@ export const flockReadiness = {
       // normalizing upfront would break box lookups ("centre platform" stays as typed). Only
       // redirect to the normalized id when the exact one is absent.
       if (id && !id.startsWith('__')) {
-        let norm = id.includes('__') ? id.split('__')[0] : id;
+        let norm = flock._userName(id);
         norm = norm.replace(/[^a-zA-Z0-9._-]/g, '');
         if (norm && norm !== id) {
           if (flock.modelReadyPromises.has(norm)) {
@@ -459,7 +462,29 @@ export const flockReadiness = {
       const parentFamily = flock._nameRegistry.get(name.slice(0, dot))?.family;
       if (parentFamily) return parentFamily;
     }
-    return name.includes('__') ? name.split('__')[0] : name;
+    return flock._userName(name);
+  },
+
+  /**
+   * [name, blockKey] from a create id. Generators send `${name}__${blockId}`; Blockly IDs are
+   * 20 characters and can contain "__", so the key is read from the end. Other `a__b` ids
+   * (tests, internal ids such as `combine__${key}_parts`) split at the last "__". An id without
+   * "__" is its own key.
+   */
+  _splitBlockKey(id) {
+    const generated = GENERATED_ID.exec(id);
+    if (generated) return [generated[1], generated[2]];
+    const at = id.lastIndexOf('__');
+    return at > 0 && at < id.length - 2 ? [id.slice(0, at), id.slice(at + 2)] : [id, id];
+  },
+
+  /**
+   * The name the user wrote. A registered name is an object's real name, kept whole even with
+   * "__" in it; anything else (a create id, a GUI control's name) loses its block key.
+   */
+  _userName(name) {
+    if (flock._nameRegistry?.has(name)) return name;
+    return flock._splitBlockKey(name)[0];
   },
 
   _isTag(name) {

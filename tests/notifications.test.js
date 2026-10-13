@@ -246,16 +246,27 @@ export function runNotificationTests(flock) {
         expect(report({ object: `box1__${BLOCK_ID}` }).line).to.equal(expectedLine('box1'));
       });
 
-      it('removes the suffix added to a repeated object', function () {
-        expect(report({ object: `box1__${BLOCK_ID}_17` }).line).to.equal(expectedLine('box1'));
+      it('removes a block ID that contains __ whole', function () {
+        expect(report({ object: 'box1__ab__cdEFghIJklMNopQR' }).line).to.equal(
+          expectedLine('box1')
+        );
+      });
+
+      it("shows a repeated object's name as it is", function () {
+        expect(report({ object: 'box1_17' }).line).to.equal(expectedLine('box1_17'));
       });
 
       it('keeps __ that is part of the name the user wrote', function () {
         expect(report({ object: `my__box__${BLOCK_ID}` }).line).to.equal(expectedLine('my__box'));
       });
 
-      it('leaves a name without a generated suffix as it is', function () {
-        expect(report({ object: 'my__box' }).line).to.equal(expectedLine('my__box'));
+      it("shows a real object's name whole, even with __ in it", function () {
+        const name = flock._reserveName('log_my__box');
+        try {
+          expect(report({ object: name }).line).to.equal(expectedLine('log_my__box'));
+        } finally {
+          flock._releaseName(name);
+        }
       });
 
       it('keeps the placeholder, and still reports, when a value cannot be read', function () {

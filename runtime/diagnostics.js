@@ -8,9 +8,6 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
-// Generated names are `${name}__${blockId}`, plus `_${n}` for repeats; Blockly IDs are 20 characters.
-const GENERATED_NAME = /^(.+)__[!#$%()*+,\-./:;=?@[\]^`{|}~\w]{20}(?:_\d+)?$/;
-
 // Fills {placeholders} from values, showing names as the user wrote them. Must not throw:
 // it runs while reporting another error, and values can come from user code.
 function blockErrorMessage(key, values) {
@@ -23,7 +20,7 @@ function blockErrorMessage(key, values) {
     }
     if (typeof value === 'number') return String(value);
     if (typeof value !== 'string') return match;
-    return value.match(GENERATED_NAME)?.[1] ?? value;
+    return flock._userName(value);
   });
 }
 

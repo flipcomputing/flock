@@ -648,10 +648,8 @@ function resolveCsgModelIdentity(requestedModelId) {
   let resolvedModelId = requestedModelId;
   let blockKey = requestedModelId;
 
-  if (typeof requestedModelId === 'string' && requestedModelId.includes('__')) {
-    const separatorIndex = requestedModelId.lastIndexOf('__');
-    resolvedModelId = requestedModelId.slice(0, separatorIndex);
-    blockKey = requestedModelId.slice(separatorIndex + 2);
+  if (typeof requestedModelId === 'string') {
+    [resolvedModelId, blockKey] = flock._splitBlockKey(requestedModelId);
   }
 
   resolvedModelId = flock._reserveName(resolvedModelId);
@@ -1541,11 +1539,7 @@ export const flockCSG = {
   },
   async combineMeshes(modelId, { operation = 'merge', build = null, tools = null } = {}) {
     if (typeof modelId !== 'string') return null;
-    const separator = modelId.lastIndexOf('__');
-    const [name, blockKey] =
-      separator === -1
-        ? [modelId, modelId]
-        : [modelId.slice(0, separator), modelId.slice(separator + 2)];
+    const [name, blockKey] = flock._splitBlockKey(modelId);
 
     const parts = await collectCombineParts(build, blockKey);
     if (operation === 'subtract' || operation === 'embed') {
