@@ -3,8 +3,47 @@
 // Flip Computing Limited - flipcomputing.com
 
 import * as BABYLON from '@babylonjs/core';
+import { FlowGraphLog10Block } from '@babylonjs/core';
 import * as BABYLON_LOADER from '@babylonjs/loaders';
 import { GradientMaterial, ShadowOnlyMaterial } from '@babylonjs/materials';
+import earcut from 'earcut';
+import '@fontsource/atkinson-hyperlegible-next';
+import '@fontsource/atkinson-hyperlegible-next/500.css';
+import '@fontsource/atkinson-hyperlegible-next/600.css';
+import '@fontsource/asap';
+import '@fontsource/asap/500.css';
+import '@fontsource/asap/600.css';
+import { characterNames, getModelDisplayName } from './config';
+import { flockRuntimeUrl } from './runtime/urls.js';
+import { startStandaloneWhenReady } from './standalone.js';
+import { getShowInternalNodes, setShowInternalNodes } from './ui/inspectorVisibility.js';
+import * as csg from './api/csg';
+import * as animate from './api/animate';
+import * as sound from './api/sound';
+import * as ui from './api/ui';
+import * as movement from './api/movement';
+import * as models from './api/models';
+import * as shapes from './api/shapes';
+import * as transform from './api/transform';
+import * as material from './api/material';
+import * as effects from './api/effects';
+import * as physics from './api/physics';
+import * as xr from './api/xr';
+import * as control from './api/control';
+import * as scene from './api/scene';
+import * as mesh from './api/mesh';
+import * as camera from './api/camera';
+import * as events from './api/events';
+import * as sections from './api/sections';
+import * as microbit from './api/microbit';
+import * as microbitManager from './microbit/manager.js';
+import * as math from './api/math';
+import * as sensing from './api/sensing';
+import * as sandbox from './runtime/sandbox.js';
+import * as readiness from './runtime/readiness.js';
+import * as lifecycle from './runtime/lifecycle.js';
+import * as diagnostics from './runtime/diagnostics.js';
+import * as freeze from './runtime/freeze.js';
 
 // Point Babylon’s Draco loader at local folder for offline use
 BABYLON.DracoCompression.Configuration = {
@@ -14,56 +53,43 @@ BABYLON.DracoCompression.Configuration = {
     fallbackUrl: './draco/draco_decoder_gltf.js',
   },
 };
-import earcut from 'earcut';
-import '@fontsource/atkinson-hyperlegible-next';
-import '@fontsource/atkinson-hyperlegible-next/500.css';
-import '@fontsource/atkinson-hyperlegible-next/600.css';
 
-import '@fontsource/asap';
-import '@fontsource/asap/500.css';
-import '@fontsource/asap/600.css';
-import { characterNames, getModelDisplayName } from './config';
-import { flockRuntimeUrl } from './runtime/urls.js';
-import { startStandaloneWhenReady } from './standalone.js';
-
-import { FlowGraphLog10Block } from '@babylonjs/core';
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
 const globalEarcutTarget = typeof globalThis !== 'undefined' ? globalThis : undefined;
 
 if (globalEarcutTarget) {
   Object.assign(globalEarcutTarget, optionalBabylonDeps);
 }
-import { flockCSG, setFlockReference as setFlockCSG } from './api/csg';
-import { flockAnimate, setFlockReference as setFlockAnimate } from './api/animate';
-import { flockSound, setFlockReference as setFlockSound } from './api/sound';
-import { flockUI, setFlockReference as setFlockUI } from './api/ui';
-import { flockMovement, setFlockReference as setFlockMovement } from './api/movement';
-import { flockModels, setFlockReference as setFlockModels } from './api/models';
-import { flockShapes, setFlockReference as setFlockShapes } from './api/shapes';
-import { flockTransform, setFlockReference as setFlockTransform } from './api/transform';
-import { flockMaterial, setFlockReference as setFlockMaterial } from './api/material';
-import { flockEffects, setFlockReference as setFlockEffects } from './api/effects';
-import { flockPhysics, setFlockReference as setFlockPhysics } from './api/physics';
-import { createFlockXRState, flockXR, setFlockReference as setFlockXR } from './api/xr';
-import { flockControl, setFlockReference as setFlockControl } from './api/control';
-import { flockScene, setFlockReference as setFlockScene } from './api/scene';
-import { flockMesh, setFlockReference as setFlockMesh } from './api/mesh';
-import { flockCamera, setFlockReference as setFlockCamera } from './api/camera';
-import { flockEvents, setFlockReference as setFlockEvents } from './api/events';
-import { flockSections, setFlockReference as setFlockSections } from './api/sections';
-import { flockMicrobit, setFlockReference as setFlockMicrobit } from './api/microbit';
-import { setFlockReference as setFlockMicrobitManager } from './microbit/manager.js';
-import { flockMath, setFlockReference as setFlockMath } from './api/math';
-import { flockSensing, setFlockReference as setFlockSensing } from './api/sensing';
-import { flockSandbox, setFlockReference as setFlockSandbox } from './runtime/sandbox.js';
-import { flockReadiness, setFlockReference as setFlockReadiness } from './runtime/readiness.js';
-import { flockLifecycle, setFlockReference as setFlockLifecycle } from './runtime/lifecycle.js';
-import {
-  flockDiagnostics,
-  setFlockReference as setFlockDiagnostics,
-} from './runtime/diagnostics.js';
-import { flockFreeze, setFlockReference as setFlockFreeze } from './runtime/freeze.js';
-import { getShowInternalNodes, setShowInternalNodes } from './ui/inspectorVisibility.js';
+
+const flockModules = [
+  csg,
+  animate,
+  sound,
+  ui,
+  movement,
+  models,
+  shapes,
+  transform,
+  material,
+  effects,
+  physics,
+  scene,
+  mesh,
+  camera,
+  xr,
+  math,
+  control,
+  events,
+  sections,
+  microbit,
+  sensing,
+  sandbox,
+  readiness,
+  lifecycle,
+  diagnostics,
+  freeze,
+  microbitManager,
+];
 
 export const flock = {
   blockDebug: false,
@@ -162,33 +188,33 @@ export const flock = {
   lastFrameTime: 0,
   savedCamera: null,
   _editorView: false,
-  ...createFlockXRState(),
-  ...flockCSG,
-  ...flockAnimate,
-  ...flockSound,
-  ...flockUI,
-  ...flockMovement,
-  ...flockModels,
-  ...flockShapes,
-  ...flockTransform,
-  ...flockMaterial,
-  ...flockEffects,
-  ...flockPhysics,
-  ...flockScene,
-  ...flockMesh,
-  ...flockCamera,
-  ...flockXR,
-  ...flockControl,
-  ...flockEvents,
-  ...flockSections,
-  ...flockMicrobit,
-  ...flockSensing,
-  ...flockMath,
-  ...flockSandbox,
-  ...flockReadiness,
-  ...flockLifecycle,
-  ...flockDiagnostics,
-  ...flockFreeze,
+  ...xr.createFlockXRState(),
+  ...csg.flockCSG,
+  ...animate.flockAnimate,
+  ...sound.flockSound,
+  ...ui.flockUI,
+  ...movement.flockMovement,
+  ...models.flockModels,
+  ...shapes.flockShapes,
+  ...transform.flockTransform,
+  ...material.flockMaterial,
+  ...effects.flockEffects,
+  ...physics.flockPhysics,
+  ...scene.flockScene,
+  ...mesh.flockMesh,
+  ...camera.flockCamera,
+  ...xr.flockXR,
+  ...control.flockControl,
+  ...events.flockEvents,
+  ...sections.flockSections,
+  ...microbit.flockMicrobit,
+  ...sensing.flockSensing,
+  ...math.flockMath,
+  ...sandbox.flockSandbox,
+  ...readiness.flockReadiness,
+  ...lifecycle.flockLifecycle,
+  ...diagnostics.flockDiagnostics,
+  ...freeze.flockFreeze,
   // onBlockError lets the UI show a translated message from key + values.
   onBlockError: null,
   _debugLogging: undefined,
@@ -197,9 +223,9 @@ export const flock = {
     const safeText = flock.sanitizeInlineText(String(text ?? '').substring(0, 256));
     if (!safeText) return;
 
-    return flock.whenModelReady(meshName, (mesh) => {
-      if (!mesh) return;
-      const root = mesh.metadata?.boundingBox ?? mesh;
+    return flock.whenModelReady(meshName, (readyMesh) => {
+      if (!readyMesh) return;
+      const root = readyMesh.metadata?.boundingBox ?? readyMesh;
       if (root.metadata) {
         root.metadata.displayName = safeText;
       }
@@ -236,32 +262,9 @@ export const flock = {
 };
 
 function bindFlockModules() {
-  setFlockCSG(flock);
-  setFlockAnimate(flock);
-  setFlockSound(flock);
-  setFlockUI(flock);
-  setFlockMovement(flock);
-  setFlockModels(flock);
-  setFlockShapes(flock);
-  setFlockTransform(flock);
-  setFlockMaterial(flock);
-  setFlockEffects(flock);
-  setFlockPhysics(flock);
-  setFlockScene(flock);
-  setFlockMesh(flock);
-  setFlockCamera(flock);
-  setFlockXR(flock);
-  setFlockMath(flock);
-  setFlockControl(flock);
-  setFlockEvents(flock);
-  setFlockSections(flock);
-  setFlockMicrobit(flock);
-  setFlockSensing(flock);
-  setFlockSandbox(flock);
-  setFlockReadiness(flock);
-  setFlockLifecycle(flock);
-  setFlockDiagnostics(flock);
-  setFlockFreeze(flock);
+  for (const module of flockModules) {
+    module.setFlockReference(flock);
+  }
 }
 
 flock._bindModules = bindFlockModules;
@@ -270,15 +273,14 @@ flock._bindModules = bindFlockModules;
 // hint) can call flock helpers before the first scene runs. initializeNewScene
 // re-asserts the same reference after each reset.
 bindFlockModules();
-setFlockMicrobitManager(flock);
 
 flock.runtimeUrl = flockRuntimeUrl;
 
 export { initializeFlock } from './standalone.js';
 
-window.setBPM = flockSound.setBPM;
-window.updateListenerPositionAndOrientation = flockSound.updateListenerPositionAndOrientation;
-window.speak = flockSound.speak;
+window.setBPM = sound.flockSound.setBPM;
+window.updateListenerPositionAndOrientation = sound.flockSound.updateListenerPositionAndOrientation;
+window.speak = sound.flockSound.speak;
 
 document.addEventListener('visibilitychange', () => {
   flock.freezeEvents.dispatchEvent(new Event('change'));
