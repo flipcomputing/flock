@@ -1,9 +1,4 @@
-import {
-  attachBlockMapping,
-  attachMixamoMapping,
-  objectColliderShapes,
-  TEXTURE_TILE_SIZE,
-} from '../config.js';
+import { attachSockets, objectColliderShapes, TEXTURE_TILE_SIZE } from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
 import {
   CUBE_POINTS,
@@ -104,27 +99,96 @@ function aroundFractions(positions, indices, include = () => true) {
   return fractions;
 }
 
-// Snap a bone-attached mesh so its front faces the character's forward,
-// compensating for the bone's rest orientation. Post-attach rotates stay
-// in bone space, so Y remains character-relative yaw for user tweaks.
-// Attachments are fitted to the character standing upright, so a tilted
-// character carries them along instead of changing the fit.
-function withUprightTarget(target, fitFn) {
-  const savedQuaternion = target.rotationQuaternion?.clone() ?? null;
-  const savedRotation = target.rotation.clone();
-  const refresh = () =>
-    [target, ...target.getChildMeshes(false)].forEach((mesh) => mesh.computeWorldMatrix(true));
-  const parentRotation = flock.BABYLON.Quaternion.Identity();
-  target.parent?.computeWorldMatrix(true).decompose(undefined, parentRotation);
-  target.rotationQuaternion = flock.BABYLON.Quaternion.Inverse(parentRotation);
-  refresh();
-  try {
-    fitFn();
-  } finally {
-    target.rotationQuaternion = savedQuaternion;
-    target.rotation.copyFrom(savedRotation);
-    refresh();
+const socketsBySkinnedMesh = new WeakMap();
+
+function skinnedMeshOf(target) {
+  return target.skeleton ? target : target.getChildMeshes().find((mesh) => mesh.skeleton);
+}
+
+function boneNamed(skeleton, name) {
+  return skeleton.bones[skeleton.getBoneIndexByName(name)] ?? null;
+}
+
+function socketSpecsFor(target) {
+  return target.metadata?.modelName?.startsWith('Character')
+    ? attachSockets.block
+    : attachSockets.mixamo;
+}
+
+function authoredSocket(target, logicalName) {
+  const name = `Socket_${logicalName}`;
+  return target.getDescendants(false).find((node) => node.name === name) ?? null;
+}
+
+function buildSocket(target, skinned, logicalName, spec) {
+  const B = flock.BABYLON;
+  const skeleton = skinned.skeleton;
+  const bone = boneNamed(skeleton, spec.bone);
+  if (!bone) return null;
+
+  const skinnedToTarget = skinned
+    .computeWorldMatrix(true)
+    .multiply(target.computeWorldMatrix(true).clone().invert());
+  const restInTarget = (b) =>
+    b.getAbsoluteInverseBindMatrix().clone().invert().multiply(skinnedToTarget);
+
+  const originBones = [spec.origin ?? spec.bone]
+    .flat()
+    .map((name) => boneNamed(skeleton, name))
+    .filter(Boolean);
+  const origin = originBones
+    .reduce((sum, b) => sum.addInPlace(restInTarget(b).getTranslation()), B.Vector3.Zero())
+    .scaleInPlace(1 / originBones.length);
+
+  const [rx, ry, rz] = (spec.rotation ?? [0, 0, 0]).map((deg) => B.Tools.ToRadians(deg));
+  const socketInTarget = B.Matrix.Translation(...(spec.offset ?? [0, 0, 0]))
+    .multiply(B.Quaternion.FromEulerAngles(rx, ry, rz).toRotationMatrix(new B.Matrix()))
+    .multiply(B.Matrix.Translation(origin.x, origin.y, origin.z));
+
+  const socket = new B.TransformNode(`${target.name}_socket_${logicalName}`, flock.scene);
+  socket.rotationQuaternion = new B.Quaternion();
+  socketInTarget
+    .multiply(restInTarget(bone).invert())
+    .decompose(socket.scaling, socket.rotationQuaternion, socket.position);
+  socket.attachToBone(bone, skinned);
+  return socket;
+}
+
+function characterSocket(target, logicalName, spec) {
+  const authored = authoredSocket(target, logicalName);
+  if (authored) return authored;
+
+  const skinned = skinnedMeshOf(target);
+  if (!skinned || !spec) return null;
+
+  let sockets = socketsBySkinnedMesh.get(skinned);
+  if (!sockets) {
+    sockets = new Map();
+    socketsBySkinnedMesh.set(skinned, sockets);
+    skinned.onDisposeObservable.addOnce(() => sockets.forEach((socket) => socket.dispose(true)));
   }
+  const existing = sockets.get(logicalName);
+  if (existing && !existing.isDisposed()) return existing;
+
+  const socket = buildSocket(target, skinned, logicalName, spec);
+  if (socket) sockets.set(logicalName, socket);
+  return socket;
+}
+
+function restOnSocket(mesh, socket, baseY) {
+  const toSocket = socket.computeWorldMatrix(true).clone().invert();
+  mesh.computeWorldMatrix(true);
+  const parts = [mesh, ...mesh.getChildMeshes(false)].filter(
+    (part) => part.getTotalVertices?.() > 0
+  );
+  let lowest = Infinity;
+  for (const part of parts) {
+    part.computeWorldMatrix(true);
+    for (const corner of part.getBoundingInfo().boundingBox.vectorsWorld) {
+      lowest = Math.min(lowest, flock.BABYLON.Vector3.TransformCoordinates(corner, toSocket).y);
+    }
+  }
+  if (Number.isFinite(lowest)) mesh.position.y += baseY - lowest;
 }
 
 // Group shells have no body of their own, so their members' bodies must go too.
@@ -165,31 +229,58 @@ function syncAttachedPhysics(mesh) {
   restoreAttachedPhysics(mesh);
 }
 
-function alignAttachedToCharacterFacing(attachedMesh, targetMesh) {
-  try {
-    const B = flock?.BABYLON;
-    if (!B || !attachedMesh || !targetMesh) return;
-    const facing =
-      typeof flock._followFacing === 'function' ? flock._followFacing(targetMesh) : null;
-    if (!facing || facing.lengthSquared() < 1e-8) return;
-    facing.normalize();
-    const desiredWorld = B.Quaternion.FromLookDirectionLH(facing, B.Axis.Y);
-    if (!attachedMesh.rotationQuaternion) {
-      attachedMesh.rotationQuaternion = B.Quaternion.FromEulerVector(
-        attachedMesh.rotation ?? B.Vector3.Zero()
-      );
-    }
-    attachedMesh.rotationQuaternion.copyFromFloats(0, 0, 0, 1);
-    attachedMesh.computeWorldMatrix(true);
-    const parentWorld = new B.Quaternion();
-    attachedMesh.getWorldMatrix().decompose(undefined, parentWorld);
-    const local = parentWorld.conjugate().multiply(desiredWorld);
-    local.normalize();
-    attachedMesh.rotationQuaternion.copyFrom(local);
-    attachedMesh.computeWorldMatrix(true);
-  } catch (_) {
-    console.warn('Suppressed non-critical error:', _);
-  }
+function attachToCharacter(api, meshToAttach, targetMesh, logicalName, specFor, { x, y, z }) {
+  return new Promise((resolve) => {
+    flock.whenModelReady(targetMesh, (targetMeshInstance) => {
+      flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
+        if (
+          !flock.requireMesh(targetMeshInstance, { api, name: targetMesh }) ||
+          !flock.requireMesh(meshToAttachInstance, { api, name: meshToAttach })
+        ) {
+          resolve();
+          return;
+        }
+        const spec = specFor(targetMeshInstance);
+        const socket = characterSocket(targetMeshInstance, logicalName, spec);
+        if (!socket) {
+          resolve();
+          return;
+        }
+
+        const alreadyAttached = !!meshToAttachInstance.metadata?._attachedTargetName;
+        if (!alreadyAttached) {
+          const rotation = new flock.BABYLON.Quaternion();
+          meshToAttachInstance.getWorldMatrix(true).decompose(undefined, rotation);
+          (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation = rotation;
+          removeAttachedPhysics(meshToAttachInstance);
+        }
+
+        if (meshToAttachInstance._transformToBoneReferal) meshToAttachInstance.detachFromBone();
+        meshToAttachInstance.parent = socket;
+        meshToAttachInstance.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+        meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
+        if (spec?.restOnBase) restOnSocket(meshToAttachInstance, socket, Number(y || 0));
+        meshToAttachInstance.computeWorldMatrix(true);
+
+        meshToAttachInstance.metadata._attachedBoneName = logicalName;
+        meshToAttachInstance.metadata._attachedTargetName = targetMesh;
+        meshToAttachInstance.metadata._attachedOffset = { x, y, z };
+
+        (targetMeshInstance.metadata ||= {})._boneAttachments = (
+          targetMeshInstance.metadata._boneAttachments || []
+        ).filter((e) => e.meshName !== meshToAttach);
+        targetMeshInstance.metadata._boneAttachments.push({
+          meshName: meshToAttach,
+          boneName: logicalName,
+          offset: { x, y, z },
+        });
+
+        flock._applyXRViewVisibility?.();
+        flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
+        resolve();
+      });
+    });
+  });
 }
 
 export const flockMesh = {
@@ -1491,161 +1582,21 @@ export const flockMesh = {
     return bb;
   },
   hold(meshToAttach, targetMesh, xOffset = 0, yOffset = 0, zOffset = 0) {
-    return new Promise((resolve) => {
-      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-          if (
-            !flock.requireMesh(targetMeshInstance, { api: 'hold', name: targetMesh }) ||
-            !flock.requireMesh(meshToAttachInstance, { api: 'hold', name: meshToAttach })
-          ) {
-            resolve();
-            return;
-          }
-          const targetWithSkeleton = targetMeshInstance.skeleton
-            ? targetMeshInstance
-            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
-
-          if (targetWithSkeleton) {
-            const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === 'Hold');
-            if (bone) {
-              removeAttachedPhysics(meshToAttachInstance);
-              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-              meshToAttachInstance.position = new flock.BABYLON.Vector3(xOffset, yOffset, zOffset);
-              alignAttachedToCharacterFacing(meshToAttachInstance, targetMeshInstance);
-
-              // Store metadata for re-attachment on live model switch
-              (meshToAttachInstance.metadata ||= {})._attachedBoneName = 'LeftHand';
-              meshToAttachInstance.metadata._attachedTargetName = targetMesh;
-              meshToAttachInstance.metadata._attachedOffset = {
-                x: xOffset,
-                y: yOffset,
-                z: zOffset,
-              };
-              // Track on target for model-switch re-attachment
-              (targetMeshInstance.metadata ||= {})._boneAttachments ??= [];
-              targetMeshInstance.metadata._boneAttachments =
-                targetMeshInstance.metadata._boneAttachments.filter(
-                  (e) => e.meshName !== meshToAttach
-                );
-              targetMeshInstance.metadata._boneAttachments.push({
-                meshName: meshToAttach,
-                boneName: 'LeftHand',
-                offset: { x: xOffset, y: yOffset, z: zOffset },
-              });
-              flock._applyXRViewVisibility?.();
-              flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
-            }
-          }
-          resolve();
-        });
-      });
+    return attachToCharacter('hold', meshToAttach, targetMesh, 'Hold', () => ({ bone: 'Hold' }), {
+      x: xOffset,
+      y: yOffset,
+      z: zOffset,
     });
   },
   attach(meshToAttach, targetMesh, { boneName = 'LeftHand', x = 0, y = 0, z = 0 } = {}) {
-    return new Promise((resolve) => {
-      flock.whenModelReady(targetMesh, (targetMeshInstance) => {
-        flock.whenModelReady(meshToAttach, (meshToAttachInstance) => {
-          if (
-            !flock.requireMesh(targetMeshInstance, { api: 'attach', name: targetMesh }) ||
-            !flock.requireMesh(meshToAttachInstance, { api: 'attach', name: meshToAttach })
-          ) {
-            resolve();
-            return;
-          }
-          // Re-attach must not overwrite the rotation drop restores.
-          const alreadyAttached = !!meshToAttachInstance.metadata?._attachedTargetName;
-
-          if (!alreadyAttached) {
-            const worldMatrix = meshToAttachInstance.getWorldMatrix(true).clone();
-            const scale = new flock.BABYLON.Vector3();
-            const rotation = new flock.BABYLON.Quaternion();
-            const position = new flock.BABYLON.Vector3();
-            worldMatrix.decompose(scale, rotation, position);
-            (meshToAttachInstance.metadata ||= {})._preAttachWorldRotation = rotation.clone();
-          }
-
-          const logicalBoneName = boneName;
-          boneName = targetMeshInstance?.metadata?.modelName?.startsWith('Character')
-            ? attachBlockMapping[boneName]
-            : attachMixamoMapping[boneName];
-
-          const targetWithSkeleton = targetMeshInstance.skeleton
-            ? targetMeshInstance
-            : targetMeshInstance.getChildMeshes().find((mesh) => mesh.skeleton);
-
-          if (targetWithSkeleton) {
-            const bone = targetWithSkeleton.skeleton.bones.find((b) => b.name === boneName);
-            if (bone) {
-              if (!alreadyAttached) removeAttachedPhysics(meshToAttachInstance);
-
-              meshToAttachInstance.attachToBone(bone, targetWithSkeleton);
-
-              (meshToAttachInstance.metadata ||= {})._attachedBoneName = logicalBoneName;
-              meshToAttachInstance.metadata._attachedTargetName = targetMesh;
-              meshToAttachInstance.metadata._attachedOffset = { x, y, z };
-
-              // Track on target for model-switch re-attachment
-              (targetMeshInstance.metadata ||= {})._boneAttachments ??= [];
-              targetMeshInstance.metadata._boneAttachments = (
-                targetMeshInstance.metadata._boneAttachments || []
-              ).filter((e) => e.meshName !== meshToAttach);
-              targetMeshInstance.metadata._boneAttachments.push({
-                meshName: meshToAttach,
-                boneName: logicalBoneName,
-                offset: { x, y, z },
-              });
-
-              withUprightTarget(targetMeshInstance, () => {
-                meshToAttachInstance.position = new flock.BABYLON.Vector3(x, y, z);
-
-                alignAttachedToCharacterFacing(meshToAttachInstance, targetMeshInstance);
-
-                if (logicalBoneName === 'Head') {
-                  // Rest accessories on top of the head, not at the neck joint the bone sits
-                  // at. The crown bone (if the rig has one) gives the head's real length —
-                  // computed in world space so it already reflects any character scaling.
-                  const headBasePos = bone.getAbsolutePosition(targetWithSkeleton);
-                  const crownBone = bone.children?.[0];
-                  const headLength = crownBone
-                    ? flock.BABYLON.Vector3.Distance(
-                        headBasePos,
-                        crownBone.getAbsolutePosition(targetWithSkeleton)
-                      )
-                    : 0;
-                  const targetBaseY = headBasePos.y + headLength + Number(y || 0);
-
-                  // A change to the mesh's local Y doesn't move its world Y 1:1 — the bone,
-                  // skeleton mesh and character can all be scaled — so measure the actual
-                  // local-to-world ratio along Y instead of assuming it's 1.
-                  const baseLocalY = meshToAttachInstance.position.y;
-                  meshToAttachInstance.computeWorldMatrix(true);
-                  const w0 = meshToAttachInstance.getHierarchyBoundingVectors(
-                    true,
-                    (m) => m !== meshToAttachInstance
-                  ).min.y;
-                  meshToAttachInstance.position.y = baseLocalY + 1;
-                  meshToAttachInstance.computeWorldMatrix(true);
-                  const w1 = meshToAttachInstance.getHierarchyBoundingVectors(
-                    true,
-                    (m) => m !== meshToAttachInstance
-                  ).min.y;
-                  const worldPerLocalY = w1 - w0;
-
-                  meshToAttachInstance.position.y = worldPerLocalY
-                    ? baseLocalY + (targetBaseY - w0) / worldPerLocalY
-                    : baseLocalY;
-                  meshToAttachInstance.computeWorldMatrix(true);
-                }
-              });
-
-              flock._applyXRViewVisibility?.();
-              flock._syncTeleportMeshHierarchy?.(meshToAttachInstance);
-            }
-          }
-          resolve();
-        });
-      });
-    });
+    return attachToCharacter(
+      'attach',
+      meshToAttach,
+      targetMesh,
+      boneName,
+      (target) => socketSpecsFor(target)[boneName],
+      { x, y, z }
+    );
   },
   drop(meshToDetach) {
     return new Promise((resolve) => {
@@ -1674,7 +1625,7 @@ export const flockMesh = {
           }
         }
 
-        mesh.detachFromBone?.();
+        if (mesh._transformToBoneReferal) mesh.detachFromBone();
         mesh.parent = null;
         flock._restoreXREmbodiedMesh?.(mesh);
 
