@@ -989,30 +989,23 @@ function wireHowToSnippets(root) {
   });
 }
 
-// Appends a toggleable "Mark as complete" button to the end of every <step>,
-// right-aligned, styled after flipcomputing.com's UEFN tutorial steps:
-// clicking it toggles a `completed` class on the step (CSS greys it out with
-// a strikethrough) and flips the button's own label. Nothing is persisted —
-// completion is just DOM state on the rendered article, so it resets the
-// next time the how-to is opened (renderArticle() re-injects the raw HTML
-// from scratch).
+// Appends a "Done" checkbox to the end of every <step>, styled after the
+// project steps on projects.flockxr.com: ticking it toggles a `completed`
+// class on the step (CSS greys it out with a strikethrough). Nothing is
+// persisted — completion is just DOM state on the rendered article, so it
+// resets the next time the how-to is opened (renderArticle() re-injects the
+// raw HTML from scratch).
 function wireHowToSteps(root) {
   root.querySelectorAll('step').forEach((step) => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'howto-step-complete';
-    btn.textContent = translate('howto_mark_complete');
-    btn.addEventListener('click', () => {
-      const completed = step.classList.toggle('completed');
-      btn.textContent = translate(completed ? 'howto_step_completed' : 'howto_mark_complete');
+    const label = document.createElement('label');
+    label.className = 'howto-step-done';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.addEventListener('change', () => {
+      step.classList.toggle('completed', checkbox.checked);
     });
-    // The button must be display: inline-block (see style.css) to avoid the
-    // completed step's line-through painting across it, so alignment is done
-    // via text-align: right on this wrapping row instead of on the button.
-    const row = document.createElement('div');
-    row.className = 'howto-step-complete-row';
-    row.appendChild(btn);
-    step.appendChild(row);
+    label.append(checkbox, translate('howto_step_done'));
+    step.appendChild(label);
   });
 }
 

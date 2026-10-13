@@ -1659,8 +1659,7 @@ export default {
   howto_tag_camera_ui: 'Camera',
   howto_tag_code_ui: 'Code',
   howto_tag_blocks_ui: 'Blocks',
-  howto_mark_complete: 'Mark as complete',
-  howto_step_completed: 'Complete 🎉',
+  howto_step_done: 'Done',
 
   // Player controls panel — title, sections and control names
   player_panel_title: 'Player Controls',
