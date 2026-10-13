@@ -8,6 +8,25 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Generated names are `${name}__${blockId}`, plus `_${n}` for repeats; Blockly IDs are 20 characters.
+const GENERATED_NAME = /^(.+)__[!#$%()*+,\-./:;=?@[\]^`{|}~\w]{20}(?:_\d+)?$/;
+
+// Fills {placeholders} from values, showing names as the user wrote them. Must not throw:
+// it runs while reporting another error, and values can come from user code.
+function blockErrorMessage(key, values) {
+  return translate(key).replace(/\{(\w+)\}/g, (match, name) => {
+    let value;
+    try {
+      value = values?.[name];
+    } catch {
+      return match;
+    }
+    if (typeof value === 'number') return String(value);
+    if (typeof value !== 'string') return match;
+    return value.match(GENERATED_NAME)?.[1] ?? value;
+  });
+}
+
 export const flockDiagnostics = {
   // Testing phase: warnings ON by default (?debug=false silences).
   // TODO: revert to opt-in (`=== 'true'`, default false) after testing.
@@ -44,7 +63,11 @@ export const flockDiagnostics = {
     flock._lastErrorSig = sig;
     flock._lastErrorAt = now;
     if (flock.isDebugLoggingEnabled()) {
-      console.warn(`[flock] ${api ?? 'block'}: ${key}`, values, safe ?? '');
+      console.warn(
+        `[flock] ${api ?? 'block'}: ${key}: ${blockErrorMessage(key, values)}`,
+        values,
+        safe ?? ''
+      );
     }
     try {
       flock.onBlockError?.({ key, values, api, error: safe });

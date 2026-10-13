@@ -1,4 +1,9 @@
 import { expect } from 'chai';
+import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+import { defineGenerators } from '../generators/generators.js';
+import { defineEventsBlocks } from '../blocks/events.js';
+import { defineTextBlocks } from '../blocks/text.js';
 
 export function runEventsTests(flock) {
   describe('Events API @events', function () {
@@ -6,9 +11,7 @@ export function runEventsTests(flock) {
 
     afterEach(function () {
       // Clear any custom events registered during tests
-      if (flock.events) {
-        Object.keys(flock.events).forEach((key) => delete flock.events[key]);
-      }
+      flock.events?.clear();
       // Dispose any meshes created during tests
       meshIds.forEach((id) => {
         try {
@@ -21,63 +24,181 @@ export function runEventsTests(flock) {
     });
 
     // -------------------------------------------------------------------------
-    describe('isAllowedEventName', function () {
-      it('returns false for empty string', function () {
-        expect(flock.isAllowedEventName('')).to.be.false;
+    describe('event names', function () {
+      const fires = (listenName, broadcastName = listenName) => {
+        let called = false;
+        flock.onEvent(listenName, () => {
+          called = true;
+        });
+        flock.broadcastEvent(broadcastName);
+        flock.events.clear();
+        return called;
+      };
+
+      it('accepts names that used to be reserved or rejected', function () {
+        const names = [
+          'one',
+          'only',
+          'onSomething',
+          'systemEvent',
+          'flockReady',
+          'babylonTick',
+          '_hidden',
+          'hello!',
+          'say@world',
+          '1up',
+          'game-over',
+          'new',
+          'class',
+          '🎉 party time',
+          'a'.repeat(60),
+        ];
+        for (const name of names) {
+          expect(fires(name), name).to.be.true;
+        }
       });
 
-      it('returns false for non-string input', function () {
-        expect(flock.isAllowedEventName(null)).to.be.false;
-        expect(flock.isAllowedEventName(42)).to.be.false;
+      it('accepts names that are also object property names', function () {
+        for (const name of ['constructor', 'toString', '__proto__', 'hasOwnProperty']) {
+          expect(fires(name), name).to.be.true;
+        }
       });
 
-      it('returns false for name longer than 30 characters', function () {
-        expect(flock.isAllowedEventName('a'.repeat(31))).to.be.false;
+      it('keeps spaces, so "game over" and "game_over" are different events', function () {
+        expect(fires('game over', 'game over')).to.be.true;
+        expect(fires('game over', 'game_over')).to.be.false;
       });
 
-      it('returns false for reserved prefixes', function () {
-        expect(flock.isAllowedEventName('onSomething')).to.be.false;
-        expect(flock.isAllowedEventName('systemEvent')).to.be.false;
-        expect(flock.isAllowedEventName('internalMsg')).to.be.false;
-        expect(flock.isAllowedEventName('babylonTick')).to.be.false;
-        expect(flock.isAllowedEventName('flockReady')).to.be.false;
-        expect(flock.isAllowedEventName('_hidden')).to.be.false;
+      it('ignores spaces at either end', function () {
+        expect(fires('jump', '  jump ')).to.be.true;
       });
 
-      it('returns false for disallowed characters', function () {
-        expect(flock.isAllowedEventName('hello!')).to.be.false;
-        expect(flock.isAllowedEventName('say@world')).to.be.false;
+      it('matches a number and the same text', function () {
+        expect(fires(3, '3')).to.be.true;
       });
 
-      it('returns true for a valid plain name', function () {
-        expect(flock.isAllowedEventName('jump')).to.be.true;
-        expect(flock.isAllowedEventName('collect coin')).to.be.true;
+      it('does nothing for a missing name', function () {
+        let called = false;
+        expect(() => flock.onEvent(undefined, () => (called = true))).to.not.throw();
+        expect(() => flock.broadcastEvent(undefined)).to.not.throw();
+        expect(called).to.be.false;
+        expect(flock.events.size).to.equal(0);
       });
 
-      it('returns true for a name with emoji', function () {
-        expect(flock.isAllowedEventName('🎉party')).to.be.true;
+      it('ignores a name that is neither text nor a number, without converting it', function () {
+        let converted = false;
+        const name = {
+          toString() {
+            converted = true;
+            return 'jump';
+          },
+        };
+        let called = false;
+        flock.onEvent('jump', () => (called = true));
+        expect(() => flock.onEvent(name, () => {})).to.not.throw();
+        expect(() => flock.broadcastEvent(name)).to.not.throw();
+        expect(converted).to.be.false;
+        expect(called).to.be.false;
+        expect(flock.events.size).to.equal(1);
       });
     });
 
     // -------------------------------------------------------------------------
-    describe('sanitizeEventName', function () {
-      it('removes disallowed characters', function () {
-        expect(flock.sanitizeEventName('hello!')).to.equal('hello');
-        expect(flock.sanitizeEventName('say@world')).to.equal('sayworld');
+    describe('event blocks', function () {
+      this.timeout(20000);
+      let workspace;
+      let originalPrintText;
+      let printed;
+
+      before(async function () {
+        await flock.disposeOldScene();
+        if (!Blockly.Blocks['on_event']) defineEventsBlocks();
+        if (!Blockly.Blocks['print_text']) defineTextBlocks();
+        if (!javascriptGenerator.forBlock['on_event']) defineGenerators();
       });
 
-      it('truncates to 50 characters', function () {
-        const long = 'a'.repeat(60);
-        expect(flock.sanitizeEventName(long)).to.have.lengthOf(50);
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+        printed = [];
+        originalPrintText = flock.printText;
+        flock.printText = ({ text }) => printed.push(text);
       });
 
-      it('returns empty string for non-string input', function () {
-        expect(flock.sanitizeEventName(null)).to.equal('');
-        expect(flock.sanitizeEventName(123)).to.equal('');
+      afterEach(function () {
+        flock.printText = originalPrintText;
+        workspace.dispose();
       });
 
-      it('preserves emoji and spaces', function () {
-        expect(flock.sanitizeEventName('🎉 party time')).to.equal('🎉 party time');
+      const text = (value) => ({ block: { type: 'text', fields: { TEXT: value } } });
+      const variable = (id) => ({ block: { type: 'variables_get', fields: { VAR: { id } } } });
+      const append = (state) => Blockly.serialization.blocks.append(state, workspace);
+      const listener = (name, message) =>
+        append({
+          type: 'on_event',
+          inputs: {
+            EVENT_NAME: name,
+            DO: { block: { type: 'print_text', inputs: { TEXT: text(message) } } },
+          },
+        });
+      const generate = () => {
+        javascriptGenerator.init(workspace);
+        return javascriptGenerator.workspaceToCode(workspace);
+      };
+      const runUntilPrinted = async () => {
+        await flock.runCode(generate(), { focusCanvas: false });
+        for (let i = 0; i < 40 && printed.length === 0; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+      };
+
+      it('passes a typed name through exactly, as a string literal', function () {
+        const block = append({ type: 'broadcast_event', inputs: { EVENT_NAME: text(' 1up! ') } });
+        javascriptGenerator.init(workspace);
+        expect(javascriptGenerator.blockToCode(block)).to.equal('broadcastEvent("1up!");\n');
+      });
+
+      it('cannot be used to inject code through a typed name', function () {
+        const payload = '"); alert(1); ("';
+        const block = append({ type: 'broadcast_event', inputs: { EVENT_NAME: text(payload) } });
+        javascriptGenerator.init(workspace);
+        expect(javascriptGenerator.blockToCode(block)).to.equal(
+          `broadcastEvent(${JSON.stringify(payload)});\n`
+        );
+      });
+
+      it('runs a listener when the event is broadcast with a name held in a variable', async function () {
+        const id = workspace.createVariable('which').getId();
+        listener(text('go team!'), 'heard');
+        append({
+          type: 'start',
+          inputs: {
+            DO: {
+              block: {
+                type: 'variables_set',
+                fields: { VAR: { id } },
+                inputs: { VALUE: text('go team!') },
+                next: { block: { type: 'broadcast_event', inputs: { EVENT_NAME: variable(id) } } },
+              },
+            },
+          },
+        });
+        await runUntilPrinted();
+        expect(printed).to.deep.equal(['heard']);
+      });
+
+      it("listens for a variable's value when the project starts", async function () {
+        // Hats register at start, before any set block runs, so the variable still holds
+        // its default: its own name.
+        const id = workspace.createVariable('signal').getId();
+        listener(variable(id), 'heard');
+        append({
+          type: 'start',
+          inputs: {
+            DO: { block: { type: 'broadcast_event', inputs: { EVENT_NAME: text('signal') } } },
+          },
+        });
+        await runUntilPrinted();
+        expect(printed).to.deep.equal(['heard']);
       });
     });
 
@@ -137,13 +258,6 @@ export function runEventsTests(flock) {
         flock.broadcastEvent('ping');
         flock.broadcastEvent('ping');
         expect(count).to.equal(1);
-      });
-
-      it('silently rejects broadcastEvent with reserved event name', function () {
-        let called = false;
-        // Cannot register on reserved name, so just verify broadcast doesn't throw
-        expect(() => flock.broadcastEvent('onSomething')).to.not.throw();
-        expect(called).to.be.false;
       });
 
       it('reports and does not throw when handler is not a function', function () {

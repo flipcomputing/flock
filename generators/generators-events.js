@@ -1,5 +1,4 @@
 import * as Blockly from 'blockly';
-import { emitSafeIdentifierLiteral } from './generators-utilities.js';
 
 export function registerEventsGenerators(javascriptGenerator) {
   // -------------------------------
@@ -109,25 +108,24 @@ export function registerEventsGenerators(javascriptGenerator) {
   };
 
   // Broadcast event -------------------------------------------
-  javascriptGenerator.forBlock['broadcast_event'] = function (block) {
-    const raw =
-      javascriptGenerator.valueToCode(block, 'EVENT_NAME', javascriptGenerator.ORDER_ATOMIC) ||
-      'undefined';
+  // Typed names are used exactly as written (trimmed); other inputs are evaluated at run time.
+  const eventNameCode = (block) => {
+    const input = block.getInputTargetBlock('EVENT_NAME');
+    if (input?.type === 'text') return JSON.stringify(input.getFieldValue('TEXT').trim());
+    return (
+      javascriptGenerator.valueToCode(block, 'EVENT_NAME', javascriptGenerator.ORDER_NONE) ||
+      'undefined'
+    );
+  };
 
-    const safe = emitSafeIdentifierLiteral(raw, undefined);
-    return `broadcastEvent(${safe});\n`;
+  javascriptGenerator.forBlock['broadcast_event'] = function (block) {
+    return `broadcastEvent(${eventNameCode(block)});\n`;
   };
 
   // On event --------------------------------------------------
   javascriptGenerator.forBlock['on_event'] = function (block) {
-    // Don't force a default; let invalid/empty resolve to undefined
-    const raw =
-      javascriptGenerator.valueToCode(block, 'EVENT_NAME', javascriptGenerator.ORDER_ATOMIC) || '';
-
-    const safe = emitSafeIdentifierLiteral(raw);
-
     const statements_do = javascriptGenerator.statementToCode(block, 'DO');
-    return `onEvent(${safe}, async function() {\n${statements_do}});\n`;
+    return `onEvent(${eventNameCode(block)}, async function() {\n${statements_do}});\n`;
   };
 
   javascriptGenerator.forBlock['restart'] = function () {

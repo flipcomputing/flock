@@ -6,6 +6,13 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Events live in their own Map, so any name works. Only strings and numbers count: converting
+// anything else could call user code (a custom toString). Null means no usable name.
+function eventKey(eventName) {
+  if (typeof eventName === 'number') return String(eventName);
+  return typeof eventName === 'string' ? eventName.trim() : null;
+}
+
 export const flockEvents = {
   /* 
 		  Category: Events
@@ -16,49 +23,34 @@ export const flockEvents = {
       flock.reportBlockError({ key: 'invalid_callback', api: 'onEvent' });
       return;
     }
-    eventName = flock.sanitizeEventName(eventName);
-    if (!flock.isAllowedEventName(eventName)) {
-      flock.reportBlockError({
-        key: 'event_name_reserved',
-        api: 'onEvent',
-        values: { event: eventName },
-      });
-      return;
-    }
+    const key = eventKey(eventName);
+    if (key === null) return;
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
 
-    if (!flock.events[eventName]) {
-      flock.events[eventName] = new flock.BABYLON.Observable();
+    let observable = flock.events.get(key);
+    if (!observable) {
+      observable = new flock.BABYLON.Observable();
+      flock.events.set(key, observable);
     }
     let observer;
     if (once) {
       const wrappedHandler = (data) => {
         handler(data);
-        flock.events[eventName].remove(observer);
+        observable.remove(observer);
       };
-      observer = flock.events[eventName].add(wrappedHandler);
+      observer = observable.add(wrappedHandler);
     } else {
-      observer = flock.events[eventName].add((data) => handler(data));
+      observer = observable.add((data) => handler(data));
     }
 
-    const cleanup = () => flock.events[eventName]?.remove(observer);
+    const cleanup = () => observable.remove(observer);
     signal?.addEventListener('abort', cleanup, { once: true });
     flock.sectionSignal?.()?.addEventListener('abort', cleanup, { once: true });
   },
   broadcastEvent(eventName, data) {
-    eventName = flock.sanitizeEventName(eventName);
-    if (!flock.isAllowedEventName(eventName)) {
-      flock.reportBlockError({
-        key: 'event_name_reserved',
-        api: 'broadcastEvent',
-        values: { event: eventName },
-      });
-      return;
-    }
-    if (flock.events && flock.events[eventName]) {
-      flock.events[eventName].notifyObservers(data);
-    }
+    const key = eventKey(eventName);
+    if (key !== null) flock.events?.get(key)?.notifyObservers(data);
   },
   restartProject() {
     const signal = flock.abortController?.signal;
@@ -210,36 +202,5 @@ export const flockEvents = {
     flock.scene.onDisposeObservable.addOnce(disposeHandler);
     // Also stop when the owning section unloads, not just on scene disposal.
     flock.sectionSignal?.()?.addEventListener('abort', disposeHandler, { once: true });
-  },
-  isAllowedEventName(eventName) {
-    if (!eventName || typeof eventName !== 'string') {
-      return false;
-    }
-
-    if (eventName.length > 30) {
-      return false;
-    }
-
-    const lower = eventName.toLowerCase();
-    const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
-    if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
-      return false;
-    }
-
-    const disallowedChars = /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
-    if (disallowedChars.test(eventName)) {
-      return false;
-    }
-
-    return true;
-  },
-  sanitizeEventName(eventName) {
-    if (typeof eventName !== 'string') {
-      return '';
-    }
-    // Remove disallowed characters (symbols, control chars), allow emoji, spaces, letters, numbers
-    // This allows everything except common punctuation and control characters
-    const clean = eventName.replace(/[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/g, '');
-    return clean.substring(0, 50);
   },
 };

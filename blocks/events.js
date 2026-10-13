@@ -536,29 +536,6 @@ export function defineEventsBlocks() {
     },
   };
 
-  function getEventNameValidationError(name) {
-    if (!name || typeof name !== 'string') {
-      return 'Event name must be a valid string.';
-    }
-
-    if (name.length > 30) {
-      return 'Event name must be 30 characters or fewer.';
-    }
-
-    const lower = name.toLowerCase();
-    const reservedPrefixes = ['_', 'on', 'system', 'internal', 'babylon', 'flock'];
-    if (reservedPrefixes.some((prefix) => lower.startsWith(prefix))) {
-      return "Event name must not start with reserved words like 'on', 'system', or 'flock'.";
-    }
-
-    const disallowedChars = /[!@#$%^&*()+=[\]{};:'"\\|,<>?/\n\r\t]/;
-    if (disallowedChars.test(name)) {
-      return 'Event name must not include punctuation or special characters.';
-    }
-
-    return null; // valid
-  }
-
   Blockly.Blocks['broadcast_event'] = {
     init: function () {
       this.jsonInit({
@@ -578,26 +555,6 @@ export function defineEventsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('events_blocks');
-    },
-
-    /** Called whenever anything changes */
-    onchange: function () {
-      if (!this.workspace || this.isInFlyout) return;
-
-      const inputBlock = this.getInputTargetBlock('EVENT_NAME');
-
-      if (inputBlock && inputBlock.type === 'text') {
-        const value = inputBlock.getFieldValue('TEXT');
-        const error = getEventNameValidationError(value);
-
-        if (error) {
-          this.setWarningText(error);
-        } else {
-          this.setWarningText(null);
-        }
-      } else {
-        this.setWarningText(null);
-      }
     },
   };
 
@@ -657,24 +614,6 @@ export function defineEventsBlocks() {
 
       Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
       fireLayoutMove(this);
-    },
-    onchange: function () {
-      if (!this.workspace || this.isInFlyout) return;
-
-      const inputBlock = this.getInputTargetBlock('EVENT_NAME');
-
-      if (inputBlock && inputBlock.type === 'text') {
-        const value = inputBlock.getFieldValue('TEXT');
-        const error = getEventNameValidationError(value);
-
-        if (error) {
-          this.setWarningText(error);
-        } else {
-          this.setWarningText(null);
-        }
-      } else {
-        this.setWarningText(null);
-      }
     },
   };
 

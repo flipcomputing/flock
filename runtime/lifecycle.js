@@ -651,7 +651,7 @@ export const flockLifecycle = {
         flock._audioStopped = false;
 
         // Clear all references
-        flock.events = {};
+        flock.events = new Map();
         flock.modelCache = {};
         flock.globalSounds = [];
         flock.modelsBeingLoaded = {};
@@ -775,7 +775,7 @@ export const flockLifecycle = {
     flock.engine ? flock.engine.stopRenderLoop() : flock.createEngine();
 
     // Reset scene-wide state
-    flock.events = {};
+    flock.events = new Map();
     flock.modelCache = {};
     flock.globalSounds = [];
     flock.modelsBeingLoaded = {};

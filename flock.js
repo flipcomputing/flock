@@ -174,7 +174,7 @@ export const flock = {
   _audioSuspendedByFreeze: false,
   document: document,
   disposed: null,
-  events: {},
+  events: new Map(),
   modelCache: {},
   globalSounds: [],
   originalModelTransformations: {},

@@ -2,56 +2,6 @@ import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
 
-const RESERVED_IDENTIFIERS = new Set([
-  'await',
-  'break',
-  'case',
-  'catch',
-  'class',
-  'const',
-  'continue',
-  'debugger',
-  'default',
-  'delete',
-  'do',
-  'else',
-  'enum',
-  'export',
-  'extends',
-  'false',
-  'finally',
-  'for',
-  'function',
-  'if',
-  'implements',
-  'import',
-  'in',
-  'instanceof',
-  'interface',
-  'let',
-  'new',
-  'null',
-  'package',
-  'private',
-  'protected',
-  'public',
-  'return',
-  'static',
-  'super',
-  'switch',
-  'this',
-  'throw',
-  'true',
-  'try',
-  'typeof',
-  'var',
-  'void',
-  'while',
-  'with',
-  'yield',
-  'arguments',
-  'eval',
-]);
 // ---------------------------------
 //  Utility functions for generators
 // ---------------------------------
@@ -176,40 +126,6 @@ export function createMesh(block, meshType, params) {
   // a side effect, so without the second call re-run would centre the group
   // on pre-rotation bounds while live used post-rotation ones.
   return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}${parentCode}`;
-}
-
-export function emitSafeIdentifierLiteral(code) {
-  if (!code) {
-    return 'undefined';
-  }
-
-  // Match single, double, or template quoted literals
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) {
-    return 'undefined';
-  }
-
-  const rawBody = m[2];
-
-  // Reject escapes entirely
-  if (rawBody.includes('\\')) {
-    return 'undefined';
-  }
-
-  // Replace spaces and other whitespace with underscores
-  const normalized = rawBody.replace(/\s+/g, '_');
-
-  // Validate identifier
-  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
-    return 'undefined';
-  }
-
-  // Check reserved keywords
-  if (RESERVED_IDENTIFIERS.has(normalized)) {
-    return 'undefined';
-  }
-
-  return JSON.stringify(normalized);
 }
 
 export function sanitizeForCode(input) {
