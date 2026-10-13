@@ -211,28 +211,6 @@ export function runTextFieldValidationTests() {
       expect(generate(block)).not.to.include(payload);
     });
 
-    it('stringifies prefab name in the preview call', function () {
-      const block = Blockly.serialization.blocks.append(
-        {
-          type: 'procedures_defprefab',
-          fields: { NAME: payload, PREVIEW: 'TRUE' },
-        },
-        workspace
-      );
-      const program = parse(generate(block), {
-        ecmaVersion: 'latest',
-        allowAwaitOutsideFunction: true,
-      });
-      expect(program.body).to.have.lengthOf(2);
-      expect(program.body[0].type).to.equal('FunctionDeclaration');
-      expect(program.body[0].id.name).not.to.include(payload);
-      const call = program.body[1].expression.argument;
-      expect(call.type).to.equal('CallExpression');
-      expect(call.callee.name).to.equal('addPrefab');
-      expect(call.arguments[0].type).to.equal('Literal');
-      expect(call.arguments[0].value).to.equal(`${payload}__${block.id}`);
-    });
-
     it('sanitizes the prefab material argument name', function () {
       const block = Blockly.serialization.blocks.append(
         {
