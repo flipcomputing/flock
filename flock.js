@@ -123,6 +123,7 @@ export const flock = {
   optionalBabylonDeps,
   engine: null,
   engineReady: false,
+  userCodeTimeoutMs: 5000,
   eventDebug: false,
   modelReadyPromises: new Map(),
   pendingMeshCreations: 0,

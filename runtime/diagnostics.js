@@ -1,6 +1,6 @@
 import HavokPhysics from '@babylonjs/havok';
 import { translate } from '../main/translation.js';
-import { handleError, markReported } from '../ui/notifications.js';
+import { handleError, isReported, markReported } from '../ui/notifications.js';
 
 let flock;
 
@@ -291,6 +291,17 @@ export const flockDiagnostics = {
         if (flock._havokInstancePromise === pending) {
           flock.havokInstance = instance;
         }
+      } catch (error) {
+        // Callers sharing one load all land here with the same error; report it once.
+        if (!isReported(error)) {
+          if (flock.isPhysicsMemoryAbort(error)) {
+            flock.handlePhysicsOutOfMemory(error);
+          } else {
+            // The wasm is fetched on first use, so this is nearly always a connection problem.
+            handleError(error, { source: 'chunk-load', fatal: true });
+          }
+        }
+        throw markReported(error);
       } finally {
         if (flock._havokInstancePromise === pending) {
           flock._havokInstancePromise = undefined;

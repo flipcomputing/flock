@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { flockRuntimeUrl } from './urls.js';
-import { isBenignAbort } from '../ui/notifications.js';
+import { handleError, isBenignAbort, isReported, markReported } from '../ui/notifications.js';
 
 let flock;
 
@@ -249,9 +249,14 @@ export const flockSandbox = {
   },
   async runCode(code, options = {}) {
     const { focusCanvas = true, startCamera = null } = options;
+    // Banner source for a failure in Flock's own setup, which the project's blocks can't cause.
+    // Null while the project's code is in charge.
+    let setupSource = null;
+    let timeoutId;
 
     try {
       flock.validateUserCodeAST(code);
+      setupSource = 'run-setup';
       await flock.disposeOldScene();
 
       // --- remove any existing iframe ---
@@ -283,9 +288,11 @@ export const flockSandbox = {
       const { win, doc } = await flock.replaceSandboxIframe({ id: 'flock-iframe' });
 
       // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
+      setupSource = 'chunk-load';
       const sesResp = await fetch(flockRuntimeUrl('vendor/ses/lockdown.umd.min.js'));
       if (!sesResp.ok) throw new Error(`Failed to fetch SES: ${sesResp.status}`);
       const sesText = await sesResp.text();
+      setupSource = 'run-setup';
       await verifySesIntegrity(sesText);
       const sesScript = doc.createElement('script');
       sesScript.type = 'text/javascript';
@@ -531,14 +538,18 @@ export const flockSandbox = {
       // Evaluate in SES Compartment
       const c = new win.Compartment(endowments);
 
-      const MAX_MS = 5000;
-      const hostSetTimeout = window.setTimeout.bind(window);
+      // Top-level code only defines functions and starts hats, so outlasting this is a Flock fault.
+      setupSource = null;
       await Promise.race([
         c.evaluate(wrapped),
-        new Promise((_, rej) =>
-          hostSetTimeout(() => rej(new Error('User code timed out')), MAX_MS)
-        ),
+        new Promise((_, rej) => {
+          timeoutId = window.setTimeout(() => {
+            setupSource = 'run-setup';
+            rej(new Error('User code timed out'));
+          }, this.userCodeTimeoutMs);
+        }),
       ]);
+      window.clearTimeout(timeoutId);
 
       if (focusCanvas === true) {
         // focus canvas if present
@@ -551,6 +562,11 @@ export const flockSandbox = {
         console.error('XR button setup failed:', xrError);
       }
     } catch (error) {
+      window.clearTimeout(timeoutId);
+      if (setupSource && !isReported(error) && !isBenignAbort(error)) {
+        handleError(error, { source: setupSource, fatal: true });
+        markReported(error);
+      }
       // Read the (possibly user-thrown) error through safe primitives here;
       // re-throw the original so downstream identity checks (e.g. isBenignAbort's
       // WebAssembly.RuntimeError test for physics OOM) still work.

@@ -1380,6 +1380,7 @@ export default {
   error_startup: 'Flock no se pudo iniciar. Intenta recargar la página.', // human
   error_project_crash:
     'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
+  error_run_setup: 'Flock XR no pudo iniciar tu proyecto. Intenta recargar la página.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
   error_webgl_unavailable: 'Flock XR no puede iniciar la vista 3D. Intenta recargar la página.', // ai

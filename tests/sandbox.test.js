@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { translate } from '../main/translation.js';
 
 export function runSandboxTests(flock) {
   describe('Sandbox boundary @sandbox', function () {
@@ -86,6 +87,64 @@ export function runSandboxTests(flock) {
         printText({ text: typeof (await tagObject([a], tag)) });
       `);
       expect(printed).to.deep.equal(['undefined']);
+    });
+
+    describe('when Flock setup fails', function () {
+      const originalFetch = window.fetch;
+      let originalTimeout;
+
+      const runError = async (code) => {
+        try {
+          await run(code);
+        } catch (error) {
+          return error;
+        }
+        return null;
+      };
+      const banners = () => [...document.querySelectorAll('.flock-banner')];
+
+      beforeEach(function () {
+        originalTimeout = flock.userCodeTimeoutMs;
+      });
+
+      afterEach(function () {
+        window.fetch = originalFetch;
+        flock.userCodeTimeoutMs = originalTimeout;
+        document.querySelectorAll('.flock-banner').forEach((banner) => banner.remove());
+      });
+
+      it('blames the connection when the sandbox script cannot load', async function () {
+        window.fetch = (url, ...rest) =>
+          `${url}`.includes('lockdown')
+            ? Promise.reject(new TypeError('Failed to fetch'))
+            : originalFetch(url, ...rest);
+        const error = await runError('printText({ text: 1 });');
+        expect(error?.flockReported).to.equal(true);
+        expect(banners()).to.have.length(1);
+        expect(banners()[0].textContent).to.contain(translate('error_chunk_load'));
+      });
+
+      it('reports a timeout as a setup failure, not a project crash', async function () {
+        flock.userCodeTimeoutMs = 50;
+        const error = await runError('await wait(1);');
+        expect(error?.flockReported).to.equal(true);
+        expect(banners()).to.have.length(1);
+        expect(banners()[0].textContent).to.contain(translate('error_run_setup'));
+      });
+
+      it('shows no late timeout banner after a run that finished in time', async function () {
+        flock.userCodeTimeoutMs = 50;
+        await run('printText({ text: 1 });');
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        expect(banners()).to.have.length(0);
+      });
+
+      it("leaves the project's own errors for the project-run banner", async function () {
+        const error = await runError("throw new Error('mine');");
+        expect(error?.message).to.equal('mine');
+        expect(error?.flockReported).to.not.equal(true);
+        expect(banners()).to.have.length(0);
+      });
     });
 
     describe('when an API call fails', function () {

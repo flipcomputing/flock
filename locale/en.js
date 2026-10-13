@@ -1462,6 +1462,7 @@ export default {
   error_startup: "Flock couldn't start up. Try reloading the page.",
   error_project_crash:
     'Your project hit a problem. Check your blocks, then press Play again.',
+  error_run_setup: "Flock XR couldn't start your project. Try reloading the page.",
   error_webgl_restoring: '3D view paused, restoring…',
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
   error_webgl_unavailable: "Flock XR can't start the 3D view. Try reloading the page.",

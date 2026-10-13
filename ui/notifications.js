@@ -16,6 +16,7 @@ const MESSAGE_KEYS = {
   'webgl-unavailable': 'error_webgl_unavailable',
   'webgl-unsupported': 'error_webgl_unsupported',
   'chunk-load': 'error_chunk_load',
+  'run-setup': 'error_run_setup',
   'physics-oom': 'error_physics_oom',
   'physics-unsupported': 'error_physics_unsupported',
   audio: 'error_audio',
