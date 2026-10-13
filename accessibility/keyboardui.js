@@ -775,14 +775,23 @@ function wireHelpLinks(list) {
   });
 
   [
-    ['#help-link-howto', 'info-tab-btn-howto'],
-    ['#help-link-shortcuts', 'info-tab-btn-shortcuts'],
-    ['#help-link-player', 'info-tab-btn-player'],
-  ].forEach(([linkSelector, tabId]) => {
+    ['#help-link-howto', () => HowToPanel],
+    ['#help-link-shortcuts', () => ShortcutsPanel],
+    ['#help-link-player', () => PlayerPanel],
+  ].forEach(([linkSelector, getPanel]) => {
     list.querySelector(linkSelector)?.addEventListener('click', () => {
-      drawAttention(document.getElementById(tabId));
+      HelpPanel.hide();
+      getPanel()?.show();
     });
   });
+}
+
+// Panels without a tab button return focus to the Help tab when closing
+// leaves nothing focused.
+function focusHelpTabIfLost() {
+  if (document.activeElement && document.activeElement !== document.body) return;
+  const helpBtn = document.getElementById('info-tab-btn-help');
+  if (helpBtn?.offsetParent) helpBtn.focus();
 }
 
 // First info panel tab; registered before the others so it renders leftmost.
@@ -828,6 +837,7 @@ const HelpPanel = {
 
     const list = this.panel.querySelector('#help-list');
     list.innerHTML = helpContentFor(getCurrentLanguage());
+    if (isMac()) list.querySelectorAll('[data-mod-key]').forEach((k) => (k.textContent = '⌘'));
     decorateExternalLinks(list);
     wireHelpLinks(list);
   },
@@ -895,7 +905,9 @@ const ShortcutsPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('shortcuts', translate('shortcut_panel_title'), this);
+    const panel = InfoPanel.register('shortcuts', translate('shortcut_panel_title'), this, {
+      tab: false,
+    });
     const btn = document.getElementById('info-tab-btn-shortcuts');
     btn.setAttribute('aria-label', translate('shortcut_panel_title'));
     btn.setAttribute('title', translate('shortcut_panel_title'));
@@ -981,10 +993,7 @@ const ShortcutsPanel = {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
-        // In narrow mode the tab button is hidden, so hide()'s previous-focus
-        // restore is what returns focus; only grab the tab button when visible.
-        const tabBtn = document.getElementById('info-tab-btn-shortcuts');
-        if (tabBtn?.offsetParent) tabBtn.focus();
+        focusHelpTabIfLost();
       }
     });
   },
@@ -1083,6 +1092,32 @@ function getPlayerControls() {
       ],
     },
     {
+      section: 'player_section_orbit',
+      note: 'player_orbit_note',
+      entries: [
+        {
+          action: 'player_action_orbit',
+          marks: ['up', 'left', 'down', 'right'].map(svgMark),
+          layout: 'dpad',
+          label: translate('player_control_arrows'),
+        },
+        {
+          action: 'player_action_zoom_in',
+          marks: [svgRingedChar(1)],
+          ringed: true,
+          keys: 'R',
+          label: translate('player_control_button').replace('%1', 1),
+        },
+        {
+          action: 'player_action_zoom_out',
+          marks: [svgRingedChar(3)],
+          ringed: true,
+          keys: 'F',
+          label: translate('player_control_button').replace('%1', 3),
+        },
+      ],
+    },
+    {
       section: 'player_section_sr',
       entries: [
         {
@@ -1120,7 +1155,9 @@ const PlayerPanel = {
   },
 
   createPanel() {
-    const panel = InfoPanel.register('player', translate('player_panel_title'), this);
+    const panel = InfoPanel.register('player', translate('player_panel_title'), this, {
+      tab: false,
+    });
     const btn = document.getElementById('info-tab-btn-player');
     btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
     panel.innerHTML = `
@@ -1157,7 +1194,7 @@ const PlayerPanel = {
 
     const sections = getPlayerControls()
       .map(
-        ({ section, entries, hideHeader }) => `
+        ({ section, entries, hideHeader, note }) => `
       ${hideHeader ? '' : `<h3 class="shortcuts-category">${translate(section)}</h3>`}
       <dl class="shortcuts-group">
         ${entries
@@ -1169,7 +1206,8 @@ const PlayerPanel = {
         </div>`
           )
           .join('')}
-      </dl>`
+      </dl>
+      ${note ? `<p class="player-controls-note">${translate(note)}</p>` : ''}`
       )
       .join('');
 
@@ -1218,8 +1256,7 @@ const PlayerPanel = {
         e.preventDefault();
         e.stopPropagation();
         this.hide();
-        const tabBtn = document.getElementById('info-tab-btn-player');
-        if (tabBtn?.offsetParent) tabBtn.focus();
+        focusHelpTabIfLost();
       }
     });
   },

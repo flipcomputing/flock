@@ -12,8 +12,15 @@ import {
   isChunkLoadError,
 } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
+import en from '../locale/en.js';
 
-export function runNotificationTests() {
+const reportingSources = import.meta.glob(['../api/*.js', '../runtime/*.js'], {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
+export function runNotificationTests(flock) {
   describe('error notification banners', function () {
     afterEach(function () {
       document.querySelectorAll('.flock-banner').forEach((banner) => banner.remove());
@@ -207,6 +214,94 @@ export function runNotificationTests() {
       expect(banner.textContent).to.contain(translate('error_physics_unsupported'));
       // Reloading cannot add SIMD support, so offering it would mislead.
       expect(document.querySelector('.flock-banner__action')).to.not.exist;
+    });
+
+    describe('block error logging', function () {
+      const BLOCK_ID = 'a1B2c3D4e5F6g7H8i9J0';
+
+      // Reports one error with logging on; returns the logged line and what onBlockError saw.
+      const report = (values) => {
+        const originalWarn = console.warn;
+        const savedDebugLogging = flock._debugLogging;
+        const previousOnBlockError = flock.onBlockError;
+        const warnings = [];
+        const reported = [];
+        console.warn = (...args) => warnings.push(args);
+        flock.onBlockError = (info) => reported.push(info);
+        try {
+          flock._debugLogging = true;
+          flock._lastErrorSig = undefined;
+          flock.reportBlockError({ key: 'object_not_found', api: 'test', values });
+        } finally {
+          console.warn = originalWarn;
+          flock._debugLogging = savedDebugLogging;
+          flock.onBlockError = previousOnBlockError;
+        }
+        return { line: warnings[0]?.[0], reported };
+      };
+      const expectedLine = (object) =>
+        `[flock] test: object_not_found: ${translate('object_not_found').replace('{object}', object)}`;
+
+      it('logs the message with the name the user wrote', function () {
+        expect(report({ object: `box1__${BLOCK_ID}` }).line).to.equal(expectedLine('box1'));
+      });
+
+      it('removes a block ID that contains __ whole', function () {
+        expect(report({ object: 'box1__ab__cdEFghIJklMNopQR' }).line).to.equal(
+          expectedLine('box1')
+        );
+      });
+
+      it("shows a repeated object's name as it is", function () {
+        expect(report({ object: 'box1_17' }).line).to.equal(expectedLine('box1_17'));
+      });
+
+      it('keeps __ that is part of the name the user wrote', function () {
+        expect(report({ object: `my__box__${BLOCK_ID}` }).line).to.equal(expectedLine('my__box'));
+      });
+
+      it("shows a real object's name whole, even with __ in it", function () {
+        const name = flock._reserveName('log_my__box');
+        try {
+          expect(report({ object: name }).line).to.equal(expectedLine('log_my__box'));
+        } finally {
+          flock._releaseName(name);
+        }
+      });
+
+      it('keeps the placeholder, and still reports, when a value cannot be read', function () {
+        const values = {
+          get object() {
+            throw new Error('getter');
+          },
+        };
+        const { line, reported } = report(values);
+        expect(line).to.equal(expectedLine('{object}'));
+        expect(reported).to.have.length(1);
+      });
+
+      it('does not convert a value that is not text or a number', function () {
+        let converted = false;
+        const object = {
+          toString() {
+            converted = true;
+            return 'box1';
+          },
+        };
+        expect(report({ object }).line).to.equal(expectedLine('{object}'));
+        expect(converted).to.be.false;
+      });
+    });
+
+    it('has English text for every block error key', function () {
+      const keys = new Set();
+      for (const source of Object.values(reportingSources)) {
+        for (const [, key] of source.matchAll(/reportBlockError[?.]*\(\s*\{\s*key:\s*'(\w+)'/g)) {
+          keys.add(key);
+        }
+      }
+      expect(keys.size).to.be.greaterThan(10);
+      expect([...keys].filter((key) => !en[key])).to.deep.equal([]);
     });
 
     it('does not stack unsupported-physics banners across repeated runs', function () {

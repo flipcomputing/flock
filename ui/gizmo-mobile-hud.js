@@ -15,6 +15,7 @@ export function createGizmoMobileHud({
   showUniform = false,
   uniformOnly = false,
   onlyAxis = null,
+  axes = null,
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
   onCollapsedChange = null,
@@ -48,7 +49,9 @@ export function createGizmoMobileHud({
     ? [UNIFORM_DEF]
     : onlyAxis
       ? SINGLE_AXIS_DEFS.filter((def) => def.key === onlyAxis)
-      : [...SINGLE_AXIS_DEFS, ...(showUniform ? [UNIFORM_DEF] : [])];
+      : axes
+        ? SINGLE_AXIS_DEFS.filter((def) => axes.includes(def.key))
+        : [...SINGLE_AXIS_DEFS, ...(showUniform ? [UNIFORM_DEF] : [])];
   const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
   let axis = initialAxis && AXIS_DEFS.find((d) => d.key === initialAxis) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;

@@ -3242,7 +3242,7 @@ export function runXRTests(flock) {
       });
 
       it('asks for hit test as an optional session feature', async function () {
-        const scene = { render() {} };
+        const scene = { render() {}, onNewCameraAddedObservable: new flock.BABYLON.Observable() };
         let uiOptions = null;
         scene.createDefaultXRExperienceAsync = async (options) => {
           uiOptions = options.uiOptions;
@@ -3787,7 +3787,7 @@ export function runXRTests(flock) {
         }
       });
 
-      it('compiles a shader for every rest frame form', function () {
+      it('compiles a shader for every rest frame form', async function () {
         const camera = new flock.BABYLON.TransformNode('xrCameraStandIn', flock.scene);
         flock.xrHelper = { baseExperience: { camera } };
         try {
@@ -3796,7 +3796,7 @@ export function runXRTests(flock) {
             flock._applyXRRestFrame();
             flock._setXRRestFrameFade(1);
             const mesh = flock._xrRestFrameMesh;
-            flock.scene.render();
+            await flock._xrRestFrameMaterial.forceCompilationAsync(mesh);
 
             // A shader that failed to compile leaves the markers silently missing.
             expect(flock._xrRestFrameMaterial.isReady(mesh), form).to.equal(true);

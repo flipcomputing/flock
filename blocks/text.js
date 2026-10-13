@@ -11,6 +11,7 @@ import {
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { attachShadowContainerOnChange } from './scene.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
+import { handleUIControlBlockEvent } from '../ui/uicontrolgizmo.js';
 
 // print_text keeps a text_join in its TEXT input as a "shadow container": it is
 // promoted to a real block on the canvas (so blocks can be dropped into its
@@ -257,15 +258,16 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 
-      registerBlockHandler(this, (changeEvent) =>
+      registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
           'TEXTBLOCK_VAR'
-        )
-      );
+        );
+        handleUIControlBlockEvent(this, changeEvent, { preview: true });
+      });
     },
   };
 
@@ -337,15 +339,16 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 
-      registerBlockHandler(this, (changeEvent) =>
+      registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
           'BUTTON_VAR'
-        )
-      );
+        );
+        handleUIControlBlockEvent(this, changeEvent);
+      });
     },
   };
 
@@ -413,15 +416,16 @@ export function defineTextBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 
-      registerBlockHandler(this, (changeEvent) =>
+      registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
           'INPUT_VAR'
-        )
-      );
+        );
+        handleUIControlBlockEvent(this, changeEvent);
+      });
     },
   };
 

@@ -790,6 +790,8 @@ export default {
 
   MESH_option: 'objekt',
   CAPSULE_option: 'kapsel',
+  SPHERE_option: 'klot',
+  BOX_option: 'låda',
 
   FLAT_option: 'platt', // Duplicate key NONE
 
@@ -1387,6 +1389,7 @@ export default {
   shortcut_toggle_hud: 'Visa/dölj gizmo-kontroller', // ai
   hud_hidden: 'Gizmo-kontroller dolda', // ai
   hud_shown: 'Gizmo-kontroller visas', // ai
+  ui_control_gizmo_hint: 'Dra den eller dess pilar, eller använd piltangenterna (Skift för små steg). Enter för att avsluta.', // ai
   gizmo_controls_hint: 'Visa eller dölj gizmo-kontrollerna via Meny > Verktyg.', // ai
   xr_mode_missing_hint:
     'Inget XR-lägesblock, så projektet öppnas inte i ditt headset. Lägg till ett från Scen > XR.', // ai

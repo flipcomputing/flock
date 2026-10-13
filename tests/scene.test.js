@@ -1,4 +1,6 @@
 import { expect } from 'chai';
+import { isReported } from '../ui/notifications.js';
+import { translate } from '../main/translation.js';
 
 export function runSceneTests(flock) {
   describe('Scene API Tests', function () {
@@ -319,6 +321,72 @@ export function runSceneTests(flock) {
     });
 
     // ─── createEngine ─────────────────────────────────────────────────────────
+
+    describe('createEngine when WebGL cannot start', function () {
+      let savedEngine;
+      let savedBabylon;
+      let savedWebGL;
+
+      beforeEach(function () {
+        savedEngine = flock.engine;
+        savedBabylon = flock.BABYLON;
+        savedWebGL = window.WebGLRenderingContext;
+        flock.engine = null;
+        flock.BABYLON = {
+          ...savedBabylon,
+          Engine: class {
+            constructor() {
+              throw new Error('WebGL not supported');
+            }
+          },
+        };
+      });
+
+      afterEach(function () {
+        window.WebGLRenderingContext = savedWebGL;
+        flock.BABYLON = savedBabylon;
+        flock.engine = savedEngine;
+        document.querySelectorAll('.flock-banner').forEach((banner) => banner.remove());
+      });
+
+      const banners = () => [...document.querySelectorAll('.flock-banner')];
+
+      it('offers a reload when WebGL exists but gives no context', function () {
+        expect(() => flock.createEngine()).to.throw('WebGL not supported');
+        expect(banners()).to.have.length(1);
+        expect(banners()[0].textContent).to.contain(translate('error_webgl_unavailable'));
+        expect(document.querySelector('.flock-banner__action')).to.exist;
+      });
+
+      it('says WebGL is unsupported, with no reload, when the browser has no WebGL', function () {
+        delete window.WebGLRenderingContext;
+        expect(() => flock.createEngine()).to.throw('WebGL not supported');
+        expect(banners()).to.have.length(1);
+        expect(banners()[0].textContent).to.contain(translate('error_webgl_unsupported'));
+        expect(document.querySelector('.flock-banner__action')).to.not.exist;
+      });
+
+      it('clears the unavailable banner when a later attempt succeeds', function () {
+        expect(() => flock.createEngine()).to.throw('WebGL not supported');
+        flock.BABYLON = savedBabylon;
+        flock.createEngine();
+        try {
+          expect(banners()).to.have.length(0);
+        } finally {
+          flock.engine.dispose();
+        }
+      });
+
+      it('marks the error reported so startup does not add a second banner', function () {
+        let thrown;
+        try {
+          flock.createEngine();
+        } catch (error) {
+          thrown = error;
+        }
+        expect(isReported(thrown)).to.equal(true);
+      });
+    });
 
     describe('createEngine', function () {
       let savedEngine;

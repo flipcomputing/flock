@@ -153,10 +153,8 @@ export const flockCamera = {
       console.warn('createCamera: invalid id');
       return null;
     }
-    let blockKey = cameraId;
-    if (cameraId.includes('__')) {
-      [cameraId, blockKey] = cameraId.split('__');
-    }
+    let blockKey;
+    [cameraId, blockKey] = flock._splitBlockKey(cameraId);
     const groupName = cameraId;
     cameraId = flock._reserveName(cameraId);
 

@@ -881,6 +881,8 @@ export default {
 
   MESH_option: 'objeto', // human
   CAPSULE_option: 'cápsula', // human
+  SPHERE_option: 'esfera',
+  BOX_option: 'caja',
 
   FLAT_option: 'plano', // human
 
@@ -1340,6 +1342,13 @@ export default {
   invalid_filetype_alert: 'Solo se permiten archivos de proyecto .json o .flock.', // human
   invalid_project_alert: 'Este archivo no es un proyecto válido de Flock XR.', // human
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
+  save_failed_alert:
+    'No se pudo guardar tu proyecto. Inténtalo de nuevo o guárdalo en otro lugar.', // ai
+  example_load_failed_alert:
+    'No se pudo abrir este proyecto. Comprueba tu conexión a internet e inténtalo de nuevo.', // ai
+  snippet_too_large_alert: 'Este archivo es demasiado grande para importarlo.', // ai
+  invalid_snippet_alert: 'Este archivo no contiene bloques de Flock XR.', // ai
+  snippet_png_no_blocks_alert: 'Esta imagen no tiene bloques de Flock XR.', // ai
   project_url_load_failed_alert:
     'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
@@ -1371,6 +1380,8 @@ export default {
   physics_out_of_memory_banner_ui:
     'El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.', // human
   runtime_error_message: 'Error: {mensaje}', // human
+  error_autosave:
+    'Este navegador no pudo hacer una copia de seguridad de tu proyecto. Guárdalo en un archivo para no perder tu trabajo.', // ai
   error_audio:
     'El sonido no está disponible en este dispositivo. Tu proyecto se ejecutará sin audio.', // Google translate
   error_speech:
@@ -1378,8 +1389,12 @@ export default {
   error_startup: 'Flock no se pudo iniciar. Intenta recargar la página.', // human
   error_project_crash:
     'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
+  error_run_setup: 'Flock XR no pudo iniciar tu proyecto. Intenta recargar la página.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
+  error_webgl_unavailable: 'Flock XR no puede iniciar la vista 3D. Intenta recargar la página.', // ai
+  error_webgl_unsupported:
+    'Este navegador no puede mostrar gráficos 3D, así que Flock XR no puede funcionar aquí.', // ai
   error_physics_oom:
     'Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.', // human
   error_physics_unsupported:
@@ -1396,6 +1411,25 @@ export default {
     'Una función se seguía llamando a sí misma, así que se detuvo. Comprueba que pueda terminar.', // ai
   unhandled_rejection: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
   uncaught_error: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
+  object_not_found:
+    'No se encontró {object}. Comprueba que se añade antes de que se ejecute este bloque.', // ai
+  target_not_a_mesh: '{object} no es un objeto que este bloque pueda cambiar.', // ai
+  target_not_clickable: 'No se puede hacer clic en {object}. Elige un objeto o un botón.', // ai
+  move_failed: 'No se pudo mover {object}.', // ai
+  tag_not_found: '{tag} no es una etiqueta.', // ai
+  animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
+  sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
+  text_creation_failed:
+    'No se pudo crear el texto 3D. Prueba con otro texto o con otra fuente.', // ai
+  csg_empty_result:
+    'No se pudieron restar estas formas. El texto 3D y las formas combinadas a menudo no se pueden cortar.', // ai
+  particle_effect_failed: 'No se pudo crear el efecto de partículas.', // ai
+  particle_emitter_not_mesh: 'Un efecto de partículas necesita un objeto del que salir.', // ai
+  invalid_callback: 'No se pudo preparar este bloque de evento.', // ai
+  forever_block_failed: 'Algo salió mal dentro de un bloque «siempre».', // ai
+  trigger_block_failed:
+    'Algo salió mal en los bloques que se ejecutan al hacer clic en un objeto o tocarlo.', // ai
+  not_a_microbit: '{object} no es una micro:bit.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
@@ -1621,6 +1655,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
   hud_hidden: 'Controles de manipulación ocultos', // ai
   hud_shown: 'Controles de manipulación visibles', // ai
+  ui_control_gizmo_hint: 'Arrástralo o arrastra sus flechas, o usa las teclas de flecha (Mayús para pasos pequeños). Intro para terminar.', // ai
   gizmo_controls_hint: 'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
   xr_mode_missing_hint:
     'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai

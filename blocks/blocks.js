@@ -17,6 +17,7 @@ import {
   syncGroupParentOnMove,
   getCloneDoOwner,
 } from '../ui/blockmesh.js';
+import { removeUIControlsForBlock } from '../ui/uicontrolgizmo.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
@@ -448,6 +449,7 @@ export function handleBlockSelect(event) {
 
 export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
+    event.ids?.forEach(removeUIControlsForBlock);
     const activeControllerBlockId = getActiveSceneControllerBlockId();
 
     const makeRestoreEvent = (b) => ({

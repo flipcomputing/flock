@@ -55,13 +55,8 @@ export const flockModels = {
     }
 
     // --- parse BEFORE sanitizing so blockKey remains RAW ---
-    let desiredBase = modelId; // e.g. "player__j9#WY5..."
-    let blockKey = null;
-    if (desiredBase.includes('__')) {
-      [desiredBase, blockKey] = desiredBase.split('__');
-    }
-    // If no "__" was provided, fall back to base as the key (keeps prior behavior safe)
-    if (!blockKey) blockKey = desiredBase;
+    // e.g. "player__j9#WY5..."; without "__" the id is its own key.
+    let [desiredBase, blockKey] = flock._splitBlockKey(modelId);
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
     modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -499,7 +494,7 @@ export const flockModels = {
       }
       if (flock.maxMeshesReached()) return 'error_' + flock.scene.getUniqueId();
 
-      let [desiredBase, bKey] = modelId.includes('__') ? modelId.split('__') : [modelId, modelId];
+      let [desiredBase, bKey] = flock._splitBlockKey(modelId);
       modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
       desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, '');
 

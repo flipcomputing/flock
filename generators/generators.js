@@ -4,6 +4,7 @@ import '@blockly/block-plus-minus';
 import '../blocks/text_join_shadow.js';
 import { clearMeshMaps } from './mesh-state.js';
 import { localVariableIds } from '../blocks/variableScope.js';
+import { SANDBOX_RESERVED_NAMES } from '../runtime/sandbox.js';
 
 // Import the generator registration functions for different categories of blocks
 import { registerSceneGenerators } from './generators-scene.js';
@@ -27,7 +28,10 @@ export * from './mesh-state.js';
 // Set up all generators from external files
 export function defineGenerators() {
   // Allow Flock users to use "name" as a variable name
-  const reservedWordsWithoutName = javascriptGenerator.RESERVED_WORDS_.split(',')
+  const reservedWordsWithoutName = [
+    ...javascriptGenerator.RESERVED_WORDS_.split(','),
+    ...SANDBOX_RESERVED_NAMES,
+  ]
     .map((word) => word.trim())
     .filter((word) => word && word !== 'name')
     .join(',');

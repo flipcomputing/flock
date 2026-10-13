@@ -68,17 +68,22 @@ test('Projects opens from its button and returns focus on Escape', async ({ page
   await expect(page.locator('#exampleButton')).toBeFocused();
 });
 
-test('Help precedes the other info panel buttons in the custom tab order', async ({ page }) => {
+test('Help is the only info panel tab button; its links open the other panels', async ({
+  page,
+}) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#info-tab-btn-help', { timeout: 20000 });
 
-  await page.locator('#info-tab-btn-help').focus();
-  await page.keyboard.press('Tab');
-  await expect(page.locator('#info-tab-btn-howto')).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(page.locator('#info-tab-btn-shortcuts')).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(page.locator('#info-tab-btn-player')).toBeFocused();
+  for (const id of ['howto', 'shortcuts', 'player']) {
+    await expect(page.locator(`#info-tab-btn-${id}`)).toBeHidden();
+  }
+
+  for (const id of ['howto', 'shortcuts', 'player']) {
+    await page.evaluate(() => window.flockHelpPanel.show());
+    await page.locator(`#help-link-${id}`).click();
+    await expect(page.locator(`#info-tab-panel-${id}`)).toBeVisible();
+    await expect(page.locator('#info-tab-panel-help')).toBeHidden();
+  }
 });
 
 test('Project tiles pair a decorative thumbnail with a visible, emoji-free name', async ({

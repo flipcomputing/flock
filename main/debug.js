@@ -49,7 +49,7 @@ window.flockDebug = {
     const orphanedMeshes = relevantMeshes.filter(
       (mesh) =>
         !trackedMeshNames.has(mesh.name) &&
-        !Array.from(trackedMeshNames).some((id) => mesh.name.includes(id.split('__')[0]))
+        !Array.from(trackedMeshNames).some((id) => mesh.name.includes(flock._userName(id)))
     );
 
     console.log(

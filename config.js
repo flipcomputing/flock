@@ -489,15 +489,6 @@ export const attachNames = [
   'RightFoot',
 ];
 
-export const attachBlockMapping = {
-  LeftHand: 'Hold',
-  Hold: 'Hold',
-  Head: 'Head',
-};
-
-// Mixamo bone names are from the character's own perspective, but GLTF
-// import mirrors the model, so left/right are swapped from the viewer's
-// perspective. LeftHand (viewer's left) maps to mixamorig:RightHand, etc.
 export const AUTOSAVE_KEY = 'flock_autosave.flock';
 
 export const FLOCK_FORMAT_VERSION = '2.0.0';
@@ -506,28 +497,78 @@ export const FLOCK_FORMAT_VERSION = '2.0.0';
 // autosave is unaffected by this flag.
 export const AUTOSAVE_TO_FILE_ENABLED = false;
 
-export const attachMixamoMapping = {
-  LeftHand: 'mixamorig:RightHand',
-  Hold: 'mixamorig:RightHand',
-  RightHand: 'mixamorig:LeftHand',
-  Head: 'mixamorig:Head',
-  Hips: 'mixamorig:Hips',
-  Spine: 'mixamorig:Spine',
-  Spine1: 'mixamorig:Spine1',
-  Spine2: 'mixamorig:Spine2',
-  Neck: 'mixamorig:Neck',
-  LeftShoulder: 'mixamorig:RightShoulder',
-  LeftArm: 'mixamorig:RightArm',
-  LeftForeArm: 'mixamorig:RightForeArm',
-  RightShoulder: 'mixamorig:LeftShoulder',
-  RightArm: 'mixamorig:LeftArm',
-  RightForeArm: 'mixamorig:LeftForeArm',
-  LeftUpLeg: 'mixamorig:RightUpLeg',
-  LeftLeg: 'mixamorig:RightLeg',
-  LeftFoot: 'mixamorig:RightFoot',
-  RightUpLeg: 'mixamorig:LeftUpLeg',
-  RightLeg: 'mixamorig:LeftLeg',
-  RightFoot: 'mixamorig:LeftFoot',
+// project= URLs are auto-fetched and their contents auto-executed as code,
+// so anything outside this list needs explicit user consent first.
+const TRUSTED_PROJECT_URL_PREFIXES = [
+  'https://github.com/flipcomputing/flockxr-projects',
+  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
+];
+
+// The domain itself and every subdomain.
+const TRUSTED_PROJECT_DOMAINS = ['flockxr.com'];
+
+function isTrustedProjectDomain(url) {
+  if (url.protocol !== 'https:' || url.port !== '') return false;
+  return TRUSTED_PROJECT_DOMAINS.some(
+    (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+  );
+}
+
+export function isTrustedProjectUrl(url, editorOrigin = window.location.origin) {
+  if (url.origin === editorOrigin) return true;
+  if (isTrustedProjectDomain(url)) return true;
+  return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
+    const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
+    return url.href === prefix || url.href.startsWith(boundary);
+  });
+}
+
+const mixamoLeftHandSocket = {
+  bone: 'mixamorig:RightHand',
+  origin: ['mixamorig:RightHand', 'mixamorig:RightHandMiddle1'],
+  rotation: [-7, -12, 76],
+};
+
+export const attachSockets = {
+  block: {
+    LeftHand: { bone: 'Hold' },
+    Hold: { bone: 'Hold' },
+    Head: { bone: 'Head', restOnBase: true },
+  },
+  // Mixamo bone names are from the character's own perspective, but GLTF
+  // import mirrors the model, so left/right are swapped from the viewer's
+  // perspective. LeftHand (viewer's left) maps to mixamorig:RightHand, etc.
+  mixamo: {
+    LeftHand: mixamoLeftHandSocket,
+    Hold: mixamoLeftHandSocket,
+    RightHand: {
+      bone: 'mixamorig:LeftHand',
+      origin: ['mixamorig:LeftHand', 'mixamorig:LeftHandMiddle1'],
+      rotation: [17, 113, -98],
+    },
+    Head: {
+      bone: 'mixamorig:Head',
+      origin: 'mixamorig:HeadTop_End',
+      restOnBase: true,
+    },
+    Hips: { bone: 'mixamorig:Hips' },
+    Spine: { bone: 'mixamorig:Spine' },
+    Spine1: { bone: 'mixamorig:Spine1' },
+    Spine2: { bone: 'mixamorig:Spine2' },
+    Neck: { bone: 'mixamorig:Neck' },
+    LeftShoulder: { bone: 'mixamorig:RightShoulder' },
+    LeftArm: { bone: 'mixamorig:RightArm', rotation: [-22, 23, 66] },
+    LeftForeArm: { bone: 'mixamorig:RightForeArm', rotation: [-9, 3, 68] },
+    RightShoulder: { bone: 'mixamorig:LeftShoulder' },
+    RightArm: { bone: 'mixamorig:LeftArm', rotation: [-1, 57, -56] },
+    RightForeArm: { bone: 'mixamorig:LeftForeArm', rotation: [-4, 122, -55] },
+    LeftUpLeg: { bone: 'mixamorig:RightUpLeg' },
+    LeftLeg: { bone: 'mixamorig:RightLeg' },
+    LeftFoot: { bone: 'mixamorig:RightFoot' },
+    RightUpLeg: { bone: 'mixamorig:LeftUpLeg' },
+    RightLeg: { bone: 'mixamorig:LeftLeg' },
+    RightFoot: { bone: 'mixamorig:LeftFoot' },
+  },
 };
 
 export function getAttachNames() {

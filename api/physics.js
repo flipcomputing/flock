@@ -1108,6 +1108,20 @@ export const flockPhysics = {
             applyCapsuleToRoot(mesh);
             break;
 
+          case 'SPHERE':
+          case 'BOX': {
+            mesh.computeWorldMatrix(true);
+            const { motionType, disablePreStep } = capturePhysicsState(mesh);
+            disposePhysics(mesh);
+            applyPhysicsShape(
+              mesh,
+              shapeType,
+              motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+              disablePreStep ?? false
+            );
+            break;
+          }
+
           case 'MESH':
             applyMeshPhysicsShape(mesh);
             if (mesh.getChildMeshes) {
@@ -1422,7 +1436,7 @@ export const flockPhysics = {
       const exact = scene?.getMeshByName?.(rawName);
       if (exact?.name) return flock._familyOf(exact.name);
 
-      let normalized = rawName.includes('__') ? rawName.split('__')[0] : rawName;
+      let normalized = flock._userName(rawName);
       normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (normalized && normalized !== rawName) {

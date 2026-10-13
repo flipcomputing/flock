@@ -2,9 +2,15 @@ import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
 import { getMetadata } from 'meta-png';
-import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED, FLOCK_FORMAT_VERSION } from '../config.js';
+import {
+  AUTOSAVE_KEY,
+  AUTOSAVE_TO_FILE_ENABLED,
+  FLOCK_FORMAT_VERSION,
+  isTrustedProjectUrl,
+} from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
+import { showBanner, dismissBanner } from '../ui/notifications.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
@@ -15,32 +21,6 @@ const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
 // A JavaScript string unit takes at most 3 bytes in UTF-8.
 const MAX_PROJECT_TEXT_UTF8_BYTES = 3 * MAX_PROJECT_TEXT_LENGTH;
-
-// project= URLs are auto-fetched and their contents auto-executed as code,
-// so anything outside this list needs explicit user consent first.
-const TRUSTED_PROJECT_URL_PREFIXES = [
-  'https://github.com/flipcomputing/flockxr-projects',
-  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
-];
-
-// The domain itself and every subdomain.
-const TRUSTED_PROJECT_DOMAINS = ['flockxr.com'];
-
-function isTrustedProjectDomain(url) {
-  if (url.protocol !== 'https:' || url.port !== '') return false;
-  return TRUSTED_PROJECT_DOMAINS.some(
-    (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)
-  );
-}
-
-export function isTrustedProjectUrl(url) {
-  if (url.origin === window.location.origin) return true;
-  if (isTrustedProjectDomain(url)) return true;
-  return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
-    const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
-    return url.href === prefix || url.href.startsWith(boundary);
-  });
-}
 
 // Typed so callers can pick the right alert without matching message strings.
 class ProjectTooLargeError extends Error {
@@ -134,10 +114,19 @@ export function saveWorkspace(workspace) {
     // the error banner's Reload action restores the project from this entry.
     if (!state || !state.blocks || !state.blocks.blocks?.length) return;
     localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+    autosaveWarned = false;
+    dismissBanner('autosave');
   } catch (error) {
     console.warn('Autosave failed; keeping previous saved state.', error);
+    // Once per failure spell: this retries every 30s, so a dismissed warning stays dismissed.
+    if (!autosaveWarned) {
+      autosaveWarned = true;
+      showBanner('autosave', { message: translate('error_autosave') });
+    }
   }
 }
+
+let autosaveWarned = false;
 
 function validateBlocklyJson(json) {
   // 1. Parse JSON safely
@@ -742,7 +731,14 @@ export async function exportCode(workspace) {
         ],
       };
 
-      const fileHandle = await window.showSaveFilePicker(options);
+      let fileHandle;
+      try {
+        fileHandle = await window.showSaveFilePicker(options);
+      } catch (e) {
+        // AbortError here is the user closing the picker; a write that aborts later is a failure.
+        if (e?.name === 'AbortError') return false;
+        throw e;
+      }
       const writable = await fileHandle.createWritable();
       await writable.write(jsonString);
       await writable.close();
@@ -763,6 +759,7 @@ export async function exportCode(workspace) {
     return true;
   } catch (e) {
     console.error('Error exporting project:', e);
+    alert(translate('save_failed_alert'));
     return false;
   }
 }
@@ -804,79 +801,61 @@ export function importSnippet() {
   const fileInput = document.getElementById('importFile');
   fileInput.click();
 
-  fileInput.onchange = (event) => {
+  fileInput.onchange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
-
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      console.error('Snippet file is too large:', file.size);
-      event.target.value = '';
-      return;
-    }
-
-    const fileType = file.type;
-    const fileName = file.name.toLowerCase();
-
-    // Custom MIME for Flock snippets (matches exportBlockSnippet)
-    const FLOCK_SNIP_MIME = 'application/vnd.flock-snippet+json';
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const content = reader.result;
-
-      if (fileType === 'image/png') {
-        handlePNGImport(content);
-      } else if (
-        fileType === 'application/json' ||
-        fileType === FLOCK_SNIP_MIME ||
-        fileName.endsWith('.fsnip')
-      ) {
-        // Treat .fsnip the same as JSON snippets
-        handleJSONImport(content);
-      } else {
-        console.error('Unsupported file type:', fileType || '(none)');
-      }
-
-      // Allow re-selecting the same file
-      event.target.value = '';
-    };
-
-    if (fileType === 'image/png') {
-      reader.readAsArrayBuffer(file);
-    } else {
-      reader.readAsText(file);
-    }
+    await importSnippetFile(file);
+    // Allow re-selecting the same file
+    event.target.value = '';
   };
 }
 
-// Handle PNG import
-function handlePNGImport(content) {
-  try {
-    const arrayBuffer = new Uint8Array(content);
-    const encodedMetadata = getMetadata(arrayBuffer, 'blockJson');
+const MAX_SNIPPET_BYTES = 5 * 1024 * 1024;
+// Custom MIME for Flock snippets (matches exportBlockSnippet)
+const FLOCK_SNIP_MIME = 'application/vnd.flock-snippet+json';
 
-    if (!encodedMetadata) {
-      console.error('No metadata found in the PNG file.');
-      return;
-    }
-
-    const decodedMetadata = JSON.parse(decodeURIComponent(encodedMetadata));
-    appendSnippetAtViewport(Blockly.getMainWorkspace(), decodedMetadata);
-  } catch (error) {
-    console.error('Error processing PNG metadata:', error);
+// Carries the alert to show, so one catch can report every failure.
+class SnippetImportError extends Error {
+  constructor(alertKey) {
+    super(alertKey);
+    this.alertKey = alertKey;
   }
 }
 
-// Handle JSON import
-function handleJSONImport(content) {
+// Shared by the import picker and drag-and-drop.
+export async function importSnippetFile(file) {
   try {
-    const blockJson = JSON.parse(content);
-    appendSnippetAtViewport(Blockly.getMainWorkspace(), blockJson);
+    if (file.size > MAX_SNIPPET_BYTES) throw new SnippetImportError('snippet_too_large_alert');
+    const isPng = file.type === 'image/png';
+    const isJson =
+      file.type === 'application/json' ||
+      file.type === FLOCK_SNIP_MIME ||
+      file.name.toLowerCase().endsWith('.fsnip');
+    if (!isPng && !isJson) throw new SnippetImportError('invalid_snippet_alert');
+
+    const content = await readSnippetFile(file, isPng);
+    const snippet = isPng ? snippetFromPng(content) : JSON.parse(content);
+    appendSnippetAtViewport(Blockly.getMainWorkspace(), snippet);
   } catch (error) {
-    console.error('Error processing JSON file:', error);
+    console.error('Error importing snippet:', error);
+    alert(translate(error?.alertKey ?? 'invalid_snippet_alert'));
   }
+}
+
+function readSnippetFile(file, asBuffer) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new SnippetImportError('failed_to_read_file_alert'));
+    if (asBuffer) reader.readAsArrayBuffer(file);
+    else reader.readAsText(file);
+  });
+}
+
+function snippetFromPng(content) {
+  const encoded = getMetadata(new Uint8Array(content), 'blockJson');
+  if (!encoded) throw new SnippetImportError('snippet_png_no_blocks_alert');
+  return JSON.parse(decodeURIComponent(encoded));
 }
 
 // The one intake route for snippets: validates its own input, so appending
@@ -955,23 +934,6 @@ function processProjectFileDrop(file, workspace, executeCallback) {
 }
 
 // Private helper: process a dropped snippet or PNG file
-function processSnippetFileDrop(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    const content = reader.result;
-    if (file.type === 'image/png') {
-      handlePNGImport(content);
-    } else {
-      handleJSONImport(content);
-    }
-  };
-  if (file.type === 'image/png') {
-    reader.readAsArrayBuffer(file);
-  } else {
-    reader.readAsText(file);
-  }
-}
-
 // Set up drag-and-drop for .flock, .json, .fsnip, and .png files
 export function setupDragAndDrop(workspace, executeCallback) {
   // Create the drop overlay
@@ -1033,7 +995,7 @@ export function setupDragAndDrop(workspace, executeCallback) {
     if (lowerName.endsWith('.flock') || lowerName.endsWith('.json')) {
       processProjectFileDrop(file, workspace, executeCallback);
     } else if (lowerName.endsWith('.fsnip') || file.type === 'image/png') {
-      processSnippetFileDrop(file);
+      importSnippetFile(file);
     } else {
       alert(translate('drop_unsupported_file_alert'));
     }
@@ -1120,43 +1082,41 @@ export async function loadExample(file, name, executeCallback = window.executeCo
 
   window.loadingCode = true;
 
-  const projectNameElement = document.getElementById('projectName');
-  if (projectNameElement && name) {
-    projectNameElement.value = name;
+  try {
+    const json = await fetchProjectJson(file);
+    console.log('Loading:', name || file);
+    // Renamed only once loaded, so a failed load can't leave the old project under this name.
+    const projectNameElement = document.getElementById('projectName');
+    if (projectNameElement && name) {
+      projectNameElement.value = name;
+    }
+    clearFileHandle();
+    loadWorkspaceAndExecute(json, workspace, executeCallback, { focusCanvas: true });
+  } catch (error) {
+    console.error('Error loading example:', error);
+    // Clear the loading flag so a failed load doesn't wedge later actions.
+    window.loadingCode = false;
+    alert(translate('example_load_failed_alert'));
   }
-
-  fetchProjectJson(file)
-    .then((json) => {
-      console.log('Loading:', name || file);
-      clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, executeCallback, { focusCanvas: true });
-    })
-    .catch((error) => {
-      console.error('Error loading example:', error);
-      // Clear the loading flag so a failed load doesn't wedge later actions.
-      window.loadingCode = false;
-    });
 }
 window.loadExample = loadExample;
 
 export async function newProject() {
   if (!(await confirmDiscardIfModified())) return;
 
-  // Set project name
-  const projectNameElement = document.getElementById('projectName');
-  if (projectNameElement) {
-    projectNameElement.value = 'New';
+  try {
+    // Load the empty project template
+    const json = await fetchProjectJson('examples/new.flock');
+    const projectNameElement = document.getElementById('projectName');
+    if (projectNameElement) {
+      projectNameElement.value = 'New';
+    }
+    clearFileHandle();
+    loadWorkspaceAndExecute(json, workspace, window.executeCode);
+  } catch (error) {
+    console.error('Error loading new project:', error);
+    alert(translate('example_load_failed_alert'));
   }
-
-  // Load the empty project template
-  fetchProjectJson('examples/new.flock')
-    .then((json) => {
-      clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, window.executeCode);
-    })
-    .catch((error) => {
-      console.error('Error loading new project:', error);
-    });
 }
 
 window.newProject = newProject;

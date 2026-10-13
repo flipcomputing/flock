@@ -461,11 +461,8 @@ export const flockShapes = {
     depth = toDim(depth, 1);
     alpha = toAlpha(alpha);
 
-    let blockKey = boxId;
-
-    if (boxId.includes('__')) {
-      [boxId, blockKey] = boxId.split('__');
-    }
+    let blockKey;
+    [boxId, blockKey] = flock._splitBlockKey(boxId);
 
     let groupName = boxId;
     boxId = flock._reserveName(boxId);
@@ -520,11 +517,8 @@ export const flockShapes = {
   createGroup(groupId, { position = new flock.BABYLON.Vector3(0, 0, 0), callback = null } = {}) {
     if (!validateShapeId(groupId, 'createGroup')) return null;
 
-    let blockKey = groupId;
-
-    if (groupId.includes('__')) {
-      [groupId, blockKey] = groupId.split('__');
-    }
+    let blockKey;
+    [groupId, blockKey] = flock._splitBlockKey(groupId);
 
     let groupName = groupId;
     groupId = flock._reserveName(groupId);
@@ -573,7 +567,6 @@ export const flockShapes = {
     try {
       if (build) await build(groupName, tagged);
       await flock._whenHierarchySettled(group);
-      group.metadata.buildPosition = group.position.clone();
       await flock.rotateTo(groupName, { y: rotationY });
       await flock.positionAt(groupName, { x, y, z });
     } finally {
@@ -600,11 +593,8 @@ export const flockShapes = {
     diameterZ = toDim(diameterZ, 1);
     alpha = toAlpha(alpha);
 
-    let blockKey = sphereId;
-
-    if (sphereId.includes('__')) {
-      [sphereId, blockKey] = sphereId.split('__');
-    }
+    let blockKey;
+    [sphereId, blockKey] = flock._splitBlockKey(sphereId);
 
     let groupName = sphereId;
     sphereId = flock._reserveName(sphereId);
@@ -683,11 +673,8 @@ export const flockShapes = {
       updatable: true,
     };
 
-    let blockKey = cylinderId;
-
-    if (cylinderId.includes('__')) {
-      [cylinderId, blockKey] = cylinderId.split('__');
-    }
+    let blockKey;
+    [cylinderId, blockKey] = flock._splitBlockKey(cylinderId);
 
     let groupName = cylinderId;
     cylinderId = flock._reserveName(cylinderId);
@@ -753,11 +740,8 @@ export const flockShapes = {
     alpha = toAlpha(alpha);
 
     let radius = diameter / 2;
-    let blockKey = capsuleId;
-
-    if (capsuleId.includes('__')) {
-      [capsuleId, blockKey] = capsuleId.split('__');
-    }
+    let blockKey;
+    [capsuleId, blockKey] = flock._splitBlockKey(capsuleId);
 
     let groupName = capsuleId;
 
@@ -852,11 +836,8 @@ export const flockShapes = {
     axis = String(axis).toUpperCase() === 'Z' ? 'Z' : 'X';
     alpha = toAlpha(alpha);
 
-    let blockKey = wedgeId;
-
-    if (wedgeId.includes('__')) {
-      [wedgeId, blockKey] = wedgeId.split('__');
-    }
+    let blockKey;
+    [wedgeId, blockKey] = flock._splitBlockKey(wedgeId);
 
     let groupName = wedgeId;
     wedgeId = flock._reserveName(wedgeId);
@@ -916,11 +897,8 @@ export const flockShapes = {
     if (!validateShapeId(freeformId, 'createFreeform')) return null;
     alpha = toAlpha(alpha);
 
-    let blockKey = freeformId;
-
-    if (freeformId.includes('__')) {
-      [freeformId, blockKey] = freeformId.split('__');
-    }
+    let blockKey;
+    [freeformId, blockKey] = flock._splitBlockKey(freeformId);
 
     let groupName = freeformId;
     freeformId = flock._reserveName(freeformId);
@@ -989,11 +967,8 @@ export const flockShapes = {
     });
     alpha = toAlpha(alpha);
 
-    let blockKey = donutId;
-
-    if (donutId.includes('__')) {
-      [donutId, blockKey] = donutId.split('__');
-    }
+    let blockKey;
+    [donutId, blockKey] = flock._splitBlockKey(donutId);
 
     let groupName = donutId;
     donutId = flock._reserveName(donutId);
@@ -1059,11 +1034,8 @@ export const flockShapes = {
     });
     alpha = toAlpha(alpha);
 
-    let blockKey = ringId;
-
-    if (ringId.includes('__')) {
-      [ringId, blockKey] = ringId.split('__');
-    }
+    let blockKey;
+    [ringId, blockKey] = flock._splitBlockKey(ringId);
 
     let groupName = ringId;
     ringId = flock._reserveName(ringId);
@@ -1103,10 +1075,8 @@ export const flockShapes = {
     if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);
     height = toDim(height, 1);
-    let blockKey = planeId;
-    if (planeId.includes('__')) {
-      [planeId, blockKey] = planeId.split('__');
-    }
+    let blockKey;
+    [planeId, blockKey] = flock._splitBlockKey(planeId);
 
     let groupName = planeId;
     planeId = flock._reserveName(planeId);
@@ -1208,11 +1178,7 @@ export const flockShapes = {
     spacing = toSpacing(spacing);
     const { x, y, z } = position;
 
-    let blockKey = modelId;
-    let meshId = modelId;
-    if (modelId.includes('__')) {
-      [meshId, blockKey] = modelId.split('__');
-    }
+    let [meshId, blockKey] = flock._splitBlockKey(modelId);
 
     if (!flock._pendingMeshIds) flock._pendingMeshIds = new Set();
     meshId = flock._reserveName(meshId);

@@ -516,6 +516,58 @@ button {
   outline: none;
 }
 
+.ui-control-gizmo {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.ui-control-gizmo-box {
+  position: absolute;
+  inset: -3px;
+  border: 2px dashed var(--color-focus-outline);
+  border-radius: 6px;
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ui-control-gizmo-arrow {
+  position: absolute;
+  display: flex;
+  padding: 6px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ui-control-gizmo-arrow-x {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.ui-control-gizmo-arrow-y {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.ui-colour-target {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid var(--color-focus-outline);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-focus-outline) 15%, transparent);
+}
+
+.ui-control-gizmo.dragging .ui-control-gizmo-arrow {
+  opacity: 0.6;
+}
+
 /* Layout Styles */
 #maincontent {
   width: var(--view-width);
@@ -2990,6 +3042,10 @@ kbd {
   border-radius: 0;
 }
 
+.info-tab-btn[hidden] {
+  display: none;
+}
+
 .info-tab-btn.active {
   background-color: var(--color-text-brand);
   box-shadow: none;
@@ -3252,6 +3308,10 @@ kbd {
 #help-list a,
 .howto-article a {
   text-decoration: underline;
+}
+
+[data-theme='light'] #help-list a {
+  color: var(--color-primary);
 }
 
 #help-list a:focus-visible,
@@ -3538,68 +3598,51 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   color: var(--color-howto-accent);
 }
 
-/* Wraps the button so the button itself can be display: inline-block — a
-   plain text-decoration: none on the button does NOT stop the completed
-   step's propagated line-through from painting across it (browsers still
-   draw the ancestor's line through ordinary block/inline descendants
-   regardless of their own text-decoration value); only an atomic inline-level
-   box like inline-block is excluded from that painted line. text-align: right
-   here does the alignment that used to live on the button itself. */
-.howto-step-complete-row {
-  margin-top: 0.75em;
-  text-align: right;
-}
-
-/* Appended by wireHowToSteps() in ui/howToPanel.js, last inside <step>
-   (after all its content). Styled after the step-tracker on
-   flipcomputing.com/uefn-session-one-get-started/: clicking it toggles
-   .completed on the step, which greys the whole card out with a
-   strikethrough rather than removing it — completion isn't stored anywhere,
-   it's just DOM state that resets when the how-to is reopened. */
-.howto-step-complete {
-  display: inline-block;
-  font: inherit;
+/* Appended by wireHowToSteps() in ui/howToPanel.js, last inside <step>.
+   Styled after the project steps on projects.flockxr.com: ticking it toggles
+   .completed on the step, which greys the card out with a strikethrough
+   while the Done checkbox itself stays at full strength. */
+.howto-step-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 1em;
   font-weight: 600;
-  padding: 0.4em 1em;
-  background-color: var(--color-howto-accent);
-  color: var(--color-text-on-primary);
-  border: 2px solid var(--color-howto-accent);
-  border-radius: 5px;
   cursor: pointer;
 }
 
-.howto-step-complete:focus-visible {
-  outline: 2px solid var(--color-focus-outline);
-  outline-offset: 2px;
+.howto-step-done input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: var(--color-howto-accent);
+  cursor: pointer;
 }
 
-.howto-article step.completed .howto-step-complete {
-  background-color: var(--color-bg);
-  color: var(--color-howto-accent);
-}
-
-/* Mixed against the theme's own text/bg colours (not --color-muted, which is
-   undefined in the light and contrast themes) so the grey-out is always
-   visible, at roughly the same strength as the flipcomputing.com reference
-   (~34%/47% black-into-white there works out to rgb(169) / rgb(136)). */
 .howto-article step.completed {
-  background-color: color-mix(in srgb, var(--color-text-primary) 34%, var(--color-bg));
-  color: color-mix(in srgb, var(--color-text-primary) 47%, var(--color-bg));
-  text-decoration: line-through;
+  background-color: color-mix(in srgb, var(--color-text-primary) 8%, var(--color-bg));
 }
 
 .howto-article step.completed::before,
-.howto-article step.completed step-title {
-  color: color-mix(in srgb, var(--color-text-primary) 47%, var(--color-bg));
+.howto-article step.completed > :not(.howto-step-done) {
+  opacity: 0.45;
 }
 
-.howto-article step img {
-  opacity: 1;
-  transition: opacity 0.2s ease;
+.howto-article step.completed::before,
+.howto-article step.completed step-title,
+.howto-article step.completed p,
+.howto-article step.completed li {
+  text-decoration: line-through;
 }
 
-.howto-article step.completed img {
-  opacity: 0.3;
+.howto-article step img,
+.howto-article step .howto-snippet {
+  transition: filter 0.2s ease;
+}
+
+.howto-article step.completed img,
+.howto-article step.completed .howto-snippet {
+  filter: grayscale(1);
 }
 
 .howto-article tip {

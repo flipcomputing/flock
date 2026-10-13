@@ -19,6 +19,7 @@ import { showBanner } from '../ui/notifications.js';
 import { flock } from '../flock.js';
 import { makeTouchesInputSubtree, changeEventHitsTouches, wasBlockDeleted } from './scene.js';
 import { readColourFromInputOrShadow, readNumberInput } from '../ui/blockmesh.js';
+import { handleUIControlBlockEvent } from '../ui/uicontrolgizmo.js';
 
 // Gamepad-only accessibility actions have no keyboard equivalent, so they're
 // excluded from the keyboard-facing action dropdowns below.
@@ -1009,15 +1010,16 @@ export function defineSensingBlocks() {
 
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
-      registerBlockHandler(this, (changeEvent) =>
+      registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(
           this,
           changeEvent,
           variableNamePrefix,
           nextVariableIndexes,
           'SLIDER_VAR'
-        )
-      );
+        );
+        handleUIControlBlockEvent(this, changeEvent);
+      });
     },
   };
 }

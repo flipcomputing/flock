@@ -371,22 +371,33 @@ export function runTranslationTests(flock) {
       expect(distance).to.be.closeTo(13, 0.01); // sqrt(3² + 4² + 12²) = 13
     });
 
-    it('should throw error when first mesh does not exist', function () {
-      expect(() => {
-        flock.distanceTo('nonexistent1', box2Id);
-      }).to.throw("First mesh 'nonexistent1' not found");
-    });
+    describe('missing objects', function () {
+      let reported;
+      let previousOnBlockError;
+      beforeEach(function () {
+        reported = [];
+        flock._lastErrorSig = undefined;
+        previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
+      });
+      afterEach(function () {
+        flock.onBlockError = previousOnBlockError;
+      });
 
-    it('should throw error when second mesh does not exist', function () {
-      expect(() => {
-        flock.distanceTo(box1Id, 'nonexistent2');
-      }).to.throw("Second mesh 'nonexistent2' not found");
-    });
+      it('should return Infinity and report when first mesh does not exist', function () {
+        expect(flock.distanceTo('nonexistent1', box2Id)).to.equal(Infinity);
+        expect(reported[0]).to.include({ key: 'object_not_found', api: 'distanceTo' });
+        expect(reported[0].values.object).to.equal('nonexistent1');
+      });
 
-    it('should throw error when both meshes do not exist', function () {
-      expect(() => {
-        flock.distanceTo('nonexistent1', 'nonexistent2');
-      }).to.throw("First mesh 'nonexistent1' not found");
+      it('should return Infinity and report when second mesh does not exist', function () {
+        expect(flock.distanceTo(box1Id, 'nonexistent2')).to.equal(Infinity);
+        expect(reported[0].values.object).to.equal('nonexistent2');
+      });
+
+      it('should return Infinity when both meshes do not exist', function () {
+        expect(flock.distanceTo('nonexistent1', 'nonexistent2')).to.equal(Infinity);
+      });
     });
 
     it('should work with meshes at negative coordinates', async function () {

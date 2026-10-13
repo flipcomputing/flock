@@ -7,13 +7,13 @@
         "type": "start",
         "id": "5(J_:3~C^*8,?%0~}~6P",
         "x": 10,
-        "y": 2943,
+        "y": 3089,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_cylinder",
               "id": "_{VAwiqoYhG?tD*2)gx,",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "Mb)og%.+43(56g)jW=Qv"
@@ -101,13 +101,13 @@
         "type": "start",
         "id": "|nSFn~*/~xQP.7L0-FpJ",
         "x": 10,
-        "y": 670,
+        "y": 754,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_box",
               "id": "e9h56`Ap5[FN-__pG8E?",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "})KZ{1=Ph3/efAWn;)A/"
@@ -182,7 +182,7 @@
                 "block": {
                   "type": "create_box",
                   "id": "WkVsJ6p`f1q5^3erh4g|",
-                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
                   "fields": {
                     "ID_VAR": {
                       "id": "6!nn1xaB(_~!(uQp_W^9"
@@ -417,7 +417,7 @@
                         "block": {
                           "type": "create_cylinder",
                           "id": "ZX4GB{~8:Gxq_cfW%`9#",
-                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
                           "fields": {
                             "ID_VAR": {
                               "id": "plAf},_;jNu_c6l)9KVr"
@@ -501,7 +501,7 @@
                             "block": {
                               "type": "create_cylinder",
                               "id": "|n-)d;dv!{1e!6(U0M5Q",
-                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
                               "fields": {
                                 "ID_VAR": {
                                   "id": "MT7U5q|RVV2Rc)6p)}hT"
@@ -622,7 +622,7 @@
                                     "block": {
                                       "type": "create_capsule",
                                       "id": "lr=^^v0k@MkPK]_A%fEy",
-                                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
+                                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
                                       "fields": {
                                         "ID_VAR": {
                                           "id": "Z`uRJs?CQnzqB_O!N4tB"
@@ -670,7 +670,7 @@
                                             "type": "math_number",
                                             "id": "]f=0tpa5j-Y2aSB+{j;H",
                                             "fields": {
-                                              "NUM": -0.9
+                                              "NUM": 0.35
                                             }
                                           }
                                         },
@@ -683,43 +683,30 @@
                                             }
                                           }
                                         },
-                                        "DO": {
-                                          "block": {
-                                            "type": "rotate_to",
-                                            "id": "zi@.Fm+$YA?[=D*TkiNQ",
+                                        "ROTATE_X": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "qL]=Gjvl35`KOyz!5{WR",
                                             "fields": {
-                                              "MODEL": {
-                                                "id": "Z`uRJs?CQnzqB_O!N4tB"
-                                              }
-                                            },
-                                            "inputs": {
-                                              "X": {
-                                                "shadow": {
-                                                  "type": "math_number",
-                                                  "id": "nszI!i2Yj1WqspfJ;{!v",
-                                                  "fields": {
-                                                    "NUM": 0
-                                                  }
-                                                }
-                                              },
-                                              "Y": {
-                                                "shadow": {
-                                                  "type": "math_number",
-                                                  "id": "Ev=]u0x_zn.^7c_e!z1#",
-                                                  "fields": {
-                                                    "NUM": 0
-                                                  }
-                                                }
-                                              },
-                                              "Z": {
-                                                "shadow": {
-                                                  "type": "math_number",
-                                                  "id": "v,DQ:3$;VH+Km]}C3(_v",
-                                                  "fields": {
-                                                    "NUM": 90
-                                                  }
-                                                }
-                                              }
+                                              "NUM": 0
+                                            }
+                                          }
+                                        },
+                                        "ROTATE_Y": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "D%ft3wdp#mGPujIV%4zY",
+                                            "fields": {
+                                              "NUM": 0
+                                            }
+                                          }
+                                        },
+                                        "ROTATE_Z": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "D1KAEc,y)D:Ss{80GgKf",
+                                            "fields": {
+                                              "NUM": 90
                                             }
                                           }
                                         }
@@ -880,7 +867,7 @@
                 "block": {
                   "type": "load_character",
                   "id": "x2`]Mz2+T7=v`%+F9%46",
-                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
                   "fields": {
                     "ID_VAR": {
                       "id": "x2EH#3|*X2EHqntVf$N)"
@@ -902,7 +889,7 @@
                         "type": "math_number",
                         "id": "$BDFwBF-Tb/tlKYXYGb[",
                         "fields": {
-                          "NUM": 5.4
+                          "NUM": 5.12
                         }
                       }
                     },
@@ -920,7 +907,7 @@
                         "type": "math_number",
                         "id": "#aI8#KNZ`@oDGacB.k~e",
                         "fields": {
-                          "NUM": 3.2
+                          "NUM": 2.94
                         }
                       }
                     },
@@ -978,43 +965,30 @@
                         }
                       }
                     },
-                    "DO": {
-                      "block": {
-                        "type": "rotate_to",
-                        "id": "_[m.E7jJ/F|J]E8Mp9=(",
+                    "ROTATE_X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "w*UQ2vKzaS?USAQTb6L-",
                         "fields": {
-                          "MODEL": {
-                            "id": "x2EH#3|*X2EHqntVf$N)"
-                          }
-                        },
-                        "inputs": {
-                          "X": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "jJtw?/I/KV@)b,AVhaGn",
-                              "fields": {
-                                "NUM": 0
-                              }
-                            }
-                          },
-                          "Y": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "i8sUg0Dm-8)ejtVvO!/Z",
-                              "fields": {
-                                "NUM": 46.3
-                              }
-                            }
-                          },
-                          "Z": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "VI-lPUy$m-sbu)[).lTi",
-                              "fields": {
-                                "NUM": 0
-                              }
-                            }
-                          }
+                          "NUM": 0
+                        }
+                      }
+                    },
+                    "ROTATE_Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "ETN+0SC[QVX!nBOAwUU1",
+                        "fields": {
+                          "NUM": 46.3
+                        }
+                      }
+                    },
+                    "ROTATE_Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "WlmJ4LNruaAZ(^b!VD^7",
+                        "fields": {
+                          "NUM": 0
                         }
                       }
                     }
@@ -1043,7 +1017,7 @@
                         "block": {
                           "type": "load_character",
                           "id": "c:Nh-MNeL(py|gtj|vm-",
-                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"true\" has_then=\"false\"></mutation>",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
                           "fields": {
                             "ID_VAR": {
                               "id": "1:V`8p|XTz~fY7-dK:@)"
@@ -1065,7 +1039,7 @@
                                 "type": "math_number",
                                 "id": "[}fVRM7s6q}PAp(j%t=T",
                                 "fields": {
-                                  "NUM": -5.4
+                                  "NUM": -5.16
                                 }
                               }
                             },
@@ -1083,7 +1057,7 @@
                                 "type": "math_number",
                                 "id": "Y5nD2@7ee;JNrle#xjS#",
                                 "fields": {
-                                  "NUM": 3.2
+                                  "NUM": 2.97
                                 }
                               }
                             },
@@ -1141,43 +1115,30 @@
                                 }
                               }
                             },
-                            "DO": {
-                              "block": {
-                                "type": "rotate_to",
-                                "id": "UeD|+lj1UkTm`i1rv!N~",
+                            "ROTATE_X": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "F7K#,IJ6:WSyI1QuAZHw",
                                 "fields": {
-                                  "MODEL": {
-                                    "id": "1:V`8p|XTz~fY7-dK:@)"
-                                  }
-                                },
-                                "inputs": {
-                                  "X": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "2G-.Q[izwjO^(LRhfk|F",
-                                      "fields": {
-                                        "NUM": 0
-                                      }
-                                    }
-                                  },
-                                  "Y": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "PbVE*JEld)fmOTlU9@]0",
-                                      "fields": {
-                                        "NUM": -46.3
-                                      }
-                                    }
-                                  },
-                                  "Z": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "ekP]k8Cm5%$@wi?lc[dA",
-                                      "fields": {
-                                        "NUM": 0
-                                      }
-                                    }
-                                  }
+                                  "NUM": 0
+                                }
+                              }
+                            },
+                            "ROTATE_Y": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "k?Z#m6+*9e}j|BA=VLgX",
+                                "fields": {
+                                  "NUM": -46.3
+                                }
+                              }
+                            },
+                            "ROTATE_Z": {
+                              "shadow": {
+                                "type": "math_number",
+                                "id": "FokiyyM|1Wj1W5Dtxzru",
+                                "fields": {
+                                  "NUM": 0
                                 }
                               }
                             }
@@ -1218,7 +1179,7 @@
         "type": "start",
         "id": "JCb|;`_JzD4QT2tRYwS*",
         "x": 10,
-        "y": 1853,
+        "y": 1989,
         "inputs": {
           "DO": {
             "block": {
@@ -1292,7 +1253,7 @@
                                 "block": {
                                   "type": "load_object",
                                   "id": "JjoUxs2^_/%TPSMHFEN|",
-                                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
                                   "fields": {
                                     "ID_VAR": {
                                       "id": "ZTtaOEJuLb[za:/@8{Yr"
@@ -1505,7 +1466,7 @@
         "type": "forever",
         "id": "aDxEuA4044)-[QR}y!m)",
         "x": 10,
-        "y": 3152,
+        "y": 3299,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1567,7 +1528,7 @@
         "type": "forever",
         "id": "[~u}|Z:wh`z]D5a_@pDd",
         "x": 10,
-        "y": 3363,
+        "y": 3512,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1682,7 +1643,7 @@
         "type": "start",
         "id": "g*~RO%3c-|,RYVM~F:qg",
         "x": 10,
-        "y": 2495,
+        "y": 2637,
         "inputs": {
           "DO": {
             "block": {
@@ -1762,7 +1723,7 @@
                         "block": {
                           "type": "load_object",
                           "id": "GzUZ.f6gGaPep+GSa15i",
-                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
+                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
                           "fields": {
                             "ID_VAR": {
                               "id": "SeF(8=*T`yCiVeq!mJK{"

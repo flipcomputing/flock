@@ -1,11 +1,17 @@
 import { expect } from 'chai';
-import { isTrustedProjectUrl } from '../main/files.js';
+import { isTrustedProjectUrl } from '../config.js';
 
 export function runFilesProjectUrlTrustTests() {
   describe('main/files project URL trust list', function () {
     it('trusts the current origin', function () {
       const url = new URL('examples/starter.flock', window.location.href);
       expect(isTrustedProjectUrl(url)).to.equal(true);
+    });
+
+    it('checks same-origin against a given editor origin', function () {
+      const page = new URL('https://example.com/games/demo.html');
+      expect(isTrustedProjectUrl(page, 'https://example.com')).to.equal(true);
+      expect(isTrustedProjectUrl(page, 'https://flipcomputing.github.io')).to.equal(false);
     });
 
     it('trusts the flockxr-projects GitHub repo and its subpaths', function () {

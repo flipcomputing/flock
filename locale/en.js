@@ -238,7 +238,6 @@ export default {
   procedures_callprefab: 'add',
   prefab_default_name: 'prefab',
   prefab_variable: 'prefab1',
-  prefab_preview_label: 'preview:',
   prefab_material_param: 'material',
   prefab_x_label: 'x:',
   prefab_y_label: 'y:',
@@ -959,6 +958,8 @@ export default {
 
   MESH_option: 'object',
   CAPSULE_option: 'capsule',
+  SPHERE_option: 'sphere',
+  BOX_option: 'box',
 
   FLAT_option: 'flat', // Duplicate key NONE
 
@@ -1425,6 +1426,12 @@ export default {
   invalid_filetype_alert: 'Only .json or .flock project files are allowed.',
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: 'Failed to read file.',
+  save_failed_alert: "Your project couldn't be saved. Try again, or save it somewhere else.",
+  example_load_failed_alert:
+    "This project couldn't be opened. Check your internet connection and try again.",
+  snippet_too_large_alert: 'This file is too large to import.',
+  invalid_snippet_alert: "This file doesn't contain Flock XR blocks.",
+  snippet_png_no_blocks_alert: "This picture doesn't have any Flock XR blocks in it.",
   project_url_load_failed_alert:
     "Flock XR couldn't load this project. The link may be wrong, or the website may not allow other sites to open its files.",
   drag_drop_hint: 'Drop to open project or import snippet',
@@ -1456,13 +1463,18 @@ export default {
   physics_out_of_memory_banner_ui:
     'Physics engine ran out of memory. Try reducing the number of physics objects or reloading your project.',
   runtime_error_message: 'Error: {message}',
+  error_autosave:
+    "This browser couldn't back up your project. Save it to a file so you don't lose your work.",
   error_audio: 'Sound is not available on this device. Your project will run without audio.',
   error_speech: 'Speech is not available right now. Your project will run without spoken words.',
   error_startup: "Flock couldn't start up. Try reloading the page.",
   error_project_crash:
     'Your project hit a problem. Check your blocks, then press Play again.',
+  error_run_setup: "Flock XR couldn't start your project. Try reloading the page.",
   error_webgl_restoring: '3D view paused, restoring…',
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
+  error_webgl_unavailable: "Flock XR can't start the 3D view. Try reloading the page.",
+  error_webgl_unsupported: "This browser can't show 3D graphics, so Flock XR can't run here.",
   error_physics_oom:
     'Your project ran out of memory. Try reloading the page and using fewer blocks.',
   error_physics_unsupported:
@@ -1481,6 +1493,23 @@ export default {
     'A function kept calling itself, so it was stopped. Check that it can finish.',
   unhandled_rejection: 'Something went wrong while your project was running.',
   uncaught_error: 'Something went wrong while your project was running.',
+  object_not_found: "Couldn't find {object}. Check that it's added before this block runs.",
+  target_not_a_mesh: "{object} isn't an object this block can change.",
+  target_not_clickable: "{object} can't be clicked. Choose an object or a button.",
+  move_failed: "{object} couldn't be moved.",
+  tag_not_found: "{tag} isn't a tag.",
+  animation_group_not_found: "Couldn't find an animation called {group}.",
+  sound_load_failed: "The sound {sound} couldn't be loaded.",
+  text_creation_failed: "The 3D text couldn't be made. Try different text or another font.",
+  csg_empty_result:
+    "Subtracting these shapes didn't work. 3D text and merged shapes often can't be cut.",
+  particle_effect_failed: "The particle effect couldn't be made.",
+  particle_emitter_not_mesh: 'A particle effect needs an object to come from.',
+  invalid_callback: "This event block couldn't be set up.",
+  forever_block_failed: 'Something went wrong inside a forever block.',
+  trigger_block_failed:
+    'Something went wrong in the blocks that run when an object is clicked or touched.',
+  not_a_microbit: "{object} isn't a micro:bit.",
   banner_reload: 'Reload',
   banner_dismiss: 'Dismiss',
   xr_mode_message: 'XR Mode!',
@@ -1657,13 +1686,13 @@ export default {
   howto_tag_camera_ui: 'Camera',
   howto_tag_code_ui: 'Code',
   howto_tag_blocks_ui: 'Blocks',
-  howto_mark_complete: 'Mark as complete',
-  howto_step_completed: 'Complete 🎉',
+  howto_step_done: 'Done',
 
   // Player controls panel — title, sections and control names
   player_panel_title: 'Player Controls',
   player_section_onscreen: 'On-screen controls',
   player_section_gamepad: 'Game controller',
+  player_section_orbit: 'Orbit camera',
   player_section_sr: 'Screen reader with Game Controller',
   player_action_move: 'Move',
   player_action_look: 'Look around',
@@ -1672,6 +1701,11 @@ export default {
   player_action_interact: 'Interact / Button 2',
   player_action_camera_down: 'Camera down / Button 3',
   player_action_spare: 'General action / Button 4',
+  player_action_orbit: 'Orbit around',
+  player_action_zoom_in: 'Zoom in',
+  player_action_zoom_out: 'Zoom out',
+  player_orbit_note:
+    'You can also drag to orbit, and scroll or pinch to zoom. On a game controller, use either stick to orbit, Triangle / Y to zoom in and Square / X to zoom out.',
   player_control_arrows: 'Arrows',
   player_control_button: 'Button %1',
   player_control_dpad_note: 'On controllers without a left stick, the D-pad moves instead.',
@@ -1754,6 +1788,7 @@ export default {
   shortcut_toggle_hud: 'Show/hide gizmo controls',
   hud_hidden: 'Gizmo controls hidden',
   hud_shown: 'Gizmo controls shown',
+  ui_control_gizmo_hint: 'Drag it or its arrows, or use the arrow keys (Shift for small steps). Enter to finish.',
   gizmo_controls_hint: 'Show or hide the gizmo controls from Menu > Tools.',
   xr_mode_missing_hint:
     "No XR mode block, so this project won't open in your headset. Add one from Scene > XR.",

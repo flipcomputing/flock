@@ -119,7 +119,8 @@ export function registerTextGenerators(javascriptGenerator) {
             backgroundColor: ${backgroundColorCode},
             alpha: ${alphaCode},
             duration: ${durationCode},
-            id: ${textBlockVar}
+            id: ${textBlockVar},
+            blockKey: ${JSON.stringify(block.id)}
           });\n`;
   };
 
@@ -154,7 +155,8 @@ export function registerTextGenerators(javascriptGenerator) {
                     textSize: ${textSize},
                     textColor: ${textColor},
                     backgroundColor: ${backgroundColor},
-                    buttonId: ${JSON.stringify(buttonId)}
+                    buttonId: ${JSON.stringify(buttonId)},
+                    blockKey: ${JSON.stringify(block.id)}
                   });\n`;
     return code;
   };
@@ -194,7 +196,8 @@ export function registerTextGenerators(javascriptGenerator) {
               fontSize: ${fontSizeCode},
               textColor: ${textColorCode},
               backgroundColor: ${backgroundColorCode},
-              id: ${varName}
+              id: ${varName},
+              blockKey: ${JSON.stringify(block.id)}
             });\n`;
   };
 
@@ -233,6 +236,7 @@ export function registerTextGenerators(javascriptGenerator) {
                     size: ${size},
                     textColor: ${color},
                     backgroundColor: ${background},
+                    blockKey: ${JSON.stringify(block.id)},
                     onChange: (value) => {
                       try { ${varName} = Math.round(value * 100) / 100; } catch (e) { console.warn('Variable not declared:', ${JSON.stringify(varName)}); }
                     }

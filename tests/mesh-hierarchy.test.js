@@ -2568,13 +2568,12 @@ export function runMeshHierarchyTests(flock) {
         expect(treeMesh.parent).to.be.null;
       });
 
-      it('attach should parent the tree to the skeleton mesh on Liz', async function () {
+      it("attach should parent the tree to a socket on Liz's skeleton", async function () {
         await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Hold' }));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
-        // attachToBone parents to the bone and refers transforms via the mesh
-        expect(treeMesh.parent, 'tree should be parented to a bone').to.exist;
-        expect(treeMesh._transformToBoneReferal, "tree should refer to Liz's skeleton mesh").to
+        expect(treeMesh.parent, 'tree should be parented to a socket').to.exist;
+        expect(treeMesh.parent._transformToBoneReferal, "socket should refer to Liz's skeleton mesh").to
           .exist;
       });
 
@@ -2593,10 +2592,77 @@ export function runMeshHierarchyTests(flock) {
         await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
 
         const treeMesh = flock.scene.getMeshByName(treeId);
-        const skeleton = treeMesh._transformToBoneReferal.skeleton;
-        expect(skeleton.bones.indexOf(treeMesh.parent)).to.equal(
+        const skeleton = treeMesh.parent._transformToBoneReferal.skeleton;
+        expect(skeleton.bones.indexOf(treeMesh.parent.parent)).to.equal(
           skeleton.getBoneIndexByName('mixamorig:Head')
         );
+      });
+
+      it('attach to a hand holds the object upright, turned like the character, in the hold pose', async function () {
+        const B = flock.BABYLON;
+        const idleLizId = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'socketIdleLiz',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        const boxId = flock.createBox('socketIdleBox', {
+          width: 0.1,
+          height: 0.5,
+          depth: 0.2,
+          position: [0, 0, 0],
+        });
+        meshIds.push(idleLizId, boxId);
+        await pumpAnimation(flock, waitForModel(flock, idleLizId));
+        const idleLiz = flock.scene.getMeshByName(idleLizId);
+        idleLiz.rotationQuaternion = B.Quaternion.FromEulerAngles(0, 0.7, 0);
+        const animationPath = flock.animationPath;
+        flock.animationPath = '../animations/';
+        await pumpAnimation(
+          flock,
+          flock.switchAnimation(idleLizId, { animationName: 'Idle_Hold', blendDuration: 0 })
+        );
+        flock.animationPath = animationPath;
+        await pumpAnimation(flock, new Promise((resolve) => setTimeout(resolve, 500)));
+        const playing = flock.scene.animationGroups.filter((group) => group.isPlaying);
+        playing.forEach((group) => group.pause());
+
+        try {
+          const box = flock.scene.getMeshByName(boxId);
+          for (const boneName of ['LeftHand', 'RightHand']) {
+            await pumpAnimation(flock, flock.attach(boxId, idleLizId, { boneName }));
+            const world = box.computeWorldMatrix(true);
+            const up = B.Vector3.TransformNormal(B.Axis.Y, world).normalize();
+            const forward = B.Vector3.TransformNormal(B.Axis.Z, world).normalize();
+            expect(up.y, `${boneName} up`).to.be.greaterThan(0.95);
+            expect(
+              B.Vector3.Dot(forward, idleLiz.forward),
+              `${boneName} forward`
+            ).to.be.greaterThan(0.95);
+
+            const atOrigin = box.getAbsolutePosition().clone();
+            await pumpAnimation(flock, flock.attach(boxId, idleLizId, { boneName, y: 0.3 }));
+            const moved = box.getAbsolutePosition().subtract(atOrigin);
+            expect(moved.y, `${boneName} offset up`).to.be.closeTo(0.3, 0.03);
+            expect(Math.hypot(moved.x, moved.z), `${boneName} offset sideways`).to.be.lessThan(
+              0.03
+            );
+          }
+        } finally {
+          playing.forEach((group) => group.stop());
+        }
+      });
+
+      it('attach uses a Socket_ node from the model instead of building one', async function () {
+        const lizMesh = flock.scene.getMeshByName(lizId);
+        const authored = new flock.BABYLON.TransformNode('Socket_Head', flock.scene);
+        authored.parent = lizMesh;
+        try {
+          await pumpAnimation(flock, flock.attach(treeId, lizId, { boneName: 'Head' }));
+          expect(flock.scene.getMeshByName(treeId).parent).to.equal(authored);
+        } finally {
+          await pumpAnimation(flock, flock.drop(treeId));
+          authored.dispose(true);
+        }
       });
 
       const renderedBaseY = (id) => {
@@ -2746,9 +2812,9 @@ export function runMeshHierarchyTests(flock) {
         );
 
         const gemMesh = flock.scene.getMeshByName(gemId);
-        const skeleton = gemMesh._transformToBoneReferal.skeleton;
+        const skeleton = gemMesh.parent._transformToBoneReferal.skeleton;
         const crownBone = skeleton.bones[skeleton.getBoneIndexByName('mixamorig:HeadTop_End')];
-        const anchorY = crownBone.getAbsolutePosition(gemMesh._transformToBoneReferal).y;
+        const anchorY = crownBone.getAbsolutePosition(gemMesh.parent._transformToBoneReferal).y;
 
         expect(renderedBaseY(gemId)).to.be.closeTo(anchorY, 0.05);
       });
@@ -2776,9 +2842,9 @@ export function runMeshHierarchyTests(flock) {
         );
 
         const gemMesh = flock.scene.getMeshByName(gemId);
-        const skeleton = gemMesh._transformToBoneReferal.skeleton;
+        const skeleton = gemMesh.parent._transformToBoneReferal.skeleton;
         const crownBone = skeleton.bones[skeleton.getBoneIndexByName('mixamorig:HeadTop_End')];
-        const anchorY = crownBone.getAbsolutePosition(gemMesh._transformToBoneReferal).y;
+        const anchorY = crownBone.getAbsolutePosition(gemMesh.parent._transformToBoneReferal).y;
 
         // At scale 1 the neck joint (Head bone) sits well below the crown; if the fix for
         // scaled characters regresses, the gem lands near the neck instead, which would

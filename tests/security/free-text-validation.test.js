@@ -3,6 +3,7 @@ import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import { parse } from 'acorn';
 import { initializeBlocks } from '../../main/blocklyinit.js';
+import { flockSandbox, SANDBOX_RESERVED_NAMES } from '../../runtime/sandbox.js';
 
 initializeBlocks(); // registers all Flock custom blocks + generators
 
@@ -50,6 +51,8 @@ const TESTED_TEXT_FIELDS = [
   'procedures_defnoreturn.NAME',
   'procedures_defreturn.NAME',
   'procedures_mutatorarg.NAME',
+  'procedures_defprefab.NAME',
+  'procedures_defprefab.MATERIAL',
   'text_prompt.TEXT',
   'play_tune.ABC_TEXT',
   'keyword.KEYWORD',
@@ -82,6 +85,36 @@ export function runTextFieldValidationTests() {
       const code = javascriptGenerator.blockToCode(block);
       return Array.isArray(code) ? code[0] : code;
     }
+
+    it('renames variables and functions whose names the sandbox rejects', function () {
+      // The validator rejects reads, not declarations, so each name is read back.
+      expect(() => flockSandbox.validateUserCodeAST('let require = 1; require;')).to.throw();
+
+      Blockly.serialization.blocks.append(
+        { type: 'procedures_defnoreturn', fields: { NAME: 'require' } },
+        workspace
+      );
+      const start = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
+      let connection = start.getInput('DO').connection;
+      const append = (state) => {
+        const block = Blockly.serialization.blocks.append(state, workspace);
+        connection.connect(block.previousConnection);
+        connection = block.nextConnection;
+      };
+      append({ type: 'procedures_callnoreturn', extraState: { name: 'require' } });
+      for (const name of SANDBOX_RESERVED_NAMES) {
+        const id = workspace.createVariable(name).getId();
+        append({
+          type: 'variables_set',
+          fields: { VAR: { id } },
+          inputs: { VALUE: { block: { type: 'variables_get', fields: { VAR: { id } } } } },
+        });
+      }
+
+      javascriptGenerator.init(workspace);
+      const code = javascriptGenerator.workspaceToCode(workspace);
+      expect(() => flockSandbox.validateUserCodeAST(code)).not.to.throw();
+    });
 
     for (const block of scanRegisteredBlocks(workspace)) {
       it(block + ' has a test', function () {
@@ -195,6 +228,30 @@ export function runTextFieldValidationTests() {
         },
         workspace
       );
+      expect(generate(block)).not.to.include(payload);
+    });
+
+    it('fixes name of prefab', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'procedures_defprefab',
+          fields: { NAME: payload },
+        },
+        workspace
+      );
+      expect(generate(block)).not.to.include(payload);
+    });
+
+    it('sanitizes the prefab material argument name', function () {
+      const block = Blockly.serialization.blocks.append(
+        {
+          type: 'procedures_defprefab',
+          extraState: { params: [{ name: payload, id: 'arg1', argId: 'MATERIAL' }] },
+          fields: { NAME: 'safe' },
+        },
+        workspace
+      );
+      expect(block.getFieldValue('MATERIAL')).to.equal(payload);
       expect(generate(block)).not.to.include(payload);
     });
 

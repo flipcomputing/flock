@@ -799,6 +799,8 @@ export default {
 
   MESH_option: 'objet',
   CAPSULE_option: 'capsule',
+  SPHERE_option: 'sphère',
+  BOX_option: 'boîte',
 
   FLAT_option: 'plat',
 
@@ -1406,6 +1408,7 @@ export default {
   shortcut_toggle_hud: 'Afficher/masquer les commandes de manipulation', // ai
   hud_hidden: 'Commandes de manipulation masquées', // ai
   hud_shown: 'Commandes de manipulation affichées', // ai
+  ui_control_gizmo_hint: 'Faites-le glisser, ou ses flèches, ou utilisez les touches fléchées (Maj pour de petits pas). Entrée pour terminer.', // ai
   gizmo_controls_hint:
     'Affichez ou masquez les commandes de manipulation depuis Menu > Outils.', // ai
   xr_mode_missing_hint:

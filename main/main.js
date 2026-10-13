@@ -7,7 +7,7 @@ import '@babylonjs/core/Debug/debugLayer';
 import { flock } from '../flock.js';
 import { initializeVariableIndexes } from '../blocks/blocks';
 import { enableGizmos } from '../ui/gizmos.js';
-import { handleError, installGlobalErrorHandlers } from '../ui/notifications.js';
+import { handleError, installGlobalErrorHandlers, isReported } from '../ui/notifications.js';
 import { executeCode, togglePause } from './execution.js';
 import '../ui/addmeshes.js';
 import '../ui/colourpicker.js';
@@ -1123,7 +1123,7 @@ window.onload = async function () {
       // Hide loading screen once Flock is fully initialized
       setTimeout(hideLoadingScreen, 500);
     } catch (error) {
-      handleError(error, { source: 'startup', fatal: true });
+      if (!isReported(error)) handleError(error, { source: 'startup', fatal: true });
     }
   })();
 

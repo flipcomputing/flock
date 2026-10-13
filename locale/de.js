@@ -880,6 +880,8 @@ export default {
 
   MESH_option: 'Objekt',
   CAPSULE_option: 'Kapsel',
+  SPHERE_option: 'Kugel',
+  BOX_option: 'Quader',
 
   BOTH_option: 'beides',
   ARROWS_option: 'Pfeile',
@@ -1386,6 +1388,7 @@ export default {
   shortcut_toggle_hud: 'Gizmo-Steuerung ein-/ausblenden', // ai
   hud_hidden: 'Gizmo-Steuerung ausgeblendet', // ai
   hud_shown: 'Gizmo-Steuerung eingeblendet', // ai
+  ui_control_gizmo_hint: 'Ziehe es oder seine Pfeile, oder nutze die Pfeiltasten (Umschalt für kleine Schritte). Eingabe zum Beenden.', // ai
   gizmo_controls_hint: 'Blende die Gizmo-Steuerung über Menü > Werkzeuge ein oder aus.', // ai
   xr_mode_missing_hint:
     'Kein XR‑Modus‑Block, daher öffnet dieses Projekt nicht im Headset. Füge einen über Szene > XR hinzu.', // ai
