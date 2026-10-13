@@ -1342,6 +1342,13 @@ export default {
   invalid_filetype_alert: 'Solo se permiten archivos de proyecto .json o .flock.', // human
   invalid_project_alert: 'Este archivo no es un proyecto válido de Flock XR.', // human
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
+  save_failed_alert:
+    'No se pudo guardar tu proyecto. Inténtalo de nuevo o guárdalo en otro lugar.', // ai
+  example_load_failed_alert:
+    'No se pudo abrir este proyecto. Comprueba tu conexión a internet e inténtalo de nuevo.', // ai
+  snippet_too_large_alert: 'Este archivo es demasiado grande para importarlo.', // ai
+  invalid_snippet_alert: 'Este archivo no contiene bloques de Flock XR.', // ai
+  snippet_png_no_blocks_alert: 'Esta imagen no tiene bloques de Flock XR.', // ai
   project_url_load_failed_alert:
     'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
@@ -1373,6 +1380,8 @@ export default {
   physics_out_of_memory_banner_ui:
     'El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.', // human
   runtime_error_message: 'Error: {mensaje}', // human
+  error_autosave:
+    'Este navegador no pudo hacer una copia de seguridad de tu proyecto. Guárdalo en un archivo para no perder tu trabajo.', // ai
   error_audio:
     'El sonido no está disponible en este dispositivo. Tu proyecto se ejecutará sin audio.', // Google translate
   error_speech:

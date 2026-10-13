@@ -1426,6 +1426,12 @@ export default {
   invalid_filetype_alert: 'Only .json or .flock project files are allowed.',
   invalid_project_alert: "This file isn't a valid Flock XR project.",
   failed_to_read_file_alert: 'Failed to read file.',
+  save_failed_alert: "Your project couldn't be saved. Try again, or save it somewhere else.",
+  example_load_failed_alert:
+    "This project couldn't be opened. Check your internet connection and try again.",
+  snippet_too_large_alert: 'This file is too large to import.',
+  invalid_snippet_alert: "This file doesn't contain Flock XR blocks.",
+  snippet_png_no_blocks_alert: "This picture doesn't have any Flock XR blocks in it.",
   project_url_load_failed_alert:
     "Flock XR couldn't load this project. The link may be wrong, or the website may not allow other sites to open its files.",
   drag_drop_hint: 'Drop to open project or import snippet',
@@ -1457,6 +1463,8 @@ export default {
   physics_out_of_memory_banner_ui:
     'Physics engine ran out of memory. Try reducing the number of physics objects or reloading your project.',
   runtime_error_message: 'Error: {message}',
+  error_autosave:
+    "This browser couldn't back up your project. Save it to a file so you don't lose your work.",
   error_audio: 'Sound is not available on this device. Your project will run without audio.',
   error_speech: 'Speech is not available right now. Your project will run without spoken words.',
   error_startup: "Flock couldn't start up. Try reloading the page.",
