@@ -356,17 +356,17 @@ export function registerUIInput(
 
 // ─── UIText twin (aria-live + tab stop) ───────────────────────────────────────
 
-let _textSeq = 0;
-
-export function registerUIText(id, text, posParams) {
+export function registerUIText(id, text, posParams, { announce = true } = {}) {
   if (!_srRoot) return;
 
   const existing = _twins.get(id);
   if (existing) {
+    if (existing.posParams && posParams) Object.assign(existing.posParams, posParams);
     const p = existing.elements.find((el) => el.tagName === 'P');
-    if (p) _announceToP(p, text);
+    if (p && announce) _announceToP(p, text);
     return;
   }
+  posParams = posParams ? { ...posParams } : posParams;
 
   const p = document.createElement('p');
   p.setAttribute('data-flock-twin', id);
@@ -415,6 +415,7 @@ export function registerUIText(id, text, posParams) {
 
   _twins.set(id, {
     elements: indicator ? [p, indicator] : [p],
+    posParams,
     cleanup() {
       p.removeEventListener('keydown', _onTwinKeydown);
       indicator?.remove();
@@ -423,10 +424,10 @@ export function registerUIText(id, text, posParams) {
 }
 
 function _announceToP(p, text) {
-  const seq = ++_textSeq;
+  const seq = (p._announceSeq = (p._announceSeq ?? 0) + 1);
   p.textContent = '';
   setTimeout(() => {
-    if (_textSeq !== seq) return;
+    if (p._announceSeq !== seq) return;
     p.textContent = String(text ?? '');
   }, 20);
 }

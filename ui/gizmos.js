@@ -64,6 +64,17 @@ import { isPositionPickActive, startPositionPick } from './pickposition.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
 import {
+  uiControlAt,
+  selectUIControl,
+  selectedUIControl,
+  dragSelectedUIControl,
+  deselectUIControl,
+  uiColourTargetAt,
+  showColourTarget,
+  hideColourTarget,
+  applyColourToUIControl,
+} from './uicontrolgizmo.js';
+import {
   supportsInitialSize,
   findInitialSize,
   ensureInitialRotation,
@@ -546,6 +557,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Don't close when clicking the 3D canvas — canvas clicks paint meshes directly
         const canvas = document.getElementById('renderCanvas');
         if (canvas && (canvas === target || canvas.contains(target))) return true;
+        if (target?.closest?.('[data-flock-twin]')) return true;
         const canvasToggleBtn = document.getElementById('canvasToggleBtn');
         const codeToggleBtn = document.getElementById('codeToggleBtn');
         if (
@@ -578,7 +590,20 @@ document.addEventListener('DOMContentLoaded', function () {
     // Direct painting: clicking/tapping the canvas while picker is open applies colour
     const renderCanvas = document.getElementById('renderCanvas');
     if (renderCanvas) {
-      renderCanvas.addEventListener('click', (event) => {
+      document.addEventListener('pointermove', updateColourTargetAt, true);
+      document.addEventListener(
+        'pointerdown',
+        (event) => {
+          if (!colourToolActive() || !isColourPaintTarget(event.target, renderCanvas)) return;
+          const rect = renderCanvas.getBoundingClientRect();
+          if (!uiColourTargetAt(event.clientX - rect.left, event.clientY - rect.top)) return;
+          event.preventDefault();
+          event.stopPropagation();
+        },
+        true
+      );
+      document.addEventListener('click', (event) => {
+        if (!isColourPaintTarget(event.target, renderCanvas)) return;
         if (!colorPicker?.isOpen) return;
         if (colorPicker._confirmOverride) return; // opened for a Blockly field — ignore canvas click
         // Use picker's live colour (not yet confirmed via "Use")
@@ -645,7 +670,14 @@ function pickMeshFromCanvas() {
     if (flock.scene) flock.scene.defaultCursor = '';
   });
 
-  startCanvasKeyboardMode((x, y) => applyColorAtPosition(x, y));
+  startCanvasKeyboardMode(
+    (x, y) => applyColorAtPosition(x, y),
+    false,
+    (x, y) => {
+      showColourTarget(uiColourTargetAt(x, y));
+      return true;
+    }
+  );
   document.body.style.cursor = 'crosshair';
   flock.scene.defaultCursor = 'crosshair';
 
@@ -663,8 +695,42 @@ function pickedTextLetter(mesh, pickRay, scene) {
   return letters[mesh.getIndices()[hit.faceId * 3]];
 }
 
+function paintUIControl(target) {
+  const workspace = Blockly.getMainWorkspace();
+  const block = workspace?.getBlockById(target.control.metadata.blockKey);
+  if (!block || isBlockLocked(block) || !applyColourToUIControl(target, window.selectedColor)) {
+    showNotAllowedCursor();
+    return;
+  }
+  highlightBlockById(workspace, block);
+}
+
+function isColourPaintTarget(target, canvas) {
+  return target === canvas || !!target?.closest?.('[data-flock-twin]');
+}
+
+function colourToolActive() {
+  return !!document.getElementById('colorPickerButton')?.classList.contains('active');
+}
+
+function updateColourTargetAt(event) {
+  const canvas = document.getElementById('renderCanvas');
+  if (!canvas || !colourToolActive() || !isColourPaintTarget(event.target, canvas)) {
+    hideColourTarget();
+    return;
+  }
+  const rect = canvas.getBoundingClientRect();
+  showColourTarget(uiColourTargetAt(event.clientX - rect.left, event.clientY - rect.top));
+}
+
 function applyColorAtPosition(canvasX, canvasY) {
   const scene = flock.scene;
+
+  const uiTarget = uiColourTargetAt(canvasX, canvasY);
+  if (uiTarget) {
+    paintUIControl(uiTarget);
+    return;
+  }
 
   if (scene.selectionOctree) scene.createOrUpdateSelectionOctree();
 
@@ -851,6 +917,7 @@ function watchClickAwayFromCanvas() {
       ? '.gizmo-button.active:not(#cameraButton):not(#eyeButton)'
       : '.gizmo-button.active:not(#cameraButton)';
     if (!document.querySelector(activeSelector)) return;
+    if (event.target?.closest?.('.ui-control-gizmo')) return;
     if (!eventIsOutOfCanvasBounds(event, canvas.getBoundingClientRect())) return;
     if (orbiting) {
       exitTransformState();
@@ -2107,6 +2174,7 @@ export function exitGizmoState(options = {}) {
 
   // Run all queued cleanup functions
   runCleanups();
+  hideColourTarget();
 
   // Orbit stays lit alongside a compatible tool.
   document
@@ -2656,9 +2724,9 @@ function enableBoundingBox(mesh) {
 
 // Takes a block position, rounded as setBlockXYZ does, so the readout and the
 // block always agree.
-function positionStatus(position) {
+function positionStatus(position, axisNames = ['x', 'y', 'z']) {
   const [before = '', after = ''] = translate('position_readout').split('{position}');
-  const axes = ['x', 'y', 'z'].flatMap((axis, i) => [
+  const axes = axisNames.flatMap((axis, i) => [
     { text: i ? ' ' : '' },
     {
       barColor: AXIS_HEX[axis],
@@ -4502,11 +4570,89 @@ function handlePositionGizmo() {
   };
 
   const posObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
+    if (!mesh && selectedUIControl()) return;
+    deselectUIControl();
     activatePositionKeyboardForMesh(mesh);
   });
 
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(posObs));
   onExit(() => applyPositionHandles(null));
+
+  const selectUIControlForMove = (control) => {
+    cleanupScenePick();
+    stopAxisKeyboard?.();
+    stopAxisKeyboard = null;
+    keyboardAttachedMesh = null;
+    releaseFreeformEditor();
+    selectUIControl(control, {
+      axisColors: AXIS_HEX,
+      onMove: (position) =>
+        showStatus(positionStatus(position, ['x', 'y']), {
+          duration: 10,
+          owner: 'position-readout',
+        }),
+      onConfirm: () => {
+        exitTransformState();
+        document.getElementById('positionButton')?.focus();
+      },
+      onCancel: () => {
+        exitTransformState();
+        document.getElementById('positionButton')?.focus();
+      },
+      onLost: () => exitTransformState(),
+    });
+    if (gizmoManager.attachedMesh) gizmoManager.attachToMesh(null);
+    const blockId = control.metadata.blockKey;
+    highlightBlockById(Blockly.getMainWorkspace(), Blockly.getMainWorkspace()?.getBlockById(blockId));
+    showStatus(translate('ui_control_gizmo_hint'), {
+      duration: 10,
+      owner: 'gizmo-controls-hint',
+      hint: true,
+    });
+  };
+  onExit(deselectUIControl);
+
+  const canvas = flock.scene.getEngine().getRenderingCanvas();
+  const onUIControlPointerDown = (event) => {
+    if (event.button !== 0) return;
+    if (event.target !== canvas && !event.target?.closest?.('[data-flock-twin]')) return;
+    const rect = canvas.getBoundingClientRect();
+    const control = uiControlAt(event.clientX - rect.left, event.clientY - rect.top);
+    if (!control) return;
+    event.stopPropagation();
+    event.preventDefault();
+    selectUIControlForMove(control);
+    dragSelectedUIControl(event);
+  };
+  let savedCursors = null;
+  const restoreCursors = () => {
+    if (!savedCursors) return;
+    flock.scene.defaultCursor = savedCursors.defaultCursor;
+    flock.scene.hoverCursor = savedCursors.hoverCursor;
+    savedCursors = null;
+  };
+  const onUIControlPointerMove = (event) => {
+    if (event.target !== canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const over = !!uiControlAt(event.clientX - rect.left, event.clientY - rect.top);
+    if (over && !savedCursors) {
+      savedCursors = {
+        defaultCursor: flock.scene.defaultCursor,
+        hoverCursor: flock.scene.hoverCursor,
+      };
+      flock.scene.defaultCursor = 'move';
+      flock.scene.hoverCursor = 'move';
+    } else if (!over) {
+      restoreCursors();
+    }
+  };
+  document.addEventListener('pointerdown', onUIControlPointerDown, true);
+  canvas.parentElement?.addEventListener('pointermove', onUIControlPointerMove, true);
+  onExit(() => {
+    document.removeEventListener('pointerdown', onUIControlPointerDown, true);
+    canvas.parentElement?.removeEventListener('pointermove', onUIControlPointerMove, true);
+    restoreCursors();
+  });
 
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
@@ -4517,6 +4663,11 @@ function handlePositionGizmo() {
         const handle = x == null ? null : freeformHandleAt(x, y);
         if (handle) {
           selectFreeformHandle(handle);
+          return;
+        }
+        const uiControl = x == null ? null : uiControlAt(x, y);
+        if (uiControl) {
+          selectUIControlForMove(uiControl);
           return;
         }
         if (!pickedMesh || pickedMesh.name === 'ground') {

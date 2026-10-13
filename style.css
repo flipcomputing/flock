@@ -516,6 +516,58 @@ button {
   outline: none;
 }
 
+.ui-control-gizmo {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.ui-control-gizmo-box {
+  position: absolute;
+  inset: -3px;
+  border: 2px dashed var(--color-focus-outline);
+  border-radius: 6px;
+  cursor: move;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ui-control-gizmo-arrow {
+  position: absolute;
+  display: flex;
+  padding: 6px;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.ui-control-gizmo-arrow-x {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.ui-control-gizmo-arrow-y {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.ui-colour-target {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid var(--color-focus-outline);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-focus-outline) 15%, transparent);
+}
+
+.ui-control-gizmo.dragging .ui-control-gizmo-arrow {
+  opacity: 0.6;
+}
+
 /* Layout Styles */
 #maincontent {
   width: var(--view-width);

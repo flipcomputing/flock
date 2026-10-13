@@ -1410,6 +1410,7 @@ export default {
   shortcut_toggle_hud: 'Mostra/nascondi i comandi di manipolazione', // ai
   hud_hidden: 'Comandi di manipolazione nascosti', // ai
   hud_shown: 'Comandi di manipolazione visibili', // ai
+  ui_control_gizmo_hint: 'Trascinalo o trascina le sue frecce, oppure usa i tasti freccia (Maiusc per piccoli passi). Invio per finire.', // ai
   gizmo_controls_hint: 'Mostra o nascondi i comandi di manipolazione da Menu > Strumenti.', // ai
   xr_mode_missing_hint:
     'Nessun blocco modalità XR: questo progetto non si aprirà nel visore. Aggiungine uno da Scena > XR.', // ai

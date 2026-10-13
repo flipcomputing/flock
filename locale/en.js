@@ -1788,6 +1788,7 @@ export default {
   shortcut_toggle_hud: 'Show/hide gizmo controls',
   hud_hidden: 'Gizmo controls hidden',
   hud_shown: 'Gizmo controls shown',
+  ui_control_gizmo_hint: 'Drag it or its arrows, or use the arrow keys (Shift for small steps). Enter to finish.',
   gizmo_controls_hint: 'Show or hide the gizmo controls from Menu > Tools.',
   xr_mode_missing_hint:
     "No XR mode block, so this project won't open in your headset. Add one from Scene > XR.",

@@ -1398,6 +1398,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controlos de manipulação', // ai
   hud_hidden: 'Controlos de manipulação ocultos', // ai
   hud_shown: 'Controlos de manipulação visíveis', // ai
+  ui_control_gizmo_hint: 'Arraste-o ou as suas setas, ou use as teclas de seta (Shift para passos pequenos). Enter para terminar.', // ai
   gizmo_controls_hint: 'Mostra ou oculta os controlos de manipulação em Menu > Ferramentas.', // ai
   xr_mode_missing_hint:
     'Sem bloco de modo XR, este projeto não abrirá no teu visor. Adiciona um em Cena > XR.', // ai

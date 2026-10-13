@@ -1395,6 +1395,7 @@ export default {
   shortcut_toggle_hud: 'Pokaż/ukryj sterowanie gizmo', // ai
   hud_hidden: 'Sterowanie gizmo ukryte', // ai
   hud_shown: 'Sterowanie gizmo widoczne', // ai
+  ui_control_gizmo_hint: 'Przeciągnij go lub jego strzałki albo użyj klawiszy strzałek (Shift dla małych kroków). Enter, aby zakończyć.', // ai
   gizmo_controls_hint: 'Pokaż lub ukryj sterowanie gizmo w Menu > Narzędzia.', // ai
   xr_mode_missing_hint:
     'Brak bloku trybu XR, więc ten projekt nie otworzy się w goglach. Dodaj go z Scena > XR.', // ai

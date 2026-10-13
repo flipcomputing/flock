@@ -1655,6 +1655,7 @@ export default {
   shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
   hud_hidden: 'Controles de manipulación ocultos', // ai
   hud_shown: 'Controles de manipulación visibles', // ai
+  ui_control_gizmo_hint: 'Arrástralo o arrastra sus flechas, o usa las teclas de flecha (Mayús para pasos pequeños). Intro para terminar.', // ai
   gizmo_controls_hint: 'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
   xr_mode_missing_hint:
     'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
