@@ -506,6 +506,32 @@ export const FLOCK_FORMAT_VERSION = '2.0.0';
 // autosave is unaffected by this flag.
 export const AUTOSAVE_TO_FILE_ENABLED = false;
 
+// project= URLs are auto-fetched and their contents auto-executed as code,
+// so anything outside this list needs explicit user consent first.
+const TRUSTED_PROJECT_URL_PREFIXES = [
+  'https://github.com/flipcomputing/flockxr-projects',
+  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
+];
+
+// The domain itself and every subdomain.
+const TRUSTED_PROJECT_DOMAINS = ['flockxr.com'];
+
+function isTrustedProjectDomain(url) {
+  if (url.protocol !== 'https:' || url.port !== '') return false;
+  return TRUSTED_PROJECT_DOMAINS.some(
+    (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)
+  );
+}
+
+export function isTrustedProjectUrl(url, editorOrigin = window.location.origin) {
+  if (url.origin === editorOrigin) return true;
+  if (isTrustedProjectDomain(url)) return true;
+  return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
+    const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
+    return url.href === prefix || url.href.startsWith(boundary);
+  });
+}
+
 export const attachMixamoMapping = {
   LeftHand: 'mixamorig:RightHand',
   Hold: 'mixamorig:RightHand',

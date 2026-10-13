@@ -2,7 +2,12 @@ import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
 import { getMetadata } from 'meta-png';
-import { AUTOSAVE_KEY, AUTOSAVE_TO_FILE_ENABLED, FLOCK_FORMAT_VERSION } from '../config.js';
+import {
+  AUTOSAVE_KEY,
+  AUTOSAVE_TO_FILE_ENABLED,
+  FLOCK_FORMAT_VERSION,
+  isTrustedProjectUrl,
+} from '../config.js';
 import { flock } from '../flock.js';
 import { showStatus } from '../ui/status.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
@@ -15,32 +20,6 @@ const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_PROJECT_TEXT_LENGTH = 4 * 1024 * 1024;
 // A JavaScript string unit takes at most 3 bytes in UTF-8.
 const MAX_PROJECT_TEXT_UTF8_BYTES = 3 * MAX_PROJECT_TEXT_LENGTH;
-
-// project= URLs are auto-fetched and their contents auto-executed as code,
-// so anything outside this list needs explicit user consent first.
-const TRUSTED_PROJECT_URL_PREFIXES = [
-  'https://github.com/flipcomputing/flockxr-projects',
-  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
-];
-
-// The domain itself and every subdomain.
-const TRUSTED_PROJECT_DOMAINS = ['flockxr.com'];
-
-function isTrustedProjectDomain(url) {
-  if (url.protocol !== 'https:' || url.port !== '') return false;
-  return TRUSTED_PROJECT_DOMAINS.some(
-    (domain) => url.hostname === domain || url.hostname.endsWith(`.${domain}`)
-  );
-}
-
-export function isTrustedProjectUrl(url) {
-  if (url.origin === window.location.origin) return true;
-  if (isTrustedProjectDomain(url)) return true;
-  return TRUSTED_PROJECT_URL_PREFIXES.some((prefix) => {
-    const boundary = prefix.endsWith('/') ? prefix : `${prefix}/`;
-    return url.href === prefix || url.href.startsWith(boundary);
-  });
-}
 
 // Typed so callers can pick the right alert without matching message strings.
 class ProjectTooLargeError extends Error {

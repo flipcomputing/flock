@@ -27,7 +27,7 @@ import '@fontsource/atkinson-hyperlegible-next/600.css';
 import '@fontsource/asap';
 import '@fontsource/asap/500.css';
 import '@fontsource/asap/600.css';
-import { characterNames, getModelDisplayName } from './config';
+import { characterNames, getModelDisplayName, isTrustedProjectUrl } from './config';
 
 import { FlowGraphLog10Block } from '@babylonjs/core';
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
@@ -3391,6 +3391,13 @@ async function compressedProjectFragment(text) {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
+function isTrustedProjectPage(editorOrigin) {
+  const here = new URL(window.location.href);
+  if (here.protocol !== 'http:' && here.protocol !== 'https:') return false;
+  if (!/(\.html?|\/)$/.test(here.pathname.toLowerCase())) return false;
+  return isTrustedProjectUrl(here, editorOrigin);
+}
+
 function wireOpenInEditorLink() {
   const link = flock.document.querySelector('[data-flock-open-in-editor]');
   if (!link) return;
@@ -3411,7 +3418,7 @@ function wireOpenInEditorLink() {
   const type = (scriptElement?.type || '').toLowerCase();
   const isProjectJson = type === 'application/flock+json' || type === 'application/vnd.flock+json';
   if (!/^https?:$/.test(editor.protocol)) return;
-  if (!isProjectJson) {
+  if (!isProjectJson || isTrustedProjectPage(editor.origin)) {
     showPageAddressLink();
     return;
   }
