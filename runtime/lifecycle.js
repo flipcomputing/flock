@@ -1053,4 +1053,56 @@ export const flockLifecycle = {
       kbInput.keysRight = [];
     }
   },
+  _resetCameraInputState(camera = flock.scene?.activeCamera) {
+    if (!camera) return;
+
+    // ArcRotateCamera inertial offsets can keep rotating after input ends.
+    if ('inertialAlphaOffset' in camera) camera.inertialAlphaOffset = 0;
+    if ('inertialBetaOffset' in camera) camera.inertialBetaOffset = 0;
+    if ('inertialRadiusOffset' in camera) camera.inertialRadiusOffset = 0;
+    if ('inertialPanningX' in camera) camera.inertialPanningX = 0;
+    if ('inertialPanningY' in camera) camera.inertialPanningY = 0;
+
+    // Free/Universal camera deltas can persist when pointer state desyncs.
+    if (camera.cameraDirection?.set) {
+      camera.cameraDirection.set(0, 0, 0);
+    }
+    if (camera.cameraRotation?.set) {
+      camera.cameraRotation.set(0, 0);
+    } else if (camera.cameraRotation) {
+      camera.cameraRotation.x = 0;
+      camera.cameraRotation.y = 0;
+    }
+  },
+  _hardResetCameraControls(
+    camera = flock.scene?.activeCamera,
+    { reattachDelayMs = 0, noPreventDefault = true } = {}
+  ) {
+    if (!camera || !flock.canvas) return;
+    if (typeof camera.detachControl !== 'function') return;
+    if (typeof camera.attachControl !== 'function') return;
+
+    camera.detachControl(flock.canvas);
+    flock._resetCameraInputState(camera);
+
+    if (flock._cameraControlReattachTimer) {
+      clearTimeout(flock._cameraControlReattachTimer);
+      flock._cameraControlReattachTimer = null;
+    }
+
+    const reattach = () => {
+      if (!flock.scene || flock.scene.activeCamera !== camera) return;
+      if (flock._canvasControlsEnabled === false) return;
+      flock._resetCameraInputState(camera);
+      camera.attachControl(flock.canvas, noPreventDefault);
+      flock._cameraControlReattachTimer = null;
+    };
+
+    if (reattachDelayMs > 0) {
+      flock._cameraControlReattachTimer = setTimeout(reattach, reattachDelayMs);
+      return;
+    }
+
+    reattach();
+  },
 };
