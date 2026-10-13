@@ -3254,6 +3254,10 @@ kbd {
   text-decoration: underline;
 }
 
+[data-theme='light'] #help-list a {
+  color: var(--color-primary);
+}
+
 #help-list a:focus-visible,
 .howto-article a:focus-visible {
   outline: 2px solid var(--color-focus-outline);

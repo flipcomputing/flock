@@ -1083,6 +1083,32 @@ function getPlayerControls() {
       ],
     },
     {
+      section: 'player_section_orbit',
+      note: 'player_orbit_note',
+      entries: [
+        {
+          action: 'player_action_orbit',
+          marks: ['up', 'left', 'down', 'right'].map(svgMark),
+          layout: 'dpad',
+          label: translate('player_control_arrows'),
+        },
+        {
+          action: 'player_action_zoom_in',
+          marks: [svgRingedChar(1)],
+          ringed: true,
+          keys: 'R',
+          label: translate('player_control_button').replace('%1', 1),
+        },
+        {
+          action: 'player_action_zoom_out',
+          marks: [svgRingedChar(3)],
+          ringed: true,
+          keys: 'F',
+          label: translate('player_control_button').replace('%1', 3),
+        },
+      ],
+    },
+    {
       section: 'player_section_sr',
       entries: [
         {
@@ -1157,7 +1183,7 @@ const PlayerPanel = {
 
     const sections = getPlayerControls()
       .map(
-        ({ section, entries, hideHeader }) => `
+        ({ section, entries, hideHeader, note }) => `
       ${hideHeader ? '' : `<h3 class="shortcuts-category">${translate(section)}</h3>`}
       <dl class="shortcuts-group">
         ${entries
@@ -1169,7 +1195,8 @@ const PlayerPanel = {
         </div>`
           )
           .join('')}
-      </dl>`
+      </dl>
+      ${note ? `<p class="player-controls-note">${translate(note)}</p>` : ''}`
       )
       .join('');
 
