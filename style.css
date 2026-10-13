@@ -2990,6 +2990,10 @@ kbd {
   border-radius: 0;
 }
 
+.info-tab-btn[hidden] {
+  display: none;
+}
+
 .info-tab-btn.active {
   background-color: var(--color-text-brand);
   box-shadow: none;

@@ -32,7 +32,9 @@ const InfoPanel = {
   },
 
   // owner.toggle(), not activate()/deactivate(), so the tab gets the same docked/modal logic as every other entry point.
-  register(id, label, owner) {
+  // tab: false keeps the button hidden, for panels opened from the Help page
+  // or a shortcut rather than from the tab bar.
+  register(id, label, owner, { tab = true } = {}) {
     const btn = document.createElement('button');
     btn.id = `info-tab-btn-${id}`;
     btn.className = 'info-tab-btn bigbutton';
@@ -40,12 +42,15 @@ const InfoPanel = {
     btn.setAttribute('aria-selected', 'false');
     btn.setAttribute('aria-controls', `info-tab-panel-${id}`);
     btn.textContent = label;
+    btn.hidden = !tab;
     btn.addEventListener('click', () => (owner ? owner.toggle() : this.toggle(id)));
     this._tablist.appendChild(btn);
-    const divider = document.createElement('div');
-    divider.className = 'toolbar-divider';
-    divider.setAttribute('aria-hidden', 'true');
-    this._tablist.appendChild(divider);
+    if (tab) {
+      const divider = document.createElement('div');
+      divider.className = 'toolbar-divider';
+      divider.setAttribute('aria-hidden', 'true');
+      this._tablist.appendChild(divider);
+    }
 
     const panel = document.createElement('div');
     panel.id = `info-tab-panel-${id}`;

@@ -111,7 +111,6 @@ export function setupInput() {
 
       // 4) Info panel tabs and contents (if open), logo link, resizer
       pushUnique(document.querySelector('#info-tab-btn-help'));
-      pushUnique(document.querySelector('#info-tab-btn-howto'));
 
       const howtoTabPanel = document.getElementById('info-tab-panel-howto');
       if (howtoTabPanel && !howtoTabPanel.classList.contains('hidden')) {
@@ -119,15 +118,11 @@ export function setupInput() {
         howtoTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
 
-      pushUnique(document.querySelector('#info-tab-btn-shortcuts'));
-
       const shortcutsTabPanel = document.getElementById('info-tab-panel-shortcuts');
       if (shortcutsTabPanel && !shortcutsTabPanel.classList.contains('hidden')) {
         pushUnique(shortcutsTabPanel);
         shortcutsTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
-
-      pushUnique(document.querySelector('#info-tab-btn-player'));
 
       const playerTabPanel = document.getElementById('info-tab-panel-player');
       if (playerTabPanel && !playerTabPanel.classList.contains('hidden')) {
