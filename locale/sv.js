@@ -790,6 +790,8 @@ export default {
 
   MESH_option: 'objekt',
   CAPSULE_option: 'kapsel',
+  SPHERE_option: 'klot',
+  BOX_option: 'låda',
 
   FLAT_option: 'platt', // Duplicate key NONE
 

@@ -1108,6 +1108,20 @@ export const flockPhysics = {
             applyCapsuleToRoot(mesh);
             break;
 
+          case 'SPHERE':
+          case 'BOX': {
+            mesh.computeWorldMatrix(true);
+            const { motionType, disablePreStep } = capturePhysicsState(mesh);
+            disposePhysics(mesh);
+            applyPhysicsShape(
+              mesh,
+              shapeType,
+              motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+              disablePreStep ?? false
+            );
+            break;
+          }
+
           case 'MESH':
             applyMeshPhysicsShape(mesh);
             if (mesh.getChildMeshes) {

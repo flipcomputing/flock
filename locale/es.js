@@ -881,6 +881,8 @@ export default {
 
   MESH_option: 'objeto', // human
   CAPSULE_option: 'cápsula', // human
+  SPHERE_option: 'esfera',
+  BOX_option: 'caja',
 
   FLAT_option: 'plano', // human
 

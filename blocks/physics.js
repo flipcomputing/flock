@@ -51,7 +51,12 @@ export function definePhysicsBlocks() {
           {
             type: 'field_dropdown',
             name: 'SHAPE_TYPE',
-            options: [getDropdownOption('MESH'), getDropdownOption('CAPSULE')],
+            options: [
+              getDropdownOption('MESH'),
+              getDropdownOption('CAPSULE'),
+              getDropdownOption('SPHERE'),
+              getDropdownOption('BOX'),
+            ],
             default: 'MESH',
           },
         ],

@@ -880,6 +880,8 @@ export default {
 
   MESH_option: 'Objekt',
   CAPSULE_option: 'Kapsel',
+  SPHERE_option: 'Kugel',
+  BOX_option: 'Quader',
 
   BOTH_option: 'beides',
   ARROWS_option: 'Pfeile',

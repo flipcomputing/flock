@@ -787,6 +787,8 @@ export default {
 
   MESH_option: 'obiekt',
   CAPSULE_option: 'kapsuła',
+  SPHERE_option: 'kula',
+  BOX_option: 'prostopadłościan',
 
   FLAT_option: 'płaski',
 

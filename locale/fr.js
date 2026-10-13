@@ -799,6 +799,8 @@ export default {
 
   MESH_option: 'objet',
   CAPSULE_option: 'capsule',
+  SPHERE_option: 'sphère',
+  BOX_option: 'boîte',
 
   FLAT_option: 'plat',
 

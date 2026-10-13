@@ -959,6 +959,8 @@ export default {
 
   MESH_option: 'object',
   CAPSULE_option: 'capsule',
+  SPHERE_option: 'sphere',
+  BOX_option: 'box',
 
   FLAT_option: 'flat', // Duplicate key NONE
 

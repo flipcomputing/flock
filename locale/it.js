@@ -794,6 +794,8 @@ export default {
 
   MESH_option: 'oggetto',
   CAPSULE_option: 'capsula',
+  SPHERE_option: 'sfera',
+  BOX_option: 'scatola',
 
   FLAT_option: 'piatto', // Duplicate key NONE
 
