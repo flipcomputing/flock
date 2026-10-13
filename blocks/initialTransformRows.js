@@ -13,8 +13,8 @@ function numberShadow(value) {
   return { type: 'math_number', fields: { NUM: value } };
 }
 
-function toggleButton(alt, onClick) {
-  return new Blockly.FieldImage(DO_MUTATOR_PLUS, 24, 24, alt, onClick);
+function toggleButton(alt, onClick, size = 24) {
+  return new Blockly.FieldImage(DO_MUTATOR_PLUS, size, size, alt, onClick);
 }
 
 function appendAxisInputs(block, inputName) {
@@ -63,7 +63,7 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
   block
     .appendDummyInput('DO_TOGGLE')
     .setAlign(Blockly.inputs.Align.RIGHT)
-    .appendField(toggleButton('toggle do block', () => block.toggleDoBlock()), 'DO_BUTTON');
+    .appendField(toggleButton('toggle do block', () => block.toggleDoBlock(), 30), 'DO_BUTTON');
   block.hasOptionsRow_ = true;
 
   block.syncInitialTransformRows_ = function () {
