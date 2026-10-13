@@ -53,7 +53,7 @@ export function runControlGeneratorTests() {
 
     const forEachCode = (body) =>
       javascriptGenerator.forBlock['controls_forEach'](
-        { getFieldValue: () => 'item' },
+        { getFieldValue: () => 'item', workspace: { getAllBlocks: () => [] } },
         stubGenerator(body, { LIST: 'lst' })
       );
 
