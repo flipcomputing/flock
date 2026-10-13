@@ -19,6 +19,99 @@ async function verifySesIntegrity(sesText) {
   }
 }
 
+// 1) Very broad identifier blocklist (names anywhere in user code)
+const REJECT_IDENTIFIERS = new Set([
+  // dynamic code / reflection
+  'eval',
+  'Function',
+  'AsyncFunction',
+  'GeneratorFunction',
+  'Proxy',
+  'Reflect',
+  // frames & globals
+  'window',
+  'document',
+  'globalThis',
+  'self',
+  'parent',
+  'top',
+  'frames',
+  'frameElement',
+  // navigation & env
+  'location',
+  'history',
+  'navigator',
+  'opener',
+  // network / ipc
+  'fetch',
+  'XMLHttpRequest',
+  'WebSocket',
+  'EventSource',
+  'postMessage',
+  'MessageChannel',
+  'MessagePort',
+  'BroadcastChannel',
+  // workers & worklets
+  'Worker',
+  'SharedWorker',
+  'ServiceWorker',
+  'Worklet',
+  'importScripts',
+  // storage / persistence
+  'localStorage',
+  'sessionStorage',
+  'indexedDB',
+  'caches',
+  'cookieStore',
+  // file/blob/crypto
+  'Blob',
+  'File',
+  'FileReader',
+  'crypto',
+  // urls & media constructors
+  'URL',
+  'URLSearchParams',
+  'Image',
+  'Audio',
+  'RTCPeerConnection',
+  'MediaDevices',
+  'Notification',
+  // popups / UI
+  'open',
+  'alert',
+  'confirm',
+  'prompt',
+  'print',
+  'showModalDialog',
+  // timers (we’ll also do special checks)
+  'setTimeout',
+  'setInterval',
+  'setImmediate',
+  'queueMicrotask',
+  // module-ish
+  'require',
+]);
+
+// 2) Callees we never allow (even if shadowed)
+const REJECT_CALLEES = new Set([
+  'eval',
+  'Function',
+  'AsyncFunction',
+  'GeneratorFunction',
+  'setTimeout',
+  'setInterval',
+  'setImmediate',
+  'queueMicrotask',
+  'open',
+  'alert',
+  'confirm',
+  'prompt',
+  'print',
+]);
+
+// Generated names must avoid these, or the validator rejects the project.
+export const SANDBOX_RESERVED_NAMES = [...new Set([...REJECT_IDENTIFIERS, ...REJECT_CALLEES])];
+
 export const flockSandbox = {
   validateCode(code) {
     if (typeof code !== 'string') {
@@ -50,96 +143,6 @@ export const flockSandbox = {
     return true;
   },
   validateUserCodeAST(src) {
-    // 1) Very broad identifier blocklist (names anywhere in user code)
-    const REJECT_IDENTIFIERS = new Set([
-      // dynamic code / reflection
-      'eval',
-      'Function',
-      'AsyncFunction',
-      'GeneratorFunction',
-      'Proxy',
-      'Reflect',
-      // frames & globals
-      'window',
-      'document',
-      'globalThis',
-      'self',
-      'parent',
-      'top',
-      'frames',
-      'frameElement',
-      // navigation & env
-      'location',
-      'history',
-      'navigator',
-      'opener',
-      // network / ipc
-      'fetch',
-      'XMLHttpRequest',
-      'WebSocket',
-      'EventSource',
-      'postMessage',
-      'MessageChannel',
-      'MessagePort',
-      'BroadcastChannel',
-      // workers & worklets
-      'Worker',
-      'SharedWorker',
-      'ServiceWorker',
-      'Worklet',
-      'importScripts',
-      // storage / persistence
-      'localStorage',
-      'sessionStorage',
-      'indexedDB',
-      'caches',
-      'cookieStore',
-      // file/blob/crypto
-      'Blob',
-      'File',
-      'FileReader',
-      'crypto',
-      // urls & media constructors
-      'URL',
-      'URLSearchParams',
-      'Image',
-      'Audio',
-      'RTCPeerConnection',
-      'MediaDevices',
-      'Notification',
-      // popups / UI
-      'open',
-      'alert',
-      'confirm',
-      'prompt',
-      'print',
-      'showModalDialog',
-      // timers (we’ll also do special checks)
-      'setTimeout',
-      'setInterval',
-      'setImmediate',
-      'queueMicrotask',
-      // module-ish
-      'require',
-    ]);
-
-    // 2) Callees we never allow (even if shadowed)
-    const REJECT_CALLEES = new Set([
-      'eval',
-      'Function',
-      'AsyncFunction',
-      'GeneratorFunction',
-      'setTimeout',
-      'setInterval',
-      'setImmediate',
-      'queueMicrotask',
-      'open',
-      'alert',
-      'confirm',
-      'prompt',
-      'print',
-    ]);
-
     // 3) Member/property names that are escape hatches
     const REJECT_PROPERTIES = new Set([
       'constructor',
