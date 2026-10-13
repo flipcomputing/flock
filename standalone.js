@@ -80,6 +80,7 @@ function injectStandaloneChrome() {
 }
 
 function hideStandaloneLoadingScreen() {
+  flock.document.body?.setAttribute('aria-busy', 'false');
   if (typeof window.hideLoadingScreen === 'function') {
     window.hideLoadingScreen();
     return;
@@ -87,7 +88,6 @@ function hideStandaloneLoadingScreen() {
   const el = flock.document.getElementById('loadingScreen');
   if (!el) return;
   el.classList.add('fade-out');
-  flock.document.body?.setAttribute('aria-busy', 'false');
   setTimeout(() => el.remove(), 600);
 }
 
@@ -199,11 +199,19 @@ export function initializeFlock() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function startStandalone() {
   const scriptElement = document.getElementById('flock');
   if (scriptElement) {
     console.log('Standalone Flock 🐦');
     initializeFlock();
     setTimeout(hideStandaloneLoadingScreen, 15000);
   }
-});
+}
+
+export function startStandaloneWhenReady() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startStandalone);
+  } else {
+    startStandalone();
+  }
+}

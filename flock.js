@@ -29,6 +29,7 @@ import '@fontsource/asap/500.css';
 import '@fontsource/asap/600.css';
 import { characterNames, getModelDisplayName } from './config';
 import { flockRuntimeUrl } from './runtime/urls.js';
+import { startStandaloneWhenReady } from './standalone.js';
 
 import { FlowGraphLog10Block } from '@babylonjs/core';
 const optionalBabylonDeps = { earcut, FlowGraphLog10Block };
@@ -3265,3 +3266,5 @@ window.speak = flockSound.speak;
 document.addEventListener('visibilitychange', () => {
   flock.freezeEvents.dispatchEvent(new Event('change'));
 });
+
+startStandaloneWhenReady();
