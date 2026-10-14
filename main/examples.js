@@ -454,7 +454,9 @@ function positionPanel(modal) {
     left = viewportWidth - panelWidth - margin;
   }
   panel.style.left = `${Math.max(margin, left)}px`;
-  panel.style.maxHeight = `${window.innerHeight - rect.bottom - gap - margin}px`;
+  const bottomBarTop = document.getElementById('bottomBar')?.getBoundingClientRect().top;
+  const limit = bottomBarTop > 0 ? bottomBarTop : window.innerHeight;
+  panel.style.maxHeight = `${limit - rect.bottom - gap - margin}px`;
 }
 
 export function openExampleModal() {
