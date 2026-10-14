@@ -4789,9 +4789,11 @@ const toolboxSnippetsPhysics = {
         DO: {
           block: {
             type: 'create_sphere',
-            ID_VAR: {
-              name: 'sphere',
-              type: '',
+            fields: {
+              ID_VAR: {
+                name: 'sphere',
+                type: '',
+              },
             },
             inputs: {
               COLOR: {

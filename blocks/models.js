@@ -1,7 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
-  nextVariableIndexes,
   handleBlockChange,
   handleBlockCreateEvent,
   handleMeshLifecycleChange,
@@ -11,6 +10,7 @@ import {
   getHelpUrlFor,
   registerBlockHandler,
 } from './blocks.js';
+import { nextVariableName, rememberObjectBlock } from './variableNames.js';
 import {
   characterNames,
   objectNames,
@@ -180,14 +180,14 @@ export function defineModelBlocks() {
   Blockly.Blocks['load_character'] = {
     init: function () {
       const variableNamePrefix = 'character';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         message0: translate('load_character'),
         args0: [
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_grid_dropdown',
@@ -272,7 +272,7 @@ export function defineModelBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         // Always handle variable naming first (even if mesh is skipped)
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
 
         // Mesh lifecycle events on this block directly (e.g. enable/disable, move),
         // or when this block is part of a snippet creation (its id is in changeEvent.ids).
@@ -289,7 +289,7 @@ export function defineModelBlocks() {
         // Linked children like MODELS or color inputs
         if (handleParentLinkedUpdate(this, changeEvent)) {
           // 🔹 Additional side-effect unique to this block type
-          window.updateCurrentMeshName(this, 'ID_VAR');
+          rememberObjectBlock(this);
           return;
         }
 
@@ -311,7 +311,7 @@ export function defineModelBlocks() {
         ? defaultColours[0]
         : defaultColours || '#FFD700';
       const variableNamePrefix = 'item';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       // Add the main inputs of the block
       this.jsonInit({
@@ -320,7 +320,7 @@ export function defineModelBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_grid_dropdown',
@@ -420,7 +420,7 @@ export function defineModelBlocks() {
   Blockly.Blocks['load_multi_object'] = {
     init: function () {
       const variableNamePrefix = 'object';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         message0: translate('load_multi_object'),
@@ -428,7 +428,7 @@ export function defineModelBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_grid_dropdown',
@@ -509,7 +509,7 @@ export function defineModelBlocks() {
           // Don't return here - let other handlers process this event too
         }
 
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
 
         // Always handle mesh lifecycle if the event targets this block,
         // or when this block is part of a snippet creation (its id is in changeEvent.ids).
@@ -539,7 +539,7 @@ export function defineModelBlocks() {
   Blockly.Blocks['load_model'] = {
     init: function () {
       const variableNamePrefix = 'model';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "model1"
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         message0: translate('load_model'),
@@ -547,7 +547,7 @@ export function defineModelBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_grid_dropdown',
@@ -642,7 +642,7 @@ export function defineModelBlocks() {
           this.colorsEdited = true;
         }
 
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
 
         const isThisBlockCreated =
           changeEvent.type === Blockly.Events.BLOCK_CREATE &&

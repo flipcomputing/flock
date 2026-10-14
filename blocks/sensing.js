@@ -5,11 +5,11 @@ import {
   addToggleButton,
   mutationToDom,
   domToMutation,
-  nextVariableIndexes,
   handleBlockCreateEvent,
   updateShape,
   registerBlockHandler,
 } from './blocks.js';
+import { nextVariableName, otherObjectName } from './variableNames.js';
 import { translate, getTooltip, getOption, getDropdownOption } from '../main/translation.js';
 import { ACTIONS } from '../input/bindings.js';
 import { makeMicrobitStatusIcon } from './blockIcons.js';
@@ -483,7 +483,7 @@ export function defineSensingBlocks() {
           {
             type: 'field_variable',
             name: 'MESH2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
         ],
         output: 'Boolean',
@@ -549,7 +549,7 @@ export function defineSensingBlocks() {
           {
             type: 'field_variable',
             name: 'MODEL2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
         ],
         output: 'Number',
@@ -815,7 +815,7 @@ export function defineSensingBlocks() {
   Blockly.Blocks['add_microbit'] = {
     init: function () {
       const variableNamePrefix = 'microbit';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'add_microbit',
         message0: translate('add_microbit'),
@@ -823,7 +823,7 @@ export function defineSensingBlocks() {
           {
             type: 'field_variable',
             name: 'MICROBIT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -855,13 +855,7 @@ export function defineSensingBlocks() {
       );
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'MICROBIT_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'MICROBIT_VAR');
         if (isMicrobitRefreshEvent(changeEvent)) {
           refreshMicrobitBlocks(this.workspace);
         }
@@ -946,7 +940,7 @@ export function defineSensingBlocks() {
   Blockly.Blocks['ui_slider'] = {
     init: function () {
       const variableNamePrefix = 'slider';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'ui_slider',
         message0: translate('ui_slider'),
@@ -954,7 +948,7 @@ export function defineSensingBlocks() {
           {
             type: 'field_variable',
             name: 'SLIDER_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1011,13 +1005,7 @@ export function defineSensingBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'SLIDER_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'SLIDER_VAR');
         handleUIControlBlockEvent(this, changeEvent);
       });
     },

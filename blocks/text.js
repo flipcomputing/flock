@@ -2,12 +2,12 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
-  nextVariableIndexes,
   handleBlockCreateEvent,
   handleBlockChange,
   registerBlockHandler,
   addDoMutatorWithToggleBehavior,
 } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { attachShadowContainerOnChange } from './scene.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
@@ -195,7 +195,7 @@ export function defineTextBlocks() {
   Blockly.Blocks['ui_text'] = {
     init: function () {
       const variableNamePrefix = 'uitext';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'ui_text',
@@ -209,7 +209,7 @@ export function defineTextBlocks() {
           {
             type: 'field_variable',
             name: 'TEXTBLOCK_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -259,13 +259,7 @@ export function defineTextBlocks() {
       this.setStyle('text_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'TEXTBLOCK_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'TEXTBLOCK_VAR');
         handleUIControlBlockEvent(this, changeEvent, { preview: true });
       });
     },
@@ -274,7 +268,7 @@ export function defineTextBlocks() {
   Blockly.Blocks['ui_button'] = {
     init: function () {
       const variableNamePrefix = 'button';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'ui_button',
@@ -288,7 +282,7 @@ export function defineTextBlocks() {
           {
             type: 'field_variable',
             name: 'BUTTON_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -340,13 +334,7 @@ export function defineTextBlocks() {
       this.setStyle('text_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'BUTTON_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'BUTTON_VAR');
         handleUIControlBlockEvent(this, changeEvent);
       });
     },
@@ -355,7 +343,7 @@ export function defineTextBlocks() {
   Blockly.Blocks['ui_input'] = {
     init: function () {
       const variableNamePrefix = 'input';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'ui_input',
@@ -364,7 +352,7 @@ export function defineTextBlocks() {
           {
             type: 'field_variable',
             name: 'INPUT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -417,13 +405,7 @@ export function defineTextBlocks() {
       this.setStyle('text_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'INPUT_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'INPUT_VAR');
         handleUIControlBlockEvent(this, changeEvent);
       });
     },
@@ -460,7 +442,7 @@ export function defineTextBlocks() {
   Blockly.Blocks['create_3d_text'] = {
     init: function () {
       const variableNamePrefix = '3dtext';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'create_3d_text',
@@ -469,7 +451,7 @@ export function defineTextBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',

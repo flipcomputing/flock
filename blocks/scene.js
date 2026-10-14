@@ -1,7 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
-  nextVariableIndexes,
   handleBlockCreateEvent,
   handleMeshLifecycleChange,
   handleFieldOrChildChange,
@@ -9,6 +8,7 @@ import {
   getHelpUrlFor,
   registerBlockHandler,
 } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { mapNames } from '../config.js';
 import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
@@ -468,7 +468,7 @@ export function defineSceneBlocks() {
   Blockly.Blocks['clone_mesh'] = {
     init: function () {
       const variableNamePrefix = 'clone';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         message0: translate('clone_mesh'),
@@ -476,7 +476,7 @@ export function defineSceneBlocks() {
           {
             type: 'field_variable',
             name: 'CLONE_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_variable',
@@ -493,7 +493,7 @@ export function defineSceneBlocks() {
       });
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'CLONE_VAR');
         handleInitialTransformRowsChange(this, changeEvent);
       });
 

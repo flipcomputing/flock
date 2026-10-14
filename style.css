@@ -1869,9 +1869,25 @@ body.embed-mode #infoResizer {
   width: min(800px, calc(100vw - 16px));
   max-width: none;
   max-height: 70vh;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid var(--color-border);
   box-shadow: 0 8px 24px var(--color-shadow-medium);
+}
+
+.example-modal-header {
+  flex: none;
+}
+
+#examplePanels {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 6px 6px;
+  margin: 0 -6px;
 }
 
 .project-actions {

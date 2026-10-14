@@ -5,7 +5,6 @@
 import * as Blockly from 'blockly';
 import '@babylonjs/core/Debug/debugLayer';
 import { flock } from '../flock.js';
-import { initializeVariableIndexes } from '../blocks/blocks';
 import { enableGizmos } from '../ui/gizmos.js';
 import { handleError, installGlobalErrorHandlers, isReported } from '../ui/notifications.js';
 import { executeCode, togglePause } from './execution.js';
@@ -1131,7 +1130,6 @@ window.onload = async function () {
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
-      initializeVariableIndexes();
       window.loadingCode = false;
     }
   });

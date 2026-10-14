@@ -1,11 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import {
-  nextVariableIndexes,
-  handleBlockCreateEvent,
-  getHelpUrlFor,
-  registerBlockHandler,
-} from './blocks.js';
+import { handleBlockCreateEvent, getHelpUrlFor, registerBlockHandler } from './blocks.js';
+import { nextVariableName, otherObjectName } from './variableNames.js';
 import { animationNames } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
@@ -200,7 +196,7 @@ export function defineAnimateBlocks() {
           {
             type: 'field_variable',
             name: 'MODEL2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
           {
             type: 'input_value',
@@ -522,7 +518,7 @@ export function defineAnimateBlocks() {
           {
             type: 'field_variable',
             name: 'MODEL2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
           {
             type: 'input_value',
@@ -795,7 +791,7 @@ export function defineAnimateBlocks() {
   Blockly.Blocks['animation'] = {
     init: function () {
       const variableNamePrefix = 'animation';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'animation',
@@ -829,7 +825,7 @@ export function defineAnimateBlocks() {
           {
             type: 'field_variable',
             name: 'ANIMATION_GROUP',
-            variable: nextVariableName, // Use the dynamic variable name
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -876,13 +872,7 @@ export function defineAnimateBlocks() {
       this.setStyle('animate_blocks');
       preventLoopingAwait(this);
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'ANIMATION_GROUP'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'ANIMATION_GROUP');
 
         if (window.loadingCode) return;
       });

@@ -24,6 +24,7 @@ import {
   TOGGLE_BUTTON_FIELD_NAME,
   DecorativeFieldImage,
 } from './blockIcons.js';
+import { otherObjectName } from './variableNames.js';
 
 export function defineEventsBlocks() {
   Blockly.Blocks['start'] = {
@@ -243,7 +244,7 @@ export function defineEventsBlocks() {
           {
             type: 'field_variable',
             name: 'OTHER_MODEL_VAR',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
         ],
         message1: '%1',

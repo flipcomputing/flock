@@ -9,6 +9,7 @@ import {
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { flock } from '../flock.js';
 import { applyRetargetedTransform } from '../ui/blockmesh.js';
+import { otherObjectName } from './variableNames.js';
 
 export function defineTransformBlocks() {
   function handleBlockChange(block, changeEvent) {
@@ -231,7 +232,7 @@ export function defineTransformBlocks() {
           {
             type: 'field_variable',
             name: 'MODEL2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
           {
             type: 'field_checkbox',
@@ -492,7 +493,7 @@ export function defineTransformBlocks() {
           {
             type: 'field_variable',
             name: 'MODEL2',
-            variable: 'object2',
+            variable: otherObjectName('object2'),
           },
           {
             type: 'field_checkbox',

@@ -734,6 +734,8 @@ const builtInControlBlocks = [
   'controls_forEach',
 ];
 
+const LOOP_DEFAULT_NAMES = { controls_for: 'count', controls_forEach: 'element' };
+
 builtInControlBlocks.forEach((typeName) => {
   const blockDef = Blockly.Blocks[typeName];
   if (!blockDef) return;
@@ -742,5 +744,100 @@ builtInControlBlocks.forEach((typeName) => {
   blockDef.init = function (...args) {
     originalInit.apply(this, args);
     this.setStyle('control_blocks');
+    const varField = LOOP_DEFAULT_NAMES[typeName] && this.getField('VAR');
+    if (varField) varField.defaultVariableName = LOOP_DEFAULT_NAMES[typeName];
   };
 });
+
+const DEFAULT_LOOP_NAME = new RegExp(
+  `^(${Object.values(LOOP_DEFAULT_NAMES).join('|')})(\\d*)$`,
+  'i'
+);
+
+function loopVariable(block) {
+  const field = LOOP_DEFAULT_NAMES[block.type] ? block.getField('VAR') : null;
+  return field?.getVariable?.() ? field : null;
+}
+
+function enclosingLoops(block) {
+  const loops = [];
+  for (let parent = block.getSurroundParent(); parent; parent = parent.getSurroundParent()) {
+    if (loopVariable(parent)) loops.push(parent);
+  }
+  return loops;
+}
+
+function loopNames(loops) {
+  return new Set(loops.map((loop) => loopVariable(loop).getVariable().getName().toLowerCase()));
+}
+
+function referencesVariable(block, varId) {
+  return [...block.getFields()].some(
+    (field) => field instanceof Blockly.FieldVariable && field.getValue() === varId
+  );
+}
+
+function usedOutsideLoops(workspace, varId) {
+  return workspace.getAllBlocks(false).some((block) => {
+    if (loopVariable(block)?.getValue() === varId || !referencesVariable(block, varId)) {
+      return false;
+    }
+    return !enclosingLoops(block).some((loop) => loopVariable(loop).getValue() === varId);
+  });
+}
+
+function retargetLoopBody(loop, fromId, toId) {
+  const body = loop.getInputTargetBlock('DO')?.getDescendants(false) ?? [];
+  for (const block of body) {
+    for (const field of block.getFields()) {
+      if (field instanceof Blockly.FieldVariable && field.getValue() === fromId) {
+        field.setValue(toId);
+      }
+    }
+  }
+}
+
+function separateFromEnclosingLoops(loop) {
+  const field = loopVariable(loop);
+  const name = field?.getVariable().getName();
+  const match = name && DEFAULT_LOOP_NAME.exec(name);
+  if (!match) return;
+  const enclosing = loopNames(enclosingLoops(loop));
+  if (!enclosing.has(name.toLowerCase())) return;
+
+  const nested = loopNames(loop.getDescendants(false).filter((b) => b !== loop && loopVariable(b)));
+  const variableMap = loop.workspace.getVariableMap();
+  const isFree = (candidate) => {
+    const key = candidate.toLowerCase();
+    if (enclosing.has(key) || nested.has(key)) return false;
+    const existing = variableMap.getVariable(candidate, '');
+    return !existing || !usedOutsideLoops(loop.workspace, existing.getId());
+  };
+
+  const base = match[1];
+  let n = 2;
+  while (!isFree(`${base}${n}`)) n += 1;
+  const newName = `${base}${n}`;
+  const variable = variableMap.getVariable(newName, '') ?? variableMap.createVariable(newName, '');
+  const oldId = field.getValue();
+  field.setValue(variable.getId());
+  retargetLoopBody(loop, oldId, variable.getId());
+}
+
+export function separateNestedLoopVariables(event) {
+  if (event.type !== Blockly.Events.BLOCK_MOVE || !event.newParentId) return;
+  if (event.isUiEvent || !event.recordUndo || window.loadingCode) return;
+  const workspace = Blockly.Workspace.getById(event.workspaceId);
+  const moved = workspace?.getBlockById(event.blockId);
+  if (!moved || workspace.isFlyout) return;
+
+  const previousGroup = Blockly.Events.getGroup();
+  Blockly.Events.setGroup(event.group || previousGroup);
+  try {
+    for (const block of moved.getDescendants(false)) {
+      if (loopVariable(block)) separateFromEnclosingLoops(block);
+    }
+  } finally {
+    Blockly.Events.setGroup(previousGroup);
+  }
+}

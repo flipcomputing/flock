@@ -1,7 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
-  nextVariableIndexes,
   handleBlockChange,
   addDoMutatorWithToggleBehavior,
   handleBlockCreateEvent,
@@ -11,6 +10,7 @@ import {
   DO_MUTATOR_MINUS,
   DO_MUTATOR_PLUS,
 } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import {
@@ -117,14 +117,14 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_particle_effect'] = {
     init: function () {
       const variableNamePrefix = 'particleEffect';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         message0: translate('create_particle_effect'),
         args0: [
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_variable',
@@ -656,7 +656,7 @@ export function defineShapeBlocks() {
       this.setStyle('scene_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
         if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE || changeEvent.element !== 'field') {
           return;
         }
@@ -671,7 +671,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_box'] = {
     init: function () {
       const variableNamePrefix = 'box';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_box',
         message0: translate('create_box'),
@@ -679,7 +679,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -743,7 +743,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_sphere'] = {
     init: function () {
       const variableNamePrefix = 'sphere';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_sphere',
         message0: translate('create_sphere'),
@@ -751,7 +751,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -815,7 +815,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_cylinder'] = {
     init: function () {
       const variableNamePrefix = 'cylinder';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_cylinder',
         message0: translate('create_cylinder'),
@@ -823,7 +823,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -892,7 +892,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_capsule'] = {
     init: function () {
       const variableNamePrefix = 'capsule';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_capsule',
         message0: translate('create_capsule'),
@@ -900,7 +900,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -959,7 +959,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_wedge'] = {
     init: function () {
       const variableNamePrefix = 'wedge';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_wedge',
         message0: translate('create_wedge'),
@@ -967,7 +967,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1041,7 +1041,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_freeform'] = {
     init: function () {
       const variableNamePrefix = 'freeform';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_freeform',
         message0: translate('create_freeform'),
@@ -1049,7 +1049,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1300,7 +1300,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_donut'] = {
     init: function () {
       const variableNamePrefix = 'donut';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_donut',
         message0: translate('create_donut'),
@@ -1308,7 +1308,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1376,7 +1376,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_ring'] = {
     init: function () {
       const variableNamePrefix = 'ring';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_ring',
         message0: translate('create_ring'),
@@ -1384,7 +1384,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1457,7 +1457,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_plane'] = {
     init: function () {
       const variableNamePrefix = 'plane';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_plane',
         message0: translate('create_plane'),
@@ -1465,7 +1465,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -1524,7 +1524,7 @@ export function defineShapeBlocks() {
   Blockly.Blocks['create_group'] = {
     init: function () {
       const variableNamePrefix = 'group';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_group',
         message0: translate('create_group'),
@@ -1532,7 +1532,7 @@ export function defineShapeBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_checkbox',

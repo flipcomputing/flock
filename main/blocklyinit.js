@@ -14,11 +14,8 @@ import {
 import {
   options,
   defineBlocks,
-  handleBlockSelect,
   handleBlockDelete,
   CustomZelosRenderer,
-  initializeVariableIndexes,
-  nextVariableIndexes,
   applyInputAriaLabels,
 } from '../blocks/blocks';
 import { defineBaseBlocks } from '../blocks/base';
@@ -34,7 +31,7 @@ import { definePhysicsBlocks } from '../blocks/physics.js';
 import { defineConnectBlocks } from '../blocks/connect.js';
 import { defineModifyBlocks } from '../blocks/modify.js';
 import { defineTransformBlocks } from '../blocks/transform.js';
-import { defineControlBlocks } from '../blocks/control.js';
+import { defineControlBlocks, separateNestedLoopVariables } from '../blocks/control.js';
 import { defineSectionBlock } from '../blocks/section.js';
 import { defineConditionBlocks } from '../blocks/condition.js';
 import { defineAnimateBlocks } from '../blocks/animate.js';
@@ -44,6 +41,7 @@ import { defineColourBlocks } from '../blocks/colour.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
+import { handleRecentObjectEvent } from '../blocks/variableNames.js';
 import { localVariableBlock } from '../toolbox.js';
 import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
@@ -900,7 +898,8 @@ export function initializeWorkspace() {
 
   // Add change listeners
   workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
-  workspace.addChangeListener(handleBlockSelect);
+  workspace.addChangeListener(handleRecentObjectEvent);
+  workspace.addChangeListener(separateNestedLoopVariables);
   workspace.addChangeListener(handleBlockDelete);
 
   // Initialize workspace search
@@ -2961,10 +2960,6 @@ export function overrideSearchPlugin(workspace) {
   }
 
   function buildSearchIndex() {
-    if (!Object.keys(nextVariableIndexes).length) {
-      initializeVariableIndexes();
-    }
-
     const blockCreationWorkspace = new Blockly.Workspace();
     const indexedBlocks = [];
 

@@ -7,6 +7,7 @@ import {
   addPositionShadows,
   addColourShadow,
 } from './blocklyshadowutil.js';
+import { rememberObjectBlock } from '../blocks/variableNames.js';
 let lastAddMenuHighlighted = null;
 
 // Whether a block has been locked (non-editable / non-movable / non-deletable).
@@ -173,6 +174,8 @@ export function appendWithUndo(spec, ws, groupId) {
 
 export function highlightBlockById(workspace, block) {
   if (!workspace || !block || block.workspace !== workspace) return;
+
+  rememberObjectBlock(block);
 
   // Select and scroll only when the code view is actually visible. `window.codeMode`
   // only tracks the wide-screen split-view toggle (switchView) — the narrow-screen
