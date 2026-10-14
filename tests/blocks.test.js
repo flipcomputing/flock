@@ -1,6 +1,11 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
-import { handleBlockCreateEvent } from '../blocks/blocks.js';
+import {
+  blockHandlerRegistry,
+  dispatchBlockEvent,
+  handleBlockCreateEvent,
+  registerBlockHandler,
+} from '../blocks/blocks.js';
 
 export function runBlocksTests() {
   describe('blocks.js tests', function () {
@@ -293,6 +298,164 @@ export function runBlocksTests() {
         );
         expect(reloaded.getInput('ALPHA').isVisible()).to.equal(false);
         expect(Number(reloaded.getInputTargetBlock('SCALE').getFieldValue('NUM'))).to.equal(3);
+      });
+    });
+
+    describe('block event dispatch', function () {
+      let workspace;
+      let seen;
+
+      const append = (state) => Blockly.serialization.blocks.append(state, workspace);
+      const listen = (block, options) => {
+        registerBlockHandler(block, (event) => seen.push([block.id, event.type]), options);
+      };
+      const heard = (block) => seen.filter(([id]) => id === block.id).map(([, type]) => type);
+
+      // The registry is shared, and other suites leave handlers for blocks on
+      // workspaces they have since disposed; set those aside for each test.
+      let setAside;
+
+      beforeEach(function () {
+        setAside = [...blockHandlerRegistry].map(([id, handler]) => [
+          id,
+          handler,
+          blockHandlerRegistry.wantsAllEvents(id),
+        ]);
+        blockHandlerRegistry.clear();
+        workspace = new Blockly.Workspace();
+        seen = [];
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+        blockHandlerRegistry.clear();
+        for (const [id, handler, allEvents] of setAside) {
+          blockHandlerRegistry.set(id, handler);
+          blockHandlerRegistry.setWantsAllEvents(id, allEvents);
+        }
+      });
+
+      it('calls a block for a field change inside its inputs, not an unrelated block', function () {
+        const compare = append({
+          type: 'logic_compare',
+          inputs: { A: { block: { type: 'math_number' } } },
+        });
+        const unrelated = append({ type: 'logic_compare' });
+        listen(compare);
+        listen(unrelated);
+
+        dispatchBlockEvent(workspace, {
+          type: Blockly.Events.BLOCK_CHANGE,
+          element: 'field',
+          blockId: compare.getInputTargetBlock('A').id,
+        });
+
+        expect(heard(compare)).to.deep.equal([Blockly.Events.BLOCK_CHANGE]);
+        expect(heard(unrelated)).to.deep.equal([]);
+      });
+
+      it('calls a block further down a moved stack', function () {
+        const top = append({
+          type: 'variables_set',
+          fields: { VAR: { name: 'a' } },
+          next: { block: { type: 'variables_set', fields: { VAR: { name: 'b' } } } },
+        });
+        const below = top.getNextBlock();
+        const unrelated = append({ type: 'variables_set', fields: { VAR: { name: 'c' } } });
+        listen(below);
+        listen(unrelated);
+
+        dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_MOVE, blockId: top.id });
+
+        expect(heard(below)).to.deep.equal([Blockly.Events.BLOCK_MOVE]);
+        expect(heard(unrelated)).to.deep.equal([]);
+      });
+
+      it('calls the block a child is moved out of', function () {
+        const compare = append({ type: 'logic_compare' });
+        const number = append({ type: 'math_number' });
+        listen(compare);
+
+        dispatchBlockEvent(workspace, {
+          type: Blockly.Events.BLOCK_MOVE,
+          blockId: number.id,
+          oldParentId: compare.id,
+        });
+
+        expect(heard(compare)).to.deep.equal([Blockly.Events.BLOCK_MOVE]);
+      });
+
+      it('sends an event about no block in particular to every block', function () {
+        const first = append({ type: 'logic_compare' });
+        const second = append({ type: 'logic_compare' });
+        listen(first);
+        listen(second);
+
+        dispatchBlockEvent(workspace, { type: Blockly.Events.VAR_RENAME, varId: 'x' });
+
+        expect(heard(first)).to.deep.equal([Blockly.Events.VAR_RENAME]);
+        expect(heard(second)).to.deep.equal([Blockly.Events.VAR_RENAME]);
+      });
+
+      it('sends every event to a block registered for all events', function () {
+        const changed = append({ type: 'math_number' });
+        const watcher = append({ type: 'logic_compare' });
+        listen(watcher, { allEvents: true });
+
+        dispatchBlockEvent(workspace, {
+          type: Blockly.Events.BLOCK_CHANGE,
+          element: 'field',
+          blockId: changed.id,
+        });
+
+        expect(heard(watcher)).to.deep.equal([Blockly.Events.BLOCK_CHANGE]);
+      });
+
+      it('skips UI events', function () {
+        const block = append({ type: 'logic_compare' });
+        listen(block, { allEvents: true });
+
+        dispatchBlockEvent(workspace, {
+          type: Blockly.Events.SELECTED,
+          newElementId: block.id,
+          isUiEvent: true,
+        });
+
+        expect(heard(block)).to.deep.equal([]);
+      });
+
+      it("gives a deleted block's handler its own delete event, then removes it", function () {
+        const block = append({ type: 'logic_compare' });
+        const id = block.id;
+        listen(block);
+        block.dispose();
+        const deleted = { type: Blockly.Events.BLOCK_DELETE, blockId: id, ids: [id] };
+
+        dispatchBlockEvent(workspace, deleted);
+        dispatchBlockEvent(workspace, deleted);
+
+        expect(seen).to.deep.equal([[id, Blockly.Events.BLOCK_DELETE]]);
+        expect(blockHandlerRegistry.has(id)).to.equal(false);
+      });
+
+      it("still removes a deleted block's handler when another handler throws", function () {
+        const block = append({ type: 'logic_compare' });
+        const id = block.id;
+        const thrower = append({ type: 'logic_compare' });
+        listen(block);
+        registerBlockHandler(
+          thrower,
+          () => {
+            throw new Error('handler failed');
+          },
+          { allEvents: true }
+        );
+        block.dispose();
+
+        expect(() =>
+          dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_DELETE, blockId: id, ids: [id] })
+        ).to.throw('handler failed');
+        expect(blockHandlerRegistry.has(id)).to.equal(false);
       });
     });
   });

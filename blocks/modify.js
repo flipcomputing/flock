@@ -364,10 +364,15 @@ export function defineModifyBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('transform_blocks');
 
-      registerBlockHandler(this, (changeEvent) => {
-        handleBlockChange(this, changeEvent, variableNamePrefix);
-        watchMirrorSources(this, changeEvent);
-      });
+      // Its sources are found by variable, anywhere in the workspace.
+      registerBlockHandler(
+        this,
+        (changeEvent) => {
+          handleBlockChange(this, changeEvent, variableNamePrefix);
+          watchMirrorSources(this, changeEvent);
+        },
+        { allEvents: true }
+      );
       addDoMutatorWithToggleBehavior(this);
     },
   };

@@ -5,8 +5,7 @@ import { VariableNameDropdown } from './variableScope.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import {
   syncMicrobitDeviceField,
-  refreshMicrobitBlocks,
-  isMicrobitRefreshEvent,
+  refreshMicrobitBlocksFor,
 } from './sensing.js';
 import './fieldMicrobitImage.js'; // registers field_microbit_image
 
@@ -22,11 +21,9 @@ function wireMicrobitDeviceBlock(block) {
     ) {
       syncMicrobitDeviceField(block);
     }
-    if (isMicrobitRefreshEvent(changeEvent)) {
-      // Keeps the untethered-device warning current; the manager's
-      // status listener covers connect/disconnect transitions.
-      refreshMicrobitBlocks(block.workspace);
-    }
+    // Keeps the untethered-device warning current; the manager's
+    // status listener covers connect/disconnect transitions.
+    refreshMicrobitBlocksFor(changeEvent, block.workspace);
   });
 }
 

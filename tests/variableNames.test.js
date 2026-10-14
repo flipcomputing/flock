@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+import { defineGenerators } from '../generators/generators.js';
 import { handleBlockCreateEvent } from '../blocks/blocks.js';
 import {
   handleRecentObjectEvent,
@@ -564,6 +566,44 @@ export function runVariableNamesTests() {
         separateNestedLoopVariables(moved(inner));
 
         expect(loopName(inner)).to.equal('count');
+      });
+    });
+
+    // A generated name that matches something the sandbox provides would hide it.
+    describe('generated code names', function () {
+      before(function () {
+        defineGenerators();
+      });
+
+      const generate = () => javascriptGenerator.workspaceToCode(workspace);
+
+      it('renames a variable named after an API function', function () {
+        append({ type: 'create_box', fields: { ID_VAR: { name: 'box1' } } });
+        append({
+          type: 'mirror_mesh',
+          fields: { ID_VAR: { name: 'mirror' }, SOURCE_MESH: { name: 'box1' } },
+        });
+
+        const code = generate();
+
+        expect(code).to.match(/let (mirror\d+) = "mirror";[\s\S]*\1 = mirror\(box1,/);
+        expect(code).to.not.match(/\blet mirror\b/);
+      });
+
+      it('renames a variable named after a global the run provides', function () {
+        append({
+          type: 'variables_set',
+          fields: { VAR: { name: '__flockLoopYield' } },
+          inputs: { VALUE: { block: { type: 'math_number', fields: { NUM: 1 } } } },
+        });
+
+        expect(generate()).to.match(/\b__flockLoopYield\d+ = 1;/);
+      });
+
+      it('renames a function named after an API function', function () {
+        append({ type: 'procedures_defnoreturn', fields: { NAME: 'say' } });
+
+        expect(generate()).to.match(/async function say\d+\(/);
       });
     });
   });

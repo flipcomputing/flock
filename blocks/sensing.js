@@ -174,6 +174,15 @@ export function isMicrobitRefreshEvent(changeEvent) {
   return changeEvent.element !== 'field' || MICROBIT_REFRESH_FIELDS.has(changeEvent.name);
 }
 
+let lastMicrobitRefreshEvent = null;
+
+// Every micro:bit-aware block sees the same event, and one rescan covers them all.
+export function refreshMicrobitBlocksFor(changeEvent, workspace) {
+  if (changeEvent === lastMicrobitRefreshEvent || !isMicrobitRefreshEvent(changeEvent)) return;
+  lastMicrobitRefreshEvent = changeEvent;
+  refreshMicrobitBlocks(workspace);
+}
+
 let refreshingMicrobitBlocks = false;
 
 // Recompute status icons, warnings, and editor-side channel registration for
@@ -868,12 +877,15 @@ export function defineSensingBlocks() {
         MICROBIT_STATUS_FIELD
       );
 
-      registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'MICROBIT_VAR');
-        if (isMicrobitRefreshEvent(changeEvent)) {
-          refreshMicrobitBlocks(this.workspace);
-        }
-      });
+      // Warnings depend on device fields and duplicates anywhere in the workspace.
+      registerBlockHandler(
+        this,
+        (changeEvent) => {
+          handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'MICROBIT_VAR');
+          refreshMicrobitBlocksFor(changeEvent, this.workspace);
+        },
+        { allEvents: true }
+      );
     },
   };
 

@@ -205,19 +205,18 @@ document.addEventListener(
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
-//  A single workspace addChangeListener in
-// blockhandling.js iterates this map once per event
+//  A single workspace addChangeListener in blockhandling.js passes each event
+//  to dispatchBlockEvent, which calls only the handlers it concerns.
 // ---------------------------------------------------------------------------
 
 /**
- * Map subclass that caches its values array and invalidates the cache
- * whenever the map is mutated. This avoids allocating a fresh array on every
- * workspace event (including high-frequency viewport pans) while still
- * providing a stable snapshot that is safe to iterate even if a handler
- * registers or removes entries mid-loop.
+ * Map subclass that caches its entries array and invalidates the cache
+ * whenever the map is mutated, giving a stable snapshot that is safe to
+ * iterate even if a handler registers or removes entries mid-loop.
  */
 class HandlerRegistry extends Map {
   #snapshot = null;
+  #allEvents = new Set();
 
   set(key, value) {
     this.#snapshot = null;
@@ -226,17 +225,28 @@ class HandlerRegistry extends Map {
 
   delete(key) {
     this.#snapshot = null;
+    this.#allEvents.delete(key);
     return super.delete(key);
   }
 
   clear() {
     this.#snapshot = null;
+    this.#allEvents.clear();
     return super.clear();
   }
 
-  /** Returns a cached snapshot of current handler values. */
-  cachedValues() {
-    if (!this.#snapshot) this.#snapshot = [...super.values()];
+  setWantsAllEvents(key, wantsAll) {
+    if (wantsAll) this.#allEvents.add(key);
+    else this.#allEvents.delete(key);
+  }
+
+  wantsAllEvents(key) {
+    return this.#allEvents.has(key);
+  }
+
+  /** Returns a cached snapshot of current [blockId, handler] entries. */
+  cachedEntries() {
+    if (!this.#snapshot) this.#snapshot = [...super.entries()];
     return this.#snapshot;
   }
 }
@@ -249,12 +259,66 @@ export const blockHandlerRegistry = new HandlerRegistry();
  * Flyout blocks are silently skipped because the dispatcher is attached to
  * the main workspace only.
  *
+ * A handler sees events whose blocks are its own block, above it, or (for
+ * moves, creates and enable changes) below it, plus events with no block.
+ * Pass allEvents for a handler that reacts to unrelated blocks.
+ *
  * @param {Blockly.Block} block
  * @param {(changeEvent: object) => void} handler
+ * @param {{allEvents?: boolean}} [options]
  */
-export function registerBlockHandler(block, handler) {
+export function registerBlockHandler(block, handler, { allEvents = false } = {}) {
   if (!block.workspace || block.workspace.isFlyout) return;
   blockHandlerRegistry.set(block.id, handler);
+  blockHandlerRegistry.setWantsAllEvents(block.id, allEvents);
+}
+
+// Ids of the blocks an event concerns, or null when it concerns no block in
+// particular (variable changes, finished loading) and goes to every handler.
+function relatedBlockIds(workspace, event) {
+  const touched = [event.blockId, ...(event.ids ?? []), event.newParentId, event.oldParentId].filter(
+    Boolean
+  );
+  if (!touched.length) return null;
+
+  const related = new Set(touched);
+  const includeBelow =
+    event.type === Blockly.Events.BLOCK_MOVE ||
+    event.type === Blockly.Events.BLOCK_CREATE ||
+    (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'disabled');
+  for (const id of touched) {
+    const block = workspace.getBlockById(id);
+    if (!block) continue;
+    for (let above = block.getParent(); above; above = above.getParent()) related.add(above.id);
+    if (includeBelow) {
+      for (const below of block.getDescendants(false)) related.add(below.id);
+    }
+  }
+  return related;
+}
+
+/**
+ * Calls the registered handlers an event concerns, in registration order.
+ * Deleted blocks' handlers receive their own delete event, then are removed.
+ */
+export function dispatchBlockEvent(workspace, event) {
+  if (event.isUiEvent) return;
+
+  const related = relatedBlockIds(workspace, event);
+  const entries = blockHandlerRegistry.cachedEntries();
+  try {
+    for (const [id, handler] of entries) {
+      if (!related || related.has(id) || blockHandlerRegistry.wantsAllEvents(id)) {
+        handler(event);
+      }
+    }
+  } finally {
+    if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
+      for (const id of event.ids) {
+        if (!workspace.getBlockById(id)) blockHandlerRegistry.delete(id);
+      }
+    }
+  }
 }
 
 export function getHelpUrlFor(_blockType) {

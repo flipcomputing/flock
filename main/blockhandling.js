@@ -2,7 +2,7 @@ import * as Blockly from 'blockly';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
-import { blockHandlerRegistry, refreshReporterAriaLabels, applyInputHint } from '../blocks/blocks.js';
+import { dispatchBlockEvent, refreshReporterAriaLabels, applyInputHint } from '../blocks/blocks.js';
 import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
@@ -853,26 +853,7 @@ export function initializeBlockHandling() {
       }
     }
 
-    if (event.isUiEvent) return;
-
-    // cachedValues() returns a stable snapshot that guards against
-    // mid-iteration mutations (e.g. a handler that creates or deletes blocks)
-    // without allocating a new array on every event.
-    const handlers = blockHandlerRegistry.cachedValues();
-    try {
-      for (const handler of handlers) {
-        handler(event);
-      }
-    } finally {
-      // Deleted blocks' handlers get their own delete event above, then go.
-      if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
-        for (const id of event.ids) {
-          if (!workspace.getBlockById(id)) {
-            blockHandlerRegistry.delete(id);
-          }
-        }
-      }
-    }
+    dispatchBlockEvent(workspace, event);
   });
 }
 
