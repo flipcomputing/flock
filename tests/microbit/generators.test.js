@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
-import { initializeVariableIndexes } from '../../blocks/blocks.js';
 import { defineSensingBlocks } from '../../blocks/sensing.js';
 import { defineXRBlocks } from '../../blocks/xr.js';
 import { registerSensingGenerators } from '../../generators/generators-sensing.js';
@@ -15,7 +14,6 @@ export function runMicrobitGeneratorTests() {
     let workspace;
 
     before(function () {
-      initializeVariableIndexes();
       if (!Blockly.Blocks['add_microbit']) {
         defineSensingBlocks();
       }

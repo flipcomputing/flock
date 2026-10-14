@@ -2,11 +2,11 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
-  nextVariableIndexes,
   handleBlockChange,
   addDoMutatorWithToggleBehavior,
   registerBlockHandler,
 } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { VariableIdDropdown } from './variableScope.js';
 
@@ -155,12 +155,12 @@ export function defineCameraBlocks() {
     Blockly.Blocks[type] = {
       init: function () {
         const variableNamePrefix = 'camera';
-        const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+        const variableName = nextVariableName(this, variableNamePrefix);
         this.jsonInit({
           type,
           message0: translate(type),
           args0: [
-            { type: 'field_variable', name: 'ID_VAR', variable: nextVariableName },
+            { type: 'field_variable', name: 'ID_VAR', variable: variableName },
             ...args,
             { type: 'field_checkbox', name: 'VISIBLE', checked: false },
             ...cameraButtons,

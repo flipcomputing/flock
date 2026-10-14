@@ -1,11 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import {
-  nextVariableIndexes,
-  handleBlockCreateEvent,
-  getHelpUrlFor,
-  registerBlockHandler,
-} from './blocks.js';
+import { handleBlockCreateEvent, getHelpUrlFor, registerBlockHandler } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { audioNames, themeNames, getSoundDisplayName, getThemeDisplayName } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { announceToScreenReader } from '../main/input.js';
@@ -856,7 +852,7 @@ export function defineSoundBlocks() {
   Blockly.Blocks['play_theme'] = {
     init: function () {
       const variableNamePrefix = 'sound';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'play_theme',
         message0: translate('play_theme'),
@@ -864,7 +860,7 @@ export function defineSoundBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_dropdown',
@@ -915,7 +911,7 @@ export function defineSoundBlocks() {
       this.setStyle('sound_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
       });
     },
   };
@@ -923,7 +919,7 @@ export function defineSoundBlocks() {
   Blockly.Blocks['play_sound'] = {
     init: function () {
       const variableNamePrefix = 'sound';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'play_sound',
         message0: translate('play_sound'),
@@ -931,7 +927,7 @@ export function defineSoundBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_dropdown',
@@ -982,7 +978,7 @@ export function defineSoundBlocks() {
       this.setStyle('sound_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
       });
     },
   };
@@ -1279,7 +1275,7 @@ export function defineSoundBlocks() {
   Blockly.Blocks['create_instrument'] = {
     init: function () {
       const variableNamePrefix = 'instrument';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_instrument',
         message0: translate('create_instrument'),
@@ -1287,7 +1283,7 @@ export function defineSoundBlocks() {
           {
             type: 'field_variable',
             name: 'INSTRUMENT',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_dropdown',
@@ -1356,13 +1352,7 @@ export function defineSoundBlocks() {
       this.setStyle('sound_blocks');
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'INSTRUMENT'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'INSTRUMENT');
       });
     },
   };

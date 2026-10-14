@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 
-import { defineBlocks, initializeVariableIndexes } from './blocks/blocks.js';
+import { defineBlocks } from './blocks/blocks.js';
 import { defineBaseBlocks } from './blocks/base.js';
 import { defineShapeBlocks } from './blocks/shapes.js';
 import { defineSceneBlocks } from './blocks/scene.js';
@@ -75,11 +75,6 @@ export function compileFlockProject(projectJson) {
   const workspace = new Blockly.Workspace();
   try {
     Blockly.serialization.workspaces.load(projectJson, workspace);
-    try {
-      initializeVariableIndexes();
-    } catch {
-      /* not required for code generation */
-    }
     return generateWorkspaceCode(workspace, javascriptGenerator);
   } finally {
     workspace.dispose();

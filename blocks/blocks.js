@@ -27,6 +27,7 @@ import './fieldPickPosition.js'; // registers field_pick_position
 import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
 import { setupProcedureParams } from './procedureParams.js';
 import { outOfScopeLocalIds, VariableNameDropdown } from './variableScope.js';
+import { lowestFreeName, nextVariableName, rememberObjectBlock } from './variableNames.js';
 
 registerFieldColour();
 
@@ -201,8 +202,6 @@ document.addEventListener(
   },
   true
 );
-
-export let nextVariableIndexes = Object.create(null);
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
@@ -431,22 +430,6 @@ export function updateShape(block, isInline) {
   }
   updateToggleButtonIcon(block);
 }
-export function handleBlockSelect(event) {
-  if (event.type === Blockly.Events.SELECTED) {
-    const block = Blockly.getMainWorkspace().getBlockById(event.newElementId); // Get the selected block
-
-    if (
-      block &&
-      block.type !== 'create_ground' &&
-      block.type !== 'create_map' &&
-      (block.type.startsWith('create_') || block.type.startsWith('load_'))
-    ) {
-      // If the block is a create block, update the window.currentMesh variable
-      window.updateCurrentMeshName(block, 'ID_VAR');
-    }
-  }
-}
-
 export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
     event.ids?.forEach(removeUIControlsForBlock);
@@ -724,7 +707,7 @@ export function findCreateBlock(block) {
 
 export function handleBlockChange(block, changeEvent, variableNamePrefix) {
   // Always run first to handle variable naming
-  handleBlockCreateEvent(block, changeEvent, variableNamePrefix, nextVariableIndexes);
+  handleBlockCreateEvent(block, changeEvent, variableNamePrefix);
 
   // Handle lifecycle events like enable/disable/move on the block directly.
   // Also handle BLOCK_CREATE events where this block is in the created ids
@@ -826,13 +809,6 @@ function getFieldVariableType(block, fieldName) {
   return (byId && byId.type) || '';
 }
 
-function parseNumericSuffix(name, prefix) {
-  if (!name || !name.startsWith(prefix)) return null;
-  const rest = name.slice(prefix.length);
-  if (!/^\d+$/.test(rest)) return null;
-  return parseInt(rest, 10);
-}
-
 function deriveVariableNameParts(name, fallbackPrefix) {
   if (typeof name !== 'string' || !name.length) {
     return { prefix: fallbackPrefix, suffix: null };
@@ -849,26 +825,8 @@ function deriveVariableNameParts(name, fallbackPrefix) {
   return { prefix: name, suffix: null };
 }
 
-function createFreshVariable(workspace, prefix, type, nextVariableIndexes) {
-  // Pick the smallest available suffix, starting from the tracked counter.
-  let n = nextVariableIndexes[prefix] || 1;
-  while (workspace.getVariableMap().getVariable(`${prefix}${n}`, type)) n += 1;
-
-  // Update the counter
-  nextVariableIndexes[prefix] = Math.max(nextVariableIndexes[prefix] || 1, n + 1);
-
-  const newVarName = `${prefix}${n}`;
-
-  // Make absolutely sure this variable doesn't exist
-  let existingVar = workspace.getVariableMap().getVariable(newVarName, type);
-  if (existingVar) {
-    // This shouldn't happen, but if it does, increment and try again
-    console.warn(`Variable ${newVarName} already exists, incrementing`);
-    n += 1;
-    nextVariableIndexes[prefix] = n + 1;
-  }
-
-  return workspace.getVariableMap().createVariable(`${prefix}${n}`, type);
+function createFreshVariable(workspace, prefix, type, start) {
+  return workspace.getVariableMap().createVariable(lowestFreeName(workspace, prefix, start), type);
 }
 
 function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS, createdIds = null) {
@@ -1008,20 +966,7 @@ function adoptIsolatedDefaultVarsTo(
   return adopted;
 }
 
-/** Find the LOWEST available numeric suffix for prefix+N (type-scoped). */
-function lowestAvailableSuffix(workspace, prefix, type) {
-  let n = 1;
-  while (workspace.getVariableMap().getVariable(`${prefix}${n}`, type)) n += 1;
-  return n;
-}
-
-export function ensureFreshVarOnDuplicate(
-  block,
-  changeEvent,
-  variableNamePrefix,
-  nextVariableIndexes,
-  opts = {}
-) {
+export function ensureFreshVarOnDuplicate(block, changeEvent, variableNamePrefix, opts = {}) {
   const BlocklyNS = getBlockly(opts);
   if (!BlocklyNS) return false;
 
@@ -1075,14 +1020,6 @@ export function ensureFreshVarOnDuplicate(
   const allBlocks = ws.getAllBlocks(false);
   if (!isVariableUsedElsewhere(ws, oldVarId, block.id, BlocklyNS, allBlocks)) return false;
 
-  if (Number.isInteger(duplicateSuffix)) {
-    const nextFromSource = duplicateSuffix + 1;
-    nextVariableIndexes[duplicatePrefix] = Math.max(
-      nextVariableIndexes[duplicatePrefix] || 1,
-      nextFromSource
-    );
-  }
-
   const varType = getFieldVariableType(block, fieldName, BlocklyNS);
   const group = changeEvent.group || `auto-split-${block.id}-${Date.now()}`;
 
@@ -1093,8 +1030,12 @@ export function ensureFreshVarOnDuplicate(
   try {
     BlocklyNS.Events.disable();
 
-    // Mint a new var with the *lowest* available suffix now.
-    const newVarModel = createFreshVariable(ws, duplicatePrefix, varType, nextVariableIndexes);
+    const newVarModel = createFreshVariable(
+      ws,
+      duplicatePrefix,
+      varType,
+      Number.isInteger(duplicateSuffix) ? duplicateSuffix + 1 : 1
+    );
     const newVarId =
       newVarModel.id || (typeof newVarModel.getId === 'function' ? newVarModel.getId() : null);
     if (!newVarId) return false;
@@ -1497,59 +1438,6 @@ export const options = {
   comments: true,
 };
 
-export function initializeVariableIndexes() {
-  nextVariableIndexes = Object.assign(Object.create(null), {
-    model: 1,
-    group: 1,
-    box: 1,
-    sphere: 1,
-    cylinder: 1,
-    capsule: 1,
-    wedge: 1,
-    freeform: 1,
-    donut: 1,
-    ring: 1,
-    plane: 1,
-    camera: 1,
-    wall: 1,
-    text: 1,
-    '3dtext': 1,
-    sound: 1,
-    character: 1,
-    object: 1,
-    item: 1,
-    multiitem: 1,
-    instrument: 1,
-    animation: 1,
-    clone: 1,
-    microbit: 1,
-    uitext: 1,
-    button: 1,
-    input: 1,
-    slider: 1,
-    particleEffect: 1,
-    merged: 1,
-    subtracted: 1,
-    embedded: 1,
-    intersection: 1,
-    hull: 1,
-    combined: 1,
-    mirror: 1,
-  });
-
-  const workspace = Blockly.getMainWorkspace();
-
-  // Process each type of variable and use the lowest available suffix.
-  if (workspace) {
-    Object.keys(nextVariableIndexes).forEach(function (type) {
-      nextVariableIndexes[type] = lowestAvailableSuffix(workspace, type, '');
-    });
-  }
-
-  // Optionally return the indexes if needed elsewhere
-  return nextVariableIndexes;
-}
-
 export function defineBlocks() {
   //BlockDynamicConnection.overrideOldBlockDefinitions();
   //Blockly.Blocks['dynamic_list_create'].minInputs = 1;
@@ -1558,22 +1446,10 @@ export function defineBlocks() {
 
   //     Blockly.Blocks['text_join'] = Blockly.Blocks['dynamic_text_join'];
 
-  function updateCurrentMeshName(block, variableFieldName) {
-    const field = block?.getField?.(variableFieldName);
-    const variableName = field?.getText?.();
-
-    if (variableName) {
-      window.currentMesh = variableName;
-      window.currentBlock = block;
-    }
-  }
-
-  window.updateCurrentMeshName = updateCurrentMeshName;
-
   Blockly.Blocks['create_wall'] = {
     init: function () {
       const variableNamePrefix = 'wall';
-      let nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix]; // Start with "wall1";
+      const variableName = nextVariableName(this, variableNamePrefix);
       this.jsonInit({
         type: 'create_wall',
         message0: 'new wall %1 type %2 color %3 \n start x %4 z %5 end x %6 z %7 y position %8',
@@ -1581,7 +1457,7 @@ export function defineBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_dropdown',
@@ -1633,18 +1509,7 @@ export function defineBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       registerBlockHandler(this, (changeEvent) => {
-        if (
-          changeEvent.type === Blockly.Events.BLOCK_CREATE ||
-          changeEvent.type === Blockly.Events.BLOCK_CHANGE
-        ) {
-          const blockInWorkspace = this.workspace?.getBlockById(this.id); // Check if block is in the main workspace
-
-          if (blockInWorkspace) {
-            window.updateCurrentMeshName(this, 'ID_VAR'); // Call the function to update window.currentMesh
-          }
-        }
-
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix);
       });
     },
   };
@@ -2386,96 +2251,19 @@ export function handleBlockCreateEvent(
   blockInstance,
   changeEvent,
   variableNamePrefix,
-  nextVariableIndexes,
-  fieldName = 'ID_VAR' // Default field name to handle
+  fieldName = 'ID_VAR'
 ) {
-  if (window.loadingCode) return; // Don't rename variables during code loading
+  if (window.loadingCode) return;
 
-  const handledDuplicate = ensureFreshVarOnDuplicate(
-    blockInstance,
-    changeEvent,
-    variableNamePrefix,
-    nextVariableIndexes,
-    {
-      fieldName: 'ID_VAR',
-    }
-  );
-  if (handledDuplicate) return;
-  if (blockInstance.id !== changeEvent.blockId) return;
-  // Check if this is an undo/redo operation
-  const isUndo = !changeEvent.recordUndo;
+  ensureFreshVarOnDuplicate(blockInstance, changeEvent, variableNamePrefix, { fieldName });
 
   if (
-    !blockInstance.isInFlyout &&
     changeEvent.type === Blockly.Events.BLOCK_CREATE &&
-    changeEvent.ids.includes(blockInstance.id)
+    changeEvent.recordUndo &&
+    !blockInstance.isInFlyout &&
+    changeEvent.ids?.includes(blockInstance.id)
   ) {
-    if (isUndo) return;
-
-    // Check if the specified field already has a value
-    const variableField = blockInstance.getField(fieldName);
-    if (variableField) {
-      const variableId = variableField.getValue();
-      const variable = blockInstance.workspace.getVariableMap().getVariableById(variableId);
-
-      // Check if the variable name matches the pattern "prefixn"
-      const variableNamePattern = new RegExp(`^${variableNamePrefix}\\d+$`);
-      const variableName = variable ? variable.name : '';
-
-      if (!variableNamePattern.test(variableName)) {
-        // Handle custom variables
-        if (variableName) {
-          const numberMatch = variableName.match(/^(.+?)(\d+)$/);
-          let newVariableName;
-          if (numberMatch) {
-            newVariableName = numberMatch[1] + (parseInt(numberMatch[2]) + 1);
-          } else {
-            newVariableName = variableName + '1';
-          }
-
-          let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
-          if (!newVariable) {
-            newVariable = blockInstance.workspace
-              .getVariableMap()
-              .createVariable(newVariableName, null);
-          }
-          variableField.setValue(newVariable.getId());
-
-          // Advance the counter if the new name falls under this prefix's sequence.
-          const newSuffix = parseNumericSuffix(newVariableName, variableNamePrefix);
-          if (newSuffix !== null) {
-            nextVariableIndexes[variableNamePrefix] = Math.max(
-              nextVariableIndexes[variableNamePrefix] || 1,
-              newSuffix + 1
-            );
-          }
-        }
-      } else {
-        // Handle prefix-numbered variables - rename to next available index when needed
-        if (!nextVariableIndexes[variableNamePrefix]) {
-          nextVariableIndexes[variableNamePrefix] = 1;
-        }
-        const currentSuffix = parseNumericSuffix(variableName, variableNamePrefix);
-        if (currentSuffix) {
-          const nextIndex = nextVariableIndexes[variableNamePrefix];
-          // If the current suffix doesn't match the expected next index, rename it
-          if (currentSuffix !== nextIndex) {
-            const newVariableName = variableNamePrefix + nextIndex;
-            let newVariable = blockInstance.workspace.getVariableMap().getVariable(newVariableName);
-            if (!newVariable) {
-              newVariable = blockInstance.workspace
-                .getVariableMap()
-                .createVariable(newVariableName, null);
-            }
-            variableField.setValue(newVariable.getId());
-          }
-          nextVariableIndexes[variableNamePrefix] = Math.max(
-            nextVariableIndexes[variableNamePrefix],
-            currentSuffix + 1
-          );
-        }
-      }
-    }
+    rememberObjectBlock(blockInstance);
   }
 }
 

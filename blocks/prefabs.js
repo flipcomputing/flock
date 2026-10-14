@@ -1,7 +1,6 @@
 import * as Blockly from 'blockly';
 import {
   addToggleButton,
-  nextVariableIndexes,
   handleBlockCreateEvent,
   registerBlockHandler,
   getHelpUrlFor,
@@ -156,7 +155,7 @@ export function definePrefabBlocks() {
       this.quarkIds_ = null;
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, this.getProcedureCall(), nextVariableIndexes);
+        handleBlockCreateEvent(this, changeEvent, this.getProcedureCall());
         updateLive(this, changeEvent);
       });
     },

@@ -98,6 +98,7 @@ const AVAILABLE_SUITES = [
     pattern: 'Concurrency and Stress Tests',
   },
   { id: 'blocks', name: 'Block Tests', pattern: 'blocks.js tests' },
+  { id: 'variablenames', name: 'Variable Naming Tests', pattern: '@variablenames' },
   {
     id: 'xr-export',
     name: 'XR Export Tests',

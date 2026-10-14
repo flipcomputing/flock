@@ -1,35 +1,43 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
-import {
-  handleBlockCreateEvent,
-  initializeVariableIndexes,
-  nextVariableIndexes as globalNextVariableIndexes,
-} from '../blocks/blocks.js';
+import { handleBlockCreateEvent } from '../blocks/blocks.js';
 
 export function runBlocksTests() {
   describe('blocks.js tests', function () {
     this.timeout(5000);
 
-    describe('nextVariableIndexes safety', function () {
-      it('should use a null-prototype object after initialization', function () {
-        initializeVariableIndexes();
-        expect(Object.getPrototypeOf(globalNextVariableIndexes)).to.equal(null);
-      });
-    });
-
     describe('handleBlockCreateEvent variable naming', function () {
       let mockWorkspace;
       let mockBlock;
       let mockVariableField;
-      let nextVariableIndexes;
       let createdVariables;
       let workspaceBlocks;
 
+      const asVariableField = (field) =>
+        Object.setPrototypeOf(field, Blockly.FieldVariable.prototype);
+
+      const referenceBlock = (variable) => ({
+        id: `ref_${variable.name}`,
+        inputList: [
+          {
+            fieldRow: [asVariableField({ getValue: () => variable.getId(), setValue: () => {} })],
+          },
+        ],
+      });
+
+      const createEvent = (blockId) => ({
+        type: 'create',
+        blockId,
+        ids: [blockId],
+        recordUndo: true,
+      });
+
+      const nameOnBlock = () => mockWorkspace.getVariableById(mockVariableField.getValue())?.name;
+
       beforeEach(function () {
-        nextVariableIndexes = { star: 1 };
         createdVariables = new Map();
 
-        let mockVariableMap = {
+        const mockVariableMap = {
           createVariable: function (name, type) {
             const id = `var_${Math.random().toString(36).substr(2, 9)}`;
             const variable = { name, type, getId: () => id };
@@ -54,14 +62,7 @@ export function runBlocksTests() {
           getVariableById: function (id) {
             return createdVariables.get(id) || null;
           },
-          getVariable: function (name) {
-            for (const variable of createdVariables.values()) {
-              if (variable.name === name) return variable;
-            }
-            return null;
-          },
           getVariableMap: function () {
-            // Blockly returns a stable VariableMap instance, so do the same
             return mockVariableMap;
           },
           createVariable: function (name, type) {
@@ -90,10 +91,12 @@ export function runBlocksTests() {
           getField: function (fieldName) {
             return fieldName === 'ID_VAR' ? mockVariableField : null;
           },
+          getDescendants: function () {
+            return [this];
+          },
         };
 
         workspaceBlocks = [mockBlock];
-        mockVariableField.currentValue = null;
         window.loadingCode = false;
       });
 
@@ -101,316 +104,118 @@ export function runBlocksTests() {
         delete window.loadingCode;
       });
 
-      it('should add numbers to custom variable names on duplicate', function () {
-        const customVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(customVariable.getId());
+      it('should keep a unique name when the block is not a duplicate', function () {
+        const variable = mockWorkspace.createVariable('myStar3', null);
+        mockVariableField.setValue(variable.getId());
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star');
 
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('myCustomStar1');
+        expect(nameOnBlock()).to.equal('myStar3');
       });
 
-      it('should rename numbered variables to next number on duplicate', function () {
-        // Start with a base "star" variable
-        const starVariable = mockWorkspace.createVariable('star', null);
-        const existingBlock = {
-          id: 'existing_block',
-          inputList: [{ fieldRow: [{ getValue: () => starVariable.getId() }] }],
-        };
-        workspaceBlocks = [existingBlock];
+      it('should add a number to a duplicated custom name', function () {
+        const variable = mockWorkspace.createVariable('myCustomStar', null);
+        mockVariableField.setValue(variable.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(variable)];
 
-        // First duplication: star → star1
-        mockVariableField.setValue(starVariable.getId());
-        let changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star');
 
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
+        expect(nameOnBlock()).to.equal('myCustomStar1');
+      });
 
-        let newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('star1');
+      it('should number sequential duplicates', function () {
+        const star = mockWorkspace.createVariable('star', null);
+        mockVariableField.setValue(star.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(star)];
 
-        // Second duplication: star1 → star2
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star');
+        expect(nameOnBlock()).to.equal('star1');
+
+        const star1 = mockWorkspace.getVariableById(mockVariableField.getValue());
         mockBlock.id = 'block456';
-        changeEvent = {
-          type: 'create',
-          blockId: 'block456',
-          ids: ['block456'],
-          recordUndo: true,
-        };
+        workspaceBlocks = [mockBlock, referenceBlock(star), referenceBlock(star1)];
 
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('star2');
+        handleBlockCreateEvent(mockBlock, createEvent('block456'), 'star');
+        expect(nameOnBlock()).to.equal('star2');
       });
 
       it('should preserve renamed base names on duplicate when source has no suffix', function () {
-        const asVariableField = (field) => {
-          if (globalThis.Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, globalThis.Blockly.FieldVariable.prototype);
-          }
-          return field;
-        };
+        const star = mockWorkspace.createVariable('star', null);
+        mockVariableField.setValue(star.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(star)];
 
-        const starVariable = mockWorkspace.createVariable('star', null);
-        mockVariableField.setValue(starVariable.getId());
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'item');
 
-        const externalReferenceField = asVariableField({
-          getValue: () => starVariable.getId(),
-          setValue: () => {},
-        });
-        workspaceBlocks = [
-          mockBlock,
-          {
-            id: 'other_block',
-            inputList: [{ fieldRow: [externalReferenceField] }],
-          },
-        ];
-
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'item', nextVariableIndexes, 'ID_VAR');
-
-        const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('star1');
+        expect(nameOnBlock()).to.equal('star1');
       });
 
-      it('should preserve renamed base names on duplicate when source has a suffix', function () {
-        const asVariableField = (field) => {
-          if (globalThis.Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, globalThis.Blockly.FieldVariable.prototype);
-          }
-          return field;
-        };
+      it('should continue from the source suffix on duplicate', function () {
+        const myStar3 = mockWorkspace.createVariable('myStar3', null);
+        mockVariableField.setValue(myStar3.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(myStar3)];
 
-        const star1Variable = mockWorkspace.createVariable('star1', null);
-        mockVariableField.setValue(star1Variable.getId());
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'item');
 
-        const externalReferenceField = asVariableField({
-          getValue: () => star1Variable.getId(),
-          setValue: () => {},
-        });
-        workspaceBlocks = [
-          mockBlock,
-          {
-            id: 'other_block',
-            inputList: [{ fieldRow: [externalReferenceField] }],
-          },
-        ];
-
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'item', nextVariableIndexes, 'ID_VAR');
-
-        const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('star2');
+        expect(nameOnBlock()).to.equal('myStar4');
       });
 
-      it('should continue from existing numeric suffix for duplicate path', function () {
-        const asVariableField = (field) => {
-          if (globalThis.Blockly?.FieldVariable?.prototype) {
-            Object.setPrototypeOf(field, globalThis.Blockly.FieldVariable.prototype);
-          }
-          return field;
-        };
+      it('should skip names that already exist above the source suffix', function () {
+        const star1 = mockWorkspace.createVariable('star1', null);
+        mockWorkspace.createVariable('star2', null);
+        mockVariableField.setValue(star1.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(star1)];
 
-        const myStar3Variable = mockWorkspace.createVariable('myStar3', null);
-        mockVariableField.setValue(myStar3Variable.getId());
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star');
 
-        const externalReferenceField = asVariableField({
-          getValue: () => myStar3Variable.getId(),
-          setValue: () => {},
-        });
-        workspaceBlocks = [
-          mockBlock,
-          {
-            id: 'other_block',
-            inputList: [{ fieldRow: [externalReferenceField] }],
-          },
-        ];
+        expect(nameOnBlock()).to.equal('star3');
+      });
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
+      it('should duplicate-check the field the block names', function () {
+        const merged = mockWorkspace.createVariable('merged1', null);
+        mockBlock.getField = (fieldName) => (fieldName === 'RESULT_VAR' ? mockVariableField : null);
+        mockVariableField.setValue(merged.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(merged)];
 
-        handleBlockCreateEvent(mockBlock, changeEvent, 'item', nextVariableIndexes, 'ID_VAR');
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'merged', 'RESULT_VAR');
 
-        const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('myStar4');
+        expect(nameOnBlock()).to.equal('merged2');
       });
 
       it('should not rename variables during code loading', function () {
         window.loadingCode = true;
+        const variable = mockWorkspace.createVariable('star', null);
+        mockVariableField.setValue(variable.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(variable)];
 
-        const customVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(customVariable.getId());
+        handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star');
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const variable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(variable.name).to.equal('myCustomStar');
-      });
-
-      it('should skip renaming for undo operations', function () {
-        const customVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(customVariable.getId());
-
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: false,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const variable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(variable.name).to.equal('myCustomStar');
-      });
-
-      it('should handle blocks in flyout correctly', function () {
-        mockBlock.isInFlyout = true;
-
-        const customVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(customVariable.getId());
-
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const variable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(variable.name).to.equal('myCustomStar');
+        expect(nameOnBlock()).to.equal('star');
       });
 
       it('should ignore events for different blocks', function () {
-        const customVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(customVariable.getId());
+        const variable = mockWorkspace.createVariable('star', null);
+        mockVariableField.setValue(variable.getId());
+        workspaceBlocks = [mockBlock, referenceBlock(variable)];
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'different_block',
-          ids: ['different_block'],
-          recordUndo: true,
-        };
+        handleBlockCreateEvent(mockBlock, createEvent('different_block'), 'star');
 
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const variable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(variable.name).to.equal('myCustomStar');
-      });
-
-      it('should handle custom names that already have numbers', function () {
-        const customNumberedVariable = mockWorkspace.createVariable('myStar3', null);
-        mockVariableField.setValue(customNumberedVariable.getId());
-
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        const newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('myStar4');
+        expect(nameOnBlock()).to.equal('star');
       });
 
       it('should handle missing variable field gracefully', function () {
-        mockBlock.getField = function () {
-          return null;
-        };
+        mockBlock.getField = () => null;
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        expect(() => {
-          handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-        }).to.not.throw();
+        expect(() =>
+          handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star')
+        ).to.not.throw();
       });
 
       it('should handle missing variable gracefully', function () {
         mockVariableField.setValue('invalid_id');
 
-        const changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        expect(() => {
-          handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-        }).to.not.throw();
-      });
-
-      it('should handle sequential duplications correctly', function () {
-        // First duplication: myCustomStar -> myCustomStar1
-        let currentVariable = mockWorkspace.createVariable('myCustomStar', null);
-        mockVariableField.setValue(currentVariable.getId());
-
-        let changeEvent = {
-          type: 'create',
-          blockId: 'block123',
-          ids: ['block123'],
-          recordUndo: true,
-        };
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        let newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('myCustomStar1');
-
-        // Second duplication: myCustomStar1 -> myCustomStar2
-        mockBlock.id = 'block456';
-        changeEvent.blockId = 'block456';
-        changeEvent.ids = ['block456'];
-
-        handleBlockCreateEvent(mockBlock, changeEvent, 'star', nextVariableIndexes, 'ID_VAR');
-
-        newVariable = mockWorkspace.getVariableById(mockVariableField.getValue());
-        expect(newVariable.name).to.equal('myCustomStar2');
+        expect(() =>
+          handleBlockCreateEvent(mockBlock, createEvent('block123'), 'star')
+        ).to.not.throw();
       });
     });
 

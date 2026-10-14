@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor } from './blocks.js';
+import { objectAndCharacterTarget, otherObjectName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
 import { getAttachNames } from '../config.js';
@@ -15,7 +16,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'PARENT_MESH',
-            variable: 'parent',
+            variable: otherObjectName('parent'),
           },
           {
             type: 'field_variable',
@@ -43,7 +44,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'PARENT_MESH',
-            variable: 'parent',
+            variable: window.currentMesh,
           },
           {
             type: 'input_value',
@@ -71,7 +72,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'PARENT_MESH',
-            variable: 'parent',
+            variable: otherObjectName('parent'),
           },
           {
             type: 'field_variable',
@@ -151,6 +152,7 @@ export function defineConnectBlocks() {
 
   Blockly.Blocks['hold'] = {
     init: function () {
+      const { object, target } = objectAndCharacterTarget('object', 'target');
       this.jsonInit({
         type: 'hold',
         message0: translate('hold'),
@@ -158,12 +160,12 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'TARGET_MESH',
-            variable: 'target',
+            variable: target,
           },
           {
             type: 'field_variable',
             name: 'MESH_TO_ATTACH',
-            variable: 'object',
+            variable: object,
           },
           {
             type: 'input_value',
@@ -197,6 +199,7 @@ export function defineConnectBlocks() {
 
   Blockly.Blocks['attach'] = {
     init: function () {
+      const { object, target } = objectAndCharacterTarget('object', 'target');
       this.jsonInit({
         type: 'attach',
         message0: translate('attach'),
@@ -204,12 +207,12 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'MESH_TO_ATTACH',
-            variable: 'object',
+            variable: object,
           },
           {
             type: 'field_variable',
             name: 'TARGET_MESH',
-            variable: 'target',
+            variable: target,
           },
           {
             type: 'field_dropdown',
@@ -254,7 +257,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'MESH_TO_DETACH',
-            variable: 'object',
+            variable: window.currentMesh,
           },
         ],
         previousStatement: null,
@@ -270,6 +273,7 @@ export function defineConnectBlocks() {
 
   Blockly.Blocks['follow'] = {
     init: function () {
+      const { object, target } = objectAndCharacterTarget('follower', 'target');
       this.jsonInit({
         type: 'follow',
         message0: translate('follow'),
@@ -277,12 +281,12 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'FOLLOWER_MESH',
-            variable: 'follower',
+            variable: object,
           },
           {
             type: 'field_variable',
             name: 'TARGET_MESH',
-            variable: 'target',
+            variable: target,
           },
           {
             type: 'field_dropdown',

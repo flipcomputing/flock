@@ -2,12 +2,12 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
-  nextVariableIndexes,
   handleBlockCreateEvent,
   registerBlockHandler,
   addDoMutatorWithToggleBehavior,
   handleBlockChange,
 } from './blocks.js';
+import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { watchMirrorSources } from '../ui/blockmesh.js';
 
@@ -37,7 +37,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['merge_meshes'] = {
     init: function () {
       const variableNamePrefix = 'merged';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'merge_meshes',
@@ -46,7 +46,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -64,13 +64,7 @@ export function defineModifyBlocks() {
       this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        )
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR')
       );
     },
   };
@@ -78,7 +72,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['subtract_meshes'] = {
     init: function () {
       const variableNamePrefix = 'subtracted';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'subtract_meshes',
@@ -87,12 +81,12 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_variable',
             name: 'BASE_MESH',
-            variable: 'object',
+            variable: window.currentMesh,
           },
           {
             type: 'input_value',
@@ -110,13 +104,7 @@ export function defineModifyBlocks() {
       this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        )
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR')
       );
     },
   };
@@ -124,7 +112,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['embed_meshes'] = {
     init: function () {
       const variableNamePrefix = 'embedded';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'embed_meshes',
@@ -133,12 +121,12 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_variable',
             name: 'BASE_MESH',
-            variable: 'object',
+            variable: window.currentMesh,
           },
           {
             type: 'input_value',
@@ -156,13 +144,7 @@ export function defineModifyBlocks() {
       this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        )
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR')
       );
     },
   };
@@ -170,7 +152,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['intersection_meshes'] = {
     init: function () {
       const variableNamePrefix = 'intersection';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'intersection_meshes',
@@ -179,7 +161,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -197,13 +179,7 @@ export function defineModifyBlocks() {
       this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        )
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR')
       );
     },
   };
@@ -211,7 +187,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['hull_meshes'] = {
     init: function () {
       const variableNamePrefix = 'hull';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'hull_meshes',
@@ -220,7 +196,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'input_value',
@@ -238,13 +214,7 @@ export function defineModifyBlocks() {
       this.setStyle('transform_blocks');
 
       registerBlockHandler(this, (changeEvent) =>
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        )
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR')
       );
     },
   };
@@ -252,7 +222,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['combine'] = {
     init: function () {
       const variableNamePrefix = 'combined';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'combine',
@@ -261,7 +231,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'RESULT_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_dropdown',
@@ -290,13 +260,7 @@ export function defineModifyBlocks() {
       });
 
       registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(
-          this,
-          changeEvent,
-          variableNamePrefix,
-          nextVariableIndexes,
-          'RESULT_VAR'
-        );
+        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'RESULT_VAR');
         rerunOnCombineToggle(this, changeEvent);
       });
     },
@@ -359,7 +323,7 @@ export function defineModifyBlocks() {
   Blockly.Blocks['mirror_mesh'] = {
     init: function () {
       const variableNamePrefix = 'mirror';
-      const nextVariableName = variableNamePrefix + nextVariableIndexes[variableNamePrefix];
+      const variableName = nextVariableName(this, variableNamePrefix);
 
       this.jsonInit({
         type: 'mirror_mesh',
@@ -368,7 +332,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'ID_VAR',
-            variable: nextVariableName,
+            variable: variableName,
           },
           {
             type: 'field_variable',
