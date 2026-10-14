@@ -148,14 +148,18 @@ function getLowVisionToolboxStyleNameFromSrc(src) {
 function ensureLowVisionIconListener(workspace) {
   if (lowVisionIconListenerRegistered || !workspace) return;
   workspace.addChangeListener((event) => {
-    if (document.body.getAttribute('data-theme') === LOW_VISION_THEME) {
-      const isToolboxCategorySwitch =
-        event?.type === Blockly.Events.TOOLBOX_ITEM_SELECT || event?.type === 'toolbox_item_select';
-      applyLowVisionDecorations(workspace, {
-        hideFlyoutWhileApplying: isToolboxCategorySwitch,
-        preload: false,
-      });
+    if (document.body.getAttribute('data-theme') !== LOW_VISION_THEME) return;
+    const isToolboxCategorySwitch = event.type === Blockly.Events.TOOLBOX_ITEM_SELECT;
+    if (
+      (event.isUiEvent && !isToolboxCategorySwitch && event.type !== Blockly.Events.THEME_CHANGE) ||
+      event.type === Blockly.Events.BLOCK_FIELD_INTERMEDIATE_CHANGE
+    ) {
+      return;
     }
+    applyLowVisionDecorations(workspace, {
+      hideFlyoutWhileApplying: isToolboxCategorySwitch,
+      preload: false,
+    });
   });
   lowVisionIconListenerRegistered = true;
 }

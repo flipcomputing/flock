@@ -482,10 +482,7 @@ export function initializeBlockHandling() {
   });
 
   workspace.addChangeListener(function (event) {
-    if (
-      event.type === Blockly.Events.TOOLBOX_ITEM_SELECT ||
-      event.type === Blockly.Events.FLYOUT_SHOW
-    ) {
+    if (event.type === Blockly.Events.TOOLBOX_ITEM_SELECT) {
       const toolbox = workspace.getToolbox();
       const selectedItem = toolbox.getSelectedItem();
 
@@ -798,31 +795,6 @@ export function initializeBlockHandling() {
       if (!isFieldGestureNoise(event.newElementId)) showSelectedBlockHint();
     }
 
-    // Workaround for Blockly not checking for orphans on key
-    if (event.type === Blockly.Events.BLOCK_DRAG && event.isStart === false) {
-      // Preserve the move's event group so the disabled-state change
-      // from disableOrphans collapses into the same undo step.
-      const eventGroup = event.group;
-      // Wait until Blockly has fully settled
-      queueMicrotask(() => {
-        const prevGroup = Blockly.Events.getGroup();
-        if (eventGroup) Blockly.Events.setGroup(eventGroup);
-        try {
-          Blockly.Events.disableOrphans({
-            type: Blockly.Events.BLOCK_MOVE,
-            workspaceId: workspace.id,
-            blockId: event.blockId,
-            oldParentId: undefined,
-            newParentId: undefined,
-            recordUndo: false,
-            isUiEvent: false,
-            group: eventGroup,
-          });
-        } finally {
-          Blockly.Events.setGroup(prevGroup);
-        }
-      });
-    }
     // Debounced cleanup on structural changes.
     if (
       !event.isUiEvent &&
@@ -830,9 +802,6 @@ export function initializeBlockHandling() {
         event.type === Blockly.Events.BLOCK_CREATE ||
         event.type === Blockly.Events.BLOCK_DELETE)
     ) {
-      // Capture this event's group so the cleanup's disableOrphans call
-      // is attributed to the same undo entry as the triggering change.
-      const eventGroup = event.group;
       clearTimeout(cleanupTimeout);
       cleanupTimeout = setTimeout(() => {
         const activeBefore = document.activeElement;
@@ -843,14 +812,6 @@ export function initializeBlockHandling() {
           layoutTopLevelBlocks();
         } finally {
           if (wasEnabled) Blockly.Events.enable();
-        }
-
-        const prevGroup = Blockly.Events.getGroup();
-        if (eventGroup) Blockly.Events.setGroup(eventGroup);
-        try {
-          Blockly.Events.disableOrphans(workspace);
-        } finally {
-          Blockly.Events.setGroup(prevGroup);
         }
 
         // Restore focus if the cleanup blurred it. Only restore if the
@@ -900,6 +861,8 @@ export function initializeBlockHandling() {
         }
       }
     }
+
+    if (event.isUiEvent) return;
 
     // cachedValues() returns a stable snapshot that guards against
     // mid-iteration mutations (e.g. a handler that creates or deletes blocks)

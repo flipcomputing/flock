@@ -263,11 +263,6 @@ export function installWorkspaceJumpDebug(workspace) {
     workspace.scroll = function (...args) {
       const beforeX = this.scrollX;
       const requestedX = args[0];
-      const stack =
-        new Error().stack
-          ?.split('\n')
-          .slice(1, 7)
-          .map((line) => line.trim()) || [];
       const msSinceFieldEdit = lastFieldEdit
         ? Math.round(performance.now() - lastFieldEdit.timestamp)
         : null;
@@ -277,9 +272,6 @@ export function installWorkspaceJumpDebug(workspace) {
       const msSinceKeywordBlockCreated = lastKeywordBlockCreated
         ? Math.round(performance.now() - lastKeywordBlockCreated.timestamp)
         : null;
-      const fromFocusScroll = stack.some(
-        (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
-      );
       const largeHorizontalJump =
         typeof requestedX === 'number' && Math.abs(requestedX - beforeX) > 100;
       const recentFieldInteraction =
@@ -295,6 +287,12 @@ export function installWorkspaceJumpDebug(workspace) {
         recentKeywordBlockCreation &&
         lastKeywordBlockCreated.block != null &&
         Blockly.getFocusManager?.()?.getFocusedNode?.() === lastKeywordBlockCreated.block;
+      const mightSuppress = focusIsTrackedBlock || (recentFieldInteraction && largeHorizontalJump);
+      if (!mightSuppress) return workspaceScroll(...args);
+
+      const fromFocusScroll = (new Error().stack?.split('\n').slice(1, 7) ?? []).some(
+        (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
+      );
 
       if (fromFocusScroll && focusIsTrackedBlock && isBlockFullyVisible(this, lastKeywordBlockCreated.block)) {
         // The block is already fully in view (viewport center, the

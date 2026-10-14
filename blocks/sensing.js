@@ -310,7 +310,6 @@ function attachOnScreenControlsLiveUpdate(block) {
     Blockly.Events.BLOCK_CHANGE,
     Blockly.Events.BLOCK_MOVE,
     Blockly.Events.BLOCK_DELETE,
-    Blockly.Events.UI,
   ];
 
   registerBlockHandler(block, (changeEvent) => {

@@ -68,17 +68,12 @@ export function makeTouchesInputSubtree(block, ws, inputName) {
   };
 }
 
-function isDragStop(changeEvent) {
-  return changeEvent.type === Blockly.Events.UI && changeEvent.element === 'dragStop';
-}
-
 export function changeEventHitsTouches(changeEvent, touches) {
   return (
     touches(changeEvent.blockId) ||
     (Array.isArray(changeEvent.ids) && changeEvent.ids.some(touches)) ||
     touches(changeEvent.newParentId) ||
-    touches(changeEvent.oldParentId) ||
-    isDragStop(changeEvent)
+    touches(changeEvent.oldParentId)
   );
 }
 
@@ -99,13 +94,11 @@ function attachMeshSyncOnChange(block, config) {
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_MOVE,
         Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.UI,
       ]
     : [
         Blockly.Events.BLOCK_CREATE,
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.UI,
       ];
 
   const touches = makeTouchesInputSubtree(block, ws, config.subtreeInputName);
@@ -278,7 +271,6 @@ export function attachShadowContainerOnChange(block, opts) {
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
-      Blockly.Events.UI,
     ];
     if (!eventTypes.includes(changeEvent.type)) return;
 
@@ -339,7 +331,6 @@ function attachCreateMapOnChange(block) {
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
-      Blockly.Events.UI,
     ];
     if (!eventTypes.includes(changeEvent.type)) return;
 
