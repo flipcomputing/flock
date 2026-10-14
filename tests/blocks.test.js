@@ -3,9 +3,11 @@ import * as Blockly from 'blockly';
 import {
   blockHandlerRegistry,
   dispatchBlockEvent,
+  enableBlockHandlers,
   handleBlockCreateEvent,
   registerBlockHandler,
 } from '../blocks/blocks.js';
+import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
 
 export function runBlocksTests() {
   describe('blocks.js tests', function () {
@@ -313,26 +315,18 @@ export function runBlocksTests() {
 
       // The registry is shared, and other suites leave handlers for blocks on
       // workspaces they have since disposed; set those aside for each test.
-      let setAside;
+      let restoreBlockHandlers;
 
       beforeEach(function () {
-        setAside = [...blockHandlerRegistry].map(([id, handler]) => [
-          id,
-          handler,
-          blockHandlerRegistry.wantsAllEvents(id),
-        ]);
-        blockHandlerRegistry.clear();
+        restoreBlockHandlers = setAsideBlockHandlers();
         workspace = new Blockly.Workspace();
+        enableBlockHandlers(workspace);
         seen = [];
       });
 
       afterEach(function () {
         workspace.dispose();
-        blockHandlerRegistry.clear();
-        for (const [id, handler, allEvents] of setAside) {
-          blockHandlerRegistry.set(id, handler);
-          blockHandlerRegistry.setWantsAllEvents(id, allEvents);
-        }
+        restoreBlockHandlers();
       });
 
       it('calls a block for a field change inside its inputs, not an unrelated block', function () {

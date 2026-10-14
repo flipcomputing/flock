@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor } from './blocks.js';
+import { getHelpUrlFor, registerBlockHandler } from './blocks.js';
 import { VariableNameDropdown } from './variableScope.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import {
@@ -14,17 +14,22 @@ import './fieldMicrobitImage.js'; // registers field_microbit_image
 // untethered-device warning current.
 function wireMicrobitDeviceBlock(block) {
   syncMicrobitDeviceField(block);
-  block.setOnChange((changeEvent) => {
-    if (
-      changeEvent.type === Blockly.Events.VAR_RENAME ||
-      changeEvent.type === Blockly.Events.VAR_DELETE
-    ) {
-      syncMicrobitDeviceField(block);
-    }
-    // Keeps the untethered-device warning current; the manager's
-    // status listener covers connect/disconnect transitions.
-    refreshMicrobitBlocksFor(changeEvent, block.workspace);
-  });
+  registerBlockHandler(
+    block,
+    (changeEvent) => {
+      if (
+        !block.disposed &&
+        (changeEvent.type === Blockly.Events.VAR_RENAME ||
+          changeEvent.type === Blockly.Events.VAR_DELETE)
+      ) {
+        syncMicrobitDeviceField(block);
+      }
+      // Keeps the untethered-device warning current; the manager's
+      // status listener covers connect/disconnect transitions.
+      refreshMicrobitBlocksFor(changeEvent, block.workspace);
+    },
+    { allEvents: true }
+  );
 }
 
 export function defineXRBlocks() {

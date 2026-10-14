@@ -103,8 +103,8 @@ function attachMeshSyncOnChange(block, config) {
 
   const touches = makeTouchesInputSubtree(block, ws, config.subtreeInputName);
 
-  block.setOnChange((changeEvent) => {
-    if (!eventTypes.includes(changeEvent.type)) return;
+  registerBlockHandler(block, (changeEvent) => {
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       (config.includeSelfDelete && wasBlockDeleted(changeEvent, block.id)) ||
@@ -265,14 +265,14 @@ export function attachShadowContainerOnChange(block, opts) {
   const ws = block.workspace;
   const touches = makeTouchesInputSubtree(block, ws, opts.inputName);
 
-  block.setOnChange((changeEvent) => {
+  registerBlockHandler(block, (changeEvent) => {
     const eventTypes = [
       Blockly.Events.BLOCK_CREATE,
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
     ];
-    if (!eventTypes.includes(changeEvent.type)) return;
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||
@@ -325,14 +325,14 @@ function attachCreateMapOnChange(block) {
   const ws = block.workspace;
   const touches = makeTouchesInputSubtree(block, ws, 'MATERIAL');
 
-  block.setOnChange((changeEvent) => {
+  registerBlockHandler(block, (changeEvent) => {
     const eventTypes = [
       Blockly.Events.BLOCK_CREATE,
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
     ];
-    if (!eventTypes.includes(changeEvent.type)) return;
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||

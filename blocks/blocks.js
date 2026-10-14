@@ -164,10 +164,12 @@ if (listCreateWithBlockType && !listCreateWithBlockType[flockListCreateWithStyle
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
     ];
-    this.setOnChange((changeEvent) => {
-      if (!eventTypes.includes(changeEvent.type)) return;
+    const onChange = (changeEvent) => {
+      if (this.disposed || !eventTypes.includes(changeEvent.type)) return;
       updateListStyle(this);
-    });
+    };
+    if (this.workspace.isFlyout) this.setOnChange(onChange);
+    else registerBlockHandler(this, onChange);
   };
   listCreateWithBlockType[flockListCreateWithStylePatchKey] = true;
 }
@@ -254,10 +256,20 @@ class HandlerRegistry extends Map {
 /** @type {HandlerRegistry} */
 export const blockHandlerRegistry = new HandlerRegistry();
 
+const dispatchedWorkspaces = new WeakSet();
+
+/**
+ * Marks a workspace whose events are passed to dispatchBlockEvent. Blocks on
+ * any other workspace (flyouts, the headless search index) register nothing,
+ * since their delete events would never remove the handler.
+ */
+export function enableBlockHandlers(workspace) {
+  dispatchedWorkspaces.add(workspace);
+}
+
 /**
  * Register a block's change handler with the workspace dispatcher.
- * Flyout blocks are silently skipped because the dispatcher is attached to
- * the main workspace only.
+ * Blocks on a workspace not passed to enableBlockHandlers are skipped.
  *
  * A handler sees events whose blocks are its own block, above it, or (for
  * moves, creates and enable changes) below it, plus events with no block.
@@ -268,7 +280,7 @@ export const blockHandlerRegistry = new HandlerRegistry();
  * @param {{allEvents?: boolean}} [options]
  */
 export function registerBlockHandler(block, handler, { allEvents = false } = {}) {
-  if (!block.workspace || block.workspace.isFlyout) return;
+  if (!dispatchedWorkspaces.has(block.workspace)) return;
   blockHandlerRegistry.set(block.id, handler);
   blockHandlerRegistry.setWantsAllEvents(block.id, allEvents);
 }

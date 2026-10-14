@@ -1094,9 +1094,8 @@ export function defineSoundBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sound_blocks');
 
-      this.setOnChange(function (changeEvent) {
-        if (this.workspace?.isFlyout) return;
-        if (changeEvent.type !== Blockly.Events.BLOCK_MOVE) return;
+      registerBlockHandler(this, (changeEvent) => {
+        if (this.disposed || changeEvent.type !== Blockly.Events.BLOCK_MOVE) return;
 
         // When a bar (inner list) is connected to the outer tune list, make it inline.
         const outerList = this.getInputTargetBlock('NOTES');
@@ -1410,8 +1409,8 @@ export function defineSoundBlocks() {
         }
       }, 0);
 
-      this.setOnChange(function (ev) {
-        if (this.workspace?.isFlyout) return;
+      registerBlockHandler(this, (ev) => {
+        if (this.disposed) return;
 
         if (ev.type === Blockly.Events.BLOCK_CHANGE && ev.blockId === this.id) {
           if (!this.hasImported_) {

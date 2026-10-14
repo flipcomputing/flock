@@ -939,7 +939,8 @@ export function defineSensingBlocks() {
       // and defaults to "any".
       this.inputList[0].appendField(new MicrobitDeviceDropdown(), 'DEVICE');
       syncMicrobitDeviceField(this);
-      this.setOnChange((changeEvent) => {
+      registerBlockHandler(this, (changeEvent) => {
+        if (this.disposed) return;
         if (
           changeEvent.type === Blockly.Events.VAR_RENAME ||
           changeEvent.type === Blockly.Events.VAR_DELETE

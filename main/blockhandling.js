@@ -2,7 +2,12 @@ import * as Blockly from 'blockly';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { workspace } from './blocklyinit.js';
 import { translate } from './translation.js';
-import { dispatchBlockEvent, refreshReporterAriaLabels, applyInputHint } from '../blocks/blocks.js';
+import {
+  dispatchBlockEvent,
+  enableBlockHandlers,
+  refreshReporterAriaLabels,
+  applyInputHint,
+} from '../blocks/blocks.js';
 import { announceToScreenReader } from './input.js';
 import { TOP_BLOCK_TYPES } from '../config.js';
 import { showBlockHint, clearBlockHint } from '../ui/blockHint.js';
@@ -387,6 +392,7 @@ function rebindRenamedFlyoutVariables(block) {
 }
 
 export function initializeBlockHandling() {
+  enableBlockHandlers(workspace);
   observeBlocklyInputs();
   initializeFlyoutHints();
   attachSectionBehaviour(workspace);

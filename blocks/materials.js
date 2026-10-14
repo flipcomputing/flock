@@ -792,14 +792,14 @@ export function defineMaterialsBlocks() {
     const ws = block.workspace;
     const touches = makeTouchesInputSubtree(block, ws, 'MATERIAL');
 
-    block.setOnChange((changeEvent) => {
+    registerBlockHandler(block, (changeEvent) => {
       const eventTypes = [
         Blockly.Events.BLOCK_CREATE,
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_MOVE,
         Blockly.Events.BLOCK_DELETE,
       ];
-      if (!eventTypes.includes(changeEvent.type)) return;
+      if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
       const relevant =
         wasBlockDeleted(changeEvent, block.id) ||
