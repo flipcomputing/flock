@@ -18,6 +18,7 @@ import {
   getCloneDoOwner,
 } from '../ui/blockmesh.js';
 import { removeUIControlsForBlock } from '../ui/uicontrolgizmo.js';
+import { handleError } from '../ui/notifications.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
@@ -312,23 +313,25 @@ function relatedBlockIds(workspace, event) {
 /**
  * Calls the registered handlers an event concerns, in registration order.
  * Deleted blocks' handlers receive their own delete event, then are removed.
+ * A handler that throws is reported, and the remaining handlers still run.
  */
 export function dispatchBlockEvent(workspace, event) {
   if (event.isUiEvent) return;
 
   const related = relatedBlockIds(workspace, event);
   const entries = blockHandlerRegistry.cachedEntries();
-  try {
-    for (const [id, handler] of entries) {
-      if (!related || related.has(id) || blockHandlerRegistry.wantsAllEvents(id)) {
+  for (const [id, handler] of entries) {
+    if (!related || related.has(id) || blockHandlerRegistry.wantsAllEvents(id)) {
+      try {
         handler(event);
+      } catch (error) {
+        handleError(error, { source: 'block-handler' });
       }
     }
-  } finally {
-    if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
-      for (const id of event.ids) {
-        if (!workspace.getBlockById(id)) blockHandlerRegistry.delete(id);
-      }
+  }
+  if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
+    for (const id of event.ids) {
+      if (!workspace.getBlockById(id)) blockHandlerRegistry.delete(id);
     }
   }
 }

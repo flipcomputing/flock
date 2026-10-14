@@ -8,6 +8,8 @@ import {
   registerBlockHandler,
 } from '../blocks/blocks.js';
 import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
+import { dismissBanner } from '../ui/notifications.js';
+import { translate } from '../main/translation.js';
 
 export function runBlocksTests() {
   describe('blocks.js tests', function () {
@@ -432,23 +434,38 @@ export function runBlocksTests() {
         expect(blockHandlerRegistry.has(id)).to.equal(false);
       });
 
-      it("still removes a deleted block's handler when another handler throws", function () {
+      it('reports a throwing handler and still runs the others and the delete cleanup', function () {
+        const thrower = append({ type: 'logic_compare' });
         const block = append({ type: 'logic_compare' });
         const id = block.id;
-        const thrower = append({ type: 'logic_compare' });
-        listen(block);
+        const failure = new Error('handler failed');
         registerBlockHandler(
           thrower,
           () => {
-            throw new Error('handler failed');
+            throw failure;
           },
           { allEvents: true }
         );
+        listen(block);
         block.dispose();
 
-        expect(() =>
-          dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_DELETE, blockId: id, ids: [id] })
-        ).to.throw('handler failed');
+        const logged = [];
+        let bannerText = '';
+        const originalConsoleError = console.error;
+        console.error = (...args) => logged.push(args);
+        try {
+          dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_DELETE, blockId: id, ids: [id] });
+          bannerText = [...document.querySelectorAll('.flock-banner')]
+            .map((banner) => banner.textContent)
+            .join('\n');
+        } finally {
+          console.error = originalConsoleError;
+          dismissBanner('block-handler');
+        }
+
+        expect(seen).to.deep.equal([[id, Blockly.Events.BLOCK_DELETE]]);
+        expect(logged.some((args) => args.includes(failure))).to.equal(true);
+        expect(bannerText).to.contain(translate('error_block_handler'));
         expect(blockHandlerRegistry.has(id)).to.equal(false);
       });
     });
