@@ -2729,76 +2729,108 @@ export function getWorkspace() {
   return workspace;
 }
 
-function setupAutoValueBehavior(workspace) {
-  workspace.addChangeListener(function (event) {
-    if (event.type === Blockly.Events.BLOCK_CHANGE || event.type === Blockly.Events.BLOCK_CREATE) {
-      var block = workspace.getBlockById(event.blockId);
-      if (block && block.type === 'lists_create_with') {
-        var inputCount = 0;
-        while (block.getInput('ADD' + inputCount)) {
-          inputCount++;
-        }
-        if (inputCount >= 2) {
-          var previousInput = block.getInput('ADD' + (inputCount - 2));
-          var lastInput = block.getInput('ADD' + (inputCount - 1));
-          if (
-            previousInput &&
-            previousInput.connection.targetConnection &&
-            lastInput &&
-            !lastInput.connection.targetConnection
-          ) {
-            var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
+// Blockly records no events for shadow blocks, so undo and redo cannot bring
+// back a shadow that a list's + filled in or its - removed. This records the
+// shadow's state, id included, and places it again in the given direction.
+class ListSlotShadowEvent extends Blockly.Events.BlockBase {
+  constructor(block, slot, state, placeWhenForward) {
+    super(block);
+    this.type = 'flock_list_slot_shadow';
+    this.slot = slot;
+    this.state = state;
+    this.placeWhenForward = placeWhenForward;
+  }
 
-            function deepCopyBlock(originalBlock) {
-              var newBlock = workspace.newBlock(originalBlock.type);
+  run(forward) {
+    if (forward !== this.placeWhenForward) return;
+    const block = Blockly.Workspace.getById(this.workspaceId)?.getBlockById(this.blockId);
+    const connection = block?.getInput(this.slot)?.connection;
+    if (!connection || connection.targetBlock()) return;
+    placeShadow(connection, this.state);
+  }
+}
 
-              if (originalBlock.isShadow()) {
-                newBlock.setShadow(true);
-              }
+function placeShadow(connection, state) {
+  Blockly.Events.disable();
+  try {
+    connection.setShadowState(state);
+  } finally {
+    Blockly.Events.enable();
+  }
+}
 
-              const extraState = originalBlock.saveExtraState?.();
-              if (extraState != null && newBlock.loadExtraState) {
-                newBlock.loadExtraState(extraState);
-              }
-
-              var fieldMap = {
-                math_number: 'NUM',
-                text: 'TEXT',
-                logic_boolean: 'BOOL',
-                variables_get: 'VAR',
-              };
-
-              if (fieldMap[originalBlock.type]) {
-                var fieldName = fieldMap[originalBlock.type];
-                newBlock.setFieldValue(originalBlock.getFieldValue(fieldName), fieldName);
-              }
-
-              for (var i = 0; i < originalBlock.inputList.length; i++) {
-                var originalInput = originalBlock.inputList[i];
-                var newInput = newBlock.getInput(originalInput.name);
-
-                if (originalInput.connection && originalInput.connection.targetConnection) {
-                  var originalNestedBlock = originalInput.connection.targetConnection.sourceBlock_;
-
-                  var newNestedBlock = deepCopyBlock(originalNestedBlock);
-
-                  if (newInput && newNestedBlock.outputConnection) {
-                    newInput.connection.connect(newNestedBlock.outputConnection);
-                  }
-                }
-              }
-
-              newBlock.initSvg();
-              newBlock.render();
-
-              return newBlock;
-            }
-
-            var newBlock = deepCopyBlock(sourceBlock);
-            lastInput.connection.connect(newBlock.outputConnection);
-          }
-        }
+function recordListSlotRemoval() {
+  const definition = Blockly.Blocks['lists_create_with'];
+  if (!definition || definition.flockSlotRemovalRecorded) return;
+  const init = definition.init;
+  definition.init = function () {
+    init.call(this);
+    const removePart = this.removePart_;
+    if (!removePart) return;
+    this.removePart_ = function () {
+      const slot = 'ADD' + (this.itemCount_ - 1);
+      const shadow = this.getInputTargetBlock(slot);
+      if (shadow?.isShadow() && Blockly.Events.isEnabled() && Blockly.Events.getRecordUndo()) {
+        const state = Blockly.serialization.blocks.save(shadow, { addNextBlocks: false });
+        Blockly.Events.fire(new ListSlotShadowEvent(this, slot, state, false));
       }
+      removePart.call(this);
+    };
+  };
+  definition.flockSlotRemovalRecorded = true;
+}
+
+// Mutation event values are the block's saveExtraState as JSON, e.g. {"itemCount":3}.
+function listItemCount(extraState) {
+  try {
+    return JSON.parse(extraState || '{}').itemCount ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function setupAutoValueBehavior(workspace) {
+  recordListSlotRemoval();
+
+  workspace.addChangeListener((event) => {
+    if (
+      event.type !== Blockly.Events.BLOCK_CHANGE ||
+      event.element !== 'mutation' ||
+      !event.recordUndo
+    ) {
+      return;
+    }
+    const block = workspace.getBlockById(event.blockId);
+    if (block?.type !== 'lists_create_with') return;
+    if (listItemCount(event.newValue) !== listItemCount(event.oldValue) + 1) return;
+
+    let inputCount = 0;
+    while (block.getInput('ADD' + inputCount)) inputCount++;
+    if (inputCount < 2) return;
+
+    const slot = 'ADD' + (inputCount - 1);
+    const source = block.getInputTargetBlock('ADD' + (inputCount - 2));
+    const lastConnection = block.getInput(slot).connection;
+    if (!source || lastConnection.targetConnection) return;
+
+    const state = Blockly.serialization.blocks.save(source, {
+      addNextBlocks: false,
+      saveIds: false,
+    });
+
+    const previousGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(event.group || previousGroup);
+    try {
+      if (source.isShadow()) {
+        state.id = Blockly.utils.idGenerator.genUid();
+        placeShadow(lastConnection, state);
+        Blockly.Events.fire(new ListSlotShadowEvent(block, slot, state, true));
+      } else {
+        const copy = Blockly.serialization.blocks.append(state, workspace, { recordUndo: true });
+        lastConnection.connect(copy.outputConnection);
+      }
+    } finally {
+      Blockly.Events.setGroup(previousGroup);
     }
   });
 }

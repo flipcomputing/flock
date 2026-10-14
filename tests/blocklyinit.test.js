@@ -3,6 +3,7 @@ import * as Blockly from 'blockly';
 import {
   installWorkspaceJumpDebug,
   installVariableScopeWarnings,
+  setupAutoValueBehavior,
   variableFlyoutItems,
 } from '../main/blocklyinit.js';
 import { defineControlBlocks } from '../blocks/control.js';
@@ -280,6 +281,143 @@ export function runBlocklyInitTests(_flock) {
         await flushEvents();
 
         expect(warningText(read)).to.equal('Other warning');
+      });
+    });
+
+    describe('list + and - with undo', function () {
+      // Blockly fires queued events a frame and a timeout later, and events the
+      // auto-fill listener fires wait for another round, so wait out several.
+      const flushEvents = async () => {
+        for (let round = 0; round < 3; round++) {
+          await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+        }
+      };
+
+      // null leaves a slot empty; a string is a number shadow; { variable } is a
+      // real variables_get block.
+      function makeList(items) {
+        const list = workspace.newBlock('lists_create_with');
+        list.loadExtraState({ itemCount: items.length });
+        list.initSvg();
+        list.render();
+        items.forEach((item, i) => {
+          if (item === null) return;
+          const block = workspace.newBlock(item.variable ? 'variables_get' : 'math_number');
+          if (item.variable) {
+            block.setFieldValue(workspace.createVariable(item.variable).getId(), 'VAR');
+          } else {
+            block.setShadow(true);
+            block.setFieldValue(item, 'NUM');
+          }
+          block.initSvg();
+          block.render();
+          list.getInput('ADD' + i).connection.connect(block.outputConnection);
+        });
+        return list;
+      }
+
+      function items(list) {
+        const values = [];
+        for (let i = 0; list.getInput('ADD' + i); i++) {
+          const block = list.getInputTargetBlock('ADD' + i);
+          if (!block) values.push(null);
+          else if (block.type === 'variables_get') values.push(`var:${block.getField('VAR').getText()}`);
+          else values.push(`${block.isShadow() ? '' : 'real:'}${block.getFieldValue('NUM')}`);
+        }
+        return values;
+      }
+
+      const snapshot = (list) => ({ items: items(list), tops: workspace.getTopBlocks(false).length });
+
+      async function perform(list, step) {
+        if (step === '+') list.getField('PLUS').showEditor_();
+        else if (step === '-') list.getField('MINUS').showEditor_();
+        else list.getInputTargetBlock('ADD' + step.slot).setFieldValue(step.value, 'NUM');
+        await flushEvents();
+      }
+
+      // Each step is one undo entry, so undoing every step walks back through
+      // the states in reverse and redoing walks forward again.
+      async function expectUndoRedoRetraces(list, steps) {
+        const states = [snapshot(list)];
+        for (const step of steps) {
+          await perform(list, step);
+          states.push(snapshot(list));
+        }
+        for (let i = steps.length - 1; i >= 0; i--) {
+          workspace.undo(false);
+          await flushEvents();
+          expect(snapshot(list), `after undoing step ${i + 1}`).to.deep.equal(states[i]);
+        }
+        expect(workspace.getUndoStack()).to.have.length(0);
+        for (let i = 1; i <= steps.length; i++) {
+          workspace.undo(true);
+          await flushEvents();
+          expect(snapshot(list), `after redoing step ${i}`).to.deep.equal(states[i]);
+        }
+        expect(workspace.getRedoStack()).to.have.length(0);
+      }
+
+      beforeEach(function () {
+        setupAutoValueBehavior(workspace);
+      });
+
+      async function listReadyForSteps(items) {
+        const list = makeList(items);
+        await flushEvents();
+        workspace.clearUndo();
+        return list;
+      }
+
+      it('+ fills the new slot with a copy of the item before it', async function () {
+        const list = await listReadyForSteps(['1', '2']);
+        await perform(list, '+');
+        expect(items(list)).to.deep.equal(['1', '2', '2']);
+      });
+
+      it('undoes and redoes + in one step each', async function () {
+        const list = await listReadyForSteps(['1', '2']);
+        await expectUndoRedoRetraces(list, ['+']);
+      });
+
+      it('redo of + brings back the copy that a later redone edit changes', async function () {
+        const list = await listReadyForSteps(['1', '2']);
+        await expectUndoRedoRetraces(list, ['+', { slot: 2, value: 5 }]);
+      });
+
+      it('undo of - brings back the removed item as it was', async function () {
+        const list = await listReadyForSteps(['1', '2', '3']);
+        await expectUndoRedoRetraces(list, [{ slot: 2, value: 7 }, '-']);
+      });
+
+      it('- leaves an empty slot before the removed one empty', async function () {
+        const list = await listReadyForSteps(['1', null, '3']);
+        await perform(list, '-');
+        expect(items(list)).to.deep.equal(['1', null]);
+      });
+
+      it('copies a real block as a real block and undoes it without leaving it behind', async function () {
+        const list = await listReadyForSteps(['1', { variable: 'item' }]);
+        await expectUndoRedoRetraces(list, ['+']);
+        expect(items(list)).to.deep.equal(['1', 'var:item', 'var:item']);
+      });
+
+      it('retraces mixed +, - and edits on the same slots', async function () {
+        const list = await listReadyForSteps(['1', '2', '3']);
+        await expectUndoRedoRetraces(list, [
+          '+',
+          { slot: 3, value: 8 },
+          '-',
+          '-',
+          '+',
+          { slot: 2, value: 9 },
+          '+',
+        ]);
+      });
+
+      it('retraces removing every item and adding new ones', async function () {
+        const list = await listReadyForSteps(['1', '2', '3']);
+        await expectUndoRedoRetraces(list, ['-', '-', '-', '+', '+']);
       });
     });
   });
