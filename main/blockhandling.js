@@ -853,23 +853,25 @@ export function initializeBlockHandling() {
       }
     }
 
-    // Purge deleted blocks from the registry, then dispatch to handlers.
-    if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
-      for (const id of event.ids) {
-        if (!workspace.getBlockById(id)) {
-          blockHandlerRegistry.delete(id);
-        }
-      }
-    }
-
     if (event.isUiEvent) return;
 
     // cachedValues() returns a stable snapshot that guards against
     // mid-iteration mutations (e.g. a handler that creates or deletes blocks)
     // without allocating a new array on every event.
     const handlers = blockHandlerRegistry.cachedValues();
-    for (const handler of handlers) {
-      handler(event);
+    try {
+      for (const handler of handlers) {
+        handler(event);
+      }
+    } finally {
+      // Deleted blocks' handlers get their own delete event above, then go.
+      if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
+        for (const id of event.ids) {
+          if (!workspace.getBlockById(id)) {
+            blockHandlerRegistry.delete(id);
+          }
+        }
+      }
     }
   });
 }

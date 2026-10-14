@@ -278,12 +278,27 @@ function wireMicrobitManager() {
   });
 }
 
+// A deleted or disabled block no longer sets the controls, so another live one
+// takes over, or the project's default, which follows the Tools panel setting.
+function applyOtherOnScreenControlsOrDefault(workspace, excludedId) {
+  if (!flock?.scene) return;
+  const other = workspace
+    ?.getBlocksByType('on_screen_controls', false)
+    .find((b) => b.id !== excludedId && !b.disposed && b.isEnabled() && b.getParent());
+  if (other) applyOnScreenControlsLive(other);
+  else flock.onScreenControls();
+}
+
 function applyOnScreenControlsLive(block) {
   if (!flock?.scene) return;
+  if (!block.isEnabled()) {
+    applyOtherOnScreenControlsOrDefault(block.workspace, block.id);
+    return;
+  }
 
   const movement = block.getFieldValue('MOVEMENT');
   const actions = block.getFieldValue('ACTIONS');
-  const mode = block.isEnabled() ? block.getFieldValue('ENABLED') : 'DISABLED';
+  const mode = block.getFieldValue('ENABLED');
   const color = readColourFromInputOrShadow(block, 'COLOR').value ?? '#ffffff';
   const background = readColourFromInputOrShadow(block, 'BACKGROUND').value ?? '#000000';
   const alpha = readNumberInput(block, 'ALPHA', 0);
@@ -317,7 +332,7 @@ function attachOnScreenControlsLiveUpdate(block) {
     if (window.loadingCode && !changeEvent.recordUndo) return;
 
     if (wasBlockDeleted(changeEvent, block.id)) {
-      flock.onScreenControls?.('ARROWS', 'YES', 'DISABLED', '#ffffff', '#000000', 0);
+      applyOtherOnScreenControlsOrDefault(ws, block.id);
       return;
     }
 
