@@ -168,6 +168,29 @@ export function runVariableNamesTests() {
 
         expect(varText(duplicate(box1, 'box'))).to.equal('box1');
       });
+
+      // The duplicate gizmo connects the copy straight after the original, so the
+      // copy's next events already see the original's other uses below it.
+      it('leaves blocks added to a copy alone once it is inserted above uses of the original', function () {
+        const box1 = append({ type: 'create_box' });
+        const show = append({ type: 'show', fields: { MODEL_VAR: { id: varId(box1) } } });
+        box1.nextConnection.connect(show.previousConnection);
+        const box2 = duplicate(box1, 'box');
+        box1.nextConnection.connect(box2.previousConnection);
+        const later = { type: Blockly.Events.BLOCK_MOVE, blockId: box2.id, recordUndo: true };
+        handleBlockCreateEvent(box2, later, 'box');
+
+        const box9 = workspace.getVariableMap().createVariable('box9', '');
+        const read = append({ type: 'variables_get', fields: { VAR: { id: box9.getId() } } });
+        box2.getInput('COLOR').connection.connect(read.outputConnection);
+        handleBlockCreateEvent(box2, later, 'box');
+
+        expect(box2.getNextBlock()).to.equal(show);
+        expect(varText(box2)).to.equal('box2');
+        expect(varText(show, 'MODEL_VAR')).to.equal('box1');
+        expect(varText(read, 'VAR')).to.equal('box9');
+        expect(workspace.getVariableMap().getVariable('box9')).to.not.equal(null);
+      });
     });
 
     describe('recent objects', function () {

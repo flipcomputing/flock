@@ -867,9 +867,10 @@ function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS, 
   return changes;
 }
 
-function subtreeHasVarId(rootBlock, fromVarId, BlocklyNS) {
+function subtreeHasVarId(rootBlock, fromVarId, BlocklyNS, createdIds = null) {
   const descendants = rootBlock.getDescendants(false);
   for (const b of descendants) {
+    if (createdIds && !createdIds.has(b.id)) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       if (f.getValue && f.getValue() === fromVarId) return true;
@@ -931,6 +932,7 @@ function adoptIsolatedDefaultVarsTo(
   }
 
   for (const b of collectInputDescendants(rootBlock)) {
+    if (createdIds && !createdIds.has(b.id)) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       const vid = f.getValue && f.getValue();
