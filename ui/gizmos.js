@@ -1115,7 +1115,7 @@ function ensureStartWrapper(workspace, block) {
   if (!workspace || !block || block.disposed) return null;
   if (!block.previousConnection || block.previousConnection.isConnected()) return null;
   if (block.getParent?.()) return null;
-  let startBlock = null;
+  let startBlock;
   try {
     startBlock = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
   } catch {
@@ -1146,7 +1146,7 @@ function duplicateCanvasTargetInPlace(target) {
   if (!snapshot) return false;
   if (snapshot.next) delete snapshot.next;
   const root = getCanvasSelectedRoot();
-  let pastePos = null;
+  let pastePos;
   try {
     const meshForPos = root && getBlockForCanvasRoot(root) === target
       ? root
@@ -1156,7 +1156,7 @@ function duplicateCanvasTargetInPlace(target) {
     pastePos = null;
   }
   Blockly.Events.setGroup('duplicate');
-  let newBlock = null;
+  let newBlock;
   try {
     newBlock = insertBlockSnapshot(snapshot, workspace, pastePos, target);
     if (newBlock && !newBlock.getParent?.()) {
@@ -1273,7 +1273,7 @@ export function pasteCanvasClipboard() {
     // anchor, or copy/paste chaining after its source.
     const afterBlock = selectionBlock ?? sourceAlive ?? null;
     Blockly.Events.setGroup('duplicate');
-    let newBlock = null;
+    let newBlock;
     try {
       newBlock = insertBlockSnapshot(
         canvasClipboard.snapshot,
@@ -1311,7 +1311,7 @@ export function pasteCanvasClipboard() {
   if (!data) return false;
   if (data.blockState) stripLockState(data.blockState);
   Blockly.Events.setGroup('duplicate');
-  let pasted = null;
+  let pasted;
   try {
     pasted = Blockly.clipboard.paste(data, workspace);
     const pb = Array.isArray(pasted) ? pasted[0] : pasted;

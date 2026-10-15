@@ -1832,7 +1832,7 @@ export const flockMaterial = {
     const isObject =
       typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
 
-    let rawColor = '#ffffff';
+    let rawColor;
     let texName = 'none.png';
     let finalAlpha = alpha;
     let finalGlow = false;

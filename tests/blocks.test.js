@@ -451,7 +451,7 @@ export function runBlocksTests() {
         block.dispose();
 
         const logged = [];
-        let bannerText = '';
+        let bannerText;
         const originalConsoleError = console.error;
         console.error = (...args) => logged.push(args);
         try {

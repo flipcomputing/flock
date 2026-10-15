@@ -99,7 +99,8 @@ async function defaultFetchFirmware() {
     response = await fetch(FIRMWARE_HEX_URL);
   } catch (error) {
     throw new Error(
-      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`
+      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`,
+      { cause: error }
     );
   }
   if (!response.ok) {
@@ -515,7 +516,7 @@ export class MicrobitManager {
     usb.addEventListener?.('connect', (event) => {
       this._maybeSilentReconnect(event.device);
     });
-    let devices = [];
+    let devices;
     try {
       devices = await usb.getDevices();
     } catch {
@@ -597,7 +598,7 @@ export class MicrobitManager {
       for (const session of this._sessions) {
         if (session.usbSerialNumber === serialNumber) return; // already back
       }
-      let devices = [];
+      let devices;
       try {
         devices = await this._usb.getDevices();
       } catch {

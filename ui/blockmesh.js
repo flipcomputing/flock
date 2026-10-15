@@ -2770,7 +2770,7 @@ function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
     // A dynamic ring/donut needs the hollow container; a static one keeps the
     // exact triangle mesh. Match setPhysicsForMesh so live edits don't flip
     // the behaviour the user saw (edit "fixing" the fall).
-    let newShape = null;
+    let newShape;
     try {
       const motionType = mesh.physics.getMotionType?.();
       if (

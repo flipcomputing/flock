@@ -127,7 +127,7 @@ export const flockSandbox = {
     try {
       new Function(code); // Just check if it parses
     } catch (e) {
-      throw new Error(`Syntax error: ${e.message}`);
+      throw new Error(`Syntax error: ${e.message}`, { cause: e });
     }
 
     // Optional: Warn about patterns (don't block)

@@ -81,7 +81,7 @@ export function runCreateObjectTests(flock) {
         await flock.wait(0.5);
         await flock.show(tree);
       } catch (error) {
-        throw new Error(`Show/hide operation failed: ${error.message}`);
+        throw new Error(`Show/hide operation failed: ${error.message}`, { cause: error });
       }
     });
 
@@ -236,7 +236,7 @@ export function runCreateObjectTests(flock) {
           await flock.show(tree);
         }
       } catch (error) {
-        throw new Error(`Multiple object operation failed: ${error.message}`);
+        throw new Error(`Multiple object operation failed: ${error.message}`, { cause: error });
       }
     });
 

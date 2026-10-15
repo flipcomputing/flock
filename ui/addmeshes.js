@@ -578,7 +578,7 @@ function createShapeInternal(block) {
   const resolveColorOrMaterial = (defaultColor = '#ff0000') => {
     const colorInput = block.getInputTargetBlock('COLOR');
     let alpha = 1;
-    let colorOrMaterial = defaultColor;
+    let colorOrMaterial;
 
     if (colorInput?.type === 'material') {
       const materialInfo = extractMaterialInfo(colorInput);

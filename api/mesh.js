@@ -808,8 +808,7 @@ export const flockMesh = {
         ay = Math.abs(ny),
         az = Math.abs(nz);
 
-      let u = 0,
-        v = 0;
+      let u, v;
 
       if (az >= ax && az >= ay) {
         // Z faces (front/back) → map X × Y
