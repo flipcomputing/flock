@@ -375,11 +375,11 @@ function arrowSvg(axis, colour) {
   const w = horizontal ? ARROW_LENGTH : 16;
   const h = horizontal ? 16 : ARROW_LENGTH;
   const line = horizontal
-    ? `<line x1="0" y1="8" x2="${w - 10}" y2="8" />`
-    : `<line x1="8" y1="0" x2="8" y2="${h - 10}" />`;
+    ? `<line x1="0" y1="8" x2="${w - 8}" y2="8" />`
+    : `<line x1="8" y1="0" x2="8" y2="${h - 8}" />`;
   const head = horizontal
-    ? `<polygon points="${w - 12},2 ${w},8 ${w - 12},14" />`
-    : `<polygon points="2,${h - 12} 8,${h} 14,${h - 12}" />`;
+    ? `<polygon points="${w - 10},2 ${w},8 ${w - 10},14" stroke="none" />`
+    : `<polygon points="2,${h - 10} 8,${h} 14,${h - 10}" stroke="none" />`;
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" stroke="${colour}" fill="${colour}" stroke-width="4">${line}${head}</svg>`;
 }
 
@@ -394,6 +394,12 @@ function createOverlay(axisColors, freeAxes) {
     const arrow = document.createElement('div');
     arrow.className = `ui-control-gizmo-arrow ui-control-gizmo-arrow-${axis}`;
     arrow.innerHTML = arrowSvg(axis, axisColors[axis]);
+    const label = document.createElement('span');
+    label.className = 'ui-control-gizmo-label';
+    label.setAttribute('aria-hidden', 'true');
+    label.style.color = axisColors[axis];
+    label.textContent = axis;
+    arrow.appendChild(label);
     root.appendChild(arrow);
     arrows[axis] = arrow;
   }

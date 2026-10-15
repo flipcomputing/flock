@@ -540,7 +540,18 @@ button {
   touch-action: none;
 }
 
+.ui-control-gizmo-label {
+  font: bold 18px/1 sans-serif;
+  text-shadow:
+    -1px -1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff;
+}
+
 .ui-control-gizmo-arrow-x {
+  align-items: center;
+  gap: 2px;
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
@@ -548,6 +559,9 @@ button {
 }
 
 .ui-control-gizmo-arrow-y {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
