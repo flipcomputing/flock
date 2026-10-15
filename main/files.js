@@ -70,6 +70,8 @@ const CONTENT_CHANGE_EVENT_TYPES = new Set([
 // Tracks changes since the last load or file save (not the last localStorage
 // autosave, which isn't durable).
 let projectModified = false;
+let restoringAutosave = false;
+let fileSaveUnknown = false;
 
 // `workspace` is still null at module load time, so this listener can't be
 // attached until createBlocklyWorkspace() has run.
@@ -77,6 +79,8 @@ export function initProjectModifiedTracking(ws) {
   ws.addChangeListener((event) => {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
       projectModified = false;
+      fileSaveUnknown = restoringAutosave;
+      restoringAutosave = false;
     } else if (CONTENT_CHANGE_EVENT_TYPES.has(event.type)) {
       projectModified = true;
     }
@@ -87,13 +91,17 @@ export function isProjectModified() {
   return projectModified;
 }
 
+export function isFileSaveUnknown() {
+  return fileSaveUnknown;
+}
+
 // Resolves true if the caller should proceed to replace the workspace.
 async function confirmDiscardIfModified() {
-  if (!projectModified) return true;
+  if (!projectModified && !fileSaveUnknown) return true;
 
   saveWorkspace(workspace);
 
-  const choice = await openUnsavedChangesModal();
+  const choice = await openUnsavedChangesModal({ uncertain: !projectModified });
   if (choice === 'cancel') return false;
   if (choice === 'save') {
     const saved = await exportCode(workspace);
@@ -632,8 +640,11 @@ export async function loadWorkspace(workspace, executeCallback) {
     }
   } else if (savedState) {
     try {
-      loadWorkspaceAndExecute(parseProjectText(savedState), workspace, effectiveCallback);
+      const json = parseProjectText(savedState);
+      restoringAutosave = true;
+      loadWorkspaceAndExecute(json, workspace, effectiveCallback);
     } catch (error) {
+      restoringAutosave = false;
       console.error('Error loading autosaved project:', error);
       loadStarter();
     }
@@ -751,6 +762,7 @@ export async function exportCode(workspace) {
       updateSaveButtonState();
       document.getElementById('projectName').value = getSafeImportedFileBaseName(fileHandle.name);
       projectModified = false;
+      fileSaveUnknown = false;
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement('a');
@@ -760,6 +772,7 @@ export async function exportCode(workspace) {
       link.click();
       document.body.removeChild(link);
       projectModified = false;
+      fileSaveUnknown = false;
     }
     return true;
   } catch (e) {

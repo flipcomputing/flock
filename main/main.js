@@ -29,6 +29,7 @@ import {
   openFile,
   updateSaveButtonState,
   isProjectModified,
+  isFileSaveUnknown,
   initProjectModifiedTracking,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
@@ -1109,7 +1110,7 @@ window.onload = async function () {
   // A custom dialog can't run synchronously here, so save to localStorage and
   // fall back to the browser's own "leave site?" prompt.
   window.addEventListener('beforeunload', (event) => {
-    if (!isProjectModified()) return;
+    if (!isProjectModified() && !isFileSaveUnknown()) return;
     saveWorkspace(workspace);
     event.preventDefault();
     event.returnValue = '';

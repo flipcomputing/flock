@@ -1,5 +1,7 @@
 // UI-only confirm modal; the caller decides what save/discard/cancel do.
 
+import { translate } from '../main/translation.js';
+
 let previouslyFocused = null;
 let activeResolve = null;
 
@@ -39,9 +41,20 @@ function closeModal(result) {
 }
 
 // Resolves 'save', 'discard', or 'cancel'; 'discard' if the modal markup is missing.
-export function openUnsavedChangesModal() {
+export function openUnsavedChangesModal({ uncertain = false } = {}) {
   const modal = getModal();
   if (!modal) return Promise.resolve('discard');
+
+  const variant = uncertain ? 'unsaved_changes_maybe' : 'unsaved_changes';
+  for (const [id, suffix] of [
+    ['unsaved-changes-modal-title', 'title'],
+    ['unsavedChangesMessage', 'message'],
+  ]) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.dataset.i18n = `${variant}_${suffix}`;
+    el.textContent = translate(`${variant}_${suffix}_ui`);
+  }
 
   return new Promise((resolve) => {
     activeResolve = resolve;

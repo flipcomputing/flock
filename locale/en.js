@@ -1437,6 +1437,9 @@ export default {
   unsaved_changes_title_ui: 'Unsaved changes',
   unsaved_changes_message_ui:
     "This project has changes that haven't been saved to a file. What would you like to do?",
+  unsaved_changes_maybe_title_ui: 'Save your project?',
+  unsaved_changes_maybe_message_ui:
+    'This project may not have been saved to a file yet. What would you like to do?',
   unsaved_changes_save_button_ui: 'Save to file',
   unsaved_changes_discard_button_ui: 'Continue without saving',
   unsaved_changes_cancel_button_ui: 'Cancel',

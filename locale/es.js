@@ -1357,6 +1357,9 @@ export default {
   unsaved_changes_title_ui: 'Cambios sin guardar', // ai
   unsaved_changes_message_ui:
     'Este proyecto tiene cambios que no se han guardado en un archivo. ¿Qué te gustaría hacer?', // ai
+  unsaved_changes_maybe_title_ui: '¿Guardar tu proyecto?', // ai
+  unsaved_changes_maybe_message_ui:
+    'Es posible que este proyecto aún no se haya guardado en un archivo. ¿Qué te gustaría hacer?', // ai
   unsaved_changes_save_button_ui: 'Guardar en archivo', // ai
   unsaved_changes_discard_button_ui: 'Continuar sin guardar', // ai
   unsaved_changes_cancel_button_ui: 'Cancelar', // ai
