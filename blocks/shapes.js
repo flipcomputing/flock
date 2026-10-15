@@ -20,6 +20,7 @@ import {
   shapeError,
 } from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
+import { FieldGroupArrange } from './fieldGroupArrange.js';
 import { updateParticleEffectFromBlock } from '../ui/blockmesh.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 
@@ -1549,6 +1550,7 @@ export function defineShapeBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('transform_blocks');
+      this.inputList[0].appendField(new FieldGroupArrange(), 'ARRANGE');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockChange(this, changeEvent, variableNamePrefix)

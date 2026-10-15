@@ -4179,3 +4179,49 @@ body.play-mode #maincontent {
   overflow-x: hidden;
   height: calc(var(--app-height) - 50px - env(safe-area-inset-top));
 }
+
+.group-arrange-editor {
+  display: grid;
+  grid-template-columns: auto repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px;
+  align-items: center;
+}
+
+.group-arrange-axis {
+  font-weight: bold;
+  padding-right: 4px;
+}
+
+.group-arrange-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 56px;
+  padding: 4px;
+  font-size: 11px;
+  color: var(--color-text-primary);
+  background: var(--color-button-bg);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.group-arrange-button svg {
+  color: var(--axis-colour);
+}
+
+.group-arrange-button:hover:not(:disabled) {
+  background: var(--color-button-bg-hover);
+}
+
+.group-arrange-button:focus-visible {
+  outline: 2px solid var(--color-focus-outline);
+  outline-offset: 1px;
+}
+
+.group-arrange-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

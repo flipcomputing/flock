@@ -2377,7 +2377,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
       flock.BABYLON.Tools.ToRadians(working.z)
     );
     // Groups keep orientation in their members, never on the group node.
-    if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh);
+    if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh, { snap: false });
     if (isCombine(mesh)) syncCombineParts(mesh);
     if (isBodyAlive(mesh.physics)) {
       mesh.physics.disablePreStep = false;
@@ -2421,10 +2421,12 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     stopAxisKeyboard = stopInput;
     return;
   }
-  // Settle at session end, not per step: the slider reads the group's running rotation.
+  // Snap and settle at session end, not per step: the slider reads the
+  // group's running rotation, and per-step rounding would accumulate.
   stopAxisKeyboard = Object.assign(
     () => {
       stopInput();
+      updateChildBlockRotations(mesh);
       settleGroupRotation(mesh);
     },
     {
@@ -2666,9 +2668,10 @@ function findOrCreateMoveBlock(block) {
   );
 }
 
-// Group members keep 2dp: group scales and rotations derive their values, and
-// 1dp rounding visibly breaks flush alignments between members.
-const MEMBER_DECIMALS = 2;
+// Group members keep 4dp: group moves, scales and rotations derive their
+// values, so coarser rounding visibly breaks flush alignments, while finer
+// digits are float32 noise from Babylon's world matrices.
+const MEMBER_DECIMALS = 4;
 
 function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
   const target = block.type === 'clone_mesh' ? findOrCreateMoveBlock(block) : block;
@@ -3512,9 +3515,21 @@ function commitMoveToBlocks(mesh, startPosition) {
 // the scene identical to what Play rebuilds. The caller wraps this (with the
 // parent's own block update) in a single Blockly event group: one undo.
 export function moveGroupBy(groupMesh, delta) {
-  groupMesh.setAbsolutePosition(groupMesh.getAbsolutePosition().add(delta));
-  groupMesh.computeWorldMatrix(true);
-  inEventGroup(() => updateChildBlockPositions(groupMesh, delta));
+  inEventGroup(() => translateGroupedMesh(groupMesh, delta));
+}
+
+// Moves a group or combine and shifts its members' blocks to match, inside
+// the caller's event group.
+export function translateGroupedMesh(mesh, delta) {
+  mesh.setAbsolutePosition(mesh.getAbsolutePosition().add(delta));
+  mesh.computeWorldMatrix(true);
+  const block = meshMap[mesh.metadata?.blockKey];
+  if (block?.type === 'combine') {
+    if (!block.disposed) shiftCombineParts(block, delta);
+    flock.updatePhysics?.(mesh);
+    return;
+  }
+  updateChildBlockPositions(mesh, delta);
 }
 
 function updateChildBlockPositions(mesh, delta = null) {
@@ -3546,7 +3561,7 @@ function updateChildBlockPositions(mesh, delta = null) {
         current.x + delta.x,
         current.y + delta.y,
         current.z + delta.z,
-        { decimals: 4 }
+        { decimals: MEMBER_DECIMALS }
       );
       return;
     }
@@ -3586,7 +3601,7 @@ function forEachCombinePart(containerBlock, visit) {
 function shiftCombineParts(containerBlock, delta) {
   forEachCombinePart(containerBlock, (part, current) =>
     setBlockXYZ(part, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
-      decimals: 4,
+      decimals: MEMBER_DECIMALS,
     })
   );
 }
@@ -4378,7 +4393,15 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
 }
 
-export function updateChildBlockRotations(mesh) {
+// Without snap, members keep following the exact group rotation and only
+// their blocks update, so a multi-step session doesn't accumulate rounding.
+// Their live updates stay suppressed until the session's final snap: per-step
+// clearing races Blockly's late events, which then snap anyway. The final
+// snap lifts it at once, as late events then only reapply the snapped pose
+// and an immediate undo must not be dropped.
+const rotationSessionBlockIds = new Set();
+
+export function updateChildBlockRotations(mesh, { snap = true } = {}) {
   if (isPrefab(mesh)) {
     const block = meshMap[mesh.metadata.blockKey];
     if (block && !block.disposed) {
@@ -4392,6 +4415,11 @@ export function updateChildBlockRotations(mesh) {
   const rootKey = mesh.metadata.blockKey;
   const children = mesh.getChildMeshes(false);
   const seenKeys = new Set();
+  const suppressDuringSession = (block) => {
+    if (snap || !block || block.disposed) return;
+    suppressBlockLiveUpdates(block.id);
+    rotationSessionBlockIds.add(block.id);
+  };
 
   children.forEach((child) => {
     const key = child?.metadata?.blockKey;
@@ -4403,7 +4431,9 @@ export function updateChildBlockRotations(mesh) {
       return;
     }
 
+    suppressDuringSession(meshMap[key]);
     const rotateBlock = findOrCreateRotateBlock(child);
+    suppressDuringSession(rotateBlock);
     const childParent = child.parent;
     child.setParent(null);
     let rotation;
@@ -4427,7 +4457,7 @@ export function updateChildBlockRotations(mesh) {
     }
     // Snap live onto the rounded blocks: set the world orientation while
     // unparented, then re-anchor the position to the rounded base.
-    if (rotateBlock || memberBlock) {
+    if (snap && (rotateBlock || memberBlock)) {
       const parent = child.parent;
       child.setParent(null);
       try {
@@ -4453,6 +4483,10 @@ export function updateChildBlockRotations(mesh) {
       }
     }
   });
+
+  if (!snap) return;
+  for (const id of rotationSessionBlockIds) unsuppressBlockLiveUpdates(id);
+  rotationSessionBlockIds.clear();
 
   // Rotating re-shapes the content bounds - re-centre the origin so the next
   // transform starts from a consistent pivot.

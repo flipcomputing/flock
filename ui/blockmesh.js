@@ -1862,10 +1862,10 @@ export function applyInitialTransformRows(
 
 // Without a move a clone keeps its source's anchor, so a move is only added
 // once the clone's anchor is somewhere else.
-export function writeClonePosition(block, anchor) {
+export function writeClonePosition(block, anchor, { decimals = 1 } = {}) {
   const move = findOwnMove(block);
   if (move) {
-    writeMovedPosition(move, anchor);
+    writeMovedPosition(move, anchor, { decimals });
     return;
   }
   const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
@@ -1873,7 +1873,7 @@ export function writeClonePosition(block, anchor) {
   if (start && ['x', 'y', 'z'].every((axis) => Math.abs(start[axis] - anchor[axis]) <= 0.001)) {
     return;
   }
-  writeMovedPosition(ensureOwnMove(block), anchor);
+  writeMovedPosition(ensureOwnMove(block), anchor, { decimals });
 }
 
 function inEventGroupOf(changeEvent, fn) {
@@ -1900,6 +1900,11 @@ export function handleInitialTransformRowsChange(block, changeEvent) {
   if (isProjectLoading() && !changeEvent.recordUndo) return false;
 
   const edited = rowInputEdited(block, changeEvent);
+  const isRowMutation = changeEvent.element === 'mutation' && changeEvent.blockId === block.id;
+  if ((edited || isRowMutation) && isBlockLiveUpdateSuppressed(block.id)) {
+    noteSuppressedHit();
+    return true;
+  }
   if (edited) {
     const aboutCentre = edited.startsWith('ROTATE_') && changeEvent.recordUndo !== false;
     inEventGroupOf(changeEvent, () => applyInitialTransformRows(block, undefined, { aboutCentre }));

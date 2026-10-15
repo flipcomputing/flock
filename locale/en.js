@@ -337,6 +337,15 @@ export default {
   microbit_scroll_text_untethered_warning:
     'This micro:bit is not plugged in over USB, so the text cannot be scrolled. Plug the micro:bit in to scroll text.',
   microbit_image_field_label: 'LED image — click to edit',
+  group_arrange_button: 'Align and space out',
+  group_arrange_min: '−{axis}',
+  group_arrange_centre: 'center',
+  group_arrange_max: '+{axis}',
+  group_arrange_distribute: 'space out',
+  group_arrange_min_label: 'Align to the −{axis} side',
+  group_arrange_centre_label: 'Center along {axis}',
+  group_arrange_max_label: 'Align to the +{axis} side',
+  group_arrange_distribute_label: 'Space out evenly along {axis}',
   microbit_image_grid_label: 'LED grid: arrow keys move, space toggles',
   microbit_image_cell_label: 'row %1, column %2, %3',
   microbit_image_cell_on: 'on',
@@ -676,7 +685,7 @@ export default {
   procedures_callprefab_tooltip:
     'Add a prefab at a position, with a material and a y rotation. Store it in a variable so you can move it.',
   create_group_tooltip:
-    'Create a group. The objects inside move together. Uncheck active to change individual objects.',
+    'Create a group. The objects inside move together. Uncheck active to change individual objects. Click the align button to line them up or space them out.',
   create_sphere_tooltip: 'Create a colored sphere with specified dimensions and position.',
   create_cylinder_tooltip: 'Create a colored cylinder with specified dimensions and position.',
   create_capsule_tooltip: 'Create a colored capsule with specified dimensions and position.',
