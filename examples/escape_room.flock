@@ -2108,7 +2108,7 @@
                           },
                           "inputs": {
                             "RADIUS": {
-                              "block": {
+                              "shadow": {
                                 "type": "math_number",
                                 "id": "rXFTI:cAkulWQVJ~v?8~",
                                 "fields": {
@@ -2117,7 +2117,7 @@
                               }
                             },
                             "ANGLE": {
-                              "block": {
+                              "shadow": {
                                 "type": "math_number",
                                 "id": "^d__G)44Z(]Khv};Q|tn",
                                 "fields": {

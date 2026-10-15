@@ -198,7 +198,7 @@
                           }
                         },
                         "ANGLE": {
-                          "block": {
+                          "shadow": {
                             "type": "math_number",
                             "id": "(Ums~4!.,x8Ym={mk0T8",
                             "fields": {
