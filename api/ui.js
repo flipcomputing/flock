@@ -387,6 +387,11 @@ export const flockUI = {
     const announce = changes.text !== undefined && changes.text !== previous.text;
     layout(control, { ...previous, ...changes }, { announce });
   },
+  _relayoutUIControls() {
+    for (const control of flock.scene?.UITexture?.rootContainer.children ?? []) {
+      flock._restyleUIControl(control, {});
+    }
+  },
   _sayBubblesForBlock(blockKey) {
     if (!flock.scene || !blockKey) return [];
     return flock.scene.meshes.flatMap(
