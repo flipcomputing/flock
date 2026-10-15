@@ -391,6 +391,26 @@ function rebindRenamedFlyoutVariables(block) {
   return rebound;
 }
 
+// Indices of one longest strictly increasing subsequence of values.
+function longestIncreasingIndices(values) {
+  const tails = [];
+  const previous = new Array(values.length);
+  for (let i = 0; i < values.length; i++) {
+    let low = 0;
+    let high = tails.length;
+    while (low < high) {
+      const mid = (low + high) >> 1;
+      if (values[tails[mid]] < values[i]) low = mid + 1;
+      else high = mid;
+    }
+    previous[i] = low > 0 ? tails[low - 1] : -1;
+    tails[low] = i;
+  }
+  const indices = new Set();
+  for (let i = tails.at(-1) ?? -1; i >= 0; i = previous[i]) indices.add(i);
+  return indices;
+}
+
 export function initializeBlockHandling() {
   enableBlockHandlers(workspace);
   observeBlocklyInputs();
@@ -517,7 +537,9 @@ export function initializeBlockHandling() {
       const contained = buildContainedIdSet(workspace);
       const topBlocks = (workspace.getTopBlocks(false) || [])
         .filter((b) => !!b && !b.isInFlyout && !b.isShadow?.() && !contained.has(b.id))
-        .sort((a, b) => a.getRelativeToSurfaceXY().y - b.getRelativeToSurfaceXY().y);
+        .map((block) => ({ block, y: block.getRelativeToSurfaceXY().y }))
+        .sort((a, b) => a.y - b.y)
+        .map(({ block }) => block);
 
       for (const block of topBlocks) {
         if (!blockTypesToCleanUp.includes(block.type)) continue;
@@ -538,12 +560,14 @@ export function initializeBlockHandling() {
         }
       }
 
-      // Bring top-level blocks to the front in z-order so orphan blocks
-      // (newly created, just-detached, dropped on existing stacks) render on
-      // top of anything underneath them. canvas.appendChild on an existing
-      // child detaches+reattaches the node, which drops DOM focus on any
-      // focused descendant — so we snapshot document.activeElement around the
-      // loop and restore it afterwards. In Blockly v13, after a duplicate or
+      // Bring top-level blocks to the front in z-order, ordered by y, so orphan
+      // blocks (newly created, just-detached, dropped on existing stacks)
+      // render on top of anything underneath them. Only blocks outside the
+      // longest run already in order are moved, so a pass usually moves
+      // nothing and one added or moved block costs one move. Moving a node
+      // detaches and reattaches it, which drops DOM focus on any focused
+      // descendant — so we snapshot document.activeElement around the loop
+      // and restore it afterwards. In Blockly v13, after a duplicate or
       // delete this preserves the focus the focus_manager just placed on the
       // new / fallback block.
       try {
@@ -553,11 +577,15 @@ export function initializeBlockHandling() {
           const activeInsideCanvas =
             activeBefore && canvas.contains(activeBefore) ? activeBefore : null;
 
-          for (const b of topBlocks) {
-            const svg = b.getSvgRoot?.();
-            if (svg && svg.parentNode === canvas && svg !== canvas.lastChild) {
-              canvas.appendChild(svg);
-            }
+          const svgs = topBlocks
+            .map((b) => b.getSvgRoot?.())
+            .filter((svg) => svg && svg.parentNode === canvas);
+          const positions = new Map([...canvas.childNodes].map((node, i) => [node, i]));
+          const inPlace = longestIncreasingIndices(svgs.map((svg) => positions.get(svg)));
+          let below = null;
+          for (let i = svgs.length - 1; i >= 0; i--) {
+            if (!inPlace.has(i)) canvas.insertBefore(svgs[i], below);
+            below = svgs[i];
           }
 
           if (
