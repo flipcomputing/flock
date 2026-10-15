@@ -3,6 +3,7 @@ import { flock } from '../flock.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
@@ -190,7 +191,7 @@ function editsConfig(block, event) {
 export function handleUIControlBlockEvent(block, event, { preview = false } = {}) {
   if (block.disposed || event.workspaceId !== block.workspace.id) return;
   if (isOwnLifecycleEvent(block, event)) {
-    if (window.loadingCode && !event.recordUndo) return;
+    if (isProjectLoading() && !event.recordUndo) return;
     if (!isLive(block)) removeUIControlsForBlock(block.id);
     else if (preview) previewUITextFromBlock(block);
     return;

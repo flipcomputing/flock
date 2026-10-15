@@ -5,6 +5,7 @@ import { translate } from './translation.js';
 import {
   dispatchBlockEvent,
   enableBlockHandlers,
+  setSnippetFlyoutOpen,
   refreshReporterAriaLabels,
   applyInputHint,
 } from '../blocks/blocks.js';
@@ -509,14 +510,11 @@ export function initializeBlockHandling() {
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.TOOLBOX_ITEM_SELECT) {
-      const toolbox = workspace.getToolbox();
-      const selectedItem = toolbox.getSelectedItem();
-
-      if (selectedItem && selectedItem.getName() === 'Snippets') {
-        window.loadingCode = true;
-      } else {
-        window.loadingCode = false;
+      let inSnippets = false;
+      for (let item = workspace.getToolbox().getSelectedItem(); item; item = item.getParent()) {
+        if (item.getId() === 'snippets') inSnippets = true;
       }
+      setSnippetFlyoutOpen(inSnippets);
     }
   });
 

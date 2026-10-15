@@ -29,6 +29,7 @@ import './fieldCameraButtons.js'; // registers field_capture_view, field_view_ca
 import { setupProcedureParams } from './procedureParams.js';
 import { outOfScopeLocalIds, VariableNameDropdown } from './variableScope.js';
 import { lowestFreeName, nextVariableName, rememberObjectBlock } from './variableNames.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 registerFieldColour();
 
@@ -658,10 +659,9 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       : [changeEvent.blockId];
 
     if (!createdBlockIds.includes(block.id)) return false;
-    // Skip mesh creation when loading saved code (recordUndo=false).
-    // But allow it when the user drops a block/snippet (recordUndo=true),
-    // even if loadingCode is true (e.g. while the Snippets flyout is open).
-    if (window.loadingCode && !changeEvent.recordUndo) return true;
+    // Skip mesh creation when loading saved code (recordUndo=false), but
+    // not when the user drops a block or snippet (recordUndo=true).
+    if (isProjectLoading() && !changeEvent.recordUndo) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
   }
@@ -744,7 +744,7 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
     const parent = findCreateBlock(changed);
 
     if (changed && parent === containerBlock && isValueInputDescendantOf(containerBlock, changed)) {
-      if (!window.loadingCode) {
+      if (!isProjectLoading()) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }
       return true;
@@ -2328,13 +2328,21 @@ export function addDoMutatorWithToggleBehavior(block) {
   };
 }
 
+let snippetFlyoutOpen = false;
+
+// Blocks dragged out of a Snippets category keep their variable names, so
+// several snippets can share one variable such as 'player'.
+export function setSnippetFlyoutOpen(open) {
+  snippetFlyoutOpen = open;
+}
+
 export function handleBlockCreateEvent(
   blockInstance,
   changeEvent,
   variableNamePrefix,
   fieldName = 'ID_VAR'
 ) {
-  if (window.loadingCode) return;
+  if (isProjectLoading() || snippetFlyoutOpen) return;
 
   ensureFreshVarOnDuplicate(blockInstance, changeEvent, variableNamePrefix, { fieldName });
 

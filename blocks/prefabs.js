@@ -13,6 +13,7 @@ import {
 import { translate, getTooltip } from '../main/translation.js';
 import { flock } from '../flock.js';
 import { getMeshesFromBlock, updatePrefabMaterial } from '../ui/blockmesh.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 export const PREFAB_DEF_TYPE = 'procedures_defprefab';
 export const PREFAB_CALL_TYPE = 'procedures_callprefab';
@@ -45,7 +46,7 @@ function argIndexOf(block, changed) {
 
 function updateLive(block, changeEvent) {
   if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE || changeEvent.element !== 'field') return;
-  if (window.loadingCode && !changeEvent.recordUndo) return;
+  if (isProjectLoading() && !changeEvent.recordUndo) return;
   const changed = changeEvent.blockId;
   const index = argIndexOf(block, block.workspace.getBlockById(changed));
   if (index !== null) {

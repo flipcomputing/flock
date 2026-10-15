@@ -7,6 +7,7 @@ import {
 } from '../generators/generators.js';
 import { getOwnDoOwner, getOwnVar } from '../generators/generators-utilities.js';
 import { flock } from '../flock.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
@@ -613,7 +614,7 @@ export function readColourFromInputOrShadow(parent, inputName) {
 // A running particle effect follows edits to its block. An input holding
 // anything other than a literal keeps the effect's current value.
 export function updateParticleEffectFromBlock(block) {
-  if (window.loadingCode || !block || block.disposed) return;
+  if (isProjectLoading() || !block || block.disposed) return;
   const systems = (flock.scene?.particleSystems ?? []).filter(
     (system) => system.metadata?.blockKey === block.id
   );
@@ -757,7 +758,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   const cloneOwner = getCloneDoOwner(block);
   if (cloneOwner) {
-    const loading = window.loadingCode && !changeEvent?.recordUndo;
+    const loading = isProjectLoading() && !changeEvent?.recordUndo;
     const applies =
       changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE;
@@ -792,7 +793,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     if (!isInsideDefinition(block) && meshes.length) deleteMeshFromBlock(block.id);
     return;
   }
-  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
+  if ((isProjectLoading() && !changeEvent?.recordUndo) || block.disposed) return;
 
   // Record so meshes spawned later in a loop/event pick the edit up too.
   recordLiveEdit(block, changeEvent);
@@ -1667,7 +1668,7 @@ function ownerBlocksOfVariable(block, fieldName) {
 // delete, so moves cover blocks deleted from inside them.
 export function watchMirrorSources(block, changeEvent) {
   if (!MIRROR_EVENT_TYPES.has(changeEvent.type) || block.disposed) return;
-  if (window.loadingCode && !changeEvent.recordUndo) return;
+  if (isProjectLoading() && !changeEvent.recordUndo) return;
   if (!isMainWorkspaceEvent(changeEvent, block)) return;
 
   if (changeEvent.type === Blockly.Events.BLOCK_DELETE) {
@@ -1924,7 +1925,7 @@ function rowInputEdited(block, changeEvent) {
 export function handleInitialTransformRowsChange(block, changeEvent) {
   if (!hasInitialTransformRows(block)) return false;
   if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE) return false;
-  if (window.loadingCode && !changeEvent.recordUndo) return false;
+  if (isProjectLoading() && !changeEvent.recordUndo) return false;
 
   const edited = rowInputEdited(block, changeEvent);
   if (edited) {

@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 const NON_OBJECT_TYPES = new Set(['create_ground', 'create_map']);
 const OBJECT_NAME_FIELDS = {
@@ -128,7 +129,7 @@ export function handleRecentObjectEvent(event) {
       rememberObjectBlock(workspace.getBlockById(event.newElementId));
       break;
     case Blockly.Events.BLOCK_DELETE:
-      if (!window.loadingCode) forgetMissingObjects(workspace);
+      if (!isProjectLoading()) forgetMissingObjects(workspace);
       break;
     case Blockly.Events.VAR_RENAME:
     case Blockly.Events.VAR_DELETE:

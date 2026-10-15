@@ -10,6 +10,7 @@ import {
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { watchMirrorSources } from '../ui/blockmesh.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 const COMBINE_OPERATIONS = ['merge', 'subtract', 'embed', 'intersect', 'hull'];
 const TOOL_OPERATIONS = ['subtract', 'embed'];
@@ -23,7 +24,7 @@ function rerunOnCombineToggle(block, changeEvent) {
       changeEvent.name === 'ACTIVE' ||
       (changeEvent.name === 'OPERATION' && block.getFieldValue('ACTIVE') === 'TRUE')
     ) ||
-    (window.loadingCode && !changeEvent.recordUndo) ||
+    (isProjectLoading() && !changeEvent.recordUndo) ||
     block.workspace !== Blockly.getMainWorkspace() ||
     !block.isEnabled() ||
     !block.getRootBlock().isEnabled()

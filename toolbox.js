@@ -7050,6 +7050,7 @@ const toolboxSnippetsBuilding = {
 
 const toolboxSnippets = {
   kind: 'category',
+  toolboxitemid: 'snippets',
   icon: './images/snippets.svg',
   //colour: categoryColours["Snippets"],
   categorystyle: 'snippets_category',

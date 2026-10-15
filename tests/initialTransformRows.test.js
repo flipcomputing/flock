@@ -8,6 +8,7 @@ import { defineTextBlocks } from '../blocks/text.js';
 import { registerTextGenerators } from '../generators/generators-text.js';
 import { registerSceneGenerators } from '../generators/generators-scene.js';
 import { DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from '../blocks/blocks.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 export function runInitialTransformRowsTests() {
   describe('add block rotate and resize rows @initialtransformrows', function () {
@@ -24,14 +25,14 @@ export function runInitialTransformRowsTests() {
     });
 
     beforeEach(function () {
-      savedLoadingCode = window.loadingCode;
-      window.loadingCode = true;
+      savedLoadingCode = isProjectLoading();
+      setProjectLoading(true);
       ws = new Blockly.Workspace();
     });
 
     afterEach(function () {
       ws.dispose();
-      window.loadingCode = savedLoadingCode;
+      setProjectLoading(savedLoadingCode);
     });
 
     const number = (value) => ({ shadow: { type: 'math_number', fields: { NUM: value } } });

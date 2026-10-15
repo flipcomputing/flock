@@ -62,6 +62,7 @@ import {
   showBlockHintMessage,
   hideBlockHint,
 } from '../ui/blockHint.js';
+import { setProjectLoading } from './projectLoading.js';
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get('embed');
@@ -1130,12 +1131,12 @@ window.onload = async function () {
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
-      window.loadingCode = false;
+      setProjectLoading(false);
     }
   });
 
   // Initial view setup
-  window.loadingCode = true;
+  setProjectLoading(true);
 
   // Initialize saved language before loading workspace
   await initializeSavedLanguage();

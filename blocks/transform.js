@@ -10,6 +10,7 @@ import { translate, getTooltip, getDropdownOption } from '../main/translation.js
 import { flock } from '../flock.js';
 import { applyRetargetedTransform } from '../ui/blockmesh.js';
 import { otherObjectName } from './variableNames.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 export function defineTransformBlocks() {
   function handleBlockChange(block, changeEvent) {
@@ -20,7 +21,7 @@ export function defineTransformBlocks() {
       ((block.type === 'rotate_to' && changeEvent.name === 'MODEL') ||
         (block.type === 'resize' && changeEvent.name === 'BLOCK_NAME'))
     ) {
-      if (!window.loadingCode || changeEvent.recordUndo) applyRetargetedTransform(block);
+      if (!isProjectLoading() || changeEvent.recordUndo) applyRetargetedTransform(block);
       return;
     }
 

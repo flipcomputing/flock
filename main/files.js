@@ -15,6 +15,7 @@ import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
+import { setProjectLoading } from './projectLoading.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -380,6 +381,9 @@ export function loadWorkspaceAndExecute(
     hintIfXrModeMissing(workspace);
   } catch (error) {
     console.error('Failed to load workspace:', error);
+    // Blockly skips this event when a load throws; it ends the load, after
+    // the partly loaded blocks' queued events.
+    Blockly.Events.fire(new Blockly.Events.FinishedLoading(workspace));
 
     // Handle corruption errors
     if (error.message.includes('isDeadOrDying')) {
@@ -534,6 +538,7 @@ export async function loadWorkspace(workspace, executeCallback) {
       })
       .catch((error) => {
         console.error('Error loading starter example:', error);
+        setProjectLoading(false);
       });
   }
 
@@ -919,7 +924,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
     return;
   }
 
-  window.loadingCode = true;
+  setProjectLoading(true);
   readProjectFile(file)
     .then((json) => {
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
@@ -929,7 +934,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
     .catch((error) => {
       console.error('Error loading Blockly project:', error);
       alert(translate(alertKeyForProjectError(error)));
-      window.loadingCode = false;
+      setProjectLoading(false);
     });
 }
 
@@ -1021,7 +1026,7 @@ export function setupFileInput(workspace, executeCallback) {
       .then(async (json) => {
         if (!(await confirmDiscardIfModified())) return;
 
-        window.loadingCode = true;
+        setProjectLoading(true);
         document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
@@ -1030,7 +1035,7 @@ export function setupFileInput(workspace, executeCallback) {
       .catch((error) => {
         console.error('Error loading Blockly project:', error);
         alert(translate(alertKeyForProjectError(error)));
-        window.loadingCode = false;
+        setProjectLoading(false);
       })
       .finally(() => {
         // Reset the input so the same file can be selected again
@@ -1059,7 +1064,7 @@ export async function openFile(workspace, executeCallback) {
       const json = await readProjectFile(file);
       if (!(await confirmDiscardIfModified())) return;
 
-      window.loadingCode = true;
+      setProjectLoading(true);
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
@@ -1067,7 +1072,7 @@ export async function openFile(workspace, executeCallback) {
       if (e.name === 'AbortError') return;
       console.error('Error opening file:', e);
       alert(translate(alertKeyForProjectError(e)));
-      window.loadingCode = false;
+      setProjectLoading(false);
     }
   } else {
     document.getElementById('fileInput').click();
@@ -1080,7 +1085,7 @@ export async function loadExample(file, name, executeCallback = window.executeCo
   if (!file) return;
   if (!(await confirmDiscardIfModified())) return;
 
-  window.loadingCode = true;
+  setProjectLoading(true);
 
   try {
     const json = await fetchProjectJson(file);
@@ -1095,7 +1100,7 @@ export async function loadExample(file, name, executeCallback = window.executeCo
   } catch (error) {
     console.error('Error loading example:', error);
     // Clear the loading flag so a failed load doesn't wedge later actions.
-    window.loadingCode = false;
+    setProjectLoading(false);
     alert(translate('example_load_failed_alert'));
   }
 }

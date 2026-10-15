@@ -10,6 +10,7 @@ import {
 import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
 import { dismissBanner } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
+import { setProjectLoading } from '../main/projectLoading.js';
 
 export function runBlocksTests() {
   describe('blocks.js tests', function () {
@@ -106,11 +107,11 @@ export function runBlocksTests() {
         };
 
         workspaceBlocks = [mockBlock];
-        window.loadingCode = false;
+        setProjectLoading(false);
       });
 
       afterEach(function () {
-        delete window.loadingCode;
+        setProjectLoading(false);
       });
 
       it('should keep a unique name when the block is not a duplicate', function () {
@@ -191,7 +192,7 @@ export function runBlocksTests() {
       });
 
       it('should not rename variables during code loading', function () {
-        window.loadingCode = true;
+        setProjectLoading(true);
         const variable = mockWorkspace.createVariable('star', null);
         mockVariableField.setValue(variable.getId());
         workspaceBlocks = [mockBlock, referenceBlock(variable)];

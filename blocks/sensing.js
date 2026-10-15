@@ -20,6 +20,7 @@ import { flock } from '../flock.js';
 import { makeTouchesInputSubtree, changeEventHitsTouches, wasBlockDeleted } from './scene.js';
 import { readColourFromInputOrShadow, readNumberInput } from '../ui/blockmesh.js';
 import { handleUIControlBlockEvent } from '../ui/uicontrolgizmo.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 // Gamepad-only accessibility actions have no keyboard equivalent, so they're
 // excluded from the keyboard-facing action dropdowns below.
@@ -338,7 +339,7 @@ function attachOnScreenControlsLiveUpdate(block) {
 
   registerBlockHandler(block, (changeEvent) => {
     if (!eventTypes.includes(changeEvent.type)) return;
-    if (window.loadingCode && !changeEvent.recordUndo) return;
+    if (isProjectLoading() && !changeEvent.recordUndo) return;
 
     if (wasBlockDeleted(changeEvent, block.id)) {
       applyOtherOnScreenControlsOrDefault(ws, block.id);

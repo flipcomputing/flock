@@ -4,6 +4,7 @@ import { getHelpUrlFor, registerBlockHandler } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { makeSectionIcon, getCurrentIconColor, BLOCK_ICON_FIELD_NAME } from './blockIcons.js';
 import { toggleSectionCollapsed, SECTION_DO_CHECK, getAllSectionBlocks } from './sectionContainment.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 // Sections are identified by this plain name field, not a Blockly variable -
 // the load/save section blocks (added later) will list section names the same
@@ -30,7 +31,7 @@ function nextAvailableSectionName(workspace, excludeBlockId) {
 // one - e.g. when a section block is duplicated/pasted, matching how
 // duplicating a procedure definition also gives the copy a fresh name.
 function ensureUniqueSectionName(block, changeEvent) {
-  if (window.loadingCode) return; // Don't rename while code is loading
+  if (isProjectLoading()) return; // Don't rename while code is loading
   if (block.isInFlyout) return;
   if (changeEvent.type !== Blockly.Events.BLOCK_CREATE) return;
   if (!changeEvent.ids?.includes(block.id)) return;

@@ -19,6 +19,7 @@ import { defineModifyBlocks } from '../blocks/modify.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineConnectBlocks } from '../blocks/connect.js';
 import { highlightBlockById } from '../ui/blocklyutil.js';
+import { setProjectLoading } from '../main/projectLoading.js';
 
 export function runVariableNamesTests() {
   describe('Variable naming @variablenames', function () {
@@ -48,14 +49,14 @@ export function runVariableNamesTests() {
 
     beforeEach(function () {
       workspace = new Blockly.Workspace();
-      window.loadingCode = false;
+      setProjectLoading(false);
       resetRecent();
     });
 
     afterEach(function () {
       resetRecent();
       workspace.dispose();
-      delete window.loadingCode;
+      setProjectLoading(false);
     });
 
     describe('default names', function () {
@@ -166,7 +167,7 @@ export function runVariableNamesTests() {
 
       it('does not rename while a project is loading', function () {
         const box1 = append({ type: 'create_box' });
-        window.loadingCode = true;
+        setProjectLoading(true);
 
         expect(varText(duplicate(box1, 'box'))).to.equal('box1');
       });
@@ -562,7 +563,7 @@ export function runVariableNamesTests() {
         separateNestedLoopVariables(moved(inner, { recordUndo: false }));
         separateNestedLoopVariables(moved(inner, { newParentId: undefined }));
         separateNestedLoopVariables(moved(inner, { type: Blockly.Events.BLOCK_CHANGE }));
-        window.loadingCode = true;
+        setProjectLoading(true);
         separateNestedLoopVariables(moved(inner));
 
         expect(loopName(inner)).to.equal('count');

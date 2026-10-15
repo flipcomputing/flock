@@ -6,6 +6,7 @@ import '../blocks/blocks.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { getParamDefaultShadowState } from '../blocks/procedureParams.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 function appendDefinition(workspace, params, inputs = {}) {
   return Blockly.serialization.blocks.append(
@@ -41,14 +42,14 @@ export function runProcedureParamsTests() {
     });
 
     beforeEach(function () {
-      savedLoadingCode = window.loadingCode;
-      window.loadingCode = false;
+      savedLoadingCode = isProjectLoading();
+      setProjectLoading(false);
       workspace = new Blockly.Workspace();
     });
 
     afterEach(function () {
       workspace.dispose();
-      window.loadingCode = savedLoadingCode;
+      setProjectLoading(savedLoadingCode);
     });
 
     it('gives a new definition parameter a number shadow of 0', function () {
@@ -104,7 +105,7 @@ export function runProcedureParamsTests() {
       appendDefinition(workspace, ['size'], {
         size: { block: { type: 'math_number', fields: { NUM: 5 } } },
       });
-      window.loadingCode = true;
+      setProjectLoading(true);
       const caller = appendCaller(workspace, ['size']);
       expect(argTarget(caller, 0)).to.equal(null);
     });
@@ -121,9 +122,9 @@ export function runProcedureParamsTests() {
 
     it('fills only the new socket when a parameter is added', function () {
       const definition = appendDefinition(workspace, ['size']);
-      window.loadingCode = true;
+      setProjectLoading(true);
       const caller = appendCaller(workspace, ['size']);
-      window.loadingCode = false;
+      setProjectLoading(false);
 
       definition.plus();
 

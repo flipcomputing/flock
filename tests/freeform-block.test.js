@@ -6,6 +6,7 @@ import { defineBlocks } from '../blocks/blocks.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { CUBE_FACES, extrudeFace, mergePoints } from '../api/freeformgeometry.js';
 import { setNumberInputs } from '../ui/blocklyutil.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 const vectorState = (x, y, z) => ({
   block: {
@@ -61,14 +62,14 @@ export function runFreeformBlockTests() {
     });
 
     beforeEach(function () {
-      savedLoadingCode = window.loadingCode;
-      window.loadingCode = true;
+      savedLoadingCode = isProjectLoading();
+      setProjectLoading(true);
       workspace = new Blockly.Workspace();
     });
 
     afterEach(function () {
       workspace.dispose();
-      window.loadingCode = savedLoadingCode;
+      setProjectLoading(savedLoadingCode);
     });
 
     it('generates a vector as createVector3', function () {
@@ -231,7 +232,7 @@ export function runFreeformBlockTests() {
 
       // The app's dispatcher only listens to the main workspace.
       beforeEach(function () {
-        window.loadingCode = false;
+        setProjectLoading(false);
         workspace.addChangeListener((event) =>
           workspace.getBlocksByType('create_freeform').forEach((b) => b.rejectBrokenShape_(event))
         );
