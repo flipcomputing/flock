@@ -45,12 +45,6 @@ const InfoPanel = {
     btn.hidden = !tab;
     btn.addEventListener('click', () => (owner ? owner.toggle() : this.toggle(id)));
     this._tablist.appendChild(btn);
-    if (tab) {
-      const divider = document.createElement('div');
-      divider.className = 'toolbar-divider';
-      divider.setAttribute('aria-hidden', 'true');
-      this._tablist.appendChild(divider);
-    }
 
     const panel = document.createElement('div');
     panel.id = `info-tab-panel-${id}`;

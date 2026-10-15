@@ -693,8 +693,7 @@ button {
   pointer-events: auto;
 }
 
-#blocklyZoomControls .toolbar-divider,
-#info-panel-tabs .toolbar-divider {
+#blocklyZoomControls .toolbar-divider {
   width: 1px;
   height: 24px;
   background-color: var(--color-border);
