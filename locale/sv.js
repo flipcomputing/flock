@@ -244,6 +244,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Ogiltigt CSS-färgvärde.', // ai
+  colour_contrast_warning: 'Texten kan vara svår att läsa: kontrasten är %1:1. Sikta på minst %2:1.', // ai
   random_colour: 'slumpmässig färg',
   material: 'material %1 %2',
   material_alpha: 'alfa',
@@ -1234,6 +1235,7 @@ export default {
   select_mesh_position_prompt: 'Välj ett objekt att placera.',
   select_mesh_duplicate_prompt: 'Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Kopia placerad.', // AI-generated; needs validation
   orbit_origin_info: 'Dra för att flytta kameran runt origo. Klicka på ett objekt för att kretsa runt det.',
   orbit_mesh_info: 'Dra för att flytta kameran runt objektet',
   camera_preview_info: 'Du tittar genom kameran. Klicka på kameraknappen för att gå tillbaka.', // AI-generated; needs validation
@@ -1263,9 +1265,6 @@ export default {
   update_available_ui: 'En ny version av Flock är tillgänglig.',
   reload_button_ui: 'Ladda om',
 
-  colour_rgb: 'röd %1 grön %2 blå %3',
-  colour_random: 'slumpmässig färg',
-  colour_blend: 'blanda %1 och %2 med %3',
 
   dark_contrast_theme_ui: 'Mörk',
 

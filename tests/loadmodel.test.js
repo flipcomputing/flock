@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
-import { blockHandlerRegistry } from '../blocks/blocks.js';
+import { blockHandlerRegistry, enableBlockHandlers } from '../blocks/blocks.js';
 import { defineModelBlocks } from '../blocks/models.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { registerSceneGenerators } from '../generators/generators-scene.js';
@@ -23,6 +23,7 @@ export function runLoadModelTests(flock) {
 
     beforeEach(function () {
       ws = new Blockly.Workspace();
+      enableBlockHandlers(ws);
     });
 
     afterEach(function () {
@@ -225,6 +226,7 @@ export function runLoadModelTests(flock) {
       if (!Blockly.Blocks['load_model']) defineModelBlocks();
       previousMain = Blockly.getMainWorkspace();
       ws = new Blockly.Workspace();
+      enableBlockHandlers(ws);
       Blockly.common.setMainWorkspace(ws);
     });
 

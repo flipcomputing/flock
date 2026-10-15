@@ -249,6 +249,7 @@ export default {
   greyscale_colour: '%1', // human
   colour_from_string: '- %1 -', // human
   colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
+  colour_contrast_warning: 'El texto puede ser difícil de leer: el contraste es %1:1. Intenta que sea al menos %2:1.', // ai
   random_colour: 'color aleatorio', // human
   material: 'material %1 %2', // human
   material_alpha: 'alfa',
@@ -1356,6 +1357,9 @@ export default {
   unsaved_changes_title_ui: 'Cambios sin guardar', // ai
   unsaved_changes_message_ui:
     'Este proyecto tiene cambios que no se han guardado en un archivo. ¿Qué te gustaría hacer?', // ai
+  unsaved_changes_maybe_title_ui: '¿Guardar tu proyecto?', // ai
+  unsaved_changes_maybe_message_ui:
+    'Es posible que este proyecto aún no se haya guardado en un archivo. ¿Qué te gustaría hacer?', // ai
   unsaved_changes_save_button_ui: 'Guardar en archivo', // ai
   unsaved_changes_discard_button_ui: 'Continuar sin guardar', // ai
   unsaved_changes_cancel_button_ui: 'Cancelar', // ai
@@ -1390,6 +1394,7 @@ export default {
   error_project_crash:
     'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
   error_run_setup: 'Flock XR no pudo iniciar tu proyecto. Intenta recargar la página.', // ai
+  error_block_handler: 'Hubo un problema al editar tus bloques.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
   error_webgl_unavailable: 'Flock XR no puede iniciar la vista 3D. Intenta recargar la página.', // ai
@@ -1441,6 +1446,7 @@ export default {
   select_mesh_position_prompt: 'Selecciona un objeto para colocarlo.',
   select_mesh_duplicate_prompt: 'Selecciona un objeto para duplicar.', // Google (had to update it)
   place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copia colocada.', // AI-generated; needs validation
   orbit_origin_info: 'Arrastra para mover la cámara alrededor del origen. Haz clic en un objeto para orbitar alrededor de él.',
   orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
   camera_preview_info: 'Mirando a través de la cámara. Haz clic en el botón de la cámara para volver.', // AI-generated; needs validation
@@ -1525,9 +1531,6 @@ export default {
   update_available_ui: 'Una nueva versión de Flock está disponible.', // human
   reload_button_ui: 'Recargar', // human
 
-  colour_rgb: 'rojo %1 verde %2 azul %3', // human
-  colour_random: 'color aleatorio', // human
-  colour_blend: 'mezclar %1 y %2 en %3', // human
 
   dark_contrast_theme_ui: 'Oscuro', // human
 

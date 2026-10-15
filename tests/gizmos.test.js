@@ -19,7 +19,7 @@ import {
 import { showStatus, clearStatus } from '../ui/status.js';
 import { getNumberInput } from '../ui/blocklyutil.js';
 import { meshMap } from '../generators/generators.js';
-import { blockHandlerRegistry } from '../blocks/blocks.js';
+import { blockHandlerRegistry, enableBlockHandlers } from '../blocks/blocks.js';
 import { updateMeshFromBlock, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
 import { topHandler, makeKeyEvent, dispatchKeyup } from './utils/keyboardDispatcherTestUtils.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
@@ -45,6 +45,7 @@ export function runGizmoTests(flock) {
         workspace = new Blockly.Workspace();
         Blockly.common.setMainWorkspace(workspace);
       }
+      enableBlockHandlers(Blockly.getMainWorkspace());
     });
 
     after(function () {

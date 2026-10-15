@@ -164,6 +164,14 @@ function controlsButtonBackground(layout, index) {
   return flock.hexToRgba(hex, Math.min(alpha, 1));
 }
 
+function sayAlpha(alpha) {
+  return isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
+}
+
+function saySize(size) {
+  return isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+}
+
 function configureControlsResizeHandling() {
   const engine = flock.engine;
   if (!engine || flock._controlsResizeEngine === engine) return;
@@ -304,18 +312,19 @@ function layoutUIInput(input, options) {
   input.width = `${scaledInputWidth}px`;
   input.height = `${scaledInputHeight}px`;
   input.color = textColor || 'black';
+  input.placeholderColor = input.color;
   input.background = backgroundColor || 'white';
   input.focusedBackground = backgroundColor || 'white';
   input.fontSize = scaledFontSize;
-  anchorControl(input, x, y);
+  const inputX = x < 0 ? x - buttonWidth - spacing : x;
+  anchorControl(input, inputX, y);
 
   button.width = `${buttonWidth}px`;
   button.height = `${scaledInputHeight}px`;
   button.color = backgroundColor || 'gray';
   button.background = textColor || 'white';
   button.fontSize = scaledFontSize;
-  const offset = scaledInputWidth + spacing;
-  const submitX = x < 0 ? x - offset : x + offset;
+  const submitX = x < 0 ? x : x + scaledInputWidth + spacing;
   anchorControl(button, submitX, y);
 
   registerUIInput(
@@ -323,7 +332,7 @@ function layoutUIInput(input, options) {
     button.name,
     input,
     button,
-    { x, y, w: scaledInputWidth, h: scaledInputHeight },
+    { x: inputX, y, w: scaledInputWidth, h: scaledInputHeight },
     { x: submitX, y, w: buttonWidth, h: scaledInputHeight }
   );
 }
@@ -334,9 +343,12 @@ const SLIDER_SIZES = {
   LARGE: { width: 300, height: 40 },
 };
 
-function layoutUISlider(slider, options) {
-  const { size, textColor, backgroundColor } = options;
+function layoutUISlider(slider, options, { previous } = {}) {
+  const { size, textColor, backgroundColor, min, max, value } = options;
   const { x, y } = storeLayout(slider, options);
+  if (Number.isFinite(Number(min))) slider.minimum = Number(min);
+  if (Number.isFinite(Number(max))) slider.maximum = Number(max);
+  if (value !== previous?.value && Number.isFinite(Number(value))) slider.value = Number(value);
   const resolvedSize = SLIDER_SIZES[(size || 'MEDIUM').toUpperCase()] || SLIDER_SIZES.MEDIUM;
   const scaledWidth = Math.round(resolvedSize.width * flock.displayScale);
   const scaledHeight = Math.round(resolvedSize.height * flock.displayScale);
@@ -371,13 +383,53 @@ function adoptEditorPreview(blockKey) {
   return preview.metadata.controlId;
 }
 
+function discardEditorPreview(blockKey) {
+  if (!blockKey) return;
+  for (const control of [...flock.scene.UITexture.rootContainer.children]) {
+    if (control.metadata?.blockKey === blockKey && control.metadata.editorPreview) {
+      flock._removeUIControl(control);
+    }
+  }
+}
+
+function markEditorPreview(control, editorPreview) {
+  if (editorPreview) control.metadata.editorPreview = true;
+  else discardEditorPreview(control.metadata.blockKey);
+}
+
 export const flockUI = {
   _restyleUIControl(control, changes) {
     const layout = UI_LAYOUTS[control?.metadata?.uiKind];
     if (!layout || !control.parent) return;
     const previous = control.metadata.layout;
     const announce = changes.text !== undefined && changes.text !== previous.text;
-    layout(control, { ...previous, ...changes }, { announce });
+    layout(control, { ...previous, ...changes }, { announce, previous });
+  },
+  _relayoutUIControls() {
+    for (const control of flock.scene?.UITexture?.rootContainer.children ?? []) {
+      flock._restyleUIControl(control, {});
+    }
+  },
+  _sayBubblesForBlock(blockKey) {
+    if (!flock.scene || !blockKey) return [];
+    return flock.scene.meshes.flatMap(
+      (mesh) =>
+        mesh.advancedTexture
+          ?.getControlByName('stackPanel')
+          ?.children.filter((bg) => bg.metadata?.blockKey === blockKey) ?? []
+    );
+  },
+  _restyleSayBubble(bg, changes) {
+    const textBlock = bg.children[0];
+    if (!textBlock) return;
+    const style = { ...bg.metadata.sayStyle, ...changes };
+    style.alpha = sayAlpha(style.alpha);
+    style.size = saySize(style.size);
+    bg.metadata.sayStyle = style;
+    bg.background = flock.hexToRgba(style.backgroundColor, style.alpha);
+    if (changes.text !== undefined) textBlock.text = String(changes.text);
+    textBlock.color = style.textColor;
+    textBlock.fontSize = style.size * 8 * bg.metadata.uiScale;
   },
   _removeUIControl(control) {
     control.metadata?.submit?.dispose();
@@ -496,6 +548,7 @@ export const flockUI = {
     backgroundColor,
     buttonId,
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -525,6 +578,7 @@ export const flockUI = {
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
     button.sectionOwner = __owningSection;
     tagUIControl(button, 'button', blockKey);
+    markEditorPreview(button, editorPreview);
     flock.scene.UITexture.addControl(button);
     layoutUIButton(button, { text, x, y, width, textSize, textColor, backgroundColor });
 
@@ -544,6 +598,7 @@ export const flockUI = {
     id = null,
     mode = 'AWAIT',
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -575,6 +630,7 @@ export const flockUI = {
     button.sectionOwner = __owningSection;
     tagUIControl(input, 'input', blockKey);
     input.metadata.submit = button;
+    markEditorPreview(input, editorPreview);
 
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
@@ -616,6 +672,7 @@ export const flockUI = {
     backgroundColor,
     onChange,
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -633,10 +690,6 @@ export const flockUI = {
     if (existing) existing.dispose();
 
     const slider = new flock.GUI.Slider(id);
-    slider.minimum = min;
-    slider.maximum = max;
-    slider.value = value;
-
     slider.thickness = 0;
     slider.borderColor = 'transparent';
 
@@ -647,12 +700,13 @@ export const flockUI = {
     slider.zIndex = 1000;
     slider.sectionOwner = __owningSection;
     tagUIControl(slider, 'slider', blockKey);
+    markEditorPreview(slider, editorPreview);
+
+    flock.scene.UITexture.addControl(slider);
+    layoutUISlider(slider, { x, y, size, textColor, backgroundColor, min, max, value });
     if (typeof onChange === 'function') {
       slider.onValueChangedObservable.add((newValue) => onChange(newValue));
     }
-
-    flock.scene.UITexture.addControl(slider);
-    layoutUISlider(slider, { x, y, size, textColor, backgroundColor });
 
     return id;
   },
@@ -911,14 +965,13 @@ export const flockUI = {
       alpha = 1,
       size = 24,
       mode = 'ADD',
+      blockKey = null,
     } = options;
 
     // Validate duration
     duration = isFinite(Number(duration)) && Number(duration) >= 0 ? Number(duration) : 0;
-    // Validate alpha
-    alpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
-    // Validate size
-    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+    alpha = sayAlpha(alpha);
+    size = saySize(size);
 
     if (!flock.scene) {
       console.error('Scene is not available.');
@@ -1091,7 +1144,12 @@ export const flockUI = {
           advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
             plane,
             textureWidth,
-            textureHeight
+            textureHeight,
+            true,
+            false,
+            undefined,
+            undefined,
+            flock.BABYLON.Texture.LINEAR_LINEAR_MIPNEAREST
           );
           advancedTexture.isTransparent = true;
           plane.advancedTexture = advancedTexture;
@@ -1140,6 +1198,11 @@ export const flockUI = {
           bg.forceResizeWidth = true;
           bg.checkCollisions = false;
           bg.isPickable = false;
+          bg.metadata = {
+            blockKey,
+            uiScale,
+            sayStyle: { textColor, backgroundColor, alpha, size },
+          };
           stackPanel.addControl(bg);
 
           const scale = 8 * uiScale;

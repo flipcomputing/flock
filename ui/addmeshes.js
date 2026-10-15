@@ -5,6 +5,7 @@ import {
   getMeshFromBlock,
   getOwnVar,
   readColourValue,
+  readColourFromInputOrShadow,
   readColourList,
   attachToEnclosingGroupIfAny,
   applyInitialTransformsFromBlock,
@@ -221,22 +222,7 @@ export function createMeshOnCanvas(block) {
       modelName = block.getFieldValue('MODELS');
       scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
-      {
-        const colorInput = block.getInput('COLOR');
-        const target = colorInput?.connection?.targetBlock?.();
-
-        if (target) {
-          const read = readColourValue(target);
-          color = read.value;
-        } else {
-          const shadowDom = colorInput?.connection?.getShadowDom?.();
-          const shadowField =
-            shadowDom?.querySelector?.('field[name="COLOUR"]') ||
-            shadowDom?.querySelector?.('field[name="COLOR"]');
-
-          color = shadowField?.textContent || shadowField?.innerText || null;
-        }
-      }
+      color = readColourFromInputOrShadow(block, 'COLOR').value;
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -578,7 +564,7 @@ function createShapeInternal(block) {
   const resolveColorOrMaterial = (defaultColor = '#ff0000') => {
     const colorInput = block.getInputTargetBlock('COLOR');
     let alpha = 1;
-    let colorOrMaterial = defaultColor;
+    let colorOrMaterial;
 
     if (colorInput?.type === 'material') {
       const materialInfo = extractMaterialInfo(colorInput);

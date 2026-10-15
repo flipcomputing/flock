@@ -784,7 +784,7 @@ export function runKeyboardUiTests(flock) {
       it('filtering by a chip shows only that topic’s cards', function () {
         HowToPanel.show();
         chipByLabel('Gizmo').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(10);
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(11);
         expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('true');
         chipByLabel('Blocks').click();
         expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);

@@ -189,6 +189,7 @@ export async function setLanguage(language) {
       } finally {
         Blockly.Events.enable();
       }
+      window.flockRefreshContrastWarnings?.();
     }
 
     if (toolboxElement) {

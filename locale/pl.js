@@ -246,6 +246,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Nieprawidłowa wartość koloru CSS.', // ai
+  colour_contrast_warning: 'Tekst może być trudny do odczytania: kontrast wynosi %1:1. Celuj w co najmniej %2:1.', // ai
   random_colour: 'losowy kolor',
   material: 'materiał %1 %2',
   material_alpha: 'przezroczystość:',
@@ -1239,6 +1240,7 @@ export default {
   select_mesh_position_prompt: 'Wybierz obiekt do umieszczenia.',
   select_mesh_duplicate_prompt: 'Wybierz obiekt do powielenia.',
   place_duplicate_prompt: 'Kliknij, aby umieścić kopię.', // AI-generated; needs validation
+  duplicate_placed_status: 'Kopia umieszczona.', // AI-generated; needs validation
   orbit_origin_info: 'Przeciągnij, aby przesunąć kamerę wokół punktu początkowego. Kliknij obiekt, aby go okrążyć.',
   orbit_mesh_info: 'Przeciągnij, aby przesunąć kamerę wokół obiektu',
   camera_preview_info: 'Patrzysz przez kamerę. Kliknij przycisk kamery, aby wrócić.', // AI-generated; needs validation
@@ -1268,9 +1270,6 @@ export default {
   update_available_ui: 'Dostępna jest nowa wersja Flock.',
   reload_button_ui: 'Odśwież',
 
-  colour_rgb: 'czerwony %1 zielony %2 niebieski %3',
-  colour_random: 'losowy kolor',
-  colour_blend: 'zmieszaj %1 i %2 o %3',
 
   dark_contrast_theme_ui: 'Ciemny',
 

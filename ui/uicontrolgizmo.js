@@ -3,6 +3,8 @@ import { flock } from '../flock.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
+import { isProjectLoading } from '../main/projectLoading.js';
+import { readColourValue } from './blockmesh.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
@@ -11,51 +13,80 @@ const ARROW_LENGTH = 24;
 const UI_BLOCKS = {
   ui_text: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      FONT_SIZE: 'fontSize',
-      COLOR: 'color',
-      BACKGROUND_COLOR: 'backgroundColor',
-      ALPHA: 'alpha',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      FONT_SIZE: { option: 'fontSize', empty: 24 },
+      COLOR: { option: 'color', empty: '' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
+      ALPHA: { option: 'alpha', empty: 1 },
     },
     fields: {},
   },
   ui_button: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      TEXT_COLOR: 'textColor',
-      BACKGROUND_COLOR: 'backgroundColor',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      TEXT_COLOR: { option: 'textColor', empty: '' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '' },
     },
     fields: { SIZE: 'width', TEXT_SIZE: 'textSize' },
   },
   ui_input: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      TEXT_SIZE: 'fontSize',
-      TEXT_COLOR: 'textColor',
-      BACKGROUND_COLOR: 'backgroundColor',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      TEXT_SIZE: { option: 'fontSize', empty: 24 },
+      TEXT_COLOR: { option: 'textColor', empty: '#000000' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
     },
     fields: { SIZE: 'size' },
   },
   ui_slider: {
-    inputs: { X: 'x', Y: 'y', COLOR: 'textColor', BACKGROUND: 'backgroundColor' },
+    inputs: {
+      MIN: { option: 'min', empty: 0 },
+      MAX: { option: 'max', empty: 100 },
+      VALUE: { option: 'value', empty: 50 },
+      X: { option: 'x', empty: 100 },
+      Y: { option: 'y', empty: 50 },
+      COLOR: { option: 'textColor', empty: '#000000' },
+      BACKGROUND: { option: 'backgroundColor', empty: '#ffffff' },
+    },
     fields: { SIZE: 'size' },
   },
 };
 
-const UI_TEXT_DEFAULTS = {
-  text: '',
-  x: 0,
-  y: 0,
-  fontSize: 24,
-  color: '',
-  backgroundColor: '#ffffff',
-  alpha: 1,
+const UI_PREVIEWS = {
+  ui_text: {
+    create: 'UIText',
+    defaults: {
+      text: '',
+      x: 0,
+      y: 0,
+      fontSize: 24,
+      color: '',
+      backgroundColor: '#ffffff',
+      alpha: 1,
+      duration: 0,
+    },
+  },
+  ui_button: {
+    create: 'UIButton',
+    defaults: { text: '', x: 0, y: 0, width: 'SMALL' },
+    id: (block) => ({ buttonId: `preview_${block.id}` }),
+  },
+  ui_input: {
+    create: 'UIInput',
+    defaults: { text: '', x: 0, y: 0, fontSize: 24, mode: 'START' },
+    id: (block) => ({ id: `preview_${block.id}` }),
+  },
+  ui_slider: {
+    create: 'UISlider',
+    defaults: { x: 100, y: 50, min: 0, max: 100, value: 50 },
+    id: (block) => ({ id: `preview_${block.id}` }),
+  },
 };
 
 let selection = null;
@@ -111,26 +142,46 @@ function literalNumberBlock(block, inputName) {
   return target?.type === 'math_number' ? target : null;
 }
 
-function literalValue(block, inputName) {
+function literalValue(block, inputName, rollRandom) {
   const target = block.getInputTargetBlock(inputName);
   if (!target) return undefined;
+  if (!rollRandom && target.getDescendants(false).some((b) => b.type === 'random_colour')) {
+    return undefined;
+  }
   if (target.type === 'math_number') {
     const n = Number(target.getFieldValue('NUM'));
     return Number.isFinite(n) ? n : undefined;
   }
   if (target.type === 'text') return target.getFieldValue('TEXT');
-  if (target.type === 'colour')
-    return target.getFieldValue('COLOR') ?? target.getFieldValue('COLOUR');
-  return undefined;
+  const { value } = readColourValue(target);
+  return typeof value === 'string' ? value : undefined;
 }
 
-function literalOptions(block) {
-  const config = UI_BLOCKS[block.type];
+function readInputOptions(block, inputs, rollInput = true) {
   const options = {};
-  for (const [inputName, option] of Object.entries(config.inputs)) {
-    const value = literalValue(block, inputName);
+  for (const [inputName, { option, empty }] of Object.entries(inputs)) {
+    const roll = rollInput === true || rollInput === inputName;
+    const value = block.getInputTargetBlock(inputName)
+      ? literalValue(block, inputName, roll)
+      : empty;
     if (value !== undefined) options[option] = value;
   }
+  return options;
+}
+
+function editedInputName(block, event) {
+  if (event.type === Blockly.Events.BLOCK_MOVE) {
+    if (event.newParentId === block.id) return event.newInputName;
+    if (event.oldParentId === block.id) return event.oldInputName;
+  }
+  let child = block.workspace.getBlockById(event.blockId);
+  while (child && child.getParent() !== block) child = child.getParent();
+  return child ? (block.getInputWithBlock(child)?.name ?? null) : null;
+}
+
+function literalOptions(block, rollInput) {
+  const config = UI_BLOCKS[block.type];
+  const options = readInputOptions(block, config.inputs, rollInput);
   for (const [fieldName, option] of Object.entries(config.fields)) {
     const value = block.getFieldValue(fieldName);
     if (value != null) options[option] = value;
@@ -138,10 +189,10 @@ function literalOptions(block) {
   return options;
 }
 
-export function updateUIControlFromBlock(block) {
+export function updateUIControlFromBlock(block, event) {
   const controls = uiControlsForBlock(block.id);
   if (!controls.length) return;
-  const changes = literalOptions(block);
+  const changes = literalOptions(block, event ? editedInputName(block, event) : true);
   for (const control of controls) flock._restyleUIControl(control, changes);
   if (selection && controls.includes(selection.control)) {
     const { x, y } = selection.control.metadata.layout;
@@ -149,12 +200,13 @@ export function updateUIControlFromBlock(block) {
   }
 }
 
-export function previewUITextFromBlock(block) {
-  if (!flock.scene || !flock.GUI || uiControlsForBlock(block.id).length) return;
-  flock.UIText({
-    ...UI_TEXT_DEFAULTS,
+export function previewUIControlFromBlock(block) {
+  const preview = UI_PREVIEWS[block.type];
+  if (!preview || !flock.scene || !flock.GUI || uiControlsForBlock(block.id).length) return;
+  flock[preview.create]({
+    ...preview.defaults,
     ...literalOptions(block),
-    duration: 0,
+    ...preview.id?.(block),
     blockKey: block.id,
     editorPreview: true,
   });
@@ -187,15 +239,32 @@ function editsConfig(block, event) {
   return !!changed && isValueInputDescendantOf(block, changed);
 }
 
-export function handleUIControlBlockEvent(block, event, { preview = false } = {}) {
+const SAY_STYLE_INPUTS = {
+  TEXT: { option: 'text', empty: undefined },
+  TEXT_COLOR: { option: 'textColor', empty: '#000000' },
+  BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
+  ALPHA: { option: 'alpha', empty: 1 },
+  SIZE: { option: 'size', empty: 24 },
+};
+
+export function handleSayBlockEvent(block, event) {
+  if (block.disposed || event.workspaceId !== block.workspace.id) return;
+  if (!editsConfig(block, event)) return;
+  const bubbles = flock._sayBubblesForBlock?.(block.id) ?? [];
+  if (!bubbles.length) return;
+  const changes = readInputOptions(block, SAY_STYLE_INPUTS, editedInputName(block, event));
+  for (const bg of bubbles) flock._restyleSayBubble(bg, changes);
+}
+
+export function handleUIControlBlockEvent(block, event) {
   if (block.disposed || event.workspaceId !== block.workspace.id) return;
   if (isOwnLifecycleEvent(block, event)) {
-    if (window.loadingCode && !event.recordUndo) return;
+    if (isProjectLoading() && !event.recordUndo) return;
     if (!isLive(block)) removeUIControlsForBlock(block.id);
-    else if (preview) previewUITextFromBlock(block);
+    else previewUIControlFromBlock(block);
     return;
   }
-  if (editsConfig(block, event)) updateUIControlFromBlock(block);
+  if (editsConfig(block, event)) updateUIControlFromBlock(block, event);
 }
 
 const COLOUR_INPUTS = {
@@ -291,7 +360,7 @@ function colourZone(control, x, y) {
   return { part: kind, zone: halfwayTo(glyph, control._currentMeasure) };
 }
 
-export function uiColourTargetAt(x, y) {
+function uiControlColourTargetAt(x, y) {
   const control = uiControlAt(x, y);
   if (!control) return null;
   const scale = guiScale();
@@ -302,8 +371,99 @@ export function uiColourTargetAt(x, y) {
   return {
     control,
     inputName: COLOUR_INPUTS[part][onGlyph ? 'glyph' : 'rest'],
-    highlight: onGlyph ? zone : null,
+    highlight: onGlyph
+      ? {
+          left: zone.left / scale,
+          top: zone.top / scale,
+          width: zone.width / scale,
+          height: zone.height / scale,
+        }
+      : null,
   };
+}
+
+function sayBubbles(mesh) {
+  return (
+    mesh.advancedTexture
+      ?.getControlByName('stackPanel')
+      ?.children.filter((bg) => bg.metadata?.blockKey) ?? []
+  );
+}
+
+function sayBubbleAt(x, y) {
+  const scene = flock.scene;
+  if (!scene?.activeCamera) return null;
+  const ray = scene.createPickingRay(x, y, flock.BABYLON.Matrix.Identity(), scene.activeCamera);
+  const hits = scene.multiPickWithRay(
+    ray,
+    (mesh) => mesh.isEnabled() && mesh.isVisible && sayBubbles(mesh).length > 0
+  );
+  for (const hit of (hits ?? []).sort((a, b) => a.distance - b.distance)) {
+    const mesh = hit.pickedMesh;
+    const texture = mesh.advancedTexture;
+    const uv = hit.getTextureCoordinates();
+    if (!uv) continue;
+    const size = texture.getSize();
+    const gx = uv.x * size.width;
+    const gy = (texture.applyYInversionOnUpdate ? 1 - uv.y : uv.y) * size.height;
+    const bubble = sayBubbles(mesh).find((bg) => inside(bg._currentMeasure, gx, gy));
+    if (!bubble) continue;
+    const occluder = scene.pickWithRay(
+      ray,
+      (other) => other !== mesh && other.isEnabled() && other.isVisible && other.isPickable
+    );
+    if (occluder?.hit && occluder.distance < hit.distance) return null;
+    return { mesh, texture, bubble, gx, gy };
+  }
+  return null;
+}
+
+function textureRectOnScreen(mesh, texture, rect) {
+  const { Vector3, Matrix } = flock.BABYLON;
+  const scene = flock.scene;
+  const engine = scene.getEngine();
+  const canvas = renderCanvas();
+  const viewport = scene.activeCamera.viewport.toGlobal(
+    engine.getRenderWidth(),
+    engine.getRenderHeight()
+  );
+  const transform = scene.getTransformMatrix();
+  const toCss = canvas.clientWidth / engine.getRenderWidth();
+  const points = mesh
+    .getBoundingInfo()
+    .boundingBox.vectorsWorld.map((corner) =>
+      Vector3.Project(corner, Matrix.Identity(), transform, viewport)
+    );
+  const xs = points.map((point) => point.x * toCss);
+  const ys = points.map((point) => point.y * toCss);
+  const left = Math.min(...xs);
+  const top = Math.min(...ys);
+  const width = Math.max(...xs) - left;
+  const height = Math.max(...ys) - top;
+  const size = texture.getSize();
+  return {
+    left: left + (rect.left / size.width) * width,
+    top: top + (rect.top / size.height) * height,
+    width: (rect.width / size.width) * width,
+    height: (rect.height / size.height) * height,
+  };
+}
+
+function sayColourTargetAt(x, y) {
+  const hit = sayBubbleAt(x, y);
+  if (!hit) return null;
+  const { mesh, texture, bubble, gx, gy } = hit;
+  const zone = halfwayTo(textGlyphBox(bubble.children[0]), bubble._currentMeasure);
+  const onGlyph = inside(zone, gx, gy);
+  return {
+    control: bubble,
+    inputName: onGlyph ? 'TEXT_COLOR' : 'BACKGROUND_COLOR',
+    highlight: onGlyph ? textureRectOnScreen(mesh, texture, zone) : null,
+  };
+}
+
+export function uiColourTargetAt(x, y) {
+  return uiControlColourTargetAt(x, y) ?? sayColourTargetAt(x, y);
 }
 
 let colourHighlight = null;
@@ -321,13 +481,12 @@ export function showColourTarget(target) {
   if (colourHighlight.parentElement !== canvas.parentElement) {
     canvas.parentElement.appendChild(colourHighlight);
   }
-  const scale = guiScale();
   const { left, top, width, height } = target.highlight;
   Object.assign(colourHighlight.style, {
-    left: `${canvas.offsetLeft + left / scale}px`,
-    top: `${canvas.offsetTop + top / scale}px`,
-    width: `${width / scale}px`,
-    height: `${height / scale}px`,
+    left: `${canvas.offsetLeft + left}px`,
+    top: `${canvas.offsetTop + top}px`,
+    width: `${width}px`,
+    height: `${height}px`,
   });
 }
 
@@ -364,9 +523,24 @@ export function applyColourToUIControl(target, colour) {
   return block;
 }
 
-function keepAnchor(value, start) {
-  const rounded = Math.round(value);
-  return start < 0 ? Math.min(rounded, -1) : Math.max(rounded, 0);
+function axisSpan(control, axis) {
+  const [start, length] = axis === 'x' ? ['left', 'width'] : ['top', 'height'];
+  const measures = controlParts(control).map((part) => part._currentMeasure);
+  const low = Math.min(...measures.map((m) => m[start]));
+  const high = Math.max(...measures.map((m) => m[start] + m[length]));
+  return { size: high - low, space: uiTexture().getSize()[length] };
+}
+
+function screenStart(control, axis) {
+  const offset = control.metadata.layout[axis];
+  const { size, space } = axisSpan(control, axis);
+  return offset < 0 ? space + offset - size : offset;
+}
+
+function anchoredOffset(control, axis, start) {
+  const { size, space } = axisSpan(control, axis);
+  if (start + size / 2 > space / 2) return Math.min(Math.round(start + size - space), -1);
+  return Math.max(Math.round(start), 0);
 }
 
 function arrowSvg(axis, colour) {
@@ -374,11 +548,11 @@ function arrowSvg(axis, colour) {
   const w = horizontal ? ARROW_LENGTH : 16;
   const h = horizontal ? 16 : ARROW_LENGTH;
   const line = horizontal
-    ? `<line x1="0" y1="8" x2="${w - 10}" y2="8" />`
-    : `<line x1="8" y1="0" x2="8" y2="${h - 10}" />`;
+    ? `<line x1="0" y1="8" x2="${w - 8}" y2="8" />`
+    : `<line x1="8" y1="0" x2="8" y2="${h - 8}" />`;
   const head = horizontal
-    ? `<polygon points="${w - 12},2 ${w},8 ${w - 12},14" />`
-    : `<polygon points="2,${h - 12} 8,${h} 14,${h - 12}" />`;
+    ? `<polygon points="${w - 10},2 ${w},8 ${w - 10},14" stroke="none" />`
+    : `<polygon points="2,${h - 10} 8,${h} 14,${h - 10}" stroke="none" />`;
   return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" stroke="${colour}" fill="${colour}" stroke-width="4">${line}${head}</svg>`;
 }
 
@@ -393,6 +567,12 @@ function createOverlay(axisColors, freeAxes) {
     const arrow = document.createElement('div');
     arrow.className = `ui-control-gizmo-arrow ui-control-gizmo-arrow-${axis}`;
     arrow.innerHTML = arrowSvg(axis, axisColors[axis]);
+    const label = document.createElement('span');
+    label.className = 'ui-control-gizmo-label';
+    label.setAttribute('aria-hidden', 'true');
+    label.style.color = axisColors[axis];
+    label.textContent = axis;
+    arrow.appendChild(label);
     root.appendChild(arrow);
     arrows[axis] = arrow;
   }
@@ -438,13 +618,14 @@ function moveTo(x, y) {
 
 function nudge(dx, dy) {
   if (!selection) return;
-  const { x, y } = selection.control.metadata.layout;
+  const { control, freeAxes } = selection;
+  const { x, y } = control.metadata.layout;
   const groupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(groupId);
   try {
     moveTo(
-      selection.freeAxes.includes('x') ? keepAnchor(x + dx, x) : x,
-      selection.freeAxes.includes('y') ? keepAnchor(y + dy, y) : y
+      freeAxes.includes('x') ? anchoredOffset(control, 'x', screenStart(control, 'x') + dx) : x,
+      freeAxes.includes('y') ? anchoredOffset(control, 'y', screenStart(control, 'y') + dy) : y
     );
   } finally {
     Blockly.Events.setGroup(false);
@@ -456,13 +637,16 @@ function startDrag(event, axis, target = event.currentTarget) {
   event.preventDefault();
   event.stopPropagation();
   target.setPointerCapture?.(event.pointerId);
-  const { x, y } = selection.control.metadata.layout;
+  const { control } = selection;
+  const { x, y } = control.metadata.layout;
   const drag = {
     pointerId: event.pointerId,
     startClientX: event.clientX,
     startClientY: event.clientY,
     startX: x,
     startY: y,
+    startLeft: screenStart(control, 'x'),
+    startTop: screenStart(control, 'y'),
     groupId: Blockly.utils.idGenerator.genUid(),
   };
   const moveAxis = (name) => selection.freeAxes.includes(name) && (!axis || axis === name);
@@ -472,10 +656,18 @@ function startDrag(event, axis, target = event.currentTarget) {
     if (moveEvent.pointerId !== drag.pointerId || !selection) return;
     const scale = guiScale();
     const nextX = moveAxis('x')
-      ? keepAnchor(drag.startX + (moveEvent.clientX - drag.startClientX) * scale, drag.startX)
+      ? anchoredOffset(
+          control,
+          'x',
+          drag.startLeft + (moveEvent.clientX - drag.startClientX) * scale
+        )
       : drag.startX;
     const nextY = moveAxis('y')
-      ? keepAnchor(drag.startY + (moveEvent.clientY - drag.startClientY) * scale, drag.startY)
+      ? anchoredOffset(
+          control,
+          'y',
+          drag.startTop + (moveEvent.clientY - drag.startClientY) * scale
+        )
       : drag.startY;
     Blockly.Events.setGroup(drag.groupId);
     try {

@@ -66,7 +66,7 @@ const PROBE_ATTEMPTS = 2; // initial probe + one retry
 const POST_FLASH_PROBE_ATTEMPTS = 12;
 const HEARTBEAT_TIMEOUT_MS = 5000;
 // Backoff for reclaiming a board after the link drops (e.g. the library
-// disconnects hidden tabs). Timers are throttled in background tabs, so in
+// pauses hidden tabs). Timers are throttled in background tabs, so in
 // practice these fire shortly after the tab becomes visible again.
 const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
 
@@ -74,10 +74,10 @@ async function defaultCreateTransport({ silent = false } = {}) {
   // Imported lazily so environments without WebUSB (node test runners) never
   // load @microbit/microbit-connection.
   const { MicrobitUsbTransport } = await import('./usbTransport.js');
-  const { createWebUSBConnection, DeviceSelectionMode } =
-    await import('@microbit/microbit-connection');
+  const { createUSBConnection, DeviceSelectionMode } =
+    await import('@microbit/microbit-connection/usb');
   return new MicrobitUsbTransport({
-    connection: createWebUSBConnection({
+    connection: createUSBConnection({
       deviceSelectionMode: silent
         ? DeviceSelectionMode.UseAnyAllowed
         : DeviceSelectionMode.AlwaysAsk,
@@ -99,7 +99,8 @@ async function defaultFetchFirmware() {
     response = await fetch(FIRMWARE_HEX_URL);
   } catch (error) {
     throw new Error(
-      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`
+      `Could not load the Flock micro:bit firmware (${FIRMWARE_HEX_URL}): ${error.message}`,
+      { cause: error }
     );
   }
   if (!response.ok) {
@@ -515,7 +516,7 @@ export class MicrobitManager {
     usb.addEventListener?.('connect', (event) => {
       this._maybeSilentReconnect(event.device);
     });
-    let devices = [];
+    let devices;
     try {
       devices = await usb.getDevices();
     } catch {
@@ -597,7 +598,7 @@ export class MicrobitManager {
       for (const session of this._sessions) {
         if (session.usbSerialNumber === serialNumber) return; // already back
       }
-      let devices = [];
+      let devices;
       try {
         devices = await this._usb.getDevices();
       } catch {

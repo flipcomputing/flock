@@ -72,14 +72,14 @@ export function registerTextGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    const textColor = getFieldValue(block, 'TEXT_COLOR', '#000000');
-    const backgroundColor = getFieldValue(block, 'BACKGROUND_COLOR', '#ffffff');
+    const textColor = getFieldValue(block, 'TEXT_COLOR', '"#000000"');
+    const backgroundColor = getFieldValue(block, 'BACKGROUND_COLOR', '"#ffffff"');
 
     const mode = block.getFieldValue('MODE') || '';
     const asyncMode = block.getFieldValue('ASYNC');
     const asyncWrapper = asyncMode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}say(${meshVariable}, { text: ${textCode}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)} });\n`;
+    return `${asyncWrapper}say(${meshVariable}, { text: ${textCode}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)}, blockKey: ${JSON.stringify(block.id)} });\n`;
   };
 
   // UI Text ------------------------------------------------
@@ -127,21 +127,13 @@ export function registerTextGenerators(javascriptGenerator) {
   // UI Button ----------------------------------------------
   javascriptGenerator.forBlock['ui_button'] = function (block) {
     // Retrieve values from the block
-    const text = javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC);
-    const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC);
-    const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC);
+    const text = getFieldValue(block, 'TEXT', '""');
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
     const width = JSON.stringify(block.getFieldValue('SIZE')); // Fix: Use "SIZE" instead of "WIDTH"
     const textSize = JSON.stringify(block.getFieldValue('TEXT_SIZE')); // Fix: Add text size support
-    const textColor = javascriptGenerator.valueToCode(
-      block,
-      'TEXT_COLOR',
-      javascriptGenerator.ORDER_ATOMIC
-    );
-    const backgroundColor = javascriptGenerator.valueToCode(
-      block,
-      'BACKGROUND_COLOR',
-      javascriptGenerator.ORDER_ATOMIC
-    );
+    const textColor = getFieldValue(block, 'TEXT_COLOR', '""');
+    const backgroundColor = getFieldValue(block, 'BACKGROUND_COLOR', '""');
 
     const { generatedName: buttonVar, userVariableName } = getVariableInfo(block, 'BUTTON_VAR');
 

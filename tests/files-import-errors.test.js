@@ -3,6 +3,7 @@ import * as Blockly from 'blockly';
 import { addMetadata } from 'meta-png';
 import { importSnippetFile, loadExample, newProject } from '../main/files.js';
 import { translate } from '../main/translation.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 // A 1x1 PNG with no Flock metadata, like a picture a child might drop in.
 const PLAIN_PNG = Uint8Array.from(
@@ -110,13 +111,13 @@ export function runFilesImportErrorTests() {
       afterEach(function () {
         window.fetch = originalFetch;
         if (projectName) projectName.value = savedName;
-        window.loadingCode = false;
+        setProjectLoading(false);
       });
 
       it('says when an example cannot be opened, and keeps the project name', async function () {
         await loadExample('examples/missing.flock', 'Missing example', () => {});
         expect(alerts).to.deep.equal([translate('example_load_failed_alert')]);
-        expect(window.loadingCode).to.equal(false);
+        expect(isProjectLoading()).to.equal(false);
         if (projectName) expect(projectName.value).to.equal(savedName);
       });
 

@@ -18,6 +18,7 @@ import {
   MATERIAL_ARG,
 } from '../blocks/prefabs.js';
 import { getWorkspaceProcedures, procedureDefDefaultFields } from '../main/blocksearch.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 function appendDefinition(workspace, params = [], extra = {}) {
   return Blockly.serialization.blocks.append(
@@ -67,14 +68,14 @@ export function runPrefabTests(flock) {
     });
 
     beforeEach(function () {
-      savedLoadingCode = window.loadingCode;
-      window.loadingCode = false;
+      savedLoadingCode = isProjectLoading();
+      setProjectLoading(false);
       workspace = new Blockly.Workspace();
     });
 
     afterEach(function () {
       workspace.dispose();
-      window.loadingCode = savedLoadingCode;
+      setProjectLoading(savedLoadingCode);
     });
 
     it('gives a new definition a fixed material parameter above x, y and z', function () {

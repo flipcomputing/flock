@@ -721,7 +721,7 @@ export function runMaterialsTests(flock) {
       try {
         await flock.show(tree);
       } catch (error) {
-        throw new Error(`Show/hide operation failed: ${error.message}`);
+        throw new Error(`Show/hide operation failed: ${error.message}`, { cause: error });
       }
 
       // Two distinct colours → two new materials added to the scene.
@@ -745,7 +745,7 @@ export function runMaterialsTests(flock) {
       try {
         await flock.show(tree);
       } catch (error) {
-        throw new Error(`Show/hide operation failed: ${error.message}`);
+        throw new Error(`Show/hide operation failed: ${error.message}`, { cause: error });
       }
 
       // Both parts share one colour → one new material added to the scene.

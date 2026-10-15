@@ -1,0 +1,20 @@
+diff --git a/node_modules/@babylonjs/inspector/lib/index-DbbhJJ1G.js b/node_modules/@babylonjs/inspector/lib/index-DbbhJJ1G.js
+index 88344aa..b5014b6 100644
+--- a/node_modules/@babylonjs/inspector/lib/index-DbbhJJ1G.js
++++ b/node_modules/@babylonjs/inspector/lib/index-DbbhJJ1G.js
+@@ -11486,11 +11486,12 @@ const ControlledQuaternionPropertyLine = (props) => {
+         setQuaternion(value);
+         props.onChange(value);
+     };
++    const safeQuaternion = quaternion ?? Quaternion.Identity();
+     if (useEuler) {
+-        const quaternionSummary = adapter.quaternion.components.map((component) => adapter.quaternion.getComponent(quaternion, component).toFixed(4)).join(", ");
+-        return (jsx(ControlledTensorPropertyLine, { ...rest, nullable: false, ignoreNullable: false, value: adapter.toEuler(quaternion), adapter: adapter.euler, valueConverter: useDegrees ? RadiansToDegreesConverter : undefined, onChange: (value) => onQuaternionChange(adapter.fromEuler(value, quaternion)), unit: useDegrees ? "°" : "rad", step: useDegrees ? 1 : 0.01, precision: useDegrees ? 1 : 2, expandedContent: jsx(TextPropertyLine, { label: "Quaternion", value: `[${quaternionSummary}]` }) }));
++        const quaternionSummary = adapter.quaternion.components.map((component) => adapter.quaternion.getComponent(safeQuaternion, component).toFixed(4)).join(", ");
++        return (jsx(ControlledTensorPropertyLine, { ...rest, nullable: false, ignoreNullable: false, value: adapter.toEuler(safeQuaternion), adapter: adapter.euler, valueConverter: useDegrees ? RadiansToDegreesConverter : undefined, onChange: (value) => onQuaternionChange(adapter.fromEuler(value, safeQuaternion)), unit: useDegrees ? "°" : "rad", step: useDegrees ? 1 : 0.01, precision: useDegrees ? 1 : 2, expandedContent: jsx(TextPropertyLine, { label: "Quaternion", value: `[${quaternionSummary}]` }) }));
+     }
+-    return (jsx(ControlledTensorPropertyLine, { ...rest, nullable: false, value: quaternion, adapter: adapter.quaternion, onChange: onQuaternionChange, unit: useDegrees ? "°" : "rad", step: useDegrees ? 1 : 0.01, precision: useDegrees ? 1 : 2 }));
++    return (jsx(ControlledTensorPropertyLine, { ...rest, nullable: false, value: safeQuaternion, adapter: adapter.quaternion, onChange: onQuaternionChange, unit: useDegrees ? "°" : "rad", step: useDegrees ? 1 : 0.01, precision: useDegrees ? 1 : 2 }));
+ };
+ 
+ function CreateCoreTensorAdapter(components) {

@@ -130,9 +130,6 @@ export default {
   color_gray: 'Gray',
 
   // Color block translations
-  colour_rgb: 'red %1 green %2 blue %3',
-  colour_random: 'random color',
-  colour_blend: 'blend %1 and %2 by %3',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'sky %1',
@@ -279,6 +276,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Not a valid CSS color value.',
+  colour_contrast_warning: 'Text may be hard to read: contrast is %1:1. Aim for at least %2:1.',
   random_colour: 'random color',
   material: 'material %1 %2',
   material_alpha: 'alpha',
@@ -339,6 +337,15 @@ export default {
   microbit_scroll_text_untethered_warning:
     'This micro:bit is not plugged in over USB, so the text cannot be scrolled. Plug the micro:bit in to scroll text.',
   microbit_image_field_label: 'LED image — click to edit',
+  group_arrange_button: 'Align and space out',
+  group_arrange_min: '−{axis}',
+  group_arrange_centre: 'center',
+  group_arrange_max: '+{axis}',
+  group_arrange_distribute: 'space out',
+  group_arrange_min_label: 'Align to the −{axis} side',
+  group_arrange_centre_label: 'Center along {axis}',
+  group_arrange_max_label: 'Align to the +{axis} side',
+  group_arrange_distribute_label: 'Space out evenly along {axis}',
   microbit_image_grid_label: 'LED grid: arrow keys move, space toggles',
   microbit_image_cell_label: 'row %1, column %2, %3',
   microbit_image_cell_on: 'on',
@@ -678,7 +685,7 @@ export default {
   procedures_callprefab_tooltip:
     'Add a prefab at a position, with a material and a y rotation. Store it in a variable so you can move it.',
   create_group_tooltip:
-    'Create a group. The objects inside move together. Uncheck active to change individual objects.',
+    'Create a group. The objects inside move together. Uncheck active to change individual objects. Click the align button to line them up or space them out.',
   create_sphere_tooltip: 'Create a colored sphere with specified dimensions and position.',
   create_cylinder_tooltip: 'Create a colored cylinder with specified dimensions and position.',
   create_capsule_tooltip: 'Create a colored capsule with specified dimensions and position.',
@@ -1439,6 +1446,9 @@ export default {
   unsaved_changes_title_ui: 'Unsaved changes',
   unsaved_changes_message_ui:
     "This project has changes that haven't been saved to a file. What would you like to do?",
+  unsaved_changes_maybe_title_ui: 'Save your project?',
+  unsaved_changes_maybe_message_ui:
+    'This project may not have been saved to a file yet. What would you like to do?',
   unsaved_changes_save_button_ui: 'Save to file',
   unsaved_changes_discard_button_ui: 'Continue without saving',
   unsaved_changes_cancel_button_ui: 'Cancel',
@@ -1471,6 +1481,7 @@ export default {
   error_project_crash:
     'Your project hit a problem. Check your blocks, then press Play again.',
   error_run_setup: "Flock XR couldn't start your project. Try reloading the page.",
+  error_block_handler: 'There was a problem editing your blocks.',
   error_webgl_restoring: '3D view paused, restoring…',
   error_webgl_lost: 'The 3D view stopped working. Try reloading the page.',
   error_webgl_unavailable: "Flock XR can't start the 3D view. Try reloading the page.",
@@ -1520,6 +1531,7 @@ export default {
   select_mesh_position_prompt: 'Select an object to place.',
   select_mesh_duplicate_prompt: 'Select an object to duplicate.',
   place_duplicate_prompt: 'Click to place a copy.',
+  duplicate_placed_status: 'Duplicate placed.',
   orbit_origin_info: 'Drag to move the camera around the origin. Click an object to orbit around it.',
   orbit_mesh_info: 'Drag to move the camera around the object',
   camera_preview_info: 'Looking through the camera. Click the camera button to go back.',

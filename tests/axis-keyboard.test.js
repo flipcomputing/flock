@@ -122,6 +122,14 @@ export function runAxisKeyboardTests(_flock) {
         topHandler()(makeEvent({ key: 'u' }));
         expect(stop.getAxis()).to.equal(null);
       });
+
+      it("treats '=' the same as 'u'", function () {
+        make({ allowUniform: true });
+        topHandler()(makeEvent({ key: '=' }));
+        expect(stop.getAxis()).to.equal('all');
+        topHandler()(makeEvent({ key: '=' }));
+        expect(stop.getAxis()).to.equal(null);
+      });
     });
 
     describe('uniformOnly', function () {

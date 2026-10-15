@@ -155,12 +155,12 @@ export function registerSceneGenerators(javascriptGenerator) {
     const x = getFieldValue(block, 'X', '0');
     const y = getFieldValue(block, 'Y', '0');
     const z = getFieldValue(block, 'Z', '0');
-    const hairColor = getFieldValue(block, 'HAIR_COLOR', '#000000');
-    const skinColor = getFieldValue(block, 'SKIN_COLOR', '#FFE0BD');
-    const eyesColor = getFieldValue(block, 'EYES_COLOR', '#0000FF');
-    const sleevesColor = getFieldValue(block, 'SLEEVES_COLOR', '#FFFFFF');
-    const shortsColor = getFieldValue(block, 'SHORTS_COLOR', '#000000');
-    const tshirtColor = getFieldValue(block, 'TSHIRT_COLOR', '#FF0000');
+    const hairColor = getFieldValue(block, 'HAIR_COLOR', '"#000000"');
+    const skinColor = getFieldValue(block, 'SKIN_COLOR', '"#FFE0BD"');
+    const eyesColor = getFieldValue(block, 'EYES_COLOR', '"#0000FF"');
+    const sleevesColor = getFieldValue(block, 'SLEEVES_COLOR', '"#FFFFFF"');
+    const shortsColor = getFieldValue(block, 'SHORTS_COLOR', '"#000000"');
+    const tshirtColor = getFieldValue(block, 'TSHIRT_COLOR', '"#FF0000"');
     const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
@@ -230,7 +230,7 @@ export function registerSceneGenerators(javascriptGenerator) {
     const x = getFieldValue(block, 'X', '0');
     const y = getFieldValue(block, 'Y', '0');
     const z = getFieldValue(block, 'Z', '0');
-    const color = getFieldValue(block, 'COLORS', '#000000');
+    const color = getFieldValue(block, 'COLORS', '"#000000"');
 
     const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
@@ -512,10 +512,10 @@ export function registerSceneGenerators(javascriptGenerator) {
       '1.0';
     const diffuse =
       javascriptGenerator.valueToCode(block, 'DIFFUSE', javascriptGenerator.ORDER_ATOMIC) ||
-      '#FFFFFF';
+      '"#FFFFFF"';
     const groundColor =
       javascriptGenerator.valueToCode(block, 'GROUND_COLOR', javascriptGenerator.ORDER_ATOMIC) ||
-      '#808080';
+      '"#808080"';
     const style = block.getFieldValue('STYLE') || 'SOFT';
 
     return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\nlightStyle(${JSON.stringify(style)});\n`;
@@ -666,7 +666,7 @@ export function registerSceneGenerators(javascriptGenerator) {
 
   // Set fog color --------------------------------------------------
   javascriptGenerator.forBlock['set_fog'] = function (block) {
-    const fogColorHex = getFieldValue(block, 'FOG_COLOR', '#9932CC');
+    const fogColorHex = getFieldValue(block, 'FOG_COLOR', '"#9932CC"');
     const fogMode = block.getFieldValue('FOG_MODE');
     const fogDensity =
       javascriptGenerator.valueToCode(block, 'DENSITY', javascriptGenerator.ORDER_ATOMIC) || '0.1'; // Default density

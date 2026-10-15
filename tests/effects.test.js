@@ -293,6 +293,21 @@ export function runEffectsTests(flock) {
       flock.mainLight = originalMainLight;
     });
 
+    it('lightColor should accept colour names and short hex', function () {
+      const originalMainLight = flock.mainLight;
+      const light = { intensity: 1, diffuse: null, groundColor: null };
+      flock.mainLight = light;
+      flock.lightColor('lime', '#00f');
+      expect(light.diffuse.toHexString().toLowerCase()).to.equal('#00ff00');
+      expect(light.groundColor.toHexString().toLowerCase()).to.equal('#0000ff');
+      flock.mainLight = originalMainLight;
+    });
+
+    it('hexToRgba should accept colour names and short hex', function () {
+      expect(flock.hexToRgba('red', 0.5)).to.equal('rgba(255, 0, 0, 0.5)');
+      expect(flock.hexToRgba('#0f0', 1)).to.equal('rgba(0, 255, 0, 1)');
+    });
+
     it('startParticleSystem should start a stopped particle system', function () {
       const ps = new flock.BABYLON.ParticleSystem('startTestPS', 100, flock.scene);
       ps.emitter = flock.BABYLON.Vector3.Zero();

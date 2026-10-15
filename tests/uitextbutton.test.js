@@ -265,6 +265,43 @@ export function runUITests(flock) {
         expect(slider.value).to.equal(50);
       });
 
+      it('should restyle min, max and value from block edits', function () {
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({ id: 'mySlider', min: 0, max: 100, value: 50, x: 100, y: 100 })
+        );
+
+        flock._restyleUIControl(slider, { min: 10, max: 20, value: 15 });
+
+        expect(slider.minimum).to.equal(10);
+        expect(slider.maximum).to.equal(20);
+        expect(slider.value).to.equal(15);
+      });
+
+      it('should keep the value in range when the block narrows min or max', function () {
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({ id: 'mySlider', min: 0, max: 100, value: 80, x: 100, y: 100 })
+        );
+
+        flock._restyleUIControl(slider, { max: 50, value: 80 });
+        expect(slider.value).to.equal(50);
+
+        flock._restyleUIControl(slider, { min: 60, max: 100, value: 80 });
+        expect(slider.value).to.equal(60);
+      });
+
+      it('should keep a dragged value when restyled with the same block value', function () {
+        const slider = flock.scene.UITexture.getControlByName(
+          flock.UISlider({ id: 'mySlider', min: 0, max: 100, value: 50, x: 100, y: 100 })
+        );
+        slider.value = 80;
+
+        flock._restyleUIControl(slider, { value: 50, textColor: '#ff0000' });
+        flock._restyleUIControl(slider, {});
+
+        expect(slider.value).to.equal(80);
+        expect(slider.color).to.equal('#ff0000');
+      });
+
       it('should use MEDIUM dimensions by default', function () {
         const slider = flock.scene.UITexture.getControlByName(
           flock.UISlider({

@@ -1032,7 +1032,7 @@ export function runMeshHierarchyTests(flock) {
         }
       });
 
-      it('should write scale-baked member values at 2dp and snap live onto them', async function () {
+      it('should write scale-baked member values at 4dp and snap live onto them', async function () {
         this.timeout(15000);
 
         const groupName = await flock.createGroup('hierarchyGroupBake1dp', { position: [0, 0, 0] });
@@ -1069,22 +1069,22 @@ export function runMeshHierarchyTests(flock) {
         meshMap['bake1dpA'] = mockA.block;
         meshMap['bake1dpB'] = mockB.block;
         try {
-          // Irrational factor: exact live values cannot be 2dp, so the blocks
+          // Irrational factor: exact live values cannot be 4dp, so the blocks
           // must round and the scene must snap onto the rounded values.
           groupMesh.scaling.set(Math.SQRT2, Math.SQRT2, Math.SQRT2);
           groupMesh.computeWorldMatrix(true);
 
           expect(bakeGroupScale(groupMesh)).to.be.true;
 
-          const is2dp = (v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+          const is4dp = (v) => Math.abs(v * 1e4 - Math.round(v * 1e4)) < 1e-6;
           for (const holders of [mockA.holders, mockB.holders]) {
             for (const v of Object.values(holders).map((h) => h._v)) {
-              expect(v, 'baked block value at 2dp').to.satisfy(is2dp);
+              expect(v, 'baked block value at 4dp').to.satisfy(is4dp);
             }
           }
-          expect(mockA.holders.WIDTH._v).to.equal(1.41);
+          expect(mockA.holders.WIDTH._v).to.equal(1.4142);
 
-          // Far tighter than the ±0.005 rounding band: live was snapped.
+          // Live matches the baked block values.
           for (const [mesh, holders] of [
             [childMeshA, mockA.holders],
             [childMeshB, mockB.holders],
@@ -1100,11 +1100,10 @@ export function runMeshHierarchyTests(flock) {
         }
       });
 
-      it('should write rotation-baked member positions at 2dp and snap live onto them', async function () {
-        this.timeout(15000);
-
-        const groupName = await flock.createGroup('hierarchyGroupRot1dp', { position: [0, 0, 0] });
-        const childName = await flock.createBox('hierarchyGroupRot1dpChild', {
+      // A group with one box member at x=2, its blocks mocked so baked values can be read.
+      async function setupRotatingGroup(baseName) {
+        const groupName = await flock.createGroup(baseName, { position: [0, 0, 0] });
+        const childName = await flock.createBox(`${baseName}Child`, {
           width: 1,
           height: 1,
           depth: 1,
@@ -1179,6 +1178,14 @@ export function runMeshHierarchyTests(flock) {
         childMesh.metadata = childMesh.metadata || {};
         childMesh.metadata.blockKey = memberBlock.id;
         meshMap[memberBlock.id] = memberBlock;
+        return { groupMesh, childMesh, rot, memberHolders, memberBlock };
+      }
+
+      it('should write rotation-baked member positions at 4dp and snap live onto them', async function () {
+        this.timeout(15000);
+
+        const { groupMesh, childMesh, rot, memberHolders, memberBlock } =
+          await setupRotatingGroup('hierarchyGroupRot1dp');
         try {
           // 45 degrees orbits the member to irrational coordinates.
           groupMesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 45, 0);
@@ -1187,9 +1194,9 @@ export function runMeshHierarchyTests(flock) {
           updateChildBlockRotations(groupMesh);
 
           const is1dp = (v) => Math.abs(v * 10 - Math.round(v * 10)) < 1e-6;
-          const is2dp = (v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6;
+          const is4dp = (v) => Math.abs(v * 1e4 - Math.round(v * 1e4)) < 1e-6;
           for (const v of Object.values(memberHolders).map((h) => h._v)) {
-            expect(v, 'baked position at 2dp').to.satisfy(is2dp);
+            expect(v, 'baked position at 4dp').to.satisfy(is4dp);
           }
           for (const v of Object.values(rot.holders).map((h) => h._v)) {
             expect(v, 'baked rotation at 1dp').to.satisfy(is1dp);
@@ -1200,6 +1207,30 @@ export function runMeshHierarchyTests(flock) {
           expect(live.x).to.be.closeTo(memberHolders.X._v, 1e-4);
           expect(live.y).to.be.closeTo(memberHolders.Y._v, 1e-4);
           expect(live.z).to.be.closeTo(memberHolders.Z._v, 1e-4);
+        } finally {
+          delete meshMap[memberBlock.id];
+        }
+      });
+
+      it('should not accumulate rounding over a many-step group rotation', async function () {
+        this.timeout(15000);
+
+        const { groupMesh, rot, memberHolders, memberBlock } =
+          await setupRotatingGroup('hierarchyGroupRotSteps');
+        try {
+          // Like a slider drag: many small steps, each written without a
+          // snap, then one snap when the session ends.
+          const steps = 130;
+          for (let k = 1; k <= steps; k++) {
+            groupMesh.rotationQuaternion = flock.eulerDegreesToQuat(0, (90 * k) / steps, 0);
+            groupMesh.computeWorldMatrix(true);
+            updateChildBlockRotations(groupMesh, { snap: false });
+          }
+          updateChildBlockRotations(groupMesh);
+
+          expect(rot.holders.Y._v).to.equal(90);
+          expect(memberHolders.X._v).to.equal(2);
+          expect(memberHolders.Z._v).to.equal(0);
         } finally {
           delete meshMap[memberBlock.id];
         }

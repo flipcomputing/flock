@@ -15,6 +15,7 @@ import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
+import { setProjectLoading } from './projectLoading.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -69,6 +70,8 @@ const CONTENT_CHANGE_EVENT_TYPES = new Set([
 // Tracks changes since the last load or file save (not the last localStorage
 // autosave, which isn't durable).
 let projectModified = false;
+let restoringAutosave = false;
+let fileSaveUnknown = false;
 
 // `workspace` is still null at module load time, so this listener can't be
 // attached until createBlocklyWorkspace() has run.
@@ -76,6 +79,8 @@ export function initProjectModifiedTracking(ws) {
   ws.addChangeListener((event) => {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
       projectModified = false;
+      fileSaveUnknown = restoringAutosave;
+      restoringAutosave = false;
     } else if (CONTENT_CHANGE_EVENT_TYPES.has(event.type)) {
       projectModified = true;
     }
@@ -86,13 +91,17 @@ export function isProjectModified() {
   return projectModified;
 }
 
+export function isFileSaveUnknown() {
+  return fileSaveUnknown;
+}
+
 // Resolves true if the caller should proceed to replace the workspace.
 async function confirmDiscardIfModified() {
-  if (!projectModified) return true;
+  if (!projectModified && !fileSaveUnknown) return true;
 
   saveWorkspace(workspace);
 
-  const choice = await openUnsavedChangesModal();
+  const choice = await openUnsavedChangesModal({ uncertain: !projectModified });
   if (choice === 'cancel') return false;
   if (choice === 'save') {
     const saved = await exportCode(workspace);
@@ -347,7 +356,7 @@ export function hintIfXrModeMissing(workspace) {
     Promise.resolve(flock._vrHeadsetAvailable())
       .then((onHeadset) => {
         if (onHeadset && workspace.getBlocksByType('set_xr_mode', false).length === 0) {
-          showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing', hint: true });
+          showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing' });
         }
       })
       .catch(() => {});
@@ -380,6 +389,9 @@ export function loadWorkspaceAndExecute(
     hintIfXrModeMissing(workspace);
   } catch (error) {
     console.error('Failed to load workspace:', error);
+    // Blockly skips this event when a load throws; it ends the load, after
+    // the partly loaded blocks' queued events.
+    Blockly.Events.fire(new Blockly.Events.FinishedLoading(workspace));
 
     // Handle corruption errors
     if (error.message.includes('isDeadOrDying')) {
@@ -534,6 +546,7 @@ export async function loadWorkspace(workspace, executeCallback) {
       })
       .catch((error) => {
         console.error('Error loading starter example:', error);
+        setProjectLoading(false);
       });
   }
 
@@ -627,8 +640,11 @@ export async function loadWorkspace(workspace, executeCallback) {
     }
   } else if (savedState) {
     try {
-      loadWorkspaceAndExecute(parseProjectText(savedState), workspace, effectiveCallback);
+      const json = parseProjectText(savedState);
+      restoringAutosave = true;
+      loadWorkspaceAndExecute(json, workspace, effectiveCallback);
     } catch (error) {
+      restoringAutosave = false;
       console.error('Error loading autosaved project:', error);
       loadStarter();
     }
@@ -746,6 +762,7 @@ export async function exportCode(workspace) {
       updateSaveButtonState();
       document.getElementById('projectName').value = getSafeImportedFileBaseName(fileHandle.name);
       projectModified = false;
+      fileSaveUnknown = false;
     } else {
       const blob = new Blob([jsonString], { type: FLOCK_MIME });
       const link = document.createElement('a');
@@ -755,6 +772,7 @@ export async function exportCode(workspace) {
       link.click();
       document.body.removeChild(link);
       projectModified = false;
+      fileSaveUnknown = false;
     }
     return true;
   } catch (e) {
@@ -919,7 +937,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
     return;
   }
 
-  window.loadingCode = true;
+  setProjectLoading(true);
   readProjectFile(file)
     .then((json) => {
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
@@ -929,7 +947,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
     .catch((error) => {
       console.error('Error loading Blockly project:', error);
       alert(translate(alertKeyForProjectError(error)));
-      window.loadingCode = false;
+      setProjectLoading(false);
     });
 }
 
@@ -1021,7 +1039,7 @@ export function setupFileInput(workspace, executeCallback) {
       .then(async (json) => {
         if (!(await confirmDiscardIfModified())) return;
 
-        window.loadingCode = true;
+        setProjectLoading(true);
         document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
@@ -1030,7 +1048,7 @@ export function setupFileInput(workspace, executeCallback) {
       .catch((error) => {
         console.error('Error loading Blockly project:', error);
         alert(translate(alertKeyForProjectError(error)));
-        window.loadingCode = false;
+        setProjectLoading(false);
       })
       .finally(() => {
         // Reset the input so the same file can be selected again
@@ -1059,7 +1077,7 @@ export async function openFile(workspace, executeCallback) {
       const json = await readProjectFile(file);
       if (!(await confirmDiscardIfModified())) return;
 
-      window.loadingCode = true;
+      setProjectLoading(true);
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
       loadWorkspaceAndExecute(json, workspace, executeCallback);
@@ -1067,7 +1085,7 @@ export async function openFile(workspace, executeCallback) {
       if (e.name === 'AbortError') return;
       console.error('Error opening file:', e);
       alert(translate(alertKeyForProjectError(e)));
-      window.loadingCode = false;
+      setProjectLoading(false);
     }
   } else {
     document.getElementById('fileInput').click();
@@ -1080,7 +1098,7 @@ export async function loadExample(file, name, executeCallback = window.executeCo
   if (!file) return;
   if (!(await confirmDiscardIfModified())) return;
 
-  window.loadingCode = true;
+  setProjectLoading(true);
 
   try {
     const json = await fetchProjectJson(file);
@@ -1095,7 +1113,7 @@ export async function loadExample(file, name, executeCallback = window.executeCo
   } catch (error) {
     console.error('Error loading example:', error);
     // Clear the loading flag so a failed load doesn't wedge later actions.
-    window.loadingCode = false;
+    setProjectLoading(false);
     alert(translate('example_load_failed_alert'));
   }
 }

@@ -1521,7 +1521,7 @@ class PanelResizer {
   handleKeyboard(e) {
     if (!this.enabled) return;
     const step = 20; // pixels
-    let deltaX = 0;
+    let deltaX;
 
     switch (e.key) {
       case 'ArrowLeft':
@@ -1752,7 +1752,7 @@ class InfoPanelResizer {
   handleKeyboard(e) {
     if (!this.enabled || !this.isResizerVisible()) return;
     const step = 20;
-    let delta = 0;
+    let delta;
 
     switch (e.key) {
       case 'ArrowUp':

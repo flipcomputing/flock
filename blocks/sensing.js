@@ -17,9 +17,15 @@ import { outOfScopeLocalIds } from './variableScope.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 import { flock } from '../flock.js';
-import { makeTouchesInputSubtree, changeEventHitsTouches, wasBlockDeleted } from './scene.js';
-import { readColourFromInputOrShadow, readNumberInput } from '../ui/blockmesh.js';
+import {
+  makeTouchesInputSubtree,
+  changeEventHitsTouches,
+  wasBlockDeleted,
+  attachSceneSettingLiveUpdate,
+} from './scene.js';
+import { readLiveColour, readLiveNumber, readNumberInput } from '../ui/blockmesh.js';
 import { handleUIControlBlockEvent } from '../ui/uicontrolgizmo.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 // Gamepad-only accessibility actions have no keyboard equivalent, so they're
 // excluded from the keyboard-facing action dropdowns below.
@@ -174,6 +180,15 @@ export function isMicrobitRefreshEvent(changeEvent) {
   return changeEvent.element !== 'field' || MICROBIT_REFRESH_FIELDS.has(changeEvent.name);
 }
 
+let lastMicrobitRefreshEvent = null;
+
+// Every micro:bit-aware block sees the same event, and one rescan covers them all.
+export function refreshMicrobitBlocksFor(changeEvent, workspace) {
+  if (changeEvent === lastMicrobitRefreshEvent || !isMicrobitRefreshEvent(changeEvent)) return;
+  lastMicrobitRefreshEvent = changeEvent;
+  refreshMicrobitBlocks(workspace);
+}
+
 let refreshingMicrobitBlocks = false;
 
 // Recompute status icons, warnings, and editor-side channel registration for
@@ -278,15 +293,31 @@ function wireMicrobitManager() {
   });
 }
 
+// A deleted or disabled block no longer sets the controls, so another live one
+// takes over, or the project's default, which follows the Tools panel setting.
+function applyOtherOnScreenControlsOrDefault(workspace, excludedId) {
+  if (!flock?.scene) return;
+  const other = workspace
+    ?.getBlocksByType('on_screen_controls', false)
+    .find((b) => b.id !== excludedId && !b.disposed && b.isEnabled() && b.getParent());
+  if (other) applyOnScreenControlsLive(other);
+  else flock.onScreenControls();
+}
+
 function applyOnScreenControlsLive(block) {
   if (!flock?.scene) return;
+  if (!block.isEnabled()) {
+    applyOtherOnScreenControlsOrDefault(block.workspace, block.id);
+    return;
+  }
 
   const movement = block.getFieldValue('MOVEMENT');
   const actions = block.getFieldValue('ACTIONS');
-  const mode = block.isEnabled() ? block.getFieldValue('ENABLED') : 'DISABLED';
-  const color = readColourFromInputOrShadow(block, 'COLOR').value ?? '#ffffff';
-  const background = readColourFromInputOrShadow(block, 'BACKGROUND').value ?? '#000000';
-  const alpha = readNumberInput(block, 'ALPHA', 0);
+  const mode = block.getFieldValue('ENABLED');
+  const current = flock._controlsLayout ?? {};
+  const color = readLiveColour(block, 'COLOR', '#ffffff', current.color ?? '#ffffff');
+  const background = readLiveColour(block, 'BACKGROUND', '#000000', current.background ?? '#000000');
+  const alpha = readLiveNumber(block, 'ALPHA', 0, current.alpha ?? 0);
 
   flock.onScreenControls(movement, actions, mode, color, background, alpha);
 }
@@ -310,15 +341,14 @@ function attachOnScreenControlsLiveUpdate(block) {
     Blockly.Events.BLOCK_CHANGE,
     Blockly.Events.BLOCK_MOVE,
     Blockly.Events.BLOCK_DELETE,
-    Blockly.Events.UI,
   ];
 
   registerBlockHandler(block, (changeEvent) => {
     if (!eventTypes.includes(changeEvent.type)) return;
-    if (window.loadingCode && !changeEvent.recordUndo) return;
+    if (isProjectLoading() && !changeEvent.recordUndo) return;
 
     if (wasBlockDeleted(changeEvent, block.id)) {
-      flock.onScreenControls?.('ARROWS', 'YES', 'DISABLED', '#ffffff', '#000000', 0);
+      applyOtherOnScreenControlsOrDefault(ws, block.id);
       return;
     }
 
@@ -676,6 +706,10 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sensing_blocks');
+      attachSceneSettingLiveUpdate(this, {
+        apply: (block) => flock.canvasControls(block.getFieldValue('CONTROLS') === 'TRUE'),
+        reset: () => flock.canvasControls(true),
+      });
     },
   };
 
@@ -698,6 +732,10 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sensing_blocks');
+      attachSceneSettingLiveUpdate(this, {
+        apply: (block) => flock.interactIndicator(block.getFieldValue('ENABLED') === 'TRUE'),
+        reset: () => flock.interactIndicator(true),
+      });
     },
   };
 
@@ -854,12 +892,15 @@ export function defineSensingBlocks() {
         MICROBIT_STATUS_FIELD
       );
 
-      registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'MICROBIT_VAR');
-        if (isMicrobitRefreshEvent(changeEvent)) {
-          refreshMicrobitBlocks(this.workspace);
-        }
-      });
+      // Warnings depend on device fields and duplicates anywhere in the workspace.
+      registerBlockHandler(
+        this,
+        (changeEvent) => {
+          handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'MICROBIT_VAR');
+          refreshMicrobitBlocksFor(changeEvent, this.workspace);
+        },
+        { allEvents: true }
+      );
     },
   };
 
@@ -913,7 +954,8 @@ export function defineSensingBlocks() {
       // and defaults to "any".
       this.inputList[0].appendField(new MicrobitDeviceDropdown(), 'DEVICE');
       syncMicrobitDeviceField(this);
-      this.setOnChange((changeEvent) => {
+      registerBlockHandler(this, (changeEvent) => {
+        if (this.disposed) return;
         if (
           changeEvent.type === Blockly.Events.VAR_RENAME ||
           changeEvent.type === Blockly.Events.VAR_DELETE

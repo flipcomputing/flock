@@ -3,6 +3,7 @@ import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor, applyInputAriaLabels } from './blocks.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { grabVariableOnDrag } from './procedureParams.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 export function defineControlBlocks() {
   Blockly.Blocks['wait'] = {
@@ -826,7 +827,7 @@ function separateFromEnclosingLoops(loop) {
 
 export function separateNestedLoopVariables(event) {
   if (event.type !== Blockly.Events.BLOCK_MOVE || !event.newParentId) return;
-  if (event.isUiEvent || !event.recordUndo || window.loadingCode) return;
+  if (event.isUiEvent || !event.recordUndo || isProjectLoading()) return;
   const workspace = Blockly.Workspace.getById(event.workspaceId);
   const moved = workspace?.getBlockById(event.blockId);
   if (!moved || workspace.isFlyout) return;

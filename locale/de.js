@@ -129,9 +129,6 @@ export default {
   color_reddish_purple: 'Rötliches Violett',
   color_gray: 'Grau',
 
-  colour_rgb: 'rot %1 grün %2 blau %3',
-  colour_random: 'Zufallsfarbe',
-  colour_blend: 'mische %1 und %2 um %3',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'Himmel %1',
@@ -249,6 +246,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Kein gültiger CSS-Farbwert.', // ai
+  colour_contrast_warning: 'Text ist möglicherweise schwer lesbar: Kontrast ist %1:1. Ziel ist mindestens %2:1.', // ai
   random_colour: 'Zufallsfarbe',
   material: 'Material %1 %2',
   material_alpha: 'Alpha',
@@ -1225,6 +1223,7 @@ export default {
   select_mesh_position_prompt: 'Wähle ein Objekt zum Platzieren aus.',
   select_mesh_duplicate_prompt: 'Wähle ein Objekt zum Duplizieren aus.',
   place_duplicate_prompt: 'Klicke, um eine Kopie zu platzieren.', // AI-generated; needs validation
+  duplicate_placed_status: 'Kopie platziert.', // AI-generated; needs validation
   orbit_origin_info: 'Ziehe, um die Kamera um den Ursprung zu bewegen. Klicke auf ein Objekt, um es zu umkreisen.',
   orbit_mesh_info: 'Ziehe, um die Kamera um das Objekt zu bewegen',
   camera_preview_info: 'Blick durch die Kamera. Klicke auf die Kamera-Schaltfläche, um zurückzukehren.', // AI-generated; needs validation

@@ -63,7 +63,7 @@ export const flockSensing = {
         : (mesh.rotation ?? new flock.BABYLON.Vector3(0, 0, 0));
 
     let propertyValue = null;
-    let colors = null;
+    let colors;
 
     let allMeshes, materialNode, materialNodes;
 

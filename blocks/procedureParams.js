@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { createMinusField } from '@blockly/block-plus-minus/src/field_minus.js';
 import { getExtraBlockState } from '@blockly/block-plus-minus/src/serialization_helper.js';
 import { translate } from '../main/translation.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 const PARAM_DEFAULT_SHADOW = { type: 'math_number', fields: { NUM: 0 } };
 const CALLER_ROW_PREFIX = 'ROW_';
@@ -346,7 +347,7 @@ function findDefinition(caller) {
 }
 
 function fillNewArgShadows(caller, definition, previousCount) {
-  if (window.loadingCode || !definition) return;
+  if (isProjectLoading() || !definition) return;
   for (let i = previousCount; i < definition.argData_.length; i++) {
     const connection = caller.getInput('ARG' + i)?.connection;
     if (!connection || connection.targetBlock()) continue;

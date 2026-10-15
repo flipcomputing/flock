@@ -1115,7 +1115,7 @@ function ensureStartWrapper(workspace, block) {
   if (!workspace || !block || block.disposed) return null;
   if (!block.previousConnection || block.previousConnection.isConnected()) return null;
   if (block.getParent?.()) return null;
-  let startBlock = null;
+  let startBlock;
   try {
     startBlock = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
   } catch {
@@ -1146,7 +1146,7 @@ function duplicateCanvasTargetInPlace(target) {
   if (!snapshot) return false;
   if (snapshot.next) delete snapshot.next;
   const root = getCanvasSelectedRoot();
-  let pastePos = null;
+  let pastePos;
   try {
     const meshForPos = root && getBlockForCanvasRoot(root) === target
       ? root
@@ -1156,7 +1156,7 @@ function duplicateCanvasTargetInPlace(target) {
     pastePos = null;
   }
   Blockly.Events.setGroup('duplicate');
-  let newBlock = null;
+  let newBlock;
   try {
     newBlock = insertBlockSnapshot(snapshot, workspace, pastePos, target);
     if (newBlock && !newBlock.getParent?.()) {
@@ -1273,7 +1273,7 @@ export function pasteCanvasClipboard() {
     // anchor, or copy/paste chaining after its source.
     const afterBlock = selectionBlock ?? sourceAlive ?? null;
     Blockly.Events.setGroup('duplicate');
-    let newBlock = null;
+    let newBlock;
     try {
       newBlock = insertBlockSnapshot(
         canvasClipboard.snapshot,
@@ -1311,7 +1311,7 @@ export function pasteCanvasClipboard() {
   if (!data) return false;
   if (data.blockState) stripLockState(data.blockState);
   Blockly.Events.setGroup('duplicate');
-  let pasted = null;
+  let pasted;
   try {
     pasted = Blockly.clipboard.paste(data, workspace);
     const pb = Array.isArray(pasted) ? pasted[0] : pasted;
@@ -2377,7 +2377,7 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
       flock.BABYLON.Tools.ToRadians(working.z)
     );
     // Groups keep orientation in their members, never on the group node.
-    if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh);
+    if (mesh?.metadata?.shapeType === 'Group') updateChildBlockRotations(mesh, { snap: false });
     if (isCombine(mesh)) syncCombineParts(mesh);
     if (isBodyAlive(mesh.physics)) {
       mesh.physics.disablePreStep = false;
@@ -2421,10 +2421,12 @@ function startRotateKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = 
     stopAxisKeyboard = stopInput;
     return;
   }
-  // Settle at session end, not per step: the slider reads the group's running rotation.
+  // Snap and settle at session end, not per step: the slider reads the
+  // group's running rotation, and per-step rounding would accumulate.
   stopAxisKeyboard = Object.assign(
     () => {
       stopInput();
+      updateChildBlockRotations(mesh);
       settleGroupRotation(mesh);
     },
     {
@@ -2666,9 +2668,10 @@ function findOrCreateMoveBlock(block) {
   );
 }
 
-// Group members keep 2dp: group scales and rotations derive their values, and
-// 1dp rounding visibly breaks flush alignments between members.
-const MEMBER_DECIMALS = 2;
+// Group members keep 4dp: group moves, scales and rotations derive their
+// values, so coarser rounding visibly breaks flush alignments, while finer
+// digits are float32 noise from Babylon's world matrices.
+const MEMBER_DECIMALS = 4;
 
 function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
   const target = block.type === 'clone_mesh' ? findOrCreateMoveBlock(block) : block;
@@ -3512,9 +3515,21 @@ function commitMoveToBlocks(mesh, startPosition) {
 // the scene identical to what Play rebuilds. The caller wraps this (with the
 // parent's own block update) in a single Blockly event group: one undo.
 export function moveGroupBy(groupMesh, delta) {
-  groupMesh.setAbsolutePosition(groupMesh.getAbsolutePosition().add(delta));
-  groupMesh.computeWorldMatrix(true);
-  inEventGroup(() => updateChildBlockPositions(groupMesh, delta));
+  inEventGroup(() => translateGroupedMesh(groupMesh, delta));
+}
+
+// Moves a group or combine and shifts its members' blocks to match, inside
+// the caller's event group.
+export function translateGroupedMesh(mesh, delta) {
+  mesh.setAbsolutePosition(mesh.getAbsolutePosition().add(delta));
+  mesh.computeWorldMatrix(true);
+  const block = meshMap[mesh.metadata?.blockKey];
+  if (block?.type === 'combine') {
+    if (!block.disposed) shiftCombineParts(block, delta);
+    flock.updatePhysics?.(mesh);
+    return;
+  }
+  updateChildBlockPositions(mesh, delta);
 }
 
 function updateChildBlockPositions(mesh, delta = null) {
@@ -3546,7 +3561,7 @@ function updateChildBlockPositions(mesh, delta = null) {
         current.x + delta.x,
         current.y + delta.y,
         current.z + delta.z,
-        { decimals: 4 }
+        { decimals: MEMBER_DECIMALS }
       );
       return;
     }
@@ -3586,7 +3601,7 @@ function forEachCombinePart(containerBlock, visit) {
 function shiftCombineParts(containerBlock, delta) {
   forEachCombinePart(containerBlock, (part, current) =>
     setBlockXYZ(part, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
-      decimals: 4,
+      decimals: MEMBER_DECIMALS,
     })
   );
 }
@@ -3751,6 +3766,12 @@ function startDuplicatePlacement() {
     if (newBlock?.type === 'procedures_callprefab') {
       void clonePrefabInstanceForDuplicate(originalBlock, newBlock);
     }
+    return newBlock;
+  };
+
+  const placeCopyInPlace = () => {
+    if (!placeCopy(null)) return;
+    showStatus(translate('duplicate_placed_status'), { owner: 'duplicate-place', duration: 3, hint: true });
   };
 
   activeDuplicateCentreHandle?.dispose();
@@ -3773,7 +3794,7 @@ function startDuplicatePlacement() {
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     if (centreHandle.isAt(canvasX, canvasY)) {
-      placeCopy(null);
+      placeCopyInPlace();
       return;
     }
 
@@ -3804,7 +3825,7 @@ function startDuplicatePlacement() {
     startCanvasKeyboardMode(
       (x, y) => {
         if (centreHandle.isAt(x, y)) {
-          placeCopy(null);
+          placeCopyInPlace();
           return;
         }
         const pickResult = flock.scene.pick(x, y, isPlacementSurface);
@@ -4372,7 +4393,15 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragEndObservable.remove(rotDragEnd));
 }
 
-export function updateChildBlockRotations(mesh) {
+// Without snap, members keep following the exact group rotation and only
+// their blocks update, so a multi-step session doesn't accumulate rounding.
+// Their live updates stay suppressed until the session's final snap: per-step
+// clearing races Blockly's late events, which then snap anyway. The final
+// snap lifts it at once, as late events then only reapply the snapped pose
+// and an immediate undo must not be dropped.
+const rotationSessionBlockIds = new Set();
+
+export function updateChildBlockRotations(mesh, { snap = true } = {}) {
   if (isPrefab(mesh)) {
     const block = meshMap[mesh.metadata.blockKey];
     if (block && !block.disposed) {
@@ -4386,6 +4415,11 @@ export function updateChildBlockRotations(mesh) {
   const rootKey = mesh.metadata.blockKey;
   const children = mesh.getChildMeshes(false);
   const seenKeys = new Set();
+  const suppressDuringSession = (block) => {
+    if (snap || !block || block.disposed) return;
+    suppressBlockLiveUpdates(block.id);
+    rotationSessionBlockIds.add(block.id);
+  };
 
   children.forEach((child) => {
     const key = child?.metadata?.blockKey;
@@ -4397,7 +4431,9 @@ export function updateChildBlockRotations(mesh) {
       return;
     }
 
+    suppressDuringSession(meshMap[key]);
     const rotateBlock = findOrCreateRotateBlock(child);
+    suppressDuringSession(rotateBlock);
     const childParent = child.parent;
     child.setParent(null);
     let rotation;
@@ -4421,7 +4457,7 @@ export function updateChildBlockRotations(mesh) {
     }
     // Snap live onto the rounded blocks: set the world orientation while
     // unparented, then re-anchor the position to the rounded base.
-    if (rotateBlock || memberBlock) {
+    if (snap && (rotateBlock || memberBlock)) {
       const parent = child.parent;
       child.setParent(null);
       try {
@@ -4447,6 +4483,10 @@ export function updateChildBlockRotations(mesh) {
       }
     }
   });
+
+  if (!snap) return;
+  for (const id of rotationSessionBlockIds) unsuppressBlockLiveUpdates(id);
+  rotationSessionBlockIds.clear();
 
   // Rotating re-shapes the content bounds - re-centre the origin so the next
   // transform starts from a consistent pivot.
@@ -5389,6 +5429,118 @@ export function disposeGizmoManager() {
   }
 }
 
+const AXIS_LABEL_PX = 24;
+
+function addAxisLabels(axisGizmos) {
+  const { BABYLON } = flock;
+  for (const [axis, axisGizmo] of Object.entries(axisGizmos)) {
+    const parent = axisGizmo?._gizmoMesh;
+    if (!parent || parent.metadata?.axisLabel) continue;
+    const scene = parent.getScene();
+    const texture = new BABYLON.DynamicTexture(`axisLabelTexture_${axis}`, 128, scene, true);
+    texture.hasAlpha = true;
+    const ctx = texture.getContext();
+    ctx.font = 'bold 96px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = '#ffffff';
+    ctx.strokeText(axis, 64, 60);
+    ctx.fillStyle = AXIS_HEX[axis];
+    ctx.fillText(axis, 64, 60);
+    texture.update();
+
+    const material = new BABYLON.StandardMaterial(`axisLabelMaterial_${axis}`, scene);
+    material.diffuseTexture = texture;
+    material.useAlphaFromDiffuseTexture = true;
+    material.emissiveColor = BABYLON.Color3.White();
+    material.disableLighting = true;
+    material.backFaceCulling = false;
+
+    const anchor = new BABYLON.TransformNode(`axisLabelAnchor_${axis}`, scene);
+    anchor.parent = parent;
+    anchor.position.z = 0.46;
+
+    const label = BABYLON.MeshBuilder.CreatePlane(`axisLabel_${axis}`, { size: 1 }, scene);
+    label.material = material;
+    label.parent = anchor;
+    label.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+    label.isPickable = false;
+    parent.metadata = { ...parent.metadata, axisLabel: label };
+
+    const resizeObserver = scene.onBeforeRenderObservable.add(() => {
+      if (!label.isEnabled()) return;
+      const camera = axisGizmo.gizmoLayer.getRenderCamera();
+      const canvasHeight = scene.getEngine().getRenderingCanvas()?.clientHeight;
+      const anchorScale = anchor.absoluteScaling.x;
+      if (!camera?.fov || !canvasHeight || !anchorScale) return;
+      const distance = BABYLON.Vector3.Distance(camera.globalPosition, anchor.getAbsolutePosition());
+      const worldSize = (AXIS_LABEL_PX * 2 * distance * Math.tan(camera.fov / 2)) / canvasHeight;
+      label.scaling.setAll(worldSize / anchorScale);
+    });
+    label.onDisposeObservable.add(() => scene.onBeforeRenderObservable.remove(resizeObserver));
+  }
+}
+
+const SCALE_HANDLE_MIN_LENGTH = 0.05;
+
+function stretchScaleHandleToBounds(axis, axisGizmo, uniformGizmo) {
+  const parent = axisGizmo?._gizmoMesh;
+  if (!parent || parent.metadata?.stretchToBounds) return;
+  const children = parent.getChildMeshes(true);
+  const rest = children.map((mesh) => ({
+    mesh,
+    position: mesh.position.clone(),
+    scaling: mesh.scaling.clone(),
+  }));
+  const [head, tail] = children.filter((mesh) => mesh.visibility !== 0);
+  const anchor = parent.metadata?.axisLabel?.parent;
+  const anchorRestZ = anchor?.position.z;
+  const headRestZ = head.position.z;
+  const tailRestLength = tail.position.z * 2;
+  const tailRestScale = tail.scaling.y;
+  let start = null;
+
+  const restore = () => {
+    rest.forEach(({ mesh, position, scaling }) => {
+      mesh.position.copyFrom(position);
+      mesh.scaling.copyFrom(scaling);
+    });
+    if (anchor) anchor.position.z = anchorRestZ;
+  };
+
+  const onStart = () => {
+    const mesh = gizmoManager?.attachedMesh;
+    if (!mesh) return (start = null);
+    const bounds = flock.getEffectiveWorldBounds(mesh);
+    start = {
+      mesh,
+      scale: Math.abs(mesh.scaling[axis]),
+      halfSize: (bounds.max[axis] - bounds.min[axis]) / 2,
+    };
+  };
+
+  const onDrag = () => {
+    restore();
+    const gizmoScale = parent.absoluteScaling.z;
+    if (!start?.scale || !gizmoScale) return;
+    const growth = start.halfSize * (Math.abs(start.mesh.scaling[axis]) / start.scale - 1);
+    const extra = Math.max(growth / gizmoScale, SCALE_HANDLE_MIN_LENGTH - tailRestLength);
+    head.position.z = headRestZ + extra;
+    tail.position.z = (tailRestLength + extra) / 2;
+    tail.scaling.y = (tailRestScale * (tailRestLength + extra)) / tailRestLength;
+    if (anchor) anchor.position.z = anchorRestZ + extra;
+  };
+
+  for (const behavior of [axisGizmo.dragBehavior, uniformGizmo?.dragBehavior]) {
+    behavior?.onDragStartObservable.add(onStart);
+    behavior?.onDragObservable.add(onDrag);
+    behavior?.onDragEndObservable.add(restore);
+  }
+  parent.metadata = { ...parent.metadata, stretchToBounds: true };
+}
+
 export function configurePositionGizmo(
   gizmoManager,
   {
@@ -5421,6 +5573,7 @@ export function configurePositionGizmo(
   if (pg.xGizmo?._coloredMaterial) pg.xGizmo._coloredMaterial.diffuseColor = xColor;
   if (pg.yGizmo?._coloredMaterial) pg.yGizmo._coloredMaterial.diffuseColor = yColor;
   if (pg.zGizmo?._coloredMaterial) pg.zGizmo._coloredMaterial.diffuseColor = zColor;
+  addAxisLabels({ x: pg.xGizmo, y: pg.yGizmo, z: pg.zGizmo });
 
   pg.updateGizmoPositionToMatchAttachedMesh = updateToMatchAttachedMesh;
   pg.updateGizmoRotationToMatchAttachedMesh = false;
@@ -5474,6 +5627,10 @@ export function configureScaleGizmo(
   if (sg.xGizmo?._coloredMaterial) sg.xGizmo._coloredMaterial.diffuseColor = xColor;
   if (sg.yGizmo?._coloredMaterial) sg.yGizmo._coloredMaterial.diffuseColor = yColor;
   if (sg.zGizmo?._coloredMaterial) sg.zGizmo._coloredMaterial.diffuseColor = zColor;
+  addAxisLabels({ x: sg.xGizmo, y: sg.yGizmo, z: sg.zGizmo });
+  stretchScaleHandleToBounds('x', sg.xGizmo, sg.uniformScaleGizmo);
+  stretchScaleHandleToBounds('y', sg.yGizmo, sg.uniformScaleGizmo);
+  stretchScaleHandleToBounds('z', sg.zGizmo, sg.uniformScaleGizmo);
 
   sg.sensitivity = sensitivity;
 

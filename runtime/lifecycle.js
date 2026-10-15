@@ -45,6 +45,18 @@ function renderPixelRatio() {
   return Math.max(1, Math.min(dpr, Math.sqrt(MAX_RENDER_PIXELS / screenPixels)));
 }
 
+function watchPixelRatio(onChange) {
+  const query = window.matchMedia?.(`(resolution: ${window.devicePixelRatio}dppx)`);
+  query?.addEventListener(
+    'change',
+    () => {
+      onChange();
+      watchPixelRatio(onChange);
+    },
+    { once: true }
+  );
+}
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -283,6 +295,19 @@ export const flockLifecycle = {
 
     flock.engine.enableOfflineSupport = false;
     flock.engine.setHardwareScalingLevel(1 / renderPixelRatio());
+
+    if (!flock._pixelRatioListenerAdded) {
+      flock._pixelRatioListenerAdded = true;
+      watchPixelRatio(() => flock._applyPixelRatio());
+    }
+  },
+  _applyPixelRatio() {
+    if (!flock.engine) return;
+    const ratio = renderPixelRatio();
+    flock.displayScale = ratio * 0.75;
+    flock.engine.setHardwareScalingLevel(1 / ratio);
+    flock.engine.resize();
+    flock._relayoutUIControls?.();
   },
   async disposeOldScene() {
     flock.flockNotReady = true;

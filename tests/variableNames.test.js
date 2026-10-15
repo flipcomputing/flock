@@ -1,5 +1,7 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+import { defineGenerators } from '../generators/generators.js';
 import { handleBlockCreateEvent } from '../blocks/blocks.js';
 import {
   handleRecentObjectEvent,
@@ -17,6 +19,7 @@ import { defineModifyBlocks } from '../blocks/modify.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineConnectBlocks } from '../blocks/connect.js';
 import { highlightBlockById } from '../ui/blocklyutil.js';
+import { setProjectLoading } from '../main/projectLoading.js';
 
 export function runVariableNamesTests() {
   describe('Variable naming @variablenames', function () {
@@ -46,14 +49,14 @@ export function runVariableNamesTests() {
 
     beforeEach(function () {
       workspace = new Blockly.Workspace();
-      window.loadingCode = false;
+      setProjectLoading(false);
       resetRecent();
     });
 
     afterEach(function () {
       resetRecent();
       workspace.dispose();
-      delete window.loadingCode;
+      setProjectLoading(false);
     });
 
     describe('default names', function () {
@@ -164,9 +167,32 @@ export function runVariableNamesTests() {
 
       it('does not rename while a project is loading', function () {
         const box1 = append({ type: 'create_box' });
-        window.loadingCode = true;
+        setProjectLoading(true);
 
         expect(varText(duplicate(box1, 'box'))).to.equal('box1');
+      });
+
+      // The duplicate gizmo connects the copy straight after the original, so the
+      // copy's next events already see the original's other uses below it.
+      it('leaves blocks added to a copy alone once it is inserted above uses of the original', function () {
+        const box1 = append({ type: 'create_box' });
+        const show = append({ type: 'show', fields: { MODEL_VAR: { id: varId(box1) } } });
+        box1.nextConnection.connect(show.previousConnection);
+        const box2 = duplicate(box1, 'box');
+        box1.nextConnection.connect(box2.previousConnection);
+        const later = { type: Blockly.Events.BLOCK_MOVE, blockId: box2.id, recordUndo: true };
+        handleBlockCreateEvent(box2, later, 'box');
+
+        const box9 = workspace.getVariableMap().createVariable('box9', '');
+        const read = append({ type: 'variables_get', fields: { VAR: { id: box9.getId() } } });
+        box2.getInput('COLOR').connection.connect(read.outputConnection);
+        handleBlockCreateEvent(box2, later, 'box');
+
+        expect(box2.getNextBlock()).to.equal(show);
+        expect(varText(box2)).to.equal('box2');
+        expect(varText(show, 'MODEL_VAR')).to.equal('box1');
+        expect(varText(read, 'VAR')).to.equal('box9');
+        expect(workspace.getVariableMap().getVariable('box9')).to.not.equal(null);
       });
     });
 
@@ -537,10 +563,48 @@ export function runVariableNamesTests() {
         separateNestedLoopVariables(moved(inner, { recordUndo: false }));
         separateNestedLoopVariables(moved(inner, { newParentId: undefined }));
         separateNestedLoopVariables(moved(inner, { type: Blockly.Events.BLOCK_CHANGE }));
-        window.loadingCode = true;
+        setProjectLoading(true);
         separateNestedLoopVariables(moved(inner));
 
         expect(loopName(inner)).to.equal('count');
+      });
+    });
+
+    // A generated name that matches something the sandbox provides would hide it.
+    describe('generated code names', function () {
+      before(function () {
+        defineGenerators();
+      });
+
+      const generate = () => javascriptGenerator.workspaceToCode(workspace);
+
+      it('renames a variable named after an API function', function () {
+        append({ type: 'create_box', fields: { ID_VAR: { name: 'box1' } } });
+        append({
+          type: 'mirror_mesh',
+          fields: { ID_VAR: { name: 'mirror' }, SOURCE_MESH: { name: 'box1' } },
+        });
+
+        const code = generate();
+
+        expect(code).to.match(/let (mirror\d+) = "mirror";[\s\S]*\1 = mirror\(box1,/);
+        expect(code).to.not.match(/\blet mirror\b/);
+      });
+
+      it('renames a variable named after a global the run provides', function () {
+        append({
+          type: 'variables_set',
+          fields: { VAR: { name: '__flockLoopYield' } },
+          inputs: { VALUE: { block: { type: 'math_number', fields: { NUM: 1 } } } },
+        });
+
+        expect(generate()).to.match(/\b__flockLoopYield\d+ = 1;/);
+      });
+
+      it('renames a function named after an API function', function () {
+        append({ type: 'procedures_defnoreturn', fields: { NAME: 'say' } });
+
+        expect(generate()).to.match(/async function say\d+\(/);
       });
     });
   });

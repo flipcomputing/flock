@@ -20,7 +20,9 @@ import {
   shapeError,
 } from '../api/freeformgeometry.js';
 import { setFreeformEditing } from '../ui/freeformedit.js';
+import { FieldGroupArrange } from './fieldGroupArrange.js';
 import { updateParticleEffectFromBlock } from '../ui/blockmesh.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
 
@@ -1249,7 +1251,7 @@ export function defineShapeBlocks() {
     // Hand edits that would break the shape are undone straight away. Undo and
     // redo are skipped: every state on the stack was already checked.
     rejectBrokenShape_: function (event) {
-      if (window.loadingCode || this.isInFlyout || !event.recordUndo || this.checkPending_) return;
+      if (isProjectLoading() || this.isInFlyout || !event.recordUndo || this.checkPending_) return;
       if (!touchesPointList(this, event)) return;
       this.checkPending_ = true;
       setTimeout(() => {
@@ -1548,6 +1550,7 @@ export function defineShapeBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('transform_blocks');
+      this.inputList[0].appendField(new FieldGroupArrange(), 'ARRANGE');
 
       registerBlockHandler(this, (changeEvent) =>
         handleBlockChange(this, changeEvent, variableNamePrefix)

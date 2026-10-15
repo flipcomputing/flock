@@ -858,7 +858,7 @@ class CustomColorPicker {
 
       // Keyboard control (unchanged)
       this.lightSlider.addEventListener('keydown', (e) => {
-        let delta = 0;
+        let delta;
         // inside this.lightSlider.addEventListener("keydown", (e) => { ... })
         switch (e.key) {
           case 'ArrowUp':
@@ -1775,9 +1775,7 @@ class CustomColorPicker {
     const c = (1 - Math.abs(2 * l - 1)) * s;
     const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
     const m = l - c / 2;
-    let r = 0,
-      g = 0,
-      b = 0;
+    let r, g, b;
 
     if (0 <= h && h < 60) {
       r = c;

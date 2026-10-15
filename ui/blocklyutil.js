@@ -199,11 +199,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
   if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
 
   const listener = (event) => {
-    const isSelectEvent =
-      event.type === Blockly.Events.SELECTED ||
-      (event.type === Blockly.Events.UI && event.element === 'selected');
-
-    if (isSelectEvent) {
+    if (event.type === Blockly.Events.SELECTED) {
       clearAddMenuHighlight(workspace, event.newElementId);
     }
   };

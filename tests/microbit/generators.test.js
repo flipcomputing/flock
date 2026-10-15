@@ -3,6 +3,8 @@ import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import { defineSensingBlocks } from '../../blocks/sensing.js';
 import { defineXRBlocks } from '../../blocks/xr.js';
+import { dispatchBlockEvent, enableBlockHandlers } from '../../blocks/blocks.js';
+import { setAsideBlockHandlers } from '../utils/blockHandlerTestUtils.js';
 import { registerSensingGenerators } from '../../generators/generators-sensing.js';
 import { registerSceneGenerators } from '../../generators/generators-scene.js';
 import { MICROBIT_IMAGE_PRESETS } from '../../blocks/microbitImagePattern.js';
@@ -71,12 +73,18 @@ export function runMicrobitGeneratorTests() {
       );
     });
 
+    let restoreBlockHandlers;
+
     beforeEach(function () {
+      restoreBlockHandlers = setAsideBlockHandlers();
       workspace = new Blockly.Workspace();
+      enableBlockHandlers(workspace);
+      workspace.addChangeListener((event) => dispatchBlockEvent(workspace, event));
     });
 
     afterEach(function () {
       workspace.dispose();
+      restoreBlockHandlers();
     });
 
     function generate(block) {

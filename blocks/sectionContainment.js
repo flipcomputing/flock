@@ -11,7 +11,7 @@ function isRendered(block) {
 }
 
 export function getAllSectionBlocks(workspace) {
-  return (workspace.getAllBlocks(false) || []).filter((b) => b.type === 'section');
+  return workspace.getBlocksByType('section', false);
 }
 
 export function buildContainedIdSet(workspace) {

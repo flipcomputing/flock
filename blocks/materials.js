@@ -617,6 +617,16 @@ export function defineMaterialsBlocks() {
         }
       });
 
+      const originalShowEditor = colorField.showEditor_;
+      colorField.showEditor_ = function (e) {
+        const picker = window.flockColorPicker;
+        if (picker?.isOpen && !this.getSourceBlock()?.isInFlyout) {
+          this.setValue(picker.currentColor.replace(/^#/, ''));
+          return;
+        }
+        return originalShowEditor.call(this, e);
+      };
+
       // Set initial block color based on the field's initial value
       try {
         const initialVal = colorField.getValue();
@@ -792,15 +802,14 @@ export function defineMaterialsBlocks() {
     const ws = block.workspace;
     const touches = makeTouchesInputSubtree(block, ws, 'MATERIAL');
 
-    block.setOnChange((changeEvent) => {
+    registerBlockHandler(block, (changeEvent) => {
       const eventTypes = [
         Blockly.Events.BLOCK_CREATE,
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_MOVE,
         Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.UI,
       ];
-      if (!eventTypes.includes(changeEvent.type)) return;
+      if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
       const relevant =
         wasBlockDeleted(changeEvent, block.id) ||

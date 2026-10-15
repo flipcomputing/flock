@@ -7,7 +7,10 @@ import {
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
   registerBlockHandler,
+  isValueInputDescendantOf,
 } from './blocks.js';
+import { flock } from '../flock.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
 import { mapNames } from '../config.js';
 import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
@@ -68,17 +71,12 @@ export function makeTouchesInputSubtree(block, ws, inputName) {
   };
 }
 
-function isDragStop(changeEvent) {
-  return changeEvent.type === Blockly.Events.UI && changeEvent.element === 'dragStop';
-}
-
 export function changeEventHitsTouches(changeEvent, touches) {
   return (
     touches(changeEvent.blockId) ||
     (Array.isArray(changeEvent.ids) && changeEvent.ids.some(touches)) ||
     touches(changeEvent.newParentId) ||
-    touches(changeEvent.oldParentId) ||
-    isDragStop(changeEvent)
+    touches(changeEvent.oldParentId)
   );
 }
 
@@ -90,6 +88,59 @@ export function wasBlockDeleted(changeEvent, blockId) {
   );
 }
 
+const SETTING_EVENT_TYPES = [
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_MOVE,
+  Blockly.Events.BLOCK_DELETE,
+];
+
+function isSettingLive(block) {
+  if (!block.isEnabled()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected()) return false;
+  const root = block.getRootBlock();
+  return root.isEnabled() && !root.type.startsWith('procedures_def');
+}
+
+function editsSetting(block, changeEvent) {
+  const ws = block.workspace;
+  if (changeEvent.type === Blockly.Events.BLOCK_CREATE) return !!changeEvent.ids?.includes(block.id);
+  const changesLiveness =
+    changeEvent.type === Blockly.Events.BLOCK_MOVE ||
+    (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.element === 'disabled');
+  if (changesLiveness) {
+    for (let b = block; b; b = b.getParent()) if (b.id === changeEvent.blockId) return true;
+  }
+  return [changeEvent.blockId, changeEvent.newParentId, changeEvent.oldParentId].some((id) =>
+    isValueInputDescendantOf(block, id && ws.getBlockById(id))
+  );
+}
+
+function applyLiveSettingOrReset(ws, type, apply, reset) {
+  const live = ws
+    .getBlocksByType(type, false)
+    .find((b) => !b.disposed && isSettingLive(b));
+  if (live) apply(live);
+  else reset();
+}
+
+export function attachSceneSettingLiveUpdate(block, { apply, reset }) {
+  const ws = block.workspace;
+  registerBlockHandler(block, (changeEvent) => {
+    if (!SETTING_EVENT_TYPES.includes(changeEvent.type) || !flock.scene) return;
+    if (isProjectLoading() && !changeEvent.recordUndo) return;
+
+    if (wasBlockDeleted(changeEvent, block.id)) {
+      applyLiveSettingOrReset(ws, block.type, apply, reset);
+      return;
+    }
+    if (block.disposed || !editsSetting(block, changeEvent)) return;
+
+    if (isSettingLive(block)) apply(block);
+    else applyLiveSettingOrReset(ws, block.type, apply, reset);
+  });
+}
+
 function attachMeshSyncOnChange(block, config) {
   const ws = block.workspace;
 
@@ -99,19 +150,17 @@ function attachMeshSyncOnChange(block, config) {
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_MOVE,
         Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.UI,
       ]
     : [
         Blockly.Events.BLOCK_CREATE,
         Blockly.Events.BLOCK_CHANGE,
         Blockly.Events.BLOCK_DELETE,
-        Blockly.Events.UI,
       ];
 
   const touches = makeTouchesInputSubtree(block, ws, config.subtreeInputName);
 
-  block.setOnChange((changeEvent) => {
-    if (!eventTypes.includes(changeEvent.type)) return;
+  registerBlockHandler(block, (changeEvent) => {
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       (config.includeSelfDelete && wasBlockDeleted(changeEvent, block.id)) ||
@@ -272,15 +321,14 @@ export function attachShadowContainerOnChange(block, opts) {
   const ws = block.workspace;
   const touches = makeTouchesInputSubtree(block, ws, opts.inputName);
 
-  block.setOnChange((changeEvent) => {
+  registerBlockHandler(block, (changeEvent) => {
     const eventTypes = [
       Blockly.Events.BLOCK_CREATE,
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
-      Blockly.Events.UI,
     ];
-    if (!eventTypes.includes(changeEvent.type)) return;
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||
@@ -333,15 +381,14 @@ function attachCreateMapOnChange(block) {
   const ws = block.workspace;
   const touches = makeTouchesInputSubtree(block, ws, 'MATERIAL');
 
-  block.setOnChange((changeEvent) => {
+  registerBlockHandler(block, (changeEvent) => {
     const eventTypes = [
       Blockly.Events.BLOCK_CREATE,
       Blockly.Events.BLOCK_CHANGE,
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
-      Blockly.Events.UI,
     ];
-    if (!eventTypes.includes(changeEvent.type)) return;
+    if (block.disposed || !eventTypes.includes(changeEvent.type)) return;
 
     const relevant =
       wasBlockDeleted(changeEvent, block.id) ||

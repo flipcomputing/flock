@@ -53,7 +53,7 @@ export function createAxisKeyboardHandler({
     const step = event.shiftKey ? stepNormal : stepFast;
 
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if ((uniformOnly || onlyAxis) && 'xyzuXYZU'.includes(event.key)) return;
+    if ((uniformOnly || onlyAxis) && 'xyzuXYZU='.includes(event.key)) return;
 
     switch (event.key) {
       case 'x':
@@ -82,6 +82,7 @@ export function createAxisKeyboardHandler({
 
       case 'u':
       case 'U':
+      case '=':
         // Uniform (all-axes) only applies to scale; ignore on move/rotate.
         if (!allowUniform) break;
         axis = axis === 'all' ? null : 'all';

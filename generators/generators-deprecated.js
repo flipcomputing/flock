@@ -45,7 +45,7 @@ export function registerDeprecatedGenerators(javascriptGenerator) {
     for (let i = 1; i <= 25; i++) {
       const color =
         javascriptGenerator.valueToCode(block, `COLOR_${i}`, javascriptGenerator.ORDER_ATOMIC) ||
-        '#808080';
+        '"#808080"';
       colors.push(color);
     }
     return `await createCustomMap([${colors.join(', ')}]);\n`;

@@ -130,9 +130,6 @@ export default {
   color_gray: 'Grigio',
 
   // Color block translations
-  colour_rgb: 'rosso %1 verde %2 blu %3',
-  colour_random: 'colore casuale',
-  colour_blend: 'miscela %1 e %2 di %3',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'cielo %1',
@@ -250,6 +247,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valore colore CSS non valido.', // ai
+  colour_contrast_warning: 'Il testo potrebbe essere difficile da leggere: il contrasto è %1:1. Punta ad almeno %2:1.', // ai
   random_colour: 'colore casuale',
   material: 'materiale %1 %2',
   material_alpha: 'alpha',
@@ -1258,6 +1256,7 @@ export default {
   select_mesh_position_prompt: 'Seleziona un oggetto da posizionare.',
   select_mesh_duplicate_prompt: 'Seleziona un oggetto da duplicare.',
   place_duplicate_prompt: 'Fai clic per posizionare una copia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copia posizionata.', // AI-generated; needs validation
   orbit_origin_info: "Trascina per muovere la telecamera intorno all'origine. Clicca su un oggetto per orbitargli attorno.",
   orbit_mesh_info: "Trascina per muovere la telecamera intorno all'oggetto",
   camera_preview_info: 'Stai guardando attraverso la camera. Fai clic sul pulsante della camera per tornare indietro.', // AI-generated; needs validation

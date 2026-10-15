@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
+import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll-options';
 import { toolbox, categoryColours } from '../toolbox.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { flock } from '../flock.js';
@@ -18,6 +19,7 @@ import {
   getCloneDoOwner,
 } from '../ui/blockmesh.js';
 import { removeUIControlsForBlock } from '../ui/uicontrolgizmo.js';
+import { handleError } from '../ui/notifications.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
@@ -28,6 +30,7 @@ import './fieldCameraButtons.js'; // registers field_capture_view, field_view_ca
 import { setupProcedureParams } from './procedureParams.js';
 import { outOfScopeLocalIds, VariableNameDropdown } from './variableScope.js';
 import { lowestFreeName, nextVariableName, rememberObjectBlock } from './variableNames.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 registerFieldColour();
 
@@ -69,23 +72,8 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
       return;
     }
 
-    // Fallback: Blockly's built-in grid dropdown with positioning/focus patches
+    // Fallback: Blockly's built-in grid dropdown with focus patch
     originalShowEditor.call(this, e);
-
-    // v13.0.0-beta.5 + @blockly/field-colour@6.0.12: the colour grid dropdown
-    // is mis-positioned by Blockly.DropDownDiv.showPositionedByField — it lands
-    // pinned to the workspace's top-left edge instead of next to the field.
-    // The cause is somewhere in v13's positioning math. Re-anchor the dropdown to
-    // the field manually as a stopgap until upstream ships a v13 fix.
-    const xy = this.getAbsoluteXY_();
-    const size = this.getSize();
-    const dd = document.querySelector('.blocklyDropDownDiv');
-    const parent = dd?.parentElement;
-    if (dd && parent && xy) {
-      const parentRect = parent.getBoundingClientRect();
-      dd.style.top = `${xy.y + (size?.height || 21) - parentRect.y}px`;
-      dd.style.left = `${xy.x - parentRect.x}px`;
-    }
 
     const currentValue = normaliseHexColour(this.getValue?.());
     if (!currentValue) return;
@@ -99,6 +87,7 @@ if (!fieldColourPrototype[flockFocusPatchKey]) {
 
     Blockly.DropDownDiv.getContentDiv().querySelector('.blocklyFieldGrid')?.focus();
   };
+  fieldColourPrototype[flockFocusPatchKey] = true;
 }
 
 // v13.1.0: FieldGridDropdown.recomputeAriaContext (FieldColour's base class)
@@ -164,18 +153,23 @@ if (listCreateWithBlockType && !listCreateWithBlockType[flockListCreateWithStyle
       Blockly.Events.BLOCK_MOVE,
       Blockly.Events.BLOCK_DELETE,
     ];
-    this.setOnChange((changeEvent) => {
-      if (!eventTypes.includes(changeEvent.type)) return;
+    const onChange = (changeEvent) => {
+      if (this.disposed || !eventTypes.includes(changeEvent.type)) return;
       updateListStyle(this);
-    });
+    };
+    if (this.workspace.isFlyout) this.setOnChange(onChange);
+    else registerBlockHandler(this, onChange);
   };
   listCreateWithBlockType[flockListCreateWithStylePatchKey] = true;
 }
 
+const isTargetIn = (element, target) => element && (element === target || element.contains(target));
+
 // When the colour picker is open, sniff pointerdown (fires before the picker's
 // capture-phase click handler) to check whether the pointer landed on a colour
-// field's SVG click target.  The result is stored as a flag on the picker so
-// that excludeFromClose can let the click through only for colour-field hits.
+// field's SVG click target or anywhere on a CSS colour block.  The result is
+// stored as a flag on the picker so that excludeFromClose can let the click
+// through only for those hits.
 document.addEventListener(
   'pointerdown',
   (e) => {
@@ -189,15 +183,17 @@ document.addEventListener(
     if (!workspace) return;
 
     picker._colourFieldPointerDown = workspace.getAllBlocks(false).some(
-      (block) =>
-        !block.isInFlyout &&
-        block.inputList?.some((input) =>
-          input.fieldRow?.some((field) => {
-            if (!(field instanceof FieldColour)) return false;
-            const ct = field.clickTarget_ ?? field.fieldGroup_;
-            return ct && (ct === e.target || ct.contains(e.target));
-          })
-        )
+      (block) => {
+        if (block.isInFlyout) return false;
+        if (block.type === 'colour_from_string') return isTargetIn(block.getSvgRoot(), e.target);
+        return block.inputList?.some((input) =>
+          input.fieldRow?.some(
+            (field) =>
+              field instanceof FieldColour &&
+              isTargetIn(field.clickTarget_ ?? field.fieldGroup_, e.target)
+          )
+        );
+      }
     );
   },
   true
@@ -205,19 +201,18 @@ document.addEventListener(
 
 // ---------------------------------------------------------------------------
 // Workspace-level block-change dispatcher
-//  A single workspace addChangeListener in
-// blockhandling.js iterates this map once per event
+//  A single workspace addChangeListener in blockhandling.js passes each event
+//  to dispatchBlockEvent, which calls only the handlers it concerns.
 // ---------------------------------------------------------------------------
 
 /**
- * Map subclass that caches its values array and invalidates the cache
- * whenever the map is mutated. This avoids allocating a fresh array on every
- * workspace event (including high-frequency viewport pans) while still
- * providing a stable snapshot that is safe to iterate even if a handler
- * registers or removes entries mid-loop.
+ * Map subclass that caches its entries array and invalidates the cache
+ * whenever the map is mutated, giving a stable snapshot that is safe to
+ * iterate even if a handler registers or removes entries mid-loop.
  */
 class HandlerRegistry extends Map {
   #snapshot = null;
+  #allEvents = new Set();
 
   set(key, value) {
     this.#snapshot = null;
@@ -226,17 +221,28 @@ class HandlerRegistry extends Map {
 
   delete(key) {
     this.#snapshot = null;
+    this.#allEvents.delete(key);
     return super.delete(key);
   }
 
   clear() {
     this.#snapshot = null;
+    this.#allEvents.clear();
     return super.clear();
   }
 
-  /** Returns a cached snapshot of current handler values. */
-  cachedValues() {
-    if (!this.#snapshot) this.#snapshot = [...super.values()];
+  setWantsAllEvents(key, wantsAll) {
+    if (wantsAll) this.#allEvents.add(key);
+    else this.#allEvents.delete(key);
+  }
+
+  wantsAllEvents(key) {
+    return this.#allEvents.has(key);
+  }
+
+  /** Returns a cached snapshot of current [blockId, handler] entries. */
+  cachedEntries() {
+    if (!this.#snapshot) this.#snapshot = [...super.entries()];
     return this.#snapshot;
   }
 }
@@ -244,17 +250,83 @@ class HandlerRegistry extends Map {
 /** @type {HandlerRegistry} */
 export const blockHandlerRegistry = new HandlerRegistry();
 
+const dispatchedWorkspaces = new WeakSet();
+
+/**
+ * Marks a workspace whose events are passed to dispatchBlockEvent. Blocks on
+ * any other workspace (flyouts, the headless search index) register nothing,
+ * since their delete events would never remove the handler.
+ */
+export function enableBlockHandlers(workspace) {
+  dispatchedWorkspaces.add(workspace);
+}
+
 /**
  * Register a block's change handler with the workspace dispatcher.
- * Flyout blocks are silently skipped because the dispatcher is attached to
- * the main workspace only.
+ * Blocks on a workspace not passed to enableBlockHandlers are skipped.
+ *
+ * A handler sees events whose blocks are its own block, above it, or (for
+ * moves, creates and enable changes) below it, plus events with no block.
+ * Pass allEvents for a handler that reacts to unrelated blocks.
  *
  * @param {Blockly.Block} block
  * @param {(changeEvent: object) => void} handler
+ * @param {{allEvents?: boolean}} [options]
  */
-export function registerBlockHandler(block, handler) {
-  if (!block.workspace || block.workspace.isFlyout) return;
+export function registerBlockHandler(block, handler, { allEvents = false } = {}) {
+  if (!dispatchedWorkspaces.has(block.workspace)) return;
   blockHandlerRegistry.set(block.id, handler);
+  blockHandlerRegistry.setWantsAllEvents(block.id, allEvents);
+}
+
+// Ids of the blocks an event concerns, or null when it concerns no block in
+// particular (variable changes, finished loading) and goes to every handler.
+function relatedBlockIds(workspace, event) {
+  const touched = [event.blockId, ...(event.ids ?? []), event.newParentId, event.oldParentId].filter(
+    Boolean
+  );
+  if (!touched.length) return null;
+
+  const related = new Set(touched);
+  const includeBelow =
+    event.type === Blockly.Events.BLOCK_MOVE ||
+    event.type === Blockly.Events.BLOCK_CREATE ||
+    (event.type === Blockly.Events.BLOCK_CHANGE && event.element === 'disabled');
+  for (const id of touched) {
+    const block = workspace.getBlockById(id);
+    if (!block) continue;
+    for (let above = block.getParent(); above; above = above.getParent()) related.add(above.id);
+    if (includeBelow) {
+      for (const below of block.getDescendants(false)) related.add(below.id);
+    }
+  }
+  return related;
+}
+
+/**
+ * Calls the registered handlers an event concerns, in registration order.
+ * Deleted blocks' handlers receive their own delete event, then are removed.
+ * A handler that throws is reported, and the remaining handlers still run.
+ */
+export function dispatchBlockEvent(workspace, event) {
+  if (event.isUiEvent) return;
+
+  const related = relatedBlockIds(workspace, event);
+  const entries = blockHandlerRegistry.cachedEntries();
+  for (const [id, handler] of entries) {
+    if (!related || related.has(id) || blockHandlerRegistry.wantsAllEvents(id)) {
+      try {
+        handler(event);
+      } catch (error) {
+        handleError(error, { source: 'block-handler' });
+      }
+    }
+  }
+  if (event.type === Blockly.Events.BLOCK_DELETE && Array.isArray(event.ids)) {
+    for (const id of event.ids) {
+      if (!workspace.getBlockById(id)) blockHandlerRegistry.delete(id);
+    }
+  }
 }
 
 export function getHelpUrlFor(_blockType) {
@@ -579,10 +651,9 @@ export function handleMeshLifecycleChange(block, changeEvent) {
       : [changeEvent.blockId];
 
     if (!createdBlockIds.includes(block.id)) return false;
-    // Skip mesh creation when loading saved code (recordUndo=false).
-    // But allow it when the user drops a block/snippet (recordUndo=true),
-    // even if loadingCode is true (e.g. while the Snippets flyout is open).
-    if (window.loadingCode && !changeEvent.recordUndo) return true;
+    // Skip mesh creation when loading saved code (recordUndo=false), but
+    // not when the user drops a block or snippet (recordUndo=true).
+    if (isProjectLoading() && !changeEvent.recordUndo) return true;
     updateOrCreateMeshFromBlock(block, changeEvent);
     return true;
   }
@@ -665,7 +736,7 @@ export function handleParentLinkedUpdate(containerBlock, changeEvent) {
     const parent = findCreateBlock(changed);
 
     if (changed && parent === containerBlock && isValueInputDescendantOf(containerBlock, changed)) {
-      if (!window.loadingCode) {
+      if (!isProjectLoading()) {
         updateOrCreateMeshFromBlock(containerBlock, changeEvent);
       }
       return true;
@@ -867,9 +938,10 @@ function retargetDescendantsVariables(rootBlock, fromVarId, toVarId, BlocklyNS, 
   return changes;
 }
 
-function subtreeHasVarId(rootBlock, fromVarId, BlocklyNS) {
+function subtreeHasVarId(rootBlock, fromVarId, BlocklyNS, createdIds = null) {
   const descendants = rootBlock.getDescendants(false);
   for (const b of descendants) {
+    if (createdIds && !createdIds.has(b.id)) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       if (f.getValue && f.getValue() === fromVarId) return true;
@@ -931,6 +1003,7 @@ function adoptIsolatedDefaultVarsTo(
   }
 
   for (const b of collectInputDescendants(rootBlock)) {
+    if (createdIds && !createdIds.has(b.id)) continue;
     const fields = getVariableFieldsOnBlock(b, BlocklyNS);
     for (const f of fields) {
       const vid = f.getValue && f.getValue();
@@ -1391,6 +1464,10 @@ function getBlocklyMediaPath() {
 
 const mediaPath = getBlocklyMediaPath();
 
+class VerticalScrollBlockDragger extends ScrollBlockDragger {
+  scrollDirections_ = ['top', 'bottom'];
+}
+
 export const options = {
   //theme: FlockTheme,
   theme: createThemeConfig('light'),
@@ -1421,6 +1498,8 @@ export const options = {
   searchAllBlocks: false,
   plugins: {
     connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
+    blockDragger: VerticalScrollBlockDragger,
+    metricsManager: ScrollMetricsManager,
   },
   // Double click the blocks to collapse/expand
   // them (A feature from MIT App Inventor).
@@ -2247,13 +2326,21 @@ export function addDoMutatorWithToggleBehavior(block) {
   };
 }
 
+let snippetFlyoutOpen = false;
+
+// Blocks dragged out of a Snippets category keep their variable names, so
+// several snippets can share one variable such as 'player'.
+export function setSnippetFlyoutOpen(open) {
+  snippetFlyoutOpen = open;
+}
+
 export function handleBlockCreateEvent(
   blockInstance,
   changeEvent,
   variableNamePrefix,
   fieldName = 'ID_VAR'
 ) {
-  if (window.loadingCode) return;
+  if (isProjectLoading() || snippetFlyoutOpen) return;
 
   ensureFreshVarOnDuplicate(blockInstance, changeEvent, variableNamePrefix, { fieldName });
 

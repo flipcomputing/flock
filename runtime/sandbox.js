@@ -127,7 +127,7 @@ export const flockSandbox = {
     try {
       new Function(code); // Just check if it parses
     } catch (e) {
-      throw new Error(`Syntax error: ${e.message}`);
+      throw new Error(`Syntax error: ${e.message}`, { cause: e });
     }
 
     // Optional: Warn about patterns (don't block)
@@ -945,3 +945,15 @@ export const flockSandbox = {
     return { iframe, win, doc };
   },
 };
+
+// Names user code receives from the Flock API, plus the globals a run sets beside
+// them. A generated variable or function with one of these names would shadow it,
+// so the generator must avoid them. Every API entry is `this.x?.bind(this)`, so
+// the keys come out without a live flock.
+export const SANDBOX_API_NAMES = [
+  ...Object.keys(flockSandbox.createWhitelist.call({}, { guard: (fn) => fn })),
+  'performance',
+  'requestAnimationFrame',
+  '__flockLoopYield',
+  'Date',
+];

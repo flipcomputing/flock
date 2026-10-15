@@ -29,6 +29,7 @@ import {
   openFile,
   updateSaveButtonState,
   isProjectModified,
+  isFileSaveUnknown,
   initProjectModifiedTracking,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
@@ -62,6 +63,7 @@ import {
   showBlockHintMessage,
   hideBlockHint,
 } from '../ui/blockHint.js';
+import { setProjectLoading } from './projectLoading.js';
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get('embed');
@@ -1108,7 +1110,7 @@ window.onload = async function () {
   // A custom dialog can't run synchronously here, so save to localStorage and
   // fall back to the browser's own "leave site?" prompt.
   window.addEventListener('beforeunload', (event) => {
-    if (!isProjectModified()) return;
+    if (!isProjectModified() && !isFileSaveUnknown()) return;
     saveWorkspace(workspace);
     event.preventDefault();
     event.returnValue = '';
@@ -1130,12 +1132,12 @@ window.onload = async function () {
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
-      window.loadingCode = false;
+      setProjectLoading(false);
     }
   });
 
   // Initial view setup
-  window.loadingCode = true;
+  setProjectLoading(true);
 
   // Initialize saved language before loading workspace
   await initializeSavedLanguage();

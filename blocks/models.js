@@ -23,6 +23,7 @@ import { flock } from '../flock.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { updateOrCreateMeshFromBlock } from '../ui/blockmesh.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 function updateColorsListField(block) {
   const selectedObject = block.getFieldValue('MODELS');
@@ -635,7 +636,7 @@ export function defineModelBlocks() {
           const colors = this.getInputTargetBlock('COLORS');
           this.colorsEdited = !!colors && colors.type !== 'lists_create_with';
         } else if (
-          !window.loadingCode &&
+          !isProjectLoading() &&
           !(changeEvent.group && changeEvent.group === colorResetGroup) &&
           isColorsListEdit(this, changeEvent)
         ) {

@@ -4,6 +4,7 @@ import { handleBlockCreateEvent, getHelpUrlFor, registerBlockHandler } from './b
 import { nextVariableName, otherObjectName } from './variableNames.js';
 import { animationNames } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 
 function preventLoopingAwait(block, modeFieldName = 'MODE') {
   const loopField = block.getField('LOOP');
@@ -874,7 +875,7 @@ export function defineAnimateBlocks() {
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'ANIMATION_GROUP');
 
-        if (window.loadingCode) return;
+        if (isProjectLoading()) return;
       });
     },
   };

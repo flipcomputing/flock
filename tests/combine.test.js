@@ -5,6 +5,7 @@ import { defineGenerators } from '../generators/generators.js';
 import '../blocks/blocks.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { defineModifyBlocks } from '../blocks/modify.js';
+import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 const box = (name, extra = {}) => ({
   block: { type: 'create_box', fields: { ID_VAR: { name } }, ...extra },
@@ -22,14 +23,14 @@ export function runCombineTests(flock) {
     });
 
     beforeEach(function () {
-      savedLoadingCode = window.loadingCode;
-      window.loadingCode = true;
+      savedLoadingCode = isProjectLoading();
+      setProjectLoading(true);
       workspace = new Blockly.Workspace();
     });
 
     afterEach(function () {
       workspace.dispose();
-      window.loadingCode = savedLoadingCode;
+      setProjectLoading(savedLoadingCode);
     });
 
     const append = (operation, inputs = {}, fields = {}) =>

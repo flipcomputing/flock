@@ -7,6 +7,8 @@ import {
 } from '../generators/generators.js';
 import { getOwnDoOwner, getOwnVar } from '../generators/generators-utilities.js';
 import { flock } from '../flock.js';
+import { isProjectLoading } from '../main/projectLoading.js';
+import { normaliseColourInput } from '../blocks/colourvalidation.js';
 
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
@@ -499,6 +501,8 @@ function getBlockValue(block, fieldName) {
 }
 
 // Safe colour reader: supports single colour, lists, and random_colour via API.
+const UNKNOWN_COLOUR = { value: null, kind: 'unknown' };
+
 export function readColourValue(block) {
   if (!block) return { value: null, kind: 'none' };
 
@@ -506,27 +510,9 @@ export function readColourValue(block) {
     typeof flock?.randomColour === 'function' ? flock.randomColour() : '#71BC78';
 
   if (block.type === 'lists_create_with') {
-    const list = [];
-    for (const input of block.inputList) {
-      const tb = input.connection?.targetBlock();
-      if (!tb) continue;
-
-      if (tb.type === 'random_colour') {
-        const c = randomColour();
-        list.push(c);
-        continue;
-      }
-
-      if (tb.type === 'material') {
-        list.push(materialDescriptor(tb));
-        continue;
-      }
-
-      const c = safeGetFieldValue(tb, 'COLOR') ?? safeGetFieldValue(tb, 'COLOUR') ?? null;
-
-      if (c) list.push(c);
-    }
-    return { value: list, kind: 'list' };
+    const reads = block.inputList.map((input) => readColourValue(input.connection?.targetBlock()));
+    if (reads.some((read) => read.kind === 'unknown')) return UNKNOWN_COLOUR;
+    return { value: reads.map((read) => read.value).filter((value) => value != null), kind: 'list' };
   }
 
   if (block.type === 'random_colour') {
@@ -534,8 +520,27 @@ export function readColourValue(block) {
     return { value: c, kind: 'single' };
   }
 
+  if (block.type === 'colour_from_string') {
+    const c = normaliseColourInput(safeGetFieldValue(block, 'COLOR')) ?? '#000000';
+    return { value: c, kind: 'single' };
+  }
+
+  if (block.type === 'gradient_material') {
+    const colour = readColourFromInputOrShadow(block, 'COLOR');
+    if (colour.kind === 'unknown') return UNKNOWN_COLOUR;
+    return {
+      value: {
+        color: colour.value ?? '#ffffff',
+        materialName: 'none.png',
+        alpha: readNumberInput(block, 'ALPHA', 1),
+      },
+      kind: 'material',
+    };
+  }
+
   if (block.type === 'gradient_colour') {
     const colors = readColourValue(block.getInputTargetBlock('COLORS'));
+    if (colors.kind === 'unknown') return UNKNOWN_COLOUR;
     const list = Array.isArray(colors.value) ? colors.value : colors.value ? [colors.value] : [];
     if (!list.length) return { value: null, kind: 'none' };
 
@@ -550,9 +555,11 @@ export function readColourValue(block) {
   }
 
   if (block.type === 'material') {
+    if (readColourFromInputOrShadow(block, 'BASE_COLOR').kind === 'unknown') return UNKNOWN_COLOUR;
     return { value: materialDescriptor(block), kind: 'material' };
   }
 
+  if (!block.getField?.('COLOR') && !block.getField?.('COLOUR')) return UNKNOWN_COLOUR;
   const single = safeGetFieldValue(block, 'COLOR') ?? safeGetFieldValue(block, 'COLOUR') ?? null;
 
   return { value: single, kind: single ? 'single' : 'none' };
@@ -574,6 +581,16 @@ export function readColourList(block) {
   return block.inputList
     .filter((input) => input.name?.startsWith('ADD'))
     .map((input) => readColourValue(input.connection?.targetBlock()).value);
+}
+
+export function readLiveColour(block, inputName, empty, current) {
+  const { value } = readColourFromInputOrShadow(block, inputName);
+  if (typeof value === 'string') return value;
+  return block.getInputTargetBlock(inputName) ? current : empty;
+}
+
+export function readLiveNumber(block, inputName, empty, current) {
+  return block.getInputTargetBlock(inputName) ? readNumberInput(block, inputName, current) : empty;
 }
 
 // Numeric from an input's NUM field, with fallback.
@@ -613,7 +630,7 @@ export function readColourFromInputOrShadow(parent, inputName) {
 // A running particle effect follows edits to its block. An input holding
 // anything other than a literal keeps the effect's current value.
 export function updateParticleEffectFromBlock(block) {
-  if (window.loadingCode || !block || block.disposed) return;
+  if (isProjectLoading() || !block || block.disposed) return;
   const systems = (flock.scene?.particleSystems ?? []).filter(
     (system) => system.metadata?.blockKey === block.id
   );
@@ -757,7 +774,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   const cloneOwner = getCloneDoOwner(block);
   if (cloneOwner) {
-    const loading = window.loadingCode && !changeEvent?.recordUndo;
+    const loading = isProjectLoading() && !changeEvent?.recordUndo;
     const applies =
       changeEvent?.type === Blockly.Events.BLOCK_CHANGE ||
       changeEvent?.type === Blockly.Events.BLOCK_MOVE;
@@ -792,7 +809,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     if (!isInsideDefinition(block) && meshes.length) deleteMeshFromBlock(block.id);
     return;
   }
-  if ((window.loadingCode && !changeEvent?.recordUndo) || block.disposed) return;
+  if ((isProjectLoading() && !changeEvent?.recordUndo) || block.disposed) return;
 
   // Record so meshes spawned later in a loop/event pick the edit up too.
   recordLiveEdit(block, changeEvent);
@@ -859,6 +876,32 @@ function isBlockConnectedToEnabledChain(block) {
   return root?.isEnabled?.() ?? false;
 }
 
+const LITERAL_VALUE_TYPES = new Set([
+  'math_number',
+  'text',
+  'text_multiline',
+  'vector',
+  'colour',
+  'skin_colour',
+  'greyscale_colour',
+  'colour_from_string',
+  'random_colour',
+  'material',
+  'gradient_colour',
+  'gradient_material',
+  'lists_create_with',
+]);
+
+function isEditInsideComputedValue(changeEvent) {
+  let b = changeEvent?.blockId && Blockly.getMainWorkspace()?.getBlockById(changeEvent.blockId);
+  let computed = false;
+  while (b?.outputConnection) {
+    if (!LITERAL_VALUE_TYPES.has(b.type)) computed = true;
+    b = b.getParent();
+  }
+  return computed && !!b;
+}
+
 function isBlockIdDescendantOf(rootBlock, id) {
   if (!rootBlock || !id) return false;
   if (rootBlock.id === id) return true;
@@ -892,32 +935,9 @@ function updateSkyFromBlock(block) {
 
   setActiveSceneControllerBlockId(block);
 
-  const colorInput = block.getInputTargetBlock('COLOR');
-  if (!colorInput) return;
-
-  if (colorInput && colorInput.type === 'material') {
-    const { textureSet, baseColor, alpha, scale, angle } = extractMaterialInfo(colorInput);
-    let read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
-
-    const colorValue = read.value ?? baseColor;
-
-    if (textureSet && textureSet !== 'NONE') {
-      flock.setSky({
-        color: colorValue,
-        materialName: textureSet,
-        alpha,
-        scale,
-        angle,
-      });
-      return;
-    }
-
-    flock.setSky(colorValue);
-    return;
-  }
-
-  const read = readColourFromInputOrShadow(block, 'COLOR');
-  flock.setSky(read.value);
+  const { value } = readColourFromInputOrShadow(block, 'COLOR');
+  if (value != null) flock.setSky(value);
+  else if (!block.getInputTargetBlock('COLOR')) flock.setSky('#6495ED');
 }
 
 function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
@@ -1068,13 +1088,13 @@ export function handleMaterialOrColorChange(mesh, block, changed, color, materia
   const alpha = materialInfo?.alpha ?? 1;
 
   let rawColor = materialInfo?.colors || materialInfo?.baseColor || color;
+  const textureSet = materialInfo?.textureSet;
 
   if (!rawColor) {
+    if (!textureSet || textureSet === 'NONE') return root;
     const firstMat = [root, ...flock._ownDescendants(root)].find((m) => m.material)?.material;
     rawColor = firstMat?.diffuseColor?.toHexString() || '#ffffff';
   }
-
-  const textureSet = materialInfo?.textureSet;
 
   let input;
   if (textureSet && textureSet !== 'NONE') {
@@ -1154,20 +1174,10 @@ function updateMapFromBlock(mesh, block, changeEvent) {
   flock.createMap(mapName, mapArg);
 }
 
-// True when a colour input resolves to a random value (directly, inside a list,
-// or as a material's base colour) — meaning it must be rolled per mesh.
+// True when a colour input contains a random colour anywhere — meaning it must
+// be rolled per mesh.
 function inputSubtreeHasRandomColour(target) {
-  if (!target) return false;
-  if (target.type === 'random_colour') return true;
-  if (target.type === 'lists_create_with') {
-    return target.inputList.some(
-      (input) => input.connection?.targetBlock()?.type === 'random_colour'
-    );
-  }
-  if (target.type === 'material') {
-    return inputSubtreeHasRandomColour(target.getInputTargetBlock?.('BASE_COLOR'));
-  }
-  return false;
+  return !!target?.getDescendants(false).some((b) => b.type === 'random_colour');
 }
 
 export function colourSourceIsRandom(block) {
@@ -1177,79 +1187,25 @@ export function colourSourceIsRandom(block) {
 }
 
 function resolveColorAndMaterialForBlock(block) {
-  let color;
-  let materialInfo = null;
-
-  if (
-    !['load_object', 'load_multi_object', 'load_model', 'load_character', 'create_map'].includes(
-      block.type
-    )
-  ) {
-    const colorInput = block.getInputTargetBlock('COLOR');
-
-    // Check if it's a material block
-    if (colorInput && colorInput.type === 'material') {
-      materialInfo = extractMaterialInfo(colorInput);
-      const read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
-
-      if (flock.meshDebug) {
-        console.log('Material block detected:');
-        console.log('  Texture:', materialInfo.textureSet);
-        console.log('  Base color from material:', materialInfo.baseColor);
-        console.log('  Color from input:', read.value);
-        console.log('  Alpha:', materialInfo.alpha);
-      }
-
-      color = read.value ?? materialInfo.baseColor;
-    } else {
-      // Simple color block
-      const read = readColourFromInputOrShadow(block, 'COLOR');
-      color = read.value;
-
-      if (flock.meshDebug) {
-        console.log('Simple color block detected:', color);
-      }
-    }
-  } else if (block.type === 'load_object' || block.type === 'load_character') {
-    // Handle load_object and load_character color input
-    const colorInput = block.getInputTargetBlock('COLOR');
-
-    if (flock.meshDebug) {
-      console.log('Processing load_object/load_character color input');
-      console.log('  Color input type:', colorInput?.type);
-    }
-
-    // Check if it's a material block
-    if (colorInput && colorInput.type === 'material') {
-      materialInfo = extractMaterialInfo(colorInput);
-      const read = readColourFromInputOrShadow(colorInput, 'BASE_COLOR');
-
-      if (flock.meshDebug) {
-        console.log('Material block detected for load_object:');
-        console.log('  Texture:', materialInfo.textureSet);
-        console.log('  Base color from material:', materialInfo.baseColor);
-        console.log('  Color from input:', read.value);
-        console.log('  Alpha:', materialInfo.alpha);
-      }
-
-      color = read.value ?? materialInfo.baseColor;
-    } else {
-      // Simple color block
-      const read = readColourFromInputOrShadow(block, 'COLOR');
-      color = read.value;
-
-      if (flock.meshDebug) {
-        console.log('Simple color for load_object:', color);
-      }
-    }
-  } else if (block.type === 'load_multi_object' || block.type === 'load_model') {
-    color = readColourList(block.getInputTargetBlock('COLORS'));
+  if (block.type === 'load_multi_object' || block.type === 'load_model') {
+    return { color: readColourList(block.getInputTargetBlock('COLORS')), materialInfo: null };
   }
+  if (block.type === 'create_map') return { color: undefined, materialInfo: null };
 
-  return { color, materialInfo };
+  const colorInput = block.getInputTargetBlock('COLOR');
+  if (colorInput?.type === 'material') {
+    const materialInfo = extractMaterialInfo(colorInput);
+    return { color: materialInfo.baseColor, materialInfo };
+  }
+  return { color: readColourFromInputOrShadow(block, 'COLOR').value, materialInfo: null };
 }
 
 // assumes getXYZFromBlock is imported / available in this module
+
+function literalNumber(block, inputName) {
+  const target = block.getInputTargetBlock(inputName);
+  return target?.type === 'math_number' ? Number(target.getFieldValue('NUM')) : NaN;
+}
 
 function handlePrimitiveGeometryChange(mesh, block, changed) {
   if (!mesh || !block) return;
@@ -1300,9 +1256,10 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
   switch (block.type) {
     case 'create_box': {
       if (['WIDTH', 'HEIGHT', 'DEPTH'].includes(changed)) {
-        const width = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
-        const height = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
-        const depth = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
+        const width = literalNumber(block, 'WIDTH');
+        const height = literalNumber(block, 'HEIGHT');
+        const depth = literalNumber(block, 'DEPTH');
+        if (![width, height, depth].every(Number.isFinite)) break;
 
         setAbsoluteSize(mesh, width, height, depth);
         applyPrimitiveUVTiling('Box', { width, height, depth });
@@ -1313,9 +1270,10 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_sphere': {
       if (['DIAMETER_X', 'DIAMETER_Y', 'DIAMETER_Z'].includes(changed)) {
-        const dx = block.getInput('DIAMETER_X').connection.targetBlock().getFieldValue('NUM');
-        const dy = block.getInput('DIAMETER_Y').connection.targetBlock().getFieldValue('NUM');
-        const dz = block.getInput('DIAMETER_Z').connection.targetBlock().getFieldValue('NUM');
+        const dx = literalNumber(block, 'DIAMETER_X');
+        const dy = literalNumber(block, 'DIAMETER_Y');
+        const dz = literalNumber(block, 'DIAMETER_Z');
+        if (![dx, dy, dz].every(Number.isFinite)) break;
 
         setAbsoluteSize(mesh, dx, dy, dz);
         applyPrimitiveUVTiling('Sphere', {
@@ -1328,10 +1286,11 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_cylinder': {
       if (['HEIGHT', 'DIAMETER_TOP', 'DIAMETER_BOTTOM', 'TESSELLATIONS'].includes(changed)) {
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
-        const dt = block.getInput('DIAMETER_TOP').connection.targetBlock().getFieldValue('NUM');
-        const db = block.getInput('DIAMETER_BOTTOM').connection.targetBlock().getFieldValue('NUM');
-        const s = block.getInput('TESSELLATIONS').connection.targetBlock().getFieldValue('NUM');
+        const h = literalNumber(block, 'HEIGHT');
+        const dt = literalNumber(block, 'DIAMETER_TOP');
+        const db = literalNumber(block, 'DIAMETER_BOTTOM');
+        const s = literalNumber(block, 'TESSELLATIONS');
+        if (![h, dt, db, s].every(Number.isFinite)) break;
 
         updateCylinderGeometry(mesh, dt, db, h, s);
         applyPrimitiveUVTiling('Cylinder', {
@@ -1350,8 +1309,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_capsule': {
       if (['HEIGHT', 'DIAMETER'].includes(changed)) {
-        const d = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+        const d = literalNumber(block, 'DIAMETER');
+        const h = literalNumber(block, 'HEIGHT');
+        if (![d, h].every(Number.isFinite)) break;
 
         updateCapsuleGeometry(mesh, d, h);
         applyPrimitiveUVTiling('Capsule', { radius: d / 2, height: h });
@@ -1362,10 +1322,11 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_wedge': {
       if (['WIDTH', 'HEIGHT', 'DEPTH', 'PEAK', 'AXIS'].includes(changed)) {
-        const w = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
-        const d = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
-        const peak = block.getInput('PEAK').connection.targetBlock().getFieldValue('NUM');
+        const w = literalNumber(block, 'WIDTH');
+        const h = literalNumber(block, 'HEIGHT');
+        const d = literalNumber(block, 'DEPTH');
+        const peak = literalNumber(block, 'PEAK');
+        if (![w, h, d, peak].every(Number.isFinite)) break;
         const axis = block.getFieldValue('AXIS');
 
         updateWedgeGeometry(mesh, w, h, d, peak, axis);
@@ -1394,8 +1355,11 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
     case 'create_donut':
     case 'create_ring': {
       if (['HEIGHT', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'].includes(changed)) {
-        const readNumber = (name) =>
-          Number(block.getInput(name)?.connection.targetBlock()?.getFieldValue('NUM') ?? NaN);
+        const readNumber = (name) => literalNumber(block, name);
+        const sizeInputs = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'HEIGHT', 'SIDES'];
+        if (sizeInputs.some((name) => block.getInput(name) && !Number.isFinite(readNumber(name)))) {
+          break;
+        }
         const requested = {
           diameter: readNumber('DIAMETER'),
           innerDiameter: readNumber('INNER_DIAMETER'),
@@ -1416,8 +1380,9 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_plane': {
       if (['HEIGHT', 'WIDTH'].includes(changed)) {
-        const w = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
-        const h = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+        const w = literalNumber(block, 'WIDTH');
+        const h = literalNumber(block, 'HEIGHT');
+        if (![w, h].every(Number.isFinite)) break;
 
         setAbsoluteSize(mesh, w, h, 0);
         applyPrimitiveUVTiling('Plane', { width: w, height: h });
@@ -1428,8 +1393,16 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
 
     case 'create_3d_text': {
       const horizontal = block.getFieldValue('HORIZONTAL') === 'TRUE';
-      const newSize = readNumberInput(block, 'SIZE', 1);
-      const newDepth = readNumberOrList(block, 'DEPTH', 1);
+      const newSize = literalNumber(block, 'SIZE');
+      const depthList = block.getInputTargetBlock('DEPTH');
+      const newDepth =
+        depthList?.type === 'lists_create_with'
+          ? depthList.inputList
+              .filter((input) => input.name?.startsWith('ADD'))
+              .map((input) => literalNumber(depthList, input.name))
+          : literalNumber(block, 'DEPTH');
+      const spacing = literalNumber(block, 'SPACING');
+      if (![newSize, spacing, ...[newDepth].flat()].every(Number.isFinite)) break;
       // Per-letter depths can't be reached by scaling, so rebuild instead.
       const rebuildFor = Array.isArray(newDepth)
         ? ['TEXT', 'HORIZONTAL', 'SPACING', 'SIZE', 'DEPTH']
@@ -1445,7 +1418,7 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
             font: 'fonts/FreeSansBold.ttf',
             size: newSize,
             depth: newDepth,
-            spacing: readNumberInput(block, 'SPACING', 0),
+            spacing,
             horizontal,
           })
           .then(repositionPrimitiveFromBlock)
@@ -1667,7 +1640,7 @@ function ownerBlocksOfVariable(block, fieldName) {
 // delete, so moves cover blocks deleted from inside them.
 export function watchMirrorSources(block, changeEvent) {
   if (!MIRROR_EVENT_TYPES.has(changeEvent.type) || block.disposed) return;
-  if (window.loadingCode && !changeEvent.recordUndo) return;
+  if (isProjectLoading() && !changeEvent.recordUndo) return;
   if (!isMainWorkspaceEvent(changeEvent, block)) return;
 
   if (changeEvent.type === Blockly.Events.BLOCK_DELETE) {
@@ -1889,10 +1862,10 @@ export function applyInitialTransformRows(
 
 // Without a move a clone keeps its source's anchor, so a move is only added
 // once the clone's anchor is somewhere else.
-export function writeClonePosition(block, anchor) {
+export function writeClonePosition(block, anchor, { decimals = 1 } = {}) {
   const move = findOwnMove(block);
   if (move) {
-    writeMovedPosition(move, anchor);
+    writeMovedPosition(move, anchor, { decimals });
     return;
   }
   const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
@@ -1900,7 +1873,7 @@ export function writeClonePosition(block, anchor) {
   if (start && ['x', 'y', 'z'].every((axis) => Math.abs(start[axis] - anchor[axis]) <= 0.001)) {
     return;
   }
-  writeMovedPosition(ensureOwnMove(block), anchor);
+  writeMovedPosition(ensureOwnMove(block), anchor, { decimals });
 }
 
 function inEventGroupOf(changeEvent, fn) {
@@ -1924,9 +1897,14 @@ function rowInputEdited(block, changeEvent) {
 export function handleInitialTransformRowsChange(block, changeEvent) {
   if (!hasInitialTransformRows(block)) return false;
   if (changeEvent.type !== Blockly.Events.BLOCK_CHANGE) return false;
-  if (window.loadingCode && !changeEvent.recordUndo) return false;
+  if (isProjectLoading() && !changeEvent.recordUndo) return false;
 
   const edited = rowInputEdited(block, changeEvent);
+  const isRowMutation = changeEvent.element === 'mutation' && changeEvent.blockId === block.id;
+  if ((edited || isRowMutation) && isBlockLiveUpdateSuppressed(block.id)) {
+    noteSuppressedHit();
+    return true;
+  }
   if (edited) {
     const aboutCentre = edited.startsWith('ROTATE_') && changeEvent.recordUndo !== false;
     inEventGroupOf(changeEvent, () => applyInitialTransformRows(block, undefined, { aboutCentre }));
@@ -2004,6 +1982,9 @@ function handleGroupActiveToggle(groupMesh, groupBlock) {
 function applyTransformBlockToMeshes(transformBlock, meshes) {
   if (transformBlock.type === 'rotate_to') {
     const rotation = getXYZFromBlock(transformBlock);
+    if (!Object.values(rotation).every((v) => Number.isFinite(parseFloat(v)))) {
+      return Promise.resolve();
+    }
     return Promise.all(
       meshes.map((mesh) =>
         flock.rotateTo(mesh.name, { ...rotation, world: true }).then(() => {
@@ -2077,6 +2058,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     noteSuppressedHit();
     return;
   }
+
+  if (isEditInsideComputedValue(changeEvent)) return;
 
   if (flock.meshDebug) {
     console.log('=== UPDATE MESH FROM BLOCK ===');
@@ -2305,7 +2288,11 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     ({ color, materialInfo } = resolveColorAndMaterialForBlock(block));
   }
 
-  if (block.type.startsWith('load_') && changed === 'SCALE') {
+  if (
+    block.type.startsWith('load_') &&
+    changed === 'SCALE' &&
+    Number.isFinite(literalNumber(block, 'SCALE'))
+  ) {
     meshes.forEach((mesh) => {
       const parentMesh = detachFromParent(mesh);
       try {
@@ -2383,6 +2370,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     }
 
     const position = getXYZFromBlock(block);
+    if (!['x', 'y', 'z'].every((axis) => Number.isFinite(parseFloat(position[axis])))) return;
     if (flock.meshDebug) console.log('Position', position, block.type);
     meshes.forEach((mesh) => {
       // attach discards the block's X/Y/Z, and setParent below ignores
@@ -2769,7 +2757,7 @@ function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
     // A dynamic ring/donut needs the hollow container; a static one keeps the
     // exact triangle mesh. Match setPhysicsForMesh so live edits don't flip
     // the behaviour the user saw (edit "fixing" the fall).
-    let newShape = null;
+    let newShape;
     try {
       const motionType = mesh.physics.getMotionType?.();
       if (
