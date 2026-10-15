@@ -50,14 +50,46 @@ const UI_BLOCKS = {
   },
 };
 
-const UI_TEXT_DEFAULTS = {
-  text: '',
-  x: 0,
-  y: 0,
-  fontSize: 24,
-  color: '',
-  backgroundColor: '#ffffff',
-  alpha: 1,
+const UI_PREVIEWS = {
+  ui_text: {
+    create: 'UIText',
+    defaults: {
+      text: '',
+      x: 0,
+      y: 0,
+      fontSize: 24,
+      color: '',
+      backgroundColor: '#ffffff',
+      alpha: 1,
+      duration: 0,
+    },
+  },
+  ui_button: {
+    create: 'UIButton',
+    defaults: { text: '', x: 0, y: 0, width: 'SMALL' },
+    id: (block) => ({ buttonId: `preview_${block.id}` }),
+  },
+  ui_input: {
+    create: 'UIInput',
+    defaults: { text: '', x: 0, y: 0, fontSize: 24, mode: 'START' },
+    id: (block) => ({ id: `preview_${block.id}` }),
+  },
+  ui_slider: {
+    create: 'UISlider',
+    defaults: { x: 100, y: 50, min: 0, max: 100, value: 50 },
+    id: (block) => ({
+      id: `preview_${block.id}`,
+      ...Object.fromEntries(
+        [
+          ['MIN', 'min'],
+          ['MAX', 'max'],
+          ['VALUE', 'value'],
+        ]
+          .map(([inputName, option]) => [option, literalValue(block, inputName)])
+          .filter(([, value]) => typeof value === 'number')
+      ),
+    }),
+  },
 };
 
 let selection = null;
@@ -153,12 +185,13 @@ export function updateUIControlFromBlock(block) {
   }
 }
 
-export function previewUITextFromBlock(block) {
-  if (!flock.scene || !flock.GUI || uiControlsForBlock(block.id).length) return;
-  flock.UIText({
-    ...UI_TEXT_DEFAULTS,
+export function previewUIControlFromBlock(block) {
+  const preview = UI_PREVIEWS[block.type];
+  if (!preview || !flock.scene || !flock.GUI || uiControlsForBlock(block.id).length) return;
+  flock[preview.create]({
+    ...preview.defaults,
     ...literalOptions(block),
-    duration: 0,
+    ...preview.id?.(block),
     blockKey: block.id,
     editorPreview: true,
   });
@@ -211,12 +244,12 @@ export function handleSayBlockEvent(block, event) {
   for (const bg of bubbles) flock._restyleSayBubble(bg, changes);
 }
 
-export function handleUIControlBlockEvent(block, event, { preview = false } = {}) {
+export function handleUIControlBlockEvent(block, event) {
   if (block.disposed || event.workspaceId !== block.workspace.id) return;
   if (isOwnLifecycleEvent(block, event)) {
     if (isProjectLoading() && !event.recordUndo) return;
     if (!isLive(block)) removeUIControlsForBlock(block.id);
-    else if (preview) previewUITextFromBlock(block);
+    else previewUIControlFromBlock(block);
     return;
   }
   if (editsConfig(block, event)) updateUIControlFromBlock(block);
@@ -478,9 +511,24 @@ export function applyColourToUIControl(target, colour) {
   return block;
 }
 
-function keepAnchor(value, start) {
-  const rounded = Math.round(value);
-  return start < 0 ? Math.min(rounded, -1) : Math.max(rounded, 0);
+function axisSpan(control, axis) {
+  const [start, length] = axis === 'x' ? ['left', 'width'] : ['top', 'height'];
+  const measures = controlParts(control).map((part) => part._currentMeasure);
+  const low = Math.min(...measures.map((m) => m[start]));
+  const high = Math.max(...measures.map((m) => m[start] + m[length]));
+  return { size: high - low, space: uiTexture().getSize()[length] };
+}
+
+function screenStart(control, axis) {
+  const offset = control.metadata.layout[axis];
+  const { size, space } = axisSpan(control, axis);
+  return offset < 0 ? space + offset - size : offset;
+}
+
+function anchoredOffset(control, axis, start) {
+  const { size, space } = axisSpan(control, axis);
+  if (start + size / 2 > space / 2) return Math.min(Math.round(start + size - space), -1);
+  return Math.max(Math.round(start), 0);
 }
 
 function arrowSvg(axis, colour) {
@@ -558,13 +606,14 @@ function moveTo(x, y) {
 
 function nudge(dx, dy) {
   if (!selection) return;
-  const { x, y } = selection.control.metadata.layout;
+  const { control, freeAxes } = selection;
+  const { x, y } = control.metadata.layout;
   const groupId = Blockly.utils.idGenerator.genUid();
   Blockly.Events.setGroup(groupId);
   try {
     moveTo(
-      selection.freeAxes.includes('x') ? keepAnchor(x + dx, x) : x,
-      selection.freeAxes.includes('y') ? keepAnchor(y + dy, y) : y
+      freeAxes.includes('x') ? anchoredOffset(control, 'x', screenStart(control, 'x') + dx) : x,
+      freeAxes.includes('y') ? anchoredOffset(control, 'y', screenStart(control, 'y') + dy) : y
     );
   } finally {
     Blockly.Events.setGroup(false);
@@ -576,13 +625,16 @@ function startDrag(event, axis, target = event.currentTarget) {
   event.preventDefault();
   event.stopPropagation();
   target.setPointerCapture?.(event.pointerId);
-  const { x, y } = selection.control.metadata.layout;
+  const { control } = selection;
+  const { x, y } = control.metadata.layout;
   const drag = {
     pointerId: event.pointerId,
     startClientX: event.clientX,
     startClientY: event.clientY,
     startX: x,
     startY: y,
+    startLeft: screenStart(control, 'x'),
+    startTop: screenStart(control, 'y'),
     groupId: Blockly.utils.idGenerator.genUid(),
   };
   const moveAxis = (name) => selection.freeAxes.includes(name) && (!axis || axis === name);
@@ -592,10 +644,18 @@ function startDrag(event, axis, target = event.currentTarget) {
     if (moveEvent.pointerId !== drag.pointerId || !selection) return;
     const scale = guiScale();
     const nextX = moveAxis('x')
-      ? keepAnchor(drag.startX + (moveEvent.clientX - drag.startClientX) * scale, drag.startX)
+      ? anchoredOffset(
+          control,
+          'x',
+          drag.startLeft + (moveEvent.clientX - drag.startClientX) * scale
+        )
       : drag.startX;
     const nextY = moveAxis('y')
-      ? keepAnchor(drag.startY + (moveEvent.clientY - drag.startClientY) * scale, drag.startY)
+      ? anchoredOffset(
+          control,
+          'y',
+          drag.startTop + (moveEvent.clientY - drag.startClientY) * scale
+        )
       : drag.startY;
     Blockly.Events.setGroup(drag.groupId);
     try {

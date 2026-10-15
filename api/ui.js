@@ -312,18 +312,19 @@ function layoutUIInput(input, options) {
   input.width = `${scaledInputWidth}px`;
   input.height = `${scaledInputHeight}px`;
   input.color = textColor || 'black';
+  input.placeholderColor = input.color;
   input.background = backgroundColor || 'white';
   input.focusedBackground = backgroundColor || 'white';
   input.fontSize = scaledFontSize;
-  anchorControl(input, x, y);
+  const inputX = x < 0 ? x - buttonWidth - spacing : x;
+  anchorControl(input, inputX, y);
 
   button.width = `${buttonWidth}px`;
   button.height = `${scaledInputHeight}px`;
   button.color = backgroundColor || 'gray';
   button.background = textColor || 'white';
   button.fontSize = scaledFontSize;
-  const offset = scaledInputWidth + spacing;
-  const submitX = x < 0 ? x - offset : x + offset;
+  const submitX = x < 0 ? x : x + scaledInputWidth + spacing;
   anchorControl(button, submitX, y);
 
   registerUIInput(
@@ -331,7 +332,7 @@ function layoutUIInput(input, options) {
     button.name,
     input,
     button,
-    { x, y, w: scaledInputWidth, h: scaledInputHeight },
+    { x: inputX, y, w: scaledInputWidth, h: scaledInputHeight },
     { x: submitX, y, w: buttonWidth, h: scaledInputHeight }
   );
 }
@@ -377,6 +378,20 @@ function adoptEditorPreview(blockKey) {
   if (!preview) return null;
   preview.metadata.editorPreview = false;
   return preview.metadata.controlId;
+}
+
+function discardEditorPreview(blockKey) {
+  if (!blockKey) return;
+  for (const control of [...flock.scene.UITexture.rootContainer.children]) {
+    if (control.metadata?.blockKey === blockKey && control.metadata.editorPreview) {
+      flock._removeUIControl(control);
+    }
+  }
+}
+
+function markEditorPreview(control, editorPreview) {
+  if (editorPreview) control.metadata.editorPreview = true;
+  else discardEditorPreview(control.metadata.blockKey);
 }
 
 export const flockUI = {
@@ -529,6 +544,7 @@ export const flockUI = {
     backgroundColor,
     buttonId,
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -558,6 +574,7 @@ export const flockUI = {
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
     button.sectionOwner = __owningSection;
     tagUIControl(button, 'button', blockKey);
+    markEditorPreview(button, editorPreview);
     flock.scene.UITexture.addControl(button);
     layoutUIButton(button, { text, x, y, width, textSize, textColor, backgroundColor });
 
@@ -577,6 +594,7 @@ export const flockUI = {
     id = null,
     mode = 'AWAIT',
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -608,6 +626,7 @@ export const flockUI = {
     button.sectionOwner = __owningSection;
     tagUIControl(input, 'input', blockKey);
     input.metadata.submit = button;
+    markEditorPreview(input, editorPreview);
 
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
@@ -649,6 +668,7 @@ export const flockUI = {
     backgroundColor,
     onChange,
     blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
@@ -680,6 +700,7 @@ export const flockUI = {
     slider.zIndex = 1000;
     slider.sectionOwner = __owningSection;
     tagUIControl(slider, 'slider', blockKey);
+    markEditorPreview(slider, editorPreview);
     if (typeof onChange === 'function') {
       slider.onValueChangedObservable.add((newValue) => onChange(newValue));
     }

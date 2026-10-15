@@ -262,7 +262,7 @@ export function defineTextBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'TEXTBLOCK_VAR');
-        handleUIControlBlockEvent(this, changeEvent, { preview: true });
+        handleUIControlBlockEvent(this, changeEvent);
       });
     },
   };
