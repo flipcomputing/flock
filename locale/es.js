@@ -137,7 +137,7 @@ export default {
   show: 'mostrar %1', // human
   hide: 'ocultar %1', // human
   dispose: 'eliminar %1', // human
-  clone_mesh: 'añadir %1 clon de %2', // human
+  clone_mesh: 'añadir %1 clon de %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
@@ -875,6 +875,9 @@ export default {
   released_option: 'soltado', // human
   starts_option: 'empieza', // human
   ends_option: 'termina', // human
+
+  COPY_option: 'copia',
+  LINKED_option: 'vinculado',
 
   DYNAMIC_option: 'dinámico', // human
   ANIMATED_option: 'animado', // human

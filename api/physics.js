@@ -105,6 +105,22 @@ export const teleportBodyToMesh = (mesh) => {
   withPhysicsDescendants(mesh).forEach(teleportOne);
 };
 
+// PhysicsBody.clone() shares its shape, so the last body to let go disposes
+// it. Shapes in physicsShapeCache (_isShared) go with the cache instead.
+export const shareShape = (shape) => {
+  if (!shape || shape._isShared) return;
+  shape._flockUsers = (shape._flockUsers ?? 1) + 1;
+};
+
+export const releaseShape = (shape) => {
+  if (!shape || shape._isShared) return;
+  if (shape._flockUsers > 1) {
+    shape._flockUsers -= 1;
+    return;
+  }
+  shape.dispose?.();
+};
+
 // Meshes under an active drive, so a child parented mid-motion can join it.
 const activeDriveRoots = new Map();
 
@@ -360,14 +376,8 @@ const disposePhysics = (targetMesh) => {
     console.warn('[physics] RemoveBody warning:', e);
   }
 
-  // Dispose the shape only if it is not shared with another body.
-  // PhysicsBody.clone() shares the same shape JS object between source and clone,
-  // so disposing it here would also destroy the source's shape, leaving the source
-  // body with a dangling reference that crashes the next clone attempt.
   try {
-    if (!body.shape?._isShared) {
-      body.shape?.dispose?.();
-    }
+    releaseShape(body.shape);
   } catch (error) {
     console.warn('Suppressed non-critical error:', error);
   }

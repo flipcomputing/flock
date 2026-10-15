@@ -1799,8 +1799,4 @@ export const flockMesh = {
       });
     });
   },
-
-  getClones(mesh) {
-    return mesh.metadata.clones.map((name) => flock.scene.getMeshByName(name));
-  },
 };

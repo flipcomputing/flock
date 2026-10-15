@@ -1,5 +1,5 @@
 import { blockNames, modelAnimationNames } from '../config.js';
-import { driveBody, isBodyAlive, teleportBodyToMesh } from './physics.js';
+import { driveBody, isBodyAlive, releaseShape, teleportBodyToMesh } from './physics.js';
 import { isVector } from './math.js';
 
 let flock;
@@ -80,9 +80,9 @@ const updateCapsuleShapeForAnimation = (physicsMesh, animationName) => {
 
   const oldShape = physicsMesh.physics.shape;
   physicsMesh.physics.shape = newShape;
-  if (oldShape && oldShape !== newShape && !oldShape._isShared) {
+  if (oldShape && oldShape !== newShape) {
     try {
-      oldShape.dispose();
+      releaseShape(oldShape);
     } catch (e) {
       console.warn('Error disposing previous physics shape:', e);
     }

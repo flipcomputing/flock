@@ -356,12 +356,14 @@ export function runMirrorTests(flock) {
     it('should not mirror meshes with a skeleton', async function () {
       const sourceId = box('test-mirror-skeleton', [3, 0, 0]);
       const source = flock.scene.getMeshByName(sourceId);
-      source.skeleton = { bones: [] };
+      const skeleton = new flock.BABYLON.Skeleton('test-mirror-skeleton', 'skel', flock.scene);
+      source.skeleton = skeleton;
       try {
         const mirrorId = await mirror(sourceId, { mirrorId: 'test-mirror-skeleton-m' });
         expect(flock.scene.getMeshByName(mirrorId)).to.equal(null);
       } finally {
         source.skeleton = null;
+        skeleton.dispose();
       }
     });
   });

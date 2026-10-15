@@ -1142,5 +1142,202 @@ export function runSceneTests(flock) {
         ]);
       });
     });
+
+    // ─── copy and linked clones ────────────────────────────────────────────────
+
+    describe('cloneMesh copy and linked modes', function () {
+      const createdIds = [];
+
+      afterEach(function () {
+        createdIds.forEach((id) => flock.dispose(id));
+        createdIds.length = 0;
+      });
+
+      const mesh = (id) => flock.scene.getMeshByName(id);
+      const colourOf = (id) => String(flock.getMaterialParamsFromMesh(mesh(id)).color).toLowerCase();
+      const alphaOf = (id) => flock.getMaterialParamsFromMesh(mesh(id)).alpha;
+      const frame = () => flock.scene.render();
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 100));
+
+      function box(name, color = '#996633') {
+        const id = flock.createBox(name, {
+          color,
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        createdIds.push(id);
+        return id;
+      }
+
+      async function cloneOf(sourceId, cloneId, options = {}) {
+        const id = flock.cloneMesh({ sourceMeshName: sourceId, cloneId, ...options });
+        createdIds.push(id);
+        await flock.whenModelReady(id);
+        await settle();
+        frame();
+        return id;
+      }
+
+      it('should copy, not follow, the source', async function () {
+        const sourceId = box('copySrc__cm1', '#ff0000');
+        const copyId = await cloneOf(sourceId, 'copyA');
+
+        await flock.changeColor(sourceId, { color: '#0000ff' });
+        await flock.moveByVector(sourceId, { y: 2 });
+        frame();
+
+        expect(colourOf(copyId)).to.equal('#ff0000');
+        expect(mesh(copyId).position.y).to.not.be.closeTo(mesh(sourceId).position.y, 0.01);
+      });
+
+      it('should make a source that already had its own material copy it before editing it', async function () {
+        const sourceId = box('copyShared__cm2', '#ff0000');
+        await flock.changeColor(sourceId, { color: '#00ff00' });
+        const copyId = await cloneOf(sourceId, 'copyB');
+
+        expect(mesh(sourceId).metadata.sharedMaterial).to.be.true;
+        flock.ensureUniqueMaterial(mesh(sourceId));
+        expect(mesh(sourceId).material).to.not.equal(mesh(copyId).material);
+      });
+
+      it('should pass the source colour, alpha and effects to a linked clone', async function () {
+        const sourceId = box('linkSrc__lk1', '#ff0000');
+        const copyId = await cloneOf(sourceId, 'linkA', { linked: true });
+
+        await flock.changeColor(sourceId, { color: '#0000ff' });
+        await flock.setAlpha(sourceId, { value: 0.5 });
+        await flock.tint(sourceId, { color: '#00ff00' });
+
+        expect(colourOf(copyId)).to.equal('#0000ff');
+        expect(alphaOf(copyId)).to.equal(0.5);
+        expect(mesh(copyId).renderOverlay).to.be.true;
+      });
+
+      it('should stop following a property the linked clone changes itself', async function () {
+        const sourceId = box('linkOwn__lk2', '#ff0000');
+        const copyId = await cloneOf(sourceId, 'linkB', { linked: true });
+
+        await flock.changeColor(copyId, { color: '#ffff00' });
+        await flock.changeColor(sourceId, { color: '#0000ff' });
+        await flock.setAlpha(sourceId, { value: 0.5 });
+
+        expect(colourOf(copyId)).to.equal('#ffff00');
+        expect(alphaOf(copyId)).to.equal(0.5);
+      });
+
+      it('should follow the source position on each axis the linked clone has not moved', async function () {
+        const sourceId = box('linkPos__lk3');
+        const copyId = await cloneOf(sourceId, 'linkC', { linked: true });
+
+        await flock.moveByVector(copyId, { x: 3 });
+        frame();
+        await flock.moveByVector(sourceId, { x: 1, y: 2 });
+        frame();
+
+        const source = mesh(sourceId);
+        const copy = mesh(copyId);
+        expect(copy.position.x).to.be.closeTo(3, 0.01);
+        expect(copy.position.y).to.be.closeTo(source.position.y, 0.01);
+        expect(copy.position.z).to.be.closeTo(source.position.z, 0.01);
+      });
+
+      it('should follow the source size and visibility', async function () {
+        const sourceId = box('linkSize__lk4');
+        const copyId = await cloneOf(sourceId, 'linkD', { linked: true });
+
+        await flock.resize(sourceId, { width: 2 });
+        await flock.hide(sourceId);
+        frame();
+
+        expect(mesh(copyId).scaling.x).to.be.closeTo(mesh(sourceId).scaling.x, 0.001);
+        expect(mesh(copyId).isEnabled()).to.be.false;
+      });
+
+      it('should not treat the replayed source DO as the linked clone changing itself', async function () {
+        const sourceId = box('linkDo__lk5');
+        await flock.runDo(sourceId, (id) => flock.changeColor(id, { color: '#ff0000' }));
+        const copyId = await cloneOf(sourceId, 'linkE', { linked: true });
+
+        await flock.changeColor(sourceId, { color: '#0000ff' });
+
+        expect(colourOf(copyId)).to.equal('#0000ff');
+      });
+
+      it('should pass changes down a chain of linked clones', async function () {
+        const sourceId = box('linkChain__lk6', '#ff0000');
+        const firstId = await cloneOf(sourceId, 'linkF', { linked: true });
+        const secondId = await cloneOf(firstId, 'linkG', { linked: true });
+
+        await flock.changeColor(sourceId, { color: '#0000ff' });
+
+        expect(colourOf(secondId)).to.equal('#0000ff');
+      });
+
+      it('should delete linked clones, but not copies, with the source', async function () {
+        const sourceId = box('linkDel__lk7');
+        const linkedId = await cloneOf(sourceId, 'linkH', { linked: true });
+        const copyId = await cloneOf(sourceId, 'copyH');
+
+        flock.disposeMesh(mesh(sourceId));
+
+        expect(mesh(linkedId)).to.be.null;
+        expect(mesh(copyId)).to.exist;
+      });
+
+      it('should free the shared physics shape only when its last body goes', async function () {
+        const sourceId = box('shapeShare__ss1');
+        const shape = mesh(sourceId).physics?.shape;
+        expect(shape).to.exist;
+        const copyId = await cloneOf(sourceId, 'shapeCopy');
+        expect(mesh(copyId).physics.shape).to.equal(shape);
+
+        flock.disposeMesh(mesh(copyId));
+        expect(shape._isDisposed).to.not.be.true;
+        flock.disposeMesh(mesh(sourceId));
+        expect(shape._isDisposed).to.be.true;
+      });
+
+      it('should forget a suffixed clone name and instance entry once the clone is gone', async function () {
+        const sourceId = box('nameFree__nf1');
+        const firstId = await cloneOf(sourceId, 'nameFreeCopy');
+        const secondId = await cloneOf(sourceId, 'nameFreeCopy');
+        expect(secondId).to.not.equal('nameFreeCopy');
+        expect(flock._modelInstances[sourceId].size).to.equal(2);
+
+        flock.disposeMesh(mesh(secondId));
+        expect(flock._nameRegistry.has(secondId)).to.be.false;
+        expect(flock._nameRegistry.has(firstId)).to.be.true;
+        expect(flock._modelInstances[sourceId].size).to.equal(1);
+
+        flock.disposeMesh(mesh(firstId));
+        expect(flock._modelInstances[sourceId]).to.be.undefined;
+      });
+
+      it('should give a cloned character its own skeleton', async function () {
+        this.timeout(15000);
+        const characterId = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'cloneLiz__ch1',
+          position: { x: 0, y: 0, z: 0 },
+        });
+        createdIds.push(characterId);
+        await flock.whenModelReady(characterId);
+        const copyId = await cloneOf(characterId, 'lizCopy');
+
+        const skinned = (id) =>
+          [mesh(id), ...mesh(id).getChildMeshes(false)].find((part) => part.skeleton);
+        const sourcePart = skinned(characterId);
+        const copyPart = skinned(copyId);
+        expect(copyPart.skeleton).to.not.equal(sourcePart.skeleton);
+
+        const sourceNodes = new Set(mesh(characterId).getDescendants(false));
+        copyPart.skeleton.bones.forEach((bone) => {
+          const node = bone.getTransformNode();
+          if (node) expect(sourceNodes.has(node)).to.be.false;
+        });
+      });
+    });
   });
 }

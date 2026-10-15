@@ -530,6 +530,14 @@ export function defineSceneBlocks() {
             name: 'SOURCE_MESH',
             variable: window.currentMesh,
           },
+          {
+            type: 'field_dropdown',
+            name: 'MODE',
+            options: [
+              [getOption('COPY'), 'COPY'],
+              [getOption('LINKED'), 'LINKED'],
+            ],
+          },
         ],
         inputsInline: true,
         colour: categoryColours['Scene'],

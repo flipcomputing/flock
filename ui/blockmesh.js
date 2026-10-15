@@ -13,6 +13,7 @@ import { normaliseColourInput } from '../blocks/colourvalidation.js';
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
 import { shapeError } from '../api/freeformgeometry.js';
+import { releaseShape } from '../api/physics.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
@@ -2498,7 +2499,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
     }
 
     if (newShape) {
-      shape.dispose();
+      releaseShape(shape);
       const physicsBody = mesh.physics;
       physicsBody.shape = newShape;
       mesh.physics.disablePreStep;
@@ -2622,7 +2623,7 @@ function updateCapsuleGeometry(mesh, diameter, height) {
   if (mesh.physics && mesh.metadata?.shapeType === 'Capsule') {
     const newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }
@@ -2688,7 +2689,7 @@ function updateWedgeGeometry(mesh, width, height, depth, peak, axis) {
   if (mesh.physics && mesh.metadata?.shapeType === 'Wedge') {
     const newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }
@@ -2776,7 +2777,7 @@ function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
       newShape = null;
     }
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }

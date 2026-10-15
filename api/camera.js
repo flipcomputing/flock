@@ -183,7 +183,7 @@ export const flockCamera = {
     frame.onDisposeObservable.add(() => flockCamera._disposeRigCamera(frame));
 
     flock.announceMeshReady(frame.name, groupName);
-    flock._registerInstance(blockKey, frame.name);
+    flock._registerInstance(blockKey, frame.name, frame);
 
     if (callback) {
       requestAnimationFrame(() => callback());

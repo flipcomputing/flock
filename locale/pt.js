@@ -137,7 +137,7 @@ export default {
   show: 'mostrar %1',
   hide: 'ocultar %1',
   dispose: 'remover %1',
-  clone_mesh: 'adicionar %1 cópia de %2',
+  clone_mesh: 'adicionar %1 cópia de %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
@@ -790,6 +790,9 @@ export default {
   released_option: 'liberado',
   starts_option: 'começa',
   ends_option: 'termina',
+
+  COPY_option: 'cópia',
+  LINKED_option: 'vinculado',
 
   DYNAMIC_option: 'dinâmico',
   ANIMATED_option: 'animado',

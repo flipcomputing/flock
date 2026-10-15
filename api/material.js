@@ -358,22 +358,17 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        if (mesh.material && !flock._isSayHelperMesh(mesh)) {
-          mesh.renderOverlay = true;
-          mesh.overlayAlpha = 0.5;
-          mesh.overlayColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
-        }
-
-        mesh.getChildMeshes().forEach(function (childMesh) {
-          if (childMesh.material && !flock._isSayHelperMesh(childMesh)) {
-            childMesh.renderOverlay = true;
-            childMesh.overlayAlpha = 0.5;
-            childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-              flock.getColorFromString(flock.getColorFromString(color))
-            );
-          }
+        flock._applyLinked(mesh, 'effects', (target) => {
+          [target, ...target.getChildMeshes()].forEach((part) => {
+            if (part.material && !flock._isSayHelperMesh(part)) {
+              part.renderOverlay = true;
+              part.overlayAlpha = 0.5;
+              part.overlayColor = flock.BABYLON.Color3.FromHexString(
+                flock.getColorFromString(color)
+              );
+            }
+          });
         });
-        mesh.metadata?.clones?.forEach((cloneName) => flock.tint(cloneName, { color: color }));
         resolve();
       });
     });
@@ -395,9 +390,10 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        applyHighlight(mesh);
-        mesh.getChildMeshes().forEach(applyHighlight);
-        mesh.metadata?.clones?.forEach((cloneName) => flock.highlight(cloneName, { color: color }));
+        flock._applyLinked(mesh, 'effects', (target) => {
+          applyHighlight(target);
+          target.getChildMeshes().forEach(applyHighlight);
+        });
         resolve();
       });
     });
@@ -447,10 +443,7 @@ export const flockMaterial = {
         // each submesh's draw-wrapper array grow and slows every later run.
         flock.glowLayer.isEnabled = true;
 
-        flock.glowMesh(mesh, color);
-        mesh.metadata?.clones?.forEach((_cloneName) =>
-          flock.whenModelReady((cloneMesh) => flock.glowMesh(cloneMesh, { color: color }))
-        );
+        flock._applyLinked(mesh, 'effects', (target) => flock.glowMesh(target, color));
         resolve();
       });
     });
@@ -548,11 +541,12 @@ export const flockMaterial = {
           return;
         }
         const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
-        const allMeshes = [mesh, ...mesh.getDescendants()].filter(
-          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
-        );
+        const meshesOf = (target) =>
+          [target, ...target.getDescendants()].filter(
+            (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
+          );
 
-        allMeshes.forEach((nextMesh) => {
+        const setOne = (nextMesh) => {
           if (!nextMesh.material) return;
 
           if (!nextMesh.metadata?.hasSayTexture && !isTextPlaneMesh(nextMesh)) {
@@ -569,7 +563,8 @@ export const flockMaterial = {
               value < 1 ? flock.BABYLON.Material.MATERIAL_ALPHABLEND : null;
             flock.setDepthPrePass(nextMesh.material, value > 0 && value < 1);
           }
-        });
+        };
+        flock._applyLinked(mesh, 'alpha', (target) => meshesOf(target).forEach(setOne));
         resolve();
       });
     });
@@ -617,9 +612,10 @@ export const flockMaterial = {
           targetMesh.renderOverlay = false;
         };
 
-        removeEffects(mesh);
-        mesh.getChildMeshes().forEach(removeEffects);
-        mesh?.metadata?.clones?.forEach((cloneName) => flock.clearEffects(cloneName));
+        flock._applyLinked(mesh, 'effects', (target) => {
+          removeEffects(target);
+          target.getChildMeshes().forEach(removeEffects);
+        });
         resolve();
       });
     });
@@ -785,7 +781,7 @@ export const flockMaterial = {
           return;
         }
 
-        flock.changeColorMesh(mesh, color);
+        flock._applyLinked(mesh, 'colour', (target) => flock.changeColorMesh(target, color));
         resolve();
       });
     });
@@ -841,11 +837,7 @@ export const flockMaterial = {
       flock.ensureStandardMaterial(root);
     }
 
-    if (
-      mesh.metadata?.sharedMaterial &&
-      !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
-    )
-      flock.ensureUniqueMaterial(mesh);
+    if (mesh.metadata?.sharedMaterial) flock.ensureUniqueMaterial(mesh);
 
     const normalizeColorInput = (input) => {
       if (Array.isArray(input)) return input;
@@ -1138,7 +1130,9 @@ export const flockMaterial = {
         if (flock.materialsDebug)
           console.log(`Changing material of ${meshName} to ${materialName}`);
         const texturePath = flock.texturePath + materialName;
-        flock.changeMaterialMesh(mesh, materialName, texturePath, color);
+        flock._applyLinked(mesh, 'material', (target) =>
+          flock.changeMaterialMesh(target, materialName, texturePath, color)
+        );
         resolve();
       });
     });
@@ -1294,12 +1288,6 @@ export const flockMaterial = {
     const materialArray = Array.isArray(materials) ? materials : [materials];
 
     flock.setMaterialInternal(meshName, materialArray);
-
-    flock.whenModelReady(meshName, (mesh) => {
-      mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, materialArray);
-      });
-    });
   },
   setMaterialInternal(meshName, materials) {
     return new Promise((resolve) => {
@@ -1308,14 +1296,16 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        flock.applyMaterialToHierarchy(mesh, materials, {
-          applyColor: true,
-          blockKey: null,
-        });
+        flock._applyLinked(mesh, 'material', (target) => {
+          flock.applyMaterialToHierarchy(target, materials, {
+            applyColor: true,
+            blockKey: null,
+          });
 
-        if (mesh.metadata?.glow) {
-          flock.glowMesh(mesh);
-        }
+          if (target.metadata?.glow) {
+            flock.glowMesh(target);
+          }
+        });
         resolve();
       });
     });

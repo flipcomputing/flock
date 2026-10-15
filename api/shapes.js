@@ -2,6 +2,7 @@ import earcut from 'earcut';
 import Module from 'manifold-3d';
 import opentype from 'opentype.js';
 import { roundingSettings } from './freeformgeometry.js';
+import { releaseShape } from './physics.js';
 
 let flock;
 let manifoldModule = null;
@@ -506,7 +507,7 @@ export const flockShapes = {
     newBox.metadata.physicsShapeType = 'BOX';
 
     flock.announceMeshReady(newBox.name, groupName);
-    flock._registerInstance(blockKey, newBox.name);
+    flock._registerInstance(blockKey, newBox.name, newBox);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -538,7 +539,7 @@ export const flockShapes = {
     flock.ensureGroupPickForwarder?.(newGroup);
 
     flock.announceMeshReady(newGroup.name, groupName);
-    flock._registerInstance(blockKey, newGroup.name);
+    flock._registerInstance(blockKey, newGroup.name, newGroup);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -636,7 +637,7 @@ export const flockShapes = {
     newSphere.metadata.physicsShapeType = 'SPHERE';
 
     flock.announceMeshReady(newSphere.name, groupName);
-    flock._registerInstance(blockKey, newSphere.name);
+    flock._registerInstance(blockKey, newSphere.name, newSphere);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -722,7 +723,7 @@ export const flockShapes = {
       diameterTop === diameterBottom ? 'CYLINDER' : 'CONVEX_HULL';
 
     flock.announceMeshReady(newCylinder.name, groupName);
-    flock._registerInstance(blockKey, newCylinder.name);
+    flock._registerInstance(blockKey, newCylinder.name, newCylinder);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -805,7 +806,7 @@ export const flockShapes = {
     flock.applyPhysics(newCapsule, capsuleShape);
 
     flock.announceMeshReady(newCapsule.name, groupName);
-    flock._registerInstance(blockKey, newCapsule.name);
+    flock._registerInstance(blockKey, newCapsule.name, newCapsule);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -872,7 +873,7 @@ export const flockShapes = {
     newWedge.metadata.physicsShapeType = 'CONVEX_HULL';
 
     flock.announceMeshReady(newWedge.name, groupName);
-    flock._registerInstance(blockKey, newWedge.name);
+    flock._registerInstance(blockKey, newWedge.name, newWedge);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -922,7 +923,7 @@ export const flockShapes = {
     newFreeform.metadata.physicsShapeType = 'BOX';
 
     flock.announceMeshReady(newFreeform.name, groupName);
-    flock._registerInstance(blockKey, newFreeform.name);
+    flock._registerInstance(blockKey, newFreeform.name, newFreeform);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1001,7 +1002,7 @@ export const flockShapes = {
     newDonut.metadata.physicsShapeType = 'MESH';
 
     flock.announceMeshReady(newDonut.name, groupName);
-    flock._registerInstance(blockKey, newDonut.name);
+    flock._registerInstance(blockKey, newDonut.name, newDonut);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1060,7 +1061,7 @@ export const flockShapes = {
     newRing.metadata.physicsShapeType = 'MESH';
 
     flock.announceMeshReady(newRing.name, groupName);
-    flock._registerInstance(blockKey, newRing.name);
+    flock._registerInstance(blockKey, newRing.name, newRing);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1140,7 +1141,7 @@ export const flockShapes = {
     newPlane.metadata.sectionOwner = flock._currentSection;
 
     flock.announceMeshReady(newPlane.name, groupName);
-    flock._registerInstance(blockKey, newPlane.name);
+    flock._registerInstance(blockKey, newPlane.name, newPlane);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1236,7 +1237,7 @@ export const flockShapes = {
 
         flock._pendingMeshIds.delete(meshId);
 
-        flock._registerInstance(blockKey, mesh.name);
+        flock._registerInstance(blockKey, mesh.name, mesh);
         flock._rememberConstruction(mesh, { dos: [callback], thens: [then] });
 
         if (callback || then) {
@@ -1303,7 +1304,7 @@ export const flockShapes = {
     mesh.refreshBoundingInfo();
 
     if (mesh.physics) {
-      mesh.physics.shape?.dispose();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
     }
   },
