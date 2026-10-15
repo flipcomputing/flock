@@ -588,8 +588,7 @@ function initializeIfClauseConnectionChecker(workspace) {
   function validateIfClausePositions() {
     Blockly.Events.disable();
     try {
-      for (const block of workspace.getAllBlocks(false)) {
-        if (block.type !== 'if_clause') continue;
+      for (const block of workspace.getBlocksByType('if_clause', false)) {
 
         const mode = block.getFieldValue('MODE');
 
