@@ -348,7 +348,7 @@ export function hintIfXrModeMissing(workspace) {
     Promise.resolve(flock._vrHeadsetAvailable())
       .then((onHeadset) => {
         if (onHeadset && workspace.getBlocksByType('set_xr_mode', false).length === 0) {
-          showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing', hint: true });
+          showStatus(translate('xr_mode_missing_hint'), { owner: 'xr-mode-missing' });
         }
       })
       .catch(() => {});
