@@ -1521,6 +1521,7 @@ export default {
   select_mesh_position_prompt: 'Select an object to place.',
   select_mesh_duplicate_prompt: 'Select an object to duplicate.',
   place_duplicate_prompt: 'Click to place a copy.',
+  duplicate_placed_status: 'Duplicate placed.',
   orbit_origin_info: 'Drag to move the camera around the origin. Click an object to orbit around it.',
   orbit_mesh_info: 'Drag to move the camera around the object',
   camera_preview_info: 'Looking through the camera. Click the camera button to go back.',

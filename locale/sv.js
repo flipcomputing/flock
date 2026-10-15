@@ -1234,6 +1234,7 @@ export default {
   select_mesh_position_prompt: 'Välj ett objekt att placera.',
   select_mesh_duplicate_prompt: 'Välj ett objekt att duplicera.',
   place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Kopia placerad.', // AI-generated; needs validation
   orbit_origin_info: 'Dra för att flytta kameran runt origo. Klicka på ett objekt för att kretsa runt det.',
   orbit_mesh_info: 'Dra för att flytta kameran runt objektet',
   camera_preview_info: 'Du tittar genom kameran. Klicka på kameraknappen för att gå tillbaka.', // AI-generated; needs validation

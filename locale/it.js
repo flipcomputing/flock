@@ -1258,6 +1258,7 @@ export default {
   select_mesh_position_prompt: 'Seleziona un oggetto da posizionare.',
   select_mesh_duplicate_prompt: 'Seleziona un oggetto da duplicare.',
   place_duplicate_prompt: 'Fai clic per posizionare una copia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copia posizionata.', // AI-generated; needs validation
   orbit_origin_info: "Trascina per muovere la telecamera intorno all'origine. Clicca su un oggetto per orbitargli attorno.",
   orbit_mesh_info: "Trascina per muovere la telecamera intorno all'oggetto",
   camera_preview_info: 'Stai guardando attraverso la camera. Fai clic sul pulsante della camera per tornare indietro.', // AI-generated; needs validation

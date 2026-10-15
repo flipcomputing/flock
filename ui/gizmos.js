@@ -3751,6 +3751,12 @@ function startDuplicatePlacement() {
     if (newBlock?.type === 'procedures_callprefab') {
       void clonePrefabInstanceForDuplicate(originalBlock, newBlock);
     }
+    return newBlock;
+  };
+
+  const placeCopyInPlace = () => {
+    if (!placeCopy(null)) return;
+    showStatus(translate('duplicate_placed_status'), { owner: 'duplicate-place', duration: 3, hint: true });
   };
 
   activeDuplicateCentreHandle?.dispose();
@@ -3773,7 +3779,7 @@ function startDuplicatePlacement() {
     const [canvasX, canvasY] = getCanvasXAndCanvasYValues(event, canvasRect);
 
     if (centreHandle.isAt(canvasX, canvasY)) {
-      placeCopy(null);
+      placeCopyInPlace();
       return;
     }
 
@@ -3804,7 +3810,7 @@ function startDuplicatePlacement() {
     startCanvasKeyboardMode(
       (x, y) => {
         if (centreHandle.isAt(x, y)) {
-          placeCopy(null);
+          placeCopyInPlace();
           return;
         }
         const pickResult = flock.scene.pick(x, y, isPlacementSurface);

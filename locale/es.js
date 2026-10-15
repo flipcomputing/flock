@@ -1442,6 +1442,7 @@ export default {
   select_mesh_position_prompt: 'Selecciona un objeto para colocarlo.',
   select_mesh_duplicate_prompt: 'Selecciona un objeto para duplicar.', // Google (had to update it)
   place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copia colocada.', // AI-generated; needs validation
   orbit_origin_info: 'Arrastra para mover la cámara alrededor del origen. Haz clic en un objeto para orbitar alrededor de él.',
   orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
   camera_preview_info: 'Mirando a través de la cámara. Haz clic en el botón de la cámara para volver.', // AI-generated; needs validation
