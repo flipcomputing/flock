@@ -164,6 +164,14 @@ function controlsButtonBackground(layout, index) {
   return flock.hexToRgba(hex, Math.min(alpha, 1));
 }
 
+function sayAlpha(alpha) {
+  return isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
+}
+
+function saySize(size) {
+  return isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+}
+
 function configureControlsResizeHandling() {
   const engine = flock.engine;
   if (!engine || flock._controlsResizeEngine === engine) return;
@@ -378,6 +386,26 @@ export const flockUI = {
     const previous = control.metadata.layout;
     const announce = changes.text !== undefined && changes.text !== previous.text;
     layout(control, { ...previous, ...changes }, { announce });
+  },
+  _sayBubblesForBlock(blockKey) {
+    if (!flock.scene || !blockKey) return [];
+    return flock.scene.meshes.flatMap(
+      (mesh) =>
+        mesh.advancedTexture
+          ?.getControlByName('stackPanel')
+          ?.children.filter((bg) => bg.metadata?.blockKey === blockKey) ?? []
+    );
+  },
+  _restyleSayBubble(bg, changes) {
+    const textBlock = bg.children[0];
+    if (!textBlock) return;
+    const style = { ...bg.metadata.sayStyle, ...changes };
+    style.alpha = sayAlpha(style.alpha);
+    style.size = saySize(style.size);
+    bg.metadata.sayStyle = style;
+    bg.background = flock.hexToRgba(style.backgroundColor, style.alpha);
+    textBlock.color = style.textColor;
+    textBlock.fontSize = style.size * 8 * bg.metadata.uiScale;
   },
   _removeUIControl(control) {
     control.metadata?.submit?.dispose();
@@ -911,14 +939,13 @@ export const flockUI = {
       alpha = 1,
       size = 24,
       mode = 'ADD',
+      blockKey = null,
     } = options;
 
     // Validate duration
     duration = isFinite(Number(duration)) && Number(duration) >= 0 ? Number(duration) : 0;
-    // Validate alpha
-    alpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
-    // Validate size
-    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+    alpha = sayAlpha(alpha);
+    size = saySize(size);
 
     if (!flock.scene) {
       console.error('Scene is not available.');
@@ -1140,6 +1167,11 @@ export const flockUI = {
           bg.forceResizeWidth = true;
           bg.checkCollisions = false;
           bg.isPickable = false;
+          bg.metadata = {
+            blockKey,
+            uiScale,
+            sayStyle: { textColor, backgroundColor, alpha, size },
+          };
           stackPanel.addControl(bg);
 
           const scale = 8 * uiScale;

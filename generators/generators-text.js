@@ -79,7 +79,7 @@ export function registerTextGenerators(javascriptGenerator) {
     const asyncMode = block.getFieldValue('ASYNC');
     const asyncWrapper = asyncMode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}say(${meshVariable}, { text: ${textCode}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)} });\n`;
+    return `${asyncWrapper}say(${meshVariable}, { text: ${textCode}, duration: ${durationCode}, textColor: ${textColor}, backgroundColor: ${backgroundColor}, alpha: ${alphaCode}, size: ${sizeCode}, mode: ${JSON.stringify(mode)}, blockKey: ${JSON.stringify(block.id)} });\n`;
   };
 
   // UI Text ------------------------------------------------

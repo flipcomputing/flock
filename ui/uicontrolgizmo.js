@@ -191,6 +191,26 @@ function editsConfig(block, event) {
   return !!changed && isValueInputDescendantOf(block, changed);
 }
 
+const SAY_STYLE_INPUTS = {
+  TEXT_COLOR: { option: 'textColor', empty: '#000000' },
+  BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
+  ALPHA: { option: 'alpha', empty: 1 },
+  SIZE: { option: 'size', empty: 24 },
+};
+
+export function handleSayBlockEvent(block, event) {
+  if (block.disposed || event.workspaceId !== block.workspace.id) return;
+  if (!editsConfig(block, event)) return;
+  const bubbles = flock._sayBubblesForBlock?.(block.id) ?? [];
+  if (!bubbles.length) return;
+  const changes = {};
+  for (const [inputName, { option, empty }] of Object.entries(SAY_STYLE_INPUTS)) {
+    const value = block.getInputTargetBlock(inputName) ? literalValue(block, inputName) : empty;
+    if (value !== undefined) changes[option] = value;
+  }
+  for (const bg of bubbles) flock._restyleSayBubble(bg, changes);
+}
+
 export function handleUIControlBlockEvent(block, event, { preview = false } = {}) {
   if (block.disposed || event.workspaceId !== block.workspace.id) return;
   if (isOwnLifecycleEvent(block, event)) {
@@ -295,7 +315,7 @@ function colourZone(control, x, y) {
   return { part: kind, zone: halfwayTo(glyph, control._currentMeasure) };
 }
 
-export function uiColourTargetAt(x, y) {
+function uiControlColourTargetAt(x, y) {
   const control = uiControlAt(x, y);
   if (!control) return null;
   const scale = guiScale();
@@ -306,8 +326,99 @@ export function uiColourTargetAt(x, y) {
   return {
     control,
     inputName: COLOUR_INPUTS[part][onGlyph ? 'glyph' : 'rest'],
-    highlight: onGlyph ? zone : null,
+    highlight: onGlyph
+      ? {
+          left: zone.left / scale,
+          top: zone.top / scale,
+          width: zone.width / scale,
+          height: zone.height / scale,
+        }
+      : null,
   };
+}
+
+function sayBubbles(mesh) {
+  return (
+    mesh.advancedTexture
+      ?.getControlByName('stackPanel')
+      ?.children.filter((bg) => bg.metadata?.blockKey) ?? []
+  );
+}
+
+function sayBubbleAt(x, y) {
+  const scene = flock.scene;
+  if (!scene?.activeCamera) return null;
+  const ray = scene.createPickingRay(x, y, flock.BABYLON.Matrix.Identity(), scene.activeCamera);
+  const hits = scene.multiPickWithRay(
+    ray,
+    (mesh) => mesh.isEnabled() && mesh.isVisible && sayBubbles(mesh).length > 0
+  );
+  for (const hit of (hits ?? []).sort((a, b) => a.distance - b.distance)) {
+    const mesh = hit.pickedMesh;
+    const texture = mesh.advancedTexture;
+    const uv = hit.getTextureCoordinates();
+    if (!uv) continue;
+    const size = texture.getSize();
+    const gx = uv.x * size.width;
+    const gy = (texture.applyYInversionOnUpdate ? 1 - uv.y : uv.y) * size.height;
+    const bubble = sayBubbles(mesh).find((bg) => inside(bg._currentMeasure, gx, gy));
+    if (!bubble) continue;
+    const occluder = scene.pickWithRay(
+      ray,
+      (other) => other !== mesh && other.isEnabled() && other.isVisible && other.isPickable
+    );
+    if (occluder?.hit && occluder.distance < hit.distance) return null;
+    return { mesh, texture, bubble, gx, gy };
+  }
+  return null;
+}
+
+function textureRectOnScreen(mesh, texture, rect) {
+  const { Vector3, Matrix } = flock.BABYLON;
+  const scene = flock.scene;
+  const engine = scene.getEngine();
+  const canvas = renderCanvas();
+  const viewport = scene.activeCamera.viewport.toGlobal(
+    engine.getRenderWidth(),
+    engine.getRenderHeight()
+  );
+  const transform = scene.getTransformMatrix();
+  const toCss = canvas.clientWidth / engine.getRenderWidth();
+  const points = mesh
+    .getBoundingInfo()
+    .boundingBox.vectorsWorld.map((corner) =>
+      Vector3.Project(corner, Matrix.Identity(), transform, viewport)
+    );
+  const xs = points.map((point) => point.x * toCss);
+  const ys = points.map((point) => point.y * toCss);
+  const left = Math.min(...xs);
+  const top = Math.min(...ys);
+  const width = Math.max(...xs) - left;
+  const height = Math.max(...ys) - top;
+  const size = texture.getSize();
+  return {
+    left: left + (rect.left / size.width) * width,
+    top: top + (rect.top / size.height) * height,
+    width: (rect.width / size.width) * width,
+    height: (rect.height / size.height) * height,
+  };
+}
+
+function sayColourTargetAt(x, y) {
+  const hit = sayBubbleAt(x, y);
+  if (!hit) return null;
+  const { mesh, texture, bubble, gx, gy } = hit;
+  const zone = halfwayTo(textGlyphBox(bubble.children[0]), bubble._currentMeasure);
+  const onGlyph = inside(zone, gx, gy);
+  return {
+    control: bubble,
+    inputName: onGlyph ? 'TEXT_COLOR' : 'BACKGROUND_COLOR',
+    highlight: onGlyph ? textureRectOnScreen(mesh, texture, zone) : null,
+  };
+}
+
+export function uiColourTargetAt(x, y) {
+  return uiControlColourTargetAt(x, y) ?? sayColourTargetAt(x, y);
 }
 
 let colourHighlight = null;
@@ -325,13 +436,12 @@ export function showColourTarget(target) {
   if (colourHighlight.parentElement !== canvas.parentElement) {
     canvas.parentElement.appendChild(colourHighlight);
   }
-  const scale = guiScale();
   const { left, top, width, height } = target.highlight;
   Object.assign(colourHighlight.style, {
-    left: `${canvas.offsetLeft + left / scale}px`,
-    top: `${canvas.offsetTop + top / scale}px`,
-    width: `${width / scale}px`,
-    height: `${height / scale}px`,
+    left: `${canvas.offsetLeft + left}px`,
+    top: `${canvas.offsetTop + top}px`,
+    width: `${width}px`,
+    height: `${height}px`,
   });
 }
 
