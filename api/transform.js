@@ -795,9 +795,9 @@ export const flockTransform = {
     if (dir.lengthSquared() === 0) return; // already at target horizontally
     dir.normalize();
 
-    // Babylon is left-handed; FromLookDirectionLH expects a forward (toward target) and up.
+    // RH turns local -Z toward the target, which is the front of Flock models.
     const up = flock.BABYLON.Axis.Y; // world up
-    const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
+    const q = flock.BABYLON.Quaternion.FromLookDirectionRH(dir, up);
 
     await this.rotateTo(meshName, { ...flock.quatToEulerDegrees(q), world: true });
 

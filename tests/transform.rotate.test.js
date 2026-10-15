@@ -802,7 +802,7 @@ export function runRotationTests(flock) {
       to.computeWorldMatrix(true);
       const dir = to.getAbsolutePosition().subtract(from.getAbsolutePosition());
       dir.y = 0;
-      return flock.BABYLON.Quaternion.FromLookDirectionLH(dir.normalize(), flock.BABYLON.Axis.Y);
+      return flock.BABYLON.Quaternion.FromLookDirectionRH(dir.normalize(), flock.BABYLON.Axis.Y);
     }
 
     it('rotateTo is relative to the parent', async function () {

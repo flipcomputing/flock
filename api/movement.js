@@ -445,7 +445,7 @@ export const flockMovement = {
     model._mfAngularVelocity ??= new B.Vector3();
     if (ahv.lengthSquared() > 1e-6) {
       ahv.normalizeToRef(model._mfFacing);
-      B.Quaternion.FromLookDirectionLHToRef(
+      B.Quaternion.FromLookDirectionRHToRef(
         model._mfFacing,
         B.Vector3.UpReadOnly,
         model._mfTargetRotation
@@ -525,7 +525,7 @@ export const flockMovement = {
     c.facingDirection.set(sign * c.cameraRight.x, 0, sign * c.cameraRight.z);
     c.facingDirection.normalize();
 
-    B.Quaternion.FromLookDirectionLHToRef(
+    B.Quaternion.FromLookDirectionRHToRef(
       c.facingDirection,
       B.Vector3.UpReadOnly,
       c.targetRotation

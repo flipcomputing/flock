@@ -646,7 +646,7 @@ export const flockAnimate = {
       if (dir.lengthSquared() === 0) return;
 
       dir.normalize();
-      targetQuaternion = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, flock.BABYLON.Axis.Y);
+      targetQuaternion = flock.BABYLON.Quaternion.FromLookDirectionRH(dir, flock.BABYLON.Axis.Y);
     }
 
     if (mesh1.parent?.getWorldMatrix) {
