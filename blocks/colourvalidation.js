@@ -26,3 +26,18 @@ export function isValidColourInput(raw) {
   probe.color = value;
   return probe.color !== '';
 }
+
+export function normaliseColourInput(raw) {
+  const value = (raw || '').trim();
+  if (!isValidColourInput(value)) return null;
+  const hexBody = value.replace(/^#/, '');
+  if (/^[0-9a-f]{3}$/i.test(hexBody)) {
+    return `#${hexBody
+      .split('')
+      .map((component) => component + component)
+      .join('')
+      .toLowerCase()}`;
+  }
+  if (/^[0-9a-f]{6}$/i.test(hexBody)) return `#${hexBody}`;
+  return value;
+}

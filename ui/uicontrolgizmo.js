@@ -4,6 +4,7 @@ import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
 import { isProjectLoading } from '../main/projectLoading.js';
+import { normaliseColourInput } from '../blocks/colourvalidation.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
@@ -122,6 +123,8 @@ function literalValue(block, inputName) {
   if (target.type === 'text') return target.getFieldValue('TEXT');
   if (target.type === 'colour')
     return target.getFieldValue('COLOR') ?? target.getFieldValue('COLOUR');
+  if (target.type === 'colour_from_string')
+    return normaliseColourInput(target.getFieldValue('COLOR')) ?? undefined;
   return undefined;
 }
 

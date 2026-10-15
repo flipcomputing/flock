@@ -1,6 +1,6 @@
 import * as Blockly from 'blockly';
 import { getFieldValue } from './generators-utilities.js';
-import { isValidColourInput } from '../blocks/colourvalidation.js';
+import { normaliseColourInput } from '../blocks/colourvalidation.js';
 
 export function registerMaterialGenerators(javascriptGenerator) {
   // -------------------------------
@@ -91,23 +91,7 @@ export function registerMaterialGenerators(javascriptGenerator) {
   };
   // Hex colour -------------------------------------------------
   javascriptGenerator.forBlock['colour_from_string'] = function (block) {
-    const rawColourValue = (block.getFieldValue('COLOR') || '').trim();
-    if (!isValidColourInput(rawColourValue)) {
-      return [JSON.stringify('#000000'), javascriptGenerator.ORDER_ATOMIC];
-    }
-    const hexBody = rawColourValue.replace(/^#/, '');
-    let colourValue;
-    if (/^[0-9a-fA-F]{3}$/.test(hexBody)) {
-      colourValue = `#${hexBody
-        .split('')
-        .map((component) => component + component)
-        .join('')
-        .toLowerCase()}`;
-    } else if (/^[0-9a-fA-F]{6}$/.test(hexBody)) {
-      colourValue = `#${hexBody}`;
-    } else {
-      colourValue = rawColourValue;
-    }
+    const colourValue = normaliseColourInput(block.getFieldValue('COLOR')) ?? '#000000';
     return [JSON.stringify(colourValue), javascriptGenerator.ORDER_ATOMIC];
   };
 
