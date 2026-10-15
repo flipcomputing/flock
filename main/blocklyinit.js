@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import { WorkspaceSearch } from '@blockly/plugin-workspace-search';
+import { ScrollOptions } from '@blockly/plugin-scroll-options';
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import { initializeTheme } from './themes.js';
 import { translate } from './translation.js';
@@ -1735,6 +1736,7 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject('blocklyDiv', options);
+  new ScrollOptions(workspace).init();
 
   // Blockly insets the workspace "selection ring" (the keyboard-focus outline
   // shown while the empty workspace is the active node) by 5px so its stroke

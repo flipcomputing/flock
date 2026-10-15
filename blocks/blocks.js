@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 //import "@blockly/block-plus-minus";
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
+import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll-options';
 import { toolbox, categoryColours } from '../toolbox.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { flock } from '../flock.js';
@@ -1463,6 +1464,10 @@ function getBlocklyMediaPath() {
 
 const mediaPath = getBlocklyMediaPath();
 
+class VerticalScrollBlockDragger extends ScrollBlockDragger {
+  scrollDirections_ = ['top', 'bottom'];
+}
+
 export const options = {
   //theme: FlockTheme,
   theme: createThemeConfig('light'),
@@ -1493,6 +1498,8 @@ export const options = {
   searchAllBlocks: false,
   plugins: {
     connectionPreviewer: BlockDynamicConnection.decoratePreviewer(),
+    blockDragger: VerticalScrollBlockDragger,
+    metricsManager: ScrollMetricsManager,
   },
   // Double click the blocks to collapse/expand
   // them (A feature from MIT App Inventor).
