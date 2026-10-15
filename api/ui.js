@@ -1118,7 +1118,12 @@ export const flockUI = {
           advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
             plane,
             textureWidth,
-            textureHeight
+            textureHeight,
+            true,
+            false,
+            undefined,
+            undefined,
+            flock.BABYLON.Texture.LINEAR_LINEAR_MIPNEAREST
           );
           advancedTexture.isTransparent = true;
           plane.advancedTexture = advancedTexture;
