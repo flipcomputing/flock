@@ -130,9 +130,6 @@ export default {
   color_gray: 'Gray',
 
   // Color block translations
-  colour_rgb: 'red %1 green %2 blue %3',
-  colour_random: 'random color',
-  colour_blend: 'blend %1 and %2 by %3',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'sky %1',
@@ -279,6 +276,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Not a valid CSS color value.',
+  colour_contrast_warning: 'Text may be hard to read: contrast is %1:1. Aim for at least %2:1.',
   random_colour: 'random color',
   material: 'material %1 %2',
   material_alpha: 'alpha',

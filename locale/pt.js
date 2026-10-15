@@ -245,6 +245,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valor de cor CSS inválido.', // ai
+  colour_contrast_warning: 'O texto pode ser difícil de ler: o contraste é %1:1. Procure pelo menos %2:1.', // ai
   random_colour: 'cor aleatória',
   material: 'material %1 %2',
   material_alpha: 'opacidade',
@@ -1273,9 +1274,6 @@ export default {
   update_available_ui: 'Uma nova versão do Flock está disponível.',
   reload_button_ui: 'Recarregar',
 
-  colour_rgb: 'vermelho %1 verde %2 azul %3',
-  colour_random: 'cor aleatória',
-  colour_blend: 'misturar %1 e %2 em %3',
 
   dark_contrast_theme_ui: 'Escuro',
 

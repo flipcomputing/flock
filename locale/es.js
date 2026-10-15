@@ -249,6 +249,7 @@ export default {
   greyscale_colour: '%1', // human
   colour_from_string: '- %1 -', // human
   colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
+  colour_contrast_warning: 'El texto puede ser difícil de leer: el contraste es %1:1. Intenta que sea al menos %2:1.', // ai
   random_colour: 'color aleatorio', // human
   material: 'material %1 %2', // human
   material_alpha: 'alfa',
@@ -1527,9 +1528,6 @@ export default {
   update_available_ui: 'Una nueva versión de Flock está disponible.', // human
   reload_button_ui: 'Recargar', // human
 
-  colour_rgb: 'rojo %1 verde %2 azul %3', // human
-  colour_random: 'color aleatorio', // human
-  colour_blend: 'mezclar %1 y %2 en %3', // human
 
   dark_contrast_theme_ui: 'Oscuro', // human
 

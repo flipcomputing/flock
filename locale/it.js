@@ -130,9 +130,6 @@ export default {
   color_gray: 'Grigio',
 
   // Color block translations
-  colour_rgb: 'rosso %1 verde %2 blu %3',
-  colour_random: 'colore casuale',
-  colour_blend: 'miscela %1 e %2 di %3',
 
   // Custom block translations - Scene blocks
   set_sky_color: 'cielo %1',
@@ -250,6 +247,7 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valore colore CSS non valido.', // ai
+  colour_contrast_warning: 'Il testo potrebbe essere difficile da leggere: il contrasto è %1:1. Punta ad almeno %2:1.', // ai
   random_colour: 'colore casuale',
   material: 'materiale %1 %2',
   material_alpha: 'alpha',
