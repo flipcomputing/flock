@@ -1,4 +1,5 @@
 import { translate } from '../main/translation.js';
+import { isValidColourInput } from '../blocks/colourvalidation.js';
 import { XRSource } from '../input/xrSource.js';
 import { patchEmulatorOffsetReferenceSpace } from '../input/xrEmulatorShim.js';
 import { FLY_SPEED } from '../input/cameraControls.js';
@@ -2346,9 +2347,7 @@ export const flockXR = {
     // Each setting stands on its own: one bad value leaves the others to take effect.
     if (mode === 'auto' || mode === 'off') flock._xrComfortTunnel = mode;
     if (Object.hasOwn(VIGNETTE_CLOSED_ANGLES, strength)) flock._xrComfortStrength = strength;
-    if (typeof colour === 'string' && /^#[0-9a-f]{6}$/i.test(colour)) {
-      flock._xrComfortColour = colour;
-    }
+    if (isValidColourInput(colour)) flock._xrComfortColour = flock.getColorFromString(colour);
     // Number('') and Number(null) are both 0, which would read as a chosen alpha rather than as
     // the unusable value it is, and turn the periphery off.
     const opacity = alpha === '' || alpha === null ? Number.NaN : Number(alpha);
@@ -2358,8 +2357,8 @@ export const flockXR = {
     if (restFrameShow === 'moving' || restFrameShow === 'always') {
       flock._xrComfortRestFrameShow = restFrameShow;
     }
-    if (typeof restFrameColour === 'string' && /^#[0-9a-f]{6}$/i.test(restFrameColour)) {
-      flock._xrComfortRestFrameColour = restFrameColour;
+    if (isValidColourInput(restFrameColour)) {
+      flock._xrComfortRestFrameColour = flock.getColorFromString(restFrameColour);
     }
     const spacingChanged =
       Object.hasOwn(REST_FRAME_SPACINGS, restFrameSpacing) &&

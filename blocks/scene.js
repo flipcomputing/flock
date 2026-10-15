@@ -7,7 +7,10 @@ import {
   addDoMutatorWithToggleBehavior,
   getHelpUrlFor,
   registerBlockHandler,
+  isValueInputDescendantOf,
 } from './blocks.js';
+import { flock } from '../flock.js';
+import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
 import { mapNames } from '../config.js';
 import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
@@ -83,6 +86,59 @@ export function wasBlockDeleted(changeEvent, blockId) {
     Array.isArray(changeEvent.ids) &&
     changeEvent.ids.includes(blockId)
   );
+}
+
+const SETTING_EVENT_TYPES = [
+  Blockly.Events.BLOCK_CREATE,
+  Blockly.Events.BLOCK_CHANGE,
+  Blockly.Events.BLOCK_MOVE,
+  Blockly.Events.BLOCK_DELETE,
+];
+
+function isSettingLive(block) {
+  if (!block.isEnabled()) return false;
+  if (block.previousConnection && !block.previousConnection.isConnected()) return false;
+  const root = block.getRootBlock();
+  return root.isEnabled() && !root.type.startsWith('procedures_def');
+}
+
+function editsSetting(block, changeEvent) {
+  const ws = block.workspace;
+  if (changeEvent.type === Blockly.Events.BLOCK_CREATE) return !!changeEvent.ids?.includes(block.id);
+  const changesLiveness =
+    changeEvent.type === Blockly.Events.BLOCK_MOVE ||
+    (changeEvent.type === Blockly.Events.BLOCK_CHANGE && changeEvent.element === 'disabled');
+  if (changesLiveness) {
+    for (let b = block; b; b = b.getParent()) if (b.id === changeEvent.blockId) return true;
+  }
+  return [changeEvent.blockId, changeEvent.newParentId, changeEvent.oldParentId].some((id) =>
+    isValueInputDescendantOf(block, id && ws.getBlockById(id))
+  );
+}
+
+function applyLiveSettingOrReset(ws, type, apply, reset) {
+  const live = ws
+    .getBlocksByType(type, false)
+    .find((b) => !b.disposed && isSettingLive(b));
+  if (live) apply(live);
+  else reset();
+}
+
+export function attachSceneSettingLiveUpdate(block, { apply, reset }) {
+  const ws = block.workspace;
+  registerBlockHandler(block, (changeEvent) => {
+    if (!SETTING_EVENT_TYPES.includes(changeEvent.type) || !flock.scene) return;
+    if (isProjectLoading() && !changeEvent.recordUndo) return;
+
+    if (wasBlockDeleted(changeEvent, block.id)) {
+      applyLiveSettingOrReset(ws, block.type, apply, reset);
+      return;
+    }
+    if (block.disposed || !editsSetting(block, changeEvent)) return;
+
+    if (isSettingLive(block)) apply(block);
+    else applyLiveSettingOrReset(ws, block.type, apply, reset);
+  });
 }
 
 function attachMeshSyncOnChange(block, config) {

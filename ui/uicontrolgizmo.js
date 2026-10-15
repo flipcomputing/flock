@@ -4,7 +4,7 @@ import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
 import { isProjectLoading } from '../main/projectLoading.js';
-import { normaliseColourInput } from '../blocks/colourvalidation.js';
+import { readColourValue } from './blockmesh.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
@@ -13,39 +13,47 @@ const ARROW_LENGTH = 24;
 const UI_BLOCKS = {
   ui_text: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      FONT_SIZE: 'fontSize',
-      COLOR: 'color',
-      BACKGROUND_COLOR: 'backgroundColor',
-      ALPHA: 'alpha',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      FONT_SIZE: { option: 'fontSize', empty: 24 },
+      COLOR: { option: 'color', empty: '' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
+      ALPHA: { option: 'alpha', empty: 1 },
     },
     fields: {},
   },
   ui_button: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      TEXT_COLOR: 'textColor',
-      BACKGROUND_COLOR: 'backgroundColor',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      TEXT_COLOR: { option: 'textColor', empty: '' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '' },
     },
     fields: { SIZE: 'width', TEXT_SIZE: 'textSize' },
   },
   ui_input: {
     inputs: {
-      TEXT: 'text',
-      X: 'x',
-      Y: 'y',
-      TEXT_SIZE: 'fontSize',
-      TEXT_COLOR: 'textColor',
-      BACKGROUND_COLOR: 'backgroundColor',
+      TEXT: { option: 'text', empty: '' },
+      X: { option: 'x', empty: 0 },
+      Y: { option: 'y', empty: 0 },
+      TEXT_SIZE: { option: 'fontSize', empty: 24 },
+      TEXT_COLOR: { option: 'textColor', empty: '#000000' },
+      BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
     },
     fields: { SIZE: 'size' },
   },
   ui_slider: {
-    inputs: { X: 'x', Y: 'y', COLOR: 'textColor', BACKGROUND: 'backgroundColor' },
+    inputs: {
+      MIN: { option: 'min', empty: 0 },
+      MAX: { option: 'max', empty: 100 },
+      VALUE: { option: 'value', empty: 50 },
+      X: { option: 'x', empty: 100 },
+      Y: { option: 'y', empty: 50 },
+      COLOR: { option: 'textColor', empty: '#000000' },
+      BACKGROUND: { option: 'backgroundColor', empty: '#ffffff' },
+    },
     fields: { SIZE: 'size' },
   },
 };
@@ -77,18 +85,7 @@ const UI_PREVIEWS = {
   ui_slider: {
     create: 'UISlider',
     defaults: { x: 100, y: 50, min: 0, max: 100, value: 50 },
-    id: (block) => ({
-      id: `preview_${block.id}`,
-      ...Object.fromEntries(
-        [
-          ['MIN', 'min'],
-          ['MAX', 'max'],
-          ['VALUE', 'value'],
-        ]
-          .map(([inputName, option]) => [option, literalValue(block, inputName)])
-          .filter(([, value]) => typeof value === 'number')
-      ),
-    }),
+    id: (block) => ({ id: `preview_${block.id}` }),
   },
 };
 
@@ -145,28 +142,46 @@ function literalNumberBlock(block, inputName) {
   return target?.type === 'math_number' ? target : null;
 }
 
-function literalValue(block, inputName) {
+function literalValue(block, inputName, rollRandom) {
   const target = block.getInputTargetBlock(inputName);
   if (!target) return undefined;
+  if (!rollRandom && target.getDescendants(false).some((b) => b.type === 'random_colour')) {
+    return undefined;
+  }
   if (target.type === 'math_number') {
     const n = Number(target.getFieldValue('NUM'));
     return Number.isFinite(n) ? n : undefined;
   }
   if (target.type === 'text') return target.getFieldValue('TEXT');
-  if (target.type === 'colour')
-    return target.getFieldValue('COLOR') ?? target.getFieldValue('COLOUR');
-  if (target.type === 'colour_from_string')
-    return normaliseColourInput(target.getFieldValue('COLOR')) ?? undefined;
-  return undefined;
+  const { value } = readColourValue(target);
+  return typeof value === 'string' ? value : undefined;
 }
 
-function literalOptions(block) {
-  const config = UI_BLOCKS[block.type];
+function readInputOptions(block, inputs, rollInput = true) {
   const options = {};
-  for (const [inputName, option] of Object.entries(config.inputs)) {
-    const value = literalValue(block, inputName);
+  for (const [inputName, { option, empty }] of Object.entries(inputs)) {
+    const roll = rollInput === true || rollInput === inputName;
+    const value = block.getInputTargetBlock(inputName)
+      ? literalValue(block, inputName, roll)
+      : empty;
     if (value !== undefined) options[option] = value;
   }
+  return options;
+}
+
+function editedInputName(block, event) {
+  if (event.type === Blockly.Events.BLOCK_MOVE) {
+    if (event.newParentId === block.id) return event.newInputName;
+    if (event.oldParentId === block.id) return event.oldInputName;
+  }
+  let child = block.workspace.getBlockById(event.blockId);
+  while (child && child.getParent() !== block) child = child.getParent();
+  return child ? (block.getInputWithBlock(child)?.name ?? null) : null;
+}
+
+function literalOptions(block, rollInput) {
+  const config = UI_BLOCKS[block.type];
+  const options = readInputOptions(block, config.inputs, rollInput);
   for (const [fieldName, option] of Object.entries(config.fields)) {
     const value = block.getFieldValue(fieldName);
     if (value != null) options[option] = value;
@@ -174,10 +189,10 @@ function literalOptions(block) {
   return options;
 }
 
-export function updateUIControlFromBlock(block) {
+export function updateUIControlFromBlock(block, event) {
   const controls = uiControlsForBlock(block.id);
   if (!controls.length) return;
-  const changes = literalOptions(block);
+  const changes = literalOptions(block, event ? editedInputName(block, event) : true);
   for (const control of controls) flock._restyleUIControl(control, changes);
   if (selection && controls.includes(selection.control)) {
     const { x, y } = selection.control.metadata.layout;
@@ -225,6 +240,7 @@ function editsConfig(block, event) {
 }
 
 const SAY_STYLE_INPUTS = {
+  TEXT: { option: 'text', empty: undefined },
   TEXT_COLOR: { option: 'textColor', empty: '#000000' },
   BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
   ALPHA: { option: 'alpha', empty: 1 },
@@ -236,11 +252,7 @@ export function handleSayBlockEvent(block, event) {
   if (!editsConfig(block, event)) return;
   const bubbles = flock._sayBubblesForBlock?.(block.id) ?? [];
   if (!bubbles.length) return;
-  const changes = {};
-  for (const [inputName, { option, empty }] of Object.entries(SAY_STYLE_INPUTS)) {
-    const value = block.getInputTargetBlock(inputName) ? literalValue(block, inputName) : empty;
-    if (value !== undefined) changes[option] = value;
-  }
+  const changes = readInputOptions(block, SAY_STYLE_INPUTS, editedInputName(block, event));
   for (const bg of bubbles) flock._restyleSayBubble(bg, changes);
 }
 
@@ -252,7 +264,7 @@ export function handleUIControlBlockEvent(block, event) {
     else previewUIControlFromBlock(block);
     return;
   }
-  if (editsConfig(block, event)) updateUIControlFromBlock(block);
+  if (editsConfig(block, event)) updateUIControlFromBlock(block, event);
 }
 
 const COLOUR_INPUTS = {

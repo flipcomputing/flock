@@ -4,6 +4,7 @@ import { meshMap } from '../generators/generators.js';
 import {
   updateMeshFromBlock,
   colourSourceIsRandom,
+  readColourValue,
   recordLiveEdit,
   reconcileSpawnedMesh,
   resetLiveEditsForRun,
@@ -80,14 +81,24 @@ export function runBlockmeshLiveTests(flock) {
       getInputTargetBlock: (name) => (name === 'COLOR' ? colorTarget : null),
     });
 
-    const randomTarget = { id: 'rc1', type: 'random_colour', getInputTargetBlock: () => null };
-
-    const fixedTarget = (hex) => ({
-      id: 'c1',
-      type: 'colour',
-      getInputTargetBlock: () => null,
-      getField: (f) => (f === 'COLOR' || f === 'COLOUR' ? { getValue: () => hex } : null),
+    const withDescendants = (block, children = []) => ({
+      ...block,
+      getDescendants: () => [block, ...children],
     });
+
+    const randomTarget = withDescendants({
+      id: 'rc1',
+      type: 'random_colour',
+      getInputTargetBlock: () => null,
+    });
+
+    const fixedTarget = (hex) =>
+      withDescendants({
+        id: 'c1',
+        type: 'colour',
+        getInputTargetBlock: () => null,
+        getField: (f) => (f === 'COLOR' || f === 'COLOUR' ? { getValue: () => hex } : null),
+      });
 
     // COLOR-input change event; blockId is the colour source so it reads as COLOR.
     const colourChange = (blockId) => ({
@@ -107,23 +118,92 @@ export function runBlockmeshLiveTests(flock) {
       });
 
       it('detects random inside a colour list', function () {
-        const list = {
-          type: 'lists_create_with',
-          inputList: [
-            { connection: { targetBlock: () => ({ type: 'random_colour' }) } },
-            { connection: { targetBlock: () => ({ type: 'colour' }) } },
-          ],
-          getInputTargetBlock: () => null,
-        };
+        const list = withDescendants({ type: 'lists_create_with' }, [
+          { type: 'random_colour' },
+          { type: 'colour' },
+        ]);
         expect(colourSourceIsRandom(makeBoxBlock(list))).to.equal(true);
       });
 
       it('detects random as a material base colour', function () {
+        const material = withDescendants({ type: 'material' }, [{ type: 'random_colour' }]);
+        expect(colourSourceIsRandom(makeBoxBlock(material))).to.equal(true);
+      });
+
+      it('detects random inside a gradient', function () {
+        const gradient = withDescendants({ type: 'gradient_colour' }, [
+          { type: 'lists_create_with' },
+          { type: 'random_colour' },
+        ]);
+        expect(colourSourceIsRandom(makeBoxBlock(gradient))).to.equal(true);
+      });
+    });
+
+    describe('readColourValue', function () {
+      const fieldBlock = (type, value) => ({
+        type,
+        getField: (f) => (f === 'COLOR' ? { getValue: () => value } : null),
+      });
+
+      it('normalises colour_from_string like its generator', function () {
+        expect(readColourValue(fieldBlock('colour_from_string', 'F0C')).value).to.equal('#ff00cc');
+        expect(readColourValue(fieldBlock('colour_from_string', 'not a colour')).value).to.equal(
+          '#000000'
+        );
+      });
+
+      it('reads skin_colour and greyscale_colour fields', function () {
+        expect(readColourValue(fieldBlock('skin_colour', '#a0522d')).value).to.equal('#a0522d');
+        expect(readColourValue(fieldBlock('greyscale_colour', '#808080')).value).to.equal(
+          '#808080'
+        );
+      });
+
+      it('reads gradient_material as an untextured material', function () {
+        const inputs = {
+          COLOR: fieldBlock('colour', '#112233'),
+          ALPHA: { getField: (f) => (f === 'NUM' ? { getValue: () => '0.5' } : null) },
+        };
+        const block = { type: 'gradient_material', getInputTargetBlock: (n) => inputs[n] ?? null };
+        expect(readColourValue(block).value).to.deep.equal({
+          color: '#112233',
+          materialName: 'none.png',
+          alpha: 0.5,
+        });
+      });
+
+      it('reads a computed colour as unknown, and anything built from one', function () {
+        const variable = { type: 'variables_get', getField: () => null };
+        const item = (block) => ({ connection: { targetBlock: () => block } });
+        expect(readColourValue(variable)).to.deep.equal({ value: null, kind: 'unknown' });
+
+        const list = {
+          type: 'lists_create_with',
+          inputList: [item(fieldBlock('colour', '#010203')), item(variable)],
+        };
+        expect(readColourValue(list).kind).to.equal('unknown');
+
+        const gradient = { type: 'gradient_colour', getInputTargetBlock: () => list };
+        expect(readColourValue(gradient).kind).to.equal('unknown');
+
         const material = {
           type: 'material',
-          getInputTargetBlock: (n) => (n === 'BASE_COLOR' ? { type: 'random_colour' } : null),
+          getInputTargetBlock: (n) => (n === 'BASE_COLOR' ? variable : null),
         };
-        expect(colourSourceIsRandom(makeBoxBlock(material))).to.equal(true);
+        expect(readColourValue(material).kind).to.equal('unknown');
+      });
+
+      it('reads every item of a colour list through the same rules', function () {
+        const item = (block) => ({ connection: { targetBlock: () => block } });
+        const list = {
+          type: 'lists_create_with',
+          inputList: [
+            item(fieldBlock('colour', '#010203')),
+            item(fieldBlock('colour_from_string', 'abc')),
+            item(null),
+          ],
+        };
+        expect(readColourValue(list).value).to.deep.equal(['#010203', '#aabbcc']);
       });
     });
 

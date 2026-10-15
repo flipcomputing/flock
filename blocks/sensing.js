@@ -17,8 +17,13 @@ import { outOfScopeLocalIds } from './variableScope.js';
 import { getMicrobitManager, VariableStatus } from '../microbit/manager.js';
 import { showBanner } from '../ui/notifications.js';
 import { flock } from '../flock.js';
-import { makeTouchesInputSubtree, changeEventHitsTouches, wasBlockDeleted } from './scene.js';
-import { readColourFromInputOrShadow, readNumberInput } from '../ui/blockmesh.js';
+import {
+  makeTouchesInputSubtree,
+  changeEventHitsTouches,
+  wasBlockDeleted,
+  attachSceneSettingLiveUpdate,
+} from './scene.js';
+import { readLiveColour, readLiveNumber, readNumberInput } from '../ui/blockmesh.js';
 import { handleUIControlBlockEvent } from '../ui/uicontrolgizmo.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 
@@ -309,9 +314,10 @@ function applyOnScreenControlsLive(block) {
   const movement = block.getFieldValue('MOVEMENT');
   const actions = block.getFieldValue('ACTIONS');
   const mode = block.getFieldValue('ENABLED');
-  const color = readColourFromInputOrShadow(block, 'COLOR').value ?? '#ffffff';
-  const background = readColourFromInputOrShadow(block, 'BACKGROUND').value ?? '#000000';
-  const alpha = readNumberInput(block, 'ALPHA', 0);
+  const current = flock._controlsLayout ?? {};
+  const color = readLiveColour(block, 'COLOR', '#ffffff', current.color ?? '#ffffff');
+  const background = readLiveColour(block, 'BACKGROUND', '#000000', current.background ?? '#000000');
+  const alpha = readLiveNumber(block, 'ALPHA', 0, current.alpha ?? 0);
 
   flock.onScreenControls(movement, actions, mode, color, background, alpha);
 }
@@ -700,6 +706,10 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sensing_blocks');
+      attachSceneSettingLiveUpdate(this, {
+        apply: (block) => flock.canvasControls(block.getFieldValue('CONTROLS') === 'TRUE'),
+        reset: () => flock.canvasControls(true),
+      });
     },
   };
 
@@ -722,6 +732,10 @@ export function defineSensingBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('sensing_blocks');
+      attachSceneSettingLiveUpdate(this, {
+        apply: (block) => flock.interactIndicator(block.getFieldValue('ENABLED') === 'TRUE'),
+        reset: () => flock.interactIndicator(true),
+      });
     },
   };
 

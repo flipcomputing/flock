@@ -22,8 +22,8 @@ function applyParticleOptions(
     particleSystem.metadata = { ...particleSystem.metadata, shape };
   }
 
-  const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
-  const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
+  const startColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(colors.start));
+  const endColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(colors.end));
   particleSystem.color1 = new flock.BABYLON.Color4(
     startColor.r,
     startColor.g,
@@ -106,8 +106,12 @@ export const flockEffects = {
   },
   lightColor(diffuse, groundColor) {
     if (flock.mainLight) {
-      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(diffuse);
-      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(groundColor);
+      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(diffuse)
+      );
+      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(groundColor)
+      );
     } else {
       console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
     }

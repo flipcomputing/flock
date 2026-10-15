@@ -3464,6 +3464,17 @@ export function runXRTests(flock) {
         expect(flock._xrComfortAlpha).to.equal(1);
       });
 
+      it('accepts any colour the colour blocks can produce', function () {
+        makeVRSession();
+        flock._xrVignetteMaterial = { setFloat: () => {}, setColor3: () => {} };
+
+        flock.setVRComfort('auto', 'high', 'red', 0.25);
+        expect(flock._xrComfortColour).to.equal('#ff0000');
+
+        flock.setVRComfort('auto', 'high', '#0f0', 0.25);
+        expect(flock._xrComfortColour).to.equal('#00ff00');
+      });
+
       it('keeps the alpha when handed something that is not a number', function () {
         makeVRSession();
         flock.setVRComfort('auto', 'medium', '#000000', 0.4);

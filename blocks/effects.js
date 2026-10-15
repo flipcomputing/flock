@@ -2,6 +2,61 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
+import { flock } from '../flock.js';
+import { attachSceneSettingLiveUpdate } from './scene.js';
+import { readLiveColour, readLiveNumber } from '../ui/blockmesh.js';
+
+function applyMainLight(block) {
+  const light = flock.mainLight;
+  if (!light) return;
+  flock.lightIntensity(readLiveNumber(block, 'INTENSITY', 1, light.intensity));
+  flock.lightColor(
+    readLiveColour(block, 'DIFFUSE', '#ffffff', light.diffuse.toHexString()),
+    readLiveColour(block, 'GROUND_COLOR', '#808080', light.groundColor.toHexString())
+  );
+  flock.lightStyle(block.getFieldValue('STYLE'));
+}
+
+function resetMainLight() {
+  if (!flock.mainLight) return;
+  flock.lightIntensity(1);
+  flock.lightColor('#ffffff', '#808080');
+  flock.lightStyle('SOFT');
+}
+
+function applyFog(block) {
+  const scene = flock.scene;
+  flock.setFog({
+    fogColorHex: readLiveColour(block, 'FOG_COLOR', '#9932cc', scene.fogColor.toHexString()),
+    fogMode: block.getFieldValue('FOG_MODE'),
+    fogDensity: readLiveNumber(block, 'DENSITY', 0.1, scene.fogDensity),
+    fogStart: readLiveNumber(block, 'START', 50, scene.fogStart),
+    fogEnd: readLiveNumber(block, 'END', 100, scene.fogEnd),
+  });
+}
+
+function resetFog() {
+  const scene = flock.scene;
+  flock.setFog({
+    fogColorHex: scene.fogColor.toHexString(),
+    fogMode: 'NONE',
+    fogDensity: scene.fogDensity,
+    fogStart: scene.fogStart,
+    fogEnd: scene.fogEnd,
+  });
+}
+
+function applyShadows(block) {
+  if (!flock.shadowLight) return;
+  flock.enableShadows({
+    enabled: block.getFieldValue('ENABLED') === 'TRUE',
+    all: block.getFieldValue('ALL') === 'TRUE',
+  });
+}
+
+function resetShadows() {
+  if (flock.shadowLight) flock.enableShadows({ enabled: false });
+}
 
 export function defineEffectsBlocks() {
   Blockly.Blocks['main_light'] = {
@@ -39,6 +94,7 @@ export function defineEffectsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
+      attachSceneSettingLiveUpdate(this, { apply: applyMainLight, reset: resetMainLight });
     },
   };
 
@@ -88,6 +144,7 @@ export function defineEffectsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
+      attachSceneSettingLiveUpdate(this, { apply: applyFog, reset: resetFog });
     },
   };
 
@@ -116,6 +173,7 @@ export function defineEffectsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
+      attachSceneSettingLiveUpdate(this, { apply: applyShadows, reset: resetShadows });
     },
   };
 

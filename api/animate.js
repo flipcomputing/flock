@@ -734,7 +734,7 @@ export const flockAnimate = {
     const forwardKeyframes = keyframes.map((keyframe) => {
       let value;
       if (property === 'color') {
-        value = flock.BABYLON.Color3.FromHexString(keyframe.value);
+        value = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(keyframe.value));
       } else if (['position', 'rotation', 'scaling'].includes(property)) {
         if (isVector(keyframe.value)) {
           value =
@@ -1231,7 +1231,7 @@ export const flockAnimate = {
 
     // Colors remain unchanged
     if (['color', 'diffuseColor', 'albedoColor'].includes(property)) {
-      return flock.BABYLON.Color3.FromHexString(value);
+      return flock.BABYLON.Color3.FromHexString(flock.getColorFromString(value));
     }
 
     // Handle position and scaling as Vector3

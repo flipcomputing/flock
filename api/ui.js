@@ -343,9 +343,12 @@ const SLIDER_SIZES = {
   LARGE: { width: 300, height: 40 },
 };
 
-function layoutUISlider(slider, options) {
-  const { size, textColor, backgroundColor } = options;
+function layoutUISlider(slider, options, { previous } = {}) {
+  const { size, textColor, backgroundColor, min, max, value } = options;
   const { x, y } = storeLayout(slider, options);
+  if (Number.isFinite(Number(min))) slider.minimum = Number(min);
+  if (Number.isFinite(Number(max))) slider.maximum = Number(max);
+  if (value !== previous?.value && Number.isFinite(Number(value))) slider.value = Number(value);
   const resolvedSize = SLIDER_SIZES[(size || 'MEDIUM').toUpperCase()] || SLIDER_SIZES.MEDIUM;
   const scaledWidth = Math.round(resolvedSize.width * flock.displayScale);
   const scaledHeight = Math.round(resolvedSize.height * flock.displayScale);
@@ -400,7 +403,7 @@ export const flockUI = {
     if (!layout || !control.parent) return;
     const previous = control.metadata.layout;
     const announce = changes.text !== undefined && changes.text !== previous.text;
-    layout(control, { ...previous, ...changes }, { announce });
+    layout(control, { ...previous, ...changes }, { announce, previous });
   },
   _relayoutUIControls() {
     for (const control of flock.scene?.UITexture?.rootContainer.children ?? []) {
@@ -424,6 +427,7 @@ export const flockUI = {
     style.size = saySize(style.size);
     bg.metadata.sayStyle = style;
     bg.background = flock.hexToRgba(style.backgroundColor, style.alpha);
+    if (changes.text !== undefined) textBlock.text = String(changes.text);
     textBlock.color = style.textColor;
     textBlock.fontSize = style.size * 8 * bg.metadata.uiScale;
   },
@@ -686,10 +690,6 @@ export const flockUI = {
     if (existing) existing.dispose();
 
     const slider = new flock.GUI.Slider(id);
-    slider.minimum = min;
-    slider.maximum = max;
-    slider.value = value;
-
     slider.thickness = 0;
     slider.borderColor = 'transparent';
 
@@ -701,12 +701,12 @@ export const flockUI = {
     slider.sectionOwner = __owningSection;
     tagUIControl(slider, 'slider', blockKey);
     markEditorPreview(slider, editorPreview);
+
+    flock.scene.UITexture.addControl(slider);
+    layoutUISlider(slider, { x, y, size, textColor, backgroundColor, min, max, value });
     if (typeof onChange === 'function') {
       slider.onValueChangedObservable.add((newValue) => onChange(newValue));
     }
-
-    flock.scene.UITexture.addControl(slider);
-    layoutUISlider(slider, { x, y, size, textColor, backgroundColor });
 
     return id;
   },
