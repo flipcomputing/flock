@@ -617,6 +617,16 @@ export function defineMaterialsBlocks() {
         }
       });
 
+      const originalShowEditor = colorField.showEditor_;
+      colorField.showEditor_ = function (e) {
+        const picker = window.flockColorPicker;
+        if (picker?.isOpen && !this.getSourceBlock()?.isInFlyout) {
+          this.setValue(picker.currentColor.replace(/^#/, ''));
+          return;
+        }
+        return originalShowEditor.call(this, e);
+      };
+
       // Set initial block color based on the field's initial value
       try {
         const initialVal = colorField.getValue();

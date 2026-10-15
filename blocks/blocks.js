@@ -176,10 +176,13 @@ if (listCreateWithBlockType && !listCreateWithBlockType[flockListCreateWithStyle
   listCreateWithBlockType[flockListCreateWithStylePatchKey] = true;
 }
 
+const isTargetIn = (element, target) => element && (element === target || element.contains(target));
+
 // When the colour picker is open, sniff pointerdown (fires before the picker's
 // capture-phase click handler) to check whether the pointer landed on a colour
-// field's SVG click target.  The result is stored as a flag on the picker so
-// that excludeFromClose can let the click through only for colour-field hits.
+// field's SVG click target or anywhere on a CSS colour block.  The result is
+// stored as a flag on the picker so that excludeFromClose can let the click
+// through only for those hits.
 document.addEventListener(
   'pointerdown',
   (e) => {
@@ -193,15 +196,17 @@ document.addEventListener(
     if (!workspace) return;
 
     picker._colourFieldPointerDown = workspace.getAllBlocks(false).some(
-      (block) =>
-        !block.isInFlyout &&
-        block.inputList?.some((input) =>
-          input.fieldRow?.some((field) => {
-            if (!(field instanceof FieldColour)) return false;
-            const ct = field.clickTarget_ ?? field.fieldGroup_;
-            return ct && (ct === e.target || ct.contains(e.target));
-          })
-        )
+      (block) => {
+        if (block.isInFlyout) return false;
+        if (block.type === 'colour_from_string') return isTargetIn(block.getSvgRoot(), e.target);
+        return block.inputList?.some((input) =>
+          input.fieldRow?.some(
+            (field) =>
+              field instanceof FieldColour &&
+              isTargetIn(field.clickTarget_ ?? field.fieldGroup_, e.target)
+          )
+        );
+      }
     );
   },
   true

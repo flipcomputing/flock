@@ -2222,6 +2222,15 @@ export function createBlocklyWorkspace() {
 
   installWorkspaceJumpDebug(workspace);
 
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.CLICK || event.targetType !== 'block') return;
+    const picker = window.flockColorPicker;
+    if (!picker?.isOpen) return;
+    const block = workspace.getBlockById(event.blockId);
+    if (block?.type !== 'colour_from_string') return;
+    block.setFieldValue(picker.currentColor.replace(/^#/, ''), 'COLOR');
+  });
+
   let activeXyzBlock = null;
 
   workspace.addChangeListener((event) => {
