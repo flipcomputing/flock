@@ -1962,6 +1962,10 @@ a.project-action-button {
   color: var(--color-bg);
 }
 
+[data-theme='low-color'] .project-action-icon {
+  color: var(--color-text-primary);
+}
+
 .example-tabs {
   display: flex;
   flex-wrap: nowrap;
