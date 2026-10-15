@@ -50,7 +50,7 @@
     "@blockly/toolbox-search": "^13.4.0",
     "@fontsource/asap": "^5.2.9",
     "@fontsource/atkinson-hyperlegible-next": "^5.2.7",
-    "@microbit/microbit-connection": "^0.1.0",
+    "@microbit/microbit-connection": "^1.0.0",
     "acorn": "^8.19.0",
     "acorn-walk": "^8.3.5",
     "babylonjs": "^9.31.0",

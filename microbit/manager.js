@@ -66,7 +66,7 @@ const PROBE_ATTEMPTS = 2; // initial probe + one retry
 const POST_FLASH_PROBE_ATTEMPTS = 12;
 const HEARTBEAT_TIMEOUT_MS = 5000;
 // Backoff for reclaiming a board after the link drops (e.g. the library
-// disconnects hidden tabs). Timers are throttled in background tabs, so in
+// pauses hidden tabs). Timers are throttled in background tabs, so in
 // practice these fire shortly after the tab becomes visible again.
 const RECONNECT_DELAYS_MS = [2000, 5000, 10000];
 
@@ -74,10 +74,10 @@ async function defaultCreateTransport({ silent = false } = {}) {
   // Imported lazily so environments without WebUSB (node test runners) never
   // load @microbit/microbit-connection.
   const { MicrobitUsbTransport } = await import('./usbTransport.js');
-  const { createWebUSBConnection, DeviceSelectionMode } =
-    await import('@microbit/microbit-connection');
+  const { createUSBConnection, DeviceSelectionMode } =
+    await import('@microbit/microbit-connection/usb');
   return new MicrobitUsbTransport({
-    connection: createWebUSBConnection({
+    connection: createUSBConnection({
       deviceSelectionMode: silent
         ? DeviceSelectionMode.UseAnyAllowed
         : DeviceSelectionMode.AlwaysAsk,
