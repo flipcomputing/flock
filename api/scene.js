@@ -1,6 +1,7 @@
 import { TEXTURE_TILE_SIZE } from '../config.js';
 import {
   isBodyAlive,
+  movePendingBody,
   releaseShape,
   restoreRestingState,
   shareShape,
@@ -54,6 +55,7 @@ function disposeClonedBodies(node) {
 }
 
 function moveBody(from, to) {
+  movePendingBody(from, to);
   if (!isBodyAlive(from.physics)) return;
   const body = from.physics.clone(to);
   shareShape(from.physics.shape);
@@ -85,7 +87,7 @@ function replaceInstance(instance) {
   mesh.metadata = instance.metadata;
   mesh.isVisible = look ? true : instance.isVisible;
   mesh.isPickable = instance.isPickable;
-  mesh.setEnabled(instance.isEnabled(false));
+  mesh.setEnabled(flock._isShown(instance));
   copyPlacement(instance, mesh);
   if (flock.shadowCasters?.has(instance.sourceMesh)) {
     flock.shadowCasters.add(mesh);
@@ -95,6 +97,7 @@ function replaceInstance(instance) {
     if (child !== look) child.parent = mesh;
   }
   moveBody(instance, mesh);
+  if (instance._awaitingDo) flock.releaseBody(mesh);
   if (instance.actionManager) {
     mesh.actionManager = instance.actionManager;
     instance.actionManager = null;
@@ -279,11 +282,11 @@ function syncLinkedCopy(copy) {
   link.position.copyFrom(copy.getAbsolutePosition());
 
   if (!link.overrides.has('visible')) {
-    const shown = copy.isEnabled(false);
+    const shown = flock._isShown(copy);
     if (shown !== link.shown) link.overrides.add('visible');
-    else if (shown !== source.isEnabled(false)) flock._setShown(copy, !shown);
+    else if (shown !== flock._isShown(source)) flock._setShown(copy, !shown);
   }
-  link.shown = copy.isEnabled(false);
+  link.shown = flock._isShown(copy);
 }
 
 function linkClone(source, copy) {
@@ -300,14 +303,14 @@ function linkClone(source, copy) {
       overrides.add(`size.${axis}`);
     }
   }
-  if (copy.isEnabled(false) !== source.isEnabled(false)) overrides.add('visible');
+  if (flock._isShown(copy) !== flock._isShown(source)) overrides.add('visible');
 
   linkOf.set(copy, {
     source,
     overrides,
     position,
     scaling: copy.scaling.clone(),
-    shown: copy.isEnabled(false),
+    shown: flock._isShown(copy),
   });
 
   let siblings = linkedCopiesOf.get(source);
@@ -336,10 +339,22 @@ function linkClone(source, copy) {
   });
 }
 
+function cloneBody(source, target) {
+  if (!isBodyAlive(source.physics)) {
+    target._pendingBodyStale = true;
+    source._bodyRecipe?.(target);
+    return;
+  }
+  target.physics = source.physics.clone(target);
+  restoreRestingState(source, target.physics);
+  shareShape(source.physics.shape);
+}
+
 // Babylon's clone gives every cloned node a copy of its source's body and
 // also copies the source's `physics` reference, so a node can end up with
 // several bodies syncing it (one cloned mid-glide pins it in place). Replace
-// them with one body per node, cloned from its source in its resting state.
+// them with one pending body per node, cloned from its source in its resting
+// state once built.
 function clonePhysicsHierarchy(sourceMesh, clone) {
   // Babylon names a cloned child "<parent clone name>.<source name>".
   const sourceName = (node) => (node === clone ? '' : node.name.slice(node.parent.name.length + 1));
@@ -365,11 +380,14 @@ function clonePhysicsHierarchy(sourceMesh, clone) {
   for (const node of cloneNodes) {
     node.physics = null;
     const source = sourceByPath.get(pathOf(node, clone, sourceName));
-    if (!isBodyAlive(source?.physics)) continue;
-    node.physics = source.physics.clone(node);
-    restoreRestingState(source, node.physics);
-    shareShape(source.physics.shape);
+    if (!source) continue;
+    const pending = !source.physics && source._pendingBody;
+    if (!isBodyAlive(source.physics) && !pending && !source._bodyRecipe) continue;
+    if (source._bodyRecipe) node._bodyRecipe = source._bodyRecipe;
+    node._pendingBody = pending || ((target) => cloneBody(source, target));
+    if (pending && source._pendingBodyStale) node._pendingBodyStale = true;
   }
+  return cloneNodes;
 }
 
 const sceneReady = () => !!(flock && flock.scene && flock.BABYLON);
@@ -878,7 +896,12 @@ export const flockScene = {
     });
   },
   _setShown(mesh, shown) {
-    mesh.setEnabled(shown);
+    if (mesh._awaitingDo) {
+      if (mesh._shownAfterDo === shown) return;
+      mesh._shownAfterDo = shown;
+    } else {
+      mesh.setEnabled(shown);
+    }
     if (!mesh.physics?._pluginData) return;
     const bodyId = mesh.physics._pluginData.hpBodyId;
     if (shown) {
@@ -1108,7 +1131,14 @@ export const flockScene = {
         clone.rotationQuaternion = worldRotation.clone();
         clone.scaling.copyFrom(sourceMesh.scaling);
 
-        clonePhysicsHierarchy(sourceMesh, clone);
+        const holdBodies =
+          !!callback || (inheritConstruction && flock._constructionOf(sourceMesh).dos.length > 0);
+        for (const node of clonePhysicsHierarchy(sourceMesh, clone)) {
+          if (holdBodies) flock.holdBody(node);
+          else flock.ensureBody(node);
+        }
+        clone.setEnabled(flock._isShown(sourceMesh));
+        if (holdBodies) flock._awaitDo(clone, true);
 
         const setMetadata = (mesh) => {
           // Ensure metadata exists
@@ -1207,10 +1237,16 @@ export const flockScene = {
           }
         }
 
+        const finishConstruction = () => {
+          flock._finishDo(clone);
+          [clone, ...clone.getDescendants(false)].forEach((node) => flock.releaseBody(node));
+        };
+
         if (dos.length || thens.length) {
           requestAnimationFrame(async () => {
-            for (const fn of [...dos, ...thens]) {
+            for (const [index, fn] of [...dos, ...thens].entries()) {
               if (signal?.aborted || clone.isDisposed()) return;
+              if (index === dos.length) finishConstruction();
               if (replayed.has(fn)) replayingConstruction.add(clone);
               try {
                 const result = fn(uniqueCloneId);
@@ -1221,6 +1257,7 @@ export const flockScene = {
                 replayingConstruction.delete(clone);
               }
             }
+            if (!signal?.aborted && !clone.isDisposed()) finishConstruction();
           });
         }
       }
@@ -1315,8 +1352,40 @@ export const flockScene = {
     });
   },
   runDo(meshName, fn) {
-    flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { dos: [fn] });
-    return fn(meshName);
+    const mesh = flock.scene?.getMeshByName(meshName);
+    flock._rememberConstruction(mesh, { dos: [fn] });
+    if (!mesh?._awaitingDo) return fn(meshName);
+    return (async () => {
+      try {
+        return await fn(meshName);
+      } finally {
+        flock._finishDo(mesh);
+      }
+    })();
+  },
+  // An object with a DO stays hidden and without a body until the DO has
+  // run, so it appears, and collides, in its constructed state. A hide or
+  // show during the DO is kept for when it ends.
+  _awaitDo(mesh, hasDo) {
+    if (!hasDo) {
+      flock.ensureBody(mesh);
+      return;
+    }
+    flock.holdBody(mesh);
+    if (mesh._awaitingDo) return;
+    mesh._shownAfterDo = mesh.isEnabled(false);
+    mesh._awaitingDo = true;
+    mesh.setEnabled(false);
+  },
+  _finishDo(mesh) {
+    if (!mesh?._awaitingDo || mesh.isDisposed()) return;
+    mesh.setEnabled(mesh._shownAfterDo);
+    delete mesh._awaitingDo;
+    delete mesh._shownAfterDo;
+    flock.releaseBody(mesh);
+  },
+  _isShown(mesh) {
+    return mesh._awaitingDo ? mesh._shownAfterDo : mesh.isEnabled(false);
   },
   runThen(meshName, fn) {
     flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { thens: [fn] });

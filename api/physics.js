@@ -532,6 +532,50 @@ const applyPhysicsShape = (
   };
 };
 
+// An object's body is built from a recipe once its DO has run, so one whose DO
+// sets physics none never allocates a shape. The recipe stays for a later
+// set physics, and for clones whose source has no live body.
+const deferBody = (mesh, recipe) => {
+  mesh._bodyRecipe = recipe;
+  mesh._pendingBody = recipe;
+};
+
+const PENDING_BODY_KEYS = ['_pendingBody', '_bodyRecipe', '_bodyHeld', '_pendingBodyStale'];
+
+export const movePendingBody = (from, to) => {
+  for (const key of PENDING_BODY_KEYS) {
+    if (key in from) to[key] = from[key];
+    delete from[key];
+  }
+};
+
+const hasPendingBody = (mesh) => !!mesh?._pendingBody && !mesh.physics;
+
+// A recipe sizes its shape from the object as created; one resized or
+// reshaped since is refitted once built.
+export const markPendingBodyStale = (mesh) => {
+  if (hasPendingBody(mesh)) mesh._pendingBodyStale = true;
+};
+
+const buildPendingBody = (mesh) => {
+  if (!hasPendingBody(mesh) || mesh.isDisposed?.() || mesh.metadata?.physicsType === 'NONE') {
+    return;
+  }
+  const build = mesh._pendingBody;
+  delete mesh._pendingBody;
+  build(mesh);
+  if (!isBodyAlive(mesh.physics)) return;
+  if (mesh._pendingBodyStale) {
+    delete mesh._pendingBodyStale;
+    flock.updatePhysics(mesh);
+  }
+  const physicsType = mesh.metadata?.physicsType;
+  if (physicsType) flock.setPhysicsForMesh(mesh, physicsType);
+  if (isBodyAlive(mesh.physics) && !flock._isShown(mesh)) {
+    flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, mesh.physics._pluginData.hpBodyId);
+  }
+};
+
 function waitForSceneTransformFlush(scene) {
   if (!scene || scene.isDisposed) return Promise.resolve();
 
@@ -661,6 +705,19 @@ export const flockPhysics = {
   disposeMeshPhysics(mesh) {
     disposePhysics(mesh);
   },
+  deferBody,
+  holdBody(mesh) {
+    if (hasPendingBody(mesh)) mesh._bodyHeld = true;
+  },
+  releaseBody(mesh) {
+    if (!mesh?._bodyHeld) return;
+    delete mesh._bodyHeld;
+    buildPendingBody(mesh);
+  },
+  ensureBody(mesh) {
+    buildPendingBody(mesh);
+    return mesh;
+  },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
     // Keeps the sign: a negative axis is a deliberate mirror (flip, mirror).
@@ -670,6 +727,7 @@ export const flockPhysics = {
     }
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
+    markPendingBodyStale(parent);
     if (!isBodyAlive(parent.physics)) return;
 
     const { motionType, disablePreStep } = capturePhysicsState(parent);
@@ -807,7 +865,7 @@ export const flockPhysics = {
     return beforePhysicsObserver;
   },
   up(meshName, upForce = 10) {
-    const mesh = flock.scene.getMeshByName(meshName);
+    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
     if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
@@ -824,7 +882,10 @@ export const flockPhysics = {
   ensurePostPhysicsUpkeep,
   setBounciness(meshName, bounciness = 0.5) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh && isBodyAlive(mesh.physics) && mesh.physics.shape) {
+    if (hasPendingBody(mesh)) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.bounciness = Math.max(0, Math.min(1, bounciness));
+    } else if (mesh && isBodyAlive(mesh.physics) && mesh.physics.shape) {
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.bounciness = Math.max(0, Math.min(1, bounciness));
       applyBounciness(mesh.physics, mesh);
@@ -837,7 +898,10 @@ export const flockPhysics = {
   // the same motion (impulse Δv = J/m) and push lighter ones around.
   setMass(meshName, mass = 1) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh && isBodyAlive(mesh.physics)) {
+    if (hasPendingBody(mesh)) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.mass = normalizeMass(mass);
+    } else if (mesh && isBodyAlive(mesh.physics)) {
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.mass = normalizeMass(mass);
       applyMass(mesh.physics, mesh);
@@ -846,7 +910,7 @@ export const flockPhysics = {
     }
   },
   applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
-    const mesh = flock.scene.getMeshByName(meshName);
+    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
     if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
@@ -893,7 +957,7 @@ export const flockPhysics = {
   // mesh.forward.negate()). 'all' to 0 is a full stop: it clears every maintained
   // direction and zeroes the velocity, so the object behaves normally afterwards.
   setSpeed(meshName, direction, speed = 0) {
-    const mesh = flock.scene.getMeshByName(meshName);
+    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
     if (!(mesh && isBodyAlive(mesh.physics))) {
       console.error(`Model '${meshName}' not loaded or missing physics (setSpeed)`);
       return;
@@ -925,6 +989,11 @@ export const flockPhysics = {
 
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.physicsType = physicsType;
+
+    if (hasPendingBody(mesh)) {
+      if (!mesh._bodyHeld) buildPendingBody(mesh);
+      return mesh;
+    }
 
     if (!mesh.physics && physicsType !== 'NONE') {
       const { motionType, disablePreStep, shapeType } = mesh.metadata.physicsCache || {};
@@ -980,6 +1049,7 @@ export const flockPhysics = {
 
       case 'NONE':
         mesh.metadata.physicsCache = capturePhysicsState(mesh);
+        delete mesh._pendingBody;
         disposePhysics(mesh);
         mesh.physics = null;
         break;
@@ -1020,6 +1090,7 @@ export const flockPhysics = {
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        flock.ensureBody(mesh);
         const capturePhysicsState = (targetMesh) => ({
           motionType: targetMesh.physics?.getMotionType?.(),
           disablePreStep: targetMesh.physics?.disablePreStep,

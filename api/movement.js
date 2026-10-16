@@ -9,6 +9,7 @@ function ensureDynamicForMovement(mesh) {
   if (mesh.metadata?.physicsType !== 'DYNAMIC') {
     flock.setPhysicsForMesh(mesh, 'DYNAMIC');
   }
+  flock.ensureBody(mesh);
 }
 
 // --- Shared movement/jump tuning ---------------------------------------------

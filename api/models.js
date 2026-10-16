@@ -210,6 +210,8 @@ export const flockModels = {
 
         const mesh = container.meshes[0];
         const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        if (callback) flock.holdBody(bb);
+        else flock.ensureBody(bb);
         if (rotation || size) {
           flock._applyInitialTransform(bb, { position: { x, y, z }, rotation, size });
         }
@@ -253,6 +255,7 @@ export const flockModels = {
                 }
               })
               .then(() => {
+                flock.releaseBody(bb);
                 mesh.setEnabled(true);
               })
           )
@@ -440,6 +443,8 @@ export const flockModels = {
         position.z,
         color
       );
+      if (callback) flock.holdBody(root);
+      else flock.ensureBody(root);
       if (rotation || size) flock._applyInitialTransform(root, { position, rotation, size });
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
@@ -481,6 +486,7 @@ export const flockModels = {
           mesh,
           runConstructor.then(() => {
             if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+            flock.releaseBody(root);
             return revealWhenDrawable(mesh);
           })
         )

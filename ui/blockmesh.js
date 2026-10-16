@@ -13,7 +13,7 @@ import { normaliseColourInput } from '../blocks/colourvalidation.js';
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
 import { shapeError } from '../api/freeformgeometry.js';
-import { releaseShape } from '../api/physics.js';
+import { markPendingBodyStale, releaseShape } from '../api/physics.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
@@ -2435,6 +2435,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
+  markPendingBodyStale(mesh);
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
     let newShape, diameterBottom, startPoint, endPoint;
@@ -2564,6 +2565,7 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides
 
   // Ensure the world matrix is updated
   mesh.computeWorldMatrix(true);
+  markPendingBodyStale(mesh);
 }
 
 // Rebuild a capsule at a new size. Unlike setAbsoluteSize (scale + bake), this
@@ -2620,6 +2622,7 @@ function updateCapsuleGeometry(mesh, diameter, height) {
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Rebuild the physics shape to match the new capsule
+  markPendingBodyStale(mesh);
   if (mesh.physics && mesh.metadata?.shapeType === 'Capsule') {
     const newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
     if (newShape) {

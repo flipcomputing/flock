@@ -119,6 +119,7 @@ export function createMesh(block, meshType, params) {
     : '';
 
   const options = [...params, ...getInitialTransformParams(block)];
+  if (doBody) options.push('hasDo: true');
 
   // parentCode repeats after doCode/thenCode so a rotate_to/resize in this
   // entity's own DO (how the live editor bakes group transforms into a

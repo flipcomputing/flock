@@ -22,6 +22,7 @@ export const flockCamera = {
           return;
         }
 
+        flock.ensureBody(mesh);
         if (!mesh.physics) {
           console.log("Can't attach camera to: ", meshName);
           resolve();
