@@ -200,9 +200,10 @@ function removeAttachedPhysics(root) {
     [M.DYNAMIC]: 'DYNAMIC',
   };
   [root, ...root.getChildMeshes(false)].forEach((mesh) => {
-    if (!mesh.physics || mesh.metadata?.isGhost) return;
+    const pending = mesh._pendingBody && mesh.metadata?.physicsType !== 'NONE';
+    if ((!mesh.physics && !pending) || mesh.metadata?.isGhost) return;
     (mesh.metadata ||= {})._preAttachPhysicsType =
-      mesh.metadata.physicsType || motionTypeNames[mesh.physics.getMotionType?.()];
+      mesh.metadata.physicsType || motionTypeNames[mesh.physics?.getMotionType?.()] || 'STATIC';
     flock.setPhysicsForMesh(mesh, 'NONE');
   });
 }
@@ -1339,7 +1340,7 @@ export const flockMesh = {
         }
 
         // Extract vertex data from mesh
-        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
+        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh, true, true);
 
         // Validate vertex data
         if (!vertexData) {
@@ -1347,10 +1348,7 @@ export const flockMesh = {
           return false;
         }
 
-        // Remove shared geometry by clearing existing bindings
-        mesh.setVerticesData('position', null);
-
-        // Apply cloned vertex data (creates a new internal geometry)
+        if (mesh.geometry?.meshes.length > 1) mesh.makeGeometryUnique();
         vertexData.applyToMesh(mesh, true); // `true` = updatable
 
         // Mark the geometry as no longer shared
@@ -1545,38 +1543,42 @@ export const flockMesh = {
       setMetadata(descendant);
     });
 
-    const boxBody = new flock.BABYLON.PhysicsBody(
-      bb,
-      flock.BABYLON.PhysicsMotionType.STATIC,
-      false,
-      flock.scene
-    );
-
     const colliderShapeOverride = modelName ? objectColliderShapes[modelName] : null;
 
     // Cache key includes scale: baked shape dimensions are fixed to this call's scale.
     const shapeCacheKey = modelName ? `${modelName}::${scale}` : null;
 
-    let boxShape;
-    const cachedShape = shapeCacheKey ? flock.physicsShapeCache?.[shapeCacheKey] : null;
-    if (cachedShape && !cachedShape._isDisposed) {
-      boxShape = cachedShape;
-    } else {
-      boxShape =
-        colliderShapeOverride === 'BOX'
-          ? flock.createBoxFromBoundingBox(bb, flock.scene)
-          : flock.createCapsuleFromBoundingBox(bb, flock.scene);
-      if (shapeCacheKey) {
-        boxShape._isShared = true;
-        flock.physicsShapeCache[shapeCacheKey] = boxShape;
-      }
-    }
+    flock.deferBody(bb, (target) => {
+      const boxBody = new flock.BABYLON.PhysicsBody(
+        target,
+        flock.BABYLON.PhysicsMotionType.STATIC,
+        false,
+        flock.scene
+      );
 
-    boxBody.shape = boxShape;
-    flock.applyMass(boxBody, bb);
-    flock.applyBounciness(boxBody, bb);
-    boxBody.disablePreStep = true;
-    bb.physics = boxBody;
+      // A DO may have resized the object before its body is built.
+      const cacheable = shapeCacheKey && target.scaling.equalsToFloats(1, 1, 1);
+      let boxShape;
+      const cachedShape = cacheable ? flock.physicsShapeCache?.[shapeCacheKey] : null;
+      if (cachedShape && !cachedShape._isDisposed) {
+        boxShape = cachedShape;
+      } else {
+        boxShape =
+          colliderShapeOverride === 'BOX'
+            ? flock.createBoxFromBoundingBox(target, flock.scene)
+            : flock.createCapsuleFromBoundingBox(target, flock.scene);
+        if (cacheable) {
+          boxShape._isShared = true;
+          flock.physicsShapeCache[shapeCacheKey] = boxShape;
+        }
+      }
+
+      boxBody.shape = boxShape;
+      flock.applyMass(boxBody, target);
+      flock.applyBounciness(boxBody, target);
+      boxBody.disablePreStep = true;
+      target.physics = boxBody;
+    });
 
     return bb;
   },
@@ -1798,9 +1800,5 @@ export const flockMesh = {
         resolve();
       });
     });
-  },
-
-  getClones(mesh) {
-    return mesh.metadata.clones.map((name) => flock.scene.getMeshByName(name));
   },
 };

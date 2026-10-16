@@ -182,6 +182,7 @@ export const flockEffects = {
   setShadow(meshName, { cast = true } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        flock._realiseLinked(mesh);
         const nodes = [mesh, ...mesh.getDescendants()];
         const meshes = nodes.filter(
           (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0

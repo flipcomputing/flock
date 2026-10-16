@@ -266,6 +266,13 @@ function resizeMesh(
   flock.updatePhysics(mesh);
 }
 
+function hasTexture(mesh) {
+  return [mesh, ...mesh.getChildMeshes(false)].some((part) => {
+    const texName = part.material?.metadata?.texName;
+    return texName && texName !== 'none.png';
+  });
+}
+
 function isGroundLevel(y) {
   return y === '__ground__level__' || Number(y) === -999999;
 }
@@ -991,6 +998,7 @@ export const flockTransform = {
           resolve();
           return;
         }
+        if (maintainTextureScale && hasTexture(mesh)) flock._realiseLinked(mesh);
         resizeMesh(mesh, { width, height, depth, xOrigin, yOrigin, zOrigin, maintainTextureScale });
         resolve();
       });

@@ -22,6 +22,7 @@ export const flockCamera = {
           return;
         }
 
+        flock.ensureBody(mesh);
         if (!mesh.physics) {
           console.log("Can't attach camera to: ", meshName);
           resolve();
@@ -183,7 +184,7 @@ export const flockCamera = {
     frame.onDisposeObservable.add(() => flockCamera._disposeRigCamera(frame));
 
     flock.announceMeshReady(frame.name, groupName);
-    flock._registerInstance(blockKey, frame.name);
+    flock._registerInstance(blockKey, frame.name, frame);
 
     if (callback) {
       requestAnimationFrame(() => callback());

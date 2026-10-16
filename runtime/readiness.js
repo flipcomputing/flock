@@ -373,12 +373,13 @@ export const flockReadiness = {
     flock.pendingTriggers.set(groupName, remaining);
   },
   announceMeshReady(meshName, groupName) {
-    flock._registerLiveName(meshName, flock.scene?.getMeshByName(meshName));
+    const mesh = flock.scene?.getMeshByName(meshName);
+    flock._registerLiveName(meshName, mesh);
+    flock._releaseNameOnDispose(meshName, mesh);
 
     groupName = flock._familyOf(flock._nameRegistry.has(meshName) ? meshName : groupName);
 
     flock._applyGroupHandlers(meshName, groupName);
-    const mesh = flock.scene?.getMeshByName(meshName);
     for (const node of mesh ? [mesh, ...mesh.getDescendants(false)] : []) {
       for (const tag of node.metadata?.tags ?? []) {
         flock._applyGroupHandlers(node.name, tag);
@@ -440,7 +441,12 @@ export const flockReadiness = {
       name = `${desired}_${flock.scene.getUniqueId()}`;
     }
     if (flock._isTag(family)) family = `${family}__object`;
-    flock._nameRegistry.set(name, { pending: true, exists: false, family });
+    flock._nameRegistry.set(name, {
+      pending: true,
+      exists: false,
+      family,
+      generated: name !== desired,
+    });
     return name;
   },
 
@@ -492,7 +498,18 @@ export const flockReadiness = {
   },
 
   _inGroup(mesh, groupName) {
+    if (mesh.metadata?.lookVisual) return false;
     return flock._familyOf(mesh.name) === groupName || !!mesh.metadata?.tags?.includes(groupName);
+  },
+
+  /** A suffixed name is never reserved again, so it can go once its mesh does. */
+  _releaseNameOnDispose(name, mesh) {
+    const record = flock._nameRegistry.get(name);
+    if (!record?.generated || record.releasing || !mesh) return;
+    record.releasing = true;
+    mesh.onDisposeObservable.addOnce(() => {
+      if (flock._nameRegistry.get(name) === record) flock._nameRegistry.delete(name);
+    });
   },
 
   /** Release a reservation on failure/disposal. */

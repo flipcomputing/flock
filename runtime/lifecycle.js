@@ -3,6 +3,7 @@ import * as BABYLON_GUI from '@babylonjs/gui/2D/index.js';
 import * as BABYLON_EXPORT from '@babylonjs/serializers';
 import { flockRuntimeUrl } from './urls.js';
 import { getManifold } from '../api/shapes';
+import { releaseShape } from '../api/physics.js';
 import {
   getMicrobitManager,
   setFlockReference as setFlockMicrobitManager,
@@ -538,10 +539,8 @@ export const flockLifecycle = {
           }
           if (mesh?.dispose && typeof mesh.dispose === 'function') {
             try {
-              // Shared shapes are disposed via physicsShapeCache below
-              if (!mesh.physics?.shape?._isShared) {
-                mesh.physics?.shape?.dispose();
-              }
+              // Cached shapes are disposed via physicsShapeCache below
+              releaseShape(mesh.physics?.shape);
               mesh.physics?.dispose();
 
               mesh.dispose();

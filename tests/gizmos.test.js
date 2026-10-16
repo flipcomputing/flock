@@ -20,7 +20,11 @@ import { showStatus, clearStatus } from '../ui/status.js';
 import { getNumberInput } from '../ui/blocklyutil.js';
 import { meshMap } from '../generators/generators.js';
 import { blockHandlerRegistry, enableBlockHandlers } from '../blocks/blocks.js';
-import { updateMeshFromBlock, updateBlockColorAndHighlight } from '../ui/blockmesh.js';
+import {
+  updateMeshFromBlock,
+  updateBlockColorAndHighlight,
+  applyInitialTransformRows,
+} from '../ui/blockmesh.js';
 import { topHandler, makeKeyEvent, dispatchKeyup } from './utils/keyboardDispatcherTestUtils.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { getCanvasCircle } from '../ui/canvas-utils.js';
@@ -1543,7 +1547,7 @@ export function runGizmoTests(flock) {
         else codePanel.style.display = codePanelDisplay;
       });
 
-      async function makeCloneFixture({ group = false, sourceBlock = false } = {}) {
+      async function makeCloneFixture({ group = false, sourceBlock = false, mode } = {}) {
         seq += 1;
         const ws = Blockly.getMainWorkspace();
         const cloneBlock = ws.newBlock('clone_mesh');
@@ -1585,6 +1589,7 @@ export function runGizmoTests(flock) {
           sourceMeshName: sourceId,
           cloneId: `gizmoClone${seq}`,
           blockKey: cloneBlock.id,
+          mode,
         });
         ids.push(cloneId);
         const clone = await flock.whenModelReady(cloneId);
@@ -1698,6 +1703,85 @@ export function runGizmoTests(flock) {
         expect(clone.position.x).to.be.closeTo(7, 0.01);
       });
 
+      function dragWith(gizmo, change) {
+        withHeadlessBlocks(() => {
+          gizmo.onDragStartObservable.notifyObservers({});
+          change();
+          gizmo.onDragObservable.notifyObservers({});
+          gizmo.onDragEndObservable.notifyObservers({});
+        });
+        flock.scene.render();
+      }
+
+      it('moves the original, not the linked clone, when a linked clone is dragged', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ mode: 'linked' });
+        const source = flock.scene.getMeshByName(sourceId);
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        dragWith(mgr.gizmos.positionGizmo, () => (clone.position.x += 3));
+
+        expect(source.position.x).to.be.closeTo(3, 0.01);
+        expect(clone.position.x).to.be.closeTo(3, 0.01);
+        expect(doBlocks(cloneBlock)).to.be.empty;
+        await flock.moveByVector(sourceId, { y: 1 });
+        flock.scene.render();
+        expect(clone.position.y).to.be.closeTo(source.position.y, 0.01);
+      });
+
+      it('moves a linked clone itself once it has its own position', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ mode: 'linked' });
+        const source = flock.scene.getMeshByName(sourceId);
+        await flock.moveByVector(clone.name, { x: 2 });
+        flock.scene.render();
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('position'));
+        dragWith(mgr.gizmos.positionGizmo, () => (clone.position.x += 3));
+
+        expect(source.position.x).to.be.closeTo(0, 0.01);
+        expect(clone.position.x).to.be.closeTo(5, 0.01);
+        expect(doBlocks(cloneBlock).map((b) => b.type)).to.deep.equal(['move_to_xyz']);
+      });
+
+      it('resizes the original when a linked clone is scaled', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ mode: 'linked' });
+        const source = flock.scene.getMeshByName(sourceId);
+        await flock.moveByVector(clone.name, { x: 4 });
+        flock.scene.render();
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('scale'));
+        dragWith(mgr.gizmos.scaleGizmo, () => clone.scaling.set(2, 1, 1));
+
+        expect(source.scaling.x).to.be.closeTo(2, 0.01);
+        expect(clone.scaling.x).to.be.closeTo(2, 0.01);
+        expect(clone.position.x).to.be.closeTo(4, 0.01);
+        expect(cloneBlock.resizeShown_).to.not.be.true;
+      });
+
+      it('rotates the original when a linked clone is rotated', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ mode: 'linked' });
+        const source = flock.scene.getMeshByName(sourceId);
+        await flock.moveByVector(clone.name, { x: 4 });
+        flock.scene.render();
+        mgr.attachToMesh(clone);
+        withHeadlessBlocks(() => toggleGizmo('rotation'));
+        dragWith(mgr.gizmos.rotationGizmo, () => {
+          clone.rotationQuaternion = flock.eulerDegreesToQuat(0, 45, 0);
+        });
+
+        const turned = flock.eulerDegreesToQuat(0, 45, 0);
+        expect(Math.abs(BABYLON.Quaternion.Dot(source.rotationQuaternion, turned))).to.be.closeTo(1, 1e-4);
+        expect(Math.abs(BABYLON.Quaternion.Dot(clone.rotationQuaternion, turned))).to.be.closeTo(1, 1e-4);
+        expect(cloneBlock.rotateShown_).to.not.be.true;
+      });
+
+      it('recolours the original when a linked clone is painted', async function () {
+        const { cloneBlock, clone, sourceId } = await makeCloneFixture({ mode: 'linked', sourceBlock: true });
+        const part = flock._linkedPart(clone, 'colour');
+        expect(part.name).to.equal(sourceId);
+        withHeadlessBlocks(() => updateBlockColorAndHighlight(part, '#00ff00'));
+        expect(doBlocks(cloneBlock)).to.be.empty;
+      });
+
       it('recolours the clone when its change_color list is edited', async function () {
         const { cloneBlock, clone } = await makeCloneFixture();
         withHeadlessBlocks(() => updateBlockColorAndHighlight(clone, '#00ff00'));
@@ -1763,6 +1847,41 @@ export function runGizmoTests(flock) {
         expect(cloneBlock.resizeShown_).to.be.true;
         expect(getNumberInput(cloneBlock, 'SIZE_X')).to.be.closeTo(2, 0.1);
         expect(doBlocks(cloneBlock)).to.be.empty;
+      });
+
+      it('keeps each loop copy on its own computed axis when the clone is resized', async function () {
+        const { cloneBlock, cloneVarId, clone, sourceId, ids } = await makeCloneFixture();
+        const second = await flock.whenModelReady(
+          flock.cloneMesh({ sourceMeshName: sourceId, cloneId: `${clone.name}_b`, blockKey: cloneBlock.id })
+        );
+        ids.push(second.name);
+        const ws = Blockly.getMainWorkspace();
+        const number = (n) => ({ shadow: { type: 'math_number', fields: { NUM: n } } });
+        const move = Blockly.serialization.blocks.append(
+          {
+            type: 'move_to_xyz',
+            fields: { MODEL: { id: cloneVarId }, USE_Y: 'TRUE' },
+            inputs: {
+              X: { block: { type: 'math_random_int', inputs: { FROM: number(-5), TO: number(5) } } },
+              Y: number(0),
+              Z: number(3),
+            },
+          },
+          ws
+        );
+        withHeadlessBlocks(() => {
+          if (!cloneBlock.getInput('DO')) cloneBlock.toggleDoBlock();
+        });
+        cloneBlock.getInput('DO').connection.connect(move.previousConnection);
+        flock.positionAt(clone.name, { x: -4, y: 0, z: 0, useY: true });
+        flock.positionAt(second.name, { x: 4, y: 0, z: 0, useY: true });
+
+        withHeadlessBlocks(() => cloneBlock.setResizeShown(true, { x: 2, y: 1, z: 1 }));
+        applyInitialTransformRows(cloneBlock, [clone, second]);
+
+        const anchors = [clone, second].map((m) => flock._getAnchor(m));
+        expect(anchors.map((a) => Math.round(a.x))).to.deep.equal([-4, 4]);
+        expect(anchors.map((a) => a.z)).to.satisfy((zs) => zs.every((z) => Math.abs(z - 3) < 0.01));
       });
 
       it('writes no resize for a cloned group', async function () {

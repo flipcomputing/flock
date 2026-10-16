@@ -6,7 +6,41 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+function pairClonedNodes(source, clone, pairs = new Map()) {
+  pairs.set(source, clone);
+  const cloneChildren = clone.getDescendants(true);
+  source
+    .getDescendants(true)
+    .filter((child) => child.clone)
+    .forEach((child, i) => {
+      if (cloneChildren[i]) pairClonedNodes(child, cloneChildren[i], pairs);
+    });
+  return pairs;
+}
+
 export const flockModels = {
+  _cloneSkeletons(source, mesh) {
+    const parts = [mesh, ...mesh.getChildMeshes(false)];
+    if (!parts.some((part) => part.skeleton)) return;
+    const clonedNodes = source ? pairClonedNodes(source, mesh) : new Map();
+    const clones = new Map();
+    parts.forEach((part) => {
+      const original = part.skeleton;
+      if (!original) return;
+      let skeleton = clones.get(original);
+      if (!skeleton) {
+        skeleton = original.clone(`${original.name}_${mesh.uniqueId}`);
+        skeleton.bones.forEach((bone, i) => {
+          const linked = original.bones[i].getTransformNode();
+          const target = linked && clonedNodes.get(linked);
+          if (target) bone.linkTransformNode(target);
+        });
+        mesh.onDisposeObservable.addOnce(() => skeleton.dispose());
+        clones.set(original, skeleton);
+      }
+      part.skeleton = skeleton;
+    });
+  },
   createCharacter({
     modelName,
     modelId,
@@ -176,6 +210,8 @@ export const flockModels = {
 
         const mesh = container.meshes[0];
         const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        if (callback) flock.holdBody(bb);
+        else flock.ensureBody(bb);
         if (rotation || size) {
           flock._applyInitialTransform(bb, { position: { x, y, z }, rotation, size });
         }
@@ -219,6 +255,7 @@ export const flockModels = {
                 }
               })
               .then(() => {
+                flock.releaseBody(bb);
                 mesh.setEnabled(true);
               })
           )
@@ -253,7 +290,7 @@ export const flockModels = {
         resolveReady(mesh);
         cleanupAbort();
 
-        flock._registerInstance(modelName, meshName);
+        flock._registerInstance(modelName, meshName, mesh);
 
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
@@ -386,40 +423,6 @@ export const flockModels = {
       }
     };
 
-    const pairClonedNodes = (source, clone, pairs = new Map()) => {
-      pairs.set(source, clone);
-      const cloneChildren = clone.getDescendants(true);
-      source
-        .getDescendants(true)
-        .filter((child) => child.clone)
-        .forEach((child, i) => {
-          if (cloneChildren[i]) pairClonedNodes(child, cloneChildren[i], pairs);
-        });
-      return pairs;
-    };
-
-    const cloneSkeletons = (mesh) => {
-      const template = flock.modelCache[modelName];
-      const clonedNodes = template ? pairClonedNodes(template, mesh) : new Map();
-      const clones = new Map();
-      [mesh, ...mesh.getChildMeshes(false)].forEach((part) => {
-        const source = part.skeleton;
-        if (!source) return;
-        let skeleton = clones.get(source);
-        if (!skeleton) {
-          skeleton = source.clone(`${source.name}_${mesh.uniqueId}`);
-          skeleton.bones.forEach((bone, i) => {
-            const linked = source.bones[i].getTransformNode();
-            const target = linked && clonedNodes.get(linked);
-            if (target) bone.linkTransformNode(target);
-          });
-          mesh.onDisposeObservable.addOnce(() => skeleton.dispose());
-          clones.set(source, skeleton);
-        }
-        part.skeleton = skeleton;
-      });
-    };
-
     const finalizeMesh = (mesh, mName, gName, bKey) => {
       const allNodes = [mesh, ...mesh.getDescendants(false)];
       allNodes.forEach((node) => {
@@ -427,7 +430,7 @@ export const flockModels = {
           node.name = node.metadata.originalNodeName;
         }
       });
-      cloneSkeletons(mesh);
+      flock._cloneSkeletons(flock.modelCache[modelName], mesh);
 
       const root = flock.setupMesh(
         mesh,
@@ -440,6 +443,8 @@ export const flockModels = {
         position.z,
         color
       );
+      if (callback) flock.holdBody(root);
+      else flock.ensureBody(root);
       if (rotation || size) flock._applyInitialTransform(root, { position, rotation, size });
       applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
@@ -481,6 +486,7 @@ export const flockModels = {
           mesh,
           runConstructor.then(() => {
             if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+            flock.releaseBody(root);
             return revealWhenDrawable(mesh);
           })
         )
@@ -514,7 +520,7 @@ export const flockModels = {
       if (flock.modelCache[modelName]) {
         flock._recycleOldestByKey(modelName);
         const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
-        flock._registerInstance(modelName, meshName);
+        flock._registerInstance(modelName, meshName, mesh);
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);
         return meshName;
@@ -525,7 +531,7 @@ export const flockModels = {
           if (!flock.scene || flock.scene.isDisposed) return;
           flock._recycleOldestByKey(modelName);
           const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
-          flock._registerInstance(modelName, meshName);
+          flock._registerInstance(modelName, meshName, mesh);
           finalizeMesh(mesh, meshName, groupName, bKey);
           resolveReady(mesh);
         });
@@ -582,7 +588,7 @@ export const flockModels = {
         flock.modelCache[modelName] = root;
 
         const mesh = root.clone(root.name);
-        flock._registerInstance(modelName, meshName);
+        flock._registerInstance(modelName, meshName, mesh);
 
         finalizeMesh(mesh, meshName, groupName, bKey);
         resolveReady(mesh);

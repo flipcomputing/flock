@@ -13,6 +13,7 @@ import { normaliseColourInput } from '../blocks/colourvalidation.js';
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
 import { shapeError } from '../api/freeformgeometry.js';
+import { markPendingBodyStale, releaseShape } from '../api/physics.js';
 import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
@@ -399,9 +400,8 @@ export function getCloneDoOwner(block) {
 
 function applyCloneDoBlock(block, owner, meshes = getMeshesFromBlock(owner)) {
   if (block.type === 'move_to_xyz') {
-    const position = getXYZFromBlock(block);
     const useY = block.getFieldValue('USE_Y') === 'TRUE';
-    meshes.forEach((mesh) => flock.positionAt(mesh.name, { ...position, useY }));
+    meshes.forEach((mesh) => flock.positionAt(mesh.name, { ...ownMoveTarget(block, mesh), useY }));
     return;
   }
 
@@ -1773,14 +1773,23 @@ function recomputeGroupPivot(groupBlock) {
   flock.recomputeGroupGeometry(groupMesh);
 }
 
+// Computed axes can't be read live, so each mesh keeps its own value there.
+function ownMoveTarget(move, mesh) {
+  const anchor = flock._getAnchor(mesh);
+  const target = getXYZFromBlock(move);
+  const useY = move.getFieldValue('USE_Y') === 'TRUE';
+  const read = (axis) => {
+    const value = target[axis] == null ? NaN : Number(target[axis]);
+    return Number.isFinite(value) && (axis !== 'y' || useY) ? value : anchor[axis];
+  };
+  return { x: read('x'), y: read('y'), z: read('z') };
+}
+
 // A clone has no position of its own: its move places it, or it keeps its spot.
 function initialPosition(block, mesh) {
   if (block.type !== 'clone_mesh') return getXYZFromBlock(block);
-  const anchor = flock._getAnchor(mesh);
   const move = findOwnMove(block);
-  if (!move?.isEnabled()) return anchor;
-  const target = getXYZFromBlock(move);
-  return move.getFieldValue('USE_Y') === 'TRUE' ? target : { ...target, y: anchor.y };
+  return move?.isEnabled() ? ownMoveTarget(move, mesh) : flock._getAnchor(mesh);
 }
 
 function restoreInitialScale(block, mesh) {
@@ -2434,6 +2443,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
 
   let shapeType = null;
   if (mesh.metadata) shapeType = mesh.metadata.shapeType;
+  markPendingBodyStale(mesh);
   if (mesh.physics && shapeType) {
     const shape = mesh.physics.shape;
     let newShape, diameterBottom, startPoint, endPoint;
@@ -2498,7 +2508,7 @@ function setAbsoluteSize(mesh, width, height, depth) {
     }
 
     if (newShape) {
-      shape.dispose();
+      releaseShape(shape);
       const physicsBody = mesh.physics;
       physicsBody.shape = newShape;
       mesh.physics.disablePreStep;
@@ -2563,6 +2573,7 @@ function updateCylinderGeometry(mesh, diameterTop, diameterBottom, height, sides
 
   // Ensure the world matrix is updated
   mesh.computeWorldMatrix(true);
+  markPendingBodyStale(mesh);
 }
 
 // Rebuild a capsule at a new size. Unlike setAbsoluteSize (scale + bake), this
@@ -2619,10 +2630,11 @@ function updateCapsuleGeometry(mesh, diameter, height) {
   mesh.scaling = flock.BABYLON.Vector3.One();
 
   // Rebuild the physics shape to match the new capsule
+  markPendingBodyStale(mesh);
   if (mesh.physics && mesh.metadata?.shapeType === 'Capsule') {
     const newShape = flock.createCapsuleFromBoundingBox(mesh, mesh.getScene());
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }
@@ -2688,7 +2700,7 @@ function updateWedgeGeometry(mesh, width, height, depth, peak, axis) {
   if (mesh.physics && mesh.metadata?.shapeType === 'Wedge') {
     const newShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, mesh.getScene());
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }
@@ -2776,7 +2788,7 @@ function rebuildWalledGeometry(mesh, metadataKey, dimensions, buildVertexData) {
       newShape = null;
     }
     if (newShape) {
-      mesh.physics.shape?.dispose?.();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = newShape;
     }
   }

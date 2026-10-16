@@ -139,7 +139,7 @@ export default {
   show: 'show %1',
   hide: 'hide %1',
   dispose: 'dispose %1',
-  clone_mesh: 'add %1 clone of %2',
+  clone_mesh: 'add %1 clone of %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
@@ -477,7 +477,8 @@ export default {
   show_tooltip: 'Show the selected object.',
   hide_tooltip: 'Hide the selected object.',
   dispose_tooltip: 'Remove the specified object from the scene.',
-  clone_mesh_tooltip: 'Clone an object and assign it to a variable.',
+  clone_mesh_tooltip:
+    'Clone an object and assign it to a variable. A linked clone follows changes to the original until you change that property on the clone.',
 
   // Tooltip translations - Models blocks
   load_character_tooltip: 'Create a configurable character.',
@@ -958,6 +959,9 @@ export default {
   released_option: 'released',
   starts_option: 'starts',
   ends_option: 'ends',
+
+  COPY_option: 'copy',
+  LINKED_option: 'linked',
 
   DYNAMIC_option: 'dynamic',
   ANIMATED_option: 'animated',

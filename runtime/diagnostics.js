@@ -142,24 +142,27 @@ export const flockDiagnostics = {
   // Used by all mesh creation paths; inert unless flock.meshRecyclingEnabled.
   _recycleOldestByKey(key) {
     if (!flock.meshRecyclingEnabled) return;
-    if (!flock._modelInstances) flock._modelInstances = Object.create(null);
-    const current = Array.isArray(flock._modelInstances[key]) ? flock._modelInstances[key] : [];
-    flock._modelInstances[key] = current.filter((name) => {
-      const m = flock.scene?.getMeshByName(name);
-      return m && !m.isDisposed();
-    });
+    const instances = flock._modelInstances?.[key];
+    if (!instances) return;
     const max = flock.maxClonesPerSource ?? 500;
-    if (flock._modelInstances[key].length >= max) {
-      const oldestName = flock._modelInstances[key][0];
-      const oldest = flock.scene?.getMeshByName(oldestName);
-      if (oldest) flock.disposeMesh(oldest);
-      flock._modelInstances[key] = flock._modelInstances[key].slice(1);
+    if (instances.size >= max) {
+      const oldest = instances.values().next().value;
+      instances.delete(oldest);
+      const mesh = flock.scene?.getMeshByName(oldest.name);
+      if (mesh) flock.disposeMesh(mesh);
     }
   },
-  _registerInstance(key, meshName) {
+  _registerInstance(key, meshName, mesh) {
     if (!flock._modelInstances) flock._modelInstances = Object.create(null);
-    const current = Array.isArray(flock._modelInstances[key]) ? flock._modelInstances[key] : [];
-    flock._modelInstances[key] = current.concat(meshName);
+    const instances = (flock._modelInstances[key] ??= new Set());
+    const entry = { name: meshName };
+    instances.add(entry);
+    mesh?.onDisposeObservable.addOnce(() => {
+      instances.delete(entry);
+      if (!instances.size && flock._modelInstances?.[key] === instances) {
+        delete flock._modelInstances[key];
+      }
+    });
   },
   maxMeshesReached() {
     if (!flock.meshLimitEnabled) return false;

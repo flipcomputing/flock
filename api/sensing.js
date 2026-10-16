@@ -202,11 +202,11 @@ export const flockSensing = {
       }
 
       case 'VISIBLE':
-        propertyValue = mesh.isEnabled() && mesh.isVisible;
+        propertyValue = mesh.isEnabled() && flock._lookTarget(mesh).isVisible;
         break;
 
       case 'ALPHA':
-        allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
+        allMeshes = [...new Set([flock._lookTarget(mesh), ...(mesh.getDescendants?.() ?? [])])];
         materialNode = allMeshes.find((node) => node.material);
 
         if (materialNode) {
@@ -215,7 +215,7 @@ export const flockSensing = {
         break;
 
       case 'COLOUR':
-        allMeshes = [mesh].concat(mesh.getDescendants?.() ?? []);
+        allMeshes = [...new Set([flock._lookTarget(mesh), ...(mesh.getDescendants?.() ?? [])])];
         materialNodes = allMeshes.filter((node) => node.material);
 
         colors = materialNodes

@@ -664,7 +664,8 @@ function captureOriginalIdentities(meshNames) {
     (meshNames || []).map(
       (name) =>
         new Promise((resolve) => {
-          flock.whenModelReady(name, (mesh) => {
+          flock.whenModelReady(name, (found) => {
+            const mesh = found && flock._standalone(found);
             resolve(mesh ? [mesh, { name: mesh.name, blockKey: mesh.metadata?.blockKey }] : null);
           });
         })
@@ -675,7 +676,10 @@ function captureOriginalIdentities(meshNames) {
 function resolveMeshes(meshNames) {
   return Promise.all(
     (meshNames || []).map(
-      (name) => new Promise((resolve) => flock.whenModelReady(name, (mesh) => resolve(mesh)))
+      (name) =>
+        new Promise((resolve) =>
+          flock.whenModelReady(name, (mesh) => resolve(mesh && flock._standalone(mesh)))
+        )
     )
   ).then((meshes) => meshes.filter(Boolean));
 }
@@ -1054,8 +1058,9 @@ export const flockCSG = {
     const keepTools = options.keepTools === true;
 
     return new Promise((resolve) => {
-      flock.whenModelReady(baseMeshName, (baseMesh) => {
-        if (!baseMesh) return resolve(null);
+      flock.whenModelReady(baseMeshName, (found) => {
+        if (!found) return resolve(null);
+        const baseMesh = flock._standalone(found);
         let actualBase = baseMesh.metadata?.modelName
           ? flock._findFirstDescendantWithMaterial(baseMesh) || baseMesh
           : baseMesh;
@@ -1196,8 +1201,9 @@ export const flockCSG = {
     const keepAttributes = { stripAttributes: false };
 
     return new Promise((resolve) => {
-      flock.whenModelReady(baseMeshName, (baseMesh) => {
-        if (!baseMesh) return resolve(null);
+      flock.whenModelReady(baseMeshName, (found) => {
+        if (!found) return resolve(null);
+        const baseMesh = flock._standalone(found);
 
         // Ensure base mesh has valid geometry for CSG
         const actualBase = prepareMeshForCSG(materialReferenceFor(baseMesh));
@@ -1563,7 +1569,8 @@ export const flockCSG = {
     return Promise.all(
       meshNames.map((meshName) => {
         return new Promise((resolve) => {
-          flock.whenModelReady(meshName, (mesh) => {
+          flock.whenModelReady(meshName, (found) => {
+            const mesh = found && flock._standalone(found);
             if (mesh) {
               mesh.name = modelId;
               mesh.metadata = mesh.metadata || {};

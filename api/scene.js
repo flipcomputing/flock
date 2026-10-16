@@ -1,12 +1,415 @@
 import { TEXTURE_TILE_SIZE } from '../config.js';
-import { isBodyAlive, restoreRestingState } from './physics.js';
+import {
+  isBodyAlive,
+  movePendingBody,
+  releaseShape,
+  restoreRestingState,
+  shareShape,
+  teleportBodyToMesh,
+} from './physics.js';
 
 let flock;
+
+const LINK_EPSILON = 1e-4;
+const LINK_PROPERTY_KEYS = {
+  position: ['position.x', 'position.y', 'position.z'],
+  size: ['size.x', 'size.y', 'size.z'],
+  rotation: ['rotation'],
+  colour: ['colour'],
+};
+const LOOK_CATEGORIES = new Set(['colour', 'material', 'alpha', 'effects']);
+const linkOf = new WeakMap();
+const linkedCopiesOf = new WeakMap();
+const replayingConstruction = new WeakSet();
+let linkSync = null;
+
+const isInstance = (node) => node?.getClassName?.() === 'InstancedMesh';
+
+function instantiateClone(source, name) {
+  const visit = (from, parent) => {
+    const nodeName = parent ? `${parent.name}.${from.name}` : name;
+    let node;
+    if (isInstance(from)) {
+      node = from.sourceMesh.createInstance(nodeName);
+    } else if (from instanceof flock.BABYLON.Mesh && from.getTotalVertices() > 0) {
+      node = from.createInstance(nodeName);
+    } else {
+      node = from.clone(nodeName, parent ?? from.parent, true);
+    }
+    node.parent = parent ?? from.parent;
+    copyPlacement(from, node);
+    node.id = node.name;
+    node.metadata = from.metadata;
+    if (from instanceof flock.BABYLON.AbstractMesh) node.isVisible = from.isVisible;
+    for (const child of from.getChildTransformNodes(true)) visit(child, node);
+    return node;
+  };
+  return visit(source, null);
+}
+
+function lookTarget(mesh) {
+  return mesh?.getChildMeshes?.(true).find((child) => child.metadata?.lookVisual) ?? mesh;
+}
+
+function disposeClonedBodies(node) {
+  flock.scene
+    .getPhysicsEngine?.()
+    ?.getBodies?.()
+    .filter((body) => body.transformNode === node)
+    .forEach((body) => body.dispose());
+  node.physics = null;
+}
+
+function moveBody(from, to) {
+  movePendingBody(from, to);
+  if (!isBodyAlive(from.physics)) return;
+  const body = from.physics.clone(to);
+  shareShape(from.physics.shape);
+  body.setLinearVelocity(from.physics.getLinearVelocity());
+  body.setAngularVelocity(from.physics.getAngularVelocity());
+  to.physics = body;
+  releaseShape(from.physics.shape);
+  from.physics.dispose();
+  from.physics = null;
+}
+
+function copyPlacement(from, to) {
+  to.position.copyFrom(from.position);
+  to.scaling.copyFrom(from.scaling);
+  if (from.rotationQuaternion) to.rotationQuaternion = from.rotationQuaternion.clone();
+  else {
+    to.rotationQuaternion = null;
+    to.rotation.copyFrom(from.rotation);
+  }
+}
+
+function replaceInstance(instance) {
+  const look = instance.getChildMeshes(true).find((child) => child.metadata?.lookVisual);
+  const template = look ? (isInstance(look) ? look.sourceMesh : look) : instance.sourceMesh;
+  const mesh = template.clone(instance.name, instance.parent, true);
+  mesh.parent = instance.parent;
+  disposeClonedBodies(mesh);
+  mesh.id = instance.id;
+  mesh.metadata = instance.metadata;
+  mesh.isVisible = look ? true : instance.isVisible;
+  mesh.isPickable = instance.isPickable;
+  mesh.setEnabled(flock._isShown(instance));
+  copyPlacement(instance, mesh);
+  if (flock.shadowCasters?.has(instance.sourceMesh)) {
+    flock.shadowCasters.add(mesh);
+    flock.shadowGenerator?.addShadowCaster(mesh);
+  }
+  for (const child of instance.getChildren(undefined, true)) {
+    if (child !== look) child.parent = mesh;
+  }
+  moveBody(instance, mesh);
+  if (instance._awaitingDo) flock.releaseBody(mesh);
+  if (instance.actionManager) {
+    mesh.actionManager = instance.actionManager;
+    instance.actionManager = null;
+  }
+  look?.dispose();
+  instance.dispose(true);
+  return mesh;
+}
+
+function addLookChild(root) {
+  const look = root.sourceMesh.clone(`${root.name}.look`, root, true);
+  disposeClonedBodies(look);
+  look.position.setAll(0);
+  look.rotationQuaternion = null;
+  look.rotation.setAll(0);
+  look.scaling.setAll(1);
+  look.metadata = { ...root.metadata, lookVisual: true };
+  delete look.metadata.blockKey;
+  delete look.metadata.tags;
+  if (flock.shadowCasters?.has(root.sourceMesh)) {
+    flock.shadowCasters.add(look);
+    flock.shadowGenerator?.addShadowCaster(look);
+  }
+  root.isVisible = false;
+  root.actionManager ??= new flock.BABYLON.ActionManager(flock.scene);
+  root.actionManager.isRecursive = true;
+  return look;
+}
+
+function drawsItself(instance) {
+  return (
+    instance.isVisible &&
+    instance.sourceMesh.visibility > 0 &&
+    !!instance.sourceMesh.material &&
+    instance.metadata?.shapeType !== 'Group'
+  );
+}
+
+function realiseHierarchy(root, { keepRoot }) {
+  let result = root;
+  const visit = (node) => {
+    let current = node;
+    if (isInstance(node)) {
+      if (node !== root || !keepRoot) {
+        current = replaceInstance(node);
+        if (node === root) result = current;
+      } else if (drawsItself(node) && lookTarget(node) === node) {
+        addLookChild(node);
+      }
+    }
+    for (const child of current.getChildren(undefined, true)) visit(child);
+  };
+  visit(root);
+  return result;
+}
+
+const originalNameOf = (node) => node.metadata?.originalNodeName ?? node.name;
+
+function copyLook(from, to) {
+  const sources = new Map();
+  for (const node of from.getDescendants(false)) {
+    if (!node.metadata?.lookVisual) sources.set(originalNameOf(node), node);
+  }
+  const pairs = [[lookTarget(from), lookTarget(to)]];
+  for (const node of to.getDescendants(false)) {
+    const match = !node.metadata?.lookVisual && sources.get(originalNameOf(node));
+    if (match) pairs.push([match, node]);
+  }
+  for (const [source, target] of pairs) {
+    if (isInstance(target) || !source.material || source === target) continue;
+    target.material = source.material;
+    target.renderOverlay = source.renderOverlay;
+    target.overlayColor = source.overlayColor?.clone?.() ?? target.overlayColor;
+    target.overlayAlpha = source.overlayAlpha;
+    target.metadata = { ...target.metadata, glow: source.metadata?.glow };
+    if (source.metadata?.glowColor) target.metadata.glowColor = source.metadata.glowColor;
+  }
+}
+
+function realise(copy) {
+  const link = linkOf.get(copy);
+  if (!link || link.realised) return;
+  link.realised = true;
+  realiseHierarchy(copy, { keepRoot: true });
+  copyLook(link.source, copy);
+  for (const follower of linkedCopiesOf.get(copy) ?? []) {
+    if (!follower.isDisposed()) realise(follower);
+  }
+}
+
+function rebindSkeletons(root) {
+  const nodes = new Map();
+  for (const node of root.getDescendants(false)) {
+    const key = node.metadata?.originalNodeName;
+    if (key && !nodes.has(key)) nodes.set(key, node);
+  }
+  const skeletons = new Map();
+  for (const part of [root, ...root.getChildMeshes(false)]) {
+    const original = part.skeleton;
+    if (!original || isInstance(part)) continue;
+    let skeleton = skeletons.get(original);
+    if (!skeleton) {
+      skeleton = original.clone(`${original.name}_${root.uniqueId}`);
+      skeleton.bones.forEach((bone, i) => {
+        const node = original.bones[i].getTransformNode();
+        const own = node && nodes.get(originalNameOf(node));
+        if (own) bone.linkTransformNode(own);
+      });
+      part.onDisposeObservable.addOnce(() => skeleton.dispose());
+      skeletons.set(original, skeleton);
+    }
+    part.skeleton = skeleton;
+  }
+}
+
+function ownSkeleton(copy) {
+  const link = linkOf.get(copy);
+  if (!link || link.ownSkeleton) return;
+  realise(copy);
+  link.ownSkeleton = true;
+  rebindSkeletons(copy);
+  for (const follower of linkedCopiesOf.get(copy) ?? []) {
+    if (!follower.isDisposed()) ownSkeleton(follower);
+  }
+}
+
+const ANIMATION_STATE = new Set([
+  'animationGroups',
+  'embeddedAnimationGroups',
+  'currentAnimationName',
+  'requestedAnimationName',
+  'requestCounter',
+  '_activeGlide',
+  '_activeRotate',
+  '_glideTicket',
+]);
+
+function clearAnimationState(node) {
+  for (const key of Object.keys(node.metadata ?? {})) {
+    if (ANIMATION_STATE.has(key) || key.startsWith('_activeAnim_')) delete node.metadata[key];
+  }
+  node._currentAnimGroup = null;
+  node._activeBlend = null;
+}
+
+function followAxes(link, kind, current, target, last) {
+  let changed = false;
+  for (const axis of ['x', 'y', 'z']) {
+    const key = `${kind}.${axis}`;
+    if (link.overrides.has(key)) continue;
+    if (Math.abs(current[axis] - last[axis]) > LINK_EPSILON) {
+      link.overrides.add(key);
+    } else if (current[axis] !== target[axis]) {
+      current[axis] = target[axis];
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function absoluteRotation(node, result) {
+  node.computeWorldMatrix(true);
+  node.getWorldMatrix().decompose(undefined, result);
+  return result;
+}
+
+function sameRotation(a, b) {
+  return Math.abs(flock.BABYLON.Quaternion.Dot(a, b)) > 1 - LINK_EPSILON * LINK_EPSILON;
+}
+
+function setAbsoluteRotation(node, rotation) {
+  const local = node.parent
+    ? flock.BABYLON.Quaternion.Inverse(
+        absoluteRotation(node.parent, new flock.BABYLON.Quaternion())
+      ).multiply(rotation)
+    : rotation.clone();
+  if (node.rotationQuaternion) node.rotationQuaternion.copyFrom(local);
+  else node.rotationQuaternion = local;
+  node.computeWorldMatrix(true);
+}
+
+function snapshotLink(copy, link) {
+  link.scaling.copyFrom(copy.scaling);
+  absoluteRotation(copy, link.rotation);
+  link.position.copyFrom(copy.getAbsolutePosition());
+  link.shown = flock._isShown(copy);
+}
+
+function syncLinkedCopy(copy) {
+  const link = linkOf.get(copy);
+  const source = link?.source;
+  if (!source || source.isDisposed() || copy.isDisposed()) return;
+
+  const scaling = linkSync.scaling.copyFrom(copy.scaling);
+  if (followAxes(link, 'size', scaling, source.scaling, link.scaling)) {
+    copy.scaling.copyFrom(scaling);
+    flock.retileTextures(copy);
+    flock.updatePhysics(copy);
+  }
+  link.scaling.copyFrom(copy.scaling);
+
+  if (!link.overrides.has('rotation')) {
+    const rotation = absoluteRotation(copy, linkSync.rotation);
+    if (!sameRotation(rotation, link.rotation)) {
+      link.overrides.add('rotation');
+    } else {
+      const target = absoluteRotation(source, linkSync.sourceRotation);
+      if (!sameRotation(rotation, target)) {
+        setAbsoluteRotation(copy, target);
+        teleportBodyToMesh(copy);
+      }
+    }
+  }
+  absoluteRotation(copy, link.rotation);
+
+  source.computeWorldMatrix(true);
+  copy.computeWorldMatrix(true);
+  const position = linkSync.position.copyFrom(copy.getAbsolutePosition());
+  if (followAxes(link, 'position', position, source.getAbsolutePosition(), link.position)) {
+    copy.setAbsolutePosition(position);
+    copy.computeWorldMatrix(true);
+    teleportBodyToMesh(copy);
+  }
+  link.position.copyFrom(copy.getAbsolutePosition());
+
+  if (!link.overrides.has('visible')) {
+    const shown = flock._isShown(copy);
+    if (shown !== link.shown) link.overrides.add('visible');
+    else if (shown !== flock._isShown(source)) flock._setShown(copy, !shown);
+  }
+  link.shown = flock._isShown(copy);
+}
+
+function linkClone(source, copy) {
+  source.computeWorldMatrix(true);
+  copy.computeWorldMatrix(true);
+  const position = copy.getAbsolutePosition().clone();
+  const sourcePosition = source.getAbsolutePosition();
+  const overrides = new Set();
+  for (const axis of ['x', 'y', 'z']) {
+    if (Math.abs(position[axis] - sourcePosition[axis]) > LINK_EPSILON) {
+      overrides.add(`position.${axis}`);
+    }
+    if (Math.abs(copy.scaling[axis] - source.scaling[axis]) > LINK_EPSILON) {
+      overrides.add(`size.${axis}`);
+    }
+  }
+  const rotation = absoluteRotation(copy, new flock.BABYLON.Quaternion());
+  if (!sameRotation(rotation, absoluteRotation(source, new flock.BABYLON.Quaternion()))) {
+    overrides.add('rotation');
+  }
+  if (flock._isShown(copy) !== flock._isShown(source)) overrides.add('visible');
+
+  linkOf.set(copy, {
+    source,
+    overrides,
+    position,
+    scaling: copy.scaling.clone(),
+    rotation,
+    shown: flock._isShown(copy),
+  });
+
+  let siblings = linkedCopiesOf.get(source);
+  if (!siblings) linkedCopiesOf.set(source, (siblings = new Set()));
+  siblings.add(copy);
+
+  if (linkSync?.scene !== flock.scene) {
+    const scene = flock.scene;
+    const copies = new Set();
+    linkSync = {
+      scene,
+      copies,
+      position: new flock.BABYLON.Vector3(),
+      scaling: new flock.BABYLON.Vector3(),
+      rotation: new flock.BABYLON.Quaternion(),
+      sourceRotation: new flock.BABYLON.Quaternion(),
+    };
+    scene.onBeforeRenderObservable.add(() => copies.forEach(syncLinkedCopy));
+    scene.onDisposeObservable.addOnce(() => {
+      if (linkSync?.scene === scene) linkSync = null;
+    });
+  }
+  const synced = linkSync.copies;
+  synced.add(copy);
+  copy.onDisposeObservable.addOnce(() => {
+    synced.delete(copy);
+    siblings.delete(copy);
+  });
+}
+
+function cloneBody(source, target) {
+  if (!isBodyAlive(source.physics)) {
+    target._pendingBodyStale = true;
+    source._bodyRecipe?.(target);
+    return;
+  }
+  target.physics = source.physics.clone(target);
+  restoreRestingState(source, target.physics);
+  shareShape(source.physics.shape);
+}
 
 // Babylon's clone gives every cloned node a copy of its source's body and
 // also copies the source's `physics` reference, so a node can end up with
 // several bodies syncing it (one cloned mid-glide pins it in place). Replace
-// them with one body per node, cloned from its source in its resting state.
+// them with one pending body per node, cloned from its source in its resting
+// state once built.
 function clonePhysicsHierarchy(sourceMesh, clone) {
   // Babylon names a cloned child "<parent clone name>.<source name>".
   const sourceName = (node) => (node === clone ? '' : node.name.slice(node.parent.name.length + 1));
@@ -32,13 +435,14 @@ function clonePhysicsHierarchy(sourceMesh, clone) {
   for (const node of cloneNodes) {
     node.physics = null;
     const source = sourceByPath.get(pathOf(node, clone, sourceName));
-    if (!isBodyAlive(source?.physics)) continue;
-    node.physics = source.physics.clone(node);
-    restoreRestingState(source, node.physics);
-    // PhysicsBody.clone() shares the shape; mark it so disposePhysics on
-    // one mesh won't destroy the other's.
-    if (source.physics.shape) source.physics.shape._isShared = true;
+    if (!source) continue;
+    const pending = !source.physics && source._pendingBody;
+    if (!isBodyAlive(source.physics) && !pending && !source._bodyRecipe) continue;
+    if (source._bodyRecipe) node._bodyRecipe = source._bodyRecipe;
+    node._pendingBody = pending || ((target) => cloneBody(source, target));
+    if (pending && source._pendingBodyStale) node._pendingBodyStale = true;
   }
+  return cloneNodes;
 }
 
 const sceneReady = () => !!(flock && flock.scene && flock.BABYLON);
@@ -519,14 +923,7 @@ export const flockScene = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, function (mesh) {
         if (mesh) {
-          mesh.setEnabled(true);
-          if (mesh.physics && mesh.physics._pluginData) {
-            flock.hk._hknp.HP_World_AddBody(
-              flock.hk.world,
-              mesh.physics._pluginData.hpBodyId,
-              mesh.physics.startAsleep
-            );
-          }
+          flock._setShown(mesh, true);
         } else {
           console.log('Model not loaded:', meshName);
         }
@@ -545,16 +942,28 @@ export const flockScene = {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
         if (mesh) {
-          mesh.setEnabled(false);
-          if (mesh.physics && mesh.physics._pluginData) {
-            flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, mesh.physics._pluginData.hpBodyId);
-          }
+          flock._setShown(mesh, false);
         } else {
           console.log('Mesh not loaded:', meshName);
         }
         resolve();
       });
     });
+  },
+  _setShown(mesh, shown) {
+    if (mesh._awaitingDo) {
+      if (mesh._shownAfterDo === shown) return;
+      mesh._shownAfterDo = shown;
+    } else {
+      mesh.setEnabled(shown);
+    }
+    if (!mesh.physics?._pluginData) return;
+    const bodyId = mesh.physics._pluginData.hpBodyId;
+    if (shown) {
+      flock.hk._hknp.HP_World_AddBody(flock.hk.world, bodyId, mesh.physics.startAsleep);
+    } else {
+      flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, bodyId);
+    }
   },
   disposeMesh(mesh) {
     if (!mesh) return;
@@ -577,6 +986,13 @@ export const flockScene = {
       mesh.dispose();
       flock.sky = null;
       return;
+    }
+
+    for (const node of [mesh, ...(mesh.getDescendants?.(false) ?? [])]) {
+      const dependents = [...(linkedCopiesOf.get(node) ?? [])];
+      for (const dependent of dependents) {
+        if (!dependent.isDisposed()) flock.disposeMesh(dependent);
+      }
     }
 
     let meshesToDispose = [mesh];
@@ -619,7 +1035,7 @@ export const flockScene = {
 
     meshesToDispose.forEach((currentMesh) => {
       const material = currentMesh.material;
-      if (!material) return;
+      if (!material || isInstance(currentMesh)) return;
 
       currentMesh.material = null;
       flock.disposeOldMaterial(material, meshesToDispose);
@@ -651,9 +1067,7 @@ export const flockScene = {
           currentMesh._postPhysicsUpkeep = null;
         }
         if (currentMesh.physics) {
-          if (!currentMesh.physics.shape?._isShared) {
-            currentMesh.physics.shape?.dispose();
-          }
+          releaseShape(currentMesh.physics.shape);
           currentMesh.physics.dispose();
         }
         flock.scene.removeMesh(currentMesh);
@@ -687,6 +1101,7 @@ export const flockScene = {
     transform = null,
     inheritConstruction = true,
     family = null,
+    mode = 'copy',
   } = {}) {
     if (!sourceMeshName || typeof sourceMeshName !== 'string' || sourceMeshName.length > 100) {
       console.warn('cloneMesh: invalid sourceMeshName');
@@ -744,12 +1159,20 @@ export const flockScene = {
       sayPlanes.forEach((plane) => (plane.parent = null));
       let clone;
       try {
-        clone = sourceMesh.clone(uniqueCloneId);
+        if (mode === 'linked') {
+          clone = instantiateClone(sourceMesh, uniqueCloneId);
+        } else if ([sourceMesh, ...sourceMesh.getDescendants(false)].some(isInstance)) {
+          clone = instantiateClone(sourceMesh, uniqueCloneId);
+          [clone, ...clone.getDescendants(false)].forEach(disposeClonedBodies);
+          clone = realiseHierarchy(clone, { keepRoot: false });
+        } else {
+          clone = sourceMesh.clone(uniqueCloneId);
+        }
       } finally {
         sayPlanes.forEach((plane, i) => (plane.parent = sayParents[i]));
       }
 
-      flock._registerInstance(sourceMeshName, clone.name);
+      flock._registerInstance(sourceMeshName, clone.name, clone);
 
       if (clone) {
         sourceMesh.computeWorldMatrix(true);
@@ -763,7 +1186,14 @@ export const flockScene = {
         clone.rotationQuaternion = worldRotation.clone();
         clone.scaling.copyFrom(sourceMesh.scaling);
 
-        clonePhysicsHierarchy(sourceMesh, clone);
+        const holdBodies =
+          !!callback || (inheritConstruction && flock._constructionOf(sourceMesh).dos.length > 0);
+        for (const node of clonePhysicsHierarchy(sourceMesh, clone)) {
+          if (holdBodies) flock.holdBody(node);
+          else flock.ensureBody(node);
+        }
+        clone.setEnabled(flock._isShown(sourceMesh));
+        if (holdBodies) flock._awaitDo(clone, true);
 
         const setMetadata = (mesh) => {
           // Ensure metadata exists
@@ -775,20 +1205,23 @@ export const flockScene = {
         };
 
         clone.metadata = { ...(sourceMesh.metadata || {}) };
-        clone.metadata.clones = [];
         if (clone.metadata.tags) clone.metadata.tags = [...clone.metadata.tags];
         clone.metadata.sourceBlockKey ??= sourceMesh.metadata?.blockKey;
         clone.metadata.blockKey = blockKey;
         setMetadata(clone);
+        [sourceMesh, ...sourceMesh.getDescendants()].forEach(setMetadata);
         clone.getDescendants().forEach((node) => {
           setMetadata(node);
           node.metadata = { ...node.metadata };
+          node.metadata.originalNodeName ??= node.name.slice(node.parent.name.length + 1);
           if (node.metadata.tags) node.metadata.tags = [...node.metadata.tags];
           delete node.metadata.blockKey;
           delete node.metadata.mirror;
         });
         // A copy of a mirror is not a mirror itself; mirror() sets its own.
         delete clone.metadata.mirror;
+        [clone, ...clone.getDescendants(false)].forEach(clearAnimationState);
+        if (mode !== 'linked') rebindSkeletons(clone);
 
         if (clone.metadata?.shapeType === 'Group') {
           // A cloned action manager would still close over the source shell,
@@ -846,6 +1279,9 @@ export const flockScene = {
           thens: [...inherited.thens, then],
         });
         const { dos, thens } = flock._constructionOf(clone);
+        const replayed = new Set([...inherited.dos, ...inherited.thens]);
+
+        if (mode === 'linked') linkClone(sourceMesh, clone);
 
         resolveReady(clone);
         flock.announceMeshReady(clone.name, clone.name);
@@ -856,17 +1292,27 @@ export const flockScene = {
           }
         }
 
+        const finishConstruction = () => {
+          flock._finishDo(clone);
+          [clone, ...clone.getDescendants(false)].forEach((node) => flock.releaseBody(node));
+        };
+
         if (dos.length || thens.length) {
           requestAnimationFrame(async () => {
-            for (const fn of [...dos, ...thens]) {
+            for (const [index, fn] of [...dos, ...thens].entries()) {
               if (signal?.aborted || clone.isDisposed()) return;
+              if (index === dos.length) finishConstruction();
+              if (replayed.has(fn)) replayingConstruction.add(clone);
               try {
                 const result = fn(uniqueCloneId);
                 if (result && typeof result.then === 'function') await result;
               } catch (err) {
                 console.error('cloneMesh callback error:', err);
+              } finally {
+                replayingConstruction.delete(clone);
               }
             }
+            if (!signal?.aborted && !clone.isDisposed()) finishConstruction();
           });
         }
       }
@@ -888,6 +1334,153 @@ export const flockScene = {
     attached.then(done, done);
     signal?.addEventListener('abort', done, { once: true });
   },
+  _lookTarget(mesh) {
+    return lookTarget(mesh);
+  },
+  _claimLinked(mesh, category) {
+    const link = linkOf.get(mesh);
+    if (!link || replayingConstruction.has(mesh)) return;
+    link.overrides.add(category);
+    if (LOOK_CATEGORIES.has(category)) realise(mesh);
+    else if (category === 'animation') ownSkeleton(mesh);
+  },
+  _realiseLinked(mesh) {
+    realise(mesh);
+  },
+  _linkedOwner(mesh, property) {
+    const keys = LINK_PROPERTY_KEYS[property] ?? [];
+    let owner = mesh;
+    for (let link = linkOf.get(owner); link; link = linkOf.get(owner)) {
+      if (link.source.isDisposed() || keys.some((key) => link.overrides.has(key))) break;
+      owner = link.source;
+    }
+    return owner;
+  },
+  _linkedPart(part, property) {
+    const path = [];
+    let root = part;
+    while (root && !linkOf.has(root)) {
+      path.unshift(root);
+      root = root.parent;
+    }
+    if (!root) return part;
+    const owner = flock._linkedOwner(root, property);
+    if (owner === root) return part;
+    let node = owner;
+    for (const step of path) {
+      if (step.metadata?.lookVisual) return lookTarget(owner);
+      const name = originalNameOf(step);
+      const match = node
+        .getChildren(undefined, true)
+        .find((child) => !child.metadata?.lookVisual && originalNameOf(child) === name);
+      if (!match) return owner;
+      node = match;
+    }
+    return node;
+  },
+  _beginLinkedEdit(copy, property) {
+    const owner = flock._linkedOwner(copy, property);
+    if (owner === copy) return null;
+    linkSync?.copies.delete(copy);
+    const start = {
+      position: copy.position.clone(),
+      rotation: copy.rotation.clone(),
+      rotationQuaternion: copy.rotationQuaternion?.clone() ?? null,
+      scaling: copy.scaling.clone(),
+    };
+    copy.computeWorldMatrix(true);
+    owner.computeWorldMatrix(true);
+    const copyFrom = copy.getAbsolutePosition().clone();
+    const ownerFrom = owner.getAbsolutePosition().clone();
+    const ownerBottom = flock.getEffectiveWorldBounds(owner).min.y;
+    const edit = {
+      owner,
+      ownerFrom,
+      ownerBottom,
+      update() {
+        if (copy.isDisposed() || owner.isDisposed()) return;
+        copy.computeWorldMatrix(true);
+        if (property === 'position') {
+          owner.setAbsolutePosition(ownerFrom.add(copy.getAbsolutePosition().subtract(copyFrom)));
+        } else if (property === 'size') {
+          owner.scaling.copyFrom(copy.scaling);
+          owner.computeWorldMatrix(true);
+          owner.position.y += ownerBottom - flock.getEffectiveWorldBounds(owner).min.y;
+          flock.retileTextures(owner);
+          flock.updatePhysics(owner);
+        } else if (property === 'rotation') {
+          setAbsoluteRotation(owner, absoluteRotation(copy, new flock.BABYLON.Quaternion()));
+        }
+        owner.computeWorldMatrix(true);
+        teleportBodyToMesh(owner);
+      },
+      end() {
+        edit.update();
+        if (copy.isDisposed()) return owner;
+        copy.position.copyFrom(start.position);
+        copy.rotation.copyFrom(start.rotation);
+        copy.rotationQuaternion = start.rotationQuaternion;
+        copy.scaling.copyFrom(start.scaling);
+        copy.computeWorldMatrix(true);
+        if (property === 'size') {
+          flock.retileTextures(copy);
+          flock.updatePhysics(copy);
+        }
+        teleportBodyToMesh(copy);
+        const link = linkOf.get(copy);
+        if (link) {
+          snapshotLink(copy, link);
+          linkSync?.copies.add(copy);
+        }
+        return owner;
+      },
+    };
+    return edit;
+  },
+  _standalone(mesh) {
+    const followers = linkedCopiesOf.get(mesh);
+    for (const follower of followers ?? []) {
+      if (!follower.isDisposed()) realise(follower);
+    }
+    const link = linkOf.get(mesh);
+    if (link) {
+      linkedCopiesOf.get(link.source)?.delete(mesh);
+      linkSync?.copies.delete(mesh);
+      linkOf.delete(mesh);
+    }
+    if (![mesh, ...mesh.getDescendants(false)].some(isInstance)) return mesh;
+    const standalone = realiseHierarchy(mesh, { keepRoot: false });
+    if (standalone !== mesh) {
+      flock._registerLiveName(standalone.name, standalone);
+      if (followers) {
+        linkedCopiesOf.delete(mesh);
+        linkedCopiesOf.set(standalone, followers);
+        for (const follower of followers) {
+          const followerLink = linkOf.get(follower);
+          if (followerLink) followerLink.source = standalone;
+        }
+      }
+    }
+    return standalone;
+  },
+  _applyLinked(mesh, category, apply) {
+    const look = LOOK_CATEGORIES.has(category);
+    const shares = (target) => {
+      const link = linkOf.get(target);
+      if (!link) return false;
+      return look ? !link.realised : category === 'animation' && !link.ownSkeleton;
+    };
+    flock._claimLinked(mesh, category);
+    const results = [];
+    const visit = (target) => {
+      if (!shares(target)) results.push(apply(look ? lookTarget(target) : target));
+      for (const copy of linkedCopiesOf.get(target) ?? []) {
+        if (!copy.isDisposed() && !linkOf.get(copy).overrides.has(category)) visit(copy);
+      }
+    };
+    visit(mesh);
+    return results;
+  },
   _constructionOf(mesh) {
     return (mesh && flock._constructions?.get(mesh)) || { dos: [], thens: [] };
   },
@@ -904,8 +1497,40 @@ export const flockScene = {
     });
   },
   runDo(meshName, fn) {
-    flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { dos: [fn] });
-    return fn(meshName);
+    const mesh = flock.scene?.getMeshByName(meshName);
+    flock._rememberConstruction(mesh, { dos: [fn] });
+    if (!mesh?._awaitingDo) return fn(meshName);
+    return (async () => {
+      try {
+        return await fn(meshName);
+      } finally {
+        flock._finishDo(mesh);
+      }
+    })();
+  },
+  // An object with a DO stays hidden and without a body until the DO has
+  // run, so it appears, and collides, in its constructed state. A hide or
+  // show during the DO is kept for when it ends.
+  _awaitDo(mesh, hasDo) {
+    if (!hasDo) {
+      flock.ensureBody(mesh);
+      return;
+    }
+    flock.holdBody(mesh);
+    if (mesh._awaitingDo) return;
+    mesh._shownAfterDo = mesh.isEnabled(false);
+    mesh._awaitingDo = true;
+    mesh.setEnabled(false);
+  },
+  _finishDo(mesh) {
+    if (!mesh?._awaitingDo || mesh.isDisposed()) return;
+    mesh.setEnabled(mesh._shownAfterDo);
+    delete mesh._awaitingDo;
+    delete mesh._shownAfterDo;
+    flock.releaseBody(mesh);
+  },
+  _isShown(mesh) {
+    return mesh._awaitingDo ? mesh._shownAfterDo : mesh.isEnabled(false);
   },
   runThen(meshName, fn) {
     flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { thens: [fn] });

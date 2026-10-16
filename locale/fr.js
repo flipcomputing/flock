@@ -138,7 +138,7 @@ export default {
   show: 'afficher %1',
   hide: 'cacher %1',
   dispose: 'supprimer %1',
-  clone_mesh: 'ajouter %1 clone de %2',
+  clone_mesh: 'ajouter %1 clone de %2 %3',
 
   // Custom block translations - Models blocks
   load_character: `ajouter %1 %2 échelle: %3 %13 x: %4 y: %5 z: %6 cheveux: %7 |  peau: %8 |  yeux: %9 |  t-shirt: %10 |  shorts: %11 |  détail: %12`,
@@ -793,6 +793,9 @@ export default {
   released_option: 'relâché',
   starts_option: 'démarre',
   ends_option: 'se termine',
+
+  COPY_option: 'copie',
+  LINKED_option: 'lié',
 
   DYNAMIC_option: 'dynamique',
   ANIMATED_option: 'animé',

@@ -1448,4 +1448,219 @@ export function runPhysicsTests(flock) {
       });
     });
   });
+
+  describe('physics added after DO @physics', function () {
+    const ids = [];
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    const bodyCount = () => flock.scene.getPhysicsEngine().getBodies().length;
+    const frames = (count) =>
+      new Promise((resolve) => {
+        let left = count;
+        const tick = () => (--left <= 0 ? resolve() : requestAnimationFrame(tick));
+        requestAnimationFrame(tick);
+      });
+    const until = async (condition) => {
+      for (let i = 0; i < 120 && !condition(); i++) await frames(1);
+    };
+
+    function createBox(id, options = {}) {
+      const name = flock.createBox(id, {
+        width: 1,
+        height: 1,
+        depth: 1,
+        position: [0, 0, 0],
+        ...options,
+      });
+      ids.push(name);
+      return flock.scene.getMeshByName(name);
+    }
+
+    it('gives an object without a DO its body straight away', function () {
+      const mesh = createBox('afterDo_noDo');
+      expect(mesh.physics).to.exist;
+      expect(mesh.isEnabled()).to.be.true;
+    });
+
+    it('never builds a body when the DO sets physics none', async function () {
+      const before = bodyCount();
+      const mesh = createBox('afterDo_none', { hasDo: true });
+      let duringDo;
+      await flock.runDo(mesh.name, async (name) => {
+        await flock.setPhysics(name, 'NONE');
+        duringDo = { physics: mesh.physics, visible: mesh.isEnabled() };
+      });
+
+      expect(duringDo.physics).to.not.exist;
+      expect(duringDo.visible).to.be.false;
+      expect(mesh.physics).to.not.exist;
+      expect(mesh.isEnabled()).to.be.true;
+      expect(bodyCount()).to.equal(before);
+    });
+
+    it('builds the body after the DO with the motion type it set', async function () {
+      const mesh = createBox('afterDo_dynamic', { hasDo: true });
+      let duringDo;
+      await flock.runDo(mesh.name, async (name) => {
+        await flock.setPhysics(name, 'DYNAMIC');
+        duringDo = mesh.physics;
+      });
+
+      expect(duringDo).to.not.exist;
+      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+    });
+
+    it('builds a body later for an object whose DO set physics none', async function () {
+      const mesh = createBox('afterDo_noneThenStatic', { hasDo: true });
+      await flock.runDo(mesh.name, (name) => flock.setPhysics(name, 'NONE'));
+      await flock.setPhysics(mesh.name, 'STATIC');
+
+      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.STATIC);
+      expect(mesh.physics.shape).to.be.instanceOf(flock.BABYLON.PhysicsShapeBox);
+    });
+
+    it('applies mass set in the DO to the body built after it', async function () {
+      const mesh = createBox('afterDo_mass', { hasDo: true });
+      await flock.runDo(mesh.name, async (name) => {
+        await flock.setPhysics(name, 'DYNAMIC');
+        flock.setMass(name, 3);
+      });
+
+      expect(mesh.physics.getMassProperties().mass).to.be.closeTo(3, 1e-6);
+    });
+
+    it('builds the body early for a force applied in the DO', async function () {
+      const mesh = createBox('afterDo_force', { hasDo: true });
+      let duringDo;
+      await flock.runDo(mesh.name, async (name) => {
+        await flock.setPhysics(name, 'DYNAMIC');
+        flock.applyForce(name, { forceY: 1 });
+        duringDo = mesh.physics;
+      });
+
+      expect(duringDo).to.exist;
+      expect(mesh.physics).to.equal(duringDo);
+      expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+    });
+
+    it('fits the body to a resize made in the DO', async function () {
+      const mesh = createBox('afterDo_resize', { hasDo: true });
+      await flock.runDo(mesh.name, (name) => flock.resize(name, { width: 4, height: 1, depth: 1 }));
+
+      const { minimum, maximum } = mesh.physics.shape.getBoundingBox();
+      expect(maximum.x - minimum.x).to.be.closeTo(4, 1e-3);
+    });
+
+    it('gives clones of an object whose DO set physics none no body', async function () {
+      const source = createBox('afterDo_cloneSrc', { hasDo: true });
+      await flock.runDo(source.name, (name) => flock.setPhysics(name, 'NONE'));
+      const before = bodyCount();
+
+      const cloneName = flock.cloneMesh({ sourceMeshName: source.name, cloneId: 'afterDo_clone' });
+      ids.push(cloneName);
+      const clone = await flock.whenModelReady(cloneName);
+      await frames(3);
+
+      expect(clone.physics).to.not.exist;
+      expect(bodyCount()).to.equal(before);
+    });
+
+    it('keeps a hide made in the DO once the DO ends', async function () {
+      const mesh = createBox('afterDo_hide', { hasDo: true });
+      await flock.runDo(mesh.name, (name) => flock.hide(name));
+
+      expect(mesh.isEnabled()).to.be.false;
+      expect(mesh.physics).to.exist;
+      await flock.show(mesh.name);
+      expect(mesh.isEnabled()).to.be.true;
+    });
+
+    it('hides a clone and holds its body until its DO has run', async function () {
+      const source = createBox('afterDo_hiddenCloneSrc');
+      let duringDo;
+      const cloneName = flock.cloneMesh({
+        sourceMeshName: source.name,
+        cloneId: 'afterDo_hiddenClone',
+        callback: async (name) => {
+          const clone = flock.scene.getMeshByName(name);
+          duringDo = { physics: clone.physics, shown: clone.isEnabled() };
+          await flock.setPhysics(name, 'DYNAMIC');
+        },
+      });
+      ids.push(cloneName);
+      const clone = await flock.whenModelReady(cloneName);
+      expect(clone.isEnabled()).to.be.false;
+      await until(() => clone.physics);
+
+      expect(duringDo.physics).to.not.exist;
+      expect(duringDo.shown).to.be.false;
+      expect(clone.isEnabled()).to.be.true;
+      expect(clone.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+    });
+
+    it('lets a linked clone hidden during its DO keep following its source', async function () {
+      const source = createBox('afterDo_linkedSrc');
+      const cloneName = flock.cloneMesh({
+        sourceMeshName: source.name,
+        cloneId: 'afterDo_linked',
+        mode: 'linked',
+        callback: () => {},
+      });
+      ids.push(cloneName);
+      const clone = await flock.whenModelReady(cloneName);
+      await until(() => clone.isEnabled());
+      await frames(2);
+      expect(clone.isEnabled()).to.be.true;
+
+      await flock.hide(source.name);
+      await frames(2);
+      expect(clone.isEnabled()).to.be.false;
+    });
+
+    it('gives clones of an object with a body their own body', async function () {
+      const source = createBox('afterDo_cloneBodySrc');
+      const cloneName = flock.cloneMesh({
+        sourceMeshName: source.name,
+        cloneId: 'afterDo_cloneBody',
+      });
+      ids.push(cloneName);
+      const clone = await flock.whenModelReady(cloneName);
+
+      expect(clone.physics).to.exist;
+      expect(clone.physics).to.not.equal(source.physics);
+      expect(clone.physics.shape).to.equal(source.physics.shape);
+    });
+
+    it('never builds a body for a model whose DO sets physics none', async function () {
+      this.timeout(20000);
+      const id = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'afterDo_tree',
+        position: { x: 5, y: 0, z: 5 },
+        callback: (name) => flock.setPhysics(name, 'NONE'),
+      });
+      ids.push(id);
+      const tree = await flock.whenModelReady(id);
+      await flock._whenHierarchySettled(tree);
+
+      expect(tree.physics).to.not.exist;
+    });
+
+    it('gives a model without a DO its body', async function () {
+      this.timeout(20000);
+      const id = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'afterDo_treeBody',
+        position: { x: -5, y: 0, z: 5 },
+      });
+      ids.push(id);
+      const tree = await flock.whenModelReady(id);
+
+      expect(tree.physics).to.exist;
+    });
+  });
 }

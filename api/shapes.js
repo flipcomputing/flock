@@ -2,6 +2,7 @@ import earcut from 'earcut';
 import Module from 'manifold-3d';
 import opentype from 'opentype.js';
 import { roundingSettings } from './freeformgeometry.js';
+import { releaseShape } from './physics.js';
 
 let flock;
 let manifoldModule = null;
@@ -453,6 +454,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(boxId, 'createBox')) return null;
@@ -495,18 +497,22 @@ export const flockShapes = {
     newBox.metadata.blockKey = blockKey;
     newBox.metadata.sectionOwner = flock._currentSection;
 
-    // Define and apply the physics shape
-    const boxShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(),
-      new flock.BABYLON.Quaternion(0, 0, 0, 1),
-      new flock.BABYLON.Vector3(width, height, depth),
-      flock.scene
+    flock.deferBody(newBox, (mesh) =>
+      flock.applyPhysics(
+        mesh,
+        new flock.BABYLON.PhysicsShapeBox(
+          flock.BABYLON.Vector3.Zero(),
+          new flock.BABYLON.Quaternion(0, 0, 0, 1),
+          new flock.BABYLON.Vector3(width, height, depth),
+          flock.scene
+        )
+      )
     );
-    flock.applyPhysics(newBox, boxShape);
     newBox.metadata.physicsShapeType = 'BOX';
+    flock._awaitDo(newBox, hasDo);
 
     flock.announceMeshReady(newBox.name, groupName);
-    flock._registerInstance(blockKey, newBox.name);
+    flock._registerInstance(blockKey, newBox.name, newBox);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -538,7 +544,7 @@ export const flockShapes = {
     flock.ensureGroupPickForwarder?.(newGroup);
 
     flock.announceMeshReady(newGroup.name, groupName);
-    flock._registerInstance(blockKey, newGroup.name);
+    flock._registerInstance(blockKey, newGroup.name, newGroup);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -585,6 +591,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(sphereId, 'createSphere')) return null;
@@ -626,17 +633,21 @@ export const flockShapes = {
     newSphere.metadata.blockKey = blockKey;
     newSphere.metadata.sectionOwner = flock._currentSection;
 
-    // Define and apply the physics shape
-    const sphereShape = new flock.BABYLON.PhysicsShapeSphere(
-      flock.BABYLON.Vector3.Zero(),
-      Math.max(diameterX, diameterY, diameterZ) / 2,
-      flock.scene
+    flock.deferBody(newSphere, (mesh) =>
+      flock.applyPhysics(
+        mesh,
+        new flock.BABYLON.PhysicsShapeSphere(
+          flock.BABYLON.Vector3.Zero(),
+          Math.max(diameterX, diameterY, diameterZ) / 2,
+          flock.scene
+        )
+      )
     );
-    flock.applyPhysics(newSphere, sphereShape);
     newSphere.metadata.physicsShapeType = 'SPHERE';
+    flock._awaitDo(newSphere, hasDo);
 
     flock.announceMeshReady(newSphere.name, groupName);
-    flock._registerInstance(blockKey, newSphere.name);
+    flock._registerInstance(blockKey, newSphere.name, newSphere);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -656,6 +667,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(cylinderId, 'createCylinder')) return null;
@@ -704,25 +716,28 @@ export const flockShapes = {
     newCylinder.metadata.blockKey = blockKey;
     newCylinder.metadata.sectionOwner = flock._currentSection;
 
-    let cylinderShape;
-    if (diameterTop === diameterBottom) {
-      const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
-      const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
-      cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
-        startPoint,
-        endPoint,
-        diameterBottom / 2,
-        flock.scene
-      );
-    } else {
-      cylinderShape = new flock.BABYLON.PhysicsShapeConvexHull(newCylinder, flock.scene);
-    }
-    flock.applyPhysics(newCylinder, cylinderShape);
+    flock.deferBody(newCylinder, (mesh) => {
+      let cylinderShape;
+      if (diameterTop === diameterBottom) {
+        const startPoint = new flock.BABYLON.Vector3(0, -height / 2, 0);
+        const endPoint = new flock.BABYLON.Vector3(0, height / 2, 0);
+        cylinderShape = new flock.BABYLON.PhysicsShapeCylinder(
+          startPoint,
+          endPoint,
+          diameterBottom / 2,
+          flock.scene
+        );
+      } else {
+        cylinderShape = new flock.BABYLON.PhysicsShapeConvexHull(mesh, flock.scene);
+      }
+      flock.applyPhysics(mesh, cylinderShape);
+    });
     newCylinder.metadata.physicsShapeType =
       diameterTop === diameterBottom ? 'CYLINDER' : 'CONVEX_HULL';
+    flock._awaitDo(newCylinder, hasDo);
 
     flock.announceMeshReady(newCylinder.name, groupName);
-    flock._registerInstance(blockKey, newCylinder.name);
+    flock._registerInstance(blockKey, newCylinder.name, newCylinder);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -732,7 +747,16 @@ export const flockShapes = {
   },
   createCapsule(
     capsuleId,
-    { color, diameter, height, position, alpha = 1, rotation = null, callback = null } = {}
+    {
+      color,
+      diameter,
+      height,
+      position,
+      alpha = 1,
+      rotation = null,
+      callback = null,
+      hasDo = false,
+    } = {}
   ) {
     if (!validateShapeId(capsuleId, 'createCapsule')) return null;
     diameter = toDim(diameter, 1);
@@ -795,17 +819,16 @@ export const flockShapes = {
       center.z
     );
 
-    // Create and apply the physics shape using the central reference
-    const capsuleShape = new flock.BABYLON.PhysicsShapeCapsule(
-      segmentStart,
-      segmentEnd,
-      capsuleRadius,
-      flock.scene
+    flock.deferBody(newCapsule, (mesh) =>
+      flock.applyPhysics(
+        mesh,
+        new flock.BABYLON.PhysicsShapeCapsule(segmentStart, segmentEnd, capsuleRadius, flock.scene)
+      )
     );
-    flock.applyPhysics(newCapsule, capsuleShape);
+    flock._awaitDo(newCapsule, hasDo);
 
     flock.announceMeshReady(newCapsule.name, groupName);
-    flock._registerInstance(blockKey, newCapsule.name);
+    flock._registerInstance(blockKey, newCapsule.name, newCapsule);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -826,6 +849,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(wedgeId, 'createWedge')) return null;
@@ -866,13 +890,15 @@ export const flockShapes = {
     newWedge.metadata.wedgeAxis = axis;
 
     // A hull fits the slope and, unlike a mesh shape, works on a dynamic body.
-    const wedgeShape = new flock.BABYLON.PhysicsShapeConvexHull(newWedge, flock.scene);
-    flock.applyPhysics(newWedge, wedgeShape);
+    flock.deferBody(newWedge, (mesh) =>
+      flock.applyPhysics(mesh, new flock.BABYLON.PhysicsShapeConvexHull(mesh, flock.scene))
+    );
     // Read back when physics is disabled then re-enabled.
     newWedge.metadata.physicsShapeType = 'CONVEX_HULL';
+    flock._awaitDo(newWedge, hasDo);
 
     flock.announceMeshReady(newWedge.name, groupName);
-    flock._registerInstance(blockKey, newWedge.name);
+    flock._registerInstance(blockKey, newWedge.name, newWedge);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -892,6 +918,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(freeformId, 'createFreeform')) return null;
@@ -918,11 +945,14 @@ export const flockShapes = {
     newFreeform.metadata.sharedGeometry = false;
 
     // A box is cheap on low-end machines; the physics shape block can swap it.
-    flock.applyPhysics(newFreeform, flock.createFreeformBox(newFreeform, flock.scene));
+    flock.deferBody(newFreeform, (mesh) =>
+      flock.applyPhysics(mesh, flock.createFreeformBox(mesh, flock.scene))
+    );
     newFreeform.metadata.physicsShapeType = 'BOX';
+    flock._awaitDo(newFreeform, hasDo);
 
     flock.announceMeshReady(newFreeform.name, groupName);
-    flock._registerInstance(blockKey, newFreeform.name);
+    flock._registerInstance(blockKey, newFreeform.name, newFreeform);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -956,6 +986,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(donutId, 'createDonut')) return null;
@@ -996,12 +1027,14 @@ export const flockShapes = {
     newDonut.metadata.donutDimensions = dimensions;
 
     // A mesh shape leaves the hole open; a hull would fill it in.
-    const donutShape = new flock.BABYLON.PhysicsShapeMesh(newDonut, flock.scene);
-    flock.applyPhysics(newDonut, donutShape);
+    flock.deferBody(newDonut, (mesh) =>
+      flock.applyPhysics(mesh, new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene))
+    );
     newDonut.metadata.physicsShapeType = 'MESH';
+    flock._awaitDo(newDonut, hasDo);
 
     flock.announceMeshReady(newDonut.name, groupName);
-    flock._registerInstance(blockKey, newDonut.name);
+    flock._registerInstance(blockKey, newDonut.name, newDonut);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1022,6 +1055,7 @@ export const flockShapes = {
       alpha = 1,
       rotation = null,
       callback = null,
+      hasDo = false,
     } = {}
   ) {
     if (!validateShapeId(ringId, 'createRing')) return null;
@@ -1055,12 +1089,14 @@ export const flockShapes = {
     newRing.metadata.sectionOwner = flock._currentSection;
     newRing.metadata.ringDimensions = dimensions;
 
-    const ringShape = new flock.BABYLON.PhysicsShapeMesh(newRing, flock.scene);
-    flock.applyPhysics(newRing, ringShape);
+    flock.deferBody(newRing, (mesh) =>
+      flock.applyPhysics(mesh, new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene))
+    );
     newRing.metadata.physicsShapeType = 'MESH';
+    flock._awaitDo(newRing, hasDo);
 
     flock.announceMeshReady(newRing.name, groupName);
-    flock._registerInstance(blockKey, newRing.name);
+    flock._registerInstance(blockKey, newRing.name, newRing);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1070,7 +1106,15 @@ export const flockShapes = {
   },
   createPlane(
     planeId,
-    { color, width, height, position = [0, 0, 0], rotation = null, callback = null } = {}
+    {
+      color,
+      width,
+      height,
+      position = [0, 0, 0],
+      rotation = null,
+      callback = null,
+      hasDo = false,
+    } = {}
   ) {
     if (!validateShapeId(planeId, 'createPlane')) return null;
     width = toDim(width, 1);
@@ -1108,28 +1152,31 @@ export const flockShapes = {
     });
     if (rotation) flock._applyInitialTransform(newPlane, { position, rotation });
 
-    const planeBody = new flock.BABYLON.PhysicsBody(
-      newPlane,
-      flock.BABYLON.PhysicsMotionType.STATIC,
-      false,
-      flock.scene
-    );
+    flock.deferBody(newPlane, (mesh) => {
+      const planeBody = new flock.BABYLON.PhysicsBody(
+        mesh,
+        flock.BABYLON.PhysicsMotionType.STATIC,
+        false,
+        flock.scene
+      );
 
-    planeBody.disablePreStep = true;
-    const planeShape = new flock.BABYLON.PhysicsShapeBox(
-      flock.BABYLON.Vector3.Zero(),
-      new flock.BABYLON.Quaternion(0, 0, 0, 1),
-      new flock.BABYLON.Vector3(width, height, 0.001),
-      flock.scene
-    );
+      planeBody.disablePreStep = true;
+      const planeShape = new flock.BABYLON.PhysicsShapeBox(
+        flock.BABYLON.Vector3.Zero(),
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+        new flock.BABYLON.Vector3(width, height, 0.001),
+        flock.scene
+      );
 
-    planeBody.shape = planeShape;
-    planeBody.setMassProperties({
-      mass: 0,
-      inertia: flock.BABYLON.Vector3.ZeroReadOnly,
+      planeBody.shape = planeShape;
+      planeBody.setMassProperties({
+        mass: 0,
+        inertia: flock.BABYLON.Vector3.ZeroReadOnly,
+      });
+      flock.applyBounciness(planeBody, mesh);
+      mesh.physics = planeBody;
     });
-    flock.applyBounciness(planeBody, newPlane);
-    newPlane.physics = planeBody;
+    flock._awaitDo(newPlane, hasDo);
 
     flock.setMaterialWithCleanup(newPlane, {
       color: color,
@@ -1140,7 +1187,7 @@ export const flockShapes = {
     newPlane.metadata.sectionOwner = flock._currentSection;
 
     flock.announceMeshReady(newPlane.name, groupName);
-    flock._registerInstance(blockKey, newPlane.name);
+    flock._registerInstance(blockKey, newPlane.name, newPlane);
 
     if (callback) {
       requestAnimationFrame(() => callback());
@@ -1231,24 +1278,28 @@ export const flockShapes = {
         mesh.setEnabled(true);
         mesh.visibility = 1;
 
-        const textShape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
-        flock.applyPhysics(mesh, textShape);
+        flock.deferBody(mesh, (target) =>
+          flock.applyPhysics(target, new flock.BABYLON.PhysicsShapeMesh(target, flock.scene))
+        );
+        flock._awaitDo(mesh, !!callback);
 
         flock._pendingMeshIds.delete(meshId);
 
-        flock._registerInstance(blockKey, mesh.name);
+        flock._registerInstance(blockKey, mesh.name, mesh);
         flock._rememberConstruction(mesh, { dos: [callback], thens: [then] });
 
         if (callback || then) {
           requestAnimationFrame(async () => {
             for (const fn of [callback, then]) {
-              if (!fn) continue;
-              if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
-              try {
-                await fn(meshId);
-              } catch (err) {
-                console.error('create3DText callback error:', err);
+              if (fn) {
+                if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+                try {
+                  await fn(meshId);
+                } catch (err) {
+                  console.error('create3DText callback error:', err);
+                }
               }
+              if (fn === callback) flock._finishDo(mesh);
             }
           });
         }
@@ -1303,7 +1354,7 @@ export const flockShapes = {
     mesh.refreshBoundingInfo();
 
     if (mesh.physics) {
-      mesh.physics.shape?.dispose();
+      releaseShape(mesh.physics.shape);
       mesh.physics.shape = new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
     }
   },

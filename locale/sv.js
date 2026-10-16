@@ -137,7 +137,7 @@ export default {
   show: 'visa %1',
   hide: 'dölj %1',
   dispose: 'borttag %1',
-  clone_mesh: 'lägg till %1 klon av %2',
+  clone_mesh: 'lägg till %1 klon av %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
@@ -784,6 +784,9 @@ export default {
   released_option: 'släppt',
   starts_option: 'startar',
   ends_option: 'avslutas',
+
+  COPY_option: 'kopia',
+  LINKED_option: 'länkad',
 
   DYNAMIC_option: 'dynamisk',
   ANIMATED_option: 'animerad',
