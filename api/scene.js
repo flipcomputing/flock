@@ -11,6 +11,12 @@ import {
 let flock;
 
 const LINK_EPSILON = 1e-4;
+const LINK_PROPERTY_KEYS = {
+  position: ['position.x', 'position.y', 'position.z'],
+  size: ['size.x', 'size.y', 'size.z'],
+  rotation: ['rotation'],
+  colour: ['colour'],
+};
 const LOOK_CATEGORIES = new Set(['colour', 'material', 'alpha', 'effects']);
 const linkOf = new WeakMap();
 const linkedCopiesOf = new WeakMap();
@@ -258,6 +264,34 @@ function followAxes(link, kind, current, target, last) {
   return changed;
 }
 
+function absoluteRotation(node, result) {
+  node.computeWorldMatrix(true);
+  node.getWorldMatrix().decompose(undefined, result);
+  return result;
+}
+
+function sameRotation(a, b) {
+  return Math.abs(flock.BABYLON.Quaternion.Dot(a, b)) > 1 - LINK_EPSILON * LINK_EPSILON;
+}
+
+function setAbsoluteRotation(node, rotation) {
+  const local = node.parent
+    ? flock.BABYLON.Quaternion.Inverse(
+        absoluteRotation(node.parent, new flock.BABYLON.Quaternion())
+      ).multiply(rotation)
+    : rotation.clone();
+  if (node.rotationQuaternion) node.rotationQuaternion.copyFrom(local);
+  else node.rotationQuaternion = local;
+  node.computeWorldMatrix(true);
+}
+
+function snapshotLink(copy, link) {
+  link.scaling.copyFrom(copy.scaling);
+  absoluteRotation(copy, link.rotation);
+  link.position.copyFrom(copy.getAbsolutePosition());
+  link.shown = flock._isShown(copy);
+}
+
 function syncLinkedCopy(copy) {
   const link = linkOf.get(copy);
   const source = link?.source;
@@ -270,6 +304,20 @@ function syncLinkedCopy(copy) {
     flock.updatePhysics(copy);
   }
   link.scaling.copyFrom(copy.scaling);
+
+  if (!link.overrides.has('rotation')) {
+    const rotation = absoluteRotation(copy, linkSync.rotation);
+    if (!sameRotation(rotation, link.rotation)) {
+      link.overrides.add('rotation');
+    } else {
+      const target = absoluteRotation(source, linkSync.sourceRotation);
+      if (!sameRotation(rotation, target)) {
+        setAbsoluteRotation(copy, target);
+        teleportBodyToMesh(copy);
+      }
+    }
+  }
+  absoluteRotation(copy, link.rotation);
 
   source.computeWorldMatrix(true);
   copy.computeWorldMatrix(true);
@@ -303,6 +351,10 @@ function linkClone(source, copy) {
       overrides.add(`size.${axis}`);
     }
   }
+  const rotation = absoluteRotation(copy, new flock.BABYLON.Quaternion());
+  if (!sameRotation(rotation, absoluteRotation(source, new flock.BABYLON.Quaternion()))) {
+    overrides.add('rotation');
+  }
   if (flock._isShown(copy) !== flock._isShown(source)) overrides.add('visible');
 
   linkOf.set(copy, {
@@ -310,6 +362,7 @@ function linkClone(source, copy) {
     overrides,
     position,
     scaling: copy.scaling.clone(),
+    rotation,
     shown: flock._isShown(copy),
   });
 
@@ -325,6 +378,8 @@ function linkClone(source, copy) {
       copies,
       position: new flock.BABYLON.Vector3(),
       scaling: new flock.BABYLON.Vector3(),
+      rotation: new flock.BABYLON.Quaternion(),
+      sourceRotation: new flock.BABYLON.Quaternion(),
     };
     scene.onBeforeRenderObservable.add(() => copies.forEach(syncLinkedCopy));
     scene.onDisposeObservable.addOnce(() => {
@@ -1291,6 +1346,96 @@ export const flockScene = {
   },
   _realiseLinked(mesh) {
     realise(mesh);
+  },
+  _linkedOwner(mesh, property) {
+    const keys = LINK_PROPERTY_KEYS[property] ?? [];
+    let owner = mesh;
+    for (let link = linkOf.get(owner); link; link = linkOf.get(owner)) {
+      if (link.source.isDisposed() || keys.some((key) => link.overrides.has(key))) break;
+      owner = link.source;
+    }
+    return owner;
+  },
+  _linkedPart(part, property) {
+    const path = [];
+    let root = part;
+    while (root && !linkOf.has(root)) {
+      path.unshift(root);
+      root = root.parent;
+    }
+    if (!root) return part;
+    const owner = flock._linkedOwner(root, property);
+    if (owner === root) return part;
+    let node = owner;
+    for (const step of path) {
+      if (step.metadata?.lookVisual) return lookTarget(owner);
+      const name = originalNameOf(step);
+      const match = node
+        .getChildren(undefined, true)
+        .find((child) => !child.metadata?.lookVisual && originalNameOf(child) === name);
+      if (!match) return owner;
+      node = match;
+    }
+    return node;
+  },
+  _beginLinkedEdit(copy, property) {
+    const owner = flock._linkedOwner(copy, property);
+    if (owner === copy) return null;
+    linkSync?.copies.delete(copy);
+    const start = {
+      position: copy.position.clone(),
+      rotation: copy.rotation.clone(),
+      rotationQuaternion: copy.rotationQuaternion?.clone() ?? null,
+      scaling: copy.scaling.clone(),
+    };
+    copy.computeWorldMatrix(true);
+    owner.computeWorldMatrix(true);
+    const copyFrom = copy.getAbsolutePosition().clone();
+    const ownerFrom = owner.getAbsolutePosition().clone();
+    const ownerBottom = flock.getEffectiveWorldBounds(owner).min.y;
+    const edit = {
+      owner,
+      ownerFrom,
+      ownerBottom,
+      update() {
+        if (copy.isDisposed() || owner.isDisposed()) return;
+        copy.computeWorldMatrix(true);
+        if (property === 'position') {
+          owner.setAbsolutePosition(ownerFrom.add(copy.getAbsolutePosition().subtract(copyFrom)));
+        } else if (property === 'size') {
+          owner.scaling.copyFrom(copy.scaling);
+          owner.computeWorldMatrix(true);
+          owner.position.y += ownerBottom - flock.getEffectiveWorldBounds(owner).min.y;
+          flock.retileTextures(owner);
+          flock.updatePhysics(owner);
+        } else if (property === 'rotation') {
+          setAbsoluteRotation(owner, absoluteRotation(copy, new flock.BABYLON.Quaternion()));
+        }
+        owner.computeWorldMatrix(true);
+        teleportBodyToMesh(owner);
+      },
+      end() {
+        edit.update();
+        if (copy.isDisposed()) return owner;
+        copy.position.copyFrom(start.position);
+        copy.rotation.copyFrom(start.rotation);
+        copy.rotationQuaternion = start.rotationQuaternion;
+        copy.scaling.copyFrom(start.scaling);
+        copy.computeWorldMatrix(true);
+        if (property === 'size') {
+          flock.retileTextures(copy);
+          flock.updatePhysics(copy);
+        }
+        teleportBodyToMesh(copy);
+        const link = linkOf.get(copy);
+        if (link) {
+          snapshotLink(copy, link);
+          linkSync?.copies.add(copy);
+        }
+        return owner;
+      },
+    };
+    return edit;
   },
   _standalone(mesh) {
     const followers = linkedCopiesOf.get(mesh);

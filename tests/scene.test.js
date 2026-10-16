@@ -1257,6 +1257,28 @@ export function runSceneTests(flock) {
         expect(mesh(copyId).isEnabled()).to.be.false;
       });
 
+      it('should follow the source rotation until the linked clone rotates itself', async function () {
+        const sourceId = box('linkRot__lk4b');
+        const copyId = await cloneOf(sourceId, 'linkRotA', { mode: 'linked' });
+        const turned = (id, y) =>
+          Math.abs(
+            flock.BABYLON.Quaternion.Dot(
+              mesh(id).absoluteRotationQuaternion,
+              flock.eulerDegreesToQuat(0, y, 0)
+            )
+          );
+
+        mesh(sourceId).rotationQuaternion = flock.eulerDegreesToQuat(0, 30, 0);
+        frame();
+        expect(turned(copyId, 30)).to.be.closeTo(1, 1e-4);
+
+        mesh(copyId).rotationQuaternion = flock.eulerDegreesToQuat(0, 90, 0);
+        frame();
+        mesh(sourceId).rotationQuaternion = flock.eulerDegreesToQuat(0, 60, 0);
+        frame();
+        expect(turned(copyId, 90)).to.be.closeTo(1, 1e-4);
+      });
+
       it('should not treat the replayed source DO as the linked clone changing itself', async function () {
         const sourceId = box('linkDo__lk5');
         await flock.runDo(sourceId, (id) => flock.changeColor(id, { color: '#ff0000' }));

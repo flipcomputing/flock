@@ -755,7 +755,7 @@ function applyColorAtPosition(canvasX, canvasY) {
   }
 
   if (target) {
-    updateBlockColorAndHighlight(target, window.selectedColor, {
+    updateBlockColorAndHighlight(flock._linkedPart?.(target, 'colour') ?? target, window.selectedColor, {
       letter: pickedTextLetter(target, pickRay, scene),
     });
   } else {
@@ -2572,6 +2572,12 @@ function mirrorSourceOf(mesh) {
   return source && !source.isDisposed() ? source : null;
 }
 
+// A linked clone's edits go to the mesh it still follows for that property.
+function linkedEditTarget(mesh, property) {
+  const owner = mesh && flock._linkedOwner?.(mesh, property);
+  return owner && !owner.isDisposed() ? owner : mesh;
+}
+
 // Keeps mirrors level with a drag in progress: a dragged mirror moves its
 // source, and mirrors of whatever is dragged (but outside it) move too.
 function syncMirrorsDuringDrag(mesh) {
@@ -4056,7 +4062,7 @@ function handleScaleGizmo() {
   let savedHudAxis = null;
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
+    startScaleKeyboardHandler(linkedEditTarget(mesh, 'size'), savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
     showStatus(translate('gizmo_controls_hint'), {
@@ -4081,14 +4087,14 @@ function handleScaleGizmo() {
   let lastScaledMesh = gizmoManager.attachedMesh;
   const scaleObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
-      updateScaleBlock(lastScaledMesh); // update blockly block
+      updateScaleBlock(linkedEditTarget(lastScaledMesh, 'size')); // update blockly block
       exitTransformState();
       gizmoManager.attachToMesh(null); // unselect
       return;
     }
 
     lastScaledMesh = mesh;
-    startScaleKeyboardHandler(mesh, savedHudAxis, (axis) => {
+    startScaleKeyboardHandler(linkedEditTarget(mesh, 'size'), savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
     showStatus(translate('gizmo_controls_hint'), {
@@ -4102,6 +4108,7 @@ function handleScaleGizmo() {
 
   // Track bottom for correct visual anchoring
   let originalBottomY = 0;
+  let linkedEdit = null;
 
   let retileFrame = null;
   let retiledScale = null;
@@ -4131,7 +4138,9 @@ function handleScaleGizmo() {
     const deltaY = originalBottomY - newBottomY;
     mesh.position.y += deltaY;
 
-    const block = Blockly.getMainWorkspace().getBlockById(mesh?.metadata?.blockKey);
+    const block = Blockly.getMainWorkspace().getBlockById(
+      (linkedEdit?.owner ?? mesh)?.metadata?.blockKey
+    );
     if (gizmoManager.scaleGizmoEnabled) {
       switch (block?.type) {
         case 'create_capsule':
@@ -4164,6 +4173,7 @@ function handleScaleGizmo() {
         }
       }
     }
+    linkedEdit?.update();
 
     // Re-tile textures live so materials don't stretch while dragging.
     if (retileFrame === null) {
@@ -4176,11 +4186,17 @@ function handleScaleGizmo() {
 
   onExit(() => gizmoManager.gizmos.scaleGizmo.onDragObservable.remove(scaleDrag));
   onExit(cancelRetileFrame);
+  onExit(() => {
+    linkedEdit?.end();
+    linkedEdit = null;
+  });
 
   const scaleDragStart = gizmoManager.gizmos.scaleGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
+    linkedEdit = flock._beginLinkedEdit?.(mesh, 'size') ?? null;
+    const blockMesh = linkedEdit?.owner ?? mesh;
     flock.ensureUniqueGeometry(mesh);
-    markCombineFrames(mesh);
+    markCombineFrames(blockMesh);
     cancelRetileFrame();
     retiledScale = `${mesh.scaling.x},${mesh.scaling.y},${mesh.scaling.z}`;
     originalBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
@@ -4195,14 +4211,14 @@ function handleScaleGizmo() {
       mesh.physics.disablePreStep = false;
     }
 
-    const creationBlock = meshMap[mesh?.metadata?.blockKey];
+    const creationBlock = meshMap[blockMesh?.metadata?.blockKey];
     if (creationBlock) {
       if (creationBlock.type === 'create_group') {
         highlightBlockById(Blockly.getMainWorkspace(), creationBlock);
       } else {
         highlightBlockById(
           Blockly.getMainWorkspace(),
-          findOrCreateResizeBlock(mesh) ?? creationBlock
+          findOrCreateResizeBlock(blockMesh) ?? creationBlock
         );
       }
     }
@@ -4214,15 +4230,18 @@ function handleScaleGizmo() {
   onExit(() => gizmoManager.gizmos.scaleGizmo.onDragStartObservable.remove(scaleDragStart));
 
   const scaleDragEnd = gizmoManager.gizmos.scaleGizmo.onDragEndObservable.add(() => {
-    const mesh = gizmoManager.attachedMesh;
+    const dragged = gizmoManager.attachedMesh;
     scaleDragAxis = null;
     cancelRetileFrame();
-    retileForScale(mesh);
+    retileForScale(dragged);
 
-    if (mesh.savedMotionType != null && isBodyAlive(mesh.physics)) {
-      mesh.physics.setMotionType(mesh.savedMotionType);
+    if (dragged.savedMotionType != null && isBodyAlive(dragged.physics)) {
+      dragged.physics.setMotionType(dragged.savedMotionType);
     }
-    updateScaleBlock(mesh, originalBottomY);
+    const bottomY = linkedEdit ? linkedEdit.ownerBottom : originalBottomY;
+    const mesh = linkedEdit?.end() ?? dragged;
+    linkedEdit = null;
+    updateScaleBlock(mesh, bottomY);
   });
 
   onExit(() => gizmoManager.gizmos.scaleGizmo.onDragEndObservable.remove(scaleDragEnd));
@@ -4272,7 +4291,7 @@ function handleRotationGizmo() {
   let savedHudAxis = 'y';
   const mesh = gizmoManager.attachedMesh;
   if (mesh) {
-    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
+    startRotateKeyboardHandler(linkedEditTarget(mesh, 'rotation'), savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
     if (!isTargetCameraFrame(mesh)) {
@@ -4300,10 +4319,11 @@ function handleRotationGizmo() {
 
   const rotateObs = gizmoManager.onAttachedToMeshObservable.add((mesh) => {
     if (!mesh) {
-      if (!keepsTransformInParts(lastRotatedMesh) && !isTargetCameraFrame(lastRotatedMesh)) {
-        updateRotationBlock(lastRotatedMesh); // properly update block if they click out
+      const rotated = linkedEditTarget(lastRotatedMesh, 'rotation');
+      if (!keepsTransformInParts(rotated) && !isTargetCameraFrame(rotated)) {
+        updateRotationBlock(rotated); // properly update block if they click out
       }
-      updateChildBlockRotations(lastRotatedMesh);
+      updateChildBlockRotations(rotated);
       exitTransformState();
       gizmoManager.attachToMesh(null);
       return;
@@ -4318,7 +4338,7 @@ function handleRotationGizmo() {
         hint: true,
       });
     }
-    startRotateKeyboardHandler(mesh, savedHudAxis, (axis) => {
+    startRotateKeyboardHandler(linkedEditTarget(mesh, 'rotation'), savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
   });
@@ -4326,10 +4346,17 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.onAttachedToMeshObservable.remove(rotateObs));
   onExit(() => applyRotationHandles(null));
 
+  let linkedEdit = null;
+  onExit(() => {
+    linkedEdit?.end();
+    linkedEdit = null;
+  });
+
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
-    const blockMesh = mirrorSourceOf(mesh) ?? mesh;
+    linkedEdit = flock._beginLinkedEdit?.(mesh, 'rotation') ?? null;
+    const blockMesh = linkedEdit?.owner ?? mirrorSourceOf(mesh) ?? mesh;
     markCombineFrames(blockMesh);
 
     if (keepsTransformInParts(blockMesh) || isTargetCameraFrame(blockMesh)) {
@@ -4355,9 +4382,10 @@ function handleRotationGizmo() {
 
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragStartObservable.remove(rotDragStart));
 
-  const rotDrag = gizmoManager.gizmos.rotationGizmo.onDragObservable.add(() =>
-    syncMirrorsDuringDrag(gizmoManager.attachedMesh)
-  );
+  const rotDrag = gizmoManager.gizmos.rotationGizmo.onDragObservable.add(() => {
+    linkedEdit?.update();
+    syncMirrorsDuringDrag(linkedEdit?.owner ?? gizmoManager.attachedMesh);
+  });
 
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragObservable.remove(rotDrag));
 
@@ -4372,6 +4400,9 @@ function handleRotationGizmo() {
       mesh.physics.setMotionType(mesh.savedMotionType);
     }
 
+    const owner = linkedEdit?.end();
+    linkedEdit = null;
+    if (owner) mesh = owner;
     syncMirrorsDuringDrag(mesh);
     mesh = mirrorSourceOf(mesh) ?? mesh;
 
@@ -4380,8 +4411,9 @@ function handleRotationGizmo() {
     // writing one axis would disagree with the mesh and jump on re-run.
     // A group's orientation lives in its members (see below), so no
     // rotate_to is written for the group itself - that would apply twice.
-    if (isCombine(gizmoManager.attachedMesh)) {
-      syncCombineParts(gizmoManager.attachedMesh);
+    const rotated = owner ?? gizmoManager.attachedMesh;
+    if (isCombine(rotated)) {
+      syncCombineParts(rotated);
       return;
     }
     if (mesh?.metadata?.shapeType !== 'Group' && !isTargetCameraFrame(mesh)) {
@@ -4508,7 +4540,7 @@ function handlePositionGizmo() {
   let keyboardAttachedMesh = null;
   let savedHudAxis = null;
   const startShapeKeyboard = (mesh) =>
-    startMoveKeyboardHandler(mesh, savedHudAxis, (axis) => {
+    startMoveKeyboardHandler(linkedEditTarget(mesh, 'position'), savedHudAxis, (axis) => {
       if (axis) savedHudAxis = axis;
     });
 
@@ -4602,7 +4634,7 @@ function handlePositionGizmo() {
       startShapeKeyboard(mesh);
     }
 
-    const blockKey = mesh?.metadata?.blockKey;
+    const blockKey = linkedEditTarget(mesh, 'position')?.metadata?.blockKey;
     const blockId = blockKey ? meshMap[blockKey] : null;
     if (!blockId) return;
 
@@ -4726,6 +4758,11 @@ function handlePositionGizmo() {
 
   let dragStartPosition = null;
   let restoreCameraTarget = null;
+  let linkedEdit = null;
+  onExit(() => {
+    linkedEdit?.end();
+    linkedEdit = null;
+  });
   const posDragStart = gizmoManager.gizmos.positionGizmo.onDragStartObservable.add(() => {
     if (freeformEditor?.selection?.kind === 'point') {
       freeformEditor.beginPointDrag();
@@ -4734,6 +4771,7 @@ function handlePositionGizmo() {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
     dragStartPosition = mesh.getAbsolutePosition().clone();
+    linkedEdit = flock._beginLinkedEdit?.(mesh, 'position') ?? null;
     restoreCameraTarget = holdCameraTargetDuringDrag(mesh);
     if (isTargetCameraFrame(mesh)) flock._releaseFollowCameraLimits(mesh.metadata.camera);
 
@@ -4753,7 +4791,8 @@ function handlePositionGizmo() {
       freeformEditor.dragPointTo(freeformEditor.pointNode.getAbsolutePosition());
       return;
     }
-    syncMirrorsDuringDrag(gizmoManager.attachedMesh);
+    linkedEdit?.update();
+    syncMirrorsDuringDrag(linkedEdit?.owner ?? gizmoManager.attachedMesh);
   });
 
   onExit(() => gizmoManager.gizmos.positionGizmo.onDragObservable.remove(posDrag));
@@ -4767,13 +4806,16 @@ function handlePositionGizmo() {
       freeformEditor.endPointDrag();
       return;
     }
-    const mesh = gizmoManager.attachedMesh;
+    const dragged = gizmoManager.attachedMesh;
     restoreCameraTarget?.();
     restoreCameraTarget = null;
 
-    if (mesh.savedMotionType != null && isBodyAlive(mesh.physics)) {
-      mesh.physics.setMotionType(mesh.savedMotionType);
+    if (dragged.savedMotionType != null && isBodyAlive(dragged.physics)) {
+      dragged.physics.setMotionType(dragged.savedMotionType);
     }
+    const mesh = linkedEdit?.end() ?? dragged;
+    if (linkedEdit) dragStartPosition = linkedEdit.ownerFrom;
+    linkedEdit = null;
     mesh.computeWorldMatrix(true);
     if (isTargetCameraFrame(mesh) && mesh.metadata.camera) {
       mesh.metadata.camera.setPosition(mesh.getAbsolutePosition().clone());
