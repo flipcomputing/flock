@@ -42,6 +42,7 @@ import { defineColourBlocks } from '../blocks/colour.js';
 import { installContrastWarnings } from '../blocks/colourcontrast.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { defineUnknownBlock } from '../blocks/unknownBlock.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
 import { handleRecentObjectEvent } from '../blocks/variableNames.js';
 import { localVariableBlock } from '../toolbox.js';
@@ -345,6 +346,7 @@ export function initializeBlocks() {
   defineColourBlocks();
   defineSensingBlocks();
   defineTextBlocks();
+  defineUnknownBlock();
   defineGenerators();
 }
 

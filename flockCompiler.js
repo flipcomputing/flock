@@ -24,6 +24,7 @@ import { defineMaterialsBlocks } from './blocks/materials.js';
 import { defineColourBlocks } from './blocks/colour.js';
 import { defineSensingBlocks } from './blocks/sensing.js';
 import { defineTextBlocks } from './blocks/text.js';
+import { defineUnknownBlock, replaceUnrecognisedBlocks } from './blocks/unknownBlock.js';
 import { defineGenerators } from './generators/generators.js';
 
 let registered = false;
@@ -55,6 +56,7 @@ function registerBlocksAndGenerators() {
     defineColourBlocks,
     defineSensingBlocks,
     defineTextBlocks,
+    defineUnknownBlock,
     defineGenerators,
   ];
 
@@ -74,6 +76,7 @@ export function compileFlockProject(projectJson) {
 
   const workspace = new Blockly.Workspace();
   try {
+    replaceUnrecognisedBlocks(projectJson);
     Blockly.serialization.workspaces.load(projectJson, workspace);
     return generateWorkspaceCode(workspace, javascriptGenerator);
   } finally {

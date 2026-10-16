@@ -1395,6 +1395,9 @@ export default {
   gizmo_controls_hint: 'Visa eller dölj gizmo-kontrollerna via Meny > Verktyg.', // ai
   xr_mode_missing_hint:
     'Inget XR-lägesblock, så projektet öppnas inte i ditt headset. Lägg till ett från Scen > XR.', // ai
+  unknown_block_warning: 'Blocket känns inte igen i den här versionen av Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Vissa block känns inte igen av den här versionen av Flock XR, så de har inaktiverats.', // ai
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

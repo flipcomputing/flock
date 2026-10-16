@@ -1665,6 +1665,9 @@ export default {
   gizmo_controls_hint: 'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
   xr_mode_missing_hint:
     'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
+  unknown_block_warning: 'Bloque no reconocido en esta versión de Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Algunos bloques no se reconocen en esta versión de Flock XR, así que se han desactivado.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
   shortcut_fly_move: 'Cámara libre: mover', // ai

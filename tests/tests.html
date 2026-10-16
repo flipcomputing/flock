@@ -749,6 +749,13 @@
           importFn: 'runFlockCompilerTests',
           pattern: '@flockcompiler',
         },
+        {
+          id: 'unknownblock',
+          name: 'Unrecognised Block Tests',
+          importPath: './unknownBlock.test.js',
+          importFn: 'runUnknownBlockTests',
+          pattern: '@unknownblock',
+        },
       ];
 
       import * as flockmodule from '../flock.js';

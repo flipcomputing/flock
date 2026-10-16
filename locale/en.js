@@ -1808,6 +1808,9 @@ export default {
   gizmo_controls_hint: 'Show or hide the gizmo controls from Menu > Tools.',
   xr_mode_missing_hint:
     "No XR mode block, so this project won't open in your headset. Add one from Scene > XR.",
+  unknown_block_warning: 'Block unrecognised in this version of Flock XR',
+  unrecognised_blocks_loaded:
+    "Some blocks aren't recognised by this version of Flock XR, so they have been disabled.",
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
   shortcut_fly_move: 'Fly camera: move',
