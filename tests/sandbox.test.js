@@ -309,6 +309,26 @@ export function runSandboxTests(flock) {
       expect(printed).to.deep.equal(['1|true|x+y']);
     });
 
+    it('should return clone lists as sandbox arrays of names', async function () {
+      await run(`
+        const a = await createBox('sandboxCloneSrc', { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        const b = cloneMesh({ sourceMeshName: a, cloneId: 'sandboxCloneCopy' });
+        await wait(0.1);
+        const list = getClonesOf(a);
+        const k = 'con' + 'structor';
+        let escaped;
+        try {
+          escaped = list[k][k]('return typeof document')();
+        } catch (e) {
+          escaped = 'blocked';
+        }
+        printText({ text: (list instanceof Array) + '|' + list.join('+') + '|' + typeof list[0] + '|' + escaped });
+        printText({ text: b });
+      `);
+      expect(printed).to.have.length(2);
+      expect(printed[0]).to.equal(`true|${printed[1]}|string|blocked`);
+    });
+
     it('should keep a callback the same function across API calls', async function () {
       await run(`
         async function section() {}

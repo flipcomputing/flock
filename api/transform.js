@@ -939,6 +939,7 @@ export const flockTransform = {
         for (const node of [clone, ...clone.getDescendants(false)]) {
           delete node.metadata?.tags;
         }
+        delete clone.metadata.cloneOf;
         if (isSkinned(sourceMesh)) {
           console.warn(`mirror: ${sourceMeshName} is an animated character, which can't be mirrored`);
           flock.disposeMesh(clone);

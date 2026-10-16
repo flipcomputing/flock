@@ -876,6 +876,7 @@ export function initializeWorkspace() {
       'lists_create_empty',
       'lists_create_with',
       'all_with_tag',
+      'all_clones_of',
       'lists_repeat',
       'lists_length',
       'lists_isEmpty',

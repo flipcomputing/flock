@@ -707,6 +707,10 @@ Gives each mesh in a list a tag. A single mesh name works too. Copies made with 
 
 Returns the names of all meshes with the tag, in creation order.
 
+#### `getClonesOf(meshName)`
+
+Returns the names of all copies made with `cloneMesh` from the mesh or from its copies, in creation order. The mesh itself and mirrored copies are not included. Returns an empty list if the mesh doesn't exist yet.
+
 **Example:**
 
 ```javascript

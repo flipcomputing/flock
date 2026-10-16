@@ -299,6 +299,14 @@ export function registerControlGenerators(javascriptGenerator) {
     return [`getObjectsWithTag(${tagName})`, javascriptGenerator.ORDER_NONE];
   };
 
+  javascriptGenerator.forBlock['all_clones_of'] = function (block) {
+    const meshName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    return [`getClonesOf(${meshName})`, javascriptGenerator.ORDER_NONE];
+  };
+
   // Wait x milliseconds
   javascriptGenerator.forBlock['wait'] = function (block) {
     const duration =
