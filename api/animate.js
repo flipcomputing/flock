@@ -8,6 +8,20 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+// A clone's nodes carry its name as a prefix; animation files use the originals.
+const mapNode = (tnMap, node) => {
+  tnMap[node.name] = node;
+  const original = node.metadata?.originalNodeName;
+  if (original) tnMap[original] ??= node;
+};
+
+const MATERIAL_PROPERTIES = new Set(['color', 'diffuseColor', 'albedoColor', 'alpha']);
+const animationTarget = (mesh, property) => {
+  if (!MATERIAL_PROPERTIES.has(property)) return mesh;
+  flock._claimLinked(mesh, property === 'alpha' ? 'alpha' : 'colour');
+  return flock._lookTarget(mesh);
+};
+
 const interruptMotion = (mesh, slot) => {
   const active = mesh.metadata?.[slot];
   if (!active) return null;
@@ -129,30 +143,13 @@ export const flockAnimate = {
           resolve();
           return;
         }
-        const modelName = mesh.metadata?.modelName;
+        const options = { animationName, loop, restart, blendDuration };
+        const playOn = (target) =>
+          !modelAnimationNames.includes(target.metadata?.modelName) && flock.separateAnimations
+            ? flock._playAnimationLoad(target.name, options)
+            : flock._playAnimationModel(target.name, options);
 
-        if (modelAnimationNames.includes(modelName)) {
-          await flock._playAnimationModel(meshName, {
-            animationName,
-            loop,
-            restart,
-            blendDuration,
-          });
-        } else if (flock.separateAnimations) {
-          await flock._playAnimationLoad(meshName, {
-            animationName,
-            loop,
-            restart,
-            blendDuration,
-          });
-        } else {
-          await flock._playAnimationModel(meshName, {
-            animationName,
-            loop,
-            restart,
-            blendDuration,
-          });
-        }
+        await Promise.all(flock._applyLinked(mesh, 'animation', playOn));
         resolve();
       });
     });
@@ -163,15 +160,17 @@ export const flockAnimate = {
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (mesh) => {
-        await Promise.resolve(
-          flock.switchToAnimation(
-            flock.scene,
-            mesh,
-            animationName,
-            loop,
-            restart,
-            true,
-            blendDuration
+        await Promise.all(
+          flock._applyLinked(mesh, 'animation', (target) =>
+            flock.switchToAnimation(
+              flock.scene,
+              target,
+              animationName,
+              loop,
+              restart,
+              true,
+              blendDuration
+            )
           )
         );
         resolve();
@@ -841,10 +840,11 @@ export const flockAnimate = {
     // Reassigned every call, not just on creation, so reuse transfers ownership.
     animationGroup.sectionOwner = __owningSection;
 
-    const mesh = await flock.whenModelReady(meshName);
-    if (!flock.requireMesh(mesh, { api: 'createAnimation', name: meshName })) {
+    const named = await flock.whenModelReady(meshName);
+    if (!flock.requireMesh(named, { api: 'createAnimation', name: meshName })) {
       return animationGroupName;
     }
+    const mesh = animationTarget(named, property);
 
     if (property === 'alpha') {
       flock.ensureUniqueMaterial(mesh);
@@ -959,8 +959,9 @@ export const flockAnimate = {
       mode = 'AWAIT',
     } = {}
   ) {
-    const mesh = await flock.whenModelReady(meshName);
-    if (!mesh) return;
+    const named = await flock.whenModelReady(meshName);
+    if (!named) return;
+    const mesh = animationTarget(named, property);
 
     // Track active animations by property to allow cancellation of
     // overlapping animations on the same property (e.g., two scale changes)
@@ -1526,9 +1527,7 @@ export const flockAnimate = {
         const tnMap = {};
         skeleton.bones.forEach((b) => {
           boneMap[b.name] = b;
-          if (b._linkedTransformNode) {
-            tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
-          }
+          if (b._linkedTransformNode) mapNode(tnMap, b._linkedTransformNode);
         });
 
         const newGroup = new flock.BABYLON.AnimationGroup(`${mesh.name}.${animationName}`, scene);
@@ -1852,13 +1851,13 @@ export const flockAnimate = {
           skeletonMesh?.skeleton?.bones?.forEach((b) => {
             boneMap[b.name] = b;
             if (b._linkedTransformNode) {
-              tnMap[b._linkedTransformNode.name] = b._linkedTransformNode;
+              mapNode(tnMap, b._linkedTransformNode);
             }
           });
 
           if (rootMesh.getDescendants) {
             rootMesh.getDescendants(false).forEach((node) => {
-              if (node?.name) tnMap[node.name] = node;
+              if (node?.name) mapNode(tnMap, node);
             });
           }
           if (rootMesh?.name) {

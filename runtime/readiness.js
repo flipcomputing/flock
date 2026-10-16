@@ -498,6 +498,7 @@ export const flockReadiness = {
   },
 
   _inGroup(mesh, groupName) {
+    if (mesh.metadata?.lookVisual) return false;
     return flock._familyOf(mesh.name) === groupName || !!mesh.metadata?.tags?.includes(groupName);
   },
 

@@ -1805,7 +1805,7 @@ export const flockMaterial = {
     textures.forEach((texture) => flock._disposeTextureIfUnused(texture));
   },
   setMaterialWithCleanup(mesh, materialData) {
-    if (!mesh) return;
+    if (!mesh || mesh.getClassName?.() === 'InstancedMesh') return;
 
     const oldMat = mesh.material;
 

@@ -1339,7 +1339,7 @@ export const flockMesh = {
         }
 
         // Extract vertex data from mesh
-        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh);
+        const vertexData = flock.BABYLON.VertexData.ExtractFromMesh(mesh, true, true);
 
         // Validate vertex data
         if (!vertexData) {
@@ -1347,10 +1347,7 @@ export const flockMesh = {
           return false;
         }
 
-        // Remove shared geometry by clearing existing bindings
-        mesh.setVerticesData('position', null);
-
-        // Apply cloned vertex data (creates a new internal geometry)
+        if (mesh.geometry?.meshes.length > 1) mesh.makeGeometryUnique();
         vertexData.applyToMesh(mesh, true); // `true` = updatable
 
         // Mark the geometry as no longer shared

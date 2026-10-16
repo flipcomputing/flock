@@ -493,14 +493,14 @@ export function registerSceneGenerators(javascriptGenerator) {
 
     // Wrap "DO" code in an async function if it exists
     doCode = doCode ? `async function(${cloneVariableName}) {\n${doCode}\n}` : '';
-    const linked = block.getFieldValue('MODE') === 'LINKED' ? ',\nlinked: true' : '';
+    const mode = block.getFieldValue('MODE') === 'LINKED' ? `,\nmode: "linked"` : '';
 
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
                           cloneId: ${JSON.stringify(cloneId)},
                           cloneName: ${JSON.stringify(cloneUserName)},
-                          blockKey: ${JSON.stringify(block.id)}${linked}${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
+                          blockKey: ${JSON.stringify(block.id)}${mode}${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
                   });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------
