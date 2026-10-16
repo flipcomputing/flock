@@ -4358,6 +4358,11 @@ const toolboxLists = {
       type: 'lists_sort',
       keyword: 'sort',
     },
+    {
+      kind: 'block',
+      type: 'lists_shuffle',
+      keyword: 'shuffle',
+    },
   ],
 };
 

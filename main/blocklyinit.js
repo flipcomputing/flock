@@ -886,6 +886,7 @@ export function initializeWorkspace() {
       'lists_getSublist',
       'lists_split',
       'lists_sort',
+      'lists_shuffle',
     ].forEach((type) => {
       const block = document.createElement('block');
       block.setAttribute('type', type);

@@ -147,6 +147,28 @@ export function registerDataGenerators(javascriptGenerator) {
     throw Error('Unhandled combination (lists_getIndex).');
   };
 
+  // Shuffled copy of list ------------------------------------------
+  javascriptGenerator.forBlock['lists_shuffle'] = function (block) {
+    const list =
+      javascriptGenerator.valueToCode(block, 'LIST', javascriptGenerator.ORDER_NONE) || '[]';
+    const functionName = javascriptGenerator.provideFunction_(
+      'listsShuffle',
+      `
+      function ${javascriptGenerator.FUNCTION_NAME_PLACEHOLDER_}(list) {
+        var copy = list.slice();
+        for (var i = copy.length - 1; i > 0; i--) {
+          var j = randomInteger(0, i);
+          var tmp = copy[i];
+          copy[i] = copy[j];
+          copy[j] = tmp;
+        }
+        return copy;
+      }
+      `
+    );
+    return [`${functionName}(${list})`, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
+
   // Set index of item in list --------------------------------------
   javascriptGenerator.forBlock['lists_setIndex'] = function (block) {
     function cacheList() {
