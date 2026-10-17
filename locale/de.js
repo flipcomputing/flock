@@ -1394,6 +1394,9 @@ export default {
   gizmo_controls_hint: 'Blende die Gizmo-Steuerung über Menü > Werkzeuge ein oder aus.', // ai
   xr_mode_missing_hint:
     'Kein XR‑Modus‑Block, daher öffnet dieses Projekt nicht im Headset. Füge einen über Szene > XR hinzu.', // ai
+  unknown_block_warning: 'Block in dieser Version von Flock XR nicht erkannt', // ai
+  unrecognised_blocks_loaded:
+    'Einige Blöcke werden von dieser Version von Flock XR nicht erkannt und wurden deaktiviert.', // ai
   shortcut_quick_colour: 'Schnellfarbauswahl im Farbwähler',
   shortcut_delete_object: 'Objekt löschen',
 

@@ -14,6 +14,7 @@ import { showBanner, dismissBanner } from '../ui/notifications.js';
 import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
+import { replaceUnrecognisedBlocks } from '../blocks/unknownBlock.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
 
@@ -380,8 +381,12 @@ export function loadWorkspaceAndExecute(
   const validatedJson = validateBlocklyJson(json);
 
   try {
+    const unrecognised = replaceUnrecognisedBlocks(validatedJson);
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     syncCollapsedBlockIcons(workspace);
+    if (unrecognised > 0) {
+      showStatus(translate('unrecognised_blocks_loaded'), { owner: 'unrecognised-blocks' });
+    }
 
     workspace.scroll(0, 0);
     executeCallback({ focusCanvas });

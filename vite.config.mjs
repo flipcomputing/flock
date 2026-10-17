@@ -126,7 +126,7 @@ export default {
           src: 'node_modules/@babylonjs/core/assets/Draco/*',
           dest: 'draco', // will be served from /draco/
         },
-      ],
+      ].map((target) => ({ ...target, rename: { stripBase: true } })),
     }),
     VitePWA({
       base: BASE_URL,

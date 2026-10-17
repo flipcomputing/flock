@@ -692,6 +692,7 @@ export const flockSandbox = {
       createTag: this.createTag?.bind(this),
       tagObject: this.tagObject?.bind(this),
       getObjectsWithTag: this.getObjectsWithTag?.bind(this),
+      getClonesOf: this.getClonesOf?.bind(this),
       show: this.show?.bind(this),
       hide: this.hide?.bind(this),
       clearEffects: this.clearEffects?.bind(this),

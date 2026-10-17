@@ -4310,6 +4310,11 @@ const toolboxLists = {
     },
     {
       kind: 'block',
+      type: 'all_clones_of',
+      keyword: 'clones',
+    },
+    {
+      kind: 'block',
       type: 'lists_repeat',
       keyword: 'item*',
     },
@@ -4352,6 +4357,11 @@ const toolboxLists = {
       kind: 'block',
       type: 'lists_sort',
       keyword: 'sort',
+    },
+    {
+      kind: 'block',
+      type: 'lists_shuffle',
+      keyword: 'shuffle',
     },
   ],
 };

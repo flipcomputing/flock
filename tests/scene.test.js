@@ -1143,6 +1143,102 @@ export function runSceneTests(flock) {
       });
     });
 
+    // ─── getClonesOf ───────────────────────────────────────────────────────────
+
+    describe('getClonesOf', function () {
+      const createdIds = [];
+
+      afterEach(async function () {
+        for (const id of [...createdIds].reverse()) await flock.dispose(id);
+        createdIds.length = 0;
+      });
+
+      const box = (id, x = 0) => {
+        const name = flock.createBox(id, {
+          color: '#996633',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [x, 0, 0],
+        });
+        createdIds.push(name);
+        return name;
+      };
+      const clone = async (sourceMeshName, cloneId) => {
+        const name = flock.cloneMesh({ sourceMeshName, cloneId });
+        createdIds.push(name);
+        await flock.whenModelReady(name);
+        return name;
+      };
+
+      it('lists clones and clones of clones in creation order', async function () {
+        const source = box('clonesOfSrc__g1');
+        box('clonesOfOther__g2', 3);
+        await flock.whenModelReady(source);
+        const first = await clone(source, 'clonesOfFirst');
+        const second = await clone(source, 'clonesOfSecond');
+        const nested = await clone(first, 'clonesOfNested');
+
+        expect(flock.getClonesOf(source)).to.deep.equal([first, second, nested]);
+        expect(flock.getClonesOf(first)).to.deep.equal([nested]);
+        expect(flock.getClonesOf(nested)).to.deep.equal([]);
+      });
+
+      it('leaves out mirrored copies and their clones', async function () {
+        const source = box('clonesOfMirrorSrc__g3');
+        await flock.whenModelReady(source);
+        const mirrored = flock.mirror(source, { mirrorId: 'clonesOfMirror__g4', axis: 'x' });
+        createdIds.push(mirrored);
+        await flock.whenModelReady(mirrored);
+        const mirrorClone = await clone(mirrored, 'clonesOfMirrorClone');
+
+        expect(flock.getClonesOf(source)).to.deep.equal([]);
+        expect(flock.getClonesOf(mirrored)).to.deep.equal([mirrorClone]);
+      });
+
+      it('lists only the top object of a cloned parent', async function () {
+        const parent = box('clonesOfParent__g5');
+        const child = box('clonesOfChild__g6', 2);
+        await flock.parentChild(parent, child, 2, 0, 0);
+        const copy = await clone(parent, 'clonesOfParentCopy');
+
+        expect(flock.getClonesOf(parent)).to.deep.equal([copy]);
+        expect(flock.getClonesOf(child)).to.deep.equal([]);
+      });
+
+      it('leaves out the look of a linked clone with its own colour', async function () {
+        const source = box('clonesOfLinkSrc__g8');
+        await flock.whenModelReady(source);
+        const linked = flock.cloneMesh({
+          sourceMeshName: source,
+          cloneId: 'clonesOfLinked',
+          mode: 'linked',
+        });
+        createdIds.push(linked);
+        await flock.whenModelReady(linked);
+        await flock.changeColor(linked, { color: '#00ff00' });
+        expect(flock._lookTarget(flock.scene.getMeshByName(linked)).name).to.not.equal(linked);
+
+        expect(flock.getClonesOf(source)).to.deep.equal([linked]);
+      });
+
+      it('drops disposed clones', async function () {
+        const source = box('clonesOfDisposeSrc__g7');
+        await flock.whenModelReady(source);
+        const kept = await clone(source, 'clonesOfKept');
+        const gone = await clone(source, 'clonesOfGone');
+        await flock.dispose(gone);
+
+        expect(flock.getClonesOf(source)).to.deep.equal([kept]);
+      });
+
+      it('returns an empty list for a missing object or a non-string', function () {
+        expect(flock.getClonesOf('clonesOfMissing')).to.deep.equal([]);
+        expect(flock.getClonesOf(null)).to.deep.equal([]);
+        expect(flock.getClonesOf({})).to.deep.equal([]);
+      });
+    });
+
     // ─── copy and linked clones ────────────────────────────────────────────────
 
     describe('cloneMesh copy and linked modes', function () {

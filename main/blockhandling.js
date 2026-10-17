@@ -1002,12 +1002,12 @@ function patchFieldFlatWhenStatic(FieldClass) {
         const blockColour = block?.getColour() ?? 'var(--color-text-primary)';
         this.borderRect_.style.setProperty(
           'fill',
-          `color-mix(in srgb, ${blockColour} 25%, var(--color-bg))`,
+          `color-mix(in srgb, ${blockColour} 25%, #fff)`,
           'important'
         );
         this.borderRect_.style.setProperty(
           'stroke',
-          `color-mix(in srgb, ${blockColour} 45%, var(--color-bg))`,
+          `color-mix(in srgb, ${blockColour} 45%, #fff)`,
           'important'
         );
       }

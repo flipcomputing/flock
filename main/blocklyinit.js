@@ -42,6 +42,7 @@ import { defineColourBlocks } from '../blocks/colour.js';
 import { installContrastWarnings } from '../blocks/colourcontrast.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { defineUnknownBlock } from '../blocks/unknownBlock.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
 import { handleRecentObjectEvent } from '../blocks/variableNames.js';
 import { localVariableBlock } from '../toolbox.js';
@@ -345,6 +346,7 @@ export function initializeBlocks() {
   defineColourBlocks();
   defineSensingBlocks();
   defineTextBlocks();
+  defineUnknownBlock();
   defineGenerators();
 }
 
@@ -874,6 +876,7 @@ export function initializeWorkspace() {
       'lists_create_empty',
       'lists_create_with',
       'all_with_tag',
+      'all_clones_of',
       'lists_repeat',
       'lists_length',
       'lists_isEmpty',
@@ -883,6 +886,7 @@ export function initializeWorkspace() {
       'lists_getSublist',
       'lists_split',
       'lists_sort',
+      'lists_shuffle',
     ].forEach((type) => {
       const block = document.createElement('block');
       block.setAttribute('type', type);

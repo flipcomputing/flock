@@ -1401,6 +1401,9 @@ export default {
   gizmo_controls_hint: 'Pokaż lub ukryj sterowanie gizmo w Menu > Narzędzia.', // ai
   xr_mode_missing_hint:
     'Brak bloku trybu XR, więc ten projekt nie otworzy się w goglach. Dodaj go z Scena > XR.', // ai
+  unknown_block_warning: 'Blok nierozpoznany w tej wersji Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Niektóre bloki nie są rozpoznawane przez tę wersję Flock XR, więc zostały wyłączone.', // ai
   shortcut_quick_colour: 'Szybkie użycie koloru w selektorze kolorów',
   shortcut_delete_object: 'Usuń obiekt',
 

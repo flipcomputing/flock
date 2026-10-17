@@ -948,9 +948,9 @@ export const flockUI = {
     flock._applyXRInputState?.();
     flock._applyTeleportationState?.();
     if (setting) {
-      flock.scene.activeCamera.attachControl(flock.canvas, false);
+      flock.scene?.activeCamera?.attachControl(flock.canvas, false);
     } else {
-      flock.scene.activeCamera.detachControl();
+      flock.scene?.activeCamera?.detachControl();
     }
   },
   interactIndicator(setting) {

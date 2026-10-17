@@ -123,6 +123,7 @@ function addLookChild(root) {
   look.metadata = { ...root.metadata, lookVisual: true };
   delete look.metadata.blockKey;
   delete look.metadata.tags;
+  delete look.metadata.cloneOf;
   if (flock.shadowCasters?.has(root.sourceMesh)) {
     flock.shadowCasters.add(look);
     flock.shadowGenerator?.addShadowCaster(look);
@@ -1208,6 +1209,7 @@ export const flockScene = {
         if (clone.metadata.tags) clone.metadata.tags = [...clone.metadata.tags];
         clone.metadata.sourceBlockKey ??= sourceMesh.metadata?.blockKey;
         clone.metadata.blockKey = blockKey;
+        clone.metadata.cloneOf = [...(sourceMesh.metadata?.cloneOf ?? []), sourceMesh.uniqueId];
         setMetadata(clone);
         [sourceMesh, ...sourceMesh.getDescendants()].forEach(setMetadata);
         clone.getDescendants().forEach((node) => {
@@ -1217,6 +1219,7 @@ export const flockScene = {
           if (node.metadata.tags) node.metadata.tags = [...node.metadata.tags];
           delete node.metadata.blockKey;
           delete node.metadata.mirror;
+          delete node.metadata.cloneOf;
         });
         // A copy of a mirror is not a mirror itself; mirror() sets its own.
         delete clone.metadata.mirror;

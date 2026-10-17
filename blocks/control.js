@@ -149,6 +149,27 @@ export function defineControlBlocks() {
     },
   };
 
+  Blockly.Blocks['all_clones_of'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'all_clones_of',
+        message0: translate('all_clones_of'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH',
+            variable: window.currentMesh,
+          },
+        ],
+        output: 'Array',
+        colour: categoryColours['Lists'],
+        tooltip: getTooltip('all_clones_of'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('list_blocks');
+    },
+  };
+
   Blockly.Blocks['for_loop'] = {
     init: function () {
       this.jsonInit({

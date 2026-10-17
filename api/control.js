@@ -130,4 +130,12 @@ export const flockControl = {
       .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.tags?.includes(tag))
       .map((mesh) => mesh.name);
   },
+  getClonesOf(meshName) {
+    if (typeof meshName !== 'string') return [];
+    const source = flock.scene?.getMeshByName(meshName);
+    if (!source) return [];
+    return flock.scene.meshes
+      .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.cloneOf?.includes(source.uniqueId))
+      .map((mesh) => mesh.name);
+  },
 };

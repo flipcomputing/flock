@@ -1742,6 +1742,26 @@ export function defineBlocks() {
     },
   };
 
+  Blockly.Blocks['lists_shuffle'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'lists_shuffle',
+        message0: translate('lists_shuffle'),
+        args0: [
+          {
+            type: 'input_value',
+            name: 'LIST',
+            check: 'Array',
+          },
+        ],
+        output: 'Array',
+        tooltip: getTooltip('lists_shuffle'),
+      });
+      this.setStyle('list_blocks');
+      this.setHelpUrl(getHelpUrlFor(this.type));
+    },
+  };
+
   Blockly.Blocks['lists_delete_nth'] = {
     init: function () {
       this.jsonInit({

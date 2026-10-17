@@ -221,6 +221,8 @@ export default {
   variable_unavailable_warning: "'%1' isn't available here.",
   tag_object: 'tag %1 with %2',
   all_with_tag: 'all with tag %1',
+  all_clones_of: 'all clones of %1',
+  lists_shuffle: 'shuffled %1',
   for_loop2: 'for each %1 from %2 to %3 by %4 do %5',
   for_loop: 'for each %1 from %2 to %3 by %4 do %5',
   get_lexical_variable: '%1',
@@ -571,6 +573,10 @@ export default {
   tag_object_tooltip:
     'Give a list of objects a tag. Copies of the objects get the tag too. Use the tag in when clicked or on collision blocks to respond to every object with the tag.',
   all_with_tag_tooltip: 'A list of all the objects with this tag.',
+  lists_shuffle_tooltip:
+    'A copy of the list with its items in a random order. The original list is not changed.',
+  all_clones_of_tooltip:
+    'A list of all the clones of this object, including clones of its clones. Mirrored copies are not included.',
   for_loop2_tooltip: 'Loop from a starting number to an ending number by a given step.',
   for_loop_tooltip:
     'Loop from a starting number to an ending number by a given step. Click on the dropdown to get the loop variable to use in your code.',
@@ -1808,6 +1814,9 @@ export default {
   gizmo_controls_hint: 'Show or hide the gizmo controls from Menu > Tools.',
   xr_mode_missing_hint:
     "No XR mode block, so this project won't open in your headset. Add one from Scene > XR.",
+  unknown_block_warning: 'Block unrecognised in this version of Flock XR',
+  unrecognised_blocks_loaded:
+    "Some blocks aren't recognised by this version of Flock XR, so they have been disabled.",
   shortcut_quick_colour: 'Quick use colour in colour picker',
   shortcut_delete_object: 'Delete object',
   shortcut_fly_move: 'Fly camera: move',
