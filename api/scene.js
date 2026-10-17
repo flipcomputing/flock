@@ -36,6 +36,10 @@ function instantiateClone(source, name) {
     } else {
       node = from.clone(nodeName, parent ?? from.parent, true);
     }
+    if (isInstance(node)) {
+      const source = node.sourceMesh;
+      node.onDisposeObservable.addOnce(() => releaseDeletedOriginal(source));
+    }
     node.parent = parent ?? from.parent;
     copyPlacement(from, node);
     node.id = node.name;
@@ -120,6 +124,8 @@ function addLookChild(root) {
   look.rotationQuaternion = null;
   look.rotation.setAll(0);
   look.scaling.setAll(1);
+  look.isVisible = true;
+  look.isPickable = root.isPickable;
   look.metadata = { ...root.metadata, lookVisual: true };
   delete look.metadata.blockKey;
   delete look.metadata.tags;
@@ -392,6 +398,73 @@ function linkClone(source, copy) {
   copy.onDisposeObservable.addOnce(() => {
     synced.delete(copy);
     siblings.delete(copy);
+    releaseDeletedOriginal(linkOf.get(copy)?.source ?? source);
+  });
+}
+
+const hierarchyOf = (mesh) => [mesh, ...(mesh.getDescendants?.(false) ?? [])];
+
+function stillUsed(node) {
+  if (node.instances?.length) return true;
+  for (const follower of linkedCopiesOf.get(node) ?? []) {
+    if (!follower.isDisposed()) return true;
+  }
+  return false;
+}
+
+function disposeBody(node) {
+  const md = node.metadata;
+  if (md?.uprightConstraint) {
+    try {
+      md.uprightConstraint.dispose();
+    } catch (e) {
+      console.warn('Error disposing constraint:', e);
+    }
+    md.uprightConstraint = null;
+  }
+  if (node._postPhysicsUpkeep) {
+    flock.scene.onAfterPhysicsObservable.remove(node._postPhysicsUpkeep);
+    node._postPhysicsUpkeep = null;
+  }
+  if (node.physics) {
+    releaseShape(node.physics.shape);
+    node.physics.dispose();
+  }
+}
+
+function keepDeletedOriginal(mesh) {
+  const nodes = hierarchyOf(mesh);
+  flock.scene.stopAnimation(mesh);
+  mesh.setParent(null);
+  mesh.name = mesh.id = `${mesh.name}.deleted.${mesh.uniqueId}`;
+  for (const node of nodes) {
+    node.metadata = { ...node.metadata, deletedOriginal: true };
+    delete node.metadata.blockKey;
+    delete node.metadata.tags;
+    node.metadata.currentSound?.stop();
+    node._deletedOriginal = mesh;
+    disposeBody(node);
+    node.physics = null;
+    delete node._pendingBody;
+    node.actionManager?.dispose();
+    node.actionManager = null;
+    if (node instanceof flock.BABYLON.AbstractMesh) {
+      node.isVisible = false;
+      node.isPickable = false;
+    }
+  }
+  for (const [name, cached] of flock._liveNameCache ?? []) {
+    if (nodes.includes(cached)) flock._liveNameCache.delete(name);
+  }
+}
+
+function releaseDeletedOriginal(node) {
+  const original = node?._deletedOriginal;
+  if (!original || original.isDisposed()) return;
+  queueMicrotask(() => {
+    if (!original.isDisposed() && !hierarchyOf(original).some(stillUsed)) {
+      flock.disposeMesh(original);
+    }
   });
 }
 
@@ -989,11 +1062,9 @@ export const flockScene = {
       return;
     }
 
-    for (const node of [mesh, ...(mesh.getDescendants?.(false) ?? [])]) {
-      const dependents = [...(linkedCopiesOf.get(node) ?? [])];
-      for (const dependent of dependents) {
-        if (!dependent.isDisposed()) flock.disposeMesh(dependent);
-      }
+    if (hierarchyOf(mesh).some(stillUsed)) {
+      if (!mesh.metadata?.deletedOriginal) keepDeletedOriginal(mesh);
+      return;
     }
 
     let meshesToDispose = [mesh];
@@ -1054,23 +1125,7 @@ export const flockScene = {
 
     meshesToDispose.reverse().forEach((currentMesh) => {
       if (!currentMesh.isDisposed()) {
-        const md = currentMesh.metadata;
-        if (md?.uprightConstraint) {
-          try {
-            md.uprightConstraint.dispose();
-          } catch (e) {
-            console.warn('Error disposing constraint:', e);
-          }
-          md.uprightConstraint = null;
-        }
-        if (currentMesh._postPhysicsUpkeep) {
-          flock.scene.onAfterPhysicsObservable.remove(currentMesh._postPhysicsUpkeep);
-          currentMesh._postPhysicsUpkeep = null;
-        }
-        if (currentMesh.physics) {
-          releaseShape(currentMesh.physics.shape);
-          currentMesh.physics.dispose();
-        }
+        disposeBody(currentMesh);
         flock.scene.removeMesh(currentMesh);
         currentMesh.setEnabled(false);
         currentMesh.dispose();
@@ -1450,6 +1505,7 @@ export const flockScene = {
       linkedCopiesOf.get(link.source)?.delete(mesh);
       linkSync?.copies.delete(mesh);
       linkOf.delete(mesh);
+      releaseDeletedOriginal(link.source);
     }
     if (![mesh, ...mesh.getDescendants(false)].some(isInstance)) return mesh;
     const standalone = realiseHierarchy(mesh, { keepRoot: false });

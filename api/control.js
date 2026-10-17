@@ -135,7 +135,12 @@ export const flockControl = {
     const source = flock.scene?.getMeshByName(meshName);
     if (!source) return [];
     return flock.scene.meshes
-      .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.cloneOf?.includes(source.uniqueId))
+      .filter(
+        (mesh) =>
+          !mesh.isDisposed() &&
+          !mesh.metadata?.deletedOriginal &&
+          mesh.metadata?.cloneOf?.includes(source.uniqueId)
+      )
       .map((mesh) => mesh.name);
   },
 };

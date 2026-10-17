@@ -1395,15 +1395,75 @@ export function runSceneTests(flock) {
         expect(colourOf(secondId)).to.equal('#0000ff');
       });
 
-      it('should delete linked clones, but not copies, with the source', async function () {
+      it('should keep linked clones when the source is deleted, hiding the original until they go', async function () {
         const sourceId = box('linkDel__lk7');
         const linkedId = await cloneOf(sourceId, 'linkH', { mode: 'linked' });
         const copyId = await cloneOf(sourceId, 'copyH');
+        const original = mesh(sourceId);
 
+        flock.disposeMesh(original);
+        frame();
+
+        const linked = mesh(linkedId);
+        expect(mesh(sourceId)).to.be.null;
+        expect(mesh(copyId)).to.exist;
+        expect(linked.getClassName()).to.equal('InstancedMesh');
+        expect(linked.sourceMesh).to.equal(original);
+        expect(linked.isEnabled()).to.be.true;
+        expect(original.isDisposed()).to.be.false;
+        expect(original.isVisible).to.be.false;
+        expect(original.isPickable).to.be.false;
+        expect(original.physics).to.be.null;
+        expect(flock.scene.meshes.filter((m) => flock._inGroup(m, 'linkDel'))).to.not.include(original);
+
+        const position = linked.getAbsolutePosition();
+        const hit = flock.scene.pickWithRay(
+          new flock.BABYLON.Ray(
+            new flock.BABYLON.Vector3(position.x, position.y + 5, position.z),
+            new flock.BABYLON.Vector3(0, -1, 0),
+            20
+          )
+        );
+        expect(hit.pickedMesh).to.equal(linked);
+
+        flock.disposeMesh(linked);
+        await settle();
+        expect(original.isDisposed()).to.be.true;
+      });
+
+      it('should make a visible copy of a linked clone whose source was deleted', async function () {
+        const sourceId = box('linkDelCopy__lk8', '#ff0000');
+        const linkedId = await cloneOf(sourceId, 'linkK', { mode: 'linked' });
         flock.disposeMesh(mesh(sourceId));
 
-        expect(mesh(linkedId)).to.be.null;
-        expect(mesh(copyId)).to.exist;
+        const copyId = await cloneOf(linkedId, 'copyK');
+
+        expect(mesh(copyId).getClassName()).to.equal('Mesh');
+        expect(mesh(copyId).isVisible).to.be.true;
+        expect(mesh(copyId).isPickable).to.be.true;
+        expect(colourOf(copyId)).to.equal('#ff0000');
+      });
+
+      it('should keep a deleted linked clone while its own linked clones use it', async function () {
+        const sourceId = box('linkDelChain__lk9', '#ff0000');
+        const firstId = await cloneOf(sourceId, 'linkI', { mode: 'linked' });
+        const secondId = await cloneOf(firstId, 'linkJ', { mode: 'linked' });
+        const original = mesh(sourceId);
+        const first = mesh(firstId);
+
+        flock.disposeMesh(first);
+        flock.disposeMesh(original);
+        await settle();
+
+        expect(mesh(firstId)).to.be.null;
+        expect(mesh(secondId)).to.exist;
+        expect(first.isDisposed()).to.be.false;
+        expect(original.isDisposed()).to.be.false;
+
+        flock.disposeMesh(mesh(secondId));
+        await settle();
+        expect(first.isDisposed()).to.be.true;
+        expect(original.isDisposed()).to.be.true;
       });
 
       it('should free the shared physics shape only when its last body goes', async function () {
@@ -1604,7 +1664,13 @@ export function runSceneTests(flock) {
         expect(colourOf(secondId)).to.equal('#00ff00');
 
         flock.disposeMesh(standalone);
-        expect(mesh(secondId)).to.be.null;
+        expect(mesh(firstId)).to.be.null;
+        expect(mesh(secondId)).to.exist;
+        expect(colourOf(secondId)).to.equal('#00ff00');
+
+        flock.disposeMesh(mesh(secondId));
+        await settle();
+        expect(standalone.isDisposed()).to.be.true;
       });
 
       it('should keep a follower built from a promoted clone when that clone is made standalone', async function () {
@@ -1654,17 +1720,25 @@ export function runSceneTests(flock) {
         expect(Array.from(look(copyId).getVerticesData(uvKind))).to.not.deep.equal(sourceUVs);
       });
 
-      it('should delete a promoted linked clone with the source', async function () {
+      it('should keep a promoted linked clone when the source is deleted', async function () {
         const sourceId = box('linkDelPromoted__li11');
-        const shape = mesh(sourceId).physics.shape;
+        const original = mesh(sourceId);
+        const shape = original.physics.shape;
         const copyId = await cloneOf(sourceId, 'linkDelPromotedA', { mode: 'linked' });
         await flock.changeColor(copyId, { color: '#00ff00' });
         const lookChild = look(copyId);
 
-        flock.disposeMesh(mesh(sourceId));
+        flock.disposeMesh(original);
 
-        expect(mesh(copyId)).to.be.null;
-        expect(lookChild.isDisposed()).to.be.true;
+        expect(mesh(copyId)).to.exist;
+        expect(lookChild.isDisposed()).to.be.false;
+        expect(lookChild.isVisible).to.be.true;
+        expect(colourOf(copyId)).to.equal('#00ff00');
+        expect(shape._isDisposed).to.not.be.true;
+
+        flock.disposeMesh(mesh(copyId));
+        await settle();
+        expect(original.isDisposed()).to.be.true;
         expect(shape._isDisposed).to.be.true;
       });
 
