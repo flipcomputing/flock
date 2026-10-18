@@ -1678,6 +1678,7 @@ export default {
   howto_select_an_object_ui: 'Select an object',
   howto_position_objects_ui: 'Position an object',
   howto_position_with_code_ui: 'Position an object with code',
+  howto_first_and_then_compartments_ui: 'Use the first and then compartments',
   howto_position_from_block_ui: 'Position from block',
   howto_duplicate_objects_ui: 'Duplicate an object',
   howto_look_around_ui: 'Explore your world',

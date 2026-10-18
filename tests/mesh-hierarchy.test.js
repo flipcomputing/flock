@@ -616,6 +616,96 @@ export function runMeshHierarchyTests(flock) {
         expect(worldPosAfter.z).to.be.closeTo(worldPosBefore.z, 0.05);
       });
 
+      it("should refit to a member rotated in its own DO, even when parented before the DO ends", async function () {
+        const groupId = 'hierarchyGroupLateDo';
+        const childId = 'hierarchyGroupLateDoChild';
+
+        await flock.createGroup(groupId, { position: [0, 0, 0] });
+        flock.createBox(childId, {
+          width: 4,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+          hasDo: true,
+        });
+        meshIds.push(groupId, childId);
+        await flock.setParent(groupId, childId);
+
+        let release;
+        const gate = new Promise((resolve) => (release = resolve));
+        const done = flock.runDo(childId, async (name) => {
+          await gate;
+          await flock.rotateTo(name, { x: 0, y: 90, z: 0 });
+        });
+
+        const groupMesh = flock.scene.getMeshByName(groupId);
+        const sizeOf = () => {
+          const bb = groupMesh.getBoundingInfo().boundingBox;
+          return bb.maximum.subtract(bb.minimum);
+        };
+        expect(sizeOf().x, 'before the DO ends').to.be.closeTo(4, 0.05);
+
+        release();
+        await done;
+        expect(sizeOf().x).to.be.closeTo(1, 0.05);
+        expect(sizeOf().z).to.be.closeTo(4, 0.05);
+      });
+
+      it('should refit to a model rotated in its own DO after it joined the group', async function () {
+        this.timeout(10000);
+        const groupId = 'hierarchyGroupLateDoModel';
+        await flock.createGroup(groupId, { position: [0, 0, 0] });
+
+        let release;
+        const gate = new Promise((resolve) => (release = resolve));
+        let constructed;
+        const doFinished = new Promise((resolve) => (constructed = resolve));
+        const childId = flock.createObject({
+          modelName: 'Heart.glb',
+          modelId: 'hierarchyGroupLateDoHeart',
+          position: { x: 0, y: 0, z: 0 },
+          callback: async (name) => {
+            await gate;
+            await flock.rotateTo(name, { x: 0, y: 90, z: 0 });
+            constructed();
+          },
+        });
+        meshIds.push(groupId, childId);
+        await waitForModel(flock, childId);
+        await flock.setParent(groupId, childId);
+
+        const groupMesh = flock.scene.getMeshByName(groupId);
+        const childMesh = flock.scene.getMeshByName(childId);
+        const groupSize = () => {
+          const bb = groupMesh.getBoundingInfo().boundingBox;
+          return bb.maximum.subtract(bb.minimum);
+        };
+        const childSize = () => {
+          const { min, max } = childMesh.getHierarchyBoundingVectors(true);
+          return max.subtract(min);
+        };
+        const before = childSize();
+        expect(Math.abs(before.x - before.z), 'model is not square').to.be.above(0.05);
+        expect(groupSize().x, 'before the DO ends').to.be.closeTo(before.x, 0.05);
+
+        release();
+        await pumpAnimation(flock, doFinished);
+        const refitted = new Promise((resolve) => {
+          const started = Date.now();
+          const check = () =>
+            Math.abs(groupSize().x - childSize().x) < 0.05 || Date.now() - started > 3000
+              ? resolve()
+              : setTimeout(check, 20);
+          check();
+        });
+        await pumpAnimation(flock, refitted);
+
+        const after = childSize();
+        expect(after.x, 'child turned').to.be.closeTo(before.z, 0.05);
+        expect(groupSize().x).to.be.closeTo(after.x, 0.05);
+        expect(groupSize().z).to.be.closeTo(after.z, 0.05);
+      });
+
       it('should apply rotateTo in world space regardless of the group\'s own rotation', async function () {
         const groupId = 'hierarchyGroup9';
         const childId = 'hierarchyGroupChild9';

@@ -65,6 +65,7 @@ const HOW_TOS = [
   { slug: 'color-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
   { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'], icon: 'positiongizmo' },
   { slug: 'position-with-code', i18nKey: 'howto_position_with_code_ui', tone: 15, tags: ['code'] },
+  { slug: 'first-and-then-compartments', i18nKey: 'howto_first_and_then_compartments_ui', tone: 38, tags: ['code'] },
   { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'], icon: 'rotategizmo' },
   { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'], icon: 'scalegizmo' },
   { slug: 'select-an-object', i18nKey: 'howto_select_an_object_ui', tone: 14, tags: ['gizmo'], icon: 'selectgizmo' },

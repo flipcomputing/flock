@@ -257,6 +257,7 @@ export const flockModels = {
               .then(() => {
                 flock.releaseBody(bb);
                 mesh.setEnabled(true);
+                if (callback) flock._refitGroupsAbove(bb);
               })
           )
           .then(async () => {
@@ -487,6 +488,7 @@ export const flockModels = {
           runConstructor.then(() => {
             if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
             flock.releaseBody(root);
+            flock._refitGroupsAbove(root);
             return revealWhenDrawable(mesh);
           })
         )

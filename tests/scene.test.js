@@ -1085,7 +1085,7 @@ export function runSceneTests(flock) {
         });
         createdIds.push(boxId);
         await flock.runDo(boxId, (me) => calls.push(['source do', me]));
-        await flock.runThen(boxId, (me) => calls.push(['source then', me]));
+        flock.runThen(boxId, (me) => calls.push(['source then', me]));
         calls.length = 0;
 
         const cloneId = flock.cloneMesh({
@@ -1140,6 +1140,74 @@ export function runSceneTests(flock) {
           ['first', secondId],
           ['second', secondId],
         ]);
+      });
+    });
+
+    describe('runThen', function () {
+      let boxId;
+
+      afterEach(function () {
+        if (boxId) flock.dispose(boxId);
+        boxId = null;
+      });
+
+      it('should return without waiting for an async then body', async function () {
+        boxId = flock.createBox('runThenNoWait__r1', {
+          color: '#336699',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        let release;
+        const gate = new Promise((resolve) => (release = resolve));
+        const calls = [];
+
+        const returned = flock.runThen(boxId, async (me) => {
+          calls.push(['started', me]);
+          await gate;
+          calls.push(['finished', me]);
+        });
+
+        expect(returned).to.equal(undefined);
+        expect(calls).to.deep.equal([['started', boxId]]);
+
+        release();
+        await gate;
+        await Promise.resolve();
+        expect(calls).to.deep.equal([
+          ['started', boxId],
+          ['finished', boxId],
+        ]);
+      });
+
+      it('should start the then body only after the do body finishes, without blocking', async function () {
+        boxId = flock.createBox('runThenAfterDo__r2', {
+          color: '#336699',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+          hasDo: true,
+        });
+        let release;
+        const gate = new Promise((resolve) => (release = resolve));
+        const calls = [];
+
+        const done = flock.runDo(boxId, async () => {
+          calls.push('do started');
+          await gate;
+          calls.push('do finished');
+        });
+        flock.runThen(boxId, () => calls.push('then'));
+        calls.push('next block');
+
+        expect(calls).to.deep.equal(['do started', 'next block']);
+
+        release();
+        await done;
+        await Promise.resolve();
+        expect(calls).to.deep.equal(['do started', 'next block', 'do finished', 'then']);
       });
     });
 

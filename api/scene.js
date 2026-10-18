@@ -1564,14 +1564,22 @@ export const flockScene = {
   runDo(meshName, fn) {
     const mesh = flock.scene?.getMeshByName(meshName);
     flock._rememberConstruction(mesh, { dos: [fn] });
-    if (!mesh?._awaitingDo) return fn(meshName);
-    return (async () => {
+    const run = (async () => {
       try {
-        return await fn(meshName);
+        await fn(meshName);
+      } catch (err) {
+        console.error('do error:', err);
       } finally {
-        flock._finishDo(mesh);
+        if (mesh?._doRun === run) delete mesh._doRun;
+        try {
+          flock._finishDo(mesh);
+        } catch (err) {
+          console.error('do error:', err);
+        }
       }
     })();
+    if (mesh) mesh._doRun = run;
+    return run;
   },
   // An object with a DO stays hidden and without a body until the DO has
   // run, so it appears, and collides, in its constructed state. A hide or
@@ -1588,18 +1596,40 @@ export const flockScene = {
     mesh.setEnabled(false);
   },
   _finishDo(mesh) {
-    if (!mesh?._awaitingDo || mesh.isDisposed()) return;
-    mesh.setEnabled(mesh._shownAfterDo);
-    delete mesh._awaitingDo;
-    delete mesh._shownAfterDo;
-    flock.releaseBody(mesh);
+    if (!mesh || mesh.isDisposed()) return;
+    if (mesh._awaitingDo) {
+      mesh.setEnabled(mesh._shownAfterDo);
+      delete mesh._awaitingDo;
+      delete mesh._shownAfterDo;
+      flock.releaseBody(mesh);
+    }
+    flock._refitGroupsAbove(mesh);
+  },
+  _refitGroupsAbove(mesh) {
+    for (let node = mesh?.parent; node; node = node.parent) {
+      if (node.metadata?.shapeType === 'Group') flock.recomputeGroupGeometry(node);
+    }
   },
   _isShown(mesh) {
     return mesh._awaitingDo ? mesh._shownAfterDo : mesh.isEnabled(false);
   },
   runThen(meshName, fn) {
-    flock._rememberConstruction(flock.scene?.getMeshByName(meshName), { thens: [fn] });
-    return fn(meshName);
+    const mesh = flock.scene?.getMeshByName(meshName);
+    flock._rememberConstruction(mesh, { thens: [fn] });
+    const signal = flock.abortController?.signal;
+    const start = () => {
+      if (signal?.aborted || mesh?.isDisposed()) return;
+      try {
+        const result = fn(meshName);
+        if (result && typeof result.then === 'function') {
+          Promise.resolve(result).catch((err) => console.error('then() error:', err));
+        }
+      } catch (err) {
+        console.error('then() error:', err);
+      }
+    };
+    if (mesh?._doRun) mesh._doRun.then(start);
+    else start();
   },
   _trackReveal(mesh, revealed) {
     const settled = revealed.then(
