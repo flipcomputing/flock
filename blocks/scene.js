@@ -1,7 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
-  handleBlockCreateEvent,
+  handleBlockChange,
   handleMeshLifecycleChange,
   handleFieldOrChildChange,
   addDoMutatorWithToggleBehavior,
@@ -13,8 +13,8 @@ import { flock } from '../flock.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
 import { mapNames } from '../config.js';
-import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
-import { addInitialTransformRows } from './initialTransformRows.js';
+import { updateOrCreateMeshFromBlock, watchCloneSources } from '../ui/blockmesh.js';
+import { addInitialTransformRows, defineSameNumberBlock } from './initialTransformRows.js';
 import { translate, getTooltip, getOption } from '../main/translation.js';
 
 function initSceneJsonBlock(block, { type, args0, inputsInline = true }) {
@@ -419,6 +419,8 @@ function attachCreateMapOnChange(block) {
 }
 
 export function defineSceneBlocks() {
+  defineSameNumberBlock();
+
   Blockly.Blocks['set_sky_color'] = {
     init: function () {
       initSceneColourLikeBlock(this, {
@@ -547,15 +549,19 @@ export function defineSceneBlocks() {
         nextStatement: null,
       });
 
-      registerBlockHandler(this, (changeEvent) => {
-        handleBlockCreateEvent(this, changeEvent, variableNamePrefix, 'CLONE_VAR');
-        handleInitialTransformRowsChange(this, changeEvent);
-      });
+      registerBlockHandler(
+        this,
+        (changeEvent) => {
+          handleBlockChange(this, changeEvent, variableNamePrefix, 'CLONE_VAR');
+          watchCloneSources(this, changeEvent);
+        },
+        { allEvents: true }
+      );
 
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('scene_blocks');
       addDoMutatorWithToggleBehavior(this);
-      addInitialTransformRows(this, { resize: true });
+      addInitialTransformRows(this, { resize: true, position: true });
     },
   };
 }

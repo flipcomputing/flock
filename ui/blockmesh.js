@@ -14,7 +14,11 @@ export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { markPendingBodyStale, releaseShape } from '../api/physics.js';
-import { createMeshOnCanvas, readTargetCameraOptions } from './addmeshes.js';
+import {
+  createMeshOnCanvas,
+  readTargetCameraOptions,
+  hasCloneSource,
+} from './addmeshes.js';
 import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
 import {
@@ -26,7 +30,8 @@ import {
   placeAtBlockPosition,
   writeMovedPosition,
   findOwnMove,
-  ensureOwnMove,
+  getClonePositionValues,
+  writeClonePositionAxes,
   findLegacyInitialRotation,
   findLegacyInitialSize,
   getInitialRotationValues,
@@ -831,8 +836,8 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
         changeEvent?.type === Blockly.Events.BLOCK_MOVE
     );
   }
-  if (block.type === 'mirror_mesh') {
-    scheduleMirrorRebuild(block);
+  if (CLONE_LIKE_TYPES.has(block.type)) {
+    scheduleCloneRebuild(block);
     return;
   }
   if (
@@ -878,6 +883,7 @@ function isBlockConnectedToEnabledChain(block) {
 
 const LITERAL_VALUE_TYPES = new Set([
   'math_number',
+  'same_number',
   'text',
   'text_multiline',
   'vector',
@@ -1605,22 +1611,23 @@ export function setGroupSelectionFollower(fn) {
 
 let groupActiveToggleListener = null;
 
-// True while a mirror is under a gizmo: disposing it would end the tool, so
-// its rebuild waits and only its placement follows. Owned by gizmos.js.
-let mirrorInUse = null;
+// True while a clone or mirror is under a gizmo: disposing it would end the
+// tool, so its rebuild waits and only a mirror's placement follows. Owned by
+// gizmos.js.
+let cloneInUse = null;
 
-export function setMirrorInUseCheck(fn) {
-  mirrorInUse = typeof fn === 'function' ? fn : null;
+export function setCloneInUseCheck(fn) {
+  cloneInUse = typeof fn === 'function' ? fn : null;
 }
 
 // Long enough for the source's own live update (often async) to land first.
-const MIRROR_REBUILD_DELAY_MS = 150;
-const MIRROR_SOURCE_RETRIES = 10;
-const mirrorRebuildTimers = new Map();
-// Mirrors already rebuilt in the dependency chain that led to a pending
-// rebuild, so mirrors built from each other can't rebuild each other forever.
-const mirrorRebuildChains = new Map();
-const MIRROR_EVENT_TYPES = new Set([
+const CLONE_REBUILD_DELAY_MS = 150;
+const CLONE_SOURCE_RETRIES = 10;
+const cloneRebuildTimers = new Map();
+// Clones and mirrors already rebuilt in the dependency chain that led to a
+// pending rebuild, so ones built from each other can't rebuild forever.
+const cloneRebuildChains = new Map();
+const CLONE_SOURCE_EVENT_TYPES = new Set([
   Blockly.Events.BLOCK_CHANGE,
   Blockly.Events.BLOCK_CREATE,
   Blockly.Events.BLOCK_DELETE,
@@ -1635,16 +1642,16 @@ function ownerBlocksOfVariable(block, fieldName) {
     .filter((b) => b !== block && getOwnVar(b) === variableId);
 }
 
-// A mirror tracks its source and about object while editing: any edit
-// inside either one's block rebuilds it. Unplugging fires a move before a
-// delete, so moves cover blocks deleted from inside them.
-export function watchMirrorSources(block, changeEvent) {
-  if (!MIRROR_EVENT_TYPES.has(changeEvent.type) || block.disposed) return;
+// A clone or mirror tracks its source (and a mirror its about object) while
+// editing: any edit inside one's block rebuilds it. Unplugging fires a move
+// before a delete, so moves cover blocks deleted from inside them.
+export function watchCloneSources(block, changeEvent) {
+  if (!CLONE_SOURCE_EVENT_TYPES.has(changeEvent.type) || block.disposed) return;
   if (isProjectLoading() && !changeEvent.recordUndo) return;
   if (!isMainWorkspaceEvent(changeEvent, block)) return;
 
   if (changeEvent.type === Blockly.Events.BLOCK_DELETE) {
-    if (getMeshFromBlock(block)) scheduleMirrorRebuild(block);
+    if (getMeshFromBlock(block)) scheduleCloneRebuild(block);
     return;
   }
 
@@ -1659,66 +1666,81 @@ export function watchMirrorSources(block, changeEvent) {
     ...ownerBlocksOfVariable(block, 'ABOUT'),
   ];
   if (roots.some((root) => touched.some((id) => isBlockIdDescendantOf(root, id)))) {
-    scheduleMirrorRebuild(block);
+    scheduleCloneRebuild(block);
   }
 }
 
-function scheduleMirrorRebuild(block, attempt = 0, chain = new Set()) {
-  clearTimeout(mirrorRebuildTimers.get(block.id));
-  mirrorRebuildChains.set(block.id, chain);
-  mirrorRebuildTimers.set(
+function scheduleCloneRebuild(block, attempt = 0, chain = new Set()) {
+  clearTimeout(cloneRebuildTimers.get(block.id));
+  cloneRebuildChains.set(block.id, chain);
+  cloneRebuildTimers.set(
     block.id,
     setTimeout(() => {
-      mirrorRebuildTimers.delete(block.id);
-      rebuildMirror(block, attempt);
-    }, MIRROR_REBUILD_DELAY_MS)
+      cloneRebuildTimers.delete(block.id);
+      rebuildCloneLike(block, attempt);
+    }, CLONE_REBUILD_DELAY_MS)
   );
 }
 
-function rebuildMirror(block, attempt) {
-  if (block.disposed) return;
+function rebuildCloneLike(block, attempt) {
+  if (block.disposed) {
+    cloneRebuildChains.delete(block.id);
+    return;
+  }
   const oldMesh = getMeshFromBlock(block);
-  if (oldMesh && mirrorInUse?.(oldMesh)) {
-    const source = getMeshFromBlockKey(oldMesh.metadata?.mirror?.sourceBlockKey);
-    if (source) flock.placeReflected(oldMesh, source, oldMesh.metadata.mirror);
-    scheduleMirrorRebuild(block, attempt, mirrorRebuildChains.get(block.id));
+  if (oldMesh && cloneInUse?.(oldMesh)) {
+    const mirror = oldMesh.metadata?.mirror;
+    const source = mirror && getMeshFromBlockKey(mirror.sourceBlockKey);
+    if (source) flock.placeReflected(oldMesh, source, mirror);
+    scheduleCloneRebuild(block, attempt, cloneRebuildChains.get(block.id));
     return;
   }
   deleteMeshFromBlock(block.id);
-  if (!isBlockConnectedToEnabledChain(block)) return;
+  if (!isBlockConnectedToEnabledChain(block)) {
+    cloneRebuildChains.delete(block.id);
+    return;
+  }
 
   const sourceOwner = ownerBlocksOfVariable(block, 'SOURCE_MESH')[0];
-  if (!getMeshFromBlock(sourceOwner)) {
+  const sourceReady =
+    block.type === 'clone_mesh' ? hasCloneSource(block) : getMeshFromBlock(sourceOwner);
+  if (!sourceReady) {
     // The source may itself be mid-rebuild (e.g. a model reloading).
-    if (sourceOwner && attempt < MIRROR_SOURCE_RETRIES) {
-      scheduleMirrorRebuild(block, attempt + 1, mirrorRebuildChains.get(block.id));
+    if (sourceOwner && attempt < CLONE_SOURCE_RETRIES) {
+      scheduleCloneRebuild(block, attempt + 1, cloneRebuildChains.get(block.id));
+    } else {
+      cloneRebuildChains.delete(block.id);
     }
     return;
   }
   createMeshOnCanvas(block);
 }
 
-// Re-applies the mirror's own DO edits that the live editor handles, as Play
-// would after building it. Takes the mesh: the block index may not have it yet.
-export function applyMirrorDoBlocks(block, mesh) {
+// Re-applies the clone or mirror's own DO edits that the live editor handles,
+// as Play would after building it. Takes the mesh: the block index may not
+// have it yet.
+export function applyCloneDoBlocks(block, mesh) {
   for (let cur = block.getInputTargetBlock('DO'); cur; cur = cur.getNextBlock()) {
     if (cur.isEnabled() && getCloneDoOwner(cur) === block) applyCloneDoBlock(cur, block, [mesh]);
   }
 }
 
-// A rebuilt mirror makes no block events, so mirrors built from it follow here.
-export function rebuildDependentMirrors(block) {
-  const chain = new Set(mirrorRebuildChains.get(block.id)).add(block.id);
-  mirrorRebuildChains.delete(block.id);
+// A rebuilt mesh makes no block events, so clones and mirrors built from it
+// follow here.
+export function rebuildDependentClones(block) {
+  const chain = new Set(cloneRebuildChains.get(block.id)).add(block.id);
+  cloneRebuildChains.delete(block.id);
   const variableId = getOwnVar(block);
-  if (!variableId) return;
-  for (const other of block.workspace.getBlocksByType('mirror_mesh', false)) {
-    if (chain.has(other.id)) continue;
-    if (
-      other.getFieldValue('SOURCE_MESH') === variableId ||
-      other.getFieldValue('ABOUT') === variableId
-    ) {
-      scheduleMirrorRebuild(other, 0, chain);
+  if (!variableId || block.disposed) return;
+  for (const type of CLONE_LIKE_TYPES) {
+    for (const other of block.workspace.getBlocksByType(type, false)) {
+      if (chain.has(other.id)) continue;
+      if (
+        other.getFieldValue('SOURCE_MESH') === variableId ||
+        other.getFieldValue('ABOUT') === variableId
+      ) {
+        scheduleCloneRebuild(other, 0, chain);
+      }
     }
   }
 }
@@ -1789,7 +1811,18 @@ function ownMoveTarget(move, mesh) {
 function initialPosition(block, mesh) {
   if (block.type !== 'clone_mesh') return getXYZFromBlock(block);
   const move = findOwnMove(block);
-  return move?.isEnabled() ? ownMoveTarget(move, mesh) : flock._getAnchor(mesh);
+  if (move?.isEnabled()) return ownMoveTarget(move, mesh);
+  if (!block.positionShown_) return flock._getAnchor(mesh);
+  const same = cloneSourceAnchor(block) ?? flock._getAnchor(mesh);
+  const values = getClonePositionValues(block);
+  return Object.fromEntries(
+    ['x', 'y', 'z'].map((axis) => [axis, Number.isFinite(values[axis]) ? values[axis] : same[axis]])
+  );
+}
+
+function cloneSourceAnchor(block) {
+  const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
+  return source && !source.isDisposed() ? flock._getAnchor(source) : null;
 }
 
 function restoreInitialScale(block, mesh) {
@@ -1872,17 +1905,17 @@ export function applyInitialTransformRows(
 // Without a move a clone keeps its source's anchor, so a move is only added
 // once the clone's anchor is somewhere else.
 export function writeClonePosition(block, anchor, { decimals = 1 } = {}) {
-  const move = findOwnMove(block);
-  if (move) {
-    writeMovedPosition(move, anchor, { decimals });
+  if (findOwnMove(block)) {
+    writeClonePositionAxes(block, anchor, { decimals });
     return;
   }
-  const source = getMeshFromBlock(ownerBlocksOfVariable(block, 'SOURCE_MESH')[0]);
-  const start = source && flock._getAnchor(source);
-  if (start && ['x', 'y', 'z'].every((axis) => Math.abs(start[axis] - anchor[axis]) <= 0.001)) {
-    return;
-  }
-  writeMovedPosition(ensureOwnMove(block), anchor, { decimals });
+  const values = block.positionShown_ ? getClonePositionValues(block) : {};
+  const same = cloneSourceAnchor(block);
+  const axes = ['x', 'y', 'z'].filter((axis) => {
+    const current = Number.isFinite(values[axis]) ? values[axis] : same?.[axis];
+    return !(Math.abs(current - anchor[axis]) <= 0.001);
+  });
+  if (axes.length) writeClonePositionAxes(block, anchor, { decimals, axes });
 }
 
 function inEventGroupOf(changeEvent, fn) {
@@ -1900,7 +1933,7 @@ function rowInputEdited(block, changeEvent) {
   const changed = block.workspace.getBlockById(changeEvent.blockId);
   if (!changed || changed.getParent() !== block) return null;
   const name = block.getInputWithBlock(changed)?.name;
-  return /^(ROTATE|SIZE)_[XYZ]$/.test(name ?? '') ? name : null;
+  return /^(POSITION|ROTATE|SIZE)_[XYZ]$/.test(name ?? '') ? name : null;
 }
 
 export function handleInitialTransformRowsChange(block, changeEvent) {
@@ -1921,10 +1954,13 @@ export function handleInitialTransformRowsChange(block, changeEvent) {
   }
 
   if (changeEvent.element !== 'mutation' || changeEvent.blockId !== block.id) return false;
-  const rowState = (text) => [/rotate="true"/.test(text ?? ''), /resize="true"/.test(text ?? '')];
-  const [oldRotate, oldResize] = rowState(changeEvent.oldValue);
-  const [newRotate, newResize] = rowState(changeEvent.newValue);
-  if (oldRotate === newRotate && oldResize === newResize) return false;
+  const rowState = (text) =>
+    ['position', 'rotate', 'resize'].map((row) => new RegExp(`${row}="true"`).test(text ?? ''));
+  const [oldPosition, oldRotate, oldResize] = rowState(changeEvent.oldValue);
+  const [newPosition, newRotate, newResize] = rowState(changeEvent.newValue);
+  if (oldPosition === newPosition && oldRotate === newRotate && oldResize === newResize) {
+    return false;
+  }
   const aboutCentre = oldRotate !== newRotate && changeEvent.recordUndo !== false;
   inEventGroupOf(changeEvent, () => applyInitialTransformRows(block, undefined, { aboutCentre }));
   return true;

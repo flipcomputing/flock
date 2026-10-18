@@ -146,6 +146,8 @@ export default {
   load_object: 'füge %1 %2 %3 hinzu Skalierung: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'füge %1 %2 hinzu Skalierung: %3 %8 x: %4 y: %5 z: %6\nFarben: %7',
   load_model: 'füge %1 %2 hinzu Skalierung: %3 %7 x: %4 y: %5 z: %6\nFarben: %8',
+  initial_position_label: 'Position',
+  same_axis_value: 'gleich',
   initial_rotation_label: 'Drehung',
   initial_size_label: 'Größe',
 

@@ -535,7 +535,7 @@ export function insertBlockSnapshot(snapshotJson, workspace, pickedPosition, con
   }
 
   const ownsGroup = !Blockly.Events.getGroup();
-  if (ownsGroup) Blockly.Events.setGroup('duplicate');
+  if (ownsGroup) Blockly.Events.setGroup(true);
 
   let duplicateBlock;
   try {
@@ -681,6 +681,8 @@ export function getNumberInput(block, inputName) {
   const target = block?.getInput(inputName)?.connection?.targetBlock?.();
   if (!target?.getFieldValue) return NaN;
 
-  const n = Number(target.getFieldValue('NUM'));
+  const value = target.getFieldValue('NUM');
+  if (value === '' || value === null) return NaN;
+  const n = Number(value);
   return Number.isFinite(n) ? n : NaN;
 }

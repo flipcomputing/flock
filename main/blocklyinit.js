@@ -1540,7 +1540,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!enableEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_disable');
+        Blockly.Events.setGroup(true);
         block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
         Blockly.Events.setGroup(false);
         return true;
@@ -1558,7 +1558,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!lockEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_lock');
+        Blockly.Events.setGroup(true);
         setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(false);
         window.flockBlockToolbar?.refresh?.(block);
@@ -1586,7 +1586,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!collapseEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_collapse');
+        Blockly.Events.setGroup(true);
         // Sections fold via their own sectionCollapsed_ flag, not Blockly's
         // native collapsed_/isCollapsed() (see setCollapsed override in
         // section.js), so isCollapsed() alone can't tell whether one is

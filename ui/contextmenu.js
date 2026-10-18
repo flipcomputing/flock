@@ -108,7 +108,7 @@ export function initContextMenus(workspace) {
 
         const healStack = !block.outputConnection?.isConnected();
         const prevGroup = Blockly.Events.getGroup();
-        Blockly.Events.setGroup('contextmenu_detach');
+        Blockly.Events.setGroup(true);
         block.unplug(healStack);
         const cursor = block.workspace?.getCursor?.();
         if (cursor?.setCurNode) cursor.setCurNode(block);
@@ -224,7 +224,7 @@ export function initContextMenus(workspace) {
         const block = scope.block;
         if (!block) return;
         const prevGroup = Blockly.Events.getGroup();
-        Blockly.Events.setGroup('contextmenu_lock');
+        Blockly.Events.setGroup(true);
         setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(prevGroup || null);
         window.flockBlockToolbar?.refresh?.(block);
@@ -451,7 +451,7 @@ export function initContextMenus(workspace) {
         const block = scope.block;
         if (!block) return;
         copyWithoutToast(block);
-        Blockly.Events.setGroup('contextmenu_cut');
+        Blockly.Events.setGroup(true);
         block.dispose(true);
         Blockly.Events.setGroup(false);
       },
@@ -913,7 +913,7 @@ export function initContextMenus(workspace) {
       e.preventDefault();
       e.stopPropagation();
       copyWithoutToast(selected);
-      Blockly.Events.setGroup('shortcut_cut');
+      Blockly.Events.setGroup(true);
       selected.dispose(true);
       Blockly.Events.setGroup(false);
     },
@@ -1703,7 +1703,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(expandBtn, () => {
       if (!toolbarBlock || !isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_expand');
+      Blockly.Events.setGroup(true);
       block.setCollapsed(false);
       Blockly.Events.setGroup(false);
       updateSimplifiedToolbar();
@@ -1714,7 +1714,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(collapseBtn, () => {
       if (!toolbarBlock || isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_collapse');
+      Blockly.Events.setGroup(true);
       block.setCollapsed(true);
       Blockly.Events.setGroup(false);
       updateSimplifiedToolbar();
@@ -1725,7 +1725,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(unlockBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_unlock');
+      Blockly.Events.setGroup(true);
       setBlockLocked(block, false);
       Blockly.Events.setGroup(false);
       deleteBtn.style.display = '';
@@ -1770,7 +1770,7 @@ export function initContextMenus(workspace) {
       if (!toolbarBlock || !isDetachable(toolbarBlock)) return;
       const block = toolbarBlock;
       const healStack = !block.outputConnection?.isConnected();
-      Blockly.Events.setGroup('toolbar_detach');
+      Blockly.Events.setGroup(true);
       block.unplug(healStack);
       Blockly.Events.setGroup(false);
     });
@@ -1778,7 +1778,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(enableBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_disable');
+      Blockly.Events.setGroup(true);
       block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
       Blockly.Events.setGroup(false);
       updateEnableButton(block);

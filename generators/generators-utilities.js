@@ -35,6 +35,12 @@ export function getPositionTuple(block) {
 
 export function getInitialTransformParams(block) {
   const params = [];
+  if (block.positionShown_) {
+    const [x, y, z] = ['X', 'Y', 'Z'].map((axis) =>
+      getFieldValue(block, `POSITION_${axis}`, 'null')
+    );
+    params.push(`position: { x: ${x}, y: ${y}, z: ${z} }`);
+  }
   if (block.rotateShown_) {
     const [x, y, z] = ['X', 'Y', 'Z'].map((axis) => getFieldValue(block, `ROTATE_${axis}`, '0'));
     params.push(`rotation: { x: ${x}, y: ${y}, z: ${z} }`);

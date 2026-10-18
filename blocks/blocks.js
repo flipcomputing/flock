@@ -521,7 +521,12 @@ export function handleBlockDelete(event) {
     // Recursively delete meshes for qualifying blocks
     function deleteMeshesRecursively(blockJson) {
       // Check if block type matches the prefixes
-      if (blockJson.type.startsWith('load_') || blockJson.type.startsWith('create_')) {
+      if (
+        blockJson.type.startsWith('load_') ||
+        blockJson.type.startsWith('create_') ||
+        blockJson.type === 'clone_mesh' ||
+        blockJson.type === 'mirror_mesh'
+      ) {
         deleteMeshFromBlock(blockJson.id);
         if (blockJson.type === 'create_map') {
           const ws = Blockly.getMainWorkspace();
@@ -776,9 +781,9 @@ export function findCreateBlock(block) {
   return null;
 }
 
-export function handleBlockChange(block, changeEvent, variableNamePrefix) {
+export function handleBlockChange(block, changeEvent, variableNamePrefix, fieldName = 'ID_VAR') {
   // Always run first to handle variable naming
-  handleBlockCreateEvent(block, changeEvent, variableNamePrefix);
+  handleBlockCreateEvent(block, changeEvent, variableNamePrefix, fieldName);
 
   // Handle lifecycle events like enable/disable/move on the block directly.
   // Also handle BLOCK_CREATE events where this block is in the created ids

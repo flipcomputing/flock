@@ -145,6 +145,8 @@ export default {
   load_object: 'ajouter %1 %2 %3 échelle: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'ajouter %1 %2 échelle: %3 %8 x: %4 y: %5 z: %6\ncouleurs: %7',
   load_model: 'ajouter %1 %2 échelle:: %3 %7 x: %4 y: %5 z: %6\ncouleurs: %8',
+  initial_position_label: 'position',
+  same_axis_value: 'pareil',
   initial_rotation_label: 'rotation',
   initial_size_label: 'taille',
 

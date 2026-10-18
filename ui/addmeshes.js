@@ -9,15 +9,17 @@ import {
   readColourList,
   attachToEnclosingGroupIfAny,
   applyInitialTransformsFromBlock,
-  applyMirrorDoBlocks,
-  rebuildDependentMirrors,
+  applyCloneDoBlocks,
+  rebuildDependentClones,
   readNumberOrList,
+  deleteMeshFromBlock,
 } from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
   if (!isEligibleForMeshCreation(block)) {
     return;
   }
+  if (adoptCloneTemplate(block)) return;
 
   // Bail if this block already has a mesh, so one block never spawns two meshes.
   // We can't rely solely on getMeshFromBlock here: its block→mesh index is built
@@ -66,6 +68,11 @@ export function createMeshOnCanvas(block) {
 
   if (block.type === 'mirror_mesh') {
     createMirrorInternal(block);
+    return;
+  }
+
+  if (block.type === 'clone_mesh') {
+    createCloneInternal(block);
     return;
   }
 
@@ -443,8 +450,13 @@ export function createMeshOnCanvas(block) {
 
 function applyInitialTransformsWhenReady(block, meshName) {
   if (typeof meshName !== 'string' || meshName.startsWith('error_')) return;
+  const run = currentRun();
+  creatingMeshes.set(block.id, run);
   flock.whenModelReady(meshName, (mesh) => {
-    if (mesh) applyInitialTransformsFromBlock(block, mesh);
+    if (creatingMeshes.get(block.id) === run) creatingMeshes.delete(block.id);
+    if (!mesh) return;
+    applyInitialTransformsFromBlock(block, mesh);
+    if (!isCloneTemplate(block)) rebuildDependentClones(block);
   });
 }
 
@@ -822,8 +834,172 @@ function createMirrorInternal(block) {
   flock.whenModelReady(newMesh, (mesh) => {
     if (!mesh || block.disposed) return;
     attachToEnclosingGroupIfAny(block, mesh);
-    applyMirrorDoBlocks(block, mesh);
-    rebuildDependentMirrors(block);
+    applyCloneDoBlocks(block, mesh);
+    rebuildDependentClones(block);
+  });
+}
+
+const cloneTemplates = new Map();
+const creatingMeshes = new Map();
+const pendingClones = new Map();
+const trackedScenes = new WeakSet();
+
+function currentRun() {
+  const scene = flock.scene;
+  if (scene && !trackedScenes.has(scene)) {
+    trackedScenes.add(scene);
+    scene.onDisposeObservable.addOnce(() => {
+      for (const [id, run] of [...creatingMeshes, ...pendingClones]) {
+        if (run.scene === scene) {
+          creatingMeshes.delete(id);
+          pendingClones.delete(id);
+        }
+      }
+      for (const [id, template] of cloneTemplates) {
+        if (template.run.scene === scene) cloneTemplates.delete(id);
+      }
+    });
+  }
+  return { scene, signal: flock.abortController?.signal };
+}
+
+function isCurrentRun(run) {
+  return !!run && run.scene === flock.scene && !run.signal?.aborted;
+}
+let buildingTemplate = false;
+
+function cloneSourceBlock(block) {
+  const sourceVar = block.getFieldValue('SOURCE_MESH');
+  if (!sourceVar) return null;
+  return (
+    block.workspace
+      .getAllBlocks(false)
+      .find((b) => b !== block && getOwnVar(b) === sourceVar && isEligibleForMeshCreation(b)) ??
+    null
+  );
+}
+
+function findBlockMesh(block) {
+  const mesh = getMeshFromBlock(block);
+  if (mesh && !mesh.isDisposed()) return mesh;
+  return flock.scene?.meshes?.find((m) => m?.metadata?.blockKey === block.id && !m.isDisposed());
+}
+
+async function waitForBlockMesh(block, frames = 600) {
+  for (let i = 0; i < frames; i++) {
+    if (block.disposed) return null;
+    const mesh = findBlockMesh(block);
+    if (mesh) return mesh;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  return null;
+}
+
+function liveTemplate(sourceBlock) {
+  const template = cloneTemplates.get(sourceBlock.id);
+  return template && !template.adopted && isCurrentRun(template.run) ? template : null;
+}
+
+export function isCloneTemplate(block) {
+  return !!liveTemplate(block);
+}
+
+function adoptCloneTemplate(block) {
+  const template = liveTemplate(block);
+  if (!template || buildingTemplate) return false;
+  template.adopted = true;
+  findBlockMesh(block)?.setEnabled(true);
+  return true;
+}
+
+function acquireTemplate(sourceBlock) {
+  let template = liveTemplate(sourceBlock);
+  if (!template) {
+    template = { run: currentRun(), users: 0, adopted: false };
+    cloneTemplates.set(sourceBlock.id, template);
+    buildingTemplate = true;
+    try {
+      createMeshOnCanvas(sourceBlock);
+    } finally {
+      buildingTemplate = false;
+    }
+    template.ready = waitForBlockMesh(sourceBlock).then((mesh) => {
+      template.mesh = mesh;
+      if (mesh && !template.adopted) mesh.setEnabled(false);
+      return mesh?.name ?? null;
+    });
+  }
+  template.users += 1;
+  return template;
+}
+
+function releaseTemplate(sourceBlock, template) {
+  template.users -= 1;
+  if (template.users > 0 || cloneTemplates.get(sourceBlock.id) !== template) return;
+  cloneTemplates.delete(sourceBlock.id);
+  if (template.adopted || !isCurrentRun(template.run)) return;
+  deleteMeshFromBlock(sourceBlock.id);
+  if (template.mesh && !template.mesh.isDisposed()) flock.disposeMesh(template.mesh);
+}
+
+function acquireCloneSource(block) {
+  const sourceBlock = cloneSourceBlock(block);
+  if (!sourceBlock) {
+    const name = resolveVariableMeshName(block, 'SOURCE_MESH');
+    return name ? { ready: Promise.resolve(name), release() {} } : null;
+  }
+  const mesh = !isCloneTemplate(sourceBlock) && findBlockMesh(sourceBlock);
+  if (mesh) return { ready: Promise.resolve(mesh.name), release() {} };
+  if (isCurrentRun(creatingMeshes.get(sourceBlock.id))) {
+    return { ready: waitForBlockMesh(sourceBlock).then((m) => m?.name ?? null), release() {} };
+  }
+  const template = acquireTemplate(sourceBlock);
+  return {
+    ready: template.ready,
+    fromTemplate: true,
+    release: () => releaseTemplate(sourceBlock, template),
+  };
+}
+
+export function hasCloneSource(block) {
+  return !!cloneSourceBlock(block) || !!resolveVariableMeshName(block, 'SOURCE_MESH');
+}
+
+function createCloneInternal(block) {
+  if (isCurrentRun(pendingClones.get(block.id))) return;
+  const source = acquireCloneSource(block);
+  if (!source) return;
+  const run = currentRun();
+  pendingClones.set(block.id, run);
+  meshMap[block.id] = block;
+  meshBlockIdMap[block.id] = block.id;
+
+  source.ready.then((sourceName) => {
+    const done = () => {
+      if (pendingClones.get(block.id) === run) pendingClones.delete(block.id);
+      source.release();
+    };
+    if (!sourceName || block.disposed || !isCurrentRun(run) || findBlockMesh(block)) return done();
+    const cloneName = block.getField('CLONE_VAR')?.getText() || 'clone';
+    const newMesh = flock.cloneMesh({
+      sourceMeshName: sourceName,
+      cloneId: cloneName,
+      cloneName,
+      blockKey: block.id,
+      mode: block.getFieldValue('MODE') === 'LINKED' ? 'linked' : 'copy',
+    });
+    if (!newMesh || newMesh.startsWith('error_')) return done();
+
+    flock.whenModelReady(newMesh, async (mesh) => {
+      done();
+      if (!mesh || block.disposed) return;
+      if (source.fromTemplate) mesh.setEnabled(true);
+      await applyInitialTransformsFromBlock(block, mesh);
+      if (block.disposed || mesh.isDisposed()) return;
+      attachToEnclosingGroupIfAny(block, mesh);
+      applyCloneDoBlocks(block, mesh);
+      rebuildDependentClones(block);
+    });
   });
 }
 

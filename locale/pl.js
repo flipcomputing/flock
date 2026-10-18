@@ -145,6 +145,8 @@ export default {
   load_object: 'dodaj %1 %2 %3, skala: %4, %8 x: %5, y: %6, z: %7',
   load_multi_object: 'dodaj %1 %2, skala: %3, %8 x: %4, y: %5, z: %6\nkolory: %7',
   load_model: 'dodaj model %1 %2, skala: %3, %7 x: %4, y: %5, z: %6\nkolory: %8',
+  initial_position_label: 'pozycja',
+  same_axis_value: 'to samo',
   initial_rotation_label: 'obrót',
   initial_size_label: 'rozmiar',
 

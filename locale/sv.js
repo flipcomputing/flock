@@ -145,6 +145,8 @@ export default {
   load_object: 'lägg till %1 %2 %3 skala: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'lägg till %1 %2 skala: %3 %8 x: %4 y: %5 z: %6\nfärger: %7',
   load_model: 'lägg till %1 %2 skala: %3 %7 x: %4 y: %5 z: %6\nfärger: %8',
+  initial_position_label: 'position',
+  same_axis_value: 'samma',
   initial_rotation_label: 'rotation',
   initial_size_label: 'storlek',
 
