@@ -1053,6 +1053,7 @@ export default {
   grid_race_ui: 'Rutnätsrace',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Leksaksletare',
+  birdmerge_ui: 'Slå ihop fåglar',
   character_designer_ui: 'Karaktärsdesign',
   sit_down_ui: 'Sätt dig',
 

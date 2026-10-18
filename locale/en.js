@@ -1271,6 +1271,7 @@ export default {
   grid_race_ui: 'Grid race',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Toy finder',
+  birdmerge_ui: 'Bird merge',
   main_menu_ui: 'Main menu',
   menu_button_sr_label_ui: 'Menu',
   project_submenu_ui: 'Project',

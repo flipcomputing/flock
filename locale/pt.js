@@ -1059,6 +1059,7 @@ export default {
   grid_race_ui: 'Corrida na grelha',
   escape_room_ui: 'Sala de fuga',
   toy_finder_ui: 'Caçador de brinquedos',
+  birdmerge_ui: 'Fusão de pássaros',
   character_designer_ui: 'Criador de personagens',
   sit_down_ui: 'Senta-te',
 

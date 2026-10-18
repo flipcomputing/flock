@@ -1062,6 +1062,7 @@ export default {
   grid_race_ui: 'Gitterrennen',
   escape_room_ui: 'Escape-Room',
   toy_finder_ui: 'Spielzeugsuche',
+  birdmerge_ui: 'Vögel verschmelzen',
 
   main_menu_ui: 'Hauptmenü',
   menu_button_sr_label_ui: 'Menü',

@@ -1063,6 +1063,7 @@ export default {
   grid_race_ui: 'Course sur grille',
   escape_room_ui: 'Escape game',
   toy_finder_ui: 'Chercheur de jouets',
+  birdmerge_ui: "Fusion d'oiseaux",
   character_designer_ui: 'Créateur de personnages',
 
   sit_down_ui: 'Assieds-toi',

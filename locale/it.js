@@ -1071,6 +1071,7 @@ export default {
   grid_race_ui: 'Corsa sulla griglia',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Cerca giocattoli',
+  birdmerge_ui: 'Fondi gli uccelli',
 
   main_menu_ui: 'Menu principale',
   menu_button_sr_label_ui: 'Menu',
