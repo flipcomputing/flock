@@ -1056,6 +1056,7 @@ export default {
   grid_race_ui: 'Wyścig po siatce',
   escape_room_ui: 'Escape room',
   toy_finder_ui: 'Szukacz zabawek',
+  birdmerge_ui: 'Łączenie ptaków',
   character_designer_ui: 'Kreator postaci',
   sit_down_ui: 'Usiądź',
 

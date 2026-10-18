@@ -59,6 +59,7 @@ export const EXAMPLES = [
     thumbnailSettleMs: 7000,
   },
   { i18nKey: 'toy_finder', file: 'examples/toy_finder.flock', category: 'physics' },
+  { i18nKey: 'birdmerge', file: 'examples/birdmerge.flock', category: 'physics' },
   { i18nKey: 'alien_planet', file: 'examples/alien_planet.flock', category: 'worlds' },
   { i18nKey: 'my_place', file: 'examples/my_place.flock', category: 'worlds' },
   { i18nKey: 'forest_base', file: 'examples/forest_base.flock', category: 'worlds' },

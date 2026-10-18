@@ -71,14 +71,23 @@ export const flockFreeze = {
   },
   // Restart after a gap (hidden tab, context lost) unless stopped or still
   // hidden. Frame timing is reset so the first frame doesn't advance
-  // animations and physics by the whole gap.
+  // animations and physics by the whole gap. That first frame then has a 1ms
+  // delta, and a 1ms physics step turns resting overlap into a launch, so
+  // physics skips it.
   _resumeRenderLoop() {
     const engine = flock.engine;
     if (!engine || !flock._renderLoop || flock._renderLoopStopped) return;
     if (globalThis.document?.hidden || engine.isContextLost?.()) return;
     if (engine.activeRenderLoops?.includes(flock._renderLoop)) return;
-    flock.scene?.resetLastAnimationTimeFrame?.();
+    const scene = flock.scene;
+    scene?.resetLastAnimationTimeFrame?.();
     engine.performanceMonitor?.reset?.();
+    if (scene?.onAfterRenderObservable) {
+      scene.physicsEnabled = false;
+      scene.onAfterRenderObservable.addOnce(() => {
+        scene.physicsEnabled = !flock._userPaused;
+      });
+    }
     engine.runRenderLoop(flock._renderLoop);
   },
   // Wrap a yield primitive so it holds while frozen: a background tab or a

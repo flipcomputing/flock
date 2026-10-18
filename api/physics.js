@@ -176,6 +176,7 @@ export const applyBounciness = (physicsBody, mesh) => {
 // rebuilds like bounciness. Clamped positive: 0 means static in Havok.
 export const DEFAULT_MASS = 1;
 export const MIN_MASS = 0.01;
+export const DEFAULT_ANGULAR_DAMPING = 2;
 
 export const normalizeMass = (value) => {
   const n = Number(value);
@@ -185,7 +186,14 @@ export const normalizeMass = (value) => {
 
 export const applyMass = (physicsBody, mesh) => {
   if (!physicsBody) return;
-  physicsBody.setMassProperties({ mass: mesh?.metadata?.mass ?? DEFAULT_MASS });
+  physicsBody.setAngularDamping?.(DEFAULT_ANGULAR_DAMPING);
+  const mass = mesh?.metadata?.mass ?? DEFAULT_MASS;
+  if (mass === DEFAULT_MASS) {
+    physicsBody.setMassProperties({ mass });
+    return;
+  }
+  const { inertia } = physicsBody.computeMassProperties();
+  physicsBody.setMassProperties({ mass, inertia: inertia.scale(mass) });
 };
 
 // Returns the mesh's normalised local basis vectors in world space, so velocity
@@ -1042,6 +1050,7 @@ export const flockPhysics = {
           break;
         }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
+        mesh.physics.setAngularDamping?.(DEFAULT_ANGULAR_DAMPING);
         mesh.physics.disablePreStep = false;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;

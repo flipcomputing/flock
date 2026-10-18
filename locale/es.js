@@ -1175,6 +1175,7 @@ export default {
   grid_race_ui: 'Carrera en cuadrícula',
   escape_room_ui: 'Sala de escape',
   toy_finder_ui: 'Buscador de juguetes',
+  birdmerge_ui: 'Fusión de pájaros',
   character_designer_ui: 'Diseñador de personajes', // human
   sit_down_ui: 'Siéntate', // human
 
