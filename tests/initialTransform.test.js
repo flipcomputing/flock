@@ -419,7 +419,7 @@ export function runInitialTransformTests(flock) {
         expect(Number(box.getInputTargetBlock('Z').getFieldValue('NUM'))).to.equal(-1);
       });
 
-      it('records a rotated clone in its move, and places it there after', async function () {
+      it('records a rotated clone in its position row, and places it there after', async function () {
         const sourceId = flock.createBox(`liveRowCloneSource_${Date.now()}`, {
           width: 1,
           height: 2,
@@ -437,13 +437,13 @@ export function runInitialTransformTests(flock) {
 
         ensureInitialRotation(clone, { x: 0, y: 0, z: 90 });
         applyInitialTransformRows(clone, [cloneMesh], { aboutCentre: true });
-        const move = clone.getInputTargetBlock('DO');
-        expect(move?.type).to.equal('move_to_xyz');
-        const read = (name) => Number(move.getInputTargetBlock(name).getFieldValue('NUM'));
-        expect(read('Y')).to.equal(0.5);
+        expect(clone.getInputTargetBlock('DO')).to.equal(null);
+        expect(clone.positionShown_).to.equal(true);
+        const read = (name) => Number(clone.getInputTargetBlock(name).getFieldValue('NUM'));
+        expect(read('POSITION_Y')).to.equal(0.5);
         expect(worldBox(cloneMesh).centerWorld.y).to.be.closeTo(1, 0.01);
 
-        move.getInputTargetBlock('X').setFieldValue('-2', 'NUM');
+        clone.getInputTargetBlock('POSITION_X').setFieldValue('-2', 'NUM');
         applyInitialTransformRows(clone, [cloneMesh]);
         const bounds = worldBox(cloneMesh);
         expect(bounds.centerWorld.x).to.be.closeTo(-2, 0.01);
