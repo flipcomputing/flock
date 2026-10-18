@@ -82,6 +82,7 @@ const HOW_TOS = [
   { slug: 'add-comments', i18nKey: 'howto_add_comments_ui', tone: 19, tags: ['blocks'] },
   { slug: 'import-and-export-code', i18nKey: 'howto_import_and_export_code_ui', tone: 20, tags: ['blocks'] },
   { slug: 'duplicate-and-copy-blocks', i18nKey: 'howto_duplicate_and_copy_blocks_ui', tone: 21, tags: ['blocks'] },
+  { slug: 'view-or-focus-an-object', i18nKey: 'howto_view_or_focus_an_object_ui', tone: 37, tags: ['blocks', 'camera'] },
   { slug: 'use-block-hints', i18nKey: 'howto_use_block_hints_ui', tone: 22, tags: ['blocks'] },
   { slug: 'undo-and-redo', i18nKey: 'howto_undo_and_redo_ui', tone: 23, tags: ['blocks'] },
   { slug: 'zoom', i18nKey: 'howto_zoom_ui', tone: 24, tags: ['blocks'] },

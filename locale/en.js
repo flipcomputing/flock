@@ -1695,6 +1695,7 @@ export default {
   howto_add_comments_ui: 'Add comments',
   howto_import_and_export_code_ui: 'Import and export code',
   howto_duplicate_and_copy_blocks_ui: 'Duplicate and copy blocks',
+  howto_view_or_focus_an_object_ui: 'View or focus an object',
   howto_use_block_hints_ui: 'Use block hints',
   howto_undo_and_redo_ui: 'Undo and redo',
   howto_zoom_ui: 'Zoom',

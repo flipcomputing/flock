@@ -360,6 +360,21 @@ function registerBindings() {
     noMod(() => focusOnMesh())
   );
   KeyboardDispatcher.on(
+    'EDITOR',
+    'KeyJ',
+    noMod(() => {
+      const block = Blockly.common?.getSelected?.();
+      if (!block || block.isInFlyout) return;
+      const mesh = getMeshFromBlock(block);
+      if (!mesh || mesh.name === 'ground') return;
+      import('../main/view.js').then(({ showCanvasView }) => {
+        showCanvasView();
+        window.currentBlock = block;
+        focusOnMesh(block);
+      });
+    })
+  );
+  KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
     noMod(() => toggleGizmo('eye'))
@@ -1400,6 +1415,8 @@ function frameFreeCameraOnMesh(mesh) {
 // the player throughout — unlike orbit view, which detaches the camera onto
 // its own free-floating ArcRotateCamera.
 function movePlayerToFaceMesh(mesh, camera) {
+  applyMeshSelection(mesh);
+
   const BABYLON = flock.BABYLON;
   const player = camera.metadata.following;
 
