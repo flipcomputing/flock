@@ -590,7 +590,7 @@ export const flockCamera = {
           : null;
 
     const fps = 30;
-    const frames = fps * (Number(duration) > 0 ? Number(duration) : 1);
+    const frames = fps * (Number.isFinite(Number(duration)) ? Math.max(0, Number(duration)) : 1);
     const loopMode =
       loop || reverse
         ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
@@ -677,6 +677,15 @@ export const flockCamera = {
 
     target.metadata = target.metadata || {};
     target.metadata._cameraGlide?.stop();
+    if (frames === 0) {
+      if (!reverse) {
+        for (const animation of animations) {
+          target[animation.targetProperty] = animation.getKeys()[1].value;
+        }
+      }
+      settle();
+      return;
+    }
     const animatable = scene.beginDirectAnimation(
       target,
       animations,

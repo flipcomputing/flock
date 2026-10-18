@@ -9,7 +9,6 @@ export function setFlockReference(ref) {
 // Headlamp tracks this fraction of the main light's intensity, so it stays
 // proportional to lightIntensity() and goes to 0 when that does.
 const HEADLAMP_INTENSITY_RATIO = 0.4;
-const MAX_EMIT_RATE = 500;
 
 function applyParticleOptions(
   particleSystem,
@@ -46,7 +45,9 @@ function applyParticleOptions(
   particleSystem.minLifeTime = lifetime.min;
   particleSystem.maxLifeTime = lifetime.max;
 
-  particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
+  if (Number.isFinite(Number(emitRate))) {
+    particleSystem.emitRate = clampToRange(Number(emitRate), 'particleRate');
+  }
 
   particleSystem.gravity = gravity
     ? new flock.BABYLON.Vector3(0, -9.81, 0)
@@ -105,7 +106,7 @@ export const flockEffects = {
   updateHeadlampIntensity,
   lightIntensity(intensity) {
     if (flock.mainLight) {
-      flock.mainLight.intensity = intensity;
+      flock.mainLight.intensity = clampToRange(intensity, 'nonNegative');
       updateHeadlampIntensity();
     } else {
       console.warn('Main light is not defined. Please ensure flock.mainLight exists.');

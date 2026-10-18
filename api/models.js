@@ -1,6 +1,10 @@
 import { hideFromInspector } from '../ui/inspectorVisibility.js';
+import { clampToRange } from '../config.js';
 
 let flock;
+
+const toModelScale = (scale) =>
+  typeof scale === 'number' && Number.isFinite(scale) ? clampToRange(scale, 'modelScale') : 1;
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -126,7 +130,7 @@ export const flockModels = {
           ? Math.max(-1000, Math.min(1000, position.y))
           : 0;
     const z = Number.isFinite(position?.z) ? Math.max(-1000, Math.min(1000, position.z)) : 0;
-    if (!(typeof scale === 'number' && scale >= 0.01 && scale <= 100)) scale = 1;
+    scale = toModelScale(scale);
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
@@ -335,6 +339,7 @@ export const flockModels = {
     then = null,
     applyColor = true,
   } = {}) {
+    scale = toModelScale(scale);
     const releaseContainer = (container) => {
       try {
         container.meshes = [];

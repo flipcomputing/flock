@@ -44,7 +44,7 @@ export class FieldRangedNumber extends Blockly.FieldNumber {
           : range;
     this.min_ = limits.min;
     this.max_ = limits.max;
-    if (!range) {
+    if (!range || range.slider === false) {
       super.showEditor_(e, quietInput);
       return;
     }
@@ -120,7 +120,7 @@ export class FieldRangedNumber extends Blockly.FieldNumber {
   }
 
   onHtmlInputKeyDown_(e) {
-    if (this.range_ && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    if (this.slider_ && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       e.preventDefault();
       e.stopPropagation();
       this.setValueWhileEditing_(

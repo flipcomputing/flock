@@ -1021,8 +1021,9 @@ export const flockSound = {
     const utterance = new SpeechSynthesisUtterance(text);
 
     // Set basic properties
-    utterance.rate = Math.max(0.1, Math.min(10, rate));
-    utterance.pitch = clampToRange(pitch, 'speechPitch');
+    const toSpeech = (value) => (Number.isFinite(Number(value)) ? Number(value) : 1);
+    utterance.rate = clampToRange(toSpeech(rate), 'speechRate');
+    utterance.pitch = clampToRange(toSpeech(pitch), 'speechPitch');
     utterance.volume = Math.max(0, Math.min(1, volume));
     utterance.lang = language;
 

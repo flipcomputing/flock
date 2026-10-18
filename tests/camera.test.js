@@ -422,6 +422,37 @@ export function runCameraTests(flock) {
         expect(from.frame.getAbsolutePosition().equalsWithEpsilon(start, 1e-2)).to.be.true;
       });
 
+      it('should glide onto a camera instantly with a duration of 0', async function () {
+        const from = await addCamera('camInstantFrom', { position: [0, 2, -8] });
+        const to = await addCamera('camInstantTo', { position: [6, 4, 2] });
+        const started = performance.now();
+
+        await flock.glideToObject(from.name, to.name, { duration: 0 });
+        from.frame.computeWorldMatrix(true);
+
+        expect(performance.now() - started).to.be.below(200);
+        expect(from.frame.getAbsolutePosition().equalsWithEpsilon(to.camera.position, 1e-2)).to.be
+          .true;
+      });
+
+      it('should finish an instant glide that loops or returns', async function () {
+        const from = await addCamera('camInstantLoopFrom', { position: [0, 2, -8] });
+        const to = await addCamera('camInstantLoopTo', { position: [6, 4, 2] });
+        const timeout = new Promise((resolve) => setTimeout(() => resolve('timeout'), 500));
+
+        const looped = await Promise.race([
+          flock.glideToObject(from.name, to.name, { duration: 0, loop: true }),
+          timeout,
+        ]);
+        expect(looped).to.not.equal('timeout');
+
+        const back = await addCamera('camInstantLoopBack', { position: [-3, 1, 4] });
+        const start = from.frame.getAbsolutePosition().clone();
+        await flock.glideToObject(from.name, back.name, { duration: 0, reverse: true });
+        from.frame.computeWorldMatrix(true);
+        expect(from.frame.getAbsolutePosition().equalsWithEpsilon(start, 1e-2)).to.be.true;
+      });
+
       it('should keep gliding when looped', async function () {
         const from = await addCamera('camLoopFrom', { position: [0, 2, -8] });
         const to = await addCamera('camLoopTo', { position: [6, 4, 2] });

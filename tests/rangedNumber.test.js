@@ -8,7 +8,8 @@ import {
   rangeForField,
   registerRangedNumberField,
 } from '../blocks/fieldRangedNumber.js';
-import { clampToRange, NUMBER_RANGES, rangeForInput } from '../config.js';
+import { defineBlocks } from '../blocks/blocks.js';
+import { clampToRange, NUMBER_RANGES, RANGED_INPUTS, rangeForInput } from '../config.js';
 
 const number = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
 const alphaState = (alpha) => ({ type: 'set_alpha', inputs: { ALPHA: number(alpha) } });
@@ -31,6 +32,22 @@ export function runRangedNumberTests(flock) {
     });
 
     describe('range table', function () {
+      it('names an existing input or field for every ranged input', function () {
+        if (!Blockly.Blocks['create_box']) defineBlocks();
+        const workspace = new Blockly.Workspace();
+        try {
+          const missing = Object.keys(RANGED_INPUTS).filter((key) => {
+            const [type, name] = key.split('.');
+            if (!Blockly.Blocks[type]) return true;
+            const block = workspace.newBlock(type);
+            return !block.getInput(name) && !block.getField(name);
+          });
+          expect(missing).to.deep.equal([]);
+        } finally {
+          workspace.dispose();
+        }
+      });
+
       it('looks up ranges by block type and input name', function () {
         expect(rangeForInput('set_alpha', 'ALPHA')).to.equal(NUMBER_RANGES.unit);
         expect(rangeForInput('play_sound', 'SPEED')).to.equal(NUMBER_RANGES.soundSpeed);
@@ -38,6 +55,8 @@ export function runRangedNumberTests(flock) {
         expect(rangeForInput('speak', 'PITCH')).to.equal(NUMBER_RANGES.speechPitch);
         expect(rangeForInput('create_instrument', 'RELEASE')).to.equal(NUMBER_RANGES.release);
         expect(rangeForInput('material', 'ANGLE')).to.equal(NUMBER_RANGES.angle);
+        expect(rangeForInput('load_model', 'SIZE_X')).to.equal(NUMBER_RANGES.nonNegative);
+        expect(rangeForInput('clone_mesh', 'SIZE_Z')).to.equal(NUMBER_RANGES.nonNegative);
         expect(rangeForInput('set_alpha', 'MESH')).to.equal(null);
         expect(rangeForInput('move_by_xyz', 'X')).to.equal(null);
       });
@@ -264,6 +283,37 @@ export function runRangedNumberTests(flock) {
         expect(field.getValue()).to.equal(5);
       });
 
+      it('snaps a negative size to 0 without a slider', function () {
+        const box = Blockly.serialization.blocks.append(
+          { type: 'create_box', inputs: { WIDTH: number(1) } },
+          workspace
+        );
+        const field = box.getInputTargetBlock('WIDTH').getField('NUM');
+        field.showEditor();
+        expect(Blockly.DropDownDiv.isVisible()).to.equal(false);
+        typeInto(field.htmlInput_, '-3');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(0);
+        field.showEditor();
+        typeInto(field.htmlInput_, '5000');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(5000);
+      });
+
+      it('gives sides a 3-64 slider', function () {
+        const ring = Blockly.serialization.blocks.append(
+          { type: 'create_ring', inputs: { SIDES: number(24) } },
+          workspace
+        );
+        const field = ring.getInputTargetBlock('SIDES').getField('NUM');
+        field.showEditor();
+        expect(slider().min).to.equal('3');
+        expect(slider().max).to.equal('64');
+        typeInto(field.htmlInput_, '1000');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(64);
+      });
+
       it('edits a loose number as a plain number', function () {
         const block = workspace.newBlock('math_number');
         block.initSvg();
@@ -279,13 +329,49 @@ export function runRangedNumberTests(flock) {
     });
 
     describe('API clamps', function () {
+      it('caps sides at 64 and treats negative sizes as the minimum', function () {
+        expect(flock.donutDimensions({ tessellation: 1000 }).tessellation).to.equal(64);
+        expect(flock.donutDimensions({ tessellation: 1 }).tessellation).to.equal(3);
+        expect(flock.donutDimensions({ diameter: -2 }).diameter).to.equal(0.01);
+      });
+
+      it('keeps light intensity at 0 or above', function () {
+        const previous = flock.mainLight.intensity;
+        try {
+          flock.lightIntensity(-1);
+          expect(flock.mainLight.intensity).to.equal(0);
+        } finally {
+          flock.lightIntensity(previous);
+        }
+      });
+
+      it('treats a negative resize as the smallest size', async function () {
+        const boxId = flock.createBox('rangedResizeBox', { width: 1, height: 1, depth: 1 });
+        try {
+          await flock.resize(boxId, { width: -2, height: 1, depth: 1 });
+          expect(flock.scene.getMeshByName(boxId).scaling.x).to.equal(0.01);
+        } finally {
+          flock.dispose(boxId);
+        }
+      });
+
+      it('treats a negative scale as the smallest scale', async function () {
+        const boxId = flock.createBox('rangedScaleBox', { width: 1, height: 1, depth: 1 });
+        try {
+          await flock.scale(boxId, { x: -2, y: 1, z: 1 });
+          expect(flock.scene.getMeshByName(boxId).scaling.x).to.equal(0.01);
+        } finally {
+          flock.dispose(boxId);
+        }
+      });
+
       it('clamps fog density to 0-1', function () {
         flock.setFog({ fogColorHex: '#ffffff', fogMode: 'EXP', fogDensity: 4 });
         expect(flock.scene.fogDensity).to.equal(1);
         flock.setFog({ fogColorHex: '#ffffff', fogMode: 'NONE', fogDensity: 0.1 });
       });
 
-      it('clamps particle alphas to 0-1', async function () {
+      it('clamps particle alphas to 0-1 and rate to 0-500', async function () {
         this.timeout(5000);
         const emitterId = flock.createBox('rangedEmitter', {
           color: '#ffffff',
@@ -296,7 +382,7 @@ export function runRangedNumberTests(flock) {
         });
         const effectName = flock.createParticleEffect('rangedEffect', {
           emitterMesh: emitterId,
-          emitRate: 10,
+          emitRate: 1000,
           colors: { start: '#ffffff', end: '#ffffff' },
           alphas: { start: 3, end: -1 },
           sizes: { start: 1, end: 1 },
@@ -308,6 +394,31 @@ export function runRangedNumberTests(flock) {
           const system = flock.scene.particleSystems.find((s) => s.name === effectName);
           expect(system.color1.a).to.equal(1);
           expect(system.color2.a).to.equal(0);
+          expect(system.emitRate).to.equal(500);
+        } finally {
+          flock.scene.particleSystems.find((s) => s.name === effectName)?.dispose();
+          flock.dispose(emitterId);
+        }
+      });
+
+      it('keeps a valid particle rate when none is given', async function () {
+        const emitterId = flock.createBox('rangedRatelessEmitter', {
+          width: 1,
+          height: 1,
+          depth: 1,
+        });
+        const effectName = flock.createParticleEffect('rangedRatelessEffect', {
+          emitterMesh: emitterId,
+          colors: { start: '#ffffff', end: '#ffffff' },
+          alphas: { start: 1, end: 0 },
+          sizes: { start: 1, end: 1 },
+          lifetime: { min: 0.1, max: 0.2 },
+          shape: 'flare.png',
+        });
+        try {
+          await flock.modelReadyPromises.get(effectName);
+          const system = flock.scene.particleSystems.find((s) => s.name === effectName);
+          expect(Number.isFinite(system.emitRate)).to.equal(true);
         } finally {
           flock.scene.particleSystems.find((s) => s.name === effectName)?.dispose();
           flock.dispose(emitterId);

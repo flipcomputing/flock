@@ -1,4 +1,4 @@
-import { attachSockets, objectColliderShapes, TEXTURE_TILE_SIZE } from '../config.js';
+import { attachSockets, clampToRange, objectColliderShapes, TEXTURE_TILE_SIZE } from '../config.js';
 import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
 import {
   CUBE_POINTS,
@@ -20,11 +20,11 @@ const MIN_SIZE = 0.01;
 function toDim(value, fallback) {
   if (value == null || value === '') return fallback;
   const n = Number(value);
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
+  return Number.isFinite(n) ? Math.max(0, n) : fallback;
 }
 
 function toSides(value) {
-  return Math.max(3, Math.round(toDim(value, 24)));
+  return clampToRange(Math.round(toDim(value, 24)), 'sides');
 }
 
 const TILING_PRIMITIVES = new Set([
