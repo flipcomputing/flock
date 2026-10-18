@@ -326,6 +326,7 @@ export default {
   subtitle: 'undertext %1 i %2 sekunder', // ai
   say: 'säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9',
   ui_text: 'ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7',
+  ui_align: 'från',
   ui_button: 'ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8',
   ui_input: 'ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8',
   describe: 'beskriv %1 som %2',

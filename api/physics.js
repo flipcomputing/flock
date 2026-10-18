@@ -616,6 +616,11 @@ function isDescendantOf(mesh, ancestor) {
   return false;
 }
 
+function clickedMeshOf(evt) {
+  if (evt?.__flockDelegated) return evt.meshUnderPointer;
+  return evt?.additionalData?.pickedMesh || evt?.meshUnderPointer || evt?.source;
+}
+
 // A group shell encloses its members, so a ray aimed at a member hits
 // the (invisible) shell first and Babylon routes the click to the
 // shell. Give a member with its own trigger for this event first
@@ -1248,7 +1253,7 @@ export const flockPhysics = {
       const triggerId = flock.BABYLON.ActionManager[name];
       const forward = new flock.BABYLON.ExecuteCodeAction(triggerId, (evt) => {
         if (shellHasRealTrigger(shell, triggerId)) return;
-        const clicked = evt?.meshUnderPointer || evt?.source;
+        const clicked = clickedMeshOf(evt);
         if (clicked !== shell) return;
         const member = resolveDelegatedMesh(shell, triggerId, evt);
         member?.actionManager?.processTrigger(triggerId, {
@@ -1441,7 +1446,7 @@ export const flockPhysics = {
 
         if (target instanceof flock.BABYLON.AbstractMesh) {
           registerMeshAction(target, trigger, async (evt) => {
-            const clickedMesh = evt?.meshUnderPointer || evt?.source || target;
+            const clickedMesh = clickedMeshOf(evt) || target;
             if (clickedMesh === target) {
               if (!evt?.__flockDelegated) {
                 const delegatedMesh = resolveDelegatedMesh(

@@ -58,6 +58,26 @@ function watchPixelRatio(onChange) {
   );
 }
 
+function keepHoverCursorCurrent(scene) {
+  scene.constantlyUpdateMeshUnderPointer = true;
+  const move = BABYLON.PointerEventTypes.POINTERMOVE;
+  let overlayHasPointer = false;
+  scene.onPrePointerObservable.add(() => (overlayHasPointer = true), move);
+  scene.onPointerObservable.add(() => (overlayHasPointer = false), move);
+  let wanted = null;
+  scene.onAfterRenderObservable.add(() => {
+    const canvas = scene.getEngine().getInputElement();
+    if (!canvas || scene.doNotHandleCursors || overlayHasPointer) return;
+    const manager = scene.meshUnderPointer?._getActionManagerForTrigger();
+    const cursor = manager?.hasPointerTriggers
+      ? manager.hoverCursor || scene.hoverCursor
+      : scene.defaultCursor;
+    if (cursor === wanted) return;
+    wanted = cursor;
+    if (canvas.style.cursor !== 'none') canvas.style.cursor = cursor;
+  });
+}
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -826,6 +846,7 @@ export const flockLifecycle = {
 
     // Create the new scene
     flock.scene = new flock.BABYLON.Scene(flock.engine);
+    keepHoverCursorCurrent(flock.scene);
 
     //Enable accessibility layer
     clearUIControls();

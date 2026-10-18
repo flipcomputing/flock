@@ -328,6 +328,7 @@ export default {
   subtitle: 'Untertitel %1 für %2 Sekunden', // ai
   say: 'sage %1 für %2 s %3\nText: %4 auf %5 Alpha: %6 Größe: %7 %8 %9',
   ui_text: 'UI-Text %1 %2 bei x: %3 y: %4\nGröße: %5 für %6 Sekunden Farbe: %7',
+  ui_align: 'von',
   ui_button: 'UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8',
   ui_input: 'UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8',
   describe: 'beschreibe %1 als %2',

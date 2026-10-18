@@ -75,7 +75,14 @@ function _onTwinKeydown(e) {
 
 // Compute the viewport-fixed CSS rect for a Babylon GUI control.
 // Position params are passed directly from ui.js (raw x/y/w/h in Babylon GUI pixels).
-function _computeFixedRect({ x, y, w, h }) {
+function _edgeStart(edge, offset, space, size) {
+  if (edge === 'center') return (space - size) / 2 + offset;
+  if (edge === 'end') return space - size + offset;
+  if (edge === 'start') return offset;
+  return offset < 0 ? space - Math.abs(offset) - size : offset;
+}
+
+function _computeFixedRect({ x, y, w, h, hEdge, vEdge }) {
   if (!_canvas) return null;
   const cr = _canvas.getBoundingClientRect();
   const cw = cr.width;
@@ -90,9 +97,8 @@ function _computeFixedRect({ x, y, w, h }) {
   const px = x * scaleX;
   const py = y * scaleY;
 
-  // Negative coordinates mean right/bottom alignment (same logic as ui.js)
-  const cssLeft = x < 0 ? cw - Math.abs(px) - pw : px;
-  const cssTop = y < 0 ? ch - Math.abs(py) - ph : py;
+  const cssLeft = _edgeStart(hEdge, px, cw, pw);
+  const cssTop = _edgeStart(vEdge, py, ch, ph);
 
   return {
     left: cr.left + cssLeft,

@@ -10,6 +10,12 @@ import {
   getInitialTransformParams,
 } from './generators-utilities.js';
 
+function alignOptions(block) {
+  const hAlign = JSON.stringify(block.getFieldValue('H_ALIGN') || 'LEFT');
+  const vAlign = JSON.stringify(block.getFieldValue('V_ALIGN') || 'TOP');
+  return `hAlign: ${hAlign},\nvAlign: ${vAlign},`;
+}
+
 export function registerTextGenerators(javascriptGenerator) {
   textMultiline.installBlock({ javascript: javascriptGenerator });
 
@@ -120,6 +126,7 @@ export function registerTextGenerators(javascriptGenerator) {
             alpha: ${alphaCode},
             duration: ${durationCode},
             id: ${textBlockVar},
+            ${alignOptions(block)}
             blockKey: ${JSON.stringify(block.id)}
           });\n`;
   };
@@ -148,6 +155,7 @@ export function registerTextGenerators(javascriptGenerator) {
                     textColor: ${textColor},
                     backgroundColor: ${backgroundColor},
                     buttonId: ${JSON.stringify(buttonId)},
+                    ${alignOptions(block)}
                     blockKey: ${JSON.stringify(block.id)}
                   });\n`;
     return code;
@@ -189,6 +197,7 @@ export function registerTextGenerators(javascriptGenerator) {
               textColor: ${textColorCode},
               backgroundColor: ${backgroundColorCode},
               id: ${varName},
+              ${alignOptions(block)}
               blockKey: ${JSON.stringify(block.id)}
             });\n`;
   };
@@ -226,6 +235,7 @@ export function registerTextGenerators(javascriptGenerator) {
                     x: ${x},
                     y: ${y},
                     size: ${size},
+                    ${alignOptions(block)}
                     textColor: ${color},
                     backgroundColor: ${background},
                     blockKey: ${JSON.stringify(block.id)},
@@ -250,8 +260,7 @@ export function registerTextGenerators(javascriptGenerator) {
       rawText = commentChild.getFieldValue('TEXT') ?? '';
     } else {
       const raw =
-        javascriptGenerator.valueToCode(block, 'COMMENT', javascriptGenerator.ORDER_ATOMIC) ||
-        "''";
+        javascriptGenerator.valueToCode(block, 'COMMENT', javascriptGenerator.ORDER_ATOMIC) || "''";
       const m = raw.match(/^(['"`])(.*)\1$/s);
       rawText = m ? m[2] : raw;
     }

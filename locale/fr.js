@@ -327,6 +327,7 @@ export default {
   subtitle: 'sous-titre %1 pendant %2 secondes', // ai
   say: 'dire %1 pendant %2 s %3\ntexte %4 sur %5 opacité %6 taille %7 %8 %9',
   ui_text: 'texte UI %1 %2 à x: %3 y: %4\ntaille: %5 pendant %6 secondes couleur: %7',
+  ui_align: 'depuis',
   ui_button: 'bouton UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8',
   ui_input:
     'champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8',

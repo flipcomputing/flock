@@ -369,6 +369,7 @@ export default {
   subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
+  ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   describe: 'describir %1 como %2', // human

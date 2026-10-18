@@ -328,6 +328,7 @@ export default {
   subtitle: 'legenda %1 por %2 segundos', // ai
   say: 'dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9',
   ui_text: 'texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7',
+  ui_align: 'a partir de',
   ui_button:
     'botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 text: %7 background: %8',
   ui_input:

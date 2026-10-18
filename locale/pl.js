@@ -328,6 +328,7 @@ export default {
   subtitle: 'napis %1 przez %2 sekund', // ai
   say: 'powiedz %1 przez %2 s %3\ntekst: %4 na %5 przezroczystość: %6 rozmiar: %7 %8 %9',
   ui_text: 'tekst UI %1 %2 w x: %3 y: %4\nrozmiar: %5 przez %6 s kolor: %7',
+  ui_align: 'od',
   ui_button:
     'przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 text: %7 background: %8',
   ui_input: 'wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8',
