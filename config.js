@@ -466,6 +466,60 @@ export const materialNames = [
 
 export const TEXTURE_TILE_SIZE = 4;
 
+export const NUMBER_RANGES = Object.freeze({
+  unit: Object.freeze({ min: 0, max: 1, step: 0.05 }),
+  soundSpeed: Object.freeze({ min: 0.1, max: 3, step: 0.1 }),
+  envelope: Object.freeze({ min: 0, max: 5, step: 0.05 }),
+  release: Object.freeze({ min: 0, max: 10, step: 0.05 }),
+  effectRate: Object.freeze({ min: 0.1, max: 20, step: 0.1 }),
+  midiNote: Object.freeze({ min: 0, max: 127, step: 1 }),
+  speechPitch: Object.freeze({ min: 0, max: 2, step: 0.1 }),
+  angle: Object.freeze({ min: 0, max: 360, step: 1, wrap: true }),
+  particleAngle: Object.freeze({ min: 0, max: 359, step: 1, clamp: false }),
+});
+
+export const RANGED_INPUTS = Object.freeze({
+  'set_alpha.ALPHA': 'unit',
+  'material.ALPHA': 'unit',
+  'gradient_material.ALPHA': 'unit',
+  'say.ALPHA': 'unit',
+  'ui_text.ALPHA': 'unit',
+  'on_screen_controls.ALPHA': 'unit',
+  'set_vr_comfort.ALPHA': 'unit',
+  'create_particle_effect.START_ALPHA': 'unit',
+  'create_particle_effect.END_ALPHA': 'unit',
+  'play_sound.VOLUME': 'unit',
+  'play_theme.VOLUME': 'unit',
+  'speak.VOLUME': 'unit',
+  'create_instrument.VOLUME': 'unit',
+  'create_instrument.SUSTAIN': 'unit',
+  'create_instrument.EFFECT_DEPTH': 'unit',
+  'create_instrument.EFFECT_RATE': 'effectRate',
+  'create_instrument.ATTACK': 'envelope',
+  'create_instrument.DECAY': 'envelope',
+  'create_instrument.RELEASE': 'release',
+  'note.PITCH': 'midiNote',
+  'speak.PITCH': 'speechPitch',
+  'gradient_colour.DIRECTION': 'angle',
+  'material.ANGLE': 'angle',
+  'create_particle_effect.MIN_INITIAL_ROTATION': 'particleAngle',
+  'create_particle_effect.MAX_INITIAL_ROTATION': 'particleAngle',
+  'set_bounciness.BOUNCINESS': 'unit',
+  'create_wedge.PEAK': 'unit',
+  'set_fog.DENSITY': 'unit',
+  'play_sound.SPEED': 'soundSpeed',
+  'play_theme.SPEED': 'soundSpeed',
+});
+
+export function rangeForInput(blockType, inputName) {
+  return NUMBER_RANGES[RANGED_INPUTS[`${blockType}.${inputName}`]] ?? null;
+}
+
+export function clampToRange(value, rangeName) {
+  const { min, max } = NUMBER_RANGES[rangeName];
+  return Math.min(max, Math.max(min, value));
+}
+
 export const attachNames = [
   'LeftHand',
   'RightHand',

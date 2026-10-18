@@ -1,3 +1,5 @@
+import { clampToRange } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -28,9 +30,14 @@ function applyParticleOptions(
     startColor.r,
     startColor.g,
     startColor.b,
-    alphas.start
+    clampToRange(alphas.start, 'unit')
   );
-  particleSystem.color2 = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, alphas.end);
+  particleSystem.color2 = new flock.BABYLON.Color4(
+    endColor.r,
+    endColor.g,
+    endColor.b,
+    clampToRange(alphas.end, 'unit')
+  );
   particleSystem.colorDead = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, 0);
 
   particleSystem.minSize = sizes.start;
@@ -338,7 +345,7 @@ export const flockEffects = {
     }
 
     flock.scene.fogColor = fogColorRgb;
-    flock.scene.fogDensity = fogDensity;
+    flock.scene.fogDensity = clampToRange(fogDensity, 'unit');
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
     flock.updateFogAwareShaderMaterials?.();

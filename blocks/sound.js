@@ -876,18 +876,10 @@ export function defineSoundBlocks() {
           {
             type: 'input_value',
             name: 'SPEED',
-            value: 1,
-            min: 0.1,
-            max: 3,
-            precision: 0.1,
           },
           {
             type: 'input_value',
             name: 'VOLUME',
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.1,
           },
           {
             type: 'field_dropdown',
@@ -943,18 +935,10 @@ export function defineSoundBlocks() {
           {
             type: 'input_value',
             name: 'SPEED',
-            value: 1,
-            min: 0.1,
-            max: 3,
-            precision: 0.1,
           },
           {
             type: 'input_value',
             name: 'VOLUME',
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.1,
           },
           {
             type: 'field_dropdown',

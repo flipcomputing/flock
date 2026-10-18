@@ -1,0 +1,334 @@
+import { expect } from 'chai';
+import * as Blockly from 'blockly';
+import { defineMaterialsBlocks } from '../blocks/materials.js';
+import { defineShapeBlocks } from '../blocks/shapes.js';
+import {
+  FieldRangedNumber,
+  nudgeValue,
+  rangeForField,
+  registerRangedNumberField,
+} from '../blocks/fieldRangedNumber.js';
+import { clampToRange, NUMBER_RANGES, rangeForInput } from '../config.js';
+
+const number = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
+const alphaState = (alpha) => ({ type: 'set_alpha', inputs: { ALPHA: number(alpha) } });
+
+function key(target, keyName) {
+  target.dispatchEvent(new KeyboardEvent('keydown', { key: keyName, bubbles: true }));
+}
+
+function typeInto(input, text) {
+  input.value = text;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+export function runRangedNumberTests(flock) {
+  describe('blocks/fieldRangedNumber @rangednumber', function () {
+    before(function () {
+      registerRangedNumberField();
+      if (!Blockly.Blocks['set_alpha']) defineMaterialsBlocks();
+      if (!Blockly.Blocks['create_particle_effect']) defineShapeBlocks();
+    });
+
+    describe('range table', function () {
+      it('looks up ranges by block type and input name', function () {
+        expect(rangeForInput('set_alpha', 'ALPHA')).to.equal(NUMBER_RANGES.unit);
+        expect(rangeForInput('play_sound', 'SPEED')).to.equal(NUMBER_RANGES.soundSpeed);
+        expect(rangeForInput('note', 'PITCH')).to.equal(NUMBER_RANGES.midiNote);
+        expect(rangeForInput('speak', 'PITCH')).to.equal(NUMBER_RANGES.speechPitch);
+        expect(rangeForInput('create_instrument', 'RELEASE')).to.equal(NUMBER_RANGES.release);
+        expect(rangeForInput('material', 'ANGLE')).to.equal(NUMBER_RANGES.angle);
+        expect(rangeForInput('set_alpha', 'MESH')).to.equal(null);
+        expect(rangeForInput('move_by_xyz', 'X')).to.equal(null);
+      });
+
+      it('clamps to the named range', function () {
+        expect(clampToRange(2, 'unit')).to.equal(1);
+        expect(clampToRange(-1, 'unit')).to.equal(0);
+        expect(clampToRange(0.25, 'unit')).to.equal(0.25);
+        expect(clampToRange(10, 'soundSpeed')).to.equal(3);
+      });
+
+      it('nudges along the step grid without floating point noise', function () {
+        expect(nudgeValue(0.5, 1, NUMBER_RANGES.unit)).to.equal(0.55);
+        expect(nudgeValue(0.33, 1, NUMBER_RANGES.unit)).to.equal(0.4);
+        expect(nudgeValue(0.33, -1, NUMBER_RANGES.unit)).to.equal(0.3);
+        expect(nudgeValue(1, 1, NUMBER_RANGES.unit)).to.equal(1);
+        expect(nudgeValue(0, -1, NUMBER_RANGES.unit)).to.equal(0);
+        expect(nudgeValue(5, -1, NUMBER_RANGES.unit)).to.equal(0.95);
+        expect(nudgeValue(0.1, 1, NUMBER_RANGES.soundSpeed)).to.equal(0.2);
+        expect(nudgeValue(60, 1, NUMBER_RANGES.midiNote)).to.equal(61);
+        expect(nudgeValue(127, 1, NUMBER_RANGES.midiNote)).to.equal(127);
+        expect(nudgeValue(5, 1, NUMBER_RANGES.effectRate)).to.equal(5.1);
+        expect(nudgeValue(-30, 1, NUMBER_RANGES.particleAngle)).to.equal(-29);
+        expect(nudgeValue(359, 1, NUMBER_RANGES.angle)).to.equal(0);
+        expect(nudgeValue(0, -1, NUMBER_RANGES.angle)).to.equal(359);
+        expect(nudgeValue(400, 1, NUMBER_RANGES.angle)).to.equal(41);
+        expect(nudgeValue(360, 1, NUMBER_RANGES.particleAngle)).to.equal(361);
+      });
+    });
+
+    describe('field lookup', function () {
+      let workspace;
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      it('makes every math_number field a ranged number field', function () {
+        const block = workspace.newBlock('math_number');
+        expect(block.getField('NUM')).to.be.instanceOf(FieldRangedNumber);
+      });
+
+      it('finds the range of the input a number is plugged into', function () {
+        const setAlpha = Blockly.serialization.blocks.append(alphaState(0.5), workspace);
+        const field = setAlpha.getInputTargetBlock('ALPHA').getField('NUM');
+        expect(rangeForField(field)).to.equal(NUMBER_RANGES.unit);
+      });
+
+      it('finds the range of a number field on the block itself', function () {
+        const gradient = workspace.newBlock('gradient_colour');
+        expect(rangeForField(gradient.getField('DIRECTION'))).to.equal(NUMBER_RANGES.angle);
+      });
+
+      it('has no range for a loose number', function () {
+        const field = workspace.newBlock('math_number').getField('NUM');
+        expect(rangeForField(field)).to.equal(null);
+      });
+
+      it('leaves an out-of-range saved value alone on load', function () {
+        const setAlpha = Blockly.serialization.blocks.append(alphaState(2), workspace);
+        expect(setAlpha.getInputTargetBlock('ALPHA').getFieldValue('NUM')).to.equal(2);
+      });
+    });
+
+    describe('editor', function () {
+      let container;
+      let workspace;
+
+      beforeEach(function () {
+        container = document.createElement('div');
+        container.style.width = '400px';
+        container.style.height = '300px';
+        document.body.appendChild(container);
+        workspace = Blockly.inject(container, {});
+      });
+
+      afterEach(function () {
+        Blockly.WidgetDiv.hide();
+        Blockly.DropDownDiv.hideWithoutAnimation();
+        workspace.dispose();
+        container.remove();
+      });
+
+      function openAlpha(alpha) {
+        const setAlpha = Blockly.serialization.blocks.append(alphaState(alpha), workspace);
+        const field = setAlpha.getInputTargetBlock('ALPHA').getField('NUM');
+        field.showEditor();
+        return field;
+      }
+
+      const slider = () => Blockly.DropDownDiv.getContentDiv().querySelector('input[type=range]');
+
+      it('shows a slider below a focused text box', function () {
+        const field = openAlpha(0.5);
+        expect(slider()).to.exist;
+        expect(slider().min).to.equal('0');
+        expect(slider().max).to.equal('1');
+        expect(slider().value).to.equal('0.5');
+        expect(document.activeElement).to.equal(field.htmlInput_);
+      });
+
+      it('snaps a typed value to the range when confirmed', function () {
+        const field = openAlpha(0.5);
+        typeInto(field.htmlInput_, '5');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(1);
+        expect(Blockly.WidgetDiv.isVisible()).to.equal(false);
+        expect(Blockly.DropDownDiv.isVisible()).to.equal(false);
+      });
+
+      it('does not snap a typed angle', function () {
+        const particle = Blockly.serialization.blocks.append(
+          { type: 'create_particle_effect', inputs: { MIN_INITIAL_ROTATION: number(0) } },
+          workspace
+        );
+        const field = particle.getInputTargetBlock('MIN_INITIAL_ROTATION').getField('NUM');
+        field.showEditor();
+        expect(slider().max).to.equal('359');
+        typeInto(field.htmlInput_, '-45');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(-45);
+      });
+
+      it('wraps a typed material angle into 0-360', function () {
+        const material = Blockly.serialization.blocks.append(
+          { type: 'material', inputs: { ANGLE: number(0) } },
+          workspace
+        );
+        const field = material.getInputTargetBlock('ANGLE').getField('NUM');
+        field.showEditor();
+        expect(slider().max).to.equal('359');
+        typeInto(field.htmlInput_, '400');
+        expect(field.getValue()).to.equal(40);
+        typeInto(field.htmlInput_, '-90');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(270);
+      });
+
+      it('wraps a typed gradient direction into 0-360', function () {
+        const gradient = workspace.newBlock('gradient_colour');
+        gradient.initSvg();
+        gradient.render();
+        const field = gradient.getField('DIRECTION');
+        field.showEditor();
+        expect(slider()).to.exist;
+        typeInto(field.htmlInput_, '400');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(40);
+      });
+
+      it('keeps the precision of a typed value', function () {
+        const field = openAlpha(0.5);
+        typeInto(field.htmlInput_, '0.123');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(0.123);
+      });
+
+      it('snaps a saved out-of-range value only once it is edited', function () {
+        const field = openAlpha(2);
+        expect(field.getValue()).to.equal(2);
+        typeInto(field.htmlInput_, '3');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(1);
+      });
+
+      it('steps the value with the arrow keys', function () {
+        const field = openAlpha(0.5);
+        key(field.htmlInput_, 'ArrowUp');
+        expect(field.getValue()).to.equal(0.55);
+        expect(field.htmlInput_.value).to.equal('0.55');
+        expect(slider().value).to.equal('0.55');
+        key(field.htmlInput_, 'ArrowDown');
+        key(field.htmlInput_, 'ArrowDown');
+        expect(field.getValue()).to.equal(0.45);
+      });
+
+      it('updates the value and text box from the slider', function () {
+        const field = openAlpha(0.5);
+        slider().value = '0.2';
+        slider().dispatchEvent(new Event('input', { bubbles: true }));
+        expect(field.getValue()).to.equal(0.2);
+        expect(field.htmlInput_.value).to.equal('0.2');
+      });
+
+      it('restores the original value on Escape', function () {
+        const field = openAlpha(0.5);
+        key(field.htmlInput_, 'ArrowUp');
+        key(field.htmlInput_, 'Escape');
+        expect(field.getValue()).to.equal(0.5);
+        expect(Blockly.DropDownDiv.isVisible()).to.equal(false);
+      });
+
+      it('records one undo step for a slider edit', async function () {
+        const field = openAlpha(0.5);
+        workspace.clearUndo();
+        slider().value = '0.2';
+        slider().dispatchEvent(new Event('input', { bubbles: true }));
+        slider().value = '0.3';
+        slider().dispatchEvent(new Event('input', { bubbles: true }));
+        key(field.htmlInput_, 'Enter');
+        await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+        expect(workspace.getUndoStack()).to.have.length(1);
+        workspace.undo(false);
+        expect(field.getValue()).to.equal(0.5);
+      });
+
+      it('drops the range once the editor closes', function () {
+        const setAlpha = workspace.newBlock('set_alpha');
+        setAlpha.initSvg();
+        setAlpha.render();
+        const block = workspace.newBlock('math_number');
+        block.initSvg();
+        block.render();
+        setAlpha.getInput('ALPHA').connection.connect(block.outputConnection);
+        const field = block.getField('NUM');
+        field.showEditor();
+        key(field.htmlInput_, 'Enter');
+        block.unplug();
+        field.setValue(5);
+        expect(field.getValue()).to.equal(5);
+      });
+
+      it('edits a loose number as a plain number', function () {
+        const block = workspace.newBlock('math_number');
+        block.initSvg();
+        block.render();
+        const field = block.getField('NUM');
+        field.setValue(7);
+        field.showEditor();
+        expect(Blockly.DropDownDiv.isVisible()).to.equal(false);
+        typeInto(field.htmlInput_, '42');
+        key(field.htmlInput_, 'Enter');
+        expect(field.getValue()).to.equal(42);
+      });
+    });
+
+    describe('API clamps', function () {
+      it('clamps fog density to 0-1', function () {
+        flock.setFog({ fogColorHex: '#ffffff', fogMode: 'EXP', fogDensity: 4 });
+        expect(flock.scene.fogDensity).to.equal(1);
+        flock.setFog({ fogColorHex: '#ffffff', fogMode: 'NONE', fogDensity: 0.1 });
+      });
+
+      it('clamps particle alphas to 0-1', async function () {
+        this.timeout(5000);
+        const emitterId = flock.createBox('rangedEmitter', {
+          color: '#ffffff',
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        const effectName = flock.createParticleEffect('rangedEffect', {
+          emitterMesh: emitterId,
+          emitRate: 10,
+          colors: { start: '#ffffff', end: '#ffffff' },
+          alphas: { start: 3, end: -1 },
+          sizes: { start: 1, end: 1 },
+          lifetime: { min: 0.1, max: 0.2 },
+          shape: 'flare.png',
+        });
+        try {
+          await flock.modelReadyPromises.get(effectName);
+          const system = flock.scene.particleSystems.find((s) => s.name === effectName);
+          expect(system.color1.a).to.equal(1);
+          expect(system.color2.a).to.equal(0);
+        } finally {
+          flock.scene.particleSystems.find((s) => s.name === effectName)?.dispose();
+          flock.dispose(emitterId);
+        }
+      });
+
+      it('clamps MIDI notes to 0-127', function () {
+        expect(flock.midiToFrequency(200)).to.equal(flock.midiToFrequency(127));
+        expect(flock.midiToFrequency(-5)).to.equal(flock.midiToFrequency(0));
+        expect(flock.midiToFrequency(69)).to.equal(440);
+      });
+
+      it('clamps material alpha to 0-1', function () {
+        const material = flock.getOrCreateMaterial({ color: '#13579b', alpha: 3 });
+        expect(material.alpha).to.equal(1);
+      });
+
+      it('clamps a numeric-string material alpha', function () {
+        const material = flock.getOrCreateMaterial({ color: '#2468ac', alpha: '3' });
+        expect(material.alpha).to.equal(1);
+      });
+    });
+  });
+}

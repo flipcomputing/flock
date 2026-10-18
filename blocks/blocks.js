@@ -31,8 +31,10 @@ import { setupProcedureParams } from './procedureParams.js';
 import { outOfScopeLocalIds, VariableNameDropdown } from './variableScope.js';
 import { lowestFreeName, nextVariableName, rememberObjectBlock } from './variableNames.js';
 import { isProjectLoading } from '../main/projectLoading.js';
+import { registerRangedNumberField } from './fieldRangedNumber.js';
 
 registerFieldColour();
+registerRangedNumberField();
 
 const normaliseHexColour = (value) => {
   if (typeof value !== 'string') return '';

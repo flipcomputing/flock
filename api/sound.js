@@ -1,5 +1,6 @@
 import { showBanner, dismissBanner } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
+import { clampToRange } from '../config.js';
 
 let flock;
 
@@ -360,7 +361,9 @@ export const flockSound = {
   ) {
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
     playbackRate =
-      Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0 ? Number(playbackRate) : 1;
+      Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0
+        ? clampToRange(Number(playbackRate), 'soundSpeed')
+        : 1;
     if (!soundName || typeof soundName !== 'string') {
       console.warn('playSound: invalid soundName');
       return;
@@ -797,7 +800,7 @@ export const flockSound = {
   },
   midiToFrequency(note) {
     const parsed = Number(note);
-    note = Math.min(127, Math.max(0, Math.round(Number.isNaN(parsed) ? 60 : parsed))); // Clamp to valid MIDI range 0-127
+    note = clampToRange(Math.round(Number.isNaN(parsed) ? 60 : parsed), 'midiNote');
     return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
   },
   durationInSeconds(duration, bpm) {
@@ -823,13 +826,13 @@ export const flockSound = {
     };
     const validEffects = ['none', 'tremolo', 'vibrato', 'warble', 'robot'];
     effect = validEffects.includes(effect) ? effect : 'none';
-    volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
-    attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
-    decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
-    sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
-    release = Math.min(10, Math.max(0, toNum(release, 1.0)));
-    effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
-    effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
+    volume = clampToRange(toNum(volume, 1.0), 'unit');
+    attack = clampToRange(toNum(attack, 0.1), 'envelope');
+    decay = clampToRange(toNum(decay, 0.3), 'envelope');
+    sustain = clampToRange(toNum(sustain, 0.7), 'unit');
+    release = clampToRange(toNum(release, 1.0), 'release');
+    effectRate = clampToRange(toNum(effectRate, 5), 'effectRate');
+    effectDepth = clampToRange(toNum(effectDepth, 0.5), 'unit');
 
     const config = {
       type,
@@ -1019,7 +1022,7 @@ export const flockSound = {
 
     // Set basic properties
     utterance.rate = Math.max(0.1, Math.min(10, rate));
-    utterance.pitch = Math.max(0, Math.min(2, pitch));
+    utterance.pitch = clampToRange(pitch, 'speechPitch');
     utterance.volume = Math.max(0, Math.min(1, volume));
     utterance.lang = language;
 
