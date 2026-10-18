@@ -483,6 +483,7 @@ export const NUMBER_RANGES = Object.freeze({
   nonNegative: Object.freeze({ min: 0, max: Infinity, slider: false }),
   fontSize: Object.freeze({ min: 1, max: Infinity, slider: false }),
   modelScale: Object.freeze({ min: 0.01, max: 100, slider: false }),
+  cameraDistance: Object.freeze({ min: 0.5, max: 5000, slider: false }),
 });
 
 export const RANGED_INPUTS = Object.freeze({
@@ -604,9 +605,9 @@ export const RANGED_INPUTS = Object.freeze({
   'main_light.INTENSITY': 'nonNegative',
   'set_fog.START': 'nonNegative',
   'set_fog.END': 'nonNegative',
-  'camera_follow.RADIUS': 'nonNegative',
-  'create_follow_camera.DISTANCE': 'nonNegative',
-  'create_orbit_camera.DISTANCE': 'nonNegative',
+  'camera_follow.RADIUS': 'cameraDistance',
+  'create_follow_camera.DISTANCE': 'cameraDistance',
+  'create_orbit_camera.DISTANCE': 'cameraDistance',
   'create_particle_effect.MIN_SIZE': 'nonNegative',
   'create_particle_effect.MAX_SIZE': 'nonNegative',
   'create_particle_effect.MIN_LIFETIME': 'nonNegative',

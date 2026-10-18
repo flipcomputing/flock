@@ -8,6 +8,7 @@ import {
   addColourShadow,
 } from './blocklyshadowutil.js';
 import { rememberObjectBlock } from '../blocks/variableNames.js';
+import { rangeForInput } from '../config.js';
 let lastAddMenuHighlighted = null;
 
 // Whether a block has been locked (non-editable / non-movable / non-deletable).
@@ -673,7 +674,13 @@ export function setNumberInputs(block, valuesByInputName, { decimals = 1 } = {})
 
     const target = block.getInput(inputName)?.connection?.targetBlock?.();
     if (!target?.getField?.('NUM')) continue;
-    target.setFieldValue(String(roundToPrecision(n, decimals)), 'NUM');
+    const range = rangeForInput(block.type, inputName);
+    const rounded = roundToPrecision(n, decimals);
+    const next =
+      range && range.clamp !== false && !range.wrap
+        ? Math.min(range.max, Math.max(range.min, rounded))
+        : rounded;
+    target.setFieldValue(String(next), 'NUM');
   }
 }
 

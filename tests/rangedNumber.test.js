@@ -5,6 +5,7 @@ import { defineShapeBlocks } from '../blocks/shapes.js';
 import { defineSameNumberBlock, SAME_NUMBER_TYPE } from '../blocks/initialTransformRows.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { registerSceneGenerators } from '../generators/generators-scene.js';
+import { setNumberInputs } from '../ui/blocklyutil.js';
 import {
   FieldRangedNumber,
   nudgeValue,
@@ -201,6 +202,23 @@ export function runRangedNumberTests(flock) {
         const finite = workspace.newBlock('math_number');
         finite.setFieldValue(1e300, 'NUM');
         expect(Blockly.serialization.blocks.save(finite).fields.NUM).to.equal(1e300);
+      });
+
+      it('keeps gizmo writes within the hard ranges', function () {
+        if (!Blockly.Blocks['load_model']) defineBlocks();
+        const model = Blockly.serialization.blocks.append(
+          { type: 'load_model', inputs: { SCALE: number(1), X: number(0) } },
+          workspace
+        );
+        const scale = () => model.getInputTargetBlock('SCALE').getFieldValue('NUM');
+        setNumberInputs(model, { SCALE: 150 });
+        expect(scale()).to.equal(100);
+        setNumberInputs(model, { SCALE: 0.001 });
+        expect(scale()).to.equal(0.01);
+        setNumberInputs(model, { SCALE: 2.5 });
+        expect(scale()).to.equal(2.5);
+        setNumberInputs(model, { X: 5000 });
+        expect(model.getInputTargetBlock('X').getFieldValue('NUM')).to.equal(5000);
       });
 
       it('leaves an out-of-range saved value alone on load', function () {
@@ -506,6 +524,38 @@ export function runRangedNumberTests(flock) {
         } finally {
           flock.scene.particleSystems.find((s) => s.name === effectName)?.dispose();
           flock.dispose(emitterId);
+        }
+      });
+
+      it('places characters beyond 1000 without clamping', async function () {
+        this.timeout(15000);
+        const id = flock.createCharacter({
+          modelName: 'Liz3.glb',
+          modelId: 'rangedFarLiz',
+          position: { x: 2000, y: 0, z: -3000 },
+        });
+        try {
+          const mesh = await flock.whenModelReady(id);
+          expect(mesh.position.x).to.be.closeTo(2000, 0.01);
+          expect(mesh.position.z).to.be.closeTo(-3000, 0.01);
+        } finally {
+          flock.dispose(id);
+        }
+      });
+
+      it('caps camera distance at 5000', async function () {
+        const targetId = flock.createBox('rangedCameraTarget', { width: 1, height: 1, depth: 1 });
+        const name = flock.createCamera('rangedFarCamera', {
+          type: 'follow',
+          target: targetId,
+          distance: 99999,
+        });
+        try {
+          const camera = await flock.scene.getMeshByName(name).metadata.cameraReady;
+          expect(camera.radius).to.equal(5000);
+        } finally {
+          flock.dispose(name);
+          flock.dispose(targetId);
         }
       });
 
