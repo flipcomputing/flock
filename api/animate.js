@@ -183,7 +183,7 @@ export const flockAnimate = {
   ) {
     const rawDuration = Number(duration);
     duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
-    const instant = Number.isFinite(rawDuration) && rawDuration === 0;
+    const instant = Number.isFinite(rawDuration) && rawDuration <= 0;
     const angle = (v) => {
       const n = Number(v);
       if (!Number.isFinite(n)) return 0;
@@ -217,7 +217,7 @@ export const flockAnimate = {
         const prior = interruptMotion(mesh, '_activeRotate');
 
         if (instant) {
-          mesh.rotationQuaternion = targetQuat;
+          if (!reverse) mesh.rotationQuaternion = targetQuat;
           mesh.computeWorldMatrix(true);
           teleportBodyToMesh(mesh);
           resolve();
@@ -373,7 +373,9 @@ export const flockAnimate = {
     meshName,
     { x = 0, y = 0, z = 0, duration = 1, reverse = false, loop = false, easing = 'Linear' } = {}
   ) {
-    duration = Number.isFinite(Number(duration)) && Number(duration) > 0 ? Number(duration) : 1;
+    const rawDuration = Number(duration);
+    duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
+    const instant = Number.isFinite(rawDuration) && rawDuration <= 0;
     const keepX = x === '__current__';
     const keepY = y === '__current__';
     const keepZ = z === '__current__';
@@ -398,13 +400,12 @@ export const flockAnimate = {
         y = flock.getGroundLevelAt(x, z);
       }
 
-      const key = motionKey({ x, y, z, duration, reverse, loop, easing });
+      const key = instant ? null : motionKey({ x, y, z, duration, reverse, loop, easing });
       const joined = joinIfSame(mesh, '_activeGlide', key);
       if (joined) return joined;
 
       const prior = interruptMotion(mesh, '_activeGlide');
       const children = mesh.getChildMeshes();
-      const drive = driveBody(mesh);
 
       const startAnchor = flock._getAnchor(mesh);
       if (keepX) x = startAnchor.x;
@@ -431,6 +432,16 @@ export const flockAnimate = {
         );
       }
       const endPosition = startPosition.add(localDelta);
+
+      if (instant) {
+        if (!reverse) mesh.position = endPosition;
+        mesh.computeWorldMatrix(true);
+        children.forEach((c) => c.computeWorldMatrix(true));
+        teleportBodyToMesh(mesh);
+        return;
+      }
+
+      const drive = driveBody(mesh);
       const fps = 30;
       const frames = fps * duration;
       const outFrames =

@@ -233,9 +233,9 @@ function resizeMesh(
   );
 
   mesh.scaling = new flock.BABYLON.Vector3(
-    Math.max(0.01, Math.abs(scaleX)),
-    Math.max(0.01, Math.abs(scaleY)),
-    Math.max(0.01, Math.abs(scaleZ))
+    Math.max(0.01, scaleX),
+    Math.max(0.01, scaleY),
+    Math.max(0.01, scaleZ)
   );
 
   if (maintainTextureScale) flock.retileTextures(mesh);
@@ -826,9 +826,10 @@ export const flockTransform = {
     meshName,
     { x = 1, y = 1, z = 1, xOrigin = 'CENTRE', yOrigin = 'BOTTOM', zOrigin = 'CENTRE' } = {}
   ) {
-    x = Number.isFinite(Number(x)) && Number(x) >= 0 ? Number(x) : 1;
-    y = Number.isFinite(Number(y)) && Number(y) >= 0 ? Number(y) : 1;
-    z = Number.isFinite(Number(z)) && Number(z) >= 0 ? Number(z) : 1;
+    const toScale = (v) => (Number.isFinite(Number(v)) ? Math.max(0.01, Number(v)) : 1);
+    x = toScale(x);
+    y = toScale(y);
+    z = toScale(z);
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!flock.requireMesh(mesh, { api: 'scale', name: meshName })) {

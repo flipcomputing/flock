@@ -145,6 +145,8 @@ export default {
   load_object: 'dodaj %1 %2 %3, skala: %4, %8 x: %5, y: %6, z: %7',
   load_multi_object: 'dodaj %1 %2, skala: %3, %8 x: %4, y: %5, z: %6\nkolory: %7',
   load_model: 'dodaj model %1 %2, skala: %3, %7 x: %4, y: %5, z: %6\nkolory: %8',
+  initial_position_label: 'pozycja',
+  same_axis_value: 'to samo',
   initial_rotation_label: 'obrót',
   initial_size_label: 'rozmiar',
 
@@ -326,6 +328,7 @@ export default {
   subtitle: 'napis %1 przez %2 sekund', // ai
   say: 'powiedz %1 przez %2 s %3\ntekst: %4 na %5 przezroczystość: %6 rozmiar: %7 %8 %9',
   ui_text: 'tekst UI %1 %2 w x: %3 y: %4\nrozmiar: %5 przez %6 s kolor: %7',
+  ui_align: 'od',
   ui_button:
     'przycisk UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 text: %7 background: %8',
   ui_input: 'wejście UI %1 %2 w x: %3 y: %4\nrozmiar: %5 rozmiar tekstu: %6 tekst: %7 tło: %8',

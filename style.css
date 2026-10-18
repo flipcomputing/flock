@@ -3721,11 +3721,12 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
    the block's actual current look, in whatever language is active. */
 .howto-snippet {
   margin: 0 0 1em;
-  text-align: center;
+  text-align: left;
+  overflow-x: auto;
 }
 
 .howto-snippet svg {
-  max-width: 100%;
+  max-width: none;
   height: auto;
 }
 
@@ -3768,7 +3769,7 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-block-menu + svg {
   display: block;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .howto-article .howto-block-menu-btn {

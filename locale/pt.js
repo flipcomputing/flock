@@ -145,6 +145,8 @@ export default {
   load_object: 'adicionar %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'adicionar %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncores: %7',
   load_model: 'adicionar %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncores: %8',
+  initial_position_label: 'posição',
+  same_axis_value: 'igual',
   initial_rotation_label: 'rotação',
   initial_size_label: 'tamanho',
 
@@ -326,6 +328,7 @@ export default {
   subtitle: 'legenda %1 por %2 segundos', // ai
   say: 'dizer %1 por %2 s %3 \ntexto %4 em %5 opacidade %6 tamanho %7 %8 %9',
   ui_text: 'texto UI %1 %2 em x: %3 y: %4\ntamanho: %5 por %6 segundos cor: %7',
+  ui_align: 'a partir de',
   ui_button:
     'botão UI %1 %2 em x: %3 y: %4\ntamanho: %5 tamanho do texto: %6 text: %7 background: %8',
   ui_input:

@@ -38,8 +38,8 @@ function boundsOf(mesh) {
 const movesAsUnit = (block, mesh) =>
   mesh.metadata?.shapeType === 'Group' || block.type === 'combine';
 
-const hasLiteralPosition = (block) =>
-  ['X', 'Y', 'Z'].every((input) => !!block.getInputTargetBlock(input)?.getField('NUM'));
+const hasLiteralPosition = (block, prefix = '') =>
+  ['X', 'Y', 'Z'].every((axis) => !!block.getInputTargetBlock(prefix + axis)?.getField('NUM'));
 
 // A member with a computed coordinate is left out rather than counted in the
 // bounds: that coordinate can't be written, and the live view doesn't follow
@@ -47,7 +47,8 @@ const hasLiteralPosition = (block) =>
 function canMove(block, mesh) {
   if (block.type === 'clone_mesh') {
     const move = findOwnMove(block);
-    return !move || hasLiteralPosition(move);
+    if (move) return hasLiteralPosition(move);
+    return !block.positionShown_ || hasLiteralPosition(block, 'POSITION_');
   }
   return movesAsUnit(block, mesh) || hasLiteralPosition(block);
 }

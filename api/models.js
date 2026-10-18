@@ -1,6 +1,10 @@
 import { hideFromInspector } from '../ui/inspectorVisibility.js';
+import { clampToRange } from '../config.js';
 
 let flock;
+
+const toModelScale = (scale) =>
+  typeof scale === 'number' && Number.isFinite(scale) ? clampToRange(scale, 'modelScale') : 1;
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -115,18 +119,17 @@ export const flockModels = {
     const meshName = flock._reserveName(desiredFinalName); // may suffix on true collision
     const groupName = desiredBase; // group by base for onTrigger applyToGroup
 
-    // position/scale clamps
-    const x = Number.isFinite(position?.x) ? Math.max(-1000, Math.min(1000, position.x)) : 0;
+    const x = Number.isFinite(position?.x) ? position.x : 0;
     const groundLevelSentinel = -999999;
     const numericY = typeof position?.y === 'string' ? Number(position.y) : position?.y;
     const y =
       position?.y === '__ground__level__' || numericY === groundLevelSentinel
         ? position.y
         : Number.isFinite(position?.y)
-          ? Math.max(-1000, Math.min(1000, position.y))
+          ? position.y
           : 0;
-    const z = Number.isFinite(position?.z) ? Math.max(-1000, Math.min(1000, position.z)) : 0;
-    if (!(typeof scale === 'number' && scale >= 0.01 && scale <= 100)) scale = 1;
+    const z = Number.isFinite(position?.z) ? position.z : 0;
+    scale = toModelScale(scale);
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
@@ -257,6 +260,7 @@ export const flockModels = {
               .then(() => {
                 flock.releaseBody(bb);
                 mesh.setEnabled(true);
+                if (callback) flock._refitGroupsAbove(bb);
               })
           )
           .then(async () => {
@@ -334,6 +338,7 @@ export const flockModels = {
     then = null,
     applyColor = true,
   } = {}) {
+    scale = toModelScale(scale);
     const releaseContainer = (container) => {
       try {
         container.meshes = [];
@@ -487,6 +492,7 @@ export const flockModels = {
           runConstructor.then(() => {
             if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
             flock.releaseBody(root);
+            flock._refitGroupsAbove(root);
             return revealWhenDrawable(mesh);
           })
         )

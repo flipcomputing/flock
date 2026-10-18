@@ -48,7 +48,7 @@ import { handleRecentObjectEvent } from '../blocks/variableNames.js';
 import { localVariableBlock } from '../toolbox.js';
 import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
-import { initContextMenus } from '../ui/contextmenu.js';
+import { initContextMenus, duplicateAndAttach } from '../ui/contextmenu.js';
 import { initListReorder } from '../ui/listReorder.js';
 import {
   applyBlockLockState,
@@ -1427,11 +1427,11 @@ function installShadowNavigationPatch(ws) {
   // Registers a shortcut that fires only while a value block's own field is focused.
   // canRun(workspace, block) → extra conditions beyond the common workspace checks.
   // run(workspace, event, block) → performs the action, returns true on success.
-  const registerFocusedFieldShortcut = (name, keyCode, canRun, run) => {
+  const registerFocusedFieldShortcut = (name, keyCode, canRun, run, modifiers) => {
     shortcutRegistry.register({
       name,
       allowCollision: true,
-      keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
+      keyCodes: [shortcutRegistry.createSerializedKey(keyCode, modifiers)],
       preconditionFn: (workspace) => {
         const block = focusedFieldBlock();
         return (
@@ -1498,6 +1498,32 @@ function installShadowNavigationPatch(ws) {
     }
   }
 
+  const canDuplicate = (ws, block) =>
+    !!block &&
+    typeof block.toCopyData === 'function' &&
+    !ws.isFlyout &&
+    !block.isShadow?.() &&
+    !!block.isDuplicatable?.() &&
+    !ws.isDragging?.() &&
+    !ws.isReadOnly?.();
+
+  shortcutRegistry.register({
+    name: 'duplicate_attached',
+    keyCodes: [
+      shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.D, [Blockly.utils.KeyCodes.SHIFT]),
+    ],
+    preconditionFn: (ws, scope) => canDuplicate(ws, scope?.focusedNode),
+    callback: (_ws, _event, _shortcut, scope) => duplicateAndAttach(scope?.focusedNode),
+  });
+
+  registerFocusedFieldShortcut(
+    'duplicate_attached_from_focused_field',
+    Blockly.utils.KeyCodes.D,
+    canDuplicate,
+    (_ws, _event, block) => duplicateAndAttach(block),
+    [Blockly.utils.KeyCodes.SHIFT]
+  );
+
   // Delete key is safe to bind here — Del doesn't conflict with text editing
   // (users use Backspace for that). Backspace is intentionally excluded.
   registerFocusedFieldShortcut(
@@ -1540,7 +1566,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!enableEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_disable');
+        Blockly.Events.setGroup(true);
         block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
         Blockly.Events.setGroup(false);
         return true;
@@ -1558,7 +1584,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!lockEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_lock');
+        Blockly.Events.setGroup(true);
         setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(false);
         window.flockBlockToolbar?.refresh?.(block);
@@ -1586,7 +1612,7 @@ function installShadowNavigationPatch(ws) {
         const block = enableTargetBlock(scope);
         if (!collapseEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('toolbar_collapse');
+        Blockly.Events.setGroup(true);
         // Sections fold via their own sectionCollapsed_ flag, not Blockly's
         // native collapsed_/isCollapsed() (see setCollapsed override in
         // section.js), so isCollapsed() alone can't tell whether one is

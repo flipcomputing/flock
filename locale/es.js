@@ -145,6 +145,8 @@ export default {
   load_object: 'añadir %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7', // human
   load_multi_object: 'añadir %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncolores: %7', // human
   load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncolores: %8', // human
+  initial_position_label: 'posición',
+  same_axis_value: 'igual',
   initial_rotation_label: 'rotación',
   initial_size_label: 'tamaño',
   then_label: 'luego', // human
@@ -367,6 +369,7 @@ export default {
   subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
+  ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   describe: 'describir %1 como %2', // human

@@ -84,6 +84,25 @@ export function runControlTests(flock) {
         }
       });
 
+      it('waits forever for a huge duration but still stops on abort', async function () {
+        const previous = flock.abortController;
+        flock.abortController = new AbortController();
+        try {
+          let settled = false;
+          const pending = flock.wait(1e9).then(
+            () => (settled = 'resolved'),
+            (err) => (settled = err?.name)
+          );
+          await new Promise((r) => setTimeout(r, 50));
+          expect(settled).to.equal(false);
+          flock.abortController.abort();
+          await pending;
+          expect(settled).to.equal('AbortError');
+        } finally {
+          flock.abortController = previous;
+        }
+      });
+
       it('still rejects on abort while paused', async function () {
         const previous = flock.abortController;
         flock.abortController = new AbortController();
@@ -296,6 +315,18 @@ export function runControlTests(flock) {
         const started = performance.now();
         await new Promise((resolve) => flock.freezeAwareTimeout(resolve, 100));
         expect(performance.now() - started).to.be.greaterThan(80);
+      });
+
+      it('never fires for delays beyond the timer limit', async function () {
+        for (const ms of [2 ** 31, 1e12, Infinity]) {
+          let fired = false;
+          const timer = flock.freezeAwareTimeout(() => {
+            fired = true;
+          }, ms);
+          await new Promise((r) => setTimeout(r, 50));
+          timer.cancel();
+          expect(fired).to.equal(false);
+        }
       });
 
       it('pauses while hidden and fires with the remaining delay', async function () {

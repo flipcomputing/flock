@@ -34,7 +34,21 @@ export function hasInitialTransformRows(block) {
 }
 
 export function usesAnchorPosition(block) {
-  return Boolean(block?.rotateShown_ || block?.resizeShown_);
+  return Boolean(block?.positionShown_ || block?.rotateShown_ || block?.resizeShown_);
+}
+
+export function getClonePositionValues(owner) {
+  return readXYZ(owner, 'POSITION');
+}
+
+export function writeClonePositionAxes(owner, position, { decimals = 1, axes = AXES } = {}) {
+  const move = findOwnMove(owner);
+  if (move) {
+    writeMovedPosition(move, position, { decimals });
+    return;
+  }
+  owner.setPositionShown?.(true);
+  writeXYZ(owner, 'POSITION', position, { axes, decimals });
 }
 
 export function readBlockPosition(mesh, block) {

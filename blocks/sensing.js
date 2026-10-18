@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { addUIAlignment } from './uiAlignment.js';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
@@ -1044,6 +1045,7 @@ export function defineSensingBlocks() {
         tooltip: getTooltip('ui_slider'),
       });
 
+      addUIAlignment(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
       registerBlockHandler(this, (changeEvent) => {

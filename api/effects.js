@@ -1,3 +1,5 @@
+import { clampToRange } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -7,7 +9,6 @@ export function setFlockReference(ref) {
 // Headlamp tracks this fraction of the main light's intensity, so it stays
 // proportional to lightIntensity() and goes to 0 when that does.
 const HEADLAMP_INTENSITY_RATIO = 0.4;
-const MAX_EMIT_RATE = 500;
 
 function applyParticleOptions(
   particleSystem,
@@ -28,9 +29,14 @@ function applyParticleOptions(
     startColor.r,
     startColor.g,
     startColor.b,
-    alphas.start
+    clampToRange(alphas.start, 'unit')
   );
-  particleSystem.color2 = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, alphas.end);
+  particleSystem.color2 = new flock.BABYLON.Color4(
+    endColor.r,
+    endColor.g,
+    endColor.b,
+    clampToRange(alphas.end, 'unit')
+  );
   particleSystem.colorDead = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, 0);
 
   particleSystem.minSize = sizes.start;
@@ -39,7 +45,9 @@ function applyParticleOptions(
   particleSystem.minLifeTime = lifetime.min;
   particleSystem.maxLifeTime = lifetime.max;
 
-  particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
+  if (Number.isFinite(Number(emitRate))) {
+    particleSystem.emitRate = clampToRange(Number(emitRate), 'particleRate');
+  }
 
   particleSystem.gravity = gravity
     ? new flock.BABYLON.Vector3(0, -9.81, 0)
@@ -98,7 +106,7 @@ export const flockEffects = {
   updateHeadlampIntensity,
   lightIntensity(intensity) {
     if (flock.mainLight) {
-      flock.mainLight.intensity = intensity;
+      flock.mainLight.intensity = clampToRange(intensity, 'nonNegative');
       updateHeadlampIntensity();
     } else {
       console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
@@ -338,7 +346,7 @@ export const flockEffects = {
     }
 
     flock.scene.fogColor = fogColorRgb;
-    flock.scene.fogDensity = fogDensity;
+    flock.scene.fogDensity = clampToRange(fogDensity, 'unit');
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
     flock.updateFogAwareShaderMaterials?.();

@@ -1,0 +1,31 @@
+{
+  "type": "controls_repeat_ext",
+  "inputs": {
+    "TIMES": { "shadow": { "type": "math_number", "fields": { "NUM": 5 } } },
+    "DO": {
+      "block": {
+        "type": "load_object",
+        "fields": {
+          "ID_VAR": { "name": "star1", "type": "" },
+          "MODELS": "Star.glb"
+        },
+        "inputs": {
+          "COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#ffd700" } } },
+          "SCALE": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } },
+          "X": {
+            "shadow": { "type": "math_number", "fields": { "NUM": 0 } },
+            "block": {
+              "type": "math_random_int",
+              "inputs": {
+                "FROM": { "shadow": { "type": "math_number", "fields": { "NUM": -3 } } },
+                "TO": { "shadow": { "type": "math_number", "fields": { "NUM": 3 } } }
+              }
+            }
+          },
+          "Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+          "Z": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } }
+        }
+      }
+    }
+  }
+}

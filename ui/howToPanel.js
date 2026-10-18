@@ -65,6 +65,8 @@ const HOW_TOS = [
   { slug: 'color-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
   { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'], icon: 'positiongizmo' },
   { slug: 'position-with-code', i18nKey: 'howto_position_with_code_ui', tone: 15, tags: ['code'] },
+  { slug: 'first-and-then-compartments', i18nKey: 'howto_first_and_then_compartments_ui', tone: 38, tags: ['code'] },
+  { slug: 'respond-to-clicks', i18nKey: 'howto_respond_to_clicks_ui', tone: 39, tags: ['code'] },
   { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'], icon: 'rotategizmo' },
   { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'], icon: 'scalegizmo' },
   { slug: 'select-an-object', i18nKey: 'howto_select_an_object_ui', tone: 14, tags: ['gizmo'], icon: 'selectgizmo' },
@@ -82,6 +84,7 @@ const HOW_TOS = [
   { slug: 'add-comments', i18nKey: 'howto_add_comments_ui', tone: 19, tags: ['blocks'] },
   { slug: 'import-and-export-code', i18nKey: 'howto_import_and_export_code_ui', tone: 20, tags: ['blocks'] },
   { slug: 'duplicate-and-copy-blocks', i18nKey: 'howto_duplicate_and_copy_blocks_ui', tone: 21, tags: ['blocks'] },
+  { slug: 'view-or-focus-an-object', i18nKey: 'howto_view_or_focus_an_object_ui', tone: 37, tags: ['blocks', 'camera'] },
   { slug: 'use-block-hints', i18nKey: 'howto_use_block_hints_ui', tone: 22, tags: ['blocks'] },
   { slug: 'undo-and-redo', i18nKey: 'howto_undo_and_redo_ui', tone: 23, tags: ['blocks'] },
   { slug: 'zoom', i18nKey: 'howto_zoom_ui', tone: 24, tags: ['blocks'] },
@@ -953,6 +956,14 @@ function createBlockMenuPicture(names) {
   return menu;
 }
 
+function matchWorkspaceScale(svg) {
+  const scale = blocklyOptions.zoom?.startScale ?? 1;
+  for (const attr of ['width', 'height']) {
+    const size = Number(svg?.getAttribute(attr));
+    if (size) svg.setAttribute(attr, size * scale);
+  }
+}
+
 function wireHowToSnippets(root) {
   root.querySelectorAll('snippet').forEach((el) => {
     const src = el.getAttribute('src');
@@ -977,6 +988,7 @@ function wireHowToSnippets(root) {
     renderSnippetSVG(blockJson, { selected: selected || !!blockMenu, highlightInput })
       .then(({ svg, label }) => {
         figure.insertAdjacentHTML('afterbegin', svg);
+        matchWorkspaceScale(figure.firstElementChild);
         if (blockMenu) figure.prepend(createBlockMenuPicture(blockMenu));
         // The figcaption (when present) is the accessible description; the
         // picture itself is decorative on top of that. Without one, the

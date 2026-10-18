@@ -20,6 +20,19 @@ export function runAnimateTests(flock) {
     });
 
     describe('rotateAnim function', function () {
+      it('rotates instantly with a duration of 0 or less', async function () {
+        const boxId = 'rotateAnimInstant';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+        for (const duration of [0, -1]) {
+          const started = performance.now();
+          await flock.rotateAnim(boxId, { y: 90 + duration, duration });
+          expect(performance.now() - started).to.be.below(200);
+          expect(effectiveEuler(mesh).y).to.be.closeTo(((90 + duration) * Math.PI) / 180, 0.001);
+        }
+      });
+
       it('should rotate a mesh with default values', async function () {
         const boxId = 'rotateAnimDefault';
         await flock.createBox(boxId, {

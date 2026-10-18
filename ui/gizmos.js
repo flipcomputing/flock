@@ -16,14 +16,13 @@ import {
   getSuppressedHitCount,
   setGroupSelectionFollower,
   setGroupActiveToggleListener,
-  setMirrorInUseCheck,
+  setCloneInUseCheck,
   writeClonePosition,
 } from './blockmesh.js';
 import {
   highlightBlockById,
   getCanvasXAndCanvasYValues,
   setBlockXYZ,
-  findOrCreateDoBlock,
   duplicateBlockAndInsert,
   insertBlockSnapshot,
   captureStackAnchor,
@@ -89,6 +88,7 @@ import {
   getInitialSizeValues,
   setInitialSizeValues,
   placeMoveAfterInitialTransforms,
+  writeClonePositionAxes,
   hasInitialTransformRows,
 } from './initialTransform.js';
 export let gizmoManager;
@@ -360,6 +360,21 @@ function registerBindings() {
     noMod(() => focusOnMesh())
   );
   KeyboardDispatcher.on(
+    'EDITOR',
+    'KeyJ',
+    noMod(() => {
+      const block = Blockly.common?.getSelected?.();
+      if (!block || block.isInFlyout) return;
+      const mesh = getMeshFromBlock(block);
+      if (!mesh || mesh.name === 'ground') return;
+      import('../main/view.js').then(({ showCanvasView }) => {
+        showCanvasView();
+        window.currentBlock = block;
+        focusOnMesh(block);
+      });
+    })
+  );
+  KeyboardDispatcher.on(
     'GIZMO',
     'KeyV',
     noMod(() => toggleGizmo('eye'))
@@ -450,7 +465,7 @@ function registerBindings() {
     if (typeof target.hasDisabledReason !== 'function') return;
     e.preventDefault?.();
     e.stopPropagation?.();
-    Blockly.Events.setGroup('toolbar_disable');
+    Blockly.Events.setGroup(true);
     try {
       target.setDisabledReason(!target.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
     } finally {
@@ -1155,7 +1170,7 @@ function duplicateCanvasTargetInPlace(target) {
   } catch {
     pastePos = null;
   }
-  Blockly.Events.setGroup('duplicate');
+  Blockly.Events.setGroup(true);
   let newBlock;
   try {
     newBlock = insertBlockSnapshot(snapshot, workspace, pastePos, target);
@@ -1272,7 +1287,7 @@ export function pasteCanvasClipboard() {
     // paste lands after B. Without a selection, keep cut/paste restoring its
     // anchor, or copy/paste chaining after its source.
     const afterBlock = selectionBlock ?? sourceAlive ?? null;
-    Blockly.Events.setGroup('duplicate');
+    Blockly.Events.setGroup(true);
     let newBlock;
     try {
       newBlock = insertBlockSnapshot(
@@ -1310,7 +1325,7 @@ export function pasteCanvasClipboard() {
   const data = Blockly.clipboard?.getLastCopiedData?.();
   if (!data) return false;
   if (data.blockState) stripLockState(data.blockState);
-  Blockly.Events.setGroup('duplicate');
+  Blockly.Events.setGroup(true);
   let pasted;
   try {
     pasted = Blockly.clipboard.paste(data, workspace);
@@ -1400,6 +1415,8 @@ function frameFreeCameraOnMesh(mesh) {
 // the player throughout — unlike orbit view, which detaches the camera onto
 // its own free-floating ArcRotateCamera.
 function movePlayerToFaceMesh(mesh, camera) {
+  applyMeshSelection(mesh);
+
   const BABYLON = flock.BABYLON;
   const player = camera.metadata.following;
 
@@ -2657,32 +2674,14 @@ function findOrCreateRotateBlock(mesh) {
   });
 }
 
-function findOrCreateMoveBlock(block) {
-  const zero = { shadow: { type: 'math_number', fields: { NUM: 0 } } };
-  return trackGizmoCreated(
-    block,
-    findOrCreateDoBlock(
-      block,
-      {
-        type: 'move_to_xyz',
-        varField: 'MODEL',
-        varId: getOwnVar(block),
-        inputs: { X: zero, Y: zero, Z: zero },
-      },
-      { atStart: true }
-    )
-  );
-}
-
 // Group members keep 4dp: group moves, scales and rotations derive their
 // values, so coarser rounding visibly breaks flush alignments, while finer
 // digits are float32 noise from Babylon's world matrices.
 const MEMBER_DECIMALS = 4;
 
 function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
-  const target = block.type === 'clone_mesh' ? findOrCreateMoveBlock(block) : block;
-  setBlockXYZ(target, pos.x, pos.y, pos.z, { decimals });
-  if (block.type === 'clone_mesh') placeMoveAfterInitialTransforms(block);
+  if (block.type === 'clone_mesh') writeClonePosition(block, pos, { decimals });
+  else setBlockXYZ(block, pos.x, pos.y, pos.z, { decimals });
 }
 
 function blockPositionOf(mesh) {
@@ -3762,7 +3761,15 @@ function startDuplicatePlacement() {
       exitTransformState();
       return;
     }
-    const newBlock = duplicateBlockAndInsert(originalBlock, workspace, position);
+    const previousGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(true);
+    let newBlock;
+    try {
+      newBlock = duplicateBlockAndInsert(originalBlock, workspace, position);
+      if (newBlock?.type === 'clone_mesh' && position) writeClonePositionAxes(newBlock, position);
+    } finally {
+      Blockly.Events.setGroup(previousGroup);
+    }
     updateDuplicateChainSource(newBlock, workspace);
     // Prefab callers have no block-to-mesh live path, so a duplicated caller
     // would stay invisible until Play. Clone the picked group for an immediate
@@ -5302,7 +5309,7 @@ export function setGizmoManager(value) {
     gizmoManager.attachToMesh(groupMesh);
   });
 
-  setMirrorInUseCheck((mirror) => !!gizmoManager && gizmoManager.attachedMesh === mirror);
+  setCloneInUseCheck((mesh) => !!gizmoManager && gizmoManager.attachedMesh === mesh);
 
   setGroupActiveToggleListener((affectedMeshes) => {
     const attached = gizmoManager?.attachedMesh;

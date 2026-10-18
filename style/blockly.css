@@ -600,6 +600,94 @@ body[data-theme='low-color'] {
   opacity: 0.45 !important;
 }
 
+.flockRangeSlider {
+  --slider-colour: #511d91;
+  --slider-track: #d9d9d9;
+  --slider-thumb-ring: #ffffff;
+  align-items: center;
+  color: #000000;
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  padding: 4px 8px;
+  width: 180px;
+}
+
+body[data-theme='contrast'] .blocklyDropDownDiv:has(.flockRangeSlider),
+body[data-theme='low-color'] .blocklyDropDownDiv:has(.flockRangeSlider) {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+body[data-theme='contrast'] .blocklyDropDownDiv:has(.flockRangeSlider) .blocklyDropDownArrow,
+body[data-theme='low-color'] .blocklyDropDownDiv:has(.flockRangeSlider) .blocklyDropDownArrow {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+body[data-theme='contrast'] .flockRangeSlider,
+body[data-theme='low-color'] .flockRangeSlider {
+  --slider-track: #ffffff;
+  color: #ffffff;
+}
+
+.flockRangeSlider input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  cursor: pointer;
+  padding: 0;
+  flex: 1;
+  height: 20px;
+  margin: 0;
+  min-width: 0;
+}
+
+.flockRangeSlider input::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--slider-colour) var(--slider-fill, 0%),
+    var(--slider-track) var(--slider-fill, 0%)
+  );
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-moz-range-track {
+  background: var(--slider-track);
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-moz-range-progress {
+  background: var(--slider-colour);
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--slider-colour);
+  border: 2px solid var(--slider-thumb-ring);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 18px;
+  margin-top: -6px;
+  width: 18px;
+}
+
+.flockRangeSlider input::-moz-range-thumb {
+  background: var(--slider-colour);
+  border: 2px solid var(--slider-thumb-ring);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 18px;
+  width: 18px;
+}
+
 /* Make blocklyFieldGridContainer the offsetParent for grid items so the
    keyboard-scroll logic in GridItem.focus() targets the right element. */
 .blocklyFieldGridContainer {

@@ -461,12 +461,17 @@ export function registerSceneGenerators(javascriptGenerator) {
       : '';
 
     // Single trailing parent: members already recompute this group as they
-    // are added, so parenting to an outer group once suffices (contrast
-    // createMesh, where a second call is needed after own-DO transforms).
+    // are added, and again when their own DO ends, so parenting to an outer
+    // group once suffices.
     return `${variableName} = createGroup(${JSON.stringify(meshId)});\n${doCode}${parentCode}`;
   };
 
   // Add clone ----------------------------------------------------------
+  javascriptGenerator.forBlock['same_number'] = function (block) {
+    const value = block.getFieldValue('NUM');
+    return [value === '' ? 'null' : String(Number(value)), javascriptGenerator.ORDER_ATOMIC];
+  };
+
   javascriptGenerator.forBlock['clone_mesh'] = function (block) {
     // Get the source mesh variable
     const sourceMeshName = javascriptGenerator.nameDB_.getName(

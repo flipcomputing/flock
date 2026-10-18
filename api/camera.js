@@ -1,4 +1,5 @@
 import { hideFromInspector } from '../ui/inspectorVisibility.js';
+import { clampToRange } from '../config.js';
 
 let flock;
 
@@ -12,7 +13,8 @@ export const flockCamera = {
                 Category: Scene>Camera
         */
   attachCamera(meshName, options = {}) {
-    const { radius = 7, front = true, angle = 90, name = 'camera' } = options;
+    const { front = true, angle = 90, name = 'camera' } = options;
+    const radius = clampToRange(Number(options.radius ?? 7) || 0, 'cameraDistance');
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async function (mesh) {
@@ -300,7 +302,7 @@ export const flockCamera = {
     const BABYLON = flock.BABYLON;
     targetMesh.computeWorldMatrix(true);
     const targetPoint = targetMesh.getAbsolutePosition().clone();
-    const radius = Math.max(Number(distance) || 0, 0.5);
+    const radius = clampToRange(Number(distance) || 0, 'cameraDistance');
     const betaRadians = Math.min(
       Math.max(BABYLON.Tools.ToRadians(90 - (Number(up) || 0)), 0.01),
       Math.PI - 0.01
@@ -590,7 +592,7 @@ export const flockCamera = {
           : null;
 
     const fps = 30;
-    const frames = fps * (Number(duration) > 0 ? Number(duration) : 1);
+    const frames = fps * (Number.isFinite(Number(duration)) ? Math.max(0, Number(duration)) : 1);
     const loopMode =
       loop || reverse
         ? BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE
@@ -677,6 +679,15 @@ export const flockCamera = {
 
     target.metadata = target.metadata || {};
     target.metadata._cameraGlide?.stop();
+    if (frames === 0) {
+      if (!reverse) {
+        for (const animation of animations) {
+          target[animation.targetProperty] = animation.getKeys()[1].value;
+        }
+      }
+      settle();
+      return;
+    }
     const animatable = scene.beginDirectAnimation(
       target,
       animations,

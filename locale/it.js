@@ -147,6 +147,8 @@ export default {
   load_object: 'aggiungi %1 %2 %3 scala: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'aggiungi %1 %2 scala: %3 %8 x: %4 y: %5 z: %6\ncolori: %7',
   load_model: 'aggiungi %1 %2 scala: %3 %7 x: %4 y: %5 z: %6\ncolori: %8',
+  initial_position_label: 'posizione',
+  same_axis_value: 'uguale',
   initial_rotation_label: 'rotazione',
   initial_size_label: 'dimensione',
 
@@ -327,6 +329,7 @@ export default {
   subtitle: 'sottotitolo %1 per %2 secondi', // ai
   say: 'dici %1 per %2 s %3 \ntesto %4 su %5 alpha %6 dimensione %7 %8 %9',
   ui_text: 'testo UI %1 %2 a x: %3 y: %4\nmisura: %5 per %6 secondi colore: %7',
+  ui_align: 'da',
   ui_button: 'pulsante UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 text: %7 background: %8',
   ui_input: 'input UI %1 %2 a x: %3 y: %4\nmisura: %5 dim. testo: %6 testo: %7 sfondo: %8',
   describe: 'descrivi %1 come %2',

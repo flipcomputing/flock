@@ -1,4 +1,5 @@
 import * as Blockly from 'blockly';
+import { addUIAlignment } from './uiAlignment.js';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
@@ -257,6 +258,7 @@ export function defineTextBlocks() {
         tooltip: getTooltip('ui_text'),
       });
 
+      addUIAlignment(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 
@@ -332,6 +334,7 @@ export function defineTextBlocks() {
         tooltip: getTooltip('ui_button'),
       });
 
+      addUIAlignment(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 
@@ -403,6 +406,7 @@ export function defineTextBlocks() {
         tooltip: getTooltip('ui_input'),
       });
 
+      addUIAlignment(this);
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('text_blocks');
 

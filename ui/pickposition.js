@@ -1,3 +1,4 @@
+import * as Blockly from 'blockly';
 import { flock } from '../flock.js';
 import {
   startCanvasKeyboardMode,
@@ -12,7 +13,7 @@ import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js'
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
 import { isPlacementSurface } from './meshhelpers.js';
-import { usesAnchorPosition } from './initialTransform.js';
+import { usesAnchorPosition, writeClonePositionAxes } from './initialTransform.js';
 import {
   startAlignBlobs,
   getAlignDelta,
@@ -96,6 +97,17 @@ function activeGroupOf(mesh) {
 
 let activeCleanup = null;
 
+function writePickedPosition(block, position, decimals = 1) {
+  const previousGroup = Blockly.Events.getGroup();
+  Blockly.Events.setGroup(true);
+  try {
+    if (block.type === 'clone_mesh') writeClonePositionAxes(block, position, { decimals });
+    else setPositionValues(block, position, block.type, decimals);
+  } finally {
+    Blockly.Events.setGroup(previousGroup);
+  }
+}
+
 export function startPositionPick(block, { showCircleImmediately = false } = {}) {
   cancelPositionPick();
 
@@ -124,8 +136,11 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
 
   function placeAgainst(marker) {
     if (!group) {
-      const anchored = usesAnchorPosition(block) || Boolean(mover.metadata?.isPrefab);
-      setPositionValues(block, getAlignedBlockPosition(mover, marker, { anchored }), block.type, 2);
+      const anchored =
+        usesAnchorPosition(block) ||
+        block.type === 'clone_mesh' ||
+        Boolean(mover.metadata?.isPrefab);
+      writePickedPosition(block, getAlignedBlockPosition(mover, marker, { anchored }), 2);
       return;
     }
     const delta = getAlignDelta(group, marker);
@@ -153,7 +168,7 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     if (!pick?.hit) return;
     const surface = surfaceMarkerAt(pick, pickRay);
     if (surface) placeAgainst(surface);
-    else setPositionValues(block, pick.pickedPoint, block.type);
+    else writePickedPosition(block, pick.pickedPoint);
     if (CONFIRMATION_PING_BLOCK_TYPES.has(block.type)) {
       showPositionPickedPing(pick.pickedPoint);
     }

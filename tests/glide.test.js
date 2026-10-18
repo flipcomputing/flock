@@ -35,6 +35,20 @@ export function runGlideToTests(flock) {
       }
     });
 
+    it('glides instantly with a duration of 0 or less', async function () {
+      for (const duration of [0, -1]) {
+        const started = performance.now();
+        await flock.glideTo(box1, { x: duration + 3, y: 0, z: 0, duration });
+        expect(performance.now() - started).to.be.below(200);
+        expect(flock.scene.getMeshByName(box1).position.x).to.equal(duration + 3);
+      }
+    });
+
+    it('stays put for an instant glide that returns', async function () {
+      await flock.glideTo(box1, { x: 4, y: 0, z: 0, duration: 0, reverse: true });
+      expect(flock.scene.getMeshByName(box1).position.x).to.equal(0);
+    });
+
     it('should move the box to the correct position @slow', async function () {
       this.timeout(2000); // Set a reasonable timeout for a short animation
 

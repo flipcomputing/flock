@@ -10,10 +10,7 @@ export const flockControl = {
   */
 
   wait(duration) {
-    const ms =
-      Number.isFinite(Number(duration)) && Number(duration) >= 0
-        ? Math.min(Number(duration) * 1000, 2147483647)
-        : 0;
+    const ms = Number(duration) >= 0 ? Number(duration) * 1000 : 0;
     const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
       // Reject (not resolve) on abort so cooperative loops stop on Stop.
@@ -135,7 +132,12 @@ export const flockControl = {
     const source = flock.scene?.getMeshByName(meshName);
     if (!source) return [];
     return flock.scene.meshes
-      .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.cloneOf?.includes(source.uniqueId))
+      .filter(
+        (mesh) =>
+          !mesh.isDisposed() &&
+          !mesh.metadata?.deletedOriginal &&
+          mesh.metadata?.cloneOf?.includes(source.uniqueId)
+      )
       .map((mesh) => mesh.name);
   },
 };

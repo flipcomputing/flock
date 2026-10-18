@@ -1,3 +1,5 @@
+import { clampToRange } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
@@ -1866,6 +1868,9 @@ export const flockMaterial = {
       readTextureAngle(colorInput)
     );
     finalDirection = folded.direction;
+    const numericAlpha =
+      typeof finalAlpha === 'string' && finalAlpha.trim() !== '' ? Number(finalAlpha) : finalAlpha;
+    if (Number.isFinite(numericAlpha)) finalAlpha = clampToRange(numericAlpha, 'unit');
     const finalAngle = folded.angle;
     const colorKey = withGradientDirection(
       Array.isArray(rawColor) ? rawColor.join('-') : rawColor,

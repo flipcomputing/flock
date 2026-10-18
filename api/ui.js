@@ -204,15 +204,38 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
-function anchorControl(control, x, y) {
-  control.left = `${x}px`;
-  control.top = `${y}px`;
-  control.horizontalAlignment =
-    x < 0
-      ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-      : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-  control.verticalAlignment =
-    y < 0 ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+export function anchorAxis(offset, align, endName) {
+  const value = String(align ?? '').toUpperCase();
+  if (value === 'CENTER') return { edge: 'center', px: offset };
+  if (value === endName) return { edge: 'end', px: -offset };
+  return offset < 0 ? { edge: 'end', px: offset } : { edge: 'start', px: offset };
+}
+
+function placeControl(control, h, v) {
+  const { Control } = flock.GUI;
+  control.left = `${h.px}px`;
+  control.top = `${v.px}px`;
+  control.horizontalAlignment = {
+    start: Control.HORIZONTAL_ALIGNMENT_LEFT,
+    center: Control.HORIZONTAL_ALIGNMENT_CENTER,
+    end: Control.HORIZONTAL_ALIGNMENT_RIGHT,
+  }[h.edge];
+  control.verticalAlignment = {
+    start: Control.VERTICAL_ALIGNMENT_TOP,
+    center: Control.VERTICAL_ALIGNMENT_CENTER,
+    end: Control.VERTICAL_ALIGNMENT_BOTTOM,
+  }[v.edge];
+}
+
+function anchorControl(control, x, y, { hAlign, vAlign } = {}) {
+  const h = anchorAxis(x, hAlign, 'RIGHT');
+  const v = anchorAxis(y, vAlign, 'BOTTOM');
+  placeControl(control, h, v);
+  return { h, v };
+}
+
+function a11yRect(h, v, w, height) {
+  return { x: h.px, y: v.px, w, h: height, hEdge: h.edge, vEdge: v.edge };
 }
 
 function storeLayout(control, options) {
@@ -251,13 +274,13 @@ function layoutUIText(bg, options, { announce = true } = {}) {
   textBlock.lineHeight = `${linePx}px`;
   textBlock.height = `${Math.max(linePx, px + 4) + paddingV * 2}px`;
 
-  anchorControl(bg, x, y);
+  const { h, v } = anchorControl(bg, x, y, options);
   textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
 
   registerUIText(
     textBlock.name,
     textBlock.text,
-    { x, y, w: 200, h: Math.max(linePx, px + 4) + paddingV * 2 },
+    a11yRect(h, v, 200, Math.max(linePx, px + 4) + paddingV * 2),
     { announce }
   );
 }
@@ -286,9 +309,9 @@ function layoutUIButton(button, options) {
 
   button.color = textColor || 'white';
   button.background = backgroundColor || 'blue';
-  anchorControl(button, x, y);
+  const { h, v } = anchorControl(button, x, y, options);
 
-  registerUIButton(button.name, text, button, { x, y, w: scaledWidth, h: scaledHeight });
+  registerUIButton(button.name, text, button, a11yRect(h, v, scaledWidth, scaledHeight));
 }
 
 const INPUT_SIZES = {
@@ -316,24 +339,32 @@ function layoutUIInput(input, options) {
   input.background = backgroundColor || 'white';
   input.focusedBackground = backgroundColor || 'white';
   input.fontSize = scaledFontSize;
-  const inputX = x < 0 ? x - buttonWidth - spacing : x;
-  anchorControl(input, inputX, y);
+  const pair = anchorAxis(x, options.hAlign, 'RIGHT');
+  const v = anchorAxis(y, options.vAlign, 'BOTTOM');
+  const inputH = { ...pair };
+  const submitH = { ...pair };
+  if (pair.edge === 'start') submitH.px = pair.px + scaledInputWidth + spacing;
+  else if (pair.edge === 'end') inputH.px = pair.px - buttonWidth - spacing;
+  else {
+    inputH.px = pair.px - (buttonWidth + spacing) / 2;
+    submitH.px = pair.px + (scaledInputWidth + spacing) / 2;
+  }
+  placeControl(input, inputH, v);
 
   button.width = `${buttonWidth}px`;
   button.height = `${scaledInputHeight}px`;
   button.color = backgroundColor || 'gray';
   button.background = textColor || 'white';
   button.fontSize = scaledFontSize;
-  const submitX = x < 0 ? x : x + scaledInputWidth + spacing;
-  anchorControl(button, submitX, y);
+  placeControl(button, submitH, v);
 
   registerUIInput(
     input.name,
     button.name,
     input,
     button,
-    { x: inputX, y, w: scaledInputWidth, h: scaledInputHeight },
-    { x: submitX, y, w: buttonWidth, h: scaledInputHeight }
+    a11yRect(inputH, v, scaledInputWidth, scaledInputHeight),
+    a11yRect(submitH, v, buttonWidth, scaledInputHeight)
   );
 }
 
@@ -357,9 +388,9 @@ function layoutUISlider(slider, options, { previous } = {}) {
   slider.background = backgroundColor || '#ffffff';
   slider.height = `${scaledHeight}px`;
   slider.width = `${scaledWidth}px`;
-  anchorControl(slider, x, y);
+  const { h, v } = anchorControl(slider, x, y, options);
 
-  registerUISlider(slider.name, slider, { x, y, w: scaledWidth, h: scaledHeight });
+  registerUISlider(slider.name, slider, a11yRect(h, v, scaledWidth, scaledHeight));
 }
 
 const UI_LAYOUTS = {
@@ -446,6 +477,8 @@ export const flockUI = {
     alpha = 1,
     duration,
     id = null,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
     blockKey = null,
     editorPreview = false,
   } = {}) {
@@ -508,7 +541,7 @@ export const flockUI = {
     if (editorPreview) bg.metadata.editorPreview = true;
 
     textBlock.isVisible = true;
-    layoutUIText(bg, { text, x, y, fontSize, color, backgroundColor, alpha });
+    layoutUIText(bg, { text, x, y, fontSize, color, backgroundColor, alpha, hAlign, vAlign });
 
     if (document.fonts && document.fonts.status !== 'loaded') {
       bg.alpha = 0;
@@ -547,6 +580,8 @@ export const flockUI = {
     textColor,
     backgroundColor,
     buttonId,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
     blockKey = null,
     editorPreview = false,
   } = {}) {
@@ -580,7 +615,17 @@ export const flockUI = {
     tagUIControl(button, 'button', blockKey);
     markEditorPreview(button, editorPreview);
     flock.scene.UITexture.addControl(button);
-    layoutUIButton(button, { text, x, y, width, textSize, textColor, backgroundColor });
+    layoutUIButton(button, {
+      text,
+      x,
+      y,
+      width,
+      textSize,
+      textColor,
+      backgroundColor,
+      hAlign,
+      vAlign,
+    });
 
     const buttonFamily = flock._familyOf(buttonId);
     if (!flock._isTag(buttonFamily)) flock._flushPendingTriggers(buttonId, buttonFamily);
@@ -597,6 +642,8 @@ export const flockUI = {
     backgroundColor,
     id = null,
     mode = 'AWAIT',
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
     blockKey = null,
     editorPreview = false,
   } = {}) {
@@ -634,7 +681,17 @@ export const flockUI = {
 
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
-    layoutUIInput(input, { text, x, y, size, fontSize, textColor, backgroundColor });
+    layoutUIInput(input, {
+      text,
+      x,
+      y,
+      size,
+      fontSize,
+      textColor,
+      backgroundColor,
+      hAlign,
+      vAlign,
+    });
 
     if (mode === 'START') {
       input.onFocusObservable.add(() => flock._showXRKeyboardForInput?.(input));
@@ -671,6 +728,8 @@ export const flockUI = {
     textColor,
     backgroundColor,
     onChange,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
     blockKey = null,
     editorPreview = false,
   } = {}) {
@@ -703,7 +762,18 @@ export const flockUI = {
     markEditorPreview(slider, editorPreview);
 
     flock.scene.UITexture.addControl(slider);
-    layoutUISlider(slider, { x, y, size, textColor, backgroundColor, min, max, value });
+    layoutUISlider(slider, {
+      x,
+      y,
+      size,
+      textColor,
+      backgroundColor,
+      min,
+      max,
+      value,
+      hAlign,
+      vAlign,
+    });
     if (typeof onChange === 'function') {
       slider.onValueChangedObservable.add((newValue) => onChange(newValue));
     }

@@ -3,6 +3,7 @@ import Module from 'manifold-3d';
 import opentype from 'opentype.js';
 import { roundingSettings } from './freeformgeometry.js';
 import { releaseShape } from './physics.js';
+import { clampToRange } from '../config.js';
 
 let flock;
 let manifoldModule = null;
@@ -57,7 +58,7 @@ function validateShapeId(id, fnName) {
 // Coerce a dimension value to a positive finite number, falling back to `fallback`.
 function toDim(v, fallback) {
   const n = Number(v);
-  return Number.isFinite(n) && n >= 0 ? n : fallback;
+  return Number.isFinite(n) ? Math.max(0, n) : fallback;
 }
 
 // A list of depths cycles through the letters; one that never varies is a
@@ -674,7 +675,7 @@ export const flockShapes = {
     height = toDim(height, 1);
     diameterTop = toDim(diameterTop, 1);
     diameterBottom = toDim(diameterBottom, 1);
-    tessellation = Math.max(3, Math.round(toDim(tessellation, 24)));
+    tessellation = clampToRange(Math.round(toDim(tessellation, 24)), 'sides');
     alpha = toAlpha(alpha);
 
     const dimensions = {

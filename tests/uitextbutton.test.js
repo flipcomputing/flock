@@ -93,6 +93,45 @@ export function runUITests(flock) {
         expect(textBlock.isVisible).to.be.true;
       });
 
+      describe('alignment', function () {
+        const place = (options) => {
+          flock.UIText({ text: 'aligned', duration: 0, id: 'alignText', ...options });
+          return flock.scene.UITexture.getControlByName('alignText_bg');
+        };
+
+        it('anchors negative offsets to the right and bottom by default', function () {
+          const bg = place({ x: -10, y: -20 });
+          expect(bg.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT);
+          expect(bg.verticalAlignment).to.equal(flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM);
+          expect(bg.left).to.equal('-10px');
+          expect(bg.top).to.equal('-20px');
+        });
+
+        it('offsets from the centre when centred', function () {
+          const bg = place({ x: -15, y: 25, hAlign: 'CENTER', vAlign: 'CENTER' });
+          expect(bg.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER);
+          expect(bg.verticalAlignment).to.equal(flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER);
+          expect(bg.left).to.equal('-15px');
+          expect(bg.top).to.equal('25px');
+        });
+
+        it('measures right and bottom offsets inwards from that edge', function () {
+          const bg = place({ x: 10, y: 20, hAlign: 'RIGHT', vAlign: 'BOTTOM' });
+          expect(bg.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT);
+          expect(bg.verticalAlignment).to.equal(flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM);
+          expect(bg.left).to.equal('-10px');
+          expect(bg.top).to.equal('-20px');
+        });
+
+        it('keeps the alignment when restyled', function () {
+          const bg = place({ x: 0, y: 60, hAlign: 'CENTER', vAlign: 'TOP' });
+          flock._restyleUIControl(bg, { text: 'changed' });
+          expect(bg.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER);
+          expect(bg.verticalAlignment).to.equal(flock.GUI.Control.VERTICAL_ALIGNMENT_TOP);
+          expect(bg.top).to.equal('60px');
+        });
+      });
+
       it('should dispose the text block after the specified duration @slow', function (done) {
         this.timeout(5000);
 
@@ -451,6 +490,35 @@ export function runUITests(flock) {
 
         const input = flock.scene.UITexture.getControlByName('myInput');
         expect(input.placeholderText).to.equal('Enter name');
+      });
+
+      it('centres the input and submit button as one unit', async function () {
+        await flock.UIInput({
+          text: 'Enter name',
+          x: 0,
+          y: 0,
+          id: 'myInput',
+          mode: 'START',
+          hAlign: 'CENTER',
+          vAlign: 'CENTER',
+        });
+        const input = flock.scene.UITexture.getControlByName('myInput');
+        const button = flock.scene.UITexture.getControlByName('submit_myInput');
+        const px = (value) => parseFloat(value);
+        const pairLeft = px(input.left) - px(input.width) / 2;
+        const pairRight = px(button.left) + px(button.width) / 2;
+        expect(input.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER);
+        expect(button.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER);
+        expect(pairLeft + pairRight).to.be.closeTo(0, 0.5);
+      });
+
+      it('keeps the submit button on the right edge for a negative x', async function () {
+        await flock.UIInput({ text: 'Enter name', x: -10, y: 0, id: 'myInput', mode: 'START' });
+        const input = flock.scene.UITexture.getControlByName('myInput');
+        const button = flock.scene.UITexture.getControlByName('submit_myInput');
+        expect(button.horizontalAlignment).to.equal(flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT);
+        expect(button.left).to.equal('-10px');
+        expect(parseFloat(input.left)).to.be.below(-10 - parseFloat(button.width));
       });
 
       it('should apply colors and font size to the input', async function () {

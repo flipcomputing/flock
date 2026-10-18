@@ -9,7 +9,7 @@ import {
 } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
-import { watchMirrorSources } from '../ui/blockmesh.js';
+import { watchCloneSources } from '../ui/blockmesh.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 
 const COMBINE_OPERATIONS = ['merge', 'subtract', 'embed', 'intersect', 'hull'];
@@ -370,7 +370,7 @@ export function defineModifyBlocks() {
         this,
         (changeEvent) => {
           handleBlockChange(this, changeEvent, variableNamePrefix);
-          watchMirrorSources(this, changeEvent);
+          watchCloneSources(this, changeEvent);
         },
         { allEvents: true }
       );

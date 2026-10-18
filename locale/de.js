@@ -146,6 +146,8 @@ export default {
   load_object: 'füge %1 %2 %3 hinzu Skalierung: %4 %8 x: %5 y: %6 z: %7',
   load_multi_object: 'füge %1 %2 hinzu Skalierung: %3 %8 x: %4 y: %5 z: %6\nFarben: %7',
   load_model: 'füge %1 %2 hinzu Skalierung: %3 %7 x: %4 y: %5 z: %6\nFarben: %8',
+  initial_position_label: 'Position',
+  same_axis_value: 'gleich',
   initial_rotation_label: 'Drehung',
   initial_size_label: 'Größe',
 
@@ -326,6 +328,7 @@ export default {
   subtitle: 'Untertitel %1 für %2 Sekunden', // ai
   say: 'sage %1 für %2 s %3\nText: %4 auf %5 Alpha: %6 Größe: %7 %8 %9',
   ui_text: 'UI-Text %1 %2 bei x: %3 y: %4\nGröße: %5 für %6 Sekunden Farbe: %7',
+  ui_align: 'von',
   ui_button: 'UI‑Button %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 text: %7 background: %8',
   ui_input: 'UI‑Eingabe %1 %2 bei x: %3 y: %4\nGröße: %5 Textgröße: %6 Text: %7 Hintergrund: %8',
   describe: 'beschreibe %1 als %2',

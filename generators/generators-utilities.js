@@ -35,6 +35,12 @@ export function getPositionTuple(block) {
 
 export function getInitialTransformParams(block) {
   const params = [];
+  if (block.positionShown_) {
+    const [x, y, z] = ['X', 'Y', 'Z'].map((axis) =>
+      getFieldValue(block, `POSITION_${axis}`, 'null')
+    );
+    params.push(`position: { x: ${x}, y: ${y}, z: ${z} }`);
+  }
   if (block.rotateShown_) {
     const [x, y, z] = ['X', 'Y', 'Z'].map((axis) => getFieldValue(block, `ROTATE_${axis}`, '0'));
     params.push(`rotation: { x: ${x}, y: ${y}, z: ${z} }`);
@@ -109,24 +115,19 @@ export function createMesh(block, meshType, params) {
   const parentCode = maybeParentToGroup(variableName);
   const doBody = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
   const doCode = doBody
-    ? `await runDo(${variableName}, async function(${variableName}) {\n${doBody}\n});\n`
+    ? `runDo(${variableName}, async function(${variableName}) {\n${doBody}\n});\n`
     : '';
   const thenBody = block.getInput('THEN')
     ? javascriptGenerator.statementToCode(block, 'THEN') || ''
     : '';
   const thenCode = thenBody
-    ? `await runThen(${variableName}, async function(${variableName}) {\n${thenBody}\n});\n`
+    ? `runThen(${variableName}, async function(${variableName}) {\n${thenBody}\n});\n`
     : '';
 
   const options = [...params, ...getInitialTransformParams(block)];
   if (doBody) options.push('hasDo: true');
 
-  // parentCode repeats after doCode/thenCode so a rotate_to/resize in this
-  // entity's own DO (how the live editor bakes group transforms into a
-  // member) runs before the group last recomputes: setParent recomputes as
-  // a side effect, so without the second call re-run would centre the group
-  // on pre-rotation bounds while live used post-rotation ones.
-  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}${parentCode}`;
+  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}`;
 }
 
 export function sanitizeForCode(input) {

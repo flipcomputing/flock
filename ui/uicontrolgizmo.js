@@ -5,10 +5,13 @@ import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { readColourValue } from './blockmesh.js';
+import { anchorAxis } from '../api/ui.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
 const ARROW_LENGTH = 24;
+
+const ALIGN_FIELDS = { H_ALIGN: 'hAlign', V_ALIGN: 'vAlign' };
 
 const UI_BLOCKS = {
   ui_text: {
@@ -21,7 +24,7 @@ const UI_BLOCKS = {
       BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
       ALPHA: { option: 'alpha', empty: 1 },
     },
-    fields: {},
+    fields: ALIGN_FIELDS,
   },
   ui_button: {
     inputs: {
@@ -31,7 +34,7 @@ const UI_BLOCKS = {
       TEXT_COLOR: { option: 'textColor', empty: '' },
       BACKGROUND_COLOR: { option: 'backgroundColor', empty: '' },
     },
-    fields: { SIZE: 'width', TEXT_SIZE: 'textSize' },
+    fields: { SIZE: 'width', TEXT_SIZE: 'textSize', ...ALIGN_FIELDS },
   },
   ui_input: {
     inputs: {
@@ -42,7 +45,7 @@ const UI_BLOCKS = {
       TEXT_COLOR: { option: 'textColor', empty: '#000000' },
       BACKGROUND_COLOR: { option: 'backgroundColor', empty: '#ffffff' },
     },
-    fields: { SIZE: 'size' },
+    fields: { SIZE: 'size', ...ALIGN_FIELDS },
   },
   ui_slider: {
     inputs: {
@@ -54,7 +57,7 @@ const UI_BLOCKS = {
       COLOR: { option: 'textColor', empty: '#000000' },
       BACKGROUND: { option: 'backgroundColor', empty: '#ffffff' },
     },
-    fields: { SIZE: 'size' },
+    fields: { SIZE: 'size', ...ALIGN_FIELDS },
   },
 };
 
@@ -531,14 +534,25 @@ function axisSpan(control, axis) {
   return { size: high - low, space: uiTexture().getSize()[length] };
 }
 
+function axisAlign(control, axis) {
+  const { hAlign, vAlign } = control.metadata.layout;
+  return axis === 'x' ? [hAlign, 'RIGHT'] : [vAlign, 'BOTTOM'];
+}
+
 function screenStart(control, axis) {
-  const offset = control.metadata.layout[axis];
   const { size, space } = axisSpan(control, axis);
-  return offset < 0 ? space + offset - size : offset;
+  const { edge, px } = anchorAxis(control.metadata.layout[axis], ...axisAlign(control, axis));
+  if (edge === 'center') return (space - size) / 2 + px;
+  if (edge === 'end') return space - size + px;
+  return px;
 }
 
 function anchoredOffset(control, axis, start) {
   const { size, space } = axisSpan(control, axis);
+  const [align, endName] = axisAlign(control, axis);
+  const value = String(align ?? '').toUpperCase();
+  if (value === 'CENTER') return Math.round(start - (space - size) / 2);
+  if (value === endName) return Math.round(space - size - start);
   if (start + size / 2 > space / 2) return Math.min(Math.round(start + size - space), -1);
   return Math.max(Math.round(start), 0);
 }

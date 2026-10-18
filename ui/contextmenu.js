@@ -46,6 +46,120 @@ function collapseSeparators(options) {
   return out;
 }
 
+function connectAfterTarget(targetBlock, pb) {
+  if (!targetBlock) return false;
+
+  const workspace = targetBlock.workspace;
+  const checker = workspace?.getConnectionChecker
+    ? workspace.getConnectionChecker()
+    : new Blockly.ConnectionChecker();
+  const can = (a, b) => checker.canConnect(a, b, /*isDragging=*/ false);
+
+  // 1) stack after: target.next ⟷ pb.previous
+  if (
+    targetBlock.nextConnection &&
+    pb.previousConnection &&
+    can(targetBlock.nextConnection, pb.previousConnection)
+  ) {
+    targetBlock.nextConnection.connect(pb.previousConnection);
+    return true;
+  }
+  // 2) empty statement input ⟷ pb.previous
+  for (const input of targetBlock.inputList) {
+    if (
+      input.type === Blockly.NEXT_STATEMENT &&
+      input.connection &&
+      !input.connection.targetBlock() &&
+      pb.previousConnection &&
+      can(input.connection, pb.previousConnection)
+    ) {
+      input.connection.connect(pb.previousConnection);
+      return true;
+    }
+  }
+  // 2b) top-level block: insert pb as first child in statement input,
+  //     pushing existing children after pb
+  const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
+  if (isTopLevel && pb.previousConnection) {
+    for (const input of targetBlock.inputList) {
+      if (
+        input.type === Blockly.NEXT_STATEMENT &&
+        input.connection &&
+        input.connection.targetBlock() &&
+        can(input.connection, pb.previousConnection)
+      ) {
+        const firstChild = input.connection.targetBlock();
+        let lastPb = pb;
+        while (lastPb.nextConnection && lastPb.nextConnection.targetBlock()) {
+          lastPb = lastPb.nextConnection.targetBlock();
+        }
+        if (
+          !lastPb.nextConnection ||
+          !firstChild.previousConnection ||
+          !can(lastPb.nextConnection, firstChild.previousConnection)
+        ) {
+          continue; // try another input, or fall through to the next case
+        }
+        input.connection.disconnect();
+        input.connection.connect(pb.previousConnection);
+        lastPb.nextConnection.connect(firstChild.previousConnection);
+        return true;
+      }
+    }
+  }
+  // 3) empty value input ⟷ pb.output
+  for (const input of targetBlock.inputList) {
+    if (
+      input.type === Blockly.INPUT_VALUE &&
+      input.connection &&
+      !input.connection.targetBlock() &&
+      pb.outputConnection &&
+      can(input.connection, pb.outputConnection)
+    ) {
+      input.connection.connect(pb.outputConnection);
+      return true;
+    }
+  }
+  // 4) insert above: target.previous ⟷ pb.next
+  if (
+    targetBlock.previousConnection &&
+    pb.nextConnection &&
+    can(targetBlock.previousConnection, pb.nextConnection)
+  ) {
+    const parentConn = targetBlock.previousConnection.targetConnection;
+    if (!parentConn) {
+      targetBlock.previousConnection.connect(pb.nextConnection);
+      return true;
+    }
+    if (pb.previousConnection && can(parentConn, pb.previousConnection)) {
+      targetBlock.previousConnection.disconnect();
+      parentConn.connect(pb.previousConnection);
+      targetBlock.previousConnection.connect(pb.nextConnection);
+      return true;
+    }
+  }
+  return false;
+}
+
+export function duplicateAndAttach(block) {
+  const ws = block?.workspace;
+  const copyData = block?.toCopyData?.();
+  if (!ws || !copyData) return false;
+  if (copyData.blockState) stripLockState(copyData.blockState);
+
+  const ownsGroup = !Blockly.Events.getGroup();
+  if (ownsGroup) Blockly.Events.setGroup(true);
+  try {
+    const copy = Blockly.clipboard.paste(copyData, ws);
+    if (copy && connectAfterTarget(block, copy)) {
+      rememberUndoFocusTarget(Blockly.Events.getGroup(), block.id);
+    }
+  } finally {
+    if (ownsGroup) Blockly.Events.setGroup(false);
+  }
+  return true;
+}
+
 export function initContextMenus(workspace) {
   const modKey = /Mac/i.test(navigator.userAgentData?.platform ?? navigator.platform)
     ? '⌘'
@@ -108,7 +222,7 @@ export function initContextMenus(workspace) {
 
         const healStack = !block.outputConnection?.isConnected();
         const prevGroup = Blockly.Events.getGroup();
-        Blockly.Events.setGroup('contextmenu_detach');
+        Blockly.Events.setGroup(true);
         block.unplug(healStack);
         const cursor = block.workspace?.getCursor?.();
         if (cursor?.setCurNode) cursor.setCurNode(block);
@@ -224,7 +338,7 @@ export function initContextMenus(workspace) {
         const block = scope.block;
         if (!block) return;
         const prevGroup = Blockly.Events.getGroup();
-        Blockly.Events.setGroup('contextmenu_lock');
+        Blockly.Events.setGroup(true);
         setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(prevGroup || null);
         window.flockBlockToolbar?.refresh?.(block);
@@ -451,7 +565,7 @@ export function initContextMenus(workspace) {
         const block = scope.block;
         if (!block) return;
         copyWithoutToast(block);
-        Blockly.Events.setGroup('contextmenu_cut');
+        Blockly.Events.setGroup(true);
         block.dispose(true);
         Blockly.Events.setGroup(false);
       },
@@ -640,100 +754,6 @@ export function initContextMenus(workspace) {
     { capture: true }
   );
 
-  function connectAfterTarget(targetBlock, pb) {
-    if (!targetBlock) return false;
-
-    const checker = workspace.getConnectionChecker
-      ? workspace.getConnectionChecker()
-      : new Blockly.ConnectionChecker();
-    const can = (a, b) => checker.canConnect(a, b, /*isDragging=*/ false);
-
-    // 1) stack after: target.next ⟷ pb.previous
-    if (
-      targetBlock.nextConnection &&
-      pb.previousConnection &&
-      can(targetBlock.nextConnection, pb.previousConnection)
-    ) {
-      targetBlock.nextConnection.connect(pb.previousConnection);
-      return true;
-    }
-    // 2) empty statement input ⟷ pb.previous
-    for (const input of targetBlock.inputList) {
-      if (
-        input.type === Blockly.NEXT_STATEMENT &&
-        input.connection &&
-        !input.connection.targetBlock() &&
-        pb.previousConnection &&
-        can(input.connection, pb.previousConnection)
-      ) {
-        input.connection.connect(pb.previousConnection);
-        return true;
-      }
-    }
-    // 2b) top-level block: insert pb as first child in statement input,
-    //     pushing existing children after pb
-    const isTopLevel = !targetBlock.previousConnection && !targetBlock.nextConnection;
-    if (isTopLevel && pb.previousConnection) {
-      for (const input of targetBlock.inputList) {
-        if (
-          input.type === Blockly.NEXT_STATEMENT &&
-          input.connection &&
-          input.connection.targetBlock() &&
-          can(input.connection, pb.previousConnection)
-        ) {
-          const firstChild = input.connection.targetBlock();
-          let lastPb = pb;
-          while (lastPb.nextConnection && lastPb.nextConnection.targetBlock()) {
-            lastPb = lastPb.nextConnection.targetBlock();
-          }
-          if (
-            !lastPb.nextConnection ||
-            !firstChild.previousConnection ||
-            !can(lastPb.nextConnection, firstChild.previousConnection)
-          ) {
-            continue; // try another input, or fall through to the next case
-          }
-          input.connection.disconnect();
-          input.connection.connect(pb.previousConnection);
-          lastPb.nextConnection.connect(firstChild.previousConnection);
-          return true;
-        }
-      }
-    }
-    // 3) empty value input ⟷ pb.output
-    for (const input of targetBlock.inputList) {
-      if (
-        input.type === Blockly.INPUT_VALUE &&
-        input.connection &&
-        !input.connection.targetBlock() &&
-        pb.outputConnection &&
-        can(input.connection, pb.outputConnection)
-      ) {
-        input.connection.connect(pb.outputConnection);
-        return true;
-      }
-    }
-    // 4) insert above: target.previous ⟷ pb.next
-    if (
-      targetBlock.previousConnection &&
-      pb.nextConnection &&
-      can(targetBlock.previousConnection, pb.nextConnection)
-    ) {
-      const parentConn = targetBlock.previousConnection.targetConnection;
-      if (!parentConn) {
-        targetBlock.previousConnection.connect(pb.nextConnection);
-        return true;
-      }
-      if (pb.previousConnection && can(parentConn, pb.previousConnection)) {
-        targetBlock.previousConnection.disconnect();
-        parentConn.connect(pb.previousConnection);
-        targetBlock.previousConnection.connect(pb.nextConnection);
-        return true;
-      }
-    }
-    return false;
-  }
-
   function pasteAsChildOrHere(targetBlock /* may be null */, ws, data) {
     if (!data) return;
     // A pasted copy of a locked block must be editable; the copied state carries
@@ -913,7 +933,7 @@ export function initContextMenus(workspace) {
       e.preventDefault();
       e.stopPropagation();
       copyWithoutToast(selected);
-      Blockly.Events.setGroup('shortcut_cut');
+      Blockly.Events.setGroup(true);
       selected.dispose(true);
       Blockly.Events.setGroup(false);
     },
@@ -1703,7 +1723,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(expandBtn, () => {
       if (!toolbarBlock || !isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_expand');
+      Blockly.Events.setGroup(true);
       block.setCollapsed(false);
       Blockly.Events.setGroup(false);
       updateSimplifiedToolbar();
@@ -1714,7 +1734,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(collapseBtn, () => {
       if (!toolbarBlock || isBlockFolded(toolbarBlock)) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_collapse');
+      Blockly.Events.setGroup(true);
       block.setCollapsed(true);
       Blockly.Events.setGroup(false);
       updateSimplifiedToolbar();
@@ -1725,7 +1745,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(unlockBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_unlock');
+      Blockly.Events.setGroup(true);
       setBlockLocked(block, false);
       Blockly.Events.setGroup(false);
       deleteBtn.style.display = '';
@@ -1770,7 +1790,7 @@ export function initContextMenus(workspace) {
       if (!toolbarBlock || !isDetachable(toolbarBlock)) return;
       const block = toolbarBlock;
       const healStack = !block.outputConnection?.isConnected();
-      Blockly.Events.setGroup('toolbar_detach');
+      Blockly.Events.setGroup(true);
       block.unplug(healStack);
       Blockly.Events.setGroup(false);
     });
@@ -1778,7 +1798,7 @@ export function initContextMenus(workspace) {
     onToolbarButtonPress(enableBtn, () => {
       if (!toolbarBlock) return;
       const block = toolbarBlock;
-      Blockly.Events.setGroup('toolbar_disable');
+      Blockly.Events.setGroup(true);
       block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
       Blockly.Events.setGroup(false);
       updateEnableButton(block);

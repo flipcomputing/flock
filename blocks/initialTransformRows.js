@@ -3,9 +3,35 @@ import { DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from './blocks.js';
 import { translate } from '../main/translation.js';
 import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { measureInitialSize } from '../ui/initialTransform.js';
+import { FieldPickPosition } from './fieldPickPosition.js';
 
 const AXES = ['X', 'Y', 'Z'];
 
+export const SAME_NUMBER_TYPE = 'same_number';
+
+export class FieldSameNumber extends Blockly.FieldNumber {
+  doClassValidation_(newValue) {
+    if (newValue === null || newValue === undefined || String(newValue).trim() === '') return '';
+    return super.doClassValidation_(newValue);
+  }
+
+  getText_() {
+    if (this.isBeingEdited_) return super.getText_();
+    return this.getValue() === '' ? translate('same_axis_value') : null;
+  }
+}
+
+export function defineSameNumberBlock() {
+  Blockly.Blocks[SAME_NUMBER_TYPE] = {
+    init: function () {
+      this.appendDummyInput().appendField(new FieldSameNumber(''), 'NUM');
+      this.setOutput(true, 'Number');
+      this.setStyle('math_blocks');
+    },
+  };
+}
+
+export const positionInputName = (axis) => `POSITION_${axis}`;
 export const rotateInputName = (axis) => `ROTATE_${axis}`;
 export const sizeInputName = (axis) => `SIZE_${axis}`;
 
@@ -33,12 +59,26 @@ function splitScaleLabel(block) {
   block.moveInputBefore('SCALE_HEAD', 'SCALE');
 }
 
-export function addInitialTransformRows(block, { resize = false } = {}) {
+export function addInitialTransformRows(block, { resize = false, position = false } = {}) {
+  block.positionShown_ = false;
   block.rotateShown_ = false;
   block.resizeShown_ = false;
+  block.hasPositionRow_ = position;
   block.hasResizeRow_ = resize;
 
   block.appendEndRowInput('TRANSFORM_ROW');
+  if (position) {
+    block
+      .appendDummyInput('POSITION_TOGGLE')
+      .appendField(translate('initial_position_label'))
+      .appendField(new FieldPickPosition(), 'PICK_POSITION')
+      .appendField(
+        toggleButton('toggle position', () => block.togglePosition()),
+        'POSITION_BUTTON'
+      );
+    appendAxisInputs(block, positionInputName);
+    block.appendEndRowInput('POSITION_ROW');
+  }
   block
     .appendDummyInput('ROTATE_TOGGLE')
     .appendField(translate('initial_rotation_label'))
@@ -70,6 +110,16 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
     const open = this.optionsOpen_;
     this.getInput('DO_TOGGLE').setVisible(open);
     this.getInput('TRANSFORM_ROW').setVisible(open);
+    if (this.hasPositionRow_) {
+      this.getInput('POSITION_TOGGLE').setVisible(open);
+      this.getInput('POSITION_ROW').setVisible(open);
+      for (const axis of AXES) {
+        this.getInput(positionInputName(axis)).setVisible(open && this.positionShown_);
+      }
+      this.getField('POSITION_BUTTON').setValue(
+        this.positionShown_ ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS
+      );
+    }
     this.getInput('ROTATE_TOGGLE').setVisible(open);
     for (const axis of AXES) {
       this.getInput(rotateInputName(axis)).setVisible(open && this.rotateShown_);
@@ -99,9 +149,25 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
     );
   };
 
-  const ensureShadow = (inputName, value) => {
+  const ensureShadow = (inputName, value, shadow = numberShadow(value)) => {
     const connection = block.getInput(inputName).connection;
-    if (!connection.targetBlock()) connection.setShadowState(numberShadow(value));
+    if (!connection.targetBlock()) connection.setShadowState(shadow);
+  };
+
+  block.setPositionShown = function (show) {
+    if (!this.hasPositionRow_ || this.positionShown_ === show) return;
+    changeRows(() => {
+      if (show) {
+        for (const axis of AXES) {
+          ensureShadow(positionInputName(axis), '', { type: SAME_NUMBER_TYPE, fields: { NUM: '' } });
+        }
+      }
+      this.positionShown_ = show;
+    });
+  };
+
+  block.togglePosition = function () {
+    this.setPositionShown(!this.positionShown_);
   };
 
   block.setRotateShown = function (show) {
@@ -140,11 +206,13 @@ export function addInitialTransformRows(block, { resize = false } = {}) {
   const doDomToMutation = block.domToMutation;
   block.mutationToDom = function () {
     const container = doMutationToDom.call(this);
+    if (this.positionShown_) container.setAttribute('position', 'true');
     if (this.rotateShown_) container.setAttribute('rotate', 'true');
     if (this.resizeShown_) container.setAttribute('resize', 'true');
     return container;
   };
   block.domToMutation = function (xmlElement) {
+    this.positionShown_ = this.hasPositionRow_ && xmlElement.getAttribute('position') === 'true';
     this.rotateShown_ = xmlElement.getAttribute('rotate') === 'true';
     this.resizeShown_ = this.hasResizeRow_ && xmlElement.getAttribute('resize') === 'true';
     doDomToMutation.call(this, xmlElement);

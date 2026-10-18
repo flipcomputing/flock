@@ -912,6 +912,26 @@ export function runEventsTests(flock) {
         expect(count).to.equal(0);
       });
 
+      it('uses the pick result over a stale meshUnderPointer when the pointer has not moved', async function () {
+        const target = await box('bubblestilltarget', 0);
+        const stale = await box('bubblestillstale', 3);
+        meshIds.push(target, stale);
+        const received = [];
+        flock.onTrigger(target, {
+          trigger: 'OnPickTrigger',
+          callback: (name) => received.push(name),
+          applyToGroup: false,
+        });
+        await tick();
+        const targetMesh = flock.scene.getMeshByName(target);
+        fire(targetMesh, {
+          source: targetMesh,
+          meshUnderPointer: flock.scene.getMeshByName(stale),
+          additionalData: { pickedMesh: targetMesh },
+        });
+        expect(received).to.deep.equal([target]);
+      });
+
       it('bubbles a parentChild click to the parent handler', async function () {
         const parent = await box('bubbleparent', 0);
         const child = await box('bubblechild', 2);

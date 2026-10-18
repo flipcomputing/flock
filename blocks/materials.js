@@ -752,10 +752,6 @@ export function defineMaterialsBlocks() {
           {
             type: 'input_value',
             name: 'ALPHA',
-            value: 1,
-            min: 0,
-            max: 1,
-            precision: 0.01,
           },
         ],
         output: 'Material',
