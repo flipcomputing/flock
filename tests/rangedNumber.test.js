@@ -2,6 +2,9 @@ import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
+import { defineSameNumberBlock, SAME_NUMBER_TYPE } from '../blocks/initialTransformRows.js';
+import { javascriptGenerator } from 'blockly/javascript';
+import { registerSceneGenerators } from '../generators/generators-scene.js';
 import {
   FieldRangedNumber,
   nudgeValue,
@@ -117,6 +120,87 @@ export function runRangedNumberTests(flock) {
       it('has no range for a loose number', function () {
         const field = workspace.newBlock('math_number').getField('NUM');
         expect(rangeForField(field)).to.equal(null);
+      });
+
+      it('only ever generates numeric code from saved number fields', function () {
+        if (!Blockly.Blocks[SAME_NUMBER_TYPE]) defineSameNumberBlock();
+        registerSceneGenerators(javascriptGenerator);
+        const payloads = [
+          '1);alert(1)//',
+          'alert(1)',
+          'globalThis',
+          '1;fetch("x")',
+          '{}',
+          '[]',
+          'NaN',
+          ' ',
+          '0x1F',
+          '1e3',
+          'Infinity',
+          '-Infinity',
+        ];
+        const numeric = /^(null|-?Infinity|-?\d+(\.\d+)?(e[+-]?\d+)?)$/;
+        for (const type of ['math_number', SAME_NUMBER_TYPE]) {
+          for (const NUM of payloads) {
+            const block = Blockly.serialization.blocks.append({ type, fields: { NUM } }, workspace);
+            const [code] = javascriptGenerator.forBlock[type](block, javascriptGenerator);
+            expect(code, `${type} ${NUM}`).to.match(numeric);
+          }
+        }
+      });
+
+      it('only loads numbers from a crafted project file', function () {
+        if (!Blockly.Blocks[SAME_NUMBER_TYPE]) defineSameNumberBlock();
+        registerSceneGenerators(javascriptGenerator);
+        const payloads = [
+          'Infinity;alert(1)',
+          'Infinity//',
+          'infinityx',
+          'Infinity)+alert(1',
+          '-Infinity,alert(1)',
+          '1e400',
+          'INFINITY',
+        ];
+        const blocks = payloads.flatMap((NUM, i) => [
+          { type: 'math_number', id: `n${i}`, x: 0, y: i * 40, fields: { NUM } },
+          { type: SAME_NUMBER_TYPE, id: `s${i}`, x: 200, y: i * 40, fields: { NUM } },
+        ]);
+        const file = JSON.stringify({ blocks: { languageVersion: 0, blocks } });
+        const loaded = new Blockly.Workspace();
+        try {
+          Blockly.serialization.workspaces.load(JSON.parse(file), loaded);
+          const numeric = /^(null|-?Infinity|-?\d+(\.\d+)?(e[+-]?\d+)?)$/;
+          for (const block of loaded.getAllBlocks(false)) {
+            const [code] = javascriptGenerator.forBlock[block.type](block, javascriptGenerator);
+            expect(code, `${block.id}`).to.match(numeric);
+          }
+          expect(loaded.getBlockById('n5').getFieldValue('NUM')).to.equal(Infinity);
+          expect(loaded.getBlockById('n6').getFieldValue('NUM')).to.equal(Infinity);
+        } finally {
+          loaded.dispose();
+        }
+      });
+
+      it('generates numeric code even if field validation is bypassed', function () {
+        registerSceneGenerators(javascriptGenerator);
+        for (const type of ['math_number', SAME_NUMBER_TYPE]) {
+          const block = { getFieldValue: () => 'alert(1)' };
+          const [code] = javascriptGenerator.forBlock[type](block, javascriptGenerator);
+          expect(code).to.equal('NaN');
+        }
+      });
+
+      it('keeps infinite numbers through a JSON save and load', function () {
+        for (const value of [Infinity, -Infinity]) {
+          const block = workspace.newBlock('math_number');
+          block.setFieldValue(value, 'NUM');
+          const saved = JSON.parse(JSON.stringify(Blockly.serialization.blocks.save(block)));
+          const loaded = Blockly.serialization.blocks.append(saved, workspace);
+          expect(loaded.getFieldValue('NUM')).to.equal(value);
+        }
+        const finite = workspace.newBlock('math_number');
+        finite.setFieldValue(1e300, 'NUM');
+        expect(Blockly.serialization.blocks.save(finite).fields.NUM).to.equal(1e300);
       });
 
       it('leaves an out-of-range saved value alone on load', function () {

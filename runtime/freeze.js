@@ -1,5 +1,7 @@
 let flock;
 
+const MAX_TIMEOUT_MS = 2147483647;
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -117,6 +119,7 @@ export const flockFreeze = {
   // Returns a handle whose cancel() stops it and detaches the listener.
   freezeAwareTimeout(callback, ms) {
     let remaining = Math.max(0, Number(ms) || 0);
+    if (remaining > MAX_TIMEOUT_MS) return { cancel() {} };
     let startedAt = 0;
     let running = false;
     let id = null;

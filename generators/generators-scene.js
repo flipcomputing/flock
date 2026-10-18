@@ -469,7 +469,7 @@ export function registerSceneGenerators(javascriptGenerator) {
   // Add clone ----------------------------------------------------------
   javascriptGenerator.forBlock['same_number'] = function (block) {
     const value = block.getFieldValue('NUM');
-    return [value === '' ? 'null' : String(value), javascriptGenerator.ORDER_ATOMIC];
+    return [value === '' ? 'null' : String(Number(value)), javascriptGenerator.ORDER_ATOMIC];
   };
 
   javascriptGenerator.forBlock['clone_mesh'] = function (block) {

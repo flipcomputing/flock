@@ -58,6 +58,11 @@ export class FieldRangedNumber extends Blockly.FieldNumber {
     }
   }
 
+  saveState(doFullSerialization) {
+    const state = super.saveState(doFullSerialization);
+    return typeof state === 'number' && !Number.isFinite(state) ? String(state) : state;
+  }
+
   doClassValidation_(newValue) {
     const value = super.doClassValidation_(newValue);
     return this.range_?.wrap && Number.isFinite(value) ? wrapToRange(value, this.range_) : value;
