@@ -110,6 +110,15 @@ export function otherObjectName(fallback) {
   return resolvedRecentObjects()[1]?.name ?? fallback;
 }
 
+export function currentCharacterName(workspace) {
+  const recent = resolvedRecentObjects().find((entry) => entry.type === CHARACTER_TYPE);
+  if (recent) return recent.name;
+  const block = workspace
+    ?.getAllBlocks(true)
+    .find((candidate) => candidate.type === CHARACTER_TYPE);
+  return block?.getField('ID_VAR')?.getVariable?.()?.getName() ?? null;
+}
+
 export function objectAndCharacterTarget(objectFallback, targetFallback) {
   const [first, ...others] = resolvedRecentObjects();
   if (!first) return { object: objectFallback, target: targetFallback };

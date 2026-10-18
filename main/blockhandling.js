@@ -20,6 +20,7 @@ import {
   setSectionReflowHook,
 } from '../blocks/sectionContainment.js';
 import { updateCollapsedBlockIcon } from '../blocks/blockIcons.js';
+import { currentCharacterName } from '../blocks/variableNames.js';
 
 function asBlocklyBlock(candidate) {
   if (!candidate || typeof candidate !== 'object') {
@@ -294,6 +295,29 @@ function blockFromPointerTarget(target) {
   return null;
 }
 
+function renameSnippetVariable(node, from, to) {
+  if (Array.isArray(node)) {
+    node.forEach((child) => renameSnippetVariable(child, from, to));
+  } else if (node && typeof node === 'object') {
+    if (node.name === from) node.name = to;
+    Object.values(node).forEach((child) => renameSnippetVariable(child, from, to));
+  }
+}
+
+function bindSnippetCharacters(contents) {
+  const items = Array.isArray(contents) ? contents : contents?.contents;
+  if (!Array.isArray(items) || !items.some((item) => item?.characterVar)) return contents;
+  const character = currentCharacterName(workspace);
+  if (!character) return contents;
+  const bound = items.map((item) => {
+    if (!item?.characterVar || item.characterVar === character) return item;
+    const copy = structuredClone(item);
+    renameSnippetVariable(copy, item.characterVar, character);
+    return copy;
+  });
+  return Array.isArray(contents) ? bound : { ...contents, contents: bound };
+}
+
 // Hints for the toolbox: hovering or keyboard-focusing a flyout block describes
 // it in the hint box, which replaced Blockly's hover tooltips.
 function initializeFlyoutHints() {
@@ -315,6 +339,7 @@ function initializeFlyoutHints() {
   if (flyout && !flyout._flockHintShowWrapped) {
     const originalShow = flyout.show.bind(flyout);
     flyout.show = function (contents) {
+      contents = bindSnippetCharacters(contents);
       originalShow(contents);
       const items = Array.isArray(contents) ? contents : contents?.contents;
       if (!Array.isArray(items)) return;

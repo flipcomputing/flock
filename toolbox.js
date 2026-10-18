@@ -5101,6 +5101,9 @@ const toolboxSnippetsPhysics = {
   ],
 };
 
+// characterVar: 'player' shows the snippet with every { name: 'player' } replaced by the
+// last selected character (or the first one in the workspace), keeping 'player' when there
+// is none. Use it only on snippets that drive an existing character, not ones that create it.
 const toolboxSnippetsMovement = {
   kind: 'category',
   icon: './images/arrows.svg',
@@ -5112,6 +5115,7 @@ const toolboxSnippetsMovement = {
       type: 'forever',
       keyword: 'move8',
       hint: 'snippet_move8_hint',
+      characterVar: 'player',
       inputs: {
         DO: {
           block: {
@@ -5279,6 +5283,7 @@ const toolboxSnippetsMovement = {
       kind: 'block',
       type: 'forever',
       hint: 'snippet_move4_hint',
+      characterVar: 'player',
       inputs: {
         DO: {
           block: {
@@ -5573,6 +5578,7 @@ const toolboxSnippetsMovement = {
       type: 'start',
       keyword: 'movejump',
       hint: 'snippet_movejump_hint',
+      characterVar: 'player',
       collapsed: true,
       inputs: {
         DO: {
@@ -7247,39 +7253,27 @@ const toolboxSnippets = {
             },
             next: {
               block: {
-                type: 'add_physics',
+                type: 'camera_follow',
                 fields: {
-                  MODEL_VAR: {
+                  MESH_VAR: {
                     name: 'player',
                     type: '',
                   },
-                  PHYSICS_TYPE: 'DYNAMIC',
                 },
-                next: {
-                  block: {
-                    type: 'camera_follow',
-                    fields: {
-                      MESH_VAR: {
-                        name: 'player',
-                        type: '',
+                inputs: {
+                  RADIUS: {
+                    shadow: {
+                      type: 'math_number',
+                      fields: {
+                        NUM: 7,
                       },
                     },
-                    inputs: {
-                      RADIUS: {
-                        shadow: {
-                          type: 'math_number',
-                          fields: {
-                            NUM: 7,
-                          },
-                        },
-                      },
-                      ANGLE: {
-                        shadow: {
-                          type: 'math_number',
-                          fields: {
-                            NUM: 90,
-                          },
-                        },
+                  },
+                  ANGLE: {
+                    shadow: {
+                      type: 'math_number',
+                      fields: {
+                        NUM: 90,
                       },
                     },
                   },
