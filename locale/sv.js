@@ -1080,6 +1080,7 @@ export default {
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai
+  portrait_canvas_option_ui: 'Stående canvas (9:16)', // ai
   close_tools_ui: 'Stäng verktyg', // ai
   show_block_hints_ui: 'Visa blocktips',
   hide_block_hints_ui: 'Dölj blocktips',

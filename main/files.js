@@ -17,6 +17,7 @@ import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 import { replaceUnrecognisedBlocks } from '../blocks/unknownBlock.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
+import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -88,6 +89,10 @@ export function initProjectModifiedTracking(ws) {
   });
 }
 
+export function markProjectModified() {
+  projectModified = true;
+}
+
 export function isProjectModified() {
   return projectModified;
 }
@@ -112,7 +117,12 @@ async function confirmDiscardIfModified() {
 }
 
 export function serializeProject(ws) {
-  return { version: FLOCK_FORMAT_VERSION, ...Blockly.serialization.workspaces.save(ws) };
+  const canvasAspect = getCanvasAspectName();
+  return {
+    version: FLOCK_FORMAT_VERSION,
+    ...(canvasAspect !== DEFAULT_CANVAS_ASPECT && { settings: { canvasAspect } }),
+    ...Blockly.serialization.workspaces.save(ws),
+  };
 }
 
 // Function to save the current workspace state
@@ -219,8 +229,15 @@ function validateBlocklyJson(json) {
       throw new Error('Invalid project version');
     }
 
+    if (
+      data.settings !== undefined &&
+      (!data.settings || typeof data.settings !== 'object' || Array.isArray(data.settings))
+    ) {
+      throw new Error('Invalid project settings');
+    }
+
     // Empty workspace is valid
-    if (Object.keys(data).every((key) => key === 'version')) {
+    if (Object.keys(data).every((key) => key === 'version' || key === 'settings')) {
       return;
     }
 
@@ -231,7 +248,7 @@ function validateBlocklyJson(json) {
     }
 
     // Whitelist allowed properties at root level
-    const allowedRootKeys = ['version', 'blocks', 'variables', 'workspaceComments'];
+    const allowedRootKeys = ['version', 'settings', 'blocks', 'variables', 'workspaceComments'];
     const rootKeys = Object.keys(data);
 
     for (const key of rootKeys) {
@@ -379,6 +396,8 @@ export function loadWorkspaceAndExecute(
   // Validation failures propagate to the caller; the catch below is only for a
   // workspace that broke mid-load, never for rejected JSON.
   const validatedJson = validateBlocklyJson(json);
+
+  setCanvasAspectName(validatedJson.settings?.canvasAspect);
 
   try {
     const unrecognised = replaceUnrecognisedBlocks(validatedJson);

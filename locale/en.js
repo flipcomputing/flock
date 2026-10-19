@@ -1295,6 +1295,7 @@ export default {
   inspector_tool_ui: 'Inspector',
   player_controls_option_ui: 'Player controls',
   gizmo_controls_option_ui: 'Gizmo controls',
+  portrait_canvas_option_ui: 'Portrait canvas (9:16)',
   gizmo_hints_option_ui: 'Gizmo hints',
   close_tools_ui: 'Close tools',
   show_block_hints_ui: 'Show block hints',

@@ -1,5 +1,6 @@
 import { translate } from '../main/translation.js';
 import { logViewport } from '../main/viewportDebug.js';
+import { isPortraitCanvas } from '../main/canvasAspect.js';
 
 // Narrow landscape layouts (phones and small tablets alike) set
 // #info-panel-body to display:none in CSS, so there's no docked area to
@@ -8,6 +9,8 @@ import { logViewport } from '../main/viewportDebug.js';
 // instead of being forced modal by width alone.
 const isNarrowLayout = () =>
   window.matchMedia('(max-width: 1024px) and (orientation: landscape)').matches;
+
+const isWideLayout = () => window.matchMedia('(min-width: 1025px)').matches;
 
 // Measured: ~65px chrome plus ~40px per em per row; below 1 row the modal reads better than a docked scroll.
 const MIN_DOCKED_ROWS = 1;
@@ -67,7 +70,7 @@ const InfoPanel = {
     }
     const tab = this._tabs.get(id);
     if (!tab) return;
-    this._activeId = id;
+    this._setActiveId(id);
     tab.btn.setAttribute('aria-selected', 'true');
     tab.btn.classList.add('active');
     tab.panel.classList.remove('hidden');
@@ -87,7 +90,15 @@ const InfoPanel = {
     tab.btn.setAttribute('aria-selected', 'false');
     tab.btn.classList.remove('active');
     tab.panel.classList.add('hidden');
-    if (this._activeId === id) this._activeId = null;
+    if (this._activeId === id) this._setActiveId(null);
+  },
+
+  _setActiveId(id) {
+    const wasOpen = this._activeId !== null;
+    this._activeId = id;
+    if (wasOpen === (id !== null)) return;
+    document.body.classList.toggle('info-panel-open', id !== null);
+    window.dispatchEvent(new Event('flock:info-panel-open-change'));
   },
 
   toggle(id) {
@@ -119,7 +130,11 @@ const ModalPanelBehaviour = {
   fontSize: storedFontSize(),
 
   shouldBeModal() {
-    return isNarrowLayout() || isDockedAreaTooShort(this.fontSize);
+    return (
+      isNarrowLayout() ||
+      (isPortraitCanvas() && !isWideLayout()) ||
+      isDockedAreaTooShort(this.fontSize)
+    );
   },
 
   fontControlsHTML() {
@@ -186,6 +201,7 @@ const ModalPanelBehaviour = {
     };
 
     window.addEventListener('resize', reevaluate);
+    window.addEventListener('flock:canvas-aspect', reevaluate);
 
     const dockedArea = document.getElementById('info-panel-body');
     if (dockedArea && typeof ResizeObserver !== 'undefined') {

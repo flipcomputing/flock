@@ -1096,6 +1096,7 @@ export default {
   inspector_tool_ui: 'Ispettore',
   player_controls_option_ui: 'Comandi del giocatore', // ai
   gizmo_controls_option_ui: 'Comandi di manipolazione', // ai
+  portrait_canvas_option_ui: 'Canvas verticale (9:16)', // ai
   close_tools_ui: 'Chiudi strumenti', // ai
   show_block_hints_ui: 'Mostra suggerimenti dei blocchi',
   hide_block_hints_ui: 'Nascondi suggerimenti dei blocchi',

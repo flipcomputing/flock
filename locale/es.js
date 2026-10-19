@@ -1202,6 +1202,7 @@ export default {
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai
+  portrait_canvas_option_ui: 'Lienzo vertical (9:16)', // ai
   gizmo_hints_option_ui: 'Consejos de manipulación', // ai
   close_tools_ui: 'Cerrar herramientas', // ai
   show_block_hints_ui: 'Mostrar sugerencias de bloques',

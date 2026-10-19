@@ -1091,6 +1091,7 @@ export default {
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai
+  portrait_canvas_option_ui: 'Toile en portrait (9:16)', // ai
   close_tools_ui: 'Fermer les outils', // ai
   show_block_hints_ui: 'Afficher les astuces des blocs',
   hide_block_hints_ui: 'Masquer les astuces des blocs',
