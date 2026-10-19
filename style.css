@@ -3095,7 +3095,7 @@ kbd {
   height: 50px;
   min-height: 50px;
   max-height: 50px;
-  padding: 2px 4px 0px 8px;
+  padding: 0 4px 0 8px;
   border-top: 1px solid var(--color-border);
   background-color: var(--color-bg);
   box-sizing: border-box;
