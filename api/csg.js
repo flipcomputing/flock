@@ -1596,8 +1596,6 @@ export const flockCSG = {
     // Copy transformation properties
     referenceMesh.material.backFaceCulling = false;
 
-    resultMesh.scaling.copyFrom(referenceMesh.scaling);
-
     resultMesh.name = modelId;
     resultMesh.metadata = resultMesh.metadata || {};
     resultMesh.metadata.blockKey = blockId;
