@@ -18,6 +18,7 @@ import {
   handleBlockDelete,
   CustomZelosRenderer,
   applyInputAriaLabels,
+  queueDisclosureSync,
 } from '../blocks/blocks';
 import { defineBaseBlocks } from '../blocks/base';
 import { defineShapeBlocks } from '../blocks/shapes';
@@ -904,6 +905,7 @@ export function initializeWorkspace() {
   workspace.addChangeListener(handleRecentObjectEvent);
   workspace.addChangeListener(separateNestedLoopVariables);
   workspace.addChangeListener(handleBlockDelete);
+  workspace.addChangeListener(queueDisclosureSync);
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);

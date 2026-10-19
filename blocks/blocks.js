@@ -1211,6 +1211,14 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
 
   adjustXPosition_() {}
 
+  populateBottomRow_() {
+    super.populateBottomRow_();
+    const last = this.block_.inputList.at(-1);
+    if (last instanceof Blockly.inputs.StatementInput && !last.isVisible()) {
+      this.bottomRow.minHeight = this.constants_.BOTTOM_ROW_MIN_HEIGHT;
+    }
+  }
+
   // Zelos left-aligns an inline row, so the slack that widens a mutator-button
   // row to the block width lands in the spacer after the button. Shift it in
   // front of the button so the +/- sits at the block's right edge.
@@ -2171,6 +2179,54 @@ export const DO_MUTATOR_PLUS = DO_MUTATOR_ICON(
 );
 export const DO_MUTATOR_MINUS = DO_MUTATOR_ICON('<path fill="white" d="M8 13.5h14v3H8z"/>');
 
+const DISCLOSURE_ICON = (path, solid) =>
+  'data:image/svg+xml;base64,' +
+  btoa(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">' +
+      `<path d="${path}" fill="${solid ? 'white' : 'none'}" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>` +
+      '</svg>'
+  );
+export const CLOSED_ARROW = 'M8 4L15 4L23.5 15L15 26L8 26L16.5 15Z';
+export const OPEN_ARROW = 'M26 8L26 15L15 23.5L4 15L4 8L15 16.5Z';
+export const DISCLOSURE_CLOSED = DISCLOSURE_ICON(CLOSED_ARROW, false);
+export const DISCLOSURE_CLOSED_CODE = DISCLOSURE_ICON(CLOSED_ARROW, true);
+export const DISCLOSURE_OPEN = DISCLOSURE_ICON(OPEN_ARROW, false);
+export const DISCLOSURE_OPEN_CODE = DISCLOSURE_ICON(OPEN_ARROW, true);
+const OPEN_INLINE_ARROW = 'M22 4L15 4L6.5 15L15 26L22 26L13.5 15Z';
+export const DISCLOSURE_OPEN_INLINE = DISCLOSURE_ICON(OPEN_INLINE_ARROW, false);
+export const DISCLOSURE_OPEN_INLINE_CODE = DISCLOSURE_ICON(OPEN_INLINE_ARROW, true);
+
+export function setDisclosureIcon(field, open, hasCode, label, { inline = false } = {}) {
+  if (!field) return;
+  const openIcons = inline
+    ? [DISCLOSURE_OPEN_INLINE, DISCLOSURE_OPEN_INLINE_CODE]
+    : [DISCLOSURE_OPEN, DISCLOSURE_OPEN_CODE];
+  const icons = open ? openIcons : [DISCLOSURE_CLOSED, DISCLOSURE_CLOSED_CODE];
+  const icon = icons[hasCode ? 1 : 0];
+  const alt = `${open ? 'hide' : 'show'} ${label}${!open && hasCode ? ' (has hidden code)' : ''}`;
+  const altChanged = field.altText !== alt;
+  field.setAlt(alt);
+  if (field.getValue() !== icon) field.setValue(icon);
+  else if (altChanged) field.recomputeAriaContext();
+}
+
+const disclosureSyncQueued = new WeakSet();
+export function queueDisclosureSync(event) {
+  if (event.isUiEvent) return;
+  const workspace = Blockly.Workspace.getById(event.workspaceId);
+  if (!workspace || disclosureSyncQueued.has(workspace)) return;
+  disclosureSyncQueued.add(workspace);
+  requestAnimationFrame(() => {
+    disclosureSyncQueued.delete(workspace);
+    Blockly.Events.disable();
+    try {
+      for (const block of workspace.getAllBlocks(false)) block.syncDisclosureIcons_?.();
+    } finally {
+      Blockly.Events.enable();
+    }
+  });
+}
+
 export function fireLayoutMove(block) {
   const event = new Blockly.Events.BlockMove(block);
   event.recordUndo = false;
@@ -2197,12 +2253,8 @@ export function addDoMutatorWithToggleBehavior(block) {
     block.getInput('THEN')?.setVisible(hasDo && !block.thenHidden_);
     const hasThen = isOpen('THEN');
 
-    const mainOpen = block.hasOptionsRow_ ? block.optionsOpen_ : hasDo;
-    block.getField('TOGGLE_BUTTON')?.setValue(mainOpen ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
-    block.getField('DO_BUTTON')?.setValue(hasDo ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
-
     if (block.getInput('DO') && !block.getInput('THEN_BUTTON')) {
-      const thenButton = new Blockly.FieldImage(DO_MUTATOR_PLUS, 30, 30, 'toggle then block', () =>
+      const thenButton = new Blockly.FieldImage(DISCLOSURE_CLOSED, 30, 30, 'show then', () =>
         block.toggleThenBlock()
       );
       block.appendDummyInput('THEN_BUTTON').appendField(thenButton, 'THEN_TOGGLE_BUTTON');
@@ -2222,12 +2274,20 @@ export function addDoMutatorWithToggleBehavior(block) {
       }
     }
 
-    const thenField = block.getField('THEN_TOGGLE_BUTTON');
-    if (thenField) {
-      thenField.setValue(hasThen ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
-    }
-
     block.syncOptionsRow_?.();
+    block.syncDisclosureIcons_();
+  };
+
+  block.syncDisclosureIcons_ = function () {
+    const hasDo = isOpen('DO');
+    const thenCode = Boolean(this.getInputTargetBlock('THEN'));
+    const doCode = Boolean(this.getInputTargetBlock('DO')) || thenCode;
+    const mainOpen = this.hasOptionsRow_ ? this.optionsOpen_ : hasDo;
+    const mainCode = doCode || Boolean(this.hasOptionsRow_ && this.optionsHaveCode_?.());
+    const mainLabel = this.hasOptionsRow_ ? 'options' : 'first';
+    setDisclosureIcon(this.getField('TOGGLE_BUTTON'), mainOpen, mainCode, mainLabel);
+    setDisclosureIcon(this.getField('DO_BUTTON'), hasDo, doCode, 'first');
+    setDisclosureIcon(this.getField('THEN_TOGGLE_BUTTON'), isOpen('THEN'), thenCode, 'then');
   };
 
   const mutationText = function () {
@@ -2306,10 +2366,10 @@ export function addDoMutatorWithToggleBehavior(block) {
 
   // Add the toggle button to the block
   const toggleButton = new Blockly.FieldImage(
-    DO_MUTATOR_PLUS,
+    DISCLOSURE_CLOSED,
     30,
     30,
-    'toggle do block', // Width, Height, Alt text
+    'show first', // Width, Height, Alt text
     () => block.toggleMainSection()
   );
 
@@ -2318,6 +2378,7 @@ export function addDoMutatorWithToggleBehavior(block) {
     .appendDummyInput()
     .setAlign(Blockly.inputs.Align.RIGHT)
     .appendField(toggleButton, 'TOGGLE_BUTTON');
+  block.syncDisclosureIcons_();
 
   // Save the mutation state
   block.mutationToDom = function () {

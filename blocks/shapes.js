@@ -7,8 +7,8 @@ import {
   getHelpUrlFor,
   registerBlockHandler,
   isValueInputDescendantOf,
-  DO_MUTATOR_MINUS,
-  DO_MUTATOR_PLUS,
+  DISCLOSURE_CLOSED,
+  setDisclosureIcon,
 } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
@@ -1127,12 +1127,22 @@ export function defineShapeBlocks() {
       this.appendEndRowInput('POINTS_TOGGLE')
         .appendField(translate('freeform_points'))
         .appendField(
-          new Blockly.FieldImage(DO_MUTATOR_PLUS, 24, 24, 'toggle points', () =>
+          new Blockly.FieldImage(DISCLOSURE_CLOSED, 24, 24, 'show points', () =>
             this.togglePoints_()
           ),
           'POINTS_BUTTON'
         );
       this.appendValueInput('VERTICES').setCheck('Array');
+      const syncCompartmentIcons = this.syncDisclosureIcons_;
+      this.syncDisclosureIcons_ = function () {
+        syncCompartmentIcons.call(this);
+        setDisclosureIcon(
+          this.getField('POINTS_BUTTON'),
+          this.pointsShown_,
+          Boolean(this.getInputTargetBlock('VERTICES')),
+          'points'
+        );
+      };
       this.setPointsShown_(false);
 
       const doMutationToDom = this.mutationToDom;
@@ -1181,7 +1191,7 @@ export function defineShapeBlocks() {
     setPointsShown_: function (show) {
       this.pointsShown_ = show;
       this.getInput('VERTICES').setVisible(show);
-      this.getField('POINTS_BUTTON')?.setValue(show ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+      this.syncDisclosureIcons_?.();
       this.syncInitialTransformRows_?.();
     },
 

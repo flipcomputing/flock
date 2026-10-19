@@ -1,5 +1,5 @@
 import * as Blockly from 'blockly';
-import { DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from './blocks.js';
+import { DISCLOSURE_CLOSED, DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from './blocks.js';
 import { translate } from '../main/translation.js';
 import { getMeshFromBlock } from '../ui/blockmesh.js';
 import { measureInitialSize } from '../ui/initialTransform.js';
@@ -103,8 +103,14 @@ export function addInitialTransformRows(block, { resize = false, position = fals
   block
     .appendDummyInput('DO_TOGGLE')
     .setAlign(Blockly.inputs.Align.RIGHT)
-    .appendField(toggleButton('toggle do block', () => block.toggleDoBlock(), 30), 'DO_BUTTON');
+    .appendField(
+      new Blockly.FieldImage(DISCLOSURE_CLOSED, 30, 30, 'show first', () => block.toggleDoBlock()),
+      'DO_BUTTON'
+    );
   block.hasOptionsRow_ = true;
+  block.optionsHaveCode_ = function () {
+    return this.positionShown_ || this.rotateShown_ || this.resizeShown_;
+  };
 
   block.syncInitialTransformRows_ = function () {
     const open = this.optionsOpen_;
@@ -140,6 +146,7 @@ export function addInitialTransformRows(block, { resize = false, position = fals
     const oldState = mutationText();
     change();
     block.syncInitialTransformRows_();
+    block.syncDisclosureIcons_?.();
     if (block.rendered) {
       block.render();
       block.bumpNeighbours();
@@ -219,4 +226,5 @@ export function addInitialTransformRows(block, { resize = false, position = fals
   };
 
   block.syncInitialTransformRows_();
+  block.syncDisclosureIcons_?.();
 }

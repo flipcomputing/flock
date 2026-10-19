@@ -5,9 +5,15 @@ import { defineModelBlocks } from '../blocks/models.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { defineModifyBlocks } from '../blocks/modify.js';
 import { registerTextGenerators } from '../generators/generators-text.js';
 import { registerSceneGenerators } from '../generators/generators-scene.js';
-import { DO_MUTATOR_MINUS, DO_MUTATOR_PLUS } from '../blocks/blocks.js';
+import {
+  DISCLOSURE_CLOSED,
+  DISCLOSURE_CLOSED_CODE,
+  DISCLOSURE_OPEN,
+  DISCLOSURE_OPEN_CODE,
+} from '../blocks/blocks.js';
 import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 export function runInitialTransformRowsTests() {
@@ -86,12 +92,12 @@ export function runInitialTransformRowsTests() {
       box.getField('TOGGLE_BUTTON').showEditor_();
       expect(visible(box, 'DO_TOGGLE')).to.be.true;
       expect(box.getInput('DO')).to.be.null;
-      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DO_MUTATOR_MINUS);
-      expect(box.getField('DO_BUTTON').getValue()).to.equal(DO_MUTATOR_PLUS);
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN);
+      expect(box.getField('DO_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
 
       box.getField('DO_BUTTON').showEditor_();
       expect(visible(box, 'DO')).to.be.true;
-      expect(box.getField('DO_BUTTON').getValue()).to.equal(DO_MUTATOR_MINUS);
+      expect(box.getField('DO_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN);
       const names = box.inputList.map((input) => input.name);
       expect(names.indexOf('DO_TOGGLE')).to.be.lessThan(names.indexOf('DO'));
 
@@ -108,7 +114,7 @@ export function runInitialTransformRowsTests() {
       for (const name of ['DO_TOGGLE', 'DO', 'THEN', 'THEN_BUTTON']) {
         expect(visible(box, name)).to.be.false;
       }
-      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DO_MUTATOR_PLUS);
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
 
       box.toggleMainSection();
       expect(visible(box, 'DO')).to.be.true;
@@ -251,7 +257,34 @@ export function runInitialTransformRowsTests() {
       expect(generate(restored)).to.include('size: { width: 2, height: 2, depth: 2 }');
     });
 
-    it('shows the rows when the + button is clicked', function () {
+    it('labels the arrows with what they show or hide', function () {
+      const box = makeBox();
+      expect(box.getField('TOGGLE_BUTTON').altText).to.equal('show options');
+      box.toggleMainSection();
+      expect(box.getField('TOGGLE_BUTTON').altText).to.equal('hide options');
+      expect(box.getField('DO_BUTTON').altText).to.equal('show first');
+
+      if (!Blockly.Blocks['mirror_mesh']) defineModifyBlocks();
+      const mirror = Blockly.serialization.blocks.append({ type: 'mirror_mesh' }, ws);
+      expect(mirror.getField('TOGGLE_BUTTON').altText).to.equal('show first');
+    });
+
+    it('fills the options arrow while a row is switched on', function () {
+      const box = makeBox();
+      box.toggleMainSection();
+      box.setRotateShown(true);
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN_CODE);
+
+      box.toggleMainSection();
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED_CODE);
+
+      box.toggleMainSection();
+      box.setRotateShown(false);
+      box.toggleMainSection();
+      expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
+    });
+
+    it('shows the rows when the arrow is clicked', function () {
       const box = makeBox();
       box.getField('TOGGLE_BUTTON').showEditor_();
       expect(visible(box, 'ROTATE_TOGGLE')).to.be.true;
@@ -277,6 +310,18 @@ export function runInitialTransformRowsTests() {
         expect(sphere.getParent()).to.equal(box);
         expect(box.mutationToDom().getAttribute('do_hidden')).to.equal('true');
         expect(generate(box)).to.include('createSphere(');
+      });
+
+      it('fills the arrows that have blocks behind them', function () {
+        const box = makeBox();
+        box.toggleDoBlock();
+        addSphereTo(box, 'DO');
+        box.syncDisclosureIcons_();
+        expect(box.getField('DO_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN_CODE);
+        expect(box.getField('THEN_TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
+
+        box.toggleMainSection();
+        expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED_CODE);
       });
 
       it('restores a closed DO closed, with its blocks', function () {
@@ -327,7 +372,7 @@ export function runInitialTransformRowsTests() {
 
         expect(visible(box, 'DO')).to.be.false;
         expect(visible(box, 'ROTATE_TOGGLE')).to.be.false;
-        expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DO_MUTATOR_PLUS);
+        expect(box.getField('TOGGLE_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
       });
     });
 

@@ -2,6 +2,7 @@
 
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';
+import { CLOSED_ARROW, OPEN_ARROW } from '../blocks/blocks.js';
 import { announceToScreenReader } from '../main/input.js';
 import { getMeshFromBlock } from './blockmesh.js';
 import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
@@ -980,23 +981,13 @@ export function initContextMenus(workspace) {
     const expandBtn = document.createElement('button');
     expandBtn.type = 'button';
     expandBtn.className = 'fc-block-toolbar-btn';
-    // fa-angles-down (v7.3.1; other icons here are v6.7.2)
-    // by @fontawesome — https://fontawesome.com
-    // License: https://fontawesome.com/license/free  Copyright 2026 Fonticons, Inc.
-    expandBtn.innerHTML = mkFaSvg(
-      '<path d="M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z"/>',
-      '0 0 640 640'
-    );
+    expandBtn.innerHTML = mkFaSvg(`<path d="${CLOSED_ARROW}"/>`, '0 0 30 30');
 
-    // Same glyph as expandBtn, flipped vertically via CSS (.fc-block-toolbar-btn--flip-v)
-    // to read as angles-up — only shown for top-level container (c-shaped) blocks.
+    // Only shown for top-level container (c-shaped) blocks.
     const collapseBtn = document.createElement('button');
     collapseBtn.type = 'button';
-    collapseBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--flip-v';
-    collapseBtn.innerHTML = mkFaSvg(
-      '<path d="M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z"/>',
-      '0 0 640 640'
-    );
+    collapseBtn.className = 'fc-block-toolbar-btn';
+    collapseBtn.innerHTML = mkFaSvg(`<path d="${OPEN_ARROW}"/>`, '0 0 30 30');
 
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';

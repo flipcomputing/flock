@@ -336,8 +336,8 @@ const HOWTO_LINK_TARGETS = {
 // Text-only buttons (projects, canvasview, codeview) have no entry and render
 // as a label-only highlight link. Entries are { viewBox, path }, except
 // block-duplicate (custom two-rect glyph, not a single path) which uses
-// { viewBox, inner }, and block-collapse (same glyph as block-expand, shown
-// flipped) which adds flip: true.
+// { viewBox, inner }. block-expand and block-collapse copy the show/hide
+// arrows in blocks/blocks.js (CLOSED_ARROW, OPEN_ARROW).
 const UI_BUTTON_ICONS = {
   addmenu: {
     viewBox: '0 0 122.875 122.648',
@@ -426,13 +426,12 @@ const UI_BUTTON_ICONS = {
   // Floating block-toolbar icons (ui/contextmenu.js) — same glyphs as the
   // real toolbar buttons.
   'block-expand': {
-    viewBox: '0 0 640 640',
-    path: 'M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z',
+    viewBox: '0 0 30 30',
+    path: 'M8 4L15 4L23.5 15L15 26L8 26L16.5 15Z',
   },
   'block-collapse': {
-    viewBox: '0 0 640 640',
-    path: 'M342.6 534.6C330.1 547.1 309.8 547.1 297.3 534.6L137.3 374.6C124.8 362.1 124.8 341.8 137.3 329.3C149.8 316.8 170.1 316.8 182.6 329.3L320 466.7L457.4 329.4C469.9 316.9 490.2 316.9 502.7 329.4C515.2 341.9 515.2 362.2 502.7 374.7L342.7 534.7zM502.6 182.6L342.6 342.6C330.1 355.1 309.8 355.1 297.3 342.6L137.3 182.6C124.8 170.1 124.8 149.8 137.3 137.3C149.8 124.8 170.1 124.8 182.6 137.3L320 274.7L457.4 137.4C469.9 124.9 490.2 124.9 502.7 137.4C515.2 149.9 515.2 170.2 502.7 182.7z',
-    flip: true,
+    viewBox: '0 0 30 30',
+    path: 'M26 8L26 15L15 23.5L4 15L4 8L15 16.5Z',
   },
   'block-duplicate': {
     viewBox: '0 0 28 26',
@@ -530,7 +529,6 @@ function createIconElement(icon) {
     svg.setAttribute('viewBox', icon.viewBox);
     svg.setAttribute('aria-hidden', 'true');
     svg.setAttribute('class', 'howto-icon');
-    if (icon.flip) svg.style.transform = 'scaleY(-1)';
     if (icon.inner) {
       svg.innerHTML = icon.inner;
     } else {
