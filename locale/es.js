@@ -821,8 +821,6 @@ export default {
   CLASSIC_option: 'clásico',
 
   OnPickTrigger_option: 'clickeado', // human
-  OnLeftPickTrigger_option: 'interactuar', // human
-  OnDoublePickTrigger_option: 'doble interacción', // human
   OnPickDownTrigger_option: 'inicio de interacción', // human
   OnPickUpTrigger_option: 'fin de interacción', // human
 

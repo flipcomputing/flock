@@ -548,6 +548,10 @@ function createIconElement(icon) {
 // changes, update its entry here in the same pass. First entry is the
 // pick-position pin from blocks/fieldPickPosition.js.
 const BLOCK_ICONS = {
+  plus: {
+    viewBox: '0 0 30 30',
+    path: 'M9 2H21A7 7 0 0 1 28 9V21A7 7 0 0 1 21 28H9A7 7 0 0 1 2 21V9A7 7 0 0 1 9 2ZM9 4A5 5 0 0 0 4 9V21A5 5 0 0 0 9 26H21A5 5 0 0 0 26 21V9A5 5 0 0 0 21 4ZM13.5 8h3v5.5H22v3h-5.5V22h-3v-5.5H8v-3h5.5z',
+  },
   pin: {
     viewBox: '0 0 384 512',
     path: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z',

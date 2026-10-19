@@ -3,7 +3,7 @@ import { addUIAlignment } from './uiAlignment.js';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
-  addToggleButton,
+  addInlineOnDrag,
   mutationToDom,
   domToMutation,
   handleBlockCreateEvent,
@@ -965,7 +965,7 @@ export function defineSensingBlocks() {
         }
       });
 
-      addToggleButton(this);
+      addInlineOnDrag(this);
     },
     mutationToDom: function () {
       return mutationToDom(this);
@@ -975,9 +975,6 @@ export function defineSensingBlocks() {
     },
     updateShape_: function (isInline) {
       updateShape(this, isInline);
-    },
-    toggleDoBlock: function () {
-      this.updateShape_(!this.isInline);
     },
   };
   Blockly.Blocks['ui_slider'] = {

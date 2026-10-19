@@ -23,7 +23,6 @@ import { handleError } from '../ui/notifications.js';
 import { FieldColour, registerFieldColour } from '@blockly/field-colour';
 import { FieldMultilineInput } from '@blockly/field-multilineinput';
 import { createThemeConfig } from '../main/themes.js';
-import { makeToggleButtonIcon, TOGGLE_BUTTON_FIELD_NAME } from './blockIcons.js';
 import { FieldBlockSearch } from './fieldBlockSearch.js';
 import './fieldPickPosition.js'; // registers field_pick_position
 import './fieldCameraButtons.js'; // registers field_capture_view, field_view_camera
@@ -456,29 +455,6 @@ export function applyInputHint(block) {
   }
 }
 
-// Shared utility to add the toggle button to a block
-export function addToggleButton(block) {
-  const toggleButton = new Blockly.FieldImage(
-    makeToggleButtonIcon(block.isInline),
-    20,
-    20,
-    'toggle inline blocks',
-    () => {
-      block.toggleDoBlock();
-    }
-  );
-
-  block
-    .appendDummyInput()
-    .setAlign(Blockly.inputs.Align.RIGHT)
-    .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
-}
-
-export function updateToggleButtonIcon(block) {
-  const field = block.getField(TOGGLE_BUTTON_FIELD_NAME);
-  if (field) field.setValue(makeToggleButtonIcon(block.isInline));
-}
-
 // Shared utility for the mutationToDom function
 export function mutationToDom(block) {
   const container = document.createElement('mutation');
@@ -502,8 +478,67 @@ export function updateShape(block, isInline) {
     block.setPreviousStatement(false);
     block.setNextStatement(false);
   }
-  updateToggleButtonIcon(block);
 }
+
+function setInlineShape(block, isInline) {
+  const oldState = Blockly.Xml.domToText(block.mutationToDom());
+  block.updateShape_(isInline);
+  const newState = Blockly.Xml.domToText(block.mutationToDom());
+  Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', null, oldState, newState));
+}
+
+class InlineOnDragStrategy extends Blockly.dragging.BlockDragStrategy {
+  shouldHealStack() {
+    return true;
+  }
+
+  startDrag(e) {
+    if (!this.block.isInline && !this.block.isInFlyout) {
+      if (!Blockly.Events.getGroup()) Blockly.Events.setGroup(true);
+      setInlineShape(this.block, true);
+      this.block.queueRender();
+      Blockly.renderManagement.triggerQueuedRenders(this.block.workspace);
+    }
+    const draggable = super.startDrag(e);
+    this.previewShape_(!this.connectionCandidate);
+    return draggable;
+  }
+
+  drag(newLoc, e) {
+    super.drag(newLoc, e);
+    this.previewShape_(!this.connectionCandidate);
+  }
+
+  previewShape_(topLevel) {
+    if (this.block.renderAsTopLevel_ === topLevel) return;
+    this.block.renderAsTopLevel_ = topLevel;
+    this.block.queueRender();
+  }
+
+  endDrag(e, disposition) {
+    super.endDrag(e, disposition);
+    this.settleShape_();
+  }
+
+  revertDrag() {
+    super.revertDrag();
+    this.settleShape_();
+  }
+
+  settleShape_() {
+    const block = this.block;
+    if (block.isDeadOrDying()) return;
+    this.previewShape_(false);
+    if (!block.isInline) return;
+    if (block.getParent() || block.getNextBlock()) return;
+    setInlineShape(block, false);
+  }
+}
+
+export function addInlineOnDrag(block) {
+  block.setDragStrategy?.(new InlineOnDragStrategy(block));
+}
+
 export function handleBlockDelete(event) {
   if (event.type === Blockly.Events.BLOCK_DELETE) {
     event.ids?.forEach(removeUIControlsForBlock);
@@ -1211,8 +1246,22 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
 
   adjustXPosition_() {}
 
+  populateTopRow_() {
+    this.withoutConnection_('previousConnection', () => super.populateTopRow_());
+  }
+
+  withoutConnection_(name, populate) {
+    const connection = this.block_[name];
+    if (this.block_.renderAsTopLevel_) this.block_[name] = null;
+    try {
+      populate();
+    } finally {
+      this.block_[name] = connection;
+    }
+  }
+
   populateBottomRow_() {
-    super.populateBottomRow_();
+    this.withoutConnection_('nextConnection', () => super.populateBottomRow_());
     const last = this.block_.inputList.at(-1);
     if (last instanceof Blockly.inputs.StatementInput && !last.isVisible()) {
       this.bottomRow.minHeight = this.constants_.BOTTOM_ROW_MIN_HEIGHT;
@@ -1225,36 +1274,58 @@ class CustomRenderInfo extends Blockly.zelos.RenderInfo {
   alignRowElements_() {
     super.alignRowElements_();
 
-    if (typeof this.block_.getField !== 'function' || !this.block_.getField('TOGGLE_BUTTON')) {
-      return;
-    }
-
+    const isPinnedRight = (field) =>
+      field.pinRight_ ?? (field.name === 'TOGGLE_BUTTON' || field.name === 'THEN_TOGGLE_BUTTON');
     const edgeMargin = (this.constants_.GRID_UNIT || 4) * 2;
 
     for (const row of this.rows) {
       const elements = row.elements || [];
-      for (const buttonName of ['TOGGLE_BUTTON', 'THEN_TOGGLE_BUTTON']) {
-        const buttonIndex = elements.findIndex(
-          (el) => el.field && el.field.name === buttonName
-        );
-        if (buttonIndex <= 0 || buttonIndex >= elements.length - 1) continue;
+      const buttonIndex = elements.findIndex((el) => el.field && isPinnedRight(el.field));
+      if (buttonIndex <= 0 || buttonIndex >= elements.length - 1) continue;
 
-        const spacerBefore = elements[buttonIndex - 1];
-        const spacerAfter = elements[elements.length - 1];
-        if (
-          typeof spacerBefore.width !== 'number' ||
-          typeof spacerAfter.width !== 'number' ||
-          spacerBefore === spacerAfter
-        ) {
-          continue;
-        }
-
-        const shift = spacerAfter.width - edgeMargin;
-        if (shift <= 0) continue;
-
-        spacerBefore.width += shift;
-        spacerAfter.width -= shift;
+      const spacerBefore = elements[buttonIndex - 1];
+      const spacerAfter = elements[elements.length - 1];
+      if (
+        typeof spacerBefore.width !== 'number' ||
+        typeof spacerAfter.width !== 'number' ||
+        spacerBefore === spacerAfter
+      ) {
+        continue;
       }
+
+      const shift = spacerAfter.width - edgeMargin;
+      if (shift <= 0) continue;
+
+      spacerBefore.width += shift;
+      spacerAfter.width -= shift;
+    }
+  }
+
+  finalizeVerticalAlignment_() {
+    super.finalizeVerticalAlignment_();
+    if (this.outputConnection) return;
+
+    const { SMALL_PADDING, MEDIUM_PADDING } = this.constants_;
+    const isSpacer = (el) => Blockly.blockRendering.Types.isSpacer(el);
+    for (let i = 4; i < this.rows.length - 1; i += 2) {
+      const [prev, row, next] = [this.rows[i - 1], this.rows[i], this.rows[i + 1]];
+      if (!prev.followsStatement) continue;
+      const fields = row.elements.filter((el) => !isSpacer(el));
+      if (
+        fields.length < 2 ||
+        !fields.some((el) => el.field?.pinRight_) ||
+        !fields.every(
+          (el) => el.field instanceof Blockly.FieldImage || el.field instanceof Blockly.FieldLabel
+        )
+      ) {
+        continue;
+      }
+      const isLast = i + 2 >= this.rows.length - 1;
+      const precedesStatement = isLast ? !!this.bottomRow.hasNextConnection : !!next.precedesStatement;
+      if (!precedesStatement) prev.height -= SMALL_PADDING;
+      prev.height -= SMALL_PADDING;
+      next.height -= SMALL_PADDING;
+      row.height -= MEDIUM_PADDING;
     }
   }
 
@@ -2442,63 +2513,13 @@ export function handleBlockCreateEvent(
   }
 }
 
-// Extend the built-in Blockly procedures_defreturn block to add custom toggle functionality
-
-// Reference to the original init function of the procedures_defreturn block
-Blockly.Blocks['procedures_defreturn'].init = (function (originalInit) {
-  return function () {
-    // Call the original initialization function to ensure the block retains its default behaviour
+for (const type of ['procedures_defreturn', 'procedures_defnoreturn']) {
+  const originalInit = Blockly.Blocks[type].init;
+  Blockly.Blocks[type].init = function () {
     originalInit.call(this);
     setupProcedureParams(this);
-
-    // Use the existing addToggleButton helper to add the button to the block
-    addToggleButton(this);
   };
-})(Blockly.Blocks['procedures_defreturn'].init);
-
-// Create an extension that adds extra UI logic without modifying the core mutator methods
-Blockly.Extensions.register('custom_procedure_ui_extension', function () {
-  this.toggleDoBlock = function () {
-    const isInline = !this.isInline;
-
-    // Disconnect block from parent if switching to top-level mode
-    if (!isInline) {
-      this.unplug(true);
-    }
-
-    // Update block shape (delegated to your helper)
-    updateShape(this, isInline);
-
-    // Optionally re-enable if previously disabled (for orphaned block UX)
-    if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-      this.setDisabledReason(false, 'ORPHANED_BLOCK');
-    }
-
-    // Fire Blockly events so undo/redo and UI updates are tracked
-    Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-    fireLayoutMove(this);
-  };
-});
-
-// Apply the extension to the built-in 'procedures_defreturn' block
-Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defreturn']);
-
-// Extend the built-in Blockly procedures_defnoreturn block to add custom toggle functionality
-
-// Reference to the original init function of the procedures_defnoreturn block
-Blockly.Blocks['procedures_defnoreturn'].init = (function (originalInit) {
-  return function () {
-    // Call the original initialization function to ensure the block retains its default behaviour
-    originalInit.call(this);
-    setupProcedureParams(this);
-
-    // Use the existing addToggleButton helper to add the button to the block
-    addToggleButton(this);
-  };
-})(Blockly.Blocks['procedures_defnoreturn'].init);
-
-// Apply the extension to the built-in 'procedures_defnoreturn' block
-Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks['procedures_defnoreturn']);
+}
 
 // Define unique IDs for each option
 Blockly.FieldVariable.ADD_VARIABLE_ID = 'ADD_VARIABLE_ID';

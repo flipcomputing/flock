@@ -421,12 +421,33 @@ export function runInteractIndicatorTests(flock) {
 
         fireFrame();
         flock.inputManager._setKey('e', true);
+        flock.inputManager._setKey('e', false);
 
         expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
       });
 
-      it('BUTTON2 fires OnLeftPickTrigger on the target mesh', function () {
-        const mesh = makeMesh('_test_btn2_leftpick', [0, 0, 0]);
+      it('BUTTON2 fires start on press, then end and click on release', function () {
+        const mesh = makeMesh('_test_btn2_order', [0, 0, 0]);
+        makeInteractable(mesh);
+
+        const triggered = [];
+        const orig = mesh.actionManager.processTrigger.bind(mesh.actionManager);
+        mesh.actionManager.processTrigger = (trigger, evt) => {
+          triggered.push(trigger);
+          orig(trigger, evt);
+        };
+
+        const { OnPickDownTrigger, OnPickUpTrigger, OnPickTrigger } = flock.BABYLON.ActionManager;
+        fireFrame();
+        flock.inputManager._setKey('e', true);
+        expect(triggered).to.deep.equal([OnPickDownTrigger]);
+
+        flock.inputManager._setKey('e', false);
+        expect(triggered).to.deep.equal([OnPickDownTrigger, OnPickUpTrigger, OnPickTrigger]);
+      });
+
+      it('BUTTON2 released after the target is lost fires end but not click', function () {
+        const mesh = makeMesh('_test_btn2_lost', [0, 0, 0]);
         makeInteractable(mesh);
 
         const triggered = [];
@@ -438,11 +459,15 @@ export function runInteractIndicatorTests(flock) {
 
         fireFrame();
         flock.inputManager._setKey('e', true);
+        setInteractIndicatorEnabled(false);
+        flock.inputManager._setKey('e', false);
+        setInteractIndicatorEnabled(true);
 
-        expect(triggered).to.include(flock.BABYLON.ActionManager.OnLeftPickTrigger);
+        expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickUpTrigger);
+        expect(triggered).to.not.include(flock.BABYLON.ActionManager.OnPickTrigger);
       });
 
-      it('when_clicked handler on target mesh runs when BUTTON2 fires', function () {
+      it('when_clicked handler on target mesh runs when BUTTON2 is released', function () {
         const mesh = makeMesh('_test_btn2_handler', [0, 0, 0]);
         makeInteractable(mesh);
 
@@ -455,6 +480,8 @@ export function runInteractIndicatorTests(flock) {
 
         fireFrame();
         flock.inputManager._setKey('e', true);
+        expect(clicked).to.equal(0);
+        flock.inputManager._setKey('e', false);
 
         expect(clicked).to.equal(1);
       });
@@ -517,6 +544,7 @@ export function runInteractIndicatorTests(flock) {
         expect(getIcon().isVisible).to.be.true;
 
         flock.inputManager._setKey('e', true);
+        flock.inputManager._setKey('e', false);
         expect(triggered).to.include(flock.BABYLON.ActionManager.OnPickTrigger);
       });
 

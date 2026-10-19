@@ -1,4 +1,4 @@
-// Built on Blockly.FieldImage (like addToggleButton in blocks.js) rather than
+// Built on Blockly.FieldImage (like the mutator buttons in blocks.js) rather than
 // a bare Field subclass, so it gets a working keyboard-focus ring for free.
 import * as Blockly from 'blockly';
 import { translate } from '../main/translation.js';

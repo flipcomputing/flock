@@ -731,8 +731,6 @@ export default {
   EXP2_option: 'exp2',
 
   OnPickTrigger_option: 'cliccato',
-  OnLeftPickTrigger_option: 'interazione',
-  OnDoublePickTrigger_option: 'doppia interazione',
   OnPickDownTrigger_option: 'inizio interazione',
   OnPickUpTrigger_option: 'fine interazione',
 

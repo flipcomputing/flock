@@ -911,8 +911,6 @@ export default {
   CLASSIC_option: 'classic',
 
   OnPickTrigger_option: 'clicked',
-  OnLeftPickTrigger_option: 'interact',
-  OnDoublePickTrigger_option: 'double interact',
   OnPickDownTrigger_option: 'interact start',
   OnPickUpTrigger_option: 'interact end',
 

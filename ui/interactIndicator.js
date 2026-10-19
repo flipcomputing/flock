@@ -46,6 +46,9 @@ let _observer = null;
 let _currentTarget = null;
 let _actionCallback = null;
 let _actionObserver = null;
+let _actionUpCallback = null;
+let _actionUpObserver = null;
+let _pressedTarget = null;
 let _inputManager = null;
 
 const _interactListeners = [];
@@ -346,8 +349,6 @@ function _hasRealPickTrigger(mesh) {
     if (!action || action._flockForwarder) continue;
     if (
       action.trigger === ActionManager.OnPickTrigger ||
-      action.trigger === ActionManager.OnLeftPickTrigger ||
-      action.trigger === ActionManager.OnDoublePickTrigger ||
       action.trigger === ActionManager.OnPickDownTrigger ||
       action.trigger === ActionManager.OnPickUpTrigger
     ) {
@@ -416,7 +417,7 @@ export function attachInteractIndicator(scene, inputManager) {
   _predicate = (m) => {
     // An actionManager alone doesn't make a mesh interactable — onIntersect
     // attaches one purely for intersection triggers. Require a real pick trigger
-    // (matching the OnPickTrigger/OnLeftPickTrigger the BUTTON2 handler fires).
+    // (matching the pick triggers the BUTTON2 handler fires).
     if (m === _icon || !m.isVisible || !m.isEnabled?.()) return false;
     if (_isSayPlane(m)) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
@@ -442,36 +443,43 @@ export function attachInteractIndicator(scene, inputManager) {
 
   if (inputManager) {
     _inputManager = inputManager;
+    // Route like a pointer click: nearest manager up the hierarchy wins,
+    // so a member without its own trigger bubbles to its group/parent.
+    // No pointer coords here, so pass a synthetic event that skips the
+    // shell's occlusion re-delegation (which needs screen coordinates).
+    const fire = (target, trigger) => {
+      const mgr =
+        typeof target._getActionManagerForTrigger === 'function'
+          ? target._getActionManagerForTrigger(trigger)
+          : null;
+      (mgr ?? target.actionManager)?.processTrigger(trigger, {
+        source: target,
+        meshUnderPointer: target,
+        pointerX: undefined,
+        pointerY: undefined,
+        __flockDelegated: true,
+      });
+    };
     _actionCallback = (action) => {
       if (action !== 'BUTTON2') return;
       if (_inputManager?.hasActionOverride('BUTTON2')) return;
       if (!_currentTarget) return;
-      const target = _currentTarget;
-      // Route like a pointer click: nearest manager up the hierarchy wins,
-      // so a member without its own trigger bubbles to its group/parent.
-      // No pointer coords here, so pass a synthetic event that skips the
-      // shell's occlusion re-delegation (which needs screen coordinates).
-      const fire = (trigger) => {
-        const mgr =
-          typeof target._getActionManagerForTrigger === 'function'
-            ? target._getActionManagerForTrigger(trigger)
-            : null;
-        (mgr ?? target.actionManager)?.processTrigger(trigger, {
-          source: target,
-          meshUnderPointer: target,
-          pointerX: undefined,
-          pointerY: undefined,
-          __flockDelegated: true,
-        });
-      };
-      fire(ActionManager.OnPickTrigger);
-      fire(ActionManager.OnLeftPickTrigger);
-      for (const cb of _interactListeners) cb(target);
+      _pressedTarget = _currentTarget;
+      fire(_pressedTarget, ActionManager.OnPickDownTrigger);
+      for (const cb of _interactListeners) cb(_pressedTarget);
+    };
+    _actionUpCallback = (action) => {
+      if (action !== 'BUTTON2' || !_pressedTarget) return;
+      const target = _pressedTarget;
+      _pressedTarget = null;
+      fire(target, ActionManager.OnPickUpTrigger);
+      if (target === _currentTarget) fire(target, ActionManager.OnPickTrigger);
     };
     // Keep the observer handle: SimpleObservable.remove() matches on the
     // observer object returned by add(), not the raw callback. Passing the
     // callback removes nothing and leaks a listener on every attach/detach.
     _actionObserver = inputManager.onActionDownObservable.add(_actionCallback);
+    _actionUpObserver = inputManager.onActionUpObservable.add(_actionUpCallback);
   }
 }
 
@@ -666,11 +674,15 @@ function _updateIndicator(scene) {
 export function detachInteractIndicator() {
   if (_actionCallback && _inputManager) {
     _inputManager.onActionDownObservable.remove(_actionObserver);
+    _inputManager.onActionUpObservable.remove(_actionUpObserver);
     _actionCallback = null;
     _actionObserver = null;
+    _actionUpCallback = null;
+    _actionUpObserver = null;
     _inputManager = null;
   }
   _currentTarget = null;
+  _pressedTarget = null;
 
   if (_observer) {
     const scene = _icon?.getScene?.();
