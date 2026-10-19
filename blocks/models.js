@@ -22,7 +22,7 @@ import {
 import { flock } from '../flock.js';
 import { addInitialTransformRows } from './initialTransformRows.js';
 import { translate, getTooltip } from '../main/translation.js';
-import { updateOrCreateMeshFromBlock } from '../ui/blockmesh.js';
+import { updateOrCreateMeshFromBlock, handleInitialTransformRowsChange } from '../ui/blockmesh.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 
 function updateColorsListField(block) {
@@ -285,6 +285,8 @@ export function defineModelBlocks() {
           if (handleMeshLifecycleChange(this, changeEvent)) return;
         }
 
+        if (handleInitialTransformRowsChange(this, changeEvent)) return;
+
         if (handleColorsListMove(this, changeEvent, CHARACTER_COLOR_INPUTS)) return;
 
         // Linked children like MODELS or color inputs
@@ -522,6 +524,8 @@ export function defineModelBlocks() {
           if (handleMeshLifecycleChange(this, changeEvent)) return;
         }
 
+        if (handleInitialTransformRowsChange(this, changeEvent)) return;
+
         // For attached children or value inputs
         if (
           handleColorsListMove(this, changeEvent) ||
@@ -652,6 +656,8 @@ export function defineModelBlocks() {
         if (changeEvent.blockId === this.id || isThisBlockCreated) {
           if (handleMeshLifecycleChange(this, changeEvent)) return;
         }
+
+        if (handleInitialTransformRowsChange(this, changeEvent)) return;
 
         if (
           handleColorsListMove(this, changeEvent) ||
