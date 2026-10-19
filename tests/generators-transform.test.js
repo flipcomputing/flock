@@ -72,5 +72,34 @@ export function runTransformGeneratorTests() {
       const code = generate('rotate_to', rotate);
       expect(code).to.equal('await rotateTo(item1, { x: 1, y: 2, z: 3 });\n');
     });
+
+    function setPivotBlock(parent) {
+      return {
+        type: 'set_pivot',
+        isEnabled: () => true,
+        getFieldValue: (name) => (name === 'MESH' ? 'item1' : null),
+        getPreviousBlock: () => null,
+        getParent: () => parent,
+      };
+    }
+
+    // In the object's own DO the anchor is part of creation, so the create
+    // position applies to the new anchor; elsewhere the object stays put.
+    it("places the anchor at the create position in the object's own DO", function () {
+      const owner = {
+        getFieldValue: (name) => (name === 'ID_VAR' ? 'item1' : null),
+        getInputWithBlock: () => ({ name: 'DO' }),
+      };
+      const code = generate('set_pivot', setPivotBlock(owner));
+      expect(code).to.equal(
+        'await setAnchor(item1, { xPivot: 0, yPivot: 0, zPivot: 0, placeAnchor: true });\n'
+      );
+    });
+
+    it('keeps the object in place when the anchor is set outside its DO', function () {
+      const start = { getFieldValue: () => null, getInputWithBlock: () => ({ name: 'DO' }) };
+      const code = generate('set_pivot', setPivotBlock(start));
+      expect(code).to.equal('await setAnchor(item1, { xPivot: 0, yPivot: 0, zPivot: 0 });\n');
+    });
   });
 }

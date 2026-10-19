@@ -1006,7 +1006,10 @@ export const flockTransform = {
       });
     });
   },
-  setAnchor(meshName, { xPivot = 'CENTER', yPivot = 'MIN', zPivot = 'CENTER' } = {}) {
+  setAnchor(
+    meshName,
+    { xPivot = 'CENTER', yPivot = 'MIN', zPivot = 'CENTER', placeAnchor = false } = {}
+  ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!mesh) {
@@ -1022,6 +1025,9 @@ export const flockTransform = {
           mesh.getWorldMatrix()
         );
         const anchorLocal = flock._resolveAnchorLocal(mesh, { x: xPivot, y: yPivot, z: zPivot });
+        const targetWorld = placeAnchor
+          ? oldAnchorWorld
+          : flock.BABYLON.Vector3.TransformCoordinates(anchorLocal, mesh.getWorldMatrix());
 
         if (anchorLocal.lengthSquared() > 0) {
           const positionKind = flock.BABYLON.VertexBuffer.PositionKind;
@@ -1053,7 +1059,7 @@ export const flockTransform = {
           });
         }
 
-        mesh.setAbsolutePosition(oldAnchorWorld);
+        mesh.setAbsolutePosition(targetWorld);
         mesh.computeWorldMatrix(true);
         flock.updatePhysics(mesh);
         teleportBodyToMesh(mesh);
