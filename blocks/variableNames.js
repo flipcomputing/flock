@@ -110,6 +110,24 @@ export function otherObjectName(fallback) {
   return resolvedRecentObjects()[1]?.name ?? fallback;
 }
 
+export function recentObjectNames(fallbacks) {
+  const recent = resolvedRecentObjects()
+    .slice(0, fallbacks.length)
+    .map((entry) => entry.name);
+  const taken = new Set(recent.map(lower));
+  return fallbacks.map((fallback, i) => {
+    if (recent[i]) return recent[i];
+    const name = [fallback, ...fallbacks].find((candidate) => !taken.has(lower(candidate)));
+    taken.add(lower(name));
+    return name;
+  });
+}
+
+export function newerObjectName() {
+  const [newest, spare] = recentObjectNames([DEFAULT_OBJECT_NAME, 'object2']);
+  return otherObjectName(null) ? newest : spare;
+}
+
 export function currentCharacterName(workspace) {
   const recent = resolvedRecentObjects().find((entry) => entry.type === CHARACTER_TYPE);
   if (recent) return recent.name;

@@ -6,9 +6,11 @@ import { handleBlockCreateEvent } from '../blocks/blocks.js';
 import {
   handleRecentObjectEvent,
   lowestFreeName,
+  newerObjectName,
   nextVariableName,
   objectAndCharacterTarget,
   otherObjectName,
+  recentObjectNames,
   rememberObjectBlock,
 } from '../blocks/variableNames.js';
 import { separateNestedLoopVariables } from '../blocks/control.js';
@@ -296,6 +298,36 @@ export function runVariableNamesTests() {
 
         expect(window.currentMesh).to.equal('box1');
         expect(otherObjectName('object2')).to.equal('object2');
+      });
+
+      it('fills list defaults from the newest objects', function () {
+        expect(recentObjectNames(['object', 'object2'])).to.deep.equal(['object', 'object2']);
+        expect(newerObjectName()).to.equal('object2');
+
+        rememberObjectBlock(append({ type: 'create_box' }));
+        rememberObjectBlock(append({ type: 'create_box' }));
+
+        expect(recentObjectNames(['object', 'object2'])).to.deep.equal(['box2', 'box1']);
+        expect(otherObjectName(window.currentMesh)).to.equal('box1');
+        expect(newerObjectName()).to.equal('box2');
+      });
+
+      it('pairs a single object with the second default name', function () {
+        rememberObjectBlock(append({ type: 'create_box' }));
+
+        expect(recentObjectNames(['object', 'object2'])).to.deep.equal(['box1', 'object2']);
+        expect(newerObjectName()).to.equal('object2');
+      });
+
+      it('keeps list defaults distinct from an object with a default name', function () {
+        const box = append({ type: 'create_box' });
+        rememberObjectBlock(box);
+        workspace.renameVariableById(varId(box), 'Object2');
+        handleRecentObjectEvent({ type: Blockly.Events.VAR_RENAME, workspaceId: workspace.id });
+
+        expect(recentObjectNames(['object', 'object2'])).to.deep.equal(['Object2', 'object']);
+        expect(otherObjectName(window.currentMesh)).to.equal('Object2');
+        expect(newerObjectName()).to.equal('object');
       });
 
       it('follows a renamed object', function () {
