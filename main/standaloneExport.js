@@ -1,4 +1,5 @@
 import { FLOCK_FORMAT_VERSION } from '../config.js';
+import { saveBlob } from './saveFile.js';
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -82,33 +83,6 @@ export function hostedEmbedCode({ projectUrl, comment, appBase = EMBED_APP_BASE 
   allow="fullscreen; xr-spatial-tracking; accelerometer; gyroscope"
   src="${src}"
 ></iframe>`);
-}
-
-async function saveBlob(blob, fileName, extension, fileDescription) {
-  if ('showSaveFilePicker' in window) {
-    let fileHandle;
-    try {
-      fileHandle = await window.showSaveFilePicker({
-        suggestedName: fileName,
-        types: [{ description: fileDescription, accept: { [blob.type]: [extension] } }],
-      });
-    } catch (error) {
-      if (error?.name === 'AbortError') return false;
-      throw error;
-    }
-    const writable = await fileHandle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-    return true;
-  }
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(link.href), 0);
-  return true;
 }
 
 const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {

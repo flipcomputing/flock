@@ -1083,6 +1083,29 @@ export default {
   export_embed_copy_failed: 'Não foi possível copiar. Seleciona o código e copia-o tu.', // ai
   export_web_page_file_description: 'Página web', // ai
   export_web_zip_file_description: 'Ficheiro ZIP', // ai
+  tools_capture_tab_ui: 'Capturar', // ai
+  capture_picture_heading_ui: 'Imagem', // ai
+  capture_picture_description_ui: 'Guarda uma imagem da cena 3D.', // ai
+  capture_picture_button_ui: 'Tirar foto', // ai
+  capture_include_everything_ui: 'Incluir tudo', // ai
+  capture_gif_heading_ui: 'GIF animado', // ai
+  capture_gif_description_ui: 'Grava uma animação curta que se repete, com até 10 segundos.', // ai
+  capture_gif_button_ui: 'Gravar GIF', // ai
+  capture_video_heading_ui: 'Vídeo', // ai
+  capture_video_description_ui: 'Grava um vídeo da cena 3D, com até 1 minuto.', // ai
+  capture_video_button_ui: 'Gravar vídeo', // ai
+  capture_recording: 'A gravar', // ai
+  capture_time_up: 'Acabou o tempo!', // ai
+  capture_stop_button: 'Parar', // ai
+  capture_save_button: 'Guardar', // ai
+  capture_making_gif: 'A criar o teu GIF…', // ai
+  capture_saving: 'A guardar…', // ai
+  capture_saved: 'Guardado!', // ai
+  capture_picture_saved: 'Imagem guardada.', // ai
+  capture_failed: 'Desculpa, não funcionou.', // ai
+  capture_picture_file_description: 'Imagem PNG', // ai
+  capture_gif_file_description: 'Animação GIF', // ai
+  capture_video_file_description: 'Vídeo', // ai
   inspector_tool_ui: 'Inspetor',
   player_controls_option_ui: 'Controlos do jogador', // ai
   gizmo_controls_option_ui: 'Controlos de manipulação', // ai

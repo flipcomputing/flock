@@ -848,6 +848,75 @@ button {
   display: none;
 }
 
+.capture-indicator {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 999px;
+  background-color: var(--color-bg-glass);
+  color: #fff;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px var(--color-shadow-medium);
+}
+
+.capture-indicator[hidden] {
+  display: none;
+}
+
+.capture-indicator__dot {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #e53935;
+  animation: capture-pulse 1.2s ease-in-out infinite;
+}
+
+.capture-indicator--recording .capture-indicator__dot {
+  display: block;
+}
+
+@keyframes capture-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capture-indicator__dot {
+    animation: none;
+  }
+}
+
+.capture-indicator__time {
+  font-variant-numeric: tabular-nums;
+}
+
+.capture-indicator__stop {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--color-bg-glass-focused);
+  color: #000;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.capture-indicator__stop:hover {
+  background-color: #fff;
+}
+
+.capture-indicator__stop:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .gizmo-status {
   margin: 0;
   font-size: 1rem;

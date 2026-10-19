@@ -48,6 +48,7 @@ import { announceToScreenReader, setupInput } from './input.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
 import { initExportPanel } from '../ui/exportPanel.js';
+import { initCapturePanel } from '../ui/capturePanel.js';
 import {
   setLanguage,
   initializeLanguageMenu,
@@ -786,6 +787,7 @@ function initializeApp() {
   pauseCodeButton.addEventListener('click', () => togglePause({ focusCanvas: true }));
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
   initExportPanel(workspace);
+  initCapturePanel();
 
   // Add toolbar buttons
   const zoomInBtn = document.getElementById('zoomInBtn');

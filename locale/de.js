@@ -1084,6 +1084,29 @@ export default {
   export_embed_copy_failed: 'Kopieren nicht möglich. Markiere den Code und kopiere ihn selbst.', // ai
   export_web_page_file_description: 'Webseite', // ai
   export_web_zip_file_description: 'ZIP-Datei', // ai
+  tools_capture_tab_ui: 'Aufnehmen', // ai
+  capture_picture_heading_ui: 'Bild', // ai
+  capture_picture_description_ui: 'Speichere ein Bild der 3D-Szene.', // ai
+  capture_picture_button_ui: 'Bild aufnehmen', // ai
+  capture_include_everything_ui: 'Alles einschließen', // ai
+  capture_gif_heading_ui: 'Animiertes GIF', // ai
+  capture_gif_description_ui: 'Nimm eine kurze Animation auf, die in einer Schleife läuft, bis zu 10 Sekunden lang.', // ai
+  capture_gif_button_ui: 'GIF aufnehmen', // ai
+  capture_video_heading_ui: 'Video', // ai
+  capture_video_description_ui: 'Nimm ein Video der 3D-Szene auf, bis zu 1 Minute lang.', // ai
+  capture_video_button_ui: 'Video aufnehmen', // ai
+  capture_recording: 'Aufnahme läuft', // ai
+  capture_time_up: 'Die Zeit ist um!', // ai
+  capture_stop_button: 'Stopp', // ai
+  capture_save_button: 'Speichern', // ai
+  capture_making_gif: 'Dein GIF wird erstellt…', // ai
+  capture_saving: 'Wird gespeichert…', // ai
+  capture_saved: 'Gespeichert!', // ai
+  capture_picture_saved: 'Bild gespeichert.', // ai
+  capture_failed: 'Das hat leider nicht geklappt.', // ai
+  capture_picture_file_description: 'PNG-Bild', // ai
+  capture_gif_file_description: 'GIF-Animation', // ai
+  capture_video_file_description: 'Video', // ai
   inspector_tool_ui: 'Inspektor',
   player_controls_option_ui: 'Spielersteuerung', // ai
   gizmo_controls_option_ui: 'Gizmo-Steuerung', // ai

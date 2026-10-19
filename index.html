@@ -750,6 +750,18 @@
                   >
                     Export
                   </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsCaptureTab"
+                    aria-controls="toolsCapturePanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_capture_tab"
+                  >
+                    Capture
+                  </button>
                 </div>
                 <div
                   class="tools-options"
@@ -861,6 +873,74 @@
                       aria-labelledby="exportHostedHeading"
                     ></textarea>
                   </section>
+                </div>
+                <div
+                  class="tools-export"
+                  id="toolsCapturePanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsCaptureTab"
+                  hidden
+                >
+                  <section class="tools-export-section" aria-labelledby="capturePictureHeading">
+                    <h3 id="capturePictureHeading" data-i18n="capture_picture_heading">Picture</h3>
+                    <p id="capturePictureDescription" data-i18n="capture_picture_description">
+                      Save a picture of the 3D scene.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button project-action-button--primary"
+                        id="capturePictureButton"
+                        aria-describedby="capturePictureDescription"
+                        data-i18n="capture_picture_button"
+                      >
+                        Take picture
+                      </button>
+                      <label class="tools-option" for="captureIncludeEverything">
+                        <input type="checkbox" id="captureIncludeEverything" />
+                        <span data-i18n="capture_include_everything">Include everything</span>
+                      </label>
+                    </div>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="captureGifHeading">
+                    <h3 id="captureGifHeading" data-i18n="capture_gif_heading">Animated GIF</h3>
+                    <p id="captureGifDescription" data-i18n="capture_gif_description">
+                      Record a short animation that plays on a loop, up to 10 seconds long.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="captureGifButton"
+                        aria-describedby="captureGifDescription"
+                        data-i18n="capture_gif_button"
+                      >
+                        Record GIF
+                      </button>
+                    </div>
+                  </section>
+                  <section
+                    class="tools-export-section"
+                    id="captureVideoSection"
+                    aria-labelledby="captureVideoHeading"
+                  >
+                    <h3 id="captureVideoHeading" data-i18n="capture_video_heading">Video</h3>
+                    <p id="captureVideoDescription" data-i18n="capture_video_description">
+                      Record a video of the 3D scene, up to 1 minute long.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="captureVideoButton"
+                        aria-describedby="captureVideoDescription"
+                        data-i18n="capture_video_button"
+                      >
+                        Record video
+                      </button>
+                    </div>
+                  </section>
+                  <p id="captureStatus" role="status"></p>
                 </div>
               </div>
             </div>
@@ -1034,6 +1114,16 @@
             </div>
             <div id="fullscreen-desc" class="sr-only">
               Toggle between fullscreen and windowed view of the application
+            </div>
+            <div class="capture-indicator" id="captureIndicator" hidden>
+              <span class="capture-indicator__dot" aria-hidden="true"></span>
+              <span id="captureIndicatorStatus" role="status"></span>
+              <span
+                id="captureIndicatorTime"
+                class="capture-indicator__time"
+                aria-hidden="true"
+              ></span>
+              <button type="button" id="captureStopButton" class="capture-indicator__stop"></button>
             </div>
             <div class="gizmo-toast" id="gizmoStatusToast">
               <p id="gizmoStatus" class="gizmo-status" role="status"></p>

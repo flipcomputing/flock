@@ -1093,6 +1093,29 @@ export default {
   export_embed_copy_failed: 'Impossibile copiare. Seleziona il codice e copialo tu.', // ai
   export_web_page_file_description: 'Pagina web', // ai
   export_web_zip_file_description: 'File ZIP', // ai
+  tools_capture_tab_ui: 'Cattura', // ai
+  capture_picture_heading_ui: 'Immagine', // ai
+  capture_picture_description_ui: 'Salva un’immagine della scena 3D.', // ai
+  capture_picture_button_ui: 'Scatta foto', // ai
+  capture_include_everything_ui: 'Includi tutto', // ai
+  capture_gif_heading_ui: 'GIF animata', // ai
+  capture_gif_description_ui: 'Registra una breve animazione che si ripete, lunga fino a 10 secondi.', // ai
+  capture_gif_button_ui: 'Registra GIF', // ai
+  capture_video_heading_ui: 'Video', // ai
+  capture_video_description_ui: 'Registra un video della scena 3D, lungo fino a 1 minuto.', // ai
+  capture_video_button_ui: 'Registra video', // ai
+  capture_recording: 'Registrazione', // ai
+  capture_time_up: 'Tempo scaduto!', // ai
+  capture_stop_button: 'Ferma', // ai
+  capture_save_button: 'Salva', // ai
+  capture_making_gif: 'Sto creando la tua GIF…', // ai
+  capture_saving: 'Salvataggio…', // ai
+  capture_saved: 'Salvato!', // ai
+  capture_picture_saved: 'Immagine salvata.', // ai
+  capture_failed: 'Spiacenti, non ha funzionato.', // ai
+  capture_picture_file_description: 'Immagine PNG', // ai
+  capture_gif_file_description: 'Animazione GIF', // ai
+  capture_video_file_description: 'Video', // ai
   inspector_tool_ui: 'Ispettore',
   player_controls_option_ui: 'Comandi del giocatore', // ai
   gizmo_controls_option_ui: 'Comandi di manipolazione', // ai

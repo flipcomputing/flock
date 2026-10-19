@@ -1077,6 +1077,29 @@ export default {
   export_embed_copy_failed: 'Det gick inte att kopiera. Markera koden och kopiera den själv.', // ai
   export_web_page_file_description: 'Webbsida', // ai
   export_web_zip_file_description: 'ZIP-fil', // ai
+  tools_capture_tab_ui: 'Spela in', // ai
+  capture_picture_heading_ui: 'Bild', // ai
+  capture_picture_description_ui: 'Spara en bild av 3D-scenen.', // ai
+  capture_picture_button_ui: 'Ta bild', // ai
+  capture_include_everything_ui: 'Ta med allt', // ai
+  capture_gif_heading_ui: 'Animerad GIF', // ai
+  capture_gif_description_ui: 'Spela in en kort animation som spelas i en loop, upp till 10 sekunder lång.', // ai
+  capture_gif_button_ui: 'Spela in GIF', // ai
+  capture_video_heading_ui: 'Video', // ai
+  capture_video_description_ui: 'Spela in en video av 3D-scenen, upp till 1 minut lång.', // ai
+  capture_video_button_ui: 'Spela in video', // ai
+  capture_recording: 'Spelar in', // ai
+  capture_time_up: 'Tiden är slut!', // ai
+  capture_stop_button: 'Stoppa', // ai
+  capture_save_button: 'Spara', // ai
+  capture_making_gif: 'Skapar din GIF…', // ai
+  capture_saving: 'Sparar…', // ai
+  capture_saved: 'Sparat!', // ai
+  capture_picture_saved: 'Bilden har sparats.', // ai
+  capture_failed: 'Tyvärr, det fungerade inte.', // ai
+  capture_picture_file_description: 'PNG-bild', // ai
+  capture_gif_file_description: 'GIF-animation', // ai
+  capture_video_file_description: 'Video', // ai
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai

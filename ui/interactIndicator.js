@@ -12,7 +12,7 @@ import {
 } from '@babylonjs/core';
 import { hideFromInspector } from './inspectorVisibility.js';
 
-const ICON_MESH_NAME = '__flock_interact_indicator';
+export const ICON_MESH_NAME = '__flock_interact_indicator';
 const ICON_SIZE_PX = 24;
 const TEX_SIZE = 128;
 const MAX_RANGE = 4;
