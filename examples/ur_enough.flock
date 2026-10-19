@@ -97,7 +97,7 @@
                               "id": "!7Ut_G~(,`(?/K?+Eo0k",
                               "fields": {
                                 "CONTROL": "BOTH",
-                                "ENABLED": "AUTO"
+                                "ENABLED": "DISABLED"
                               },
                               "inputs": {
                                 "COLOR": {

@@ -136,7 +136,7 @@
                     "type": "math_number",
                     "id": "]!BGUsV3G{WBq/RjEjsn",
                     "fields": {
-                      "NUM": 1
+                      "NUM": 2
                     }
                   }
                 },
@@ -267,7 +267,7 @@
                   "id": "T^R_2g]K*y~qHauvm9U8",
                   "fields": {
                     "CONTROL": "BOTH",
-                    "ENABLED": false
+                    "ENABLED": "DISABLED"
                   },
                   "inputs": {
                     "COLOR": {

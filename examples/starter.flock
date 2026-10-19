@@ -21,171 +21,180 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "comment",
-              "id": "XT;zN%69dSX:}*Csx.fx",
-              "inputs": {
-                "COMMENT": {
-                  "shadow": {
-                    "type": "text_multiline",
-                    "id": "zr}j7.LA/L9T~e_NRr#;",
-                    "fields": {
-                      "TEXT": "Try changing the sky colours"
-                    }
-                  }
-                }
+              "type": "canvas_controls",
+              "id": "starter_cc_0",
+              "fields": {
+                "CONTROLS": false
               },
               "next": {
                 "block": {
-                  "type": "set_sky_color",
-                  "id": "(lLJX6y3Px6`3t8]%V7S",
+                  "type": "comment",
+                  "id": "XT;zN%69dSX:}*Csx.fx",
                   "inputs": {
-                    "COLOR": {
+                    "COMMENT": {
                       "shadow": {
-                        "type": "colour",
-                        "id": "rF{|#Q~2RR)Y}Ev+Q$Xj",
+                        "type": "text_multiline",
+                        "id": "zr}j7.LA/L9T~e_NRr#;",
                         "fields": {
-                          "COLOR": "#6495ed"
-                        }
-                      },
-                      "block": {
-                        "type": "lists_create_with",
-                        "id": "LB2s70ahv*h:tF]MdU#1",
-                        "inline": true,
-                        "extraState": {
-                          "itemCount": 2
-                        },
-                        "inputs": {
-                          "ADD0": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "Vf?fioumLYXchGsAJAv8",
-                              "fields": {
-                                "COLOR": "#333399"
-                              }
-                            }
-                          },
-                          "ADD1": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "K7/Z7,b5I99pg27,asY]",
-                              "fields": {
-                                "COLOR": "#9999ff"
-                              }
-                            }
-                          }
+                          "TEXT": "Try changing the sky colours"
                         }
                       }
                     }
                   },
                   "next": {
                     "block": {
-                      "type": "comment",
-                      "id": "G*l/Q%4@;3BtpWO(KnpT",
+                      "type": "set_sky_color",
+                      "id": "(lLJX6y3Px6`3t8]%V7S",
                       "inputs": {
-                        "COMMENT": {
+                        "COLOR": {
                           "shadow": {
-                            "type": "text_multiline",
-                            "id": "UNH_wyPJSas-~$hqc}Wa",
+                            "type": "colour",
+                            "id": "rF{|#Q~2RR)Y}Ev+Q$Xj",
                             "fields": {
-                              "TEXT": "Try changing the terrain, material, and ground colour"
+                              "COLOR": "#6495ed"
+                            }
+                          },
+                          "block": {
+                            "type": "lists_create_with",
+                            "id": "LB2s70ahv*h:tF]MdU#1",
+                            "inline": true,
+                            "extraState": {
+                              "itemCount": 2
+                            },
+                            "inputs": {
+                              "ADD0": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "Vf?fioumLYXchGsAJAv8",
+                                  "fields": {
+                                    "COLOR": "#333399"
+                                  }
+                                }
+                              },
+                              "ADD1": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "K7/Z7,b5I99pg27,asY]",
+                                  "fields": {
+                                    "COLOR": "#9999ff"
+                                  }
+                                }
+                              }
                             }
                           }
                         }
                       },
                       "next": {
                         "block": {
-                          "type": "create_map",
-                          "id": "[GuB/7[%ldc-]ePGTb.f",
-                          "fields": {
-                            "MAP_NAME": "circular_depression.png"
-                          },
+                          "type": "comment",
+                          "id": "G*l/Q%4@;3BtpWO(KnpT",
                           "inputs": {
-                            "MATERIAL": {
+                            "COMMENT": {
                               "shadow": {
-                                "type": "material",
-                                "id": "#:_FAEEOH~TCal%fB5Lz",
+                                "type": "text_multiline",
+                                "id": "UNH_wyPJSas-~$hqc}Wa",
                                 "fields": {
-                                  "TEXTURE_SET": "none.png"
-                                },
-                                "inputs": {
-                                  "BASE_COLOR": {
-                                    "shadow": {
-                                      "type": "colour",
-                                      "id": ",[xAyg,QYE|Ubcaw*(KQ",
-                                      "fields": {
-                                        "COLOR": "#71bc78"
-                                      }
-                                    }
-                                  },
-                                  "ALPHA": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "@$.TD)n~jRNMo07~T,-O",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  },
-                                  "SCALE": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "eMGNJ@Lr?^gKFwZJ}DDr",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  },
-                                  "ANGLE": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": ";xt;I#{TC^HQd:0AmyaZ",
-                                      "fields": {
-                                        "NUM": 0
-                                      }
-                                    }
-                                  }
+                                  "TEXT": "Try changing the terrain, material, and ground colour"
                                 }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "create_map",
+                              "id": "[GuB/7[%ldc-]ePGTb.f",
+                              "fields": {
+                                "MAP_NAME": "circular_depression.png"
                               },
-                              "block": {
-                                "type": "material",
-                                "id": "T~@,-Ji7Z{}ks;^r=[w;",
-                                "fields": {
-                                  "TEXTURE_SET": "hedge.png"
-                                },
-                                "inputs": {
-                                  "BASE_COLOR": {
-                                    "shadow": {
-                                      "type": "colour",
-                                      "id": ",[xAyg,QYE|Ubcaw*(KQ",
-                                      "fields": {
-                                        "COLOR": "#66ff99"
+                              "inputs": {
+                                "MATERIAL": {
+                                  "shadow": {
+                                    "type": "material",
+                                    "id": "#:_FAEEOH~TCal%fB5Lz",
+                                    "fields": {
+                                      "TEXTURE_SET": "none.png"
+                                    },
+                                    "inputs": {
+                                      "BASE_COLOR": {
+                                        "shadow": {
+                                          "type": "colour",
+                                          "id": ",[xAyg,QYE|Ubcaw*(KQ",
+                                          "fields": {
+                                            "COLOR": "#71bc78"
+                                          }
+                                        }
+                                      },
+                                      "ALPHA": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "@$.TD)n~jRNMo07~T,-O",
+                                          "fields": {
+                                            "NUM": 1
+                                          }
+                                        }
+                                      },
+                                      "SCALE": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "eMGNJ@Lr?^gKFwZJ}DDr",
+                                          "fields": {
+                                            "NUM": 1
+                                          }
+                                        }
+                                      },
+                                      "ANGLE": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": ";xt;I#{TC^HQd:0AmyaZ",
+                                          "fields": {
+                                            "NUM": 0
+                                          }
+                                        }
                                       }
                                     }
                                   },
-                                  "ALPHA": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "@$.TD)n~jRNMo07~T,-O",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  },
-                                  "SCALE": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "col0Jo`On8.,GLCIqsW5",
-                                      "fields": {
-                                        "NUM": 1
-                                      }
-                                    }
-                                  },
-                                  "ANGLE": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "3:2sMpw3z@;Qtp~+o+DO",
-                                      "fields": {
-                                        "NUM": 0
+                                  "block": {
+                                    "type": "material",
+                                    "id": "T~@,-Ji7Z{}ks;^r=[w;",
+                                    "fields": {
+                                      "TEXTURE_SET": "hedge.png"
+                                    },
+                                    "inputs": {
+                                      "BASE_COLOR": {
+                                        "shadow": {
+                                          "type": "colour",
+                                          "id": ",[xAyg,QYE|Ubcaw*(KQ",
+                                          "fields": {
+                                            "COLOR": "#66ff99"
+                                          }
+                                        }
+                                      },
+                                      "ALPHA": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "@$.TD)n~jRNMo07~T,-O",
+                                          "fields": {
+                                            "NUM": 1
+                                          }
+                                        }
+                                      },
+                                      "SCALE": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "col0Jo`On8.,GLCIqsW5",
+                                          "fields": {
+                                            "NUM": 1
+                                          }
+                                        }
+                                      },
+                                      "ANGLE": {
+                                        "shadow": {
+                                          "type": "math_number",
+                                          "id": "3:2sMpw3z@;Qtp~+o+DO",
+                                          "fields": {
+                                            "NUM": 0
+                                          }
+                                        }
                                       }
                                     }
                                   }
@@ -598,7 +607,7 @@
               "id": "%TM,T~2U34p49dy9pF|w",
               "fields": {
                 "CONTROL": "BOTH",
-                "ENABLED": "AUTO"
+                "ENABLED": "DISABLED"
               },
               "inputs": {
                 "COLOR": {

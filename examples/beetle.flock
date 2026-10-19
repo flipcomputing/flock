@@ -11,71 +11,80 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "on_screen_controls",
-              "id": "gaKTag3{Gig}%6]!5~sX",
+              "type": "canvas_controls",
+              "id": "beetle_cc_0",
               "fields": {
-                "MOVEMENT": "NONE",
-                "ACTIONS": "NO",
-                "ENABLED": "ENABLED"
-              },
-              "inputs": {
-                "COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "CgwOQ-{8(%m{U[s$;G*u",
-                    "fields": {
-                      "COLOR": "#ffffff"
-                    }
-                  }
-                },
-                "BACKGROUND": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "FFE@SKUk]av!41)9|ee_",
-                    "fields": {
-                      "COLOR": "#000000"
-                    }
-                  }
-                },
-                "ALPHA": {
-                  "shadow": {
-                    "type": "math_number",
-                    "id": "]1l_Gc6?I!aO7`?be0~[",
-                    "fields": {
-                      "NUM": 0
-                    }
-                  }
-                }
+                "CONTROLS": false
               },
               "next": {
                 "block": {
-                  "type": "print_text",
-                  "id": "W9X)9ITeCB`p5E2L9Lz*",
+                  "type": "on_screen_controls",
+                  "id": "gaKTag3{Gig}%6]!5~sX",
+                  "fields": {
+                    "MOVEMENT": "NONE",
+                    "ACTIONS": "NO",
+                    "ENABLED": "DISABLED"
+                  },
                   "inputs": {
-                    "TEXT": {
-                      "shadow": {
-                        "type": "text",
-                        "id": "CU]5kM)QUQ1-K/p}MR+R",
-                        "fields": {
-                          "TEXT": "🎲 Click/tap or E to roll the dice on your turn."
-                        }
-                      }
-                    },
-                    "DURATION": {
-                      "shadow": {
-                        "type": "math_number",
-                        "id": "!/AkTqX^/|8BnFmshoPQ",
-                        "fields": {
-                          "NUM": 60
-                        }
-                      }
-                    },
                     "COLOR": {
                       "shadow": {
                         "type": "colour",
-                        "id": "Nl(,xOj,WJG$A5N}]6J-",
+                        "id": "CgwOQ-{8(%m{U[s$;G*u",
                         "fields": {
-                          "COLOR": "#000080"
+                          "COLOR": "#ffffff"
+                        }
+                      }
+                    },
+                    "BACKGROUND": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "FFE@SKUk]av!41)9|ee_",
+                        "fields": {
+                          "COLOR": "#000000"
+                        }
+                      }
+                    },
+                    "ALPHA": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "]1l_Gc6?I!aO7`?be0~[",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "print_text",
+                      "id": "W9X)9ITeCB`p5E2L9Lz*",
+                      "inputs": {
+                        "TEXT": {
+                          "shadow": {
+                            "type": "text",
+                            "id": "CU]5kM)QUQ1-K/p}MR+R",
+                            "fields": {
+                              "TEXT": "🎲 Click/tap or E to roll the dice on your turn."
+                            }
+                          }
+                        },
+                        "DURATION": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "!/AkTqX^/|8BnFmshoPQ",
+                            "fields": {
+                              "NUM": 60
+                            }
+                          }
+                        },
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "Nl(,xOj,WJG$A5N}]6J-",
+                            "fields": {
+                              "COLOR": "#000080"
+                            }
+                          }
                         }
                       }
                     }

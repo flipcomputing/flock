@@ -11,40 +11,89 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "set_sky_color",
-              "id": "5R_m@]]]XpO0K/O=[.bg",
-              "inputs": {
-                "COLOR": {
-                  "shadow": {
-                    "type": "colour",
-                    "id": "`/kZj)bFlgA.07Y^X/`z",
-                    "fields": {
-                      "COLOR": "#6495ed"
+              "type": "canvas_controls",
+              "id": "space_scene_cc_0",
+              "fields": {
+                "CONTROLS": false
+              },
+              "next": {
+                "block": {
+                  "type": "on_screen_controls",
+                  "id": "space_scene_osc_0",
+                  "fields": {
+                    "MOVEMENT": "NONE",
+                    "ACTIONS": "NO",
+                    "ENABLED": "DISABLED"
+                  },
+                  "inputs": {
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "space_scene_osc_1",
+                        "fields": {
+                          "COLOR": "#ffffff"
+                        }
+                      }
+                    },
+                    "BACKGROUND": {
+                      "shadow": {
+                        "type": "colour",
+                        "id": "space_scene_osc_2",
+                        "fields": {
+                          "COLOR": "#000000"
+                        }
+                      }
+                    },
+                    "ALPHA": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "space_scene_osc_3",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
                     }
                   },
-                  "block": {
-                    "type": "lists_create_with",
-                    "id": "z^Ih:Ya]7?rO~o[CJ+;e",
-                    "inline": true,
-                    "extraState": {
-                      "itemCount": 2
-                    },
-                    "inputs": {
-                      "ADD0": {
-                        "shadow": {
-                          "type": "colour",
-                          "id": "ZxrndNndb1#v1@3CifMi",
-                          "fields": {
-                            "COLOR": "#66ffff"
-                          }
-                        }
-                      },
-                      "ADD1": {
-                        "shadow": {
-                          "type": "colour",
-                          "id": "z;oYVUuUPWy[Y@8iYKfr",
-                          "fields": {
-                            "COLOR": "#000099"
+                  "next": {
+                    "block": {
+                      "type": "set_sky_color",
+                      "id": "5R_m@]]]XpO0K/O=[.bg",
+                      "inputs": {
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "id": "`/kZj)bFlgA.07Y^X/`z",
+                            "fields": {
+                              "COLOR": "#6495ed"
+                            }
+                          },
+                          "block": {
+                            "type": "lists_create_with",
+                            "id": "z^Ih:Ya]7?rO~o[CJ+;e",
+                            "inline": true,
+                            "extraState": {
+                              "itemCount": 2
+                            },
+                            "inputs": {
+                              "ADD0": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "ZxrndNndb1#v1@3CifMi",
+                                  "fields": {
+                                    "COLOR": "#66ffff"
+                                  }
+                                }
+                              },
+                              "ADD1": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "z;oYVUuUPWy[Y@8iYKfr",
+                                  "fields": {
+                                    "COLOR": "#000099"
+                                  }
+                                }
+                              }
+                            }
                           }
                         }
                       }
