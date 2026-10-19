@@ -3669,7 +3669,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   color: var(--axis-z);
 }
 
-.howto-article goal,
 .howto-article step,
 .howto-article topic,
 .howto-article tip,
@@ -3678,18 +3677,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   margin: 0 0 1em;
   padding: 0.75em 0.9em;
   border-radius: 8px;
-}
-
-.howto-article goal {
-  background-color: color-mix(in srgb, var(--color-howto-accent) 12%, var(--color-bg));
-  border-left: 4px solid var(--color-howto-accent);
-}
-
-.howto-article goal::before {
-  content: 'Goal:';
-  display: inline;
-  font-weight: bold;
-  margin-right: 0.4em;
 }
 
 .howto-article step,
@@ -3792,10 +3779,9 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 }
 
 .howto-article tip {
-  /* Light yellow, mirroring how .howto-article goal tints --color-bg with
-     its own accent (--color-howto-accent) instead — --color-primary-light
-     is already the app's amber/gold accent (also --color-focus), reused here
-     rather than inventing a new colour. */
+  /* Light yellow: --color-primary-light is already the app's amber/gold
+     accent (also --color-focus), reused here rather than inventing a new
+     colour. */
   background-color: color-mix(in srgb, var(--color-primary-light) 12%, var(--color-bg));
   border-left: 4px solid var(--color-primary-light);
   font-size: 0.95em;
@@ -3823,7 +3809,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-article step p:last-child,
 .howto-article topic p:last-child,
-.howto-article goal p:last-child,
 .howto-article tip p:last-child {
   margin-bottom: 0;
 }

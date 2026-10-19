@@ -821,7 +821,7 @@ function wireHowToLinks(root, onOpenHowTo) {
 }
 
 // Upgrades a <related><related-howto slug="…"></related-howto>…</related>
-// block into a "Related:" box styled like <goal>/<tip> (see style.css), with
+// block into a "Related:" box styled like <tip> (see style.css), with
 // a plain inline .help-link per how-to — not a chip/pill, just a link, same
 // as any other link inside a tip. Deliberately text-free for the author: the
 // title comes live from HOW_TOS/i18n by slug, the same lookup
