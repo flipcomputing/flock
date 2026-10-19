@@ -2,9 +2,13 @@ import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import {
   blockHandlerRegistry,
+  DISCLOSURE_CLOSED,
+  DISCLOSURE_CLOSED_CODE,
+  DISCLOSURE_OPEN_INLINE_CODE,
   dispatchBlockEvent,
   enableBlockHandlers,
   handleBlockCreateEvent,
+  queueDisclosureSync,
   registerBlockHandler,
 } from '../blocks/blocks.js';
 import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
@@ -303,6 +307,19 @@ export function runBlocksTests() {
         );
         expect(reloaded.getInput('ALPHA').isVisible()).to.equal(false);
         expect(Number(reloaded.getInputTargetBlock('SCALE').getFieldValue('NUM'))).to.equal(3);
+      });
+
+      it('fills the options arrow only when a hidden value is not the default', async function () {
+        const plain = Blockly.serialization.blocks.append({ type: 'material' }, workspace);
+        const changed = Blockly.serialization.blocks.append(savedMaterial(0.5), workspace);
+        queueDisclosureSync({ workspaceId: workspace.id });
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        expect(plain.getField('OPTIONS_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED);
+        expect(changed.getField('OPTIONS_BUTTON').getValue()).to.equal(DISCLOSURE_CLOSED_CODE);
+
+        changed.toggleOptions_();
+        expect(changed.getField('OPTIONS_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN_INLINE_CODE);
       });
     });
 

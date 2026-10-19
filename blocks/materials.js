@@ -1,11 +1,11 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
-  DO_MUTATOR_MINUS,
-  DO_MUTATOR_PLUS,
+  DISCLOSURE_CLOSED,
   getHelpUrlFor,
   handleCloneDoBlockChange,
   registerBlockHandler,
+  setDisclosureIcon,
 } from './blocks.js';
 import { materialNames } from '../config.js';
 import { flock } from '../flock.js';
@@ -696,7 +696,7 @@ export function defineMaterialsBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
       this.appendDummyInput('OPTIONS').appendField(
-        new Blockly.FieldImage(DO_MUTATOR_MINUS, 24, 24, 'toggle material options', () =>
+        new Blockly.FieldImage(DISCLOSURE_CLOSED, 24, 24, 'show material options', () =>
           this.toggleOptions_()
         ),
         'OPTIONS_BUTTON'
@@ -720,7 +720,23 @@ export function defineMaterialsBlocks() {
     setOptionsShown_: function (show) {
       this.optionsShown_ = show;
       for (const [name] of MATERIAL_OPTION_INPUTS) this.getInput(name).setVisible(show);
-      this.getField('OPTIONS_BUTTON')?.setValue(show ? DO_MUTATOR_MINUS : DO_MUTATOR_PLUS);
+      this.syncDisclosureIcons_();
+    },
+
+    syncDisclosureIcons_: function () {
+      const hasCode = MATERIAL_OPTION_INPUTS.some(([name, , value]) => {
+        const target = this.getInputTargetBlock(name);
+        if (!target) return false;
+        if (!target.isShadow()) return true;
+        return Number(target.getFieldValue('NUM')) !== value;
+      });
+      setDisclosureIcon(
+        this.getField('OPTIONS_BUTTON'),
+        this.optionsShown_,
+        hasCode,
+        'material options',
+        { inline: true }
+      );
     },
 
     toggleOptions_: function () {
