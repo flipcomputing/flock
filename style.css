@@ -1573,6 +1573,14 @@ body.portrait-canvas #info-panel {
   flex: 1 1 auto !important;
 }
 
+/* The portrait column can be narrower than the add menu, which then spills
+   over the code panel instead of being clipped. */
+@media (min-width: 601px) {
+  body.portrait-canvas #canvasArea {
+    overflow: visible;
+  }
+}
+
 @media (min-width: 1025px) {
   body.portrait-canvas .gizmo-buttons-inner {
     width: min(100%, 228px);
