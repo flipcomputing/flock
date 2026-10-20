@@ -52,7 +52,6 @@ export function runLegacyTransformTests(flock) {
       let previous = owner.getInput('DO').connection;
       for (const { type: statementType, values, varId, fields = {} } of statements) {
         const varField = statementType === 'resize' ? 'BLOCK_NAME' : 'MODEL';
-        if (statementType === 'move_to_xyz') fields.USE_Y = 'TRUE';
         const statement = Blockly.serialization.blocks.append(
           {
             type: statementType,

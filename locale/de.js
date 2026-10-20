@@ -155,7 +155,7 @@ export default {
   glide_to: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9',
   glide_to_seconds: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 Sekunden\n%6 zurück? %7 Schleife? %8 %9',
   glide_to_object:
-    '%1 gleitet zu %2 in %6 Sekunden\nVersatz x: %3 y: %4 z: %5\n%7 zurück? %8 Schleife? %9 %10',
+    '%1 gleitet %11 %2 in %6 Sekunden\nVersatz x: %3 y: %4 z: %5\n%7 zurück? %8 Schleife? %9 %10',
   glide_to_axis: '%1 gleitet %2 %3 in %4 Sekunden\n%5 zurück? %6 Schleife? %7 %8',
   rotate_anim: 'rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9',
   rotate_anim_seconds:
@@ -202,7 +202,7 @@ export default {
   stop_follow: 'Folgen von %1 beenden',
   hold: '%1 hält %2\nOffset x: %3 y: %4 z: %5',
   drop: '%1 fallen lassen',
-  follow: 'mache, dass %1 %2 bei %3 folgt\nOffset x: %4 y: %5 z: %6',
+  follow: 'mache, dass %1 %3 %2 folgt\nOffset x: %4 y: %5 z: %6',
   export_mesh: '%1 als %2 exportieren',
   export_mesh_unit_label: '1 Einheit =',
   attach: 'befestige %1 an %2 bei %3\nOffset x: %4 y: %5 z: %6',
@@ -345,9 +345,9 @@ export default {
   // Transform blocks
   move_by_xyz: 'Position von %1 ändern um x: %2 y: %3 z: %4',
   move_by_xyz_single: 'Position von %1 ändern um %2 %3',
-  move_to_xyz: 'Position von %1 setzen auf %6 x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'Position von %1 setzen auf %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'Position von %1 setzen auf %2 %3',
-  move_to: 'Position von %1 setzen auf %2 y? %3',
+  move_to: 'Position von %1 setzen %3 %2\nVersatz x: %4 y: %5 z: %6',
   scale: 'Skaliere %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7',
   resize: 'Größe ändern %1 x: %2 y: %3 z: %4\nUrsprung x: %5 y: %6 z: %7',
   rotate_model_xyz: 'Rotiere %1 um x: %2 y: %3 z: %4',
@@ -562,7 +562,7 @@ export default {
   glide_to_seconds_tooltip:
     'Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.',
   glide_to_object_tooltip:
-    'Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing.',
+    'Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing. Wähle eine Seite, um stattdessen daran zu gleiten, z. B. oben auf.', // ai
   glide_to_axis_tooltip:
     'Gleite entlang einer Achse (X, Y oder Z) zu einem Zielwert. Die anderen zwei Achsen werden auf die aktuelle Position des Objekts fixiert (Ankerpunkt-bewusst). Gleiche Optionen wie beim Standard-Gleit-Block.',
   rotate_anim_tooltip:
@@ -618,7 +618,8 @@ export default {
   stop_follow_tooltip: 'Stoppt das Folgen eines Objekts durch ein zweites.',
   hold_tooltip: 'Befestige ein Objekt an einem Knochen eines anderen mit Versatz.',
   drop_tooltip: 'Löse ein Objekt von seinem Knochen.',
-  follow_tooltip: 'Lass ein Objekt einem anderen folgen (oben, Mitte, unten) mit Versatz.',
+  follow_tooltip:
+    'Lass ein Objekt einem anderen folgen: an ihm, in seiner Mitte oder an einer seiner Seiten. Seiten und Versatz folgen der Drehung des anderen Objekts.', // ai
   export_mesh_tooltip: 'Exportiere ein Objekt als STL, OBJ oder GLB.',
 
   // Control tooltips
@@ -760,10 +761,10 @@ export default {
   move_by_xyz_tooltip: 'Bewege ein Objekt um den angegebenen Wert in X-, Y- und Z-Richtung.',
   move_by_xyz_single_tooltip:
     'Bewege ein Objekt um einen bestimmten Wert in X-, Y- oder Z-Richtung.',
-  move_to_xyz_tooltip:
-    'Teleportiert das Objekt zu den angegebenen Koordinaten. Optional Y-Achse nutzen.',
+  move_to_xyz_tooltip: 'Teleportiert das Objekt zu den angegebenen Koordinaten.',
   move_to_xyz_single_tooltip: 'Teleportiert das Objekt zur angegebenen einzelnen Koordinate.',
-  move_to_tooltip: 'Teleportiert das erste Objekt zur Position des zweiten.',
+  move_to_tooltip:
+    'Setzt das erste Objekt auf das zweite oder an eine seiner Seiten und verschiebt es um den Versatz. Seiten und Versatz folgen der Drehung des zweiten Objekts.', // ai
   scale_tooltip:
     'Skaliert ein Objekt auf die gegebenen X-, Y-, und Z-Werte und kontrolliert den Ursprung der Skalierung.',
   resize_tooltip:
@@ -859,6 +860,16 @@ export default {
   strafe_option: 'strafen',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'auf', // ai
+  PLACE_TO_option: 'zu', // ai
+  PLACE_CENTER_option: 'in der Mitte von', // ai
+  PLACE_TO_CENTER_option: 'zur Mitte von', // ai
+  PLACE_ON_TOP_option: 'oben auf', // ai
+  PLACE_UNDER_option: 'unter', // ai
+  PLACE_LEFT_option: 'links von', // ai
+  PLACE_RIGHT_option: 'rechts von', // ai
+  PLACE_FRONT_option: 'vor', // ai
+  PLACE_BEHIND_option: 'hinter', // ai
   user_option: 'vorne',
   environment_option: 'hinten',
 

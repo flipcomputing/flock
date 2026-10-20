@@ -154,7 +154,7 @@ export default {
   glide_to: 'glid %1 till %10 x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
   glide_to_seconds: 'glid %1 till %10 x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
   glide_to_object:
-    'glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
+    'glid %1 %11 %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
   glide_to_axis: 'glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8',
   rotate_anim: 'rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9',
   rotate_anim_seconds: 'rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9',
@@ -200,7 +200,7 @@ export default {
   stop_follow: 'sluta följa %1',
   hold: 'gör att %1 håller %2\nförskjutning x: %3 y: %4 z: %5',
   drop: 'släpp %1',
-  follow: 'gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6',
+  follow: 'gör att %1 följer %3 %2\nförskjutning x: %4 y: %5 z: %6',
   export_mesh: 'exportera %1 som %2',
   export_mesh_unit_label: '1 enhet =',
   attach: 'fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6',
@@ -343,9 +343,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'ändra positionen för %1 med x: %2 y: %3 z: %4',
   move_by_xyz_single: 'ändra positionen för %1 med %2 %3',
-  move_to_xyz: 'ställ in positionen för %1 till %6 x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'ställ in positionen för %1 till %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'ställ in positionen för %1 till %2 %3',
-  move_to: 'ställ in positionen för %1 till %2 y? %3',
+  move_to: 'ställ in positionen för %1 %3 %2\nförskjutning x: %4 y: %5 z: %6',
   scale: 'skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7',
   resize: 'ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7',
   rotate_model_xyz: 'rotera %1 med x: %2 y: %3 z: %4',
@@ -410,7 +410,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).',
   glide_to_object_tooltip:
-    'Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.',
+    'Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing. Välj en sida för att glida mot den i stället, till exempel ovanpå.', // ai
   glide_to_axis_tooltip:
     'Glid längs en axel (X, Y eller Z) till ett målvärde. De andra två axlarna fixeras till objektets aktuella position (ankerpunktsmedveten). Samma alternativ som standardblocket för glidning.',
   rotate_anim_tooltip:
@@ -470,7 +470,7 @@ export default {
     'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.',
   drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.',
   follow_tooltip:
-    'Få ett objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.',
+    'Få ett objekt att följa ett annat: vid det, i dess mitt eller mot en av dess sidor. Sidor och förskjutning följer det andra objektets rotation.', // ai
   export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.',
 
   // Tooltip translations - Control blocks
@@ -614,10 +614,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.',
   move_by_xyz_single_tooltip: 'Flytta ett objekt en viss mängd i x-, y- eller z-led.',
-  move_to_xyz_tooltip:
-    'Teleportera objektet till angivna koordinater. Du kan välja att använda Y-axeln.',
+  move_to_xyz_tooltip: 'Teleportera objektet till angivna koordinater.',
   move_to_xyz_single_tooltip: 'Teleportera objekt:en till den angivna enskilda koordinaten.',
-  move_to_tooltip: 'Teleportera det första objektet till det andra objektets position.',
+  move_to_tooltip:
+    'Placera det första objektet vid det andra eller mot en av dess sidor och förskjut det. Sidor och förskjutning följer det andra objektets rotation.', // ai
   scale_tooltip:
     'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.',
   resize_tooltip:
@@ -726,6 +726,16 @@ export default {
   strafe_option: 'sidled',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'till', // ai
+  PLACE_TO_option: 'till', // ai
+  PLACE_CENTER_option: 'i mitten av', // ai
+  PLACE_TO_CENTER_option: 'till mitten av', // ai
+  PLACE_ON_TOP_option: 'ovanpå', // ai
+  PLACE_UNDER_option: 'under', // ai
+  PLACE_LEFT_option: 'till vänster om', // ai
+  PLACE_RIGHT_option: 'till höger om', // ai
+  PLACE_FRONT_option: 'framför', // ai
+  PLACE_BEHIND_option: 'bakom', // ai
   user_option: 'fram',
   environment_option: 'bak',
 

@@ -2,6 +2,8 @@ import * as Blockly from 'blockly';
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
 import {
   getFieldValue,
+  getSideOption,
+  getSideValue,
   getVariableInfo,
   getThenCallback,
   maybeParentToGroup,
@@ -58,9 +60,7 @@ export function registerTransformGenerators(javascriptGenerator) {
     const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
     const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    const useY = block.getFieldValue('USE_Y') === 'TRUE';
-
-    return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z}, useY: ${useY} });\n`;
+    return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Set position of object to single xyz coordinate
@@ -88,9 +88,11 @@ export function registerTransformGenerators(javascriptGenerator) {
       Blockly.Names.NameType.VARIABLE
     );
 
-    const useY = block.getFieldValue('USE_Y') === 'TRUE';
+    const xOffset = getFieldValue(block, 'X_OFFSET', '0');
+    const yOffset = getFieldValue(block, 'Y_OFFSET', '0');
+    const zOffset = getFieldValue(block, 'Z_OFFSET', '0');
 
-    return `await moveTo(${meshName1}, { target: ${meshName2}, useY: ${useY} });\n`;
+    return `await moveTo(${meshName1}, { target: ${meshName2}${getSideOption(block)}, offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset} });\n`;
   };
 
   // Rotate object BY xyz coordinates
@@ -401,7 +403,7 @@ export function registerTransformGenerators(javascriptGenerator) {
       block.getFieldValue('TARGET_MESH'),
       Blockly.Names.NameType.VARIABLE
     );
-    const followPosition = block.getFieldValue('FOLLOW_POSITION');
+    const followPosition = getSideValue(block) ?? 'at';
 
     const xOffset =
       javascriptGenerator.valueToCode(block, 'X_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';

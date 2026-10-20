@@ -1,5 +1,5 @@
 import * as Blockly from 'blockly';
-import { getFieldValue } from './generators-utilities.js';
+import { getFieldValue, getSideOption } from './generators-utilities.js';
 
 export function registerAnimateGenerators(javascriptGenerator) {
   // -------------------------------
@@ -81,7 +81,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
     const easing = block.getFieldValue('EASING');
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
+    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}${getSideOption(block)}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Glide along a single axis, fixing other axes to current position

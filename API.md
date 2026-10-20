@@ -343,9 +343,16 @@ Removes all visual effects from a mesh.
 
 ### Movement and Transform
 
-#### `moveTo(meshName, position, options)`
+#### `moveTo(meshName, { target, side })`
 
-Moves a mesh to a specific position instantly.
+Moves a mesh to another mesh instantly, lining up their anchors.
+
+**Parameters:**
+
+- `meshName` (string): Name of the mesh to move
+- `target` (string): Name of the mesh to move to
+- `side` (string, optional): `'on_top'`, `'under'`, `'left'`, `'right'`, `'front'` or `'behind'` places the mesh against that side of the target's bounding box instead, centred on it. Sides are the target's own, following its rotation: front is its local -z, the way Flock models face, so its left is local +x.
+- `offsetX`, `offsetY`, `offsetZ` (number, optional): Added after placing, along the target's rotated axes. The target's scale doesn't change the distance.
 
 #### `moveForward(meshName, distance)`
 

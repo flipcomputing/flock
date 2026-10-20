@@ -73,6 +73,38 @@ export function runTransformGeneratorTests() {
       expect(code).to.equal('await rotateTo(item1, { x: 1, y: 2, z: 3 });\n');
     });
 
+    it('sets position to xyz including y', function () {
+      const code = generate('move_to_xyz', fields({ MODEL: 'item1' }));
+      expect(code).to.equal('await positionAt(item1, { x: 1, y: 2, z: 3 });\n');
+    });
+
+    it('sets position to another object including y', function () {
+      const code = generate('move_to', fields({ MODEL1: 'item1', MODEL2: 'box1' }));
+      expect(code).to.equal(
+        'await moveTo(item1, { target: box1, offsetX: 0, offsetY: 0, offsetZ: 0 });\n'
+      );
+    });
+
+    it('follows the center of another object', function () {
+      const block = fields({ FOLLOWER_MESH: 'item1', TARGET_MESH: 'box1', SIDE: 'PLACE_CENTER' });
+      expect(generate('follow', block).trim()).to.equal(
+        'makeFollow(item1, box1, "center", 0, 0, 0);'
+      );
+    });
+
+    it('follows at another object', function () {
+      const block = fields({ FOLLOWER_MESH: 'item1', TARGET_MESH: 'box1', SIDE: 'PLACE_AT' });
+      expect(generate('follow', block).trim()).to.equal('makeFollow(item1, box1, "at", 0, 0, 0);');
+    });
+
+    it('sets position against a side of another object', function () {
+      const block = fields({ MODEL1: 'item1', MODEL2: 'box1', SIDE: 'PLACE_ON_TOP' });
+      const code = generate('move_to', block);
+      expect(code).to.equal(
+        'await moveTo(item1, { target: box1, side: "on_top", offsetX: 0, offsetY: 0, offsetZ: 0 });\n'
+      );
+    });
+
     function pointBlock(type, parent) {
       return {
         type,

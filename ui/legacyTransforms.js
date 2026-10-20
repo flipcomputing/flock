@@ -37,7 +37,7 @@ function clonePlacedAfter(owner, next, resize) {
     next?.type === 'move_to_xyz' &&
     next.isEnabled() &&
     next.getFieldValue('MODEL') === getOwnVar(owner) &&
-    next.getFieldValue('USE_Y') === 'TRUE';
+    next.getInputTargetBlock('Y')?.type === 'math_number';
   if (!isOwnMove) return false;
   if (!resize) return true;
   const sourceVar = owner.getFieldValue('SOURCE_MESH');

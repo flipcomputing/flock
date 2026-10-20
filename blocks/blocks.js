@@ -3,7 +3,7 @@ import * as Blockly from 'blockly';
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import { ScrollBlockDragger, ScrollMetricsManager } from '@blockly/plugin-scroll-options';
 import { toolbox, categoryColours } from '../toolbox.js';
-import { translate, getTooltip } from '../main/translation.js';
+import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import { flock } from '../flock.js';
 
 import {
@@ -328,6 +328,23 @@ export function dispatchBlockEvent(workspace, event) {
       if (!workspace.getBlockById(id)) blockHandlerRegistry.delete(id);
     }
   }
+}
+
+// "at" or "to" first, then the sides of the other object's box. Glide says
+// "to center of", so its center label differs but its value doesn't.
+export function placementOptions(first, centerLabel = 'PLACE_CENTER') {
+  return [
+    getDropdownOption(first),
+    [getOption(centerLabel), 'PLACE_CENTER'],
+    ...[
+      'PLACE_ON_TOP',
+      'PLACE_UNDER',
+      'PLACE_LEFT',
+      'PLACE_RIGHT',
+      'PLACE_FRONT',
+      'PLACE_BEHIND',
+    ].map(getDropdownOption),
+  ];
 }
 
 export function getHelpUrlFor(_blockType) {

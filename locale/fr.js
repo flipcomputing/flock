@@ -154,7 +154,7 @@ export default {
   glide_to: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 ms\n%6 retour? %7 boucle? %8 %9',
   glide_to_seconds: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9',
   glide_to_object:
-    'glisser %1 vers %2 en %6 secondes\ndécalage x: %3 y: %4 z: %5\n%7 retour? %8 boucle? %9 %10',
+    'glisser %1 %11 %2 en %6 secondes\ndécalage x: %3 y: %4 z: %5\n%7 retour? %8 boucle? %9 %10',
   glide_to_axis: 'glisser %1 %2 %3 en %4 secondes\n%5 retour? %6 boucle? %7 %8',
   rotate_anim: 'tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9',
   rotate_anim_seconds:
@@ -201,7 +201,7 @@ export default {
   stop_follow: 'arrêter de suivre %1',
   hold: 'faire en sorte que %1 tienne %2\ndécalage x: %3 y: %4 z: %5',
   drop: 'lâcher %1',
-  follow: 'faire en sorte que %1 suive %2 à %3\ndécalage x: %4 y: %5 z: %6',
+  follow: 'faire en sorte que %1 suive %3 %2\ndécalage x: %4 y: %5 z: %6',
   export_mesh: 'exporter %1 comme %2',
   export_mesh_unit_label: '1 unité =',
   attach: 'attacher %1 à %2 à %3\ndécalage x: %4 y: %5 z: %6',
@@ -345,9 +345,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'changer la position de %1 de x: %2 y: %3 z: %4',
   move_by_xyz_single: 'changer la position de %1 de %2 %3',
-  move_to_xyz: 'définir la position de %1 à %6 x: %2 y: %3 z: %4 y ? %5',
+  move_to_xyz: 'définir la position de %1 à %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'définir la position de %1 à %2 %3',
-  move_to: 'définir la position de %1 à %2 y ? %3',
+  move_to: 'définir la position de %1 %3 %2\ndécalage x: %4 y: %5 z: %6',
   scale: 'échelle %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   resize: 'redimensionner %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   rotate_model_xyz: 'pivoter %1 de x: %2 y: %3 z: %4',
@@ -414,7 +414,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glisser vers une position spécifiée sur une durée avec des options pour inverser, boucler et appliquer une accélération.',
   glide_to_object_tooltip:
-    'Glisser vers la position d’une autre forme avec des décalages x/y/z optionnels (0 par défaut) et des options d’inversion, de boucle et d’accélération.',
+    'Glisser vers la position d’une autre forme avec des décalages x/y/z optionnels (0 par défaut) et des options d’inversion, de boucle et d’accélération. Choisis un côté pour glisser contre lui, par exemple au-dessus de.', // ai
   glide_to_axis_tooltip:
     "Glisser le long d'un axe (X, Y ou Z) vers une valeur cible. Les deux autres axes sont fixés à la position actuelle de l'objet (ancre prise en compte). Mêmes options que le bloc de glissement standard.",
   rotate_anim_tooltip:
@@ -474,7 +474,7 @@ export default {
     'Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.',
   drop_tooltip: 'Détache un objet de l’os auquel il est actuellement attaché.',
   follow_tooltip:
-    'Fait en sorte qu’un objet suive un autre à une position spécifiée (haut, centre ou bas) avec un décalage en x, y et z.',
+    'Fait en sorte qu’un objet suive un autre : sur lui, en son centre ou contre l’un de ses côtés. Les côtés et le décalage suivent la rotation de l’autre objet.', // ai
   export_mesh_tooltip: 'Exporte un objet au format STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks
@@ -623,9 +623,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: "Déplace un objet d'une certaine valeur selon X, Y et Z.",
   move_by_xyz_single_tooltip: 'Déplacer un objet d’un montant donné sur l’axe x, y ou z.',
-  move_to_xyz_tooltip: "Téléporte l'objet aux coordonnées données. Utilise l’axe Y en option.",
+  move_to_xyz_tooltip: "Téléporte l'objet aux coordonnées données.",
   move_to_xyz_single_tooltip: "Téléporter l'objet vers la coordonnée unique indiquée.",
-  move_to_tooltip: 'Téléporte le premier objet à l’emplacement du second.',
+  move_to_tooltip:
+    'Place le premier objet sur le second ou contre l’un de ses côtés, puis le décale. Les côtés et le décalage suivent la rotation du second objet.', // ai
   scale_tooltip:
     'Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.',
   resize_tooltip:
@@ -735,6 +736,16 @@ export default {
   strafe_option: 'déplacement latéral',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'à', // ai
+  PLACE_TO_option: 'vers', // ai
+  PLACE_CENTER_option: 'au centre de', // ai
+  PLACE_TO_CENTER_option: 'au centre de', // ai
+  PLACE_ON_TOP_option: 'au-dessus de', // ai
+  PLACE_UNDER_option: 'sous', // ai
+  PLACE_LEFT_option: 'à gauche de', // ai
+  PLACE_RIGHT_option: 'à droite de', // ai
+  PLACE_FRONT_option: 'devant', // ai
+  PLACE_BEHIND_option: 'derrière', // ai
   user_option: 'avant',
   environment_option: 'arrière',
 

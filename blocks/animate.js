@@ -1,6 +1,11 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { handleBlockCreateEvent, getHelpUrlFor, registerBlockHandler } from './blocks.js';
+import {
+  handleBlockCreateEvent,
+  getHelpUrlFor,
+  placementOptions,
+  registerBlockHandler,
+} from './blocks.js';
 import { nextVariableName, otherObjectName } from './variableNames.js';
 import { animationNames } from '../config.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
@@ -249,6 +254,11 @@ export function defineAnimateBlocks() {
               getDropdownOption('ElasticEase'),
               getDropdownOption('BackEase'),
             ],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'SIDE',
+            options: placementOptions('PLACE_TO', 'PLACE_TO_CENTER'),
           },
         ],
         previousStatement: null,

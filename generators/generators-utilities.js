@@ -25,6 +25,25 @@ export function getVariableInfo(block, fieldName) {
   return { generatedName, userVariableName };
 }
 
+const SIDE_OPTIONS = {
+  PLACE_CENTER: 'center',
+  PLACE_ON_TOP: 'on_top',
+  PLACE_UNDER: 'under',
+  PLACE_LEFT: 'left',
+  PLACE_RIGHT: 'right',
+  PLACE_FRONT: 'front',
+  PLACE_BEHIND: 'behind',
+};
+
+export function getSideValue(block) {
+  return SIDE_OPTIONS[block.getFieldValue('SIDE')] ?? null;
+}
+
+export function getSideOption(block) {
+  const side = getSideValue(block);
+  return side ? `, side: ${JSON.stringify(side)}` : '';
+}
+
 export function getPositionTuple(block) {
   const posX = getFieldValue(block, 'X', '0');
   const posY = getFieldValue(block, 'Y', '0');

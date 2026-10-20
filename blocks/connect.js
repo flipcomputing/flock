@@ -1,8 +1,8 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
-import { getHelpUrlFor } from './blocks.js';
+import { getHelpUrlFor, placementOptions } from './blocks.js';
 import { objectAndCharacterTarget, otherObjectName } from './variableNames.js';
-import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
+import { translate, getTooltip } from '../main/translation.js';
 
 import { getAttachNames } from '../config.js';
 
@@ -290,12 +290,8 @@ export function defineConnectBlocks() {
           },
           {
             type: 'field_dropdown',
-            name: 'FOLLOW_POSITION',
-            options: [
-              getDropdownOption('TOP'),
-              getDropdownOption('CENTER'),
-              getDropdownOption('BOTTOM'),
-            ],
+            name: 'SIDE',
+            options: placementOptions('PLACE_AT'),
           },
           {
             type: 'input_value',

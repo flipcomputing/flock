@@ -155,7 +155,7 @@ export default {
   glide_to_seconds:
     'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9',
   glide_to_object:
-    'przesuń %1 do %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10',
+    'przesuń %1 %11 %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10',
   glide_to_axis: 'przesuń %1 %2 %3 w czasie %4 sekund\n%5 powrót? %6 pętla? %7 %8',
   rotate_anim: 'obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9',
   rotate_anim_seconds:
@@ -202,7 +202,7 @@ export default {
   stop_follow: 'zatrzymaj śledzenie %1',
   hold: '%1 trzyma %2\noffset x: %3, y: %4, z: %5',
   drop: '%1 upuść',
-  follow: 'spraw, by %1 śledził %2 przy %3\noffset x: %4, y: %5, z: %6',
+  follow: 'spraw, by %1 śledził %3 %2\noffset x: %4, y: %5, z: %6',
   export_mesh: 'eksportuj %1 jako %2',
   export_mesh_unit_label: '1 jednostka =',
   attach: 'przyłącz %1 do %2 w punkcie %3\noffset x: %4, y: %5, z: %6',
@@ -346,9 +346,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'zmień pozycję %1 o x: %2, y: %3, z: %4',
   move_by_xyz_single: 'zmień położenie %1 o %2 %3',
-  move_to_xyz: 'ustaw pozycję %1 na %6 x: %2, y: %3, z: %4 y? %5',
+  move_to_xyz: 'ustaw pozycję %1 na %5 x: %2, y: %3, z: %4',
   move_to_xyz_single: 'ustaw położenie %1 na %2 %3',
-  move_to: 'ustaw pozycję %1 na %2 y? %3',
+  move_to: 'ustaw pozycję %1 %3 %2\nprzesunięcie x: %4, y: %5, z: %6',
   scale: 'skaluj %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7',
   resize: 'zmień rozmiar %1 x: %2, y: %3, z: %4\npunkt odniesienia x: %5, y: %6, z: %7',
   rotate_model_xyz: 'obróć %1 o x: %2, y: %3, z: %4',
@@ -415,7 +415,7 @@ export default {
   glide_to_seconds_tooltip:
     'Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.',
   glide_to_object_tooltip:
-    'Przesuń się do pozycji innego obiektu z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing.',
+    'Przesuń się do pozycji innego obiektu z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing. Wybierz bok, aby przesunąć się do niego, np. na górze.', // ai
   glide_to_axis_tooltip:
     'Przesuń wzdłuż jednej osi (X, Y lub Z) do wartości docelowej. Pozostałe dwie osie są zablokowane na aktualnej pozycji obiektu (z uwzględnieniem punktu kotwiczenia). Te same opcje co w standardowym bloku glide.',
   rotate_anim_tooltip:
@@ -470,7 +470,7 @@ export default {
   hold_tooltip: 'Przymocuj obiekt do kości innego obiektu z przesunięciem w osiach x, y, z.',
   drop_tooltip: 'Odłącz obiekt od kości, do której była przyczepiona.',
   follow_tooltip:
-    'Spraw, by jedna obiekt śledziła drugą z wybranej pozycji (top, center, bottom) i przesunięciem w osiach x, y, z.',
+    'Spraw, by jeden obiekt podążał za drugim: w jego miejscu, w jego środku lub przy jednym z jego boków. Boki i przesunięcie obracają się razem z drugim obiektem.', // ai
   export_mesh_tooltip: 'Eksportuj obiekt jako STL, OBJ lub GLB.',
 
   // Tooltip translations - Control blocks
@@ -614,9 +614,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Przesuń obiekt o określoną wartość w osiach x, y i z.',
   move_by_xyz_single_tooltip: 'Przesuń obiekt o podaną wartość w osi x, y lub z.',
-  move_to_xyz_tooltip: 'Teleportuj obiekt do koordynatów. Opcjonalnie: użyj osi Y.',
+  move_to_xyz_tooltip: 'Teleportuj obiekt do koordynatów.',
   move_to_xyz_single_tooltip: 'Teleportuj obiekt do podanej pojedynczej współrzędnej.',
-  move_to_tooltip: 'Teleportuj pierwszą obiekt do pozycji drugiej.',
+  move_to_tooltip:
+    'Umieść pierwszy obiekt w miejscu drugiego lub przy jednym z jego boków i przesuń go. Boki i przesunięcie obracają się razem z drugim obiektem.', // ai
   scale_tooltip: 'Zmień rozmiar obiekty (x, y, z) i kontroluj punkt odniesienia.',
   resize_tooltip: 'Zmień rozmiar obiekty (x, y, z) i kontroluj punkt odniesienia.',
   rotate_model_xyz_tooltip: 'Obróć obiekt o wartości x, y, z.',
@@ -723,6 +724,16 @@ export default {
   strafe_option: 'strafe',
   MIN_option: 'min',
   MAX_option: 'maks',
+  PLACE_AT_option: 'na', // ai
+  PLACE_TO_option: 'do', // ai
+  PLACE_CENTER_option: 'w środku', // ai
+  PLACE_TO_CENTER_option: 'do środka', // ai
+  PLACE_ON_TOP_option: 'na górze', // ai
+  PLACE_UNDER_option: 'pod', // ai
+  PLACE_LEFT_option: 'na lewo od', // ai
+  PLACE_RIGHT_option: 'na prawo od', // ai
+  PLACE_FRONT_option: 'przed', // ai
+  PLACE_BEHIND_option: 'za', // ai
   user_option: 'przód',
   environment_option: 'tył',
 

@@ -187,8 +187,58 @@ function validateBlocklyJson(json) {
     }
   }
 
-  function upgradeAnimationInputs(block) {
+  const positionOf = (mesh, property) => ({
+    type: 'get_property',
+    fields: { MESH: mesh, PROPERTY: property },
+  });
+
+  function upgradeMoveUseY(block) {
+    if (block.type !== 'move_to_xyz' && block.type !== 'move_to') return;
+    if (!block.fields || !('USE_Y' in block.fields)) return;
+
+    const useY = block.fields.USE_Y;
+    delete block.fields.USE_Y;
+    if (useY !== false && useY !== 'FALSE') return;
+
+    if (block.type === 'move_to') {
+      const { MODEL1: mesh, MODEL2: target } = block.fields;
+      const number = { shadow: { type: 'math_number', fields: { NUM: 0 } } };
+      block.type = 'move_to_xyz';
+      block.fields = { MODEL: mesh };
+      block.inputs = {
+        X: { ...number, block: positionOf(target, 'POSITION_X') },
+        Y: { ...number, block: positionOf(mesh, 'POSITION_Y') },
+        Z: { ...number, block: positionOf(target, 'POSITION_Z') },
+      };
+      return;
+    }
+
+    block.inputs = block.inputs || {};
+    block.inputs.Y = { ...block.inputs.Y, block: positionOf(block.fields.MODEL, 'POSITION_Y') };
+  }
+
+  function upgradeMoveToOffsets(block) {
+    if (block.type !== 'move_to') return;
+    block.inputs = block.inputs || {};
+    for (const name of ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET']) {
+      block.inputs[name] ??= { shadow: { type: 'math_number', fields: { NUM: 0 } } };
+    }
+  }
+
+  const followSides = { TOP: 'PLACE_ON_TOP', CENTER: 'PLACE_CENTER', BOTTOM: 'PLACE_AT' };
+
+  function upgradeFollowPosition(block) {
+    if (block.type !== 'follow' || !block.fields || !('FOLLOW_POSITION' in block.fields)) return;
+    block.fields.SIDE = followSides[block.fields.FOLLOW_POSITION] ?? 'PLACE_AT';
+    delete block.fields.FOLLOW_POSITION;
+  }
+
+  function upgradeLegacyBlocks(block) {
     if (!block || typeof block !== 'object') return;
+
+    upgradeMoveUseY(block);
+    upgradeMoveToOffsets(block);
+    upgradeFollowPosition(block);
 
     const legacyAnimationName = block.fields?.ANIMATION_NAME;
     const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
@@ -215,12 +265,12 @@ function validateBlocklyJson(json) {
 
     if (block.inputs) {
       Object.values(block.inputs).forEach((input) => {
-        upgradeAnimationInputs(input?.block);
-        upgradeAnimationInputs(input?.shadow);
+        upgradeLegacyBlocks(input?.block);
+        upgradeLegacyBlocks(input?.shadow);
       });
     }
 
-    upgradeAnimationInputs(block.next?.block);
+    upgradeLegacyBlocks(block.next?.block);
   }
 
   // 3. Validate it's actually a Blockly workspace structure
@@ -361,7 +411,7 @@ function validateBlocklyJson(json) {
   validateBlocklyStructure(data);
 
   if (data?.blocks?.blocks) {
-    data.blocks.blocks.forEach((block) => upgradeAnimationInputs(block));
+    data.blocks.blocks.forEach((block) => upgradeLegacyBlocks(block));
   }
 
   return data;

@@ -101,6 +101,8 @@ function aroundFractions(positions, indices, include = () => true) {
 
 const socketsBySkinnedMesh = new WeakMap();
 
+const LEGACY_FOLLOW_SIDES = { TOP: 'on_top', CENTER: 'center', BOTTOM: 'at' };
+
 function skinnedMeshOf(target) {
   return target.skeleton ? target : target.getChildMeshes().find((mesh) => mesh.skeleton);
 }
@@ -1745,40 +1747,42 @@ export const flockMesh = {
           followerMesh._followObserver &&
             flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
 
-          const offset = new flock.BABYLON.Vector3(
-            parseFloat(offsetX) || 0,
-            parseFloat(offsetY) || 0,
-            parseFloat(offsetZ) || 0
-          );
-
-          const followPoint = () => {
-            targetMesh.computeWorldMatrix(true);
-            const { min, max } =
-              targetMesh.getTotalVertices() > 0
-                ? {
-                    min: targetMesh.getBoundingInfo().boundingBox.minimumWorld,
-                    max: targetMesh.getBoundingInfo().boundingBox.maximumWorld,
-                  }
-                : targetMesh.getHierarchyBoundingVectors(true);
-            const y =
-              followPosition === 'TOP'
-                ? max.y
-                : followPosition === 'CENTER'
-                  ? (min.y + max.y) / 2
-                  : min.y;
-            const origin = targetMesh.getAbsolutePosition();
-            return new flock.BABYLON.Vector3(origin.x, y, origin.z).addInPlace(offset);
+          const side = LEGACY_FOLLOW_SIDES[followPosition] ?? followPosition;
+          const offset = {
+            x: parseFloat(offsetX) || 0,
+            y: parseFloat(offsetY) || 0,
+            z: parseFloat(offsetZ) || 0,
           };
+          const { Quaternion } = flock.BABYLON;
+          const worldRotation = (mesh) => {
+            const rotation = new Quaternion();
+            mesh.computeWorldMatrix(true).decompose(undefined, rotation);
+            return rotation;
+          };
+          // The follower keeps the turn it had relative to the target when it started.
+          const relativeTurn = Quaternion.Inverse(worldRotation(targetMesh)).multiply(
+            worldRotation(followerMesh)
+          );
 
           followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
             if (flock.isPaused()) return;
-            followerMesh.computeWorldMatrix(true);
-            const anchorWorld = flock.BABYLON.Vector3.TransformCoordinates(
-              flock._resolveAnchorLocal(followerMesh),
-              followerMesh.getWorldMatrix()
-            );
+            if (!followerMesh.parent) {
+              followerMesh.rotationQuaternion = worldRotation(targetMesh).multiply(relativeTurn);
+              followerMesh.computeWorldMatrix(true);
+            }
+            const goal = flock._anchorGoal(followerMesh, targetMesh, side);
+            const shift = flock._targetOffset(targetMesh, offset);
+            const anchor = flock._getAnchor(followerMesh);
             followerMesh.setAbsolutePosition(
-              followerMesh.getAbsolutePosition().add(followPoint().subtract(anchorWorld))
+              followerMesh
+                .getAbsolutePosition()
+                .add(
+                  new flock.BABYLON.Vector3(
+                    goal.x + shift.x - anchor.x,
+                    goal.y + shift.y - anchor.y,
+                    goal.z + shift.z - anchor.z
+                  )
+                )
             );
           });
           resolve();
