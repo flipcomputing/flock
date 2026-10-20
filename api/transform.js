@@ -23,9 +23,32 @@ function usesCenterPivot(mesh) {
   return shape === 'plane' || shape === 'camera';
 }
 
+// setPivot in a DO moves the origin after the base rule placed the mesh.
+// The base rule reads and places the position from before it ran, so
+// editor edits match Play whatever order the DO runs it in.
+function placementShift(mesh) {
+  return mesh.metadata?.placementShift ?? { x: 0, y: 0, z: 0 };
+}
+
+function recordPlacementShift(mesh, before) {
+  const after = mesh.getAbsolutePosition();
+  const shift = placementShift(mesh);
+  mesh.metadata = mesh.metadata || {};
+  mesh.metadata.placementShift = {
+    x: shift.x + after.x - before.x,
+    y: shift.y + after.y - before.y,
+    z: shift.z + after.z - before.z,
+  };
+}
+
+// Baking the pivot moves the geometry's base relative to the origin.
+function pivotBaseOffset(mesh, scaleY) {
+  return (mesh.metadata?.pivotOffset?.y ?? 0) * scaleY;
+}
+
 function currentAnchorSettings(mesh) {
   return (
-    mesh.metadata?.pivotSettings ??
+    mesh.metadata?.anchorSettings ??
     (usesCenterPivot(mesh)
       ? { x: 'CENTER', y: 'CENTER', z: 'CENTER' }
       : { x: 'CENTER', y: 'MIN', z: 'CENTER' })
@@ -145,7 +168,8 @@ function applyPositionWithCurrentBaseRule(
     meshName,
   });
 
-  mesh.position.set(nextX, useY ? nextY : mesh.position.y, nextZ);
+  const shift = placementShift(mesh);
+  mesh.position.set(nextX + shift.x, useY ? nextY + shift.y : mesh.position.y, nextZ + shift.z);
 
   if (useY && !isCamera && !usesCenterPivot(mesh) && typeof mesh.getBoundingInfo === 'function') {
     mesh.computeWorldMatrix(true);
@@ -161,7 +185,8 @@ function applyPositionWithCurrentBaseRule(
     const localMinY = bi?.boundingBox?.minimum?.y;
     const scaleY = mesh.scaling?.y ?? 1;
     if (Number.isFinite(localMinY)) {
-      const deltaY = nextY - (mesh.position.y + localMinY * scaleY);
+      const base = mesh.position.y + localMinY * scaleY + pivotBaseOffset(mesh, scaleY);
+      const deltaY = nextY + shift.y - base;
       if (Math.abs(deltaY) > 1e-6) mesh.position.y += deltaY;
     }
   }
@@ -1006,10 +1031,9 @@ export const flockTransform = {
       });
     });
   },
-  setAnchor(
-    meshName,
-    { xPivot = 'CENTER', yPivot = 'MIN', zPivot = 'CENTER', placeAnchor = false } = {}
-  ) {
+  // The pivot is the mesh origin: the point it rotates about. Moving it
+  // never moves the mesh or changes what positions mean.
+  setPivot(meshName, { x = 'CENTER', y = 'CENTER', z = 'CENTER' } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
         if (!mesh) {
@@ -1020,24 +1044,21 @@ export const flockTransform = {
         mesh.computeWorldMatrix(true);
         mesh.refreshBoundingInfo();
         const box = mesh.getBoundingInfo().boundingBox;
-        const oldAnchorWorld = flock.BABYLON.Vector3.TransformCoordinates(
-          flock._resolveAnchorLocal(mesh),
+        const pivotLocal = flock._resolveAnchorLocal(mesh, { x, y, z });
+        const targetWorld = flock.BABYLON.Vector3.TransformCoordinates(
+          pivotLocal,
           mesh.getWorldMatrix()
         );
-        const anchorLocal = flock._resolveAnchorLocal(mesh, { x: xPivot, y: yPivot, z: zPivot });
-        const targetWorld = placeAnchor
-          ? oldAnchorWorld
-          : flock.BABYLON.Vector3.TransformCoordinates(anchorLocal, mesh.getWorldMatrix());
 
-        if (anchorLocal.lengthSquared() > 0) {
+        if (pivotLocal.lengthSquared() > 0) {
           const positionKind = flock.BABYLON.VertexBuffer.PositionKind;
           if (mesh.geometry && mesh.isVerticesDataPresent(positionKind)) {
             if (mesh.geometry.meshes.length > 1) mesh.makeGeometryUnique();
             const positions = mesh.getVerticesData(positionKind, true, true);
             for (let i = 0; i < positions.length; i += 3) {
-              positions[i] -= anchorLocal.x;
-              positions[i + 1] -= anchorLocal.y;
-              positions[i + 2] -= anchorLocal.z;
+              positions[i] -= pivotLocal.x;
+              positions[i + 1] -= pivotLocal.y;
+              positions[i + 2] -= pivotLocal.z;
             }
             mesh.setVerticesData(
               positionKind,
@@ -1049,23 +1070,46 @@ export const flockTransform = {
             const { minimum, maximum } = box;
             mesh.setBoundingInfo(
               new flock.BABYLON.BoundingInfo(
-                minimum.subtract(anchorLocal),
-                maximum.subtract(anchorLocal)
+                minimum.subtract(pivotLocal),
+                maximum.subtract(pivotLocal)
               )
             );
           }
           mesh.getChildren(undefined, true).forEach((child) => {
-            child.position?.subtractInPlace(anchorLocal);
+            child.position?.subtractInPlace(pivotLocal);
           });
         }
 
+        const before = mesh.getAbsolutePosition().clone();
         mesh.setAbsolutePosition(targetWorld);
         mesh.computeWorldMatrix(true);
+        recordPlacementShift(mesh, before);
         flock.updatePhysics(mesh);
         teleportBodyToMesh(mesh);
 
         mesh.metadata = mesh.metadata || {};
-        mesh.metadata.pivotSettings = { x: xPivot, y: yPivot, z: zPivot };
+        const offset = mesh.metadata.pivotOffset ?? { x: 0, y: 0, z: 0 };
+        mesh.metadata.pivotOffset = {
+          x: offset.x + pivotLocal.x,
+          y: offset.y + pivotLocal.y,
+          z: offset.z + pivotLocal.z,
+        };
+        resolve();
+      });
+    });
+  },
+  // The anchor is the point positions refer to, and that animated scaling
+  // holds still. Setting it never moves the mesh.
+  setAnchor(meshName, { x = 'CENTER', y = 'MIN', z = 'CENTER' } = {}) {
+    return new Promise((resolve) => {
+      flock.whenModelReady(meshName, (mesh) => {
+        if (!mesh) {
+          resolve();
+          return;
+        }
+
+        mesh.metadata = mesh.metadata || {};
+        mesh.metadata.anchorSettings = { x, y, z };
         resolve();
       });
     });
@@ -1095,8 +1139,13 @@ export const flockTransform = {
     // parent-relative), matching setBlockPositionOnMesh, which unparents.
     const grouped = isInGroup(mesh);
     const worldPos = mesh.absolutePosition ?? mesh.position ?? { x: 0, y: 0, z: 0 };
+    const shift = placementShift(mesh);
     if (usesCenterPivot(mesh)) {
-      return { x: worldPos.x ?? 0, y: worldPos.y ?? 0, z: worldPos.z ?? 0 };
+      return {
+        x: (worldPos.x ?? 0) - shift.x,
+        y: (worldPos.y ?? 0) - shift.y,
+        z: (worldPos.z ?? 0) - shift.z,
+      };
     }
     mesh.refreshBoundingInfo?.();
 
@@ -1109,9 +1158,11 @@ export const flockTransform = {
     const localMinY = bi?.boundingBox?.minimum?.y;
     const scaleY = (grouped ? mesh.absoluteScaling?.y : mesh.scaling?.y) ?? 1;
     const posY = pos.y ?? 0;
-    const baseRuleY = Number.isFinite(localMinY) ? posY + localMinY * scaleY : posY;
+    const baseRuleY = Number.isFinite(localMinY)
+      ? posY + localMinY * scaleY + pivotBaseOffset(mesh, scaleY)
+      : posY;
 
-    return { x: pos.x ?? 0, y: baseRuleY, z: pos.z ?? 0 };
+    return { x: (pos.x ?? 0) - shift.x, y: baseRuleY - shift.y, z: (pos.z ?? 0) - shift.z };
   },
   _getAnchor(mesh) {
     if (!mesh) return null;
@@ -1130,7 +1181,7 @@ export const flockTransform = {
     const minW = bb.minimumWorld;
     const maxW = bb.maximumWorld;
 
-    const pivotSettings = currentAnchorSettings(mesh);
+    const anchorSettings = currentAnchorSettings(mesh);
     let numericAnchorWorld;
 
     function resolveAxis(axisKey, setting) {
@@ -1151,7 +1202,7 @@ export const flockTransform = {
 
       if (typeof setting === 'number') {
         numericAnchorWorld ??= flock.BABYLON.Vector3.TransformCoordinates(
-          flock._resolveAnchorLocal(mesh, pivotSettings),
+          flock._resolveAnchorLocal(mesh, anchorSettings),
           mesh.getWorldMatrix()
         );
         return numericAnchorWorld[axisKey];
@@ -1161,9 +1212,9 @@ export const flockTransform = {
       return (min + max) / 2;
     }
 
-    const x = resolveAxis('x', pivotSettings.x);
-    const y = resolveAxis('y', pivotSettings.y);
-    const z = resolveAxis('z', pivotSettings.z);
+    const x = resolveAxis('x', anchorSettings.x);
+    const y = resolveAxis('y', anchorSettings.y);
+    const z = resolveAxis('z', anchorSettings.z);
 
     return { x, y, z };
   },

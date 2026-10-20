@@ -866,6 +866,135 @@ export function runAnimateTests(flock) {
     });
 
     describe('animateKeyFrames function', function () {
+      async function scaledBox(boxId, position = [2, 0, 3]) {
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position });
+        boxIds.push(boxId);
+        return flock.scene.getMeshByName(boxId);
+      }
+
+      function worldBox(mesh) {
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        return mesh.getBoundingInfo().boundingBox;
+      }
+
+      const growKeyframes = [
+        { duration: 0.1, value: '1 1 1' },
+        { duration: 0.1, value: '2 2 2' },
+      ];
+
+      it('should scale about the anchor, not the pivot', async function () {
+        const mesh = await scaledBox('keyFramesScaleAnchor');
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.maximumWorld.y).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.z).to.be.closeTo(3, 0.01);
+      });
+
+      it('should scale about a custom anchor', async function () {
+        const mesh = await scaledBox('keyFramesScaleCustomAnchor');
+        await flock.setAnchor(mesh.name, { x: 'MIN', y: 'MAX', z: 'CENTER' });
+        const before = flock._getAnchor(mesh);
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const after = flock._getAnchor(mesh);
+        expect(after.x).to.be.closeTo(before.x, 0.01);
+        expect(after.y).to.be.closeTo(before.y, 0.01);
+        expect(after.z).to.be.closeTo(before.z, 0.01);
+        expect(worldBox(mesh).maximumWorld.x - worldBox(mesh).minimumWorld.x).to.be.closeTo(2, 0.01);
+      });
+
+      it('should ignore the pivot when scaling', async function () {
+        const mesh = await scaledBox('keyFramesScalePivot');
+        await flock.setPivot(mesh.name, { x: 'MAX', y: 'MAX', z: 'MAX' });
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.z).to.be.closeTo(3, 0.01);
+      });
+
+      it('should return to its start when scaling reverses', async function () {
+        const mesh = await scaledBox('keyFramesScaleReverse');
+        const start = mesh.position.clone();
+
+        await flock.animateKeyFrames(mesh.name, {
+          keyframes: growKeyframes,
+          property: 'scaling',
+          reverse: true,
+        });
+
+        expect(mesh.scaling.y).to.be.closeTo(1, 0.01);
+        expect(mesh.position.x).to.be.closeTo(start.x, 0.01);
+        expect(mesh.position.y).to.be.closeTo(start.y, 0.01);
+        expect(mesh.position.z).to.be.closeTo(start.z, 0.01);
+      });
+
+      it('should scale about the anchor in an animation group', async function () {
+        const mesh = await scaledBox('groupScaleAnchor');
+
+        const name = await flock.createAnimation(null, mesh.name, {
+          property: 'scaling',
+          keyframes: [
+            { duration: 0, value: '1 1 1' },
+            { duration: 0.2, value: '3 3 3' },
+          ],
+          mode: 'AWAIT',
+        });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.maximumWorld.y).to.be.closeTo(3, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        flock.scene.getAnimationGroupByName(name)?.dispose();
+      });
+
+      it('should hold the anchor on a clone of an animated mesh', async function () {
+        const mesh = await scaledBox('keyFramesScaleCloneSource');
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const cloneName = flock.cloneMesh({
+          sourceMeshName: mesh.name,
+          cloneId: 'keyFramesScaleClone__1',
+          cloneName: 'keyFramesScaleClone',
+        });
+        const clone = await flock.whenModelReady(cloneName);
+        boxIds.push(clone.name);
+        const before = flock._getAnchor(clone);
+
+        await flock.animateKeyFrames(clone.name, {
+          keyframes: [
+            { duration: 0.1, value: '2 2 2' },
+            { duration: 0.1, value: '1 1 1' },
+          ],
+          property: 'scaling',
+        });
+
+        const after = flock._getAnchor(clone);
+        expect(after.x).to.be.closeTo(before.x, 0.01);
+        expect(after.y).to.be.closeTo(before.y, 0.01);
+        expect(after.z).to.be.closeTo(before.z, 0.01);
+      });
+
+      it('should leave the scale block to place the mesh itself', async function () {
+        const mesh = await scaledBox('keyFramesThenScale');
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        await flock.scale(mesh.name, { x: 1, y: 1, z: 1, yOrigin: 'TOP' });
+        await new Promise((r) => setTimeout(r, 100));
+
+        const box = worldBox(mesh);
+        expect(box.maximumWorld.y).to.be.closeTo(2, 0.01);
+        expect(box.minimumWorld.y).to.be.closeTo(1, 0.01);
+      });
+
       it('should animate color keyframes', async function () {
         const boxId = 'animateKeyFramesColor';
         await flock.createBox(boxId, {

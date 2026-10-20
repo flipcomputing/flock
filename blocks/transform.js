@@ -517,38 +517,28 @@ export function defineTransformBlocks() {
     },
   };
 
-  Blockly.Blocks['set_pivot'] = {
+  const pointBlock = (type, inputSuffix) => ({
     init: function () {
       this.jsonInit({
-        type: 'set_pivot',
-        message0: translate('set_pivot'),
+        type,
+        message0: translate(type),
         args0: [
           {
             type: 'field_variable',
             name: 'MESH',
             variable: window.currentMesh, // Assuming the mesh is stored here
           },
-          {
+          ...['X', 'Y', 'Z'].map((axis) => ({
             type: 'input_value',
-            name: 'X_PIVOT',
+            name: `${axis}_${inputSuffix}`,
             check: ['Number', 'String'],
-          },
-          {
-            type: 'input_value',
-            name: 'Y_PIVOT',
-            check: ['Number', 'String'],
-          },
-          {
-            type: 'input_value',
-            name: 'Z_PIVOT',
-            check: ['Number', 'String'],
-          },
+          })),
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
         colour: categoryColours['Transform'],
-        tooltip: getTooltip('set_pivot'),
+        tooltip: getTooltip(type),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('transform_blocks');
@@ -556,7 +546,10 @@ export function defineTransformBlocks() {
       // Set up the change handler.
       registerBlockHandler(this, (changeEvent) => handleBlockChange(this, changeEvent));
     },
-  };
+  });
+
+  Blockly.Blocks['set_pivot'] = pointBlock('set_pivot', 'PIVOT');
+  Blockly.Blocks['set_anchor'] = pointBlock('set_anchor', 'ANCHOR');
 
   Blockly.Blocks['min_centre_max'] = {
     init: function () {

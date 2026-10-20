@@ -440,7 +440,8 @@ export default {
   move_forward: 'move %1 %2 speed: %3',
   rotate_camera: 'rotate camera by %1 degrees',
   up: 'up %1 force %2',
-  set_pivot: 'set anchor of %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'set anchor of %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'set pivot of %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -768,8 +769,9 @@ export default {
     "Move the object in the specified direction. 'Forward' moves it in the direction it's pointing, 'sideways' moves it relative to the camera's direction, and 'strafe' moves it sideways relative to the camera's direction.",
   rotate_camera_tooltip: 'Rotate the camera left or right by the given degrees.',
   up_tooltip: 'Apply the specified upwards force.',
-  set_pivot_tooltip: 'Set the anchor point for an object on the X, Y, and Z axes.',
-  min_centre_max_tooltip: 'Choose min, center, or max for the pivot point.',
+  set_anchor_tooltip: 'Set which point of an object its position uses. The object stays where it is.',
+  set_pivot_tooltip: 'Set the point an object turns around. The object stays where it is.',
+  min_centre_max_tooltip: 'Choose min, center, or max along this axis.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:

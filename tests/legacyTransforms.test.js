@@ -291,19 +291,24 @@ export function runLegacyTransformTests(flock) {
         expect(findFoldableTransforms(owner)).to.be.null;
       });
 
-      it('when DO sets the pivot', function () {
-        const owner = ownerWithDo(
-          'create_box',
-          [0, 0, 0],
-          [{ type: 'rotate_to', values: [0, 90, 0] }]
-        );
-        const pivot = Blockly.serialization.blocks.append(
-          { type: 'set_pivot', fields: { MESH: { id: owner.getFieldValue('ID_VAR') } } },
-          ws
-        );
-        owner.getInputTargetBlock('DO').nextConnection.connect(pivot.previousConnection);
-        expect(findFoldableTransforms(owner)).to.be.null;
-      });
+      for (const [type, what] of [
+        ['set_pivot', 'pivot'],
+        ['set_anchor', 'anchor'],
+      ]) {
+        it(`when DO sets the ${what}`, function () {
+          const owner = ownerWithDo(
+            'create_box',
+            [0, 0, 0],
+            [{ type: 'rotate_to', values: [0, 90, 0] }]
+          );
+          const point = Blockly.serialization.blocks.append(
+            { type, fields: { MESH: { id: owner.getFieldValue('ID_VAR') } } },
+            ws
+          );
+          owner.getInputTargetBlock('DO').nextConnection.connect(point.previousConnection);
+          expect(findFoldableTransforms(owner)).to.be.null;
+        });
+      }
 
       it('when a clone has no move straight after', function () {
         const owner = ownerWithDo('clone_mesh', null, [{ type: 'rotate_to', values: [0, 45, 0] }]);

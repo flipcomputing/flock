@@ -397,7 +397,8 @@ export default {
   move_forward: 'mover %1 %2 velocidad %3', // human
   rotate_camera: 'rotar cámara %1 grados', // human
   up: 'arriba %1 fuerza %2', // human
-  set_pivot: 'establecer ancla de %1\nx: %2 y: %3 z: %4', // human
+  set_anchor: 'establecer ancla de %1\nx: %2 y: %3 z: %4', // human
+  set_pivot: 'establecer pivote de %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1', // human
 
   // Custom block translations - XR blocks
@@ -703,7 +704,8 @@ export default {
     "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.", // human
   rotate_camera_tooltip: 'Rota la cámara a la izquierda o derecha los grados indicados.', // human
   up_tooltip: 'Aplica la fuerza especificada hacia arriba .', // human
-  set_pivot_tooltip: 'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.', // human
+  set_anchor_tooltip: 'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.', // human
+  set_pivot_tooltip: 'Establece el punto alrededor del cual gira un objeto. El objeto se queda donde está.',
   min_centre_max_tooltip: 'Elige minimo, centro o maximo para el punto de pivote.', // human
 
   // Tooltip translations - XR blocks

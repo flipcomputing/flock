@@ -357,7 +357,8 @@ export default {
   move_forward: 'przesuń %1 %2 prędkość: %3',
   rotate_camera: 'obróć kamerę o %1 stopni',
   up: 'w górę %1 siła %2',
-  set_pivot: 'ustaw punkt kotwiczenia %1\nx: %2, y: %3, z: %4',
+  set_anchor: 'ustaw punkt kotwiczenia %1\nx: %2, y: %3, z: %4',
+  set_pivot: 'ustaw punkt obrotu %1\nx: %2, y: %3, z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -625,7 +626,8 @@ export default {
     "Przesuń obiekt: 'forward' = w kierunku, 'sideways' = względem kamery, 'strafe' = bocznie.",
   rotate_camera_tooltip: 'Obraca kamerę w lewo lub w prawo o podaną liczbę stopni.',
   up_tooltip: 'Zastosuj określoną siłę w górę.',
-  set_pivot_tooltip: 'Ustaw punkt kotwiczenia obiekty na osiach X, Y i Z.',
+  set_anchor_tooltip: 'Ustaw punkt kotwiczenia obiekty na osiach X, Y i Z.',
+  set_pivot_tooltip: 'Ustaw punkt, wokół którego obraca się obiekt. Obiekt zostaje na swoim miejscu.',
   min_centre_max_tooltip: 'Wybierz min, centre lub max jako punkt obrotu.',
 
   // Tooltip translations - XR blocks

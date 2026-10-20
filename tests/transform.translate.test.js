@@ -14,9 +14,9 @@ export function runTranslationTests(flock) {
         position: [0, 0, 0],
       });
 
-      // Ensure we always exercise the pivotSettings branch:
-      // default pivot: x=CENTER, y=MIN (BASE), z=CENTER
-      await flock.setAnchor(boxId);
+      // Origin at the base, matching the default anchor:
+      // x=CENTER, y=MIN (BASE), z=CENTER
+      await flock.setPivot(boxId, { x: 'CENTER', y: 'MIN', z: 'CENTER' });
     });
 
     afterEach(function () {
@@ -123,10 +123,10 @@ export function runTranslationTests(flock) {
         position: [0, 0, 0],
       });
 
-      await flock.setAnchor(boxId, {
-        xPivot: 'CENTER',
-        yPivot: 'MIN',
-        zPivot: 'CENTER',
+      await flock.setPivot(boxId, {
+        x: 'CENTER',
+        y: 'MIN',
+        z: 'CENTER',
       });
     });
 
@@ -502,7 +502,7 @@ export function runTranslationTests(flock) {
     });
 
     it('honours an anchor set with setAnchor', async function () {
-      await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'CENTER' });
+      await flock.setAnchor(boxId, { x: 'MIN', y: 'MIN', z: 'CENTER' });
       await flock.positionAt(boxId, { x: 2, y: 3, z: 0 });
       const box = worldBox();
       expect(box.minimumWorld.x).to.be.closeTo(2, 0.01);

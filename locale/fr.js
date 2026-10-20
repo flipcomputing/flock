@@ -356,7 +356,8 @@ export default {
   move_forward: 'avancer %1 %2 vitesse %3',
   rotate_camera: 'faire pivoter la caméra de %1 degrés',
   up: 'vers le haut %1 force %2',
-  set_pivot: 'définir l’ancre de %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'définir l’ancre de %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'définir le pivot de %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -637,7 +638,8 @@ export default {
   rotate_camera_tooltip:
     'Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.',
   up_tooltip: 'Applique la force vers le haut spécifiée.',
-  set_pivot_tooltip: 'Définit le point d’ancrage d’un objet selon les axes X, Y et Z.',
+  set_anchor_tooltip: 'Définit le point d’ancrage d’un objet selon les axes X, Y et Z.',
+  set_pivot_tooltip: 'Définit le point autour duquel un objet tourne. L’objet reste à sa place.',
   min_centre_max_tooltip: 'Choisit min, centre ou max comme point de pivot.',
 
   // Tooltip translations - XR blocks

@@ -40,6 +40,26 @@ function closeModal(result) {
   resolve?.(result);
 }
 
+function positionNearProjects(modal) {
+  const content = modal.querySelector('.modal-content');
+  const rect = document.getElementById('exampleButton')?.getBoundingClientRect();
+  if (!content) return;
+  if (!rect || rect.width === 0) {
+    modal.classList.remove('anchored');
+    content.style.top = content.style.left = content.style.maxHeight = '';
+    return;
+  }
+
+  const margin = 8;
+  const gap = 6;
+  const viewportWidth = document.documentElement.clientWidth;
+  modal.classList.add('anchored');
+  content.style.top = `${rect.bottom + gap}px`;
+  content.style.maxHeight = `${window.innerHeight - rect.bottom - gap - margin}px`;
+  const left = Math.min(rect.left, viewportWidth - content.offsetWidth - margin);
+  content.style.left = `${Math.max(margin, left)}px`;
+}
+
 // Resolves 'save', 'discard', or 'cancel'; 'discard' if the modal markup is missing.
 export function openUnsavedChangesModal({ uncertain = false } = {}) {
   const modal = getModal();
@@ -61,6 +81,7 @@ export function openUnsavedChangesModal({ uncertain = false } = {}) {
     previouslyFocused = document.activeElement;
 
     modal.classList.remove('hidden');
+    positionNearProjects(modal);
 
     setTimeout(() => {
       document.getElementById('unsavedChangesSaveButton')?.focus();

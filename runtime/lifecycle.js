@@ -65,17 +65,22 @@ function keepHoverCursorCurrent(scene) {
   scene.onPrePointerObservable.add(() => (overlayHasPointer = true), move);
   scene.onPointerObservable.add(() => (overlayHasPointer = false), move);
   let wanted = null;
-  scene.onAfterRenderObservable.add(() => {
+  const applyCursor = () => {
     const canvas = scene.getEngine().getInputElement();
     if (!canvas || scene.doNotHandleCursors || overlayHasPointer) return;
-    const manager = scene.meshUnderPointer?._getActionManagerForTrigger();
+    const paused = flock?.isPaused?.();
+    const manager = paused ? null : scene.meshUnderPointer?._getActionManagerForTrigger();
     const cursor = manager?.hasPointerTriggers
       ? manager.hoverCursor || scene.hoverCursor
       : scene.defaultCursor;
-    if (cursor === wanted) return;
+    if (cursor === wanted && !paused) return;
     wanted = cursor;
     if (canvas.style.cursor !== 'none') canvas.style.cursor = cursor;
-  });
+  };
+  scene.onPointerObservable.add(() => {
+    if (flock?.isPaused?.()) applyCursor();
+  }, move);
+  scene.onAfterRenderObservable.add(applyCursor);
 }
 
 let flock;

@@ -73,9 +73,9 @@ export function runTransformGeneratorTests() {
       expect(code).to.equal('await rotateTo(item1, { x: 1, y: 2, z: 3 });\n');
     });
 
-    function setPivotBlock(parent) {
+    function pointBlock(type, parent) {
       return {
-        type: 'set_pivot',
+        type,
         isEnabled: () => true,
         getFieldValue: (name) => (name === 'MESH' ? 'item1' : null),
         getPreviousBlock: () => null,
@@ -83,23 +83,25 @@ export function runTransformGeneratorTests() {
       };
     }
 
-    // In the object's own DO the anchor is part of creation, so the create
-    // position applies to the new anchor; elsewhere the object stays put.
-    it("places the anchor at the create position in the object's own DO", function () {
-      const owner = {
-        getFieldValue: (name) => (name === 'ID_VAR' ? 'item1' : null),
-        getInputWithBlock: () => ({ name: 'DO' }),
-      };
-      const code = generate('set_pivot', setPivotBlock(owner));
-      expect(code).to.equal(
-        'await setAnchor(item1, { xPivot: 0, yPivot: 0, zPivot: 0, placeAnchor: true });\n'
-      );
-    });
+    const owner = {
+      getFieldValue: (name) => (name === 'ID_VAR' ? 'item1' : null),
+      getInputWithBlock: () => ({ name: 'DO' }),
+    };
+    const start = { getFieldValue: () => null, getInputWithBlock: () => ({ name: 'DO' }) };
 
-    it('keeps the object in place when the anchor is set outside its DO', function () {
-      const start = { getFieldValue: () => null, getInputWithBlock: () => ({ name: 'DO' }) };
-      const code = generate('set_pivot', setPivotBlock(start));
-      expect(code).to.equal('await setAnchor(item1, { xPivot: 0, yPivot: 0, zPivot: 0 });\n');
-    });
+    // Neither block depends on being in the object's own DO.
+    for (const parent of [owner, start]) {
+      const where = parent === owner ? "in the object's own DO" : 'outside its DO';
+
+      it(`sets the pivot ${where}`, function () {
+        const code = generate('set_pivot', pointBlock('set_pivot', parent));
+        expect(code).to.equal('await setPivot(item1, { x: 0, y: 0, z: 0 });\n');
+      });
+
+      it(`sets the anchor ${where}`, function () {
+        const code = generate('set_anchor', pointBlock('set_anchor', parent));
+        expect(code).to.equal('await setAnchor(item1, { x: 0, y: 0, z: 0 });\n');
+      });
+    }
   });
 }

@@ -52,7 +52,8 @@ export function findFoldableTransforms(owner) {
   if (!hasInitialTransformRows(owner) || usesAnchorPosition(owner)) return null;
   const ownVar = getOwnVar(owner);
   const statements = doStatements(owner);
-  if (statements.some((b) => b.type === 'set_pivot' && b.getFieldValue('MESH') === ownVar)) {
+  const pointTypes = ['set_pivot', 'set_anchor'];
+  if (statements.some((b) => pointTypes.includes(b.type) && b.getFieldValue('MESH') === ownVar)) {
     return null;
   }
 

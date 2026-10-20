@@ -357,7 +357,8 @@ export default {
   move_forward: 'muovi %1 %2 velocità %3',
   rotate_camera: 'ruota la camera di %1 gradi',
   up: 'su %1 forza %2',
-  set_pivot: 'imposta ancoraggio di %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'imposta ancoraggio di %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'imposta perno di %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -629,7 +630,8 @@ export default {
     "Muove l'oggetto nella direzione specificata. 'Avanti' segue la direzione in cui punta; 'laterale' si muove rispetto alla camera; 'strafe' si muove di lato rispetto alla camera.",
   rotate_camera_tooltip: 'Ruota la camera a sinistra o destra dei gradi indicati.',
   up_tooltip: "Applica la forza verso l'alto indicata.",
-  set_pivot_tooltip: 'Imposta il punto di ancoraggio di un oggetto sugli assi X, Y e Z.',
+  set_anchor_tooltip: 'Imposta il punto di ancoraggio di un oggetto sugli assi X, Y e Z.',
+  set_pivot_tooltip: 'Imposta il punto attorno a cui ruota un oggetto. L’oggetto resta dove si trova.',
   min_centre_max_tooltip: 'Scegli min, centro o max per il punto di perno.',
 
   // Tooltip translations - XR blocks
