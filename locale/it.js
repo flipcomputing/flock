@@ -156,7 +156,7 @@ export default {
   glide_to: 'scivola %1 a %10 x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_seconds: 'scivola %1 a %10 x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_object:
-    'scivola %1 verso %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10',
+    'scivola %1 %11 %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10',
   glide_to_axis: 'scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8',
   rotate_anim: 'ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9',
   rotate_anim_seconds: 'ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9',
@@ -202,7 +202,7 @@ export default {
   stop_follow: 'smetti di seguire %1',
   hold: 'fai tenere a %1 %2\noffset x: %3 y: %4 z: %5',
   drop: 'lascia %1',
-  follow: 'fai seguire a %1 %2 a %3\noffset x: %4 y: %5 z: %6',
+  follow: 'fai seguire a %1 %3 %2\noffset x: %4 y: %5 z: %6',
   export_mesh: 'esporta %1 come %2',
   export_mesh_unit_label: '1 unità =',
   attach: 'aggancia %1 a %2 a %3\noffset x: %4 y: %5 z: %6',
@@ -346,9 +346,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambia posizione di %1 di x: %2 y: %3 z: %4',
   move_by_xyz_single: 'cambia la posizione di %1 di %2 %3',
-  move_to_xyz: 'imposta la posizione di %1 su %6 x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'imposta la posizione di %1 su %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'imposta la posizione di %1 a %2 %3',
-  move_to: 'imposta la posizione di %1 su %2 y? %3',
+  move_to: 'imposta la posizione di %1 %3 %2\noffset x: %4 y: %5 z: %6',
   scale: 'scala %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   resize: 'ridimensiona %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   rotate_model_xyz: 'ruota %1 di x: %2 y: %3 z: %4',
@@ -415,7 +415,7 @@ export default {
   glide_to_seconds_tooltip:
     'Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.',
   glide_to_object_tooltip:
-    'Scivola verso la posizione di un altro oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing.',
+    'Scivola verso la posizione di un altro oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing. Scegli un lato per scivolare contro di esso, ad esempio sopra.', // ai
   glide_to_axis_tooltip:
     "Scivola lungo un asse (X, Y o Z) verso un valore obiettivo. Gli altri due assi sono fissati alla posizione attuale dell'oggetto (con supporto ancoraggio). Stesse opzioni del blocco glide standard.",
   rotate_anim_tooltip:
@@ -472,7 +472,7 @@ export default {
     'Attacca un oggetto all’osso specificato di un’altra oggetto con offset in x, y e z.',
   drop_tooltip: 'Stacca un oggetto dall’osso a cui è attualmente attaccata.',
   follow_tooltip:
-    'Fa seguire un oggetto a un’altra in una posizione (alto, centro o basso) con offset in x, y e z.',
+    "Fa seguire un oggetto a un altro: su di esso, al suo centro o contro uno dei suoi lati. Lati e offset seguono la rotazione dell'altro oggetto.", // ai
   export_mesh_tooltip: 'Esporta un oggetto come STL, OBJ o GLB.',
 
   // Tooltip translations - Control blocks
@@ -616,9 +616,10 @@ export default {
   move_by_xyz_tooltip: 'Muove un oggetto di una certa quantità in x, y e z.',
   move_by_xyz_single_tooltip:
     'Sposta un oggetto di una determinata quantità nella direzione x, y o z.',
-  move_to_xyz_tooltip: "Teletrasporta l'oggetto alle coordinate. Facoltativamente usa l’asse Y.",
+  move_to_xyz_tooltip: "Teletrasporta l'oggetto alle coordinate.",
   move_to_xyz_single_tooltip: "Teletrasporta l'oggetto alla coordinata singola specificata.",
-  move_to_tooltip: 'Teletrasporta la prima oggetto alla posizione della seconda oggetto.',
+  move_to_tooltip:
+    "Metti il primo oggetto sul secondo o contro uno dei suoi lati, poi spostalo dell'offset. Lati e offset seguono la rotazione del secondo oggetto.", // ai
   scale_tooltip:
     'Ridimensiona un oggetto ai valori x, y e z dati e controlla l’origine della scalatura.',
   resize_tooltip:
@@ -727,6 +728,16 @@ export default {
   strafe_option: 'strafe',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'su', // ai
+  PLACE_TO_option: 'verso', // ai
+  PLACE_CENTER_option: 'al centro di', // ai
+  PLACE_TO_CENTER_option: 'al centro di', // ai
+  PLACE_ON_TOP_option: 'sopra', // ai
+  PLACE_UNDER_option: 'sotto', // ai
+  PLACE_LEFT_option: 'a sinistra di', // ai
+  PLACE_RIGHT_option: 'a destra di', // ai
+  PLACE_FRONT_option: 'davanti a', // ai
+  PLACE_BEHIND_option: 'dietro', // ai
   user_option: 'fronte',
   environment_option: 'retro',
 

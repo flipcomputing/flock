@@ -41,7 +41,11 @@ export function runFilesImportErrorTests() {
       originalAlert = window.alert;
       alerts = [];
       window.alert = (message) => alerts.push(message);
-      topBlocksBefore = new Set(Blockly.getMainWorkspace().getTopBlocks(false).map((b) => b.id));
+      topBlocksBefore = new Set(
+        Blockly.getMainWorkspace()
+          .getTopBlocks(false)
+          .map((b) => b.id)
+      );
     });
 
     afterEach(function () {
@@ -89,6 +93,97 @@ export function runFilesImportErrorTests() {
         await importSnippetFile(new File(['{not json'], 'broken.fsnip'));
         expect(alerts).to.deep.equal([translate('invalid_snippet_alert')]);
         expect(added()).to.have.length(0);
+      });
+
+      describe('set position from before the y checkbox was removed', function () {
+        const moveSnippet = (useY) => ({
+          type: 'move_to_xyz',
+          fields: { MODEL: { id: 'legacyUseYVar', name: 'legacyUseYBox' }, USE_Y: useY },
+          inputs: {
+            X: { shadow: { type: 'math_number', fields: { NUM: 1 } } },
+            Y: { shadow: { type: 'math_number', fields: { NUM: 5 } } },
+            Z: { shadow: { type: 'math_number', fields: { NUM: 2 } } },
+          },
+        });
+
+        afterEach(function () {
+          const variable = Blockly.getMainWorkspace().getVariableById('legacyUseYVar');
+          if (variable) Blockly.getMainWorkspace().deleteVariableById(variable.getId());
+        });
+
+        it('keeps the height of an unticked block by reading its own y', async function () {
+          await importSnippetFile(new File([JSON.stringify(moveSnippet(false))], 'move.fsnip'));
+          const [move] = added();
+          const y = move.getInputTargetBlock('Y');
+          expect(y.type).to.equal('get_property');
+          expect(y.getFieldValue('PROPERTY')).to.equal('POSITION_Y');
+          expect(y.getFieldValue('MESH')).to.equal(move.getFieldValue('MODEL'));
+        });
+
+        it('keeps the y value of a ticked block', async function () {
+          await importSnippetFile(new File([JSON.stringify(moveSnippet(true))], 'move.fsnip'));
+          const [move] = added();
+          const y = move.getInputTargetBlock('Y');
+          expect(y.type).to.equal('math_number');
+          expect(y.getFieldValue('NUM')).to.equal(5);
+        });
+
+        const moveToSnippet = (useY) => ({
+          type: 'move_to',
+          fields: {
+            MODEL1: { id: 'legacyUseYVar', name: 'legacyUseYBox' },
+            MODEL2: { id: 'legacyUseYTarget', name: 'legacyUseYTree' },
+            USE_Y: useY,
+          },
+        });
+
+        afterEach(function () {
+          const variable = Blockly.getMainWorkspace().getVariableById('legacyUseYTarget');
+          if (variable) Blockly.getMainWorkspace().deleteVariableById(variable.getId());
+        });
+
+        it('moves an unticked block to the other object at its own height', async function () {
+          await importSnippetFile(new File([JSON.stringify(moveToSnippet(false))], 'move.fsnip'));
+          const [move] = added();
+          expect(move.type).to.equal('move_to_xyz');
+          const read = (axis) => {
+            const input = move.getInputTargetBlock(axis);
+            return [input.getField('MESH').getText(), input.getFieldValue('PROPERTY')];
+          };
+          expect(read('X')).to.deep.equal(['legacyUseYTree', 'POSITION_X']);
+          expect(read('Y')).to.deep.equal(['legacyUseYBox', 'POSITION_Y']);
+          expect(read('Z')).to.deep.equal(['legacyUseYTree', 'POSITION_Z']);
+        });
+
+        it('keeps a ticked block moving to the other object', async function () {
+          await importSnippetFile(new File([JSON.stringify(moveToSnippet(true))], 'move.fsnip'));
+          const [move] = added();
+          expect(move.type).to.equal('move_to');
+          expect(move.getField('MODEL2').getText()).to.equal('legacyUseYTree');
+          for (const name of ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET']) {
+            expect(move.getInputTargetBlock(name).getFieldValue('NUM')).to.equal(0);
+          }
+        });
+
+        for (const [position, side] of [
+          ['TOP', 'PLACE_ON_TOP'],
+          ['CENTER', 'PLACE_CENTER'],
+          ['BOTTOM', 'PLACE_AT'],
+        ]) {
+          it(`turns an old follow ${position} into ${side}`, async function () {
+            const snippet = {
+              type: 'follow',
+              fields: {
+                FOLLOWER_MESH: { id: 'legacyUseYVar', name: 'legacyUseYBox' },
+                TARGET_MESH: { id: 'legacyUseYTarget', name: 'legacyUseYTree' },
+                FOLLOW_POSITION: position,
+              },
+            };
+            await importSnippetFile(new File([JSON.stringify(snippet)], 'follow.fsnip'));
+            const [follow] = added();
+            expect(follow.getFieldValue('SIDE')).to.equal(side);
+          });
+        }
       });
 
       it('says when a file is not a snippet type', async function () {

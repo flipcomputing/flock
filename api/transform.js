@@ -328,6 +328,52 @@ function moveAnchorTo(mesh, target) {
   });
 }
 
+// Flock models face local -z, so their own left is local +x.
+const SIDES = {
+  center: null,
+  on_top: [1, 1],
+  under: [1, -1],
+  left: [0, 1],
+  right: [0, -1],
+  front: [2, -1],
+  behind: [2, 1],
+};
+
+function worldHalfAxes(mesh) {
+  mesh.computeWorldMatrix(true);
+  const box = mesh.getBoundingInfo().boundingBox;
+  const { Vector3 } = flock.BABYLON;
+  return {
+    centre: box.centerWorld.clone(),
+    halfAxes: [
+      new Vector3(box.extendSize.x, 0, 0),
+      new Vector3(0, box.extendSize.y, 0),
+      new Vector3(0, 0, box.extendSize.z),
+    ].map((v) => Vector3.TransformNormal(v, mesh.getWorldMatrix())),
+  };
+}
+
+// Sides follow the target's own axes; the mover keeps its rotation and its box
+// touches that face, centred on it. Center lines up the two box centres.
+function besideAnchor(mesh, target, side) {
+  const to = worldHalfAxes(target);
+  const from = worldHalfAxes(mesh);
+  let goal = to.centre;
+  if (SIDES[side]) {
+    const [axisIndex, sign] = SIDES[side];
+    const halfAxis = to.halfAxes[axisIndex];
+    const normal = halfAxis.normalizeToNew().scale(sign);
+    const reach = from.halfAxes.reduce(
+      (sum, v) => sum + Math.abs(flock.BABYLON.Vector3.Dot(v, normal)),
+      0
+    );
+    goal = goal.add(normal.scale(halfAxis.length() + reach));
+  }
+  const shift = goal.subtract(from.centre);
+  const anchor = flock._getAnchor(mesh);
+  return { x: anchor.x + shift.x, y: anchor.y + shift.y, z: anchor.z + shift.z };
+}
+
 function positionXYZ(position) {
   const [x, y, z] = Array.isArray(position)
     ? position
@@ -518,7 +564,7 @@ export const flockTransform = {
   },
   positionAtSingleCoordinate(meshName, coordinate_setting, value) {
     return new Promise((resolve) => {
-      flock.whenModelReady(meshName, (mesh) => {
+      flock.whenModelReady(meshName, async (mesh) => {
         // Prevent positionAt call if mesh doesn't exist in the first place
         if (!flock.requireMesh(mesh, { api: 'positionAtSingleCoordinate', name: meshName })) {
           resolve();
@@ -527,7 +573,7 @@ export const flockTransform = {
 
         switch (coordinate_setting) {
           case 'x_coordinate':
-            flock.positionAt(meshName, {
+            await flock.positionAt(meshName, {
               x: value,
               y: null,
               z: null,
@@ -536,7 +582,7 @@ export const flockTransform = {
             break;
 
           case 'y_coordinate':
-            flock.positionAt(meshName, {
+            await flock.positionAt(meshName, {
               x: null,
               y: value,
               z: null,
@@ -545,7 +591,7 @@ export const flockTransform = {
             break;
 
           case 'z_coordinate':
-            flock.positionAt(meshName, {
+            await flock.positionAt(meshName, {
               x: null,
               y: null,
               z: value,
@@ -558,7 +604,10 @@ export const flockTransform = {
       });
     });
   },
-  moveTo(meshName, { target, useY = true } = {}) {
+  moveTo(
+    meshName,
+    { target, useY = true, side = null, offsetX = 0, offsetY = 0, offsetZ = 0 } = {}
+  ) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh1) => {
         if (!flock.requireMesh(mesh1, { api: 'moveTo', name: meshName })) {
@@ -566,19 +615,27 @@ export const flockTransform = {
           return;
         }
 
-        flock.whenModelReady(target, (mesh2) => {
+        flock.whenModelReady(target, async (mesh2) => {
           if (!flock.requireMesh(mesh2, { api: 'moveTo', name: target })) {
             resolve();
             return;
           }
 
           try {
-            const targetAbsPosition = mesh2.getAbsolutePosition().clone();
-            if (!useY) {
-              targetAbsPosition.y = mesh1.getAbsolutePosition().y;
+            const offset = flock._targetOffset(mesh2, { x: offsetX, y: offsetY, z: offsetZ });
+            if (meshName === '__active_camera__' || mesh1.metadata?.shape === 'camera') {
+              const targetAbsPosition = mesh2.getAbsolutePosition().add(offset);
+              if (!useY) targetAbsPosition.y = mesh1.getAbsolutePosition().y;
+              mesh1.setAbsolutePosition(targetAbsPosition);
+            } else {
+              const goal = flock._anchorGoal(mesh1, mesh2, side);
+              await placeAnchorAt(mesh1, {
+                x: goal.x + offset.x,
+                y: goal.y + offset.y,
+                z: goal.z + offset.z,
+                useY,
+              });
             }
-
-            mesh1.setAbsolutePosition(targetAbsPosition);
             mesh1.computeWorldMatrix(true);
             teleportBodyToMesh(mesh1);
 
@@ -1163,6 +1220,20 @@ export const flockTransform = {
       : posY;
 
     return { x: (pos.x ?? 0) - shift.x, y: baseRuleY - shift.y, z: (pos.z ?? 0) - shift.z };
+  },
+  // Where mesh's anchor goes to sit at target, or against one of its sides.
+  _anchorGoal(mesh, target, side = null) {
+    if (Object.hasOwn(SIDES, side) && mesh.getBoundingInfo?.() && target.getBoundingInfo?.()) {
+      return besideAnchor(mesh, target, side);
+    }
+    return flock._getAnchor(target);
+  },
+  _targetOffset(target, { x = 0, y = 0, z = 0 } = {}, space = 'local') {
+    const offset = new flock.BABYLON.Vector3(toFinite(x), toFinite(y), toFinite(z));
+    if (space === 'world' || offset.equals(flock.BABYLON.Vector3.Zero())) return offset;
+    const rotation = new flock.BABYLON.Quaternion();
+    target.computeWorldMatrix(true).decompose(undefined, rotation);
+    return offset.applyRotationQuaternion(rotation);
   },
   _getAnchor(mesh) {
     if (!mesh) return null;

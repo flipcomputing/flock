@@ -156,7 +156,7 @@ export default {
   glide_to_seconds:
     'deslizar %1 a %10 x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_object:
-    'deslizar %1 a %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
+    'deslizar %1 %11 %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
   glide_to_axis: 'deslizar %1 %2 %3 en %4 segundos\n%5 ¿regresar? %6 ¿repetir? %7 %8', // human
   rotate_anim: 'rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
   rotate_anim_seconds: 'rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
@@ -202,7 +202,7 @@ export default {
   stop_follow: 'parar seguimiento de %1', // human
   hold: 'hacer que %1 sostenga %2\ndesplazamiento x: %3 y: %4 z: %5', // human
   drop: 'soltar %1', // human
-  follow: 'hacer que %1 siga a %2 a %3\ndesplazamiento x: %4 y: %5 z: %6', // human
+  follow: 'hacer que %1 siga %3 %2\ndesplazamiento x: %4 y: %5 z: %6', // ai
   export_mesh: 'exportar %1 como %2', // human
   export_mesh_unit_label: '1 unidad =',
   attach: 'adjuntar %1 a %2 en %3\ndesplazamiento x: %4 y: %5 z: %6', // human
@@ -386,9 +386,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambiar posición de %1 por x: %2 y: %3 z: %4', // human
   move_by_xyz_single: 'cambiar posición de %1 por %2 %3', // human
-  move_to_xyz: 'establecer posición de %1 a %6 x: %2 y: %3 z: %4 y? %5', // human
+  move_to_xyz: 'establecer posición de %1 a %5 x: %2 y: %3 z: %4', // human
   move_to_xyz_single: 'establecer posición de %1 a %2 %3', // human
-  move_to: 'establecer posición de %1 a %2 y? %3', // human
+  move_to: 'establecer posición de %1 %3 %2\ndesplazamiento x: %4 y: %5 z: %6', // human
   scale: 'escalar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7', // human
   resize: 'redimensionar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7', // human
   rotate_model_xyz: 'rotar %1 por x: %2 y: %3 z: %4', // human
@@ -457,7 +457,7 @@ export default {
   glide_to_seconds_tooltip:
     'Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.', // human
   glide_to_object_tooltip:
-    'Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando.', // human
+    'Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando. Elige un lado para deslizarte junto a él, como encima de.', // ai
   glide_to_axis_tooltip:
     'Desliza a lo largo de un eje (X, Y o Z) hasta un valor objetivo. Los otros dos ejes se fijan a la posición actual del objeto (con soporte de anclaje). Mismas opciones que el bloque de deslizamiento estándar.', // human
   rotate_anim_tooltip:
@@ -517,7 +517,7 @@ export default {
   hold_tooltip: 'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.', // human
   drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.', // human
   follow_tooltip:
-    'Haz que un objeto siga a otro en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.', // human
+    'Haz que un objeto siga a otro: en él, en su centro o junto a uno de sus lados. Los lados y el desplazamiento siguen la rotación del otro objeto.', // ai
   export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.', // human
 
   // Tooltip translations - Control blocks
@@ -690,9 +690,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Mueve un objeto cierta cantidad en direcciones x, y, y z.', // human
   move_by_xyz_single_tooltip: 'Mueve un objeto una cantidad en cualquiera dirección x, y, o z.', // human
-  move_to_xyz_tooltip: 'Teletransporta el objeto a las coordenadas. Opcionalmente, usa el eje Y.', // human
+  move_to_xyz_tooltip: 'Teletransporta el objeto a las coordenadas.', // human
   move_to_xyz_single_tooltip: 'Teletransporta el objeto a la coordenada única especificada.', // human
-  move_to_tooltip: 'Teletransporta el primer objeto a la ubicación del segundo.', // human
+  move_to_tooltip:
+    'Coloca el primer objeto en el segundo o junto a uno de sus lados y lo desplaza. Los lados y el desplazamiento siguen la rotación del segundo objeto.', // ai
   scale_tooltip:
     'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.', // human
   resize_tooltip:
@@ -814,6 +815,16 @@ export default {
   strafe_option: 'strafear', // human
   MIN_option: 'mín', // human
   MAX_option: 'máx', // human
+  PLACE_AT_option: 'a', // ai
+  PLACE_TO_option: 'a', // ai
+  PLACE_CENTER_option: 'en el centro de', // ai
+  PLACE_TO_CENTER_option: 'al centro de', // ai
+  PLACE_ON_TOP_option: 'encima de', // ai
+  PLACE_UNDER_option: 'debajo de', // ai
+  PLACE_LEFT_option: 'a la izquierda de', // ai
+  PLACE_RIGHT_option: 'a la derecha de', // ai
+  PLACE_FRONT_option: 'delante de', // ai
+  PLACE_BEHIND_option: 'detrás de', // ai
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
 

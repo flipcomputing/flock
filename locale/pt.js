@@ -154,7 +154,7 @@ export default {
   glide_to: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9',
   glide_to_seconds: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9',
   glide_to_object:
-    'deslizar %1 até %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10',
+    'deslizar %1 %11 %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10',
   glide_to_axis: 'deslizar %1 %2 %3 em %4 segundos\n%5 voltar? %6 repetir? %7 %8',
   rotate_anim: 'girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9',
   rotate_anim_seconds:
@@ -201,7 +201,7 @@ export default {
   stop_follow: 'parar de seguir %1',
   hold: 'fazer %1 segurar %2\ndeslocamento x: %3 y: %4 z: %5',
   drop: 'soltar %1',
-  follow: 'fazer %1 seguir %2 em %3\ndeslocamento x: %4 y: %5 z: %6',
+  follow: 'fazer %1 seguir %3 %2\ndeslocamento x: %4 y: %5 z: %6',
   export_mesh: 'exportar %1 como %2',
   export_mesh_unit_label: '1 unidade =',
   attach: 'anexar %1 a %2 em %3\ndeslocamento x: %4 y: %5 z: %6',
@@ -347,9 +347,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'alterar posição de %1 em x: %2 y: %3 z: %4',
   move_by_xyz_single: 'alterar posição de %1 em %2 %3',
-  move_to_xyz: 'definir posição de %1 para %6 x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'definir posição de %1 para %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'definir posição de %1 para %2 %3',
-  move_to: 'definir posição de %1 para %2 y? %3',
+  move_to: 'definir posição de %1 %3 %2\ndeslocamento x: %4 y: %5 z: %6',
   scale: 'escalar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7',
   resize: 'redimensionar %1 x: %2 y: %3 z: %4\norigem x: %5 y: %6 z: %7',
   rotate_model_xyz: 'girar %1 por x: %2 y: %3 z: %4',
@@ -414,7 +414,7 @@ export default {
   glide_to_seconds_tooltip:
     'Desliza para uma posição específica durante um período com opções de reverso, repetição e easing.',
   glide_to_object_tooltip:
-    'Desliza até a posição de outro objeto com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing.',
+    'Desliza até a posição de outro objeto com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing. Escolhe um lado para deslizar encostado a ele, como em cima de.', // ai
   glide_to_axis_tooltip:
     'Desliza ao longo de um eixo (X, Y ou Z) até um valor alvo. Os outros dois eixos são fixados à posição atual do objeto (com suporte de âncora). Mesmas opções do bloco de deslizamento padrão.',
   rotate_anim_tooltip:
@@ -474,7 +474,7 @@ export default {
     'Anexa um objeto a um osso específico de outro objeto com deslocamento em x, y e z.',
   drop_tooltip: 'Desanexa um objeto do osso ao qual está conectado.',
   follow_tooltip:
-    'Faz um objeto seguir outro em uma posição específica (topo, centro ou base) com deslocamento em x, y e z.',
+    'Faz um objeto seguir outro: nele, no seu centro ou encostado a um dos seus lados. Os lados e o deslocamento seguem a rotação do outro objeto.', // ai
   export_mesh_tooltip: 'Exporta um objeto como STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks
@@ -621,9 +621,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Move um objeto uma certa distância nas direções x, y e z.',
   move_by_xyz_single_tooltip: 'Mover um objeto uma determinada quantidade na direção x, y ou z.',
-  move_to_xyz_tooltip: 'Teleporta o objeto para as coordenadas. Opcionalmente, use o eixo Y.',
+  move_to_xyz_tooltip: 'Teleporta o objeto para as coordenadas.',
   move_to_xyz_single_tooltip: 'Teletransportar o objeto para a coordenada única especificada.',
-  move_to_tooltip: 'Teleporta o primeiro objeto para a localização do segundo objeto.',
+  move_to_tooltip:
+    'Coloca o primeiro objeto no segundo ou encostado a um dos seus lados e desloca-o. Os lados e o deslocamento seguem a rotação do segundo objeto.', // ai
   scale_tooltip:
     'Redimensiona um objeto para os valores de x, y e z, controlando a origem da escala.',
   resize_tooltip:
@@ -732,6 +733,16 @@ export default {
   strafe_option: 'deslocamento lateral',
   MIN_option: 'mínimo',
   MAX_option: 'máximo',
+  PLACE_AT_option: 'para', // ai
+  PLACE_TO_option: 'até', // ai
+  PLACE_CENTER_option: 'no centro de', // ai
+  PLACE_TO_CENTER_option: 'para o centro de', // ai
+  PLACE_ON_TOP_option: 'em cima de', // ai
+  PLACE_UNDER_option: 'debaixo de', // ai
+  PLACE_LEFT_option: 'à esquerda de', // ai
+  PLACE_RIGHT_option: 'à direita de', // ai
+  PLACE_FRONT_option: 'à frente de', // ai
+  PLACE_BEHIND_option: 'atrás de', // ai
   user_option: 'frente',
   environment_option: 'trás',
 

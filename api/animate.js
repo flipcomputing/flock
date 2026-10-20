@@ -581,6 +581,7 @@ export const flockAnimate = {
       offsetY = 0,
       offsetZ = 0,
       offsetSpace = 'local',
+      side = null,
       duration = 1,
       reverse = false,
       loop = false,
@@ -593,37 +594,14 @@ export const flockAnimate = {
     const mesh2 = await flock.whenModelReady(meshName2);
     if (!mesh2) return;
 
-    const { x: baseX, y: baseY, z: baseZ } = flock._getAnchor(mesh2);
-
-    let worldOffsetX = 0;
-    let worldOffsetY = 0;
-    let worldOffsetZ = 0;
-
-    if (offsetX !== 0 || offsetY !== 0 || offsetZ !== 0) {
-      if (offsetSpace === 'world') {
-        worldOffsetX = offsetX;
-        worldOffsetY = offsetY;
-        worldOffsetZ = offsetZ;
-      } else {
-        mesh2.computeWorldMatrix(true);
-        const localOffset = new flock.BABYLON.Vector3(offsetX, offsetY, offsetZ);
-        const worldOffset = flock.BABYLON.Vector3.TransformNormal(
-          localOffset,
-          mesh2.getWorldMatrix()
-        );
-
-        worldOffsetX = worldOffset.x;
-        worldOffsetY = worldOffset.y;
-        worldOffsetZ = worldOffset.z;
-      }
-    }
+    const offset = flock._targetOffset(mesh2, { x: offsetX, y: offsetY, z: offsetZ }, offsetSpace);
 
     // Camera to camera: the first camera moves onto the second one's view.
     const isCamera = mesh1 instanceof flock.BABYLON.Camera || mesh1.metadata?.shape === 'camera';
     if (isCamera && mesh2.metadata?.shape === 'camera') {
       await mesh1.metadata?.cameraReady;
       await flock._glideCameraTo(mesh1, mesh2, {
-        offset: new flock.BABYLON.Vector3(worldOffsetX, worldOffsetY, worldOffsetZ),
+        offset,
         duration,
         easing,
         reverse,
@@ -632,10 +610,11 @@ export const flockAnimate = {
       return;
     }
 
+    const goal = isCamera ? flock._getAnchor(mesh2) : flock._anchorGoal(mesh1, mesh2, side);
     await this.glideTo(meshName1, {
-      x: baseX + worldOffsetX,
-      y: baseY + worldOffsetY,
-      z: baseZ + worldOffsetZ,
+      x: goal.x + offset.x,
+      y: goal.y + offset.y,
+      z: goal.z + offset.z,
       duration,
       reverse,
       loop,

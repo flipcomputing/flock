@@ -4,6 +4,7 @@ import {
   getHelpUrlFor,
   handleCloneDoBlockChange,
   handleFieldOrChildChange,
+  placementOptions,
   registerBlockHandler,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
@@ -154,12 +155,6 @@ export function defineTransformBlocks() {
             align: 'RIGHT',
           },
           {
-            type: 'field_checkbox',
-            name: 'USE_Y',
-            checked: true,
-            text: 'Use Y axis',
-          },
-          {
             type: 'field_pick_position',
             name: 'PICK_POSITION',
           },
@@ -236,10 +231,24 @@ export function defineTransformBlocks() {
             variable: otherObjectName('object2'),
           },
           {
-            type: 'field_checkbox',
-            name: 'USE_Y',
-            checked: false,
-            text: 'Use Y axis',
+            type: 'field_dropdown',
+            name: 'SIDE',
+            options: placementOptions('PLACE_AT'),
+          },
+          {
+            type: 'input_value',
+            name: 'X_OFFSET',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y_OFFSET',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z_OFFSET',
+            check: 'Number',
           },
         ],
         previousStatement: null,

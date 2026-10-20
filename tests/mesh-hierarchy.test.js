@@ -2562,26 +2562,38 @@ export function runMeshHierarchyTests(flock) {
 
       it('should rest the follower base on the top of the target', async function () {
         const { followerId, targetId } = await createFollowPair('Top');
-        const { min, max } = await followerBounds(followerId, targetId, 'TOP');
+        const { min, max } = await followerBounds(followerId, targetId, 'on_top');
 
         expect(min.y).to.be.closeTo(2, 0.001);
         expect((min.x + max.x) / 2).to.be.closeTo(3, 0.001);
         expect((min.z + max.z) / 2).to.be.closeTo(1, 0.001);
       });
 
-      it('should use the target centre and bottom from its bounds', async function () {
+      it('should line up the centres, or the anchors at the target', async function () {
         const centre = await createFollowPair('Centre');
-        const centreBounds = await followerBounds(centre.followerId, centre.targetId, 'CENTER');
-        expect(centreBounds.min.y).to.be.closeTo(1, 0.001);
+        const centreBounds = await followerBounds(centre.followerId, centre.targetId, 'center');
+        expect((centreBounds.min.y + centreBounds.max.y) / 2).to.be.closeTo(1, 0.001);
 
-        const bottom = await createFollowPair('Bottom');
-        const bottomBounds = await followerBounds(bottom.followerId, bottom.targetId, 'BOTTOM');
-        expect(bottomBounds.min.y).to.be.closeTo(0, 0.001);
+        const at = await createFollowPair('At');
+        const atBounds = await followerBounds(at.followerId, at.targetId, 'at');
+        expect(atBounds.min.y).to.be.closeTo(0, 0.001);
+      });
+
+      it('should still accept the old top, center and bottom names', async function () {
+        const top = await createFollowPair('OldTop');
+        expect((await followerBounds(top.followerId, top.targetId, 'TOP')).min.y).to.be.closeTo(
+          2,
+          0.001
+        );
+        const bottom = await createFollowPair('OldBottom');
+        expect(
+          (await followerBounds(bottom.followerId, bottom.targetId, 'BOTTOM')).min.y
+        ).to.be.closeTo(0, 0.001);
       });
 
       it('should add the offset to the follow point', async function () {
         const { followerId, targetId } = await createFollowPair('Offset');
-        const { min } = await followerBounds(followerId, targetId, 'TOP', 0.5);
+        const { min } = await followerBounds(followerId, targetId, 'on_top', 0.5);
 
         expect(min.y).to.be.closeTo(2.5, 0.001);
       });
@@ -2591,18 +2603,56 @@ export function runMeshHierarchyTests(flock) {
         await flock.setPivot(targetId, { x: 'CENTER', y: 'MIN', z: 'CENTER' });
         flock.scene.getMeshByName(targetId).scaling.y = 3;
 
-        const { min } = await followerBounds(followerId, targetId, 'TOP');
+        const { min } = await followerBounds(followerId, targetId, 'on_top');
 
         expect(min.y).to.be.closeTo(6, 0.001);
       });
 
-      it('should place the follower by its own anchor', async function () {
+      it('should place the follower by its own anchor at the target', async function () {
         const { followerId, targetId } = await createFollowPair('Anchor');
         await flock.setAnchor(followerId, { x: 'CENTER', y: 'CENTER', z: 'CENTER' });
 
-        const { min, max } = await followerBounds(followerId, targetId, 'TOP');
+        const { min, max } = await followerBounds(followerId, targetId, 'at');
 
-        expect((min.y + max.y) / 2).to.be.closeTo(2, 0.001);
+        expect((min.y + max.y) / 2).to.be.closeTo(0, 0.001);
+      });
+
+      it('should turn the follower with the target, keeping its starting turn', async function () {
+        const { followerId, targetId } = await createFollowPair('Rotating');
+        const { Quaternion, Vector3, Matrix } = flock.BABYLON;
+        const follower = flock.scene.getMeshByName(followerId);
+        const target = flock.scene.getMeshByName(targetId);
+        follower.rotationQuaternion = Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2);
+        const axes = (mesh) =>
+          [new Vector3(1, 0, 0), new Vector3(0, 1, 0)].map((v) =>
+            Vector3.TransformNormal(v, mesh.computeWorldMatrix(true)).normalize()
+          );
+        const before = axes(follower);
+
+        await followerBounds(followerId, targetId, 'on_top');
+        target.rotationQuaternion = Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0);
+        flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
+
+        const turn = Matrix.RotationY(Math.PI / 2);
+        axes(follower).forEach((axis, i) => {
+          const expected = Vector3.TransformNormal(before[i], turn);
+          expect(axis.x).to.be.closeTo(expected.x, 0.001);
+          expect(axis.y).to.be.closeTo(expected.y, 0.001);
+          expect(axis.z).to.be.closeTo(expected.z, 0.001);
+        });
+      });
+
+      // Flock models face local -z, so a quarter turn moves their left from +x to -z.
+      it("should keep to the target's own left as it turns", async function () {
+        const { followerId, targetId } = await createFollowPair('Turning');
+        await followerBounds(followerId, targetId, 'left');
+        const target = flock.scene.getMeshByName(targetId);
+        target.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0);
+        flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
+        const { min, max } = flock.getEffectiveWorldBounds(flock.scene.getMeshByName(followerId));
+
+        expect((min.x + max.x) / 2).to.be.closeTo(3, 0.001);
+        expect((min.z + max.z) / 2).to.be.closeTo(1 - 0.75, 0.001);
       });
     });
 

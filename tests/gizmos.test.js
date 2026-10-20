@@ -1833,7 +1833,7 @@ export function runGizmoTests(flock) {
             next: {
               block: {
                 type: 'move_to_xyz',
-                fields: { MODEL: { id: cloneVarId }, USE_Y: 'TRUE' },
+                fields: { MODEL: { id: cloneVarId } },
                 inputs: { X: number(6), Y: number(0), Z: number(0) },
               },
             },
@@ -1889,7 +1889,7 @@ export function runGizmoTests(flock) {
         const move = Blockly.serialization.blocks.append(
           {
             type: 'move_to_xyz',
-            fields: { MODEL: { id: cloneVarId }, USE_Y: 'TRUE' },
+            fields: { MODEL: { id: cloneVarId } },
             inputs: {
               X: { block: { type: 'math_random_int', inputs: { FROM: number(-5), TO: number(5) } } },
               Y: number(0),

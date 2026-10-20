@@ -2012,21 +2012,6 @@ const toolboxTransform = {
     },
     {
       kind: 'block',
-      type: 'move_by_xyz_single',
-      keyword: 'move',
-      inputs: {
-        VALUE: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 1,
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
       type: 'move_to_xyz',
       keyword: 'posxyz',
       inputs: {
@@ -2075,6 +2060,32 @@ const toolboxTransform = {
       kind: 'block',
       type: 'move_to',
       keyword: 'goto',
+      inputs: {
+        X_OFFSET: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y_OFFSET: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z_OFFSET: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
     },
     {
       kind: 'block',

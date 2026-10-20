@@ -405,8 +405,7 @@ export function getCloneDoOwner(block) {
 
 function applyCloneDoBlock(block, owner, meshes = getMeshesFromBlock(owner)) {
   if (block.type === 'move_to_xyz') {
-    const useY = block.getFieldValue('USE_Y') === 'TRUE';
-    meshes.forEach((mesh) => flock.positionAt(mesh.name, { ...ownMoveTarget(block, mesh), useY }));
+    meshes.forEach((mesh) => flock.positionAt(mesh.name, ownMoveTarget(block, mesh)));
     return;
   }
 
@@ -1799,10 +1798,9 @@ function recomputeGroupPivot(groupBlock) {
 function ownMoveTarget(move, mesh) {
   const anchor = flock._getAnchor(mesh);
   const target = getXYZFromBlock(move);
-  const useY = move.getFieldValue('USE_Y') === 'TRUE';
   const read = (axis) => {
     const value = target[axis] == null ? NaN : Number(target[axis]);
-    return Number.isFinite(value) && (axis !== 'y' || useY) ? value : anchor[axis];
+    return Number.isFinite(value) ? value : anchor[axis];
   };
   return { x: read('x'), y: read('y'), z: read('z') };
 }

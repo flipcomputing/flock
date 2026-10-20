@@ -195,15 +195,103 @@ export function runTranslationTests(flock) {
       if (box2Id) flock.dispose(box2Id);
     });
 
-    it('should move a box to the target box centre position when useY is true (default)', async function () {
+    // The boxes differ in height, so their bases line up but their centres don't.
+    it('should line up the box anchor with the target anchor when useY is true (default)', async function () {
       await flock.moveTo(box1Id, { target: box2Id, useY: true });
 
       const box1 = flock.scene.getMeshByName(box1Id);
       const box2 = flock.scene.getMeshByName(box2Id);
+      const anchor1 = flock._getAnchor(box1);
+      const anchor2 = flock._getAnchor(box2);
 
-      expect(box1.getAbsolutePosition().x).to.be.closeTo(box2.getAbsolutePosition().x, 0.01);
-      expect(box1.getAbsolutePosition().y).to.be.closeTo(box2.getAbsolutePosition().y, 0.01);
-      expect(box1.getAbsolutePosition().z).to.be.closeTo(box2.getAbsolutePosition().z, 0.01);
+      expect(anchor1.x).to.be.closeTo(anchor2.x, 0.01);
+      expect(anchor1.y).to.be.closeTo(anchor2.y, 0.01);
+      expect(anchor1.z).to.be.closeTo(anchor2.z, 0.01);
+      expect(box1.getBoundingInfo().boundingBox.minimumWorld.y).to.be.closeTo(
+        box2.getBoundingInfo().boundingBox.minimumWorld.y,
+        0.01
+      );
+    });
+
+    describe('against a side', function () {
+      const box = (id) => {
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        return mesh.getBoundingInfo().boundingBox;
+      };
+      const turn = (id, quaternion) => {
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.rotationQuaternion = quaternion;
+        mesh.computeWorldMatrix(true);
+      };
+
+      it('places a box on top of a taller one, centred', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top' });
+        const mover = box(box1Id);
+        const target = box(box2Id);
+        expect(mover.minimumWorld.y).to.be.closeTo(target.maximumWorld.y, 0.01);
+        expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x, 0.01);
+        expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, 0.01);
+      });
+
+      it('lines up the box centres for center', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'center' });
+        const mover = box(box1Id);
+        const target = box(box2Id);
+        expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x, 0.01);
+        expect(mover.centerWorld.y).to.be.closeTo(target.centerWorld.y, 0.01);
+        expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, 0.01);
+      });
+
+      it('places a box under another', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'under' });
+        expect(box(box1Id).maximumWorld.y).to.be.closeTo(box(box2Id).minimumWorld.y, 0.01);
+      });
+
+      const localX = (id) =>
+        flock.BABYLON.Vector3.TransformNormal(
+          new flock.BABYLON.Vector3(1, 0, 0),
+          flock.scene.getMeshByName(id).getWorldMatrix()
+        ).normalize();
+
+      // Flock models face local -z, so their own left is local +x.
+      it("follows the target's rotation for its own left", async function () {
+        turn(box2Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0));
+        await flock.moveTo(box1Id, { target: box2Id, side: 'left' });
+        const left = localX(box2Id);
+        const offset = box(box1Id).centerWorld.subtract(box(box2Id).centerWorld);
+        expect(offset.x).to.be.closeTo(left.x, 0.01);
+        expect(offset.y).to.be.closeTo(left.y, 0.01);
+        expect(offset.z).to.be.closeTo(left.z, 0.01);
+      });
+
+      it('puts the front along the target local -z, the way models face', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'front' });
+        expect(box(box1Id).maximumWorld.z).to.be.closeTo(box(box2Id).minimumWorld.z, 0.01);
+        await flock.moveTo(box1Id, { target: box2Id, side: 'behind' });
+        expect(box(box1Id).minimumWorld.z).to.be.closeTo(box(box2Id).maximumWorld.z, 0.01);
+      });
+
+      it("adds the offset along the target's own axes, ignoring its scale", async function () {
+        turn(box2Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0));
+        flock.scene.getMeshByName(box2Id).scaling.set(2, 2, 2);
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top', offsetX: 1 });
+        const along = localX(box2Id);
+        const mover = box(box1Id);
+        const offset = mover.centerWorld.subtract(box(box2Id).centerWorld);
+        expect(mover.minimumWorld.y).to.be.closeTo(box(box2Id).maximumWorld.y, 0.01);
+        expect(offset.x).to.be.closeTo(along.x, 0.01);
+        expect(offset.z).to.be.closeTo(along.z, 0.01);
+      });
+
+      // On its side the 2-tall mover is only 1 tall, so it should sit lower.
+      it('uses the rotated size of the mover', async function () {
+        turn(box1Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2));
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top' });
+        const mover = box(box1Id);
+        expect(mover.minimumWorld.y).to.be.closeTo(box(box2Id).maximumWorld.y, 0.01);
+        expect(mover.maximumWorld.y - mover.minimumWorld.y).to.be.closeTo(1, 0.01);
+      });
     });
 
     it('should move a box to the target box centre position without changing Y when useY is false @slow', function (done) {
@@ -453,6 +541,26 @@ export function runTranslationTests(flock) {
       await flock.positionAtSingleCoordinate(boxId, 'z_coordinate', -3);
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh.position.z).to.be.closeTo(-3, 0.01);
+    });
+
+    // Moving to ground level waits for the ground, and the next block must not run first.
+    it('waits for the move to finish', async function () {
+      const positionAt = flock.positionAt;
+      let finishMove;
+      flock.positionAt = () => new Promise((resolve) => (finishMove = resolve));
+      try {
+        let done = false;
+        const moving = flock
+          .positionAtSingleCoordinate(boxId, 'y_coordinate', 4)
+          .then(() => (done = true));
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(done).to.equal(false);
+        finishMove();
+        await moving;
+        expect(done).to.equal(true);
+      } finally {
+        flock.positionAt = positionAt;
+      }
     });
   });
 

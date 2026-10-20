@@ -259,5 +259,28 @@ export function runGlideToObjectTests(flock) {
       expect(actual.y).to.be.closeTo(expected.y, EPS);
       expect(actual.z).to.be.closeTo(expected.z, EPS);
     });
+
+    it('should glide on top of another object, then apply the offset', async function () {
+      this.timeout(5000);
+
+      const targetId = 'sideTarget';
+      box2 = flock.createBox(targetId, {
+        width: 2,
+        height: 3,
+        depth: 2,
+        position: [4, 0, -2],
+      });
+      // The offset is in the target's units before scaling.
+      flock.scene.getMeshByName(targetId).scaling.set(2, 2, 2);
+
+      await flock.glideToObject(box1, targetId, { side: 'on_top', offsetX: 0.5, duration: 0.2 });
+
+      const mover = flock.scene.getMeshByName(box1).getBoundingInfo().boundingBox;
+      const target = flock.scene.getMeshByName(targetId).getBoundingInfo().boundingBox;
+      const EPS = 0.1;
+      expect(mover.minimumWorld.y).to.be.closeTo(target.maximumWorld.y, EPS);
+      expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x + 0.5, EPS);
+      expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, EPS);
+    });
   });
 }

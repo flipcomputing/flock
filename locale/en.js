@@ -157,7 +157,7 @@ export default {
   glide_to: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',
   glide_to_seconds: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9',
   glide_to_object:
-    'glide %1 to %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10',
+    'glide %1 %11 %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10',
   glide_to_axis: 'glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8',
   rotate_to_object: 'rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8',
   rotate_anim: 'rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9',
@@ -210,7 +210,7 @@ export default {
   stop_follow: 'stop following %1',
   hold: 'make %1 hold %2\noffset x: %3 y: %4 z: %5',
   drop: 'drop %1',
-  follow: 'make %1 follow %2 at %3\noffset x: %4 y: %5 z: %6',
+  follow: 'make %1 follow %3 %2\noffset x: %4 y: %5 z: %6',
   export_mesh: 'export %1 as %2',
   export_mesh_unit_label: '1 unit =',
   attach: 'attach %1 to %2 at %3\noffset x: %4 y: %5 z: %6',
@@ -429,9 +429,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'change position of %1 by x: %2 y: %3 z: %4',
   move_by_xyz_single: 'change position of %1 by %2 %3',
-  move_to_xyz: 'set position of %1 to %6 x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'set position of %1 to %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'set position of %1 to %2 %3',
-  move_to: /* "move %1 to %2 y? %3" */ 'set position of %1 to %2 y? %3',
+  move_to: 'set position of %1 %3 %2\noffset x: %4 y: %5 z: %6',
   scale: 'scale %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7',
   resize: 'resize %1 x: %2 y: %3 z: %4\norigin x: %5 y: %6 z: %7',
   rotate_model_xyz: 'rotate %1 by x: %2 y: %3 z: %4',
@@ -501,7 +501,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glide to a specified position over a duration with options for reversing, looping, and easing.',
   glide_to_object_tooltip:
-    'Glide to the position of a specified object over a duration with optional x/y/z offsets (default 0) plus reversing, looping, and easing controls.',
+    'Glide to a specified object, or against one of its sides such as on top of, over a duration with optional x/y/z offsets (default 0) plus reversing, looping, and easing controls.',
   glide_to_axis_tooltip:
     "Glide along one axis (x, y, z) to a target world position, or forward/sideways by a distance relative to the object's local direction. The other two axes stay fixed. Same options as the standard glide block.",
   rotate_to_object_tooltip:
@@ -566,7 +566,7 @@ export default {
     'Attach an object to the specified bone of another object with a specified offset in x, y, and z directions.',
   drop_tooltip: 'Detach an object from its currently attached bone.',
   follow_tooltip:
-    'Make one object follow another at a specified position (top, center, or bottom) with offset in x, y, and z directions.',
+    "Make one object keep following another: at it, at its center, or against one of its sides. Sides and offset follow the other object's rotation.",
   export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB. Choose how big 1 unit is in the exported file.',
 
   // Tooltip translations - Control blocks
@@ -757,9 +757,10 @@ export default {
   // Tooltip translations - Transform blocks
   move_by_xyz_tooltip: 'Move an object a given amount in x y and z directions.',
   move_by_xyz_single_tooltip: 'Move an object a given amount in either x y or z direction.',
-  move_to_xyz_tooltip: 'Teleport the object to the coordinates. Optionally, use the Y axis.',
+  move_to_xyz_tooltip: 'Teleport the object to the coordinates.',
   move_to_xyz_single_tooltip: 'Teleport the object to the specified single coordinate.',
-  move_to_tooltip: 'Teleport the first object to the location of the second object.',
+  move_to_tooltip:
+    "Put the first object at the second object, or against one of its sides, then move it by the offset. Sides and offset follow the second object's rotation.",
   scale_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
   resize_tooltip: 'Resize an object to the given x, y, and z and controls the origin of scaling.',
   rotate_model_xyz_tooltip: 'Rotate the object by the given x, y, z values.',
@@ -904,6 +905,16 @@ export default {
   up_option: 'up',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'at',
+  PLACE_TO_option: 'to',
+  PLACE_CENTER_option: 'center of',
+  PLACE_TO_CENTER_option: 'to center of',
+  PLACE_ON_TOP_option: 'on top of',
+  PLACE_UNDER_option: 'under',
+  PLACE_LEFT_option: 'left of',
+  PLACE_RIGHT_option: 'right of',
+  PLACE_FRONT_option: 'in front of',
+  PLACE_BEHIND_option: 'behind',
   user_option: 'front',
   environment_option: 'back',
 
