@@ -4,7 +4,6 @@ import {
   getFieldValue,
   getVariableInfo,
   getThenCallback,
-  getOwnDoOwner,
   maybeParentToGroup,
   withGroupParent,
 } from './generators-utilities.js';
@@ -175,24 +174,25 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: ${JSON.stringify(xOrigin)}, yOrigin: ${JSON.stringify(yOrigin)}, zOrigin: ${JSON.stringify(zOrigin)} });\n`;
   };
 
-  // Set anchor of object by xyz coordinates
-  javascriptGenerator.forBlock['set_pivot'] = function (block) {
+  function pointCode(block, api, inputPrefix) {
     const meshVar = javascriptGenerator.nameDB_.getName(
       block.getFieldValue('MESH'),
       Blockly.Names.NameType.VARIABLE
     );
+    const [x, y, z] = ['X', 'Y', 'Z'].map(
+      (axis) =>
+        javascriptGenerator.valueToCode(
+          block,
+          `${axis}_${inputPrefix}`,
+          javascriptGenerator.ORDER_ATOMIC
+        ) || 0
+    );
+    return `await ${api}(${meshVar}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+  }
 
-    const xPivot =
-      javascriptGenerator.valueToCode(block, 'X_PIVOT', javascriptGenerator.ORDER_ATOMIC) || 0;
-    const yPivot =
-      javascriptGenerator.valueToCode(block, 'Y_PIVOT', javascriptGenerator.ORDER_ATOMIC) || 0;
-    const zPivot =
-      javascriptGenerator.valueToCode(block, 'Z_PIVOT', javascriptGenerator.ORDER_ATOMIC) || 0;
+  javascriptGenerator.forBlock['set_pivot'] = (block) => pointCode(block, 'setPivot', 'PIVOT');
 
-    const placeAnchor = getOwnDoOwner(block) ? ', placeAnchor: true' : '';
-
-    return `await setAnchor(${meshVar}, { xPivot: ${xPivot}, yPivot: ${yPivot}, zPivot: ${zPivot}${placeAnchor} });\n`;
-  };
+  javascriptGenerator.forBlock['set_anchor'] = (block) => pointCode(block, 'setAnchor', 'ANCHOR');
 
   // -------------------------------
   // PHYSICS
@@ -638,7 +638,7 @@ ${compartment('build', 'PARTS')}${hasTools ? compartment('tools', 'TOOLS') : ''}
                   });\n${maybeParentToGroup(mirrorVar)}`;
   };
 
-  // Used as an input inside set_pivot
+  // Used as an input inside set_pivot and set_anchor
   // (not a block in its own right)
   javascriptGenerator.forBlock['min_centre_max'] = function (block) {
     const pivotOption = block.getFieldValue('PIVOT_OPTION');

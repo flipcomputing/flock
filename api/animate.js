@@ -22,6 +22,41 @@ const animationTarget = (mesh, property) => {
   return flock._lookTarget(mesh);
 };
 
+const isScalingAnimation = (animatable) =>
+  animatable.getAnimations().some((ra) => ra.animation.targetProperty.startsWith('scaling'));
+
+// Babylon scales about the origin (the pivot); animated scaling holds the
+// anchor still instead. Only animated frames are compensated: scale and
+// resize blocks place the mesh themselves.
+// Keyed by instance, not metadata: clones copy metadata but need their own observer.
+const anchorHeldMeshes = new WeakSet();
+
+const holdAnchorWhileScaling = (mesh) => {
+  if (anchorHeldMeshes.has(mesh)) return;
+  anchorHeldMeshes.add(mesh);
+
+  const scene = flock.scene;
+  let last = mesh.scaling.clone();
+  let wasAnimating = false;
+  const observer = scene.onAfterAnimationsObservable.add(
+    () => {
+      const animating = scene.getAllAnimatablesByTarget(mesh).some(isScalingAnimation);
+      // The final frame lands as the animation ends, so cover one more frame.
+      if ((animating || wasAnimating) && !mesh.scaling.equals(last)) {
+        const step = last.subtract(mesh.scaling).multiplyInPlace(flock._resolveAnchorLocal(mesh));
+        const rotation =
+          mesh.rotationQuaternion ?? flock.BABYLON.Quaternion.FromEulerVector(mesh.rotation);
+        mesh.position.addInPlace(step.applyRotationQuaternion(rotation));
+      }
+      last.copyFrom(mesh.scaling);
+      wasAnimating = animating;
+    },
+    undefined,
+    true
+  );
+  mesh.onDisposeObservable.addOnce(() => scene.onAfterAnimationsObservable.remove(observer));
+};
+
 const interruptMotion = (mesh, slot) => {
   const active = mesh.metadata?.[slot];
   if (!active) return null;
@@ -805,6 +840,7 @@ export const flockAnimate = {
     }
 
     const lastFrame = allKeyframes[allKeyframes.length - 1].frame;
+    if (property.startsWith('scaling')) holdAnchorWhileScaling(mesh);
     const movesBody = property === 'position' || property === 'rotation';
     const drive = movesBody ? driveBody(mesh) : null;
 
@@ -929,6 +965,7 @@ export const flockAnimate = {
       flock._applyEasing(keyframeAnimation, easing);
 
       // Link animation to group
+      if (property.startsWith('scaling')) holdAnchorWhileScaling(targetMesh);
       flock._addAnimationToGroup(animationGroup, keyframeAnimation, targetMesh);
     }
 
@@ -1024,6 +1061,7 @@ export const flockAnimate = {
     if (property === 'alpha' && mesh.material) {
       flock._prepareMaterialForAlphaAnimation(mesh);
     }
+    if (property.startsWith('scaling')) holdAnchorWhileScaling(mesh);
 
     const animatable = flock.scene.beginDirectAnimation(
       mesh,

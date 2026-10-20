@@ -67,7 +67,6 @@ const TARGET_VAR_FIELDS = {
   resize: 'BLOCK_NAME',
   move_to_xyz: 'MODEL',
   change_color: 'MODEL_VAR',
-  set_pivot: 'MESH',
 };
 
 export function getOwnVar(block) {

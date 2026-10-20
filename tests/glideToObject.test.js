@@ -127,11 +127,11 @@ export function runGlideToObjectTests(flock) {
       const sourceId = box1; // created in beforeEach
       const targetId = 'targetCylinder';
 
-      // Custom pivot for source box
+      // Custom anchor for source box
       flock.setAnchor(sourceId, {
-        xPivot: 'MAX',
-        yPivot: 'MAX',
-        zPivot: 'CENTER',
+        x: 'MAX',
+        y: 'MAX',
+        z: 'CENTER',
       });
 
       // Create target cylinder
@@ -142,11 +142,11 @@ export function runGlideToObjectTests(flock) {
         position: [-2, 1.5, 0.5],
       });
 
-      // Custom pivot for target cylinder
+      // Custom anchor for target cylinder
       flock.setAnchor(targetId, {
-        xPivot: 'MIN',
-        yPivot: 'CENTER',
-        zPivot: 'MAX',
+        x: 'MIN',
+        y: 'CENTER',
+        z: 'MAX',
       });
 
       // Wait for physics impostors to update with new pivot info

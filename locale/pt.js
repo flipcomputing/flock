@@ -358,7 +358,8 @@ export default {
   move_forward: 'mover %1 %2 velocidade %3',
   rotate_camera: 'girar câmera em %1 graus',
   up: 'para cima %1 força %2',
-  set_pivot: 'definir âncora de %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'definir âncora de %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'definir pivô de %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -634,7 +635,8 @@ export default {
     "Move o objeto na direção especificada. 'Frente' o move na direção que está apontando, 'lateral' move em relação à câmera e 'deslocamento' move lateralmente em relação à câmera.",
   rotate_camera_tooltip: 'Gira a câmera para a esquerda ou direita pelos graus indicados.',
   up_tooltip: 'Aplica a força para cima especificada.',
-  set_pivot_tooltip: 'Define o ponto de âncora de um objeto nos eixos X, Y e Z.',
+  set_anchor_tooltip: 'Define o ponto de âncora de um objeto nos eixos X, Y e Z.',
+  set_pivot_tooltip: 'Define o ponto em torno do qual um objeto gira. O objeto fica onde está.',
   min_centre_max_tooltip: 'Escolhe mínimo, centro ou máximo como ponto de pivô.',
 
   // Tooltip translations - XR blocks

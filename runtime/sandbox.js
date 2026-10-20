@@ -679,6 +679,7 @@ export const flockSandbox = {
       resetParticleSystem: this.resetParticleSystem?.bind(this),
       animateKeyFrames: this.animateKeyFrames?.bind(this),
       setAnchor: this.setAnchor?.bind(this),
+      setPivot: this.setPivot?.bind(this),
       rotate: this.rotate?.bind(this),
       lookAt: this.lookAt?.bind(this),
       moveTo: this.moveTo?.bind(this),

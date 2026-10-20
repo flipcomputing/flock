@@ -2266,6 +2266,37 @@ const toolboxTransform = {
         },
       },
     },
+    {
+      kind: 'block',
+      type: 'set_anchor',
+      keyword: 'anchor',
+      inputs: {
+        X_ANCHOR: {
+          shadow: {
+            type: 'min_centre_max',
+            fields: {
+              PIVOT_OPTION: 'CENTER',
+            },
+          },
+        },
+        Y_ANCHOR: {
+          shadow: {
+            type: 'min_centre_max',
+            fields: {
+              PIVOT_OPTION: 'MIN',
+            },
+          },
+        },
+        Z_ANCHOR: {
+          shadow: {
+            type: 'min_centre_max',
+            fields: {
+              PIVOT_OPTION: 'CENTER',
+            },
+          },
+        },
+      },
+    },
     toolboxTransformPhysics,
     toolboxTransformConnect,
     toolboxTransformModify,
@@ -6779,7 +6810,7 @@ const toolboxSnippetsBuilding = {
                                     shadow: {
                                       type: 'math_number',
                                       fields: {
-                                        NUM: 4.275,
+                                        NUM: 4.35,
                                       },
                                     },
                                   },
@@ -6795,7 +6826,7 @@ const toolboxSnippetsBuilding = {
                                     shadow: {
                                       type: 'math_number',
                                       fields: {
-                                        NUM: -1,
+                                        NUM: 0.05,
                                       },
                                     },
                                   },

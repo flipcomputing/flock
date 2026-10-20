@@ -354,7 +354,8 @@ export default {
   move_forward: 'flytta %1 %2 hastighet %3',
   rotate_camera: 'rotera kamera med %1 grader',
   up: 'upp %1 kraft %2',
-  set_pivot: 'ställ in ankare för %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'ställ in ankare för %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'ställ in pivotpunkt för %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
@@ -628,7 +629,8 @@ export default {
     "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.",
   rotate_camera_tooltip: 'Roterar kameran åt vänster eller höger med angivet antal grader.',
   up_tooltip: 'Applicerar den angivna uppåtriktade kraften.',
-  set_pivot_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln.',
+  set_anchor_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln.',
+  set_pivot_tooltip: 'Ställ in punkten som ett objekt roterar runt. Objektet stannar där det är.',
   min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt.',
 
   // Tooltip translations - XR blocks

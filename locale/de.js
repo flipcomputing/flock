@@ -356,7 +356,8 @@ export default {
   move_forward: 'Bewege %1 %2 Geschwindigkeit %3',
   rotate_camera: 'Kamera um %1 Grad drehen',
   up: 'nach oben %1 Kraft %2',
-  set_pivot: 'Setze Anker von %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'Setze Anker von %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'Setze Drehpunkt von %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   _0_option: '0',
@@ -774,7 +775,8 @@ export default {
     "Bewegt das Objekt in die gewählte Richtung: 'Vorwärts' entlang Blickrichtung, 'Seitlich' relativ zur Kamera, 'Strafe' quer zur Kamerarichtung.",
   rotate_camera_tooltip: 'Drehe die Kamera um die angegebenen Grad nach links oder rechts.',
   up_tooltip: 'Wende die angegebene Aufwärtskraft an.',
-  set_pivot_tooltip: 'Setze den Ankerpunkt eines Objekts in X-, Y- und Z-Richtung.',
+  set_anchor_tooltip: 'Setze den Ankerpunkt eines Objekts in X-, Y- und Z-Richtung.',
+  set_pivot_tooltip: 'Setze den Punkt, um den sich ein Objekt dreht. Das Objekt bleibt, wo es ist.',
   min_centre_max_tooltip: 'Wähle min, center oder max als Pivotpunkt.',
 
   // XR tooltips

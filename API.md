@@ -373,6 +373,14 @@ Rotates a mesh to a specific 3D rotation instantly. For a child mesh the angles 
 
 Scales a mesh.
 
+#### `setPivot(meshName, { x, y, z })`
+
+Sets the point a mesh rotates around. The mesh stays where it is and positions keep their meaning. Each axis is `'MIN'`, `'CENTER'`, `'MAX'` or a number offset from the centre; the default is the centre.
+
+#### `setAnchor(meshName, { x, y, z })`
+
+Sets the point a mesh's position refers to, for positioning, gliding and reading its position. Keyframe scaling animations also grow and shrink about it. The mesh stays where it is; set its position afterwards to put the new anchor somewhere. Axes take the same values as `setPivot`; the default is centre X/Z and base Y.
+
 #### `mirror(sourceMeshName, options)`
 
 Adds a mirrored copy of a mesh, reflected across a plane across one axis of the about mesh (world axes without one). The copy is its own object, with its own name, events and colour. Returns the copy's name. Animated characters are not mirrored.

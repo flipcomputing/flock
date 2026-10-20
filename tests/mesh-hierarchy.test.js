@@ -221,7 +221,7 @@ export function runMeshHierarchyTests(flock) {
         });
         meshIds.push(parentId, childId);
 
-        await flock.setAnchor(parentId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+        await flock.setAnchor(parentId, { x: 'MIN', y: 'MIN', z: 'MIN' });
         await flock.parentChild(parentId, childId);
 
         const childMesh = flock.scene.getMeshByName(childId);
@@ -2586,9 +2586,9 @@ export function runMeshHierarchyTests(flock) {
         expect(min.y).to.be.closeTo(2.5, 0.001);
       });
 
-      it('should follow the top of a target scaled about its base anchor', async function () {
+      it('should follow the top of a target scaled about its base pivot', async function () {
         const { followerId, targetId } = await createFollowPair('Scaled');
-        await flock.setAnchor(targetId, { xPivot: 'CENTER', yPivot: 'MIN', zPivot: 'CENTER' });
+        await flock.setPivot(targetId, { x: 'CENTER', y: 'MIN', z: 'CENTER' });
         flock.scene.getMeshByName(targetId).scaling.y = 3;
 
         const { min } = await followerBounds(followerId, targetId, 'TOP');
@@ -2598,7 +2598,7 @@ export function runMeshHierarchyTests(flock) {
 
       it('should place the follower by its own anchor', async function () {
         const { followerId, targetId } = await createFollowPair('Anchor');
-        await flock.setAnchor(followerId, { xPivot: 'CENTER', yPivot: 'CENTER', zPivot: 'CENTER' });
+        await flock.setAnchor(followerId, { x: 'CENTER', y: 'CENTER', z: 'CENTER' });
 
         const { min, max } = await followerBounds(followerId, targetId, 'TOP');
 
