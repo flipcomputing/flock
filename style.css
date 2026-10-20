@@ -2074,6 +2074,14 @@ a.project-action-button {
   height: 100%;
 }
 
+#unsavedChangesModal.anchored .modal-content {
+  position: fixed;
+  box-sizing: border-box;
+  width: min(600px, calc(100vw - 16px));
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 24px var(--color-shadow-medium);
+}
+
 .unsaved-changes-actions {
   display: flex;
   flex-wrap: wrap;
