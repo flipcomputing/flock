@@ -7,7 +7,7 @@ import {
   addDoMutatorWithToggleBehavior,
   handleBlockChange,
 } from './blocks.js';
-import { nextVariableName } from './variableNames.js';
+import { nextVariableName, otherObjectName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { watchCloneSources } from '../ui/blockmesh.js';
 import { isProjectLoading } from '../main/projectLoading.js';
@@ -87,7 +87,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'BASE_MESH',
-            variable: window.currentMesh,
+            variable: otherObjectName(window.currentMesh),
           },
           {
             type: 'input_value',
@@ -127,7 +127,7 @@ export function defineModifyBlocks() {
           {
             type: 'field_variable',
             name: 'BASE_MESH',
-            variable: window.currentMesh,
+            variable: otherObjectName(window.currentMesh),
           },
           {
             type: 'input_value',

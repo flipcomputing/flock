@@ -7,6 +7,7 @@ import { translate } from './translation.js';
 import { disableGltfValidation } from './gltfvalidation.js';
 import { logViewport } from './viewportDebug.js';
 import { isRestorableWorkspaceNode } from './workspaceFocus.js';
+import { getCanvasAspect, isPortraitCanvas } from './canvasAspect.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -21,10 +22,6 @@ const isMobile = () => {
 const gizmosBesideCanvas = () =>
   window.matchMedia('(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)')
     .matches;
-
-// Blocks are authored against a 16:9 canvas, so play mode measures its camera
-// framing against that shape however the screen is proportioned.
-const AUTHORING_ASPECT = 16 / 9;
 
 let savedCodeScroll = null;
 let savedCodeFocus = null;
@@ -102,6 +99,36 @@ const handleWindowResize = () => {
 };
 window.addEventListener('resize', handleWindowResize);
 
+window.addEventListener('flock:canvas-aspect', () => {
+  const panels = !playModeActive && getSideBySidePanels();
+  if (panels) {
+    document.getElementById('canvasArea').style.flex = '';
+    panels.codePanel.style.flex = '';
+  }
+  onResize();
+});
+
+function getDockedHelpWidth() {
+  if (!isPortraitCanvas()) return 0;
+  const body = document.getElementById('info-panel-body');
+  if (!body || getComputedStyle(body).display === 'none') return 0;
+  return Math.round(body.getBoundingClientRect().width);
+}
+
+window.addEventListener('flock:info-panel-open-change', () => {
+  if (!isPortraitCanvas() || playModeActive) return;
+  const canvasArea = document.getElementById('canvasArea');
+  const panels = getSideBySidePanels();
+  const helpWidth = getDockedHelpWidth();
+  if (panels && helpWidth) {
+    const columnWidth = canvasArea.getBoundingClientRect().width;
+    const panelWidth = columnWidth + panels.codePanel.getBoundingClientRect().width;
+    const target = Math.min(columnWidth + helpWidth, panelWidth - MIN_PANEL_WIDTH);
+    setCanvasColumnWidth(canvasArea, panels, target);
+  }
+  onResize();
+});
+
 // User-sized info-panel height; null until the first splitter drag/keys.
 let infoPanelUserHeight = null;
 
@@ -169,9 +196,9 @@ function getMinInfoPanelHeight() {
 
 // A widening canvas takes info-panel space down toward the minimum.
 function shrinkInfoPanelForCanvasWidth(canvasArea, canvasWidth) {
-  if (infoPanelUserHeight == null || gizmosBesideCanvas() || playModeActive) return;
+  if (infoPanelUserHeight == null || !infoPanelDocked()) return;
   const chrome = getCanvasChrome(canvasArea);
-  const neededAvail = canvasWidth / AUTHORING_ASPECT;
+  const neededAvail = canvasWidth / getCanvasAspect();
   const availNow = Math.max(
     1,
     chrome.areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
@@ -191,32 +218,62 @@ function shrinkInfoPanelForCanvasWidth(canvasArea, canvasWidth) {
 // Canvas-region floor for info-panel sizing.
 const MIN_CANVAS_HEIGHT = 120;
 const MIN_PANEL_WIDTH = 300;
+const MIN_HELP_WIDTH = 240;
+
+const infoPanelDocked = () => !gizmosBesideCanvas() && !playModeActive && !isPortraitCanvas();
 
 // Side by side, a shrinking info panel widens the canvas column into the code
 // panel so the taller region is actually used; floorWidth stops it narrowing.
-function widenCanvasForInfoPanel(canvasArea, floorWidth) {
-  if (gizmosBesideCanvas() || playModeActive) return;
+function getSideBySidePanels() {
   const resizer = document.getElementById('resizer');
   const codePanel = document.getElementById('codePanel');
   const mainContent = document.getElementById('maincontent');
-  if (!resizer || !codePanel || !mainContent) return;
-  if (getComputedStyle(resizer).display === 'none' || resizer.offsetWidth === 0) return;
+  if (!resizer || !codePanel || !mainContent) return null;
+  if (getComputedStyle(resizer).display === 'none' || resizer.offsetWidth === 0) return null;
+  return { codePanel, mainContent };
+}
 
-  const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(canvasArea);
+function setCanvasColumnWidth(canvasArea, { codePanel, mainContent }, target) {
   const canvasWidth = canvasArea.getBoundingClientRect().width;
   const panelWidth = canvasWidth + codePanel.getBoundingClientRect().width;
-  const needed = Math.round(areaHeight * AUTHORING_ASPECT) + horizontalChromeWidth;
-  const target = Math.max(floorWidth, Math.min(needed, panelWidth - MIN_PANEL_WIDTH));
-  if (Math.abs(target - canvasWidth) < 1) return;
-
   const totalWidth = mainContent.getBoundingClientRect().width;
   canvasArea.style.flex = `0 0 ${(target / totalWidth) * 100}%`;
   codePanel.style.flex = `0 0 ${((panelWidth - target) / totalWidth) * 100}%`;
 }
 
+function widenCanvasForInfoPanel(canvasArea, floorWidth) {
+  if (!infoPanelDocked()) return;
+  const panels = getSideBySidePanels();
+  if (!panels) return;
+
+  const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(canvasArea);
+  const canvasWidth = canvasArea.getBoundingClientRect().width;
+  const panelWidth = canvasWidth + panels.codePanel.getBoundingClientRect().width;
+  const needed = Math.round(areaHeight * getCanvasAspect()) + horizontalChromeWidth;
+  const target = Math.max(floorWidth, Math.min(needed, panelWidth - MIN_PANEL_WIDTH));
+  if (Math.abs(target - canvasWidth) < 1) return;
+
+  setCanvasColumnWidth(canvasArea, panels, target);
+}
+
+function sizeDockedHelp(canvasArea, areaWidth, areaHeight) {
+  const fitWidth = Math.round(areaHeight * getCanvasAspect());
+  const helpWidth = Math.max(MIN_HELP_WIDTH, areaWidth - fitWidth);
+  canvasArea.style.setProperty('--help-column-width', `${helpWidth}px`);
+  return Math.max(1, areaWidth - helpWidth);
+}
+
+function narrowColumnToPortraitCanvas(canvasArea, canvasWidth) {
+  const panels = getSideBySidePanels();
+  if (!panels) return;
+  const target = Math.max(MIN_PANEL_WIDTH, Math.ceil(canvasWidth));
+  if (canvasArea.getBoundingClientRect().width <= target + 1) return;
+  setCanvasColumnWidth(canvasArea, panels, target);
+}
+
 // Window resizes can strand the stored height; re-clamp it so the canvas recovers.
 function clampInfoPanelUserHeight(canvasArea) {
-  if (infoPanelUserHeight == null || gizmosBesideCanvas() || playModeActive) return;
+  if (infoPanelUserHeight == null || !infoPanelDocked()) return;
   const infoPanel = document.getElementById('info-panel');
   if (!infoPanel || getComputedStyle(infoPanel).display === 'none') return;
   const chrome = getCanvasChrome(canvasArea);
@@ -229,13 +286,12 @@ function clampInfoPanelUserHeight(canvasArea) {
   infoPanel.style.flex = `1 1 ${clamped}px`;
 }
 
-// Function to maintain a 16:9 aspect ratio for the canvas
 function getCanvasAvailableSize(canvasArea) {
   const chrome = getCanvasChrome(canvasArea);
   let areaHeight = chrome.areaHeight;
 
   // A user-sized panel replaces the tab-strip allowance above.
-  if (infoPanelUserHeight != null && !gizmosBesideCanvas() && !playModeActive) {
+  if (infoPanelUserHeight != null && infoPanelDocked()) {
     areaHeight = Math.max(
       1,
       areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
@@ -265,7 +321,7 @@ function resizeCanvas() {
   if (flock.embedMode) {
     let areaWidth = Math.max(1, Math.round(areaRect.width));
     let areaHeight = Math.max(1, Math.round(areaRect.height));
-    const aspectRatio = 16 / 9;
+    const aspectRatio = getCanvasAspect();
 
     const availableHeight = Math.max(1, areaHeight - 4);
 
@@ -331,21 +387,28 @@ function resizeCanvas() {
     return;
   }
 
-  const { areaWidth, areaHeight } = getCanvasAvailableSize(canvasArea);
+  let { areaWidth, areaHeight } = getCanvasAvailableSize(canvasArea);
+  const helpDocked = !playModeActive && getDockedHelpWidth() > 0;
+  if (helpDocked) areaWidth = sizeDockedHelp(canvasArea, areaWidth, areaHeight);
 
+  const aspect = getCanvasAspect();
   let newWidth, newHeight;
 
   if (playModeActive) {
     // Play mode gives the scene the whole area; letterboxing is an editor concern.
     newWidth = areaWidth;
     newHeight = areaHeight;
-    applyPlayModeFov();
-  } else if (areaWidth / areaHeight > AUTHORING_ASPECT) {
+    applyPlayModeFov(areaWidth / areaHeight);
+  } else if (areaWidth / areaHeight > aspect) {
     newHeight = areaHeight;
-    newWidth = newHeight * AUTHORING_ASPECT;
+    newWidth = newHeight * aspect;
   } else {
     newWidth = areaWidth;
-    newHeight = newWidth / AUTHORING_ASPECT;
+    newHeight = newWidth / aspect;
+  }
+
+  if (!playModeActive && !helpDocked && isPortraitCanvas()) {
+    narrowColumnToPortraitCanvas(canvasArea, newWidth);
   }
 
   canvas.style.width = `${Math.round(newWidth)}px`;
@@ -483,20 +546,28 @@ let savedPanelFlex = null;
 let playModeActive = false;
 let savedCameraFov = null;
 
-// Babylon holds the vertical FOV constant, so filling a portrait screen would
-// crop the sides off a scene composed on the 16:9 editor canvas. Pin the
-// horizontal angle instead: the framing survives and the extra height reveals
-// more of the scene rather than less.
-function applyPlayModeFov() {
+// Babylon holds the vertical FOV constant, so a screen narrower than the
+// editor canvas would crop the sides off the composed scene. Pin the
+// horizontal angle there instead: the framing survives and the extra height
+// reveals more of the scene rather than less.
+function applyPlayModeFov(screenAspect) {
   const camera = flock.scene?.activeCamera;
   const horizontalFixed = flock.BABYLON?.Camera?.FOVMODE_HORIZONTAL_FIXED;
   if (!camera || horizontalFixed === undefined || typeof camera.fov !== 'number') return;
-  if (savedCameraFov?.camera === camera) return;
 
   // Re-running the project inside play mode builds a fresh camera.
-  restoreCameraFov();
-  savedCameraFov = { camera, fov: camera.fov, fovMode: camera.fovMode };
-  camera.fov = 2 * Math.atan(Math.tan(camera.fov / 2) * AUTHORING_ASPECT);
+  if (savedCameraFov?.camera !== camera) {
+    restoreCameraFov();
+    savedCameraFov = { camera, fov: camera.fov, fovMode: camera.fovMode };
+  }
+  const { fov, fovMode } = savedCameraFov;
+  const aspect = getCanvasAspect();
+  if (fovMode === horizontalFixed || !(screenAspect < aspect)) {
+    camera.fov = fov;
+    camera.fovMode = fovMode;
+    return;
+  }
+  camera.fov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
   camera.fovMode = horizontalFixed;
 }
 
@@ -750,7 +821,6 @@ export function togglePlayMode() {
       canvasArea.style.flex = '1 1 0';
     }
     document.documentElement.style.setProperty('--dynamic-offset', '50px');
-    applyPlayModeFov();
     flock.setEditorView(false);
     // Keyboard play needs the canvas focused; the exit button must not take it.
     document.getElementById('renderCanvas')?.focus({ preventScroll: true });
@@ -1575,6 +1645,9 @@ class PanelResizer {
   // horizontal padding around it.
   getMinCanvasWidth() {
     const gizmo = document.getElementById('gizmoButtons');
+    if (isPortraitCanvas()) {
+      return this.minPanelFloor + (getDockedHelpWidth() > 0 ? MIN_HELP_WIDTH : 0);
+    }
     if (!gizmo) return this.minPanelFloor;
 
     const row = gizmo.querySelector('.gizmo-buttons-inner') || gizmo;
@@ -1610,16 +1683,18 @@ class PanelResizer {
 
   getMaxCanvasWidth() {
     // Cap against the panel minimum so a tall setting can't stall the drag.
-    if (gizmosBesideCanvas() || playModeActive) {
+    if (isPortraitCanvas() && getDockedHelpWidth() > 0) return Infinity;
+    if (!infoPanelDocked()) {
       const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(this.canvasArea);
-      return Math.round((areaHeight * 16) / 9) + horizontalChromeWidth;
+      const width = Math.round(areaHeight * getCanvasAspect()) + horizontalChromeWidth;
+      return isPortraitCanvas() ? Math.max(this.getMinCanvasWidth(), width) : width;
     }
     const chrome = getCanvasChrome(this.canvasArea);
     const avail = Math.max(
       1,
       chrome.areaHeight + chrome.tabsHeight - getMinInfoPanelHeight() - chrome.resizerHeight
     );
-    return Math.round((avail * 16) / 9) + chrome.horizontalChromeWidth;
+    return Math.round(avail * getCanvasAspect()) + chrome.horizontalChromeWidth;
   }
 
   // A focusable role="separator" needs a value: the canvas panel's share of the split.

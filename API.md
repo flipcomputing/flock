@@ -693,6 +693,20 @@ Broadcasts a custom event.
 
 Sets up collision/trigger detection for a mesh.
 
+`trigger` is `'OnPickTrigger'` (clicked), `'OnPickDownTrigger'` (interact start) or `'OnPickUpTrigger'` (interact end). Any other trigger is reported as an error and nothing is registered.
+
+`callback` can be a list of functions. Each trigger runs the next one in the list, wrapping back to the first after the last. With the default `mode: 'wait'`, triggers are ignored until the current function has finished. Each mesh keeps its own place in the list, even when the handler was registered on a tag or group.
+
+```javascript
+onTrigger(door, {
+  trigger: 'OnPickTrigger',
+  callback: [
+    async () => await rotateTo(door, { x: 0, y: 90, z: 0 }),
+    async () => await rotateTo(door, { x: 0, y: 0, z: 0 }),
+  ],
+});
+```
+
 #### `createTag(tagName)`
 
 Creates a tag and returns its name, which has a numeric suffix if `tagName` is already used by an object. Calling it again with the same `tagName` returns the same tag. Pass a tag to `onTrigger` or `onIntersect` in place of a mesh name to respond to every mesh with that tag, including meshes tagged later and copies of tagged meshes.

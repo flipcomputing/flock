@@ -227,9 +227,9 @@ export function runMeshHierarchyTests(flock) {
         const childMesh = flock.scene.getMeshByName(childId);
         childMesh.computeWorldMatrix(true);
         const { minimumWorld, maximumWorld } = childMesh.getBoundingInfo().boundingBox;
-        expect((minimumWorld.x + maximumWorld.x) / 2).to.be.closeTo(0, 0.01);
+        expect((minimumWorld.x + maximumWorld.x) / 2).to.be.closeTo(-0.5, 0.01);
         expect(minimumWorld.y).to.be.closeTo(0, 0.01);
-        expect((minimumWorld.z + maximumWorld.z) / 2).to.be.closeTo(0, 0.01);
+        expect((minimumWorld.z + maximumWorld.z) / 2).to.be.closeTo(-0.5, 0.01);
       });
 
       it('should offset a plane child from its centre', async function () {

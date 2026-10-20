@@ -484,6 +484,31 @@ export function runScaleTests(flock) {
       expect(mesh.metadata.pivotSettings.x).to.equal('MAX');
     });
 
+    it('should keep the mesh in place when the anchor changes', async function () {
+      const boxId = flock.createBox('test-box-anchor-stays', {
+        width: 2,
+        height: 2,
+        depth: 2,
+        position: [0, 0, 0],
+      });
+      testBoxIds.push(boxId);
+
+      await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+
+      const mesh = flock.scene.getMeshByID(boxId);
+      mesh.computeWorldMatrix(true);
+      const { minimumWorld, maximumWorld } = mesh.getBoundingInfo().boundingBox;
+      expect(minimumWorld.x).to.be.closeTo(-1, 0.01);
+      expect(minimumWorld.y).to.be.closeTo(0, 0.01);
+      expect(minimumWorld.z).to.be.closeTo(-1, 0.01);
+      expect(maximumWorld.x).to.be.closeTo(1, 0.01);
+      expect(maximumWorld.z).to.be.closeTo(1, 0.01);
+      const absolute = mesh.getAbsolutePosition();
+      expect(absolute.x).to.be.closeTo(-1, 0.01);
+      expect(absolute.y).to.be.closeTo(0, 0.01);
+      expect(absolute.z).to.be.closeTo(-1, 0.01);
+    });
+
     it('should place the new anchor where the previous anchor was', async function () {
       const boxId = flock.createBox('test-box-anchor-lands', {
         width: 2,
@@ -493,7 +518,12 @@ export function runScaleTests(flock) {
       });
       testBoxIds.push(boxId);
 
-      await flock.setAnchor(boxId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'MIN' });
+      await flock.setAnchor(boxId, {
+        xPivot: 'MIN',
+        yPivot: 'MIN',
+        zPivot: 'MIN',
+        placeAnchor: true,
+      });
 
       const mesh = flock.scene.getMeshByID(boxId);
       mesh.computeWorldMatrix(true);
@@ -513,7 +543,12 @@ export function runScaleTests(flock) {
       });
       testBoxIds.push(planeId);
 
-      await flock.setAnchor(planeId, { xPivot: 'MIN', yPivot: 'MIN', zPivot: 'CENTER' });
+      await flock.setAnchor(planeId, {
+        xPivot: 'MIN',
+        yPivot: 'MIN',
+        zPivot: 'CENTER',
+        placeAnchor: true,
+      });
 
       const mesh = flock.scene.getMeshByID(planeId);
       mesh.computeWorldMatrix(true);
@@ -533,7 +568,12 @@ export function runScaleTests(flock) {
       });
       testBoxIds.push(boxId);
 
-      await flock.setAnchor(boxId, { xPivot: 'CENTER', yPivot: 'MIN', zPivot: 'MIN' });
+      await flock.setAnchor(boxId, {
+        xPivot: 'CENTER',
+        yPivot: 'MIN',
+        zPivot: 'MIN',
+        placeAnchor: true,
+      });
       await flock.rotateTo(boxId, { x: 0, y: -90, z: 0 });
       await new Promise((resolve) => setTimeout(resolve, 100));
 

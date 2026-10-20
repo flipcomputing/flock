@@ -1,6 +1,5 @@
 import * as Blockly from 'blockly';
 import {
-  addToggleButton,
   handleBlockCreateEvent,
   registerBlockHandler,
   getHelpUrlFor,
@@ -97,7 +96,6 @@ export function definePrefabBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       setupProcedureParams(this, { fixedParams: { [MATERIAL_ARG]: MATERIAL_SHADOW } });
-      addToggleButton(this);
       this.appendEndRowInput(TRANSFORM_ROW);
       for (const [name, labelKey] of POSITION_INPUTS) appendNumberInput(this, name, labelKey);
       appendNumberInput(this, 'ROTATE_Y', 'prefab_rotate_y_label');
@@ -124,7 +122,6 @@ export function definePrefabBlocks() {
       }
     },
   };
-  Blockly.Extensions.apply('custom_procedure_ui_extension', Blockly.Blocks[PREFAB_DEF_TYPE]);
 
   const callBase = Blockly.Blocks['procedures_callnoreturn'];
   Blockly.Blocks[PREFAB_CALL_TYPE] = {

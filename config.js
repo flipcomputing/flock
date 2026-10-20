@@ -356,15 +356,17 @@ export const blockNames = [
   'rhino.glb',
 ];
 
-export const modelAnimationNames = [
-  'Flock.glb',
-  'Bunny.glb',
-  'Tiger.glb',
-  'rhino.glb',
-  'lion.glb',
-  'airplane.glb',
-  'airplane2.glb',
-];
+export const modelAnimations = {
+  'Flock.glb': ['Fly', 'Idle', 'Walk', 'Wave'],
+  'Bunny.glb': ['Idle', 'Walk'],
+  'Tiger.glb': ['Idle', 'Walk'],
+  'rhino.glb': ['Idle'],
+  'lion.glb': ['Idle'],
+  'airplane.glb': ['Fly'],
+  'airplane2.glb': ['Fly'],
+};
+
+export const modelAnimationNames = Object.keys(modelAnimations);
 
 export function mapNames() {
   return [

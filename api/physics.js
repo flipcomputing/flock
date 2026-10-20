@@ -607,13 +607,7 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
-const PICK_TRIGGER_NAMES = [
-  'OnPickTrigger',
-  'OnLeftPickTrigger',
-  'OnDoublePickTrigger',
-  'OnPickDownTrigger',
-  'OnPickUpTrigger',
-];
+const PICK_TRIGGER_NAMES = ['OnPickTrigger', 'OnPickDownTrigger', 'OnPickUpTrigger'];
 
 function isDescendantOf(mesh, ancestor) {
   let node = mesh?.parent;
@@ -1289,6 +1283,10 @@ export const flockPhysics = {
       __owningSignal = flock.sectionSignal(),
     }
   ) {
+    if (!PICK_TRIGGER_NAMES.includes(trigger)) {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'onTrigger', values: { trigger } });
+      return;
+    }
     const groupName = flock._familyOf(meshName);
     if (flock._isTag(meshName)) applyToGroup = true;
     const getAllGuiControls = () => {
@@ -1402,34 +1400,24 @@ export const flockPhysics = {
           // with its own handler still wins and nothing fires twice.
           mesh.actionManager.isRecursive = true;
 
-          let actionSequence = new flock.BABYLON.ExecuteCodeAction(
+          const codeAction = new flock.BABYLON.ExecuteCodeAction(
             flock.BABYLON.ActionManager[trigger],
             action
           );
-          for (let i = 1; i < callbacks.length; i++) {
-            actionSequence = actionSequence.then(
-              new flock.BABYLON.ExecuteCodeAction(
-                flock.BABYLON.ActionManager[trigger],
-                async () => {
-                  if (!flock.isPaused()) await callbacks[i]();
-                }
-              )
-            );
-          }
-          mesh.actionManager.registerAction(actionSequence);
+          mesh.actionManager.registerAction(codeAction);
           flock.onSectionStop(
-            () => mesh.actionManager?.unregisterAction(actionSequence),
+            () => mesh.actionManager?.unregisterAction(codeAction),
             __owningSignal
           );
         }
 
         function registerButtonAction(button, trigger, action) {
-          if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.add(action);
-          else button.onPointerClickObservable.add(action);
-          flock.onSectionStop(() => {
-            if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.remove(action);
-            else button.onPointerClickObservable.remove(action);
-          }, __owningSignal);
+          const observable = {
+            OnPickDownTrigger: button.onPointerDownObservable,
+            OnPickUpTrigger: button.onPointerUpObservable,
+          }[trigger] ?? button.onPointerClickObservable;
+          const observer = observable.add(action);
+          flock.onSectionStop(() => observable.remove(observer), __owningSignal);
         }
 
         async function executeAction(meshId) {
@@ -1439,9 +1427,10 @@ export const flockPhysics = {
           if (mode === 'once') hasExecuted = true;
           if (mode === 'wait') isExecuting = true;
 
+          const index = currentIndex;
+          currentIndex = (currentIndex + 1) % callbacks.length;
           try {
-            await callbacks[currentIndex](meshId);
-            currentIndex = (currentIndex + 1) % callbacks.length;
+            await callbacks[index](meshId);
           } catch (e) {
             flock.reportBlockError({
               key: 'trigger_block_failed',

@@ -4,6 +4,7 @@ import {
   getFieldValue,
   getVariableInfo,
   getThenCallback,
+  getOwnDoOwner,
   maybeParentToGroup,
   withGroupParent,
 } from './generators-utilities.js';
@@ -188,7 +189,9 @@ export function registerTransformGenerators(javascriptGenerator) {
     const zPivot =
       javascriptGenerator.valueToCode(block, 'Z_PIVOT', javascriptGenerator.ORDER_ATOMIC) || 0;
 
-    return `await setAnchor(${meshVar}, { xPivot: ${xPivot}, yPivot: ${yPivot}, zPivot: ${zPivot} });\n`;
+    const placeAnchor = getOwnDoOwner(block) ? ', placeAnchor: true' : '';
+
+    return `await setAnchor(${meshVar}, { xPivot: ${xPivot}, yPivot: ${yPivot}, zPivot: ${zPivot}${placeAnchor} });\n`;
   };
 
   // -------------------------------

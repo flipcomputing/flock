@@ -1,6 +1,4 @@
 <!-- Content of the "Respond to clicks" how-to. Edit freely — see README.md in src/how-tos. -->
-<goal>Make something happen when an object is clicked.</goal>
-
 <topic>
   <topic-title>Add a when clicked block</topic-title>
   <p>
@@ -21,6 +19,23 @@
     Clicking the same object again does nothing until the blocks inside have finished.
     <strong>await</strong> makes the glide wait until it ends, so the star can't be clicked again
     while it moves.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>Something different each click</topic-title>
+  <p>
+    Press the plus button
+    <block-icon name="plus"></block-icon>
+    at the bottom of the when clicked block to add a <vocab>then</vocab> section. The first
+    click runs the blocks at the top, the next click runs the then section, and after the last
+    section the next click starts again from the top. With the keyboard: move to the plus button
+    with the arrow keys and press <kbd>Enter</kbd>.
+  </p>
+  <snippet src="when-star-clicked-then">The star glides up on one click and back down on the next.</snippet>
+  <p>
+    Each click waits for the section before it to finish. Press the minus button next to a
+    then to remove that section.
   </p>
 </topic>
 

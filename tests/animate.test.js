@@ -743,6 +743,128 @@ export function runAnimateTests(flock) {
       });
     });
 
+    describe('keyframe timing and reuse', function () {
+      const keyFramesOf = (animation) => animation.getKeys().map((k) => [k.frame, k.value.x]);
+
+      it('should mirror forward timing when animateKeyFrames reverses', async function () {
+        const boxId = 'keyFramesReverseTiming';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        const done = flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.1, value: '0 0 0' },
+            { duration: 0.1, value: '1 0 0' },
+            { duration: 0.1, value: '2 0 0' },
+          ],
+          property: 'position',
+          reverse: true,
+        });
+        await new Promise((r) => setTimeout(r, 30));
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        const [animatable] = flock.scene.getAllAnimatablesByTarget(mesh);
+        expect(keyFramesOf(animatable.getAnimations()[0].animation)).to.deep.equal([
+          [0, 0],
+          [3, 1],
+          [6, 2],
+          [9, 1],
+          [12, 0],
+        ]);
+        await done;
+      });
+
+      it('should not replay an earlier keyframe animation when animating another property', async function () {
+        const boxId = 'keyFramesNoReplay';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.1, value: '0 0 0' },
+            { duration: 0.1, value: '3 0 0' },
+          ],
+          property: 'position',
+        });
+        const scaling = flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.2, value: '1 1 1' },
+            { duration: 0.2, value: '2 2 2' },
+          ],
+          property: 'scaling',
+        });
+        await new Promise((r) => setTimeout(r, 50));
+
+        expect(mesh.position.x).to.be.closeTo(3, 0.01);
+        expect(mesh.animations).to.have.length(0);
+        await scaling;
+      });
+
+      it('should replace a property animation when createAnimation reuses a group', async function () {
+        const boxId = 'createAnimationReuse';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        let name = null;
+        for (let i = 0; i < 3; i++) {
+          name = await flock.createAnimation(name, boxId, {
+            property: 'position',
+            keyframes: [
+              { duration: 0, value: flock.createVector3(0, 0, 0) },
+              { duration: (3 - i) * 0.1, value: flock.createVector3(i, 0, 0) },
+            ],
+            mode: 'AWAIT',
+          });
+        }
+
+        const group = flock.scene.getAnimationGroupByName(name);
+        expect(group.targetedAnimations).to.have.length(1);
+        expect(group.from).to.equal(0);
+        expect(group.to).to.equal(3);
+        group.dispose();
+      });
+
+      it('should complete when animateKeyFrames reverses no keyframes', async function () {
+        const boxId = 'keyFramesReverseEmpty';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [],
+          property: 'position',
+          reverse: true,
+        });
+      });
+
+      it('should mirror forward timing when createAnimation reverses', async function () {
+        const boxId = 'createAnimationReverseTiming';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        const name = await flock.createAnimation(null, boxId, {
+          property: 'position',
+          reverse: true,
+          mode: 'CREATE',
+          keyframes: [
+            { duration: 0, value: flock.createVector3(0, 0, 0) },
+            { duration: 0.5, value: flock.createVector3(1, 0, 0) },
+            { duration: 1, value: flock.createVector3(2, 0, 0) },
+          ],
+        });
+
+        const group = flock.scene.getAnimationGroupByName(name);
+        expect(keyFramesOf(group.targetedAnimations[0].animation)).to.deep.equal([
+          [0, 0],
+          [15, 1],
+          [30, 2],
+          [45, 1],
+          [60, 0],
+        ]);
+        group.dispose();
+      });
+    });
+
     describe('animateKeyFrames function', function () {
       it('should animate color keyframes', async function () {
         const boxId = 'animateKeyFramesColor';

@@ -200,6 +200,94 @@ export function runEventsTests(flock) {
         await runUntilPrinted();
         expect(printed).to.deep.equal(['heard']);
       });
+
+      describe('when clicked then sections', function () {
+        const say = (message) => ({
+          block: { type: 'print_text', inputs: { TEXT: text(message) } },
+        });
+        const clicked = () =>
+          append({
+            type: 'when_clicked',
+            fields: { MODEL_VAR: { name: 'door' }, TRIGGER: 'OnPickTrigger' },
+            inputs: { DO: say('open') },
+          });
+        const inputNames = (block) => block.inputList.map((input) => input.name);
+        const printedIn = (block, name) =>
+          block.getInputTargetBlock(name)?.getInputTargetBlock('TEXT')?.getFieldValue('TEXT');
+        const flushEvents = () =>
+          new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+
+        for (const removed of ['OnLeftPickTrigger', 'OnDoublePickTrigger']) {
+          it(`loads the removed ${removed} as clicked`, function () {
+            const block = append({
+              type: 'when_clicked',
+              fields: { MODEL_VAR: { name: 'door' }, TRIGGER: removed },
+            });
+            expect(block.getFieldValue('TRIGGER')).to.equal('OnPickTrigger');
+          });
+        }
+
+        it('adds then sections above the button row', function () {
+          const block = clicked();
+          block.addThen();
+          block.addThen();
+          expect(inputNames(block).slice(1)).to.deep.equal([
+            'DO',
+            'THEN_ROW0',
+            'THEN0',
+            'THEN_ROW1',
+            'THEN1',
+            'BUTTONS',
+          ]);
+        });
+
+        it('keeps then sections and their blocks when saved and loaded', function () {
+          const block = clicked();
+          block.addThen();
+          block.getInput('THEN0').connection.connect(append(say('close').block).previousConnection);
+
+          const state = Blockly.serialization.blocks.save(block);
+          block.dispose();
+          const loaded = append(state);
+
+          expect(loaded.thenCount_).to.equal(1);
+          expect(printedIn(loaded, 'THEN0')).to.equal('close');
+        });
+
+        it('moves later sections up when one is removed, and undo puts them back', async function () {
+          const block = clicked();
+          block.addThen();
+          block.addThen();
+          block.getInput('THEN0').connection.connect(append(say('close').block).previousConnection);
+          block.getInput('THEN1').connection.connect(append(say('lock').block).previousConnection);
+          await flushEvents();
+
+          block.removeThen(0);
+          await flushEvents();
+
+          expect(block.thenCount_).to.equal(1);
+          expect(printedIn(block, 'THEN0')).to.equal('lock');
+          const loose = workspace.getTopBlocks().filter((b) => b.type === 'print_text');
+          expect(loose.map((b) => b.getInputTargetBlock('TEXT').getFieldValue('TEXT'))).to.deep.equal([
+            'close',
+          ]);
+
+          workspace.undo(false);
+          await flushEvents();
+
+          expect(block.thenCount_).to.equal(2);
+          expect(printedIn(block, 'THEN0')).to.equal('close');
+          expect(printedIn(block, 'THEN1')).to.equal('lock');
+        });
+
+        it('keeps an empty then section as a step that does nothing', function () {
+          const block = clicked();
+          block.addThen();
+          javascriptGenerator.init(workspace);
+          const code = javascriptGenerator.blockToCode(block);
+          expect(code.match(/async function\(/g)).to.have.length(2);
+        });
+      });
     });
 
     // -------------------------------------------------------------------------
@@ -773,6 +861,121 @@ export function runEventsTests(flock) {
         });
         await new Promise((resolve) => setTimeout(resolve, 0));
         expect(picked).to.deep.equal([clone.name]);
+      });
+    });
+
+    describe('onTrigger callback sequences @physics', function () {
+      const box = (id, x = 0) =>
+        flock.createBox(id, { width: 1, height: 1, depth: 1, position: [x, 0, 0] });
+      const pick = (name) =>
+        flock.scene
+          .getMeshByName(name)
+          .actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+      it('runs the next callback on each click, wrapping round', async function () {
+        const door = await box('seqdoor__b1');
+        meshIds.push(door);
+
+        const ran = [];
+        await flock.onTrigger(door, {
+          trigger: 'OnPickTrigger',
+          callback: [() => ran.push('open'), () => ran.push('close')],
+        });
+
+        for (let i = 0; i < 3; i++) {
+          pick(door);
+          await tick();
+        }
+
+        expect(ran).to.deep.equal(['open', 'close', 'open']);
+      });
+
+      it('ignores clicks until the current callback has finished', async function () {
+        const door = await box('seqwait__b1');
+        meshIds.push(door);
+
+        const ran = [];
+        let finishOpen;
+        await flock.onTrigger(door, {
+          trigger: 'OnPickTrigger',
+          callback: [
+            async () => {
+              ran.push('open');
+              await new Promise((resolve) => (finishOpen = resolve));
+            },
+            () => ran.push('close'),
+          ],
+        });
+
+        pick(door);
+        await tick();
+        pick(door);
+        await tick();
+        expect(ran).to.deep.equal(['open']);
+
+        finishOpen();
+        await tick();
+        pick(door);
+        await tick();
+        expect(ran).to.deep.equal(['open', 'close']);
+      });
+
+      it('keeps a separate place in the sequence for each member of a group', async function () {
+        const first = await box('seqgroup__b1');
+        const second = await box('seqgroup__b1', 2);
+        meshIds.push(first, second);
+
+        const ran = [];
+        await flock.onTrigger(first, {
+          trigger: 'OnPickTrigger',
+          callback: [(name) => ran.push(`open ${name}`), (name) => ran.push(`close ${name}`)],
+          applyToGroup: true,
+        });
+        await tick();
+
+        pick(first);
+        await tick();
+        pick(second);
+        await tick();
+        pick(first);
+        await tick();
+
+        expect(ran).to.deep.equal([`open ${first}`, `open ${second}`, `close ${first}`]);
+      });
+
+      for (const removed of ['OnLeftPickTrigger', 'OnDoublePickTrigger', 'OnPointerUpTrigger']) {
+        it(`does not register the unsupported ${removed}`, async function () {
+          const door = await box(`sequnsupported${removed}__b1`);
+          meshIds.push(door);
+
+          await flock.onTrigger(door, { trigger: removed, callback: () => {} });
+
+          expect(flock.scene.getMeshByName(door).actionManager?.actions ?? []).to.be.empty;
+        });
+      }
+
+      it('moves on past a callback that throws', async function () {
+        const door = await box('seqthrow__b1');
+        meshIds.push(door);
+
+        const ran = [];
+        await flock.onTrigger(door, {
+          trigger: 'OnPickTrigger',
+          callback: [
+            () => {
+              throw new Error('broken step');
+            },
+            () => ran.push('close'),
+          ],
+        });
+
+        pick(door);
+        await tick();
+        pick(door);
+        await tick();
+
+        expect(ran).to.deep.equal(['close']);
       });
     });
 

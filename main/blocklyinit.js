@@ -41,6 +41,7 @@ import { defineSoundBlocks } from '../blocks/sound.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { installContrastWarnings } from '../blocks/colourcontrast.js';
+import { installAnimationWarnings } from '../blocks/animationWarnings.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { defineUnknownBlock } from '../blocks/unknownBlock.js';
@@ -2613,6 +2614,7 @@ export function createBlocklyWorkspace() {
   initializeIfClauseConnectionChecker(workspace);
   installVariableScopeWarnings(workspace);
   window.flockRefreshContrastWarnings = installContrastWarnings(workspace);
+  window.flockRefreshAnimationWarnings = installAnimationWarnings(workspace);
 
   (function wireToolboxSearchArrowDown() {
     const host = workspace.getInjectionDiv?.() || document;

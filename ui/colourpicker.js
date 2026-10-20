@@ -1923,7 +1923,7 @@ class CustomColorPicker {
 
         const containerWidth = 360;
         if (buttonRect.left + containerWidth > canvasRect.right) {
-          this.container.style.left = `${canvasRect.right - containerWidth - 10}px`;
+          this.container.style.left = `${Math.max(10, canvasRect.right - containerWidth - 10)}px`;
         }
       }
 

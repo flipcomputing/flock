@@ -44,7 +44,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_variable',
             name: 'PARENT_MESH',
-            variable: window.currentMesh,
+            variable: otherObjectName(window.currentMesh),
           },
           {
             type: 'input_value',

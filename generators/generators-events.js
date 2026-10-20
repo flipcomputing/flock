@@ -27,18 +27,13 @@ export function registerEventsGenerators(javascriptGenerator) {
     const trigger = block.getFieldValue('TRIGGER');
     const mode = block.getFieldValue('MODE') || 'wait';
 
-    const doCode = javascriptGenerator.statementToCode(block, 'DO').trim();
-    const thenCodes = [];
+    const sections = ['DO'];
+    for (let i = 0; i < (block.thenCount_ || 0); i++) sections.push('THEN' + i);
 
-    for (let i = 0; i < block.thenCount_; i++) {
-      const thenCode = javascriptGenerator.statementToCode(block, 'THEN' + i).trim();
-      if (thenCode) {
-        thenCodes.push(thenCode);
-      }
-    }
-
-    const allActions = [doCode, ...thenCodes].filter((code) => code);
-    const actionFunctions = allActions.map((code) => `async function(${modelName}) {\n${code}\n}`);
+    const actionFunctions = sections.map(
+      (name) =>
+        `async function(${modelName}) {\n${javascriptGenerator.statementToCode(block, name).trim()}\n}`
+    );
 
     // Determine if this is a top-level block (not nested)
     const isTopLevel = !block.getSurroundParent();

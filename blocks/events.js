@@ -2,12 +2,13 @@ import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import {
   getHelpUrlFor,
-  addToggleButton,
+  addInlineOnDrag,
   mutationToDom,
   domToMutation,
   updateShape,
-  updateToggleButtonIcon,
   fireLayoutMove,
+  DO_MUTATOR_PLUS,
+  DO_MUTATOR_MINUS,
 } from './blocks.js';
 import { translate, getTooltip, getDropdownOption, getOption } from '../main/translation.js';
 import {
@@ -18,10 +19,8 @@ import {
   makeKeyboardIcon,
   makePressIcon,
   makeOnEventIcon,
-  makeToggleButtonIcon,
   getCurrentIconColor,
   BLOCK_ICON_FIELD_NAME,
-  TOGGLE_BUTTON_FIELD_NAME,
   DecorativeFieldImage,
 } from './blockIcons.js';
 import { otherObjectName } from './variableNames.js';
@@ -77,7 +76,7 @@ export function defineEventsBlocks() {
         new DecorativeFieldImage(makeRepeatIcon(getCurrentIconColor()), 32, 32, '', null),
         BLOCK_ICON_FIELD_NAME
       );
-      addToggleButton(this);
+      addInlineOnDrag(this);
     },
     mutationToDom: function () {
       return mutationToDom(this);
@@ -87,23 +86,6 @@ export function defineEventsBlocks() {
     },
     updateShape_: function (isInline) {
       updateShape(this, isInline);
-    },
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      fireLayoutMove(this);
     },
   };
 
@@ -123,8 +105,6 @@ export function defineEventsBlocks() {
             name: 'TRIGGER',
             options: [
               getDropdownOption('OnPickTrigger'),
-              getDropdownOption('OnLeftPickTrigger'),
-              getDropdownOption('OnDoublePickTrigger'),
               getDropdownOption('OnPickDownTrigger'),
               getDropdownOption('OnPickUpTrigger'),
             ],
@@ -162,32 +142,86 @@ export function defineEventsBlocks() {
         BLOCK_ICON_FIELD_NAME
       );
 
-      // Add inline toggle button
-      const toggleButton = new Blockly.FieldImage(
-        makeToggleButtonIcon(this.isInline),
-        20,
-        20,
-        'toggle inline blocks',
-        () => {
-          this.toggleDoBlock();
-        }
+      this.thenCount_ = 0;
+      const addThen = new Blockly.FieldImage(DO_MUTATOR_PLUS, 20, 20, 'add then', () =>
+        this.addThen()
       );
-
-      // Add toggle button to a separate input
-      this.appendDummyInput()
-        .setAlign(Blockly.inputs.Align.RIGHT) // Align toggle button to the right
-        .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
+      addThen.pinRight_ = true;
+      this.appendDummyInput('BUTTONS').appendField(addThen, 'THEN_ADD');
+      addInlineOnDrag(this);
     },
 
     mutationToDom: function () {
       const container = document.createElement('mutation');
       container.setAttribute('inline', this.isInline);
+      if (this.thenCount_) container.setAttribute('then', this.thenCount_);
       return container;
     },
 
     domToMutation: function (xmlElement) {
       const isInline = xmlElement.getAttribute('inline') === 'true' || false;
       this.updateShape_(isInline);
+      this.setThenCount_(parseInt(xmlElement.getAttribute('then')) || 0);
+    },
+
+    setThenCount_: function (count) {
+      while (this.thenCount_ < count) {
+        const i = this.thenCount_;
+        const removeThen = new Blockly.FieldImage(DO_MUTATOR_MINUS, 20, 20, 'remove then', (field) =>
+          this.removeThen(Number(field.getParentInput().name.slice('THEN_ROW'.length)))
+        );
+        removeThen.pinRight_ = true;
+        this.appendDummyInput('THEN_ROW' + i)
+          .appendField(translate('then_label'))
+          .appendField(removeThen);
+        this.appendStatementInput('THEN' + i);
+        this.moveInputBefore('THEN_ROW' + i, 'BUTTONS');
+        this.moveInputBefore('THEN' + i, 'BUTTONS');
+        this.thenCount_++;
+      }
+      while (this.thenCount_ > count) {
+        this.thenCount_--;
+        this.removeInput('THEN' + this.thenCount_);
+        this.removeInput('THEN_ROW' + this.thenCount_);
+      }
+    },
+
+    changeThenCount_: function (change) {
+      const oldState = Blockly.Xml.domToText(this.mutationToDom());
+      const ownGroup = !Blockly.Events.getGroup();
+      if (ownGroup) Blockly.Events.setGroup(true);
+      try {
+        const reattach = change();
+        const newState = Blockly.Xml.domToText(this.mutationToDom());
+        Blockly.Events.fire(
+          new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState)
+        );
+        reattach?.();
+      } finally {
+        if (ownGroup) Blockly.Events.setGroup(false);
+      }
+      fireLayoutMove(this);
+    },
+
+    addThen: function () {
+      this.changeThenCount_(() => this.setThenCount_(this.thenCount_ + 1));
+    },
+
+    removeThen: function (index) {
+      this.changeThenCount_(() => {
+        this.getInputTargetBlock('THEN' + index)?.unplug();
+        const later = [];
+        for (let i = index + 1; i < this.thenCount_; i++) {
+          const child = this.getInputTargetBlock('THEN' + i);
+          child?.unplug();
+          later.push(child);
+        }
+        this.setThenCount_(this.thenCount_ - 1);
+        return () =>
+          later.forEach((child, i) => {
+            if (child) this.getInput('THEN' + (index + i)).connection.connect(child.previousConnection);
+          });
+      });
     },
 
     updateShape_: function (isInline) {
@@ -200,25 +234,6 @@ export function defineEventsBlocks() {
         this.setPreviousStatement(false);
         this.setNextStatement(false);
       }
-      updateToggleButtonIcon(this);
-    },
-
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Disconnect blocks when switching to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      if (this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-
-      fireLayoutMove(this);
     },
   };
 
@@ -267,22 +282,7 @@ export function defineEventsBlocks() {
         new DecorativeFieldImage(makeCollisionIcon(getCurrentIconColor()), 24, 24, '', null),
         BLOCK_ICON_FIELD_NAME
       );
-
-      // Add the toggle button
-      const toggleButton = new Blockly.FieldImage(
-        makeToggleButtonIcon(this.isInline),
-        20,
-        20,
-        'toggle inline blocks',
-        () => {
-          this.toggleDoBlock();
-        }
-      );
-
-      // Append the toggle button to the block
-      this.appendDummyInput()
-        .setAlign(Blockly.inputs.Align.RIGHT)
-        .appendField(toggleButton, TOGGLE_BUTTON_FIELD_NAME);
+      addInlineOnDrag(this);
     },
     onchange: function () {
       if (!this.workspace || this.isInFlyout) return;
@@ -330,24 +330,6 @@ export function defineEventsBlocks() {
         this.setPreviousStatement(false);
         this.setNextStatement(false);
       }
-      updateToggleButtonIcon(this);
-    },
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      fireLayoutMove(this);
     },
   };
 
@@ -434,7 +416,7 @@ export function defineEventsBlocks() {
         new DecorativeFieldImage(makeKeyboardIcon(getCurrentIconColor()), 36, 36, '', null),
         BLOCK_ICON_FIELD_NAME
       );
-      addToggleButton(this);
+      addInlineOnDrag(this);
     },
     mutationToDom: function () {
       return mutationToDom(this);
@@ -444,23 +426,6 @@ export function defineEventsBlocks() {
     },
     updateShape_: function (isInline) {
       updateShape(this, isInline);
-    },
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      fireLayoutMove(this);
     },
   };
 
@@ -507,7 +472,7 @@ export function defineEventsBlocks() {
         new DecorativeFieldImage(makePressIcon(getCurrentIconColor()), 32, 32, '', null),
         BLOCK_ICON_FIELD_NAME
       );
-      addToggleButton(this);
+      addInlineOnDrag(this);
     },
     mutationToDom: function () {
       return mutationToDom(this);
@@ -517,23 +482,6 @@ export function defineEventsBlocks() {
     },
     updateShape_: function (isInline) {
       updateShape(this, isInline);
-    },
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      fireLayoutMove(this);
     },
   };
 
@@ -588,7 +536,7 @@ export function defineEventsBlocks() {
         new DecorativeFieldImage(makeOnEventIcon(getCurrentIconColor()), 28, 28, '', null),
         BLOCK_ICON_FIELD_NAME
       );
-      addToggleButton(this);
+      addInlineOnDrag(this);
     },
     mutationToDom: function () {
       return mutationToDom(this);
@@ -598,23 +546,6 @@ export function defineEventsBlocks() {
     },
     updateShape_: function (isInline) {
       updateShape(this, isInline);
-    },
-    toggleDoBlock: function () {
-      const isInline = !this.isInline;
-
-      if (!isInline) {
-        this.unplug(true); // Ensures the block is disconnected when toggled to top-level
-      }
-
-      this.updateShape_(isInline);
-
-      // Optional: Re-enable the block if it was disabled
-      if (this.hasDisabledReason && this.hasDisabledReason('ORPHANED_BLOCK')) {
-        this.setDisabledReason(false, 'ORPHANED_BLOCK');
-      }
-
-      Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, '', ''));
-      fireLayoutMove(this);
     },
   };
 

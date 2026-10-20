@@ -7,6 +7,13 @@ import {
   setGizmoHintsEnabled,
   onControlPreferenceChange,
 } from '../ui/controlPreferences.js';
+import {
+  DEFAULT_CANVAS_ASPECT,
+  PORTRAIT_CANVAS_ASPECT,
+  isPortraitCanvas,
+  setCanvasAspectName,
+} from './canvasAspect.js';
+import { markProjectModified } from './files.js';
 
 const menuBtn = document.getElementById('menuBtn');
 const openAbout = document.getElementById('about-menu-item');
@@ -18,6 +25,7 @@ const closeToolsModal = document.getElementById('closeToolsModal');
 const playerControlsCheckbox = document.getElementById('playerControlsCheckbox');
 const gizmoControlsCheckbox = document.getElementById('gizmoControlsCheckbox');
 const gizmoHintsCheckbox = document.getElementById('gizmoHintsCheckbox');
+const portraitCanvasCheckbox = document.getElementById('portraitCanvasCheckbox');
 const toolsTabs = toolsModal ? Array.from(toolsModal.querySelectorAll('[role="tab"]')) : [];
 let previouslyFocused = null;
 
@@ -82,6 +90,7 @@ function syncToolsModal() {
   if (playerControlsCheckbox) playerControlsCheckbox.checked = getPlayerControlsEnabled();
   if (gizmoControlsCheckbox) gizmoControlsCheckbox.checked = getGizmoControlsEnabled();
   if (gizmoHintsCheckbox) gizmoHintsCheckbox.checked = getGizmoHintsEnabled();
+  if (portraitCanvasCheckbox) portraitCanvasCheckbox.checked = isPortraitCanvas();
   // main.js fills in the inspector row.
   document.dispatchEvent(new CustomEvent('toolspanelsync'));
 }
@@ -496,6 +505,15 @@ if (gizmoControlsCheckbox) {
 if (gizmoHintsCheckbox) {
   gizmoHintsCheckbox.addEventListener('change', () => {
     setGizmoHintsEnabled(gizmoHintsCheckbox.checked);
+  });
+}
+
+if (portraitCanvasCheckbox) {
+  portraitCanvasCheckbox.addEventListener('change', () => {
+    setCanvasAspectName(
+      portraitCanvasCheckbox.checked ? PORTRAIT_CANVAS_ASPECT : DEFAULT_CANVAS_ASPECT
+    );
+    markProjectModified();
   });
 }
 

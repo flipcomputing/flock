@@ -39,6 +39,15 @@ const joinIfSame = (mesh, slot, key) => {
 const motionKey = ({ x, y, z, duration, reverse, loop, easing }) =>
   reverse && !loop ? null : JSON.stringify([x, y, z, duration, reverse, loop, easing]);
 
+const mirrorKeyframes = (forward) => {
+  if (forward.length < 2) return [];
+  const end = forward[forward.length - 1].frame;
+  return forward
+    .slice(0, -1)
+    .reverse()
+    .map((kf) => ({ frame: 2 * end - kf.frame, value: kf.value }));
+};
+
 const remainingFraction =(remaining, full) =>
   full > 1e-3 ? Math.min(1, remaining / full) : 1;
 
@@ -784,21 +793,12 @@ export const flockAnimate = {
       currentFrame += fps;
     }
 
-    const reverseKeyframes = reverse
-      ? forwardKeyframes
-          .slice(0, -1)
-          .reverse()
-          .map((kf, i) => ({
-            frame: currentFrame + i,
-            value: kf.value,
-          }))
-      : [];
+    const reverseKeyframes = reverse ? mirrorKeyframes(forwardKeyframes) : [];
 
     const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
     if (allKeyframes.length <= 1) return;
 
     keyframeAnimation.setKeys(allKeyframes);
-    mesh.animations.push(keyframeAnimation);
 
     if (property === 'alpha' && mesh.material) {
       flock._prepareMaterialForAlphaAnimation(mesh);
@@ -808,7 +808,13 @@ export const flockAnimate = {
     const movesBody = property === 'position' || property === 'rotation';
     const drive = movesBody ? driveBody(mesh) : null;
 
-    const animatable = flock.scene.beginAnimation(mesh, 0, lastFrame, loop);
+    const animatable = flock.scene.beginDirectAnimation(
+      mesh,
+      [keyframeAnimation],
+      0,
+      lastFrame,
+      loop
+    );
     if (drive) animatable.onAnimationLoopObservable.add(() => drive.teleport());
 
     mesh.metadata = mesh.metadata || {};
@@ -903,17 +909,7 @@ export const flockAnimate = {
       }
 
       // Generate reverse keyframes
-      const reverseKeyframes = reverse
-        ? forwardKeyframes
-            .slice(0, -1)
-            .reverse()
-            .map((keyframe, index) => ({
-              frame:
-                forwardKeyframes[forwardKeyframes.length - 1].frame +
-                (forwardKeyframes[index + 1]?.frame - keyframe.frame),
-              value: keyframe.value,
-            }))
-        : [];
+      const reverseKeyframes = reverse ? mirrorKeyframes(forwardKeyframes) : [];
 
       const allKeyframes = [...forwardKeyframes, ...reverseKeyframes];
 
@@ -1273,6 +1269,19 @@ export const flockAnimate = {
     return descendants.find((descendant) => descendant.material) || null;
   },
   _addAnimationToGroup(animationGroup, animation, target) {
+    const stale = animationGroup.targetedAnimations.filter(
+      (ta) => ta.target === target && ta.animation.targetProperty === animation.targetProperty
+    );
+    if (stale.length) {
+      for (const ta of stale) animationGroup.removeTargetedAnimation(ta.animation);
+      const keySets = [
+        ...animationGroup.targetedAnimations.map((ta) => ta.animation.getKeys()),
+        animation.getKeys(),
+      ];
+      animationGroup.from = Math.min(...keySets.map((keys) => keys[0].frame));
+      animationGroup.to = Math.max(...keySets.map((keys) => keys[keys.length - 1].frame));
+    }
+
     // Add the animation to the group
     animationGroup.addTargetedAnimation(animation, target);
 

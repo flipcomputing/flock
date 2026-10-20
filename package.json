@@ -58,6 +58,7 @@
     "babylonjs-serializers": "^9.31.0",
     "blockly": "^13.4.0",
     "earcut": "^3.2.4",
+    "gifenc": "^1.0.3",
     "manifold-3d": "^3.5.4",
     "opentype.js": "^2.0.0",
     "ses": "^2.1.0",

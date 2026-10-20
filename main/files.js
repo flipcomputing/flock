@@ -17,6 +17,7 @@ import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 import { replaceUnrecognisedBlocks } from '../blocks/unknownBlock.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
+import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
 const MAX_PROJECT_FILE_BYTES = 5 * 1024 * 1024;
@@ -88,6 +89,10 @@ export function initProjectModifiedTracking(ws) {
   });
 }
 
+export function markProjectModified() {
+  projectModified = true;
+}
+
 export function isProjectModified() {
   return projectModified;
 }
@@ -112,7 +117,12 @@ async function confirmDiscardIfModified() {
 }
 
 export function serializeProject(ws) {
-  return { version: FLOCK_FORMAT_VERSION, ...Blockly.serialization.workspaces.save(ws) };
+  const canvasAspect = getCanvasAspectName();
+  return {
+    version: FLOCK_FORMAT_VERSION,
+    ...(canvasAspect !== DEFAULT_CANVAS_ASPECT && { settings: { canvasAspect } }),
+    ...Blockly.serialization.workspaces.save(ws),
+  };
 }
 
 // Function to save the current workspace state
@@ -219,8 +229,15 @@ function validateBlocklyJson(json) {
       throw new Error('Invalid project version');
     }
 
+    if (
+      data.settings !== undefined &&
+      (!data.settings || typeof data.settings !== 'object' || Array.isArray(data.settings))
+    ) {
+      throw new Error('Invalid project settings');
+    }
+
     // Empty workspace is valid
-    if (Object.keys(data).every((key) => key === 'version')) {
+    if (Object.keys(data).every((key) => key === 'version' || key === 'settings')) {
       return;
     }
 
@@ -231,7 +248,7 @@ function validateBlocklyJson(json) {
     }
 
     // Whitelist allowed properties at root level
-    const allowedRootKeys = ['version', 'blocks', 'variables', 'workspaceComments'];
+    const allowedRootKeys = ['version', 'settings', 'blocks', 'variables', 'workspaceComments'];
     const rootKeys = Object.keys(data);
 
     for (const key of rootKeys) {
@@ -370,7 +387,7 @@ export function loadWorkspaceAndExecute(
   json,
   workspace,
   executeCallback,
-  { focusCanvas = false } = {}
+  { focusCanvas = false, keepCanvasAspect = false } = {}
 ) {
   if (!workspace || !json) {
     throw new Error('Invalid workspace or json data.');
@@ -379,6 +396,8 @@ export function loadWorkspaceAndExecute(
   // Validation failures propagate to the caller; the catch below is only for a
   // workspace that broke mid-load, never for rejected JSON.
   const validatedJson = validateBlocklyJson(json);
+
+  if (!keepCanvasAspect) setCanvasAspectName(validatedJson.settings?.canvasAspect);
 
   try {
     const unrecognised = replaceUnrecognisedBlocks(validatedJson);
@@ -947,7 +966,7 @@ function processProjectFileDrop(file, workspace, executeCallback) {
     .then((json) => {
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, executeCallback);
+      loadWorkspaceAndExecute(json, workspace, executeCallback, { keepCanvasAspect: true });
     })
     .catch((error) => {
       console.error('Error loading Blockly project:', error);
@@ -1048,7 +1067,7 @@ export function setupFileInput(workspace, executeCallback) {
         document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
 
         clearFileHandle();
-        loadWorkspaceAndExecute(json, workspace, executeCallback);
+        loadWorkspaceAndExecute(json, workspace, executeCallback, { keepCanvasAspect: true });
       })
       .catch((error) => {
         console.error('Error loading Blockly project:', error);
@@ -1085,7 +1104,7 @@ export async function openFile(workspace, executeCallback) {
       setProjectLoading(true);
       document.getElementById('projectName').value = getSafeImportedFileBaseName(file.name);
       clearFileHandle();
-      loadWorkspaceAndExecute(json, workspace, executeCallback);
+      loadWorkspaceAndExecute(json, workspace, executeCallback, { keepCanvasAspect: true });
     } catch (e) {
       if (e.name === 'AbortError') return;
       console.error('Error opening file:', e);
@@ -1114,7 +1133,10 @@ export async function loadExample(file, name, executeCallback = window.executeCo
       projectNameElement.value = name;
     }
     clearFileHandle();
-    loadWorkspaceAndExecute(json, workspace, executeCallback, { focusCanvas: true });
+    loadWorkspaceAndExecute(json, workspace, executeCallback, {
+      focusCanvas: true,
+      keepCanvasAspect: true,
+    });
   } catch (error) {
     console.error('Error loading example:', error);
     // Clear the loading flag so a failed load doesn't wedge later actions.
@@ -1135,7 +1157,7 @@ export async function newProject() {
       projectNameElement.value = 'New';
     }
     clearFileHandle();
-    loadWorkspaceAndExecute(json, workspace, window.executeCode);
+    loadWorkspaceAndExecute(json, workspace, window.executeCode, { keepCanvasAspect: true });
   } catch (error) {
     console.error('Error loading new project:', error);
     alert(translate('example_load_failed_alert'));

@@ -82,14 +82,6 @@ const ICON_PATHS = {
     viewBox: '0 0 512 512',
     d: 'M336.84,248.94c0-10.52-5.45-20.17-14.4-25.68l-180.37-110.23c-9.27-5.7-20.92-5.89-30.37-.56s-15.34,15.34-15.34,26.24v220.45c0,10.9,5.89,20.92,15.34,26.24s21.11,5.07,30.37-.56l180.37-110.23c8.96-5.45,14.4-15.16,14.4-25.68ZM307.27,38.36H434.65V459.49H307.27A31,31,0,0,1,307.27,397.49H372.65V100.36H307.27A31,31,0,0,1,307.27,38.36Z',
   },
-  indent: {
-    viewBox: '0 0 320 512',
-    d: 'M311.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L243.2 256 73.9 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z',
-  },
-  outdent: {
-    viewBox: '0 0 320 512',
-    d: 'M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z',
-  },
   // Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com
   // License - https://fontawesome.com/license/free (Icons: CC BY 4.0)
   section: {
@@ -123,19 +115,9 @@ export function makePressIcon(color) {
 export function makeOnEventIcon(color) {
   return makePathIcon(ICON_PATHS.event.viewBox, ICON_PATHS.event.d, color);
 }
-export function makeIndentIcon(color) {
-  return makePathIcon(ICON_PATHS.indent.viewBox, ICON_PATHS.indent.d, color);
-}
-export function makeOutdentIcon(color) {
-  return makePathIcon(ICON_PATHS.outdent.viewBox, ICON_PATHS.outdent.d, color);
-}
 export function makeSectionIcon(color, collapsed = false) {
   const icon = collapsed ? ICON_PATHS.section : ICON_PATHS.sectionOpen;
   return makePathIcon(icon.viewBox, icon.d, color);
-}
-
-export function makeToggleButtonIcon(isInline, color = 'white') {
-  return isInline ? makeOutdentIcon(color) : makeIndentIcon(color);
 }
 
 let _currentIconColor = 'white';
@@ -161,7 +143,6 @@ export const BLOCK_ICON_FIELD_NAME = 'BLOCK_ICON';
 // collapsed-summary input so the icon survives native collapse (which
 // otherwise hides the whole input row the real BLOCK_ICON field lives in).
 export const BLOCK_ICON_COLLAPSED_FIELD_NAME = 'BLOCK_ICON_COLLAPSED';
-export const TOGGLE_BUTTON_FIELD_NAME = 'TOGGLE_BUTTON';
 const LOW_VISION_ICON_FIELD_NAME = 'LOW_VISION_CATEGORY_ICON';
 const LOW_VISION_BAR_FIELD_NAME = 'LOW_VISION_CATEGORY_BAR';
 

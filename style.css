@@ -848,6 +848,75 @@ button {
   display: none;
 }
 
+.capture-indicator {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  border-radius: 999px;
+  background-color: var(--color-bg-glass);
+  color: #fff;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px var(--color-shadow-medium);
+}
+
+.capture-indicator[hidden] {
+  display: none;
+}
+
+.capture-indicator__dot {
+  display: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #e53935;
+  animation: capture-pulse 1.2s ease-in-out infinite;
+}
+
+.capture-indicator--recording .capture-indicator__dot {
+  display: block;
+}
+
+@keyframes capture-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capture-indicator__dot {
+    animation: none;
+  }
+}
+
+.capture-indicator__time {
+  font-variant-numeric: tabular-nums;
+}
+
+.capture-indicator__stop {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--color-bg-glass-focused);
+  color: #000;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.capture-indicator__stop:hover {
+  background-color: #fff;
+}
+
+.capture-indicator__stop:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .gizmo-status {
   margin: 0;
   font-size: 1rem;
@@ -1492,6 +1561,58 @@ button {
 
   #info-panel-body {
     display: none;
+  }
+}
+
+body.portrait-canvas #info-panel-body,
+body.portrait-canvas #infoResizer {
+  display: none;
+}
+
+body.portrait-canvas #info-panel {
+  flex: 1 1 auto !important;
+}
+
+/* The portrait column can be narrower than the add menu, which then spills
+   over the code panel instead of being clipped. */
+@media (min-width: 601px) {
+  body.portrait-canvas #canvasArea {
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1025px) {
+  body.portrait-canvas .gizmo-buttons-inner {
+    width: min(100%, 228px);
+    margin-inline: auto;
+    border-bottom-color: transparent;
+  }
+
+  body.portrait-canvas.info-panel-open:not(.play-mode) #canvasArea {
+    display: grid;
+    grid-template-columns: var(--help-column-width, clamp(300px, 26vw, 420px)) minmax(0, 1fr);
+    grid-template-rows: auto auto auto 1fr;
+  }
+
+  body.portrait-canvas.info-panel-open:not(.play-mode) #canvasArea > *,
+  body.portrait-canvas.info-panel-open:not(.play-mode) #info-panel-tabs {
+    grid-column: 2;
+  }
+
+  body.portrait-canvas.info-panel-open:not(.play-mode) #renderCanvas {
+    justify-self: center;
+  }
+
+  body.portrait-canvas.info-panel-open:not(.play-mode) aside#info-panel {
+    display: contents;
+  }
+
+  body.portrait-canvas.info-panel-open:not(.play-mode) #info-panel-body {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / -1;
+    contain: size;
+    border-right: 1px solid var(--color-border);
   }
 }
 
@@ -3095,7 +3216,7 @@ kbd {
   height: 50px;
   min-height: 50px;
   max-height: 50px;
-  padding: 2px 4px 0px 8px;
+  padding: 0 4px 0 8px;
   border-top: 1px solid var(--color-border);
   background-color: var(--color-bg);
   box-sizing: border-box;
@@ -3556,7 +3677,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   color: var(--axis-z);
 }
 
-.howto-article goal,
 .howto-article step,
 .howto-article topic,
 .howto-article tip,
@@ -3565,18 +3685,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
   margin: 0 0 1em;
   padding: 0.75em 0.9em;
   border-radius: 8px;
-}
-
-.howto-article goal {
-  background-color: color-mix(in srgb, var(--color-howto-accent) 12%, var(--color-bg));
-  border-left: 4px solid var(--color-howto-accent);
-}
-
-.howto-article goal::before {
-  content: 'Goal:';
-  display: inline;
-  font-weight: bold;
-  margin-right: 0.4em;
 }
 
 .howto-article step,
@@ -3679,10 +3787,9 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 }
 
 .howto-article tip {
-  /* Light yellow, mirroring how .howto-article goal tints --color-bg with
-     its own accent (--color-howto-accent) instead — --color-primary-light
-     is already the app's amber/gold accent (also --color-focus), reused here
-     rather than inventing a new colour. */
+  /* Light yellow: --color-primary-light is already the app's amber/gold
+     accent (also --color-focus), reused here rather than inventing a new
+     colour. */
   background-color: color-mix(in srgb, var(--color-primary-light) 12%, var(--color-bg));
   border-left: 4px solid var(--color-primary-light);
   font-size: 0.95em;
@@ -3710,7 +3817,6 @@ g.howto-attention.blocklyDraggable > .blocklyPath {
 
 .howto-article step p:last-child,
 .howto-article topic p:last-child,
-.howto-article goal p:last-child,
 .howto-article tip p:last-child {
   margin-bottom: 0;
 }

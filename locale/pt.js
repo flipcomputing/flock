@@ -248,6 +248,9 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valor de cor CSS inválido.', // ai
   colour_contrast_warning: 'O texto pode ser difícil de ler: o contraste é %1:1. Procure pelo menos %2:1.', // ai
+  animation_missing_warning: "%1 não tem a animação '%2'. Pode usar: %3.", // ai
+  animation_none_warning: '%1 não tem animações.', // ai
+  animation_shape_warning: 'As formas e o texto 3D não têm animações.', // ai
   random_colour: 'cor aleatória',
   material: 'material %1 %2',
   material_alpha: 'opacidade',
@@ -736,8 +739,6 @@ export default {
   EXP2_option: 'exp2',
 
   OnPickTrigger_option: 'clicado',
-  OnLeftPickTrigger_option: 'interagir',
-  OnDoublePickTrigger_option: 'duplo clique',
   OnPickDownTrigger_option: 'início da interação',
   OnPickUpTrigger_option: 'fim da interação',
 
@@ -1085,9 +1086,33 @@ export default {
   export_embed_copy_failed: 'Não foi possível copiar. Seleciona o código e copia-o tu.', // ai
   export_web_page_file_description: 'Página web', // ai
   export_web_zip_file_description: 'Ficheiro ZIP', // ai
+  tools_capture_tab_ui: 'Capturar', // ai
+  capture_picture_heading_ui: 'Imagem', // ai
+  capture_picture_description_ui: 'Guarda uma imagem da cena 3D.', // ai
+  capture_picture_button_ui: 'Tirar foto', // ai
+  capture_include_everything_ui: 'Incluir tudo', // ai
+  capture_gif_heading_ui: 'GIF animado', // ai
+  capture_gif_description_ui: 'Grava uma animação curta que se repete, com até 10 segundos.', // ai
+  capture_gif_button_ui: 'Gravar GIF', // ai
+  capture_video_heading_ui: 'Vídeo', // ai
+  capture_video_description_ui: 'Grava um vídeo da cena 3D, com até 1 minuto.', // ai
+  capture_video_button_ui: 'Gravar vídeo', // ai
+  capture_recording: 'A gravar', // ai
+  capture_time_up: 'Acabou o tempo!', // ai
+  capture_stop_button: 'Parar', // ai
+  capture_save_button: 'Guardar', // ai
+  capture_making_gif: 'A criar o teu GIF…', // ai
+  capture_saving: 'A guardar…', // ai
+  capture_saved: 'Guardado!', // ai
+  capture_picture_saved: 'Imagem guardada.', // ai
+  capture_failed: 'Desculpa, não funcionou.', // ai
+  capture_picture_file_description: 'Imagem PNG', // ai
+  capture_gif_file_description: 'Animação GIF', // ai
+  capture_video_file_description: 'Vídeo', // ai
   inspector_tool_ui: 'Inspetor',
   player_controls_option_ui: 'Controlos do jogador', // ai
   gizmo_controls_option_ui: 'Controlos de manipulação', // ai
+  portrait_canvas_option_ui: 'Tela vertical (9:16)', // ai
   close_tools_ui: 'Fechar ferramentas', // ai
   show_block_hints_ui: 'Mostrar dicas de blocos',
   hide_block_hints_ui: 'Ocultar dicas de blocos',

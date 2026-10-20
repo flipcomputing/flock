@@ -19,6 +19,8 @@ import {
   placeMoveAfterInitialTransforms,
 } from '../ui/initialTransform.js';
 import { updateMeshFromBlock, applyInitialTransformRows } from '../ui/blockmesh.js';
+import { enableBlockHandlers, dispatchBlockEvent } from '../blocks/blocks.js';
+import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
 
 export function runInitialTransformTests(flock) {
   describe('ui/initialTransform @initialtransform', function () {
@@ -479,6 +481,51 @@ export function runInitialTransformTests(flock) {
           expect(after.x).to.be.closeTo(centre.x, 0.01);
           expect(after.y).to.be.closeTo(centre.y, 0.01);
           expect(after.z).to.be.closeTo(centre.z, 0.01);
+        }
+      });
+
+      describe('through the block change handler', function () {
+        let handlerWs;
+        let restoreBlockHandlers;
+
+        beforeEach(function () {
+          restoreBlockHandlers = setAsideBlockHandlers();
+          handlerWs = new Blockly.Workspace();
+          enableBlockHandlers(handlerWs);
+        });
+
+        afterEach(function () {
+          handlerWs.dispose();
+          restoreBlockHandlers();
+        });
+
+        for (const type of ['load_model', 'load_character', 'load_multi_object', 'load_object']) {
+          it(`resizes a ${type} mesh when a size is edited`, async function () {
+            const block = handlerWs.newBlock(type, `liveRowSize-${type}-${Date.now()}`);
+            block.setResizeShown(true, { x: 1, y: 2, z: 1 });
+            const id = flock.createBox(`liveRowSize__${block.id}`, {
+              width: 1,
+              height: 2,
+              depth: 1,
+              position: [0, 0, 0],
+            });
+            created.push(id);
+            const mesh = flock.scene.getMeshByName(id);
+            await new Promise((resolve) => setTimeout(resolve));
+
+            const sizeX = block.getInputTargetBlock('SIZE_X');
+            sizeX.setFieldValue('3', 'NUM');
+            dispatchBlockEvent(handlerWs, {
+              type: Blockly.Events.BLOCK_CHANGE,
+              element: 'field',
+              name: 'NUM',
+              blockId: sizeX.id,
+              workspaceId: handlerWs.id,
+            });
+
+            const bounds = worldBox(mesh);
+            expect(bounds.maximumWorld.x - bounds.minimumWorld.x).to.be.closeTo(3, 0.01);
+          });
         }
       });
 

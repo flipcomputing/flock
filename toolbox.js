@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import '@blockly/toolbox-search';
 import { buildColorsListShadowSpec } from './ui/blocklyshadowutil.js';
+import { newerObjectName, recentObjectNames } from './blocks/variableNames.js';
 
 export const categoryColours = {
   Events: 5,
@@ -19,6 +20,23 @@ export const categoryColours = {
   Math: '%{BKY_MATH_HUE}',
   Procedures: '%{BKY_PROCEDURES_HUE}',
 };
+
+function meshListInputs(names, inputName = 'MESH_LIST') {
+  const items = names.map((name, i) => [
+    `ADD${i}`,
+    { block: { type: 'variables_get', fields: { VAR: { name } } } },
+  ]);
+  return {
+    [inputName]: {
+      block: {
+        type: 'lists_create_with',
+        inline: true,
+        extraState: { itemCount: names.length },
+        inputs: Object.fromEntries(items),
+      },
+    },
+  };
+}
 
 function vectorBlockSpec(x, y, z) {
   const num = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
@@ -1738,26 +1756,8 @@ const toolboxTransformConnect = {
       kind: 'block',
       type: 'parent_children',
       keyword: 'parent',
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'object',
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs([newerObjectName()]);
       },
     },
     {
@@ -1919,26 +1919,8 @@ const toolboxTransformModify = {
       type: 'merge_meshes',
       keyword: 'merge',
       inputsInline: true,
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'mesh1', // Default variable for a mesh
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs(recentObjectNames(['object', 'object2']));
       },
     },
     {
@@ -1946,26 +1928,8 @@ const toolboxTransformModify = {
       type: 'subtract_meshes',
       keyword: 'subtract',
       inputsInline: true,
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'object2', // Default variable for a mesh to subtract
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs([newerObjectName()]);
       },
     },
     {
@@ -1973,26 +1937,8 @@ const toolboxTransformModify = {
       type: 'embed_meshes',
       keyword: 'embed',
       inputsInline: true,
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'object2',
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs([newerObjectName()]);
       },
     },
     {
@@ -2000,26 +1946,8 @@ const toolboxTransformModify = {
       type: 'intersection_meshes',
       keyword: 'intersect',
       inputsInline: true,
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'mesh1', // Default variable for a mesh
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs(recentObjectNames(['object', 'object2']));
       },
     },
     {
@@ -2027,26 +1955,8 @@ const toolboxTransformModify = {
       type: 'hull_meshes',
       keyword: 'hull',
       inputsInline: true,
-      inputs: {
-        MESH_LIST: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'mesh1', // Default variable for a mesh
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs(recentObjectNames(['object', 'object2']));
       },
     },
     {
@@ -2825,26 +2735,8 @@ const toolboxControl = {
       type: 'tag_object',
       keyword: 'tag',
       inputsInline: true,
-      inputs: {
-        OBJECTS: {
-          block: {
-            type: 'lists_create_with',
-            inline: true,
-            extraState: {
-              itemCount: 1,
-            },
-            inputs: {
-              ADD0: {
-                block: {
-                  type: 'variables_get',
-                  fields: {
-                    VAR: 'mesh1',
-                  },
-                },
-              },
-            },
-          },
-        },
+      get inputs() {
+        return meshListInputs([window.currentMesh], 'OBJECTS');
       },
     },
     {
@@ -3600,7 +3492,7 @@ const toolboxText = {
               block: {
                 type: 'variables_get',
                 fields: {
-                  VAR: 'text',
+                  VAR: { name: 'text' },
                 },
               },
             },
@@ -3623,7 +3515,7 @@ const toolboxText = {
               block: {
                 type: 'variables_get',
                 fields: {
-                  VAR: 'text',
+                  VAR: { name: 'text' },
                 },
               },
             },
@@ -3638,7 +3530,7 @@ const toolboxText = {
               block: {
                 type: 'variables_get',
                 fields: {
-                  VAR: 'text',
+                  VAR: { name: 'text' },
                 },
               },
             },
