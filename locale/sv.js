@@ -247,6 +247,9 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Ogiltigt CSS-färgvärde.', // ai
   colour_contrast_warning: 'Texten kan vara svår att läsa: kontrasten är %1:1. Sikta på minst %2:1.', // ai
+  animation_missing_warning: "%1 har ingen animation '%2'. Den kan använda: %3.", // ai
+  animation_none_warning: '%1 har inga animationer.', // ai
+  animation_shape_warning: 'Former och 3D-text har inga animationer.', // ai
   random_colour: 'slumpmässig färg',
   material: 'material %1 %2',
   material_alpha: 'alfa',

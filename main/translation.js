@@ -190,6 +190,7 @@ export async function setLanguage(language) {
         Blockly.Events.enable();
       }
       window.flockRefreshContrastWarnings?.();
+      window.flockRefreshAnimationWarnings?.();
     }
 
     if (toolboxElement) {

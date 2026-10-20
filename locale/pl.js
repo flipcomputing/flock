@@ -249,6 +249,9 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Nieprawidłowa wartość koloru CSS.', // ai
   colour_contrast_warning: 'Tekst może być trudny do odczytania: kontrast wynosi %1:1. Celuj w co najmniej %2:1.', // ai
+  animation_missing_warning: "%1 nie ma animacji '%2'. Dostępne: %3.", // ai
+  animation_none_warning: '%1 nie ma żadnych animacji.', // ai
+  animation_shape_warning: 'Kształty i tekst 3D nie mają animacji.', // ai
   random_colour: 'losowy kolor',
   material: 'materiał %1 %2',
   material_alpha: 'przezroczystość:',

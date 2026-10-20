@@ -252,6 +252,9 @@ export default {
   colour_from_string: '- %1 -', // human
   colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
   colour_contrast_warning: 'El texto puede ser difícil de leer: el contraste es %1:1. Intenta que sea al menos %2:1.', // ai
+  animation_missing_warning: "%1 no tiene la animación '%2'. Puede usar: %3.", // ai
+  animation_none_warning: '%1 no tiene animaciones.', // ai
+  animation_shape_warning: 'Las formas y el texto 3D no tienen animaciones.', // ai
   random_colour: 'color aleatorio', // human
   material: 'material %1 %2', // human
   material_alpha: 'alfa',

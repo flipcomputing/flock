@@ -248,6 +248,9 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valor de cor CSS inválido.', // ai
   colour_contrast_warning: 'O texto pode ser difícil de ler: o contraste é %1:1. Procure pelo menos %2:1.', // ai
+  animation_missing_warning: "%1 não tem a animação '%2'. Pode usar: %3.", // ai
+  animation_none_warning: '%1 não tem animações.', // ai
+  animation_shape_warning: 'As formas e o texto 3D não têm animações.', // ai
   random_colour: 'cor aleatória',
   material: 'material %1 %2',
   material_alpha: 'opacidade',

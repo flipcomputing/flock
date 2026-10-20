@@ -250,6 +250,9 @@ export default {
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valore colore CSS non valido.', // ai
   colour_contrast_warning: 'Il testo potrebbe essere difficile da leggere: il contrasto è %1:1. Punta ad almeno %2:1.', // ai
+  animation_missing_warning: "%1 non ha l'animazione '%2'. Può usare: %3.", // ai
+  animation_none_warning: '%1 non ha animazioni.', // ai
+  animation_shape_warning: 'Le forme e il testo 3D non hanno animazioni.', // ai
   random_colour: 'colore casuale',
   material: 'materiale %1 %2',
   material_alpha: 'alpha',
