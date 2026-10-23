@@ -456,6 +456,19 @@ export function runPhysicsTests(flock) {
       expect(v.z).to.be.closeTo(-5, 0.5);
     });
 
+    it('makes a static object dynamic so it moves', async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndBox('velGndStatic', 'boxSetVelocityStatic');
+      await flock.setPhysics('boxSetVelocityStatic', 'STATIC');
+      const start = mesh.position.clone();
+
+      flock.setSpeed('boxSetVelocityStatic', 'forward', 5);
+      await new Promise((r) => setTimeout(r, 400));
+
+      expect(mesh.metadata.physicsType).to.equal('DYNAMIC');
+      expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.greaterThan(1);
+    });
+
     it('combines forward and sideways into one heading', async function () {
       this.timeout(8000);
       const mesh = await makeGroundAndBox('velGndB', 'boxSetVelocityCombine');
@@ -613,7 +626,7 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-4, 0.5);
     });
 
-    it('should handle missing physics gracefully', async function () {
+    it('gives an object with no physics a dynamic body', async function () {
       const id = 'boxSetVelocityNoPhysics';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       boxIds.push(id);
@@ -622,16 +635,10 @@ export function runPhysicsTests(flock) {
       mesh.physics.dispose();
       mesh.physics = null;
 
-      let errorLogged = false;
-      const originalConsoleError = console.error;
-      console.error = () => {
-        errorLogged = true;
-      };
-
       flock.setSpeed(id, 'forward', 1);
 
-      console.error = originalConsoleError;
-      expect(errorLogged).to.be.true;
+      expect(mesh.physics).to.exist;
+      expect(mesh.metadata.physicsType).to.equal('DYNAMIC');
     });
   });
 
