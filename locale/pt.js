@@ -477,7 +477,7 @@ export default {
     'Anexa um objeto a um osso específico de outro objeto com deslocamento em x, y e z.',
   drop_tooltip: 'Desanexa um objeto do osso ao qual está conectado.',
   follow_tooltip:
-    'Faz um objeto seguir outro: nele, no seu centro ou encostado a um dos seus lados. Os lados e o deslocamento seguem a rotação do outro objeto.', // ai
+    'Faz um objeto seguir outro: nele, no seu centro ou em cima dele, com o deslocamento indicado. Move-se com o outro objeto, mas não roda com ele.', // ai
   export_mesh_tooltip: 'Exporta um objeto como STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks

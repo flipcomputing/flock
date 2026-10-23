@@ -473,7 +473,7 @@ export default {
   hold_tooltip: 'Przymocuj obiekt do kości innego obiektu z przesunięciem w osiach x, y, z.',
   drop_tooltip: 'Odłącz obiekt od kości, do której była przyczepiona.',
   follow_tooltip:
-    'Spraw, by jeden obiekt podążał za drugim: w jego miejscu, w jego środku lub przy jednym z jego boków. Boki i przesunięcie obracają się razem z drugim obiektem.', // ai
+    'Spraw, by jeden obiekt podążał za drugim: w jego miejscu, w jego środku lub na nim, z podanym przesunięciem. Porusza się razem z drugim obiektem, ale nie obraca się razem z nim.', // ai
   export_mesh_tooltip: 'Eksportuj obiekt jako STL, OBJ lub GLB.',
 
   // Tooltip translations - Control blocks

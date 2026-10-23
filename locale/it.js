@@ -475,7 +475,7 @@ export default {
     'Attacca un oggetto all’osso specificato di un’altra oggetto con offset in x, y e z.',
   drop_tooltip: 'Stacca un oggetto dall’osso a cui è attualmente attaccata.',
   follow_tooltip:
-    "Fa seguire un oggetto a un altro: su di esso, al suo centro o contro uno dei suoi lati. Lati e offset seguono la rotazione dell'altro oggetto.", // ai
+    "Fa seguire un oggetto a un altro: nella sua posizione, al suo centro o sopra di esso, spostato dell'offset. Si muove con l'altro oggetto ma non ruota con esso.", // ai
   export_mesh_tooltip: 'Esporta un oggetto come STL, OBJ o GLB.',
 
   // Tooltip translations - Control blocks

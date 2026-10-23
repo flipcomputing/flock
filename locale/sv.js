@@ -473,7 +473,7 @@ export default {
     'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.',
   drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.',
   follow_tooltip:
-    'Få ett objekt att följa ett annat: vid det, i dess mitt eller mot en av dess sidor. Sidor och förskjutning följer det andra objektets rotation.', // ai
+    'Få ett objekt att följa ett annat: vid det, i dess mitt eller ovanpå det, flyttat med förskjutningen. Det rör sig med det andra objektet men vrider sig inte med det.', // ai
   export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.',
 
   // Tooltip translations - Control blocks

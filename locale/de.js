@@ -622,7 +622,7 @@ export default {
   hold_tooltip: 'Befestige ein Objekt an einem Knochen eines anderen mit Versatz.',
   drop_tooltip: 'Löse ein Objekt von seinem Knochen.',
   follow_tooltip:
-    'Lass ein Objekt einem anderen folgen: an ihm, in seiner Mitte oder an einer seiner Seiten. Seiten und Versatz folgen der Drehung des anderen Objekts.', // ai
+    'Lass ein Objekt einem anderen folgen: an ihm, in seiner Mitte oder oben auf ihm, verschoben um den Versatz. Es bewegt sich mit dem anderen Objekt, dreht sich aber nicht mit.', // ai
   export_mesh_tooltip: 'Exportiere ein Objekt als STL, OBJ oder GLB.',
 
   // Control tooltips

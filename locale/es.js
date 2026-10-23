@@ -520,7 +520,7 @@ export default {
   hold_tooltip: 'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.', // human
   drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.', // human
   follow_tooltip:
-    'Haz que un objeto siga a otro: en él, en su centro o junto a uno de sus lados. Los lados y el desplazamiento siguen la rotación del otro objeto.', // ai
+    'Haz que un objeto siga a otro: en él, en su centro o encima de él, movido por el desplazamiento. Se mueve con el otro objeto, pero no gira con él.', // ai
   export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.', // human
 
   // Tooltip translations - Control blocks

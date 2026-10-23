@@ -477,7 +477,7 @@ export default {
     'Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.',
   drop_tooltip: 'Détache un objet de l’os auquel il est actuellement attaché.',
   follow_tooltip:
-    'Fait en sorte qu’un objet suive un autre : sur lui, en son centre ou contre l’un de ses côtés. Les côtés et le décalage suivent la rotation de l’autre objet.', // ai
+    'Fait en sorte qu’un objet suive un autre : à sa position, en son centre ou au-dessus de lui, déplacé selon le décalage. Il se déplace avec l’autre objet mais ne tourne pas avec lui.', // ai
   export_mesh_tooltip: 'Exporte un objet au format STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks

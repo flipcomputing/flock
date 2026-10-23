@@ -291,7 +291,7 @@ export function defineConnectBlocks() {
           {
             type: 'field_dropdown',
             name: 'SIDE',
-            options: placementOptions('PLACE_AT'),
+            options: placementOptions('PLACE_AT').slice(0, 3),
           },
           {
             type: 'input_value',

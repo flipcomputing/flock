@@ -569,7 +569,7 @@ export default {
     'Attach an object to the specified bone of another object with a specified offset in x, y, and z directions.',
   drop_tooltip: 'Detach an object from its currently attached bone.',
   follow_tooltip:
-    "Make one object keep following another: at it, at its center, or against one of its sides. Sides and offset follow the other object's rotation.",
+    'Make one object keep following another: at it, at its center, or on top of it, moved by the offset. It moves with the other object but does not turn with it.',
   export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB. Choose how big 1 unit is in the exported file.',
 
   // Tooltip translations - Control blocks
