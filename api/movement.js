@@ -435,9 +435,10 @@ export const flockMovement = {
 
     const c = model._moveForwardCache;
     if (!c) return; // applyGroundedMovement exited early (e.g. no physics engine)
-    const ahv = c.appliedHorizontalVelocity;
-
-    // --- Face movement direction if there is meaningful horizontal speed ---
+    flock.faceTravel(model, c.appliedHorizontalVelocity);
+  },
+  faceTravel(model, ahv) {
+    const B = flock.BABYLON;
     model._mfFacing ??= new B.Vector3();
     model._mfTargetRotation ??= new B.Quaternion();
     model._mfConjugate ??= new B.Quaternion();

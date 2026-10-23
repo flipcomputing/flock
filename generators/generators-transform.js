@@ -274,6 +274,22 @@ export function registerTransformGenerators(javascriptGenerator) {
     return `setSpeed(${mesh}, ${JSON.stringify(direction)}, ${speed});\n`;
   };
 
+  javascriptGenerator.forBlock['move_to_object'] = function (block) {
+    const meshName1 = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MODEL1'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const meshName2 = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MODEL2'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const gap = getFieldValue(block, 'GAP', '0');
+    const speed = getFieldValue(block, 'SPEED', '3');
+    const asyncWrapper = block.getFieldValue('MODE') === 'AWAIT' ? 'await ' : '';
+
+    return `${asyncWrapper}moveToObject(${meshName1}, ${meshName2}, { speed: ${speed}${getSideOption(block)}, gap: ${gap} });\n`;
+  };
+
   // Set how bouncy an object is (restitution, 0..1)
   javascriptGenerator.forBlock['set_bounciness'] = function (block) {
     const mesh = javascriptGenerator.nameDB_.getName(

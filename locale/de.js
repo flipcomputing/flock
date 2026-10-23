@@ -265,8 +265,11 @@ export default {
   add_physics_shape: 'Physikform hinzufügen %1 Typ %2',
   apply_force: 'Kraft auf %1 anwenden x: %2 y: %3 z: %4',
   set_speed: 'Geschwindigkeit von %1 %2 auf %3 setzen', // ai
+  move_to_object: 'bewege %1 %2 %3 Abstand %4 Geschwindigkeit %5 %6', // ai
   set_speed_tooltip:
     'Lässt ein Objekt mit einer festgelegten Geschwindigkeit in eine Richtung weiterfahren. Es bewegt sich genau wie eine Spielfigur mit "Bewegen" — fährt Hänge hinauf, übersteigt kleine Stufen, stoppt an Wänden und bleibt aufrecht — aber relativ zum Objekt oder zur Welt statt zur Kamera. Die Geschwindigkeit bleibt erhalten, bis du sie änderst. Wähle eine Richtung relativ zum Objekt (vorwärts, seitlich, hoch) oder eine Weltachse (x, y, z); nutze "ansehen" zum Zielen und fahre dann vorwärts. Wähle "alle" und 0 zum Stoppen.', // ai
+  move_to_object_tooltip:
+    'Bewegt ein Objekt mit Physik und einer Geschwindigkeit zu einem anderen Objekt. Es dreht sich in Bewegungsrichtung, folgt dem Objekt, wenn es sich bewegt, und hält an, wenn es ankommt oder etwas den Weg versperrt.', // ai
   show_physics: 'Physikformen zeigen %1',
 
   // Sensing blocks

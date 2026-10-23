@@ -270,8 +270,11 @@ export default {
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
   jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
+  move_to_object: 'mover %1 %2 %3 separación %4 velocidad %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
+  move_to_object_tooltip:
+    'Mueve un objeto hacia otro objeto a una velocidad, usando física. Gira hacia donde va, sigue al objeto si se mueve y se detiene al llegar o si algo bloquea el camino.', // ai
   set_bounciness: 'establecer rebote de %1 a %2', // ai
   show_physics: 'mostrar formas físicas %1', // human
 

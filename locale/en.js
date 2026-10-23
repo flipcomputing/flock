@@ -299,6 +299,7 @@ export default {
   apply_force: 'apply force to %1 x: %2 y: %3 z: %4',
   jump: 'jump %1 height %2',
   set_speed: 'set speed of %1 %2 to %3',
+  move_to_object: 'move %1 %2 %3 gap %4 speed %5 %6',
   set_bounciness: 'set bounciness of %1 to %2',
   set_mass: 'set mass of %1 to %2',
   show_physics: 'show physics shapes %1',
@@ -654,6 +655,8 @@ export default {
     'Make a character jump to a height (in blocks). Keeps your current running speed. Needs physics.',
   set_speed_tooltip:
     'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.',
+  move_to_object_tooltip:
+    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, and stops when it arrives or if something blocks the way.',
   set_bounciness_tooltip:
     'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.',
   set_mass_tooltip:

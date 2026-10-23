@@ -662,6 +662,7 @@ export const flockSandbox = {
       removeTeleportTarget: this.removeTeleportTarget?.bind(this),
       applyForce: this.applyForce?.bind(this),
       setSpeed: this.setSpeed?.bind(this),
+      moveToObject: this.moveToObject?.bind(this),
       setBounciness: this.setBounciness?.bind(this),
       setMass: this.setMass?.bind(this),
       moveByVector: this.moveByVector?.bind(this),

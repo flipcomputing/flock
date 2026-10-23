@@ -1659,6 +1659,59 @@ const toolboxTransformPhysics = {
     },
     {
       kind: 'block',
+      type: 'move_forward',
+      keyword: 'forward',
+      inputs: {
+        SPEED: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'move_to_object',
+      keyword: 'moveto',
+      inputs: {
+        GAP: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        SPEED: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'jump',
+      keyword: 'jump',
+      inputs: {
+        JUMP_HEIGHT: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1.5,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'apply_force',
       keyword: 'push',
       inputs: {
@@ -1683,21 +1736,6 @@ const toolboxTransformPhysics = {
             type: 'math_number',
             fields: {
               NUM: 0,
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
-      type: 'jump',
-      keyword: 'jump',
-      inputs: {
-        JUMP_HEIGHT: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 1.5,
             },
           },
         },
@@ -1752,21 +1790,6 @@ const toolboxTransformPhysics = {
       kind: 'block',
       type: 'show_physics',
       keyword: 'colliders',
-    },
-    {
-      kind: 'block',
-      type: 'move_forward',
-      keyword: 'forward',
-      inputs: {
-        SPEED: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 3,
-            },
-          },
-        },
-      },
     },
   ],
 };
