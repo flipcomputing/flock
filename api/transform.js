@@ -353,25 +353,57 @@ function worldHalfAxes(mesh) {
   };
 }
 
+function reachAlong(box, direction) {
+  return box.halfAxes.reduce(
+    (sum, v) => sum + Math.abs(flock.BABYLON.Vector3.Dot(v, direction)),
+    0
+  );
+}
+
 // Sides follow the target's own axes; the mover keeps its rotation and its box
-// touches that face, centred on it. Center lines up the two box centres.
-function besideAnchor(mesh, target, side) {
+// touches that face, centred on it, with the pivots level along the target's
+// up axis for the horizontal sides. Center lines up the two box centres.
+function besideAnchor(mesh, target, side, gap = 0) {
+  const { Vector3 } = flock.BABYLON;
   const to = worldHalfAxes(target);
   const from = worldHalfAxes(mesh);
   let goal = to.centre;
+  let level = false;
   if (SIDES[side]) {
     const [axisIndex, sign] = SIDES[side];
     const halfAxis = to.halfAxes[axisIndex];
     const normal = halfAxis.normalizeToNew().scale(sign);
-    const reach = from.halfAxes.reduce(
-      (sum, v) => sum + Math.abs(flock.BABYLON.Vector3.Dot(v, normal)),
-      0
-    );
-    goal = goal.add(normal.scale(halfAxis.length() + reach));
+    goal = goal.add(normal.scale(halfAxis.length() + reachAlong(from, normal) + gap));
+    level = axisIndex !== 1;
   }
-  const shift = goal.subtract(from.centre);
   const anchor = flock._getAnchor(mesh);
-  return { x: anchor.x + shift.x, y: anchor.y + shift.y, z: anchor.z + shift.z };
+  let result = new Vector3(anchor.x, anchor.y, anchor.z).add(goal.subtract(from.centre));
+  if (level) {
+    const up = to.halfAxes[1].normalizeToNew();
+    const pivot = flock._getAnchor(target);
+    const rise = Vector3.Dot(new Vector3(pivot.x, pivot.y, pivot.z).subtract(result), up);
+    result = result.add(up.scale(rise));
+  }
+  return { x: result.x, y: result.y, z: result.z };
+}
+
+function nearAnchor(mesh, target, gap = 0) {
+  const { Vector3 } = flock.BABYLON;
+  const to = worldHalfAxes(target);
+  const from = worldHalfAxes(mesh);
+  let direction = to.centre.subtract(from.centre);
+  direction.y = 0;
+  if (direction.length() < 1e-6) direction = new Vector3(0, 0, 1);
+  direction.normalize();
+  const goal = to.centre.subtract(
+    direction.scale(reachAlong(to, direction) + reachAlong(from, direction) + gap)
+  );
+  const anchor = flock._getAnchor(mesh);
+  return {
+    x: anchor.x + goal.x - from.centre.x,
+    y: flock._getAnchor(target).y,
+    z: anchor.z + goal.z - from.centre.z,
+  };
 }
 
 function positionXYZ(position) {
@@ -1222,11 +1254,25 @@ export const flockTransform = {
     return { x: (pos.x ?? 0) - shift.x, y: baseRuleY - shift.y, z: (pos.z ?? 0) - shift.z };
   },
   // Where mesh's anchor goes to sit at target, or against one of its sides.
-  _anchorGoal(mesh, target, side = null) {
-    if (Object.hasOwn(SIDES, side) && mesh.getBoundingInfo?.() && target.getBoundingInfo?.()) {
-      return besideAnchor(mesh, target, side);
+  _anchorGoal(mesh, target, side = null, gap = 0) {
+    gap = toFinite(gap);
+    let goal;
+    const boxed = mesh.getBoundingInfo?.() && target.getBoundingInfo?.();
+    if (side === 'near' && boxed) return nearAnchor(mesh, target, gap);
+    if (Object.hasOwn(SIDES, side) && boxed) {
+      if (SIDES[side]) return besideAnchor(mesh, target, side, gap);
+      goal = besideAnchor(mesh, target, side);
+    } else {
+      goal = flock._getAnchor(target);
     }
-    return flock._getAnchor(target);
+    if (!gap) return goal;
+    const { Vector3 } = flock.BABYLON;
+    const start = flock._getAnchor(mesh);
+    const end = new Vector3(goal.x, goal.y, goal.z);
+    const along = end.subtract(new Vector3(start.x, start.y, start.z));
+    if (along.length() < 1e-6) return goal;
+    const stop = end.subtract(along.normalize().scale(gap));
+    return { x: stop.x, y: stop.y, z: stop.z };
   },
   _targetOffset(target, { x = 0, y = 0, z = 0 } = {}, space = 'local') {
     const offset = new flock.BABYLON.Vector3(toFinite(x), toFinite(y), toFinite(z));

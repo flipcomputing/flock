@@ -282,5 +282,91 @@ export function runGlideToObjectTests(flock) {
       expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x + 0.5, EPS);
       expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, EPS);
     });
+
+    it('should leave a gap out from the chosen side of a rotated object', async function () {
+      this.timeout(5000);
+
+      const targetId = 'gapSideTarget';
+      box2 = flock.createBox(targetId, { width: 2, height: 2, depth: 2, position: [4, 0, 0] });
+      await flock.rotate(targetId, { y: 90 });
+
+      await flock.glideToObject(box1, targetId, { side: 'front', gap: 1.5, duration: 0.2 });
+
+      const mover = flock.scene.getMeshByName(box1).getBoundingInfo().boundingBox;
+      const target = flock.scene.getMeshByName(targetId).getBoundingInfo().boundingBox;
+      const EPS = 0.1;
+      expect(mover.maximumWorld.x).to.be.closeTo(target.minimumWorld.x - 1.5, EPS);
+      expect(mover.minimumWorld.y).to.be.closeTo(target.minimumWorld.y, EPS);
+      expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, EPS);
+    });
+
+    it('should rest against the front of a tipped-over object', async function () {
+      this.timeout(5000);
+
+      const { Vector3 } = flock.BABYLON;
+      const targetId = 'tippedTarget';
+      box2 = flock.createBox(targetId, { width: 2, height: 2, depth: 2, position: [4, 0, 0] });
+      await flock.rotate(targetId, { x: 90 });
+
+      await flock.glideToObject(box1, targetId, { side: 'front', duration: 0.2 });
+
+      const targetMesh = flock.scene.getMeshByName(targetId);
+      const front = Vector3.TransformNormal(
+        new Vector3(0, 0, -1),
+        targetMesh.computeWorldMatrix(true)
+      ).normalize();
+      const mover = flock.scene.getMeshByName(box1).getBoundingInfo().boundingBox;
+      const target = targetMesh.getBoundingInfo().boundingBox;
+      const apart = Vector3.Dot(mover.centerWorld.subtract(target.centerWorld), front);
+      expect(apart).to.be.closeTo(1.5, 0.1);
+    });
+
+    it('should glide near an object until the boxes touch, staying level', async function () {
+      this.timeout(5000);
+
+      const targetId = 'nearTarget';
+      box2 = flock.createBox(targetId, { width: 2, height: 4, depth: 2, position: [6, 0, 0] });
+
+      await flock.glideToObject(box1, targetId, { side: 'near', duration: 0.2 });
+
+      const mover = flock.scene.getMeshByName(box1).getBoundingInfo().boundingBox;
+      const target = flock.scene.getMeshByName(targetId).getBoundingInfo().boundingBox;
+      const EPS = 0.1;
+      expect(mover.maximumWorld.x).to.be.closeTo(target.minimumWorld.x, EPS);
+      expect(mover.minimumWorld.y).to.be.closeTo(target.minimumWorld.y, EPS);
+      expect(mover.centerWorld.z).to.be.closeTo(0, EPS);
+    });
+
+    it('should approach along its own line and leave a gap when gliding near', async function () {
+      this.timeout(5000);
+
+      const targetId = 'nearGapTarget';
+      box2 = flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [0, 0, -5] });
+
+      await flock.glideToObject(box1, targetId, { side: 'near', gap: 2, duration: 0.2 });
+
+      const mover = flock.scene.getMeshByName(box1).getBoundingInfo().boundingBox;
+      const target = flock.scene.getMeshByName(targetId).getBoundingInfo().boundingBox;
+      const EPS = 0.1;
+      expect(mover.minimumWorld.z).to.be.closeTo(target.maximumWorld.z + 2, EPS);
+      expect(mover.centerWorld.x).to.be.closeTo(0, EPS);
+    });
+
+    it('should stop a gap short of the object along the line of travel', async function () {
+      this.timeout(5000);
+
+      const targetId = 'gapToTarget';
+      box2 = flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [3, 0, 4] });
+      const start = flock._getAnchor(flock.scene.getMeshByName(box1));
+      const goal = flock._getAnchor(flock.scene.getMeshByName(targetId));
+
+      await flock.glideToObject(box1, targetId, { gap: 2, duration: 0.2 });
+
+      const actual = flock._getAnchor(flock.scene.getMeshByName(box1));
+      const EPS = 0.1;
+      expect(actual.x).to.be.closeTo(goal.x - (2 * (goal.x - start.x)) / 5, EPS);
+      expect(actual.y).to.be.closeTo(goal.y, EPS);
+      expect(actual.z).to.be.closeTo(goal.z - (2 * (goal.z - start.z)) / 5, EPS);
+    });
   });
 }

@@ -154,7 +154,7 @@ export default {
   glide_to: 'glid %1 till %10 x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
   glide_to_seconds: 'glid %1 till %10 x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
   glide_to_object:
-    'glid %1 %11 %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
+    'glid %1 %11 %2 avstånd %12 på %6 sekunder\n%7 återvända? %8 loop? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8',
   rotate_anim: 'rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9',
   rotate_anim_seconds: 'rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9',
@@ -410,7 +410,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).',
   glide_to_object_tooltip:
-    'Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing. Välj en sida för att glida mot den i stället, till exempel ovanpå.', // ai
+    'Glid till ett objekt, nära det från den sida du redan är på, eller mot en av dess sidor, till exempel ovanpå. Ett avstånd lämnar utrymme utanför sidan eller stannar före objektet. Med alternativ för att reversera, loopa och easing.', // ai
   glide_to_axis_tooltip:
     'Glid längs en axel (X, Y eller Z) till ett målvärde. De andra två axlarna fixeras till objektets aktuella position (ankerpunktsmedveten). Samma alternativ som standardblocket för glidning.',
   rotate_anim_tooltip:
@@ -736,6 +736,7 @@ export default {
   PLACE_RIGHT_option: 'till höger om', // ai
   PLACE_FRONT_option: 'framför', // ai
   PLACE_BEHIND_option: 'bakom', // ai
+  PLACE_NEAR_option: 'nära', // ai
   user_option: 'fram',
   environment_option: 'bak',
 

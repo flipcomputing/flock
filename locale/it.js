@@ -156,7 +156,7 @@ export default {
   glide_to: 'scivola %1 a %10 x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_seconds: 'scivola %1 a %10 x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_object:
-    'scivola %1 %11 %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10',
+    'scivola %1 %11 %2 distanza %12 in %6 secondi\n%7 ritorna? %8 ripeti? %9 %10\n%3 %4 %5',
   glide_to_axis: 'scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8',
   rotate_anim: 'ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9',
   rotate_anim_seconds: 'ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9',
@@ -415,7 +415,7 @@ export default {
   glide_to_seconds_tooltip:
     'Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.',
   glide_to_object_tooltip:
-    'Scivola verso la posizione di un altro oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing. Scegli un lato per scivolare contro di esso, ad esempio sopra.', // ai
+    'Scivola fino a un oggetto, vicino a esso dal lato in cui sei già, o contro uno dei suoi lati, ad esempio sopra. Una distanza lascia spazio davanti al lato o si ferma prima dell’oggetto. Con opzioni di inversione, loop ed easing.', // ai
   glide_to_axis_tooltip:
     "Scivola lungo un asse (X, Y o Z) verso un valore obiettivo. Gli altri due assi sono fissati alla posizione attuale dell'oggetto (con supporto ancoraggio). Stesse opzioni del blocco glide standard.",
   rotate_anim_tooltip:
@@ -738,6 +738,7 @@ export default {
   PLACE_RIGHT_option: 'a destra di', // ai
   PLACE_FRONT_option: 'davanti a', // ai
   PLACE_BEHIND_option: 'dietro', // ai
+  PLACE_NEAR_option: 'vicino a', // ai
   user_option: 'fronte',
   environment_option: 'retro',
 

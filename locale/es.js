@@ -156,7 +156,7 @@ export default {
   glide_to_seconds:
     'deslizar %1 a %10 x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_object:
-    'deslizar %1 %11 %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
+    'deslizar %1 %11 %2 separación %12 en %6 segundos\n%7 ¿regresar? %8 ¿repetir? %9 %10\n%3 %4 %5', // ai
   glide_to_axis: 'deslizar %1 %2 %3 en %4 segundos\n%5 ¿regresar? %6 ¿repetir? %7 %8', // human
   rotate_anim: 'rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
   rotate_anim_seconds: 'rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
@@ -457,7 +457,7 @@ export default {
   glide_to_seconds_tooltip:
     'Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.', // human
   glide_to_object_tooltip:
-    'Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando. Elige un lado para deslizarte junto a él, como encima de.', // ai
+    'Deslízate hasta un objeto, cerca de él por el lado en el que ya estás, o junto a uno de sus lados, como encima de. Una separación deja espacio fuera del lado o se detiene antes del objeto. Incluye opciones de invertir, bucle y suavizado.', // ai
   glide_to_axis_tooltip:
     'Desliza a lo largo de un eje (X, Y o Z) hasta un valor objetivo. Los otros dos ejes se fijan a la posición actual del objeto (con soporte de anclaje). Mismas opciones que el bloque de deslizamiento estándar.', // human
   rotate_anim_tooltip:
@@ -825,6 +825,7 @@ export default {
   PLACE_RIGHT_option: 'a la derecha de', // ai
   PLACE_FRONT_option: 'delante de', // ai
   PLACE_BEHIND_option: 'detrás de', // ai
+  PLACE_NEAR_option: 'cerca de', // ai
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
 

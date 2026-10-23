@@ -154,7 +154,7 @@ export default {
   glide_to: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 ms\n%6 voltar? %7 repetir? %8 %9',
   glide_to_seconds: 'deslizar %1 para %10 x %2 y %3 z %4 em %5 segundos\n%6 voltar? %7 repetir? %8 %9',
   glide_to_object:
-    'deslizar %1 %11 %2 em %6 segundos\ndeslocamento x: %3 y: %4 z: %5\n%7 voltar? %8 repetir? %9 %10',
+    'deslizar %1 %11 %2 espaço %12 em %6 segundos\n%7 voltar? %8 repetir? %9 %10\n%3 %4 %5',
   glide_to_axis: 'deslizar %1 %2 %3 em %4 segundos\n%5 voltar? %6 repetir? %7 %8',
   rotate_anim: 'girar %1 para x %2 y %3 z %4 em %5 ms\n%6 inverter? %7 repetir? %8 %9',
   rotate_anim_seconds:
@@ -414,7 +414,7 @@ export default {
   glide_to_seconds_tooltip:
     'Desliza para uma posição específica durante um período com opções de reverso, repetição e easing.',
   glide_to_object_tooltip:
-    'Desliza até a posição de outro objeto com deslocamentos x/y/z opcionais (padrão 0) e opções de reverso, repetição e easing. Escolhe um lado para deslizar encostado a ele, como em cima de.', // ai
+    'Desliza até um objeto, perto dele pelo lado em que já estás, ou encostado a um dos seus lados, como em cima de. Um espaço deixa distância para fora do lado ou para antes do objeto. Com opções de reverso, repetição e easing.', // ai
   glide_to_axis_tooltip:
     'Desliza ao longo de um eixo (X, Y ou Z) até um valor alvo. Os outros dois eixos são fixados à posição atual do objeto (com suporte de âncora). Mesmas opções do bloco de deslizamento padrão.',
   rotate_anim_tooltip:
@@ -743,6 +743,7 @@ export default {
   PLACE_RIGHT_option: 'à direita de', // ai
   PLACE_FRONT_option: 'à frente de', // ai
   PLACE_BEHIND_option: 'atrás de', // ai
+  PLACE_NEAR_option: 'perto de', // ai
   user_option: 'frente',
   environment_option: 'trás',
 

@@ -963,8 +963,13 @@ export const flockPhysics = {
   // directions follow the move-forward / glide convention (forward =
   // mesh.forward.negate()). 'all' to 0 is a full stop: it clears every maintained
   // direction and zeroes the velocity, so the object behaves normally afterwards.
+  // A non-zero speed makes the object dynamic, as move forward does.
   setSpeed(meshName, direction, speed = 0) {
-    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
+    const target = flock.scene.getMeshByName(meshName);
+    if (target && speed !== 0 && target.metadata?.physicsType !== 'DYNAMIC') {
+      flock.setPhysicsForMesh(target, 'DYNAMIC');
+    }
+    const mesh = flock.ensureBody(target);
     if (!(mesh && isBodyAlive(mesh.physics))) {
       console.error(`Model '${meshName}' not loaded or missing physics (setSpeed)`);
       return;

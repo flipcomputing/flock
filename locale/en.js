@@ -157,7 +157,7 @@ export default {
   glide_to: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',
   glide_to_seconds: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9',
   glide_to_object:
-    'glide %1 %11 %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10',
+    'glide %1 %11 %2 gap %12 in %6 seconds\n%7 return? %8 loop? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8',
   rotate_to_object: 'rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8',
   rotate_anim: 'rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9',
@@ -501,7 +501,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glide to a specified position over a duration with options for reversing, looping, and easing.',
   glide_to_object_tooltip:
-    'Glide to a specified object, or against one of its sides such as on top of, over a duration with optional x/y/z offsets (default 0) plus reversing, looping, and easing controls.',
+    'Glide to an object, near it on the side you are already on, or against one of its sides such as on top of, over a duration. A gap leaves space out from the side, or stops short of the object. Includes reversing, looping, and easing controls.',
   glide_to_axis_tooltip:
     "Glide along one axis (x, y, z) to a target world position, or forward/sideways by a distance relative to the object's local direction. The other two axes stay fixed. Same options as the standard glide block.",
   rotate_to_object_tooltip:
@@ -915,6 +915,7 @@ export default {
   PLACE_RIGHT_option: 'right of',
   PLACE_FRONT_option: 'in front of',
   PLACE_BEHIND_option: 'behind',
+  PLACE_NEAR_option: 'near',
   user_option: 'front',
   environment_option: 'back',
 

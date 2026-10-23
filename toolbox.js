@@ -2058,37 +2058,6 @@ const toolboxTransform = {
     },
     {
       kind: 'block',
-      type: 'move_to',
-      keyword: 'goto',
-      inputs: {
-        X_OFFSET: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-        Y_OFFSET: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-        Z_OFFSET: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
       type: 'rotate_model_xyz',
       keyword: 'rotatexyz',
       inputs: {

@@ -33,6 +33,7 @@ const SIDE_OPTIONS = {
   PLACE_RIGHT: 'right',
   PLACE_FRONT: 'front',
   PLACE_BEHIND: 'behind',
+  PLACE_NEAR: 'near',
 };
 
 export function getSideValue(block) {

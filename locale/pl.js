@@ -155,7 +155,7 @@ export default {
   glide_to_seconds:
     'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9',
   glide_to_object:
-    'przesuń %1 %11 %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10',
+    'przesuń %1 %11 %2 odstęp %12 w czasie %6 sekund\n%7 powrót? %8 pętla? %9 %10\n%3 %4 %5',
   glide_to_axis: 'przesuń %1 %2 %3 w czasie %4 sekund\n%5 powrót? %6 pętla? %7 %8',
   rotate_anim: 'obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9',
   rotate_anim_seconds:
@@ -415,7 +415,7 @@ export default {
   glide_to_seconds_tooltip:
     'Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.',
   glide_to_object_tooltip:
-    'Przesuń się do pozycji innego obiektu z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing. Wybierz bok, aby przesunąć się do niego, np. na górze.', // ai
+    'Przesuń się do obiektu, blisko niego od strony, po której już jesteś, lub do jednego z jego boków, np. na górze. Odstęp zostawia miejsce przed bokiem lub zatrzymuje przed obiektem. Z opcjami odwrócenia, pętli i easing.', // ai
   glide_to_axis_tooltip:
     'Przesuń wzdłuż jednej osi (X, Y lub Z) do wartości docelowej. Pozostałe dwie osie są zablokowane na aktualnej pozycji obiektu (z uwzględnieniem punktu kotwiczenia). Te same opcje co w standardowym bloku glide.',
   rotate_anim_tooltip:
@@ -734,6 +734,7 @@ export default {
   PLACE_RIGHT_option: 'na prawo od', // ai
   PLACE_FRONT_option: 'przed', // ai
   PLACE_BEHIND_option: 'za', // ai
+  PLACE_NEAR_option: 'blisko', // ai
   user_option: 'przód',
   environment_option: 'tył',
 
