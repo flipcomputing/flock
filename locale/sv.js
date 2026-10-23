@@ -307,6 +307,9 @@ export default {
   create_ring:
     'lägg till ring %1 %2 höjd: %3 ytter: %4 inner: %5 tjocklek: %6 sidor: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'lägg till markör %1 %7 %5 x: %2 y: %3 z: %4 redigera: %6', // AI-generated; needs validation
+  cross_option: 'kryss', // AI-generated; needs validation
+  sphere_option: 'sfär', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'spela tema %1 %2 från %3 \nhastighet: %4 volym: %5 läge: %6 asynkront: %7',
@@ -571,6 +574,8 @@ export default {
   create_ring_tooltip:
     'Lägger till en ring med platta kanter, som en bricka eller ett rör. Ytter och inner är diametrarna för ringen och hålet; ändrar du inner eller tjockleken uppdateras den andra. Höjden anger hur hög den är och sidorna hur slät den ser ut.', // ai
   create_plane_tooltip: 'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.',
+  create_marker_tooltip:
+    'Lägg till en markör: en osynlig punkt att placera saker efter. Kryssa i redigera för att se markören och flytta den med gizmos. En markör syns aldrig i spelläget.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:

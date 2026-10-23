@@ -309,6 +309,9 @@ export default {
   create_ring:
     'adicionar anel %1 %2 altura: %3 externo: %4 interno: %5 espessura: %6 lados: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'adicionar plano %1 %2 largura: %3 altura: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'adicionar marcador %1 %7 %5 x: %2 y: %3 z: %4 editar: %6', // AI-generated; needs validation
+  cross_option: 'cruz', // AI-generated; needs validation
+  sphere_option: 'esfera', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'tocar tema %1 %2 de %3 \nvelocidade: %4 volume: %5 modo: %6 assíncrono: %7',
@@ -578,6 +581,8 @@ export default {
   create_ring_tooltip:
     'Adiciona um anel de bordas planas, como uma arruela ou um tubo. Externo e interno são os diâmetros do anel e do furo; ao mudar o interno ou a espessura, o outro é atualizado. A altura define o quão alto é e os lados o quão suave parece.', // ai
   create_plane_tooltip: 'Cria um plano 2D colorido com largura, altura e posição especificadas.',
+  create_marker_tooltip:
+    'Adiciona um marcador: um ponto invisível para posicionar coisas. Marque editar para ver o marcador e movê-lo com os gizmos. Um marcador nunca aparece no modo de jogo.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:

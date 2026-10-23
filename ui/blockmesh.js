@@ -36,6 +36,9 @@ import {
   findLegacyInitialSize,
   getInitialRotationValues,
   getInitialSizeValues,
+  findInitialSize,
+  setInitialSizeValues,
+  measureInitialSize,
 } from './initialTransform.js';
 
 const colorFields = {
@@ -79,6 +82,7 @@ const LATE_BOUND_CREATE_TYPES = new Set([
   'create_donut',
   'create_ring',
   'create_plane',
+  'create_marker',
   'create_3d_text',
 ]);
 
@@ -2163,6 +2167,8 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'MAP_NAME';
     } else if (block.type === 'create_group' && changeEvent.name === 'ACTIVE') {
       changed = 'ACTIVE';
+    } else if (block.type === 'create_marker' && ['EDIT', 'TYPE'].includes(changeEvent.name)) {
+      changed = changeEvent.name;
     } else if (block.type === 'create_3d_text' && changeEvent.name === 'HORIZONTAL') {
       changed = 'HORIZONTAL';
     } else if (block.type === 'create_freeform' && changeEvent.name === 'ROUNDING') {
@@ -2308,6 +2314,21 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
 
   if (block.type === 'create_group' && changed === 'ACTIVE') {
     handleGroupActiveToggle(meshes[0], block);
+    return;
+  }
+
+  if (block.type === 'create_marker' && changed === 'EDIT') {
+    const edit = block.getFieldValue('EDIT') === 'TRUE';
+    meshes.forEach((mesh) => flock.setMarkerEdit(mesh.name, edit));
+    return;
+  }
+
+  if (block.type === 'create_marker' && changed === 'TYPE') {
+    const type = block.getFieldValue('TYPE');
+    meshes.forEach((mesh) => flock.setMarkerType(mesh.name, type));
+    // The size row holds absolute sizes; re-measure so the new shape keeps its scale.
+    const sizeTarget = meshes[0] && findInitialSize(block, meshes[0]);
+    if (sizeTarget) setInitialSizeValues(sizeTarget, measureInitialSize(meshes[0]));
     return;
   }
 

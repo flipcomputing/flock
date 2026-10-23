@@ -308,6 +308,9 @@ export default {
   create_ring:
     'Ring hinzufügen %1 %2 Höhe: %3 außen: %4 innen: %5 Dicke: %6 Seiten: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'Markierung hinzufügen %1 %7 %5 x: %2 y: %3 z: %4 bearbeiten: %6', // AI-generated; needs validation
+  cross_option: 'Kreuz', // AI-generated; needs validation
+  sphere_option: 'Kugel', // AI-generated; needs validation
 
   // Sound blocks
   play_theme:
@@ -718,6 +721,8 @@ export default {
   create_ring_tooltip:
     'Fügt einen Ring mit flachen Kanten hinzu, wie eine Unterlegscheibe oder ein Rohr. Außen und innen sind die Durchmesser des Rings und des Lochs; ändert man innen oder die Dicke, passt sich das andere an. Die Höhe bestimmt, wie hoch er ist, und die Seiten, wie glatt er aussieht.', // ai
   create_plane_tooltip: 'Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.',
+  create_marker_tooltip:
+    'Füge eine Markierung hinzu: einen unsichtbaren Punkt, an dem du Dinge ausrichten kannst. Kreuze bearbeiten an, um die Markierung zu sehen und mit den Gizmos zu bewegen. Eine Markierung ist im Spielmodus nie sichtbar.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:

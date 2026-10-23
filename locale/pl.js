@@ -309,6 +309,9 @@ export default {
   create_ring:
     'dodaj pierścień %1 %2 wysokość: %3 zewnętrzna: %4 wewnętrzna: %5 grubość: %6 boki: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'dodaj znacznik %1 %7 %5 x: %2 y: %3 z: %4 edycja: %6', // AI-generated; needs validation
+  cross_option: 'krzyżyk', // AI-generated; needs validation
+  sphere_option: 'kula', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'odtwórz motyw %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7',
@@ -573,6 +576,8 @@ export default {
     'Dodaj pierścień o płaskich krawędziach, jak podkładka lub rura. Zewnętrzna i wewnętrzna to średnice pierścienia i otworu; zmiana wewnętrznej lub grubości aktualizuje drugą wartość. Wysokość określa, jak wysoki jest pierścień, a boki — gładkość kształtu.', // ai
   create_plane_tooltip:
     'Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7',
+  create_marker_tooltip:
+    'Dodaje znacznik: niewidoczny punkt do ustawiania obiektów. Zaznacz edycję, aby zobaczyć znacznik i przesuwać go gizmami. Znacznik nigdy nie jest widoczny w trybie gry.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:

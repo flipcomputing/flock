@@ -47,6 +47,7 @@ export function createMeshOnCanvas(block) {
     'create_donut',
     'create_ring',
     'create_plane',
+    'create_marker',
     'create_3d_text',
     'create_fly_camera',
     'create_follow_camera',
@@ -747,6 +748,14 @@ function createShapeInternal(block) {
         height: planeHeight,
         position: [position.x, position.y, position.z],
         alpha,
+      });
+      break;
+
+    case 'create_marker':
+      newMesh = flock.createMarker(`marker__${block.id}`, {
+        type: block.getFieldValue('TYPE') || 'cross',
+        position: [position.x, position.y, position.z],
+        edit: block.getFieldValue('EDIT') === 'TRUE',
       });
       break;
 

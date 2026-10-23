@@ -896,6 +896,37 @@ const toolboxSceneMeshes = {
       type: 'clone_mesh',
       keyword: 'clone',
     },
+    {
+      kind: 'block',
+      type: 'create_marker',
+      keyword: 'marker',
+      inputs: {
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
   ],
 };
 

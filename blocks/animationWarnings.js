@@ -15,6 +15,7 @@ const SHAPE_TYPES = new Set([
   'create_donut',
   'create_ring',
   'create_plane',
+  'create_marker',
   'create_wall',
   'create_3d_text',
 ]);

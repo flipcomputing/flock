@@ -1533,6 +1533,66 @@ export function defineShapeBlocks() {
     },
   };
 
+  Blockly.Blocks['create_marker'] = {
+    init: function () {
+      const variableNamePrefix = 'marker';
+      const variableName = nextVariableName(this, variableNamePrefix);
+      this.jsonInit({
+        type: 'create_marker',
+        message0: translate('create_marker'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'ID_VAR',
+            variable: variableName,
+          },
+          {
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
+          },
+          {
+            type: 'field_pick_position',
+            name: 'PICK_POSITION',
+          },
+          {
+            type: 'field_checkbox',
+            name: 'EDIT',
+            checked: true,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'TYPE',
+            options: [getDropdownOption('cross'), getDropdownOption('sphere')],
+          },
+        ],
+        previousStatement: null,
+        nextStatement: null,
+        inputsInline: true,
+        colour: categoryColours['Scene'],
+        tooltip: getTooltip('create_marker'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('scene_blocks');
+
+      registerBlockHandler(this, (changeEvent) =>
+        handleBlockChange(this, changeEvent, variableNamePrefix)
+      );
+      addDoMutatorWithToggleBehavior(this);
+      addInitialTransformRows(this, { resize: true });
+    },
+  };
+
   Blockly.Blocks['create_group'] = {
     init: function () {
       const variableNamePrefix = 'group';

@@ -310,6 +310,9 @@ export default {
   create_ring:
     'aggiungi anello %1 %2 altezza: %3 esterno: %4 interno: %5 spessore: %6 lati: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'aggiungi piano %1 %2 larghezza: %3 altezza: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'aggiungi marcatore %1 %7 %5 x: %2 y: %3 z: %4 modifica: %6', // AI-generated; needs validation
+  cross_option: 'croce', // AI-generated; needs validation
+  sphere_option: 'sfera', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'riproduci tema %1 %2 da %3 \nvelocità: %4 volume: %5 modalità: %6 asincrono: %7',
@@ -574,6 +577,8 @@ export default {
   create_ring_tooltip:
     'Aggiunge un anello a bordi piatti, come una rondella o un tubo. Esterno e interno sono i diametri dell’anello e del foro; cambiando l’interno o lo spessore, l’altro si aggiorna. L’altezza definisce quanto è alto e i lati quanto appare liscio.', // ai
   create_plane_tooltip: 'Crea un piano 2D colorato con larghezza, altezza e posizione specificate.',
+  create_marker_tooltip:
+    'Aggiunge un marcatore: un punto invisibile per posizionare le cose. Spunta modifica per vedere il marcatore e spostarlo con i gizmo. Un marcatore non si vede mai in modalità gioco.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:

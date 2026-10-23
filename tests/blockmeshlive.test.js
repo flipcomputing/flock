@@ -295,6 +295,41 @@ export function runBlockmeshLiveTests(flock) {
         expect(applied.map((a) => a.colour)).to.deep.equal(['#abcdef']);
       });
 
+      it('applies recorded marker edit and type changes to a marker spawned afterwards', function () {
+        const fields = { EDIT: 'FALSE', TYPE: 'sphere' };
+        const block = {
+          ...makeBoxBlock(null, 'marker1'),
+          type: 'create_marker',
+          getFieldValue: (name) => fields[name] ?? null,
+        };
+        meshMap['marker1'] = block;
+        const calls = [];
+        const origEdit = flock.setMarkerEdit;
+        const origType = flock.setMarkerType;
+        flock.setMarkerEdit = (name, edit) => calls.push(['edit', name, edit]);
+        flock.setMarkerType = (name, type) => calls.push(['type', name, type]);
+        try {
+          for (const name of ['EDIT', 'TYPE']) {
+            recordLiveEdit(block, {
+              type: Blockly.Events.BLOCK_CHANGE,
+              element: 'field',
+              name,
+              blockId: 'marker1',
+            });
+          }
+          reconcileSpawnedMesh(makeMesh('marker1', 'late'));
+        } finally {
+          flock.setMarkerEdit = origEdit;
+          flock.setMarkerType = origType;
+          delete meshMap['marker1'];
+        }
+
+        expect(calls).to.deep.equal([
+          ['edit', 'late', false],
+          ['type', 'late', 'sphere'],
+        ]);
+      });
+
       it('ignores unrelated event types', function () {
         const block = makeBoxBlock(fixedTarget('#123456'));
         meshMap['box1'] = block;

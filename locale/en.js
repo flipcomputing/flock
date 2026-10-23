@@ -388,6 +388,9 @@ export default {
   create_ring:
     'add ring %1 %2 height: %3 outer: %4 inner: %5 thickness: %6 sides: %7\n%11 x: %8 y: %9 z: %10',
   create_plane: 'add plane %1 %2 width: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'add marker %1 %7 %5 x: %2 y: %3 z: %4 edit: %6',
+  cross_option: 'cross',
+  sphere_option: 'sphere',
 
   // Custom block translations - Sound blocks
   play_theme: 'play theme %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7',
@@ -712,6 +715,8 @@ export default {
   create_ring_tooltip:
     'Add a ring with flat edges, like a washer or a pipe. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Height sets how tall it is, and sides how smooth it looks.',
   create_plane_tooltip: 'Create a colored 2D plane with specified width, height, and position.',
+  create_marker_tooltip:
+    'Add a marker: an invisible point to position things by. Tick edit to see the marker and move it with the gizmos. A marker never shows in play mode.',
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip: 'Play a theme tune on an object with adjustable speed, volume, and mode.',

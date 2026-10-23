@@ -20,7 +20,7 @@ function resolvePositionInputs(mesh, { x = 0, y = 0, z = 0, useY = true, meshNam
 // base-rule lift.
 function usesCenterPivot(mesh) {
   const shape = mesh?.metadata?.shape;
-  return shape === 'plane' || shape === 'camera';
+  return shape === 'plane' || shape === 'camera' || shape === 'marker';
 }
 
 // setPivot in a DO moves the origin after the base rule placed the mesh.

@@ -13,6 +13,7 @@ const SIZE_OWNER_TYPES = new Set([
   'load_object',
   'load_character',
   'create_group',
+  'create_marker',
   'clone_mesh',
 ]);
 

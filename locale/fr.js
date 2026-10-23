@@ -308,6 +308,9 @@ export default {
   create_ring:
     'ajouter anneau %1 %2 hauteur: %3 extérieur: %4 intérieur: %5 épaisseur: %6 côtés: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'ajouter marqueur %1 %7 %5 x: %2 y: %3 z: %4 modifier: %6', // AI-generated; needs validation
+  cross_option: 'croix', // AI-generated; needs validation
+  sphere_option: 'sphère', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'jouer le thème %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7',
@@ -583,6 +586,8 @@ export default {
   create_ring_tooltip:
     'Ajoute un anneau à bords plats, comme une rondelle ou un tuyau. Extérieur et intérieur sont les diamètres de l’anneau et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. La hauteur définit sa hauteur et les côtés sa douceur.', // ai
   create_plane_tooltip: 'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.',
+  create_marker_tooltip:
+    'Ajoute un marqueur : un point invisible pour placer des objets. Coche modifier pour voir le marqueur et le déplacer avec les gizmos. Un marqueur n’est jamais visible en mode jeu.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip: 'Joue un thème musical sur un objet avec vitesse, volume et mode réglables.',

@@ -1757,7 +1757,7 @@ function frameSceneObjects(orbitCamera) {
   for (const mesh of flock.scene.meshes) {
     if (!mesh.metadata?.blockKey || mesh.parent?.metadata?.blockKey) continue;
     if (mesh === flock.ground || mesh.name === 'ground' || mesh.name === 'sky') continue;
-    if (mesh.metadata.shape === 'camera' || !mesh.isEnabled()) continue;
+    if (isCameraFrame(mesh) || isMarker(mesh) || !mesh.isEnabled()) continue;
     mesh.computeWorldMatrix(true);
     const { min, max } = mesh.getHierarchyBoundingVectors(true);
     if (!Number.isFinite(min.x) || !Number.isFinite(max.x)) continue;
@@ -1926,6 +1926,11 @@ function disconnectOrbitView() {
 
 function isCameraFrame(mesh) {
   return mesh?.metadata?.shape === 'camera';
+}
+
+// A marker stands for its centre point, so scaling it must not move that point.
+function isMarker(mesh) {
+  return mesh?.metadata?.shape === 'marker';
 }
 
 function isTargetCameraFrame(mesh) {
@@ -2523,7 +2528,9 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
 
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo();
-    mesh.position.y += bottomY - mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    if (!isMarker(mesh)) {
+      mesh.position.y += bottomY - mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+    }
 
     flock.updatePhysics(mesh);
     mesh.scaling.x = Math.max(0.01, mesh.scaling.x);
@@ -2941,7 +2948,8 @@ function scaleMemberSizeInputs(block, factor, { mesh = null, suppress = null } =
     case 'load_model':
     case 'load_multi_object':
     case 'load_object':
-    case 'load_character': {
+    case 'load_character':
+    case 'create_marker': {
       if (!mesh) {
         const sizeBlock = findInitialSize(block);
         if (!sizeBlock) {
@@ -3281,7 +3289,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
 
     const bbox = ensureFreshBounds(mesh);
     const newBottomY = bbox.minimumWorld.y;
-    if (originalBottomY !== null) {
+    if (originalBottomY !== null && !isMarker(mesh)) {
       mesh.position.y += originalBottomY - newBottomY;
     }
 
@@ -3395,6 +3403,7 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
       case 'load_multi_object':
       case 'load_object':
       case 'load_character':
+      case 'create_marker':
       case 'clone_mesh': {
         const resizeBlock = findOrCreateResizeBlock(mesh);
         if (!resizeBlock) break;
@@ -4143,7 +4152,7 @@ function handleScaleGizmo() {
 
     const newBottomY = flock.getEffectiveWorldBounds(mesh).min.y;
     const deltaY = originalBottomY - newBottomY;
-    mesh.position.y += deltaY;
+    if (!isMarker(mesh)) mesh.position.y += deltaY;
 
     const block = Blockly.getMainWorkspace().getBlockById(
       (linkedEdit?.owner ?? mesh)?.metadata?.blockKey
