@@ -1104,6 +1104,7 @@ export default {
   export_web_page_file_description: 'Webbsida', // ai
   export_web_zip_file_description: 'ZIP-fil', // ai
   tools_capture_tab_ui: 'Spela in', // ai
+  tools_debug_tab_ui: 'Felsökning', // ai
   capture_picture_heading_ui: 'Bild', // ai
   capture_picture_description_ui: 'Spara en bild av 3D-scenen.', // ai
   capture_picture_button_ui: 'Ta bild', // ai
@@ -1126,6 +1127,9 @@ export default {
   capture_picture_file_description: 'PNG-bild', // ai
   capture_gif_file_description: 'GIF-animation', // ai
   capture_video_file_description: 'Video', // ai
+  fps_option_ui: 'Bildfrekvens', // ai
+  physics_shapes_option_ui: 'Visa fysikformer', // ai
+  physics_shapes_note_ui: 'Stäng av och slå på för att uppdatera', // ai
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai

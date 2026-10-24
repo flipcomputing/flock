@@ -1227,6 +1227,7 @@ export default {
   export_web_page_file_description: 'Página web', // ai
   export_web_zip_file_description: 'Archivo ZIP', // ai
   tools_capture_tab_ui: 'Capturar', // ai
+  tools_debug_tab_ui: 'Depurar', // ai
   capture_picture_heading_ui: 'Imagen', // ai
   capture_picture_description_ui: 'Guarda una imagen de la escena 3D.', // ai
   capture_picture_button_ui: 'Hacer foto', // ai
@@ -1249,6 +1250,9 @@ export default {
   capture_picture_file_description: 'Imagen PNG', // ai
   capture_gif_file_description: 'Animación GIF', // ai
   capture_video_file_description: 'Vídeo', // ai
+  fps_option_ui: 'Fotogramas por segundo', // ai
+  physics_shapes_option_ui: 'Mostrar formas físicas', // ai
+  physics_shapes_note_ui: 'Desactívalo y actívalo para actualizar', // ai
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai

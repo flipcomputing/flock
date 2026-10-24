@@ -1116,6 +1116,7 @@ export default {
   export_web_page_file_description: 'Page web', // ai
   export_web_zip_file_description: 'Fichier ZIP', // ai
   tools_capture_tab_ui: 'Capturer', // ai
+  tools_debug_tab_ui: 'Débogage', // ai
   capture_picture_heading_ui: 'Image', // ai
   capture_picture_description_ui: 'Enregistre une image de la scène 3D.', // ai
   capture_picture_button_ui: 'Prendre une photo', // ai
@@ -1138,6 +1139,9 @@ export default {
   capture_picture_file_description: 'Image PNG', // ai
   capture_gif_file_description: 'Animation GIF', // ai
   capture_video_file_description: 'Vidéo', // ai
+  fps_option_ui: 'Fréquence d’images', // ai
+  physics_shapes_option_ui: 'Afficher les formes physiques', // ai
+  physics_shapes_note_ui: 'Désactivez puis réactivez pour actualiser', // ai
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai

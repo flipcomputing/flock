@@ -762,6 +762,18 @@
                   >
                     Capture
                   </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsDebugTab"
+                    aria-controls="toolsDebugPanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_debug_tab"
+                  >
+                    Debug
+                  </button>
                 </div>
                 <div
                   class="tools-options"
@@ -784,10 +796,6 @@
                   <label class="tools-option" for="portraitCanvasCheckbox">
                     <input type="checkbox" id="portraitCanvasCheckbox" />
                     <span data-i18n="portrait_canvas_option">Portrait canvas (9:16)</span>
-                  </label>
-                  <label class="tools-option" id="inspectorOption" for="inspectorCheckbox">
-                    <input type="checkbox" id="inspectorCheckbox" />
-                    <span data-i18n="inspector_tool">Inspector</span>
                   </label>
                 </div>
                 <div
@@ -941,6 +949,36 @@
                     </div>
                   </section>
                   <p id="captureStatus" role="status"></p>
+                </div>
+                <div
+                  class="tools-options"
+                  id="toolsDebugPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsDebugTab"
+                  hidden
+                >
+                  <label class="tools-option" for="fpsCheckbox">
+                    <input type="checkbox" id="fpsCheckbox" />
+                    <span data-i18n="fps_option">Frame rate</span>
+                  </label>
+                  <label class="tools-option" for="physicsShapesCheckbox">
+                    <input
+                      type="checkbox"
+                      id="physicsShapesCheckbox"
+                      aria-describedby="physicsShapesNote"
+                    />
+                    <span data-i18n="physics_shapes_option">Show physics shapes</span>
+                    <span
+                      class="tools-option-note"
+                      id="physicsShapesNote"
+                      data-i18n="physics_shapes_note"
+                      >Turn off and on to refresh</span
+                    >
+                  </label>
+                  <label class="tools-option" id="inspectorOption" for="inspectorCheckbox">
+                    <input type="checkbox" id="inspectorCheckbox" />
+                    <span data-i18n="inspector_tool">Inspector</span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -1595,6 +1633,7 @@
                   role="tablist"
                   aria-label="Information panel tabs"
                 ></div>
+                <span id="fpsCounter" hidden></span>
                 <div id="flocklink">
                   <a
                     href="https://flockxr.com/"

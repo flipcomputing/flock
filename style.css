@@ -1430,6 +1430,18 @@ button {
 #flocklink img {
   height: 22px;
 }
+
+#fpsCounter {
+  margin-left: auto;
+  padding: 0 0.5em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+}
+
+#fpsCounter:not([hidden]) + #flocklink {
+  margin-left: 0;
+}
 @media (max-width: 1024px) {
   #maincontent {
     width: calc(var(--view-width) * 2);
@@ -2405,6 +2417,11 @@ a.project-action-button {
   width: 1.2em;
   height: 1.2em;
   cursor: pointer;
+}
+
+.tools-option-note {
+  font-size: 0.85em;
+  opacity: 0.75;
 }
 
 .tools-tabs {
