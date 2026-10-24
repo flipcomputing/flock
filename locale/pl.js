@@ -265,11 +265,11 @@ export default {
   add_physics_shape: 'dodaj kształt fizyczny do %1 typ: %2',
   apply_force: 'zastosuj siłę do %1 x: %2 y: %3 z: %4',
   set_speed: 'ustaw prędkość %1 %2 na %3', // ai
-  move_to_object: 'przesuń %1 %2 %3 odstęp %4 prędkość %5 %6', // ai
+  move_to_object: 'przesuń %1 %7 %2 %3 odstęp %4 prędkość %5 %6', // ai
   set_speed_tooltip:
     'Utrzymuje ruch obiektu z ustaloną prędkością w danym kierunku. Porusza się tak jak postać gracza przy "ruszaj" — wjeżdża na zbocza, pokonuje małe stopnie, zatrzymuje się na ścianach i pozostaje w pionie — ale względem obiektu lub świata, a nie kamery. Utrzymuje tę prędkość, dopóki jej nie zmienisz. Wybierz kierunek względem obiektu (do przodu, bokiem, w górę) lub oś świata (x, y, z); użyj "patrz na", aby wycelować, a potem jedź do przodu. Wybierz "wszystkie" i 0, aby zatrzymać.', // ai
   move_to_object_tooltip:
-    'Przesuwa obiekt do innego obiektu z prędkością, używając fizyki. Obraca się w kierunku ruchu, podąża za obiektem, jeśli ten się porusza, i zatrzymuje się po dotarciu lub gdy coś zablokuje drogę.', // ai
+    'Przesuwa obiekt do innego obiektu z prędkością, używając fizyki. Obraca się w kierunku ruchu, podąża za obiektem, jeśli ten się porusza, i zatrzymuje się po dotarciu lub gdy coś zablokuje drogę. Wybierz „wędrując”, aby poruszać się krętą drogą.', // ai
   show_physics: 'pokaż kształt fizyczne %1',
 
   // Custom block translations - Sensing blocks
@@ -742,6 +742,8 @@ export default {
   PLACE_RIGHT_option: 'na prawo od', // ai
   PLACE_FRONT_option: 'przed', // ai
   PLACE_BEHIND_option: 'za', // ai
+  STRAIGHT_option: 'prosto', // ai
+  WANDERING_option: 'wędrując', // ai
   PLACE_NEAR_option: 'blisko', // ai
   user_option: 'przód',
   environment_option: 'tył',

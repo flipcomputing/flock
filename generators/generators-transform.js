@@ -286,8 +286,9 @@ export function registerTransformGenerators(javascriptGenerator) {
     const gap = getFieldValue(block, 'GAP', '0');
     const speed = getFieldValue(block, 'SPEED', '3');
     const asyncWrapper = block.getFieldValue('MODE') === 'AWAIT' ? 'await ' : '';
+    const wander = block.getFieldValue('PATH') === 'WANDERING' ? ', wander: true' : '';
 
-    return `${asyncWrapper}moveToObject(${meshName1}, ${meshName2}, { speed: ${speed}${getSideOption(block)}, gap: ${gap} });\n`;
+    return `${asyncWrapper}moveToObject(${meshName1}, ${meshName2}, { speed: ${speed}${getSideOption(block)}, gap: ${gap}${wander} });\n`;
   };
 
   // Set how bouncy an object is (restitution, 0..1)

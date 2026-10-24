@@ -694,6 +694,92 @@ export function runPhysicsTests(flock) {
       expect(mover.position.z).to.be.closeTo(-5, 0.15);
     });
 
+    it('slows down as it arrives', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoI', [0, 0.5, -6], 'NONE');
+      const samples = [];
+      const observer = flock.scene.onAfterPhysicsObservable.add(() => {
+        const v = mover.physics.getLinearVelocity();
+        samples.push({ z: mover.position.z, speed: Math.hypot(v.x, v.z) });
+      });
+      await flock.moveToObject('mtoIMover', 'mtoITarget', { speed: 4 });
+      flock.scene.onAfterPhysicsObservable.remove(observer);
+
+      const cruising = samples.filter((s) => s.z < -1 && s.z > -3);
+      const arriving = samples.filter((s) => s.z < -5.6 && s.z > -5.9);
+      expect(Math.max(...cruising.map((s) => s.speed))).to.be.above(3.5);
+      expect(arriving.length).to.be.above(0);
+      expect(Math.max(...arriving.map((s) => s.speed))).to.be.below(2);
+      expect(mover.position.z).to.be.closeTo(-6, 0.15);
+    });
+
+    it('heads off a target crossing in front', async function () {
+      this.timeout(10000);
+      const { mover, target } = await makeScene('mtoJ', [-6, 0.5, -6], 'NONE');
+      const crossing = flock.scene.onBeforeRenderObservable.add(() => {
+        const dt = flock.scene.getEngine().getDeltaTime() / 1000;
+        target.position.x = Math.min(target.position.x + 3 * dt, 3);
+      });
+      let minX = 0;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        minX = Math.min(minX, mover.position.x);
+      });
+      await flock.moveToObject('mtoJMover', 'mtoJTarget', { speed: 4 });
+      flock.scene.onBeforeRenderObservable.remove(crossing);
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(minX).to.be.above(-1.6);
+      expect(mover.position.x).to.be.closeTo(target.position.x, 0.15);
+      expect(mover.position.z).to.be.closeTo(-6, 0.15);
+    });
+
+    it('measures target speed correctly on slow frames', async function () {
+      this.timeout(10000);
+      const { target } = await makeScene('mtoL', [0, 0.5, -30], 'NONE');
+      const engine = flock.scene.getEngine();
+      const getDeltaTime = engine.getDeltaTime;
+      engine.getDeltaTime = () => 200;
+      const crossing = flock.scene.onBeforeRenderObservable.add(() => {
+        target.position.x += 12 * 0.2;
+      });
+      let targetVX;
+      try {
+        flock.moveToObject('mtoLMover', 'mtoLTarget', { speed: 4 });
+        await new Promise((r) => setTimeout(r, 500));
+        targetVX = flock.scene.getMeshByName('mtoLMover')._moveToObject?.targetVX;
+      } finally {
+        flock.scene.onBeforeRenderObservable.remove(crossing);
+        engine.getDeltaTime = getDeltaTime;
+        flock.setSpeed('mtoLMover', 'all', 0);
+      }
+
+      expect(targetVX).to.be.closeTo(12, 1);
+    });
+
+    it('wanders off the straight line and still arrives', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoK', [0, 0.5, -10], 'NONE');
+      let maxSideways = 0;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        maxSideways = Math.max(maxSideways, Math.abs(mover.position.x));
+      });
+      const random = Math.random;
+      Math.random = () => 0;
+      let arrived;
+      try {
+        arrived = flock.moveToObject('mtoKMover', 'mtoKTarget', { speed: 4, wander: true });
+        while (!mover._moveToObject) await new Promise((r) => setTimeout(r, 0));
+      } finally {
+        Math.random = random;
+      }
+      await arrived;
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(maxSideways).to.be.above(0.5);
+      expect(mover.position.x).to.be.closeTo(0, 0.15);
+      expect(mover.position.z).to.be.closeTo(-10, 0.15);
+    });
+
     it('stops a gap away on the near side', async function () {
       this.timeout(10000);
       const { mover } = await makeScene('mtoC', [-6, 0.5, 0]);

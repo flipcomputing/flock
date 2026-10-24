@@ -266,11 +266,11 @@ export default {
   add_physics_shape: 'aggiungi forma fisica %1 tipo %2',
   apply_force: 'applica forza a %1 x: %2 y: %3 z: %4',
   set_speed: 'imposta velocità di %1 %2 a %3', // ai
-  move_to_object: 'muovi %1 %2 %3 distanza %4 velocità %5 %6', // ai
+  move_to_object: 'muovi %1 %7 %2 %3 distanza %4 velocità %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un oggetto in movimento a una velocità impostata in una direzione. Si muove proprio come un personaggio con "muovi" — sale le rampe, supera piccoli gradini, si ferma contro i muri e resta dritto — ma rispetto all\'oggetto o al mondo invece che alla telecamera. Mantiene quella velocità finché non la cambi. Scegli una direzione rispetto all\'oggetto (avanti, laterale, su) o un asse del mondo (x, y, z); usa "guarda" per mirare, poi vai avanti. Scegli "tutti" e 0 per fermarti.', // ai
   move_to_object_tooltip:
-    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove e si ferma quando arriva o se qualcosa blocca la strada.", // ai
+    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove e si ferma quando arriva o se qualcosa blocca la strada. Scegli \"vagando\" per seguire un percorso tortuoso.", // ai
   show_physics: 'mostra formas fisicas %1',
 
   // Custom block translations - Sensing blocks
@@ -746,6 +746,8 @@ export default {
   PLACE_RIGHT_option: 'a destra di', // ai
   PLACE_FRONT_option: 'davanti a', // ai
   PLACE_BEHIND_option: 'dietro', // ai
+  STRAIGHT_option: 'dritto', // ai
+  WANDERING_option: 'vagando', // ai
   PLACE_NEAR_option: 'vicino a', // ai
   user_option: 'fronte',
   environment_option: 'retro',

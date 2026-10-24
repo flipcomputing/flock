@@ -264,11 +264,11 @@ export default {
   add_physics_shape: 'ajouter forme physique %1 type %2',
   apply_force: 'appliquer force à %1 x: %2 y: %3 z: %4',
   set_speed: 'définir la vitesse de %1 %2 à %3', // ai
-  move_to_object: 'déplacer %1 %2 %3 écart %4 vitesse %5 %6', // ai
+  move_to_object: 'déplacer %1 %7 %2 %3 écart %4 vitesse %5 %6', // ai
   set_speed_tooltip:
     'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.', // ai
   move_to_object_tooltip:
-    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge et s'arrête à l'arrivée ou si quelque chose bloque le passage.", // ai
+    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge et s'arrête à l'arrivée ou si quelque chose bloque le passage. Choisis « en flânant » pour suivre un chemin sinueux.", // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
@@ -754,6 +754,8 @@ export default {
   PLACE_RIGHT_option: 'à droite de', // ai
   PLACE_FRONT_option: 'devant', // ai
   PLACE_BEHIND_option: 'derrière', // ai
+  STRAIGHT_option: 'directement', // ai
+  WANDERING_option: 'en flânant', // ai
   PLACE_NEAR_option: 'près de', // ai
   user_option: 'avant',
   environment_option: 'arrière',

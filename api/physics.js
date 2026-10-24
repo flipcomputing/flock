@@ -288,6 +288,15 @@ const ARRIVE_DISTANCE = 0.05;
 const TOUCH_MARGIN = 0.1;
 const BLOCKED_SECONDS = 0.5;
 const BLOCKED_PROGRESS = 0.25;
+const SLOW_SECONDS = 0.25;
+const MIN_ARRIVE_FRACTION = 0.2;
+const MAX_TARGET_SPEED = 20;
+const TARGET_SMOOTHING_SECONDS = 0.15;
+const MAX_LOOKAHEAD_SECONDS = 1;
+const WANDER_MAX_ANGLE = Math.PI / 4;
+const WANDER_FADE_DISTANCE = 2;
+const WANDER_SHORT_WAVE = 1.3;
+const WANDER_LONG_WAVE = 3.1;
 
 const endMoveToObject = (mesh) => {
   const seek = mesh._moveToObject;
@@ -305,13 +314,15 @@ const stopMoveToObject = (mesh) => {
   endMoveToObject(mesh);
 };
 
-const footprintsTouch = (mesh, target) => {
+const footprintGaps = (mesh, target) => {
   const a = mesh.getBoundingInfo().boundingBox;
   const b = target.getBoundingInfo().boundingBox;
-  return ['x', 'z'].every(
-    (axis) =>
-      a.minimumWorld[axis] <= b.maximumWorld[axis] + TOUCH_MARGIN &&
-      b.minimumWorld[axis] <= a.maximumWorld[axis] + TOUCH_MARGIN
+  return ['x', 'z'].map((axis) =>
+    Math.max(
+      a.minimumWorld[axis] - b.maximumWorld[axis],
+      b.minimumWorld[axis] - a.maximumWorld[axis],
+      0
+    )
   );
 };
 
@@ -325,6 +336,32 @@ const isBlocked = (seek, anchor, step) => {
   return blocked;
 };
 
+const trackTarget = (seek, elapsed) => {
+  const { x, z } = flock._getAnchor(seek.target);
+  if (seek.targetX !== null) {
+    const vx = (x - seek.targetX) / elapsed;
+    const vz = (z - seek.targetZ) / elapsed;
+    if (Math.hypot(vx, vz) > MAX_TARGET_SPEED) {
+      seek.targetVX = seek.targetVZ = 0;
+    } else {
+      const blend = 1 - Math.exp(-elapsed / TARGET_SMOOTHING_SECONDS);
+      seek.targetVX += (vx - seek.targetVX) * blend;
+      seek.targetVZ += (vz - seek.targetVZ) * blend;
+    }
+  }
+  seek.targetX = x;
+  seek.targetZ = z;
+};
+
+const wanderAngle = (wander, remaining) => {
+  if (!wander) return 0;
+  const { travelled, shortPhase, longPhase } = wander;
+  const wobble =
+    Math.sin(travelled / WANDER_SHORT_WAVE + shortPhase) * 0.6 +
+    Math.sin(travelled / WANDER_LONG_WAVE + longPhase) * 0.4;
+  return WANDER_MAX_ANGLE * wobble * Math.min(1, remaining / WANDER_FADE_DISTANCE);
+};
+
 const applyMoveToObject = (mesh) => {
   const seek = mesh._moveToObject;
   const { target, side, gap, speed } = seek;
@@ -332,34 +369,55 @@ const applyMoveToObject = (mesh) => {
     stopMoveToObject(mesh);
     return;
   }
+  const elapsed = Math.max(flock.scene.getEngine().getDeltaTime(), 1) / 1000;
+  const step = Math.min(elapsed, 0.1);
+  trackTarget(seek, elapsed);
   const goal = flock._anchorGoal(mesh, target, side, gap);
   const anchor = flock._getAnchor(mesh);
   const dx = goal.x - anchor.x;
   const dz = goal.z - anchor.z;
   const distance = Math.hypot(dx, dz);
-  if (
-    distance <= ARRIVE_DISTANCE ||
-    (!side && isPhysicsEnabled(target) && footprintsTouch(mesh, target))
-  ) {
+  const gaps = !side && isPhysicsEnabled(target) ? footprintGaps(mesh, target) : null;
+  if (distance <= ARRIVE_DISTANCE || gaps?.every((g) => g <= TOUCH_MARGIN)) {
     stopMoveToObject(mesh);
     return;
   }
-  const step = Math.min(Math.max(flock.scene.getEngine().getDeltaTime(), 1), 100) / 1000;
   if (isBlocked(seek, anchor, step)) {
     stopMoveToObject(mesh);
     return;
   }
-  const stepSpeed = Math.min(speed, distance / step);
+  const lookahead = Math.min(distance / speed, MAX_LOOKAHEAD_SECONDS);
+  let aimX = dx + seek.targetVX * lookahead;
+  let aimZ = dz + seek.targetVZ * lookahead;
+  let aimDistance = Math.hypot(aimX, aimZ);
+  if (aimDistance < ARRIVE_DISTANCE) {
+    aimX = dx;
+    aimZ = dz;
+    aimDistance = distance;
+  }
+  const contact = gaps ? distance - Math.min(distance, Math.hypot(...gaps)) : 0;
+  const remaining = Math.max(0, aimDistance - contact);
+  const targetAway = Math.max(0, (seek.targetVX * aimX + seek.targetVZ * aimZ) / aimDistance);
+  const arriveSpeed = Math.max(
+    speed * MIN_ARRIVE_FRACTION,
+    Math.min(speed, targetAway + remaining / SLOW_SECONDS)
+  );
+  const stepSpeed = Math.min(arriveSpeed, aimDistance / step);
+  const angle = wanderAngle(seek.wander, remaining);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const dirX = (aimX * cos - aimZ * sin) / aimDistance;
+  const dirZ = (aimX * sin + aimZ * cos) / aimDistance;
+  if (seek.wander) seek.wander.travelled += stepSpeed * step;
   Object.assign(seek, {
     lastX: anchor.x,
     lastZ: anchor.z,
-    lastDirX: dx / distance,
-    lastDirZ: dz / distance,
+    lastDirX: dirX,
+    lastDirZ: dirZ,
     lastSpeed: stepSpeed,
   });
-  const scale = stepSpeed / distance;
   const desired = (mesh._moveToDesired ??= new flock.BABYLON.Vector3());
-  desired.set(dx * scale, 0, dz * scale);
+  desired.set(dirX * stepSpeed, 0, dirZ * stepSpeed);
   if (flock.applyGroundedMovement(mesh, desired)) return;
   flock.faceTravel(mesh, mesh._moveForwardCache.appliedHorizontalVelocity);
 };
@@ -1080,7 +1138,7 @@ export const flockPhysics = {
     ensurePostPhysicsUpkeep(mesh);
     applyVelocityDrive(mesh); // take effect immediately, not next frame
   },
-  async moveToObject(meshName, targetName, { side = null, gap = 0, speed = 3 } = {}) {
+  async moveToObject(meshName, targetName, { side = null, gap = 0, speed = 3, wander = false } = {}) {
     const mesh = await flock.whenModelReady(meshName);
     if (!mesh) return;
     const target = await flock.whenModelReady(targetName);
@@ -1105,12 +1163,23 @@ export const flockPhysics = {
         side,
         gap,
         speed,
+        wander: wander
+          ? {
+              travelled: 0,
+              shortPhase: Math.random() * 2 * Math.PI,
+              longPhase: Math.random() * 2 * Math.PI,
+            }
+          : null,
         resolve,
         lastX: 0,
         lastZ: 0,
         lastDirX: 0,
         lastDirZ: 0,
         lastSpeed: 0,
+        targetX: null,
+        targetZ: null,
+        targetVX: 0,
+        targetVZ: 0,
         progress: 0,
         expected: 0,
         elapsed: 0,

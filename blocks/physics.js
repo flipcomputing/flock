@@ -299,6 +299,11 @@ export function definePhysicsBlocks() {
             name: 'MODE',
             options: [getDropdownOption('AWAIT'), getDropdownOption('START')],
           },
+          {
+            type: 'field_dropdown',
+            name: 'PATH',
+            options: [getDropdownOption('STRAIGHT'), getDropdownOption('WANDERING')],
+          },
         ],
         inputsInline: true,
         previousStatement: null,
