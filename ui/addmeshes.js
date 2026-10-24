@@ -13,10 +13,11 @@ import {
   rebuildDependentClones,
   readNumberOrList,
   deleteMeshFromBlock,
+  hasComputedValue,
 } from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
-  if (!isEligibleForMeshCreation(block)) {
+  if (!isEligibleForMeshCreation(block) || hasComputedValue(block)) {
     return;
   }
   if (adoptCloneTemplate(block)) return;

@@ -824,6 +824,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
 
   const alreadyCreatingMesh = meshMap[block.id] !== undefined;
   if (!alreadyCreatingMesh && (isEnabledEvent || isImmediateEnabledCreate || isConnectedMove)) {
+    if (hasComputedValue(block)) return;
     if (sceneControllerTypes.includes(block.type)) {
       updateMeshFromBlock(meshes, block, changeEvent);
     } else {
@@ -900,6 +901,16 @@ const LITERAL_VALUE_TYPES = new Set([
   'gradient_material',
   'lists_create_with',
 ]);
+
+export function hasComputedValue(block) {
+  return block.inputList.some((input) => {
+    if (input.type !== Blockly.INPUT_VALUE) return false;
+    const target = input.connection?.targetBlock();
+    if (!target) return false;
+    if (!target.isShadow() && !LITERAL_VALUE_TYPES.has(target.type)) return true;
+    return hasComputedValue(target);
+  });
+}
 
 function isEditInsideComputedValue(changeEvent) {
   let b = changeEvent?.blockId && Blockly.getMainWorkspace()?.getBlockById(changeEvent.blockId);
