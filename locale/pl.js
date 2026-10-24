@@ -155,7 +155,7 @@ export default {
   glide_to_seconds:
     'przesuń %1 do %10 x: %2, y: %3, z: %4 w czasie %5 sekund\n%6 powrót? %7 pętla? %8 %9',
   glide_to_object:
-    'przesuń %1 %11 %2 w czasie %6 sekund\nprzesunięcie x: %3, y: %4, z: %5\n%7 powrót? %8 pętla? %9 %10',
+    'przesuń %1 %11 %2 odstęp %12 w czasie %6 sekund\n%7 powrót? %8 pętla? %9 %10\n%3 %4 %5',
   glide_to_axis: 'przesuń %1 %2 %3 w czasie %4 sekund\n%5 powrót? %6 pętla? %7 %8',
   rotate_anim: 'obróć %1 do x: %2, y: %3, z: %4 w czasie %5 ms\n%6 odwróć? %7 pętla? %8 %9',
   rotate_anim_seconds:
@@ -265,8 +265,11 @@ export default {
   add_physics_shape: 'dodaj kształt fizyczny do %1 typ: %2',
   apply_force: 'zastosuj siłę do %1 x: %2 y: %3 z: %4',
   set_speed: 'ustaw prędkość %1 %2 na %3', // ai
+  move_to_object: 'przesuń %1 %2 %3 odstęp %4 prędkość %5 %6', // ai
   set_speed_tooltip:
     'Utrzymuje ruch obiektu z ustaloną prędkością w danym kierunku. Porusza się tak jak postać gracza przy "ruszaj" — wjeżdża na zbocza, pokonuje małe stopnie, zatrzymuje się na ścianach i pozostaje w pionie — ale względem obiektu lub świata, a nie kamery. Utrzymuje tę prędkość, dopóki jej nie zmienisz. Wybierz kierunek względem obiektu (do przodu, bokiem, w górę) lub oś świata (x, y, z); użyj "patrz na", aby wycelować, a potem jedź do przodu. Wybierz "wszystkie" i 0, aby zatrzymać.', // ai
+  move_to_object_tooltip:
+    'Przesuwa obiekt do innego obiektu z prędkością, używając fizyki. Obraca się w kierunku ruchu, podąża za obiektem, jeśli ten się porusza, i zatrzymuje się po dotarciu lub gdy coś zablokuje drogę.', // ai
   show_physics: 'pokaż kształt fizyczne %1',
 
   // Custom block translations - Sensing blocks
@@ -309,6 +312,9 @@ export default {
   create_ring:
     'dodaj pierścień %1 %2 wysokość: %3 zewnętrzna: %4 wewnętrzna: %5 grubość: %6 boki: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'dodaj płaszczyznę %1 %2 szerokość: %3 wysokość: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'dodaj znacznik %1 %7 %5 x: %2 y: %3 z: %4 edycja: %6', // AI-generated; needs validation
+  cross_option: 'krzyżyk', // AI-generated; needs validation
+  sphere_option: 'kula', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'odtwórz motyw %1 %2 od %3\nprędkość: %4 głośność: %5 tryb: %6 async: %7',
@@ -415,7 +421,7 @@ export default {
   glide_to_seconds_tooltip:
     'Przesuń się do zadanej pozycji w określonym czasie z opcjami odwrócenia, pętli i easing.',
   glide_to_object_tooltip:
-    'Przesuń się do pozycji innego obiektu z opcjonalnymi przesunięciami x/y/z (domyślnie 0) oraz opcjami odwrócenia, pętli i easing. Wybierz bok, aby przesunąć się do niego, np. na górze.', // ai
+    'Przesuń się do obiektu, blisko niego od strony, po której już jesteś, lub do jednego z jego boków, np. na górze. Odstęp zostawia miejsce przed bokiem lub zatrzymuje przed obiektem. Z opcjami odwrócenia, pętli i easing.', // ai
   glide_to_axis_tooltip:
     'Przesuń wzdłuż jednej osi (X, Y lub Z) do wartości docelowej. Pozostałe dwie osie są zablokowane na aktualnej pozycji obiektu (z uwzględnieniem punktu kotwiczenia). Te same opcje co w standardowym bloku glide.',
   rotate_anim_tooltip:
@@ -470,7 +476,7 @@ export default {
   hold_tooltip: 'Przymocuj obiekt do kości innego obiektu z przesunięciem w osiach x, y, z.',
   drop_tooltip: 'Odłącz obiekt od kości, do której była przyczepiona.',
   follow_tooltip:
-    'Spraw, by jeden obiekt podążał za drugim: w jego miejscu, w jego środku lub przy jednym z jego boków. Boki i przesunięcie obracają się razem z drugim obiektem.', // ai
+    'Spraw, by jeden obiekt podążał za drugim: w jego miejscu, w jego środku lub na nim, z podanym przesunięciem. Porusza się razem z drugim obiektem, ale nie obraca się razem z nim.', // ai
   export_mesh_tooltip: 'Eksportuj obiekt jako STL, OBJ lub GLB.',
 
   // Tooltip translations - Control blocks
@@ -573,6 +579,8 @@ export default {
     'Dodaj pierścień o płaskich krawędziach, jak podkładka lub rura. Zewnętrzna i wewnętrzna to średnice pierścienia i otworu; zmiana wewnętrznej lub grubości aktualizuje drugą wartość. Wysokość określa, jak wysoki jest pierścień, a boki — gładkość kształtu.', // ai
   create_plane_tooltip:
     'Stwórz kolorową płaszczyznę 2D %1 %2 szer. %3 wys. %4\npołożenie x: %5 y: %6 z: %7',
+  create_marker_tooltip:
+    'Dodaje znacznik: niewidoczny punkt do ustawiania obiektów. Zaznacz edycję, aby zobaczyć znacznik i przesuwać go gizmami. Znacznik nigdy nie jest widoczny w trybie gry.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
@@ -734,6 +742,7 @@ export default {
   PLACE_RIGHT_option: 'na prawo od', // ai
   PLACE_FRONT_option: 'przed', // ai
   PLACE_BEHIND_option: 'za', // ai
+  PLACE_NEAR_option: 'blisko', // ai
   user_option: 'przód',
   environment_option: 'tył',
 

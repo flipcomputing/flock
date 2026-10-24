@@ -1,6 +1,7 @@
 import * as Blockly from 'blockly';
 import { categoryColours } from '../toolbox.js';
 import { getHelpUrlFor } from './blocks.js';
+import { otherObjectName } from './variableNames.js';
 import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
 export function definePhysicsBlocks() {
@@ -249,6 +250,61 @@ export function definePhysicsBlocks() {
         nextStatement: null,
         colour: categoryColours['Transform'],
         tooltip: getTooltip('show_physics'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['move_to_object'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'move_to_object',
+        message0: translate('move_to_object'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MODEL1',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'SIDE',
+            options: [
+              'PLACE_TO',
+              'PLACE_NEAR',
+              'PLACE_LEFT',
+              'PLACE_RIGHT',
+              'PLACE_FRONT',
+              'PLACE_BEHIND',
+            ].map(getDropdownOption),
+          },
+          {
+            type: 'field_variable',
+            name: 'MODEL2',
+            variable: otherObjectName('object2'),
+          },
+          {
+            type: 'input_value',
+            name: 'GAP',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'SPEED',
+            check: 'Number',
+          },
+          {
+            type: 'field_dropdown',
+            name: 'MODE',
+            options: [getDropdownOption('AWAIT'), getDropdownOption('START')],
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('move_to_object'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('transform_blocks');

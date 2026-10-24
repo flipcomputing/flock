@@ -1729,7 +1729,8 @@
                                   "MODE": "AWAIT",
                                   "REVERSE": false,
                                   "LOOP": false,
-                                  "EASING": "Linear"
+                                  "EASING": "Linear",
+                                  "SIDE": "PLACE_ON_TOP"
                                 },
                                 "inputs": {
                                   "DURATION": {
@@ -1840,7 +1841,7 @@
                                       "type": "math_number",
                                       "id": "Kd1VYA)9Tz(FwWVJxmh.",
                                       "fields": {
-                                        "NUM": 2
+                                        "NUM": 0
                                       }
                                     }
                                   },

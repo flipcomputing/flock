@@ -87,6 +87,177 @@ function toAlpha(v) {
   return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 1;
 }
 
+const MARKER_COLOUR = [1, 1, 1];
+const MARKER_DOT_COLOUR = [0, 0, 0];
+
+const MARKER_DIAMETER = 1;
+const MARKER_DOT_DIAMETER = 0.1;
+
+const MARKER_CROSS_LENGTH = 0.6;
+const MARKER_CROSS_WIDTH = 0.14;
+const MARKER_CROSS_OUTLINE = 0.03;
+const MARKER_CROSS_HEIGHT = 0.02;
+const MARKER_CROSS_ALPHA = 0.5;
+const MARKER_LAYER_GAP = 0.003;
+
+function tintMarker(data, colour, alpha = 1) {
+  const count = data.positions.length / 3;
+  data.colors = new Float32Array(count * 4);
+  for (let i = 0; i < count; i++) data.colors.set([...colour, alpha], i * 4);
+  return data;
+}
+
+function markerVertexData(type) {
+  return type === 'sphere' ? sphereMarkerVertexData() : crossMarkerVertexData();
+}
+
+// A flat, double-sided shape from [x, z] points and triangles, at height y.
+function flatMarkerPart(points, triangles, y, colour, alpha) {
+  const data = new flock.BABYLON.VertexData();
+  data.positions = points.flatMap(([x, z]) => [x, y, z]);
+  data.indices = triangles.flatMap(([a, b, c]) => [a, b, c, a, c, b]);
+  data.normals = points.flatMap(() => [0, 1, 0]);
+  data.uvs = points.flatMap(() => [0, 0]);
+  return tintMarker(data, colour, alpha);
+}
+
+// Upright walls along a closed polygon's edges, from the ground to height.
+function markerWalls(points, height, colour) {
+  const data = new flock.BABYLON.VertexData();
+  data.positions = points.flatMap(([x, z], i) => {
+    const [nx, nz] = points[(i + 1) % points.length];
+    return [x, 0, z, nx, 0, nz, nx, height, nz, x, height, z];
+  });
+  data.indices = points.flatMap((_, i) => {
+    const q = i * 4;
+    return [q, q + 1, q + 2, q, q + 2, q + 3, q, q + 2, q + 1, q, q + 3, q + 2];
+  });
+  data.normals = points.flatMap(() => [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0]);
+  data.uvs = points.flatMap(() => [0, 0, 0, 0, 0, 0, 0, 0]);
+  return tintMarker(data, colour);
+}
+
+// A band around a polygon, between it and a copy grown by the outline width.
+function markerOutlineRing(inner, outer) {
+  const n = inner.length;
+  const triangles = inner.flatMap((_, i) => {
+    const j = (i + 1) % n;
+    return [
+      [i, j, n + j],
+      [i, n + j, n + i],
+    ];
+  });
+  return { points: [...inner, ...outer], triangles };
+}
+
+// A stage spike mark: an X on the surface at the marker's position. A solid
+// black band round the X stands up from the surface like a low wall, so the X
+// shows on light and dark floors and from low angles. The see-through fill
+// is one shape, not two crossed arms, so it blends evenly where they meet.
+// The forward (-Z) arrow has a black band too and stands in front of the X. Points mirroring the arrow behind the X are never drawn;
+// they keep the bounds, and with them the anchor, centred on the X.
+function crossMarkerVertexData() {
+  const { VertexData, Matrix, Mesh } = flock.BABYLON;
+  const a = MARKER_CROSS_WIDTH / 2;
+  const b = MARKER_CROSS_LENGTH / 2;
+  const m = MARKER_CROSS_OUTLINE;
+  const height = MARKER_CROSS_HEIGHT;
+  const turn = ([x, z]) => [(x - z) * Math.SQRT1_2, (x + z) * Math.SQRT1_2];
+  const plus = [
+    [a, b],
+    [-a, b],
+    [-a, a],
+    [-b, a],
+    [-b, -a],
+    [-a, -a],
+    [-a, -b],
+    [a, -b],
+    [a, -a],
+    [b, -a],
+    [b, a],
+    [a, a],
+  ];
+  // Every corner of a plus is square, so growing it moves each corner
+  // diagonally away from the axes.
+  const grown = plus.map(([x, z]) => [x + Math.sign(x) * m, z + Math.sign(z) * m]);
+  const fill = [
+    [0, 1, 2],
+    [0, 2, 11],
+    [2, 3, 4],
+    [2, 4, 5],
+    [5, 6, 7],
+    [5, 7, 8],
+    [8, 9, 10],
+    [8, 10, 11],
+    [11, 2, 5],
+    [11, 5, 8],
+  ];
+  const inner = plus.map(turn);
+  const outer = grown.map(turn);
+  const ring = markerOutlineRing(inner, outer);
+  const arrow = [
+    [0, -0.62],
+    [-0.14, -0.38],
+    [0.14, -0.38],
+  ];
+  const arrowOuter = [
+    [0, -0.68],
+    [-0.19, -0.35],
+    [0.19, -0.35],
+  ];
+  const arrowRing = markerOutlineRing(arrow, arrowOuter);
+  const balance = arrowOuter.map(([x, z]) => [-x, -z]);
+  const dot = VertexData.CreateDisc({
+    radius: MARKER_DOT_DIAMETER / 2,
+    tessellation: 16,
+    sideOrientation: Mesh.DOUBLESIDE,
+  }).transform(
+    Matrix.RotationX(Math.PI / 2).multiply(Matrix.Translation(0, height + MARKER_LAYER_GAP, 0))
+  );
+  return markerWalls(outer, height, MARKER_DOT_COLOUR)
+    .merge(markerWalls(inner, height, MARKER_DOT_COLOUR))
+    .merge(flatMarkerPart(ring.points, ring.triangles, height, MARKER_DOT_COLOUR, 1))
+    .merge(flatMarkerPart(inner, fill, height, MARKER_COLOUR, MARKER_CROSS_ALPHA))
+    .merge(markerWalls(arrowOuter, height, MARKER_DOT_COLOUR))
+    .merge(flatMarkerPart(arrowRing.points, arrowRing.triangles, height, MARKER_DOT_COLOUR, 1))
+    .merge(flatMarkerPart(arrow, [[0, 1, 2]], height, MARKER_COLOUR, MARKER_CROSS_ALPHA))
+    .merge(tintMarker(dot, MARKER_DOT_COLOUR))
+    .merge(flatMarkerPart(balance, [], 0, MARKER_DOT_COLOUR, 0));
+}
+
+// The dot and the forward (-Z) arrow come first so they are drawn before the
+// see-through shell around them. The arrow stays inside the shell, so the
+// bounds, and with them the anchor, stay centred on the dot.
+function sphereMarkerVertexData() {
+  const { VertexData, Matrix } = flock.BABYLON;
+  const alongForward = (data, from, to) =>
+    data.transform(
+      Matrix.RotationX(-Math.PI / 2).multiply(Matrix.Translation(0, 0, -(from + to) / 2))
+    );
+  const radius = MARKER_DIAMETER / 2 - 0.01;
+  const headStart = radius - 0.2;
+  const shaft = VertexData.CreateCylinder({ height: headStart, diameter: 0.05, tessellation: 12 });
+  const head = VertexData.CreateCylinder({
+    height: radius - headStart,
+    diameterTop: 0,
+    diameterBottom: 0.18,
+    tessellation: 16,
+  });
+  return tintMarker(
+    VertexData.CreateSphere({ diameter: MARKER_DOT_DIAMETER, segments: 16 }),
+    MARKER_DOT_COLOUR
+  )
+    .merge(tintMarker(alongForward(shaft, 0, headStart), MARKER_COLOUR))
+    .merge(tintMarker(alongForward(head, headStart, radius), MARKER_COLOUR))
+    .merge(
+      tintMarker(
+        VertexData.CreateSphere({ diameter: MARKER_DIAMETER, segments: 24 }),
+        MARKER_COLOUR,
+        0.3
+      )
+    );
+}
+
 /**
  * Convert font path commands to polygons suitable for Manifold CrossSection.
  * Handles curves by subdividing them into line segments.
@@ -552,6 +723,104 @@ export const flockShapes = {
     }
 
     return newGroup.name;
+  },
+  createMarker(
+    markerId,
+    {
+      position = [0, 0, 0],
+      type = 'cross',
+      edit = true,
+      rotation = null,
+      size = null,
+      callback = null,
+      hasDo = false,
+    } = {}
+  ) {
+    if (!validateShapeId(markerId, 'createMarker')) return null;
+
+    let blockKey;
+    [markerId, blockKey] = flock._splitBlockKey(markerId);
+
+    let groupName = markerId;
+    markerId = flock._reserveName(markerId);
+
+    if (flock.maxMeshesReached()) return null;
+    flock._recycleOldestByKey(blockKey);
+
+    const marker = new flock.BABYLON.Mesh(markerId, flock.scene);
+    flock._buildMarker(marker, type);
+
+    const material = new flock.BABYLON.StandardMaterial(`${markerId}_material`, flock.scene);
+    material.disableLighting = true;
+    material.emissiveColor = flock.BABYLON.Color3.White();
+    material.fogEnabled = false;
+    marker.material = material;
+
+    marker.metadata = marker.metadata || {};
+    marker.metadata.shape = 'marker';
+    marker.metadata.blockKey = blockKey;
+    marker.metadata.sectionOwner = flock._currentSection;
+    marker.metadata.markerEdit = edit !== false;
+    flock._applyMarkerVisibility(marker);
+
+    flock.setBlockPositionOnMesh(marker, {
+      x: position[0],
+      y: position[1],
+      z: position[2],
+      useY: true,
+      meshName: marker.name,
+    });
+    if (rotation || size) flock._applyInitialTransform(marker, { position, rotation, size });
+
+    flock._awaitDo(marker, hasDo);
+
+    flock.announceMeshReady(marker.name, groupName);
+    flock._registerInstance(blockKey, marker.name, marker);
+
+    if (callback) {
+      requestAnimationFrame(() => callback());
+    }
+
+    return marker.name;
+  },
+  setMarkerType(markerName, type) {
+    const marker = flock.scene?.getMeshByName(markerName);
+    if (marker?.metadata?.shape !== 'marker') return;
+    flock._buildMarker(marker, type);
+    delete marker.metadata.originalMin;
+    delete marker.metadata.originalMax;
+    marker.refreshBoundingInfo();
+    marker.computeWorldMatrix(true);
+  },
+  _buildMarker(marker, type) {
+    const markerType = type === 'sphere' ? 'sphere' : 'cross';
+    markerVertexData(markerType).applyToMesh(marker, true);
+    marker.hasVertexAlpha = true;
+    marker.metadata = marker.metadata || {};
+    marker.metadata.markerType = markerType;
+    // A cross is built up from the surface, so its anchor is its base.
+    if (markerType === 'cross') {
+      marker.metadata.anchorSettings = { x: 'CENTER', y: 'MIN', z: 'CENTER' };
+    } else {
+      delete marker.metadata.anchorSettings;
+    }
+  },
+  setMarkerEdit(markerName, edit) {
+    const marker = flock.scene?.getMeshByName(markerName);
+    if (marker?.metadata?.shape !== 'marker') return;
+    marker.metadata.markerEdit = !!edit;
+    flock._applyMarkerVisibility(marker);
+  },
+  // A marker only ever shows in the editor, and only while its edit box is ticked.
+  _applyMarkerVisibility(marker) {
+    const shown = marker.metadata.markerEdit && flock._editorView;
+    marker.isVisible = shown;
+    marker.isPickable = shown;
+  },
+  _refreshMarkers() {
+    for (const mesh of flock.scene?.meshes ?? []) {
+      if (mesh.metadata?.shape === 'marker') flock._applyMarkerVisibility(mesh);
+    }
   },
   async addPrefab(groupId, { x = 0, y = 0, z = 0, rotationY = 0, args = [], build = null } = {}) {
     const groupName = flock.createGroup(groupId);

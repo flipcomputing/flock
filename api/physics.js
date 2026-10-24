@@ -284,6 +284,86 @@ const applyVelocityDrive = (mesh) => {
   keepUpright(mesh);
 };
 
+const ARRIVE_DISTANCE = 0.05;
+const TOUCH_MARGIN = 0.1;
+const BLOCKED_SECONDS = 0.5;
+const BLOCKED_PROGRESS = 0.25;
+
+const endMoveToObject = (mesh) => {
+  const seek = mesh._moveToObject;
+  if (!seek) return;
+  mesh._moveToObject = null;
+  seek.resolve();
+};
+
+const stopMoveToObject = (mesh) => {
+  const v = mesh.physics.getLinearVelocity();
+  v.x = 0;
+  v.z = 0;
+  mesh.physics.setLinearVelocity(v);
+  mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.ZeroReadOnly);
+  endMoveToObject(mesh);
+};
+
+const footprintsTouch = (mesh, target) => {
+  const a = mesh.getBoundingInfo().boundingBox;
+  const b = target.getBoundingInfo().boundingBox;
+  return ['x', 'z'].every(
+    (axis) =>
+      a.minimumWorld[axis] <= b.maximumWorld[axis] + TOUCH_MARGIN &&
+      b.minimumWorld[axis] <= a.maximumWorld[axis] + TOUCH_MARGIN
+  );
+};
+
+const isBlocked = (seek, anchor, step) => {
+  seek.progress += (anchor.x - seek.lastX) * seek.lastDirX + (anchor.z - seek.lastZ) * seek.lastDirZ;
+  seek.expected += seek.lastSpeed * step;
+  seek.elapsed += step;
+  if (seek.elapsed < BLOCKED_SECONDS) return false;
+  const blocked = seek.progress < seek.expected * BLOCKED_PROGRESS;
+  seek.progress = seek.expected = seek.elapsed = 0;
+  return blocked;
+};
+
+const applyMoveToObject = (mesh) => {
+  const seek = mesh._moveToObject;
+  const { target, side, gap, speed } = seek;
+  if (target.isDisposed()) {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const goal = flock._anchorGoal(mesh, target, side, gap);
+  const anchor = flock._getAnchor(mesh);
+  const dx = goal.x - anchor.x;
+  const dz = goal.z - anchor.z;
+  const distance = Math.hypot(dx, dz);
+  if (
+    distance <= ARRIVE_DISTANCE ||
+    (!side && isPhysicsEnabled(target) && footprintsTouch(mesh, target))
+  ) {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const step = Math.min(Math.max(flock.scene.getEngine().getDeltaTime(), 1), 100) / 1000;
+  if (isBlocked(seek, anchor, step)) {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const stepSpeed = Math.min(speed, distance / step);
+  Object.assign(seek, {
+    lastX: anchor.x,
+    lastZ: anchor.z,
+    lastDirX: dx / distance,
+    lastDirZ: dz / distance,
+    lastSpeed: stepSpeed,
+  });
+  const scale = stepSpeed / distance;
+  const desired = (mesh._moveToDesired ??= new flock.BABYLON.Vector3());
+  desired.set(dx * scale, 0, dz * scale);
+  if (flock.applyGroundedMovement(mesh, desired)) return;
+  flock.faceTravel(mesh, mesh._moveForwardCache.appliedHorizontalVelocity);
+};
+
 // Default "no free sliding" behaviour for a mesh with the upright joint
 // constraint when nothing is actively driving it.
 const applyUprightStabiliser = (mesh) => {
@@ -317,9 +397,12 @@ const ensurePostPhysicsUpkeep = (mesh) => {
     if (!mesh || mesh.isDisposed?.() || !isBodyAlive(mesh.physics)) {
       scene.onAfterPhysicsObservable.remove(observer);
       mesh._postPhysicsUpkeep = null;
+      endMoveToObject(mesh);
       return;
     }
-    if (mesh.metadata?.velocityDrive) {
+    if (mesh._moveToObject) {
+      applyMoveToObject(mesh);
+    } else if (mesh.metadata?.velocityDrive) {
       applyVelocityDrive(mesh);
     } else {
       applyUprightStabiliser(mesh);
@@ -963,8 +1046,13 @@ export const flockPhysics = {
   // directions follow the move-forward / glide convention (forward =
   // mesh.forward.negate()). 'all' to 0 is a full stop: it clears every maintained
   // direction and zeroes the velocity, so the object behaves normally afterwards.
+  // A non-zero speed makes the object dynamic, as move forward does.
   setSpeed(meshName, direction, speed = 0) {
-    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
+    const target = flock.scene.getMeshByName(meshName);
+    if (target && speed !== 0 && target.metadata?.physicsType !== 'DYNAMIC') {
+      flock.setPhysicsForMesh(target, 'DYNAMIC');
+    }
+    const mesh = flock.ensureBody(target);
     if (!(mesh && isBodyAlive(mesh.physics))) {
       console.error(`Model '${meshName}' not loaded or missing physics (setSpeed)`);
       return;
@@ -972,6 +1060,7 @@ export const flockPhysics = {
     mesh.metadata = mesh.metadata || {};
     // Assign a physics capsule the same way move-forward does, for consistency.
     flock.ensurePhysicsCapsule(mesh);
+    endMoveToObject(mesh);
 
     if (direction === 'all') {
       if (speed === 0) {
@@ -990,6 +1079,45 @@ export const flockPhysics = {
 
     ensurePostPhysicsUpkeep(mesh);
     applyVelocityDrive(mesh); // take effect immediately, not next frame
+  },
+  async moveToObject(meshName, targetName, { side = null, gap = 0, speed = 3 } = {}) {
+    const mesh = await flock.whenModelReady(meshName);
+    if (!mesh) return;
+    const target = await flock.whenModelReady(targetName);
+    if (!target) return;
+
+    endMoveToObject(mesh);
+    speed = Number(speed);
+    if (!(speed > 0)) return;
+    if (mesh.metadata?.physicsType !== 'DYNAMIC') flock.setPhysicsForMesh(mesh, 'DYNAMIC');
+    flock.ensureBody(mesh);
+    if (!isBodyAlive(mesh.physics)) {
+      console.error(`Model '${meshName}' not loaded or missing physics (moveToObject)`);
+      return;
+    }
+    flock.ensurePhysicsCapsule(mesh);
+    flock.ensureVerticalConstraint(mesh);
+    delete mesh.metadata.velocityDrive;
+
+    return new Promise((resolve) => {
+      mesh._moveToObject = {
+        target,
+        side,
+        gap,
+        speed,
+        resolve,
+        lastX: 0,
+        lastZ: 0,
+        lastDirX: 0,
+        lastDirZ: 0,
+        lastSpeed: 0,
+        progress: 0,
+        expected: 0,
+        elapsed: 0,
+      };
+      ensurePostPhysicsUpkeep(mesh);
+      applyMoveToObject(mesh);
+    });
   },
   setPhysicsForMesh(mesh, physicsType) {
     if (!mesh) return mesh;

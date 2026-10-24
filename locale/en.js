@@ -157,7 +157,7 @@ export default {
   glide_to: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 ms\n%6 return? %7 loop? %8 %9',
   glide_to_seconds: 'glide %1 to %10 x: %2 y: %3 z: %4 in %5 seconds \n%6 return? %7 loop? %8 %9',
   glide_to_object:
-    'glide %1 %11 %2 in %6 seconds \noffset x: %3 y: %4 z: %5\n%7 return? %8 loop? %9 %10',
+    'glide %1 %11 %2 gap %12 in %6 seconds\n%7 return? %8 loop? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glide %1 %2 %3 in %4 seconds\n%5 return? %6 loop? %7 %8',
   rotate_to_object: 'rotate %1 %2 %3 in %4 seconds\n%5 reverse? %6 loop? %7 %8',
   rotate_anim: 'rotate %1 to x: %2 y: %3 z: %4 in %5 ms\n%6 reverse? %7 loop? %8  %9',
@@ -299,6 +299,7 @@ export default {
   apply_force: 'apply force to %1 x: %2 y: %3 z: %4',
   jump: 'jump %1 height %2',
   set_speed: 'set speed of %1 %2 to %3',
+  move_to_object: 'move %1 %2 %3 gap %4 speed %5 %6',
   set_bounciness: 'set bounciness of %1 to %2',
   set_mass: 'set mass of %1 to %2',
   show_physics: 'show physics shapes %1',
@@ -388,6 +389,9 @@ export default {
   create_ring:
     'add ring %1 %2 height: %3 outer: %4 inner: %5 thickness: %6 sides: %7\n%11 x: %8 y: %9 z: %10',
   create_plane: 'add plane %1 %2 width: %3 height: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'add marker %1 %7 %5 x: %2 y: %3 z: %4 edit: %6',
+  cross_option: 'cross',
+  sphere_option: 'sphere',
 
   // Custom block translations - Sound blocks
   play_theme: 'play theme %1 %2 from %3 \nspeed: %4 volume: %5 mode: %6 async: %7',
@@ -501,7 +505,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glide to a specified position over a duration with options for reversing, looping, and easing.',
   glide_to_object_tooltip:
-    'Glide to a specified object, or against one of its sides such as on top of, over a duration with optional x/y/z offsets (default 0) plus reversing, looping, and easing controls.',
+    'Glide to an object, near it on the side you are already on, or against one of its sides such as on top of, over a duration. A gap leaves space out from the side, or stops short of the object. Includes reversing, looping, and easing controls.',
   glide_to_axis_tooltip:
     "Glide along one axis (x, y, z) to a target world position, or forward/sideways by a distance relative to the object's local direction. The other two axes stay fixed. Same options as the standard glide block.",
   rotate_to_object_tooltip:
@@ -566,7 +570,7 @@ export default {
     'Attach an object to the specified bone of another object with a specified offset in x, y, and z directions.',
   drop_tooltip: 'Detach an object from its currently attached bone.',
   follow_tooltip:
-    "Make one object keep following another: at it, at its center, or against one of its sides. Sides and offset follow the other object's rotation.",
+    'Make one object keep following another: at it, at its center, or on top of it, moved by the offset. It moves with the other object but does not turn with it.',
   export_mesh_tooltip: 'Export an object as STL, OBJ, or GLB. Choose how big 1 unit is in the exported file.',
 
   // Tooltip translations - Control blocks
@@ -651,6 +655,8 @@ export default {
     'Make a character jump to a height (in blocks). Keeps your current running speed. Needs physics.',
   set_speed_tooltip:
     'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.',
+  move_to_object_tooltip:
+    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, and stops when it arrives or if something blocks the way.',
   set_bounciness_tooltip:
     'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.',
   set_mass_tooltip:
@@ -712,6 +718,8 @@ export default {
   create_ring_tooltip:
     'Add a ring with flat edges, like a washer or a pipe. Outer and inner are the diameters of the outside and the hole; changing inner or thickness updates the other. Height sets how tall it is, and sides how smooth it looks.',
   create_plane_tooltip: 'Create a colored 2D plane with specified width, height, and position.',
+  create_marker_tooltip:
+    'Add a marker: an invisible point to position things by. Tick edit to see the marker and move it with the gizmos. A marker never shows in play mode.',
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip: 'Play a theme tune on an object with adjustable speed, volume, and mode.',
@@ -915,6 +923,7 @@ export default {
   PLACE_RIGHT_option: 'right of',
   PLACE_FRONT_option: 'in front of',
   PLACE_BEHIND_option: 'behind',
+  PLACE_NEAR_option: 'near',
   user_option: 'front',
   environment_option: 'back',
 

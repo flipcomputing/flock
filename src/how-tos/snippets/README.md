@@ -25,4 +25,4 @@ regenerate if the block's own look ever changes.
    This downloads a `.fsnip` file — plain JSON, the same format Blockly itself uses to save/load
    blocks.
 3. Save it into this folder as `<name>.json` (just change the extension), and reference it from a
-   how-to: `<snippet src="<name>">Optional caption</snippet>`.
+   how-to: `<snippet src="<name>"></snippet>`.

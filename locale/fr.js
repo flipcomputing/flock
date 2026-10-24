@@ -154,7 +154,7 @@ export default {
   glide_to: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 ms\n%6 retour? %7 boucle? %8 %9',
   glide_to_seconds: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9',
   glide_to_object:
-    'glisser %1 %11 %2 en %6 secondes\ndécalage x: %3 y: %4 z: %5\n%7 retour? %8 boucle? %9 %10',
+    'glisser %1 %11 %2 écart %12 en %6 secondes\n%7 retour? %8 boucle? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glisser %1 %2 %3 en %4 secondes\n%5 retour? %6 boucle? %7 %8',
   rotate_anim: 'tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9',
   rotate_anim_seconds:
@@ -264,8 +264,11 @@ export default {
   add_physics_shape: 'ajouter forme physique %1 type %2',
   apply_force: 'appliquer force à %1 x: %2 y: %3 z: %4',
   set_speed: 'définir la vitesse de %1 %2 à %3', // ai
+  move_to_object: 'déplacer %1 %2 %3 écart %4 vitesse %5 %6', // ai
   set_speed_tooltip:
     'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.', // ai
+  move_to_object_tooltip:
+    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge et s'arrête à l'arrivée ou si quelque chose bloque le passage.", // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
@@ -308,6 +311,9 @@ export default {
   create_ring:
     'ajouter anneau %1 %2 hauteur: %3 extérieur: %4 intérieur: %5 épaisseur: %6 côtés: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'ajouter marqueur %1 %7 %5 x: %2 y: %3 z: %4 modifier: %6', // AI-generated; needs validation
+  cross_option: 'croix', // AI-generated; needs validation
+  sphere_option: 'sphère', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'jouer le thème %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7',
@@ -414,7 +420,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glisser vers une position spécifiée sur une durée avec des options pour inverser, boucler et appliquer une accélération.',
   glide_to_object_tooltip:
-    'Glisser vers la position d’une autre forme avec des décalages x/y/z optionnels (0 par défaut) et des options d’inversion, de boucle et d’accélération. Choisis un côté pour glisser contre lui, par exemple au-dessus de.', // ai
+    'Glisser jusqu’à un objet, près de lui du côté où tu es déjà, ou contre l’un de ses côtés, par exemple au-dessus de. Un écart laisse de l’espace devant le côté ou s’arrête avant l’objet. Avec des options d’inversion, de boucle et d’accélération.', // ai
   glide_to_axis_tooltip:
     "Glisser le long d'un axe (X, Y ou Z) vers une valeur cible. Les deux autres axes sont fixés à la position actuelle de l'objet (ancre prise en compte). Mêmes options que le bloc de glissement standard.",
   rotate_anim_tooltip:
@@ -474,7 +480,7 @@ export default {
     'Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.',
   drop_tooltip: 'Détache un objet de l’os auquel il est actuellement attaché.',
   follow_tooltip:
-    'Fait en sorte qu’un objet suive un autre : sur lui, en son centre ou contre l’un de ses côtés. Les côtés et le décalage suivent la rotation de l’autre objet.', // ai
+    'Fait en sorte qu’un objet suive un autre : à sa position, en son centre ou au-dessus de lui, déplacé selon le décalage. Il se déplace avec l’autre objet mais ne tourne pas avec lui.', // ai
   export_mesh_tooltip: 'Exporte un objet au format STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks
@@ -583,6 +589,8 @@ export default {
   create_ring_tooltip:
     'Ajoute un anneau à bords plats, comme une rondelle ou un tuyau. Extérieur et intérieur sont les diamètres de l’anneau et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. La hauteur définit sa hauteur et les côtés sa douceur.', // ai
   create_plane_tooltip: 'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.',
+  create_marker_tooltip:
+    'Ajoute un marqueur : un point invisible pour placer des objets. Coche modifier pour voir le marqueur et le déplacer avec les gizmos. Un marqueur n’est jamais visible en mode jeu.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip: 'Joue un thème musical sur un objet avec vitesse, volume et mode réglables.',
@@ -746,6 +754,7 @@ export default {
   PLACE_RIGHT_option: 'à droite de', // ai
   PLACE_FRONT_option: 'devant', // ai
   PLACE_BEHIND_option: 'derrière', // ai
+  PLACE_NEAR_option: 'près de', // ai
   user_option: 'avant',
   environment_option: 'arrière',
 

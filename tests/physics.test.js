@@ -456,6 +456,19 @@ export function runPhysicsTests(flock) {
       expect(v.z).to.be.closeTo(-5, 0.5);
     });
 
+    it('makes a static object dynamic so it moves', async function () {
+      this.timeout(8000);
+      const mesh = await makeGroundAndBox('velGndStatic', 'boxSetVelocityStatic');
+      await flock.setPhysics('boxSetVelocityStatic', 'STATIC');
+      const start = mesh.position.clone();
+
+      flock.setSpeed('boxSetVelocityStatic', 'forward', 5);
+      await new Promise((r) => setTimeout(r, 400));
+
+      expect(mesh.metadata.physicsType).to.equal('DYNAMIC');
+      expect(flock.BABYLON.Vector3.Distance(mesh.position, start)).to.be.greaterThan(1);
+    });
+
     it('combines forward and sideways into one heading', async function () {
       this.timeout(8000);
       const mesh = await makeGroundAndBox('velGndB', 'boxSetVelocityCombine');
@@ -613,7 +626,7 @@ export function runPhysicsTests(flock) {
       expect(mesh.physics.getLinearVelocity().z).to.be.closeTo(-4, 0.5);
     });
 
-    it('should handle missing physics gracefully', async function () {
+    it('gives an object with no physics a dynamic body', async function () {
       const id = 'boxSetVelocityNoPhysics';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       boxIds.push(id);
@@ -622,16 +635,140 @@ export function runPhysicsTests(flock) {
       mesh.physics.dispose();
       mesh.physics = null;
 
-      let errorLogged = false;
-      const originalConsoleError = console.error;
-      console.error = () => {
-        errorLogged = true;
-      };
-
       flock.setSpeed(id, 'forward', 1);
 
-      console.error = originalConsoleError;
-      expect(errorLogged).to.be.true;
+      expect(mesh.physics).to.exist;
+      expect(mesh.metadata.physicsType).to.equal('DYNAMIC');
+    });
+  });
+
+  describe('moveToObject method @physics', function () {
+    const ids = [];
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    async function makeBox(id, position, physics) {
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position });
+      await flock.setPhysics(id, physics);
+      ids.push(id);
+      return flock.scene.getMeshByName(id);
+    }
+
+    async function makeScene(prefix, targetPosition, targetPhysics = 'STATIC') {
+      await flock.createBox(`${prefix}Gnd`, {
+        width: 100,
+        height: 1,
+        depth: 100,
+        position: [0, -0.5, 0],
+      });
+      await flock.setPhysics(`${prefix}Gnd`, 'STATIC');
+      ids.push(`${prefix}Gnd`);
+      const mover = await makeBox(`${prefix}Mover`, [0, 0.5, 0], 'DYNAMIC');
+      const target = await makeBox(`${prefix}Target`, targetPosition, targetPhysics);
+      await new Promise((r) => setTimeout(r, 200));
+      return { mover, target };
+    }
+
+    it('stops against a solid target and faces it', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoA', [6, 0.5, 0]);
+      await flock.moveToObject('mtoAMover', 'mtoATarget', { speed: 4 });
+
+      expect(mover.position.x).to.be.within(4.5, 5.2);
+      expect(mover.position.z).to.be.closeTo(0, 0.2);
+      const v = mover.physics.getLinearVelocity();
+      expect(Math.hypot(v.x, v.z)).to.be.below(0.5);
+      const facing = mover.forward.negate();
+      expect(facing.x).to.be.above(0.9);
+    });
+
+    it('arrives on a target without physics', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoB', [0, 0.5, -5], 'NONE');
+      await flock.moveToObject('mtoBMover', 'mtoBTarget', { speed: 5 });
+
+      expect(mover.position.x).to.be.closeTo(0, 0.15);
+      expect(mover.position.z).to.be.closeTo(-5, 0.15);
+    });
+
+    it('stops a gap away on the near side', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoC', [-6, 0.5, 0]);
+      await flock.moveToObject('mtoCMover', 'mtoCTarget', { side: 'near', gap: 1, speed: 4 });
+
+      expect(mover.position.x).to.be.closeTo(-4, 0.2);
+    });
+
+    it('follows a target that moves', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoD', [0, 0.5, 6], 'NONE');
+      const arrived = flock.moveToObject('mtoDMover', 'mtoDTarget', { speed: 4 });
+      await new Promise((r) => setTimeout(r, 300));
+      await flock.positionAt('mtoDTarget', { x: 5, y: 0, z: 0 });
+      await arrived;
+
+      expect(mover.position.x).to.be.closeTo(5, 0.15);
+      expect(mover.position.z).to.be.closeTo(0, 0.15);
+    });
+
+    it('stays upright climbing a step', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoH', [8, 0.5, 0], 'NONE');
+      await flock.createBox('mtoHStep', { width: 2, height: 0.3, depth: 6, position: [3, 0, 0] });
+      await flock.setPhysics('mtoHStep', 'STATIC');
+      ids.push('mtoHStep');
+      await flock.moveToObject('mtoHMover', 'mtoHTarget', { speed: 4 });
+
+      expect(mover.position.x).to.be.closeTo(8, 0.15);
+      const up = flock.BABYLON.Vector3.TransformNormal(
+        flock.BABYLON.Vector3.Up(),
+        mover.computeWorldMatrix(true)
+      ).normalize();
+      expect(up.y).to.be.above(0.99);
+    });
+
+    it('stops when something blocks the way', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoF', [10, 0.5, 0]);
+      await flock.createBox('mtoFWall', { width: 1, height: 3, depth: 6, position: [4, 0, 0] });
+      await flock.setPhysics('mtoFWall', 'STATIC');
+      ids.push('mtoFWall');
+      await flock.moveToObject('mtoFMover', 'mtoFTarget', { speed: 4 });
+
+      expect(mover.position.x).to.be.within(2.5, 3.1);
+      const v = mover.physics.getLinearVelocity();
+      expect(Math.hypot(v.x, v.z)).to.be.below(0.5);
+    });
+
+    it('keeps going when the target moves away faster', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoG', [0, 0.5, -3], 'NONE');
+      const arrived = flock.moveToObject('mtoGMover', 'mtoGTarget', { speed: 3 });
+      for (let i = 1; i <= 8; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+        await flock.positionAt('mtoGTarget', { x: 0, y: 0, z: -3 - i });
+      }
+      expect(mover._moveToObject).to.exist;
+      await arrived;
+      expect(mover.position.z).to.be.closeTo(-11, 0.15);
+    });
+
+    it('ends when set speed takes over', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoE', [20, 0.5, 0]);
+      let ended = false;
+      flock.moveToObject('mtoEMover', 'mtoETarget', { speed: 3 }).then(() => (ended = true));
+      await new Promise((r) => setTimeout(r, 300));
+      flock.setSpeed('mtoEMover', 'all', 0);
+      await new Promise((r) => setTimeout(r, 50));
+
+      expect(ended).to.be.true;
+      const x = mover.position.x;
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mover.position.x).to.be.closeTo(x, 0.1);
     });
   });
 

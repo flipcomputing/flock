@@ -2617,42 +2617,83 @@ export function runMeshHierarchyTests(flock) {
         expect((min.y + max.y) / 2).to.be.closeTo(0, 0.001);
       });
 
-      it('should turn the follower with the target, keeping its starting turn', async function () {
+      it('should keep the follower turned its own way when the target turns', async function () {
         const { followerId, targetId } = await createFollowPair('Rotating');
-        const { Quaternion, Vector3, Matrix } = flock.BABYLON;
+        const { Quaternion } = flock.BABYLON;
         const follower = flock.scene.getMeshByName(followerId);
         const target = flock.scene.getMeshByName(targetId);
-        follower.rotationQuaternion = Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2);
-        const axes = (mesh) =>
-          [new Vector3(1, 0, 0), new Vector3(0, 1, 0)].map((v) =>
-            Vector3.TransformNormal(v, mesh.computeWorldMatrix(true)).normalize()
-          );
-        const before = axes(follower);
+        const own = Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2);
+        follower.rotationQuaternion = own.clone();
 
         await followerBounds(followerId, targetId, 'on_top');
         target.rotationQuaternion = Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0);
         flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
 
-        const turn = Matrix.RotationY(Math.PI / 2);
-        axes(follower).forEach((axis, i) => {
-          const expected = Vector3.TransformNormal(before[i], turn);
-          expect(axis.x).to.be.closeTo(expected.x, 0.001);
-          expect(axis.y).to.be.closeTo(expected.y, 0.001);
-          expect(axis.z).to.be.closeTo(expected.z, 0.001);
-        });
+        expect(Math.abs(Quaternion.Dot(follower.rotationQuaternion, own))).to.be.closeTo(1, 0.001);
       });
 
-      // Flock models face local -z, so a quarter turn moves their left from +x to -z.
-      it("should keep to the target's own left as it turns", async function () {
+      it('should stop following when the target is disposed', async function () {
+        const { followerId, targetId } = await createFollowPair('TargetGone');
+        await followerBounds(followerId, targetId, 'on_top');
+        const follower = flock.scene.getMeshByName(followerId);
+        const observer = follower._followObserver;
+
+        flock.scene.getMeshByName(targetId).dispose();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(follower._followObserver).to.not.exist;
+        expect(flock.scene.onBeforeRenderObservable.observers).to.not.include(observer);
+      });
+
+      it('should stop following when the follower is disposed', async function () {
+        const { followerId, targetId } = await createFollowPair('FollowerGone');
+        await followerBounds(followerId, targetId, 'on_top');
+        const follower = flock.scene.getMeshByName(followerId);
+        const observer = follower._followObserver;
+
+        follower.dispose();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(flock.scene.onBeforeRenderObservable.observers).to.not.include(observer);
+      });
+
+      it('should drive a dynamic follower while following and restore it at rest after', async function () {
+        const { followerId, targetId } = await createFollowPair('Dynamic');
+        await flock.setPhysics(followerId, 'DYNAMIC');
+        const { PhysicsMotionType, Vector3 } = flock.BABYLON;
+        const body = flock.scene.getMeshByName(followerId).physics;
+
+        await followerBounds(followerId, targetId, 'on_top');
+        expect(body.getMotionType()).to.equal(PhysicsMotionType.ANIMATED);
+
+        await flock.stopFollow(followerId);
+        expect(body.getMotionType()).to.equal(PhysicsMotionType.DYNAMIC);
+        expect(body.getLinearVelocity().equals(Vector3.Zero())).to.be.true;
+      });
+
+      it('should keep the offset in world axes as the target turns', async function () {
         const { followerId, targetId } = await createFollowPair('Turning');
-        await followerBounds(followerId, targetId, 'left');
+        await flock.makeFollow(followerId, targetId, 'at', 2, 0, 0);
         const target = flock.scene.getMeshByName(targetId);
         target.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0);
         flock.scene.onBeforeRenderObservable.notifyObservers(flock.scene);
         const { min, max } = flock.getEffectiveWorldBounds(flock.scene.getMeshByName(followerId));
 
-        expect((min.x + max.x) / 2).to.be.closeTo(3, 0.001);
-        expect((min.z + max.z) / 2).to.be.closeTo(1 - 0.75, 0.001);
+        expect((min.x + max.x) / 2).to.be.closeTo(5, 0.001);
+        expect((min.z + max.z) / 2).to.be.closeTo(1, 0.001);
+      });
+
+      it('should stay on top of a tipped-over target in world terms', async function () {
+        const { followerId, targetId } = await createFollowPair('Tipped');
+        const target = flock.scene.getMeshByName(targetId);
+        target.rotationQuaternion = flock.BABYLON.Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2);
+        const goal = flock.getEffectiveWorldBounds(target);
+
+        const { min, max } = await followerBounds(followerId, targetId, 'on_top');
+
+        expect(min.y).to.be.closeTo(goal.max.y, 0.001);
+        expect((min.x + max.x) / 2).to.be.closeTo((goal.min.x + goal.max.x) / 2, 0.001);
+        expect((min.z + max.z) / 2).to.be.closeTo((goal.min.z + goal.max.z) / 2, 0.001);
       });
     });
 

@@ -22,6 +22,9 @@ const CONTROL_CELL_SIZE = 72;
 const CONTROLS_EDGE_MARGIN = 5;
 // Distance from the canvas edge to the nearest button face.
 const CONTROLS_EDGE_INSET = CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;
+// Minimum space kept between the movement and action grids when the canvas is
+// too narrow and the controls shrink to fit.
+const CONTROLS_MIN_GAP = 16;
 
 // Canvas-painted GUI text can't inherit the browser's font-size preferences,
 // so approximate them from the root font-size. baseCssPx is the size at a 16px
@@ -70,6 +73,34 @@ function currentControlsScale() {
   return baseDisplayScale * (baseHardwareScaling / hardwareScaling);
 }
 
+function controlsSides(layout) {
+  if (layout.kind === 'buttons') {
+    return {
+      movement: layout.control === 'ARROWS' || layout.control === 'BOTH',
+      actions: layout.control === 'ACTIONS' || layout.control === 'BOTH',
+    };
+  }
+  return {
+    movement: ['ARROWS', 'WASD', 'JOYSTICK'].includes(layout.movement),
+    actions: !!actionButtonLabels(layout.actions),
+  };
+}
+
+// Shrinks the controls on a narrow canvas (e.g. a portrait phone) so the
+// movement and action grids never overlap or run off the edge.
+function fitControlsScale(layout, scale) {
+  if (!layout || controlsHost() !== flock.controlsTexture) return scale;
+  const renderWidth = flock.engine?.getRenderWidth?.();
+  if (!renderWidth) return scale;
+  const { movement, actions } = controlsSides(layout);
+  let needed = 0;
+  if (movement) needed += CONTROLS_EDGE_MARGIN + 3 * CONTROL_CELL_SIZE;
+  if (actions) needed += CONTROLS_EDGE_MARGIN + 2 * CONTROL_CELL_SIZE;
+  if (movement && actions) needed += CONTROLS_MIN_GAP;
+  if (!needed) return scale;
+  return Math.min(scale, renderWidth / needed);
+}
+
 // AUTO defers to the Tools panel preference, so the layout keeps the mode and
 // re-derives visibility per render rather than caching an answer.
 function controlsShouldShow(mode) {
@@ -96,10 +127,12 @@ function renderControls(layout, scale) {
     flock._joystickSource = null;
   }
   disposeControls();
+  flock._controlsRenderedScale = null;
   if (!layout || !controlsShouldShow(layout.mode)) return;
 
   const previousDisplayScale = flock.displayScale;
-  flock.displayScale = scale;
+  flock.displayScale = fitControlsScale(layout, scale);
+  flock._controlsRenderedScale = flock.displayScale;
   try {
     flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'VirtualControls',
@@ -185,11 +218,17 @@ function configureControlsResizeHandling() {
   flock._controlsLastHardwareScaling = flock._controlsBaseHardwareScaling;
   flock._controlsResizeObserver = engine.onResizeObservable.add(() => {
     const hardwareScaling = engine.getHardwareScalingLevel();
-    if (hardwareScaling === flock._controlsLastHardwareScaling) return;
-
-    flock._controlsLastHardwareScaling = hardwareScaling;
     const scale =
       flock._controlsBaseDisplayScale * (flock._controlsBaseHardwareScaling / hardwareScaling);
+    if (
+      hardwareScaling === flock._controlsLastHardwareScaling &&
+      (flock._controlsRenderedScale == null ||
+        fitControlsScale(flock._controlsLayout, scale) === flock._controlsRenderedScale)
+    ) {
+      return;
+    }
+
+    flock._controlsLastHardwareScaling = hardwareScaling;
     renderControls(flock._controlsLayout, scale);
   });
 }

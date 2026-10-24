@@ -1779,6 +1779,7 @@ export const flockXR = {
   setEditorView(active) {
     flock._editorView = active === true;
     flock._applyAnaglyph();
+    flock._refreshMarkers?.();
   },
   _applyAnaglyph() {
     const wanted = flock._xrMode === 'RED_CYAN' && !flock._editorView;

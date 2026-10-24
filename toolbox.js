@@ -896,6 +896,37 @@ const toolboxSceneMeshes = {
       type: 'clone_mesh',
       keyword: 'clone',
     },
+    {
+      kind: 'block',
+      type: 'create_marker',
+      keyword: 'marker',
+      inputs: {
+        X: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Y: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        Z: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+      },
+    },
   ],
 };
 
@@ -1628,6 +1659,59 @@ const toolboxTransformPhysics = {
     },
     {
       kind: 'block',
+      type: 'move_forward',
+      keyword: 'forward',
+      inputs: {
+        SPEED: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'move_to_object',
+      keyword: 'moveto',
+      inputs: {
+        GAP: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 0,
+            },
+          },
+        },
+        SPEED: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 3,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
+      type: 'jump',
+      keyword: 'jump',
+      inputs: {
+        JUMP_HEIGHT: {
+          shadow: {
+            type: 'math_number',
+            fields: {
+              NUM: 1.5,
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'apply_force',
       keyword: 'push',
       inputs: {
@@ -1652,21 +1736,6 @@ const toolboxTransformPhysics = {
             type: 'math_number',
             fields: {
               NUM: 0,
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
-      type: 'jump',
-      keyword: 'jump',
-      inputs: {
-        JUMP_HEIGHT: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 1.5,
             },
           },
         },
@@ -1721,21 +1790,6 @@ const toolboxTransformPhysics = {
       kind: 'block',
       type: 'show_physics',
       keyword: 'colliders',
-    },
-    {
-      kind: 'block',
-      type: 'move_forward',
-      keyword: 'forward',
-      inputs: {
-        SPEED: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 3,
-            },
-          },
-        },
-      },
     },
   ],
 };
@@ -2047,37 +2101,6 @@ const toolboxTransform = {
       keyword: 'pos',
       inputs: {
         VALUE: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-      },
-    },
-    {
-      kind: 'block',
-      type: 'move_to',
-      keyword: 'goto',
-      inputs: {
-        X_OFFSET: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-        Y_OFFSET: {
-          shadow: {
-            type: 'math_number',
-            fields: {
-              NUM: 0,
-            },
-          },
-        },
-        Z_OFFSET: {
           shadow: {
             type: 'math_number',
             fields: {

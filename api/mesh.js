@@ -1,5 +1,5 @@
 import { attachSockets, clampToRange, objectColliderShapes, TEXTURE_TILE_SIZE } from '../config.js';
-import { joinActiveDrives, teleportBodyToMesh } from './physics.js';
+import { driveBody, joinActiveDrives, teleportBodyToMesh } from './physics.js';
 import {
   CUBE_POINTS,
   CUBE_FACES,
@@ -102,6 +102,32 @@ function aroundFractions(positions, indices, include = () => true) {
 const socketsBySkinnedMesh = new WeakMap();
 
 const LEGACY_FOLLOW_SIDES = { TOP: 'on_top', CENTER: 'center', BOTTOM: 'at' };
+
+// Follow ignores rotation: points come from world bounds, not the object's own axes.
+function followPoint(mesh, side, face) {
+  if (side !== 'center' && side !== 'on_top') {
+    const anchor = flock._getAnchor(mesh);
+    return new flock.BABYLON.Vector3(anchor.x, anchor.y, anchor.z);
+  }
+  mesh.computeWorldMatrix(true);
+  const { min, max } =
+    mesh.getTotalVertices() > 0
+      ? {
+          min: mesh.getBoundingInfo().boundingBox.minimumWorld,
+          max: mesh.getBoundingInfo().boundingBox.maximumWorld,
+        }
+      : mesh.getHierarchyBoundingVectors(true);
+  const point = min.add(max).scale(0.5);
+  if (side === 'on_top') point.y = face === 'top' ? max.y : min.y;
+  return point;
+}
+
+function endFollow(followerMesh) {
+  const end = followerMesh._endFollow;
+  followerMesh._endFollow = null;
+  followerMesh._followObserver = null;
+  end?.();
+}
 
 function skinnedMeshOf(target) {
   return target.skeleton ? target : target.getChildMeshes().find((mesh) => mesh.skeleton);
@@ -1744,47 +1770,34 @@ export const flockMesh = {
             resolve();
             return;
           }
-          followerMesh._followObserver &&
-            flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
+          endFollow(followerMesh);
 
           const side = LEGACY_FOLLOW_SIDES[followPosition] ?? followPosition;
-          const offset = {
-            x: parseFloat(offsetX) || 0,
-            y: parseFloat(offsetY) || 0,
-            z: parseFloat(offsetZ) || 0,
-          };
-          const { Quaternion } = flock.BABYLON;
-          const worldRotation = (mesh) => {
-            const rotation = new Quaternion();
-            mesh.computeWorldMatrix(true).decompose(undefined, rotation);
-            return rotation;
-          };
-          // The follower keeps the turn it had relative to the target when it started.
-          const relativeTurn = Quaternion.Inverse(worldRotation(targetMesh)).multiply(
-            worldRotation(followerMesh)
+          const offset = new flock.BABYLON.Vector3(
+            parseFloat(offsetX) || 0,
+            parseFloat(offsetY) || 0,
+            parseFloat(offsetZ) || 0
           );
 
-          followerMesh._followObserver = flock.scene.onBeforeRenderObservable.add(() => {
+          const drive = driveBody(followerMesh);
+          const observer = flock.scene.onBeforeRenderObservable.add(() => {
             if (flock.isPaused()) return;
-            if (!followerMesh.parent) {
-              followerMesh.rotationQuaternion = worldRotation(targetMesh).multiply(relativeTurn);
-              followerMesh.computeWorldMatrix(true);
-            }
-            const goal = flock._anchorGoal(followerMesh, targetMesh, side);
-            const shift = flock._targetOffset(targetMesh, offset);
-            const anchor = flock._getAnchor(followerMesh);
+            const goal = followPoint(targetMesh, side, 'top').addInPlace(offset);
+            const from = followPoint(followerMesh, side, 'bottom');
             followerMesh.setAbsolutePosition(
-              followerMesh
-                .getAbsolutePosition()
-                .add(
-                  new flock.BABYLON.Vector3(
-                    goal.x + shift.x - anchor.x,
-                    goal.y + shift.y - anchor.y,
-                    goal.z + shift.z - anchor.z
-                  )
-                )
+              followerMesh.getAbsolutePosition().add(goal.subtract(from))
             );
           });
+          const end = () => endFollow(followerMesh);
+          const followerDisposed = followerMesh.onDisposeObservable.addOnce(end);
+          const targetDisposed = targetMesh.onDisposeObservable.addOnce(end);
+          followerMesh._followObserver = observer;
+          followerMesh._endFollow = () => {
+            flock.scene.onBeforeRenderObservable.remove(observer);
+            followerMesh.onDisposeObservable.remove(followerDisposed);
+            targetMesh.onDisposeObservable.remove(targetDisposed);
+            drive.release();
+          };
           resolve();
         });
       });
@@ -1797,10 +1810,7 @@ export const flockMesh = {
           resolve();
           return;
         }
-        if (followerMesh._followObserver) {
-          flock.scene.onBeforeRenderObservable.remove(followerMesh._followObserver);
-          followerMesh._followObserver = null;
-        }
+        endFollow(followerMesh);
         resolve();
       });
     });

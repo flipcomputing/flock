@@ -156,7 +156,7 @@ export default {
   glide_to: 'scivola %1 a %10 x %2 y %3 z %4 in %5 ms\n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_seconds: 'scivola %1 a %10 x %2 y %3 z %4 in %5 secondi \n%6 ritorna? %7 ripeti? %8 %9',
   glide_to_object:
-    'scivola %1 %11 %2 in %6 secondi\noffset x: %3 y: %4 z: %5\n%7 ritorna? %8 ripeti? %9 %10',
+    'scivola %1 %11 %2 distanza %12 in %6 secondi\n%7 ritorna? %8 ripeti? %9 %10\n%3 %4 %5',
   glide_to_axis: 'scivola %1 %2 %3 in %4 secondi\n%5 ritorna? %6 ripeti? %7 %8',
   rotate_anim: 'ruota %1 a x %2 y %3 z %4 in %5 ms\n%6 inverti? %7 ripeti? %8  %9',
   rotate_anim_seconds: 'ruota %1 a x %2 y %3 z %4 in %5 secondi\n%6 inverti? %7 ripeti? %8  %9',
@@ -266,8 +266,11 @@ export default {
   add_physics_shape: 'aggiungi forma fisica %1 tipo %2',
   apply_force: 'applica forza a %1 x: %2 y: %3 z: %4',
   set_speed: 'imposta velocità di %1 %2 a %3', // ai
+  move_to_object: 'muovi %1 %2 %3 distanza %4 velocità %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un oggetto in movimento a una velocità impostata in una direzione. Si muove proprio come un personaggio con "muovi" — sale le rampe, supera piccoli gradini, si ferma contro i muri e resta dritto — ma rispetto all\'oggetto o al mondo invece che alla telecamera. Mantiene quella velocità finché non la cambi. Scegli una direzione rispetto all\'oggetto (avanti, laterale, su) o un asse del mondo (x, y, z); usa "guarda" per mirare, poi vai avanti. Scegli "tutti" e 0 per fermarti.', // ai
+  move_to_object_tooltip:
+    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove e si ferma quando arriva o se qualcosa blocca la strada.", // ai
   show_physics: 'mostra formas fisicas %1',
 
   // Custom block translations - Sensing blocks
@@ -310,6 +313,9 @@ export default {
   create_ring:
     'aggiungi anello %1 %2 altezza: %3 esterno: %4 interno: %5 spessore: %6 lati: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'aggiungi piano %1 %2 larghezza: %3 altezza: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'aggiungi marcatore %1 %7 %5 x: %2 y: %3 z: %4 modifica: %6', // AI-generated; needs validation
+  cross_option: 'croce', // AI-generated; needs validation
+  sphere_option: 'sfera', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'riproduci tema %1 %2 da %3 \nvelocità: %4 volume: %5 modalità: %6 asincrono: %7',
@@ -415,7 +421,7 @@ export default {
   glide_to_seconds_tooltip:
     'Scivola a una posizione in un tempo dato con opzioni di inversione, loop ed easing.',
   glide_to_object_tooltip:
-    'Scivola verso la posizione di un altro oggetto con offset x/y/z opzionali (0 predefinito) e opzioni di inversione, loop ed easing. Scegli un lato per scivolare contro di esso, ad esempio sopra.', // ai
+    'Scivola fino a un oggetto, vicino a esso dal lato in cui sei già, o contro uno dei suoi lati, ad esempio sopra. Una distanza lascia spazio davanti al lato o si ferma prima dell’oggetto. Con opzioni di inversione, loop ed easing.', // ai
   glide_to_axis_tooltip:
     "Scivola lungo un asse (X, Y o Z) verso un valore obiettivo. Gli altri due assi sono fissati alla posizione attuale dell'oggetto (con supporto ancoraggio). Stesse opzioni del blocco glide standard.",
   rotate_anim_tooltip:
@@ -472,7 +478,7 @@ export default {
     'Attacca un oggetto all’osso specificato di un’altra oggetto con offset in x, y e z.',
   drop_tooltip: 'Stacca un oggetto dall’osso a cui è attualmente attaccata.',
   follow_tooltip:
-    "Fa seguire un oggetto a un altro: su di esso, al suo centro o contro uno dei suoi lati. Lati e offset seguono la rotazione dell'altro oggetto.", // ai
+    "Fa seguire un oggetto a un altro: nella sua posizione, al suo centro o sopra di esso, spostato dell'offset. Si muove con l'altro oggetto ma non ruota con esso.", // ai
   export_mesh_tooltip: 'Esporta un oggetto come STL, OBJ o GLB.',
 
   // Tooltip translations - Control blocks
@@ -574,6 +580,8 @@ export default {
   create_ring_tooltip:
     'Aggiunge un anello a bordi piatti, come una rondella o un tubo. Esterno e interno sono i diametri dell’anello e del foro; cambiando l’interno o lo spessore, l’altro si aggiorna. L’altezza definisce quanto è alto e i lati quanto appare liscio.', // ai
   create_plane_tooltip: 'Crea un piano 2D colorato con larghezza, altezza e posizione specificate.',
+  create_marker_tooltip:
+    'Aggiunge un marcatore: un punto invisibile per posizionare le cose. Spunta modifica per vedere il marcatore e spostarlo con i gizmo. Un marcatore non si vede mai in modalità gioco.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
@@ -738,6 +746,7 @@ export default {
   PLACE_RIGHT_option: 'a destra di', // ai
   PLACE_FRONT_option: 'davanti a', // ai
   PLACE_BEHIND_option: 'dietro', // ai
+  PLACE_NEAR_option: 'vicino a', // ai
   user_option: 'fronte',
   environment_option: 'retro',
 

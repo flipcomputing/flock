@@ -155,7 +155,7 @@ export default {
   glide_to: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 ms\n%6 zurück? %7 Schleife? %8 %9',
   glide_to_seconds: '%1 gleitet zu %10 x %2 y %3 z %4 in %5 Sekunden\n%6 zurück? %7 Schleife? %8 %9',
   glide_to_object:
-    '%1 gleitet %11 %2 in %6 Sekunden\nVersatz x: %3 y: %4 z: %5\n%7 zurück? %8 Schleife? %9 %10',
+    '%1 gleitet %11 %2 Abstand %12 in %6 Sekunden\n%7 zurück? %8 Schleife? %9 %10\n%3 %4 %5',
   glide_to_axis: '%1 gleitet %2 %3 in %4 Sekunden\n%5 zurück? %6 Schleife? %7 %8',
   rotate_anim: 'rotiere %1 zu x %2 y %3 z %4 in %5 ms\n%6 rückwärts? %7 Schleife? %8 %9',
   rotate_anim_seconds:
@@ -265,8 +265,11 @@ export default {
   add_physics_shape: 'Physikform hinzufügen %1 Typ %2',
   apply_force: 'Kraft auf %1 anwenden x: %2 y: %3 z: %4',
   set_speed: 'Geschwindigkeit von %1 %2 auf %3 setzen', // ai
+  move_to_object: 'bewege %1 %2 %3 Abstand %4 Geschwindigkeit %5 %6', // ai
   set_speed_tooltip:
     'Lässt ein Objekt mit einer festgelegten Geschwindigkeit in eine Richtung weiterfahren. Es bewegt sich genau wie eine Spielfigur mit "Bewegen" — fährt Hänge hinauf, übersteigt kleine Stufen, stoppt an Wänden und bleibt aufrecht — aber relativ zum Objekt oder zur Welt statt zur Kamera. Die Geschwindigkeit bleibt erhalten, bis du sie änderst. Wähle eine Richtung relativ zum Objekt (vorwärts, seitlich, hoch) oder eine Weltachse (x, y, z); nutze "ansehen" zum Zielen und fahre dann vorwärts. Wähle "alle" und 0 zum Stoppen.', // ai
+  move_to_object_tooltip:
+    'Bewegt ein Objekt mit Physik und einer Geschwindigkeit zu einem anderen Objekt. Es dreht sich in Bewegungsrichtung, folgt dem Objekt, wenn es sich bewegt, und hält an, wenn es ankommt oder etwas den Weg versperrt.', // ai
   show_physics: 'Physikformen zeigen %1',
 
   // Sensing blocks
@@ -308,6 +311,9 @@ export default {
   create_ring:
     'Ring hinzufügen %1 %2 Höhe: %3 außen: %4 innen: %5 Dicke: %6 Seiten: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'Ebene hinzufügen %1 %2 Breite: %3 Höhe: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'Markierung hinzufügen %1 %7 %5 x: %2 y: %3 z: %4 bearbeiten: %6', // AI-generated; needs validation
+  cross_option: 'Kreuz', // AI-generated; needs validation
+  sphere_option: 'Kugel', // AI-generated; needs validation
 
   // Sound blocks
   play_theme:
@@ -562,7 +568,7 @@ export default {
   glide_to_seconds_tooltip:
     'Gleite zu einer Position über Sekunden mit Optionen zum Rückwärtslaufen, Schleifen und Easing.',
   glide_to_object_tooltip:
-    'Gleite zur Position eines angegebenen Objekts mit optionalen x/y/z-Versätzen (Standard 0) sowie Optionen für Rückwärtslauf, Schleife und Easing. Wähle eine Seite, um stattdessen daran zu gleiten, z. B. oben auf.', // ai
+    'Gleite zu einem Objekt, nahe an das Objekt auf der Seite, auf der du schon bist, oder an eine seiner Seiten, z. B. oben auf. Ein Abstand lässt Platz vor der Seite oder hält vor dem Objekt an. Mit Optionen für Rückwärtslauf, Schleife und Easing.', // ai
   glide_to_axis_tooltip:
     'Gleite entlang einer Achse (X, Y oder Z) zu einem Zielwert. Die anderen zwei Achsen werden auf die aktuelle Position des Objekts fixiert (Ankerpunkt-bewusst). Gleiche Optionen wie beim Standard-Gleit-Block.',
   rotate_anim_tooltip:
@@ -619,7 +625,7 @@ export default {
   hold_tooltip: 'Befestige ein Objekt an einem Knochen eines anderen mit Versatz.',
   drop_tooltip: 'Löse ein Objekt von seinem Knochen.',
   follow_tooltip:
-    'Lass ein Objekt einem anderen folgen: an ihm, in seiner Mitte oder an einer seiner Seiten. Seiten und Versatz folgen der Drehung des anderen Objekts.', // ai
+    'Lass ein Objekt einem anderen folgen: an ihm, in seiner Mitte oder oben auf ihm, verschoben um den Versatz. Es bewegt sich mit dem anderen Objekt, dreht sich aber nicht mit.', // ai
   export_mesh_tooltip: 'Exportiere ein Objekt als STL, OBJ oder GLB.',
 
   // Control tooltips
@@ -718,6 +724,8 @@ export default {
   create_ring_tooltip:
     'Fügt einen Ring mit flachen Kanten hinzu, wie eine Unterlegscheibe oder ein Rohr. Außen und innen sind die Durchmesser des Rings und des Lochs; ändert man innen oder die Dicke, passt sich das andere an. Die Höhe bestimmt, wie hoch er ist, und die Seiten, wie glatt er aussieht.', // ai
   create_plane_tooltip: 'Erstelle eine farbige 2D-Fläche mit Breite, Höhe und Position.',
+  create_marker_tooltip:
+    'Füge eine Markierung hinzu: einen unsichtbaren Punkt, an dem du Dinge ausrichten kannst. Kreuze bearbeiten an, um die Markierung zu sehen und mit den Gizmos zu bewegen. Eine Markierung ist im Spielmodus nie sichtbar.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
@@ -870,6 +878,7 @@ export default {
   PLACE_RIGHT_option: 'rechts von', // ai
   PLACE_FRONT_option: 'vor', // ai
   PLACE_BEHIND_option: 'hinter', // ai
+  PLACE_NEAR_option: 'nahe bei', // ai
   user_option: 'vorne',
   environment_option: 'hinten',
 

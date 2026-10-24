@@ -74,6 +74,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
       javascriptGenerator.valueToCode(block, 'Y_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const zOffset =
       javascriptGenerator.valueToCode(block, 'Z_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const gap = getFieldValue(block, 'GAP', '0');
     const duration = getFieldValue(block, 'DURATION', '0');
     const mode = block.getFieldValue('MODE');
     const reverse = block.getFieldValue('REVERSE') === 'TRUE';
@@ -81,7 +82,7 @@ export function registerAnimateGenerators(javascriptGenerator) {
     const easing = block.getFieldValue('EASING');
     const asyncWrapper = mode === 'AWAIT' ? 'await ' : '';
 
-    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}${getSideOption(block)}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
+    return `${asyncWrapper}glideToObject(${meshName1}, ${meshName2}, { offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset}${getSideOption(block)}, gap: ${gap}, duration: ${duration}, reverse: ${reverse}, loop: ${loop}, easing: ${JSON.stringify(easing)} });\n`;
   };
 
   // Glide along a single axis, fixing other axes to current position

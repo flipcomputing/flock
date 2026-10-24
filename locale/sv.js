@@ -154,7 +154,7 @@ export default {
   glide_to: 'glid %1 till %10 x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
   glide_to_seconds: 'glid %1 till %10 x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
   glide_to_object:
-    'glid %1 %11 %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
+    'glid %1 %11 %2 avstånd %12 på %6 sekunder\n%7 återvända? %8 loop? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8',
   rotate_anim: 'rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9',
   rotate_anim_seconds: 'rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9',
@@ -263,8 +263,11 @@ export default {
   add_physics_shape: 'lägg till fysikform %1 typ %2',
   apply_force: 'tillämpa kraft på %1 x: %2 y: %3 z: %4',
   set_speed: 'ställ in hastighet för %1 %2 till %3', // ai
+  move_to_object: 'flytta %1 %2 %3 avstånd %4 hastighet %5 %6', // ai
   set_speed_tooltip:
     'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.', // ai
+  move_to_object_tooltip:
+    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttas och stannar när det kommer fram eller om något blockerar vägen.', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks
@@ -307,6 +310,9 @@ export default {
   create_ring:
     'lägg till ring %1 %2 höjd: %3 ytter: %4 inner: %5 tjocklek: %6 sidor: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'lägg till markör %1 %7 %5 x: %2 y: %3 z: %4 redigera: %6', // AI-generated; needs validation
+  cross_option: 'kryss', // AI-generated; needs validation
+  sphere_option: 'sfär', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'spela tema %1 %2 från %3 \nhastighet: %4 volym: %5 läge: %6 asynkront: %7',
@@ -410,7 +416,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).',
   glide_to_object_tooltip:
-    'Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing. Välj en sida för att glida mot den i stället, till exempel ovanpå.', // ai
+    'Glid till ett objekt, nära det från den sida du redan är på, eller mot en av dess sidor, till exempel ovanpå. Ett avstånd lämnar utrymme utanför sidan eller stannar före objektet. Med alternativ för att reversera, loopa och easing.', // ai
   glide_to_axis_tooltip:
     'Glid längs en axel (X, Y eller Z) till ett målvärde. De andra två axlarna fixeras till objektets aktuella position (ankerpunktsmedveten). Samma alternativ som standardblocket för glidning.',
   rotate_anim_tooltip:
@@ -470,7 +476,7 @@ export default {
     'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.',
   drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.',
   follow_tooltip:
-    'Få ett objekt att följa ett annat: vid det, i dess mitt eller mot en av dess sidor. Sidor och förskjutning följer det andra objektets rotation.', // ai
+    'Få ett objekt att följa ett annat: vid det, i dess mitt eller ovanpå det, flyttat med förskjutningen. Det rör sig med det andra objektet men vrider sig inte med det.', // ai
   export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.',
 
   // Tooltip translations - Control blocks
@@ -571,6 +577,8 @@ export default {
   create_ring_tooltip:
     'Lägger till en ring med platta kanter, som en bricka eller ett rör. Ytter och inner är diametrarna för ringen och hålet; ändrar du inner eller tjockleken uppdateras den andra. Höjden anger hur hög den är och sidorna hur slät den ser ut.', // ai
   create_plane_tooltip: 'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.',
+  create_marker_tooltip:
+    'Lägg till en markör: en osynlig punkt att placera saker efter. Kryssa i redigera för att se markören och flytta den med gizmos. En markör syns aldrig i spelläget.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
@@ -736,6 +744,7 @@ export default {
   PLACE_RIGHT_option: 'till höger om', // ai
   PLACE_FRONT_option: 'framför', // ai
   PLACE_BEHIND_option: 'bakom', // ai
+  PLACE_NEAR_option: 'nära', // ai
   user_option: 'fram',
   environment_option: 'bak',
 

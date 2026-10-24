@@ -156,7 +156,7 @@ export default {
   glide_to_seconds:
     'deslizar %1 a %10 x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_object:
-    'deslizar %1 %11 %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
+    'deslizar %1 %11 %2 separación %12 en %6 segundos\n%7 ¿regresar? %8 ¿repetir? %9 %10\n%3 %4 %5', // ai
   glide_to_axis: 'deslizar %1 %2 %3 en %4 segundos\n%5 ¿regresar? %6 ¿repetir? %7 %8', // human
   rotate_anim: 'rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
   rotate_anim_seconds: 'rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
@@ -270,8 +270,11 @@ export default {
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
   jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
+  move_to_object: 'mover %1 %2 %3 separación %4 velocidad %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
+  move_to_object_tooltip:
+    'Mueve un objeto hacia otro objeto a una velocidad, usando física. Gira hacia donde va, sigue al objeto si se mueve y se detiene al llegar o si algo bloquea el camino.', // ai
   set_bounciness: 'establecer rebote de %1 a %2', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
@@ -346,6 +349,9 @@ export default {
   create_ring:
     'añadir anillo %1 %2 altura: %3 exterior: %4 interior: %5 grosor: %6 lados: %7\n%11 x: %8 y: %9 z: %10', // ai
   create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \n%8 x: %5 y: %6 z: %7', // human
+  create_marker: 'añadir marcador %1 %7 %5 x: %2 y: %3 z: %4 editar: %6', // AI-generated; needs validation
+  cross_option: 'cruz', // AI-generated; needs validation
+  sphere_option: 'esfera', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
@@ -457,7 +463,7 @@ export default {
   glide_to_seconds_tooltip:
     'Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.', // human
   glide_to_object_tooltip:
-    'Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando. Elige un lado para deslizarte junto a él, como encima de.', // ai
+    'Deslízate hasta un objeto, cerca de él por el lado en el que ya estás, o junto a uno de sus lados, como encima de. Una separación deja espacio fuera del lado o se detiene antes del objeto. Incluye opciones de invertir, bucle y suavizado.', // ai
   glide_to_axis_tooltip:
     'Desliza a lo largo de un eje (X, Y o Z) hasta un valor objetivo. Los otros dos ejes se fijan a la posición actual del objeto (con soporte de anclaje). Mismas opciones que el bloque de deslizamiento estándar.', // human
   rotate_anim_tooltip:
@@ -517,7 +523,7 @@ export default {
   hold_tooltip: 'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.', // human
   drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.', // human
   follow_tooltip:
-    'Haz que un objeto siga a otro: en él, en su centro o junto a uno de sus lados. Los lados y el desplazamiento siguen la rotación del otro objeto.', // ai
+    'Haz que un objeto siga a otro: en él, en su centro o encima de él, movido por el desplazamiento. Se mueve con el otro objeto, pero no gira con él.', // ai
   export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.', // human
 
   // Tooltip translations - Control blocks
@@ -641,6 +647,8 @@ export default {
   create_ring_tooltip:
     'Añade un anillo de bordes planos, como una arandela o un tubo. Exterior e interior son los diámetros del anillo y del agujero; al cambiar el interior o el grosor, el otro se actualiza. La altura define lo alto que es y los lados lo suave que se ve.', // ai
   create_plane_tooltip: 'Crea un plano 2D de color con ancho, alto y posición especificadas.', // human
+  create_marker_tooltip:
+    'Añade un marcador: un punto invisible para colocar cosas. Marca editar para ver el marcador y moverlo con los gizmos. Un marcador nunca se ve en el modo de juego.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
@@ -825,6 +833,7 @@ export default {
   PLACE_RIGHT_option: 'a la derecha de', // ai
   PLACE_FRONT_option: 'delante de', // ai
   PLACE_BEHIND_option: 'detrás de', // ai
+  PLACE_NEAR_option: 'cerca de', // ai
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
 

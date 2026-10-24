@@ -258,7 +258,15 @@ export function defineAnimateBlocks() {
           {
             type: 'field_dropdown',
             name: 'SIDE',
-            options: placementOptions('PLACE_TO', 'PLACE_TO_CENTER'),
+            options: [
+              ...placementOptions('PLACE_TO', 'PLACE_TO_CENTER'),
+              getDropdownOption('PLACE_NEAR'),
+            ],
+          },
+          {
+            type: 'input_value',
+            name: 'GAP',
+            check: 'Number',
           },
         ],
         previousStatement: null,
@@ -283,7 +291,8 @@ export function defineAnimateBlocks() {
         input.connection.respawnShadow_();
       };
 
-      ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET'].forEach(addZeroShadow);
+      ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'GAP'].forEach(addZeroShadow);
+      ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET'].forEach((name) => this.getInput(name).setVisible(false));
     },
   };
 

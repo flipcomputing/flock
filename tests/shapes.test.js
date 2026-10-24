@@ -952,6 +952,185 @@ export function runShapesTests(flock) {
       });
     });
 
+    describe('createMarker', function () {
+      let savedEditorView;
+
+      beforeEach(function () {
+        savedEditorView = flock._editorView;
+        flock.setEditorView(true);
+      });
+
+      afterEach(function () {
+        flock.setEditorView(savedEditorView);
+      });
+
+      it("should return a string id and set metadata.shape to 'marker'", function () {
+        const id = flock.createMarker('testMarker1', { position: [0, 0, 0] });
+        createdIds.push(id);
+
+        expect(id).to.be.a('string');
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh).to.exist;
+        expect(mesh.metadata.shape).to.equal('marker');
+      });
+
+      it('should place the marker by its centre', function () {
+        const id = flock.createMarker('testMarkerCentre', { position: [1, 5, 2] });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.position.x).to.be.closeTo(1, 1e-6);
+        expect(mesh.position.y).to.be.closeTo(5, 1e-6);
+        expect(mesh.position.z).to.be.closeTo(2, 1e-6);
+        const back = flock.getBlockPositionFromMesh(mesh);
+        expect(back.y).to.be.closeTo(5, 1e-6);
+      });
+
+      it('should have no physics body', function () {
+        const id = flock.createMarker('testMarkerPhysics', { position: [0, 0, 0] });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        flock.ensureBody(mesh);
+        expect(mesh.physics).to.not.exist;
+      });
+
+      it('should show and be pickable in the editor only while edit is ticked', function () {
+        const id = flock.createMarker('testMarkerEdit', { position: [0, 0, 0], edit: true });
+        createdIds.push(id);
+        const mesh = flock.scene.getMeshByName(id);
+
+        expect(mesh.isVisible).to.equal(true);
+        expect(mesh.isPickable).to.equal(true);
+
+        flock.setMarkerEdit(id, false);
+        expect(mesh.isVisible).to.equal(false);
+        expect(mesh.isPickable).to.equal(false);
+
+        flock.setMarkerEdit(id, true);
+        expect(mesh.isVisible).to.equal(true);
+      });
+
+      it('should never show outside the editor view', function () {
+        const id = flock.createMarker('testMarkerPlay', { position: [0, 0, 0], edit: true });
+        createdIds.push(id);
+        const mesh = flock.scene.getMeshByName(id);
+
+        flock.setEditorView(false);
+        expect(mesh.isVisible).to.equal(false);
+        expect(mesh.isPickable).to.equal(false);
+
+        flock.setEditorView(true);
+        expect(mesh.isVisible).to.equal(true);
+      });
+
+      it('should start hidden when created outside the editor view', function () {
+        flock.setEditorView(false);
+        const id = flock.createMarker('testMarkerHidden', { position: [0, 0, 0], edit: true });
+        createdIds.push(id);
+
+        expect(flock.scene.getMeshByName(id).isVisible).to.equal(false);
+      });
+
+      for (const type of ['cross', 'sphere']) {
+        it(`should point the ${type} arrow along local forward and turn with the marker`, function () {
+          const id = flock.createMarker(`testMarkerArrow_${type}`, {
+            type,
+            position: [0, 2, 0],
+            rotation: { x: 0, y: 90, z: 0 },
+          });
+          createdIds.push(id);
+
+          const mesh = flock.scene.getMeshByName(id);
+          const { Vector3, VertexBuffer } = flock.BABYLON;
+          const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
+          const colors = mesh.getVerticesData(VertexBuffer.ColorKind);
+          let tip = null;
+          for (let i = 0; i < positions.length / 3; i++) {
+            const p = Vector3.FromArray(positions, i * 3);
+            const solid = colors[i * 4 + 3] > 0.5;
+            if (solid && Math.abs(p.x) < 1e-3 && (!tip || p.z < tip.z)) tip = p;
+          }
+          expect(tip.z).to.be.lessThan(-0.2);
+
+          mesh.computeWorldMatrix(true);
+          const worldTip = Vector3.TransformCoordinates(tip, mesh.getWorldMatrix());
+          const along = worldTip.subtract(mesh.getAbsolutePosition());
+          along.y = 0;
+          along.normalize();
+          const forward = Vector3.TransformNormal(new Vector3(0, 0, -1), mesh.getWorldMatrix());
+          expect(Vector3.Dot(along, forward.normalize())).to.be.closeTo(1, 1e-3);
+          expect(Math.abs(along.x)).to.be.closeTo(1, 1e-3);
+        });
+      }
+
+      it('should default to a flat cross lying on the surface at its position', function () {
+        const id = flock.createMarker('testMarkerCross', { position: [0, 2, 0] });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        expect(mesh.metadata.markerType).to.equal('cross');
+        mesh.computeWorldMatrix(true);
+        const { min, max } = mesh.getHierarchyBoundingVectors(true);
+        expect(min.y).to.be.at.least(2);
+        expect(max.y - min.y).to.be.lessThan(0.05);
+        expect((min.x + max.x) / 2).to.be.closeTo(0, 1e-6);
+        expect((min.z + max.z) / 2).to.be.closeTo(0, 1e-6);
+      });
+
+      it('should keep a rotated cross on the surface and centred on its point', function () {
+        const id = flock.createMarker('testMarkerCrossRotated', {
+          position: [1, 2, 3],
+          rotation: { x: 0, y: 60, z: 0 },
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        const { min, max } = mesh.getHierarchyBoundingVectors(true);
+        expect(min.y).to.be.closeTo(2, 1e-6);
+        expect((min.x + max.x) / 2).to.be.closeTo(1, 1e-6);
+        expect((min.z + max.z) / 2).to.be.closeTo(3, 1e-6);
+        const anchor = flock._getAnchor(mesh);
+        expect(anchor.x).to.be.closeTo(1, 1e-6);
+        expect(anchor.y).to.be.closeTo(2, 1e-6);
+        expect(anchor.z).to.be.closeTo(3, 1e-6);
+      });
+
+      it('should switch between cross and sphere in place', function () {
+        const id = flock.createMarker('testMarkerSwitch', { position: [1, 2, 3] });
+        createdIds.push(id);
+        const mesh = flock.scene.getMeshByName(id);
+
+        flock.setMarkerType(id, 'sphere');
+        mesh.computeWorldMatrix(true);
+        let bounds = mesh.getHierarchyBoundingVectors(true);
+        expect(mesh.metadata.markerType).to.equal('sphere');
+        expect(bounds.max.y - bounds.min.y).to.be.closeTo(1, 1e-3);
+        expect(mesh.position.y).to.be.closeTo(2, 1e-6);
+
+        flock.setMarkerType(id, 'cross');
+        mesh.computeWorldMatrix(true);
+        bounds = mesh.getHierarchyBoundingVectors(true);
+        expect(bounds.max.y - bounds.min.y).to.be.lessThan(0.05);
+      });
+
+      it('should keep its centre when given an initial size', function () {
+        const id = flock.createMarker('testMarkerSize', {
+          type: 'sphere',
+          position: [0, 3, 0],
+          size: { width: 1, height: 1, depth: 1 },
+        });
+        createdIds.push(id);
+
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        const { min, max } = mesh.getHierarchyBoundingVectors(true);
+        expect(max.y - min.y).to.be.closeTo(1, 1e-3);
+        expect((max.y + min.y) / 2).to.be.closeTo(3, 1e-3);
+      });
+    });
+
     describe('shared name reservation', function () {
       it('should avoid collisions across shape creators', function () {
         const boxA = flock.createBox('reserveBox', { position: [0, 0, 0] });

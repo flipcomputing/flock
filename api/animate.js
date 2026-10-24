@@ -582,6 +582,7 @@ export const flockAnimate = {
       offsetZ = 0,
       offsetSpace = 'local',
       side = null,
+      gap = 0,
       duration = 1,
       reverse = false,
       loop = false,
@@ -610,7 +611,7 @@ export const flockAnimate = {
       return;
     }
 
-    const goal = isCamera ? flock._getAnchor(mesh2) : flock._anchorGoal(mesh1, mesh2, side);
+    const goal = flock._anchorGoal(mesh1, mesh2, isCamera ? null : side, gap);
     await this.glideTo(meshName1, {
       x: goal.x + offset.x,
       y: goal.y + offset.y,

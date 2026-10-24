@@ -442,6 +442,15 @@ export function registerSceneGenerators(javascriptGenerator) {
     return createMesh(block, 'Plane', params, 'plane');
   };
 
+  // Add marker ---------------------------------------------------------
+  javascriptGenerator.forBlock['create_marker'] = function (block) {
+    return createMesh(block, 'Marker', [
+      `type: ${JSON.stringify(block.getFieldValue('TYPE') || 'cross')}`,
+      `position: ${getPositionTuple(block)}`,
+      `edit: ${block.getFieldValue('EDIT') === 'TRUE'}`,
+    ]);
+  };
+
   // Add group: an empty transform node for parenting. Its DO generates with
   // withGroupParent so nested mesh-creating blocks parent to it.
   javascriptGenerator.forBlock['create_group'] = function (block) {

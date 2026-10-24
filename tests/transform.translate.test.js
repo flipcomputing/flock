@@ -261,8 +261,8 @@ export function runTranslationTests(flock) {
         const left = localX(box2Id);
         const offset = box(box1Id).centerWorld.subtract(box(box2Id).centerWorld);
         expect(offset.x).to.be.closeTo(left.x, 0.01);
-        expect(offset.y).to.be.closeTo(left.y, 0.01);
         expect(offset.z).to.be.closeTo(left.z, 0.01);
+        expect(box(box1Id).minimumWorld.y).to.be.closeTo(box(box2Id).minimumWorld.y, 0.01);
       });
 
       it('puts the front along the target local -z, the way models face', async function () {
