@@ -437,7 +437,7 @@ export function loadWorkspaceAndExecute(
   json,
   workspace,
   executeCallback,
-  { focusCanvas = false, keepCanvasAspect = false } = {}
+  { focusCanvas = false, keepCanvasAspect = false, keepView = false } = {}
 ) {
   if (!workspace || !json) {
     throw new Error('Invalid workspace or json data.');
@@ -458,7 +458,7 @@ export function loadWorkspaceAndExecute(
     }
 
     workspace.scroll(0, 0);
-    executeCallback({ focusCanvas });
+    executeCallback({ focusCanvas, keepView });
     convertLegacyInitialTransforms(workspace);
     hintIfXrModeMissing(workspace);
   } catch (error) {
@@ -1207,7 +1207,10 @@ export async function newProject() {
       projectNameElement.value = 'New';
     }
     clearFileHandle();
-    loadWorkspaceAndExecute(json, workspace, window.executeCode, { keepCanvasAspect: true });
+    loadWorkspaceAndExecute(json, workspace, window.executeCode, {
+      keepCanvasAspect: true,
+      keepView: true,
+    });
   } catch (error) {
     console.error('Error loading new project:', error);
     alert(translate('example_load_failed_alert'));
