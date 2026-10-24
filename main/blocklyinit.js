@@ -357,7 +357,7 @@ Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defau
 
 const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
 
-function initializeIfClauseConnectionChecker(workspace) {
+export function initializeIfClauseConnectionChecker(workspace) {
   const connectionChecker = workspace.connectionChecker;
 
   // Store the original doTypeChecks method

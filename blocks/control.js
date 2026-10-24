@@ -685,7 +685,7 @@ export function defineControlBlocks() {
     getIfClauseChainHead_: function () {
       let head = this;
       let prev = this.getRealTargetBlock_(head.previousConnection);
-      while (prev?.type === 'if_clause') {
+      while (prev?.type === 'if_clause' && prev.nextConnection === head.previousConnection.targetConnection) {
         head = prev;
         prev = this.getRealTargetBlock_(head.previousConnection);
       }
