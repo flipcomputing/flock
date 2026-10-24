@@ -694,6 +694,26 @@ export function runPhysicsTests(flock) {
       expect(mover.position.z).to.be.closeTo(-5, 0.15);
     });
 
+    it('turns round before setting off towards a target behind it', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoM', [0, 0.5, 4], 'NONE');
+      const facingZ = () => {
+        mover.computeWorldMatrix(true);
+        return -mover.forward.z;
+      };
+      expect(facingZ()).to.be.below(-0.9);
+      let zWhenSideways = null;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        if (zWhenSideways === null && facingZ() > 0) zWhenSideways = mover.position.z;
+      });
+      await flock.moveToObject('mtoMMover', 'mtoMTarget', { speed: 4 });
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(zWhenSideways).to.be.below(0.1);
+      expect(mover.position.z).to.be.closeTo(4, 0.15);
+      expect(facingZ()).to.be.above(0.95);
+    });
+
     it('slows down as it arrives', async function () {
       this.timeout(10000);
       const { mover } = await makeScene('mtoI', [0, 0.5, -6], 'NONE');
@@ -814,19 +834,6 @@ export function runPhysicsTests(flock) {
         mover.computeWorldMatrix(true)
       ).normalize();
       expect(up.y).to.be.above(0.99);
-    });
-
-    it('stops when something blocks the way', async function () {
-      this.timeout(10000);
-      const { mover } = await makeScene('mtoF', [10, 0.5, 0]);
-      await flock.createBox('mtoFWall', { width: 1, height: 3, depth: 6, position: [4, 0, 0] });
-      await flock.setPhysics('mtoFWall', 'STATIC');
-      ids.push('mtoFWall');
-      await flock.moveToObject('mtoFMover', 'mtoFTarget', { speed: 4 });
-
-      expect(mover.position.x).to.be.within(2.5, 3.1);
-      const v = mover.physics.getLinearVelocity();
-      expect(Math.hypot(v.x, v.z)).to.be.below(0.5);
     });
 
     it('keeps going when the target moves away faster', async function () {

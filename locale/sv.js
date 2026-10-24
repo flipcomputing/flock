@@ -267,7 +267,7 @@ export default {
   set_speed_tooltip:
     'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.', // ai
   move_to_object_tooltip:
-    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttas och stannar när det kommer fram eller om något blockerar vägen. Välj "strövande" för att ta en slingrande väg.', // ai
+    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttar sig, går runt hinder och knuffar undan objekt som kan röra sig. Det stannar när det kommer fram eller om det inte kan komma fram. Välj "strövande" för att ta en slingrande väg.', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks

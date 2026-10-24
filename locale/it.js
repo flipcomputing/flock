@@ -270,7 +270,7 @@ export default {
   set_speed_tooltip:
     'Mantiene un oggetto in movimento a una velocità impostata in una direzione. Si muove proprio come un personaggio con "muovi" — sale le rampe, supera piccoli gradini, si ferma contro i muri e resta dritto — ma rispetto all\'oggetto o al mondo invece che alla telecamera. Mantiene quella velocità finché non la cambi. Scegli una direzione rispetto all\'oggetto (avanti, laterale, su) o un asse del mondo (x, y, z); usa "guarda" per mirare, poi vai avanti. Scegli "tutti" e 0 per fermarti.', // ai
   move_to_object_tooltip:
-    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove e si ferma quando arriva o se qualcosa blocca la strada. Scegli \"vagando\" per seguire un percorso tortuoso.", // ai
+    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove, aggira gli ostacoli e spinge gli oggetti che possono muoversi. Si ferma quando arriva o se non riesce a raggiungerlo. Scegli \"vagando\" per seguire un percorso tortuoso.", // ai
   show_physics: 'mostra formas fisicas %1',
 
   // Custom block translations - Sensing blocks

@@ -437,8 +437,9 @@ export const flockMovement = {
     if (!c) return; // applyGroundedMovement exited early (e.g. no physics engine)
     flock.faceTravel(model, c.appliedHorizontalVelocity);
   },
-  faceTravel(model, ahv) {
+  faceTravel(model, ahv, maxTurnRate = Infinity) {
     const B = flock.BABYLON;
+    let error = 0;
     model._mfFacing ??= new B.Vector3();
     model._mfTargetRotation ??= new B.Quaternion();
     model._mfConjugate ??= new B.Quaternion();
@@ -460,7 +461,9 @@ export const flockMovement = {
       model._mfConjugate.conjugateInPlace();
       model._mfTargetRotation.multiplyToRef(model._mfConjugate, model._mfDeltaRotation);
       model._mfDeltaRotation.toEulerAnglesToRef(model._mfDeltaEuler);
-      model._mfAngularVelocity.set(0, model._mfDeltaEuler.y * 5, 0);
+      error = model._mfDeltaEuler.y;
+      const turnRate = Math.max(-maxTurnRate, Math.min(maxTurnRate, error * 5));
+      model._mfAngularVelocity.set(0, turnRate, 0);
       model.physics.setAngularVelocity(model._mfAngularVelocity);
     }
 
@@ -474,6 +477,7 @@ export const flockMovement = {
     model.rotationQuaternion.x = 0;
     model.rotationQuaternion.z = 0;
     model.rotationQuaternion.normalize();
+    return error;
   },
   moveSideways(modelName, speed) {
     if (speed === 0) return;

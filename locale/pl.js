@@ -269,7 +269,7 @@ export default {
   set_speed_tooltip:
     'Utrzymuje ruch obiektu z ustaloną prędkością w danym kierunku. Porusza się tak jak postać gracza przy "ruszaj" — wjeżdża na zbocza, pokonuje małe stopnie, zatrzymuje się na ścianach i pozostaje w pionie — ale względem obiektu lub świata, a nie kamery. Utrzymuje tę prędkość, dopóki jej nie zmienisz. Wybierz kierunek względem obiektu (do przodu, bokiem, w górę) lub oś świata (x, y, z); użyj "patrz na", aby wycelować, a potem jedź do przodu. Wybierz "wszystkie" i 0, aby zatrzymać.', // ai
   move_to_object_tooltip:
-    'Przesuwa obiekt do innego obiektu z prędkością, używając fizyki. Obraca się w kierunku ruchu, podąża za obiektem, jeśli ten się porusza, i zatrzymuje się po dotarciu lub gdy coś zablokuje drogę. Wybierz „wędrując”, aby poruszać się krętą drogą.', // ai
+    'Przesuwa obiekt do innego obiektu z określoną prędkością, używając fizyki. Obraca się w kierunku ruchu, podąża za obiektem, jeśli ten się porusza, omija przeszkody i odpycha obiekty, które mogą się ruszać. Zatrzymuje się, gdy dotrze na miejsce lub nie może dotrzeć. Wybierz „wędrując”, aby poruszać się krętą drogą.', // ai
   show_physics: 'pokaż kształt fizyczne %1',
 
   // Custom block translations - Sensing blocks

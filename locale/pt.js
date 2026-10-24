@@ -268,7 +268,7 @@ export default {
   set_speed_tooltip:
     'Mantém um objeto a mover-se a uma velocidade definida numa direção. Move-se tal como uma personagem com "mover" — sobe rampas, transpõe pequenos degraus, para nas paredes e mantém-se direito — mas em relação ao objeto ou ao mundo, em vez da câmara. Mantém essa velocidade até a alterares. Escolhe uma direção em relação ao objeto (frente, lateral, cima) ou um eixo do mundo (x, y, z); usa "olhar para" para apontar e depois segue em frente. Escolhe "todos" e 0 para parar.', // ai
   move_to_object_tooltip:
-    'Move um objeto até outro objeto a uma velocidade, usando física. Vira-se para onde vai, segue o objeto se ele se mover e para quando chega ou se algo bloquear o caminho. Escolhe "vagueando" para seguir um caminho sinuoso.', // ai
+    'Move um objeto até outro objeto a uma velocidade, usando física. Vira-se para onde vai, segue o objeto se ele se mover, contorna obstáculos e empurra objetos que se podem mover. Para quando chega ou se não conseguir chegar. Escolhe "vagueando" para seguir um caminho sinuoso.', // ai
   show_physics: 'mostrar formas físicas %1',
 
   // Custom block translations - Sensing blocks

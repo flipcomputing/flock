@@ -297,6 +297,40 @@ const WANDER_MAX_ANGLE = Math.PI / 4;
 const WANDER_FADE_DISTANCE = 2;
 const WANDER_SHORT_WAVE = 1.3;
 const WANDER_LONG_WAVE = 3.1;
+const MAX_TURN_RATE = 2 * Math.PI;
+const SETTLE_ANGLE = Math.PI / 36;
+const SETTLE_SECONDS = 1;
+const SETTLE_TARGET_SPEED = 0.2;
+const FEEL_SECONDS = 0.5;
+const FEEL_STEP_CLEARANCE = 0.1;
+const FEEL_HEIGHT_FRACTION = 0.75;
+const CORNER_FEEL_SECONDS = 0.25;
+const MAX_WALKABLE_SLOPE = (75 * Math.PI) / 180;
+const WALKABLE_NORMAL_Y = Math.cos(MAX_WALKABLE_SLOPE);
+const MAX_WALKABLE_RISE = Math.tan(MAX_WALKABLE_SLOPE);
+const SAFE_DROP_STEPS = 3;
+const LEDGE_FEEL_SECONDS = 0.3;
+const LEDGE_SAMPLE_SPACING = 0.25;
+const LEDGE_FAN_ANGLES = [30, -30, 60, -60, 90, -90, 135, -135, 180].map(
+  (deg) => (deg * Math.PI) / 180
+);
+const LEDGE_GROUNDED_GRACE_MS = 250;
+const AVOID_PROGRESS = 0.5;
+const HEIGHT_WEIGHT = 2;
+const MIN_SLOPE_FOR_SIDE = Math.sin((5 * Math.PI) / 180);
+const MIN_SIDE_PREFERENCE = 0.2;
+const AVOID_MEMORY_SECONDS = 1;
+const AVOID_GIVE_UP_FACTOR = 4;
+const AVOID_GIVE_UP_EXTRA = 10;
+const LOOP_TURN = 2.2 * Math.PI;
+const DESCENT_BIAS = 1;
+const EDGE_LEAN = 0.3;
+const HUG_GAP = 0.3;
+const HUG_REACH = 1.5;
+const HUG_GAIN = 1;
+const HUG_MAX_LEAN = 0.7;
+const HUG_CORNER_MARGIN = 0.4;
+const SIGHT_LEDGE_REACH = 30;
 
 const endMoveToObject = (mesh) => {
   const seek = mesh._moveToObject;
@@ -327,7 +361,8 @@ const footprintGaps = (mesh, target) => {
 };
 
 const isBlocked = (seek, anchor, step) => {
-  seek.progress += (anchor.x - seek.lastX) * seek.lastDirX + (anchor.z - seek.lastZ) * seek.lastDirZ;
+  seek.progress +=
+    (anchor.x - seek.lastX) * seek.lastDirX + (anchor.z - seek.lastZ) * seek.lastDirZ;
   seek.expected += seek.lastSpeed * step;
   seek.elapsed += step;
   if (seek.elapsed < BLOCKED_SECONDS) return false;
@@ -359,7 +394,317 @@ const wanderAngle = (wander, remaining) => {
   const wobble =
     Math.sin(travelled / WANDER_SHORT_WAVE + shortPhase) * 0.6 +
     Math.sin(travelled / WANDER_LONG_WAVE + longPhase) * 0.4;
-  return WANDER_MAX_ANGLE * wobble * Math.min(1, remaining / WANDER_FADE_DISTANCE);
+  const fade = Math.min(1, remaining / WANDER_FADE_DISTANCE, travelled / WANDER_FADE_DISTANCE);
+  return WANDER_MAX_ANGLE * wobble * fade;
+};
+
+const ensureFeeler = (mesh, cap) => {
+  const B = flock.BABYLON;
+  const radius = cap.radius * 0.9;
+  const length = Math.max(
+    0,
+    cap.height * FEEL_HEIGHT_FRACTION - stepHeight(cap) - FEEL_STEP_CLEARANCE - 2 * radius
+  );
+  let feeler = mesh._moveToFeeler;
+  if (feeler?.radius === radius && feeler.length === length) return feeler;
+  feeler?.shape.dispose();
+  if (!feeler) mesh.onDisposeObservable.addOnce(() => mesh._moveToFeeler?.shape.dispose());
+  feeler = mesh._moveToFeeler = {
+    radius,
+    length,
+    shape:
+      length > 0.05
+        ? new B.PhysicsShapeCapsule(
+            B.Vector3.Zero(),
+            new B.Vector3(0, length, 0),
+            radius,
+            flock.scene
+          )
+        : new B.PhysicsShapeSphere(B.Vector3.Zero(), radius, flock.scene),
+    query: {
+      shape: null,
+      rotation: new B.Quaternion(0, 0, 0, 1),
+      startPosition: new B.Vector3(),
+      endPosition: new B.Vector3(),
+      shouldHitTriggers: false,
+      ignoreBody: null,
+    },
+    result: new B.ShapeCastResult(),
+    hitResult: new B.ShapeCastResult(),
+  };
+  feeler.query.shape = feeler.shape;
+  return feeler;
+};
+
+const belongsTo = (body, target) => {
+  const node = body?.transformNode;
+  return !!node && !!target && (node === target || node.isDescendantOf(target));
+};
+
+const stepHeight = (cap) => Math.min(0.55, cap.height * 0.25);
+
+const feetLevel = (mesh, cap) => mesh.position.y + (cap.localCenter?.y ?? 0) - cap.height / 2;
+
+const centreIsOpen = (mesh, target) => {
+  const plugin = flock.scene.getPhysicsEngine()?.getPhysicsPlugin();
+  if (!plugin) return false;
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const feeler = ensureFeeler(mesh, cap);
+  const { min, max } = target.getHierarchyBoundingVectors(true);
+  const B = flock.BABYLON;
+  const query = {
+    shape: feeler.shape,
+    position: new B.Vector3(
+      (min.x + max.x) / 2,
+      min.y + stepHeight(cap) + FEEL_STEP_CLEARANCE + feeler.radius,
+      (min.z + max.z) / 2
+    ),
+    rotation: new B.Quaternion(0, 0, 0, 1),
+    maxDistance: 0,
+    shouldHitTriggers: false,
+    ignoreBody: mesh.physics,
+  };
+  const result = new B.ProximityCastResult();
+  const hitResult = new B.ProximityCastResult();
+  plugin.shapeProximity(query, result, hitResult);
+  return !(result.hasHit && belongsTo(hitResult.body, target));
+};
+
+const feel = (mesh, ignore, dirX, dirZ, reach) => {
+  const plugin = flock.scene.getPhysicsEngine()?.getPhysicsPlugin();
+  if (!plugin) return null;
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const feeler = ensureFeeler(mesh, cap);
+  const lift = stepHeight(cap) + FEEL_STEP_CLEARANCE;
+  const { query, result, hitResult } = feeler;
+  query.ignoreBody = mesh.physics;
+  query.startPosition.set(
+    mesh.position.x,
+    feetLevel(mesh, cap) + lift + feeler.radius,
+    mesh.position.z
+  );
+  query.endPosition.set(
+    query.startPosition.x + dirX * reach,
+    query.startPosition.y,
+    query.startPosition.z + dirZ * reach
+  );
+  plugin.shapeCast(query, result, hitResult);
+  if (!result.hasHit) return null;
+  const body = hitResult.body;
+  if (belongsTo(body, ignore)) return null;
+  if (body?.getMotionType?.() === flock.BABYLON.PhysicsMotionType.DYNAMIC) return null;
+  const n = hitResult.hitNormal;
+  const flat = Math.hypot(n.x, n.z);
+  if (n.y >= WALKABLE_NORMAL_Y * Math.hypot(n.x, n.y, n.z) || flat < 1e-6) return null;
+  return { x: n.x / flat, z: n.z / flat, distance: result.hitFraction * reach };
+};
+
+const groundAhead = (mesh, target, dirX, dirZ, reach) => {
+  const engine = flock.scene.getPhysicsEngine();
+  if (!engine) return true;
+  const B = flock.BABYLON;
+  const ray = (mesh._moveToGroundRay ??= {
+    from: new B.Vector3(),
+    to: new B.Vector3(),
+    result: new B.PhysicsRaycastResult(),
+  });
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const step = stepHeight(cap);
+  const maxDrop = SAFE_DROP_STEPS * step;
+  let y = feetLevel(mesh, cap);
+  let slope = 0;
+  let previous = -cap.radius;
+  for (let d = cap.radius + LEDGE_SAMPLE_SPACING; d <= reach; d += LEDGE_SAMPLE_SPACING) {
+    const run = d - previous;
+    const x = mesh.position.x + dirX * d;
+    const z = mesh.position.z + dirZ * d;
+    ray.from.set(x, y + Math.min(step + run * MAX_WALKABLE_RISE, cap.height), z);
+    ray.to.set(x, y - maxDrop - run * MAX_WALKABLE_RISE, z);
+    engine.raycastToRef(ray.from, ray.to, ray.result);
+    if (!ray.result.hasHit) return false;
+    if (ray.result.body === mesh.physics) continue;
+    if (ray.result.body?.getMotionType?.() === flock.BABYLON.PhysicsMotionType.DYNAMIC) continue;
+    if (belongsTo(ray.result.body, target)) return true;
+    const n = ray.result.hitNormalWorld;
+    const hitY = ray.result.hitPointWorld.y;
+    const up = Math.abs(n.y) / Math.hypot(n.x, n.y, n.z);
+    if (up < WALKABLE_NORMAL_Y) return false;
+    const hitSlope = Math.hypot(n.x, n.z) / Math.abs(n.y);
+    const allowance = run * Math.max(slope, hitSlope);
+    if (y - hitY > maxDrop + allowance || hitY - y > step + allowance) return false;
+    y = hitY;
+    slope = hitSlope;
+    previous = d;
+  }
+  return true;
+};
+
+const ledgeNormal = (mesh, target, dirX, dirZ, reach) => {
+  let x = -dirX;
+  let z = -dirZ;
+  for (const angle of LEDGE_FAN_ANGLES) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const fanX = dirX * cos - dirZ * sin;
+    const fanZ = dirX * sin + dirZ * cos;
+    if (!groundAhead(mesh, target, fanX, fanZ, reach)) {
+      x -= fanX;
+      z -= fanZ;
+    }
+  }
+  const length = Math.hypot(x, z);
+  return length < 1e-6 ? { x: -dirX, z: -dirZ } : { x: x / length, z: z / length };
+};
+
+const feelLedge = (mesh, target, dirX, dirZ, reach) =>
+  groundAhead(mesh, target, dirX, dirZ, reach)
+    ? null
+    : ledgeNormal(mesh, target, dirX, dirZ, reach);
+
+const tangent = (normal, side) => ({ x: -normal.z * side, z: normal.x * side });
+
+const holdGap = (wall, side) => {
+  const along = tangent(wall, side);
+  const lean = Math.max(
+    -HUG_MAX_LEAN,
+    Math.min(HUG_MAX_LEAN, (wall.distance - HUG_GAP) * HUG_GAIN)
+  );
+  const x = along.x - wall.x * lean;
+  const z = along.z - wall.z * lean;
+  const length = Math.hypot(x, z);
+  return { x: x / length, z: z / length };
+};
+
+const followEdge = (normal, side) => {
+  const along = tangent(normal, side);
+  const x = along.x + normal.x * EDGE_LEAN;
+  const z = along.z + normal.z * EDGE_LEAN;
+  const length = Math.hypot(x, z);
+  return { x: x / length, z: z / length };
+};
+
+const rotateFlat = ({ x, z }, angle) => {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return { x: x * cos - z * sin, z: x * sin + z * cos };
+};
+
+const downhill = (mesh) => {
+  if (!(performance.now() - (mesh._lastGroundedAt ?? -Infinity) < LEDGE_GROUNDED_GRACE_MS)) {
+    return null;
+  }
+  const n = mesh._moveForwardCache?.groundHitResult?.hitNormal;
+  const flat = n ? Math.hypot(n.x, n.z) / Math.hypot(n.x, n.y, n.z) : 0;
+  return flat < MIN_SLOPE_FOR_SIDE
+    ? null
+    : { x: n.x / Math.hypot(n.x, n.z), z: n.z / Math.hypot(n.x, n.z) };
+};
+
+const chooseSide = (mesh, normal, goalX, goalZ, climb) => {
+  const left = tangent(normal, 1);
+  const slope = climb ? downhill(mesh) : null;
+  if (slope) {
+    const descent = (left.x * slope.x + left.z * slope.z) * -climb;
+    if (Math.abs(descent) > MIN_SIDE_PREFERENCE) return Math.sign(descent);
+  }
+  return left.x * goalX + left.z * goalZ >= 0 ? 1 : -1;
+};
+
+const avoidObstacles = (mesh, seek, { goalX, goalZ, distance, progress, climb, step }) => {
+  const radius = flock.ensurePhysicsCapsule(mesh).radius;
+  const wallReach = radius + seek.speed * FEEL_SECONDS;
+  const ledgeReach = radius + seek.speed * LEDGE_FEEL_SECONDS;
+  const cornerReach = radius + seek.speed * CORNER_FEEL_SECONDS;
+  const ignore = seek.enterable ? null : seek.target;
+  const obstacle = (dir, wall, ledge) =>
+    feel(mesh, ignore, dir.x, dir.z, wall) ?? feelLedge(mesh, ignore, dir.x, dir.z, ledge);
+  const inSight = () =>
+    !feel(mesh, ignore, goalX, goalZ, distance) &&
+    groundAhead(mesh, ignore, goalX, goalZ, Math.min(distance, SIGHT_LEDGE_REACH));
+
+  if (progress < seek.closest - AVOID_PROGRESS) {
+    seek.closest = progress;
+    seek.detour = 0;
+    seek.turned = 0;
+  }
+  const goal = { x: goalX, z: goalZ };
+  const ahead = obstacle(goal, Math.min(wallReach, distance), Math.min(ledgeReach, distance));
+  let avoid = seek.avoid;
+  if (!ahead) {
+    if (!avoid) return null;
+    avoid.clearTime += step;
+    const targetMoving = Math.hypot(seek.targetVX, seek.targetVZ) >= SETTLE_TARGET_SPEED;
+    if (
+      progress < avoid.startProgress - AVOID_PROGRESS ||
+      (targetMoving && avoid.clearTime > AVOID_MEMORY_SECONDS) ||
+      inSight()
+    ) {
+      seek.avoid = null;
+      return null;
+    }
+  } else if (!avoid) {
+    avoid = seek.avoid = {
+      side: chooseSide(mesh, ahead, goalX, goalZ, climb),
+      startProgress: progress,
+      clearTime: 0,
+      along: null,
+    };
+  }
+  seek.detour += seek.lastSpeed * step;
+  if (seek.detour > seek.closest * AVOID_GIVE_UP_FACTOR + AVOID_GIVE_UP_EXTRA) return 'give up';
+  if (Math.abs(seek.turned) > LOOP_TURN) return 'give up';
+
+  if (ahead) avoid.clearTime = 0;
+  let along;
+  if (!avoid.along) {
+    along = followEdge(ahead, avoid.side);
+  } else {
+    const towardWall = rotateFlat(avoid.along, (avoid.side * Math.PI) / 2);
+    const wall = feel(mesh, ignore, towardWall.x, towardWall.z, radius + HUG_REACH);
+    const edge = wall ? null : feelLedge(mesh, ignore, towardWall.x, towardWall.z, ledgeReach);
+    const near = wall ?? edge ?? ahead;
+    if (!near) {
+      along = rotateFlat(avoid.along, (avoid.side * seek.lastSpeed * step) / (radius + HUG_GAP));
+    } else if (near.distance === undefined) {
+      along = followEdge(near, avoid.side);
+    } else {
+      along = holdGap(near, avoid.side);
+    }
+  }
+  const slope = climb ? downhill(mesh) : null;
+  if (slope) {
+    const x = along.x - slope.x * climb * DESCENT_BIAS;
+    const z = along.z - slope.z * climb * DESCENT_BIAS;
+    const length = Math.hypot(x, z);
+    if (length > 1e-6) along = { x: x / length, z: z / length };
+  }
+  const corner =
+    feel(mesh, ignore, along.x, along.z, radius + HUG_GAP + HUG_CORNER_MARGIN) ??
+    feelLedge(mesh, ignore, along.x, along.z, cornerReach);
+  if (corner) along = followEdge(corner, avoid.side);
+  if (avoid.along) {
+    seek.turned += Math.atan2(
+      avoid.along.x * along.z - avoid.along.z * along.x,
+      avoid.along.x * along.x + avoid.along.z * along.z
+    );
+  }
+  return (avoid.along = along);
+};
+
+const faceMoveToObject = (mesh, dirX, dirZ) => {
+  const facing = (mesh._moveToFacing ??= new flock.BABYLON.Vector3());
+  facing.set(dirX, 0, dirZ);
+  return flock.faceTravel(mesh, facing, MAX_TURN_RATE);
+};
+
+const settleMoveToObject = (mesh, seek, step) => {
+  const v = mesh.physics.getLinearVelocity();
+  v.x = 0;
+  v.z = 0;
+  mesh.physics.setLinearVelocity(v);
+  const error = faceMoveToObject(mesh, seek.lastDirX, seek.lastDirZ);
+  seek.settleTime += step;
+  if (Math.abs(error) < SETTLE_ANGLE || seek.settleTime > SETTLE_SECONDS) stopMoveToObject(mesh);
 };
 
 const applyMoveToObject = (mesh) => {
@@ -371,15 +716,27 @@ const applyMoveToObject = (mesh) => {
   }
   const elapsed = Math.max(flock.scene.getEngine().getDeltaTime(), 1) / 1000;
   const step = Math.min(elapsed, 0.1);
+  if (seek.settling) {
+    settleMoveToObject(mesh, seek, step);
+    return;
+  }
   trackTarget(seek, elapsed);
+  seek.enterable ??= !side && centreIsOpen(mesh, target);
   const goal = flock._anchorGoal(mesh, target, side, gap);
   const anchor = flock._getAnchor(mesh);
   const dx = goal.x - anchor.x;
   const dz = goal.z - anchor.z;
   const distance = Math.hypot(dx, dz);
-  const gaps = !side && isPhysicsEnabled(target) ? footprintGaps(mesh, target) : null;
+  const gaps =
+    !side && !seek.enterable && isPhysicsEnabled(target) ? footprintGaps(mesh, target) : null;
   if (distance <= ARRIVE_DISTANCE || gaps?.every((g) => g <= TOUCH_MARGIN)) {
-    stopMoveToObject(mesh);
+    const targetStill = Math.hypot(seek.targetVX, seek.targetVZ) < SETTLE_TARGET_SPEED;
+    if (targetStill && (seek.lastDirX || seek.lastDirZ)) {
+      seek.settling = true;
+      settleMoveToObject(mesh, seek, step);
+    } else {
+      stopMoveToObject(mesh);
+    }
     return;
   }
   if (isBlocked(seek, anchor, step)) {
@@ -395,31 +752,50 @@ const applyMoveToObject = (mesh) => {
     aimZ = dz;
     aimDistance = distance;
   }
+  const climb = goal.y - anchor.y;
+  const height =
+    HEIGHT_WEIGHT * Math.max(0, Math.abs(climb) - stepHeight(flock.ensurePhysicsCapsule(mesh)));
+  const progress = Math.hypot(distance, height);
   const contact = gaps ? distance - Math.min(distance, Math.hypot(...gaps)) : 0;
-  const remaining = Math.max(0, aimDistance - contact);
+  const remaining = Math.hypot(Math.max(0, aimDistance - contact), height);
   const targetAway = Math.max(0, (seek.targetVX * aimX + seek.targetVZ * aimZ) / aimDistance);
   const arriveSpeed = Math.max(
     speed * MIN_ARRIVE_FRACTION,
     Math.min(speed, targetAway + remaining / SLOW_SECONDS)
   );
   const stepSpeed = Math.min(arriveSpeed, aimDistance / step);
-  const angle = wanderAngle(seek.wander, remaining);
+  const around = avoidObstacles(mesh, seek, {
+    goalX: aimX / aimDistance,
+    goalZ: aimZ / aimDistance,
+    distance,
+    progress,
+    climb: height > 0 ? Math.sign(climb) : 0,
+    step,
+  });
+  if (around === 'give up') {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const baseX = around ? around.x : aimX / aimDistance;
+  const baseZ = around ? around.z : aimZ / aimDistance;
+  const angle = around ? 0 : wanderAngle(seek.wander, remaining);
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  const dirX = (aimX * cos - aimZ * sin) / aimDistance;
-  const dirZ = (aimX * sin + aimZ * cos) / aimDistance;
-  if (seek.wander) seek.wander.travelled += stepSpeed * step;
+  const dirX = baseX * cos - baseZ * sin;
+  const dirZ = baseX * sin + baseZ * cos;
+  const error = faceMoveToObject(mesh, dirX, dirZ);
+  const turnSpeed = stepSpeed * Math.max(0, Math.cos(error));
+  if (seek.wander) seek.wander.travelled += turnSpeed * step;
   Object.assign(seek, {
     lastX: anchor.x,
     lastZ: anchor.z,
     lastDirX: dirX,
     lastDirZ: dirZ,
-    lastSpeed: stepSpeed,
+    lastSpeed: turnSpeed,
   });
   const desired = (mesh._moveToDesired ??= new flock.BABYLON.Vector3());
-  desired.set(dirX * stepSpeed, 0, dirZ * stepSpeed);
-  if (flock.applyGroundedMovement(mesh, desired)) return;
-  flock.faceTravel(mesh, mesh._moveForwardCache.appliedHorizontalVelocity);
+  desired.set(dirX * turnSpeed, 0, dirZ * turnSpeed);
+  flock.applyGroundedMovement(mesh, desired);
 };
 
 // Default "no free sliding" behaviour for a mesh with the upright joint
@@ -1138,7 +1514,11 @@ export const flockPhysics = {
     ensurePostPhysicsUpkeep(mesh);
     applyVelocityDrive(mesh); // take effect immediately, not next frame
   },
-  async moveToObject(meshName, targetName, { side = null, gap = 0, speed = 3, wander = false } = {}) {
+  async moveToObject(
+    meshName,
+    targetName,
+    { side = null, gap = 0, speed = 3, wander = false } = {}
+  ) {
     const mesh = await flock.whenModelReady(meshName);
     if (!mesh) return;
     const target = await flock.whenModelReady(targetName);
@@ -1180,6 +1560,12 @@ export const flockPhysics = {
         targetZ: null,
         targetVX: 0,
         targetVZ: 0,
+        settling: false,
+        settleTime: 0,
+        avoid: null,
+        closest: Infinity,
+        detour: 0,
+        turned: 0,
         progress: 0,
         expected: 0,
         elapsed: 0,

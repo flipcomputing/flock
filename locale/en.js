@@ -656,7 +656,7 @@ export default {
   set_speed_tooltip:
     'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.',
   move_to_object_tooltip:
-    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, and stops when it arrives or if something blocks the way. Choose "wandering" to take a winding path.',
+    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, goes round things in the way and pushes objects that can move. It stops when it arrives or if it cannot get there. Choose "wandering" to take a winding path.',
   set_bounciness_tooltip:
     'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.',
   set_mass_tooltip:

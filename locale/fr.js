@@ -268,7 +268,7 @@ export default {
   set_speed_tooltip:
     'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.', // ai
   move_to_object_tooltip:
-    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge et s'arrête à l'arrivée ou si quelque chose bloque le passage. Choisis « en flânant » pour suivre un chemin sinueux.", // ai
+    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge, contourne les obstacles et pousse les objets qui peuvent bouger. Il s'arrête à l'arrivée ou s'il ne peut pas l'atteindre. Choisis « en flânant » pour suivre un chemin sinueux.", // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
