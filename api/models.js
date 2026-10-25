@@ -428,7 +428,50 @@ export const flockModels = {
       }
     };
 
-    const finalizeMesh = (mesh, mName, gName, bKey) => {
+    const copyFromCache = () => {
+      const cache = flock.modelCache[modelName];
+      const parts = [cache, ...cache.getChildMeshes(false)];
+      if (!flock.autoInstanceModels || parts.some((m) => m.skeleton || m.morphTargetManager)) {
+        return { mesh: cache.clone(cache.name), template: null };
+      }
+      const templates = (flock.scene._flockModelTemplates ??= new Map());
+      const firstCopies = (flock.scene._flockFirstModelCopies ??= new Map());
+      const key = `${modelName}|${applyColor}|${JSON.stringify(color)}`;
+      let template = templates.get(key);
+      if (!template || template.isDisposed()) {
+        const first = firstCopies.get(key);
+        if (!first || first.isDisposed()) {
+          const mesh = cache.clone(cache.name);
+          firstCopies.set(key, mesh);
+          return { mesh, template: null };
+        }
+        template = cache.clone(cache.name);
+        template.scaling.setAll(1);
+        const nodes = [template, ...template.getDescendants(false)];
+        nodes.forEach((node) => {
+          if (node.metadata?.originalNodeName) node.name = node.metadata.originalNodeName;
+        });
+        applyMaterialToHierarchy(template, color);
+        nodes.forEach((node) => {
+          hideFromInspector(node);
+          node.metadata = { ...node.metadata, isTemplate: true, templateTag: modelName };
+          node.setEnabled(true);
+          if ('isPickable' in node) node.isPickable = false;
+          if ('isVisible' in node) node.isVisible = false;
+          if ('visibility' in node) node.visibility = 1;
+        });
+        templates.set(key, template);
+      }
+      const mesh = flock._instantiateTemplate(template, template.name);
+      [mesh, ...mesh.getDescendants(false)].forEach((node) => {
+        node.metadata = { ...node.metadata, isTemplate: false };
+        node.setEnabled(false);
+        if ('isVisible' in node) node.isVisible = false;
+      });
+      return { mesh, template };
+    };
+
+    const finalizeMesh = (mesh, mName, gName, bKey, template = null) => {
       const allNodes = [mesh, ...mesh.getDescendants(false)];
       allNodes.forEach((node) => {
         if (node?.metadata?.originalNodeName) {
@@ -448,10 +491,11 @@ export const flockModels = {
         position.z,
         color
       );
+      if (template) flock._linkToTemplate(template, root);
       if (callback) flock.holdBody(root);
       else flock.ensureBody(root);
       if (rotation || size) flock._applyInitialTransform(root, { position, rotation, size });
-      applyMaterialToHierarchy(mesh, color);
+      if (!template) applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
       mesh.refreshBoundingInfo(true);
       flock.announceMeshReady(mName, gName);
@@ -525,9 +569,9 @@ export const flockModels = {
 
       if (flock.modelCache[modelName]) {
         flock._recycleOldestByKey(modelName);
-        const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
+        const { mesh, template } = copyFromCache();
         flock._registerInstance(modelName, meshName, mesh);
-        finalizeMesh(mesh, meshName, groupName, bKey);
+        finalizeMesh(mesh, meshName, groupName, bKey, template);
         resolveReady(mesh);
         return meshName;
       }
@@ -536,9 +580,9 @@ export const flockModels = {
         flock.modelsBeingLoaded[modelName].then(() => {
           if (!flock.scene || flock.scene.isDisposed) return;
           flock._recycleOldestByKey(modelName);
-          const mesh = flock.modelCache[modelName].clone(flock.modelCache[modelName].name);
+          const { mesh, template } = copyFromCache();
           flock._registerInstance(modelName, meshName, mesh);
-          finalizeMesh(mesh, meshName, groupName, bKey);
+          finalizeMesh(mesh, meshName, groupName, bKey, template);
           resolveReady(mesh);
         });
         return meshName;
@@ -593,10 +637,10 @@ export const flockModels = {
         setTemplateFlags(root, modelName);
         flock.modelCache[modelName] = root;
 
-        const mesh = root.clone(root.name);
+        const { mesh, template } = copyFromCache();
         flock._registerInstance(modelName, meshName, mesh);
 
-        finalizeMesh(mesh, meshName, groupName, bKey);
+        finalizeMesh(mesh, meshName, groupName, bKey, template);
         resolveReady(mesh);
         releaseContainer(container);
         delete flock.modelsBeingLoaded[modelName];

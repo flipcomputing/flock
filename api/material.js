@@ -1942,10 +1942,13 @@ export const flockMaterial = {
     walk(rootMesh);
     return own;
   },
-  getColorSlots(rootMesh, { includeRoot = false, ownOnly = false } = {}) {
+  getColorSlots(rootMesh, { includeRoot = false, ownOnly = false, includeInstances = true } = {}) {
     const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
     const hasGeometry = (n) =>
-      n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n);
+      (n instanceof flock.BABYLON.Mesh ||
+        (includeInstances && n instanceof flock.BABYLON.InstancedMesh)) &&
+      n.getTotalVertices() > 0 &&
+      !isTextPlaneMesh(n);
 
     const descendants = ownOnly ? flock._ownDescendants(rootMesh) : rootMesh.getDescendants(false);
     const geometryMeshes = descendants
@@ -1997,10 +2000,12 @@ export const flockMaterial = {
     const applyColor = opts.applyColor ?? true;
     if (!applyColor || !rootMesh || !colorInput) return rootMesh;
     if (flock._applyTextLetterColors(rootMesh, colorInput, opts)) return rootMesh;
+    flock._claimLinked?.(rootMesh, 'colour');
 
     const slots = flock.getColorSlots(rootMesh, {
       includeRoot: opts.includeRoot,
       ownOnly: opts.ownOnly,
+      includeInstances: false,
     });
 
     const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);

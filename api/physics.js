@@ -13,9 +13,47 @@ const applyDrivenState = (body) => {
   body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
 };
 
+const FALLEN_BELOW_Y = -1000;
+const FALLEN_CHECK_FRAMES = 60;
+
+const parkFallenBody = (body) => {
+  const zero = flock.BABYLON.Vector3.Zero();
+  body.setLinearVelocity(zero);
+  body.setAngularVelocity(zero);
+  body._flockFallen = { disablePreStep: body.disablePreStep };
+  body.disablePreStep = true;
+  body.disableSync = true;
+  flock.hk.setActivationControl(body, flock.BABYLON.PhysicsActivationControl.ALWAYS_INACTIVE);
+};
+
+const unparkFallenBody = (body) => {
+  const parked = body?._flockFallen;
+  if (!parked) return;
+  delete body._flockFallen;
+  body.disablePreStep = parked.disablePreStep;
+  body.disableSync = false;
+  flock.hk.setActivationControl(
+    body,
+    flock.BABYLON.PhysicsActivationControl.SIMULATION_CONTROLLED
+  );
+};
+
+export const parkFallenBodies = (scene) => {
+  let frame = 0;
+  scene.onAfterPhysicsObservable.add(() => {
+    if (++frame % FALLEN_CHECK_FRAMES) return;
+    for (const body of scene.getPhysicsEngine()?.getBodies?.() ?? []) {
+      if (body._flockFallen || !isBodyAlive(body)) continue;
+      if (body.getMotionType() !== flock.BABYLON.PhysicsMotionType.DYNAMIC) continue;
+      if (body.transformNode.getAbsolutePosition().y < FALLEN_BELOW_Y) parkFallenBody(body);
+    }
+  });
+};
+
 const teleportOne = (mesh) => {
   if (!isPhysicsEnabled(mesh)) return;
   const body = mesh.physics;
+  unparkFallenBody(body);
   mesh.computeWorldMatrix(true);
   const prestepType = body.getPrestepType();
   body.setPrestepType(flock.BABYLON.PhysicsPrestepType.TELEPORT);
@@ -1617,18 +1655,18 @@ export const flockPhysics = {
               mesh,
               'CONTAINER',
               flock.BABYLON.PhysicsMotionType.DYNAMIC,
-              false
+              true
             );
             break;
           }
         } else if (getShapeTypeFromPhysics(mesh.physics) === 'MESH') {
           disposePhysics(mesh);
-          applyPhysicsShape(mesh, 'CONVEX_HULL', flock.BABYLON.PhysicsMotionType.DYNAMIC, false);
+          applyPhysicsShape(mesh, 'CONVEX_HULL', flock.BABYLON.PhysicsMotionType.DYNAMIC, true);
           break;
         }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
         mesh.physics.setAngularDamping?.(DEFAULT_ANGULAR_DAMPING);
-        mesh.physics.disablePreStep = false;
+        mesh.physics.disablePreStep = true;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 

@@ -3103,7 +3103,8 @@ export function runMeshHierarchyTests(flock) {
           const min = new flock.BABYLON.Vector3(1e9, 1e9, 1e9);
           const max = new flock.BABYLON.Vector3(-1e9, -1e9, -1e9);
           const visit = (node) => {
-            if (node.getClassName?.() === 'Mesh' && node.getTotalVertices?.()) {
+            const drawn = ['Mesh', 'InstancedMesh'].includes(node.getClassName?.());
+            if (drawn && node.getTotalVertices?.()) {
               node.computeWorldMatrix(true);
               node.refreshBoundingInfo?.();
               const bbox = node.getBoundingInfo().boundingBox;
@@ -3113,6 +3114,7 @@ export function runMeshHierarchyTests(flock) {
             (node.getChildren?.() || []).forEach(visit);
           };
           (flock.scene.getMeshByName(id).getChildren() || []).forEach(visit);
+          expect(max.x, `${id} has drawn geometry`).to.be.greaterThan(min.x);
           return { min, max, centre: min.add(max).scale(0.5) };
         };
         const loadAndAttach = async (modelName, modelId) => {

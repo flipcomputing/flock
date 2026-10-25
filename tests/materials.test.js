@@ -435,6 +435,26 @@ export function runMaterialsTests(flock) {
     });
   });
 
+  describe('colour slots with instances @materials', function () {
+    it('does not give an instance a colour slot when applying colours', function () {
+      const B = flock.BABYLON;
+      const root = new B.TransformNode('slotRoot', flock.scene);
+      const first = B.MeshBuilder.CreateBox('slotA', {}, flock.scene);
+      const source = B.MeshBuilder.CreateBox('slotSource', {}, flock.scene);
+      const instance = source.createInstance('slotB');
+      const last = B.MeshBuilder.CreateBox('slotC', {}, flock.scene);
+      [first, instance, last].forEach((node) => (node.parent = root));
+
+      try {
+        flock.applyMaterialToHierarchy(root, ['#ff0000', '#00ff00']);
+        expect(first.material.diffuseColor.toHexString()).to.equal('#FF0000');
+        expect(last.material.diffuseColor.toHexString()).to.equal('#00FF00');
+      } finally {
+        [first, instance, last, source, root].forEach((node) => node.dispose());
+      }
+    });
+  });
+
   describe('createMaterial method @materials', function () {
     const boxIds = [];
 

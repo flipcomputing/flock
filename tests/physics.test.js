@@ -298,6 +298,44 @@ export function runPhysicsTests(flock) {
     });
   });
 
+  describe('falling out of the world @physics', function () {
+    const ids = [];
+    const until = async (predicate, timeout = 5000) => {
+      const start = Date.now();
+      while (!predicate() && Date.now() - start < timeout) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    };
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    it('parks a body that falls far below the world and wakes it when moved', async function () {
+      this.timeout(10000);
+      const id = 'boxFallsOutOfWorld';
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, -995, 0] });
+      ids.push(id);
+      await flock.setPhysics(id, 'DYNAMIC');
+      const mesh = flock.scene.getMeshByName(id);
+
+      await until(() => mesh.physics._flockFallen);
+      expect(mesh.physics._flockFallen, 'parked').to.exist;
+      expect(mesh.physics.getLinearVelocity().length()).to.equal(0);
+      const parkedY = mesh.position.y;
+      expect(parkedY).to.be.below(-1000);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mesh.position.y).to.be.closeTo(parkedY, 1e-6);
+
+      await flock.positionAt(id, { x: 0, y: 5, z: 0 });
+      const movedY = mesh.position.y;
+      await until(() => mesh.position.y < movedY - 0.1, 2000);
+      expect(mesh.physics._flockFallen, 'woken').to.be.undefined;
+      expect(mesh.position.y).to.be.below(movedY - 0.1);
+    });
+  });
+
   describe('applyForce method @physics', function () {
     const boxIds = [];
 

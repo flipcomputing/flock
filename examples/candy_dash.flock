@@ -2984,8 +2984,72 @@
                                           }
                                         },
                                         "block": {
-                                          "type": "random_colour",
-                                          "id": ":LYRNL3_DE`LT9.[aID|"
+                                          "type": "lists_getIndex",
+                                          "id": ";AHV).jghur;:O3D^OB:",
+                                          "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" statement=\"false\" at=\"false\"></mutation>",
+                                          "fields": {
+                                            "MODE": "GET",
+                                            "WHERE": "RANDOM"
+                                          },
+                                          "inputs": {
+                                            "VALUE": {
+                                              "block": {
+                                                "type": "lists_create_with",
+                                                "id": "#ViEiD]2vqO6,M5?I`1X",
+                                                "inline": true,
+                                                "extraState": {
+                                                  "itemCount": 5
+                                                },
+                                                "inputs": {
+                                                  "ADD0": {
+                                                    "shadow": {
+                                                      "type": "colour",
+                                                      "id": "z8#Zyt3Ez$-6e]E@2hnU",
+                                                      "fields": {
+                                                        "COLOR": "#ff3399"
+                                                      }
+                                                    }
+                                                  },
+                                                  "ADD1": {
+                                                    "shadow": {
+                                                      "type": "colour",
+                                                      "id": "[v6kD.WGq#/^_s^?bUhW",
+                                                      "fields": {
+                                                        "COLOR": "#ffcc00"
+                                                      }
+                                                    }
+                                                  },
+                                                  "ADD2": {
+                                                    "shadow": {
+                                                      "type": "colour",
+                                                      "id": ",-g.T7De}u!0Iw?9KC:p",
+                                                      "fields": {
+                                                        "COLOR": "#3399ff"
+                                                      }
+                                                    }
+                                                  },
+                                                  "ADD3": {
+                                                    "shadow": {
+                                                      "type": "colour",
+                                                      "id": "^Ao41a!h=}n.l/dF97@0",
+                                                      "fields": {
+                                                        "COLOR": "#ff8800"
+                                                      }
+                                                    }
+                                                  },
+                                                  "ADD4": {
+                                                    "shadow": {
+                                                      "type": "colour",
+                                                      "id": "SBhi3.H[*ay]byI{eNK)",
+                                                      "fields": {
+                                                        "COLOR": "#aa55ff"
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
                                         }
                                       }
                                     }
