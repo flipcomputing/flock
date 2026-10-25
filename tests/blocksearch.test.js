@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import {
   matchBlockDefinitions,
   getBlockSearchLabel,
@@ -340,7 +341,7 @@ export function runBlockSearchTests() {
       container.style.width = '400px';
       container.style.height = '300px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
       stubIndex(workspace);
 
       block = workspace.newBlock('test_block_search');
@@ -353,7 +354,7 @@ export function runBlockSearchTests() {
 
     afterEach(function () {
       Blockly.WidgetDiv.hide();
-      workspace.dispose();
+      disposeTestWorkspace(workspace);
       container.remove();
     });
 
@@ -491,7 +492,7 @@ export function runBlockSearchTests() {
       container.style.width = '600px';
       container.style.height = '400px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
       workspace.flockBlockLabelMap = new Map([
         ['test_search_alpha', 'alpha block'],
         ['test_search_beta', 'beta block'],
@@ -514,7 +515,7 @@ export function runBlockSearchTests() {
 
     afterEach(function () {
       Blockly.WidgetDiv.hide();
-      workspace.dispose();
+      disposeTestWorkspace(workspace);
       container.remove();
     });
 
@@ -623,7 +624,7 @@ export function runBlockSearchTests() {
       container.style.width = '500px';
       container.style.height = '400px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
     });
 
     // Blockly flushes its event queue on a later tick; disposing the workspace
@@ -631,7 +632,7 @@ export function runBlockSearchTests() {
     // from firing them lands in whichever test runs next.
     afterEach(async function () {
       await new Promise((resolve) => setTimeout(resolve, 0));
-      workspace.dispose();
+      disposeTestWorkspace(workspace);
       container.remove();
     });
 
@@ -859,11 +860,11 @@ export function runBlockSearchTests() {
       container.style.width = '500px';
       container.style.height = '400px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
     });
 
     afterEach(function () {
-      workspace.dispose();
+      disposeTestWorkspace(workspace);
       container.remove();
     });
 

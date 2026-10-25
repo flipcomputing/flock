@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { useMockPhysicsScene } from './utils/mockSceneTestUtils.js';
 
 function configureDraco(BABYLON) {
   const base = import.meta?.env?.BASE_URL ?? '/';
@@ -44,6 +45,23 @@ async function pumpUntil(flock, predicate, { timeout = 4000, label = 'condition'
 export function runCreateObjectTests(flock) {
   describe('createObject tests @slow', function () {
     this.timeout(5000);
+
+    let createObject;
+    const createdIds = [];
+
+    beforeEach(function () {
+      createObject = flock.createObject;
+      flock.createObject = function (...args) {
+        const id = createObject.apply(this, args);
+        if (typeof id === 'string') createdIds.push(id);
+        return id;
+      };
+    });
+
+    afterEach(function () {
+      flock.createObject = createObject;
+      createdIds.splice(0).forEach((id) => flock.dispose(id));
+    });
 
     it('should create one object then create another', async function () {
       // Create the first tree object.
@@ -543,38 +561,10 @@ export function runCreateModelTests(flock) {
     const modelName = 'Flock.glb';
     const modelId = 'flock-model-test';
     let meshId;
+    let restoreScene;
 
     before(async function () {
-      if (flock.engine) flock.engine.dispose();
-
-      flock.modelCache = {};
-      flock.modelsBeingLoaded = {};
-
-      flock.engine = new flock.BABYLON.NullEngine();
-      flock.scene = new flock.BABYLON.Scene(flock.engine);
-      flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
-
-      new flock.BABYLON.FreeCamera('testCamera', flock.BABYLON.Vector3.Zero(), flock.scene);
-
-      const baseMock = {
-        name: 'MockPhysics',
-        getPluginVersion: () => 2,
-        isInitialized: () => true,
-        _checkIsReady: () => true,
-        onMeshRemovedObservable: new flock.BABYLON.Observable(),
-        onBeforePhysicsObservable: new flock.BABYLON.Observable(),
-        onAfterPhysicsObservable: new flock.BABYLON.Observable(),
-        getTimeStep: () => 1 / 60,
-        getMotionType: () => 1,
-        dispose: () => {},
-      };
-
-      const physicsMock = new Proxy(baseMock, {
-        get: (target, prop) => (prop in target ? target[prop] : () => {}),
-      });
-
-      flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
-
+      restoreScene = useMockPhysicsScene(flock);
       configureDraco(flock.BABYLON);
 
       meshId = flock.createModel({
@@ -588,6 +578,7 @@ export function runCreateModelTests(flock) {
 
     after(function () {
       flock.dispose(meshId);
+      restoreScene();
     });
 
     it('createModel returns a string ID', function () {

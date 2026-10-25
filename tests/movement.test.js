@@ -39,6 +39,11 @@ export function runMovementTests(flock) {
     // A phone aimed down at an AR diorama leaves forward almost vertical, so its horizontal part
     // is noise. The heading has to come from the level right vector instead.
     it('steers by the right vector when the camera looks straight down', async function () {
+      const groundId = 'groundLookDownSteering';
+      await flock.createBox(groundId, { width: 20, height: 1, depth: 20, position: [0, -1, 0] });
+      await flock.setPhysics(groundId, 'STATIC');
+      boxIds.push(groundId);
+
       const id = 'boxLookDownSteering';
       await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
       await flock.setPhysics(id, 'DYNAMIC');

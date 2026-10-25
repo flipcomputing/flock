@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import '@blockly/block-plus-minus';
 import { swapListItems, initListReorder } from '../ui/listReorder.js';
 
@@ -66,11 +67,11 @@ export function runListReorderTests(_flock) {
       container.style.width = '3000px';
       container.style.height = '2000px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
     });
 
     afterEach(function () {
-      workspace?.dispose();
+      disposeTestWorkspace(workspace);
       container?.remove();
     });
 

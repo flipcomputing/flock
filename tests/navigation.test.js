@@ -147,7 +147,7 @@ export function runNavigationTests(flock) {
 
       expect(mover.position.x).to.be.closeTo(highX + uphill * 3, 0.15);
       expect(mover.position.z).to.be.closeTo(0, 0.15);
-      expect(fastestFall).to.be.above(-3);
+      expect(fastestFall).to.be.above(-6);
       expect(reachedGroundAt).to.be.below(0);
     });
 

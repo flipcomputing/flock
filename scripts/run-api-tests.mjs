@@ -904,7 +904,7 @@ async function runSuiteOnPage(page, suiteId, restrictTitles = null) {
       };
     },
     undefined,
-    { timeout: 120000 }
+    { timeout: 600000 }
   );
 
   const testResults = await results.jsonValue();

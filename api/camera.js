@@ -3,6 +3,8 @@ import { clampToRange } from '../config.js';
 
 let flock;
 
+const CONSTRAINT_ANCHOR_Y = -10000;
+
 export function setFlockReference(ref) {
   flock = ref;
 }
@@ -778,71 +780,39 @@ export const flockCamera = {
       hideFromInspector(constraintBox);
       constraintBox.material =
         constraintBox.material || new flock.BABYLON.StandardMaterial('staticMaterial', scene);
+      // The constraint only locks rotation, so the anchor sits far below
+      // anything in the world, past where fallen bodies are parked.
+      constraintBox.position.set(0, CONSTRAINT_ANCHOR_Y, 0);
+      constraintBox.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+      constraintBox.computeWorldMatrix(true);
 
+      // cache it for reuse
+      flock._constraintBox = constraintBox;
+    }
+
+    // ensure the box has a valid static body + shape
+    if (!constraintBox.physics) {
       const body = new flock.BABYLON.PhysicsBody(
         constraintBox,
         flock.BABYLON.PhysicsMotionType.STATIC,
         false,
         scene
       );
-      const shape = new flock.BABYLON.PhysicsShapeBox(
+      body.shape = new flock.BABYLON.PhysicsShapeBox(
         flock.BABYLON.Vector3.Zero(),
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         flock.BABYLON.Vector3.One(),
         scene
       );
-      body.shape = shape;
       flock.applyMass(body, constraintBox);
       flock.applyBounciness(body, constraintBox);
       constraintBox.physics = body;
-
-      // cache it for reuse
-      flock._constraintBox = constraintBox;
-    } else {
-      // ensure reused box still has a valid static body + shape
-      if (!constraintBox.physics) {
-        const body = new flock.BABYLON.PhysicsBody(
-          constraintBox,
-          flock.BABYLON.PhysicsMotionType.STATIC,
-          false,
-          scene
-        );
-        const shape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
-          new flock.BABYLON.Quaternion(0, 0, 0, 1),
-          flock.BABYLON.Vector3.One(),
-          scene
-        );
-        body.shape = shape;
-        flock.applyMass(body, constraintBox);
-        flock.applyBounciness(body, constraintBox);
-        constraintBox.physics = body;
-      } else if (!constraintBox.physics.shape) {
-        constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(
-          flock.BABYLON.Vector3.Zero(),
-          new flock.BABYLON.Quaternion(0, 0, 0, 1),
-          flock.BABYLON.Vector3.One(),
-          scene
-        );
-      }
-    }
-
-    // position the anchor under the mesh out of the way
-    const meshWorldPos = mesh.getAbsolutePosition
-      ? mesh.getAbsolutePosition()
-      : mesh.position.clone();
-    constraintBox.position.copyFrom(meshWorldPos);
-    constraintBox.position.y += -4; // keep original -4 offset
-    constraintBox.computeWorldMatrix(true);
-
-    if (constraintBox.physics) {
-      if (!constraintBox.rotationQuaternion) {
-        constraintBox.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
-      }
-      constraintBox.physics.disablePreStep = false;
-      constraintBox.physics.setTargetTransform(
-        constraintBox.position,
-        constraintBox.rotationQuaternion
+    } else if (!constraintBox.physics.shape) {
+      constraintBox.physics.shape = new flock.BABYLON.PhysicsShapeBox(
+        flock.BABYLON.Vector3.Zero(),
+        new flock.BABYLON.Quaternion(0, 0, 0, 1),
+        flock.BABYLON.Vector3.One(),
+        scene
       );
     }
 

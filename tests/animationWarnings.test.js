@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { defineAnimateBlocks } from '../blocks/animate.js';
 import { defineModelBlocks } from '../blocks/models.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
@@ -150,13 +151,13 @@ export function runAnimationWarningsTests() {
         container.style.width = '300px';
         container.style.height = '200px';
         document.body.appendChild(container);
-        workspace = Blockly.inject(container, {});
+        workspace = injectTestWorkspace(container, {});
         workspace.createVariable('bird', '', 'bird-id');
         installAnimationWarnings(workspace);
       });
 
       afterEach(function () {
-        workspace.dispose();
+        disposeTestWorkspace(workspace);
         container.remove();
       });
 

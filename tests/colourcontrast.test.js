@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { defineTextBlocks } from '../blocks/text.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import {
@@ -122,12 +123,12 @@ export function runColourContrastTests() {
         container.style.width = '300px';
         container.style.height = '200px';
         document.body.appendChild(container);
-        workspace = Blockly.inject(container, {});
+        workspace = injectTestWorkspace(container, {});
         refresh = installContrastWarnings(workspace);
       });
 
       afterEach(function () {
-        workspace.dispose();
+        disposeTestWorkspace(workspace);
         container.remove();
       });
 

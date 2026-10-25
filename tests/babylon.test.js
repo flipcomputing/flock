@@ -1,5 +1,11 @@
 export function runTests(flock, expect) {
   describe('Flock API Tests', function () {
+    const boxIds = [];
+
+    afterEach(function () {
+      boxIds.splice(0).forEach((id) => flock.dispose(id));
+    });
+
     it('should set the sky color', function (done) {
       flock.setSky('#6495ed');
       done();
@@ -13,6 +19,7 @@ export function runTests(flock, expect) {
         depth: 4,
         position: [-4, 0.5, 0],
       });
+      boxIds.push(box1);
 
       const mesh1 = flock.scene.getMeshByName(box1);
 
@@ -30,6 +37,7 @@ export function runTests(flock, expect) {
         depth: 4,
         position: [-4, 0.5, 0],
       });
+      boxIds.push(box1);
 
       const mesh1 = flock.scene.getMeshByName(box1);
       const boundingBox = mesh1.getBoundingInfo().boundingBox;

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { addMetadata } from 'meta-png';
 import { importSnippetFile, loadExample, newProject } from '../main/files.js';
 import { translate } from '../main/translation.js';
@@ -28,12 +29,12 @@ export function runFilesImportErrorTests() {
       container = document.createElement('div');
       container.style.cssText = 'position:absolute;left:-10000px;width:600px;height:400px';
       document.body.appendChild(container);
-      injected = Blockly.inject(container, {});
+      injected = injectTestWorkspace(container, {});
     });
 
     after(function () {
       if (!injected) return;
-      injected.dispose();
+      disposeTestWorkspace(injected);
       container.remove();
     });
 

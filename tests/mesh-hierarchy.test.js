@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { useMockPhysicsScene } from './utils/mockSceneTestUtils.js';
 import * as Blockly from 'blockly';
 import { meshMap } from '../generators/generators.js';
 import { bakeGroupScale, healGroupOrigin, settleGroupRotation, updateChildBlockRotations, updateScaleBlock, setGizmoManager, gizmoManager } from '../ui/gizmos.js';
@@ -2701,40 +2702,10 @@ export function runMeshHierarchyTests(flock) {
       this.timeout(30000);
 
       let lizId, treeId;
+      let restoreScene;
 
       before(async function () {
-        if (flock.engine) flock.engine.dispose();
-
-        flock.engine = new flock.BABYLON.NullEngine();
-        flock.scene = new flock.BABYLON.Scene(flock.engine);
-        flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
-        // Templates cached by earlier tests died with the old scene.
-        flock.modelCache = {};
-        flock.modelsBeingLoaded = {};
-        flock.geometryCache = {};
-        flock.materialCache = {};
-        flock.physicsShapeCache = {};
-
-        new flock.BABYLON.FreeCamera('testCamera', flock.BABYLON.Vector3.Zero(), flock.scene);
-
-        const baseMock = {
-          name: 'MockPhysics',
-          getPluginVersion: () => 2,
-          isInitialized: () => true,
-          _checkIsReady: () => true,
-          onMeshRemovedObservable: new flock.BABYLON.Observable(),
-          onBeforePhysicsObservable: new flock.BABYLON.Observable(),
-          onAfterPhysicsObservable: new flock.BABYLON.Observable(),
-          getTimeStep: () => 1 / 60,
-          getMotionType: () => 1,
-          dispose: () => {},
-        };
-
-        const physicsMock = new Proxy(baseMock, {
-          get: (target, prop) => (prop in target ? target[prop] : () => {}),
-        });
-
-        flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
+        restoreScene = useMockPhysicsScene(flock);
         configureDraco(flock.BABYLON);
 
         lizId = flock.createCharacter({
@@ -2767,6 +2738,7 @@ export function runMeshHierarchyTests(flock) {
       after(function () {
         flock.dispose(lizId);
         flock.dispose(treeId);
+        restoreScene();
       });
 
       // hold uses the bone name "Hold" directly (no mapping). Liz3.glb is a

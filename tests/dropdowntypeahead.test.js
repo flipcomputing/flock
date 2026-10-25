@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { installDropdownTypeahead } from '../main/dropdownTypeahead.js';
 import { ContextManager } from '../main/context.js';
 
@@ -29,7 +30,7 @@ export function runDropdownTypeaheadTests() {
       container.style.width = '400px';
       container.style.height = '300px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
       for (const name of VARIABLES) workspace.getVariableMap().createVariable(name);
 
       block = workspace.newBlock('test_typeahead');
@@ -39,7 +40,7 @@ export function runDropdownTypeaheadTests() {
 
     afterEach(function () {
       Blockly.DropDownDiv.hideWithoutAnimation();
-      workspace?.dispose();
+      disposeTestWorkspace(workspace);
       container?.remove();
     });
 

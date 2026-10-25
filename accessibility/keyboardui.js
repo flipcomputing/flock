@@ -196,7 +196,7 @@ const AreaManager = {
       // lookup below (which can grab the trashcan or zoom controls). setIsActive
       // gates the focus highlight and Blockly's nav shortcuts.
       const workspace = Blockly.getMainWorkspace?.();
-      if (workspace) {
+      if (workspace?.rendered) {
         Blockly.keyboardNavigationController?.setIsActive?.(true);
         Blockly.getFocusManager?.()?.focusTree?.(workspace);
         return;

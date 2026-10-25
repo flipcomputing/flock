@@ -787,7 +787,7 @@ export function runKeyboardUiTests(flock) {
         expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(11);
         expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('true');
         chipByLabel('Blocks').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(13);
         expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('false');
       });
 

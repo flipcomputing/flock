@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { initContextMenus } from '../ui/contextmenu.js';
 import { setBlockLocked, isBlockLocked } from '../ui/blocklyutil.js';
 import {
@@ -18,7 +19,6 @@ export function runContextMenuTests(_flock) {
     let workspace;
     let container;
     let createdBlocks;
-    let previousMainWorkspace;
     let blockToolbar;
 
     before(function () {
@@ -26,31 +26,19 @@ export function runContextMenuTests(_flock) {
       // which this lightweight test harness doesn't run — register the one
       // block type these tests need directly.
       defineControlBlocks();
-      // Blockly.inject() installs its result as the global main workspace;
-      // save whatever it was so after() can put it back rather than leaving
-      // a disposed workspace as "main" for suites that run later in the same
-      // browser session.
-      previousMainWorkspace = Blockly.getMainWorkspace?.();
       container = document.createElement('div');
       container.style.width = '300px';
       container.style.height = '200px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, { collapse: true });
+      workspace = injectTestWorkspace(container, { collapse: true });
       initContextMenus(workspace);
       // initContextMenus appends its toolbar to <body>; ours is the newest.
       blockToolbar = [...document.querySelectorAll('.fc-block-toolbar')].pop();
     });
 
     after(function () {
-      workspace?.dispose();
+      disposeTestWorkspace(workspace);
       container?.remove();
-      // setMainWorkspace(null) itself throws (it dereferences the workspace
-      // it's given), so only restore when there was a real prior workspace —
-      // otherwise leave things as Blockly's own inject/dispose left them,
-      // matching pre-existing behaviour for that case.
-      if (previousMainWorkspace) {
-        Blockly.common?.setMainWorkspace?.(previousMainWorkspace);
-      }
     });
 
     beforeEach(function () {

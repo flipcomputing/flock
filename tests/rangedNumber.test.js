@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { defineSameNumberBlock, SAME_NUMBER_TYPE } from '../blocks/initialTransformRows.js';
@@ -236,13 +237,13 @@ export function runRangedNumberTests(flock) {
         container.style.width = '400px';
         container.style.height = '300px';
         document.body.appendChild(container);
-        workspace = Blockly.inject(container, {});
+        workspace = injectTestWorkspace(container, {});
       });
 
       afterEach(function () {
         Blockly.WidgetDiv.hide();
         Blockly.DropDownDiv.hideWithoutAnimation();
-        workspace.dispose();
+        disposeTestWorkspace(workspace);
         container.remove();
       });
 

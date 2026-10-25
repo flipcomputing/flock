@@ -27,9 +27,9 @@ export function runGlideToObjectTests(flock) {
       this.timeout(5000);
 
       const sourceId = box1; // assuming box1 is a name set in beforeEach
-      const targetId = 'box2';
+      const targetId = 'defaultOffsetTarget';
 
-      flock.createBox(targetId, {
+      box2 = flock.createBox(targetId, {
         width: 2,
         height: 2,
         depth: 2,
@@ -54,9 +54,9 @@ export function runGlideToObjectTests(flock) {
       this.timeout(5000);
 
       const sourceId = box1; // assuming box1 is the name set in beforeEach
-      const targetId = 'box2';
+      const targetId = 'xyzOffsetTarget';
 
-      flock.createBox(targetId, {
+      box2 = flock.createBox(targetId, {
         width: 1,
         height: 1,
         depth: 1,
@@ -94,7 +94,7 @@ export function runGlideToObjectTests(flock) {
       const sourceId = box1; // created in beforeEach
       const targetId = 'targetSphere';
 
-      flock.createSphere(targetId, {
+      box2 = flock.createSphere(targetId, {
         diameterX: 1.5,
         diameterY: 2,
         diameterZ: 1,
@@ -135,7 +135,7 @@ export function runGlideToObjectTests(flock) {
       });
 
       // Create target cylinder
-      flock.createCylinder(targetId, {
+      box2 = flock.createCylinder(targetId, {
         diameterTop: 1,
         diameterBottom: 1.2,
         height: 3,

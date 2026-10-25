@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { javascriptGenerator } from 'blockly/javascript';
 import { initializeIfClauseConnectionChecker } from '../main/blocklyinit.js';
 import { defineControlBlocks } from '../blocks/control.js';
@@ -60,13 +61,13 @@ export function runIfClauseTests() {
       container.style.width = '600px';
       container.style.height = '400px';
       document.body.appendChild(container);
-      workspace = Blockly.inject(container, {});
+      workspace = injectTestWorkspace(container, {});
       initializeIfClauseConnectionChecker(workspace);
       await settle();
     });
 
     afterEach(function () {
-      workspace?.dispose();
+      disposeTestWorkspace(workspace);
       container?.remove();
     });
 
