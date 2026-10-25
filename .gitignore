@@ -14,3 +14,5 @@ logs/
 reports/
 .claude/settings.json
 .claude/settings.local.json
+docs/.DS_Store
+.DS_Store
