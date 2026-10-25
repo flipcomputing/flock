@@ -148,48 +148,31 @@ export const flockEvents = {
   },
   async forever(action) {
     let isDisposed = false;
-    let isActionRunning = false;
+    let pace = null;
 
-    // Function to run the action
-    const runAction = async () => {
-      if (isDisposed) {
-        console.log('Scene is disposed. Exiting action.');
-        return; // Exit if the scene is disposed
-      }
-
-      if (isActionRunning) {
-        return; // Exit if the action is already running
-      }
-
-      if (flock.isPaused()) {
-        flock.whenRunning(() => {
-          if (!isDisposed) flock.scene.onBeforeRenderObservable.addOnce(runAction);
-        });
-        return;
-      }
-
-      isActionRunning = true;
-
-      try {
-        if (isDisposed) {
-          return;
-        }
-        await action();
-      } catch (error) {
-        flock.reportBlockError({
-          key: 'forever_block_failed',
-          api: 'forever',
-          error,
-        });
-      } finally {
-        isActionRunning = false;
-        if (!isDisposed) {
-          flock.scene.onBeforeRenderObservable.addOnce(runAction);
+    const runLoop = async () => {
+      while (!isDisposed) {
+        await new Promise((resolve) => pace(resolve));
+        if (isDisposed) return;
+        try {
+          await action();
+        } catch (error) {
+          flock.reportBlockError({
+            key: 'forever_block_failed',
+            api: 'forever',
+            error,
+          });
         }
       }
     };
 
-    flock.scene.onBeforeRenderObservable.addOnce(runAction);
+    const begin = () =>
+      flock.whenRunning(() => {
+        if (isDisposed) return;
+        pace = flock.makeLoopPacer();
+        runLoop();
+      });
+    flock.scene.onBeforeRenderObservable.addOnce(begin);
     // Handle scene disposal
     const disposeHandler = () => {
       if (isDisposed) {
@@ -197,7 +180,8 @@ export const flockEvents = {
       }
 
       isDisposed = true;
-      flock.scene.onBeforeRenderObservable.removeCallback(runAction);
+      flock.scene.onBeforeRenderObservable.removeCallback(begin);
+      pace?.stop();
     };
     flock.scene.onDisposeObservable.addOnce(disposeHandler);
     // Also stop when the owning section unloads, not just on scene disposal.

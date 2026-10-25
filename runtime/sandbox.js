@@ -438,6 +438,10 @@ export const flockSandbox = {
         flock.makeLoopYield(guard, signal),
         '__flockLoopYield'
       );
+      endowments.__flockLoopPacer = win.__flockWrapHostFn(() => {
+        const pace = flock.makeLoopPacer(signal);
+        return win.__flockWrapHostFn((callback) => pace(guard(callback)), '__flockLoopPace');
+      }, '__flockLoopPacer');
 
       endowments.Date = new win.Object();
       endowments.Date.now = win.Date.now.bind(win.Date);
@@ -960,5 +964,6 @@ export const SANDBOX_API_NAMES = [
   'performance',
   'requestAnimationFrame',
   '__flockLoopYield',
+  '__flockLoopPacer',
   'Date',
 ];

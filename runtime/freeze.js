@@ -1,6 +1,9 @@
 let flock;
 
 const MAX_TIMEOUT_MS = 2147483647;
+const LOOP_TICK_MS = 1000 / 60;
+const LOOP_MAX_RUNS_PER_FRAME = 4;
+const LOOP_LONG_RUN_MS = 2 * LOOP_TICK_MS;
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -121,6 +124,101 @@ export const flockFreeze = {
       schedulerYield ? schedulerYield().then(settle, settle) : requestAnimationFrame(settle);
     const held = flock.makeFreezeAwareYield(nativeYield, signal);
     return (callback) => held(guard(callback));
+  },
+  // Paces a repeating loop (forever, while) to one run per LOOP_TICK_MS of game
+  // time, so a per-run step like "rotate by 1" covers the same ground at any
+  // frame rate. Call pace(settle) as each run is about to start; settle fires
+  // when it is due. Short runs catch up within a frame on slow machines, up to
+  // LOOP_MAX_RUNS_PER_FRAME; a run that went long repeats on the next frame.
+  makeLoopPacer(signal) {
+    const scene = flock.scene;
+    const now = () => flock.getTime('milliseconds');
+    let first = true;
+    let stopped = false;
+    let budget = 0;
+    let last = now();
+    let startedAt = last;
+    let startFrameId = scene.getFrameId();
+    let runsThisFrame = 0;
+    let dueNextFrame = false;
+    let pending = null;
+    let observer = null;
+
+    const accrue = () => {
+      const t = now();
+      budget = Math.min(budget + Math.max(0, t - last), LOOP_MAX_RUNS_PER_FRAME * LOOP_TICK_MS);
+      last = t;
+    };
+    // Rounds to the nearest tick: the clock is whole milliseconds, so waiting
+    // for a full tick would alternate 0 and 2 runs on 16 and 17 ms frames.
+    const start = (newFrame) => {
+      if (newFrame || scene.getFrameId() !== startFrameId) runsThisFrame = 0;
+      if (flock.isPaused() || budget < LOOP_TICK_MS / 2) return false;
+      if (runsThisFrame >= LOOP_MAX_RUNS_PER_FRAME) return false;
+      budget -= LOOP_TICK_MS;
+      runsThisFrame += 1;
+      startFrameId = scene.getFrameId();
+      startedAt = now();
+      return true;
+    };
+    // Only a waiting pacer holds anything, so the abort listener lives only for
+    // the wait; a while loop makes a pacer each time it runs.
+    const unobserve = () => {
+      if (observer) scene.onBeforeRenderObservable.remove(observer);
+      observer = null;
+      signal?.removeEventListener('abort', stop);
+    };
+    // Stays registered until a run starts: Babylon calls an observer added
+    // during notify in the same pass, so re-adding each frame would spin.
+    const onFrame = () => {
+      accrue();
+      if (dueNextFrame) {
+        budget = Math.max(budget, LOOP_TICK_MS);
+        dueNextFrame = false;
+      }
+      if (!start(true)) return;
+      unobserve();
+      const settle = pending;
+      pending = null;
+      // The run only begins once this render has finished, so its time starts
+      // there; a slow render would otherwise make every run look long.
+      queueMicrotask(() => {
+        startedAt = now();
+        settle();
+      });
+    };
+    const stop = () => {
+      stopped = true;
+      pending = null;
+      unobserve();
+    };
+
+    const pace = (settle) => {
+      if (stopped || signal?.aborted) return;
+      if (first) {
+        first = false;
+        startedAt = now();
+        startFrameId = scene.getFrameId();
+        last = startedAt;
+        runsThisFrame = 1;
+        settle();
+        return;
+      }
+      accrue();
+      if (scene.getFrameId() - startFrameId >= 2 || now() - startedAt > LOOP_LONG_RUN_MS) {
+        budget = 0;
+        dueNextFrame = true;
+      }
+      if (!dueNextFrame && start(false)) {
+        settle();
+        return;
+      }
+      pending = settle;
+      observer = scene.onBeforeRenderObservable.add(onFrame);
+      signal?.addEventListener('abort', stop, { once: true });
+    };
+    pace.stop = stop;
+    return pace;
   },
   // setTimeout that spends no frozen time: it holds while the tab is hidden or
   // the project is paused and resumes with the delay that was left, so a

@@ -182,17 +182,21 @@ export function registerControlGenerators(javascriptGenerator) {
     if (until) {
       argument0 = '!' + argument0;
     }
-    // Yield a real render frame per iteration (not setTimeout, which spins many
-    // times per frame): guarantees exactly one physics/render step before the
-    // condition is re-checked, so physics-dependent conditions (e.g. touching)
-    // advance reliably without the user adding a manual wait. Still stoppable —
-    // rAF yields to the event loop just like a timer.
+    // Paced like forever: one run per 1/60 s of game time, waiting for render
+    // frames (not setTimeout, which spins many times per frame) so physics-
+    // dependent conditions (e.g. touching) advance without a manual wait. The
+    // pace comes before the condition so a `continue` can't skip it and the
+    // condition is checked after the wait, not before it.
+    const pace = javascriptGenerator.nameDB_.getDistinctName(
+      'loop_pace',
+      Blockly.Names.DEVELOPER_VARIABLE_TYPE
+    );
     return (
-      'while (' +
-      argument0 +
-      ') {\n' +
+      `const ${pace} = __flockLoopPacer();\n` +
+      'while (true) {\n' +
+      `  await new Promise(resolve => ${pace}(resolve));\n` +
+      `  if (!(${argument0})) break;\n` +
       branch +
-      `\nawait new Promise(resolve => requestAnimationFrame(resolve));\n` +
       '}\n'
     );
   };
