@@ -340,5 +340,39 @@ export function runBlockmeshLiveTests(flock) {
         expect(applied).to.have.lengthOf(0);
       });
     });
+
+    describe('follow camera mode', function () {
+      it('rebuilds the rig with the new mode when the dropdown changes', function () {
+        const fields = { MODE: 'trail', TARGET: null };
+        const block = {
+          id: 'followCam1',
+          type: 'create_follow_camera',
+          isEnabled: () => true,
+          disposed: false,
+          getParent: () => null,
+          getField: () => null,
+          getFieldValue: (name) => fields[name] ?? null,
+          getInput: () => null,
+          getInputTargetBlock: () => null,
+        };
+        const calls = [];
+        const origUpdateRig = flock.updateCameraRig;
+        flock.updateCameraRig = (name, options) => calls.push({ name, options });
+        try {
+          updateMeshFromBlock(makeMesh(block.id, 'camera__followCam1'), block, {
+            type: Blockly.Events.BLOCK_CHANGE,
+            element: 'field',
+            name: 'MODE',
+            blockId: block.id,
+          });
+        } finally {
+          flock.updateCameraRig = origUpdateRig;
+        }
+
+        expect(calls).to.have.lengthOf(1);
+        expect(calls[0].name).to.equal('camera__followCam1');
+        expect(calls[0].options.mode).to.equal('trail');
+      });
+    });
   });
 }

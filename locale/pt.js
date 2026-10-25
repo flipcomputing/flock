@@ -182,7 +182,7 @@ export default {
   camera_follow: 'câmera %5 segue %1 distância: %2 ângulo: %3 frente: %4', // AI-generated; needs validation
   get_camera: 'obter câmera como %1',
   create_fly_camera: 'adicionar câmera de voo %1 \n%6 x: %2 y: %3 z: %4 visível: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'adicionar câmera que segue %1 em %2 \n%7 distância: %3 acima: %4 ao redor: %5 visível: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'adicionar câmera que segue %1 em %2 %9 \n%7 distância: %3 acima: %4 ao redor: %5 visível: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'adicionar câmera em órbita %1 ao redor de %2 \n%7 distância: %3 acima: %4 ao redor: %5 visível: %6 %8', // AI-generated; needs validation
   switch_camera: 'trocar câmera para %1', // AI-generated; needs validation
 
@@ -453,7 +453,7 @@ export default {
     'Faz a câmera seguir um objeto com uma distância (raio) personalizável do alvo.',
   get_camera_tooltip: 'Obtém a câmera atual da cena.',
   create_fly_camera_tooltip: 'Adiciona uma câmera com a qual você pode voar. Ela olha para onde a sua moldura aponta.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Adiciona uma câmera que segue um objeto. O jogador pode girá-la ao redor do objeto.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Adiciona uma câmera que segue um objeto. Manter ângulo fica no mesmo ângulo como uma cena de filme, girar com gira quando o objeto gira, e arrastar é puxada atrás dele. O jogador pode girá-la ao redor do objeto.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Adiciona uma câmera que orbita um objeto. Arraste para orbitar e role para ampliar.', // AI-generated; needs validation
   switch_camera_tooltip: 'Muda a vista para uma câmera.', // AI-generated; needs validation
 
@@ -704,6 +704,9 @@ export default {
   scaling_y_option: 'escala.y',
   scaling_z_option: 'escala.z',
 
+  keep_option: 'manter ângulo', // AI-generated; needs validation
+  turn_option: 'girar com', // AI-generated; needs validation
+  trail_option: 'arrastar', // AI-generated; needs validation
   rotateLeft_option: 'girar para a esquerda',
   rotateRight_option: 'girar para a direita',
   rotateUp_option: 'olhar para cima',

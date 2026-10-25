@@ -183,7 +183,7 @@ export default {
   camera_follow: 'kamera %5 śledzi %1, odległość: %2, kąt: %3, przód: %4', // AI-generated; needs validation
   get_camera: 'pobierz kamerę jako %1',
   create_fly_camera: 'dodaj kamerę lotu %1 \n%6 x: %2 y: %3 z: %4 widoczna: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'dodaj kamerę śledzącą %1 na %2 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'dodaj kamerę śledzącą %1 na %2 %9 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'dodaj kamerę orbitalną %1 wokół %2 \n%7 odległość: %3 w górę: %4 dookoła: %5 widoczna: %6 %8', // AI-generated; needs validation
   switch_camera: 'przełącz kamerę na %1', // AI-generated; needs validation
 
@@ -452,7 +452,7 @@ export default {
   camera_follow_tooltip: 'Spraw, by kamera śledziła obiekt z ustawioną odległością (promieniem).',
   get_camera_tooltip: 'Pobierz bieżącą kamerę sceny.',
   create_fly_camera_tooltip: 'Dodaje kamerę, którą możesz latać. Patrzy tam, gdzie wskazuje jej ramka.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Dodaje kamerę, która śledzi obiekt. Gracz może obracać ją wokół obiektu.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Dodaje kamerę, która śledzi obiekt. Zachowaj kąt zostaje pod tym samym kątem jak ujęcie filmowe, obracaj z obraca się razem z obiektem, a ciągnij jest ciągnięta za nim. Gracz może obracać ją wokół obiektu.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Dodaje kamerę krążącą wokół obiektu. Przeciągnij, aby krążyć, i przewiń, aby przybliżyć.', // AI-generated; needs validation
   switch_camera_tooltip: 'Przełącz widok na kamerę.', // AI-generated; needs validation
 
@@ -695,6 +695,9 @@ export default {
   scaling_y_option: 'skalowanie.y',
   scaling_z_option: 'skalowanie.z',
 
+  keep_option: 'zachowaj kąt', // AI-generated; needs validation
+  turn_option: 'obracaj z', // AI-generated; needs validation
+  trail_option: 'ciągnij', // AI-generated; needs validation
   rotateLeft_option: 'obróć w lewo',
   rotateRight_option: 'obróć w prawo',
   rotateUp_option: 'spojrzeć w górę',

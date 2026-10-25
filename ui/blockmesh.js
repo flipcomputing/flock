@@ -1908,6 +1908,7 @@ export function applyInitialTransformRows(
       reattachToParent(mesh, parentMesh);
     }
     flock.updatePhysics(mesh);
+    flock.refreshFollowCameras(mesh);
   }
   if (aboutCentre) {
     const position = readBlockPosition(meshes[0], block);
@@ -2047,6 +2048,7 @@ function applyTransformBlockToMeshes(transformBlock, meshes) {
     return Promise.all(
       meshes.map((mesh) =>
         flock.rotateTo(mesh.name, { ...rotation, world: true }).then(() => {
+          flock.refreshFollowCameras(mesh);
           // Rotating a member reshapes the group bounds - keep the group
           // outline in sync, like moving a child does.
           const groupMesh = mesh?.parent;
@@ -2185,7 +2187,10 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       changed = 'HORIZONTAL';
     } else if (block.type === 'create_freeform' && changeEvent.name === 'ROUNDING') {
       changed = 'ROUNDING';
-    } else if (CAMERA_BLOCK_TYPES.has(block.type) && ['TARGET', 'VISIBLE'].includes(changeEvent.name)) {
+    } else if (
+      CAMERA_BLOCK_TYPES.has(block.type) &&
+      ['TARGET', 'VISIBLE', 'MODE'].includes(changeEvent.name)
+    ) {
       changed = changeEvent.name;
     }
   }
@@ -2348,7 +2353,7 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
     if (changed === 'VISIBLE') {
       const visible = block.getFieldValue('VISIBLE') === 'TRUE';
       meshes.forEach((mesh) => flock.setCameraFrameVisible(mesh.name, visible));
-    } else if (['TARGET', 'DISTANCE', 'UP', 'AROUND'].includes(changed)) {
+    } else if (['TARGET', 'DISTANCE', 'UP', 'AROUND', 'MODE'].includes(changed)) {
       const options = readTargetCameraOptions(block);
       meshes.forEach((mesh) => flock.updateCameraRig(mesh.name, options));
     }

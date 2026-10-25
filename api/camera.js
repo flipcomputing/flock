@@ -4,6 +4,9 @@ import { clampToRange } from '../config.js';
 let flock;
 
 const CONSTRAINT_ANCHOR_Y = -10000;
+const FOLLOW_EASE_SECONDS = 0.15;
+const FOLLOW_RECENTER_SECONDS = 2.5;
+const FOLLOW_RECENTER_DELAY_SECONDS = 1;
 
 export function setFlockReference(ref) {
   flock = ref;
@@ -150,6 +153,7 @@ export const flockCamera = {
       distance = 7,
       up = 30,
       around = 0,
+      mode = 'keep',
       visible = false,
       callback = null,
     } = {}
@@ -184,7 +188,7 @@ export const flockCamera = {
     });
     frame.computeWorldMatrix(true);
 
-    flockCamera._buildRigCamera(frame, type, { target, distance, up, around });
+    flockCamera._buildRigCamera(frame, type, { target, distance, up, around, mode });
     frame.onDisposeObservable.add(() => flockCamera._disposeRigCamera(frame));
 
     flock.announceMeshReady(frame.name, groupName);
@@ -298,9 +302,10 @@ export const flockCamera = {
     frame.material = material;
     frame.onDisposeObservable.add(() => material.dispose());
   },
-  // up: 0 is level with the target, 90 straight overhead. around: world
-  // degrees, 0 on the -Z side (the default front view), 90 on the +X side.
-  _createTargetCamera(frame, type, targetMesh, { distance, up, around }) {
+  // up: 0 is level with the target, 90 straight overhead. around: degrees from
+  // the target's front for follow cameras; world degrees for orbit cameras, 0 on
+  // the -Z side (the default front view), 90 on the +X side.
+  _createTargetCamera(frame, type, targetMesh, { distance, up, around, mode }) {
     const BABYLON = flock.BABYLON;
     targetMesh.computeWorldMatrix(true);
     const targetPoint = targetMesh.getAbsolutePosition().clone();
@@ -309,7 +314,8 @@ export const flockCamera = {
       Math.max(BABYLON.Tools.ToRadians(90 - (Number(up) || 0)), 0.01),
       Math.PI - 0.01
     );
-    const alphaRadians = BABYLON.Tools.ToRadians((Number(around) || 0) - 90);
+    const front = type === 'orbit' ? -Math.PI / 2 : flockCamera._headingAlpha(targetMesh);
+    const alphaRadians = front + BABYLON.Tools.ToRadians(Number(around) || 0);
     const eye = targetPoint.add(
       new BABYLON.Vector3(
         radius * Math.cos(alphaRadians) * Math.sin(betaRadians),
@@ -338,7 +344,66 @@ export const flockCamera = {
       camera.metadata = { following: targetMesh };
     }
     camera.setPosition(eye);
+    if (type === 'follow' && (mode === 'turn' || mode === 'trail')) {
+      flockCamera._startFollowTurning(camera, targetMesh, mode);
+    }
     return camera;
+  },
+  // Eases alpha toward where the mode wants it, at the same rate at any frame
+  // rate. Other changes to alpha (drags, glides, gizmos) are kept, until a turn
+  // camera has been left alone long enough to drift back to its angle.
+  _startFollowTurning(camera, target, mode) {
+    const scene = flock.scene;
+    const wrap = (angle) => angle - 2 * Math.PI * Math.round(angle / (2 * Math.PI));
+    let written = camera.alpha;
+    let wanted = camera.alpha;
+    const offset = camera.alpha - flockCamera._headingAlpha(target);
+    let swing = 0;
+    let leftAlone = FOLLOW_RECENTER_DELAY_SECONDS;
+    const last = target.getAbsolutePosition().clone();
+
+    const observer = scene.onBeforeRenderObservable.add(() => {
+      if (target.isDisposed()) return;
+      const moved = camera.alpha - written;
+      if (Math.abs(moved) > 1e-4) leftAlone = 0;
+      wanted += moved;
+      // A leash: the eye stays put and the target pulls it along.
+      const position = target.getAbsolutePosition();
+      const horizontal = camera.radius * Math.sin(camera.beta);
+      const x = last.x + horizontal * Math.cos(wanted) - position.x;
+      const z = last.z + horizontal * Math.sin(wanted) - position.z;
+      if (x * x + z * z > 1e-8) wanted = Math.atan2(z, x);
+      last.copyFrom(position);
+      written = camera.alpha;
+      if (flock.isPaused() || camera.metadata?._cameraGlide) return;
+
+      const seconds = Math.min(scene.getEngine().getDeltaTime() / 1000, 0.1);
+      const ease = (time) => 1 - Math.exp(-seconds / time);
+      leftAlone += seconds;
+      if (mode === 'turn' && leftAlone >= FOLLOW_RECENTER_DELAY_SECONDS) {
+        // Drifts round to its angle from the front; near a half turn it keeps
+        // swinging the way it already is.
+        let behind = wrap(flockCamera._headingAlpha(target) + offset - wanted);
+        if (swing && Math.sign(behind) !== swing && Math.abs(behind) > Math.PI / 2) {
+          behind -= Math.sign(behind) * 2 * Math.PI;
+        }
+        swing = Math.abs(behind) > 1e-3 ? Math.sign(behind) : 0;
+        wanted += behind * ease(FOLLOW_RECENTER_SECONDS);
+      }
+      camera.alpha += wrap(wanted - camera.alpha) * ease(FOLLOW_EASE_SECONDS);
+      written = camera.alpha;
+    });
+    camera.onDisposeObservable.add(() => scene.onBeforeRenderObservable.remove(observer));
+  },
+  // Follow cameras that keep their angle or trail are placed from the target's
+  // front once, so turning the target in the editor places them again.
+  refreshFollowCameras(mesh) {
+    for (const frame of flock.scene?.meshes ?? []) {
+      const { shape, cameraType, cameraTarget, cameraOptions } = frame.metadata ?? {};
+      if (shape !== 'camera' || cameraType !== 'follow' || cameraTarget !== mesh) continue;
+      if (cameraOptions?.mode === 'turn') continue;
+      flockCamera.updateCameraRig(frame.name);
+    }
   },
   // Whichever side moved since the last frame wins: a moved frame (gizmo, block,
   // glide, group) drives the camera, otherwise the camera's pose is copied back.
@@ -420,9 +485,13 @@ export const flockCamera = {
     });
     frame.metadata.cameraSyncObserver = observer;
   },
-  _buildRigCamera(frame, type, { target = null, distance = 7, up = 30, around = 0 } = {}) {
+  _buildRigCamera(
+    frame,
+    type,
+    { target = null, distance = 7, up = 30, around = 0, mode = 'keep' } = {}
+  ) {
     frame.metadata.cameraType = type;
-    frame.metadata.cameraOptions = { target, distance, up, around };
+    frame.metadata.cameraOptions = { target, distance, up, around, mode };
     frame.metadata.cameraTarget = null;
     const cameraType = type === 'fly' || !target ? 'fly' : type;
     // A build still waiting on its target when a newer one starts is dropped.
@@ -461,7 +530,14 @@ export const flockCamera = {
       if (target === '__origin__') {
         const origin = flockCamera._originNode();
         frame.metadata.cameraTarget = origin;
-        finish(flockCamera._createTargetCamera(frame, cameraType, origin, { distance, up, around }));
+        finish(
+          flockCamera._createTargetCamera(frame, cameraType, origin, {
+            distance,
+            up,
+            around,
+            mode,
+          })
+        );
         return;
       }
 
@@ -476,6 +552,7 @@ export const flockCamera = {
             distance,
             up,
             around,
+            mode,
           })
         );
       });
@@ -516,9 +593,11 @@ export const flockCamera = {
   },
   // Distance, up and around of an eye point from a target, as the follow and
   // orbit camera blocks store them (see _createTargetCamera).
-  cameraOffsetFromTarget(target, eye) {
+  cameraOffsetFromTarget(target, eye, { fromFront } = {}) {
     if (typeof target === 'string') {
-      target = flock.scene?.getMeshByName(target)?.metadata?.cameraTarget;
+      const frame = flock.scene?.getMeshByName(target);
+      fromFront ??= frame?.metadata?.cameraType === 'follow';
+      target = frame?.metadata?.cameraTarget;
     }
     if (!target || target.isDisposed()) return null;
     target.computeWorldMatrix(true);
@@ -527,7 +606,8 @@ export const flockCamera = {
     if (distance < 1e-6) return null;
     const { ToDegrees } = flock.BABYLON.Tools;
     const up = 90 - ToDegrees(Math.acos(Math.min(Math.max(offset.y / distance, -1), 1)));
-    const around = (ToDegrees(Math.atan2(offset.z, offset.x)) + 90 + 360) % 360;
+    const front = fromFront ? ToDegrees(flockCamera._headingAlpha(target)) : -90;
+    const around = (((ToDegrees(Math.atan2(offset.z, offset.x)) - front) % 360) + 360) % 360;
     return { distance, up, around };
   },
   _disposeRigCamera(frame, { rebuilding = false } = {}) {
@@ -747,6 +827,10 @@ export const flockCamera = {
     return facing.lengthSquared() > 1e-6
       ? facing.normalize()
       : new flock.BABYLON.Vector3(0, 0, -1);
+  },
+  _headingAlpha(mesh) {
+    const facing = flockCamera._followFacing(mesh);
+    return Math.atan2(facing.z, facing.x);
   },
   ensureVerticalConstraint(mesh) {
     if (!mesh || !flock.scene) return;

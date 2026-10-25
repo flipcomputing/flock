@@ -181,7 +181,7 @@ export default {
   camera_follow: 'kamera %5 följ %1 avstånd: %2 vinkel: %3 fram: %4', // AI-generated; needs validation
   get_camera: 'hämta kamera som %1',
   create_fly_camera: 'lägg till flygkamera %1 \n%6 x: %2 y: %3 z: %4 synlig: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'lägg till följkamera %1 på %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'lägg till följkamera %1 på %2 %9 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'lägg till kretskamera %1 runt %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
   switch_camera: 'byt kamera till %1', // AI-generated; needs validation
 
@@ -449,7 +449,7 @@ export default {
     'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.',
   get_camera_tooltip: 'Hämta den aktuella scenkameran.',
   create_fly_camera_tooltip: 'Lägg till en kamera som du kan flyga runt med. Den tittar dit dess ram pekar.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Lägg till en kamera som följer ett objekt. Spelaren kan vrida den runt objektet.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Lägg till en kamera som följer ett objekt. Behåll vinkel stannar i samma vinkel som en filmscen, vrid med vrider sig när objektet vrider sig, och släpa dras med bakom det. Spelaren kan vrida den runt objektet.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Lägg till en kamera som kretsar runt ett objekt. Dra för att kretsa och scrolla för att zooma.', // AI-generated; needs validation
   switch_camera_tooltip: 'Byt vy till en kamera.', // AI-generated; needs validation
 
@@ -697,6 +697,9 @@ export default {
   scaling_y_option: 'skalning.y',
   scaling_z_option: 'skalning.z',
 
+  keep_option: 'behåll vinkel', // AI-generated; needs validation
+  turn_option: 'vrid med', // AI-generated; needs validation
+  trail_option: 'släpa', // AI-generated; needs validation
   rotateLeft_option: 'rotera vänster',
   rotateRight_option: 'rotera höger',
   rotateUp_option: 'titta uppåt',

@@ -185,7 +185,7 @@ export default {
   get_camera: 'get camera as %1',
   create_fly_camera: 'add fly camera %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7',
   create_follow_camera:
-    'add follow camera %1 on %2 \n%7 distance: %3 up: %4 around: %5 visible: %6 %8',
+    'add follow camera %1 on %2 %9 \n%7 distance: %3 up: %4 around: %5 visible: %6 %8',
   create_orbit_camera:
     'add orbit camera %1 around %2 \n%7 distance: %3 up: %4 around: %5 visible: %6 %8',
   switch_camera: 'switch camera to %1',
@@ -539,7 +539,7 @@ export default {
   get_camera_tooltip: 'Get the current scene camera.',
   create_fly_camera_tooltip: 'Add a camera you can fly around. It looks the way its frame points.',
   create_follow_camera_tooltip:
-    'Add a camera that follows an object. The player can turn it around the object.',
+    'Add a camera that follows an object. Keep angle stays at the same angle like a film shot, turn with turns as the object turns, and trail is pulled along behind it. The player can turn it around the object.',
   create_orbit_camera_tooltip:
     'Add a camera that orbits around an object or the origin. Drag to orbit and scroll to zoom.',
   switch_camera_tooltip: 'Switch the view to a camera.',
@@ -877,6 +877,9 @@ export default {
   scaling_y_option: 'scaling.y',
   scaling_z_option: 'scaling.z',
 
+  keep_option: 'keep angle',
+  turn_option: 'turn with',
+  trail_option: 'trail',
   rotateLeft_option: 'rotate left',
   rotateRight_option: 'rotate right',
   rotateUp_option: 'look up',

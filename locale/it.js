@@ -183,7 +183,7 @@ export default {
   camera_follow: 'camera %5 segue %1 distanza: %2 angolo: %3 fronte: %4', // AI-generated; needs validation
   get_camera: 'ottieni camera come %1',
   create_fly_camera: 'aggiungi camera di volo %1 \n%6 x: %2 y: %3 z: %4 visibile: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'aggiungi camera che segue %1 su %2 \n%7 distanza: %3 su: %4 intorno: %5 visibile: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'aggiungi camera che segue %1 su %2 %9 \n%7 distanza: %3 su: %4 intorno: %5 visibile: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'aggiungi camera in orbita %1 intorno a %2 \n%7 distanza: %3 su: %4 intorno: %5 visibile: %6 %8', // AI-generated; needs validation
   switch_camera: 'cambia camera a %1', // AI-generated; needs validation
 
@@ -454,7 +454,7 @@ export default {
     'Fa seguire alla camera un oggetto con una distanza (raggio) personalizzabile dal bersaglio.',
   get_camera_tooltip: 'Ottieni la camera corrente della scena.',
   create_fly_camera_tooltip: 'Aggiunge una camera con cui puoi volare. Guarda nella direzione della sua cornice.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Aggiunge una camera che segue un oggetto. Il giocatore può ruotarla intorno all’oggetto.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Aggiunge una camera che segue un oggetto. Mantieni angolo resta allo stesso angolo come un’inquadratura di un film, gira con gira quando gira l’oggetto, e trascina viene tirata dietro di esso. Il giocatore può ruotarla intorno all’oggetto.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Aggiunge una camera che orbita intorno a un oggetto. Trascina per orbitare e scorri per lo zoom.', // AI-generated; needs validation
   switch_camera_tooltip: 'Passa la vista a una camera.', // AI-generated; needs validation
 
@@ -699,6 +699,9 @@ export default {
   scaling_y_option: 'scalatura.y',
   scaling_z_option: 'scalatura.z',
 
+  keep_option: 'mantieni angolo', // AI-generated; needs validation
+  turn_option: 'gira con', // AI-generated; needs validation
+  trail_option: 'trascina', // AI-generated; needs validation
   rotateLeft_option: 'ruota a sinistra',
   rotateRight_option: 'ruota a destra',
   rotateUp_option: 'guarda in alto',

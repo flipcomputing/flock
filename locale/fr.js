@@ -182,7 +182,7 @@ export default {
   camera_follow: 'caméra %5 suivre %1 distance : %2 angle : %3 devant : %4', // AI-generated; needs validation
   get_camera: 'obtenir la caméra comme %1',
   create_fly_camera: 'ajouter caméra de vol %1 \n%6 x : %2 y : %3 z : %4 visible : %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'ajouter caméra de suivi %1 sur %2 \n%7 distance : %3 haut : %4 autour : %5 visible : %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'ajouter caméra de suivi %1 sur %2 %9 \n%7 distance : %3 haut : %4 autour : %5 visible : %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'ajouter caméra en orbite %1 autour de %2 \n%7 distance : %3 haut : %4 autour : %5 visible : %6 %8', // AI-generated; needs validation
   switch_camera: 'changer de caméra vers %1', // AI-generated; needs validation
 
@@ -453,7 +453,7 @@ export default {
     'Faire suivre un objet par la caméra avec une distance (rayon) personnalisable par rapport à la cible.',
   get_camera_tooltip: 'Obtenir la caméra actuelle de la scène.',
   create_fly_camera_tooltip: 'Ajoute une caméra avec laquelle vous pouvez voler. Elle regarde dans la direction de son cadre.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Ajoute une caméra qui suit un objet. Le joueur peut la tourner autour de l’objet.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Ajoute une caméra qui suit un objet. Garder l’angle reste au même angle comme un plan de film, tourner avec tourne quand l’objet tourne, et traîner est tirée derrière lui. Le joueur peut la tourner autour de l’objet.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Ajoute une caméra qui tourne autour d’un objet. Glissez pour tourner et faites défiler pour zoomer.', // AI-generated; needs validation
   switch_camera_tooltip: 'Passer la vue sur une caméra.', // AI-generated; needs validation
 
@@ -707,6 +707,9 @@ export default {
   scaling_y_option: 'échelle.y',
   scaling_z_option: 'échelle.z',
 
+  keep_option: 'garder l’angle', // AI-generated; needs validation
+  turn_option: 'tourner avec', // AI-generated; needs validation
+  trail_option: 'traîner', // AI-generated; needs validation
   rotateLeft_option: 'tourner à gauche',
   rotateRight_option: 'tourner à droite',
   rotateUp_option: 'regarder en haut',

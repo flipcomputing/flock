@@ -183,7 +183,7 @@ export default {
   camera_follow: 'Kamera %5 folgt %1 Abstand: %2 Winkel: %3 vorne: %4', // AI-generated; needs validation
   get_camera: 'Kamera als %1 holen',
   create_fly_camera: 'Flugkamera hinzufügen %1 \n%6 x: %2 y: %3 z: %4 sichtbar: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'Folgekamera hinzufügen %1 auf %2 \n%7 Abstand: %3 hoch: %4 rundum: %5 sichtbar: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'Folgekamera hinzufügen %1 auf %2 %9 \n%7 Abstand: %3 hoch: %4 rundum: %5 sichtbar: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'Orbitkamera hinzufügen %1 um %2 \n%7 Abstand: %3 hoch: %4 rundum: %5 sichtbar: %6 %8', // AI-generated; needs validation
   switch_camera: 'Kamera wechseln zu %1', // AI-generated; needs validation
 
@@ -600,7 +600,7 @@ export default {
   camera_follow_tooltip: 'Lässt die Kamera einem Objekt mit einstellbarem Abstand folgen.',
   get_camera_tooltip: 'Hole die aktuelle Szene‑Kamera.',
   create_fly_camera_tooltip: 'Füge eine Kamera hinzu, mit der du herumfliegen kannst. Sie schaut in die Richtung ihres Rahmens.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Füge eine Kamera hinzu, die einem Objekt folgt. Der Spieler kann sie um das Objekt drehen.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Füge eine Kamera hinzu, die einem Objekt folgt. Winkel halten bleibt im selben Winkel wie bei einer Filmaufnahme, mitdrehen dreht sich mit dem Objekt, und nachziehen wird hinter ihm hergezogen. Der Spieler kann sie um das Objekt drehen.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Füge eine Kamera hinzu, die ein Objekt umkreist. Ziehe zum Umkreisen und scrolle zum Zoomen.', // AI-generated; needs validation
   switch_camera_tooltip: 'Wechsle die Ansicht zu einer Kamera.', // AI-generated; needs validation
 
@@ -844,6 +844,9 @@ export default {
   scaling_y_option: 'scaling.y',
   scaling_z_option: 'scaling.z',
 
+  keep_option: 'Winkel halten', // AI-generated; needs validation
+  turn_option: 'mitdrehen', // AI-generated; needs validation
+  trail_option: 'nachziehen', // AI-generated; needs validation
   rotateLeft_option: 'nach links drehen',
   rotateRight_option: 'nach rechts drehen',
   rotateUp_option: 'nach oben sehen',

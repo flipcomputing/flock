@@ -183,7 +183,7 @@ export default {
   camera_follow: 'cámara %5 sigue a %1 distancia: %2 ángulo: %3 frente: %4', // AI-generated; needs validation
   get_camera: 'obtener cámara como %1', // human
   create_fly_camera: 'añadir cámara de vuelo %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7', // AI-generated; needs validation
-  create_follow_camera: 'añadir cámara que sigue %1 a %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
+  create_follow_camera: 'añadir cámara que sigue %1 a %2 %9 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
   create_orbit_camera: 'añadir cámara en órbita %1 alrededor de %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
   switch_camera: 'cambiar cámara a %1', // AI-generated; needs validation
 
@@ -497,7 +497,7 @@ export default {
     'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.', // human
   get_camera_tooltip: 'Obtén la cámara actual de la escena.', // human
   create_fly_camera_tooltip: 'Añade una cámara con la que puedes volar. Mira hacia donde apunta su marco.', // AI-generated; needs validation
-  create_follow_camera_tooltip: 'Añade una cámara que sigue a un objeto. El jugador puede girarla alrededor del objeto.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Añade una cámara que sigue a un objeto. Mantener ángulo se queda en el mismo ángulo como en una toma de cine, girar con gira cuando gira el objeto y arrastrar va detrás de él. El jugador puede girarla alrededor del objeto.', // AI-generated; needs validation
   create_orbit_camera_tooltip: 'Añade una cámara que orbita alrededor de un objeto o del origen. Arrastra para orbitar y desplaza para hacer zoom.', // AI-generated; needs validation
   switch_camera_tooltip: 'Cambia la vista a una cámara.', // AI-generated; needs validation
 
@@ -786,6 +786,9 @@ export default {
   scaling_y_option: 'escalado.y', // human
   scaling_z_option: 'escalado.z', // human
 
+  keep_option: 'mantener ángulo', // AI-generated; needs validation
+  turn_option: 'girar con', // AI-generated; needs validation
+  trail_option: 'arrastrar', // AI-generated; needs validation
   rotateLeft_option: 'girar izquierda', // human
   rotateRight_option: 'girar derecha', // human
   rotateUp_option: 'mirar arriba', // human

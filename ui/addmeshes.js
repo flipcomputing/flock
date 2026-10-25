@@ -484,6 +484,7 @@ export function readTargetCameraOptions(block) {
     distance: readNumber('DISTANCE', 7),
     up: readNumber('UP', 30),
     around: readNumber('AROUND', 0),
+    mode: block.getFieldValue('MODE') ?? 'keep',
   };
 }
 

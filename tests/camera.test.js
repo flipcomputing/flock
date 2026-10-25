@@ -317,6 +317,141 @@ export function runCameraTests(flock) {
         expect(frame.getAbsolutePosition().equalsWithEpsilon(camera.position, 1e-3)).to.be.true;
       });
 
+      describe('follow camera modes', function () {
+        const engine = () => flock.scene.getEngine();
+        let savedDeltaTime;
+        const wrap = (angle) => angle - 2 * Math.PI * Math.round(angle / (2 * Math.PI));
+
+        beforeEach(function () {
+          savedDeltaTime = engine().getDeltaTime;
+          engine().getDeltaTime = () => 16;
+        });
+
+        afterEach(function () {
+          engine().getDeltaTime = savedDeltaTime;
+        });
+
+        const renderFrames = (count) => {
+          for (let i = 0; i < count; i++) renderFrame();
+        };
+
+        const addTarget = async (id) => {
+          await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+          meshIds.push(id);
+          return flock.scene.getMeshByName(id);
+        };
+
+        it('should place a follow camera from its target front', async function () {
+          const target = await addTarget('camModeFrontTarget');
+          await flock.rotateTo('camModeFrontTarget', { x: 0, y: 90, z: 0 });
+
+          const { name, camera } = await addCamera('camModeFront', {
+            type: 'follow',
+            target: 'camModeFrontTarget',
+            distance: 6,
+            up: 30,
+            around: 0,
+          });
+
+          expect(wrap(camera.alpha - flock._headingAlpha(target))).to.be.closeTo(0, 1e-3);
+          expect(flock.cameraOffsetFromTarget(name, camera.position).around).to.be.closeTo(0, 1e-3);
+        });
+
+        it('should keep its angle when the target turns', async function () {
+          await addTarget('camModeKeepTarget');
+          const { camera } = await addCamera('camModeKeep', {
+            type: 'follow',
+            target: 'camModeKeepTarget',
+          });
+          const startAlpha = camera.alpha;
+
+          await flock.rotateTo('camModeKeepTarget', { x: 0, y: 90, z: 0 });
+          renderFrames(30);
+
+          expect(camera.alpha).to.be.closeTo(startAlpha, 1e-6);
+        });
+
+        it('should ease round when turning with the target', async function () {
+          const target = await addTarget('camModeTurnTarget');
+          const { camera } = await addCamera('camModeTurn', {
+            type: 'follow',
+            target: 'camModeTurnTarget',
+            around: 180,
+            mode: 'turn',
+          });
+
+          await flock.rotateTo('camModeTurnTarget', { x: 0, y: 90, z: 0 });
+          const behind = flock._headingAlpha(target) + Math.PI;
+          renderFrame();
+          const afterOne = Math.abs(wrap(camera.alpha - behind));
+          expect(afterOne).to.be.greaterThan(0.5);
+          renderFrames(1200);
+
+          expect(wrap(camera.alpha - behind)).to.be.closeTo(0, 1e-2);
+        });
+
+        it('should drift back to its angle after a drag when turning with the target', async function () {
+          const target = await addTarget('camModeDragTarget');
+          const { camera } = await addCamera('camModeDrag', {
+            type: 'follow',
+            target: 'camModeDragTarget',
+            around: 180,
+            mode: 'turn',
+          });
+
+          const behind = flock._headingAlpha(target) + Math.PI;
+          camera.alpha += 0.5;
+          renderFrames(30);
+          expect(wrap(camera.alpha - behind)).to.be.closeTo(0.5, 1e-2);
+
+          renderFrames(1200);
+          expect(wrap(camera.alpha - behind)).to.be.closeTo(0, 1e-2);
+        });
+
+        it('should trail behind a moving target and ignore turning on the spot', async function () {
+          const target = await addTarget('camModeTrailTarget');
+          const { camera } = await addCamera('camModeTrail', {
+            type: 'follow',
+            target: 'camModeTrailTarget',
+            distance: 6,
+            around: 180,
+            mode: 'trail',
+          });
+          const startAlpha = camera.alpha;
+
+          await flock.rotateTo('camModeTrailTarget', { x: 0, y: 90, z: 0 });
+          renderFrames(30);
+          expect(wrap(camera.alpha - startAlpha)).to.be.closeTo(0, 1e-6);
+
+          for (let i = 0; i < 60; i++) {
+            target.position.x += 0.5;
+            target.computeWorldMatrix(true);
+            renderFrame();
+          }
+          renderFrames(60);
+
+          expect(wrap(camera.alpha - Math.PI)).to.be.closeTo(0, 0.1);
+        });
+
+        it('should place a trailing camera again when its target is turned in the editor', async function () {
+          const target = await addTarget('camModeRefreshTarget');
+          const { name } = await addCamera('camModeRefresh', {
+            type: 'follow',
+            target: 'camModeRefreshTarget',
+            around: 180,
+            mode: 'trail',
+          });
+
+          await flock.rotateTo('camModeRefreshTarget', { x: 0, y: 90, z: 0 });
+          await flock.refreshFollowCameras(target);
+          const frame = flock.scene.getMeshByName(name);
+          const camera = await frame.metadata.cameraReady;
+
+          const behind = flock._headingAlpha(target) + Math.PI;
+          expect(wrap(camera.alpha - behind)).to.be.closeTo(0, 1e-3);
+        });
+      });
+
       it('should let a gizmo drag a follow camera past its limits', async function () {
         const targetId = 'camDragTarget';
         await flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });

@@ -747,6 +747,9 @@ export function registerSceneGenerators(javascriptGenerator) {
       `distance: ${getFieldValue(block, 'DISTANCE', '7')}`,
       `up: ${getFieldValue(block, 'UP', '30')}`,
       `around: ${getFieldValue(block, 'AROUND', '0')}`,
+      ...(type === 'follow'
+        ? [`mode: ${JSON.stringify(block.getFieldValue('MODE') ?? 'keep')}`]
+        : []),
       `visible: ${block.getFieldValue('VISIBLE') === 'TRUE'}`,
     ]);
   };

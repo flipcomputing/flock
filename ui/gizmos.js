@@ -2147,7 +2147,9 @@ export function captureViewToCameraBlock(block) {
       if (target?.parent) target = getRootMesh(target.parent);
       const targetBlock = meshMap[target?.metadata?.blockKey];
       const targetVar = getOwnVar(targetBlock);
-      const offset = flock.cameraOffsetFromTarget(target, eye);
+      const offset = flock.cameraOffsetFromTarget(target, eye, {
+        fromFront: block.type === 'create_follow_camera',
+      });
       if (!targetVar || !offset || isCameraFrame(target) || block.disposed) return;
       inEventGroup(() => {
         block.setFieldValue(targetVar, 'TARGET');
@@ -2793,6 +2795,7 @@ export function updateRotationBlock(mesh, axisFilter = null) {
   setInitialRotationValues(rotateBlock, getMeshRotationInDegrees(mesh), { axes });
   writeAnchorAfterRotation(mesh, rotateBlock);
   Blockly.Events.setGroup(null);
+  flock.refreshFollowCameras(mesh);
 }
 
 // Composite models (e.g. imported glTF) have no geometry on the root mesh;

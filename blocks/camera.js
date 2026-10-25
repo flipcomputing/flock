@@ -151,7 +151,7 @@ export function defineCameraBlocks() {
     { type: 'field_view_camera', name: 'VIEW_CAMERA' },
   ];
 
-  const defineCameraBlock = (type, args) => {
+  const defineCameraBlock = (type, args, extraArgs = []) => {
     Blockly.Blocks[type] = {
       init: function () {
         const variableNamePrefix = 'camera';
@@ -164,6 +164,7 @@ export function defineCameraBlocks() {
             ...args,
             { type: 'field_checkbox', name: 'VISIBLE', checked: false },
             ...cameraButtons,
+            ...extraArgs,
           ],
           previousStatement: null,
           nextStatement: null,
@@ -194,7 +195,13 @@ export function defineCameraBlocks() {
     { type: 'input_value', name: 'UP', check: 'Number' },
     { type: 'input_value', name: 'AROUND', check: 'Number' },
   ];
-  defineCameraBlock('create_follow_camera', targetCameraArgs);
+  defineCameraBlock('create_follow_camera', targetCameraArgs, [
+    {
+      type: 'field_dropdown',
+      name: 'MODE',
+      options: [getDropdownOption('keep'), getDropdownOption('turn'), getDropdownOption('trail')],
+    },
+  ]);
   defineCameraBlock('create_orbit_camera', [
     { type: 'field_orbit_target', name: 'TARGET' },
     ...targetCameraArgs.slice(1),
