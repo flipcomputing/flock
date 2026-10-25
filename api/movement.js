@@ -332,8 +332,7 @@ export const flockMovement = {
               );
               model._lastStepBoost = now;
               model._jumpUntilGrounded = true;
-              model._jumpStartMs = now;
-              model._jumpTakeoffVelocity = stepVelocity;
+              model._jumpVerticalCeiling = stepVelocity;
               c.boostedVelocity.set(ahv.x, Math.max(cv.y, stepVelocity), ahv.z);
               model.physics.setLinearVelocity(c.boostedVelocity);
               model.isGrounded = grounded;
@@ -349,14 +348,9 @@ export const flockMovement = {
     // takeoff velocity survives this per-frame reset until the mesh lands. ---
     let clampedVertical;
     if (model._jumpUntilGrounded) {
-      const jumpElapsed = (now - (model._jumpStartMs ?? now)) / 1000;
-      const ballisticVertical =
-        (model._jumpTakeoffVelocity ?? 0) -
-        sceneGravityMagnitude() * CHARACTER_GRAVITY_FACTOR * jumpElapsed;
-      clampedVertical = Math.max(
-        Math.min(cv.y, Math.max(ballisticVertical, MAX_VERTICAL_VELOCITY)),
-        -MAX_FALL_VELOCITY
-      );
+      const ceiling = Math.max(model._jumpVerticalCeiling ?? 0, MAX_VERTICAL_VELOCITY);
+      clampedVertical = Math.max(Math.min(cv.y, ceiling), -MAX_FALL_VELOCITY);
+      model._jumpVerticalCeiling = Math.min(model._jumpVerticalCeiling ?? 0, clampedVertical);
     } else {
       clampedVertical = Math.min(Math.max(cv.y, -MAX_FALL_VELOCITY), MAX_VERTICAL_VELOCITY);
     }
@@ -392,8 +386,7 @@ export const flockMovement = {
     model.physics.setLinearVelocity(v);
 
     model._jumpUntilGrounded = true; // survive the movement vertical clamp until landing
-    model._jumpStartMs = nowMs();
-    model._jumpTakeoffVelocity = vJump;
+    model._jumpVerticalCeiling = vJump;
     model.isGrounded = false;
   },
   moveForward(modelName, speed) {
