@@ -144,21 +144,36 @@ export function addInitialTransformRows(block, { resize = false, position = fals
 
   const changeRows = (change) => {
     const oldState = mutationText();
-    change();
-    block.syncInitialTransformRows_();
-    block.syncDisclosureIcons_?.();
-    if (block.rendered) {
-      block.render();
-      block.bumpNeighbours();
+    const ownGroup = !Blockly.Events.getGroup();
+    if (ownGroup) Blockly.Events.setGroup(true);
+    try {
+      change();
+      block.syncInitialTransformRows_();
+      block.syncDisclosureIcons_?.();
+      if (block.rendered) {
+        block.render();
+        block.bumpNeighbours();
+      }
+      Blockly.Events.fire(
+        new Blockly.Events.BlockChange(block, 'mutation', null, oldState, mutationText())
+      );
+    } finally {
+      if (ownGroup) Blockly.Events.setGroup(false);
     }
-    Blockly.Events.fire(
-      new Blockly.Events.BlockChange(block, 'mutation', null, oldState, mutationText())
-    );
   };
 
   const ensureShadow = (inputName, value, shadow = numberShadow(value)) => {
     const connection = block.getInput(inputName).connection;
     if (!connection.targetBlock()) connection.setShadowState(shadow);
+  };
+
+  const clearAxisInputs = (inputName) => {
+    for (const axis of AXES) {
+      const connection = block.getInput(inputName(axis)).connection;
+      const target = connection.targetBlock();
+      if (target && !target.isShadow()) target.unplug();
+      connection.setShadowState(null);
+    }
   };
 
   block.setPositionShown = function (show) {
@@ -168,6 +183,8 @@ export function addInitialTransformRows(block, { resize = false, position = fals
         for (const axis of AXES) {
           ensureShadow(positionInputName(axis), '', { type: SAME_NUMBER_TYPE, fields: { NUM: '' } });
         }
+      } else {
+        clearAxisInputs(positionInputName);
       }
       this.positionShown_ = show;
     });
@@ -181,6 +198,7 @@ export function addInitialTransformRows(block, { resize = false, position = fals
     if (this.rotateShown_ === show) return;
     changeRows(() => {
       if (show) for (const axis of AXES) ensureShadow(rotateInputName(axis), 0);
+      else clearAxisInputs(rotateInputName);
       this.rotateShown_ = show;
     });
   };
@@ -198,6 +216,8 @@ export function addInitialTransformRows(block, { resize = false, position = fals
           const value = measured?.[axis.toLowerCase()] ?? 1;
           ensureShadow(sizeInputName(axis), Math.round(value * 10) / 10);
         }
+      } else {
+        clearAxisInputs(sizeInputName);
       }
       this.resizeShown_ = show;
     });

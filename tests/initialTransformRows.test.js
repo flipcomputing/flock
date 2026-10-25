@@ -196,6 +196,23 @@ export function runInitialTransformRowsTests() {
       expect(generate(box)).to.not.include('rotation');
     });
 
+    it('resets rotate to 0 when it is turned off and on again', function () {
+      const box = makeBox();
+      box.toggleRotate();
+      box.getInputTargetBlock('ROTATE_Y').setFieldValue('45', 'NUM');
+      const plugged = ws.newBlock('math_number');
+      box.getInput('ROTATE_Z').connection.connect(plugged.outputConnection);
+
+      box.toggleRotate();
+      expect(box.getInputTargetBlock('ROTATE_Y')).to.be.null;
+      expect(box.getInputTargetBlock('ROTATE_Z')).to.be.null;
+      expect(plugged.isDisposed()).to.be.false;
+      expect(plugged.getParent()).to.be.null;
+
+      box.toggleRotate();
+      expect(generate(box)).to.include('rotation: { x: 0, y: 0, z: 0 }');
+    });
+
     it('restores rotate and its values on load', function () {
       const box = makeBox();
       box.toggleRotate();
@@ -235,6 +252,10 @@ export function runInitialTransformRowsTests() {
       expect(visible(model, 'SCALE')).to.be.true;
       expect(visible(model, 'SIZE_Y')).to.be.false;
       expect(generate(model)).to.not.include('size:');
+      expect(model.getInputTargetBlock('SIZE_Y')).to.be.null;
+
+      model.setResizeShown(true, { x: 1, y: 1, z: 1 });
+      expect(generate(model)).to.include('size: { width: 1, height: 1, depth: 1 }');
     });
 
     it('keeps scale hidden while resize is on and the row is closed', function () {
