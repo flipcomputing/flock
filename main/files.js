@@ -15,6 +15,7 @@ import { openUnsavedChangesModal } from '../ui/unsavedChangesModal.js';
 import { openUntrustedProjectUrlModal } from '../ui/untrustedProjectUrlModal.js';
 import { syncCollapsedBlockIcons } from '../blocks/blockIcons.js';
 import { replaceUnrecognisedBlocks } from '../blocks/unknownBlock.js';
+import { syncWallInputs } from '../blocks/shapes.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
 import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
@@ -453,6 +454,7 @@ export function loadWorkspaceAndExecute(
     const unrecognised = replaceUnrecognisedBlocks(validatedJson);
     Blockly.serialization.workspaces.load(validatedJson, workspace);
     syncCollapsedBlockIcons(workspace);
+    syncWallInputs(workspace);
     if (unrecognised > 0) {
       showStatus(translate('unrecognised_blocks_loaded'), { owner: 'unrecognised-blocks' });
     }

@@ -1380,10 +1380,11 @@ function handlePrimitiveGeometryChange(mesh, block, changed) {
         if (sizeInputs.some((name) => block.getInput(name) && !Number.isFinite(readNumber(name)))) {
           break;
         }
+        const innerDrives = block.wallDriver_ === 'INNER_DIAMETER';
         const requested = {
           diameter: readNumber('DIAMETER'),
           innerDiameter: readNumber('INNER_DIAMETER'),
-          thickness: readNumber('THICKNESS'),
+          thickness: innerDrives ? undefined : readNumber('THICKNESS'),
           height: readNumber('HEIGHT'),
           tessellation: readNumber('SIDES'),
         };

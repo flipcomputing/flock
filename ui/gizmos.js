@@ -2917,11 +2917,11 @@ function snapMemberPositionToBlock(member) {
   flock.updatePhysics?.(member);
 }
 
+// Thickness is written last so it stays the wall driver.
 function setWallSizeInputs(block, { diameter, thickness, height }, { decimals = 1 } = {}) {
   setNumberInputs(block, { DIAMETER: diameter, HEIGHT: height }, { decimals });
-  setNumberInputs(block, { THICKNESS: thickness }, { decimals: 2 });
   const roundedDiameter = getNumberInput(block, 'DIAMETER');
-  const roundedThickness = getNumberInput(block, 'THICKNESS');
+  const roundedThickness = Math.max(0, Math.round(thickness * 100) / 100);
   if (Number.isFinite(roundedDiameter) && Number.isFinite(roundedThickness)) {
     setNumberInputs(
       block,
@@ -2929,6 +2929,7 @@ function setWallSizeInputs(block, { diameter, thickness, height }, { decimals = 
       { decimals: 2 }
     );
   }
+  setNumberInputs(block, { THICKNESS: roundedThickness }, { decimals: 2 });
 }
 
 // Multiply a member's size inputs by a uniform factor, mirroring the

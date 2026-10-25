@@ -24,7 +24,7 @@ function wallParam(block, defaultThickness, defaultInnerDiameter) {
   const innerDiameterDrivesWall =
     isNumber('THICKNESS') &&
     block.getInputTargetBlock('INNER_DIAMETER') &&
-    !isNumber('INNER_DIAMETER');
+    (!isNumber('INNER_DIAMETER') || block.wallDriver_ === 'INNER_DIAMETER');
   return innerDiameterDrivesWall
     ? `innerDiameter: ${getFieldValue(block, 'INNER_DIAMETER', defaultInnerDiameter)}`
     : `thickness: ${getFieldValue(block, 'THICKNESS', defaultThickness)}`;

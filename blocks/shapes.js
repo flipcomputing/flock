@@ -23,47 +23,125 @@ import { setFreeformEditing } from '../ui/freeformedit.js';
 import { FieldGroupArrange } from './fieldGroupArrange.js';
 import { updateParticleEffectFromBlock } from '../ui/blockmesh.js';
 import { isProjectLoading } from '../main/projectLoading.js';
+import { flock } from '../flock.js';
 
 const WALL_INPUTS = ['DIAMETER', 'INNER_DIAMETER', 'THICKNESS'];
+const otherWallInput = (name) => (name === 'INNER_DIAMETER' ? 'THICKNESS' : 'INNER_DIAMETER');
 
 function readNumberInput(block, inputName) {
   const target = block.getInputTargetBlock(inputName);
   return target?.getField?.('NUM') ? Number(target.getFieldValue('NUM')) : NaN;
 }
 
-function linkWallInputs(block, changeEvent) {
+// The wall input whose value an event sets, or null if it touches neither.
+// A restored shadow brings back an old number, so the other input is kept.
+function keptWallInput(block, changeEvent) {
+  if (!changeEvent.recordUndo) return null;
+  let changed = null;
+  let restored = false;
   if (
-    changeEvent.type !== Blockly.Events.BLOCK_CHANGE ||
-    changeEvent.element !== 'field' ||
-    changeEvent.name !== 'NUM' ||
-    !changeEvent.recordUndo
+    changeEvent.type === Blockly.Events.BLOCK_CHANGE &&
+    changeEvent.element === 'field' &&
+    changeEvent.name === 'NUM'
   ) {
-    return;
+    changed = WALL_INPUTS.find(
+      (name) => block.getInputTargetBlock(name)?.id === changeEvent.blockId
+    );
+    if (changed && block.wallEchoes_.delete(`${changed}:${Number(changeEvent.newValue)}`)) {
+      return null;
+    }
+  } else if (changeEvent.type === Blockly.Events.BLOCK_CREATE) {
+    return changeEvent.blockId === block.id ? block.wallDriver_ : null;
+  } else if (changeEvent.type === Blockly.Events.BLOCK_MOVE) {
+    if (changeEvent.newParentId === block.id && WALL_INPUTS.includes(changeEvent.newInputName)) {
+      changed = changeEvent.newInputName;
+    } else if (
+      changeEvent.oldParentId === block.id &&
+      WALL_INPUTS.includes(changeEvent.oldInputName)
+    ) {
+      changed = changeEvent.oldInputName;
+      restored = true;
+    }
   }
+  if (!changed) return null;
+  if (changed === 'DIAMETER') return block.wallDriver_;
+  return restored ? otherWallInput(changed) : changed;
+}
 
-  const edited = WALL_INPUTS.find(
-    (name) => block.getInputTargetBlock(name)?.id === changeEvent.blockId
+function setWallDriver(block, driver) {
+  if (block.wallDriver_ === driver) return;
+  const mutationText = () => Blockly.Xml.domToText(block.mutationToDom());
+  const oldState = mutationText();
+  block.wallDriver_ = driver;
+  Blockly.Events.fire(
+    new Blockly.Events.BlockChange(block, 'mutation', null, oldState, mutationText())
   );
-  if (!edited) return;
+}
 
+function linkWallInputs(block, changeEvent) {
+  const kept = keptWallInput(block, changeEvent);
+  if (!kept) return;
+
+  Blockly.Events.setGroup(changeEvent.group || true);
+  try {
+    setWallDriver(block, kept);
+    writeLinkedWall(block, kept);
+  } finally {
+    Blockly.Events.setGroup(false);
+  }
+}
+
+function writeLinkedWall(block, kept) {
   const [diameter, innerDiameter, thickness] = WALL_INPUTS.map((name) =>
     readNumberInput(block, name)
   );
   if (![diameter, innerDiameter, thickness].every(Number.isFinite)) return;
 
-  const [target, current, value] =
-    edited === 'INNER_DIAMETER'
-      ? ['THICKNESS', thickness, (diameter - innerDiameter) / 2]
-      : ['INNER_DIAMETER', innerDiameter, diameter - 2 * thickness];
-  const linked = Math.max(0, Math.round(value * 1000) / 1000);
-  if (Math.abs(linked - current) < 0.0015) return;
-
-  Blockly.Events.setGroup(changeEvent.group || true);
-  try {
-    block.getInputTargetBlock(target).setFieldValue(String(linked), 'NUM');
-  } finally {
-    Blockly.Events.setGroup(false);
+  const dimensions = block.type === 'create_ring' ? flock.ringDimensions : flock.donutDimensions;
+  const built = dimensions(
+    kept === 'INNER_DIAMETER' ? { diameter, innerDiameter } : { diameter, thickness }
+  );
+  const shown = { INNER_DIAMETER: innerDiameter, THICKNESS: thickness };
+  for (const [name, value] of [
+    ['INNER_DIAMETER', built.innerDiameter],
+    ['THICKNESS', built.thickness],
+  ]) {
+    const linked = Math.round(value * 1000) / 1000;
+    if (Math.abs(linked - shown[name]) >= 0.0015) {
+      if (Blockly.Events.isEnabled()) block.wallEchoes_.add(`${name}:${linked}`);
+      block.getInputTargetBlock(name).setFieldValue(String(linked), 'NUM');
+    }
   }
+}
+
+// Events off so fixing a loaded project adds no undo step.
+export function syncWallInputs(workspace) {
+  Blockly.Events.disable();
+  try {
+    for (const block of workspace.getAllBlocks(false)) {
+      if (block.type === 'create_ring' || block.type === 'create_donut') {
+        writeLinkedWall(block, block.wallDriver_);
+      }
+    }
+  } finally {
+    Blockly.Events.enable();
+  }
+}
+
+function addWallDriverMutation(block) {
+  block.wallDriver_ = 'THICKNESS';
+  block.wallEchoes_ = new Set();
+  const baseMutationToDom = block.mutationToDom;
+  const baseDomToMutation = block.domToMutation;
+  block.mutationToDom = function () {
+    const container = baseMutationToDom.call(this);
+    if (this.wallDriver_ === 'INNER_DIAMETER') container.setAttribute('wall', 'inner');
+    return container;
+  };
+  block.domToMutation = function (xmlElement) {
+    this.wallDriver_ = xmlElement.getAttribute('wall') === 'inner' ? 'INNER_DIAMETER' : 'THICKNESS';
+    baseDomToMutation.call(this, xmlElement);
+  };
 }
 
 const cloneFaces = (faces) => faces.map((face) => [...face]);
@@ -1382,6 +1460,7 @@ export function defineShapeBlocks() {
       });
       addDoMutatorWithToggleBehavior(this);
       addInitialTransformRows(this);
+      addWallDriverMutation(this);
     },
   };
 
@@ -1463,6 +1542,7 @@ export function defineShapeBlocks() {
       });
       addDoMutatorWithToggleBehavior(this);
       addInitialTransformRows(this);
+      addWallDriverMutation(this);
     },
   };
 
