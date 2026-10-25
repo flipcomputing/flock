@@ -298,6 +298,44 @@ export function runPhysicsTests(flock) {
     });
   });
 
+  describe('falling out of the world @physics', function () {
+    const ids = [];
+    const until = async (predicate, timeout = 5000) => {
+      const start = Date.now();
+      while (!predicate() && Date.now() - start < timeout) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    };
+
+    afterEach(function () {
+      ids.forEach((id) => flock.dispose(id));
+      ids.length = 0;
+    });
+
+    it('parks a body that falls far below the world and wakes it when moved', async function () {
+      this.timeout(10000);
+      const id = 'boxFallsOutOfWorld';
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, -995, 0] });
+      ids.push(id);
+      await flock.setPhysics(id, 'DYNAMIC');
+      const mesh = flock.scene.getMeshByName(id);
+
+      await until(() => mesh.physics._flockFallen);
+      expect(mesh.physics._flockFallen, 'parked').to.exist;
+      expect(mesh.physics.getLinearVelocity().length()).to.equal(0);
+      const parkedY = mesh.position.y;
+      expect(parkedY).to.be.below(-1000);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mesh.position.y).to.be.closeTo(parkedY, 1e-6);
+
+      await flock.positionAt(id, { x: 0, y: 5, z: 0 });
+      const movedY = mesh.position.y;
+      await until(() => mesh.position.y < movedY - 0.1, 2000);
+      expect(mesh.physics._flockFallen, 'woken').to.be.undefined;
+      expect(mesh.position.y).to.be.below(movedY - 0.1);
+    });
+  });
+
   describe('applyForce method @physics', function () {
     const boxIds = [];
 
@@ -694,6 +732,112 @@ export function runPhysicsTests(flock) {
       expect(mover.position.z).to.be.closeTo(-5, 0.15);
     });
 
+    it('turns round before setting off towards a target behind it', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoM', [0, 0.5, 4], 'NONE');
+      const facingZ = () => {
+        mover.computeWorldMatrix(true);
+        return -mover.forward.z;
+      };
+      expect(facingZ()).to.be.below(-0.9);
+      let zWhenSideways = null;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        if (zWhenSideways === null && facingZ() > 0) zWhenSideways = mover.position.z;
+      });
+      await flock.moveToObject('mtoMMover', 'mtoMTarget', { speed: 4 });
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(zWhenSideways).to.be.below(0.1);
+      expect(mover.position.z).to.be.closeTo(4, 0.15);
+      expect(facingZ()).to.be.above(0.95);
+    });
+
+    it('slows down as it arrives', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoI', [0, 0.5, -6], 'NONE');
+      const samples = [];
+      const observer = flock.scene.onAfterPhysicsObservable.add(() => {
+        const v = mover.physics.getLinearVelocity();
+        samples.push({ z: mover.position.z, speed: Math.hypot(v.x, v.z) });
+      });
+      await flock.moveToObject('mtoIMover', 'mtoITarget', { speed: 4 });
+      flock.scene.onAfterPhysicsObservable.remove(observer);
+
+      const cruising = samples.filter((s) => s.z < -1 && s.z > -3);
+      const arriving = samples.filter((s) => s.z < -5.6 && s.z > -5.9);
+      expect(Math.max(...cruising.map((s) => s.speed))).to.be.above(3.5);
+      expect(arriving.length).to.be.above(0);
+      expect(Math.max(...arriving.map((s) => s.speed))).to.be.below(2);
+      expect(mover.position.z).to.be.closeTo(-6, 0.15);
+    });
+
+    it('heads off a target crossing in front', async function () {
+      this.timeout(10000);
+      const { mover, target } = await makeScene('mtoJ', [-6, 0.5, -6], 'NONE');
+      const crossing = flock.scene.onBeforeRenderObservable.add(() => {
+        const dt = flock.scene.getEngine().getDeltaTime() / 1000;
+        target.position.x = Math.min(target.position.x + 3 * dt, 3);
+      });
+      let minX = 0;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        minX = Math.min(minX, mover.position.x);
+      });
+      await flock.moveToObject('mtoJMover', 'mtoJTarget', { speed: 4 });
+      flock.scene.onBeforeRenderObservable.remove(crossing);
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(minX).to.be.above(-1.6);
+      expect(mover.position.x).to.be.closeTo(target.position.x, 0.15);
+      expect(mover.position.z).to.be.closeTo(-6, 0.15);
+    });
+
+    it('measures target speed correctly on slow frames', async function () {
+      this.timeout(10000);
+      const { target } = await makeScene('mtoL', [0, 0.5, -30], 'NONE');
+      const engine = flock.scene.getEngine();
+      const getDeltaTime = engine.getDeltaTime;
+      engine.getDeltaTime = () => 200;
+      const crossing = flock.scene.onBeforeRenderObservable.add(() => {
+        target.position.x += 12 * 0.2;
+      });
+      let targetVX;
+      try {
+        flock.moveToObject('mtoLMover', 'mtoLTarget', { speed: 4 });
+        await new Promise((r) => setTimeout(r, 500));
+        targetVX = flock.scene.getMeshByName('mtoLMover')._moveToObject?.targetVX;
+      } finally {
+        flock.scene.onBeforeRenderObservable.remove(crossing);
+        engine.getDeltaTime = getDeltaTime;
+        flock.setSpeed('mtoLMover', 'all', 0);
+      }
+
+      expect(targetVX).to.be.closeTo(12, 1);
+    });
+
+    it('wanders off the straight line and still arrives', async function () {
+      this.timeout(10000);
+      const { mover } = await makeScene('mtoK', [0, 0.5, -10], 'NONE');
+      let maxSideways = 0;
+      const tracking = flock.scene.onAfterPhysicsObservable.add(() => {
+        maxSideways = Math.max(maxSideways, Math.abs(mover.position.x));
+      });
+      const random = Math.random;
+      Math.random = () => 0;
+      let arrived;
+      try {
+        arrived = flock.moveToObject('mtoKMover', 'mtoKTarget', { speed: 4, wander: true });
+        while (!mover._moveToObject) await new Promise((r) => setTimeout(r, 0));
+      } finally {
+        Math.random = random;
+      }
+      await arrived;
+      flock.scene.onAfterPhysicsObservable.remove(tracking);
+
+      expect(maxSideways).to.be.above(0.5);
+      expect(mover.position.x).to.be.closeTo(0, 0.15);
+      expect(mover.position.z).to.be.closeTo(-10, 0.15);
+    });
+
     it('stops a gap away on the near side', async function () {
       this.timeout(10000);
       const { mover } = await makeScene('mtoC', [-6, 0.5, 0]);
@@ -728,19 +872,6 @@ export function runPhysicsTests(flock) {
         mover.computeWorldMatrix(true)
       ).normalize();
       expect(up.y).to.be.above(0.99);
-    });
-
-    it('stops when something blocks the way', async function () {
-      this.timeout(10000);
-      const { mover } = await makeScene('mtoF', [10, 0.5, 0]);
-      await flock.createBox('mtoFWall', { width: 1, height: 3, depth: 6, position: [4, 0, 0] });
-      await flock.setPhysics('mtoFWall', 'STATIC');
-      ids.push('mtoFWall');
-      await flock.moveToObject('mtoFMover', 'mtoFTarget', { speed: 4 });
-
-      expect(mover.position.x).to.be.within(2.5, 3.1);
-      const v = mover.physics.getLinearVelocity();
-      expect(Math.hypot(v.x, v.z)).to.be.below(0.5);
     });
 
     it('keeps going when the target moves away faster', async function () {

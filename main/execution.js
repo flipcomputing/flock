@@ -55,7 +55,7 @@ export async function executeCode(options = {}) {
       await delay(100);
     }
 
-    if (isNarrowScreen() && currentView === 'code') {
+    if (!options.keepView && isNarrowScreen() && currentView === 'code') {
       showCanvasView();
     }
 

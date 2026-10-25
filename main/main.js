@@ -49,6 +49,7 @@ import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
 import { initExportPanel } from '../ui/exportPanel.js';
 import { initCapturePanel } from '../ui/capturePanel.js';
+import { initFpsCounter } from '../ui/fpsCounter.js';
 import {
   setLanguage,
   initializeLanguageMenu,
@@ -773,6 +774,7 @@ function initializeApp() {
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
   const inspectorCheckbox = document.getElementById('inspectorCheckbox');
+  const physicsShapesCheckbox = document.getElementById('physicsShapesCheckbox');
   const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
   const pauseCodeButton = document.getElementById('pauseCodeButton');
@@ -788,6 +790,7 @@ function initializeApp() {
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
   initExportPanel(workspace);
   initCapturePanel();
+  initFpsCounter();
 
   // Add toolbar buttons
   const zoomInBtn = document.getElementById('zoomInBtn');
@@ -895,6 +898,13 @@ function initializeApp() {
   // The inspector can also be closed from its own header, so read its live state.
   document.addEventListener('toolspanelsync', () => {
     if (inspectorCheckbox) inspectorCheckbox.checked = isInspectorVisible();
+    if (physicsShapesCheckbox) {
+      physicsShapesCheckbox.checked = !!flock.physicsViewer && !!flock.physicsViewerActive;
+    }
+  });
+  physicsShapesCheckbox?.addEventListener('change', () => {
+    flock.showPhysics(physicsShapesCheckbox.checked);
+    physicsShapesCheckbox.checked = !!flock.physicsViewer && !!flock.physicsViewerActive;
   });
   inspectorCheckbox?.addEventListener('change', async () => {
     const opening = inspectorCheckbox.checked;

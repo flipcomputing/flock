@@ -59,6 +59,8 @@ import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { isBodyAlive } from '../api/physics.js';
+import { markerArrowVertexData } from '../api/shapes.js';
+import { hideFromInspector } from './inspectorVisibility.js';
 import { isPositionPickActive, startPositionPick } from './pickposition.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
@@ -180,6 +182,7 @@ let orbitDisposeObserver = null; // Dispose handle for the orbited mesh
 let orbitDisposeMesh = null; // Mesh the orbit camera targets (window.orbitMesh)
 let orbitPreviousGizmoType = null; // Gizmo active before entering orbit, restored on exit
 let orbitRetargetObserver = null; // Pointer observer that lets a canvas click switch orbit target
+let orbitFrontArrow = null;
 let eyeKeyboardCallback = null; // Pick callback of the eye gizmo's canvas keyboard mode
 let previewFrame = null; // Camera frame being looked through via the eye gizmo
 let previewSavedCamera = null; // Camera to return to when the preview ends
@@ -1707,11 +1710,75 @@ function bindOrbitMesh(selectedMesh, block) {
   }
   window.orbitBlock = block;
   window.orbitMesh = selectedMesh;
+  showOrbitFrontArrow(selectedMesh);
   // Orbiting never selects: tools started while orbiting begin with nothing picked.
   if (selectedMesh) {
     if (gizmoManager.attachedMesh === selectedMesh) gizmoManager.attachToMesh(null);
     enableBoundingBox(selectedMesh);
   }
+}
+
+function showOrbitFrontArrow(mesh) {
+  hideOrbitFrontArrow();
+  if (!mesh || isMarker(mesh)) return;
+  const BABYLON = flock.BABYLON;
+  const scene = flock.scene;
+  const arrow = new BABYLON.Mesh('orbitFrontArrow', scene);
+  markerArrowVertexData().applyToMesh(arrow);
+  arrow.hasVertexAlpha = true;
+  const material = new BABYLON.StandardMaterial('orbitFrontArrowMaterial', scene);
+  material.disableLighting = true;
+  material.emissiveColor = BABYLON.Color3.White();
+  material.fogEnabled = false;
+  arrow.material = material;
+  hideFromInspector(arrow);
+  arrow.isPickable = false;
+  arrow.checkCollisions = false;
+  arrow.isVisible = false;
+
+  const forward = new BABYLON.Vector3(0, 0, -1);
+  const observer = scene.onBeforeRenderObservable.add(() => {
+    if (mesh.isDisposed() || !isOrbitViewActive()) {
+      arrow.isVisible = false;
+      return;
+    }
+    const world = mesh.computeWorldMatrix(true);
+    const front = BABYLON.Vector3.TransformNormal(forward, world);
+    front.y = 0;
+    if (front.lengthSquared() < 1e-8) {
+      arrow.isVisible = false;
+      return;
+    }
+    front.normalize();
+    const box = mesh.getBoundingInfo().boundingBox;
+    const { extendSize } = box;
+    const halfAxes = [
+      new BABYLON.Vector3(extendSize.x, 0, 0),
+      new BABYLON.Vector3(0, extendSize.y, 0),
+      new BABYLON.Vector3(0, 0, extendSize.z),
+    ].map((v) => BABYLON.Vector3.TransformNormal(v, world));
+    const reach = halfAxes.reduce((sum, v) => sum + Math.abs(BABYLON.Vector3.Dot(v, front)), 0);
+    const scale = Math.max(1, ...halfAxes.map((v) => Math.hypot(v.x, v.z)));
+    const centre = box.centerWorld;
+    arrow.position.set(
+      centre.x + front.x * reach,
+      box.minimumWorld.y,
+      centre.z + front.z * reach
+    );
+    arrow.rotation.y = Math.atan2(-front.x, -front.z);
+    arrow.scaling.setAll(scale);
+    arrow.isVisible = true;
+  });
+  orbitFrontArrow = { arrow, observer, scene };
+}
+
+function hideOrbitFrontArrow() {
+  if (!orbitFrontArrow) return;
+  const { arrow, observer, scene } = orbitFrontArrow;
+  orbitFrontArrow = null;
+  scene.onBeforeRenderObservable.remove(observer);
+  arrow.material?.dispose();
+  arrow.dispose();
 }
 
 // Play rebuilds the scene; turn the orbit or fly view back on with the same framing.
@@ -1886,6 +1953,7 @@ function disconnectOrbitView() {
     window.orbitViewActive = false;
     window.orbitBlock = null;
     window.orbitMesh = null;
+    hideOrbitFrontArrow();
     clearOrbitRetargetObserver();
     if (orbitDisposeObserver && orbitDisposeMesh) {
       try {
@@ -1908,6 +1976,7 @@ function disconnectOrbitView() {
   window.orbitViewActive = false;
   window.orbitBlock = null;
   window.orbitMesh = null;
+  hideOrbitFrontArrow();
   clearOrbitRetargetObserver();
   setGizmoButtonActive(document.getElementById('eyeButton'), false);
   // The orbit target's box was only lit for orbiting; keep it if a tool has it.

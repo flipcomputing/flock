@@ -150,6 +150,44 @@ function markerOutlineRing(inner, outer) {
   return { points: [...inner, ...outer], triangles };
 }
 
+const MARKER_ARROW = [
+  [0, -0.62],
+  [-0.16, -0.36],
+  [0, -0.45],
+  [0.16, -0.36],
+];
+const MARKER_ARROW_OUTER = [
+  [0, -0.677],
+  [-0.246, -0.277],
+  [0, -0.416],
+  [0.246, -0.277],
+];
+const MARKER_ARROW_BACK = -0.277;
+
+function markerArrowParts(arrow, arrowOuter) {
+  const height = MARKER_CROSS_HEIGHT;
+  const ring = markerOutlineRing(arrow, arrowOuter);
+  return markerWalls(arrowOuter, height, MARKER_DOT_COLOUR)
+    .merge(flatMarkerPart(ring.points, ring.triangles, height, MARKER_DOT_COLOUR, 1))
+    .merge(
+      flatMarkerPart(
+        arrow,
+        [
+          [0, 1, 2],
+          [0, 2, 3],
+        ],
+        height,
+        MARKER_COLOUR,
+        MARKER_CROSS_ALPHA
+      )
+    );
+}
+
+export function markerArrowVertexData() {
+  const back = ([x, z]) => [x, z - MARKER_ARROW_BACK];
+  return markerArrowParts(MARKER_ARROW.map(back), MARKER_ARROW_OUTER.map(back));
+}
+
 // A stage spike mark: an X on the surface at the marker's position. A solid
 // black band round the X stands up from the surface like a low wall, so the X
 // shows on light and dark floors and from low angles. The see-through fill
@@ -195,18 +233,7 @@ function crossMarkerVertexData() {
   const inner = plus.map(turn);
   const outer = grown.map(turn);
   const ring = markerOutlineRing(inner, outer);
-  const arrow = [
-    [0, -0.62],
-    [-0.14, -0.38],
-    [0.14, -0.38],
-  ];
-  const arrowOuter = [
-    [0, -0.68],
-    [-0.19, -0.35],
-    [0.19, -0.35],
-  ];
-  const arrowRing = markerOutlineRing(arrow, arrowOuter);
-  const balance = arrowOuter.map(([x, z]) => [-x, -z]);
+  const balance = MARKER_ARROW_OUTER.map(([x, z]) => [-x, -z]);
   const dot = VertexData.CreateDisc({
     radius: MARKER_DOT_DIAMETER / 2,
     tessellation: 16,
@@ -218,9 +245,7 @@ function crossMarkerVertexData() {
     .merge(markerWalls(inner, height, MARKER_DOT_COLOUR))
     .merge(flatMarkerPart(ring.points, ring.triangles, height, MARKER_DOT_COLOUR, 1))
     .merge(flatMarkerPart(inner, fill, height, MARKER_COLOUR, MARKER_CROSS_ALPHA))
-    .merge(markerWalls(arrowOuter, height, MARKER_DOT_COLOUR))
-    .merge(flatMarkerPart(arrowRing.points, arrowRing.triangles, height, MARKER_DOT_COLOUR, 1))
-    .merge(flatMarkerPart(arrow, [[0, 1, 2]], height, MARKER_COLOUR, MARKER_CROSS_ALPHA))
+    .merge(markerArrowParts(MARKER_ARROW, MARKER_ARROW_OUTER))
     .merge(tintMarker(dot, MARKER_DOT_COLOUR))
     .merge(flatMarkerPart(balance, [], 0, MARKER_DOT_COLOUR, 0));
 }

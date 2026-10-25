@@ -3,7 +3,7 @@ import * as BABYLON_GUI from '@babylonjs/gui/2D/index.js';
 import * as BABYLON_EXPORT from '@babylonjs/serializers';
 import { flockRuntimeUrl } from './urls.js';
 import { getManifold } from '../api/shapes';
-import { releaseShape } from '../api/physics.js';
+import { parkFallenBodies, releaseShape } from '../api/physics.js';
 import {
   getMicrobitManager,
   setFlockReference as setFlockMicrobitManager,
@@ -58,18 +58,76 @@ function watchPixelRatio(onChange) {
   );
 }
 
+const hoverPointer = { x: 0, y: 0, inside: false };
+const trackedHoverInputs = new WeakSet();
+
+function trackHoverPointer(inputElement) {
+  if (!inputElement || trackedHoverInputs.has(inputElement)) return;
+  trackedHoverInputs.add(inputElement);
+  inputElement.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'touch') return;
+    const rect = inputElement.getBoundingClientRect();
+    hoverPointer.x = event.clientX - rect.left;
+    hoverPointer.y = event.clientY - rect.top;
+    hoverPointer.inside = true;
+  });
+  inputElement.addEventListener('pointerleave', (event) => {
+    if (event.pointerType !== 'touch') hoverPointer.inside = false;
+  });
+}
+
 function keepHoverCursorCurrent(scene) {
-  scene.constantlyUpdateMeshUnderPointer = true;
   const move = BABYLON.PointerEventTypes.POINTERMOVE;
   let overlayHasPointer = false;
   scene.onPrePointerObservable.add(() => (overlayHasPointer = true), move);
   scene.onPointerObservable.add(() => (overlayHasPointer = false), move);
+  trackHoverPointer(scene.getEngine().getInputElement());
+
+  const hoveredMesh = () => {
+    if (
+      !hoverPointer.inside ||
+      !scene.actionManagers.some((manager) => manager.hasPointerTriggers)
+    ) {
+      return null;
+    }
+    const camera = scene.cameraToUseForPointers ?? scene.activeCamera;
+    if (!camera) return null;
+    const ray = scene.createPickingRay(hoverPointer.x, hoverPointer.y, null, camera);
+    const nearRay = (mesh) => {
+      const sphere = mesh.getBoundingInfo().boundingSphere;
+      const scale = sphere.radius ? sphere.radiusWorld / sphere.radius : 1;
+      const radius = sphere.radiusWorld + (mesh.intersectionThreshold ?? 0) * scale;
+      const x = sphere.centerWorld.x - ray.origin.x;
+      const y = sphere.centerWorld.y - ray.origin.y;
+      const z = sphere.centerWorld.z - ray.origin.z;
+      const lengthSquared = x * x + y * y + z * z;
+      if (lengthSquared <= radius * radius) return true;
+      const along = x * ray.direction.x + y * ray.direction.y + z * ray.direction.z;
+      return along >= 0 && lengthSquared - along * along <= radius * radius;
+    };
+    const pickable = (mesh) =>
+      (mesh._isPointerMovePickable ?? mesh.isPickable) &&
+      mesh.isVisible &&
+      nearRay(mesh) &&
+      mesh.isEnabled() &&
+      mesh.isReady() &&
+      (camera.layerMask & mesh.layerMask) !== 0;
+    const clickable = scene.pickWithRay(
+      ray,
+      (mesh) => pickable(mesh) && !!mesh._getActionManagerForTrigger()?.hasPointerTriggers
+    );
+    if (!clickable?.hit) return null;
+    ray.length = clickable.distance;
+    const nearest = scene.pickWithRay(ray, pickable);
+    return nearest?.hit ? nearest.pickedMesh : clickable.pickedMesh;
+  };
+
   let wanted = null;
   const applyCursor = () => {
     const canvas = scene.getEngine().getInputElement();
     if (!canvas || scene.doNotHandleCursors || overlayHasPointer) return;
     const paused = flock?.isPaused?.();
-    const manager = paused ? null : scene.meshUnderPointer?._getActionManagerForTrigger();
+    const manager = paused ? null : hoveredMesh()?._getActionManagerForTrigger();
     const cursor = manager?.hasPointerTriggers
       ? manager.hoverCursor || scene.hoverCursor
       : scene.defaultCursor;
@@ -952,6 +1010,7 @@ export const flockLifecycle = {
     await flock.ensurePhysicsInstance();
     flock.hk = new flock.BABYLON.HavokPlugin(true, flock.havokInstance);
     flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), flock.hk);
+    parkFallenBodies(flock.scene);
     flock._applyPauseToScene();
     flock._bindModules();
 

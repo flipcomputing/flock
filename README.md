@@ -62,6 +62,7 @@ Flock XR. For docs on the current release, check out the [hub](https://hub.flock
 - [VR in Flock XR](docs/vr.md)
 - [Endless OS](docs/endless.md)
 - [Block-based coding features](docs/block-based-coding-features.md)
+- [Navigation in Flock XR](docs/navigation.md)
 
 ## Development info
 

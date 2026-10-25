@@ -270,11 +270,11 @@ export default {
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
   jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
-  move_to_object: 'mover %1 %2 %3 separación %4 velocidad %5 %6', // ai
+  move_to_object: 'mover %1 %7 %2 %3 separación %4 velocidad %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
   move_to_object_tooltip:
-    'Mueve un objeto hacia otro objeto a una velocidad, usando física. Gira hacia donde va, sigue al objeto si se mueve y se detiene al llegar o si algo bloquea el camino.', // ai
+    'Mueve un objeto hacia otro objeto a una velocidad, usando la física. Se gira hacia donde va, sigue al objeto si se mueve, rodea lo que se interpone y empuja los objetos que se pueden mover. Se detiene al llegar o si no puede llegar. Elige «deambulando» para que siga un camino sinuoso.', // ai
   set_bounciness: 'establecer rebote de %1 a %2', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
@@ -833,6 +833,8 @@ export default {
   PLACE_RIGHT_option: 'a la derecha de', // ai
   PLACE_FRONT_option: 'delante de', // ai
   PLACE_BEHIND_option: 'detrás de', // ai
+  STRAIGHT_option: 'directo', // ai
+  WANDERING_option: 'deambulando', // ai
   PLACE_NEAR_option: 'cerca de', // ai
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
@@ -1225,6 +1227,7 @@ export default {
   export_web_page_file_description: 'Página web', // ai
   export_web_zip_file_description: 'Archivo ZIP', // ai
   tools_capture_tab_ui: 'Capturar', // ai
+  tools_debug_tab_ui: 'Depurar', // ai
   capture_picture_heading_ui: 'Imagen', // ai
   capture_picture_description_ui: 'Guarda una imagen de la escena 3D.', // ai
   capture_picture_button_ui: 'Hacer foto', // ai
@@ -1247,6 +1250,9 @@ export default {
   capture_picture_file_description: 'Imagen PNG', // ai
   capture_gif_file_description: 'Animación GIF', // ai
   capture_video_file_description: 'Vídeo', // ai
+  fps_option_ui: 'Fotogramas por segundo', // ai
+  physics_shapes_option_ui: 'Mostrar formas físicas', // ai
+  physics_shapes_note_ui: 'Desactívalo y actívalo para actualizar', // ai
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai

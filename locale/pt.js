@@ -264,11 +264,11 @@ export default {
   add_physics_shape: 'adicionar forma física %1 tipo %2',
   apply_force: 'aplicar força em %1 x: %2 y: %3 z: %4',
   set_speed: 'definir velocidade de %1 %2 para %3', // ai
-  move_to_object: 'mover %1 %2 %3 espaço %4 velocidade %5 %6', // ai
+  move_to_object: 'mover %1 %7 %2 %3 espaço %4 velocidade %5 %6', // ai
   set_speed_tooltip:
     'Mantém um objeto a mover-se a uma velocidade definida numa direção. Move-se tal como uma personagem com "mover" — sobe rampas, transpõe pequenos degraus, para nas paredes e mantém-se direito — mas em relação ao objeto ou ao mundo, em vez da câmara. Mantém essa velocidade até a alterares. Escolhe uma direção em relação ao objeto (frente, lateral, cima) ou um eixo do mundo (x, y, z); usa "olhar para" para apontar e depois segue em frente. Escolhe "todos" e 0 para parar.', // ai
   move_to_object_tooltip:
-    'Move um objeto até outro objeto a uma velocidade, usando física. Vira-se para onde vai, segue o objeto se ele se mover e para quando chega ou se algo bloquear o caminho.', // ai
+    'Move um objeto até outro objeto a uma velocidade, usando física. Vira-se para onde vai, segue o objeto se ele se mover, contorna obstáculos e empurra objetos que se podem mover. Para quando chega ou se não conseguir chegar. Escolhe "vagueando" para seguir um caminho sinuoso.', // ai
   show_physics: 'mostrar formas físicas %1',
 
   // Custom block translations - Sensing blocks
@@ -751,6 +751,8 @@ export default {
   PLACE_RIGHT_option: 'à direita de', // ai
   PLACE_FRONT_option: 'à frente de', // ai
   PLACE_BEHIND_option: 'atrás de', // ai
+  STRAIGHT_option: 'direto', // ai
+  WANDERING_option: 'vagueando', // ai
   PLACE_NEAR_option: 'perto de', // ai
   user_option: 'frente',
   environment_option: 'trás',
@@ -1109,6 +1111,7 @@ export default {
   export_web_page_file_description: 'Página web', // ai
   export_web_zip_file_description: 'Ficheiro ZIP', // ai
   tools_capture_tab_ui: 'Capturar', // ai
+  tools_debug_tab_ui: 'Depuração', // ai
   capture_picture_heading_ui: 'Imagem', // ai
   capture_picture_description_ui: 'Guarda uma imagem da cena 3D.', // ai
   capture_picture_button_ui: 'Tirar foto', // ai
@@ -1131,6 +1134,9 @@ export default {
   capture_picture_file_description: 'Imagem PNG', // ai
   capture_gif_file_description: 'Animação GIF', // ai
   capture_video_file_description: 'Vídeo', // ai
+  fps_option_ui: 'Taxa de quadros', // ai
+  physics_shapes_option_ui: 'Mostrar formas físicas', // ai
+  physics_shapes_note_ui: 'Desative e ative para atualizar', // ai
   inspector_tool_ui: 'Inspetor',
   player_controls_option_ui: 'Controlos do jogador', // ai
   gizmo_controls_option_ui: 'Controlos de manipulação', // ai

@@ -98,6 +98,9 @@ export const flock = {
   memoryMonitorInterval: 5000,
   materialsDebug: false,
   meshDebug: false,
+  autoInstanceModels:
+    typeof location === 'undefined' ||
+    new URLSearchParams(location.search).get('autoInstance') !== '0',
   performanceOverlay: false,
   get showInternalNodes() {
     return getShowInternalNodes();

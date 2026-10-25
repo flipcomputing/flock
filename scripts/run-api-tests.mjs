@@ -40,9 +40,11 @@ const AVAILABLE_SUITES = [
     pattern: '@sound-verification',
   },
   { id: 'physics', name: 'Physics Tests (6 tests)', pattern: '@physics' },
+  { id: 'navigation', name: 'Navigation Tests (move to object)', pattern: '@navigation' },
   { id: 'sound2', name: 'Sound2 Tests (BPM and speech)', pattern: '@sound2' },
   { id: 'camera', name: 'Camera API Tests', pattern: '@camera' },
   { id: 'control', name: 'Control API Tests', pattern: '@control' },
+  { id: 'ifclause', name: 'If Clause Tests', pattern: '@ifclause' },
   { id: 'xr', name: 'XR API Tests', pattern: '@xr' },
   {
     id: 'materials',

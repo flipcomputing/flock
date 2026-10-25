@@ -266,11 +266,11 @@ export default {
   add_physics_shape: 'aggiungi forma fisica %1 tipo %2',
   apply_force: 'applica forza a %1 x: %2 y: %3 z: %4',
   set_speed: 'imposta velocità di %1 %2 a %3', // ai
-  move_to_object: 'muovi %1 %2 %3 distanza %4 velocità %5 %6', // ai
+  move_to_object: 'muovi %1 %7 %2 %3 distanza %4 velocità %5 %6', // ai
   set_speed_tooltip:
     'Mantiene un oggetto in movimento a una velocità impostata in una direzione. Si muove proprio come un personaggio con "muovi" — sale le rampe, supera piccoli gradini, si ferma contro i muri e resta dritto — ma rispetto all\'oggetto o al mondo invece che alla telecamera. Mantiene quella velocità finché non la cambi. Scegli una direzione rispetto all\'oggetto (avanti, laterale, su) o un asse del mondo (x, y, z); usa "guarda" per mirare, poi vai avanti. Scegli "tutti" e 0 per fermarti.', // ai
   move_to_object_tooltip:
-    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove e si ferma quando arriva o se qualcosa blocca la strada.", // ai
+    "Muove un oggetto verso un altro oggetto a una velocità, usando la fisica. Si gira nella direzione in cui va, segue l'oggetto se si muove, aggira gli ostacoli e spinge gli oggetti che possono muoversi. Si ferma quando arriva o se non riesce a raggiungerlo. Scegli \"vagando\" per seguire un percorso tortuoso.", // ai
   show_physics: 'mostra formas fisicas %1',
 
   // Custom block translations - Sensing blocks
@@ -746,6 +746,8 @@ export default {
   PLACE_RIGHT_option: 'a destra di', // ai
   PLACE_FRONT_option: 'davanti a', // ai
   PLACE_BEHIND_option: 'dietro', // ai
+  STRAIGHT_option: 'dritto', // ai
+  WANDERING_option: 'vagando', // ai
   PLACE_NEAR_option: 'vicino a', // ai
   user_option: 'fronte',
   environment_option: 'retro',
@@ -1119,6 +1121,7 @@ export default {
   export_web_page_file_description: 'Pagina web', // ai
   export_web_zip_file_description: 'File ZIP', // ai
   tools_capture_tab_ui: 'Cattura', // ai
+  tools_debug_tab_ui: 'Debug', // ai
   capture_picture_heading_ui: 'Immagine', // ai
   capture_picture_description_ui: 'Salva un’immagine della scena 3D.', // ai
   capture_picture_button_ui: 'Scatta foto', // ai
@@ -1141,6 +1144,9 @@ export default {
   capture_picture_file_description: 'Immagine PNG', // ai
   capture_gif_file_description: 'Animazione GIF', // ai
   capture_video_file_description: 'Video', // ai
+  fps_option_ui: 'Frequenza fotogrammi', // ai
+  physics_shapes_option_ui: 'Mostra forme fisiche', // ai
+  physics_shapes_note_ui: 'Disattiva e riattiva per aggiornare', // ai
   inspector_tool_ui: 'Ispettore',
   player_controls_option_ui: 'Comandi del giocatore', // ai
   gizmo_controls_option_ui: 'Comandi di manipolazione', // ai

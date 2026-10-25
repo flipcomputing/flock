@@ -264,11 +264,11 @@ export default {
   add_physics_shape: 'ajouter forme physique %1 type %2',
   apply_force: 'appliquer force à %1 x: %2 y: %3 z: %4',
   set_speed: 'définir la vitesse de %1 %2 à %3', // ai
-  move_to_object: 'déplacer %1 %2 %3 écart %4 vitesse %5 %6', // ai
+  move_to_object: 'déplacer %1 %7 %2 %3 écart %4 vitesse %5 %6', // ai
   set_speed_tooltip:
     'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.', // ai
   move_to_object_tooltip:
-    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge et s'arrête à l'arrivée ou si quelque chose bloque le passage.", // ai
+    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge, contourne les obstacles et pousse les objets qui peuvent bouger. Il s'arrête à l'arrivée ou s'il ne peut pas l'atteindre. Choisis « en flânant » pour suivre un chemin sinueux.", // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
@@ -754,6 +754,8 @@ export default {
   PLACE_RIGHT_option: 'à droite de', // ai
   PLACE_FRONT_option: 'devant', // ai
   PLACE_BEHIND_option: 'derrière', // ai
+  STRAIGHT_option: 'directement', // ai
+  WANDERING_option: 'en flânant', // ai
   PLACE_NEAR_option: 'près de', // ai
   user_option: 'avant',
   environment_option: 'arrière',
@@ -1114,6 +1116,7 @@ export default {
   export_web_page_file_description: 'Page web', // ai
   export_web_zip_file_description: 'Fichier ZIP', // ai
   tools_capture_tab_ui: 'Capturer', // ai
+  tools_debug_tab_ui: 'Débogage', // ai
   capture_picture_heading_ui: 'Image', // ai
   capture_picture_description_ui: 'Enregistre une image de la scène 3D.', // ai
   capture_picture_button_ui: 'Prendre une photo', // ai
@@ -1136,6 +1139,9 @@ export default {
   capture_picture_file_description: 'Image PNG', // ai
   capture_gif_file_description: 'Animation GIF', // ai
   capture_video_file_description: 'Vidéo', // ai
+  fps_option_ui: 'Fréquence d’images', // ai
+  physics_shapes_option_ui: 'Afficher les formes physiques', // ai
+  physics_shapes_note_ui: 'Désactivez puis réactivez pour actualiser', // ai
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai

@@ -265,11 +265,11 @@ export default {
   add_physics_shape: 'Physikform hinzufügen %1 Typ %2',
   apply_force: 'Kraft auf %1 anwenden x: %2 y: %3 z: %4',
   set_speed: 'Geschwindigkeit von %1 %2 auf %3 setzen', // ai
-  move_to_object: 'bewege %1 %2 %3 Abstand %4 Geschwindigkeit %5 %6', // ai
+  move_to_object: 'bewege %1 %7 %2 %3 Abstand %4 Geschwindigkeit %5 %6', // ai
   set_speed_tooltip:
     'Lässt ein Objekt mit einer festgelegten Geschwindigkeit in eine Richtung weiterfahren. Es bewegt sich genau wie eine Spielfigur mit "Bewegen" — fährt Hänge hinauf, übersteigt kleine Stufen, stoppt an Wänden und bleibt aufrecht — aber relativ zum Objekt oder zur Welt statt zur Kamera. Die Geschwindigkeit bleibt erhalten, bis du sie änderst. Wähle eine Richtung relativ zum Objekt (vorwärts, seitlich, hoch) oder eine Weltachse (x, y, z); nutze "ansehen" zum Zielen und fahre dann vorwärts. Wähle "alle" und 0 zum Stoppen.', // ai
   move_to_object_tooltip:
-    'Bewegt ein Objekt mit Physik und einer Geschwindigkeit zu einem anderen Objekt. Es dreht sich in Bewegungsrichtung, folgt dem Objekt, wenn es sich bewegt, und hält an, wenn es ankommt oder etwas den Weg versperrt.', // ai
+    'Bewegt ein Objekt mit Physik und einer Geschwindigkeit zu einem anderen Objekt. Es dreht sich in Bewegungsrichtung, folgt dem Objekt, wenn es sich bewegt, geht um Hindernisse herum und schiebt bewegliche Objekte weg. Es hält an, wenn es ankommt oder nicht hinkommt. Mit „schlendernd“ nimmt es einen kurvigen Weg.', // ai
   show_physics: 'Physikformen zeigen %1',
 
   // Sensing blocks
@@ -878,6 +878,8 @@ export default {
   PLACE_RIGHT_option: 'rechts von', // ai
   PLACE_FRONT_option: 'vor', // ai
   PLACE_BEHIND_option: 'hinter', // ai
+  STRAIGHT_option: 'direkt', // ai
+  WANDERING_option: 'schlendernd', // ai
   PLACE_NEAR_option: 'nahe bei', // ai
   user_option: 'vorne',
   environment_option: 'hinten',
@@ -1110,6 +1112,7 @@ export default {
   export_web_page_file_description: 'Webseite', // ai
   export_web_zip_file_description: 'ZIP-Datei', // ai
   tools_capture_tab_ui: 'Aufnehmen', // ai
+  tools_debug_tab_ui: 'Debug', // ai
   capture_picture_heading_ui: 'Bild', // ai
   capture_picture_description_ui: 'Speichere ein Bild der 3D-Szene.', // ai
   capture_picture_button_ui: 'Bild aufnehmen', // ai
@@ -1132,6 +1135,9 @@ export default {
   capture_picture_file_description: 'PNG-Bild', // ai
   capture_gif_file_description: 'GIF-Animation', // ai
   capture_video_file_description: 'Video', // ai
+  fps_option_ui: 'Bildrate', // ai
+  physics_shapes_option_ui: 'Physikformen anzeigen', // ai
+  physics_shapes_note_ui: 'Zum Aktualisieren aus- und wieder einschalten', // ai
   inspector_tool_ui: 'Inspektor',
   player_controls_option_ui: 'Spielersteuerung', // ai
   gizmo_controls_option_ui: 'Gizmo-Steuerung', // ai

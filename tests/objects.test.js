@@ -439,6 +439,100 @@ export function runCreateObjectTests(flock) {
 
       expect(firstId).to.not.equal(secondId);
     });
+
+    describe('repeated objects', function () {
+      const ids = [];
+      const parts = (id) =>
+        flock.scene
+          .getMeshByName(id)
+          .getChildMeshes(false)
+          .filter((m) => m.getTotalVertices() > 0);
+      const addTree = async (modelId, color, x) => {
+        const id = flock.createObject({ modelName: 'tree.glb', modelId, color, position: { x, y: 0, z: 20 } });
+        ids.push(id);
+        await pumpAnimation(flock, flock.show(id));
+        return id;
+      };
+
+      afterEach(function () {
+        ids.forEach((id) => flock.dispose(id));
+        ids.length = 0;
+      });
+
+      const isInstance = (m) => m.getClassName() === 'InstancedMesh';
+
+      it('keeps a single object as an ordinary mesh', async function () {
+        const only = await addTree('tree.glb__single', ['#102030', '#405060'], 0);
+
+        expect(parts(only).length).to.be.greaterThan(0);
+        expect(parts(only).some(isInstance)).to.be.false;
+      });
+
+      it('draws later objects with the same colours as instances of one template', async function () {
+        const first = await addTree('tree.glb__shared_a', ['#112233', '#445566'], 0);
+        const second = await addTree('tree.glb__shared_b', ['#112233', '#445566'], 3);
+        const third = await addTree('tree.glb__shared_c', ['#112233', '#445566'], 6);
+
+        expect(parts(first).some(isInstance)).to.be.false;
+        expect([...parts(second), ...parts(third)].every(isInstance)).to.be.true;
+        expect(parts(third).map((m) => m.sourceMesh)).to.deep.equal(
+          parts(second).map((m) => m.sourceMesh)
+        );
+      });
+
+      it('places an instanced copy exactly like an ordinary one', async function () {
+        const add = async (modelId) => {
+          const id = flock.createObject({ modelName: 'airplane.glb', modelId, position: { x: 0, y: 0, z: 30 } });
+          ids.push(id);
+          await pumpAnimation(flock, flock.show(id));
+          return id;
+        };
+        const first = await add('airplane.glb__place_a');
+        const second = await add('airplane.glb__place_b');
+        const sorted = (id) =>
+          parts(id).sort((a, b) =>
+            (a.metadata?.originalNodeName ?? a.name).localeCompare(b.metadata?.originalNodeName ?? b.name)
+          );
+
+        expect(sorted(second).every(isInstance)).to.be.true;
+        sorted(first).forEach((part, i) => {
+          const other = sorted(second)[i];
+          part.computeWorldMatrix(true);
+          other.computeWorldMatrix(true);
+          other
+            .getWorldMatrix()
+            .m.forEach((value, k) => expect(value).to.be.closeTo(part.getWorldMatrix().m[k], 1e-6));
+        });
+      });
+
+      it('gives a recoloured object its own materials without changing the others', async function () {
+        await addTree('tree.glb__recolour_a', ['#223344', '#556677'], 0);
+        const second = await addTree('tree.glb__recolour_b', ['#223344', '#556677'], 3);
+        const third = await addTree('tree.glb__recolour_c', ['#223344', '#556677'], 6);
+        const before = parts(third).map((m) => m.material.diffuseColor.toHexString());
+
+        await pumpAnimation(flock, flock.changeColor(second, { color: ['#ff0000', '#00ff00'] }));
+
+        expect(parts(second).some(isInstance)).to.be.false;
+        expect(parts(second).map((m) => m.material.diffuseColor.toHexString()).sort()).to.deep.equal(
+          ['#00FF00', '#FF0000']
+        );
+        expect(parts(third).every(isInstance)).to.be.true;
+        expect(parts(third).map((m) => m.material.diffuseColor.toHexString())).to.deep.equal(before);
+      });
+
+      it('removes the template once its last object is disposed', async function () {
+        await addTree('tree.glb__template_a', ['#334455', '#667788'], 0);
+        const second = await addTree('tree.glb__template_b', ['#334455', '#667788'], 3);
+        const template = parts(second)[0].sourceMesh;
+
+        ids.forEach((id) => flock.dispose(id));
+        ids.length = 0;
+        await pumpUntil(flock, () => template.isDisposed(), { label: 'template disposed' });
+
+        expect(template.isDisposed()).to.be.true;
+      });
+    });
   });
 }
 

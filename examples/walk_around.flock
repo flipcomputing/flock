@@ -1,0 +1,1773 @@
+{
+  "version": "2.0.0",
+  "blocks": {
+    "languageVersion": 0,
+    "blocks": [
+      {
+        "type": "start",
+        "id": "ekfm^bsS0-B{8v4B^1=z",
+        "x": 10,
+        "y": 2982,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_sky_color",
+              "id": "mV*P~[:#l-4{Zki_vy3n",
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "TkYgq*4nmw~4+/_Pb+]A",
+                    "fields": {
+                      "COLOR": "#6495ed"
+                    }
+                  },
+                  "block": {
+                    "type": "lists_create_with",
+                    "id": "WOmuBIqn-xtK|K1FIpyj",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 2
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "A}.`$wPZ7XrCQXTma}Yx",
+                          "fields": {
+                            "COLOR": "#6495ed"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "g`URvw4s%3S9KFuqih~S",
+                          "fields": {
+                            "COLOR": "#87ceeb"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "create_map",
+                  "id": "8x*3Ocj+|O%2/Vh1-XWL",
+                  "fields": {
+                    "MAP_NAME": "checkerboard.png"
+                  },
+                  "inputs": {
+                    "MATERIAL": {
+                      "shadow": {
+                        "type": "material",
+                        "id": "KZ*C{2$j#,G-A=s2._=2",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "j*IYx]EhvE*.Q;.pzN]Q",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "qa5U($k`XP^Id1AC,Fz-",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "Yng~_1S`yT%37m5}Z|vz",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "=^|m/%t(Exl7}`v=9tZ-",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "block": {
+                        "type": "material",
+                        "id": "Rwvau%ggGn$YQ5}_pQXQ",
+                        "fields": {
+                          "TEXTURE_SET": "none.png"
+                        },
+                        "inputs": {
+                          "BASE_COLOR": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "j*IYx]EhvE*.Q;.pzN]Q",
+                              "fields": {
+                                "COLOR": "#71bc78"
+                              }
+                            }
+                          },
+                          "ALPHA": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "qa5U($k`XP^Id1AC,Fz-",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "Yng~_1S`yT%37m5}Z|vz",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "=^|m/%t(Exl7}`v=9tZ-",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "UK=C?@UvK2zMfDZ;$]*n",
+        "x": 10,
+        "y": 2558,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_multi_object",
+              "id": "wzIdVNs$zX6:,;xT1Ov:",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "Qr/rS_a/2)E)W[1|:CUN"
+                },
+                "MODELS": "hut.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "`cTR@E%N[v[[XZ-cT;7b",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Ie;lURMB@C6m-vyb0-~M",
+                    "fields": {
+                      "NUM": -21.5
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "^!^Nq6zK+~P9X2f{$X5k",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "5t(OeI`*(uVxu.cZo+J^",
+                    "fields": {
+                      "NUM": 1.2
+                    }
+                  }
+                },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "id": "=kNNow[/6LjltF-i7+bp",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 6
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "2e)ues^|uMmU8RRGZpW_",
+                          "fields": {
+                            "COLOR": "#b66946"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "SZWaV.C*,(%:Du^NW#.[",
+                          "fields": {
+                            "COLOR": "#5f2524"
+                          }
+                        }
+                      },
+                      "ADD2": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "._Z;-o[fP,:}nqd}:*tN",
+                          "fields": {
+                            "COLOR": "#c25a5c"
+                          }
+                        }
+                      },
+                      "ADD3": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "J0,YPhB?l_7P33MoK+(!",
+                          "fields": {
+                            "COLOR": "#e1b46e"
+                          }
+                        }
+                      },
+                      "ADD4": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "qrFekgOLd|zM09LwTO;}",
+                          "fields": {
+                            "COLOR": "#3bacba"
+                          }
+                        }
+                      },
+                      "ADD5": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "+e?ld;|f)ge~yx2SAH4*",
+                          "fields": {
+                            "COLOR": "#878787"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "ROTATE_X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "q!BwXw.%![/A~|xn_!#8",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "ROTATE_Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "JUm7`(wS)dWu6l1$sgm:",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "ROTATE_Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "WW6rQVJIj!l]ygB;rxRv",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "add_physics_shape",
+                  "id": "6l[+DvJl:CF]2{qY7L=q",
+                  "fields": {
+                    "MODEL_VAR": {
+                      "id": "Qr/rS_a/2)E)W[1|:CUN"
+                    },
+                    "SHAPE_TYPE": "MESH"
+                  },
+                  "next": {
+                    "block": {
+                      "type": "create_marker",
+                      "id": "JgV|o(NA75tjh?DW}x5N",
+                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
+                      "fields": {
+                        "ID_VAR": {
+                          "id": "/+{q*bVAUx;v%qR$/D5g"
+                        },
+                        "TYPE": "cross",
+                        "EDIT": true
+                      },
+                      "inputs": {
+                        "X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "f-R3D!w_c-#M|p-bwbNS",
+                            "fields": {
+                              "NUM": -18.6
+                            }
+                          }
+                        },
+                        "Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "pIj4:)mM:FtW]pqw6@sH",
+                            "fields": {
+                              "NUM": 2.1
+                            }
+                          }
+                        },
+                        "Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "i4mz0?-hP83iCftcPiu(",
+                            "fields": {
+                              "NUM": 0.5
+                            }
+                          }
+                        },
+                        "ROTATE_X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "p}}%[?*Z7PK|F#$yc8i4",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "ROTATE_Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "aPNDpZAe-TNA__0:ddPw",
+                            "fields": {
+                              "NUM": -70
+                            }
+                          }
+                        },
+                        "ROTATE_Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "k;vWiNw]wnY^-XR;0_ER",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "2.CkWaU`!5#_ot%h`)e/",
+        "x": 10,
+        "y": 1174,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_character",
+              "id": "K]{K~{mQr0yp{{ZDPAH:",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "T[CCmsEJ1yG]UE!!*F5V"
+                },
+                "MODELS": "Block6.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "-z]YbY`oTH=o]GKc5L3f",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "nXgO[1lP[=6X/26BC|np",
+                    "fields": {
+                      "NUM": 3.1
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "q+}i@:OFXQXLeSgx(1=9",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "E=6JbAZ=w{HhAa.d1[G)",
+                    "fields": {
+                      "NUM": 0.7
+                    }
+                  }
+                },
+                "HAIR_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "}M)[XyVhz`mlX,xk3WCE",
+                    "fields": {
+                      "COLOR": "#ffff00"
+                    }
+                  }
+                },
+                "SKIN_COLOR": {
+                  "shadow": {
+                    "type": "skin_colour",
+                    "id": "p_s:9pWF=UpyvN;,p*x^",
+                    "fields": {
+                      "COLOR": "#f4b077"
+                    }
+                  }
+                },
+                "EYES_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "qk6hnM1qlTevT-oTF=TQ",
+                    "fields": {
+                      "COLOR": "#33ff33"
+                    }
+                  }
+                },
+                "TSHIRT_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "6Z]O24+MUzH/s`cMNnjX",
+                    "fields": {
+                      "COLOR": "#cc33cc"
+                    }
+                  }
+                },
+                "SHORTS_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "a?_EhBU-.Qcu!H=!,toM",
+                    "fields": {
+                      "COLOR": "#339999"
+                    }
+                  }
+                },
+                "SLEEVES_COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "VrsF?n;Mx[-oYB{-Uhrd",
+                    "fields": {
+                      "COLOR": "#9932cc"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "camera_follow",
+                  "id": ":oPh+V-r[6LZ-X1xX*vO",
+                  "fields": {
+                    "CAM_VAR": {
+                      "id": "}z?#zOVb5.1fXsed34hk"
+                    },
+                    "MESH_VAR": {
+                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                    },
+                    "FRONT": false
+                  },
+                  "inputs": {
+                    "RADIUS": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": ")5h8BMg=|e@2B04?Mz8+",
+                        "fields": {
+                          "NUM": 15
+                        }
+                      }
+                    },
+                    "ANGLE": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "5ZU3MMt5k$+GF,oB6*yF",
+                        "fields": {
+                          "NUM": 90
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "rotate_model_xyz",
+                      "id": "Vt5VV.I$v]Vz+I{Q`g.=",
+                      "fields": {
+                        "MODEL": {
+                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                        }
+                      },
+                      "inputs": {
+                        "X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "x#K|y((23l6Owl#nKc9n",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "G0CwAxKL;p5b(bjY82A0",
+                            "fields": {
+                              "NUM": 180
+                            }
+                          }
+                        },
+                        "Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "atkzJ(822k|B]CNZ%#_j",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "switch_animation",
+                          "id": "3nO0M_/@F9P!sG9}VL1%",
+                          "fields": {
+                            "MODEL": {
+                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                            }
+                          },
+                          "inputs": {
+                            "ANIMATION_NAME": {
+                              "shadow": {
+                                "type": "animation_name",
+                                "id": "8g}lQGUtjbmZu*NUZx8B",
+                                "fields": {
+                                  "ANIMATION_NAME": "Idle"
+                                }
+                              }
+                            }
+                          },
+                          "next": {
+                            "block": {
+                              "type": "wait_seconds",
+                              "id": ",M,g`SR$cbvY}x~g7E0G",
+                              "inputs": {
+                                "DURATION": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "#1d2vG7ha.8Et-a2l?jp",
+                                    "fields": {
+                                      "NUM": 2
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "switch_animation",
+                                  "id": "2_ytL[tYR.#$x|js[v3#",
+                                  "fields": {
+                                    "MODEL": {
+                                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                    }
+                                  },
+                                  "inputs": {
+                                    "ANIMATION_NAME": {
+                                      "shadow": {
+                                        "type": "animation_name",
+                                        "id": "R(w|tjAp((J2B4DZd9|B",
+                                        "fields": {
+                                          "ANIMATION_NAME": "Walk"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "move_to_object",
+                                      "id": "}K3p=~1v8Vc]AC)AUc)A",
+                                      "fields": {
+                                        "MODEL1": {
+                                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                        },
+                                        "PATH": "WANDERING",
+                                        "SIDE": "PLACE_FRONT",
+                                        "MODEL2": {
+                                          "id": "Qr/rS_a/2)E)W[1|:CUN"
+                                        },
+                                        "MODE": "AWAIT"
+                                      },
+                                      "inputs": {
+                                        "GAP": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "kzngPNrg3#6WN4|7=y+t",
+                                            "fields": {
+                                              "NUM": 0
+                                            }
+                                          }
+                                        },
+                                        "SPEED": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "bgG5xHYS_yS=-z+qT.3{",
+                                            "fields": {
+                                              "NUM": 3
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "move_to_object",
+                                          "id": "]%-a`qKs2ywiaj.8%swu",
+                                          "fields": {
+                                            "MODEL1": {
+                                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                            },
+                                            "PATH": "WANDERING",
+                                            "SIDE": "PLACE_TO",
+                                            "MODEL2": {
+                                              "id": "Qr/rS_a/2)E)W[1|:CUN"
+                                            },
+                                            "MODE": "AWAIT"
+                                          },
+                                          "inputs": {
+                                            "GAP": {
+                                              "shadow": {
+                                                "type": "math_number",
+                                                "id": "Jxyl++|pKX7u/4CV$9?D",
+                                                "fields": {
+                                                  "NUM": 0
+                                                }
+                                              }
+                                            },
+                                            "SPEED": {
+                                              "shadow": {
+                                                "type": "math_number",
+                                                "id": "SoHaY38d/NEKe[xC9FvT",
+                                                "fields": {
+                                                  "NUM": 3
+                                                }
+                                              }
+                                            }
+                                          },
+                                          "next": {
+                                            "block": {
+                                              "type": "move_to_object",
+                                              "id": "+DMwk;]l~#vM[brrWLq:",
+                                              "fields": {
+                                                "MODEL1": {
+                                                  "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                },
+                                                "PATH": "STRAIGHT",
+                                                "SIDE": "PLACE_TO",
+                                                "MODEL2": {
+                                                  "id": "/+{q*bVAUx;v%qR$/D5g"
+                                                },
+                                                "MODE": "AWAIT"
+                                              },
+                                              "inputs": {
+                                                "GAP": {
+                                                  "shadow": {
+                                                    "type": "math_number",
+                                                    "id": "OG-aTDx`{`Gozm0q0#dj",
+                                                    "fields": {
+                                                      "NUM": 0
+                                                    }
+                                                  }
+                                                },
+                                                "SPEED": {
+                                                  "shadow": {
+                                                    "type": "math_number",
+                                                    "id": "d]`(]:V(TP88UGO@}1Ij",
+                                                    "fields": {
+                                                      "NUM": 3
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              "next": {
+                                                "block": {
+                                                  "type": "play_animation",
+                                                  "id": "ZeaFY6Ba${:h}Z8|,_vb",
+                                                  "fields": {
+                                                    "MODEL": {
+                                                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                    }
+                                                  },
+                                                  "inputs": {
+                                                    "ANIMATION_NAME": {
+                                                      "shadow": {
+                                                        "type": "animation_name",
+                                                        "id": "0$T_POR]RUO~tbcp,omR",
+                                                        "fields": {
+                                                          "ANIMATION_NAME": "Wave"
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                  "next": {
+                                                    "block": {
+                                                      "type": "switch_animation",
+                                                      "id": "vj5(}Q]`}FXV!J%W8#RI",
+                                                      "fields": {
+                                                        "MODEL": {
+                                                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                        }
+                                                      },
+                                                      "inputs": {
+                                                        "ANIMATION_NAME": {
+                                                          "shadow": {
+                                                            "type": "animation_name",
+                                                            "id": ":t2Q6`h4bQQwuV7dz9,w",
+                                                            "fields": {
+                                                              "ANIMATION_NAME": "Walk"
+                                                            }
+                                                          }
+                                                        }
+                                                      },
+                                                      "next": {
+                                                        "block": {
+                                                          "type": "move_to_object",
+                                                          "id": "n*Y{(Q$)voRI%6I4M{|D",
+                                                          "fields": {
+                                                            "MODEL1": {
+                                                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                            },
+                                                            "PATH": "WANDERING",
+                                                            "SIDE": "PLACE_FRONT",
+                                                            "MODEL2": {
+                                                              "id": "Qr/rS_a/2)E)W[1|:CUN"
+                                                            },
+                                                            "MODE": "AWAIT"
+                                                          },
+                                                          "inputs": {
+                                                            "GAP": {
+                                                              "shadow": {
+                                                                "type": "math_number",
+                                                                "id": "8J!rZk}0S]pf:b`1A)e0",
+                                                                "fields": {
+                                                                  "NUM": 0
+                                                                }
+                                                              }
+                                                            },
+                                                            "SPEED": {
+                                                              "shadow": {
+                                                                "type": "math_number",
+                                                                "id": "OmrNZ$j6Z_b4I,-,fnib",
+                                                                "fields": {
+                                                                  "NUM": 3
+                                                                }
+                                                              }
+                                                            }
+                                                          },
+                                                          "next": {
+                                                            "block": {
+                                                              "type": "switch_animation",
+                                                              "id": "=+RZEJWlj:+ivEA;wt:k",
+                                                              "fields": {
+                                                                "MODEL": {
+                                                                  "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                }
+                                                              },
+                                                              "inputs": {
+                                                                "ANIMATION_NAME": {
+                                                                  "shadow": {
+                                                                    "type": "animation_name",
+                                                                    "id": "ea9yM4`YAmVDH}$rk=}G",
+                                                                    "fields": {
+                                                                      "ANIMATION_NAME": "Idle"
+                                                                    }
+                                                                  }
+                                                                }
+                                                              },
+                                                              "next": {
+                                                                "block": {
+                                                                  "type": "switch_animation",
+                                                                  "id": ";zAY2%)ga[Vwo)6K*cXi",
+                                                                  "fields": {
+                                                                    "MODEL": {
+                                                                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                    }
+                                                                  },
+                                                                  "inputs": {
+                                                                    "ANIMATION_NAME": {
+                                                                      "shadow": {
+                                                                        "type": "animation_name",
+                                                                        "id": ":|-M=C|g^I*AV:}a0Lcn",
+                                                                        "fields": {
+                                                                          "ANIMATION_NAME": "Walk"
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  },
+                                                                  "next": {
+                                                                    "block": {
+                                                                      "type": "move_to_object",
+                                                                      "id": "n;k(2sdpp0d_-ixip2i#",
+                                                                      "fields": {
+                                                                        "MODEL1": {
+                                                                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                        },
+                                                                        "PATH": "STRAIGHT",
+                                                                        "SIDE": "PLACE_NEAR",
+                                                                        "MODEL2": {
+                                                                          "id": "KFQn^7FTdv.JS9k(`Vdt"
+                                                                        },
+                                                                        "MODE": "AWAIT"
+                                                                      },
+                                                                      "inputs": {
+                                                                        "GAP": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": ".Mua:9Yv*Pa}53nA-]73",
+                                                                            "fields": {
+                                                                              "NUM": 1
+                                                                            }
+                                                                          }
+                                                                        },
+                                                                        "SPEED": {
+                                                                          "shadow": {
+                                                                            "type": "math_number",
+                                                                            "id": "0:n~F+6@iu.|!ZUqgr,9",
+                                                                            "fields": {
+                                                                              "NUM": 3
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      },
+                                                                      "next": {
+                                                                        "block": {
+                                                                          "type": "move_to_object",
+                                                                          "id": "Q1@RMW%$pG{q|HaSq`}y",
+                                                                          "disabledReasons": [
+                                                                            "MANUALLY_DISABLED"
+                                                                          ],
+                                                                          "fields": {
+                                                                            "MODEL1": {
+                                                                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                            },
+                                                                            "PATH": "WANDERING",
+                                                                            "SIDE": "PLACE_LEFT",
+                                                                            "MODEL2": {
+                                                                              "id": "KFQn^7FTdv.JS9k(`Vdt"
+                                                                            },
+                                                                            "MODE": "AWAIT"
+                                                                          },
+                                                                          "inputs": {
+                                                                            "GAP": {
+                                                                              "shadow": {
+                                                                                "type": "math_number",
+                                                                                "id": "WZGE}5;O-cR9eh^h.f(0",
+                                                                                "fields": {
+                                                                                  "NUM": 1
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "SPEED": {
+                                                                              "shadow": {
+                                                                                "type": "math_number",
+                                                                                "id": "Z!)W`W:Dz%opz.ZrQ5a[",
+                                                                                "fields": {
+                                                                                  "NUM": 3
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          },
+                                                                          "next": {
+                                                                            "block": {
+                                                                              "type": "switch_animation",
+                                                                              "id": "J{GFSv]k}*JJ-BQ3np0w",
+                                                                              "fields": {
+                                                                                "MODEL": {
+                                                                                  "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                }
+                                                                              },
+                                                                              "inputs": {
+                                                                                "ANIMATION_NAME": {
+                                                                                  "shadow": {
+                                                                                    "type": "animation_name",
+                                                                                    "id": "YIcva]J{UoBX/EtwVFNC",
+                                                                                    "fields": {
+                                                                                      "ANIMATION_NAME": "Walk"
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              },
+                                                                              "next": {
+                                                                                "block": {
+                                                                                  "type": "move_to_object",
+                                                                                  "id": "Y/Wn:O6?gB2BV,OY8=@B",
+                                                                                  "fields": {
+                                                                                    "MODEL1": {
+                                                                                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                    },
+                                                                                    "PATH": "STRAIGHT",
+                                                                                    "SIDE": "PLACE_NEAR",
+                                                                                    "MODEL2": {
+                                                                                      "id": "=C?JOk=9VZ=D#IODBN*~"
+                                                                                    },
+                                                                                    "MODE": "AWAIT"
+                                                                                  },
+                                                                                  "inputs": {
+                                                                                    "GAP": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "Ajo2ydC~%vc:(NjMf#(9",
+                                                                                        "fields": {
+                                                                                          "NUM": 1
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "SPEED": {
+                                                                                      "shadow": {
+                                                                                        "type": "math_number",
+                                                                                        "id": "0Mh3PlxVJqVYbAcMnd3V",
+                                                                                        "fields": {
+                                                                                          "NUM": 3
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  },
+                                                                                  "next": {
+                                                                                    "block": {
+                                                                                      "type": "switch_animation",
+                                                                                      "id": ".lq$3UF94HP2O$5Gj(P%",
+                                                                                      "fields": {
+                                                                                        "MODEL": {
+                                                                                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                        }
+                                                                                      },
+                                                                                      "inputs": {
+                                                                                        "ANIMATION_NAME": {
+                                                                                          "shadow": {
+                                                                                            "type": "animation_name",
+                                                                                            "id": "nTD7MrP`Gc8xn-rB_ztC",
+                                                                                            "fields": {
+                                                                                              "ANIMATION_NAME": "Walk"
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      },
+                                                                                      "next": {
+                                                                                        "block": {
+                                                                                          "type": "move_to_object",
+                                                                                          "id": "Hhs8^mWg@3;e09l;6=^@",
+                                                                                          "fields": {
+                                                                                            "MODEL1": {
+                                                                                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                            },
+                                                                                            "PATH": "STRAIGHT",
+                                                                                            "SIDE": "PLACE_NEAR",
+                                                                                            "MODEL2": {
+                                                                                              "id": "K:|2X2Zd7,AR)X,(e)Ob"
+                                                                                            },
+                                                                                            "MODE": "AWAIT"
+                                                                                          },
+                                                                                          "inputs": {
+                                                                                            "GAP": {
+                                                                                              "shadow": {
+                                                                                                "type": "math_number",
+                                                                                                "id": "jN[|![(1QPbe0m`dkgXX",
+                                                                                                "fields": {
+                                                                                                  "NUM": 1
+                                                                                                }
+                                                                                              }
+                                                                                            },
+                                                                                            "SPEED": {
+                                                                                              "shadow": {
+                                                                                                "type": "math_number",
+                                                                                                "id": "`D]^!knBn{/edWxlOmqB",
+                                                                                                "fields": {
+                                                                                                  "NUM": 3
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          },
+                                                                                          "next": {
+                                                                                            "block": {
+                                                                                              "type": "switch_animation",
+                                                                                              "id": "dqroW6T~dv%jqDU+MG+n",
+                                                                                              "fields": {
+                                                                                                "MODEL": {
+                                                                                                  "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                                }
+                                                                                              },
+                                                                                              "inputs": {
+                                                                                                "ANIMATION_NAME": {
+                                                                                                  "shadow": {
+                                                                                                    "type": "animation_name",
+                                                                                                    "id": "WH*?x+U3Bq6)8`qa0yWY",
+                                                                                                    "fields": {
+                                                                                                      "ANIMATION_NAME": "Walk"
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              },
+                                                                                              "next": {
+                                                                                                "block": {
+                                                                                                  "type": "move_to_object",
+                                                                                                  "id": "b7KwG7OKW[Vk~NI1|9lU",
+                                                                                                  "fields": {
+                                                                                                    "MODEL1": {
+                                                                                                      "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                                    },
+                                                                                                    "PATH": "WANDERING",
+                                                                                                    "SIDE": "PLACE_TO",
+                                                                                                    "MODEL2": {
+                                                                                                      "id": "(H)Dp,Tn!o:RULz@K+#8"
+                                                                                                    },
+                                                                                                    "MODE": "AWAIT"
+                                                                                                  },
+                                                                                                  "inputs": {
+                                                                                                    "GAP": {
+                                                                                                      "shadow": {
+                                                                                                        "type": "math_number",
+                                                                                                        "id": "Ln:HW4?M;(:Il[0kJ-h_",
+                                                                                                        "fields": {
+                                                                                                          "NUM": 0
+                                                                                                        }
+                                                                                                      }
+                                                                                                    },
+                                                                                                    "SPEED": {
+                                                                                                      "shadow": {
+                                                                                                        "type": "math_number",
+                                                                                                        "id": "x3WGtj4otIn/Ynz66Xit",
+                                                                                                        "fields": {
+                                                                                                          "NUM": 3
+                                                                                                        }
+                                                                                                      }
+                                                                                                    }
+                                                                                                  },
+                                                                                                  "next": {
+                                                                                                    "block": {
+                                                                                                      "type": "move_to_object",
+                                                                                                      "id": "`:eVw:Xq9s+kl7YgF6JU",
+                                                                                                      "fields": {
+                                                                                                        "MODEL1": {
+                                                                                                          "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                                        },
+                                                                                                        "PATH": "STRAIGHT",
+                                                                                                        "SIDE": "PLACE_TO",
+                                                                                                        "MODEL2": {
+                                                                                                          "id": "q2{RXk2Uw3k:@4D,xk%T"
+                                                                                                        },
+                                                                                                        "MODE": "AWAIT"
+                                                                                                      },
+                                                                                                      "inputs": {
+                                                                                                        "GAP": {
+                                                                                                          "shadow": {
+                                                                                                            "type": "math_number",
+                                                                                                            "id": "3Fwq_s2i}K48%Sp=rh.c",
+                                                                                                            "fields": {
+                                                                                                              "NUM": 0
+                                                                                                            }
+                                                                                                          }
+                                                                                                        },
+                                                                                                        "SPEED": {
+                                                                                                          "shadow": {
+                                                                                                            "type": "math_number",
+                                                                                                            "id": "a!MxzGQ[v80A9|b{z60}",
+                                                                                                            "fields": {
+                                                                                                              "NUM": 3
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      },
+                                                                                                      "next": {
+                                                                                                        "block": {
+                                                                                                          "type": "move_to_object",
+                                                                                                          "id": "j-Vg3=eH.c!dv:BiMiVn",
+                                                                                                          "fields": {
+                                                                                                            "MODEL1": {
+                                                                                                              "id": "T[CCmsEJ1yG]UE!!*F5V"
+                                                                                                            },
+                                                                                                            "PATH": "WANDERING",
+                                                                                                            "SIDE": "PLACE_TO",
+                                                                                                            "MODEL2": {
+                                                                                                              "id": "Qr/rS_a/2)E)W[1|:CUN"
+                                                                                                            },
+                                                                                                            "MODE": "AWAIT"
+                                                                                                          },
+                                                                                                          "inputs": {
+                                                                                                            "GAP": {
+                                                                                                              "shadow": {
+                                                                                                                "type": "math_number",
+                                                                                                                "id": "CS4ueJ;i}]!;W+JX_GTl",
+                                                                                                                "fields": {
+                                                                                                                  "NUM": 0
+                                                                                                                }
+                                                                                                              }
+                                                                                                            },
+                                                                                                            "SPEED": {
+                                                                                                              "shadow": {
+                                                                                                                "type": "math_number",
+                                                                                                                "id": "C`FF#OAcc+}XH-=/QO:N",
+                                                                                                                "fields": {
+                                                                                                                  "NUM": 3
+                                                                                                                }
+                                                                                                              }
+                                                                                                            }
+                                                                                                          }
+                                                                                                        }
+                                                                                                      }
+                                                                                                    }
+                                                                                                  }
+                                                                                                }
+                                                                                              }
+                                                                                            }
+                                                                                          }
+                                                                                        }
+                                                                                      }
+                                                                                    }
+                                                                                  }
+                                                                                }
+                                                                              }
+                                                                            }
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    }
+                                                                  }
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "jhcUGOkQT`~~Syd6H;YD",
+        "x": 10,
+        "y": 930,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_multi_object",
+              "id": "Qo4[DPEqM^tBApr!zv6O",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "KFQn^7FTdv.JS9k(`Vdt"
+                },
+                "MODELS": "mushroom.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "l)1#`plo2bQ:}ah-Z3Sx",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "C[i4P_M/)ZM-N$VUORqc",
+                    "fields": {
+                      "NUM": -0.2
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "J0EOO~Avs4WF!iRArgP8",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": ")L*We-WYZ{x(D3(`H:3l",
+                    "fields": {
+                      "NUM": -14.7
+                    }
+                  }
+                },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "id": "r}|_aV*9^:B6E~y!k)Hk",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 3
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "g18@i.Z02.OqZ:t;:f(x",
+                          "fields": {
+                            "COLOR": "#ffffff"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "tgUvIk%T+3|+?vN^l/m8",
+                          "fields": {
+                            "COLOR": "#e73a49"
+                          }
+                        }
+                      },
+                      "ADD2": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "fc:e*6gMyw{?+WWx@*S_",
+                          "fields": {
+                            "COLOR": "#8f7a61"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "oEu+F;A/PEABVBK`Guf]",
+        "x": 10,
+        "y": 686,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_multi_object",
+              "id": "J8N$E+eRA#B*I`DxAg*3",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "=C?JOk=9VZ=D#IODBN*~"
+                },
+                "MODELS": "pond.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "r/id44v?9+#|xXc;)E?z",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "so8~Bh-@FSN=At(z$Guv",
+                    "fields": {
+                      "NUM": 21.7
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "BtHVjwI7ko~FaTX2776T",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "2uR@ZZNBM8Z;*JbIRM(w",
+                    "fields": {
+                      "NUM": -21.6
+                    }
+                  }
+                },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "id": "P?+=1~T#1C=gW|YogQaM",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 3
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "Gg`?T~-Y?lRD=22TUp#{",
+                          "fields": {
+                            "COLOR": "#00e704"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "{%3|zghBA]Mzc`7*=pk:",
+                          "fields": {
+                            "COLOR": "#5a91e7"
+                          }
+                        }
+                      },
+                      "ADD2": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "Q%5*6ubFV62.0D#6~a$+",
+                          "fields": {
+                            "COLOR": "#9a9a9a"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "tJy[k-mhZ8bkQ|@D$/3r",
+        "x": 10,
+        "y": 442,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "load_multi_object",
+              "id": "K|[GIb`!Yy%]ZDnqpL-K",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "K:|2X2Zd7,AR)X,(e)Ob"
+                },
+                "MODELS": "tree.glb"
+              },
+              "inputs": {
+                "SCALE": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "%d!S}%5JzF4Th#p(;0uL",
+                    "fields": {
+                      "NUM": 1
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "ZkwfB$4=?iB%V.z39]pg",
+                    "fields": {
+                      "NUM": 28.9
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "vBT8MVfpYt:[QUHh;B:{",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "4$Pc0lVrTbJ{%1zA{[bf",
+                    "fields": {
+                      "NUM": -26.1
+                    }
+                  }
+                },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "id": "nQOQn4X6`s!dMCwD5gM]",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 2
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "9wT`2@V@jL_XH_YdeEqJ",
+                          "fields": {
+                            "COLOR": "#66cdaa"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "9J]fmHaH^q^I48!d0K}d",
+                          "fields": {
+                            "COLOR": "#cd853f"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "$FzC*QCgj#K7gcUjmWZ(",
+        "x": 10,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "create_wedge",
+              "id": ":p-x)bw]__}v@aZ*TSQW",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"false\"></mutation>",
+              "fields": {
+                "ID_VAR": {
+                  "id": "MZ^~YdljAW}ozw`/j%4{"
+                },
+                "AXIS": "X"
+              },
+              "inputs": {
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "#0g:B?!8`i`@yE5N!*l7",
+                    "fields": {
+                      "COLOR": "#d17b4d"
+                    }
+                  }
+                },
+                "WIDTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "Fx#%3z:=-M^=,_6to~jI",
+                    "fields": {
+                      "NUM": 6
+                    }
+                  }
+                },
+                "HEIGHT": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "+waPl$5!1eWir)]KVJ#@",
+                    "fields": {
+                      "NUM": 3
+                    }
+                  }
+                },
+                "DEPTH": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "#?4/Dm3Z4l,nr7?tk%nt",
+                    "fields": {
+                      "NUM": 4
+                    }
+                  }
+                },
+                "PEAK": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": ")G?rxf1.:Z0x@XRJM|?L",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                },
+                "X": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "wh3!s`m*U44pJ:Nh2fW+",
+                    "fields": {
+                      "NUM": 39.3
+                    }
+                  }
+                },
+                "Y": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": ".vx,cEj4ShbO9K6K0JWI",
+                    "fields": {
+                      "NUM": 2
+                    }
+                  }
+                },
+                "Z": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "cThE~aWfsbdfhJ~8Na^C",
+                    "fields": {
+                      "NUM": -22.3
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "create_marker",
+                  "id": "Wrl(V::OX3|32?}pK{c,",
+                  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
+                  "fields": {
+                    "ID_VAR": {
+                      "id": "(H)Dp,Tn!o:RULz@K+#8"
+                    },
+                    "TYPE": "cross",
+                    "EDIT": true
+                  },
+                  "inputs": {
+                    "X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "GFx,fd)RAnUJ!TjDXoB$",
+                        "fields": {
+                          "NUM": 44.18
+                        }
+                      }
+                    },
+                    "Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "L4l#aTk(tmp3sj3^Y#Ld",
+                        "fields": {
+                          "NUM": 1.96
+                        }
+                      }
+                    },
+                    "Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "PTic:QVx:qIPcyK:gBnl",
+                        "fields": {
+                          "NUM": -22.25
+                        }
+                      }
+                    },
+                    "ROTATE_X": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "IhfXJxJ$s,Yo{L{tnpx]",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    },
+                    "ROTATE_Y": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "0#HSmtZ=/?f*P1YGCS$S",
+                        "fields": {
+                          "NUM": 88.5
+                        }
+                      }
+                    },
+                    "ROTATE_Z": {
+                      "shadow": {
+                        "type": "math_number",
+                        "id": "hxZ/qbq~s(~4des5nzr^",
+                        "fields": {
+                          "NUM": 0
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "create_marker",
+                      "id": "}czz.o%f3BwK4G8JL^bC",
+                      "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\" options=\"true\" rotate=\"true\"></mutation>",
+                      "fields": {
+                        "ID_VAR": {
+                          "id": "q2{RXk2Uw3k:@4D,xk%T"
+                        },
+                        "TYPE": "cross",
+                        "EDIT": true
+                      },
+                      "inputs": {
+                        "X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "AE,SR[`NYDVG14OVorDg",
+                            "fields": {
+                              "NUM": 36.6
+                            }
+                          }
+                        },
+                        "Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "2*6PDrh^sWbrKxn{RDKu",
+                            "fields": {
+                              "NUM": 5
+                            }
+                          }
+                        },
+                        "Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "Phma3cMYZNsAR(TT2gxk",
+                            "fields": {
+                              "NUM": -22.3
+                            }
+                          }
+                        },
+                        "ROTATE_X": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "_9:spT4rx@dnCdIbo_HG",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "ROTATE_Y": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "-tz]?3-YkQTEZu!bGzNv",
+                            "fields": {
+                              "NUM": 87
+                            }
+                          }
+                        },
+                        "ROTATE_Z": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": ",,,p4?P,/TN@+1}sxNEK",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "variables": [
+    {
+      "name": "hut",
+      "id": "Qr/rS_a/2)E)W[1|:CUN"
+    },
+    {
+      "name": "character1",
+      "id": "T[CCmsEJ1yG]UE!!*F5V"
+    },
+    {
+      "name": "mushroom",
+      "id": "KFQn^7FTdv.JS9k(`Vdt"
+    },
+    {
+      "name": "pool",
+      "id": "=C?JOk=9VZ=D#IODBN*~"
+    },
+    {
+      "name": "playerCamera",
+      "id": "}z?#zOVb5.1fXsed34hk"
+    },
+    {
+      "name": "tree",
+      "id": "K:|2X2Zd7,AR)X,(e)Ob"
+    },
+    {
+      "name": "wedge1",
+      "id": "MZ^~YdljAW}ozw`/j%4{"
+    },
+    {
+      "name": "marker1",
+      "id": "(H)Dp,Tn!o:RULz@K+#8"
+    },
+    {
+      "name": "marker2",
+      "id": "q2{RXk2Uw3k:@4D,xk%T"
+    },
+    {
+      "name": "window marker",
+      "id": "/+{q*bVAUx;v%qR$/D5g"
+    }
+  ]
+}

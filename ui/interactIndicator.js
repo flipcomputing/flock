@@ -78,6 +78,8 @@ let _toMesh = null;
 let _closestPt = null;
 // Pre-allocated candidate array — cleared each frame.
 let _candidates = null;
+const _candidateSet = new Set();
+const _isCandidate = (m) => _candidateSet.has(m);
 // Predicate allocated once; captures module variables by reference.
 let _predicate = null;
 // LOS predicate — all visible, pickable meshes (not just interactables).
@@ -505,8 +507,11 @@ function _updateIndicator(scene) {
     return;
   }
 
-  // Suppress icon and click when BUTTON2 has been rebound.
-  if (_inputManager?.hasActionOverride('BUTTON2')) {
+  // Suppress icon and click when BUTTON2 has been rebound or nothing is clickable.
+  if (
+    _inputManager?.hasActionOverride('BUTTON2') ||
+    !scene.actionManagers.some((manager) => manager.hasPickTriggers)
+  ) {
     _icon.isVisible = false;
     _currentTarget = null;
     return;
@@ -521,9 +526,11 @@ function _updateIndicator(scene) {
 
   // Build candidate list into pre-allocated array.
   _candidates.length = 0;
+  _candidateSet.clear();
   for (const m of scene.meshes) {
     if (!_predicate(m)) continue;
     _candidates.push(m);
+    _candidateSet.add(m);
   }
 
   if (_candidates.length === 0) {
@@ -536,7 +543,7 @@ function _updateIndicator(scene) {
   const renderW = engine.getRenderWidth();
   const renderH = engine.getRenderHeight();
   scene.createPickingRayToRef(renderW / 2, renderH / 2, null, _ray, camera);
-  const hit = scene.pickWithRay(_ray, _predicate);
+  const hit = scene.pickWithRay(_ray, _isCandidate);
 
   let target = null;
 
@@ -549,7 +556,7 @@ function _updateIndicator(scene) {
       typeof scene.multiPickWithRay === 'function'
     ) {
       try {
-        const hits = scene.multiPickWithRay(_ray, _predicate);
+        const hits = scene.multiPickWithRay(_ray, _isCandidate);
         if (hits?.length) {
           for (const h of hits) {
             const m = h?.pickedMesh;
@@ -711,6 +718,7 @@ export function detachInteractIndicator() {
   _toMesh = null;
   _closestPt = null;
   _candidates = null;
+  _candidateSet.clear();
   _predicate = null;
   _losPredicate = null;
   _playerMesh = null;

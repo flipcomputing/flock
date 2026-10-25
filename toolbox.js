@@ -7021,6 +7021,120 @@ const toolboxSnippetsBuilding = {
   ],
 };
 
+const barrierWalls = ['wall z+', 'wall z-', 'wall x+', 'wall x-'];
+const snippetBarrierWall = (name, WIDTH, DEPTH, X, Z) => ({
+  block: {
+    type: 'create_box',
+    fields: { ID_VAR: { name } },
+    inputs: {
+      COLOR: snippetVar('barrier material'),
+      WIDTH: snippetNum(WIDTH),
+      HEIGHT: snippetNum(40),
+      DEPTH: snippetNum(DEPTH),
+      X: snippetNum(X),
+      Y: snippetNum(-15),
+      Z: snippetNum(Z),
+    },
+  },
+});
+
+const toolboxSnippetsScene = {
+  kind: 'category',
+  icon: './images/scene.svg',
+  categorystyle: 'snippets_category',
+  name: '%{BKY_CATEGORY_SCENE}',
+  contents: [
+    {
+      kind: 'block',
+      type: 'start',
+      keyword: 'barrier',
+      hint: 'snippet_map_barrier_hint',
+      characterVar: 'player',
+      inputs: {
+        DO: snippetChain(
+          {
+            block: {
+              type: 'comment',
+              inputs: {
+                COMMENT: {
+                  shadow: { type: 'text_multiline', fields: { TEXT: 'Invisible map barrier' } },
+                },
+              },
+            },
+          },
+          {
+            block: {
+              type: 'variables_set',
+              fields: { VAR: { name: 'barrier material' } },
+              inputs: {
+                VALUE: {
+                  block: {
+                    type: 'material',
+                    extraState: { options: true },
+                    fields: { TEXTURE_SET: 'none.png' },
+                    inputs: {
+                      BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#ffffff' } } },
+                      ALPHA: snippetNum(0.05),
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            block: {
+              type: 'create_group',
+              collapsed: true,
+              fields: { ID_VAR: { name: 'map barrier' }, ACTIVE: true },
+              inputs: {
+                DO: snippetChain(
+                  snippetBarrierWall('wall z+', 102, 1, 0, 50.5),
+                  snippetBarrierWall('wall z-', 102, 1, 0, -50.5),
+                  snippetBarrierWall('wall x+', 1, 102, 50.5, 0),
+                  snippetBarrierWall('wall x-', 1, 102, -50.5, 0)
+                ),
+              },
+            },
+          },
+          {
+            block: {
+              type: 'tag_object',
+              inputsInline: true,
+              fields: { TAG_VAR: { name: 'barrier' } },
+              inputs: meshListInputs(barrierWalls, 'OBJECTS'),
+            },
+          },
+          {
+            block: {
+              type: 'on_collision',
+              extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" inline="true"></mutation>',
+              fields: {
+                MODEL_VAR: { name: 'player' },
+                TRIGGER: 'OnIntersectionEnterTrigger',
+                OTHER_MODEL_VAR: { name: 'barrier' },
+              },
+              inputs: {
+                DO: snippetChain(
+                  { block: { type: 'glow', fields: { MODEL_VAR: { name: 'barrier' } } } },
+                  { block: { type: 'wait_seconds', inputs: { DURATION: snippetNum(1) } } },
+                  { block: { type: 'clear_effects', fields: { MODEL_VAR: { name: 'barrier' } } } },
+                  {
+                    block: {
+                      type: 'set_alpha',
+                      fields: { MESH: { name: 'barrier' } },
+                      inputs: { ALPHA: snippetNum(0.05) },
+                    },
+                  }
+                ),
+              },
+            },
+          }
+        ),
+      },
+    },
+  ],
+};
+
 const toolboxSnippets = {
   kind: 'category',
   toolboxitemid: 'snippets',
@@ -7244,6 +7358,7 @@ const toolboxSnippets = {
     toolboxSnippetsMovement,
     toolboxSnippetsPhysics,
     toolboxSnippetsBuilding,
+    toolboxSnippetsScene,
   ],
 };
 

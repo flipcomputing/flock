@@ -299,7 +299,7 @@ export default {
   apply_force: 'apply force to %1 x: %2 y: %3 z: %4',
   jump: 'jump %1 height %2',
   set_speed: 'set speed of %1 %2 to %3',
-  move_to_object: 'move %1 %2 %3 gap %4 speed %5 %6',
+  move_to_object: 'move %1 %7 %2 %3 gap %4 speed %5 %6',
   set_bounciness: 'set bounciness of %1 to %2',
   set_mass: 'set mass of %1 to %2',
   show_physics: 'show physics shapes %1',
@@ -656,7 +656,7 @@ export default {
   set_speed_tooltip:
     'Keep an object moving at a steady speed, like "move" but continuous — handles slopes and collisions, relative to the object or world. Choose a direction (forward, sideways, up) or a world axis (x, y, z); use "all" and 0 to stop.',
   move_to_object_tooltip:
-    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, and stops when it arrives or if something blocks the way.',
+    'Move an object to another object at a speed, using physics. It turns to face where it is going, follows the object if it moves, goes round things in the way and pushes objects that can move. It stops when it arrives or if it cannot get there. Choose "wandering" to take a winding path.',
   set_bounciness_tooltip:
     'Set how bouncy an object is. 0 means no bounce, 1 means very bouncy. The object needs physics first.',
   set_mass_tooltip:
@@ -820,6 +820,7 @@ export default {
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
   snippet_bookcase_hint: 'A bookcase prefab. Give it a width, height, depth, number of shelves, a shelf material and a material for the frame.',
   snippet_desk_hint: 'A desk prefab. Give it a width, height, depth, a drawer material and a material for the frame. Its half-width top drawer sits to the right with open knee space beside it, and slides open when clicked, then shuts after a few seconds. The full-depth drawer is an open box you can place objects inside.',
+  snippet_map_barrier_hint: 'An almost invisible wall around the edge of the ground map so you cannot walk off. It is tall enough for maps with hills and valleys. A wall glows for a moment when the player touches it.',
 
   // Dropdown option translations
   merge_option: 'merge',
@@ -923,6 +924,8 @@ export default {
   PLACE_RIGHT_option: 'right of',
   PLACE_FRONT_option: 'in front of',
   PLACE_BEHIND_option: 'behind',
+  STRAIGHT_option: 'straight',
+  WANDERING_option: 'wandering',
   PLACE_NEAR_option: 'near',
   user_option: 'front',
   environment_option: 'back',
@@ -1318,6 +1321,7 @@ export default {
   export_web_page_file_description: 'Web page',
   export_web_zip_file_description: 'ZIP file',
   tools_capture_tab_ui: 'Capture',
+  tools_debug_tab_ui: 'Debug',
   capture_picture_heading_ui: 'Picture',
   capture_picture_description_ui: 'Save a picture of the 3D scene.',
   capture_picture_button_ui: 'Take picture',
@@ -1340,6 +1344,9 @@ export default {
   capture_picture_file_description: 'PNG image',
   capture_gif_file_description: 'GIF animation',
   capture_video_file_description: 'Video',
+  fps_option_ui: 'Frame rate',
+  physics_shapes_option_ui: 'Show physics shapes',
+  physics_shapes_note_ui: 'Turn off and on to refresh',
   inspector_tool_ui: 'Inspector',
   player_controls_option_ui: 'Player controls',
   gizmo_controls_option_ui: 'Gizmo controls',

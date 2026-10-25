@@ -196,6 +196,7 @@ function realise(copy) {
   link.realised = true;
   realiseHierarchy(copy, { keepRoot: true });
   copyLook(link.source, copy);
+  unlinkFromTemplate(copy);
   for (const follower of linkedCopiesOf.get(copy) ?? []) {
     if (!follower.isDisposed()) realise(follower);
   }
@@ -299,10 +300,80 @@ function snapshotLink(copy, link) {
   link.shown = flock._isShown(copy);
 }
 
+const LOCAL_STATE_SIZE = 12;
+
+function recordLocalState(node, state) {
+  const p = node.position;
+  const s = node.scaling;
+  const q = node.rotationQuaternion;
+  const r = q ?? node.rotation;
+  const w = q ? q.w : 0;
+  const mode = q ? 1 : 0;
+  const pivot = node.getPivotMatrix().updateFlag;
+  if (
+    state[0] === p.x &&
+    state[1] === p.y &&
+    state[2] === p.z &&
+    state[3] === s.x &&
+    state[4] === s.y &&
+    state[5] === s.z &&
+    state[6] === r.x &&
+    state[7] === r.y &&
+    state[8] === r.z &&
+    state[9] === w &&
+    state[10] === mode &&
+    state[11] === pivot
+  ) {
+    return false;
+  }
+  state[0] = p.x;
+  state[1] = p.y;
+  state[2] = p.z;
+  state[3] = s.x;
+  state[4] = s.y;
+  state[5] = s.z;
+  state[6] = r.x;
+  state[7] = r.y;
+  state[8] = r.z;
+  state[9] = w;
+  state[10] = mode;
+  state[11] = pivot;
+  return true;
+}
+
+function linkUnchanged(link, copy, source) {
+  if (copy.parent || source.parent) return false;
+  link.localState ??= {
+    copy: new Float64Array(LOCAL_STATE_SIZE).fill(NaN),
+    source: new Float64Array(LOCAL_STATE_SIZE).fill(NaN),
+  };
+  const copyChanged = recordLocalState(copy, link.localState.copy);
+  const sourceChanged = recordLocalState(source, link.localState.source);
+  return !copyChanged && !sourceChanged;
+}
+
+function syncLinkedVisibility(link, copy, source) {
+  const shown = flock._isShown(copy);
+  if (link.overrides.has('visible')) {
+    link.shown = shown;
+  } else if (shown !== link.shown) {
+    link.overrides.add('visible');
+    link.shown = shown;
+  } else if (shown !== flock._isShown(source)) {
+    flock._setShown(copy, !shown);
+    link.shown = flock._isShown(copy);
+  }
+}
+
 function syncLinkedCopy(copy) {
   const link = linkOf.get(copy);
   const source = link?.source;
   if (!source || source.isDisposed() || copy.isDisposed()) return;
+
+  if (linkUnchanged(link, copy, source)) {
+    syncLinkedVisibility(link, copy, source);
+    return;
+  }
 
   const scaling = linkSync.scaling.copyFrom(copy.scaling);
   if (followAxes(link, 'size', scaling, source.scaling, link.scaling)) {
@@ -336,12 +407,8 @@ function syncLinkedCopy(copy) {
   }
   link.position.copyFrom(copy.getAbsolutePosition());
 
-  if (!link.overrides.has('visible')) {
-    const shown = flock._isShown(copy);
-    if (shown !== link.shown) link.overrides.add('visible');
-    else if (shown !== flock._isShown(source)) flock._setShown(copy, !shown);
-  }
-  link.shown = flock._isShown(copy);
+  syncLinkedVisibility(link, copy, source);
+  if (link.localState) recordLocalState(copy, link.localState.copy);
 }
 
 function linkClone(source, copy) {
@@ -399,6 +466,45 @@ function linkClone(source, copy) {
     synced.delete(copy);
     siblings.delete(copy);
     releaseDeletedOriginal(linkOf.get(copy)?.source ?? source);
+  });
+}
+
+const TEMPLATE_OVERRIDES = [
+  ...LINK_PROPERTY_KEYS.position,
+  ...LINK_PROPERTY_KEYS.size,
+  ...LINK_PROPERTY_KEYS.rotation,
+  'visible',
+];
+
+function linkToTemplate(template, copy) {
+  linkOf.set(copy, {
+    source: template,
+    template: true,
+    overrides: new Set(TEMPLATE_OVERRIDES),
+    position: copy.getAbsolutePosition().clone(),
+    scaling: copy.scaling.clone(),
+    rotation: absoluteRotation(copy, new flock.BABYLON.Quaternion()),
+    shown: flock._isShown(copy),
+  });
+  let siblings = linkedCopiesOf.get(template);
+  if (!siblings) linkedCopiesOf.set(template, (siblings = new Set()));
+  siblings.add(copy);
+  copy.onDisposeObservable.addOnce(() => unlinkFromTemplate(copy));
+}
+
+function unlinkFromTemplate(copy) {
+  const link = linkOf.get(copy);
+  if (!link?.template) return;
+  linkOf.delete(copy);
+  const template = link.source;
+  const siblings = linkedCopiesOf.get(template);
+  siblings?.delete(copy);
+  if (siblings?.size) return;
+  queueMicrotask(() => {
+    if (template.isDisposed() || linkedCopiesOf.get(template)?.size) return;
+    if (hierarchyOf(template).some((node) => node.instances?.length)) return;
+    linkedCopiesOf.delete(template);
+    flock.disposeMesh(template);
   });
 }
 
@@ -1401,6 +1507,12 @@ export const flockScene = {
   _lookTarget(mesh) {
     return lookTarget(mesh);
   },
+  _instantiateTemplate(template, name) {
+    return instantiateClone(template, name);
+  },
+  _linkToTemplate(template, copy) {
+    linkToTemplate(template, copy);
+  },
   _claimLinked(mesh, category) {
     const link = linkOf.get(mesh);
     if (!link || replayingConstruction.has(mesh)) return;
@@ -1507,7 +1619,9 @@ export const flockScene = {
       if (!follower.isDisposed()) realise(follower);
     }
     const link = linkOf.get(mesh);
-    if (link) {
+    if (link?.template) {
+      unlinkFromTemplate(mesh);
+    } else if (link) {
       linkedCopiesOf.get(link.source)?.delete(mesh);
       linkSync?.copies.delete(mesh);
       linkOf.delete(mesh);

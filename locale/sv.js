@@ -263,11 +263,11 @@ export default {
   add_physics_shape: 'lägg till fysikform %1 typ %2',
   apply_force: 'tillämpa kraft på %1 x: %2 y: %3 z: %4',
   set_speed: 'ställ in hastighet för %1 %2 till %3', // ai
-  move_to_object: 'flytta %1 %2 %3 avstånd %4 hastighet %5 %6', // ai
+  move_to_object: 'flytta %1 %7 %2 %3 avstånd %4 hastighet %5 %6', // ai
   set_speed_tooltip:
     'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.', // ai
   move_to_object_tooltip:
-    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttas och stannar när det kommer fram eller om något blockerar vägen.', // ai
+    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttar sig, går runt hinder och knuffar undan objekt som kan röra sig. Det stannar när det kommer fram eller om det inte kan komma fram. Välj "strövande" för att ta en slingrande väg.', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks
@@ -744,6 +744,8 @@ export default {
   PLACE_RIGHT_option: 'till höger om', // ai
   PLACE_FRONT_option: 'framför', // ai
   PLACE_BEHIND_option: 'bakom', // ai
+  STRAIGHT_option: 'direkt', // ai
+  WANDERING_option: 'strövande', // ai
   PLACE_NEAR_option: 'nära', // ai
   user_option: 'fram',
   environment_option: 'bak',
@@ -1102,6 +1104,7 @@ export default {
   export_web_page_file_description: 'Webbsida', // ai
   export_web_zip_file_description: 'ZIP-fil', // ai
   tools_capture_tab_ui: 'Spela in', // ai
+  tools_debug_tab_ui: 'Felsökning', // ai
   capture_picture_heading_ui: 'Bild', // ai
   capture_picture_description_ui: 'Spara en bild av 3D-scenen.', // ai
   capture_picture_button_ui: 'Ta bild', // ai
@@ -1124,6 +1127,9 @@ export default {
   capture_picture_file_description: 'PNG-bild', // ai
   capture_gif_file_description: 'GIF-animation', // ai
   capture_video_file_description: 'Video', // ai
+  fps_option_ui: 'Bildfrekvens', // ai
+  physics_shapes_option_ui: 'Visa fysikformer', // ai
+  physics_shapes_note_ui: 'Stäng av och slå på för att uppdatera', // ai
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai
