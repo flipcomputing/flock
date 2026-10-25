@@ -1,24 +1,67 @@
+import { hideFromInspector } from '../ui/inspectorVisibility.js';
+import { clampToRange } from '../config.js';
+
 let flock;
+
+const toModelScale = (scale) =>
+  typeof scale === 'number' && Number.isFinite(scale) ? clampToRange(scale, 'modelScale') : 1;
 
 export function setFlockReference(ref) {
   flock = ref;
 }
 
+function pairClonedNodes(source, clone, pairs = new Map()) {
+  pairs.set(source, clone);
+  const cloneChildren = clone.getDescendants(true);
+  source
+    .getDescendants(true)
+    .filter((child) => child.clone)
+    .forEach((child, i) => {
+      if (cloneChildren[i]) pairClonedNodes(child, cloneChildren[i], pairs);
+    });
+  return pairs;
+}
+
 export const flockModels = {
+  _cloneSkeletons(source, mesh) {
+    const parts = [mesh, ...mesh.getChildMeshes(false)];
+    if (!parts.some((part) => part.skeleton)) return;
+    const clonedNodes = source ? pairClonedNodes(source, mesh) : new Map();
+    const clones = new Map();
+    parts.forEach((part) => {
+      const original = part.skeleton;
+      if (!original) return;
+      let skeleton = clones.get(original);
+      if (!skeleton) {
+        skeleton = original.clone(`${original.name}_${mesh.uniqueId}`);
+        skeleton.bones.forEach((bone, i) => {
+          const linked = original.bones[i].getTransformNode();
+          const target = linked && clonedNodes.get(linked);
+          if (target) bone.linkTransformNode(target);
+        });
+        mesh.onDisposeObservable.addOnce(() => skeleton.dispose());
+        clones.set(original, skeleton);
+      }
+      part.skeleton = skeleton;
+    });
+  },
   createCharacter({
     modelName,
     modelId,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
     colors = {
-      hair: "#000000",
-      skin: "#a15c33",
-      eyes: "#0000ff",
-      sleeves: "#ff0000",
-      shorts: "#00ff00",
-      tshirt: "#0000ff",
+      hair: '#000000',
+      skin: '#a15c33',
+      eyes: '#0000ff',
+      sleeves: '#ff0000',
+      shorts: '#00ff00',
+      tshirt: '#0000ff',
     },
+    rotation = null,
+    size = null,
     callback = () => {},
+    then = null,
   }) {
     // Drop container references (do NOT dispose after addAllToScene)
     const releaseContainer = (container) => {
@@ -29,42 +72,37 @@ export const flockModels = {
         container.skeletons = [];
         container.animationGroups = [];
       } catch (_) {
-        console.warn("Suppressed non-critical error:", _);
+        console.warn('Suppressed non-critical error:', _);
       }
     };
 
     // --- bail if there is no live scene (e.g. called during dispose) ---
     if (!flock.scene || flock.scene.isDisposed) {
-      console.warn("createCharacter: no active scene");
-      return "error_no_scene";
+      console.warn('createCharacter: no active scene');
+      return 'error_no_scene';
     }
 
     // --- validate ---
-    if (!modelName || typeof modelName !== "string" || modelName.length > 100) {
-      console.warn("createCharacter: invalid modelName");
-      return "error_" + flock.scene.getUniqueId();
+    if (!modelName || typeof modelName !== 'string' || modelName.length > 100) {
+      console.warn('createCharacter: invalid modelName');
+      return 'error_' + flock.scene.getUniqueId();
     }
-    if (!modelId || typeof modelId !== "string" || modelId.length > 100) {
-      console.warn("createCharacter: invalid modelId");
-      return "error_" + flock.scene.getUniqueId();
+    if (!modelId || typeof modelId !== 'string' || modelId.length > 100) {
+      console.warn('createCharacter: invalid modelId');
+      return 'error_' + flock.scene.getUniqueId();
     }
 
     // --- parse BEFORE sanitizing so blockKey remains RAW ---
-    let desiredBase = modelId; // e.g. "player__j9#WY5..."
-    let blockKey = null;
-    if (desiredBase.includes("__")) {
-      [desiredBase, blockKey] = desiredBase.split("__");
-    }
-    // If no "__" was provided, fall back to base as the key (keeps prior behavior safe)
-    if (!blockKey) blockKey = desiredBase;
+    // e.g. "player__j9#WY5..."; without "__" the id is its own key.
+    let [desiredBase, blockKey] = flock._splitBlockKey(modelId);
 
     // --- sanitize ONLY modelName + BASE (NOT the blockKey) ---
-    modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
+    modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
     // Capture the original base name before sanitization so we can register it as
     // an alias in modelReadyPromises. This lets whenModelReady("dimnnd monkey", ...)
     // resolve correctly even though the actual mesh name is "dimnndmonkey".
     const originalBase = desiredBase;
-    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+    desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, '');
     // The sanitized base, captured before _reserveName may append a collision
     // suffix. The bare-base alias must only bridge a genuine sanitization
     // difference (originalBase !== sanitizedBase); it must NOT be registered for
@@ -72,7 +110,7 @@ export const flockModels = {
     // would otherwise alias the bare model name onto the wrong instance.
     const sanitizedBase = desiredBase;
 
-    if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+    if (flock.maxMeshesReached()) return 'error_' + flock.scene.getUniqueId();
 
     flock._recycleOldestByKey(modelName);
 
@@ -81,24 +119,17 @@ export const flockModels = {
     const meshName = flock._reserveName(desiredFinalName); // may suffix on true collision
     const groupName = desiredBase; // group by base for onTrigger applyToGroup
 
-    // position/scale clamps
-    const x = Number.isFinite(position?.x)
-      ? Math.max(-1000, Math.min(1000, position.x))
-      : 0;
+    const x = Number.isFinite(position?.x) ? position.x : 0;
     const groundLevelSentinel = -999999;
-    const numericY =
-      typeof position?.y === "string" ? Number(position.y) : position?.y;
+    const numericY = typeof position?.y === 'string' ? Number(position.y) : position?.y;
     const y =
-      position?.y === "__ground__level__" || numericY === groundLevelSentinel
+      position?.y === '__ground__level__' || numericY === groundLevelSentinel
         ? position.y
         : Number.isFinite(position?.y)
-          ? Math.max(-1000, Math.min(1000, position.y))
+          ? position.y
           : 0;
-    const z = Number.isFinite(position?.z)
-      ? Math.max(-1000, Math.min(1000, position.z))
-      : 0;
-    if (!(typeof scale === "number" && scale >= 0.01 && scale <= 100))
-      scale = 1;
+    const z = Number.isFinite(position?.z) ? position.z : 0;
+    scale = toModelScale(scale);
 
     // --- create readiness deferred (resolve OR reject) + abort hookup ---
     let resolveReady, rejectReady;
@@ -125,9 +156,9 @@ export const flockModels = {
     const signal = flock.abortController?.signal;
     const onAbort = () => {
       try {
-        rejectReady(new Error("aborted"));
+        rejectReady(new Error('aborted'));
       } catch (error) {
-        console.warn("Suppressed non-critical error:", error);
+        console.warn('Suppressed non-critical error:', error);
       }
       flock.modelReadyPromises.delete(meshName);
       if (
@@ -136,10 +167,10 @@ export const flockModels = {
       )
         flock.modelReadyPromises.delete(originalBase);
       flock._releaseName?.(meshName);
-      signal?.removeEventListener("abort", onAbort);
+      signal?.removeEventListener('abort', onAbort);
     };
-    signal?.addEventListener("abort", onAbort, { once: true });
-    const cleanupAbort = () => signal?.removeEventListener("abort", onAbort);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    const cleanupAbort = () => signal?.removeEventListener('abort', onAbort);
 
     // --- single load path ---
     flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
@@ -148,7 +179,7 @@ export const flockModels = {
       flock.scene,
       null,
       null,
-      { signal: flock.abortController?.signal },
+      { signal: flock.abortController?.signal }
     )
       .then((container) => {
         // The scene was disposed / the load was aborted while this
@@ -161,10 +192,10 @@ export const flockModels = {
           try {
             container?.dispose?.();
           } catch (_) {
-            console.warn("Suppressed non-critical error:", _);
+            console.warn('Suppressed non-critical error:', _);
           }
           if (!signal?.aborted) {
-            rejectReady(new Error("scene disposed"));
+            rejectReady(new Error('scene disposed'));
             flock.modelReadyPromises.delete(meshName);
             if (
               originalBase !== sanitizedBase &&
@@ -181,16 +212,13 @@ export const flockModels = {
         container.addAllToScene();
 
         const mesh = container.meshes[0];
-        const bb = flock.setupMesh(
-          mesh,
-          modelName,
-          meshName,
-          blockKey,
-          scale,
-          x,
-          y,
-          z,
-        );
+        const bb = flock.setupMesh(mesh, modelName, meshName, blockKey, scale, x, y, z);
+        if (callback) flock.holdBody(bb);
+        else flock.ensureBody(bb);
+        if (rotation || size) {
+          flock._applyInitialTransform(bb, { position: { x, y, z }, rotation, size });
+        }
+        flock._rememberConstruction(bb, { dos: [callback], thens: [then] });
 
         // materials & colors
         flock.ensureStandardMaterial(mesh);
@@ -209,24 +237,40 @@ export const flockModels = {
         mesh.setEnabled(false);
 
         // Preload animations (non-blocking for readiness)
-        const animationPromises = ["Walk", "Jump", "Idle"].map((name) =>
-          flock.switchToAnimation(flock.scene, bb, name, false, false, false),
+        const animationPromises = ['Walk', 'Jump', 'Idle'].map((name) =>
+          flock.switchToAnimation(flock.scene, bb, name, false, false, false)
         );
 
-        // After anims, run optional callback (await if it returns a promise), then show
-        Promise.all(animationPromises)
+        // After anims, run optional callback (await if it returns a promise),
+        // show, then run the optional "then" section.
+        flock
+          ._trackReveal(
+            mesh,
+            Promise.all(animationPromises)
+              .then(async () => {
+                if (callback) {
+                  try {
+                    const result = callback(meshName);
+                    if (result && typeof result.then === 'function') await result;
+                  } catch (err) {
+                    console.error('Callback error:', err);
+                  }
+                }
+              })
+              .then(() => {
+                flock.releaseBody(bb);
+                mesh.setEnabled(true);
+                if (callback) flock._refitGroupsAbove(bb);
+              })
+          )
           .then(async () => {
-            if (callback) {
-              try {
-                const result = callback();
-                if (result && typeof result.then === "function") await result;
-              } catch (err) {
-                console.error("Callback error:", err);
-              }
+            if (!then) return;
+            try {
+              const result = then(meshName);
+              if (result && typeof result.then === 'function') await result;
+            } catch (err) {
+              console.error('Character then() error:', err);
             }
-          })
-          .then(() => {
-            mesh.setEnabled(true);
           });
 
         // Announce readiness as soon as mesh is configured
@@ -250,13 +294,13 @@ export const flockModels = {
         resolveReady(mesh);
         cleanupAbort();
 
-        flock._registerInstance(modelName, meshName);
+        flock._registerInstance(modelName, meshName, mesh);
 
         // Allow the container to be GC'd (anims/skeletons are now in the scene)
         releaseContainer(container);
       })
       .catch((error) => {
-        console.log("❌ Error loading character:", error);
+        console.log('❌ Error loading character:', error);
         rejectReady(error);
         flock._releaseName(meshName);
         flock.modelReadyPromises.delete(meshName);
@@ -288,9 +332,13 @@ export const flockModels = {
     color = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
+    rotation = null,
+    size = null,
     callback = null,
+    then = null,
     applyColor = true,
   } = {}) {
+    scale = toModelScale(scale);
     const releaseContainer = (container) => {
       try {
         container.meshes = [];
@@ -299,27 +347,28 @@ export const flockModels = {
         container.skeletons = [];
         container.animationGroups = [];
       } catch (_) {
-        console.warn("Suppressed non-critical error:", _);
+        console.warn('Suppressed non-critical error:', _);
       }
     };
 
     const applyMaterialToHierarchy = (mesh, colorInput) => {
-      if (!applyColor || !colorInput) return;
+      if (!colorInput) return;
 
       flock.applyMaterialToHierarchy(mesh, colorInput);
     };
 
     const setTemplateFlags = (node, tag) => {
+      hideFromInspector(node);
       const list = [node, ...node.getDescendants(false)];
       list.forEach((m) => {
         m.metadata = m.metadata || {};
         m.metadata.originalNodeName = m.metadata.originalNodeName || m.name;
         m.metadata.isTemplate = true;
         m.metadata.templateTag = tag;
-        if ("isPickable" in m) m.isPickable = false;
-        if (typeof m.setEnabled === "function") m.setEnabled(false);
-        if ("isVisible" in m) m.isVisible = false;
-        if ("visibility" in m) m.visibility = 0;
+        if ('isPickable' in m) m.isPickable = false;
+        if (typeof m.setEnabled === 'function') m.setEnabled(false);
+        if ('isVisible' in m) m.isVisible = false;
+        if ('visibility' in m) m.visibility = 0;
       });
     };
 
@@ -329,22 +378,109 @@ export const flockModels = {
         if (m.metadata?.isTemplate) {
           m.metadata = { ...m.metadata, isTemplate: false };
         }
-        if ("isPickable" in m) m.isPickable = true;
-        if (typeof m.setEnabled === "function") m.setEnabled(true);
-        if ("isVisible" in m) m.isVisible = true;
-        if ("visibility" in m) m.visibility = 1;
+        if ('isPickable' in m) m.isPickable = true;
+        if (typeof m.setEnabled === 'function') m.setEnabled(true);
+        if ('isVisible' in m) m.isVisible = true;
+        if ('visibility' in m) m.visibility = 1;
       });
     };
 
-    const finalizeMesh = (mesh, mName, gName, bKey) => {
+    // An object can draw black on the first frames after its material is made,
+    // so it stays hidden until the materials report ready; the deadline covers
+    // one that never gets there.
+    const revealWhenDrawable = (mesh) => {
+      const parts = [mesh, ...mesh.getDescendants(false)].filter(
+        (m) => m.material && m.getTotalVertices?.() > 0
+      );
+      if (!parts.length) {
+        setInstanceFlags(mesh);
+        return Promise.resolve();
+      }
+
+      const signal = flock.abortController?.signal;
+      const compiled = parts.map((m) =>
+        m.material.forceCompilationAsync
+          ? m.material.forceCompilationAsync(m).catch(() => {})
+          : Promise.resolve()
+      );
+      const deadline = new Promise((resolve) => setTimeout(resolve, 2000));
+
+      return Promise.race([Promise.all(compiled), deadline]).then(() => {
+        if (signal?.aborted || mesh.isDisposed()) return;
+        // A hide() during this window disables the wrapper; don't undo it.
+        if (mesh.parent?.isEnabled?.(false) === false) return;
+        setInstanceFlags(mesh);
+      });
+    };
+
+    // The "then" mutator section: runs once the constructor callback has
+    // finished and the object has been revealed.
+    const runThen = (mesh, mName) => {
+      if (!then) return;
+      if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+      try {
+        const result = then(mName);
+        if (result && typeof result.then === 'function') {
+          result.catch((err) => console.error('Add object then() error:', err));
+        }
+      } catch (err) {
+        console.error('Add object then() error:', err);
+      }
+    };
+
+    const copyFromCache = () => {
+      const cache = flock.modelCache[modelName];
+      const parts = [cache, ...cache.getChildMeshes(false)];
+      if (!flock.autoInstanceModels || parts.some((m) => m.skeleton || m.morphTargetManager)) {
+        return { mesh: cache.clone(cache.name), template: null };
+      }
+      const templates = (flock.scene._flockModelTemplates ??= new Map());
+      const firstCopies = (flock.scene._flockFirstModelCopies ??= new Map());
+      const key = `${modelName}|${applyColor}|${JSON.stringify(color)}`;
+      let template = templates.get(key);
+      if (!template || template.isDisposed()) {
+        const first = firstCopies.get(key);
+        if (!first || first.isDisposed()) {
+          const mesh = cache.clone(cache.name);
+          firstCopies.set(key, mesh);
+          return { mesh, template: null };
+        }
+        template = cache.clone(cache.name);
+        template.scaling.setAll(1);
+        const nodes = [template, ...template.getDescendants(false)];
+        nodes.forEach((node) => {
+          if (node.metadata?.originalNodeName) node.name = node.metadata.originalNodeName;
+        });
+        applyMaterialToHierarchy(template, color);
+        nodes.forEach((node) => {
+          hideFromInspector(node);
+          node.metadata = { ...node.metadata, isTemplate: true, templateTag: modelName };
+          node.setEnabled(true);
+          if ('isPickable' in node) node.isPickable = false;
+          if ('isVisible' in node) node.isVisible = false;
+          if ('visibility' in node) node.visibility = 1;
+        });
+        templates.set(key, template);
+      }
+      const mesh = flock._instantiateTemplate(template, template.name);
+      [mesh, ...mesh.getDescendants(false)].forEach((node) => {
+        node.metadata = { ...node.metadata, isTemplate: false };
+        node.setEnabled(false);
+        if ('isVisible' in node) node.isVisible = false;
+      });
+      return { mesh, template };
+    };
+
+    const finalizeMesh = (mesh, mName, gName, bKey, template = null) => {
       const allNodes = [mesh, ...mesh.getDescendants(false)];
       allNodes.forEach((node) => {
         if (node?.metadata?.originalNodeName) {
           node.name = node.metadata.originalNodeName;
         }
       });
+      flock._cloneSkeletons(flock.modelCache[modelName], mesh);
 
-      flock.setupMesh(
+      const root = flock.setupMesh(
         mesh,
         modelName,
         mName,
@@ -353,35 +489,76 @@ export const flockModels = {
         position.x,
         position.y,
         position.z,
-        color,
+        color
       );
-      applyMaterialToHierarchy(mesh, color);
+      if (template) flock._linkToTemplate(template, root);
+      if (callback) flock.holdBody(root);
+      else flock.ensureBody(root);
+      if (rotation || size) flock._applyInitialTransform(root, { position, rotation, size });
+      if (!template) applyMaterialToHierarchy(mesh, color);
       mesh.computeWorldMatrix(true);
       mesh.refreshBoundingInfo(true);
-      setInstanceFlags(mesh);
       flock.announceMeshReady(mName, gName);
       flock._markNameCreated(mName);
-      if (callback) requestAnimationFrame(callback);
+      flock._rememberConstruction(root, { dos: [callback], thens: [then] });
+
+      if (!callback) {
+        flock._trackReveal(mesh, revealWhenDrawable(mesh)).then(() => runThen(mesh, mName));
+        return;
+      }
+
+      // Run the DO-part blocks while the mesh is still hidden, then reveal, so
+      // the object appears in its constructed state. Otherwise async model
+      // decoding lets the mesh show before the callback runs and an initial
+      // rotation (or similar) is visible as a snap.
+      const runConstructor = new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          try {
+            const result = callback(mName);
+            if (result && typeof result.then === 'function') {
+              result.then(resolve, (err) => {
+                console.error('Add object callback error:', err);
+                resolve();
+              });
+            } else {
+              resolve();
+            }
+          } catch (err) {
+            console.error('Add object callback error:', err);
+            resolve();
+          }
+        });
+      });
+
+      flock
+        ._trackReveal(
+          mesh,
+          runConstructor.then(() => {
+            if (flock.abortController?.signal?.aborted || mesh.isDisposed()) return;
+            flock.releaseBody(root);
+            flock._refitGroupsAbove(root);
+            return revealWhenDrawable(mesh);
+          })
+        )
+        .then(() => runThen(mesh, mName));
     };
 
     try {
       if (!flock.scene || flock.scene.isDisposed) {
-        console.warn("createObject: no active scene");
-        return "error_no_scene";
+        console.warn('createObject: no active scene');
+        return 'error_no_scene';
       }
-      if (flock.maxMeshesReached()) return "error_" + flock.scene.getUniqueId();
+      if (flock.maxMeshesReached()) return 'error_' + flock.scene.getUniqueId();
 
-      let [desiredBase, bKey] = modelId.includes("__")
-        ? modelId.split("__")
-        : [modelId, modelId];
-      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, "");
-      desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, "");
+      let [desiredBase, bKey] = flock._splitBlockKey(modelId);
+      modelName = modelName.replace(/[^a-zA-Z0-9._-]/g, '');
+      desiredBase = desiredBase.replace(/[^a-zA-Z0-9._-]/g, '');
 
       const meshName = flock._reserveName(desiredBase);
       const groupName = desiredBase;
 
       if (applyColor && !color) {
-        color = flock.objectColours?.[modelName] || ["#FFFFFF", "#FFFFFF"];
+        color = flock.objectColours?.[modelName] || ['#FFFFFF', '#FFFFFF'];
       }
 
       let resolveReady;
@@ -392,11 +569,9 @@ export const flockModels = {
 
       if (flock.modelCache[modelName]) {
         flock._recycleOldestByKey(modelName);
-        const mesh = flock.modelCache[modelName].clone(
-          flock.modelCache[modelName].name,
-        );
-        flock._registerInstance(modelName, meshName);
-        finalizeMesh(mesh, meshName, groupName, bKey);
+        const { mesh, template } = copyFromCache();
+        flock._registerInstance(modelName, meshName, mesh);
+        finalizeMesh(mesh, meshName, groupName, bKey, template);
         resolveReady(mesh);
         return meshName;
       }
@@ -405,11 +580,9 @@ export const flockModels = {
         flock.modelsBeingLoaded[modelName].then(() => {
           if (!flock.scene || flock.scene.isDisposed) return;
           flock._recycleOldestByKey(modelName);
-          const mesh = flock.modelCache[modelName].clone(
-            flock.modelCache[modelName].name,
-          );
-          flock._registerInstance(modelName, meshName);
-          finalizeMesh(mesh, meshName, groupName, bKey);
+          const { mesh, template } = copyFromCache();
+          flock._registerInstance(modelName, meshName, mesh);
+          finalizeMesh(mesh, meshName, groupName, bKey, template);
           resolveReady(mesh);
         });
         return meshName;
@@ -418,7 +591,7 @@ export const flockModels = {
       const loadPromise = flock.BABYLON.SceneLoader.LoadAssetContainerAsync(
         flock.modelPath,
         modelName,
-        flock.scene,
+        flock.scene
       );
       flock.modelsBeingLoaded[modelName] = loadPromise;
 
@@ -430,7 +603,7 @@ export const flockModels = {
           try {
             container?.dispose?.();
           } catch (_) {
-            console.warn("Suppressed non-critical error:", _);
+            console.warn('Suppressed non-critical error:', _);
           }
           delete flock.modelsBeingLoaded[modelName];
           return;
@@ -464,10 +637,10 @@ export const flockModels = {
         setTemplateFlags(root, modelName);
         flock.modelCache[modelName] = root;
 
-        const mesh = root.clone(root.name);
-        flock._registerInstance(modelName, meshName);
+        const { mesh, template } = copyFromCache();
+        flock._registerInstance(modelName, meshName, mesh);
 
-        finalizeMesh(mesh, meshName, groupName, bKey);
+        finalizeMesh(mesh, meshName, groupName, bKey, template);
         resolveReady(mesh);
         releaseContainer(container);
         delete flock.modelsBeingLoaded[modelName];
@@ -475,23 +648,31 @@ export const flockModels = {
 
       return meshName;
     } catch (error) {
-      console.warn("createObject failed; returning error id:", error);
-      return "error_" + flock.scene.getUniqueId();
+      console.warn('createObject failed; returning error id:', error);
+      return 'error_' + flock.scene.getUniqueId();
     }
   },
   createModel({
     modelName,
     modelId,
+    colors = null,
     scale = 1,
     position = { x: 0, y: 0, z: 0 },
+    rotation = null,
+    size = null,
     callback = null,
+    then = null,
   }) {
     return flock.createObject({
       modelName,
       modelId,
+      color: colors,
       scale,
       position,
+      rotation,
+      size,
       callback,
+      then,
       applyColor: false,
     });
   },
@@ -507,7 +688,7 @@ export const flockModels = {
       container.skeletons = [];
       container.animationGroups = [];
     } catch (error) {
-      console.warn("releaseContainer cleanup failed:", error);
+      console.warn('releaseContainer cleanup failed:', error);
     }
   },
 };

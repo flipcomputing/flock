@@ -1,68 +1,15 @@
-import * as Blockly from "blockly";
-import { javascriptGenerator } from "blockly/javascript";
-import { meshMap, meshBlockIdMap } from "./mesh-state.js";
+import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+import { meshMap, meshBlockIdMap } from './mesh-state.js';
 
-const RESERVED_IDENTIFIERS = new Set([
-  "await",
-  "break",
-  "case",
-  "catch",
-  "class",
-  "const",
-  "continue",
-  "debugger",
-  "default",
-  "delete",
-  "do",
-  "else",
-  "enum",
-  "export",
-  "extends",
-  "false",
-  "finally",
-  "for",
-  "function",
-  "if",
-  "implements",
-  "import",
-  "in",
-  "instanceof",
-  "interface",
-  "let",
-  "new",
-  "null",
-  "package",
-  "private",
-  "protected",
-  "public",
-  "return",
-  "static",
-  "super",
-  "switch",
-  "this",
-  "throw",
-  "true",
-  "try",
-  "typeof",
-  "var",
-  "void",
-  "while",
-  "with",
-  "yield",
-  "arguments",
-  "eval",
-]);
 // ---------------------------------
 //  Utility functions for generators
 // ---------------------------------
 
 export function getFieldValue(block, fieldName, defaultValue) {
   return (
-    javascriptGenerator.valueToCode(
-      block,
-      fieldName,
-      javascriptGenerator.ORDER_ATOMIC,
-    ) || defaultValue
+    javascriptGenerator.valueToCode(block, fieldName, javascriptGenerator.ORDER_ATOMIC) ||
+    defaultValue
   );
 }
 
@@ -70,124 +17,156 @@ export function getVariableInfo(block, fieldName) {
   const variableId = block.getFieldValue(fieldName);
   const generatedName = javascriptGenerator.nameDB_.getName(
     variableId,
-    Blockly.Names.NameType.VARIABLE,
+    Blockly.Names.NameType.VARIABLE
   );
-  const variableModel = block.workspace
-    ?.getVariableMap?.()
-    ?.getVariableById(variableId);
+  const variableModel = block.workspace?.getVariableMap?.()?.getVariableById(variableId);
   const userVariableName = variableModel?.name || generatedName;
 
   return { generatedName, userVariableName };
 }
 
+const SIDE_OPTIONS = {
+  PLACE_CENTER: 'center',
+  PLACE_ON_TOP: 'on_top',
+  PLACE_UNDER: 'under',
+  PLACE_LEFT: 'left',
+  PLACE_RIGHT: 'right',
+  PLACE_FRONT: 'front',
+  PLACE_BEHIND: 'behind',
+  PLACE_NEAR: 'near',
+};
+
+export function getSideValue(block) {
+  return SIDE_OPTIONS[block.getFieldValue('SIDE')] ?? null;
+}
+
+export function getSideOption(block) {
+  const side = getSideValue(block);
+  return side ? `, side: ${JSON.stringify(side)}` : '';
+}
+
 export function getPositionTuple(block) {
-  const posX = getFieldValue(block, "X", "0");
-  const posY = getFieldValue(block, "Y", "0");
-  const posZ = getFieldValue(block, "Z", "0");
+  const posX = getFieldValue(block, 'X', '0');
+  const posY = getFieldValue(block, 'Y', '0');
+  const posZ = getFieldValue(block, 'Z', '0');
 
   return `[${posX}, ${posY}, ${posZ}]`;
 }
 
+export function getInitialTransformParams(block) {
+  const params = [];
+  if (block.positionShown_) {
+    const [x, y, z] = ['X', 'Y', 'Z'].map((axis) =>
+      getFieldValue(block, `POSITION_${axis}`, 'null')
+    );
+    params.push(`position: { x: ${x}, y: ${y}, z: ${z} }`);
+  }
+  if (block.rotateShown_) {
+    const [x, y, z] = ['X', 'Y', 'Z'].map((axis) => getFieldValue(block, `ROTATE_${axis}`, '0'));
+    params.push(`rotation: { x: ${x}, y: ${y}, z: ${z} }`);
+  }
+  if (block.resizeShown_) {
+    const [width, height, depth] = ['X', 'Y', 'Z'].map((axis) =>
+      getFieldValue(block, `SIZE_${axis}`, '1')
+    );
+    params.push(`size: { width: ${width}, height: ${height}, depth: ${depth} }`);
+  }
+  return params;
+}
+
+// The "then" mutator section, wrapped for an options object: it runs once the
+// constructor callback has completed. Returns '' when the section is absent.
+export function getThenCallback(block, variableName) {
+  if (!block.getInput('THEN')) return '';
+  const code = javascriptGenerator.statementToCode(block, 'THEN') || '';
+  return code ? `,\nthen: async function(${variableName}) {\n${code}\n}` : '';
+}
+
+const TARGET_VAR_FIELDS = {
+  rotate_to: 'MODEL',
+  resize: 'BLOCK_NAME',
+  move_to_xyz: 'MODEL',
+  change_color: 'MODEL_VAR',
+};
+
+export function getOwnVar(block) {
+  const field = block?.type === 'clone_mesh' ? 'CLONE_VAR' : 'ID_VAR';
+  return block?.getFieldValue?.(field) ?? null;
+}
+
+export function getOwnDoOwner(block) {
+  const targetField = TARGET_VAR_FIELDS[block?.type];
+  if (!targetField || !block.isEnabled?.()) return null;
+
+  let top = block;
+  while (top.getPreviousBlock?.()?.getNextBlock?.() === top) {
+    top = top.getPreviousBlock();
+  }
+
+  const owner = top.getParent?.();
+  const ownVar = owner?.getInputWithBlock?.(top)?.name === 'DO' ? getOwnVar(owner) : null;
+  return ownVar && ownVar === block.getFieldValue(targetField) ? owner : null;
+}
+
+let currentGroupParent = null;
+
+export function withGroupParent(parentVar, generateFn) {
+  const previous = currentGroupParent;
+  currentGroupParent = parentVar;
+  try {
+    return generateFn();
+  } finally {
+    currentGroupParent = previous;
+  }
+}
+
+export function maybeParentToGroup(variableName) {
+  return currentGroupParent ? `setParent(${currentGroupParent}, ${variableName});\n` : '';
+}
+
 export function createMesh(block, meshType, params) {
-  const { generatedName: variableName, userVariableName } = getVariableInfo(
-    block,
-    "ID_VAR",
-  );
+  const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
   const meshId = `${userVariableName}__${block.id}`;
 
   meshMap[block.id] = block;
   meshBlockIdMap[block.id] = block.id;
 
-  const doCode = block.getInput("DO")
-    ? javascriptGenerator.statementToCode(block, "DO") || ""
-    : "";
+  const parentCode = maybeParentToGroup(variableName);
+  const doBody = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') || '' : '';
+  const doCode = doBody
+    ? `runDo(${variableName}, async function(${variableName}) {\n${doBody}\n});\n`
+    : '';
+  const thenBody = block.getInput('THEN')
+    ? javascriptGenerator.statementToCode(block, 'THEN') || ''
+    : '';
+  const thenCode = thenBody
+    ? `runThen(${variableName}, async function(${variableName}) {\n${thenBody}\n});\n`
+    : '';
 
-  const options = [...params];
+  const options = [...params, ...getInitialTransformParams(block)];
+  if (doBody) options.push('hasDo: true');
 
-  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(", ")} });\n${doCode}`;
-}
-
-export function emitSafeIdentifierLiteral(code) {
-  if (!code) {
-    return "undefined";
-  }
-
-  // Match single, double, or template quoted literals
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) {
-    return "undefined";
-  }
-
-  const rawBody = m[2];
-
-  // Reject escapes entirely
-  if (rawBody.includes("\\")) {
-    return "undefined";
-  }
-
-  // Replace spaces and other whitespace with underscores
-  const normalized = rawBody.replace(/\s+/g, "_");
-
-  // Validate identifier
-  if (!/^[A-Za-z$_][A-Za-z0-9$_]*$/.test(normalized)) {
-    return "undefined";
-  }
-
-  // Check reserved keywords
-  if (RESERVED_IDENTIFIERS.has(normalized)) {
-    return "undefined";
-  }
-
-  return JSON.stringify(normalized);
+  return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}`;
 }
 
 export function sanitizeForCode(input) {
   let s = String(input);
 
   // Cut from the first *real* newline (\r, \n, or Unicode line separator)
-  s = s.replace(/[\r\n\u2028\u2029].*$/s, "");
+  s = s.replace(/[\r\n\u2028\u2029].*$/s, '');
   // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
-  s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, "");
+  s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, '');
 
   // Remove any trailing backslashes that could remain (edge cases)
-  s = s.replace(/\\+$/, "");
+  s = s.replace(/\\+$/, '');
 
   // Neutralize comment and template literal markers
-  s = s.replace(/\*\//g, "*∕").replace(/\/\//g, "∕∕").replace(/`/g, "ˋ");
+  s = s.replace(/\*\//g, '*∕').replace(/\/\//g, '∕∕').replace(/`/g, 'ˋ');
 
   // Strip control characters (optional, keeps tabs/spaces)
   // eslint-disable-next-line no-control-regex
-  s = s.replace(/[\u0000-\u001F\u007F]/g, "");
+  s = s.replace(/[\u0000-\u001F\u007F]/g, '');
 
   return s;
-}
-
-export function emitSafeTextArg(code) {
-  if (!code) return '""';
-  const m = code.match(/^(['"`])(.*)\1$/s);
-  if (!m) return code;
-
-  const q = m[1];
-  const body = m[2];
-
-  // If the body contains an unescaped quote of the same kind, `code` is not a
-  // single string literal but an expression that merely starts and ends with a
-  // quote — e.g. a concatenation like `'a' + 'b'` produced by text_join. In
-  // that case leave it untouched so the expression is emitted as real code
-  // (otherwise the literal ` + ` ends up baked into the displayed string).
-  if (body.replace(/\\./g, "").includes(q)) return code;
-
-  // Decode literal safely (handles \', \\ , \n, \uXXXX, etc.)
-  let decoded;
-  try {
-    decoded = JSON.parse(q + body + q);
-  } catch {
-    decoded = body
-      .replace(/\\"/g, '"')
-      .replace(/\\'/g, "'")
-      .replace(/\\\\/g, "\\");
-  }
-
-  return JSON.stringify(sanitizeForCode(decoded));
 }

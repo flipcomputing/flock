@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -192,7 +193,7 @@
                             "type": "text",
                             "id": ")FcQIapGh59L9(4I]%.9",
                             "fields": {
-                              "TEXT": "Press e, r, f, or space (or buttons) to drop a ball"
+                              "TEXT": "Press R/E/F/Space or ①②③④ to drop a ball"
                             }
                           }
                         },
@@ -1814,6 +1815,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "X^q*!8rGic}n/p=8_}Gk",
+        "x": 10,
+        "y": 3414,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "y47CExx=_LC)UVU2}wJ:",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

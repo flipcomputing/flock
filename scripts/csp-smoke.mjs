@@ -1,6 +1,6 @@
-import { chromium } from "playwright";
-import { spawn } from "node:child_process";
-import fs from "node:fs/promises";
+import { chromium } from 'playwright';
+import { spawn, execFileSync } from 'node:child_process';
+import fs from 'node:fs/promises';
 
 const PORT = Number(process.env.CSP_SMOKE_PORT || 4173);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
@@ -39,32 +39,31 @@ function isAnalyticsOrigin(origin) {
   try {
     const hostname = new URL(origin).hostname;
     return (
-      hostnameMatches(hostname, "googletagmanager.com") ||
-      hostnameMatches(hostname, "google-analytics.com") ||
-      hostnameMatches(hostname, "doubleclick.net")
+      hostnameMatches(hostname, 'googletagmanager.com') ||
+      hostnameMatches(hostname, 'google-analytics.com') ||
+      hostnameMatches(hostname, 'doubleclick.net')
     );
   } catch {
     return false;
   }
 }
 
-const devServer = spawn(
-  "npm",
-  [
-    "run",
-    "dev",
-    "--",
-    "--host",
-    "127.0.0.1",
-    "--port",
-    String(PORT),
-    "--strictPort",
-  ],
-  {
-    stdio: "pipe",
-    env: { ...process.env, FORCE_COLOR: "0" },
-  },
-);
+// On Windows, `npm` is a .cmd launcher: spawning "npm" directly (no shell)
+// throws ENOENT, so shell:true is required there (see scripts/run-api-tests.mjs).
+// `detached: true` puts npm and its child vite process in their own process
+// group so cleanup can kill the whole tree, not just the immediate child.
+const spawnOptions = { stdio: 'pipe', detached: true, env: { ...process.env, FORCE_COLOR: '0' } };
+const devServer =
+  process.platform === 'win32'
+    ? spawn(`npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`, {
+        ...spawnOptions,
+        shell: true,
+      })
+    : spawn(
+        'npm',
+        ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
+        spawnOptions
+      );
 
 let browser;
 let context;
@@ -91,19 +90,19 @@ try {
     other: new Set(),
   };
 
-  page.on("request", (request) => {
+  page.on('request', (request) => {
     const type = request.resourceType();
     const origin = originOf(request.url());
     if (requestSources[type]) requestSources[type].add(origin);
     else requestSources.other.add(origin);
   });
 
-  await page.exposeFunction("recordCspViolation", (eventData) => {
+  await page.exposeFunction('recordCspViolation', (eventData) => {
     cspViolations.push(eventData);
   });
 
   await page.addInitScript(() => {
-    window.addEventListener("securitypolicyviolation", (event) => {
+    window.addEventListener('securitypolicyviolation', (event) => {
       window.recordCspViolation({
         blockedURI: event.blockedURI,
         violatedDirective: event.violatedDirective,
@@ -112,31 +111,28 @@ try {
     });
   });
 
-  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector("#renderCanvas", { state: "attached" });
-  await page.waitForSelector("#blocklyDiv", { state: "attached" });
+  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#renderCanvas', { state: 'attached' });
+  await page.waitForSelector('#blocklyDiv', { state: 'attached' });
 
   await page.waitForSelector('#blocklyDiv [role="treeitem"]', {
-    state: "attached",
+    state: 'attached',
   });
-  await page
-    .locator('#blocklyDiv [role="treeitem"]')
-    .nth(1)
-    .click({ force: true });
+  await page.locator('#blocklyDiv [role="treeitem"]').nth(1).click({ force: true });
 
-  await page.click("#runCodeButton", { force: true });
-  await page.waitForSelector("#flock-iframe", {
-    state: "attached",
+  await page.click('#runCodeButton', { force: true });
+  await page.waitForSelector('#flock-iframe', {
+    state: 'attached',
     timeout: 20_000,
   });
 
-  await page.click("#exportCodeButton", { force: true });
+  await page.click('#exportCodeButton', { force: true });
   await page.waitForTimeout(500);
 
-  await page.setInputFiles("#importFile", {
-    name: "csp-smoke-sample.json",
-    mimeType: "application/json",
-    buffer: Buffer.from('{"blocks":{"languageVersion":0,"blocks":[]}}', "utf8"),
+  await page.setInputFiles('#importFile', {
+    name: 'csp-smoke-sample.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"blocks":{"languageVersion":0,"blocks":[]}}', 'utf8'),
   });
   await page.waitForTimeout(1000);
 
@@ -156,35 +152,37 @@ try {
     baseUrl: BASE_URL,
     cspViolations,
     runtimeSources: Object.fromEntries(
-      Object.entries(requestSources).map(([key, set]) => [
-        key,
-        [...set].sort(),
-      ]),
+      Object.entries(requestSources).map(([key, set]) => [key, [...set].sort()])
     ),
     analyticsOriginsSeen: [...analyticsOriginsSeen].sort(),
   };
 
-  await fs.mkdir("artifacts", { recursive: true });
-  await fs.writeFile(
-    "artifacts/csp-smoke-summary.json",
-    JSON.stringify(summary, null, 2),
-  );
+  await fs.mkdir('artifacts', { recursive: true });
+  await fs.writeFile('artifacts/csp-smoke-summary.json', JSON.stringify(summary, null, 2));
 
   if (summary.cspViolations.length > 0) {
     throw new Error(
-      `Detected ${summary.cspViolations.length} CSP violation(s). See artifacts/csp-smoke-summary.json`,
+      `Detected ${summary.cspViolations.length} CSP violation(s). See artifacts/csp-smoke-summary.json`
     );
   }
 
   if (summary.analyticsOriginsSeen.length === 0) {
     throw new Error(
-      "No analytics request origin observed during smoke run. See artifacts/csp-smoke-summary.json",
+      'No analytics request origin observed during smoke run. See artifacts/csp-smoke-summary.json'
     );
   }
 
-  console.log("CSP smoke summary written to artifacts/csp-smoke-summary.json");
+  console.log('CSP smoke summary written to artifacts/csp-smoke-summary.json');
 } finally {
   await context?.close().catch(() => {});
   await browser?.close().catch(() => {});
-  devServer.kill("SIGTERM");
+  try {
+    if (devServer.pid && process.platform === 'win32') {
+      execFileSync('taskkill', ['/pid', String(devServer.pid), '/T', '/F'], { stdio: 'ignore' });
+    } else if (devServer.pid) {
+      process.kill(-devServer.pid, 'SIGTERM');
+    }
+  } catch {
+    // Already exited.
+  }
 }

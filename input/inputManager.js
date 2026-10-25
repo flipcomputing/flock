@@ -1,9 +1,9 @@
-import { DEFAULT_BINDINGS } from "./bindings.js";
-import { normaliseKey } from "./normaliseKey.js";
+import { DEFAULT_BINDINGS } from './bindings.js';
+import { normaliseKey } from './normaliseKey.js';
 
 // Reverse maps built from DEFAULT_BINDINGS (static — overrides not reflected here).
 const ACTION_KEYS = new Map(
-  Object.entries(DEFAULT_BINDINGS).map(([action, keys]) => [action, keys]),
+  Object.entries(DEFAULT_BINDINGS).map(([action, keys]) => [action, keys])
 );
 
 const KEY_TO_ACTIONS = new Map();
@@ -24,6 +24,7 @@ class SimpleObservable {
   }
 
   remove(observer) {
+    if (!observer) return;
     this.#listeners = this.#listeners.filter((l) => l !== observer._callback);
   }
 
@@ -32,8 +33,14 @@ class SimpleObservable {
   }
 }
 
+// Who input is being delivered to. 'editor' means an editor camera owns it:
+// sources keep feeding the camera but stop delivering to the running project.
+const INPUT_OWNERS = new Set(['project', 'editor']);
+
 // Rate limit for "while held" repeats: fire at most once per this interval (ms)
 const REPEAT_INTERVAL_MS = 100;
+
+const INITIAL_REPEAT_DELAY_MS = 500;
 
 export class InputManager {
   // Refcount: key → number of active presses across all sources.
@@ -41,26 +48,38 @@ export class InputManager {
   #keys = new Map();
   #axes = new Map();
   #actionOverrides = new Map();
-  #lastKeyRepeatTime = new Map();  // key → timestamp of last repeat
-  #lastActionRepeatTime = new Map();  // action → timestamp of last repeat
+  #lastKeyRepeatTime = new Map(); // key → timestamp of last repeat
+  #lastActionRepeatTime = new Map(); // action → timestamp of last repeat
+  #keyPressTime = new Map(); // key → timestamp of down edge (for initial repeat delay)
+  #inputOwner = 'project';
 
   onKeyDownObservable = new SimpleObservable();
   onKeyUpObservable = new SimpleObservable();
   onActionDownObservable = new SimpleObservable();
   onActionUpObservable = new SimpleObservable();
   onRawKeyDownObservable = new SimpleObservable();
-  // Fired on held keys/actions at a rate-limited interval. Used by "while held"
-  // event blocks (when key/action pressed) to fire continuously. Deliberately
-  // separate from the down observables so refcount, movement, a11y, and
-  // interaction stay edge-only (they must not re-fire on every repeat tick).
+  // "While held" repeats for event blocks. Kept separate from the down
+  // observables, which stay edge-only (refcount/movement/a11y/interaction).
   onKeyRepeatObservable = new SimpleObservable();
   onActionRepeatObservable = new SimpleObservable();
+  onInputOwnerChangedObservable = new SimpleObservable();
+
+  get inputOwner() {
+    return this.#inputOwner;
+  }
+
+  setInputOwner(owner) {
+    if (!INPUT_OWNERS.has(owner) || owner === this.#inputOwner) return;
+    this.#inputOwner = owner;
+    this.onInputOwnerChangedObservable.notifyObservers(owner);
+  }
 
   _setKey(key, pressed) {
     const count = this.#keys.get(key) ?? 0;
     if (pressed) {
       this.#keys.set(key, count + 1);
       if (count === 0) {
+        this.#keyPressTime.set(key, Date.now());
         this.onKeyDownObservable.notifyObservers(key);
         this._notifyActionDown(key);
       }
@@ -69,7 +88,8 @@ export class InputManager {
       const next = count - 1;
       if (next === 0) {
         this.#keys.delete(key);
-        this.#lastKeyRepeatTime.delete(key);  // Clean up repeat timestamp
+        this.#lastKeyRepeatTime.delete(key); // Clean up repeat timestamp
+        this.#keyPressTime.delete(key);
         this.onKeyUpObservable.notifyObservers(key);
         this._notifyActionUp(key);
       } else {
@@ -78,11 +98,11 @@ export class InputManager {
     }
   }
 
-  // OS auto-repeat tick for a held key. Does not touch refcount/movement;
-  // only emits the repeat signals consumed by "while held" event blocks.
-  // Rate-limited to prevent excessive firing on fast input sources (e.g. gamepad polling).
+  // Rate limited repeat for held keys for consistency
   _repeatKey(key) {
     const now = Date.now();
+    const pressTime = this.#keyPressTime.get(key) ?? 0;
+    if (now - pressTime < INITIAL_REPEAT_DELAY_MS) return;
     const lastTime = this.#lastKeyRepeatTime.get(key) ?? 0;
     if (now - lastTime < REPEAT_INTERVAL_MS) return;
 
@@ -100,7 +120,7 @@ export class InputManager {
   _notifyActionDown(key) {
     for (const action of this._getActionsForKey(key)) {
       const wasAlreadyActive = this._getActionKeys(action).some(
-        (k) => k !== key && (this.#keys.get(k) ?? 0) > 0,
+        (k) => k !== key && (this.#keys.get(k) ?? 0) > 0
       );
       if (!wasAlreadyActive) {
         this.onActionDownObservable.notifyObservers(action);
@@ -110,11 +130,9 @@ export class InputManager {
 
   _notifyActionUp(key) {
     for (const action of this._getActionsForKey(key)) {
-      const stillActive = this._getActionKeys(action).some(
-        (k) => (this.#keys.get(k) ?? 0) > 0,
-      );
+      const stillActive = this._getActionKeys(action).some((k) => (this.#keys.get(k) ?? 0) > 0);
       if (!stillActive) {
-        this.#lastActionRepeatTime.delete(action);  // Clean up repeat timestamp
+        this.#lastActionRepeatTime.delete(action); // Clean up repeat timestamp
         this.onActionUpObservable.notifyObservers(action);
       }
     }
@@ -122,10 +140,7 @@ export class InputManager {
 
   // Case-insensitive: stored keys are already canonical (lowercase single chars).
   isKeyDown(key) {
-    return (
-      (this.#keys.get(key) ?? 0) > 0 ||
-      (this.#keys.get(key.toLowerCase()) ?? 0) > 0
-    );
+    return (this.#keys.get(key) ?? 0) > 0 || (this.#keys.get(key.toLowerCase()) ?? 0) > 0;
   }
 
   isActionDown(action) {
@@ -185,6 +200,7 @@ export class InputManager {
     this.#keys.clear();
     this.#lastKeyRepeatTime.clear();
     this.#lastActionRepeatTime.clear();
+    this.#keyPressTime.clear();
     for (const key of held) {
       this.onKeyUpObservable.notifyObservers(key);
     }

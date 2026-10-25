@@ -1,13 +1,11 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runAnimateTests(flock) {
   // Rotate APIs store orientation in the quaternion; mesh.rotation reads zero.
   const effectiveEuler = (mesh) =>
-    mesh.rotationQuaternion
-      ? mesh.rotationQuaternion.toEulerAngles()
-      : mesh.rotation.clone();
+    mesh.rotationQuaternion ? mesh.rotationQuaternion.toEulerAngles() : mesh.rotation.clone();
 
-  describe("Animation API Tests @slow", function () {
+  describe('Animation API Tests @slow', function () {
     const boxIds = [];
 
     beforeEach(async function () {
@@ -21,9 +19,22 @@ export function runAnimateTests(flock) {
       boxIds.length = 0;
     });
 
-    describe("rotateAnim function", function () {
-      it("should rotate a mesh with default values", async function () {
-        const boxId = "rotateAnimDefault";
+    describe('rotateAnim function', function () {
+      it('rotates instantly with a duration of 0 or less', async function () {
+        const boxId = 'rotateAnimInstant';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+        for (const duration of [0, -1]) {
+          const started = performance.now();
+          await flock.rotateAnim(boxId, { y: 90 + duration, duration });
+          expect(performance.now() - started).to.be.below(200);
+          expect(effectiveEuler(mesh).y).to.be.closeTo(((90 + duration) * Math.PI) / 180, 0.001);
+        }
+      });
+
+      it('should rotate a mesh with default values', async function () {
+        const boxId = 'rotateAnimDefault';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -46,8 +57,8 @@ export function runAnimateTests(flock) {
         expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
 
-      it("should rotate a mesh around X axis", async function () {
-        const boxId = "rotateAnimX";
+      it('should rotate a mesh around X axis', async function () {
+        const boxId = 'rotateAnimX';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -67,8 +78,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
-      it("should rotate a mesh around Y axis", async function () {
-        const boxId = "rotateAnimY";
+      it('should rotate a mesh around Y axis', async function () {
+        const boxId = 'rotateAnimY';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -88,8 +99,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
-      it("should rotate a mesh around Z axis", async function () {
-        const boxId = "rotateAnimZ";
+      it('should rotate a mesh around Z axis', async function () {
+        const boxId = 'rotateAnimZ';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -109,8 +120,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).y)).to.be.lessThan(0.1);
       });
 
-      it("should rotate a mesh around multiple axes", async function () {
-        const boxId = "rotateAnimMultiple";
+      it('should rotate a mesh around multiple axes', async function () {
+        const boxId = 'rotateAnimMultiple';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -135,8 +146,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).z)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees
       });
 
-      it("should handle partial rotation parameters", async function () {
-        const boxId = "rotateAnimPartial";
+      it('should handle partial rotation parameters', async function () {
+        const boxId = 'rotateAnimPartial';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -156,8 +167,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).z)).to.be.lessThan(0.1);
       });
 
-      it("should handle negative rotation values", async function () {
-        const boxId = "rotateAnimNegative";
+      it('should handle negative rotation values', async function () {
+        const boxId = 'rotateAnimNegative';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -175,8 +186,8 @@ export function runAnimateTests(flock) {
         expect(Math.abs(effectiveEuler(mesh).x)).to.be.closeTo(Math.PI / 2, 0.1);
       });
 
-      it("should respect custom duration", async function () {
-        const boxId = "rotateAnimDuration";
+      it('should respect custom duration', async function () {
+        const boxId = 'rotateAnimDuration';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -198,8 +209,8 @@ export function runAnimateTests(flock) {
         expect(actualDuration).to.be.at.most(300);
       });
 
-      it("should start from the current orientation, not snap to zero", async function () {
-        const boxId = "rotateAnimNoSnap";
+      it('should start from the current orientation, not snap to zero', async function () {
+        const boxId = 'rotateAnimNoSnap';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -221,8 +232,106 @@ export function runAnimateTests(flock) {
         expect(midYaw).to.be.greaterThan(Math.PI / 6); // well above the ~6° a zero start would give
       });
 
-      it("should return to the start rotation when reverse is true", async function () {
-        const boxId = "rotateAnimReverse";
+      for (const [target, sign] of [
+        [360, 1],
+        [-360, -1],
+        [359, 1],
+        [270, 1],
+      ]) {
+        it(`should turn the long way in the sign's direction for y: ${target}`, async function () {
+          const boxId = `rotateAnimLongWay${target}`;
+          await flock.createBox(boxId, {
+            width: 1,
+            height: 1,
+            depth: 1,
+            position: [0, 0, 0],
+          });
+          boxIds.push(boxId);
+          const mesh = flock.scene.getMeshByName(boxId);
+
+          const animPromise = flock.rotateAnim(boxId, { y: target, duration: 2 });
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          const quarterYaw = effectiveEuler(mesh).y;
+          flock.scene.stopAnimation(mesh);
+          await animPromise;
+
+          expect(quarterYaw * sign).to.be.greaterThan(Math.PI / 6);
+        });
+      }
+
+      const yawKeys = async (boxId, startYaw, target) => {
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        if (startYaw) await flock.rotateTo(boxId, { x: 0, y: startYaw, z: 0 });
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        const animPromise = flock.rotateAnim(boxId, { y: target, duration: 2 });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        const keys = flock.scene.getAnimatableByTarget(mesh).getAnimations()[0].animation.getKeys();
+        flock.scene.stopAnimation(mesh);
+        await animPromise;
+        return keys;
+      };
+
+      const signedYawTurn = (keys) => {
+        let total = 0;
+        for (let i = 1; i < keys.length; i++) {
+          const rel = keys[i].value.multiply(flock.BABYLON.Quaternion.Inverse(keys[i - 1].value));
+          const s = rel.w < 0 ? -1 : 1;
+          total += 2 * Math.atan2(rel.y * s, rel.w * s);
+        }
+        return flock.BABYLON.Tools.ToDegrees(total);
+      };
+
+      for (const [startYaw, target, turn] of [
+        [0, 720, 360],
+        [0, -1080, -360],
+        [0, 400, 40],
+        [45, 400, -5],
+        [45, -360, -45],
+        [270, 360, 90],
+        [270, 270, 0],
+        [-170, 180, -10],
+        [170, 180, 10],
+      ]) {
+        it(`should turn ${turn}° from y ${startYaw} to y ${target}`, async function () {
+          const keys = await yawKeys(`rotateAnimTurn${startYaw}_${target}`, startYaw, target);
+          expect(signedYawTurn(keys)).to.be.closeTo(turn, 0.5);
+        });
+      }
+
+      it('should reduce huge angles mod 360', async function () {
+        const keys = await yawKeys('rotateAnimHuge', 0, 1e9);
+        expect(keys.length).to.be.at.most(73);
+        expect(signedYawTurn(keys)).to.be.closeTo(1e9 % 360, 0.5);
+      });
+
+      it('should end at the start orientation after a full turn', async function () {
+        const boxId = 'rotateAnimFullTurn';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        await flock.rotateAnim(boxId, { y: 360, duration: 0.1 });
+
+        const endEuler = effectiveEuler(mesh);
+        expect(Math.abs(endEuler.x)).to.be.lessThan(0.01);
+        expect(Math.abs(endEuler.y)).to.be.lessThan(0.01);
+        expect(Math.abs(endEuler.z)).to.be.lessThan(0.01);
+      });
+
+      it('should return to the start rotation when reverse is true', async function () {
+        const boxId = 'rotateAnimReverse';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -247,11 +356,126 @@ export function runAnimateTests(flock) {
         expect(endEuler.y).to.be.closeTo(initialRotation.y, 0.01);
         expect(endEuler.z).to.be.closeTo(initialRotation.z, 0.01);
       });
+
+      it('should restart a reverse re-triggered mid-flight and still return to the start', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimReverseRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        flock.rotateAnim(boxId, { y: 90, duration: 0.6, reverse: true });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const midYaw = effectiveEuler(mesh).y;
+        expect(midYaw).to.be.greaterThan(Math.PI / 8);
+
+        const retrigger = flock.rotateAnim(boxId, { y: 90, duration: 0.6, reverse: true });
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(effectiveEuler(mesh).y, 'restart must not snap').to.be.closeTo(midYaw, 0.4);
+        await retrigger;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(0, 0.01);
+        expect(flock.scene.getAnimatableByTarget(mesh)).to.not.exist;
+      });
+
+      it('should continue from the current pose when a one-way rotation is re-triggered', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        const midYaw = effectiveEuler(mesh).y;
+        expect(midYaw).to.be.within(0.2, 1.4);
+
+        const retrigger = flock.rotateAnim(boxId, { y: -90, duration: 0.5 });
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        expect(effectiveEuler(mesh).y, 'interrupt must not snap to the old target').to.be.below(
+          midYaw + 0.1
+        );
+        await retrigger;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(-Math.PI / 2, 0.01);
+      });
+
+      it('should not slow down when the same rotation is re-triggered repeatedly', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimRetriggerSpeed';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        const started = performance.now();
+        let last = flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        for (let i = 0; i < 3; i++) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          last = flock.rotateAnim(boxId, { y: 90, duration: 1 });
+        }
+        await last;
+        const elapsed = performance.now() - started;
+
+        expect(effectiveEuler(mesh).y).to.be.closeTo(Math.PI / 2, 0.01);
+        expect(elapsed).to.be.below(1400);
+      });
+
+      it('should keep a looping rotation running unchanged when re-triggered', async function () {
+        this.timeout(5000);
+        const boxId = 'rotateAnimLoopRetrigger';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+        const args = { x: 0, y: 0, z: 360, duration: 4, loop: true };
+
+        flock.rotateAnim(boxId, args);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        const animatable = flock.scene.getAnimatableByTarget(mesh);
+        expect(animatable).to.exist;
+
+        const joined = flock.rotateAnim(boxId, args);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        expect(flock.scene.getAnimatableByTarget(mesh)).to.equal(animatable);
+
+        flock.scene.stopAnimation(mesh);
+        await joined;
+      });
+
+      [0.2, 0].forEach((duration) => {
+        it(`should turn a static body with the mesh and keep it static (duration ${duration})`, async function () {
+          const boxId = `rotateAnimStaticBody${duration * 10}`;
+          await flock.createBox(boxId, {
+            width: 0.2,
+            height: 2,
+            depth: 2,
+            position: [0, 0, 0],
+          });
+          boxIds.push(boxId);
+
+          await flock.setPhysics(boxId, 'STATIC');
+          await flock.rotateAnim(boxId, { y: -90, duration });
+          await new Promise((resolve) => setTimeout(resolve, 200));
+
+          const mesh = flock.scene.getMeshByName(boxId);
+          expect(mesh.physics.getMotionType()).to.equal(flock.BABYLON.PhysicsMotionType.STATIC);
+
+          const bodyRotation = flock.hk._hknp.HP_Body_GetQTransform(
+            mesh.physics._pluginData.hpBodyId
+          )[1][1];
+          const meshRotation = mesh.absoluteRotationQuaternion;
+          const dot =
+            bodyRotation[0] * meshRotation.x +
+            bodyRotation[1] * meshRotation.y +
+            bodyRotation[2] * meshRotation.z +
+            bodyRotation[3] * meshRotation.w;
+          expect(Math.abs(dot)).to.be.closeTo(1, 0.001);
+        });
+      });
     });
 
-    describe("animateProperty function", function () {
-      it("should animate alpha property", async function () {
-        const boxId = "animateAlpha";
+    describe('animateProperty function', function () {
+      it('should animate alpha property', async function () {
+        const boxId = 'animateAlpha';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -264,7 +488,7 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
 
         await flock.animateProperty(boxId, {
-          property: "alpha",
+          property: 'alpha',
           targetValue: 0.5,
           duration: 0.1,
         });
@@ -273,8 +497,8 @@ export function runAnimateTests(flock) {
         expect(mesh.material.alpha).to.be.closeTo(0.5, 0.1);
       });
 
-      it("should animate color property", async function () {
-        const boxId = "animateColor";
+      it('should animate color property', async function () {
+        const boxId = 'animateColor';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -287,8 +511,8 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
 
         await flock.animateProperty(boxId, {
-          property: "diffuseColor",
-          targetValue: "#FF0000",
+          property: 'diffuseColor',
+          targetValue: '#FF0000',
           duration: 0.1,
         });
 
@@ -300,9 +524,9 @@ export function runAnimateTests(flock) {
       });
     });
 
-    describe("createAnimation function", function () {
-      it("should create animation group", async function () {
-        const boxId = "createAnimTest";
+    describe('createAnimation function', function () {
+      it('should create animation group', async function () {
+        const boxId = 'createAnimTest';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -316,24 +540,81 @@ export function runAnimateTests(flock) {
           { duration: 1, value: 90 },
         ];
 
-        const groupName = await flock.createAnimation("testGroup", boxId, {
-          property: "rotation.x",
+        const groupName = await flock.createAnimation('testGroup', boxId, {
+          property: 'rotation.x',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "AWAIT",
+          mode: 'AWAIT',
         });
 
-        expect(groupName).to.equal("testGroup");
+        expect(groupName).to.equal('testGroup');
 
         // Check that animation group was created
-        const animGroup = flock.scene.getAnimationGroupByName("testGroup");
+        const animGroup = flock.scene.getAnimationGroupByName('testGroup');
         expect(animGroup).to.exist;
       });
 
-      it("should generate unique group name when not provided", async function () {
-        const boxId = "createAnimUnique";
+      it('should set up blending when alpha is animated on an opaque object', async function () {
+        const boxId = 'createAnimAlphaPrepass';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 4,
+          depth: 1,
+          color: '#8899ff',
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        expect(mesh.material.transparencyMode).to.not.equal(
+          flock.BABYLON.Material.MATERIAL_ALPHABLEND
+        );
+
+        await flock.createAnimation('alphaPrepassGroup', boxId, {
+          property: 'alpha',
+          keyframes: [
+            { duration: 0, value: 1 },
+            { duration: 1, value: 0.3 },
+          ],
+          easing: 'Linear',
+          loop: false,
+          reverse: false,
+          mode: 'START',
+        });
+
+        expect(mesh.material.transparencyMode).to.equal(flock.BABYLON.Material.MATERIAL_ALPHABLEND);
+      });
+
+      it('should leave an opaque material alone when animateKeyFrames builds nothing', async function () {
+        const boxId = 'keyFramesAlphaNoop';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 4,
+          depth: 1,
+          color: '#8899ff',
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        // createAnimation differs: it sets up every alpha target regardless.
+        await flock.animateKeyFrames(boxId, {
+          property: 'alpha',
+          keyframes: [{ duration: 0, value: 1 }],
+          easing: 'Linear',
+          loop: false,
+          reverse: false,
+        });
+
+        expect(mesh.material.transparencyMode).to.not.equal(
+          flock.BABYLON.Material.MATERIAL_ALPHABLEND
+        );
+      });
+
+      it('should generate unique group name when not provided', async function () {
+        const boxId = 'createAnimUnique';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -343,31 +624,31 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 1, value: "#00FF00" },
+          { duration: 0, value: '#FF0000' },
+          { duration: 1, value: '#00FF00' },
         ];
 
         const groupName = await flock.createAnimation(
           null, // No group name provided
           boxId,
           {
-            property: "color",
+            property: 'color',
             keyframes: keyframes,
-            easing: "Linear",
+            easing: 'Linear',
             loop: false,
             reverse: false,
-            mode: "CREATE",
-          },
+            mode: 'CREATE',
+          }
         );
 
-        expect(groupName).to.be.a("string");
-        expect(groupName).to.include("animation_");
+        expect(groupName).to.be.a('string');
+        expect(groupName).to.include('animation_');
       });
     });
 
-    describe("animation control functions", function () {
-      it("should control animation groups", async function () {
-        const boxId = "animControlTest";
+    describe('animation control functions', function () {
+      it('should control animation groups', async function () {
+        const boxId = 'animControlTest';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -381,18 +662,14 @@ export function runAnimateTests(flock) {
           { duration: 2, value: 360 },
         ];
 
-        const groupName = await flock.createAnimation(
-          "controlTestGroup",
-          boxId,
-          {
-            property: "rotation.y",
-            keyframes: keyframes,
-            easing: "Linear",
-            loop: false,
-            reverse: false,
-            mode: "CREATE",
-          },
-        );
+        const groupName = await flock.createAnimation('controlTestGroup', boxId, {
+          property: 'rotation.y',
+          keyframes: keyframes,
+          easing: 'Linear',
+          loop: false,
+          reverse: false,
+          mode: 'CREATE',
+        });
 
         // Get the animation group
         const animGroup = flock.scene.getAnimationGroupByName(groupName);
@@ -411,19 +688,15 @@ export function runAnimateTests(flock) {
         // Wait a bit and check if the animation is effectively paused
         await new Promise((resolve) => setTimeout(resolve, 50));
         const frameAfterPause =
-          animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]
-            ?.currentFrame;
+          animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
 
         // Wait a bit more
         await new Promise((resolve) => setTimeout(resolve, 100));
         const frameAfterMoreWait =
-          animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]
-            ?.currentFrame;
+          animGroup.targetedAnimations[0]?.animation?.runtimeAnimations[0]?.currentFrame;
 
         // If paused, the frame should not have progressed significantly
-        expect(
-          Math.abs((frameAfterMoreWait || 0) - (frameAfterPause || 0)),
-        ).to.be.lessThan(5);
+        expect(Math.abs((frameAfterMoreWait || 0) - (frameAfterPause || 0))).to.be.lessThan(5);
 
         // Test resume after pause
         flock.playAnimationGroup(groupName);
@@ -435,21 +708,21 @@ export function runAnimateTests(flock) {
         expect(animGroup.isStarted).to.be.false;
       });
 
-      it("should handle non-existent animation groups gracefully", function () {
+      it('should handle non-existent animation groups gracefully', function () {
         // These should not throw errors
-        flock.playAnimationGroup("nonExistentGroup");
-        flock.pauseAnimationGroup("nonExistentGroup");
-        flock.stopAnimationGroup("nonExistentGroup");
-        flock.animateFrom("nonExistentGroup", 1);
+        flock.playAnimationGroup('nonExistentGroup');
+        flock.pauseAnimationGroup('nonExistentGroup');
+        flock.stopAnimationGroup('nonExistentGroup');
+        flock.animateFrom('nonExistentGroup', 1);
 
         // If we get here without throwing, the test passes
         expect(true).to.be.true;
       });
     });
 
-    describe("stopAnimations function", function () {
-      it("should stop animations on a mesh", async function () {
-        const boxId = "stopAnimTest";
+    describe('stopAnimations function', function () {
+      it('should stop animations on a mesh', async function () {
+        const boxId = 'stopAnimTest';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -470,9 +743,260 @@ export function runAnimateTests(flock) {
       });
     });
 
-    describe("animateKeyFrames function", function () {
-      it("should animate color keyframes", async function () {
-        const boxId = "animateKeyFramesColor";
+    describe('keyframe timing and reuse', function () {
+      const keyFramesOf = (animation) => animation.getKeys().map((k) => [k.frame, k.value.x]);
+
+      it('should mirror forward timing when animateKeyFrames reverses', async function () {
+        const boxId = 'keyFramesReverseTiming';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        const done = flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.1, value: '0 0 0' },
+            { duration: 0.1, value: '1 0 0' },
+            { duration: 0.1, value: '2 0 0' },
+          ],
+          property: 'position',
+          reverse: true,
+        });
+        await new Promise((r) => setTimeout(r, 30));
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        const [animatable] = flock.scene.getAllAnimatablesByTarget(mesh);
+        expect(keyFramesOf(animatable.getAnimations()[0].animation)).to.deep.equal([
+          [0, 0],
+          [3, 1],
+          [6, 2],
+          [9, 1],
+          [12, 0],
+        ]);
+        await done;
+      });
+
+      it('should not replay an earlier keyframe animation when animating another property', async function () {
+        const boxId = 'keyFramesNoReplay';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+        const mesh = flock.scene.getMeshByName(boxId);
+
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.1, value: '0 0 0' },
+            { duration: 0.1, value: '3 0 0' },
+          ],
+          property: 'position',
+        });
+        const scaling = flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0.2, value: '1 1 1' },
+            { duration: 0.2, value: '2 2 2' },
+          ],
+          property: 'scaling',
+        });
+        await new Promise((r) => setTimeout(r, 50));
+
+        expect(mesh.position.x).to.be.closeTo(3, 0.01);
+        expect(mesh.animations).to.have.length(0);
+        await scaling;
+      });
+
+      it('should replace a property animation when createAnimation reuses a group', async function () {
+        const boxId = 'createAnimationReuse';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        let name = null;
+        for (let i = 0; i < 3; i++) {
+          name = await flock.createAnimation(name, boxId, {
+            property: 'position',
+            keyframes: [
+              { duration: 0, value: flock.createVector3(0, 0, 0) },
+              { duration: (3 - i) * 0.1, value: flock.createVector3(i, 0, 0) },
+            ],
+            mode: 'AWAIT',
+          });
+        }
+
+        const group = flock.scene.getAnimationGroupByName(name);
+        expect(group.targetedAnimations).to.have.length(1);
+        expect(group.from).to.equal(0);
+        expect(group.to).to.equal(3);
+        group.dispose();
+      });
+
+      it('should complete when animateKeyFrames reverses no keyframes', async function () {
+        const boxId = 'keyFramesReverseEmpty';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [],
+          property: 'position',
+          reverse: true,
+        });
+      });
+
+      it('should mirror forward timing when createAnimation reverses', async function () {
+        const boxId = 'createAnimationReverseTiming';
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(boxId);
+
+        const name = await flock.createAnimation(null, boxId, {
+          property: 'position',
+          reverse: true,
+          mode: 'CREATE',
+          keyframes: [
+            { duration: 0, value: flock.createVector3(0, 0, 0) },
+            { duration: 0.5, value: flock.createVector3(1, 0, 0) },
+            { duration: 1, value: flock.createVector3(2, 0, 0) },
+          ],
+        });
+
+        const group = flock.scene.getAnimationGroupByName(name);
+        expect(keyFramesOf(group.targetedAnimations[0].animation)).to.deep.equal([
+          [0, 0],
+          [15, 1],
+          [30, 2],
+          [45, 1],
+          [60, 0],
+        ]);
+        group.dispose();
+      });
+    });
+
+    describe('animateKeyFrames function', function () {
+      async function scaledBox(boxId, position = [2, 0, 3]) {
+        await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position });
+        boxIds.push(boxId);
+        return flock.scene.getMeshByName(boxId);
+      }
+
+      function worldBox(mesh) {
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        return mesh.getBoundingInfo().boundingBox;
+      }
+
+      const growKeyframes = [
+        { duration: 0.1, value: '1 1 1' },
+        { duration: 0.1, value: '2 2 2' },
+      ];
+
+      it('should scale about the anchor, not the pivot', async function () {
+        const mesh = await scaledBox('keyFramesScaleAnchor');
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.maximumWorld.y).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.z).to.be.closeTo(3, 0.01);
+      });
+
+      it('should scale about a custom anchor', async function () {
+        const mesh = await scaledBox('keyFramesScaleCustomAnchor');
+        await flock.setAnchor(mesh.name, { x: 'MIN', y: 'MAX', z: 'CENTER' });
+        const before = flock._getAnchor(mesh);
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const after = flock._getAnchor(mesh);
+        expect(after.x).to.be.closeTo(before.x, 0.01);
+        expect(after.y).to.be.closeTo(before.y, 0.01);
+        expect(after.z).to.be.closeTo(before.z, 0.01);
+        expect(worldBox(mesh).maximumWorld.x - worldBox(mesh).minimumWorld.x).to.be.closeTo(2, 0.01);
+      });
+
+      it('should ignore the pivot when scaling', async function () {
+        const mesh = await scaledBox('keyFramesScalePivot');
+        await flock.setPivot(mesh.name, { x: 'MAX', y: 'MAX', z: 'MAX' });
+
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        expect(box.centerWorld.z).to.be.closeTo(3, 0.01);
+      });
+
+      it('should return to its start when scaling reverses', async function () {
+        const mesh = await scaledBox('keyFramesScaleReverse');
+        const start = mesh.position.clone();
+
+        await flock.animateKeyFrames(mesh.name, {
+          keyframes: growKeyframes,
+          property: 'scaling',
+          reverse: true,
+        });
+
+        expect(mesh.scaling.y).to.be.closeTo(1, 0.01);
+        expect(mesh.position.x).to.be.closeTo(start.x, 0.01);
+        expect(mesh.position.y).to.be.closeTo(start.y, 0.01);
+        expect(mesh.position.z).to.be.closeTo(start.z, 0.01);
+      });
+
+      it('should scale about the anchor in an animation group', async function () {
+        const mesh = await scaledBox('groupScaleAnchor');
+
+        const name = await flock.createAnimation(null, mesh.name, {
+          property: 'scaling',
+          keyframes: [
+            { duration: 0, value: '1 1 1' },
+            { duration: 0.2, value: '3 3 3' },
+          ],
+          mode: 'AWAIT',
+        });
+
+        const box = worldBox(mesh);
+        expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+        expect(box.maximumWorld.y).to.be.closeTo(3, 0.01);
+        expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+        flock.scene.getAnimationGroupByName(name)?.dispose();
+      });
+
+      it('should hold the anchor on a clone of an animated mesh', async function () {
+        const mesh = await scaledBox('keyFramesScaleCloneSource');
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        const cloneName = flock.cloneMesh({
+          sourceMeshName: mesh.name,
+          cloneId: 'keyFramesScaleClone__1',
+          cloneName: 'keyFramesScaleClone',
+        });
+        const clone = await flock.whenModelReady(cloneName);
+        boxIds.push(clone.name);
+        const before = flock._getAnchor(clone);
+
+        await flock.animateKeyFrames(clone.name, {
+          keyframes: [
+            { duration: 0.1, value: '2 2 2' },
+            { duration: 0.1, value: '1 1 1' },
+          ],
+          property: 'scaling',
+        });
+
+        const after = flock._getAnchor(clone);
+        expect(after.x).to.be.closeTo(before.x, 0.01);
+        expect(after.y).to.be.closeTo(before.y, 0.01);
+        expect(after.z).to.be.closeTo(before.z, 0.01);
+      });
+
+      it('should leave the scale block to place the mesh itself', async function () {
+        const mesh = await scaledBox('keyFramesThenScale');
+        await flock.animateKeyFrames(mesh.name, { keyframes: growKeyframes, property: 'scaling' });
+
+        await flock.scale(mesh.name, { x: 1, y: 1, z: 1, yOrigin: 'TOP' });
+        await new Promise((r) => setTimeout(r, 100));
+
+        const box = worldBox(mesh);
+        expect(box.maximumWorld.y).to.be.closeTo(2, 0.01);
+        expect(box.minimumWorld.y).to.be.closeTo(1, 0.01);
+      });
+
+      it('should animate color keyframes', async function () {
+        const boxId = 'animateKeyFramesColor';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -482,14 +1006,14 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 0.1, value: "#00FF00" },
-          { duration: 0.2, value: "#0000FF" },
+          { duration: 0, value: '#FF0000' },
+          { duration: 0.1, value: '#00FF00' },
+          { duration: 0.2, value: '#0000FF' },
         ];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "color",
+          property: 'color',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
@@ -497,8 +1021,8 @@ export function runAnimateTests(flock) {
         expect(mesh.material).to.exist;
       });
 
-      it("should animate alpha keyframes", async function () {
-        const boxId = "animateKeyFramesAlpha";
+      it('should animate alpha keyframes', async function () {
+        const boxId = 'animateKeyFramesAlpha';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -515,7 +1039,7 @@ export function runAnimateTests(flock) {
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "alpha",
+          property: 'alpha',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
@@ -523,8 +1047,8 @@ export function runAnimateTests(flock) {
         expect(mesh.material).to.exist;
       });
 
-      it("should animate position keyframes", async function () {
-        const boxId = "animateKeyFramesPosition";
+      it('should animate position keyframes', async function () {
+        const boxId = 'animateKeyFramesPosition';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -534,22 +1058,49 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "0 0 0" },
-          { duration: 0.1, value: "1 1 1" },
-          { duration: 0.2, value: "2 0 2" },
+          { duration: 0, value: '0 0 0' },
+          { duration: 0.1, value: '1 1 1' },
+          { duration: 0.2, value: '2 0 2' },
         ];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "position",
+          property: 'position',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
       });
 
-      it("should animate rotation keyframes", async function () {
-        const boxId = "animateKeyFramesRotation";
+      it('should animate position keyframes given as vectors', async function () {
+        const boxId = 'animateKeyFramesVector';
+        await flock.createBox(boxId, {
+          width: 1,
+          height: 1,
+          depth: 1,
+          position: [0, 0, 0],
+        });
+        boxIds.push(boxId);
+
+        const end = flock.createVector3(2, 1, 3);
+        await flock.animateKeyFrames(boxId, {
+          keyframes: [
+            { duration: 0, value: flock.createVector3(0, 0, 0) },
+            { duration: 0.1, value: end },
+          ],
+          property: 'position',
+        });
+
+        const mesh = flock.scene.getMeshByName(boxId);
+        expect(mesh.position).to.be.instanceOf(flock.BABYLON.Vector3);
+        expect(mesh.position.x).to.be.closeTo(2, 0.01);
+        expect(mesh.position.y).to.be.closeTo(1, 0.01);
+        expect(mesh.position.z).to.be.closeTo(3, 0.01);
+        expect(mesh.position).to.not.equal(end);
+      });
+
+      it('should animate rotation keyframes', async function () {
+        const boxId = 'animateKeyFramesRotation';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -559,22 +1110,22 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "0 0 0" },
-          { duration: 0.1, value: "90 0 0" },
-          { duration: 0.2, value: "180 90 0" },
+          { duration: 0, value: '0 0 0' },
+          { duration: 0.1, value: '90 0 0' },
+          { duration: 0.2, value: '180 90 0' },
         ];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "rotation",
+          property: 'rotation',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
       });
 
-      it("should animate scaling keyframes", async function () {
-        const boxId = "animateKeyFramesScaling";
+      it('should animate scaling keyframes', async function () {
+        const boxId = 'animateKeyFramesScaling';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -584,22 +1135,22 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "1 1 1" },
-          { duration: 0.1, value: "2 2 2" },
-          { duration: 0.2, value: "0.5 0.5 0.5" },
+          { duration: 0, value: '1 1 1' },
+          { duration: 0.1, value: '2 2 2' },
+          { duration: 0.2, value: '0.5 0.5 0.5' },
         ];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "scaling",
+          property: 'scaling',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
       });
 
-      it("should handle options object with all parameters", async function () {
-        const boxId = "animateKeyFramesFull";
+      it('should handle options object with all parameters', async function () {
+        const boxId = 'animateKeyFramesFull';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -609,14 +1160,14 @@ export function runAnimateTests(flock) {
         boxIds.push(boxId);
 
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 0.1, value: "#00FF00" },
+          { duration: 0, value: '#FF0000' },
+          { duration: 0.1, value: '#00FF00' },
         ];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "color",
-          easing: "ease-in",
+          property: 'color',
+          easing: 'ease-in',
           loop: false,
           reverse: false,
         });
@@ -625,16 +1176,16 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
       });
 
-      it("should run animateKeyFrames after the mesh becomes available", async function () {
-        const meshName = "late_mesh_for_keyframes";
+      it('should run animateKeyFrames after the mesh becomes available', async function () {
+        const meshName = 'late_mesh_for_keyframes';
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 0.1, value: "#00FF00" },
+          { duration: 0, value: '#FF0000' },
+          { duration: 0.1, value: '#00FF00' },
         ];
 
         const animationPromise = flock.animateKeyFrames(meshName, {
           keyframes: keyframes,
-          property: "color",
+          property: 'color',
         });
 
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -644,8 +1195,8 @@ export function runAnimateTests(flock) {
         await animationPromise;
       });
 
-      it("should handle empty keyframes array", async function () {
-        const boxId = "animateKeyFramesEmpty";
+      it('should handle empty keyframes array', async function () {
+        const boxId = 'animateKeyFramesEmpty';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -657,15 +1208,15 @@ export function runAnimateTests(flock) {
         // This should complete without error
         await flock.animateKeyFrames(boxId, {
           keyframes: [],
-          property: "color",
+          property: 'color',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
       });
 
-      it("should handle single keyframe", async function () {
-        const boxId = "animateKeyFramesSingle";
+      it('should handle single keyframe', async function () {
+        const boxId = 'animateKeyFramesSingle';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -674,11 +1225,11 @@ export function runAnimateTests(flock) {
         });
         boxIds.push(boxId);
 
-        const keyframes = [{ duration: 0.1, value: "#FF0000" }];
+        const keyframes = [{ duration: 0.1, value: '#FF0000' }];
 
         await flock.animateKeyFrames(boxId, {
           keyframes: keyframes,
-          property: "color",
+          property: 'color',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
@@ -686,11 +1237,11 @@ export function runAnimateTests(flock) {
       });
     });
 
-    describe("switchAnimation function", function () {
+    describe('switchAnimation function', function () {
       // Increase timeout for these tests due to retry mechanism
       this.timeout(5000);
-      it("should switch animation on a mesh", async function () {
-        const boxId = "switchAnimTest";
+      it('should switch animation on a mesh', async function () {
+        const boxId = 'switchAnimTest';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -705,26 +1256,26 @@ export function runAnimateTests(flock) {
           { duration: 1, value: 90 },
         ];
 
-        await flock.createAnimation("TestAnimation", boxId, {
-          property: "rotation.x",
+        await flock.createAnimation('TestAnimation', boxId, {
+          property: 'rotation.x',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "CREATE",
+          mode: 'CREATE',
         });
 
         // This should not throw an error
         await flock.switchAnimation(boxId, {
-          animationName: "TestAnimation",
+          animationName: 'TestAnimation',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
         expect(mesh).to.exist;
       });
 
-      it("should handle options object", async function () {
-        const boxId = "switchAnimOptions";
+      it('should handle options object', async function () {
+        const boxId = 'switchAnimOptions';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -735,22 +1286,22 @@ export function runAnimateTests(flock) {
 
         // Create an actual animation using Flock's createAnimation API
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 1, value: "#00FF00" },
+          { duration: 0, value: '#FF0000' },
+          { duration: 1, value: '#00FF00' },
         ];
 
-        await flock.createAnimation("TestAnimation2", boxId, {
-          property: "color",
+        await flock.createAnimation('TestAnimation2', boxId, {
+          property: 'color',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "CREATE",
+          mode: 'CREATE',
         });
 
         // Test with options object
         await flock.switchAnimation(boxId, {
-          animationName: "TestAnimation2",
+          animationName: 'TestAnimation2',
           loop: false,
           restart: true,
         });
@@ -759,8 +1310,8 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
       });
 
-      it("should handle missing animation gracefully", async function () {
-        const boxId = "switchAnimMissing";
+      it('should handle missing animation gracefully', async function () {
+        const boxId = 'switchAnimMissing';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -771,7 +1322,7 @@ export function runAnimateTests(flock) {
 
         // This should not throw an error even with non-existent animation
         await flock.switchAnimation(boxId, {
-          animationName: "NonExistentAnimation",
+          animationName: 'NonExistentAnimation',
         });
 
         const mesh = flock.scene.getMeshByName(boxId);
@@ -779,11 +1330,11 @@ export function runAnimateTests(flock) {
       });
     });
 
-    describe("playAnimation function", function () {
+    describe('playAnimation function', function () {
       // Increase timeout for these tests due to retry mechanism
       this.timeout(5000);
-      it("should play animation on a mesh", async function () {
-        const boxId = "playAnimTest";
+      it('should play animation on a mesh', async function () {
+        const boxId = 'playAnimTest';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -798,31 +1349,31 @@ export function runAnimateTests(flock) {
           { duration: 0.1, value: 90 }, // Short duration for quick test
         ];
 
-        await flock.createAnimation("PlayTestAnimation", boxId, {
-          property: "rotation.x",
+        await flock.createAnimation('PlayTestAnimation', boxId, {
+          property: 'rotation.x',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "CREATE",
+          mode: 'CREATE',
         });
 
         // This should complete without error
         try {
           await flock.playAnimation(boxId, {
-            animationName: "PlayTestAnimation",
+            animationName: 'PlayTestAnimation',
           });
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          console.warn("playAnimation timing issue:", error);
+          console.warn('playAnimation timing issue:', error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }
       });
 
-      it("should handle options object with loop and restart", async function () {
-        const boxId = "playAnimOptions";
+      it('should handle options object with loop and restart', async function () {
+        const boxId = 'playAnimOptions';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -833,37 +1384,37 @@ export function runAnimateTests(flock) {
 
         // Create an actual animation using Flock's createAnimation API
         const keyframes = [
-          { duration: 0, value: "#FF0000" },
-          { duration: 0.1, value: "#00FF00" }, // Short duration for quick test
+          { duration: 0, value: '#FF0000' },
+          { duration: 0.1, value: '#00FF00' }, // Short duration for quick test
         ];
 
-        await flock.createAnimation("PlayTestAnimation2", boxId, {
-          property: "color",
+        await flock.createAnimation('PlayTestAnimation2', boxId, {
+          property: 'color',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "CREATE",
+          mode: 'CREATE',
         });
 
         // Test with options object
         try {
           await flock.playAnimation(boxId, {
-            animationName: "PlayTestAnimation2",
+            animationName: 'PlayTestAnimation2',
             loop: true,
             restart: false,
           });
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          console.warn("playAnimation options timing issue:", error);
+          console.warn('playAnimation options timing issue:', error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }
       });
 
-      it("should handle missing animation gracefully", async function () {
-        const boxId = "playAnimMissing";
+      it('should handle missing animation gracefully', async function () {
+        const boxId = 'playAnimMissing';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -875,10 +1426,10 @@ export function runAnimateTests(flock) {
         // This should handle the missing animation without throwing
         try {
           await flock.playAnimation(boxId, {
-            animationName: "NonExistentAnimation",
+            animationName: 'NonExistentAnimation',
           });
         } catch (error) {
-          console.warn("Missing animation handled with error:", error);
+          console.warn('Missing animation handled with error:', error);
           // Expected behavior for missing animation - could be timeout or other error
           expect(error.message).to.exist;
         }
@@ -887,10 +1438,10 @@ export function runAnimateTests(flock) {
         expect(mesh).to.exist;
       });
 
-      it("should run playAnimation after the mesh becomes available", async function () {
-        const meshName = "late_mesh_for_play_anim";
+      it('should run playAnimation after the mesh becomes available', async function () {
+        const meshName = 'late_mesh_for_play_anim';
         const animationPromise = flock.playAnimation(meshName, {
-          animationName: "TestAnimation",
+          animationName: 'TestAnimation',
         });
 
         await new Promise((resolve) => setTimeout(resolve, 50));
@@ -903,8 +1454,8 @@ export function runAnimateTests(flock) {
         await animationPromise;
       });
 
-      it("should handle default parameters", async function () {
-        const boxId = "playAnimDefaults";
+      it('should handle default parameters', async function () {
+        const boxId = 'playAnimDefaults';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -915,37 +1466,37 @@ export function runAnimateTests(flock) {
 
         // Create an actual animation using Flock's createAnimation API
         const keyframes = [
-          { duration: 0, value: "1 1 1" },
-          { duration: 0.1, value: "2 2 2" }, // Short duration for quick test
+          { duration: 0, value: '1 1 1' },
+          { duration: 0.1, value: '2 2 2' }, // Short duration for quick test
         ];
 
-        await flock.createAnimation("DefaultTestAnimation", boxId, {
-          property: "scaling",
+        await flock.createAnimation('DefaultTestAnimation', boxId, {
+          property: 'scaling',
           keyframes: keyframes,
-          easing: "Linear",
+          easing: 'Linear',
           loop: false,
           reverse: false,
-          mode: "CREATE",
+          mode: 'CREATE',
         });
 
         // Test with no options (should use defaults: loop=false, restart=true)
         try {
           await flock.playAnimation(boxId, {
-            animationName: "DefaultTestAnimation",
+            animationName: 'DefaultTestAnimation',
           });
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         } catch (error) {
-          console.warn("Default playAnimation timing issue:", error);
+          console.warn('Default playAnimation timing issue:', error);
           const mesh = flock.scene.getMeshByName(boxId);
           expect(mesh).to.exist;
         }
       });
     });
 
-    describe("edge cases and error handling", function () {
-      it("should run rotateAnim after the mesh becomes available", async function () {
-        const meshName = "late_mesh_for_rotate";
+    describe('edge cases and error handling', function () {
+      it('should run rotateAnim after the mesh becomes available', async function () {
+        const meshName = 'late_mesh_for_rotate';
         const animationPromise = flock.rotateAnim(meshName, {
           x: 90,
           duration: 0.1,
@@ -958,10 +1509,10 @@ export function runAnimateTests(flock) {
         await animationPromise;
       });
 
-      it("should run animateProperty after the mesh becomes available", async function () {
-        const meshName = "late_mesh_for_prop_anim";
+      it('should run animateProperty after the mesh becomes available', async function () {
+        const meshName = 'late_mesh_for_prop_anim';
         const animationPromise = flock.animateProperty(meshName, {
-          property: "alpha",
+          property: 'alpha',
           targetValue: 0.5,
           duration: 0.1,
         });
@@ -973,8 +1524,8 @@ export function runAnimateTests(flock) {
         await animationPromise;
       });
 
-      it("should handle zero duration in rotateAnim", async function () {
-        const boxId = "zeroDuration";
+      it('should handle zero duration in rotateAnim', async function () {
+        const boxId = 'zeroDuration';
         await flock.createBox(boxId, {
           width: 1,
           height: 1,
@@ -992,10 +1543,10 @@ export function runAnimateTests(flock) {
       });
     });
 
-    describe("rotateToObject", function () {
-      it("should rotate mesh1 to face mesh2", async function () {
-        const id1 = "rotateToObjA";
-        const id2 = "rotateToObjB";
+    describe('rotateToObject', function () {
+      it('should rotate mesh1 to face mesh2', async function () {
+        const id1 = 'rotateToObjA';
+        const id2 = 'rotateToObjB';
         await flock.createBox(id1, {
           width: 1,
           height: 1,

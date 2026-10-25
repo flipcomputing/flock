@@ -34,7 +34,7 @@ npm run check:link-security
 Enforces the project rule for external navigation hardening:
 
 - Every `<a target="_blank">` in `index.html` must include `rel="noopener noreferrer"`.
-- Every audited `window.open(...)` call in `index.html` and `ui/designview.js` must include a third argument containing both `noopener` and `noreferrer`.
+- Every audited `window.open(...)` call in `index.html` must include a third argument containing both `noopener` and `noreferrer`.
 - This check also runs as part of `npm run lint` so PRs fail fast if protections are missing.
 
 ## ✅ What's Working
@@ -218,6 +218,7 @@ Summary Statistics:
 - `dev-docs/archive/github-ci-debugging/TEST_RUNNER_SERVER_STARTUP.md` - Server startup technical details
 - `docs/docs.md` - User documentation
 - `docs/models.md` - 3D models documentation
+- `docs/materials.md` - Material textures documentation
 
 **Reports:**
 

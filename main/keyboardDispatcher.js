@@ -30,6 +30,11 @@ const KeyboardDispatcher = {
     this._modeStack.pop();
   },
 
+  removeMode(handler) {
+    const index = this._modeStack.findLastIndex((mode) => mode.handler === handler);
+    if (index !== -1) this._modeStack.splice(index, 1);
+  },
+
   clearModes() {
     this._modeStack.length = 0;
   },

@@ -1,14 +1,18 @@
-// Thin wrapper around @microbit/microbit-connection's MicrobitWebUSBConnection
+// Thin wrapper around @microbit/microbit-connection's MicrobitUSBConnection
 // for one tethered board: device picker / silent reconnect, line-oriented DAP
 // serial, flashing with progress, and the USB serial number used to recognise
 // the board again in navigator.usb.getDevices(). All protocol knowledge lives
 // in protocol.js / manager.js; this class only moves lines and hex files.
-import {
-  createWebUSBConnection,
-  createUniversalHexFlashDataSource,
-  ConnectionStatus,
-} from "@microbit/microbit-connection";
-import { LineSplitter } from "./protocol.js";
+import { ConnectionStatus } from '@microbit/microbit-connection';
+import { createUSBConnection } from '@microbit/microbit-connection/usb';
+import { createUniversalHexFlashDataSource } from '@microbit/microbit-connection/universal-hex';
+import { LineSplitter } from './protocol.js';
+
+const DROPPED_STATUSES = new Set([
+  ConnectionStatus.Disconnected,
+  ConnectionStatus.NoAuthorizedDevice,
+  ConnectionStatus.Paused,
+]);
 
 export class MicrobitUsbTransport {
   #connection;
@@ -18,19 +22,15 @@ export class MicrobitUsbTransport {
   #connected = false;
 
   constructor({ connection } = {}) {
-    this.#connection = connection ?? createWebUSBConnection();
+    this.#connection = connection ?? createUSBConnection();
 
-    this.#connection.addEventListener("serialdata", (event) => {
+    this.#connection.addEventListener('serialdata', (event) => {
       for (const line of this.#splitter.push(event.data)) {
         for (const listener of this.#lineListeners) listener(line);
       }
     });
-    this.#connection.addEventListener("status", (event) => {
-      if (
-        this.#connected &&
-        (event.status === ConnectionStatus.DISCONNECTED ||
-          event.status === ConnectionStatus.NO_AUTHORIZED_DEVICE)
-      ) {
+    this.#connection.addEventListener('status', (event) => {
+      if (this.#connected && DROPPED_STATUSES.has(event.status)) {
         this.#connected = false;
         for (const listener of this.#disconnectListeners) listener();
       }
@@ -44,9 +44,9 @@ export class MicrobitUsbTransport {
    */
   async connect() {
     await this.#connection.initialize();
-    const status = await this.#connection.connect();
-    if (status !== ConnectionStatus.CONNECTED) {
-      throw new Error(`micro:bit connection failed (${status})`);
+    await this.#connection.connect();
+    if (this.#connection.status !== ConnectionStatus.Connected) {
+      throw new Error(`micro:bit connection failed (${this.#connection.status})`);
     }
     this.#connected = true;
   }
@@ -83,7 +83,7 @@ export class MicrobitUsbTransport {
   async flash(hexText, onProgress) {
     await this.#connection.flash(createUniversalHexFlashDataSource(hexText), {
       partial: false,
-      progress: (percentage) => onProgress?.(percentage),
+      progress: (_stage, percentage) => onProgress?.(percentage),
     });
   }
 

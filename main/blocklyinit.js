@@ -1,20 +1,28 @@
 import * as Blockly from 'blockly';
 import { WorkspaceSearch } from '@blockly/plugin-workspace-search';
+import { ScrollOptions } from '@blockly/plugin-scroll-options';
 import * as BlockDynamicConnection from '@blockly/block-dynamic-connection';
 import { initializeTheme } from './themes.js';
 import { translate } from './translation.js';
+import { focusRememberedWorkspaceNode } from './workspaceFocus.js';
+import { setBlockHintsSuppressed } from '../ui/blockHint.js';
+import {
+  matchBlockDefinitions,
+  indexesFieldValues,
+  PROCEDURE_SEARCH_BLOCKS,
+  procedureDefDefaultFields,
+} from './blocksearch.js';
 import {
   options,
   defineBlocks,
-  handleBlockSelect,
   handleBlockDelete,
   CustomZelosRenderer,
-  initializeVariableIndexes,
-  nextVariableIndexes,
   applyInputAriaLabels,
+  queueDisclosureSync,
 } from '../blocks/blocks';
 import { defineBaseBlocks } from '../blocks/base';
 import { defineShapeBlocks } from '../blocks/shapes';
+import { definePrefabBlocks, prefabFlyoutItems } from '../blocks/prefabs';
 import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineModelBlocks } from '../blocks/models.js';
 import { defineEffectsBlocks } from '../blocks/effects.js';
@@ -23,31 +31,36 @@ import { defineXRBlocks } from '../blocks/xr.js';
 import { defineEventsBlocks } from '../blocks/events.js';
 import { definePhysicsBlocks } from '../blocks/physics.js';
 import { defineConnectBlocks } from '../blocks/connect.js';
-import { defineCombineBlocks } from '../blocks/combine.js';
+import { defineModifyBlocks } from '../blocks/modify.js';
 import { defineTransformBlocks } from '../blocks/transform.js';
-import { defineControlBlocks } from '../blocks/control.js';
+import { defineControlBlocks, separateNestedLoopVariables } from '../blocks/control.js';
+import { defineSectionBlock } from '../blocks/section.js';
 import { defineConditionBlocks } from '../blocks/condition.js';
 import { defineAnimateBlocks } from '../blocks/animate.js';
 import { defineSoundBlocks } from '../blocks/sound.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
+import { installContrastWarnings } from '../blocks/colourcontrast.js';
+import { installAnimationWarnings } from '../blocks/animationWarnings.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { defineUnknownBlock } from '../blocks/unknownBlock.js';
+import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
+import { handleRecentObjectEvent } from '../blocks/variableNames.js';
+import { localVariableBlock } from '../toolbox.js';
 import { defineGenerators } from '../generators/generators.js';
-import { registerCustomCommentIcon } from './customCommentIcon.js';
-import { initContextMenus } from '../ui/contextmenu.js';
+import { patchWarningIconSize } from './customWarningIcon.js';
+import { initContextMenus, duplicateAndAttach } from '../ui/contextmenu.js';
+import { initListReorder } from '../ui/listReorder.js';
 import {
   applyBlockLockState,
   stripLockState,
   isBlockLocked,
-  toggleCommentBubble,
-  deleteBlockComment,
+  setBlockLocked,
 } from '../ui/blocklyutil.js';
-import { toolbox as toolboxDef } from '../toolbox.js';
+import { installDropdownTypeahead } from './dropdownTypeahead.js';
 
-// Persist locked blocks as part of the workspace serialization. Lower priority
-// than the built-in 'blocks' serializer (20) so the target blocks already exist
-// when we re-apply the lock on load.
+// Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   Blockly.serialization.registry.register('flockLock', {
     priority: 0,
@@ -59,10 +72,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
       return ids.length ? ids : undefined;
     },
     load(state, ws) {
-      // Apply lock state per saved block (every locked block was recorded), not
-      // by re-cascading from a root — the tree may have gained blocks (e.g. a
-      // duplicate connected after a locked block) since it was locked, and those
-      // must not be swept into the lock on reload.
+      // Apply per block rather than re-cascading from a root: the tree may have gained
+      // blocks since locking (e.g. a duplicate), and those must not be swept into the lock.
       for (const id of state || []) {
         const b = ws.getBlockById(id);
         if (b) applyBlockLockState(b, true);
@@ -104,30 +115,39 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
     };
 }
 
-// After jsonInit builds a block's inputs, give its value/statement inputs ARIA
-// labels so screen readers announce each input's context on focus. A block can
-// supply an `ariaLabels` map (keyed by input name) in its definition to
-// override or suppress individual labels; the key is ignored by jsonInit.
+// Blocks may carry an `ariaLabels` map (keyed by input name) in their jsonInit definition to
+// override or suppress per-input labels; jsonInit itself ignores the key.
+//
+// They may also carry an `inputHints` map (input name -> tooltip), stashed here for
+// applyInputHint (blocks/blocks.js) to apply to that slot's occupant.
 {
   const originalJsonInit = Blockly.Block.prototype.jsonInit;
   Blockly.Block.prototype.jsonInit = function (json) {
     originalJsonInit.call(this, json);
     applyInputAriaLabels(this, json && json.ariaLabels);
+    if (json && json.inputHints) this.inputHints = json.inputHints;
   };
 }
 
-// A "simple reporter" (e.g. a number plugged into scale's X slot) announces
-// only its field's value, with no per-input context. We prepend the parent
-// input's ARIA label ("x") to the field's announced element so navigating onto
-// it reads "x, number: 0". This is done in recomputeAriaContext (which sets the
-// element's aria-label), NOT computeAriaLabel: the parent block composes its own
-// readout from each child's computeAriaLabel, so prefixing there would make the
-// block say the slot label twice (once as its field-row label, once via the
-// child). The element-only prefix keeps the block readout clean.
 {
-  // The slot label and whether to set one at all (sibling-disambiguation,
-  // overrides) are decided in applyInputAriaLabels; here we just surface
-  // whatever provider the parent input carries.
+  const proto = Blockly.Gesture.prototype;
+  for (const name of ['handleUp', 'cancel']) {
+    const original = proto[name];
+    proto[name] = function (...args) {
+      try {
+        return original.apply(this, args);
+      } catch (error) {
+        this.dispose();
+        throw error;
+      }
+    };
+  }
+}
+
+// Prefix a simple reporter's field with its parent slot label ("x, number: 0") in
+// recomputeAriaContext, NOT computeAriaLabel — the parent would then say the slot twice.
+{
+  // Which label, and whether to set one at all, is decided in applyInputAriaLabels.
   const parentSlotLabel = (field) => {
     const block = field.getSourceBlock?.();
     if (!block || !block.isSimpleReporter?.() || block.getFullBlockField?.() !== field) {
@@ -137,11 +157,9 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
       block.outputConnection?.targetConnection ?? block.previousConnection?.targetConnection;
     return conn?.getParentInput?.()?.getAriaLabelText?.() ?? null;
   };
-  // Several field types define their own recomputeAriaContext, each calling
-  // super: Field, FieldInput (base of FieldTextInput/FieldNumber; not exported,
-  // so reached via the prototype chain), FieldDropdown (→ FieldVariable) and
-  // FieldCheckbox. Wrap every prototype that owns the method; a per-instance
-  // re-entrancy guard ensures the slot is prepended once, to the final label.
+  // Wrap every prototype owning recomputeAriaContext: Field, FieldInput (base of
+  // FieldTextInput/FieldNumber, not exported — hence the prototype-chain hop), FieldDropdown
+  // (→ FieldVariable), FieldCheckbox. They chain to super, hence the re-entrancy guard below.
   const textInputProto = Blockly.FieldTextInput?.prototype;
   const candidateProtos = [
     Blockly.Field?.prototype,
@@ -165,9 +183,8 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
           const el = this.getFocusableElement?.();
           const current = el?.getAttribute?.('aria-label');
           const prefix = `${slot}, `;
-          // v13.1.0 added native full-block field label prefixing, which can
-          // already have set this prefix before we get here — guard so we
-          // don't double it up ("hair, hair, color: Red").
+          // v13.1.0 may already have applied this prefix natively — guard against
+          // doubling it ("hair, hair, color: Red").
           if (el && current && !current.startsWith(prefix)) {
             el.setAttribute('aria-label', `${prefix}${current}`);
           }
@@ -180,10 +197,12 @@ if (!Blockly.serialization.registry.getClass?.('flockLock')) {
   }
 }
 
+installDropdownTypeahead();
+
 let workspace = null;
 export { workspace };
 
-function installWorkspaceJumpDebug(workspace) {
+export function installWorkspaceJumpDebug(workspace) {
   if (!workspace || workspace.__jumpDebugInstalled) return;
   workspace.__jumpDebugInstalled = true;
 
@@ -196,32 +215,108 @@ function installWorkspaceJumpDebug(workspace) {
     }
   });
 
+  // The Mod+. keyword-block shortcut (main/blockhandling.js, blocks/blocks.js)
+  // usually places its block where it's already visible (viewport center, the
+  // connection the cursor was on, or wherever the placeholder it replaces
+  // was) and calls this synchronously, so the focus that follows doesn't
+  // normally need to scroll. A change-listener can't stand in for this:
+  // Blockly fires BLOCK_CREATE on a deferred setTimeout(0), which is too late
+  // — the focus-driven scroll it needs to suppress can happen first.
+  //
+  // "Usually", not always — a chosen block can be much bigger than the
+  // placeholder it replaces and end up genuinely off-screen, so the block is
+  // recorded too: the scroll override below only suppresses the jump when
+  // this block turns out to already be fully in view.
+  let lastKeywordBlockCreated = null;
+  workspace.markKeywordBlockCreated = function (block) {
+    lastKeywordBlockCreated = {
+      timestamp: performance.now(),
+      block: block ?? null,
+    };
+  };
+
+  function isBlockFullyVisible(ws, block) {
+    if (!block || block.isDisposed?.()) return true;
+    const rect = block.getBoundingRectangle?.();
+    if (!rect) return true;
+    const view = ws.getMetricsManager().getViewMetrics(true);
+    return (
+      rect.left >= view.left &&
+      rect.top >= view.top &&
+      rect.right <= view.left + view.width &&
+      rect.bottom <= view.top + view.height
+    );
+  }
+
+  // Also treat a direct tap on the canvas as a field interaction, so the jump is
+  // suppressed on the tap that opens a field editor, not just after it closes.
+  let lastCanvasPointerDown = null;
+  const parentSvg = workspace.getParentSvg?.();
+  if (parentSvg) {
+    parentSvg.addEventListener(
+      'pointerdown',
+      (e) => {
+        if (e.target.closest?.('.blocklyFlyout, .blocklyToolboxDiv')) return;
+        lastCanvasPointerDown = { timestamp: performance.now() };
+      },
+      true
+    );
+  }
+
   const workspaceScroll = workspace.scroll?.bind(workspace);
   if (workspaceScroll) {
     workspace.scroll = function (...args) {
       const beforeX = this.scrollX;
       const requestedX = args[0];
-      const stack =
-        new Error().stack
-          ?.split('\n')
-          .slice(1, 7)
-          .map((line) => line.trim()) || [];
       const msSinceFieldEdit = lastFieldEdit
         ? Math.round(performance.now() - lastFieldEdit.timestamp)
         : null;
-      const fromFocusScroll = stack.some(
-        (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
-      );
+      const msSinceCanvasPointerDown = lastCanvasPointerDown
+        ? Math.round(performance.now() - lastCanvasPointerDown.timestamp)
+        : null;
+      const msSinceKeywordBlockCreated = lastKeywordBlockCreated
+        ? Math.round(performance.now() - lastKeywordBlockCreated.timestamp)
+        : null;
       const largeHorizontalJump =
         typeof requestedX === 'number' && Math.abs(requestedX - beforeX) > 100;
+      const recentFieldInteraction =
+        (typeof msSinceFieldEdit === 'number' && msSinceFieldEdit < 1500) ||
+        (typeof msSinceCanvasPointerDown === 'number' && msSinceCanvasPointerDown < 800);
+      const recentKeywordBlockCreation =
+        typeof msSinceKeywordBlockCreated === 'number' && msSinceKeywordBlockCreated < 1500;
+      // Confirm this scroll is actually chasing the block we created, not
+      // some other off-screen block the user focused in the meantime (e.g. by
+      // navigating away within the window) — otherwise that block's own
+      // legitimate scroll-into-view would be swallowed too.
+      const focusIsTrackedBlock =
+        recentKeywordBlockCreation &&
+        lastKeywordBlockCreated.block != null &&
+        Blockly.getFocusManager?.()?.getFocusedNode?.() === lastKeywordBlockCreated.block;
+      const mightSuppress = focusIsTrackedBlock || (recentFieldInteraction && largeHorizontalJump);
+      if (!mightSuppress) return workspaceScroll(...args);
 
-      if (
-        fromFocusScroll &&
-        typeof msSinceFieldEdit === 'number' &&
-        msSinceFieldEdit < 1500 &&
-        largeHorizontalJump
-      ) {
+      const fromFocusScroll = (new Error().stack?.split('\n').slice(1, 7) ?? []).some(
+        (line) => line.includes('scrollBoundsIntoView') || line.includes('onNodeFocus')
+      );
+
+      if (fromFocusScroll && focusIsTrackedBlock && isBlockFullyVisible(this, lastKeywordBlockCreated.block)) {
+        // The block is already fully in view (viewport center, the
+        // connection/selection the shortcut used, or wherever the block it
+        // replaced was), so the focus that follows it shouldn't scroll on
+        // either axis. But if it genuinely doesn't fit — a chosen block much
+        // larger than the placeholder it replaced, say — fall through and let
+        // the scroll bring it into view as normal.
+        // Used up: a later scroll in this same window is for something else.
+        lastKeywordBlockCreated = null;
         return;
+      }
+
+      if (fromFocusScroll && recentFieldInteraction && largeHorizontalJump) {
+        // Keep X pinned (suppress the unwanted jump) but still apply Y —
+        // scrollBoundsIntoView bundles both into one call, and a wanted
+        // vertical correction shouldn't be dropped along with the horizontal one.
+        const requestedY = args[1];
+        return workspaceScroll(beforeX, typeof requestedY === 'number' ? requestedY : this.scrollY);
       }
 
       return workspaceScroll(...args);
@@ -235,15 +330,17 @@ export function initializeBlocks() {
   defineSceneBlocks();
   defineModelBlocks();
   defineShapeBlocks();
+  definePrefabBlocks();
   defineEffectsBlocks();
   defineCameraBlocks();
   defineXRBlocks();
   defineEventsBlocks();
   definePhysicsBlocks();
   defineConnectBlocks();
-  defineCombineBlocks();
+  defineModifyBlocks();
   defineTransformBlocks();
   defineControlBlocks();
+  defineSectionBlock();
   defineConditionBlocks();
   defineAnimateBlocks();
   defineSoundBlocks();
@@ -251,6 +348,7 @@ export function initializeBlocks() {
   defineColourBlocks();
   defineSensingBlocks();
   defineTextBlocks();
+  defineUnknownBlock();
   defineGenerators();
 }
 
@@ -259,7 +357,7 @@ Blockly.utils.colour.setHsvValue(0.85); // 0 (inclusive) to 1 (exclusive), defau
 
 const MODE = { IF: 'IF', ELSEIF: 'ELSEIF', ELSE: 'ELSE' };
 
-function initializeIfClauseConnectionChecker(workspace) {
+export function initializeIfClauseConnectionChecker(workspace) {
   const connectionChecker = workspace.connectionChecker;
 
   // Store the original doTypeChecks method
@@ -338,6 +436,15 @@ function initializeIfClauseConnectionChecker(workspace) {
     const blockA = a.getSourceBlock();
     const blockB = b.getSourceBlock();
 
+    // A block with check=null on its own connection (e.g. a toggled 'forever')
+    // wildcard-matches everything, so a check-type mismatch alone can't stop it
+    // from connecting to the section's otherwise-never-connected DO input.
+    const isSectionDo = (block, connection) =>
+      block.type === 'section' && block.getInput?.('DO')?.connection === connection;
+    if (isSectionDo(blockA, a) || isSectionDo(blockB, b)) {
+      return false;
+    }
+
     // Check if either block is an if_clause
     const aIsIfClause = blockA.type === 'if_clause';
     const bIsIfClause = blockB.type === 'if_clause';
@@ -392,16 +499,15 @@ function initializeIfClauseConnectionChecker(workspace) {
         return true;
       }
 
+      // Where a rule checks isDragging(), it rejects only mid-drag (visual feedback) and lets
+      // validateIfClausePositions disable the block in-place instead; other rules reject outright.
       if (connectingToNext) {
         // Moving block is connecting AFTER target
 
         if (targetIsIfClause) {
           const targetMode = targetBlock.getFieldValue('MODE');
 
-          // Rule 1: Nothing can connect after ELSE.
-          // During drag-and-drop reject to give visual feedback.
-          // During healing / field-changes (not dragging) allow the connection;
-          // validateIfClausePositions will disable the block in-place.
+          // Rule 1: nothing can connect after ELSE.
           if (targetMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
@@ -411,18 +517,13 @@ function initializeIfClauseConnectionChecker(workspace) {
             return false;
           }
 
-          // Rule 3: ELSE cannot be inserted in middle of chain (drag only).
-          // When not dragging (e.g. a MODE field change), keep the connection
-          // and let validateIfClausePositions disable the block in-place.
+          // Rule 3: ELSE cannot be inserted mid-chain.
           const targetHasNext = realNext(targetBlock);
           if (targetHasNext && targetHasNext.type === 'if_clause' && movingMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
         } else {
-          // Target is NOT if_clause.
-          // During drag-and-drop reject to give visual feedback.
-          // During healing / undo-redo (not dragging) allow the connection;
-          // validateIfClausePositions will disable the block in-place.
+          // Target is NOT if_clause: ELSEIF/ELSE need an if_clause predecessor.
           if (movingMode === MODE.ELSEIF || movingMode === MODE.ELSE) {
             if (workspace.isDragging()) return false;
           }
@@ -475,9 +576,7 @@ function initializeIfClauseConnectionChecker(workspace) {
         // Otherwise it's fine - connecting at the end of the chain
         return true;
       } else {
-        // Non-if_clause connecting before if_clause
-        // Only allow before IF (which can start a new chain)
-        // Don't allow before ELSEIF or ELSE
+        // Non-if_clause may only go before IF, which can start a new chain.
         if (targetMode === MODE.ELSEIF || targetMode === MODE.ELSE) {
           return false;
         }
@@ -491,14 +590,11 @@ function initializeIfClauseConnectionChecker(workspace) {
   // connected but in an invalid position (e.g. ELSEIF after a regular block).
   const INVALID_IF_CLAUSE_REASON = 'INVALID_IF_CLAUSE_POSITION';
 
-  // Scan all if_clause blocks and disable/enable them based on whether their
-  // predecessor is a valid if_clause.  Runs with events disabled so the
-  // enable/disable state is derived (not recorded in the undo stack).
+  // Events disabled so the derived enable/disable state never enters the undo stack.
   function validateIfClausePositions() {
     Blockly.Events.disable();
     try {
-      for (const block of workspace.getAllBlocks(false)) {
-        if (block.type !== 'if_clause') continue;
+      for (const block of workspace.getBlocksByType('if_clause', false)) {
 
         const mode = block.getFieldValue('MODE');
 
@@ -528,9 +624,7 @@ function initializeIfClauseConnectionChecker(workspace) {
     }
   }
 
-  // Re-validate after any structural change so that if_clause blocks that
-  // land in an invalid position are disabled immediately, and those that
-  // become valid again are re-enabled.
+  // Re-validate on structural change so invalid clauses disable and valid ones re-enable.
   workspace.addChangeListener(function (event) {
     if (
       !event.isUiEvent &&
@@ -549,63 +643,131 @@ function initializeIfClauseConnectionChecker(workspace) {
   validateIfClausePositions();
 }
 
+function nextFreeVariableName(ws, base) {
+  const names = ws
+    .getVariableMap()
+    .getAllVariables()
+    .map((model) => model.name.toLowerCase());
+  let suffix = 1;
+  while (names.includes(`${base}${suffix}`.toLowerCase())) suffix++;
+  return `${base}${suffix}`;
+}
+
+export function variableFlyoutItems(ws) {
+  const local = localVariableIds(ws);
+  const variables = ws
+    .getVariableMap()
+    .getVariablesOfType('')
+    .filter((variable) => !local.has(variable.getId()));
+  const items = [
+    ...Blockly.Variables.flyoutCategory(ws).filter((item) => item.kind !== 'block'),
+    ...Blockly.Variables.jsonFlyoutCategoryBlocks(ws, variables, true),
+  ];
+
+  const freshVar = { name: nextFreeVariableName(ws, 'variable') };
+  const declarations = [
+    {
+      kind: 'block',
+      type: 'variables_set',
+      fields: { VAR: freshVar },
+      inputs: { VALUE: { shadow: { type: 'math_number', fields: { NUM: 0 } } } },
+    },
+    { ...localVariableBlock, fields: { VAR: freshVar } },
+  ];
+
+  // Blockly leaves the set block's socket empty; fill it with a number, and
+  // follow it with a copy holding text, so both kinds are one drag away.
+  const setItem = items.find((item) => item.kind === 'block' && item.type === 'variables_set');
+  if (!setItem) return [...items, ...declarations];
+
+  const withValue = (shadow) => ({
+    ...setItem,
+    fields: { ...setItem.fields },
+    inputs: { ...setItem.inputs, VALUE: { shadow } },
+  });
+
+  items.splice(
+    items.indexOf(setItem),
+    1,
+    ...declarations,
+    withValue({ type: 'math_number', fields: { NUM: 0 } }),
+    withValue({ type: 'text', fields: { TEXT: '' } })
+  );
+
+  return items;
+}
+
+export function installVariableScopeWarnings(workspace) {
+  const VARIABLE_SCOPE_WARNING = 'variable-scope';
+  const variableWarnings = new WeakMap();
+
+  function warnUnavailableVariables() {
+    const uses = unavailableVariableUses(workspace);
+    const variableMap = workspace.getVariableMap();
+    for (const block of workspace.getAllBlocks(false)) {
+      const names = (uses.get(block) ?? [])
+        .map((id) => variableMap.getVariableById(id)?.name)
+        .filter(Boolean);
+      const text = names.length
+        ? translate('variable_unavailable_warning').replace('%1', names.join("', '"))
+        : null;
+      if ((variableWarnings.get(block) ?? null) === text) continue;
+      variableWarnings.set(block, text);
+      block.setWarningText(text, VARIABLE_SCOPE_WARNING);
+    }
+  }
+
+  const isVariableFieldChange = (event) =>
+    event.element === 'mutation' ||
+    (event.element === 'field' &&
+      workspace.getBlockById(event.blockId)?.getField(event.name) instanceof
+        Blockly.FieldVariable);
+
+  workspace.addChangeListener(function (event) {
+    if (event.isUiEvent && event.type !== Blockly.Events.FINISHED_LOADING) return;
+    if (
+      event.type === Blockly.Events.BLOCK_MOVE ||
+      event.type === Blockly.Events.BLOCK_CREATE ||
+      event.type === Blockly.Events.BLOCK_DELETE ||
+      event.type === Blockly.Events.VAR_RENAME ||
+      event.type === Blockly.Events.FINISHED_LOADING ||
+      (event.type === Blockly.Events.BLOCK_CHANGE && isVariableFieldChange(event))
+    ) {
+      warnUnavailableVariables();
+    }
+  });
+
+  warnUnavailableVariables();
+}
+
 export function initializeWorkspace() {
   // Set Blockly color configuration
   Blockly.utils.colour.setHsvSaturation(0.3);
   Blockly.utils.colour.setHsvValue(0.85);
 
-  // Register variable category callback
-  workspace.registerToolboxCategoryCallback('VARIABLE', function (ws) {
-    const xmlList = Blockly.Variables.flyoutCategory(ws);
+  workspace.registerToolboxCategoryCallback('VARIABLE', variableFlyoutItems);
 
-    xmlList.forEach((xmlBlock) => {
-      if (xmlBlock.getAttribute && xmlBlock.getAttribute('type') === 'variables_set') {
-        const valueElement = document.createElement('value');
-        valueElement.setAttribute('name', 'VALUE');
+  workspace.registerToolboxCategoryCallback('PROCEDURE', function (ws) {
+    const items = Blockly.Procedures.flyoutCategory(ws);
+    const nextName = (base) => nextFreeVariableName(ws, base);
 
-        const shadowElement = document.createElement('shadow');
-        shadowElement.setAttribute('type', 'math_number');
+    const prefabs = prefabFlyoutItems(ws, nextName);
+    const definitionIndex = items.findIndex((item) => item.type === 'procedures_defreturn');
+    items.splice(definitionIndex + 1, 0, prefabs.definition);
 
-        const fieldElement = document.createElement('field');
-        fieldElement.setAttribute('name', 'NUM');
-        fieldElement.textContent = '0';
-
-        shadowElement.appendChild(fieldElement);
-        valueElement.appendChild(shadowElement);
-        xmlBlock.appendChild(valueElement);
-      }
+    return [...items, ...prefabs.callers].flatMap((item) => {
+      if (item.kind !== 'block' || item.type !== 'procedures_callreturn') return [item];
+      const { kind: _kind, ...caller } = item;
+      return [
+        item,
+        {
+          kind: 'block',
+          type: 'variables_set',
+          fields: { VAR: { name: nextName(item.extraState?.name ?? 'result') } },
+          inputs: { VALUE: { block: caller } },
+        },
+      ];
     });
-
-    const defaultBlock = xmlList.find(
-      (xmlBlock) => xmlBlock.getAttribute && xmlBlock.getAttribute('type') === 'variables_set'
-    );
-    if (defaultBlock) {
-      const xmlBlockText = defaultBlock.cloneNode(true);
-
-      const valueElements = xmlBlockText.getElementsByTagName('value');
-      for (let i = 0; i < valueElements.length; i++) {
-        if (valueElements[i].getAttribute('name') === 'VALUE') {
-          while (valueElements[i].firstChild) {
-            valueElements[i].removeChild(valueElements[i].firstChild);
-          }
-          const shadowText = document.createElement('shadow');
-          shadowText.setAttribute('type', 'text');
-
-          const fieldText = document.createElement('field');
-          fieldText.setAttribute('name', 'TEXT');
-          fieldText.textContent = '';
-          shadowText.appendChild(fieldText);
-          valueElements[i].appendChild(shadowText);
-          break;
-        }
-      }
-
-      const defaultIndex = xmlList.indexOf(defaultBlock);
-      if (defaultIndex !== -1) {
-        xmlList.splice(defaultIndex + 1, 0, xmlBlockText);
-      }
-    }
-    return xmlList;
   });
 
   workspace.registerToolboxCategoryCallback('LIST', function (ws) {
@@ -647,7 +809,7 @@ export function initializeWorkspace() {
       shadow.setAttribute('inline', 'true');
 
       const mutation = document.createElement('mutation');
-      mutation.setAttribute('items', '2');
+      mutation.setAttribute('items', String(values.length));
       shadow.appendChild(mutation);
 
       values.forEach((value, index) => {
@@ -715,6 +877,8 @@ export function initializeWorkspace() {
     [
       'lists_create_empty',
       'lists_create_with',
+      'all_with_tag',
+      'all_clones_of',
       'lists_repeat',
       'lists_length',
       'lists_isEmpty',
@@ -724,6 +888,7 @@ export function initializeWorkspace() {
       'lists_getSublist',
       'lists_split',
       'lists_sort',
+      'lists_shuffle',
     ].forEach((type) => {
       const block = document.createElement('block');
       block.setAttribute('type', type);
@@ -738,8 +903,10 @@ export function initializeWorkspace() {
 
   // Add change listeners
   workspace.addChangeListener(BlockDynamicConnection.finalizeConnections);
-  workspace.addChangeListener(handleBlockSelect);
+  workspace.addChangeListener(handleRecentObjectEvent);
+  workspace.addChangeListener(separateNestedLoopVariables);
   workspace.addChangeListener(handleBlockDelete);
+  workspace.addChangeListener(queueDisclosureSync);
 
   // Initialize workspace search
   const workspaceSearch = new WorkspaceSearch(workspace);
@@ -758,380 +925,132 @@ export function initializeWorkspace() {
   }
   workspaceSearch.init();
   workspaceSearch.setSearchPlaceholder(translate('workspace_search_placeholder'));
+  // @blockly/plugin-workspace-search's createTextInput() only sets a
+  // placeholder, never an accessible name.
+  workspaceSearch.inputElement?.setAttribute(
+    'aria-label',
+    translate('workspace_search_placeholder')
+  );
   window.flockWorkspaceSearch = workspaceSearch;
 
-  // Shared label map populated by buildSearchIndex (overrideSearchPlugin), used by getBlockLabel
+  // Comment textareas (block-comment bubbles and standalone workspace
+  // comments both render a <textarea class="blocklyCommentText">) only ever
+  // get a placeholder from Blockly core, never an accessible name, and are
+  // created on demand whenever a comment is opened/added.
+  const labelCommentTextarea = (el) => {
+    if (el.tagName === 'TEXTAREA' && el.classList.contains('blocklyCommentText')) {
+      el.setAttribute('aria-label', translate('comment_text_label'));
+    }
+  };
+  const refreshCommentTextareaLabels = () =>
+    workspace
+      .getInjectionDiv()
+      .querySelectorAll('textarea.blocklyCommentText')
+      .forEach(labelCommentTextarea);
+  refreshCommentTextareaLabels();
+  // Re-applies comment_text_label to textareas already mounted when the
+  // language changes; new ones are covered by the MutationObserver below.
+  window.flockRefreshCommentTextareaLabels = refreshCommentTextareaLabels;
+  new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      for (const node of mutation.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        labelCommentTextarea(node);
+        node.querySelectorAll?.('textarea.blocklyCommentText').forEach(labelCommentTextarea);
+      }
+    }
+  }).observe(workspace.getInjectionDiv(), { childList: true, subtree: true });
+
+  // Shared label map populated by buildSearchIndex (overrideSearchPlugin)
   workspace.flockBlockLabelMap ??= new Map();
 
-  // Mobile: custom HTML search results panel (bypasses the SVG flyout entirely)
+  // @blockly/toolbox-search's createDom_() wipes the category row's label
+  // span via replaceChildren(), leaving the treeitem's aria-labelledby
+  // pointing at an id that no longer exists, and never gives the <input>
+  // itself an accessible name (placeholder alone doesn't count).
+  const fixSearchCategoryAria = (input) => {
+    const label = translate('toolbox_search_placeholder');
+    const treeItem = input.closest('[role="treeitem"]');
+    if (treeItem?.getAttribute('aria-labelledby') === 'toolbox-search-input.label') {
+      treeItem.removeAttribute('aria-labelledby');
+      treeItem.setAttribute('aria-label', label);
+    }
+    input.setAttribute('aria-label', label);
+  };
+
+  // Toolbox search input: placeholder + accessible name, reapplied whenever
+  // the toolbox rebuilds (theme change, language change, etc.)
   requestAnimationFrame(() => {
+    const getSearchCategory = () =>
+      workspace
+        ?.getToolbox?.()
+        ?.getToolboxItems?.()
+        ?.find((item) => item.getId?.() === 'toolbox-search-input');
+
+    const attachSearchSelectBehavior = (input) => {
+      if (input.__flockSearchSelectInstalled) return;
+      input.__flockSearchSelectInstalled = true;
+      // Re-clicking the active search row lets Blockly's toolbox handler
+      // swallow the pointer event, collapsing native text selection.
+      input.addEventListener('pointerdown', (e) => {
+        if (workspace.getToolbox?.()?.getSelectedItem?.() === getSearchCategory()) {
+          e.stopPropagation();
+        }
+        input.__flockHadFocusOnPointerDown = document.activeElement === input;
+        input.__flockPointerMoved = false;
+      });
+      input.addEventListener('pointermove', (e) => {
+        if (input.__flockHadFocusOnPointerDown === false && e.buttons !== 0) {
+          input.__flockPointerMoved = true;
+        }
+      });
+      // First click in selects all for easy replace; the mouseup default
+      // would otherwise collapse it to the click point.
+      input.addEventListener('mouseup', (e) => {
+        if (
+          input.__flockHadFocusOnPointerDown === false &&
+          input.__flockPointerMoved === false &&
+          document.activeElement === input &&
+          input.value
+        ) {
+          e.preventDefault();
+          input.select?.();
+        }
+        input.__flockHadFocusOnPointerDown = null;
+        input.__flockPointerMoved = null;
+      });
+      // Keyboard entry (Ctrl+F etc.) selects all for easy replace.
+      // Mouse entry is covered by mouseup above so dblclick word-select keeps working.
+      input.addEventListener('focus', (e) => {
+        if (e.relatedTarget instanceof Element && input.contains(e.relatedTarget)) return;
+        if (input.__flockHadFocusOnPointerDown === false) return;
+        if (input.value) requestAnimationFrame(() => input.select?.());
+      });
+    };
+
     let searchInput = document.querySelector(".blocklyToolbox input[type='search']");
     if (!searchInput) return;
     searchInput.placeholder = translate('toolbox_search_placeholder');
+    fixSearchCategoryAria(searchInput);
+    attachSearchSelectBehavior(searchInput);
 
-    let originalParent = searchInput.parentElement;
-    const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-    const isMobileResults = () => window.matchMedia('(max-width: 480px)').matches;
-
-    // Get the toolbox search category (used to override matchBlocks and to
-    // build Flock's rich search index on demand, and to reuse its searcher).
-    let searchCategory = workspace
-      .getToolbox()
-      ?.getToolboxItems?.()
-      .find((item) => item.getId?.() === 'toolbox-search-input');
-
-    // Resolve a categorystyle name to a hex color via the current theme
-    const getCategoryColor = (categorystyle) => {
-      if (!categorystyle) return null;
-      let themeColour = workspace.getTheme()?.categoryStyles?.[categorystyle]?.colour;
-      if (themeColour === undefined || themeColour === null) return null;
-      // Resolve Blockly message references e.g. "%{BKY_LOOPS_HUE}"
-      if (
-        typeof themeColour === 'string' &&
-        themeColour.startsWith('%{BKY_') &&
-        themeColour.endsWith('}')
-      ) {
-        const key = themeColour.slice(6, -1);
-        themeColour = Blockly.Msg?.[key] ?? themeColour;
-      }
-      if (typeof themeColour === 'string' && themeColour.startsWith('#')) return themeColour;
-      const hue = parseFloat(themeColour);
-      if (isNaN(hue)) return null;
-      return Blockly.utils.colour.hueToHex(hue);
-    };
-
-    // Build block type → { name, color } map from the toolbox definition
-    const blockCategoryMap = new Map();
-    const buildCategoryMap = () => {
-      blockCategoryMap.clear();
-      const walk = (node, categoryName, categoryColor) => {
-        if (!node) return;
-        if (node.kind === 'block' && node.type && !blockCategoryMap.has(node.type)) {
-          blockCategoryMap.set(node.type, { name: categoryName, color: categoryColor });
-        }
-        if (node.contents) {
-          let name = node.name || categoryName;
-          if (name?.startsWith('%{BKY_') && name.endsWith('}')) {
-            const key = name.slice(6, -1);
-            name =
-              Blockly.Msg?.[key] ||
-              key
-                .replace(/^CATEGORY_/, '')
-                .replace(/_/g, ' ')
-                .toLowerCase()
-                .replace(/^./, (c) => c.toUpperCase());
-          }
-          let color = categoryColor;
-          if (node.categorystyle) {
-            color = getCategoryColor(node.categorystyle) ?? categoryColor;
-          }
-          node.contents.forEach((child) => walk(child, name, color));
-        }
-      };
-      walk(toolboxDef, '', null);
-    };
-    buildCategoryMap();
-
-    const getBlockLabel = (blockDef) => {
-      const type = blockDef.type;
-      return (
-        workspace.flockBlockLabelMap?.get(type) ||
-        type.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase())
-      );
-    };
-
-    // Desktop flyout search is handled by Blockly's native matchBlocks via the
-    // blockSearcher.blockTypesMatching override in overrideSearchPlugin. The
-    // mobile overlay below reuses that same searcher (blockTypesMatching) so
-    // desktop and mobile stay consistent.
-
-    // Build overlay bar
-    const overlay = document.createElement('div');
-    overlay.className = 'mobile-search-overlay';
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.type = 'button';
-    cancelBtn.className = 'mobile-search-cancel';
-    cancelBtn.setAttribute('aria-label', translate('close'));
-    cancelBtn.textContent = '×';
-    overlay.appendChild(cancelBtn);
-
-    // Build results panel
-    const resultsPanel = document.createElement('div');
-    resultsPanel.className = 'mobile-search-results';
-
-    const addBlockToCenter = (blockDef) => {
-      if (!Blockly.Blocks[blockDef.type]) return;
-      const metrics = workspace.getMetrics();
-
-      // Place below all existing top-level blocks
-      const topBlocks = workspace.getTopBlocks(false);
-      let placeY;
-      if (topBlocks.length === 0) {
-        placeY = -workspace.scrollY / workspace.scale + 50;
-      } else {
-        placeY =
-          Math.max(
-            ...topBlocks.map((b) => {
-              const pos = b.getRelativeToSurfaceXY();
-              return pos.y + (b.height || 50);
-            })
-          ) + 30;
-      }
-      const placeX = (metrics.viewWidth / 2 - workspace.scrollX) / workspace.scale;
-
-      const state = { ...blockDef, x: placeX, y: placeY };
-      delete state.kind;
-      delete state.keyword;
-      Blockly.serialization.blocks.append(state, workspace);
-
-      // Scroll so the new block is visible
-      const scale = workspace.scale;
-      workspace.scroll(
-        metrics.viewWidth / 2 - placeX * scale,
-        metrics.viewHeight * 0.4 - placeY * scale
-      );
-    };
-
-    const updateResults = () => {
-      const query = searchInput.value.trim();
-      if (!query) {
-        resultsPanel.innerHTML = '';
-        return;
-      }
-
-      const filtered = searchCategory?.blockSearcher?.blockTypesMatching(query) ?? [];
-
-      if (filtered.length === 0) {
-        resultsPanel.innerHTML = `<div class="mobile-search-empty">${translate('search_no_matching')}</div>`;
-        return;
-      }
-
-      resultsPanel.innerHTML = '';
-      filtered.slice(0, 60).forEach((blockDef) => {
-        const type = blockDef.type;
-        if (!type || !Blockly.Blocks[type]) return;
-
-        const label = getBlockLabel(blockDef);
-        const { name: category, color } = blockCategoryMap.get(type) ?? { name: '', color: null };
-
-        const item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'mobile-search-result-item';
-
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'mobile-search-result-name';
-        nameSpan.textContent = label;
-        item.appendChild(nameSpan);
-
-        if (category) {
-          const categorySpan = document.createElement('span');
-          categorySpan.className = 'mobile-search-result-category';
-          if (color) categorySpan.style.backgroundColor = color;
-          categorySpan.textContent = category;
-          item.appendChild(categorySpan);
-        }
-
-        item.addEventListener('click', () => {
-          if (overlay.isConnected) {
-            addBlockToCenter(blockDef);
-            closeOverlay();
-          }
-        });
-
-        resultsPanel.appendChild(item);
-      });
-    };
-
-    let blurTimeout = null;
-    let suppressBlurClose = false;
-
-    const openOverlay = () => {
-      if (!isMobileResults()) overlay.classList.add('expanding');
-      document.body.appendChild(overlay);
-      overlay.insertBefore(searchInput, cancelBtn);
-      if (isMobileResults()) {
-        workspace.getToolbox()?.clearSelection?.();
-        document.body.appendChild(resultsPanel);
-        updateResults();
-        if (searchCategory) {
-          searchCategory._mobileMatchBlocks = searchCategory.matchBlocks;
-          searchCategory.matchBlocks = () => {};
-        }
-      }
-      requestAnimationFrame(() => searchInput.focus());
-    };
-
-    const collapseOverlay = () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = null;
-      overlay.classList.remove('expanding');
-      overlay.classList.add('collapsing');
-      overlay.addEventListener(
-        'animationend',
-        () => {
-          overlay.classList.remove('collapsing');
-          if (searchCategory?._mobileMatchBlocks) {
-            searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
-            delete searchCategory._mobileMatchBlocks;
-          }
-          if (resultsPanel.isConnected) {
-            resultsPanel.remove();
-            resultsPanel.innerHTML = '';
-          }
-          originalParent.appendChild(searchInput);
-          overlay.remove();
-        },
-        { once: true }
-      );
-    };
-
-    const closeOverlay = () => {
-      clearTimeout(blurTimeout);
-      blurTimeout = null;
-      // Restore flyout behaviour
-      if (searchCategory?._mobileMatchBlocks) {
-        searchCategory.matchBlocks = searchCategory._mobileMatchBlocks;
-        delete searchCategory._mobileMatchBlocks;
-      }
-      workspace.getToolbox()?.clearSelection?.();
-      searchInput.value = '';
-      originalParent.appendChild(searchInput);
-      overlay.remove();
-      resultsPanel.remove();
-      resultsPanel.innerHTML = '';
-    };
-
-    const attachInputListeners = (input) => {
-      let openRequested = false;
-
-      const requestOpen = () => {
-        openRequested = true;
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-        if (!overlay.isConnected && isMobile()) openOverlay();
-      };
-
-      input.setAttribute('autocomplete', 'one-time-code');
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          suppressBlurClose = true;
-          const query = input.value;
-          input.blur();
-          requestAnimationFrame(() => {
-            input.value = query;
-            if (resultsPanel.isConnected) updateResults();
-          });
-        }
-      });
-      input.addEventListener('blur', () => {
-        if (!overlay.isConnected) return;
-        if (suppressBlurClose) {
-          suppressBlurClose = false;
-          return;
-        }
-        blurTimeout = setTimeout(() => {
-          if (!overlay.isConnected) return;
-          const active = document.activeElement;
-          const blocklyDiv = document.getElementById('blocklyDiv');
-          if (!active || active === document.body || overlay.contains(active)) return;
-          if (blocklyDiv?.contains(active)) {
-            collapseOverlay();
-            return;
-          }
-          closeOverlay();
-        }, 150);
-      });
-      input.addEventListener('focus', () => {
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-        if (!overlay.isConnected && isMobile() && openRequested) {
-          openRequested = false;
-          openOverlay();
-        } else {
-          openRequested = false;
-        }
-      });
-      input.addEventListener('pointerdown', requestOpen);
-      input.addEventListener('mousedown', requestOpen);
-      input.addEventListener('touchstart', requestOpen, { passive: true });
-      input.addEventListener('click', requestOpen);
-
-      const searchRow = input
-        .closest('.blocklyToolboxCategory')
-        ?.querySelector(':scope > .blocklyTreeRowContentContainer');
-      if (searchRow) {
-        searchRow.addEventListener('pointerdown', requestOpen);
-        searchRow.addEventListener('touchstart', requestOpen, { passive: true });
-        searchRow.addEventListener('click', requestOpen);
-      }
-
-      input.addEventListener('input', () => {
-        if (resultsPanel.isConnected) {
-          updateResults();
-        } else {
-          // The toolbox-search plugin runs matchBlocks() from the field's
-          // keydown handler, which fires before the pressed key reaches
-          // input.value — so the flyout query always lagged one character
-          // behind (typing "map" searched "ma" and showed nothing until a
-          // further edit). Re-run the search here, when the value is current.
-          searchCategory?.matchBlocks?.();
-        }
-      });
-      input.addEventListener('keyup', () => {
-        if (resultsPanel.isConnected) updateResults();
-      });
-    };
-
-    cancelBtn.addEventListener('mousedown', (e) => e.preventDefault());
-    cancelBtn.addEventListener('click', closeOverlay);
-
-    // Close search overlay if screen resizes above tablet size (768px)
-    window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
-      if (!e.matches && overlay.isConnected) closeOverlay();
-    });
-
-    // Scrolling the results panel should not trigger the blur-close timeout
-    resultsPanel.addEventListener(
-      'touchstart',
-      () => {
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-      },
-      { passive: true }
-    );
-
-    attachInputListeners(searchInput);
-
-    // Re-bind when the toolbox rebuilds (theme change, language change, etc.)
     const toolboxEl = document.querySelector('.blocklyToolbox');
     if (toolboxEl) {
       new MutationObserver(() => {
         if (searchInput.isConnected) return;
-        if (overlay.isConnected) closeOverlay();
         const newInput = document.querySelector(".blocklyToolbox input[type='search']");
         if (!newInput) return;
         newInput.placeholder = translate('toolbox_search_placeholder');
+        fixSearchCategoryAria(newInput);
+        attachSearchSelectBehavior(newInput);
         searchInput = newInput;
-        originalParent = newInput.parentElement;
-        searchCategory = workspace
-          .getToolbox()
-          ?.getToolboxItems?.()
-          .find((item) => item.getId?.() === 'toolbox-search-input');
-        buildCategoryMap();
-        attachInputListeners(newInput);
       }).observe(toolboxEl, { childList: true, subtree: true });
     }
   });
 
   // Fade non-matching blocks during search
   const blocklyDiv = document.getElementById('blocklyDiv');
-  const originalOpen = workspaceSearch.open.bind(workspaceSearch);
   const originalClose = workspaceSearch.close.bind(workspaceSearch);
-
-  // Mobile workspace search bar (≤480px): full-width fixed bar with prev/next
-  const isMobileWS = () => window.matchMedia('(max-width: 768px)').matches;
 
   const wsMobileBar = document.createElement('div');
   wsMobileBar.className = 'ws-search-mobile-bar';
@@ -1139,7 +1058,6 @@ export function initializeWorkspace() {
   const wsMobileInput = document.createElement('input');
   wsMobileInput.type = 'text';
   wsMobileInput.className = 'ws-search-mobile-input';
-  wsMobileInput.placeholder = translate('workspace_search_placeholder');
   wsMobileInput.setAttribute('autocomplete', 'one-time-code');
 
   const wsMobileCount = document.createElement('span');
@@ -1149,22 +1067,29 @@ export function initializeWorkspace() {
   const wsMobilePrev = document.createElement('button');
   wsMobilePrev.type = 'button';
   wsMobilePrev.className = 'ws-search-mobile-btn';
-  wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
   wsMobilePrev.textContent = '▲';
 
   const wsMobileNext = document.createElement('button');
   wsMobileNext.type = 'button';
   wsMobileNext.className = 'ws-search-mobile-btn';
-  wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
   wsMobileNext.textContent = '▼';
 
   const wsMobileClose = document.createElement('button');
   wsMobileClose.type = 'button';
-  wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close';
-  wsMobileClose.setAttribute('aria-label', translate('close'));
-  wsMobileClose.textContent = '×';
+  wsMobileClose.className = 'ws-search-mobile-btn ws-search-mobile-close flock-close-icon';
 
   wsMobileBar.append(wsMobileInput, wsMobileCount, wsMobilePrev, wsMobileNext, wsMobileClose);
+
+  const refreshWsMobileSearchLabels = () => {
+    const searchLabel = translate('workspace_search_placeholder');
+    wsMobileInput.placeholder = searchLabel;
+    wsMobileInput.setAttribute('aria-label', searchLabel);
+    wsMobilePrev.setAttribute('aria-label', translate('shortcut_select_previous_result'));
+    wsMobileNext.setAttribute('aria-label', translate('shortcut_select_next_result'));
+    wsMobileClose.setAttribute('aria-label', translate('close'));
+  };
+  refreshWsMobileSearchLabels();
+  window.flockRefreshMobileWorkspaceSearchLabels = refreshWsMobileSearchLabels;
 
   const updateWsMobileCount = () => {
     const total = workspaceSearch.blocks?.length ?? 0;
@@ -1196,9 +1121,31 @@ export function initializeWorkspace() {
       workspaceSearch.preserveSelected
     );
   });
+  // Up/Down step through matches without leaving the search box; the plugin only binds Enter
+  const wsSearchArrowKeys = (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (!workspaceSearch.blocks?.length) return;
+    if (e.key === 'ArrowDown') workspaceSearch.next();
+    else workspaceSearch.previous();
+  };
+
+  workspaceSearch.inputElement?.addEventListener('keydown', wsSearchArrowKeys);
+
   wsMobileInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') workspaceSearch.close();
-    else if (e.key === 'Enter') e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      e.shiftKey ? workspaceSearch.previous() : workspaceSearch.next();
+    } else {
+      wsSearchArrowKeys(e);
+    }
+  });
+  wsMobileBar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    e.stopPropagation();
+    workspaceSearch.close();
   });
   wsMobilePrev.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobilePrev.addEventListener('click', () => workspaceSearch.previous());
@@ -1207,36 +1154,55 @@ export function initializeWorkspace() {
   wsMobileClose.addEventListener('mousedown', (e) => e.preventDefault());
   wsMobileClose.addEventListener('click', () => workspaceSearch.close());
 
-  window.matchMedia('(max-width: 768px)').addEventListener('change', (e) => {
-    if (!e.matches && wsMobileBar.isConnected) workspaceSearch.close();
+  const searchFocusManager = Blockly.getFocusManager();
+  const takeSearchFocus = () => {
+    if (!workspaceSearch.returnEphemeralFocus && !searchFocusManager.ephemeralFocusTaken()) {
+      workspaceSearch.returnEphemeralFocus = searchFocusManager.takeEphemeralFocus(wsMobileInput);
+    }
+  };
+  const releaseSearchFocus = () => {
+    if (!workspaceSearch.returnEphemeralFocus) return;
+    const returnFocus = workspaceSearch.returnEphemeralFocus;
+    workspaceSearch.returnEphemeralFocus = null;
+    returnFocus();
+  };
+  const originalTakeEphemeralFocus = searchFocusManager.takeEphemeralFocus.bind(searchFocusManager);
+  searchFocusManager.takeEphemeralFocus = function (element) {
+    if (element !== wsMobileInput) releaseSearchFocus();
+    return originalTakeEphemeralFocus(element);
+  };
+  wsMobileInput.addEventListener('focus', () => {
+    if (wsMobileBar.isConnected) takeSearchFocus();
   });
 
   workspaceSearch.open = function () {
-    if (isMobileWS()) {
-      document.body.appendChild(wsMobileBar);
-      wsMobileInput.value = workspaceSearch.searchText || '';
-      if (wsMobileInput.value) {
-        workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
-      }
-      updateWsMobileCount();
-      wsMobileInput.focus();
-    } else {
-      originalOpen();
+    setBlockHintsSuppressed(true);
+    document.body.appendChild(wsMobileBar);
+    wsMobileInput.value = workspaceSearch.searchText || '';
+    takeSearchFocus();
+    if (wsMobileInput.value) {
+      workspaceSearch.searchAndHighlight(wsMobileInput.value, workspaceSearch.preserveSelected);
     }
+    updateWsMobileCount();
+    wsMobileInput.focus();
     blocklyDiv?.classList.add('blockly-search-active');
   };
   workspaceSearch.close = function () {
+    const currentResult = workspaceSearch.blocks?.[workspaceSearch.currentBlockIndex];
     if (wsMobileBar.isConnected) {
       wsMobileInput.value = '';
       wsMobileBar.remove();
     }
+    releaseSearchFocus();
     originalClose();
     blocklyDiv?.classList.remove('blockly-search-active');
+    if (currentResult && !currentResult.isDisposed()) currentResult.select();
+    setBlockHintsSuppressed(false);
   };
 
   // Override highlight methods to work at block-group level so the plugin's
   // injected fill: #000 rule never applies to matched block paths.
-  workspaceSearch.highlightSearchGroup = function (blocks) {
+  workspaceSearch.highlightSearchGroup = function (blocks = workspaceSearch.blocks) {
     const matchTopIds = new Set();
     blocks.forEach((block) => {
       block.getSvgRoot()?.classList.add('ws-search-match');
@@ -1250,38 +1216,44 @@ export function initializeWorkspace() {
       }
     });
   };
-  workspaceSearch.unhighlightSearchGroup = function (blocks) {
+  workspaceSearch.unhighlightSearchGroup = function (blocks = workspaceSearch.blocks) {
     blocks.forEach((block) => block.getSvgRoot()?.classList.remove('ws-search-match'));
     workspace.getTopBlocks(false).forEach((block) => {
       block.getSvgRoot()?.classList.remove('ws-search-fade');
     });
   };
+  workspaceSearch.greyNonMatchingBlocks = function () {};
+  workspaceSearch.ungreyNonMatchingBlocks = function () {};
+  // The current match is just the selected block, so Blockly renders it correctly for every block shape
   workspaceSearch.highlightCurrentSelection = function (block) {
-    const svg = block.getSvgRoot();
-    if (svg) {
-      svg.classList.add('ws-search-current');
-      let top = block;
-      while (top.getSurroundParent()) top = top.getSurroundParent();
-      const topSvg = top.getSvgRoot();
-      if (topSvg) topSvg.parentNode?.appendChild(topSvg);
-    }
+    block.select?.();
   };
   workspaceSearch.unhighlightCurrentSelection = function (block) {
-    block.getSvgRoot()?.classList.remove('ws-search-current');
+    block.unselect?.();
   };
+
+  // Selecting a matched block makes it the current result, so search and selection stay in step
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.SELECTED || !event.newElementId) return;
+    if (!blocklyDiv?.classList.contains('blockly-search-active')) return;
+    const index = workspaceSearch.blocks?.findIndex((b) => b.id === event.newElementId) ?? -1;
+    if (index >= 0 && index !== workspaceSearch.currentBlockIndex) {
+      workspaceSearch.setCurrentBlock(index);
+    }
+  });
 
   // Override the workspace centering for workspace search as it jumps all over the place by default!
   const originalCenter = workspace.centerOnBlock.bind(workspace);
 
   workspace.centerOnBlock = function (blockId) {
-    if (workspaceSearch && workspaceSearch.htmlDiv.style.display !== 'none') {
+    if (blocklyDiv?.classList.contains('blockly-search-active')) {
       const block = this.getBlockById(blockId);
       if (block) {
         const scale = this.scale;
         const blockXY = block.getRelativeToSurfaceXY();
         let yOffset = 0;
 
-        const searchTerm = workspaceSearch.inputElement.value.toLowerCase();
+        const searchTerm = wsMobileInput.value.toLowerCase();
         if (searchTerm) {
           for (const input of block.inputList) {
             const match = input.fieldRow.some((f) =>
@@ -1310,9 +1282,7 @@ export function initializeWorkspace() {
         const leftMargin = 10;
         const buffer = 5;
 
-        // 1. HORIZONTAL LOGIC:
-        // Only move X if the block's left edge is hidden or too far right.
-        // We ignore the specific row's internal X offset to keep it stable.
+        // Horizontal: move X only if the left edge is hidden; ignore row X offset for stability.
         let finalScrollX = this.scrollX;
         const isHorizontallyVisible =
           currentBlockX >= leftMargin - buffer && currentBlockX + blockWidth <= viewportWidth;
@@ -1321,8 +1291,7 @@ export function initializeWorkspace() {
           finalScrollX = -blockXY.x * scale + leftMargin;
         }
 
-        // 2. VERTICAL LOGIC:
-        // Strict check for the specific row (y + yOffset)
+        // Vertical: strict check for the specific row (y + yOffset).
         const currentRowY = currentBlockY + yOffset * scale;
         const isRowVisible =
           currentRowY >= searchBarHeight + buffer &&
@@ -1333,7 +1302,6 @@ export function initializeWorkspace() {
           finalScrollY = -(blockXY.y + yOffset) * scale + 50;
         }
 
-        // 3. EXECUTION:
         if (finalScrollX === this.scrollX && finalScrollY === this.scrollY) {
           return;
         }
@@ -1352,16 +1320,8 @@ export function initializeWorkspace() {
   return workspace;
 }
 
-// Patch the workspace Navigator so keyboard navigation skips redundant stops
-// on value blocks whose only interactive content is a text-input field.
-//
-// Applies to two cases:
-//   Shadow blocks  — e.g. the " " text block inside print_text's TEXT input.
-//   Standalone text-input reporters — e.g. `text` and `colour_from_string`.
-//
-// In all cases: right-arrow and left-arrow skip the block entirely and land
-// on the field (right) or the parent (left). Up/down navigate as if standing
-// on the block itself.
+// Skip the block stop on a shadow value block with its own field (the " " in print_text):
+// editing that field is all a shadow offers. A real block plugged in keeps its stop.
 function installShadowNavigationPatch(ws) {
   const nav = ws.getNavigator?.();
   if (!nav) return;
@@ -1383,52 +1343,33 @@ function installShadowNavigationPatch(ws) {
     return null;
   };
 
-  // A shadow value block whose primary field is *separately* navigable, which
-  // creates a redundant block+field double-stop during keyboard navigation
-  // (e.g. the " " `text` block in print_text's TEXT input).
-  //
-  // Simple reporters (single field + output, e.g. `math_number`) are excluded:
-  // Blockly already makes their full-block field non-navigable and treats the
-  // block itself as the single stop (Enter edits it directly), so there is no
-  // redundant stop to skip — and redirecting to their non-navigable field
-  // would break navigation.
+  // Simple reporters are excluded: Blockly already makes their full-block field
+  // non-navigable, so redirecting to it would break navigation.
   const isSkippableShadow = (node) =>
     typeof node?.isShadow === 'function' &&
     node.isShadow() &&
     !!node.outputConnection &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter());
 
-  // A standalone (non-shadow) reporter block whose sole interactive content is
-  // a text-input field, e.g. `text` (" ") or `colour_from_string` (# hex).
-  // These create the same redundant block+field double-stop as skippable shadows.
-  //
-  // Variable/dropdown reporters are excluded because their primary field is a
-  // FieldDropdown/FieldVariable, not a FieldTextInput.
-  // Simple reporters are excluded for the same reason as isSkippableShadow.
-  const isSkippableStandalone = (node) =>
+  // A real value block with its own field stop (simple reporters excluded, as above).
+  const isValueBlockWithOwnField = (node) =>
     !!node?.outputConnection &&
     !node.isShadow?.() &&
     !(typeof node.isSimpleReporter === 'function' && node.isSimpleReporter()) &&
     getPrimaryEditableField(node) != null;
 
-  // If node is a skippable block (shadow or standalone), return its primary
-  // field instead.
-  const skipBlock = (node) => {
-    if (!isSkippableShadow(node) && !isSkippableStandalone(node)) return node;
-    return getPrimaryEditableField(node) ?? node;
-  };
+  const skipBlock = (node) =>
+    isSkippableShadow(node) ? (getPrimaryEditableField(node) ?? node) : node;
 
-  // The shortcut handler calls getInNode/getOutNode/getNextNode/getPreviousNode
-  // with no arguments, relying on the focused node. A skippable block's
-  // full-block field resolves back to its block via getFocusedNode(), so we
-  // read document.activeElement to recover the field that actually owns focus.
-  const getFocusedSkippableField = () => {
+  // getFocusedNode() resolves a full-block field back to its block, so recover the field
+  // that actually owns focus from document.activeElement.
+  const getFocusedFieldOf = (owns) => {
     const el = document.activeElement;
     if (!el?.id) return null;
     const sep = el.id.indexOf('_field_');
     if (sep === -1) return null;
     const block = ws.getBlockById(el.id.substring(0, sep));
-    if (!isSkippableShadow(block) && !isSkippableStandalone(block)) return null;
+    if (!owns(block)) return null;
     for (const input of block.inputList) {
       for (const field of input.fieldRow) {
         if (field.getFocusableElement?.()?.id === el.id) return field;
@@ -1437,79 +1378,78 @@ function installShadowNavigationPatch(ws) {
     return null;
   };
 
+  const getFocusedShadowField = () => getFocusedFieldOf(isSkippableShadow);
+
   const origIn = nav.getInNode.bind(nav);
   const origOut = nav.getOutNode.bind(nav);
   const origNext = nav.getNextNode.bind(nav);
   const origPrev = nav.getPreviousNode.bind(nav);
 
-  // Right-arrow: if the target is a skippable block, land on its field instead
-  // of the redundant block stop. From a skippable field, pass the field
-  // explicitly so the traversal bubbles up to the next inline sibling.
+  // Right-arrow: land on the field, not the redundant shadow stop. From such a field,
+  // pass the field explicitly so traversal bubbles to the next inline sibling.
   nav.getInNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     return skipBlock(field ? origIn(field) : origIn(node));
   };
 
-  // Left-arrow: from a skippable block's field, go to the block's parent
-  // (skip the block itself in both the shadow and standalone cases).
+  // Left-arrow: from a skipped shadow's field, go to its parent, skipping the shadow.
   nav.getOutNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origOut(field.getSourceBlock()));
     return origOut(node);
   };
 
-  // Down-arrow: navigate as if standing on the skippable block itself.
+  // Down-arrow: navigate as if standing on the skipped shadow itself.
   nav.getNextNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origNext(field.getSourceBlock()));
     return skipBlock(origNext(node));
   };
 
   // Up-arrow: same idea.
   nav.getPreviousNode = function (node) {
-    const field = getFocusedSkippableField();
+    const field = getFocusedShadowField();
     if (field) return skipBlock(origPrev(field.getSourceBlock()));
     return skipBlock(origPrev(node));
   };
 
-  // The built-in DISCONNECT shortcut (X key) checks that the focused node is
-  // a Block instance, which fails when focus is on a skippable block's field
-  // (because we skip the block stop). Register an additional shortcut for the
-  // same key that fires only when a skippable field is focused.
-  // The built-in DISCONNECT (X), DUPLICATE (D), and DELETE shortcuts check
-  // that the focused node is a Block instance, which fails when focus is on a
-  // skippable block's field. Register additional shortcuts for the same keys
-  // that fire only when a skippable field is focused.
+  // Built-in DISCONNECT (X), DUPLICATE (D) and DELETE check the focused node is a Block,
+  // which fails on a value block's own field — re-register the same keys for that case.
   const shortcutRegistry = Blockly.ShortcutRegistry.registry;
 
-  const skippableFieldBlock = () => {
-    const field = getFocusedSkippableField();
+  // A field editor holding ephemeral focus leaves scope.focusedNode pointing at the
+  // field, so shortcuts resolving their own target would otherwise fire on letters
+  // typed into an open dropdown. Blockly's own destructive shortcuts guard the same way.
+  const fieldEditorOpen = () => Blockly.getFocusManager().ephemeralFocusTaken();
+
+  const focusedFieldBlock = () => {
+    const field = getFocusedFieldOf((b) => isSkippableShadow(b) || isValueBlockWithOwnField(b));
     return field ? field.getSourceBlock() : null;
   };
 
-  // Registers a shortcut that fires only when a skippable field is focused.
+  // Registers a shortcut that fires only while a value block's own field is focused.
   // canRun(workspace, block) → extra conditions beyond the common workspace checks.
   // run(workspace, event, block) → performs the action, returns true on success.
-  const registerSkippableFieldShortcut = (name, keyCode, canRun, run) => {
+  const registerFocusedFieldShortcut = (name, keyCode, canRun, run, modifiers) => {
     shortcutRegistry.register({
       name,
       allowCollision: true,
-      keyCodes: [shortcutRegistry.createSerializedKey(keyCode)],
+      keyCodes: [shortcutRegistry.createSerializedKey(keyCode, modifiers)],
       preconditionFn: (workspace) => {
-        const block = skippableFieldBlock();
+        const block = focusedFieldBlock();
         return (
           !!block && !workspace.isDragging() && !workspace.isReadOnly() && canRun(workspace, block)
         );
       },
       callback: (workspace, event) => {
-        const block = skippableFieldBlock();
+        const block = focusedFieldBlock();
         return !!block && run(workspace, event, block);
       },
     });
   };
 
-  registerSkippableFieldShortcut(
-    'disconnect_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'disconnect_from_focused_field',
     Blockly.utils.KeyCodes.X,
     (_ws, block) => !block.isShadow?.(),
     (_ws, event, block) => {
@@ -1518,10 +1458,8 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
-  // Shared duplicate: copy the block and paste it, stripping lock state so a
-  // copy of a locked block comes out editable/movable. Always returns true so
-  // dispatch stops here (a falsy return would let another D-bound shortcut fire
-  // and paste a second time).
+  // Strips lock state so a copy of a locked block is editable. Returns true to stop
+  // dispatch — a falsy return lets another D-bound shortcut paste a second time.
   const duplicateViaClipboard = (ws, block) => {
     const copyData = block?.toCopyData?.();
     if (!copyData) return false;
@@ -1530,8 +1468,8 @@ function installShadowNavigationPatch(ws) {
     return true;
   };
 
-  registerSkippableFieldShortcut(
-    'duplicate_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'duplicate_from_focused_field',
     Blockly.utils.KeyCodes.D,
     (ws, block) => !ws.isFlyout && !block.isShadow?.() && !!block.isDuplicatable?.(),
     (ws, _event, block) => duplicateViaClipboard(ws, block)
@@ -1556,18 +1494,43 @@ function installShadowNavigationPatch(ws) {
               !ws.isReadOnly?.()
             );
           },
-          callback: (ws, _event, _shortcut, scope) =>
-            duplicateViaClipboard(ws, scope?.focusedNode),
+          callback: (ws, _event, _shortcut, scope) => duplicateViaClipboard(ws, scope?.focusedNode),
         },
         /* allowOverrides= */ true
       );
     }
   }
 
+  const canDuplicate = (ws, block) =>
+    !!block &&
+    typeof block.toCopyData === 'function' &&
+    !ws.isFlyout &&
+    !block.isShadow?.() &&
+    !!block.isDuplicatable?.() &&
+    !ws.isDragging?.() &&
+    !ws.isReadOnly?.();
+
+  shortcutRegistry.register({
+    name: 'duplicate_attached',
+    keyCodes: [
+      shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.D, [Blockly.utils.KeyCodes.SHIFT]),
+    ],
+    preconditionFn: (ws, scope) => canDuplicate(ws, scope?.focusedNode),
+    callback: (_ws, _event, _shortcut, scope) => duplicateAndAttach(scope?.focusedNode),
+  });
+
+  registerFocusedFieldShortcut(
+    'duplicate_attached_from_focused_field',
+    Blockly.utils.KeyCodes.D,
+    canDuplicate,
+    (_ws, _event, block) => duplicateAndAttach(block),
+    [Blockly.utils.KeyCodes.SHIFT]
+  );
+
   // Delete key is safe to bind here — Del doesn't conflict with text editing
   // (users use Backspace for that). Backspace is intentionally excluded.
-  registerSkippableFieldShortcut(
-    'delete_from_skippable_field',
+  registerFocusedFieldShortcut(
+    'delete_from_focused_field',
     Blockly.utils.KeyCodes.DELETE,
     (_ws, block) => !block.isShadow?.() && !!block.isDeletable?.(),
     (_ws, event, block) => {
@@ -1577,74 +1540,152 @@ function installShadowNavigationPatch(ws) {
     }
   );
 
-  // Comment shortcuts. 'K' toggles the comment bubble open/closed (creating one
-  // and focusing it when none exists); 'Shift+K' deletes the comment. (N — the
-  // natural mnemonic for "note" — is already Blockly's next_stack nav key.)
-  // Comment has no built-in Blockly shortcut, so unlike X/D/Delete these must
-  // resolve the target themselves — from the focused block (scope.focusedNode),
-  // or a focused field's source block, falling back to the skippable-field
-  // resolver.
+  // No built-in shortcut exists for this, so it resolves its own target.
   {
-    const commentTargetBlock = (scope) => {
+    const enableTargetBlock = (scope) => {
       const node = scope?.focusedNode;
-      // A focused block exposes getCommentText; a focused field exposes
-      // getSourceBlock and unwraps to the block that owns it.
       if (node) {
-        if (typeof node.getCommentText === 'function') return node;
+        if (typeof node.hasDisabledReason === 'function') return node;
         if (typeof node.getSourceBlock === 'function') {
           const block = node.getSourceBlock();
           if (block) return block;
         }
       }
-      return skippableFieldBlock();
+      return focusedFieldBlock();
     };
-    const commentEditable = (ws, block) =>
+    const enableEditable = (ws, block) =>
       !!block &&
+      !fieldEditorOpen() &&
       !ws.isDragging?.() &&
       !ws.isReadOnly?.() &&
       !block.isShadow?.() &&
       !isBlockLocked(block);
 
     shortcutRegistry.register({
-      name: 'comment_block',
-      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.K)],
-      preconditionFn: (ws, scope) => commentEditable(ws, commentTargetBlock(scope)),
-      callback: (_ws, event, _shortcut, scope) => {
-        const block = commentTargetBlock(scope);
-        if (!block || block.isShadow?.() || isBlockLocked(block)) return false;
-        // Cancel the keystroke's default text input; otherwise the 'k' that
-        // triggered this lands in the comment editor we're about to focus.
+      name: 'toggle_block_enabled',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.E)],
+      preconditionFn: (ws, scope) => enableEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!enableEditable(ws, block)) return false;
         event?.preventDefault?.();
-        Blockly.Events.setGroup('comment_shortcut');
-        // The undoable create runs synchronously inside toggleCommentBubble
-        // before it awaits, so it lands in this group; the bubble open/focus
-        // that follows is UI state and needn't be grouped.
-        toggleCommentBubble(block);
+        Blockly.Events.setGroup(true);
+        block.setDisabledReason(!block.hasDisabledReason('MANUALLY_DISABLED'), 'MANUALLY_DISABLED');
         Blockly.Events.setGroup(false);
         return true;
       },
     });
 
+    const lockEditable = (ws, block) =>
+      !!block && !fieldEditorOpen() && !ws.isDragging?.() && !ws.isReadOnly?.() && !block.isShadow?.();
+
     shortcutRegistry.register({
-      name: 'delete_comment_block',
-      keyCodes: [
-        shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.K, [
-          Blockly.utils.KeyCodes.SHIFT,
-        ]),
-      ],
-      preconditionFn: (ws, scope) => {
-        const block = commentTargetBlock(scope);
-        return commentEditable(ws, block) && block.getCommentText?.() !== null;
-      },
-      callback: (_ws, _event, _shortcut, scope) => {
-        const block = commentTargetBlock(scope);
-        if (!block || block.getCommentText?.() === null || isBlockLocked(block)) return false;
-        Blockly.Events.setGroup('delete_comment_shortcut');
-        deleteBlockComment(block);
+      name: 'toggle_block_locked',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.L)],
+      preconditionFn: (ws, scope) => lockEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!lockEditable(ws, block)) return false;
+        event?.preventDefault?.();
+        Blockly.Events.setGroup(true);
+        setBlockLocked(block, !isBlockLocked(block));
         Blockly.Events.setGroup(false);
+        window.flockBlockToolbar?.refresh?.(block);
         return true;
       },
     });
+
+    const collapseEditable = (ws, block) =>
+      !!block &&
+      !fieldEditorOpen() &&
+      !ws.isDragging?.() &&
+      !ws.isReadOnly?.() &&
+      !block.isShadow?.() &&
+      !!ws.options?.collapse;
+
+    if (shortcutRegistry.getRegistry?.()?.['cleanup']) {
+      shortcutRegistry.unregister('cleanup');
+    }
+
+    shortcutRegistry.register({
+      name: 'toggle_block_collapsed',
+      keyCodes: [shortcutRegistry.createSerializedKey(Blockly.utils.KeyCodes.C)],
+      preconditionFn: (ws, scope) => collapseEditable(ws, enableTargetBlock(scope)),
+      callback: (ws, event, _shortcut, scope) => {
+        const block = enableTargetBlock(scope);
+        if (!collapseEditable(ws, block)) return false;
+        event?.preventDefault?.();
+        Blockly.Events.setGroup(true);
+        // Sections fold via their own sectionCollapsed_ flag, not Blockly's
+        // native collapsed_/isCollapsed() (see setCollapsed override in
+        // section.js), so isCollapsed() alone can't tell whether one is
+        // folded.
+        const isFolded = block.type === 'section' ? !!block.sectionCollapsed_ : block.isCollapsed();
+        block.setCollapsed(!isFolded);
+        Blockly.Events.setGroup(false);
+        window.flockBlockToolbar?.refresh?.(block);
+        return true;
+      },
+    });
+  }
+
+  // The block a field, connection or nested block sits on — one hop straight to the
+  // block that owns it, not the sibling-by-sibling walk ArrowLeft's getOutNode does
+  // (which passes through every other input on the way, e.g. FROM/TO before BY on a
+  // for_loop). A shadow's field skips the shadow itself, matching the rest of this file.
+  const containingBlockOf = (node) => {
+    if (!node) return null;
+    if (typeof node.getCommentText === 'function') {
+      // Node is itself a block: its immediate container is whatever it's plugged into.
+      return typeof node.getParent === 'function' ? node.getParent() : null;
+    }
+    if (typeof node.getSourceBlock !== 'function') return null;
+    const owner = node.getSourceBlock();
+    if (!owner) return null;
+    if (owner.isShadow?.() && typeof owner.getParent === 'function') {
+      return owner.getParent() ?? owner;
+    }
+    return owner;
+  };
+
+  // Whether hideChaff below actually has anything to do — a hover-triggered tooltip or
+  // an open context menu. If so it takes priority over stepping out: Escape's job of
+  // dismissing those must not be swallowed just because focus also happens to be
+  // nested in a block.
+  const hasVisibleChaff = () => !!(Blockly.Tooltip?.isVisible?.() || Blockly.ContextMenu?.getMenu?.());
+
+  // Escape only hides chaff (flyouts/tooltips), so it's a no-op whenever focus sits
+  // anywhere below the top of a block's own tree — a field, an empty input connection,
+  // or a real (non-shadow) block plugged into another block's input — and nothing is
+  // open to hide. Give Escape a direct step out to that containing block, falling back
+  // to the original hideChaff when there's a tooltip/context menu to dismiss instead, or
+  // nowhere to go (e.g. a top-level block). An open field editor is untouched: Blockly's
+  // own Escape there already cancels the edit and refocuses the block — this only
+  // covers what's left once that's already happened, or never opened in the first place.
+  {
+    const builtinEscape = shortcutRegistry.getRegistry?.()?.['escape'];
+    if (builtinEscape) {
+      shortcutRegistry.register(
+        {
+          name: 'escape',
+          preconditionFn: builtinEscape.preconditionFn,
+          callback: (ws2, event, shortcut, scope) => {
+            const node = scope?.focusedNode;
+            if (node && !fieldEditorOpen() && !hasVisibleChaff()) {
+              const block = containingBlockOf(node);
+              if (block && block !== node) {
+                event?.preventDefault?.();
+                Blockly.keyboardNavigationController?.setIsActive?.(true);
+                Blockly.getFocusManager().focusNode(block);
+                return true;
+              }
+            }
+            return builtinEscape.callback(ws2, event, shortcut, scope);
+          },
+        },
+        /* allowOverrides= */ true
+      );
+    }
   }
 }
 
@@ -1656,7 +1697,7 @@ export function createBlocklyWorkspace() {
     CustomZelosRenderer
   );
 
-  registerCustomCommentIcon();
+  patchWarningIconSize();
 
   // Manually create a navigation-deferring toolbox
   class NavigationDeferringToolbox extends Blockly.Toolbox {
@@ -1693,9 +1734,7 @@ export function createBlocklyWorkspace() {
       }
     }
 
-    // Accordion behaviour: navigating to a category collapses every other
-    // expandable category, keeping only the selected item and its ancestors
-    // open.
+    // Accordion behaviour: keep only the selected item and its ancestors expanded.
     collapseUnrelatedCategories_(selectedItem) {
       if (!selectedItem) return;
       const keepOpen = new Set();
@@ -1730,19 +1769,117 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject('blocklyDiv', options);
+  new ScrollOptions(workspace).init();
 
-  // Stop trashcan flyout from covering the whole workspace on small screens when it has wide blocks in it
-  // The trashcan flyout is as wide as its widest deleted block, so a wide block
-  // can make it cover the whole workspace with nothing left to click to dismiss
-  // it. Cap its rendered width to the visible workspace minus a small gap.
-  // Blockly keeps the flyout right-aligned, so the right edge (and its vertical
-  // scrollbar) stay pinned to the workspace edge while the left edge can never
-  // cross the gap; wider blocks overflow to the right. Recomputed from live
-  // metrics on every position() call, so it tracks the panel resizer; the gap
-  // is capped to a fraction of the visible workspace so it stays sensible on
-  // narrow panels.
+  // Blockly insets the workspace "selection ring" (the keyboard-focus outline
+  // shown while the empty workspace is the active node) by 5px so its stroke
+  // sits inside the SVG viewport. We surface only that ring (see
+  // style/blockly.css), and want it flush to the canvas edge like a border,
+  // so force its inset to 0 — matching the always-flush focus ring.
+  const originalResizeWorkspaceRing = workspace.resizeWorkspaceRing;
+  if (typeof originalResizeWorkspaceRing === 'function') {
+    workspace.resizeWorkspaceRing = function (ring, inset) {
+      return originalResizeWorkspaceRing.call(
+        this,
+        ring,
+        ring === this.workspaceSelectionRing ? 0 : inset
+      );
+    };
+    workspace.resize();
+  }
+
+  // Stop trashcan flyout from covering the whole workspace on small
+  // screens when it has wide blocks in it
   const trashcan = workspace.trashcan;
   const trashcanFlyout = trashcan?.flyout;
+
+  // Use Flock's custom trash can artwork while preserving Blockly's
+  // existing trash behaviour, positioning and lid animation.
+  const trashIcon = workspace
+      .getInjectionDiv()
+      ?.querySelector(".blocklyTrash");
+
+  if (trashIcon) {
+      const svgNamespace = "http://www.w3.org/2000/svg";
+
+      // Keep Blockly's original hit area, positioning and behaviour,
+      // but hide its sprite-based artwork.
+      const originalTrashBody = trashIcon.querySelector(":scope > image");
+      const trashLidGroup = trashIcon.querySelector(".blocklyTrashLid");
+      const originalTrashLid = trashLidGroup?.querySelector("image");
+
+      if (originalTrashBody) {
+          originalTrashBody.style.display = "none";
+      }
+
+      if (originalTrashLid) {
+          originalTrashLid.style.display = "none";
+      }
+
+      // Invisible 47 x 60 hit area matching Blockly's original trash target.
+      const trashHitArea = document.createElementNS(svgNamespace, "rect");
+      trashHitArea.setAttribute("x", "0");
+      trashHitArea.setAttribute("y", "0");
+      trashHitArea.setAttribute("width", "47");
+      trashHitArea.setAttribute("height", "60");
+      trashHitArea.classList.add("flockTrashHitArea");
+
+      // Insert it behind all other trash artwork.
+      trashIcon.insertBefore(trashHitArea, trashIcon.firstChild);
+
+      // Empty bin body.
+      const customTrashBody = document.createElementNS(svgNamespace, "path");
+      customTrashBody.setAttribute(
+          "d",
+          "M36.965,11.956c.022.112.035.226.035.344v37.899c0,.993-.808,1.801-1.801,1.801H6.801c-.993,0-1.801-.808-1.801-1.801V12.301c0-.118.013-.232.035-.344h-2c-.01.115-.035.226-.035.344v37.899c0,2.099,1.702,3.801,3.801,3.801h28.399c2.099,0,3.801-1.702,3.801-3.801V12.301c0-.118-.024-.229-.035-.344h-2Z"
+      );
+      customTrashBody.classList.add("flockTrashArtwork");
+
+      // Shapes shown when Blockly marks the trash as full.
+      const trashContents = document.createElementNS(svgNamespace, "g");
+      trashContents.classList.add("flockTrashContents");
+
+      const trashContentPaths = [
+          "M8.226,39.333l.757-.08c.302-.032.604.066.83.268l.716.64c.227.203.528.3.831.268l2.216-.233c.266-.028.513-.154.691-.354l.85-.953c.178-.2.425-.326.691-.354l7.902-.833c.591-.062,1.122.367,1.184.958l.799,7.581c.062.591-.367,1.121-.958,1.184l-7.391.779c-.228.024-.443.12-.612.275l-1.355,1.234c-.17.154-.384.251-.612.275l-2.633.277c-.255.027-.511-.038-.722-.183l-1.137-.781c-.211-.145-.467-.21-.722-.183l-.289.03c-.591.062-1.121-.364-1.183-.955l-.809-7.678c-.062-.592.367-1.118.959-1.181Z",
+          "M18.812,24.223l.755.101c.301.04.571.206.744.457l.544.791c.172.25.443.416.744.457l2.209.296c.266.036.535-.029.755-.181l1.051-.726c.22-.152.49-.217.755-.181l7.875,1.056c.589.079,1.003.621.924,1.211l-1.014,7.555c-.079.589-.621,1.003-1.211.924l-7.366-.988c-.227-.03-.458.012-.66.122l-1.608.879c-.201.11-.432.153-.66.122l-2.624-.352c-.254-.034-.488-.158-.659-.348l-.921-1.027c-.171-.191-.405-.314-.659-.348l-.288-.039c-.589-.079-1.004-.618-.925-1.207l1.027-7.652c.079-.59.621-1,1.21-.921Z",
+          "M8.106,13.149l.759-.058c.303-.023.602.083.822.292l.697.66c.221.209.52.315.823.292l2.222-.17c.267-.02.517-.14.701-.335l.877-.929c.184-.195.434-.314.701-.335l7.923-.607c.593-.045,1.111.398,1.156.991l.582,7.601c.045.593-.398,1.111-.991,1.156l-7.411.568c-.229.018-.446.108-.62.257l-1.39,1.195c-.174.149-.391.24-.62.257l-2.64.202c-.256.02-.51-.053-.717-.204l-1.114-.813c-.207-.151-.461-.223-.717-.204l-.29.022c-.593.045-1.11-.395-1.156-.988l-.59-7.698c-.045-.593.399-1.108.992-1.153Z",
+      ];
+
+      trashContentPaths.forEach((pathData) => {
+          const blockPath = document.createElementNS(svgNamespace, "path");
+          blockPath.setAttribute("d", pathData);
+          blockPath.classList.add("flockTrashArtwork");
+          trashContents.appendChild(blockPath);
+      });
+
+      if (trashLidGroup) {
+          // Body first, contents on top, then Blockly's animated lid group.
+          trashIcon.insertBefore(customTrashBody, trashLidGroup);
+          trashIcon.insertBefore(trashContents, trashLidGroup);
+
+          const lidSvg = trashLidGroup.querySelector("svg");
+
+          if (lidSvg) {
+              const customTrashLid = document.createElementNS(
+                  svgNamespace,
+                  "path"
+              );
+
+              customTrashLid.setAttribute(
+                  "d",
+                  "M0,3v6h42V3h-10.5l-3-3h-15l-3,3H0Z"
+              );
+              customTrashLid.setAttribute("transform", "translate(0 32)");
+              customTrashLid.classList.add("flockTrashArtwork");
+
+              lidSvg.appendChild(customTrashLid);
+          }
+      } else {
+          trashIcon.appendChild(customTrashBody);
+          trashIcon.appendChild(trashContents);
+      }
+  }
+
   if (trashcan && trashcanFlyout) {
     const TRASHCAN_FLYOUT_LEFT_GAP = 48;
     trashcanFlyout.getWidth = function () {
@@ -1752,20 +1889,12 @@ export function createBlocklyWorkspace() {
       return Math.min(this.width_, viewWidth - gap);
     };
 
-    // The flyout is a separate, higher z-index SVG that would otherwise hide the
-    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
-    // that shares the workspace's coordinate space, so it stays in place but
-    // The flyout is a separate, higher z-index SVG that would otherwise hide the
-    // trashcan icon. While the flyout is open, lift the icon into an overlay SVG
-    // that shares the workspace's coordinate space, so it stays in place but
-    // renders on top; clicking the lifted icon then closes the flyout.
+    // Lift the trashcan icon into an overlay SVG while the flyout is open — the
+    // higher z-index flyout would otherwise hide it.
     const injectionDiv = workspace.getInjectionDiv();
-    let trashIcon = null;
-    try {
-      trashIcon = trashcan.getFocusableElement();
-    } catch {
-      trashIcon = null;
-    }
+    // Trashcan doesn't implement IFocusableNode (no getFocusableElement), so
+    // find its icon the same way main/input.js's tab order does.
+    const trashIcon = injectionDiv?.querySelector('g.blocklyTrash') ?? null;
     const iconHome = trashIcon?.parentNode;
     if (injectionDiv && trashIcon && iconHome) {
       const iconOverlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1782,9 +1911,7 @@ export function createBlocklyWorkspace() {
       });
       injectionDiv.appendChild(iconOverlay);
 
-      // pointer-events is inherited, so the overlay's `none` (which lets clicks
-      // pass through its empty area to the flyout) would also disable the icon.
-      // Force the icon itself back to clickable so it can close the flyout.
+      // pointer-events is inherited, so the overlay's `none` would disable the icon too.
       trashIcon.style.pointerEvents = 'auto';
 
       // Clicking the lifted icon closes the flyout. The icon's own pointerup
@@ -1795,10 +1922,8 @@ export function createBlocklyWorkspace() {
         if (Date.now() < suppressOpenUntil) return;
         originalOpenFlyout();
       };
-      // Move keyboard focus into the flyout the instant its blocks render. openFlyout()
-      // renders on a deferred timeout and fires TRASHCAN_OPEN before the blocks exist,
-      // so instead of polling, hook show() — the call that builds the blocks. Right
-      // after it, getTopBlocks() is populated.
+      // TRASHCAN_OPEN fires before the deferred render, so hook show() instead — it is the
+      // call that builds the blocks, and getTopBlocks() is populated right after it.
       const originalFlyoutShow = trashcanFlyout.show.bind(trashcanFlyout);
       trashcanFlyout.show = function (contents) {
         originalFlyoutShow(contents);
@@ -1810,7 +1935,9 @@ export function createBlocklyWorkspace() {
         }
       };
       const returnFocusToWorkspace = () => {
-        Blockly.getFocusManager?.()?.focusTree?.(workspace);
+        if (!focusRememberedWorkspaceNode()) {
+          Blockly.getFocusManager?.()?.focusTree?.(workspace);
+        }
       };
       trashIcon.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
@@ -1819,10 +1946,27 @@ export function createBlocklyWorkspace() {
         if (trashcan.contentsIsOpen()) {
           trashcan.closeFlyout();
           returnFocusToWorkspace();
-        } else {
-          trashcan.performAction(); // gated open; no-op on an empty bin
+        } else if (trashcan.hasContents()) {
+          trashcan.openFlyout();
         }
       });
+
+      // Blockly's Escape (hideChaff) is gated on a non-read-only workspace, so it
+      // never fires while focus is inside the read-only trash flyout. Capture it
+      // before the flyout's own key handling swallows the event.
+      document.addEventListener(
+        'keydown',
+        (e) => {
+          if (e.key !== 'Escape' || !trashcan.contentsIsOpen()) return;
+          const target = e.target instanceof Element ? e.target : document.activeElement;
+          if (!injectionDiv.contains(target)) return;
+          e.preventDefault();
+          e.stopPropagation();
+          trashcan.closeFlyout();
+          returnFocusToWorkspace();
+        },
+        true
+      );
 
       workspace.addChangeListener((e) => {
         // Dragging a block out of the trash restores it (BLOCK_CREATE); close the
@@ -1848,48 +1992,280 @@ export function createBlocklyWorkspace() {
 
     const blocklyDiv = document.getElementById('blocklyDiv');
 
+    // "selected" here tracks our two-step tap helper only. The workspace half
+    // uses Blockly's own selection model; flyout blocks are recreated whenever
+    // the flyout reopens, so their highlight is tracked on the SVG root alone.
     let selectedBlock = null;
+    let flyoutSelected = null;
+
+    // While a drop that starts over an *unselected* flyout block is in flight,
+    // the pointer is scroll-only (handed to Blockly's flyout gesture above).
+    // This candidate records where it started so the pointerup handler can
+    // tell a genuine tap (which highlights the block) from a scroll (which
+    // does not). Flagged as a drag once the pointer moves past the flyout
+    // drag radius. Bound to one pointer: extra touches are ignored while it
+    // is active, and only its own release settles it.
+    let flyoutTapCandidate = null;
+    const flyoutTapRadius = Blockly.config.flyoutDragRadius;
+
+    // The workspace has two flyouts (toolbox and trashcan). Resolve the one
+    // that owns the touched block so scroll gestures and hover cleanup
+    // target the right workspace.
+    const getOwningFlyout = (blockRoot) => {
+      const flyoutEl = blockRoot?.closest('.blocklyFlyout');
+      if (!flyoutEl) return null;
+      return (
+        [workspace.getFlyout(), trashcanFlyout].find(
+          (f) => f?.getWorkspace?.().getParentSvg?.() === flyoutEl
+        ) ?? null
+      );
+    };
+
+    // Drop the flyout half of the tap helper by removing the highlight class we
+    // managed; the flyout's own focus state is left untouched.
+    const clearFlyoutSelection = () => {
+      if (flyoutSelected?.isConnected) {
+        flyoutSelected.querySelector(':scope > .blocklyPath')?.classList.remove('blocklyActiveFocus');
+      }
+      flyoutSelected = null;
+      workspace.flyoutTapSelectedId = null;
+    };
+
+    // Drop Blockly's own hover selection from flyout blocks. While a touch
+    // moves, Blockly highlights each block under the pointer, even when the
+    // gesture becomes a scroll — and the highlight sticks after release.
+    // A scroll must leave nothing behind; a tap leaves only our blue.
+    const removeFlyoutHover = (blockRoot) => {
+      const blockId = blockRoot?.getAttribute('data-id');
+      if (!blockId) return;
+      const owned =
+        getOwningFlyout(blockRoot)?.getWorkspace?.().getBlockById(blockId) ?? null;
+      if (owned) {
+        owned.removeSelect();
+        return;
+      }
+      for (const flyout of [workspace.getFlyout(), trashcanFlyout]) {
+        const block = flyout?.getWorkspace?.().getBlockById(blockId);
+        if (block) {
+          block.removeSelect();
+          return;
+        }
+      }
+    };
+    const clearFlyoutHoverSelection = () => {
+      for (const root of blocklyDiv.querySelectorAll(
+        '.blocklyFlyout .blocklyDraggable.blocklySelected'
+      )) {
+        removeFlyoutHover(root);
+      }
+    };
+
+    const getTapUnit = (block) => {
+      let unit = block;
+      while (unit?.isShadow() || unit?.outputConnection?.isConnected()) {
+        const parent = unit.getParent();
+        if (!parent) break;
+        unit = parent;
+      }
+      return unit;
+    };
+    const getSelectedTapUnit = () => {
+      const focusManager = Blockly.getFocusManager();
+      const node = focusManager.getFocusedNode();
+      if (!node) return null;
+      if (node.id && workspace.getBlockById(node.id) === node) {
+        const selected =
+          node.getSvgRoot().classList.contains('blocklySelected') ||
+          focusManager.ephemeralFocusTaken();
+        return selected ? getTapUnit(node) : null;
+      }
+      const source = node.getSourceBlock?.();
+      return source && workspace.getBlockById(source.id) === source ? getTapUnit(source) : null;
+    };
 
     blocklyDiv.addEventListener(
       'pointerdown',
       (e) => {
         if (e.pointerType !== 'touch') return;
+        // One tap at a time: a second finger must not steal the candidate.
+        if (flyoutTapCandidate && e.pointerId !== flyoutTapCandidate.pointerId) return;
         const blockRoot = e.target.closest('.blocklyDraggable');
-
-        if (
-          blockRoot &&
-          !blockRoot.classList.contains('blocklySelected') &&
-          !blockRoot.closest('.blocklyFlyout')
-        ) {
-          e.stopPropagation();
+        const inFlyout = blockRoot?.closest('.blocklyFlyout') != null;
+        const tapUnit =
+          blockRoot && !inFlyout
+            ? getTapUnit(workspace.getBlockById(blockRoot.getAttribute('data-id')))
+            : null;
+        // Workspace selection is Blockly's own; the flyout's is the block whose
+        // SVG root we last focused, kept so the second tap or a drag passes
+        // through to Blockly.
+        const alreadySelected = inFlyout
+          ? flyoutSelected === blockRoot
+          : tapUnit
+            ? tapUnit === getSelectedTapUnit() ||
+              tapUnit.getSvgRoot().classList.contains('blocklySelected')
+            : blockRoot?.classList.contains('blocklySelected');
+        if (blockRoot && !alreadySelected) {
+          // A first touch over an unselected block never performs the real
+          // action; a second tap or a drag after selection does. A touch that
+          // merely starts on the block is not a selection either — flyout
+          // blocks are recreated whenever the flyout reopens, so they are
+          // tracked here (see flyoutTapCandidate below). The workspace half
+          // keeps selecting on the first tap; the flyout half defers it so a
+          // drop-start scrolls the flyout instead.
           const blockId = blockRoot.getAttribute('data-id');
-          if (blockId) {
-            const block = workspace.getBlockById(blockId);
-            if (block) {
-              selectedBlock?.unselect();
-              block.select();
-              selectedBlock = block;
+          if (!blockId) return;
+          if (inFlyout) {
+            // Drop-start on a flyout block is a scroll, same as dropping on
+            // the flyout background: hand the pointer to Blockly's flyout
+            // gesture, which scrolls once the drop exceeds the drag radius.
+            // The blue highlight is applied only when the interaction settles
+            // as a genuine tap (see the pointerup handler below).
+            const gesture = workspace.getGesture(e);
+            const flyout = getOwningFlyout(blockRoot) ?? workspace.getFlyout();
+            if (gesture && flyout) {
+              e.stopPropagation();
+              gesture.handleFlyoutStart(e, flyout);
             }
+            flyoutTapCandidate = {
+              blockRoot,
+              blockId,
+              pointerId: e.pointerId,
+              startX: e.clientX,
+              startY: e.clientY,
+              asDrag: false,
+            };
+            return;
+          }
+          if (window.flockColorPicker?.isOpen) return;
+          // Workspace selection is Blockly's own: tap selects now, a second
+          // tap or a drag performs the real action.
+          e.stopPropagation();
+          e.preventDefault();
+          const target = tapUnit ?? workspace.getCommentById(blockId);
+          if (target) {
+            clearFlyoutSelection();
+            selectedBlock?.unselect();
+            workspace.scrollBoundsIntoView = () => {};
+            Blockly.getFocusManager().focusNode(target);
+            Blockly.renderManagement.finishQueuedRenders().then(() => {
+              delete workspace.scrollBoundsIntoView;
+            });
+            selectedBlock = target;
           }
         } else if (!blockRoot) {
           selectedBlock?.unselect();
           selectedBlock = null;
+          clearFlyoutSelection();
         }
       },
       true
     );
+
+    // Settle a drop that started over an unselected flyout block. Past the
+    // drag radius it is a scroll, so the candidate is flagged and nothing is
+    // highlighted. Otherwise it was a tap, applied here at pointerup.
+    document.addEventListener(
+      'pointermove',
+      (e) => {
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerType !== 'touch') return;
+        if (e.pointerId !== candidate.pointerId) return;
+        const dx = e.clientX - candidate.startX;
+        const dy = e.clientY - candidate.startY;
+        if (Math.hypot(dx, dy) > flyoutTapRadius) candidate.asDrag = true;
+      },
+      true
+    );
+    // Blockly highlights each flyout block under a moving pointer, including
+    // the first millimetres of a scroll. Strip that hover selection back off
+    // — this listener runs on bubble, after the block's own move listener
+    // re-adds it each move, and before paint, so a scroll never flashes the
+    // start block. Scoped to the undecided candidate so real block drags
+    // (second tap, workspace) are untouched.
+    document.addEventListener(
+      'pointermove',
+      (e) => {
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerType !== 'touch') return;
+        if (e.pointerId !== candidate.pointerId) return;
+        const blockRoot = e.target?.closest?.('.blocklyDraggable');
+        if (!blockRoot || !blockRoot.classList.contains('blocklySelected')) return;
+        if (blockRoot.closest('.blocklyFlyout') == null) return;
+        removeFlyoutHover(blockRoot);
+      },
+      false
+    );
+    document.addEventListener(
+      'pointerup',
+      (e) => {
+        if (e.pointerType !== 'touch') return;
+        clearFlyoutHoverSelection();
+        const candidate = flyoutTapCandidate;
+        if (!candidate || e.pointerId !== candidate.pointerId) return;
+        flyoutTapCandidate = null;
+        if (candidate.asDrag) return;
+        const blockRoot = candidate.blockRoot;
+        if (!blockRoot?.isConnected || !blockRoot.closest('.blocklyFlyout')) return;
+        // Highlight the block with the same blue a focused block gets. The
+        // class is applied directly — not via Blockly's focus manager —
+        // because driving the focus machinery here moves DOM focus, whose
+        // focusin/focusout guard promptly hands the highlight to a different
+        // block. Blockly's own flyout bookkeeping still strips the class
+        // after some taps, so the observer below re-asserts it.
+        clearFlyoutSelection();
+        selectedBlock?.unselect();
+        selectedBlock = null;
+        flyoutSelected = blockRoot;
+        workspace.flyoutTapSelectedId = candidate.blockId;
+        blockRoot.querySelector(':scope > .blocklyPath')?.classList.add('blocklyActiveFocus');
+      },
+      true
+    );
+    document.addEventListener(
+      'pointercancel',
+      (e) => {
+        if (e.pointerType !== 'touch') return;
+        clearFlyoutHoverSelection();
+        if (flyoutTapCandidate?.pointerId === e.pointerId) flyoutTapCandidate = null;
+      },
+      true
+    );
+
+    // The flyout's own focus bookkeeping strips `blocklyActiveFocus` from the
+    // tapped block a moment after some taps. Watch the flyout svgs and put the
+    // class back; adding it triggers one more mutation that is then a no-op.
+    for (const flyoutSvg of blocklyDiv.querySelectorAll('.blocklyFlyout')) {
+      new MutationObserver(() => {
+        if (workspace.isDragging?.()) return;
+        if (!flyoutSelected?.isConnected || !flyoutSelected.closest('.blocklyFlyout')) return;
+        const path = flyoutSelected.querySelector(':scope > .blocklyPath');
+        if (path && !path.classList.contains('blocklyActiveFocus')) {
+          path.classList.add('blocklyActiveFocus');
+        }
+      }).observe(flyoutSvg, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
 
     workspace.addChangeListener((e) => {
       if (e.type === Blockly.Events.BLOCK_DRAG && !e.isStart) {
         setTimeout(() => {
           Blockly.common.getSelected()?.unselect();
           selectedBlock = null;
+          clearFlyoutSelection();
         }, 0);
       }
     });
   }
 
   installWorkspaceJumpDebug(workspace);
+
+  workspace.addChangeListener((event) => {
+    if (event.type !== Blockly.Events.CLICK || event.targetType !== 'block') return;
+    const picker = window.flockColorPicker;
+    if (!picker?.isOpen) return;
+    const block = workspace.getBlockById(event.blockId);
+    if (block?.type !== 'colour_from_string') return;
+    block.setFieldValue(picker.currentColor.replace(/^#/, ''), 'COLOR');
+  });
 
   let activeXyzBlock = null;
 
@@ -2086,7 +2462,7 @@ export function createBlocklyWorkspace() {
     host.addEventListener(
       'keydown',
       (e) => {
-        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';
+        const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === 'f';
         if (!isFindShortcut) return;
 
         const activeElement = document.activeElement;
@@ -2146,6 +2522,7 @@ export function createBlocklyWorkspace() {
     toolboxDiv.addEventListener(
       'keydown',
       (e) => {
+        if (typeof e.key !== 'string') return;
         const target = e.target;
 
         const isFindShortcut = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f';
@@ -2235,6 +2612,9 @@ export function createBlocklyWorkspace() {
   })();
 
   initializeIfClauseConnectionChecker(workspace);
+  installVariableScopeWarnings(workspace);
+  window.flockRefreshContrastWarnings = installContrastWarnings(workspace);
+  window.flockRefreshAnimationWarnings = installAnimationWarnings(workspace);
 
   (function wireToolboxSearchArrowDown() {
     const host = workspace.getInjectionDiv?.() || document;
@@ -2325,6 +2705,7 @@ export function createBlocklyWorkspace() {
   })();
 
   initContextMenus(workspace);
+  initListReorder(workspace);
 
   // ---- Touch-friendly confirm dialog ----
   if (navigator.maxTouchPoints > 0) {
@@ -2394,71 +2775,108 @@ export function getWorkspace() {
   return workspace;
 }
 
-function setupAutoValueBehavior(workspace) {
-  workspace.addChangeListener(function (event) {
-    if (event.type === Blockly.Events.BLOCK_CHANGE || event.type === Blockly.Events.BLOCK_CREATE) {
-      var block = workspace.getBlockById(event.blockId);
-      if (block && block.type === 'lists_create_with') {
-        var inputCount = 0;
-        while (block.getInput('ADD' + inputCount)) {
-          inputCount++;
-        }
-        if (inputCount >= 2) {
-          var previousInput = block.getInput('ADD' + (inputCount - 2));
-          var lastInput = block.getInput('ADD' + (inputCount - 1));
-          if (
-            previousInput &&
-            previousInput.connection.targetConnection &&
-            lastInput &&
-            !lastInput.connection.targetConnection
-          ) {
-            var sourceBlock = previousInput.connection.targetConnection.sourceBlock_;
+// Blockly records no events for shadow blocks, so undo and redo cannot bring
+// back a shadow that a list's + filled in or its - removed. This records the
+// shadow's state, id included, and places it again in the given direction.
+class ListSlotShadowEvent extends Blockly.Events.BlockBase {
+  constructor(block, slot, state, placeWhenForward) {
+    super(block);
+    this.type = 'flock_list_slot_shadow';
+    this.slot = slot;
+    this.state = state;
+    this.placeWhenForward = placeWhenForward;
+  }
 
-            function deepCopyBlock(originalBlock) {
-              var newBlock = workspace.newBlock(originalBlock.type);
+  run(forward) {
+    if (forward !== this.placeWhenForward) return;
+    const block = Blockly.Workspace.getById(this.workspaceId)?.getBlockById(this.blockId);
+    const connection = block?.getInput(this.slot)?.connection;
+    if (!connection || connection.targetBlock()) return;
+    placeShadow(connection, this.state);
+  }
+}
 
-              if (originalBlock.isShadow()) {
-                newBlock.setShadow(true);
-              }
+function placeShadow(connection, state) {
+  Blockly.Events.disable();
+  try {
+    connection.setShadowState(state);
+  } finally {
+    Blockly.Events.enable();
+  }
+}
 
-              var fieldMap = {
-                math_number: 'NUM',
-                text: 'TEXT',
-                logic_boolean: 'BOOL',
-                variables_get: 'VAR',
-              };
-
-              if (fieldMap[originalBlock.type]) {
-                var fieldName = fieldMap[originalBlock.type];
-                newBlock.setFieldValue(originalBlock.getFieldValue(fieldName), fieldName);
-              }
-
-              for (var i = 0; i < originalBlock.inputList.length; i++) {
-                var originalInput = originalBlock.inputList[i];
-                var newInput = newBlock.getInput(originalInput.name);
-
-                if (originalInput.connection && originalInput.connection.targetConnection) {
-                  var originalNestedBlock = originalInput.connection.targetConnection.sourceBlock_;
-
-                  var newNestedBlock = deepCopyBlock(originalNestedBlock);
-
-                  if (newInput && newNestedBlock.outputConnection) {
-                    newInput.connection.connect(newNestedBlock.outputConnection);
-                  }
-                }
-              }
-
-              newBlock.initSvg();
-              newBlock.render();
-
-              return newBlock;
-            }
-
-            var newBlock = deepCopyBlock(sourceBlock);
-            lastInput.connection.connect(newBlock.outputConnection);
-          }
-        }
+function recordListSlotRemoval() {
+  const definition = Blockly.Blocks['lists_create_with'];
+  if (!definition || definition.flockSlotRemovalRecorded) return;
+  const init = definition.init;
+  definition.init = function () {
+    init.call(this);
+    const removePart = this.removePart_;
+    if (!removePart) return;
+    this.removePart_ = function () {
+      const slot = 'ADD' + (this.itemCount_ - 1);
+      const shadow = this.getInputTargetBlock(slot);
+      if (shadow?.isShadow() && Blockly.Events.isEnabled() && Blockly.Events.getRecordUndo()) {
+        const state = Blockly.serialization.blocks.save(shadow, { addNextBlocks: false });
+        Blockly.Events.fire(new ListSlotShadowEvent(this, slot, state, false));
       }
+      removePart.call(this);
+    };
+  };
+  definition.flockSlotRemovalRecorded = true;
+}
+
+// Mutation event values are the block's saveExtraState as JSON, e.g. {"itemCount":3}.
+function listItemCount(extraState) {
+  try {
+    return JSON.parse(extraState || '{}').itemCount ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function setupAutoValueBehavior(workspace) {
+  recordListSlotRemoval();
+
+  workspace.addChangeListener((event) => {
+    if (
+      event.type !== Blockly.Events.BLOCK_CHANGE ||
+      event.element !== 'mutation' ||
+      !event.recordUndo
+    ) {
+      return;
+    }
+    const block = workspace.getBlockById(event.blockId);
+    if (block?.type !== 'lists_create_with') return;
+    if (listItemCount(event.newValue) !== listItemCount(event.oldValue) + 1) return;
+
+    let inputCount = 0;
+    while (block.getInput('ADD' + inputCount)) inputCount++;
+    if (inputCount < 2) return;
+
+    const slot = 'ADD' + (inputCount - 1);
+    const source = block.getInputTargetBlock('ADD' + (inputCount - 2));
+    const lastConnection = block.getInput(slot).connection;
+    if (!source || lastConnection.targetConnection) return;
+
+    const state = Blockly.serialization.blocks.save(source, {
+      addNextBlocks: false,
+      saveIds: false,
+    });
+
+    const previousGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(event.group || previousGroup);
+    try {
+      if (source.isShadow()) {
+        state.id = Blockly.utils.idGenerator.genUid();
+        placeShadow(lastConnection, state);
+        Blockly.Events.fire(new ListSlotShadowEvent(block, slot, state, true));
+      } else {
+        const copy = Blockly.serialization.blocks.append(state, workspace, { recordUndo: true });
+        lastConnection.connect(copy.outputConnection);
+      }
+    } finally {
+      Blockly.Events.setGroup(previousGroup);
     }
   });
 }
@@ -2500,6 +2918,22 @@ export function overrideSearchPlugin(workspace) {
       collectBlocks(item);
     });
 
+    // The Functions category is a dynamic `custom: 'PROCEDURE'` flyout with no
+    // static entries, so the walk above finds nothing for it. Add the
+    // definition blocks explicitly so they stay searchable; callers are added
+    // per procedure at match time (procedureBlockDefinitions in blocksearch.js).
+    for (const procedureBlock of PROCEDURE_SEARCH_BLOCKS) {
+      if (!seenTypes.has(procedureBlock.type)) {
+        seenTypes.add(procedureBlock.type);
+        toolboxBlocks.push({
+          type: procedureBlock.type,
+          text: procedureBlock.type,
+          full: procedureBlock,
+          keyword: procedureBlock.keyword,
+        });
+      }
+    }
+
     return toolboxBlocks;
   }
 
@@ -2511,12 +2945,9 @@ export function overrideSearchPlugin(workspace) {
   }
 
   SearchCategory.prototype.initBlockSearcher = function () {
-    // Deliberately skip the plugin's default trigram indexing here: Flock
-    // searches its own rich index (workspace.flockSearchIndexedBlocks, built by
-    // buildSearchIndex) for both the desktop flyout and the mobile overlay,
-    // which also covers author keyword synonyms the trigram index lacks. Not
-    // building the trigram index avoids instantiating every block twice at
-    // startup. this.blockSearcher is already created by the plugin constructor.
+    // Deliberately skip the plugin's trigram indexing: Flock searches its own index
+    // (flockSearchIndexedBlocks), which also covers keyword synonyms, and skipping avoids
+    // instantiating every block twice at startup.
     const blockSearcher = this.blockSearcher;
 
     const rebuildSearchIndex = () => {
@@ -2532,41 +2963,13 @@ export function overrideSearchPlugin(workspace) {
     };
 
     this.blockSearcher.indexBlocks = rebuildSearchIndex;
+    workspace.flockBuildSearchIndex = rebuildSearchIndex;
     blockSearcher.indexedBlocks_ = workspace.flockSearchIndexedBlocks || null;
 
-    // Override only the search primitive: substring-match Flock's rich index
-    // (keyword synonyms, block labels, dropdown alt text, shadow defaults),
-    // relevance-sorted and de-duplicated by type. Blockly's native matchBlocks
-    // consumes this, so Blockly keeps handling flyout rendering, the screen
-    // reader announcement, and the empty / no-match labels.
-    blockSearcher.blockTypesMatching = (rawQuery) => {
-      const q = (rawQuery || '').toLowerCase().trim();
-      if (!q) return [];
-      if (!Array.isArray(blockSearcher.indexedBlocks_) && blockSearcher.indexBlocks) {
-        blockSearcher.indexBlocks();
-      }
-      const index = blockSearcher.indexedBlocks_;
-      if (!Array.isArray(index)) return [];
-
-      const labelOf = (def) =>
-        (workspace.flockBlockLabelMap?.get(def.type) || def.type.replace(/_/g, ' ')).toLowerCase();
-      const score = (def) => {
-        if (!def?.type) return 4;
-        const label = labelOf(def);
-        const type = def.type.toLowerCase();
-        if (label.startsWith(q)) return 0;
-        if (label.includes(q)) return 1;
-        if (type.includes(q)) return 2;
-        return 3;
-      };
-
-      const seenTypes = new Set();
-      return index
-        .filter((b) => b.text && b.text.includes(q))
-        .map((b) => b.full)
-        .filter((def) => def?.type && !seenTypes.has(def.type) && seenTypes.add(def.type))
-        .sort((a, b) => score(a) - score(b));
-    };
+    // Override only the search primitive — native matchBlocks consumes it, so flyout rendering
+    // and screen-reader announcements stay upstream; matchBlocks is wrapped below to localise
+    // the placeholder and no-match labels.
+    blockSearcher.blockTypesMatching = (rawQuery) => matchBlockDefinitions(workspace, rawQuery);
 
     if (!workspace.flockSearchIndexScheduled) {
       workspace.flockSearchIndexScheduled = true;
@@ -2633,10 +3036,6 @@ export function overrideSearchPlugin(workspace) {
   }
 
   function buildSearchIndex() {
-    if (!Object.keys(nextVariableIndexes).length) {
-      initializeVariableIndexes();
-    }
-
     const blockCreationWorkspace = new Blockly.Workspace();
     const indexedBlocks = [];
 
@@ -2668,7 +3067,7 @@ export function overrideSearchPlugin(workspace) {
             });
           }
 
-          if (field instanceof Blockly.FieldVariable) {
+          if (!indexesFieldValues(field)) {
             return;
           }
 
@@ -2724,47 +3123,85 @@ export function overrideSearchPlugin(workspace) {
           searchTerms.add(keyword);
         }
 
-        const block = blockCreationWorkspace.newBlock(type);
+        // Fresh definition blocks have a blank name; the Functions flyout
+        // fills in the default ("do something"), so index and serve them the
+        // same way. Rebuilt on language change, so this tracks translations.
+        const defaultFields = blockInfo.full ? procedureDefDefaultFields(blockInfo.full) : null;
+        const full = defaultFields
+          ? { ...blockInfo.full, fields: { ...(blockInfo.full.fields ?? {}), ...defaultFields } }
+          : (blockInfo.full ?? blockInfo);
+
+        let block = null;
+        try {
+          block = blockCreationWorkspace.newBlock(type);
+        } catch (error) {
+          console.warn(`Search index: could not instantiate ${type}`, error);
+        }
         if (!block) {
+          // Still index the type and keyword so the block stays reachable
+          // even when it cannot be instantiated headlessly (e.g. a call
+          // block with no procedure model yet).
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            outputCheck: type === 'procedures_callreturn' ? null : false,
+          });
           return;
         }
-        applyFieldValues(block, blockInfo.full?.fields);
+        applyFieldValues(block, full?.fields);
 
-        const labelText = typeof block.toString === 'function' ? block.toString().trim() : '';
-        if (labelText) {
-          searchTerms.add(labelText);
-        } else {
-          const fallbackMessage = getBlockMessage(type);
-          if (fallbackMessage) searchTerms.add(fallbackMessage);
-        }
+        try {
+          const labelText = typeof block.toString === 'function' ? block.toString().trim() : '';
+          if (labelText) {
+            searchTerms.add(labelText);
+          } else {
+            const fallbackMessage = getBlockMessage(type);
+            if (fallbackMessage) searchTerms.add(fallbackMessage);
+          }
 
-        const blockLabel = buildBlockLabel(block) || getBlockMessage(type) || '';
+          const blockLabel = buildBlockLabel(block) || getBlockMessage(type) || '';
 
-        addBlockFieldTerms(block, searchTerms, runDebugFields);
+          addBlockFieldTerms(block, searchTerms, runDebugFields);
 
-        const inputDefinitions = blockInfo.full?.inputs;
-        if (inputDefinitions) {
-          Object.values(inputDefinitions).forEach((definition) => {
-            const shadowType = definition?.shadow?.type;
-            if (!shadowType) {
-              return;
-            }
+          const inputDefinitions = full?.inputs;
+          if (inputDefinitions) {
+            Object.values(inputDefinitions).forEach((definition) => {
+              const shadowType = definition?.shadow?.type;
+              if (!shadowType) {
+                return;
+              }
 
-            const shadowBlock = blockCreationWorkspace.newBlock(shadowType);
-            if (!shadowBlock) {
-              return;
-            }
-            applyFieldValues(shadowBlock, definition?.shadow?.fields);
-            addBlockFieldTerms(shadowBlock, searchTerms, runDebugFields);
-            shadowBlock.dispose(true);
+              const shadowBlock = blockCreationWorkspace.newBlock(shadowType);
+              if (!shadowBlock) {
+                return;
+              }
+              applyFieldValues(shadowBlock, definition?.shadow?.fields);
+              addBlockFieldTerms(shadowBlock, searchTerms, runDebugFields);
+              shadowBlock.dispose(true);
+            });
+          }
+
+          (workspace.flockBlockLabelMap ??= new Map()).set(type, blockLabel);
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            // What the block can plug into: false for a statement, null for an
+            // untyped output. Used to filter the value-socket block picker.
+            outputCheck: block.outputConnection
+              ? (block.outputConnection.getCheck() ?? null)
+              : false,
+          });
+        } catch (error) {
+          console.warn(`Search index: could not index ${type}`, error);
+          indexedBlocks.push({
+            ...blockInfo,
+            full,
+            text: Array.from(searchTerms).join(' ').toLowerCase(),
+            outputCheck: type === 'procedures_callreturn' ? null : false,
           });
         }
-
-        (workspace.flockBlockLabelMap ??= new Map()).set(type, blockLabel);
-        indexedBlocks.push({
-          ...blockInfo,
-          text: Array.from(searchTerms).join(' ').toLowerCase(),
-        });
       });
     } finally {
       blockCreationWorkspace.dispose();
@@ -2787,11 +3224,8 @@ export function overrideSearchPlugin(workspace) {
     searchToolboxItem.initBlockSearcher();
   }
 
-  // Keep Blockly's native matchBlocks: it calls our blockSearcher.blockTypesMatching
-  // override for results and retains ownership of flyout rendering and the
-  // screen-reader announcement. Wrap it thinly only to localise the placeholder
-  // labels the plugin hard-codes in English ("Type to search for blocks" when the
-  // query is empty, "No matching blocks found" when a query matches nothing).
+  // Wrap native matchBlocks only to localise the placeholder labels the plugin hard-codes
+  // in English ("Type to search for blocks", "No matching blocks found").
   const nativeMatchBlocks = SearchCategory.prototype.matchBlocks;
   SearchCategory.prototype.matchBlocks = function () {
     nativeMatchBlocks.call(this);

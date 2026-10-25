@@ -1,22 +1,22 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runTranslationTests(flock) {
-  describe("Translation API Tests @translation @slow", function () {
+  describe('Translation API Tests @translation @slow', function () {
     let boxId;
 
     beforeEach(async function () {
       boxId = `box_${Date.now()}`;
       flock.createBox(boxId, {
-        color: "#FF00FF",
+        color: '#FF00FF',
         width: 1,
         height: 2,
         depth: 1,
         position: [0, 0, 0],
       });
 
-      // Ensure we always exercise the pivotSettings branch:
-      // default pivot: x=CENTER, y=MIN (BASE), z=CENTER
-      await flock.setAnchor(boxId);
+      // Origin at the base, matching the default anchor:
+      // x=CENTER, y=MIN (BASE), z=CENTER
+      await flock.setPivot(boxId, { x: 'CENTER', y: 'MIN', z: 'CENTER' });
     });
 
     afterEach(function () {
@@ -25,7 +25,7 @@ export function runTranslationTests(flock) {
       }
     });
 
-    it("should position a box so its pivot (BASE) is at the specified coordinates by default", async function () {
+    it('should position a box so its pivot (BASE) is at the specified coordinates by default', async function () {
       await flock.positionAt(boxId, { x: 5, y: 3, z: -2 });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -36,12 +36,12 @@ export function runTranslationTests(flock) {
       expect(pivotWorld.z).to.be.closeTo(-2, 0.01);
     });
 
-    it("should position a box so its pivot is at the specified coordinates when yReference: CENTER is passed (current pivot-based semantics)", async function () {
+    it('should position a box so its pivot is at the specified coordinates when yReference: CENTER is passed (current pivot-based semantics)', async function () {
       await flock.positionAt(boxId, {
         x: 1,
         y: 2,
         z: 3,
-        yReference: "CENTER", // currently ignored; treated like default
+        yReference: 'CENTER', // currently ignored; treated like default
       });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -52,12 +52,12 @@ export function runTranslationTests(flock) {
       expect(pivotWorld.z).to.be.closeTo(3, 0.01);
     });
 
-    it("should position a box so its pivot is at the specified coordinates when yReference: TOP is passed (current pivot-based semantics)", async function () {
+    it('should position a box so its pivot is at the specified coordinates when yReference: TOP is passed (current pivot-based semantics)', async function () {
       await flock.positionAt(boxId, {
         x: -1,
         y: -2,
         z: 4,
-        yReference: "TOP", // currently ignored; treated like default
+        yReference: 'TOP', // currently ignored; treated like default
       });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -68,13 +68,10 @@ export function runTranslationTests(flock) {
       expect(pivotWorld.z).to.be.closeTo(4, 0.01);
     });
 
-    it("should ignore Y when useY is false (pivot stays at original Y)", async function () {
+    it('should ignore Y when useY is false (pivot stays at original Y)', async function () {
       // First, move pivot somewhere with a known Y
       await flock.positionAt(boxId, { x: 0, y: 10, z: 0 });
-      const initialPivot = flock.scene
-        .getMeshByName(boxId)
-        .getAbsolutePivotPoint()
-        .clone();
+      const initialPivot = flock.scene.getMeshByName(boxId).getAbsolutePivotPoint().clone();
 
       // Now move with useY: false
       await flock.positionAt(boxId, { x: 5, y: 99, z: 5, useY: false });
@@ -87,12 +84,12 @@ export function runTranslationTests(flock) {
       expect(pivotWorld.z).to.be.closeTo(5, 0.01);
     });
 
-    it("should handle invalid yReference gracefully (same as default BASE pivot positioning)", async function () {
+    it('should handle invalid yReference gracefully (same as default BASE pivot positioning)', async function () {
       await flock.positionAt(boxId, {
         x: 7,
         y: 3,
         z: 1,
-        yReference: "INVALID",
+        yReference: 'INVALID',
       });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -103,8 +100,8 @@ export function runTranslationTests(flock) {
       expect(pivotWorld.z).to.be.closeTo(1, 0.01);
     });
 
-    it("should position a camera at specified coordinates", async function () {
-      await flock.positionAt("__active_camera__", { x: 10, y: 5, z: -3 });
+    it('should position a camera at specified coordinates', async function () {
+      await flock.positionAt('__active_camera__', { x: 10, y: 5, z: -3 });
 
       const camera = flock.scene.activeCamera;
       expect(camera.position.x).to.be.closeTo(10, 0.01);
@@ -113,23 +110,23 @@ export function runTranslationTests(flock) {
     });
   });
 
-  describe("Current inspector-vs-block placement semantics @translation", function () {
+  describe('Current inspector-vs-block placement semantics @translation', function () {
     let boxId;
 
     beforeEach(async function () {
       boxId = `box_semantics_${Date.now()}`;
       flock.createBox(boxId, {
-        color: "#00AAFF",
+        color: '#00AAFF',
         width: 2,
         height: 2,
         depth: 2,
         position: [0, 0, 0],
       });
 
-      await flock.setAnchor(boxId, {
-        xPivot: "CENTER",
-        yPivot: "MIN",
-        zPivot: "CENTER",
+      await flock.setPivot(boxId, {
+        x: 'CENTER',
+        y: 'MIN',
+        z: 'CENTER',
       });
     });
 
@@ -137,7 +134,7 @@ export function runTranslationTests(flock) {
       if (boxId) flock.dispose(boxId);
     });
 
-    it("should keep requested Y aligned to base/pivot while mesh.position.y stays offset", async function () {
+    it('should keep requested Y aligned to base/pivot with mesh.position at the anchor', async function () {
       await flock.positionAt(boxId, { x: 2, y: 3, z: 4, useY: true });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -146,11 +143,10 @@ export function runTranslationTests(flock) {
 
       expect(bounds.minimumWorld.y).to.be.closeTo(3, 0.01);
       expect(pivotWorld.y).to.be.closeTo(3, 0.01);
-      expect(box.position.y).to.be.greaterThan(3.9);
-      expect(box.position.y).to.be.lessThan(4.1);
+      expect(box.position.y).to.be.closeTo(3, 0.01);
     });
 
-    it("should preserve existing Y offset semantics when useY is false", async function () {
+    it('should preserve existing Y offset semantics when useY is false', async function () {
       await flock.positionAt(boxId, { x: 0, y: 10, z: 0, useY: true });
 
       const box = flock.scene.getMeshByName(boxId);
@@ -170,7 +166,7 @@ export function runTranslationTests(flock) {
     });
   });
 
-  describe("moveTo API Tests @translation", function () {
+  describe('moveTo API Tests @translation', function () {
     let box1Id, box2Id;
 
     beforeEach(function () {
@@ -178,7 +174,7 @@ export function runTranslationTests(flock) {
       box2Id = `box2_${Date.now()}`;
 
       flock.createBox(box1Id, {
-        color: "#FF00FF",
+        color: '#FF00FF',
         width: 1,
         height: 2,
         depth: 1,
@@ -186,7 +182,7 @@ export function runTranslationTests(flock) {
       });
 
       flock.createBox(box2Id, {
-        color: "#00FF00",
+        color: '#00FF00',
         width: 1,
         height: 4,
         depth: 1,
@@ -199,27 +195,106 @@ export function runTranslationTests(flock) {
       if (box2Id) flock.dispose(box2Id);
     });
 
-    it("should move a box to the target box centre position when useY is true (default)", async function () {
+    // The boxes differ in height, so their bases line up but their centres don't.
+    it('should line up the box anchor with the target anchor when useY is true (default)', async function () {
       await flock.moveTo(box1Id, { target: box2Id, useY: true });
 
       const box1 = flock.scene.getMeshByName(box1Id);
       const box2 = flock.scene.getMeshByName(box2Id);
+      const anchor1 = flock._getAnchor(box1);
+      const anchor2 = flock._getAnchor(box2);
 
-      expect(box1.getAbsolutePosition().x).to.be.closeTo(
-        box2.getAbsolutePosition().x,
-        0.01,
-      );
-      expect(box1.getAbsolutePosition().y).to.be.closeTo(
-        box2.getAbsolutePosition().y,
-        0.01,
-      );
-      expect(box1.getAbsolutePosition().z).to.be.closeTo(
-        box2.getAbsolutePosition().z,
-        0.01,
+      expect(anchor1.x).to.be.closeTo(anchor2.x, 0.01);
+      expect(anchor1.y).to.be.closeTo(anchor2.y, 0.01);
+      expect(anchor1.z).to.be.closeTo(anchor2.z, 0.01);
+      expect(box1.getBoundingInfo().boundingBox.minimumWorld.y).to.be.closeTo(
+        box2.getBoundingInfo().boundingBox.minimumWorld.y,
+        0.01
       );
     });
 
-    it("should move a box to the target box centre position without changing Y when useY is false @slow", function (done) {
+    describe('against a side', function () {
+      const box = (id) => {
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.computeWorldMatrix(true);
+        return mesh.getBoundingInfo().boundingBox;
+      };
+      const turn = (id, quaternion) => {
+        const mesh = flock.scene.getMeshByName(id);
+        mesh.rotationQuaternion = quaternion;
+        mesh.computeWorldMatrix(true);
+      };
+
+      it('places a box on top of a taller one, centred', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top' });
+        const mover = box(box1Id);
+        const target = box(box2Id);
+        expect(mover.minimumWorld.y).to.be.closeTo(target.maximumWorld.y, 0.01);
+        expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x, 0.01);
+        expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, 0.01);
+      });
+
+      it('lines up the box centres for center', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'center' });
+        const mover = box(box1Id);
+        const target = box(box2Id);
+        expect(mover.centerWorld.x).to.be.closeTo(target.centerWorld.x, 0.01);
+        expect(mover.centerWorld.y).to.be.closeTo(target.centerWorld.y, 0.01);
+        expect(mover.centerWorld.z).to.be.closeTo(target.centerWorld.z, 0.01);
+      });
+
+      it('places a box under another', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'under' });
+        expect(box(box1Id).maximumWorld.y).to.be.closeTo(box(box2Id).minimumWorld.y, 0.01);
+      });
+
+      const localX = (id) =>
+        flock.BABYLON.Vector3.TransformNormal(
+          new flock.BABYLON.Vector3(1, 0, 0),
+          flock.scene.getMeshByName(id).getWorldMatrix()
+        ).normalize();
+
+      // Flock models face local -z, so their own left is local +x.
+      it("follows the target's rotation for its own left", async function () {
+        turn(box2Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0));
+        await flock.moveTo(box1Id, { target: box2Id, side: 'left' });
+        const left = localX(box2Id);
+        const offset = box(box1Id).centerWorld.subtract(box(box2Id).centerWorld);
+        expect(offset.x).to.be.closeTo(left.x, 0.01);
+        expect(offset.z).to.be.closeTo(left.z, 0.01);
+        expect(box(box1Id).minimumWorld.y).to.be.closeTo(box(box2Id).minimumWorld.y, 0.01);
+      });
+
+      it('puts the front along the target local -z, the way models face', async function () {
+        await flock.moveTo(box1Id, { target: box2Id, side: 'front' });
+        expect(box(box1Id).maximumWorld.z).to.be.closeTo(box(box2Id).minimumWorld.z, 0.01);
+        await flock.moveTo(box1Id, { target: box2Id, side: 'behind' });
+        expect(box(box1Id).minimumWorld.z).to.be.closeTo(box(box2Id).maximumWorld.z, 0.01);
+      });
+
+      it("adds the offset along the target's own axes, ignoring its scale", async function () {
+        turn(box2Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(Math.PI / 2, 0, 0));
+        flock.scene.getMeshByName(box2Id).scaling.set(2, 2, 2);
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top', offsetX: 1 });
+        const along = localX(box2Id);
+        const mover = box(box1Id);
+        const offset = mover.centerWorld.subtract(box(box2Id).centerWorld);
+        expect(mover.minimumWorld.y).to.be.closeTo(box(box2Id).maximumWorld.y, 0.01);
+        expect(offset.x).to.be.closeTo(along.x, 0.01);
+        expect(offset.z).to.be.closeTo(along.z, 0.01);
+      });
+
+      // On its side the 2-tall mover is only 1 tall, so it should sit lower.
+      it('uses the rotated size of the mover', async function () {
+        turn(box1Id, flock.BABYLON.Quaternion.RotationYawPitchRoll(0, 0, Math.PI / 2));
+        await flock.moveTo(box1Id, { target: box2Id, side: 'on_top' });
+        const mover = box(box1Id);
+        expect(mover.minimumWorld.y).to.be.closeTo(box(box2Id).maximumWorld.y, 0.01);
+        expect(mover.maximumWorld.y - mover.minimumWorld.y).to.be.closeTo(1, 0.01);
+      });
+    });
+
+    it('should move a box to the target box centre position without changing Y when useY is false @slow', function (done) {
       flock.positionAt(box1Id, { x: 0, y: 10, z: 0 });
 
       setTimeout(() => {
@@ -241,12 +316,12 @@ export function runTranslationTests(flock) {
     });
   });
 
-  describe("moveByVector API Tests @translation", function () {
+  describe('moveByVector API Tests @translation', function () {
     let boxId;
     beforeEach(function () {
       boxId = `box_${Date.now()}`;
       flock.createBox(boxId, {
-        color: "#00FF00",
+        color: '#00FF00',
         width: 1,
         height: 2,
         depth: 1,
@@ -257,7 +332,7 @@ export function runTranslationTests(flock) {
       if (boxId) flock.dispose(boxId);
     });
 
-    it("should move a box by the specified vector", async function () {
+    it('should move a box by the specified vector', async function () {
       const box = flock.scene.getMeshByName(boxId);
       const initialPosition = box.position.clone();
 
@@ -268,7 +343,7 @@ export function runTranslationTests(flock) {
       expect(box.position.z).to.be.closeTo(initialPosition.z + 4, 0.01);
     });
 
-    it("should move a box by negative vector values", async function () {
+    it('should move a box by negative vector values', async function () {
       const box = flock.scene.getMeshByName(boxId);
       const initialPosition = box.position.clone();
 
@@ -279,7 +354,7 @@ export function runTranslationTests(flock) {
       expect(box.position.z).to.be.closeTo(initialPosition.z - 3, 0.01);
     });
 
-    it("should move a box with partial vector (only x and z)", async function () {
+    it('should move a box with partial vector (only x and z)', async function () {
       const box = flock.scene.getMeshByName(boxId);
       const initialPosition = box.position.clone();
 
@@ -290,7 +365,7 @@ export function runTranslationTests(flock) {
       expect(box.position.z).to.be.closeTo(initialPosition.z + 7, 0.01);
     });
 
-    it("should handle zero movement (all defaults)", async function () {
+    it('should handle zero movement (all defaults)', async function () {
       const box = flock.scene.getMeshByName(boxId);
       const initialPosition = box.position.clone();
 
@@ -301,7 +376,7 @@ export function runTranslationTests(flock) {
       expect(box.position.z).to.be.closeTo(initialPosition.z, 0.01);
     });
 
-    it("should move a box multiple times cumulatively", async function () {
+    it('should move a box multiple times cumulatively', async function () {
       const box = flock.scene.getMeshByName(boxId);
       const initialPosition = box.position.clone();
 
@@ -314,7 +389,7 @@ export function runTranslationTests(flock) {
     });
   });
 
-  describe("distanceTo API Tests @translation", function () {
+  describe('distanceTo API Tests @translation', function () {
     let box1Id, box2Id, box3Id;
     beforeEach(function () {
       box1Id = `box1_${Date.now()}`;
@@ -322,21 +397,21 @@ export function runTranslationTests(flock) {
       box3Id = `box3_${Date.now()}`;
 
       flock.createBox(box1Id, {
-        color: "#FF00FF",
+        color: '#FF00FF',
         width: 1,
         height: 1,
         depth: 1,
         position: [0, 0, 0],
       });
       flock.createBox(box2Id, {
-        color: "#00FF00",
+        color: '#00FF00',
         width: 1,
         height: 1,
         depth: 1,
         position: [3, 4, 0], // Distance should be 5 (3-4-5 triangle)
       });
       flock.createBox(box3Id, {
-        color: "#0000FF",
+        color: '#0000FF',
         width: 1,
         height: 1,
         depth: 1,
@@ -349,74 +424,85 @@ export function runTranslationTests(flock) {
       if (box3Id) flock.dispose(box3Id);
     });
 
-    it("should calculate correct distance between two boxes", function () {
+    it('should calculate correct distance between two boxes', function () {
       const distance = flock.distanceTo(box1Id, box2Id);
       expect(distance).to.be.closeTo(5, 0.01); // 3-4-5 triangle
     });
 
-    it("should calculate distance along single axis", function () {
+    it('should calculate distance along single axis', function () {
       const distance = flock.distanceTo(box1Id, box3Id);
       expect(distance).to.be.closeTo(10, 0.01); // Pure X-axis distance
     });
 
-    it("should return same distance regardless of parameter order", function () {
+    it('should return same distance regardless of parameter order', function () {
       const distance1 = flock.distanceTo(box1Id, box2Id);
       const distance2 = flock.distanceTo(box2Id, box1Id);
       expect(distance1).to.be.closeTo(distance2, 0.01);
     });
 
-    it("should return zero distance for same mesh", function () {
+    it('should return zero distance for same mesh', function () {
       const distance = flock.distanceTo(box1Id, box1Id);
       expect(distance).to.be.closeTo(0, 0.01);
     });
 
-    it("should calculate distance after mesh movement", async function () {
+    it('should calculate distance after mesh movement', async function () {
       // Move box2 to a new position
       await flock.positionAt(box2Id, { x: 6, y: 8, z: 0 });
       const distance = flock.distanceTo(box1Id, box2Id);
       expect(distance).to.be.closeTo(10, 0.01); // 6-8-10 triangle
     });
 
-    it("should calculate 3D distance correctly", async function () {
+    it('should calculate 3D distance correctly', async function () {
       // Position box2 at (3, 4, 12) for a 3-4-12-13 right triangle
       await flock.positionAt(box2Id, { x: 3, y: 4, z: 12 });
       const distance = flock.distanceTo(box1Id, box2Id);
       expect(distance).to.be.closeTo(13, 0.01); // sqrt(3² + 4² + 12²) = 13
     });
 
-    it("should throw error when first mesh does not exist", function () {
-      expect(() => {
-        flock.distanceTo("nonexistent1", box2Id);
-      }).to.throw("First mesh 'nonexistent1' not found");
+    describe('missing objects', function () {
+      let reported;
+      let previousOnBlockError;
+      beforeEach(function () {
+        reported = [];
+        flock._lastErrorSig = undefined;
+        previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
+      });
+      afterEach(function () {
+        flock.onBlockError = previousOnBlockError;
+      });
+
+      it('should return Infinity and report when first mesh does not exist', function () {
+        expect(flock.distanceTo('nonexistent1', box2Id)).to.equal(Infinity);
+        expect(reported[0]).to.include({ key: 'object_not_found', api: 'distanceTo' });
+        expect(reported[0].values.object).to.equal('nonexistent1');
+      });
+
+      it('should return Infinity and report when second mesh does not exist', function () {
+        expect(flock.distanceTo(box1Id, 'nonexistent2')).to.equal(Infinity);
+        expect(reported[0].values.object).to.equal('nonexistent2');
+      });
+
+      it('should return Infinity when both meshes do not exist', function () {
+        expect(flock.distanceTo('nonexistent1', 'nonexistent2')).to.equal(Infinity);
+      });
     });
 
-    it("should throw error when second mesh does not exist", function () {
-      expect(() => {
-        flock.distanceTo(box1Id, "nonexistent2");
-      }).to.throw("Second mesh 'nonexistent2' not found");
-    });
-
-    it("should throw error when both meshes do not exist", function () {
-      expect(() => {
-        flock.distanceTo("nonexistent1", "nonexistent2");
-      }).to.throw("First mesh 'nonexistent1' not found");
-    });
-
-    it("should work with meshes at negative coordinates", async function () {
+    it('should work with meshes at negative coordinates', async function () {
       await flock.positionAt(box1Id, { x: -5, y: -5, z: 0 });
       await flock.positionAt(box2Id, { x: 5, y: 5, z: 0 });
       const distance = flock.distanceTo(box1Id, box2Id);
       expect(distance).to.be.closeTo(14.14, 0.01); // sqrt(10² + 10²) ≈ 14.14
     });
 
-    it("should handle very small distances", async function () {
+    it('should handle very small distances', async function () {
       await flock.positionAt(box2Id, { x: 0.001, y: 0.001, z: 0 });
       const distance = flock.distanceTo(box1Id, box2Id);
       expect(distance).to.be.closeTo(0.00141, 0.0001); // sqrt(0.001² + 0.001²)
     });
   });
 
-  describe("positionAtSingleCoordinate @translation", function () {
+  describe('positionAtSingleCoordinate @translation', function () {
     let boxId;
 
     beforeEach(async function () {
@@ -437,24 +523,231 @@ export function runTranslationTests(flock) {
       }
     });
 
-    it("should set only the x coordinate", async function () {
-      await flock.positionAtSingleCoordinate(boxId, "x_coordinate", 7);
+    it('should set only the x coordinate', async function () {
+      await flock.positionAtSingleCoordinate(boxId, 'x_coordinate', 7);
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh.position.x).to.be.closeTo(7, 0.01);
     });
 
-    it("should set only the y coordinate", async function () {
-      await flock.positionAtSingleCoordinate(boxId, "y_coordinate", 4);
+    it('should set only the y coordinate', async function () {
+      await flock.positionAtSingleCoordinate(boxId, 'y_coordinate', 4);
       const mesh = flock.scene.getMeshByName(boxId);
       mesh.computeWorldMatrix(true);
       const minWorldY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
       expect(minWorldY).to.be.closeTo(4, 0.01);
     });
 
-    it("should set only the z coordinate", async function () {
-      await flock.positionAtSingleCoordinate(boxId, "z_coordinate", -3);
+    it('should set only the z coordinate', async function () {
+      await flock.positionAtSingleCoordinate(boxId, 'z_coordinate', -3);
       const mesh = flock.scene.getMeshByName(boxId);
       expect(mesh.position.z).to.be.closeTo(-3, 0.01);
+    });
+
+    // Moving to ground level waits for the ground, and the next block must not run first.
+    it('waits for the move to finish', async function () {
+      const positionAt = flock.positionAt;
+      let finishMove;
+      flock.positionAt = () => new Promise((resolve) => (finishMove = resolve));
+      try {
+        let done = false;
+        const moving = flock
+          .positionAtSingleCoordinate(boxId, 'y_coordinate', 4)
+          .then(() => (done = true));
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        expect(done).to.equal(false);
+        finishMove();
+        await moving;
+        expect(done).to.equal(true);
+      } finally {
+        flock.positionAt = positionAt;
+      }
+    });
+  });
+
+  describe('positionAt places the anchor of a rotated mesh @translation', function () {
+    let boxId;
+
+    const worldBox = () => {
+      const mesh = flock.scene.getMeshByName(boxId);
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      return mesh.getBoundingInfo().boundingBox;
+    };
+
+    beforeEach(async function () {
+      boxId = `anchorBox_${Date.now()}`;
+      flock.createBox(boxId, { width: 1, height: 2, depth: 1, position: [0, 0, 0] });
+      await flock.rotateTo(boxId, { x: 0, y: 0, z: 45 });
+    });
+
+    afterEach(function () {
+      flock.dispose(boxId);
+    });
+
+    it('rests a tilted box on Y, centred on X and Z', async function () {
+      await flock.positionAt(boxId, { x: 2, y: 3, z: -1 });
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(-1, 0.01);
+    });
+
+    it('keeps the resting Y when useY is false', async function () {
+      await flock.positionAt(boxId, { x: 0, y: 3, z: 0 });
+      await flock.positionAt(boxId, { x: 5, y: 99, z: 5, useY: false });
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(5, 0.01);
+    });
+
+    it('keeps the other anchor coordinates when setting one', async function () {
+      await flock.positionAt(boxId, { x: 2, y: 0, z: 5 });
+      await flock.positionAtSingleCoordinate(boxId, 'y_coordinate', 4);
+      const box = worldBox();
+      expect(box.minimumWorld.y).to.be.closeTo(4, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(5, 0.01);
+    });
+
+    it('honours an anchor set with setAnchor', async function () {
+      await flock.setAnchor(boxId, { x: 'MIN', y: 'MIN', z: 'CENTER' });
+      await flock.positionAt(boxId, { x: 2, y: 3, z: 0 });
+      const box = worldBox();
+      expect(box.minimumWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+    });
+
+    it('_positionAtBase still places the unrotated base', async function () {
+      await flock._positionAtBase(boxId, { x: 0, y: 3, z: 0 });
+      const mesh = flock.scene.getMeshByName(boxId);
+      expect(flock.getBlockPositionFromMesh(mesh).y).to.be.closeTo(3, 0.01);
+      expect(worldBox().minimumWorld.y).to.be.closeTo(4 - 1.5 / Math.SQRT2, 0.01);
+    });
+  });
+
+  describe('creating with an initial rotation and size @translation', function () {
+    const created = [];
+
+    afterEach(function () {
+      created.splice(0).forEach((id) => flock.dispose(id));
+    });
+
+    const worldBox = (mesh) => {
+      mesh.computeWorldMatrix(true);
+      mesh.refreshBoundingInfo();
+      return mesh.getBoundingInfo().boundingBox;
+    };
+
+    it('rests a box created tilted on its Y, centred on X and Z', function () {
+      const id = flock.createBox(`initTiltBox_${Date.now()}`, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [2, 3, -1],
+        rotation: { x: 0, y: 0, z: 45 },
+      });
+      created.push(id);
+      const box = worldBox(flock.scene.getMeshByName(id));
+      expect(box.minimumWorld.y).to.be.closeTo(3, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(-1, 0.01);
+    });
+
+    it('places a box created without a rotation as before', function () {
+      const id = flock.createBox(`initPlainBox_${Date.now()}`, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [2, 3, -1],
+      });
+      created.push(id);
+      const position = flock.getBlockPositionFromMesh(flock.scene.getMeshByName(id));
+      expect(position.x).to.be.closeTo(2, 0.01);
+      expect(position.y).to.be.closeTo(3, 0.01);
+      expect(position.z).to.be.closeTo(-1, 0.01);
+    });
+
+    it('centres a rotated plane on its position', function () {
+      const id = flock.createPlane(`initPlane_${Date.now()}`, {
+        width: 2,
+        height: 1,
+        position: [1, 2, 3],
+        rotation: { x: 90, y: 0, z: 0 },
+      });
+      created.push(id);
+      const box = worldBox(flock.scene.getMeshByName(id));
+      expect(box.centerWorld.x).to.be.closeTo(1, 0.01);
+      expect(box.centerWorld.y).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(3, 0.01);
+      expect(box.maximumWorld.y - box.minimumWorld.y).to.be.closeTo(0, 0.01);
+    });
+
+    it('sizes, then rotates, then rests a model on its Y', async function () {
+      this.timeout(20000);
+      const id = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: `initTree_${Date.now()}`,
+        position: { x: 4, y: 1, z: 4 },
+        size: { width: 2, height: 4, depth: 2 },
+        rotation: { x: 0, y: 0, z: 90 },
+      });
+      created.push(id);
+      const tree = await flock.whenModelReady(id);
+      await flock._whenHierarchySettled(tree);
+      const box = worldBox(tree);
+      expect(box.maximumWorld.x - box.minimumWorld.x).to.be.closeTo(4, 0.05);
+      expect(box.maximumWorld.y - box.minimumWorld.y).to.be.closeTo(2, 0.05);
+      expect(box.minimumWorld.y).to.be.closeTo(1, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(4, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(4, 0.01);
+    });
+
+    it('rotates a clone and keeps it resting where the source stands, before its DO runs', async function () {
+      const sourceId = flock.createBox(`initCloneSource_${Date.now()}`, {
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [3, 0, 0],
+      });
+      created.push(sourceId);
+      let rotationInDo = null;
+      const cloneId = flock.cloneMesh({
+        sourceMeshName: sourceId,
+        cloneId: `initClone_${Date.now()}`,
+        rotation: { x: 0, y: 0, z: 90 },
+        callback: (name) => {
+          const mesh = flock.scene.getMeshByName(name);
+          rotationInDo = mesh.rotationQuaternion.clone();
+        },
+      });
+      created.push(cloneId);
+      const clone = await flock.whenModelReady(cloneId);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const expected = flock.eulerDegreesToQuat(0, 0, 90);
+      expect(Math.abs(flock.BABYLON.Quaternion.Dot(rotationInDo, expected))).to.be.closeTo(1, 1e-6);
+      const box = worldBox(clone);
+      expect(box.centerWorld.x).to.be.closeTo(3, 0.01);
+      expect(box.minimumWorld.y).to.be.closeTo(0, 0.01);
+    });
+
+    it('rests 3D text created tilted on its Y, centred on X and Z', async function () {
+      this.timeout(30000);
+      const id = flock.create3DText({
+        text: 'Hi',
+        font: '/fonts/FreeSansBold.ttf',
+        size: 1,
+        depth: 0.2,
+        position: { x: 2, y: 1, z: -1 },
+        rotation: { x: 0, y: 0, z: 30 },
+        modelId: `initTiltText_${Date.now()}`,
+      });
+      created.push(id);
+      const text = await flock.whenModelReady(id);
+      const box = worldBox(text);
+      expect(box.minimumWorld.y).to.be.closeTo(1, 0.01);
+      expect(box.centerWorld.x).to.be.closeTo(2, 0.01);
+      expect(box.centerWorld.z).to.be.closeTo(-1, 0.01);
     });
   });
 }

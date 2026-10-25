@@ -1,25 +1,21 @@
-import { expect } from "chai";
-import { InputManager } from "../../input/inputManager.js";
-import { KeyboardSource } from "../../input/keyboardSource.js";
+import { expect } from 'chai';
+import { InputManager } from '../../input/inputManager.js';
+import { KeyboardSource } from '../../input/keyboardSource.js';
 
 function keydown(target, key, modifiers = {}) {
-  target.dispatchEvent(
-    new KeyboardEvent("keydown", { key, bubbles: true, ...modifiers }),
-  );
+  target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...modifiers }));
 }
 
 function keydown_repeat(target, key) {
-  target.dispatchEvent(new KeyboardEvent("keydown", { key, repeat: true, bubbles: true }));
+  target.dispatchEvent(new KeyboardEvent('keydown', { key, repeat: true, bubbles: true }));
 }
 
 function keyup(target, key, modifiers = {}) {
-  target.dispatchEvent(
-    new KeyboardEvent("keyup", { key, bubbles: true, ...modifiers }),
-  );
+  target.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, ...modifiers }));
 }
 
 export function runKeyboardSourceTests() {
-  describe("KeyboardSource @keyboardsource @input", function () {
+  describe('KeyboardSource @keyboardsource @input', function () {
     let manager, target, source;
 
     beforeEach(function () {
@@ -32,338 +28,366 @@ export function runKeyboardSourceTests() {
       source.stop();
     });
 
-    describe("start / keydown / keyup", function () {
+    describe('start / keydown / keyup', function () {
       it("keydown 'w' → isKeyDown('w') true", function () {
         source.start();
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.true;
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.true;
       });
 
       it("onKeyDownObservable fires once with 'w'", function () {
         source.start();
         const fired = [];
         manager.onKeyDownObservable.add((k) => fired.push(k));
-        keydown(target, "w");
-        expect(fired).to.deep.equal(["w"]);
+        keydown(target, 'w');
+        expect(fired).to.deep.equal(['w']);
       });
 
       it("keydown 'W' (Shift) → stored as canonical 'w'", function () {
         source.start();
-        keydown(target, "W");
-        expect(manager.isKeyDown("w")).to.be.true;
+        keydown(target, 'W');
+        expect(manager.isKeyDown('w')).to.be.true;
       });
 
       it("keydown ' ' → isKeyDown(' ') true", function () {
         source.start();
-        keydown(target, " ");
-        expect(manager.isKeyDown(" ")).to.be.true;
+        keydown(target, ' ');
+        expect(manager.isKeyDown(' ')).to.be.true;
       });
 
       it("keydown 'Spacebar' → isKeyDown(' ') true", function () {
         source.start();
-        keydown(target, "Spacebar");
-        expect(manager.isKeyDown(" ")).to.be.true;
+        keydown(target, 'Spacebar');
+        expect(manager.isKeyDown(' ')).to.be.true;
       });
 
       it("keydown 'ArrowUp' → isKeyDown('ArrowUp') true (named key passes through)", function () {
         source.start();
-        keydown(target, "ArrowUp");
-        expect(manager.isKeyDown("ArrowUp")).to.be.true;
+        keydown(target, 'ArrowUp');
+        expect(manager.isKeyDown('ArrowUp')).to.be.true;
       });
 
-      it("keyup releases the key", function () {
+      it('keyup releases the key', function () {
         source.start();
-        keydown(target, "w");
-        keyup(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        keyup(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
     });
 
-    describe("blur handling", function () {
-      it("blur on target clears all keys", function () {
+    describe('focus', function () {
+      let el;
+
+      beforeEach(function () {
+        el = new EventTarget();
+        el.ownerDocument = { activeElement: el };
+      });
+
+      it('a focused element target tracks the key', function () {
+        source = new KeyboardSource(manager, { target: el });
         source.start();
-        keydown(target, "w");
-        target.dispatchEvent(new Event("blur"));
+        keydown(el, '3');
+        expect(source.isKeyDown('3')).to.be.true;
+      });
+
+      it('ignores a keydown whose focus moved away during dispatch, so its keyup elsewhere cannot strand it', function () {
+        el.addEventListener('keydown', () => (el.ownerDocument.activeElement = null));
+        source = new KeyboardSource(manager, { target: el });
+        source.start();
+        keydown(el, '3');
+        expect(source.isKeyDown('3')).to.be.false;
+        expect(manager.isKeyDown('3')).to.be.false;
+      });
+    });
+
+    describe('blur handling', function () {
+      it('blur on target clears all keys', function () {
+        source.start();
+        keydown(target, 'w');
+        target.dispatchEvent(new Event('blur'));
         expect(manager.heldKeyCount()).to.equal(0);
       });
 
-      it("blur on target fires onKeyUpObservable for each held key", function () {
+      it('blur on target fires onKeyUpObservable for each held key', function () {
         source.start();
         const fired = [];
         manager.onKeyUpObservable.add((k) => fired.push(k));
-        keydown(target, "w");
-        target.dispatchEvent(new Event("blur"));
-        expect(fired).to.include("w");
+        keydown(target, 'w');
+        target.dispatchEvent(new Event('blur'));
+        expect(fired).to.include('w');
       });
 
-      it("blur on target calls the onBlur callback", function () {
+      it('blur on target calls the onBlur callback', function () {
         let called = false;
         source.stop();
         source = new KeyboardSource(manager, {
           target,
-          onBlur: () => { called = true; },
+          onBlur: () => {
+            called = true;
+          },
         });
         source.start();
-        target.dispatchEvent(new Event("blur"));
+        target.dispatchEvent(new Event('blur'));
         expect(called).to.be.true;
       });
 
-      it("blur on window clears all keys", function () {
+      it('blur on window clears all keys', function () {
         source.start();
-        keydown(target, "w");
-        window.dispatchEvent(new Event("blur"));
+        keydown(target, 'w');
+        window.dispatchEvent(new Event('blur'));
         expect(manager.heldKeyCount()).to.equal(0);
       });
 
-      it("blur on target releases only keyboard-owned keys, leaving keys from other sources intact", function () {
+      it('blur on target releases only keyboard-owned keys, leaving keys from other sources intact', function () {
         source.start();
-        keydown(target, "w");
-        manager._setKey("e", true); // simulate another source (e.g. gamepad)
-        target.dispatchEvent(new Event("blur"));
-        expect(manager.isKeyDown("w")).to.be.false;
-        expect(manager.isKeyDown("e")).to.be.true;
-        manager._setKey("e", false); // cleanup
+        keydown(target, 'w');
+        manager._setKey('e', true); // simulate another source (e.g. gamepad)
+        target.dispatchEvent(new Event('blur'));
+        expect(manager.isKeyDown('w')).to.be.false;
+        expect(manager.isKeyDown('e')).to.be.true;
+        manager._setKey('e', false); // cleanup
       });
     });
 
-    describe("key repeat", function () {
-      it("repeated keydown events do not increment refcount beyond 1", function () {
+    describe('key repeat', function () {
+      it('repeated keydown events do not increment refcount beyond 1', function () {
         source.start();
-        keydown(target, "w");
-        keydown_repeat(target, "w");
-        keydown_repeat(target, "w");
-        keyup(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        keydown_repeat(target, 'w');
+        keydown_repeat(target, 'w');
+        keyup(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("repeated keydown does not re-fire onKeyDownObservable", function () {
+      it('repeated keydown does not re-fire onKeyDownObservable', function () {
         source.start();
         const fired = [];
         manager.onKeyDownObservable.add((k) => fired.push(k));
-        keydown(target, "w");
-        keydown_repeat(target, "w");
-        keydown_repeat(target, "w");
+        keydown(target, 'w');
+        keydown_repeat(target, 'w');
+        keydown_repeat(target, 'w');
         expect(fired).to.have.lengthOf(1);
       });
 
-      it("OS auto-repeat fires onKeyRepeatObservable for each repeat tick", function () {
+      it('OS auto-repeat fires onKeyRepeatObservable for each repeat tick', function () {
         source.start();
         const repeated = [];
         manager.onKeyRepeatObservable.add((k) => repeated.push(k));
-        // _repeatKey is rate-limited (REPEAT_INTERVAL_MS), so stub the clock and
-        // advance past the window between ticks to exercise distinct repeats.
+        // First repeat waits out the initial typematic delay; subsequent ones are
+        // rate-limited (REPEAT_INTERVAL_MS). Stub the clock to cross both windows.
         const realNow = Date.now;
         let clock = realNow.call(Date);
         Date.now = () => clock;
         try {
-          keydown(target, "w");
-          keydown_repeat(target, "w");
+          keydown(target, 'w');
+          clock += 600;
+          keydown_repeat(target, 'w');
           clock += 200;
-          keydown_repeat(target, "w");
+          keydown_repeat(target, 'w');
         } finally {
           Date.now = realNow;
         }
-        expect(repeated).to.eql(["w", "w"]);
+        expect(repeated).to.eql(['w', 'w']);
       });
 
-      it("does not fire onKeyRepeatObservable for a key that is not held", function () {
+      it('does not fire onKeyRepeatObservable for a key that is not held', function () {
         source.start();
         const repeated = [];
         manager.onKeyRepeatObservable.add((k) => repeated.push(k));
-        keydown_repeat(target, "w");
+        keydown_repeat(target, 'w');
         expect(repeated).to.have.lengthOf(0);
       });
     });
 
-    describe("modifier chords (undo shortcut vs movement)", function () {
+    describe('modifier chords (undo shortcut vs movement)', function () {
       it("Ctrl+Z does not register 'z' as held", function () {
         source.start();
-        keydown(target, "z", { ctrlKey: true });
-        expect(manager.isKeyDown("z")).to.be.false;
+        keydown(target, 'z', { ctrlKey: true });
+        expect(manager.isKeyDown('z')).to.be.false;
       });
 
       it("⌘Z does not register 'z' as held", function () {
         source.start();
-        keydown(target, "z", { metaKey: true });
-        expect(manager.isKeyDown("z")).to.be.false;
+        keydown(target, 'z', { metaKey: true });
+        expect(manager.isKeyDown('z')).to.be.false;
       });
 
-      it("Alt+key does not register the key as held", function () {
+      it('Alt+key does not register the key as held', function () {
         source.start();
-        keydown(target, "w", { altKey: true });
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w', { altKey: true });
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("Shift+key still registers (Shift is a gameplay modifier)", function () {
+      it('Shift+key still registers (Shift is a gameplay modifier)', function () {
         source.start();
-        keydown(target, "W", { shiftKey: true });
-        expect(manager.isKeyDown("w")).to.be.true;
+        keydown(target, 'W', { shiftKey: true });
+        expect(manager.isKeyDown('w')).to.be.true;
       });
 
-      it("keyup with a modifier held still releases a plain-held key", function () {
+      it('keyup with a modifier held still releases a plain-held key', function () {
         source.start();
-        keydown(target, "z");
-        keyup(target, "z", { ctrlKey: true });
-        expect(manager.isKeyDown("z")).to.be.false;
+        keydown(target, 'z');
+        keyup(target, 'z', { ctrlKey: true });
+        expect(manager.isKeyDown('z')).to.be.false;
       });
 
-      it("⌘ keyup releases keys stuck by macOS keyup suppression", function () {
+      it('⌘ keyup releases keys stuck by macOS keyup suppression', function () {
         source.start();
-        keydown(target, "z");
+        keydown(target, 'z');
         // macOS never delivers the 'z' keyup while ⌘ is held; ⌘ keyup must clean up.
-        keyup(target, "Meta");
-        expect(manager.isKeyDown("z")).to.be.false;
+        keyup(target, 'Meta');
+        expect(manager.isKeyDown('z')).to.be.false;
         expect(manager.heldKeyCount()).to.equal(0);
       });
 
-      it("⌘ keyup leaves keys from other sources intact", function () {
+      it('⌘ keyup leaves keys from other sources intact', function () {
         source.start();
-        keydown(target, "z");
-        manager._setKey("e", true); // simulate another source (e.g. gamepad)
-        keyup(target, "Meta");
-        expect(manager.isKeyDown("z")).to.be.false;
-        expect(manager.isKeyDown("e")).to.be.true;
-        manager._setKey("e", false); // cleanup
+        keydown(target, 'z');
+        manager._setKey('e', true); // simulate another source (e.g. gamepad)
+        keyup(target, 'Meta');
+        expect(manager.isKeyDown('z')).to.be.false;
+        expect(manager.isKeyDown('e')).to.be.true;
+        manager._setKey('e', false); // cleanup
       });
     });
 
-    describe("stop", function () {
-      it("stop() prevents subsequent keydown from registering", function () {
+    describe('stop', function () {
+      it('stop() prevents subsequent keydown from registering', function () {
         source.start();
         source.stop();
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("stop() before start() does not throw", function () {
+      it('stop() before start() does not throw', function () {
         expect(() => source.stop()).to.not.throw();
       });
 
-      it("stop() twice does not throw", function () {
+      it('stop() twice does not throw', function () {
         source.start();
         source.stop();
         expect(() => source.stop()).to.not.throw();
       });
     });
 
-    describe("setFlyMode (camera gizmo fly mode)", function () {
-      it("setFlyMode(true) immediately releases held movement keys", function () {
+    describe('editor input owner (camera gizmo fly mode)', function () {
+      it('handover to the editor immediately releases held movement keys', function () {
         source.start();
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.true;
-        source.setFlyMode(true);
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        manager.setInputOwner('editor');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("keydown in fly mode does not reach InputManager", function () {
+      it('keydown while the editor owns input does not reach InputManager', function () {
         source.start();
-        source.setFlyMode(true);
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
+        manager.setInputOwner('editor');
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("keyup in fly mode does not reach InputManager", function () {
+      it('keyup while the editor owns input does not reach InputManager', function () {
         source.start();
-        keydown(target, "w");
-        source.setFlyMode(true);
-        keyup(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        manager.setInputOwner('editor');
+        keyup(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("setFlyMode(false) re-enables key reporting", function () {
+      it('handing input back re-enables key reporting', function () {
         source.start();
-        source.setFlyMode(true);
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false;
-        source.setFlyMode(false);
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.true;
+        manager.setInputOwner('editor');
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false;
+        manager.setInputOwner('project');
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.true;
       });
 
-      it("keys held during fly mode do not stick after setFlyMode(false)", function () {
+      it('keys held during the handover do not stick afterwards', function () {
         source.start();
-        source.setFlyMode(true);
-        keydown(target, "w");
-        source.setFlyMode(false);
+        manager.setInputOwner('editor');
+        keydown(target, 'w');
+        manager.setInputOwner('project');
         // 'w' is still physically held but InputManager was never told — it should be absent
-        expect(manager.isKeyDown("w")).to.be.false;
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("setFlyMode(true) is idempotent", function () {
+      it('repeating the handover is idempotent', function () {
         source.start();
-        keydown(target, "w");
-        source.setFlyMode(true);
-        source.setFlyMode(true);
-        expect(manager.isKeyDown("w")).to.be.false;
+        keydown(target, 'w');
+        manager.setInputOwner('editor');
+        manager.setInputOwner('editor');
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("⌘ keyup in fly mode does not release the same key held by another source", function () {
+      it('⌘ keyup while the editor owns input does not release a key held by another source', function () {
         source.start();
-        source.setFlyMode(true);
-        manager._setKey("w", true); // simulate another source (e.g. gamepad)
-        keydown(target, "w"); // tracked physically, never reported to InputManager
-        keyup(target, "Meta");
-        expect(manager.isKeyDown("w")).to.be.true; // other source's press intact
-        expect(source.isKeyDown("w")).to.be.false; // physical tracking cleared
-        manager._setKey("w", false); // cleanup
+        manager.setInputOwner('editor');
+        manager._setKey('w', true); // simulate another source (e.g. gamepad)
+        keydown(target, 'w'); // tracked physically, never reported to InputManager
+        keyup(target, 'Meta');
+        expect(manager.isKeyDown('w')).to.be.true; // other source's press intact
+        expect(source.isKeyDown('w')).to.be.false; // physical tracking cleared
+        manager._setKey('w', false); // cleanup
       });
 
-      it("blur in fly mode does not release the same key held by another source", function () {
+      it('blur in fly mode does not release the same key held by another source', function () {
         source.start();
-        source.setFlyMode(true);
-        manager._setKey("w", true); // simulate another source (e.g. gamepad)
-        keydown(target, "w");
-        target.dispatchEvent(new Event("blur"));
-        expect(manager.isKeyDown("w")).to.be.true;
-        manager._setKey("w", false); // cleanup
+        manager.setInputOwner('editor');
+        manager._setKey('w', true); // simulate another source (e.g. gamepad)
+        keydown(target, 'w');
+        target.dispatchEvent(new Event('blur'));
+        expect(manager.isKeyDown('w')).to.be.true;
+        manager._setKey('w', false); // cleanup
       });
 
-      it("isKeyDown() reflects physical key state even in fly mode (camera can still read it)", function () {
+      it('isKeyDown() reflects physical key state even in fly mode (camera can still read it)', function () {
         source.start();
-        source.setFlyMode(true);
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.false; // user code sees nothing
-        expect(source.isKeyDown("w")).to.be.true;   // camera engine can still read it
+        manager.setInputOwner('editor');
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.false; // user code sees nothing
+        expect(source.isKeyDown('w')).to.be.true; // camera engine can still read it
       });
     });
 
-    describe("idempotent start", function () {
-      it("calling start() twice does not double-register — one keydown fires observable once", function () {
+    describe('idempotent start', function () {
+      it('calling start() twice does not double-register — one keydown fires observable once', function () {
         source.start();
         source.start();
         const fired = [];
         manager.onKeyDownObservable.add((k) => fired.push(k));
-        keydown(target, "w");
+        keydown(target, 'w');
         expect(fired).to.have.lengthOf(1);
       });
     });
 
-    describe("synthetic event filtering", function () {
-      it("keydown tagged __flockSynthetic is ignored — isKeyDown stays false", function () {
+    describe('synthetic event filtering', function () {
+      it('keydown tagged __flockSynthetic is ignored — isKeyDown stays false', function () {
         source.start();
-        const event = new KeyboardEvent("keydown", { key: "w", bubbles: true });
+        const event = new KeyboardEvent('keydown', { key: 'w', bubbles: true });
         event.__flockSynthetic = true;
         target.dispatchEvent(event);
-        expect(manager.isKeyDown("w")).to.be.false;
+        expect(manager.isKeyDown('w')).to.be.false;
       });
 
-      it("keyup tagged __flockSynthetic is ignored — does not release a physically-held key", function () {
+      it('keyup tagged __flockSynthetic is ignored — does not release a physically-held key', function () {
         source.start();
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.true;
-        const event = new KeyboardEvent("keyup", { key: "w", bubbles: true });
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.true;
+        const event = new KeyboardEvent('keyup', { key: 'w', bubbles: true });
         event.__flockSynthetic = true;
         target.dispatchEvent(event);
-        expect(manager.isKeyDown("w")).to.be.true;
+        expect(manager.isKeyDown('w')).to.be.true;
       });
 
-      it("non-synthetic keydown still registers normally after a synthetic one", function () {
+      it('non-synthetic keydown still registers normally after a synthetic one', function () {
         source.start();
-        const synthetic = new KeyboardEvent("keydown", { key: "w", bubbles: true });
+        const synthetic = new KeyboardEvent('keydown', { key: 'w', bubbles: true });
         synthetic.__flockSynthetic = true;
         target.dispatchEvent(synthetic);
-        keydown(target, "w");
-        expect(manager.isKeyDown("w")).to.be.true;
+        keydown(target, 'w');
+        expect(manager.isKeyDown('w')).to.be.true;
       });
     });
   });

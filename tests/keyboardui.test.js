@@ -3,9 +3,11 @@ import {
   GizmoMenuManager,
   InfoPanel,
   ShortcutsPanel,
+  HowToPanel,
   AreaManager,
 } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { makeKeyEvent } from './utils/keyboardDispatcherTestUtils.js';
 
 export function runKeyboardUiTests(flock) {
   describe('accessibility/keyboardui @keyboardui', function () {
@@ -144,8 +146,17 @@ export function runKeyboardUiTests(flock) {
           const btn = addButton('positionButton');
           btn.addEventListener('click', () => (clicked = true));
           GizmoMenuManager.toggle(true);
-          KeyboardDispatcher._registry['*:Digit3']();
+          KeyboardDispatcher._registry['*:Digit3'](makeKeyEvent({ key: '3', code: 'Digit3' }));
           expect(clicked).to.equal(true);
+        });
+
+        it('consumes the digit while the menu is open, so the canvas never sees it (3 is orbit zoom out)', function () {
+          addButton('positionButton');
+          GizmoMenuManager.toggle(true);
+          const event = makeKeyEvent({ key: '3', code: 'Digit3' });
+          KeyboardDispatcher._registry['*:Digit3'](event);
+          expect(event.defaultPrevented).to.equal(true);
+          expect(event.propagationStopped).to.equal(true);
         });
       });
 
@@ -217,6 +228,36 @@ export function runKeyboardUiTests(flock) {
         expect(AreaManager.overlay.classList.contains('hidden')).to.equal(true);
       });
 
+      it('Digit8 (Code editor) focuses the workspace surface, not a stray tabbable child (e.g. trashcan)', function () {
+        // Trashcan sits before the workspace group in the SVG; focus must still
+        // land on the workspace surface.
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'blocklySvg');
+        const trash = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        trash.setAttribute('class', 'blocklyTrash');
+        trash.setAttribute('tabindex', '0');
+        const surface = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        surface.setAttribute('class', 'blocklyWorkspace');
+        surface.setAttribute('tabindex', '0');
+        svg.append(trash, surface);
+        document.body.appendChild(svg);
+
+        let trashFocused = false;
+        let surfaceFocused = false;
+        trash.focus = () => (trashFocused = true);
+        surface.focus = () => (surfaceFocused = true);
+
+        try {
+          AreaManager.toggle(true);
+          KeyboardDispatcher._registry['OVERLAY:Digit8']({ preventDefault() {} });
+          expect(surfaceFocused, 'workspace surface focused').to.equal(true);
+          expect(trashFocused, 'trashcan not focused').to.equal(false);
+          expect(AreaManager.overlay.classList.contains('hidden')).to.equal(true);
+        } finally {
+          svg.remove();
+        }
+      });
+
       describe('effectiveAreas', function () {
         afterEach(function () {
           document.getElementById('info-panel-tabs')?.remove();
@@ -234,6 +275,16 @@ export function runKeyboardUiTests(flock) {
         it('swaps area 5 for the view-toggle pill when #info-panel-tabs does not exist', function () {
           const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
           expect(area5.selector).to.equal('#viewToggle');
+        });
+
+        it('focuses the help button for area 5 when the info panel tabs are visible', function () {
+          const tabs = document.createElement('div');
+          tabs.id = 'info-panel-tabs';
+          Object.defineProperty(tabs, 'offsetWidth', { value: 100 });
+          document.body.appendChild(tabs);
+
+          const area5 = AreaManager.effectiveAreas.find((a) => a.label === '5');
+          expect(area5.focusSelector).to.equal('#info-tab-btn-help');
         });
 
         it('swaps area 9 for the reload button when one is connected to the DOM', function () {
@@ -366,6 +417,14 @@ export function runKeyboardUiTests(flock) {
           expect(list.querySelectorAll('.shortcuts-category').length).to.be.above(0);
           expect(list.querySelectorAll('kbd').length).to.be.above(0);
         });
+
+        it('documents fly and orbit camera keys under a Camera category', function () {
+          ShortcutsPanel.show();
+          const text = ShortcutsPanel.panel.querySelector('#shortcuts-list').textContent;
+          expect(text).to.include('Camera');
+          expect(text).to.include('Fly camera');
+          expect(text).to.include('Orbit camera');
+        });
       });
 
       describe('adjustFontSize', function () {
@@ -388,7 +447,7 @@ export function runKeyboardUiTests(flock) {
             const maxed = ShortcutsPanel.fontSize;
             ShortcutsPanel.adjustFontSize(1);
             expect(ShortcutsPanel.fontSize).to.equal(maxed);
-            expect(ShortcutsPanel.panel.querySelector('.shortcuts-increase-btn').disabled).to.equal(
+            expect(ShortcutsPanel.panel.querySelector('.font-increase-btn').disabled).to.equal(
               true
             );
           } finally {
@@ -408,7 +467,7 @@ export function runKeyboardUiTests(flock) {
             const minned = ShortcutsPanel.fontSize;
             ShortcutsPanel.adjustFontSize(-1);
             expect(ShortcutsPanel.fontSize).to.equal(minned);
-            expect(ShortcutsPanel.panel.querySelector('.shortcuts-decrease-btn').disabled).to.equal(
+            expect(ShortcutsPanel.panel.querySelector('.font-decrease-btn').disabled).to.equal(
               true
             );
           } finally {
@@ -493,6 +552,7 @@ export function runKeyboardUiTests(flock) {
           const closeBtn = ShortcutsPanel.panel.querySelector('.shortcuts-modal-close');
           closeBtn.focus();
           expect(document.activeElement).to.equal(closeBtn);
+          const expectedFocus = ShortcutsPanel.previousFocus;
 
           window.matchMedia = () => ({ matches: false });
           try {
@@ -501,7 +561,32 @@ export function runKeyboardUiTests(flock) {
             window.matchMedia = saved;
           }
           expect(ShortcutsPanel._modalActive).to.equal(false);
-          expect(document.activeElement).to.equal(ShortcutsPanel.previousFocus);
+          expect(document.activeElement).to.equal(expectedFocus);
+          expect(ShortcutsPanel.previousFocus).to.equal(null);
+        });
+
+        it('leaves focus on a surviving control when exiting modal on resize', function () {
+          const saved = window.matchMedia;
+          window.matchMedia = () => ({ matches: true });
+          try {
+            ShortcutsPanel.show();
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(true);
+          const increaseBtn = ShortcutsPanel.panel.querySelector('.font-increase-btn');
+          increaseBtn.focus();
+          expect(document.activeElement).to.equal(increaseBtn);
+
+          window.matchMedia = () => ({ matches: false });
+          try {
+            window.dispatchEvent(new Event('resize'));
+          } finally {
+            window.matchMedia = saved;
+          }
+          expect(ShortcutsPanel._modalActive).to.equal(false);
+          expect(document.activeElement).to.equal(increaseBtn);
         });
       });
 
@@ -564,6 +649,160 @@ export function runKeyboardUiTests(flock) {
             );
           }).to.not.throw();
         });
+      });
+    });
+
+    // Font-size, modal enter/exit, focus trap and keydown handling all come
+    // from the same ModalPanelBehaviour mixin already exercised in depth
+    // above via ShortcutsPanel — no need to re-test that generic behaviour
+    // here. This covers what's actually specific to HowToPanel: the card
+    // grid, the grid<->article swap, and resetting to the grid on hide().
+    describe('HowToPanel', function () {
+      let panelRoot;
+
+      before(function () {
+        panelRoot = document.createElement('div');
+        panelRoot.innerHTML =
+          '<div id="info-panel"><div id="info-panel-tabs">' +
+          '<div id="info-panel-tablist" role="tablist"></div></div>' +
+          '<div id="info-panel-body"></div></div>';
+        document.body.appendChild(panelRoot);
+        InfoPanel.init();
+        HowToPanel.init();
+      });
+
+      after(function () {
+        HowToPanel.hide();
+        panelRoot.remove();
+      });
+
+      afterEach(function () {
+        HowToPanel.hide();
+      });
+
+      const chipByLabel = (label) =>
+        [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')].find(
+          (c) => c.textContent === label
+        );
+
+      it('show() activates the how-to tab, defaulting to the General filter', function () {
+        HowToPanel.show();
+        expect(InfoPanel._activeId).to.equal('howto');
+        const tiles = HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile');
+        expect(tiles.length).to.equal(8);
+        expect(chipByLabel('General').getAttribute('aria-pressed')).to.equal('true');
+      });
+
+      it("clicking a card swaps the grid for that how-to's article, with a back button", function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.equal(null);
+        expect(HowToPanel.panel.querySelector('.howto-back')).to.exist;
+        expect(HowToPanel.panel.querySelector('.howto-article-title').textContent).to.not.equal('');
+      });
+
+      it('the back button returns to the card grid', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-back').length).to.equal(2);
+        HowToPanel.panel.querySelector('.howto-back').click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
+        expect(HowToPanel.panel.querySelector('.howto-back')).to.equal(null);
+      });
+
+      it('hide() resets to the grid, so reopening does not strand the reader mid-article', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        HowToPanel.hide();
+        HowToPanel.show();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.exist;
+      });
+
+      it('a <link-to target="howto:…"> opens that how-to', function () {
+        HowToPanel.show();
+        chipByLabel('Gizmo').click();
+        const tiles = HowToPanel.panel.querySelectorAll('.howto-tile');
+        const targetName = 'Explore your world';
+        [...tiles].find((t) => t.textContent.includes('Add an object')).click();
+        const link = [...HowToPanel.panel.querySelectorAll('.howto-article button.help-link')].find(
+          (b) => b.textContent.includes('Explore')
+        );
+        expect(link).to.exist;
+        link.click();
+        expect(HowToPanel.panel.querySelector('.howto-grid')).to.equal(null);
+        expect(HowToPanel.panel.querySelector('.howto-article-title').textContent).to.equal(
+          targetName
+        );
+      });
+
+      it('a <link-to> in the article is upgraded to a working help-link button', function () {
+        HowToPanel.show();
+        HowToPanel.panel.querySelector('.howto-tile').click();
+        const article = HowToPanel.panel.querySelector('.howto-article');
+        expect(article.querySelector('link-to')).to.equal(null);
+        expect(article.querySelector('button.help-link')).to.exist;
+      });
+
+      it('a <ui-button> renders its label with an icon and no underlined gap', function () {
+        HowToPanel.show();
+        chipByLabel('Gizmo').click();
+        const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
+          t.textContent.includes('Add an object')
+        );
+        expect(tile).to.exist;
+        tile.click();
+        const article = HowToPanel.panel.querySelector('.howto-article');
+        expect(article.querySelector('ui-button')).to.equal(null);
+        const btn = [...article.querySelectorAll('button.help-link')].find((b) =>
+          b.textContent.includes('Add')
+        );
+        expect(btn).to.exist;
+        expect(btn.querySelector('svg.howto-icon')).to.exist;
+        expect(btn.classList.contains('howto-ui-button')).to.equal(true);
+        // The label-icon gap is CSS margin, not a whitespace text node, so no
+        // underline paints between them.
+        const gaps = [...btn.childNodes].filter(
+          (n) => n.nodeType === Node.TEXT_NODE && !n.textContent.trim()
+        );
+        expect(gaps.length).to.equal(0);
+        expect(btn.lastChild.nodeName).to.equal('svg');
+      });
+
+      it('shows one filter chip per topic tag, General, Blocks and Gizmo first', function () {
+        HowToPanel.show();
+        const chips = [...HowToPanel.panel.querySelectorAll('.howto-filter-chip')];
+        expect(chips.map((c) => c.textContent)).to.deep.equal([
+          'General',
+          'Blocks',
+          'Gizmo',
+          'Scene',
+          'Code',
+          'Camera',
+        ]);
+      });
+
+      it('filtering by a chip shows only that topic’s cards', function () {
+        HowToPanel.show();
+        chipByLabel('Gizmo').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(11);
+        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('true');
+        chipByLabel('Blocks').click();
+        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(12);
+        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('false');
+      });
+
+      it('the Duplicate an object article teaches the gizmo, not block duplication', function () {
+        HowToPanel.show();
+        chipByLabel('Gizmo').click();
+        const tile = [...HowToPanel.panel.querySelectorAll('.howto-tile')].find((t) =>
+          t.textContent.includes('Duplicate an object')
+        );
+        expect(tile).to.exist;
+        tile.click();
+        const text = HowToPanel.panel.querySelector('.howto-article').textContent;
+        expect(text).to.include('Duplicate');
+        expect(text).to.include('copy');
+        expect(text).to.not.include('Right-click');
       });
     });
   });

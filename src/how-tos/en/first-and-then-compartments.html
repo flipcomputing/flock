@@ -1,0 +1,64 @@
+<!-- Content of the "Use the first and then compartments" how-to. Edit freely — see README.md in src/how-tos. -->
+<topic>
+  <topic-title>Open the compartments</topic-title>
+  <p>
+    Click the arrow at the right of an add block. This opens the rotation row,
+    which also has size on some blocks. Click the arrow under the rotation row to open the
+    <vocab>first compartment</vocab>. Then click the arrow under the first compartment to open the
+    <vocab>then compartment</vocab>.
+  </p>
+  <p>
+    Click the arrow again to close a compartment. The blocks inside it are kept and still run.
+  </p>
+  <p>
+    A solid arrow means there are blocks behind it. An outline arrow means there is nothing there
+    yet.
+  </p>
+  <p>
+    Alternative: Move to the arrow on the block with the keyboard and press
+    <strong>Enter</strong>.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>The first compartment</topic-title>
+  <p>
+    The first compartment is what the object does first, before it appears in the scene. The
+    object stays hidden, and doesn't bump into anything, until these blocks have finished, so it
+    appears already set up.
+  </p>
+  <p>
+    Use it to get the object ready: add physics, change its color, resize or rotate it, switch it
+    to an animation, or give it a push to launch it.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>The then compartment</topic-title>
+  <p>
+    The then compartment runs once the object is in the scene. Use it for things that happen over
+    time: waiting, moving, playing an animation, repeating forever, or removing the object later.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>The next block doesn't wait</topic-title>
+  <p>
+    Neither compartment stops the next block from running. The block under the add block starts
+    straight away, while the first and then compartments carry on at the same time.
+  </p>
+  <p>
+    If the next block does something to the object, it waits until the object has been created.
+  </p>
+  <p>
+    In this example, each time round the loop a new sphere is added and launched. The loop doesn't
+    wait for the 3 seconds, so all ten spheres launch at once, and each one disappears 3 seconds
+    later.
+  </p>
+  <snippet src="add-sphere-first-then"></snippet>
+</topic>
+
+<tip>
+  To make something happen after the then compartment has finished, put it at the end of the then
+  compartment.
+</tip>

@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { createGizmoMobileHud } from '../ui/gizmo-mobile-hud.js';
+import { setGizmoControlsEnabled } from '../ui/controlPreferences.js';
 
 function findHud(flock) {
   return flock.scene.textures.find((t) => t.name === 'GizmoHUD');
@@ -10,11 +11,33 @@ function findControl(flock, name) {
   return hud?.getDescendants(false, (c) => c.name === name)[0] ?? null;
 }
 
+const GIZMO_CONTROLS_KEY = 'flock-gizmo-controls';
+
+// A dispatched PointerEvent has no active pointer behind it, so the slider's
+// canvas.setPointerCapture() throws NotFoundError here even though it is fine
+// in a real browser. Stub it for the dispatch — it is incidental to what these
+// tests assert.
+function withoutPointerCapture(canvas, fn) {
+  const real = canvas.setPointerCapture;
+  canvas.setPointerCapture = () => {};
+  try {
+    fn();
+  } finally {
+    canvas.setPointerCapture = real;
+  }
+}
+
 export function runGizmoMobileHudTests(flock) {
   describe('ui/gizmo-mobile-hud @gizmomobilehud', function () {
     let stop;
     let moves;
     let axisChanges;
+
+    // The visibility preference persists in localStorage, so without this a
+    // single collapse test would silently invalidate every later assertion.
+    beforeEach(function () {
+      localStorage.removeItem(GIZMO_CONTROLS_KEY);
+    });
 
     function make(overrides = {}) {
       moves = [];
@@ -34,6 +57,7 @@ export function runGizmoMobileHudTests(flock) {
       stop = null;
       flock.controlsTexture = undefined;
       flock._joystickSource = undefined;
+      localStorage.removeItem(GIZMO_CONTROLS_KEY);
     });
 
     describe('guard clause', function () {
@@ -80,6 +104,19 @@ export function runGizmoMobileHudTests(flock) {
         stop = null;
       });
 
+      it('keeps player controls rebuilt while it is open hidden', function () {
+        // The Tools panel can turn them on mid-gizmo, building a texture the
+        // HUD never saw.
+        flock.controlsTexture = { rootContainer: { isVisible: true } };
+        make();
+        const rebuilt = { rootContainer: { isVisible: !flock._playerControlsSuppressed } };
+        flock.controlsTexture = rebuilt;
+        expect(rebuilt.rootContainer.isVisible).to.equal(false);
+        stop();
+        expect(rebuilt.rootContainer.isVisible).to.equal(true);
+        stop = null;
+      });
+
       it('pauses the joystick source while active and resumes it on stop', function () {
         let paused = false;
         flock._joystickSource = {
@@ -105,7 +142,27 @@ export function runGizmoMobileHudTests(flock) {
 
       it("also creates the uniform 'all' button when showUniform is true", function () {
         make({ showUniform: true });
+        const button = findControl(flock, 'gizmo-axis-all');
+        expect(button).to.exist;
+        expect(button.textBlock.text).to.equal('=');
+      });
+
+      it("creates only the uniform 'all' button when uniformOnly is true", function () {
+        make({ uniformOnly: true, initialAxis: 'x' });
         expect(findControl(flock, 'gizmo-axis-all')).to.exist;
+        expect(findControl(flock, 'gizmo-axis-x')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-y')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-z')).to.not.exist;
+        expect(stop.getAxis()).to.equal('all');
+      });
+
+      it('creates only that axis button when onlyAxis is set', function () {
+        make({ onlyAxis: 'y', initialAxis: 'x' });
+        expect(findControl(flock, 'gizmo-axis-y')).to.exist;
+        expect(findControl(flock, 'gizmo-axis-x')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-z')).to.not.exist;
+        expect(findControl(flock, 'gizmo-axis-all')).to.not.exist;
+        expect(stop.getAxis()).to.equal('y');
       });
 
       it('clicking an axis button fires onAxisChange with that axis', function () {
@@ -207,14 +264,16 @@ export function runGizmoMobileHudTests(flock) {
         make({ initialAxis: 'x', getValues: () => ({ x: 0, y: 0, z: 0 }) });
         const canvas = flock.canvas;
         const rect = canvas.getBoundingClientRect();
-        canvas.dispatchEvent(
-          new PointerEvent('pointerdown', {
-            pointerId: 2,
-            clientX: rect.left + rect.width / 4 + 30,
-            clientY: rect.bottom - 10,
-          })
-        );
-        canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2 }));
+        withoutPointerCapture(canvas, () => {
+          canvas.dispatchEvent(
+            new PointerEvent('pointerdown', {
+              pointerId: 2,
+              clientX: rect.left + rect.width / 4 + 30,
+              clientY: rect.bottom - 10,
+            })
+          );
+          canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 2 }));
+        });
         expect(moves.length).to.equal(1);
         expect(moves[0][0]).to.be.above(0);
       });
@@ -223,14 +282,16 @@ export function runGizmoMobileHudTests(flock) {
         make({ initialAxis: 'x', getValues: () => ({ x: 0, y: 0, z: 0 }) });
         const canvas = flock.canvas;
         const rect = canvas.getBoundingClientRect();
-        canvas.dispatchEvent(
-          new PointerEvent('pointerdown', {
-            pointerId: 3,
-            clientX: rect.left + rect.width / 4 - 30,
-            clientY: rect.bottom - 10,
-          })
-        );
-        canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 3 }));
+        withoutPointerCapture(canvas, () => {
+          canvas.dispatchEvent(
+            new PointerEvent('pointerdown', {
+              pointerId: 3,
+              clientX: rect.left + rect.width / 4 - 30,
+              clientY: rect.bottom - 10,
+            })
+          );
+          canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 3 }));
+        });
         expect(moves.length).to.equal(1);
         expect(moves[0][0]).to.be.below(0);
       });
@@ -247,6 +308,130 @@ export function runGizmoMobileHudTests(flock) {
           })
         );
         expect(moves).to.deep.equal([]);
+      });
+    });
+
+    describe('visibility preference', function () {
+      it('starts expanded by default', function () {
+        make();
+        expect(stop.isCollapsed()).to.equal(false);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
+      });
+
+      it('collapsing hides the strip', function () {
+        make();
+        stop.toggleCollapsed();
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);
+      });
+
+      it('expanding again restores the strip', function () {
+        make();
+        stop.toggleCollapsed();
+        stop.toggleCollapsed();
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
+      });
+
+      it('stop.toggleCollapsed() reports and applies the new state', function () {
+        make();
+        expect(stop.toggleCollapsed()).to.equal(true);
+        expect(stop.isCollapsed()).to.equal(true);
+        expect(stop.toggleCollapsed()).to.equal(false);
+      });
+
+      it('reports each collapse and expand to onCollapsedChange', function () {
+        const states = [];
+        make({ onCollapsedChange: (c) => states.push(c) });
+        stop.toggleCollapsed();
+        stop.toggleCollapsed();
+        expect(states).to.deep.equal([true, false]);
+      });
+
+      it('follows the preference changed from outside the HUD', function () {
+        make();
+        setGizmoControlsEnabled(false);
+        expect(stop.isCollapsed()).to.equal(true);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);
+        setGizmoControlsEnabled(true);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(true);
+      });
+
+      it('does not report the collapsed state a HUD was built in', function () {
+        localStorage.setItem(GIZMO_CONTROLS_KEY, '0');
+        const states = [];
+        make({ onCollapsedChange: (c) => states.push(c) });
+        expect(states).to.deep.equal([]);
+      });
+
+      it('exposes the current axis', function () {
+        make({ initialAxis: 'z' });
+        expect(stop.getAxis()).to.equal('z');
+        stop.setAxis('y');
+        expect(stop.getAxis()).to.equal('y');
+      });
+
+      it('falls back to X when the saved axis is not one of the buttons', function () {
+        make({ initialAxis: 'all' });
+        expect(stop.getAxis()).to.equal('x');
+      });
+
+      it('persists the collapsed state to localStorage', function () {
+        make();
+        stop.toggleCollapsed();
+        expect(localStorage.getItem(GIZMO_CONTROLS_KEY)).to.equal('0');
+      });
+
+      it('a HUD built while the preference is set starts collapsed', function () {
+        localStorage.setItem(GIZMO_CONTROLS_KEY, '0');
+        make();
+        expect(stop.isCollapsed()).to.equal(true);
+        expect(findControl(flock, 'gizmoHudContainer').isVisible).to.equal(false);
+      });
+
+      it('does not claim slider touches while collapsed', function () {
+        // The slider hit-tests canvas geometry rather than using GUI
+        // hit-testing, so hiding the strip alone would still swallow the
+        // camera drag in that corner.
+        make({ initialAxis: 'x', getValues: () => ({ x: 0, y: 0, z: 0 }) });
+        stop.toggleCollapsed();
+        const canvas = flock.canvas;
+        const rect = canvas.getBoundingClientRect();
+        withoutPointerCapture(canvas, () => {
+          canvas.dispatchEvent(
+            new PointerEvent('pointerdown', {
+              pointerId: 5,
+              clientX: rect.left + rect.width / 4 + 30,
+              clientY: rect.bottom - 10,
+            })
+          );
+          canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 5 }));
+        });
+        expect(moves).to.deep.equal([]);
+      });
+
+      it('claims slider touches again after expanding', function () {
+        make({ initialAxis: 'x', getValues: () => ({ x: 0, y: 0, z: 0 }) });
+        stop.toggleCollapsed();
+        stop.toggleCollapsed();
+        const canvas = flock.canvas;
+        const rect = canvas.getBoundingClientRect();
+        withoutPointerCapture(canvas, () => {
+          canvas.dispatchEvent(
+            new PointerEvent('pointerdown', {
+              pointerId: 6,
+              clientX: rect.left + rect.width / 4 + 30,
+              clientY: rect.bottom - 10,
+            })
+          );
+          canvas.dispatchEvent(new PointerEvent('pointerup', { pointerId: 6 }));
+        });
+        expect(moves.length).to.equal(1);
+      });
+
+      it('toggleCollapsed after stop() does not throw', function () {
+        make();
+        stop();
+        expect(() => stop.toggleCollapsed()).to.not.throw();
+        stop = null;
       });
     });
   });

@@ -1,7 +1,11 @@
-let flock;
+let _flock;
 
 export function setFlockReference(ref) {
-  flock = ref;
+  _flock = ref;
+}
+
+export function isVector(value) {
+  return value != null && typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value;
 }
 
 export const flockMath = {
@@ -9,8 +13,10 @@ export const flockMath = {
 		  Category: Math
   */
 
+  // No prototype: a host-realm prototype chain reaches the untamed host
+  // Function via .constructor (sandbox escape).
   createVector3(x, y, z) {
-    return new flock.BABYLON.Vector3(x, y, z);
+    return Object.freeze(Object.assign(Object.create(null), { x, y, z }));
   },
   randomInteger(a, b) {
     if (a > b) {

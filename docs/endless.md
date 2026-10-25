@@ -23,8 +23,9 @@ The latest release version of Flock XR can be found by going to https://app.floc
 From both Chromium and Epiphany, on Endless OS, it is possible to install Flock XR as a web application. This app can then be used without an Internet connection, as shown in the following screenshot.
 
 ![Flock XR running in a web app with flight mode on](images/EndlessWebApp.png)
+
 ## Testing Flock XR
 
-Flock XR’s basic functionality has been tested on Endless OS using both of the browsers which come pre-installed with the distribution. That is, we tested Flock on Chromium and on GNOME Web (Epiphany). We found that Flock XR functioned well on both, with better compatibility being found on Chromium, so we recommend using Chromium to run Flock XR on Endless OS. 
+Flock XR’s basic functionality has been tested on Endless OS using both of the browsers which come pre-installed with the distribution. That is, we tested Flock on Chromium and on GNOME Web (Epiphany). We found that Flock XR functioned well on both, with better compatibility being found on Chromium, so we recommend using Chromium to run Flock XR on Endless OS.
 
 If you find any issues using Flock XR on Endless OS, let us know at [Flock XR](https://flockxr.com/).

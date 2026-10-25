@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -269,11 +270,20 @@
                       },
                       "inputs": {
                         "RADIUS": {
-                          "block": {
+                          "shadow": {
                             "type": "math_number",
                             "id": "`:V4V,?|pQ27CGaOK^$R",
                             "fields": {
                               "NUM": 10
+                            }
+                          }
+                        },
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "9Rpr-iluM=B?WGnBoZBi",
+                            "fields": {
+                              "NUM": 90
                             }
                           }
                         }
@@ -1107,6 +1117,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "MElXV(z.vry;bL8%NYji",
+        "x": 10,
+        "y": 1910,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "A:}rYG}CcXUc~7ILDCM.",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

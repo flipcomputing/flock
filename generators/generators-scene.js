@@ -1,11 +1,34 @@
-import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap, generateUniqueId } from "./mesh-state.js";
+import * as Blockly from 'blockly';
+import { CUBE_FACES } from '../api/freeformgeometry.js';
+import { meshMap, meshBlockIdMap, generateUniqueId } from './mesh-state.js';
 import {
   getFieldValue,
   getVariableInfo,
   getPositionTuple,
   createMesh,
-} from "./generators-utilities.js";
+  getThenCallback,
+  getInitialTransformParams,
+  maybeParentToGroup,
+  withGroupParent,
+} from './generators-utilities.js';
+
+function initialTransform(block) {
+  return getInitialTransformParams(block)
+    .map((param) => `,
+${param}`)
+    .join('');
+}
+
+function wallParam(block, defaultThickness, defaultInnerDiameter) {
+  const isNumber = (name) => block.getInputTargetBlock(name)?.type === 'math_number';
+  const innerDiameterDrivesWall =
+    isNumber('THICKNESS') &&
+    block.getInputTargetBlock('INNER_DIAMETER') &&
+    !isNumber('INNER_DIAMETER');
+  return innerDiameterDrivesWall
+    ? `innerDiameter: ${getFieldValue(block, 'INNER_DIAMETER', defaultInnerDiameter)}`
+    : `thickness: ${getFieldValue(block, 'THICKNESS', defaultThickness)}`;
+}
 
 export function registerSceneGenerators(javascriptGenerator) {
   // -------------------------------
@@ -13,50 +36,43 @@ export function registerSceneGenerators(javascriptGenerator) {
   // -------------------------------
 
   // Sky -------------------------------------------------------------
-  javascriptGenerator.forBlock["set_sky_color"] = function (block) {
-    const meshId = "sky";
+  javascriptGenerator.forBlock['set_sky_color'] = function (block) {
+    const meshId = 'sky';
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
     let color =
-      javascriptGenerator.valueToCode(
-        block,
-        "COLOR",
-        javascriptGenerator.ORDER_NONE,
-      ) || '"#6495ED"';
+      javascriptGenerator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_NONE) ||
+      '"#6495ED"';
 
     return `setSky(${color});\n`;
   };
   // Map with material ------------------------------------------------
-  javascriptGenerator.forBlock["create_map"] = function (block) {
-    const mapName = block.getFieldValue("MAP_NAME");
+  javascriptGenerator.forBlock['create_map'] = function (block) {
+    const mapName = block.getFieldValue('MAP_NAME');
     const material =
-      javascriptGenerator.valueToCode(
-        block,
-        "MATERIAL",
-        javascriptGenerator.ORDER_NONE,
-      ) || "null";
-    const meshId = "ground";
+      javascriptGenerator.valueToCode(block, 'MATERIAL', javascriptGenerator.ORDER_NONE) || 'null';
+    const meshId = 'ground';
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
-    return `createMap("${mapName}", ${material});\n`;
+    return `createMap(${JSON.stringify(mapName)}, ${material});\n`;
   };
 
   // Background -------------------------------------------------------
-  javascriptGenerator.forBlock["set_background_color"] = function (block) {
+  javascriptGenerator.forBlock['set_background_color'] = function (block) {
     // Defaults to a quoted hex string (e.g., "#6495ED")
-    let color = getFieldValue(block, "COLOR", '"#6495ED"');
+    let color = getFieldValue(block, 'COLOR', '"#6495ED"');
 
-    const colorInput = block.getInput("COLOR");
+    const colorInput = block.getInput('COLOR');
     const colorBlock = colorInput?.connection?.targetBlock();
 
-    if (colorBlock && colorBlock.type === "material") {
+    if (colorBlock && colorBlock.type === 'material') {
       color = `(function(m){
                 const c = (m && (m.color || m.diffuseColor || m.albedoColor));
                 return (c && c.toHexString) ? c.toHexString() : "#6495ED";
               })(${color})`;
     }
 
-    const meshId = "sky";
+    const meshId = 'sky';
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
@@ -65,10 +81,10 @@ export function registerSceneGenerators(javascriptGenerator) {
   };
 
   // Show object ------------------------------------------------------
-  javascriptGenerator.forBlock["show"] = function (block) {
+  javascriptGenerator.forBlock['show'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return `await show(${modelName});\n`;
@@ -76,21 +92,21 @@ export function registerSceneGenerators(javascriptGenerator) {
 
   // Hide object ------------------------------------------------------
 
-  javascriptGenerator.forBlock["hide"] = function (block) {
+  javascriptGenerator.forBlock['hide'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return `await hide(${modelName});\n`;
   };
 
   // Dispose object ---------------------------------------------------
-  javascriptGenerator.forBlock["dispose"] = function (block) {
+  javascriptGenerator.forBlock['dispose'] = function (block) {
     // Get the selected variable name
     const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Generate code to call the dispose helper for the selected mesh
@@ -103,70 +119,67 @@ export function registerSceneGenerators(javascriptGenerator) {
   // -------------------------------
 
   // Add model --------------------------------------------------------
-  javascriptGenerator.forBlock["load_model"] = function (block) {
-    const modelName = block.getFieldValue("MODELS");
-    const scale = getFieldValue(block, "SCALE", "1");
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const { generatedName: variableName, userVariableName } = getVariableInfo(
-      block,
-      "ID_VAR",
-    );
+  javascriptGenerator.forBlock['load_model'] = function (block) {
+    const modelName = block.getFieldValue('MODELS');
+    const scale = getFieldValue(block, 'SCALE', '1');
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
+    const colors = block.colorsEdited
+      ? javascriptGenerator.valueToCode(block, 'COLORS', javascriptGenerator.ORDER_NONE)
+      : '';
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
 
-    let doCode = "";
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+    let doCode = '';
+    if (block.getInput('DO')) {
+      doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createModel({
-                        modelName: '${modelName}',
-                        modelId: ${JSON.stringify(meshId)},
+                        modelName: ${JSON.stringify(modelName)},
+                        modelId: ${JSON.stringify(meshId)},${colors ? `\n                        colors: ${colors},` : ''}
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
-                });\n`;
+                        position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add character ----------------------------------------------------
-  javascriptGenerator.forBlock["load_character"] = function (block) {
-    const modelName = block.getFieldValue("MODELS");
-    const scale = getFieldValue(block, "SCALE", "1");
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const hairColor = getFieldValue(block, "HAIR_COLOR", "#000000");
-    const skinColor = getFieldValue(block, "SKIN_COLOR", "#FFE0BD");
-    const eyesColor = getFieldValue(block, "EYES_COLOR", "#0000FF");
-    const sleevesColor = getFieldValue(block, "SLEEVES_COLOR", "#FFFFFF");
-    const shortsColor = getFieldValue(block, "SHORTS_COLOR", "#000000");
-    const tshirtColor = getFieldValue(block, "TSHIRT_COLOR", "#FF0000");
-    const { generatedName: variableName, userVariableName } = getVariableInfo(
-      block,
-      "ID_VAR",
-    );
+  javascriptGenerator.forBlock['load_character'] = function (block) {
+    const modelName = block.getFieldValue('MODELS');
+    const scale = getFieldValue(block, 'SCALE', '1');
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
+    const hairColor = getFieldValue(block, 'HAIR_COLOR', '"#000000"');
+    const skinColor = getFieldValue(block, 'SKIN_COLOR', '"#FFE0BD"');
+    const eyesColor = getFieldValue(block, 'EYES_COLOR', '"#0000FF"');
+    const sleevesColor = getFieldValue(block, 'SLEEVES_COLOR', '"#FFFFFF"');
+    const shortsColor = getFieldValue(block, 'SHORTS_COLOR', '"#000000"');
+    const tshirtColor = getFieldValue(block, 'TSHIRT_COLOR', '"#FF0000"');
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
     // Generate the code for the "do" part (if present)
-    let doCode = "";
+    let doCode = '';
 
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+    if (block.getInput('DO')) {
+      doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createCharacter({
-                  modelName: '${modelName}',
+                  modelName: ${JSON.stringify(modelName)},
                   modelId: ${JSON.stringify(meshId)},
                   scale: ${scale},
-                  position: { x: ${x}, y: ${y}, z: ${z} },
+                  position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)},
                   colors: {
                         hair: ${hairColor},
                         skin: ${skinColor},
@@ -174,86 +187,80 @@ export function registerSceneGenerators(javascriptGenerator) {
                         sleeves: ${sleevesColor},
                         shorts: ${shortsColor},
                         tshirt: ${tshirtColor}
-                  }${doCode ? `, callback: ${doCode}` : ""}
-                });\n`;
+                  }${doCode ? `, callback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add item ---------------------------------------------------------
-  javascriptGenerator.forBlock["load_object"] = function (block) {
-    const modelName = block.getFieldValue("MODELS");
-    const scale = getFieldValue(block, "SCALE", "1");
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const color = getFieldValue(block, "COLOR", '"#000000"');
+  javascriptGenerator.forBlock['load_object'] = function (block) {
+    const modelName = block.getFieldValue('MODELS');
+    const scale = getFieldValue(block, 'SCALE', '1');
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
+    const color = getFieldValue(block, 'COLOR', '"#000000"');
 
-    const { generatedName: variableName, userVariableName } = getVariableInfo(
-      block,
-      "ID_VAR",
-    );
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
 
     // Generate the code for the "do" part (if present)
-    let doCode = "";
+    let doCode = '';
 
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+    if (block.getInput('DO')) {
+      doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
-                          modelName: '${modelName}',
+                          modelName: ${JSON.stringify(modelName)},
                           modelId: ${JSON.stringify(meshId)},
                           color: ${color},
                           scale: ${scale},
-                          position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
-                  });\n`;
+                          position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                  });\n${maybeParentToGroup(variableName)}`;
   };
   // Add object -------------------------------------------------------
-  javascriptGenerator.forBlock["load_multi_object"] = function (block) {
-    const modelName = block.getFieldValue("MODELS");
-    const scale = getFieldValue(block, "SCALE", "1");
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
-    const color = getFieldValue(block, "COLORS", "#000000");
+  javascriptGenerator.forBlock['load_multi_object'] = function (block) {
+    const modelName = block.getFieldValue('MODELS');
+    const scale = getFieldValue(block, 'SCALE', '1');
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
+    const color = getFieldValue(block, 'COLORS', '"#000000"');
 
-    const { generatedName: variableName, userVariableName } = getVariableInfo(
-      block,
-      "ID_VAR",
-    );
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
     const meshId = `${userVariableName}__${block.id}`;
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
     // Generate the code for the "do" part (if present)
-    let doCode = "";
+    let doCode = '';
 
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+    if (block.getInput('DO')) {
+      doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+    doCode = doCode ? `async function(${variableName}) {\n${doCode}\n}` : '';
 
     return `${variableName} = createObject({
-                        modelName: '${modelName}',
+                        modelName: ${JSON.stringify(modelName)},
                         modelId: ${JSON.stringify(meshId)},
                         color: ${color},
                         scale: ${scale},
-                        position: { x: ${x}, y: ${y}, z: ${z} }${doCode ? `,\ncallback: ${doCode}` : ""}
-                });\n`;
+                        position: { x: ${x}, y: ${y}, z: ${z} }${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, variableName)}
+                });\n${maybeParentToGroup(variableName)}`;
   };
 
   // Add box ---------------------------------------------------------
-  javascriptGenerator.forBlock["create_box"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const width = getFieldValue(block, "WIDTH", "1");
-    const height = getFieldValue(block, "HEIGHT", "1");
-    const depth = getFieldValue(block, "DEPTH", "1");
+  javascriptGenerator.forBlock['create_box'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const width = getFieldValue(block, 'WIDTH', '1');
+    const height = getFieldValue(block, 'HEIGHT', '1');
+    const depth = getFieldValue(block, 'DEPTH', '1');
 
     const positionSource = getPositionTuple(block);
 
@@ -265,15 +272,15 @@ export function registerSceneGenerators(javascriptGenerator) {
       `position: ${positionSource}`,
     ];
 
-    return createMesh(block, "Box", params, "box");
+    return createMesh(block, 'Box', params, 'box');
   };
 
   // Add sphere ---------------------------------------------------------
-  javascriptGenerator.forBlock["create_sphere"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const diameterX = getFieldValue(block, "DIAMETER_X", "1");
-    const diameterY = getFieldValue(block, "DIAMETER_Y", "1");
-    const diameterZ = getFieldValue(block, "DIAMETER_Z", "1");
+  javascriptGenerator.forBlock['create_sphere'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameterX = getFieldValue(block, 'DIAMETER_X', '1');
+    const diameterY = getFieldValue(block, 'DIAMETER_Y', '1');
+    const diameterZ = getFieldValue(block, 'DIAMETER_Z', '1');
 
     const positionSource = getPositionTuple(block);
 
@@ -285,16 +292,16 @@ export function registerSceneGenerators(javascriptGenerator) {
       `position: ${positionSource}`,
     ];
 
-    return createMesh(block, "Sphere", params, "sphere");
+    return createMesh(block, 'Sphere', params, 'sphere');
   };
 
   // Add cylinder -------------------------------------------------------
-  javascriptGenerator.forBlock["create_cylinder"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const height = getFieldValue(block, "HEIGHT", "2");
-    const diameterTop = getFieldValue(block, "DIAMETER_TOP", "1");
-    const diameterBottom = getFieldValue(block, "DIAMETER_BOTTOM", "1");
-    const tessellations = getFieldValue(block, "TESSELLATIONS", "12");
+  javascriptGenerator.forBlock['create_cylinder'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const height = getFieldValue(block, 'HEIGHT', '2');
+    const diameterTop = getFieldValue(block, 'DIAMETER_TOP', '1');
+    const diameterBottom = getFieldValue(block, 'DIAMETER_BOTTOM', '1');
+    const tessellations = getFieldValue(block, 'TESSELLATIONS', '12');
 
     const positionSource = getPositionTuple(block);
 
@@ -307,14 +314,14 @@ export function registerSceneGenerators(javascriptGenerator) {
       `position: ${positionSource}`,
     ];
 
-    return createMesh(block, "Cylinder", params, "cylinder");
+    return createMesh(block, 'Cylinder', params, 'cylinder');
   };
 
   // Add capsule --------------------------------------------------------
-  javascriptGenerator.forBlock["create_capsule"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const diameter = getFieldValue(block, "DIAMETER", "1");
-    const height = getFieldValue(block, "HEIGHT", "2");
+  javascriptGenerator.forBlock['create_capsule'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameter = getFieldValue(block, 'DIAMETER', '1.5');
+    const height = getFieldValue(block, 'HEIGHT', '2');
 
     const positionSource = getPositionTuple(block);
 
@@ -325,14 +332,103 @@ export function registerSceneGenerators(javascriptGenerator) {
       `position: ${positionSource}`,
     ];
 
-    return createMesh(block, "Capsule", params, "capsule");
+    return createMesh(block, 'Capsule', params, 'capsule');
+  };
+
+  // Add wedge ----------------------------------------------------------
+  javascriptGenerator.forBlock['create_wedge'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const width = getFieldValue(block, 'WIDTH', '2');
+    const height = getFieldValue(block, 'HEIGHT', '1');
+    const depth = getFieldValue(block, 'DEPTH', '1');
+    const peak = getFieldValue(block, 'PEAK', '0');
+    const axis = block.getFieldValue('AXIS') === 'Z' ? 'Z' : 'X';
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `width: ${width}`,
+      `height: ${height}`,
+      `depth: ${depth}`,
+      `peak: ${peak}`,
+      `axis: ${JSON.stringify(axis)}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Wedge', params, 'wedge');
+  };
+
+  // Add freeform -------------------------------------------------------
+  javascriptGenerator.forBlock['create_freeform'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#ef7a7a"');
+    const vertices =
+      javascriptGenerator.valueToCode(block, 'VERTICES', javascriptGenerator.ORDER_NONE) ||
+      'null';
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [`color: ${color}`, `vertices: ${vertices}`];
+    const faces = JSON.stringify(block.getFaces?.() ?? CUBE_FACES);
+    if (faces !== JSON.stringify(CUBE_FACES)) params.push(`faces: ${faces}`);
+    const rounding = block.getFieldValue('ROUNDING') ?? 'none';
+    if (rounding === 'edges') {
+      const radius =
+        javascriptGenerator.valueToCode(block, 'RADIUS', javascriptGenerator.ORDER_NONE) || '0.1';
+      params.push('rounding: "edges"', `radius: ${radius}`);
+    } else if (rounding === 'smooth') {
+      params.push('rounding: "smooth"');
+    }
+    params.push(`position: ${positionSource}`);
+
+    return createMesh(block, 'Freeform', params, 'freeform');
+  };
+
+  // Add donut ----------------------------------------------------------
+  javascriptGenerator.forBlock['create_donut'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameter = getFieldValue(block, 'DIAMETER', '1');
+    const sides = getFieldValue(block, 'SIDES', '24');
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `diameter: ${diameter}`,
+      wallParam(block, '0.5', '0.5'),
+      `tessellation: ${sides}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Donut', params, 'donut');
+  };
+
+  // Add ring -----------------------------------------------------------
+  javascriptGenerator.forBlock['create_ring'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const diameter = getFieldValue(block, 'DIAMETER', '2');
+    const height = getFieldValue(block, 'HEIGHT', '0.5');
+    const sides = getFieldValue(block, 'SIDES', '24');
+
+    const positionSource = getPositionTuple(block);
+
+    const params = [
+      `color: ${color}`,
+      `diameter: ${diameter}`,
+      wallParam(block, '0.25', '1.5'),
+      `height: ${height}`,
+      `tessellation: ${sides}`,
+      `position: ${positionSource}`,
+    ];
+
+    return createMesh(block, 'Ring', params, 'ring');
   };
 
   // Add plane ----------------------------------------------------------
-  javascriptGenerator.forBlock["create_plane"] = function (block) {
-    const color = getFieldValue(block, "COLOR", '"#9932CC"');
-    const width = getFieldValue(block, "WIDTH", "1");
-    const height = getFieldValue(block, "HEIGHT", "1");
+  javascriptGenerator.forBlock['create_plane'] = function (block) {
+    const color = getFieldValue(block, 'COLOR', '"#9932CC"');
+    const width = getFieldValue(block, 'WIDTH', '1');
+    const height = getFieldValue(block, 'HEIGHT', '1');
 
     const positionSource = getPositionTuple(block);
 
@@ -343,200 +439,195 @@ export function registerSceneGenerators(javascriptGenerator) {
       `position: ${positionSource}`,
     ];
 
-    return createMesh(block, "Plane", params, "plane");
+    return createMesh(block, 'Plane', params, 'plane');
+  };
+
+  // Add marker ---------------------------------------------------------
+  javascriptGenerator.forBlock['create_marker'] = function (block) {
+    return createMesh(block, 'Marker', [
+      `type: ${JSON.stringify(block.getFieldValue('TYPE') || 'cross')}`,
+      `position: ${getPositionTuple(block)}`,
+      `edit: ${block.getFieldValue('EDIT') === 'TRUE'}`,
+    ]);
+  };
+
+  // Add group: an empty transform node for parenting. Its DO generates with
+  // withGroupParent so nested mesh-creating blocks parent to it.
+  javascriptGenerator.forBlock['create_group'] = function (block) {
+    const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
+    const meshId = `${userVariableName}__${block.id}`;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+    const isActive = block.getFieldValue('ACTIVE') === 'TRUE';
+
+    const parentCode = maybeParentToGroup(variableName);
+
+    const doCode = block.getInput('DO')
+      ? withGroupParent(
+          isActive ? variableName : null,
+          () => javascriptGenerator.statementToCode(block, 'DO') || ''
+        )
+      : '';
+
+    // Single trailing parent: members already recompute this group as they
+    // are added, and again when their own DO ends, so parenting to an outer
+    // group once suffices.
+    return `${variableName} = createGroup(${JSON.stringify(meshId)});\n${doCode}${parentCode}`;
   };
 
   // Add clone ----------------------------------------------------------
-  javascriptGenerator.forBlock["clone_mesh"] = function (block) {
+  javascriptGenerator.forBlock['same_number'] = function (block) {
+    const value = block.getFieldValue('NUM');
+    return [value === '' ? 'null' : String(Number(value)), javascriptGenerator.ORDER_ATOMIC];
+  };
+
+  javascriptGenerator.forBlock['clone_mesh'] = function (block) {
     // Get the source mesh variable
     const sourceMeshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("SOURCE_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('SOURCE_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Get the target clone variable
-    const cloneVariableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CLONE_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+    const { generatedName: cloneVariableName, userVariableName: cloneUserName } = getVariableInfo(
+      block,
+      'CLONE_VAR'
     );
 
     // Generate a unique ID for the clone
-    const cloneId = sourceMeshName + "_" + generateUniqueId();
-    meshMap[cloneId] = block;
-    meshBlockIdMap[cloneId] = block.id;
+    const cloneId = sourceMeshName + '_' + generateUniqueId();
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
 
     // Generate the code for the "do" part (if present)
-    let doCode = "";
-    if (block.getInput("DO")) {
-      doCode = javascriptGenerator.statementToCode(block, "DO") || "";
+    let doCode = '';
+    if (block.getInput('DO')) {
+      doCode = javascriptGenerator.statementToCode(block, 'DO') || '';
     }
 
     // Wrap "DO" code in an async function if it exists
-    doCode = doCode ? `async function() {\n${doCode}\n}` : "";
+    doCode = doCode ? `async function(${cloneVariableName}) {\n${doCode}\n}` : '';
+    const mode = block.getFieldValue('MODE') === 'LINKED' ? `,\nmode: "linked"` : '';
 
     // Return the code to clone the mesh
     return `${cloneVariableName} = cloneMesh({
                           sourceMeshName: ${sourceMeshName},
-                          cloneId: '${cloneId}'${doCode ? `,\ncallback: ${doCode}` : ""}
-                  });\n`;
+                          cloneId: ${JSON.stringify(cloneId)},
+                          cloneName: ${JSON.stringify(cloneUserName)},
+                          blockKey: ${JSON.stringify(block.id)}${mode}${initialTransform(block)}${doCode ? `,\ncallback: ${doCode}` : ''}${getThenCallback(block, cloneVariableName)}
+                  });\n${maybeParentToGroup(cloneVariableName)}`;
   };
   // -------------------------------
   // EFFECTS
   // -------------------------------
   // Light intensity -------------------------------------------------
-  javascriptGenerator.forBlock["main_light"] = function (block) {
+  javascriptGenerator.forBlock['main_light'] = function (block) {
     const intensity =
-      javascriptGenerator.valueToCode(
-        block,
-        "INTENSITY",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.0";
+      javascriptGenerator.valueToCode(block, 'INTENSITY', javascriptGenerator.ORDER_ATOMIC) ||
+      '1.0';
     const diffuse =
-      javascriptGenerator.valueToCode(
-        block,
-        "DIFFUSE",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "#FFFFFF";
+      javascriptGenerator.valueToCode(block, 'DIFFUSE', javascriptGenerator.ORDER_ATOMIC) ||
+      '"#FFFFFF"';
     const groundColor =
-      javascriptGenerator.valueToCode(
-        block,
-        "GROUND_COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "#808080";
+      javascriptGenerator.valueToCode(block, 'GROUND_COLOR', javascriptGenerator.ORDER_ATOMIC) ||
+      '"#808080"';
+    const style = block.getFieldValue('STYLE') || 'SOFT';
 
-    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\n`;
+    return `lightIntensity(${intensity});\nlightColor(${diffuse}, ${groundColor});\nlightStyle(${JSON.stringify(style)});\n`;
   };
 
   // Enable shadows -------------------------------------------------
-  javascriptGenerator.forBlock["enable_shadows"] = function (block) {
-    const enabled = block.getFieldValue("ENABLED") === "TRUE";
-    return `enableShadows({ enabled: ${enabled} });\n`;
+  javascriptGenerator.forBlock['enable_shadows'] = function (block) {
+    const enabled = block.getFieldValue('ENABLED') === 'TRUE';
+    const all = block.getFieldValue('ALL') === 'TRUE';
+    return `enableShadows({ enabled: ${enabled}, all: ${all} });\n`;
+  };
+
+  // Set shadow casting of object -------------------------------
+  javascriptGenerator.forBlock['set_shadow'] = function (block) {
+    const modelName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const cast = block.getFieldValue('CAST') === 'TRUE';
+    return `await setShadow(${modelName}, { cast: ${cast} });\n`;
   };
 
   // Get light as --------------------------------------------------
-  javascriptGenerator.forBlock["get_light"] = function (block) {
+  javascriptGenerator.forBlock['get_light'] = function (block) {
     const variableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return `${variableName} = getMainLight();\n`;
   };
 
   // Add particle effect on object ----------------------------------
-  javascriptGenerator.forBlock["create_particle_effect"] = function (block) {
+  javascriptGenerator.forBlock['create_particle_effect'] = function (block) {
     const emitRate = parseFloat(
-      javascriptGenerator.valueToCode(
-        block,
-        "RATE",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "10",
+      javascriptGenerator.valueToCode(block, 'RATE', javascriptGenerator.ORDER_ATOMIC) || '10'
     );
     const startColor =
-      javascriptGenerator.valueToCode(
-        block,
-        "START_COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || '"#FFFFFF"';
+      javascriptGenerator.valueToCode(block, 'START_COLOR', javascriptGenerator.ORDER_ATOMIC) ||
+      '"#FFFFFF"';
     const endColor =
-      javascriptGenerator.valueToCode(
-        block,
-        "END_COLOR",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || '"#000000"';
+      javascriptGenerator.valueToCode(block, 'END_COLOR', javascriptGenerator.ORDER_ATOMIC) ||
+      '"#000000"';
     const startAlpha = parseFloat(
-      javascriptGenerator.valueToCode(
-        block,
-        "START_ALPHA",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.0",
+      javascriptGenerator.valueToCode(block, 'START_ALPHA', javascriptGenerator.ORDER_ATOMIC) ||
+        '1.0'
     );
     const endAlpha = parseFloat(
-      javascriptGenerator.valueToCode(
-        block,
-        "END_ALPHA",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.0",
+      javascriptGenerator.valueToCode(block, 'END_ALPHA', javascriptGenerator.ORDER_ATOMIC) || '1.0'
     );
     const minSize =
-      javascriptGenerator.valueToCode(
-        block,
-        "MIN_SIZE",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0.1";
+      javascriptGenerator.valueToCode(block, 'MIN_SIZE', javascriptGenerator.ORDER_ATOMIC) || '0.1';
     const maxSize =
-      javascriptGenerator.valueToCode(
-        block,
-        "MAX_SIZE",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.0";
+      javascriptGenerator.valueToCode(block, 'MAX_SIZE', javascriptGenerator.ORDER_ATOMIC) || '1.0';
     const minLifetime =
-      javascriptGenerator.valueToCode(
-        block,
-        "MIN_LIFETIME",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.0";
+      javascriptGenerator.valueToCode(block, 'MIN_LIFETIME', javascriptGenerator.ORDER_ATOMIC) ||
+      '1.0';
     const maxLifetime =
-      javascriptGenerator.valueToCode(
-        block,
-        "MAX_LIFETIME",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "5.0";
-    const x =
-      javascriptGenerator.valueToCode(
-        block,
-        "X",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const y =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const z =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'MAX_LIFETIME', javascriptGenerator.ORDER_ATOMIC) ||
+      '5.0';
+    const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
     const minAngularSpeed =
       javascriptGenerator.valueToCode(
         block,
-        "MIN_ANGULAR_SPEED",
-        javascriptGenerator.ORDER_ATOMIC,
+        'MIN_ANGULAR_SPEED',
+        javascriptGenerator.ORDER_ATOMIC
       ) || 0;
     const maxAngularSpeed =
       javascriptGenerator.valueToCode(
         block,
-        "MAX_ANGULAR_SPEED",
-        javascriptGenerator.ORDER_ATOMIC,
+        'MAX_ANGULAR_SPEED',
+        javascriptGenerator.ORDER_ATOMIC
       ) || 0;
     const minInitialRotation =
       javascriptGenerator.valueToCode(
         block,
-        "MIN_INITIAL_ROTATION",
-        javascriptGenerator.ORDER_ATOMIC,
+        'MIN_INITIAL_ROTATION',
+        javascriptGenerator.ORDER_ATOMIC
       ) || 0;
     const maxInitialRotation =
       javascriptGenerator.valueToCode(
         block,
-        "MAX_INITIAL_ROTATION",
-        javascriptGenerator.ORDER_ATOMIC,
+        'MAX_INITIAL_ROTATION',
+        javascriptGenerator.ORDER_ATOMIC
       ) || 0;
 
     const variableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("ID_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('ID_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const { userVariableName: emitterMeshName } = getVariableInfo(
-      block,
-      "EMITTER_MESH",
-    );
+    const { userVariableName: emitterMeshName } = getVariableInfo(block, 'EMITTER_MESH');
 
-    const shape = block.getFieldValue("SHAPE");
-    const gravity = block.getFieldValue("GRAVITY") === "TRUE";
+    const shape = block.getFieldValue('SHAPE');
+    const gravity = block.getFieldValue('GRAVITY') === 'TRUE';
 
     const options = `
             {
@@ -558,7 +649,7 @@ export function registerSceneGenerators(javascriptGenerator) {
                     min: ${minLifetime},
                     max: ${maxLifetime}
                   },
-                  shape: "${shape}",
+                  shape: ${JSON.stringify(shape)},
                   gravity: ${gravity},
                   direction: { x: ${x}, y: ${y}, z: ${z} },
                   rotation: {
@@ -570,115 +661,182 @@ export function registerSceneGenerators(javascriptGenerator) {
                           min: ${minInitialRotation},
                           max: ${maxInitialRotation}
                     }
-                  }
+                  },
+                  blockKey: ${JSON.stringify(block.id)}
             }`;
 
-    return `${variableName} = createParticleEffect("${variableName}", ${options.trim()});\n`;
+    return `${variableName} = createParticleEffect(${JSON.stringify(variableName)}, ${options.trim()});\n`;
   };
 
   // Particle system ------------------------------------------------
-  javascriptGenerator.forBlock["control_particle_system"] = function (block) {
+  javascriptGenerator.forBlock['control_particle_system'] = function (block) {
     const systemName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("SYSTEM_NAME"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('SYSTEM_NAME'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const action = block.getFieldValue("ACTION");
+    const action = block.getFieldValue('ACTION');
 
     return `${action}ParticleSystem(${systemName});\n`;
   };
 
   // Set fog color --------------------------------------------------
-  javascriptGenerator.forBlock["set_fog"] = function (block) {
-    const fogColorHex = getFieldValue(block, "FOG_COLOR", "#9932CC");
-    const fogMode = block.getFieldValue("FOG_MODE");
+  javascriptGenerator.forBlock['set_fog'] = function (block) {
+    const fogColorHex = getFieldValue(block, 'FOG_COLOR', '"#9932CC"');
+    const fogMode = block.getFieldValue('FOG_MODE');
     const fogDensity =
-      javascriptGenerator.valueToCode(
-        block,
-        "DENSITY",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0.1"; // Default density
+      javascriptGenerator.valueToCode(block, 'DENSITY', javascriptGenerator.ORDER_ATOMIC) || '0.1'; // Default density
     const fogStart =
-      javascriptGenerator.valueToCode(
-        block,
-        "START",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "50"; // Default start
+      javascriptGenerator.valueToCode(block, 'START', javascriptGenerator.ORDER_ATOMIC) || '50'; // Default start
     const fogEnd =
-      javascriptGenerator.valueToCode(
-        block,
-        "END",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "100"; // Default end
+      javascriptGenerator.valueToCode(block, 'END', javascriptGenerator.ORDER_ATOMIC) || '100'; // Default end
 
-    return `setFog({ fogColorHex: ${fogColorHex}, fogMode: "${fogMode}", fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
+    return `setFog({ fogColorHex: ${fogColorHex}, fogMode: ${JSON.stringify(fogMode)}, fogDensity: ${fogDensity}, fogStart: ${fogStart}, fogEnd: ${fogEnd} });\n`;
   };
 
   // -------------------------------
   // CAMERA
   // -------------------------------
   // Get camera as --------------------------------------------------
-  javascriptGenerator.forBlock["get_camera"] = function (block) {
+  javascriptGenerator.forBlock['get_camera'] = function (block) {
     const variableName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     return `${variableName} = getCamera();\n`;
   };
 
   // Camera follow object -------------------------------------------
-  javascriptGenerator.forBlock["camera_follow"] = function (block) {
+  javascriptGenerator.forBlock['camera_follow'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const radius =
-      javascriptGenerator.valueToCode(
-        block,
-        "RADIUS",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || 7;
+      javascriptGenerator.valueToCode(block, 'RADIUS', javascriptGenerator.ORDER_ATOMIC) || 7;
 
-    const front = block.getFieldValue("FRONT") === "TRUE";
+    const angle =
+      javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_ATOMIC) || 90;
 
-    return `await attachCamera(${modelName}, { radius: ${radius}, front: ${front} });\n`;
+    const front = block.getFieldValue('FRONT') === 'TRUE';
+
+    const { generatedName: cameraVar, userVariableName } = getVariableInfo(block, 'CAM_VAR');
+
+    return `${cameraVar} = await attachCamera(${modelName}, { radius: ${radius}, angle: ${angle}, front: ${front}, name: ${JSON.stringify(userVariableName)} });\n`;
+  };
+
+  // Add camera ------------------------------------------------------
+  javascriptGenerator.forBlock['create_fly_camera'] = function (block) {
+    return createMesh(block, 'Camera', [
+      `type: "fly"`,
+      `position: ${getPositionTuple(block)}`,
+      `visible: ${block.getFieldValue('VISIBLE') === 'TRUE'}`,
+    ]);
+  };
+
+  const targetCameraGenerator = (type) => (block) => {
+    const targetId = block.getFieldValue('TARGET');
+    const target =
+      targetId === '__origin__'
+        ? '"__origin__"'
+        : javascriptGenerator.nameDB_.getName(targetId, Blockly.Names.NameType.VARIABLE);
+    return createMesh(block, 'Camera', [
+      `type: ${JSON.stringify(type)}`,
+      `target: ${target}`,
+      `distance: ${getFieldValue(block, 'DISTANCE', '7')}`,
+      `up: ${getFieldValue(block, 'UP', '30')}`,
+      `around: ${getFieldValue(block, 'AROUND', '0')}`,
+      `visible: ${block.getFieldValue('VISIBLE') === 'TRUE'}`,
+    ]);
+  };
+  javascriptGenerator.forBlock['create_follow_camera'] = targetCameraGenerator('follow');
+  javascriptGenerator.forBlock['create_orbit_camera'] = targetCameraGenerator('orbit');
+
+  // Use camera ------------------------------------------------------
+  javascriptGenerator.forBlock['switch_camera'] = function (block) {
+    const cameraName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('CAMERA'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    return `await switchCamera(${cameraName});\n`;
   };
 
   // Camera rotate --------------------------------------------------
-  javascriptGenerator.forBlock["camera_control"] = function (block) {
-    const key = block.getFieldValue("KEY");
-    const action = block.getFieldValue("ACTION");
+  javascriptGenerator.forBlock['camera_control'] = function (block) {
+    const key = block.getFieldValue('KEY');
+    const action = block.getFieldValue('ACTION');
 
-    return `cameraControl(${JSON.stringify(key)}, "${action}");\n`;
+    return `cameraControl(${JSON.stringify(key)}, ${JSON.stringify(action)});\n`;
   };
 
   // -------------------------------
   // XR
   // -------------------------------
   // Use camera as background ---------------------------------------
-  javascriptGenerator.forBlock["device_camera_background"] = function (block) {
-    const cameraType = block.getFieldValue("CAMERA");
+  javascriptGenerator.forBlock['device_camera_background'] = function (block) {
+    const cameraType = block.getFieldValue('CAMERA');
 
-    return `setCameraBackground("${cameraType}");\n`;
+    return `setCameraBackground(${JSON.stringify(cameraType)});\n`;
   };
 
   // Set XR mode to -------------------------------------------------
-  javascriptGenerator.forBlock["set_xr_mode"] = function (block) {
-    const mode = block.getFieldValue("MODE");
+  javascriptGenerator.forBlock['set_xr_mode'] = function (block) {
+    const mode = block.getFieldValue('MODE');
 
-    return `await setXRMode("${mode}");\n`;
+    return `await setXRMode(${JSON.stringify(mode)});\n`;
+  };
+
+  javascriptGenerator.forBlock['set_xr_view_mode'] = function (block) {
+    return `setXRViewMode(${JSON.stringify(block.getFieldValue('VIEW'))});\nsetXRCameraMotionMode(${JSON.stringify(block.getFieldValue('MOTION'))});\n`;
+  };
+
+  javascriptGenerator.forBlock['set_ar_scene_size'] = function (block) {
+    const size =
+      javascriptGenerator.valueToCode(block, 'SIZE', javascriptGenerator.ORDER_ATOMIC) || '80';
+    const distance =
+      javascriptGenerator.valueToCode(block, 'DISTANCE', javascriptGenerator.ORDER_ATOMIC) || '30';
+    const height =
+      javascriptGenerator.valueToCode(block, 'HEIGHT', javascriptGenerator.ORDER_ATOMIC) || '0';
+    return `setARSceneSize(${size}, ${distance}, ${height});\n`;
+  };
+
+  javascriptGenerator.forBlock['set_vr_comfort'] = function (block) {
+    const tunnel = JSON.stringify(block.getFieldValue('TUNNEL'));
+    const strength = JSON.stringify(block.getFieldValue('STRENGTH'));
+    const color = getFieldValue(block, 'COLOR', '"#000000"');
+    const alpha = getFieldValue(block, 'ALPHA', '1');
+    const restFrame = JSON.stringify(block.getFieldValue('REST_FRAME'));
+    const restFrameShow = JSON.stringify(block.getFieldValue('REST_FRAME_SHOW'));
+    const restFrameSpacing = JSON.stringify(block.getFieldValue('REST_FRAME_SPACING'));
+    const restFrameColor = getFieldValue(block, 'REST_FRAME_COLOR', '"#ccd9ff"');
+    return `setVRComfort(${tunnel}, ${strength}, ${color}, ${alpha}, ${restFrame}, ${restFrameShow}, ${restFrameSpacing}, ${restFrameColor});\n`;
+  };
+
+  javascriptGenerator.forBlock['set_xr_ui_placement'] = function (block) {
+    return `setXRUIPlacement(${JSON.stringify(block.getFieldValue('PLACEMENT'))});\n`;
+  };
+
+  javascriptGenerator.forBlock['add_teleport_target'] = function (block) {
+    return `addTeleportTarget(${JSON.stringify(block.getFieldValue('TARGET'))});\n`;
+  };
+
+  javascriptGenerator.forBlock['remove_teleport_target'] = function (block) {
+    return `removeTeleportTarget(${JSON.stringify(block.getFieldValue('TARGET'))});\n`;
   };
 
   // Export object as -----------------------------------------------
-  javascriptGenerator.forBlock["export_mesh"] = function (block) {
+  javascriptGenerator.forBlock['export_mesh'] = function (block) {
     const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const format = block.getFieldValue("FORMAT");
+    const format = block.getFieldValue('FORMAT');
+    const unitSize = Number(block.getFieldValue('UNIT_SIZE'));
+    const unit = block.getFieldValue('UNIT');
 
     // Generate the code that calls the helper function
-    return `exportMesh(${meshVar}, "${format}");\n`;
+    return `exportMesh(${meshVar}, ${JSON.stringify(format)}, { unitSize: ${unitSize}, unit: ${JSON.stringify(unit)} });\n`;
   };
 }

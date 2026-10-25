@@ -1,8 +1,8 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 function configureDraco(BABYLON) {
-  const base = import.meta?.env?.BASE_URL ?? "/";
-  const root = base.endsWith("/") ? base : `${base}/`;
+  const base = import.meta?.env?.BASE_URL ?? '/';
+  const root = base.endsWith('/') ? base : `${base}/`;
   BABYLON.DracoCompression.DefaultNumWorkers = 0;
   BABYLON.DracoCompression.Configuration = {
     decoder: {
@@ -26,62 +26,201 @@ async function pumpAnimation(flock, promise) {
   }
 }
 
+// Render frames until `predicate()` is true (or the timeout is hit), so tests
+// wait on the actual lifecycle instead of a fixed timer.
+async function pumpUntil(flock, predicate, { timeout = 4000, label = 'condition' } = {}) {
+  const interval = setInterval(() => flock.scene.render(), 0);
+  const start = Date.now();
+  try {
+    while (!predicate() && Date.now() - start < timeout) {
+      await flock.wait(0.03);
+    }
+  } finally {
+    clearInterval(interval);
+  }
+  if (!predicate()) throw new Error(`pumpUntil: ${label} not met within ${timeout}ms`);
+}
+
 export function runCreateObjectTests(flock) {
-  describe("createObject tests @slow", function () {
+  describe('createObject tests @slow', function () {
     this.timeout(5000);
 
-    it("should create one object then create another", async function () {
+    it('should create one object then create another', async function () {
       // Create the first tree object.
       const tree1 = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__1",
-        color: ["#cd853f", "#66cdaa"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__1',
+        color: ['#cd853f', '#66cdaa'],
         position: { x: 0, y: 0, z: -10.8 },
       });
-      expect(tree1).to.be.a("string");
+      expect(tree1).to.be.a('string');
 
       // Create a second tree object.
       const tree2 = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__2",
-        color: ["#66cdaa", "#cd853f"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__2',
+        color: ['#66cdaa', '#cd853f'],
         scale: 1,
         position: { x: -3, y: 0, z: 10.8 },
       });
-      expect(tree2).to.be.a("string");
+      expect(tree2).to.be.a('string');
     });
 
-    it("should hide and then show an object", async function () {
+    it('should hide and then show an object', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__3",
-        color: ["#66cdaa", "#cd853f"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__3',
+        color: ['#66cdaa', '#cd853f'],
         scale: 1,
         position: { x: -4, y: 0, z: 10.8 },
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       try {
         await flock.hide(tree);
         await flock.wait(0.5);
         await flock.show(tree);
       } catch (error) {
-        throw new Error(`Show/hide operation failed: ${error.message}`);
+        throw new Error(`Show/hide operation failed: ${error.message}`, { cause: error });
       }
     });
 
-    it("should handle multiple objects with show and hide", async function () {
+    it('should stay hidden when hidden before its materials finish compiling', async function () {
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__hide_race',
+        color: ['#66cdaa', '#cd853f'],
+        scale: 1,
+        position: { x: -6, y: 0, z: 10.8 },
+      });
+
+      await flock.hide(tree);
+      await flock.wait(1);
+
+      const mesh = flock.scene.getMeshByName(tree);
+      expect(mesh, 'mesh should exist').to.exist;
+      expect(mesh.isEnabled(), 'mesh should still be hidden').to.equal(false);
+      mesh.getChildMeshes().forEach((child) => {
+        expect(child.isEnabled(), `${child.name} should still be hidden`).to.equal(false);
+      });
+    });
+
+    it('reveals the object only after the DO-part callback finishes', async function () {
+      let callbackRan = false;
+      let hiddenWhenCallbackRan = null;
+
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__constructor_reveal',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 12, y: 0, z: 10.8 },
+        callback: async () => {
+          const parts = flock.scene.getMeshByName(tree)?.getChildMeshes(false) ?? [];
+          hiddenWhenCallbackRan = parts.length > 0 && parts.every((p) => !p.isEnabled());
+          await flock.wait(0.2);
+          callbackRan = true;
+        },
+      });
+
+      await pumpUntil(flock, () => callbackRan, { label: 'DO callback' });
+      await pumpUntil(
+        flock,
+        () => flock.scene.getMeshByName(tree)?.getChildMeshes(false).some((p) => p.isEnabled()),
+        { label: 'reveal' }
+      );
+
+      expect(hiddenWhenCallbackRan, 'object stays hidden while the callback runs').to.equal(true);
+    });
+
+    it('keeps an object hidden when hide() lands during the deferred reveal', async function () {
+      this.timeout(9000);
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__hide_pending',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 20, y: 0, z: 10.8 },
+      });
+      await flock.hide(tree);
+      await pumpAnimation(flock, flock.wait(3)); // past the 2s reveal deadline
+
+      const mesh = flock.scene.getMeshByName(tree);
+      expect(mesh.isEnabled(), 'wrapper still hidden after the reveal deadline').to.equal(false);
+      mesh.getChildMeshes(false).forEach((child) => {
+        expect(child.isEnabled(), `${child.name} still hidden`).to.equal(false);
+        // The deferred reveal must not have run its side effects either.
+        expect(child.isVisible, `${child.name} not force-shown by the reveal`).to.equal(false);
+      });
+    });
+
+    it('reveals an object built inside a prefab', async function () {
+      let tree;
+      const group = await flock.addPrefab('prefab_reveal__prefab_reveal', {
+        x: 24,
+        z: 10.8,
+        build: async (groupName) => {
+          tree = flock.createObject({
+            modelName: 'tree.glb',
+            modelId: 'tree.glb__prefab_reveal',
+            color: ['#66cdaa', '#cd853f'],
+            position: { x: 0, y: 0, z: 0 },
+          });
+          flock.setParent(groupName, tree);
+        },
+      });
+      expect(group).to.be.a('string');
+
+      try {
+        await pumpUntil(
+          flock,
+          () => flock.scene.getMeshByName(tree)?.getChildMeshes(false).some((p) => p.isEnabled()),
+          { label: 'reveal inside prefab' }
+        );
+      } finally {
+        flock.disposeMesh(flock.scene.getMeshByName(group));
+      }
+    });
+
+    it('runs then() after the constructor callback and after the object is revealed', async function () {
+      const order = [];
+      let revealedWhenThenRan = null;
+
+      const tree = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__then_order',
+        color: ['#66cdaa', '#cd853f'],
+        position: { x: 16, y: 0, z: 10.8 },
+        callback: async () => {
+          order.push('callback');
+          await flock.wait(0.2);
+        },
+        then: () => {
+          order.push('then');
+          const parts = flock.scene.getMeshByName(tree)?.getChildMeshes(false) ?? [];
+          revealedWhenThenRan = parts.length > 0 && parts.some((p) => p.isEnabled());
+        },
+      });
+
+      await pumpUntil(flock, () => order.includes('then'), { label: 'then()' });
+
+      expect(order, 'then() runs after the constructor callback').to.deep.equal([
+        'callback',
+        'then',
+      ]);
+      expect(revealedWhenThenRan, 'object is revealed by the time then() runs').to.equal(true);
+    });
+
+    it('should handle multiple objects with show and hide', async function () {
       const trees = [];
       try {
         // Create several tree objects
         for (let i = 0; i < 3; i++) {
           const tree = flock.createObject({
-            modelName: "tree.glb",
+            modelName: 'tree.glb',
             modelId: `tree.glb__multi_${i}`,
-            color: ["#66cdaa", "#cd853f"],
+            color: ['#66cdaa', '#cd853f'],
             position: { x: i * 2, y: 0, z: 10.8 },
           });
-          expect(tree).to.be.a("string");
+          expect(tree).to.be.a('string');
           trees.push(tree);
         }
 
@@ -97,79 +236,79 @@ export function runCreateObjectTests(flock) {
           await flock.show(tree);
         }
       } catch (error) {
-        throw new Error(`Multiple object operation failed: ${error.message}`);
+        throw new Error(`Multiple object operation failed: ${error.message}`, { cause: error });
       }
     });
 
-    it("should handle invalid object creation parameters", function () {
+    it('should handle invalid object creation parameters', function () {
       // Test with valid parameters - should work normally
       const result1 = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__1",
-        color: ["#cd853f", "#66cdaa"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__1',
+        color: ['#cd853f', '#66cdaa'],
         position: { x: 0, y: 0, z: -10.8 },
       });
-      expect(result1).to.be.a("string");
+      expect(result1).to.be.a('string');
 
       // Test with undefined - should use default empty object
       const result2 = flock.createObject(undefined);
-      expect(result2).to.be.a("string");
+      expect(result2).to.be.a('string');
 
       // Test with null - should use default empty object
       const result3 = flock.createObject();
-      expect(result3).to.be.a("string");
+      expect(result3).to.be.a('string');
 
       // Test with empty object - should log error but return ID
       const result4 = flock.createObject({});
-      expect(result4).to.be.a("string");
+      expect(result4).to.be.a('string');
 
       // Test with invalid position - should log error but return ID
       const result5 = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__invalid",
-        position: "invalid",
-        color: ["#cd853f", "#66cdaa"],
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__invalid',
+        position: 'invalid',
+        color: ['#cd853f', '#66cdaa'],
       });
-      expect(result5).to.be.a("string");
+      expect(result5).to.be.a('string');
 
       // Test with invalid color - should log error but return ID
       const result6 = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__test6",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__test6',
         position: { x: 0, y: 0, z: -10.8 },
-        color: "invalid",
+        color: 'invalid',
       });
-      expect(result6).to.be.a("string");
+      expect(result6).to.be.a('string');
 
       // Test with missing required fields - should log error but return ID
       const result7 = flock.createObject({
-        modelName: "tree.glb",
+        modelName: 'tree.glb',
       });
-      expect(result7).to.be.a("string");
+      expect(result7).to.be.a('string');
     });
 
-    ("should correctly handle modelId and blockId splitting",
+    ('should correctly handle modelId and blockId splitting',
       function () {
         // Create a mesh with a valid modelId__blockId format
-        const modelId = "tree.glb__block123";
+        const modelId = 'tree.glb__block123';
         const result = flock.createObject({
-          modelName: "tree.glb",
+          modelName: 'tree.glb',
           modelId: modelId,
-          color: ["#cd85it3f", "#66cdaa"],
+          color: ['#cd85it3f', '#66cdaa'],
           position: { x: 0, y: 0, z: 0 },
         });
 
         // Get the created mesh
         const mesh = flock.scene.getMeshByName(result);
         expect(mesh).to.exist;
-        expect(mesh.metadata.blockKey).to.equal("block123");
+        expect(mesh.metadata.blockKey).to.equal('block123');
 
         // Test with no double underscore
-        const modelId2 = "tree.glb";
+        const modelId2 = 'tree.glb';
         const result2 = flock.createObject({
-          modelName: "tree.glb",
+          modelName: 'tree.glb',
           modelId: modelId2,
-          color: ["#cd853f", "#66cdaa"],
+          color: ['#cd853f', '#66cdaa'],
           position: { x: 0, y: 0, z: 0 },
         });
         const mesh2 = flock.scene.getMeshByName(result2);
@@ -177,38 +316,38 @@ export function runCreateObjectTests(flock) {
         expect(mesh2.metadata.blockKey).to.equal(modelId2);
 
         // Test with multiple double underscores - should only split on first __
-        const modelId3 = "tree.glb__block123__extra";
+        const modelId3 = 'tree.glb__block123__extra';
         const result3 = flock.createObject({
-          modelName: "tree.glb",
+          modelName: 'tree.glb',
           modelId: modelId3,
-          color: ["#cd853f", "#66cdaa"],
+          color: ['#cd853f', '#66cdaa'],
           position: { x: 0, y: 0, z: 0 },
         });
         const mesh3 = flock.scene.getMeshByName(result3);
         expect(mesh3).to.exist;
-        expect(mesh3.metadata.blockKey).to.equal("block123"); // Only takes first part after __
+        expect(mesh3.metadata.blockKey).to.equal('block123'); // Only takes first part after __
 
         // Test with empty string after double underscore
-        const modelId4 = "tree.glb__";
+        const modelId4 = 'tree.glb__';
         const result4 = flock.createObject({
-          modelName: "tree.glb",
+          modelName: 'tree.glb',
           modelId: modelId4,
-          color: ["#cd853f", "#66cdaa"],
+          color: ['#cd853f', '#66cdaa'],
           position: { x: 0, y: 0, z: 0 },
         });
         const mesh4 = flock.scene.getMeshByName(result4);
         expect(mesh4).to.exist;
-        expect(mesh4.metadata.blockKey).to.equal("tree.glb"); // Empty string after __
+        expect(mesh4.metadata.blockKey).to.equal('tree.glb'); // Empty string after __
       });
 
-    it("should handle object scaling operations", async function () {
+    it('should handle object scaling operations', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__scale",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__scale',
         position: { x: 0, y: 0, z: 0 },
         scale: 1,
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       // Test scaling operations if available
       if (flock.scale) {
@@ -218,14 +357,14 @@ export function runCreateObjectTests(flock) {
       }
     });
 
-    it("should handle object rotation", async function () {
+    it('should handle object rotation', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__rotate",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__rotate',
         position: { x: 0, y: 0, z: 0 },
         rotation: { x: 0, y: 0, z: 0 },
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       // Test rotation operations if available
       if (flock.rotate) {
@@ -235,13 +374,13 @@ export function runCreateObjectTests(flock) {
       }
     });
 
-    it("should handle object position updates", async function () {
+    it('should handle object position updates', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__move",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__move',
         position: { x: 0, y: 0, z: 0 },
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       // Test position updates if available
       if (flock.setPosition) {
@@ -251,13 +390,13 @@ export function runCreateObjectTests(flock) {
       }
     });
 
-    it("should handle rapid show/hide toggles", async function () {
+    it('should handle rapid show/hide toggles', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__toggle",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__toggle',
         position: { x: 0, y: 0, z: 0 },
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       for (let i = 0; i < 3; i++) {
         await flock.hide(tree);
@@ -267,48 +406,142 @@ export function runCreateObjectTests(flock) {
       }
     });
 
-    it("should handle color updates", async function () {
+    it('should handle color updates', async function () {
       const tree = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "tree.glb__color",
+        modelName: 'tree.glb',
+        modelId: 'tree.glb__color',
         position: { x: 0, y: 0, z: 0 },
-        color: ["#ff0000", "#00ff00"],
+        color: ['#ff0000', '#00ff00'],
       });
-      expect(tree).to.be.a("string");
+      expect(tree).to.be.a('string');
 
       // Test color updates if available
       if (flock.setColor) {
-        await flock.setColor(tree, ["#0000ff", "#ff00ff"]);
+        await flock.setColor(tree, ['#0000ff', '#ff00ff']);
         await flock.wait(0.5);
-        await flock.setColor(tree, ["#ffffff", "#000000"]);
+        await flock.setColor(tree, ['#ffffff', '#000000']);
       }
     });
 
-    it("should avoid collisions for repeated object ids", function () {
+    it('should avoid collisions for repeated object ids', function () {
       const firstId = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "reserve-tree",
-        color: ["#66cdaa", "#cd853f"],
+        modelName: 'tree.glb',
+        modelId: 'reserve-tree',
+        color: ['#66cdaa', '#cd853f'],
         position: { x: 0, y: 0, z: 0 },
       });
       const secondId = flock.createObject({
-        modelName: "tree.glb",
-        modelId: "reserve-tree",
-        color: ["#66cdaa", "#cd853f"],
+        modelName: 'tree.glb',
+        modelId: 'reserve-tree',
+        color: ['#66cdaa', '#cd853f'],
         position: { x: 2, y: 0, z: 0 },
       });
 
       expect(firstId).to.not.equal(secondId);
     });
+
+    describe('repeated objects', function () {
+      const ids = [];
+      const parts = (id) =>
+        flock.scene
+          .getMeshByName(id)
+          .getChildMeshes(false)
+          .filter((m) => m.getTotalVertices() > 0);
+      const addTree = async (modelId, color, x) => {
+        const id = flock.createObject({ modelName: 'tree.glb', modelId, color, position: { x, y: 0, z: 20 } });
+        ids.push(id);
+        await pumpAnimation(flock, flock.show(id));
+        return id;
+      };
+
+      afterEach(function () {
+        ids.forEach((id) => flock.dispose(id));
+        ids.length = 0;
+      });
+
+      const isInstance = (m) => m.getClassName() === 'InstancedMesh';
+
+      it('keeps a single object as an ordinary mesh', async function () {
+        const only = await addTree('tree.glb__single', ['#102030', '#405060'], 0);
+
+        expect(parts(only).length).to.be.greaterThan(0);
+        expect(parts(only).some(isInstance)).to.be.false;
+      });
+
+      it('draws later objects with the same colours as instances of one template', async function () {
+        const first = await addTree('tree.glb__shared_a', ['#112233', '#445566'], 0);
+        const second = await addTree('tree.glb__shared_b', ['#112233', '#445566'], 3);
+        const third = await addTree('tree.glb__shared_c', ['#112233', '#445566'], 6);
+
+        expect(parts(first).some(isInstance)).to.be.false;
+        expect([...parts(second), ...parts(third)].every(isInstance)).to.be.true;
+        expect(parts(third).map((m) => m.sourceMesh)).to.deep.equal(
+          parts(second).map((m) => m.sourceMesh)
+        );
+      });
+
+      it('places an instanced copy exactly like an ordinary one', async function () {
+        const add = async (modelId) => {
+          const id = flock.createObject({ modelName: 'airplane.glb', modelId, position: { x: 0, y: 0, z: 30 } });
+          ids.push(id);
+          await pumpAnimation(flock, flock.show(id));
+          return id;
+        };
+        const first = await add('airplane.glb__place_a');
+        const second = await add('airplane.glb__place_b');
+        const sorted = (id) =>
+          parts(id).sort((a, b) =>
+            (a.metadata?.originalNodeName ?? a.name).localeCompare(b.metadata?.originalNodeName ?? b.name)
+          );
+
+        expect(sorted(second).every(isInstance)).to.be.true;
+        sorted(first).forEach((part, i) => {
+          const other = sorted(second)[i];
+          part.computeWorldMatrix(true);
+          other.computeWorldMatrix(true);
+          other
+            .getWorldMatrix()
+            .m.forEach((value, k) => expect(value).to.be.closeTo(part.getWorldMatrix().m[k], 1e-6));
+        });
+      });
+
+      it('gives a recoloured object its own materials without changing the others', async function () {
+        await addTree('tree.glb__recolour_a', ['#223344', '#556677'], 0);
+        const second = await addTree('tree.glb__recolour_b', ['#223344', '#556677'], 3);
+        const third = await addTree('tree.glb__recolour_c', ['#223344', '#556677'], 6);
+        const before = parts(third).map((m) => m.material.diffuseColor.toHexString());
+
+        await pumpAnimation(flock, flock.changeColor(second, { color: ['#ff0000', '#00ff00'] }));
+
+        expect(parts(second).some(isInstance)).to.be.false;
+        expect(parts(second).map((m) => m.material.diffuseColor.toHexString()).sort()).to.deep.equal(
+          ['#00FF00', '#FF0000']
+        );
+        expect(parts(third).every(isInstance)).to.be.true;
+        expect(parts(third).map((m) => m.material.diffuseColor.toHexString())).to.deep.equal(before);
+      });
+
+      it('removes the template once its last object is disposed', async function () {
+        await addTree('tree.glb__template_a', ['#334455', '#667788'], 0);
+        const second = await addTree('tree.glb__template_b', ['#334455', '#667788'], 3);
+        const template = parts(second)[0].sourceMesh;
+
+        ids.forEach((id) => flock.dispose(id));
+        ids.length = 0;
+        await pumpUntil(flock, () => template.isDisposed(), { label: 'template disposed' });
+
+        expect(template.isDisposed()).to.be.true;
+      });
+    });
   });
 }
 
 export function runCreateModelTests(flock) {
-  describe("createModel tests @slow", function () {
+  describe('createModel tests @slow', function () {
     this.timeout(10000);
 
-    const modelName = "Flock.glb";
-    const modelId = "flock-model-test";
+    const modelName = 'Flock.glb';
+    const modelId = 'flock-model-test';
     let meshId;
 
     before(async function () {
@@ -321,14 +554,10 @@ export function runCreateModelTests(flock) {
       flock.scene = new flock.BABYLON.Scene(flock.engine);
       flock.BABYLON.SceneLoader.ShowLoadingScreen = false;
 
-      new flock.BABYLON.FreeCamera(
-        "testCamera",
-        flock.BABYLON.Vector3.Zero(),
-        flock.scene,
-      );
+      new flock.BABYLON.FreeCamera('testCamera', flock.BABYLON.Vector3.Zero(), flock.scene);
 
       const baseMock = {
-        name: "MockPhysics",
+        name: 'MockPhysics',
         getPluginVersion: () => 2,
         isInitialized: () => true,
         _checkIsReady: () => true,
@@ -344,10 +573,7 @@ export function runCreateModelTests(flock) {
         get: (target, prop) => (prop in target ? target[prop] : () => {}),
       });
 
-      flock.scene.enablePhysics(
-        new flock.BABYLON.Vector3(0, -9.81, 0),
-        physicsMock,
-      );
+      flock.scene.enablePhysics(new flock.BABYLON.Vector3(0, -9.81, 0), physicsMock);
 
       configureDraco(flock.BABYLON);
 
@@ -364,33 +590,94 @@ export function runCreateModelTests(flock) {
       flock.dispose(meshId);
     });
 
-    it("createModel returns a string ID", function () {
-      expect(meshId).to.be.a("string");
+    it('createModel returns a string ID', function () {
+      expect(meshId).to.be.a('string');
     });
 
-    it("mesh exists in the scene after loading", function () {
+    it('mesh exists in the scene after loading', function () {
       const mesh = flock.scene.getMeshByName(meshId);
       expect(mesh).to.exist;
     });
 
-    it("mesh metadata has the correct modelName", function () {
+    it('mesh metadata has the correct modelName', function () {
       const mesh = flock.scene.getMeshByName(meshId);
       expect(mesh.metadata?.modelName).to.equal(modelName);
     });
 
-    it("mesh is placed at the given position", function () {
+    it('mesh is placed at the given position', function () {
       const mesh = flock.scene.getMeshByName(meshId);
       expect(mesh.position.x).to.be.closeTo(1, 0.01);
       expect(mesh.position.z).to.be.closeTo(2, 0.01);
     });
 
-    it("show and hide work on the loaded model", async function () {
+    it('show and hide work on the loaded model', async function () {
       await pumpAnimation(flock, flock.hide(meshId));
       const mesh = flock.scene.getMeshByName(meshId);
       expect(mesh.isEnabled()).to.be.false;
 
       await pumpAnimation(flock, flock.show(meshId));
       expect(mesh.isEnabled()).to.be.true;
+    });
+
+    it('keeps the model materials when no colours are given', function () {
+      const mesh = flock.scene.getMeshByName(meshId);
+      const materialNames = flock.getColorSlots(mesh).map(({ mesh: part }) => part.material?.name);
+      expect(materialNames).to.include('Skin');
+    });
+
+    it('keeps colour slots stable across recolouring', async function () {
+      const recolourId = flock.createModel({ modelName, modelId: 'flock-model-recolour' });
+      await pumpAnimation(flock, flock.show(recolourId));
+
+      try {
+        const mesh = flock.scene.getMeshByName(recolourId);
+        const slotsByName = () =>
+          Object.fromEntries(flock.getColorSlots(mesh).map((s) => [s.mesh.name, s.index]));
+        const before = slotsByName();
+        const count = new Set(Object.values(before)).size;
+        const palette = Array.from(
+          { length: count },
+          (_, i) => `#${(i + 1).toString(16).padStart(6, '0')}`
+        );
+
+        flock.applyMaterialToHierarchy(mesh, palette);
+        expect(slotsByName()).to.deep.equal(before);
+
+        flock.applyMaterialToHierarchy(mesh, palette);
+        expect(slotsByName()).to.deep.equal(before);
+      } finally {
+        flock.dispose(recolourId);
+      }
+    });
+
+    it('applies colours to the instance without changing the cached template', async function () {
+      const colouredId = flock.createModel({
+        modelName,
+        modelId: 'flock-model-coloured',
+        colors: ['#123456'],
+      });
+      await pumpAnimation(flock, flock.show(colouredId));
+
+      try {
+        const coloured = flock.scene.getMeshByName(colouredId);
+        const parts = flock.getColorSlots(coloured).map(({ mesh }) => mesh);
+        parts.forEach((part) => {
+          expect(part.material.diffuseColor.toHexString()).to.equal('#123456');
+        });
+
+        const templateNames = flock
+          .getColorSlots(flock.modelCache[modelName])
+          .map(({ mesh }) => mesh.material?.name);
+        expect(templateNames).to.include('Skin');
+
+        const original = flock.scene.getMeshByName(meshId);
+        const originalNames = flock
+          .getColorSlots(original)
+          .map(({ mesh: part }) => part.material?.name);
+        expect(originalNames).to.include('Skin');
+      } finally {
+        flock.dispose(colouredId);
+      }
     });
   });
 }

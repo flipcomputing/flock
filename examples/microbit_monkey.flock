@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "workspaceComments": [
     {
       "height": 355.862060546875,
@@ -135,7 +136,7 @@
                     "type": "math_number",
                     "id": "]!BGUsV3G{WBq/RjEjsn",
                     "fields": {
-                      "NUM": 1
+                      "NUM": 2
                     }
                   }
                 },
@@ -266,7 +267,7 @@
                   "id": "T^R_2g]K*y~qHauvm9U8",
                   "fields": {
                     "CONTROL": "BOTH",
-                    "ENABLED": false
+                    "ENABLED": "DISABLED"
                   },
                   "inputs": {
                     "COLOR": {
@@ -317,33 +318,60 @@
               },
               "next": {
                 "block": {
-                  "type": "switch_animation",
-                  "id": "ybz;~~L1:$FFc9KGvLS[",
-                  "icons": {
-                    "comment": {
-                      "text": "Switch to an animation and keep it playing.",
-                      "pinned": false,
-                      "height": 44.5008544921875,
-                      "width": 450.02166748046875
-                    }
-                  },
-                  "fields": {
-                    "MODEL": {
-                      "id": "wS3o8x9I3I=8:GDE;OR3"
-                    }
-                  },
+                  "type": "comment",
+                  "id": "/n4ijm?8}G]RE!enSe7!",
                   "inputs": {
-                    "ANIMATION_NAME": {
+                    "COMMENT": {
                       "shadow": {
-                        "type": "animation_name",
-                        "id": "Qty0bhwTcV}?F=1nQ-hl",
+                        "type": "text_multiline",
+                        "id": "u/`#xPATKS#h#`l:=Ln3",
                         "fields": {
-                          "ANIMATION_NAME": "Idle"
+                          "TEXT": "Switch to an animation and keep it playing."
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "switch_animation",
+                      "id": "ybz;~~L1:$FFc9KGvLS[",
+                      "fields": {
+                        "MODEL": {
+                          "id": "wS3o8x9I3I=8:GDE;OR3"
+                        }
+                      },
+                      "inputs": {
+                        "ANIMATION_NAME": {
+                          "shadow": {
+                            "type": "animation_name",
+                            "id": "Qty0bhwTcV}?F=1nQ-hl",
+                            "fields": {
+                              "ANIMATION_NAME": "Idle"
+                            }
+                          }
                         }
                       }
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "^aM]U9F/ny6S[ST2L9G+",
+        "x": 10,
+        "y": 1025,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "t+5lE5]4YKk-OeoBdgg6",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

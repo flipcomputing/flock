@@ -1,9 +1,13 @@
 import * as Blockly from 'blockly';
 import { workspace } from './blocklyinit.js';
 import { flock } from '../flock.js';
-import { restoreBlockFocus, getLastHighlightedBlockId } from '../ui/blocklyutil.js';
 import { showBanner } from '../ui/notifications.js';
+import { announce } from '../accessibility/accessibility.js';
 import { translate } from './translation.js';
+import { disableGltfValidation } from './gltfvalidation.js';
+import { logViewport } from './viewportDebug.js';
+import { isRestorableWorkspaceNode } from './workspaceFocus.js';
+import { getCanvasAspect, isPortraitCanvas } from './canvasAspect.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -16,13 +20,23 @@ const isMobile = () => {
 // Phones in landscape dock the gizmo toolbar beside the canvas rather than
 // below it. Must match the media query of the same shape in style.css.
 const gizmosBesideCanvas = () =>
-  window.matchMedia(
-    '(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)',
-  ).matches;
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)')
+    .matches;
 
-let pendingScrollBlockId = null;
+let savedCodeScroll = null;
+let savedCodeFocus = null;
 
-export function onResize(mode) {
+function restoreCodeFocus(node) {
+  if (!isRestorableWorkspaceNode(node)) return;
+  if (Blockly.FocusableTreeTraverser.findFocusedNode(workspace) !== node) return;
+  workspace.scrollBoundsIntoView = () => {};
+  Blockly.getFocusManager().focusNode(node);
+  Blockly.renderManagement.finishQueuedRenders().then(() => {
+    delete workspace.scrollBoundsIntoView;
+  });
+}
+
+export function onResize(mode, restore = null) {
   // First handle canvas and engine
   resizeCanvas();
   // Don't resize the engine against a hidden canvas (0 width in code view);
@@ -35,8 +49,17 @@ export function onResize(mode) {
   window.dispatchEvent(new Event('flock:canvas-resize'));
 
   requestAnimationFrame(() => {
+    const codePanel = document.getElementById('codePanel');
+    if (codePanel && codePanel.style.display === 'none') {
+      window.dispatchEvent(new Event('flock:canvas-resize-done'));
+      return;
+    }
+
     let scrollX = workspace?.scrollX || 0;
     let scrollY = workspace?.scrollY || 0;
+    if (mode === 'reset' && restore?.scroll) {
+      ({ x: scrollX, y: scrollY } = restore.scroll);
+    }
 
     if (scrollX === -7) {
       scrollX = 0;
@@ -47,15 +70,12 @@ export function onResize(mode) {
 
     if (workspace) {
       Blockly.svgResize(workspace);
-      if (mode === 'reset') workspace.scroll(scrollX, scrollY);
-      if (mode === 'reset' && pendingScrollBlockId) {
-        const blockId = pendingScrollBlockId;
-        pendingScrollBlockId = null;
-        requestAnimationFrame(() => {
-          restoreBlockFocus(workspace, blockId);
-        });
+      if (mode === 'reset') {
+        workspace.scroll(scrollX, scrollY);
+        if (restore?.focus) restoreCodeFocus(restore.focus);
       }
     }
+    window.dispatchEvent(new Event('flock:canvas-resize-done'));
   });
 }
 
@@ -79,7 +99,213 @@ const handleWindowResize = () => {
 };
 window.addEventListener('resize', handleWindowResize);
 
-// Function to maintain a 16:9 aspect ratio for the canvas
+window.addEventListener('flock:canvas-aspect', () => {
+  const panels = !playModeActive && getSideBySidePanels();
+  if (panels) {
+    document.getElementById('canvasArea').style.flex = '';
+    panels.codePanel.style.flex = '';
+  }
+  onResize();
+});
+
+function getDockedHelpWidth() {
+  if (!isPortraitCanvas()) return 0;
+  const body = document.getElementById('info-panel-body');
+  if (!body || getComputedStyle(body).display === 'none') return 0;
+  return Math.round(body.getBoundingClientRect().width);
+}
+
+window.addEventListener('flock:info-panel-open-change', () => {
+  if (!isPortraitCanvas() || playModeActive) return;
+  const canvasArea = document.getElementById('canvasArea');
+  const panels = getSideBySidePanels();
+  const helpWidth = getDockedHelpWidth();
+  if (panels && helpWidth) {
+    const columnWidth = canvasArea.getBoundingClientRect().width;
+    const panelWidth = columnWidth + panels.codePanel.getBoundingClientRect().width;
+    const target = Math.min(columnWidth + helpWidth, panelWidth - MIN_PANEL_WIDTH);
+    setCanvasColumnWidth(canvasArea, panels, target);
+  }
+  onResize();
+});
+
+// User-sized info-panel height; null until the first splitter drag/keys.
+let infoPanelUserHeight = null;
+
+// Outer box minus gizmo strip, tabs, splitter bar and bottom-bar overlap;
+// callers then apply the info-body allowance they need.
+function getCanvasChrome(canvasArea) {
+  const areaRect = canvasArea.getBoundingClientRect();
+  let areaWidth = Math.max(1, Math.round(areaRect.width));
+  let areaHeight = Math.max(1, Math.round(areaRect.height));
+  let horizontalChromeWidth = 0;
+  let tabsHeight = 0;
+  let resizerHeight = 0;
+
+  const gizmoButtons = document.getElementById('gizmoButtons');
+  if (gizmoButtons && getComputedStyle(gizmoButtons).display !== 'none') {
+    if (gizmosBesideCanvas()) {
+      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
+      const barStyle = getComputedStyle(gizmoButtons);
+      const padding =
+        (parseFloat(barStyle.paddingLeft) || 0) + (parseFloat(barStyle.paddingRight) || 0);
+      const buttons = row ? row.getBoundingClientRect().width : 0;
+      horizontalChromeWidth = Math.round(buttons + padding);
+      areaWidth = Math.max(1, areaWidth - horizontalChromeWidth);
+    } else {
+      areaHeight = Math.max(1, areaHeight - Math.ceil(gizmoButtons.scrollHeight));
+    }
+  }
+
+  const infoPanelTabs = document.getElementById('info-panel-tabs');
+  if (infoPanelTabs) {
+    const tabsRect = infoPanelTabs.getBoundingClientRect();
+    const tabsStyle = getComputedStyle(infoPanelTabs);
+    if (tabsRect.height > 0 && tabsStyle.position !== 'fixed') {
+      tabsHeight = Math.ceil(tabsRect.height);
+      areaHeight = Math.max(1, areaHeight - tabsHeight);
+    }
+  }
+
+  const infoResizer = document.getElementById('infoResizer');
+  if (infoResizer && getComputedStyle(infoResizer).display !== 'none') {
+    resizerHeight = Math.ceil(infoResizer.getBoundingClientRect().height);
+  }
+
+  const bottomBar = document.getElementById('bottomBar');
+  if (bottomBar && getComputedStyle(bottomBar).display !== 'none') {
+    const overlap = areaRect.bottom - bottomBar.getBoundingClientRect().top;
+    if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
+  }
+
+  return { areaRect, areaWidth, areaHeight, horizontalChromeWidth, tabsHeight, resizerHeight };
+}
+
+// Smallest keepable info-panel height: tab strip plus a sliver of body.
+function getMinInfoPanelHeight() {
+  const tabs = document.getElementById('info-panel-tabs');
+  let tabsHeight = 50;
+  if (tabs) {
+    const rect = tabs.getBoundingClientRect();
+    if (rect.height > 0 && getComputedStyle(tabs).position !== 'fixed') {
+      tabsHeight = Math.ceil(rect.height);
+    }
+  }
+  return tabsHeight + 30;
+}
+
+// A widening canvas takes info-panel space down toward the minimum.
+function shrinkInfoPanelForCanvasWidth(canvasArea, canvasWidth) {
+  if (infoPanelUserHeight == null || !infoPanelDocked()) return;
+  const chrome = getCanvasChrome(canvasArea);
+  const neededAvail = canvasWidth / getCanvasAspect();
+  const availNow = Math.max(
+    1,
+    chrome.areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
+  );
+  if (neededAvail <= availNow) return;
+  const target = Math.max(
+    getMinInfoPanelHeight(),
+    Math.round(chrome.areaHeight + chrome.tabsHeight - chrome.resizerHeight - neededAvail)
+  );
+  if (target >= infoPanelUserHeight) return;
+  const infoPanel = document.getElementById('info-panel');
+  if (!infoPanel) return;
+  infoPanel.style.flex = `1 1 ${target}px`;
+  infoPanelUserHeight = target;
+}
+
+// Canvas-region floor for info-panel sizing.
+const MIN_CANVAS_HEIGHT = 120;
+const MIN_PANEL_WIDTH = 300;
+const MIN_HELP_WIDTH = 240;
+
+const infoPanelDocked = () => !gizmosBesideCanvas() && !playModeActive && !isPortraitCanvas();
+
+// Side by side, a shrinking info panel widens the canvas column into the code
+// panel so the taller region is actually used; floorWidth stops it narrowing.
+function getSideBySidePanels() {
+  const resizer = document.getElementById('resizer');
+  const codePanel = document.getElementById('codePanel');
+  const mainContent = document.getElementById('maincontent');
+  if (!resizer || !codePanel || !mainContent) return null;
+  if (getComputedStyle(resizer).display === 'none' || resizer.offsetWidth === 0) return null;
+  return { codePanel, mainContent };
+}
+
+function setCanvasColumnWidth(canvasArea, { codePanel, mainContent }, target) {
+  const canvasWidth = canvasArea.getBoundingClientRect().width;
+  const panelWidth = canvasWidth + codePanel.getBoundingClientRect().width;
+  const totalWidth = mainContent.getBoundingClientRect().width;
+  canvasArea.style.flex = `0 0 ${(target / totalWidth) * 100}%`;
+  codePanel.style.flex = `0 0 ${((panelWidth - target) / totalWidth) * 100}%`;
+}
+
+function widenCanvasForInfoPanel(canvasArea, floorWidth) {
+  if (!infoPanelDocked()) return;
+  const panels = getSideBySidePanels();
+  if (!panels) return;
+
+  const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(canvasArea);
+  const canvasWidth = canvasArea.getBoundingClientRect().width;
+  const panelWidth = canvasWidth + panels.codePanel.getBoundingClientRect().width;
+  const needed = Math.round(areaHeight * getCanvasAspect()) + horizontalChromeWidth;
+  const target = Math.max(floorWidth, Math.min(needed, panelWidth - MIN_PANEL_WIDTH));
+  if (Math.abs(target - canvasWidth) < 1) return;
+
+  setCanvasColumnWidth(canvasArea, panels, target);
+}
+
+function sizeDockedHelp(canvasArea, areaWidth, areaHeight) {
+  const fitWidth = Math.round(areaHeight * getCanvasAspect());
+  const helpWidth = Math.max(MIN_HELP_WIDTH, areaWidth - fitWidth);
+  canvasArea.style.setProperty('--help-column-width', `${helpWidth}px`);
+  return Math.max(1, areaWidth - helpWidth);
+}
+
+function narrowColumnToPortraitCanvas(canvasArea, canvasWidth) {
+  const panels = getSideBySidePanels();
+  if (!panels) return;
+  const target = Math.max(MIN_PANEL_WIDTH, Math.ceil(canvasWidth));
+  if (canvasArea.getBoundingClientRect().width <= target + 1) return;
+  setCanvasColumnWidth(canvasArea, panels, target);
+}
+
+// Window resizes can strand the stored height; re-clamp it so the canvas recovers.
+function clampInfoPanelUserHeight(canvasArea) {
+  if (infoPanelUserHeight == null || !infoPanelDocked()) return;
+  const infoPanel = document.getElementById('info-panel');
+  if (!infoPanel || getComputedStyle(infoPanel).display === 'none') return;
+  const chrome = getCanvasChrome(canvasArea);
+  const min = getMinInfoPanelHeight();
+  const max = chrome.areaHeight + chrome.tabsHeight - chrome.resizerHeight - MIN_CANVAS_HEIGHT;
+  if (max < min) return;
+  const clamped = Math.min(max, Math.max(min, infoPanelUserHeight));
+  if (clamped === infoPanelUserHeight) return;
+  infoPanelUserHeight = clamped;
+  infoPanel.style.flex = `1 1 ${clamped}px`;
+}
+
+function getCanvasAvailableSize(canvasArea) {
+  const chrome = getCanvasChrome(canvasArea);
+  let areaHeight = chrome.areaHeight;
+
+  // A user-sized panel replaces the tab-strip allowance above.
+  if (infoPanelUserHeight != null && infoPanelDocked()) {
+    areaHeight = Math.max(
+      1,
+      areaHeight + chrome.tabsHeight - infoPanelUserHeight - chrome.resizerHeight
+    );
+  }
+
+  return {
+    areaRect: chrome.areaRect,
+    areaWidth: chrome.areaWidth,
+    areaHeight,
+    horizontalChromeWidth: chrome.horizontalChromeWidth,
+  };
+}
+
 function resizeCanvas() {
   const canvasArea = document.getElementById('canvasArea');
   const canvas = document.getElementById('renderCanvas');
@@ -89,11 +315,13 @@ function resizeCanvas() {
   // Hidden or collapsed (e.g. display:none in narrow-screen code view). Skip so
   // the buffer isn't shrunk to near-minimum; visibility paths re-resize.
   if (areaRect.width <= 0 || areaRect.height <= 0) return;
-  let areaWidth = Math.max(1, Math.round(areaRect.width));
-  let areaHeight = Math.max(1, Math.round(areaRect.height));
+
+  clampInfoPanelUserHeight(canvasArea);
 
   if (flock.embedMode) {
-    const aspectRatio = 16 / 9;
+    let areaWidth = Math.max(1, Math.round(areaRect.width));
+    let areaHeight = Math.max(1, Math.round(areaRect.height));
+    const aspectRatio = getCanvasAspect();
 
     const availableHeight = Math.max(1, areaHeight - 4);
 
@@ -159,55 +387,41 @@ function resizeCanvas() {
     return;
   }
 
-  const gizmoButtons = document.getElementById('gizmoButtons');
-  if (gizmoButtons && gizmoButtons.style.display != 'none') {
-    if (gizmosBesideCanvas()) {
-      // Docked to the right, so it costs width and the canvas keeps the full
-      // height. Measure the buttons rather than #gizmoButtons itself, which
-      // grows to fill whatever the canvas leaves and so can't size it.
-      const row = gizmoButtons.querySelector('.gizmo-buttons-inner');
-      const barStyle = getComputedStyle(gizmoButtons);
-      const padding =
-        (parseFloat(barStyle.paddingLeft) || 0) +
-        (parseFloat(barStyle.paddingRight) || 0);
-      const buttons = row ? row.getBoundingClientRect().width : 0;
-      areaWidth = Math.max(1, areaWidth - Math.round(buttons + padding));
-    } else {
-      areaHeight -= 60; //Gizmos visible
-      const status = document.getElementById('gizmoStatus');
-      if (status) {
-        const statusStyle = getComputedStyle(status);
-        const statusHeight =
-          status.getBoundingClientRect().height + (parseFloat(statusStyle.marginTop) || 0);
-        areaHeight = Math.max(1, areaHeight - Math.round(statusHeight));
-      }
-    }
-  }
+  let { areaWidth, areaHeight } = getCanvasAvailableSize(canvasArea);
+  const helpDocked = !playModeActive && getDockedHelpWidth() > 0;
+  if (helpDocked) areaWidth = sizeDockedHelp(canvasArea, areaWidth, areaHeight);
 
-  // The bottom bar is position:fixed and #canvasArea is sized to the viewport,
-  // so the bar overlaps canvasArea's lower edge rather than pushing it up. On
-  // short viewports that overlap eats into the gizmo strip, hiding the buttons.
-  // Subtract however much the bar intrudes so the canvas + gizmos sit above it.
-  const bottomBar = document.getElementById('bottomBar');
-  if (bottomBar && getComputedStyle(bottomBar).display !== 'none') {
-    const overlap = areaRect.bottom - bottomBar.getBoundingClientRect().top;
-    if (overlap > 0) areaHeight = Math.max(1, areaHeight - Math.round(overlap));
-  }
-
-  const aspectRatio = 16 / 9;
-
+  const aspect = getCanvasAspect();
   let newWidth, newHeight;
 
-  if (areaWidth / areaHeight > aspectRatio) {
+  if (playModeActive) {
+    // Play mode gives the scene the whole area; letterboxing is an editor concern.
+    newWidth = areaWidth;
     newHeight = areaHeight;
-    newWidth = newHeight * aspectRatio;
+    applyPlayModeFov(areaWidth / areaHeight);
+  } else if (areaWidth / areaHeight > aspect) {
+    newHeight = areaHeight;
+    newWidth = newHeight * aspect;
   } else {
     newWidth = areaWidth;
-    newHeight = newWidth / aspectRatio;
+    newHeight = newWidth / aspect;
+  }
+
+  if (!playModeActive && !helpDocked && isPortraitCanvas()) {
+    narrowColumnToPortraitCanvas(canvasArea, newWidth);
   }
 
   canvas.style.width = `${Math.round(newWidth)}px`;
   canvas.style.height = `${Math.round(newHeight)}px`;
+  canvasArea.style.setProperty('--render-canvas-width', `${Math.round(newWidth)}px`);
+
+  // position:fixed info-panel tabs (landscape) can't measure the canvas strip themselves, so publish its
+  // edge here. Uses the canvas's actual viewport-right edge, not newWidth alone, since the canvas can sit
+  // offset from the area's left edge (e.g. beside the gizmo toolbar in gizmosBesideCanvas() layouts).
+  document.documentElement.style.setProperty(
+    '--canvas-width',
+    `${Math.round(canvas.getBoundingClientRect().right)}px`
+  );
 
   // The engine owns the buffer and renders at devicePixelRatio; sizing it to
   // CSS px here leaves it 1x until engine.resize(), drawing GUI px oversized.
@@ -226,7 +440,7 @@ window.viewMode = viewMode;
 window.codeMode = codeMode;
 
 function switchView(view) {
-  if (flock.scene) flock.scene.debugLayer.hide();
+  hideInspector();
   const blocklyArea = document.getElementById('codePanel');
   const canvasArea = document.getElementById('canvasArea');
   const flockLink = document.getElementById('flocklink');
@@ -245,14 +459,6 @@ function switchView(view) {
     canvasArea.style.width = '0';
     blocklyArea.style.flex = '2 1 0'; // 2/3 of the space
     canvasArea.style.flex = '1 1 0'; // 1/3 of the space
-
-    // Reset any transforms on desktop
-    if (!isNarrowScreen()) {
-      const container = document.getElementById('maincontent');
-      if (container) {
-        container.style.transform = 'translateX(0px)';
-      }
-    }
     onResize();
   } else if (view === 'canvas') {
     viewMode = 'canvas';
@@ -298,15 +504,6 @@ function toggleMenu() {
 window.toggleMenu = toggleMenu;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const isFullscreen = window.matchMedia('(display-mode: fullscreen)').matches;
-
-  // No need to request fullscreen in PWA
-  if (isMobile() && isFullscreen) {
-    //requestFullscreen();
-    const fullscreenToggle = document.getElementById('fullscreenToggle');
-    if (fullscreenToggle) fullscreenToggle.style.display = 'none';
-  }
-
   if (window.matchMedia('(display-mode: fullscreen)').matches) {
     // Adjust layout for fullscreen mode
     adjustViewport();
@@ -325,12 +522,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // document.body.style.zoom = dpr;  // This adjusts the zoom based on DPR
   }
 
-  // The Demo button sizes to its label (which varies by language, e.g. the
-  // Spanish "Demostración"), so it isn't forced to a fixed width here.
-  const projectName = document.getElementById('projectName');
-  if (projectName) {
-    //projectName.style.minWidth = "5px";
-    //projectName.style.maxWidth = "80px";
+  if (flock.hideProjectName) {
+    for (const id of ['projectName', 'project-name-desc']) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+    const projectNameLabel = document.querySelector('label[for="projectName"]');
+    if (projectNameLabel) projectNameLabel.style.display = 'none';
   }
 });
 
@@ -338,7 +536,6 @@ let currentView = 'start'; // Start with the code view
 // Function to be called once the app has fully loaded
 export { currentView, switchView, codeMode, showCodeView };
 
-const container = document.getElementById('maincontent');
 const bottomBar = document.getElementById('bottomBar');
 const canvasToggleBtn = document.getElementById('canvasToggleBtn');
 const codeToggleBtn = document.getElementById('codeToggleBtn');
@@ -346,6 +543,51 @@ const codeToggleBtn = document.getElementById('codeToggleBtn');
 let savedView = 'canvas';
 let savedShortcutsVisible = false;
 let savedPanelFlex = null;
+let playModeActive = false;
+let savedCameraFov = null;
+
+// Babylon holds the vertical FOV constant, so a screen narrower than the
+// editor canvas would crop the sides off the composed scene. Pin the
+// horizontal angle there instead: the framing survives and the extra height
+// reveals more of the scene rather than less.
+function applyPlayModeFov(screenAspect) {
+  const camera = flock.scene?.activeCamera;
+  const horizontalFixed = flock.BABYLON?.Camera?.FOVMODE_HORIZONTAL_FIXED;
+  if (!camera || horizontalFixed === undefined || typeof camera.fov !== 'number') return;
+
+  // Re-running the project inside play mode builds a fresh camera.
+  if (savedCameraFov?.camera !== camera) {
+    restoreCameraFov();
+    savedCameraFov = { camera, fov: camera.fov, fovMode: camera.fovMode };
+  }
+  const { fov, fovMode } = savedCameraFov;
+  const aspect = getCanvasAspect();
+  if (fovMode === horizontalFixed || !(screenAspect < aspect)) {
+    camera.fov = fov;
+    camera.fovMode = fovMode;
+    return;
+  }
+  camera.fov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
+  camera.fovMode = horizontalFixed;
+}
+
+// Restores the camera we actually changed, which may no longer be the active one
+// if the project switched cameras mid-play.
+function restoreCameraFov() {
+  if (!savedCameraFov) return;
+  const { camera, fov, fovMode } = savedCameraFov;
+  savedCameraFov = null;
+  if (camera.isDisposed?.()) return;
+  camera.fov = fov;
+  camera.fovMode = fovMode;
+}
+
+function addPlayModeExitShortcut() {
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !playModeActive || event.defaultPrevented) return;
+    togglePlayMode();
+  });
+}
 
 function addButtonListener() {
   if (canvasToggleBtn) canvasToggleBtn.addEventListener('click', showCanvasView);
@@ -376,7 +618,10 @@ function showCodeView() {
     if (codeToggleBtn) codeToggleBtn.setAttribute('aria-pressed', 'true');
   }
 
-  onResize('reset');
+  const restore = { scroll: savedCodeScroll, focus: savedCodeFocus };
+  savedCodeScroll = null;
+  savedCodeFocus = null;
+  onResize('reset', restore);
 }
 
 export function showCanvasView() {
@@ -391,13 +636,11 @@ export function showCanvasView() {
   currentView = 'canvas';
 
   if (isNarrowScreen()) {
-    // Blockly.common.getSelected() is synchronous — reflects the click before the SELECTED
-    // event fires. window.currentBlock lags by one async event tick, so use getSelected() first.
-    // getSelected() may return non-Block selectables; verify via getBlockById before using .id.
-    const selected = Blockly.common.getSelected();
-    const selectedBlock = selected ? workspace.getBlockById(selected.id) : null;
-    const blockToRestore = selectedBlock ?? window.currentBlock;
-    pendingScrollBlockId = blockToRestore?.id || getLastHighlightedBlockId(workspace) || null;
+    const codePanel = document.getElementById('codePanel');
+    if (codePanel && codePanel.style.display !== 'none') {
+      savedCodeScroll = { x: workspace.scrollX, y: workspace.scrollY };
+      savedCodeFocus = Blockly.FocusableTreeTraverser.findFocusedNode(workspace);
+    }
 
     // Instead of CSS transform, change the layout directly
     const canvasArea = document.getElementById('canvasArea');
@@ -492,6 +735,8 @@ document.addEventListener('DOMContentLoaded', () => {
 export function initializeUI() {
   addSwipeListeners(); // Add swipe event listeners (narrow screens only)
   addButtonListener(); // Add button click listener (narrow screens only)
+  addPlayModeExitShortcut();
+  flock.setEditorView(true);
 
   // Initialize currentView based on actual DOM state on narrow screens
   if (isNarrowScreen()) {
@@ -554,14 +799,11 @@ export function togglePlayMode() {
 
   if (gizmosVisible) {
     savedView = currentView;
-
-    // Clear any transforms that might be applied
-    if (isNarrowScreen()) {
-      if (container) container.style.transform = 'translateX(0px)';
-    }
+    playModeActive = true;
+    document.body.classList.add('play-mode');
 
     showCanvasView();
-    if (flock.scene) flock.scene.debugLayer.hide();
+    hideInspector();
     savedShortcutsVisible = !(
       window.flockShortcutsPanel?.panel?.classList.contains('hidden') ?? true
     );
@@ -578,9 +820,17 @@ export function togglePlayMode() {
       canvasArea.style.width = '0';
       canvasArea.style.flex = '1 1 0';
     }
-    document.documentElement.style.setProperty('--dynamic-offset', '40px');
+    document.documentElement.style.setProperty('--dynamic-offset', '50px');
+    flock.setEditorView(false);
+    // Keyboard play needs the canvas focused; the exit button must not take it.
+    document.getElementById('renderCanvas')?.focus({ preventScroll: true });
+    announce(translate('exit_play_mode_hint_ui'));
   } else {
-    if (flock.scene) flock.scene.debugLayer.hide();
+    playModeActive = false;
+    document.body.classList.remove('play-mode');
+    restoreCameraFov();
+    flock.setEditorView(true);
+    hideInspector();
     blocklyArea.style.display = 'block';
     canvasArea.style.display = '';
     gizmoButtons.style.display = 'flex';
@@ -623,63 +873,384 @@ function prepareCanvasForRecording() {
   }
 }
 
-export async function toggleDesignMode() {
-  if (!flock.scene) return;
+// Seed Babylon's persisted flags so Inspector welcome popups stay hidden.
+const INSPECTOR_SEEN_POPUPS = [
+  'Babylon/Inspector/TeachingMoments/Bar/bottom/right/User Feedback',
+  'Babylon/Inspector/TeachingMoments/Bar/top/right/ExtensionList',
+];
+const INSPECTOR_THEME_STORAGE_KEY = 'Babylon/Inspector/ThemeMode';
+const INSPECTOR_THEME_ICON_PATH_PREFIXES = ['M15.5 13.5A6.98', 'M10 2c.28 0 .5.22.5.5'];
+// Pane header's "..." button (MoreHorizontalRegular icon), which opens a Dock
+// submenu for repositioning panes — has no aria-label/title/tooltip to match on.
+const INSPECTOR_PANE_MENU_ICON_PATH_PREFIX = 'M6.25 10a1.25 1.25 0 1 1-2.5 0';
+// Properties-tab accordion sections flock doesn't want shown, matched by
+// their exact header text.
+const INSPECTOR_HIDDEN_PROPERTY_SECTIONS = [
+  'Pinned',
+  'Rendering',
+  'Material Image Processing',
+  'Physics',
+  'Collisions',
+  'Shadows',
+  'General',
+];
+let inspectorExtrasObserver = null;
+let inspectorExtrasFrame = null;
+const INSPECTOR_FOCUSABLE_SELECTOR =
+  'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
+
+export const getInspectorThemeMode = (themeName = document.body.dataset.theme) =>
+  themeName === 'light' ? 'light' : 'dark';
+
+function syncInspectorTheme() {
+  try {
+    localStorage.setItem(INSPECTOR_THEME_STORAGE_KEY, JSON.stringify(getInspectorThemeMode()));
+  } catch {
+    // The Inspector can use its default when storage is unavailable.
+  }
+}
+
+export function focusInspector() {
+  const inspector = document.getElementById('babylon-inspector-container');
+  const firstFocusable = inspector
+    ? [...inspector.querySelectorAll(INSPECTOR_FOCUSABLE_SELECTOR)].find((element) => {
+        const rect = element.getBoundingClientRect();
+        return element.tabIndex >= 0 && !element.disabled && rect.width > 0 && rect.height > 0;
+      })
+    : null;
+  firstFocusable?.focus();
+  return Boolean(firstFocusable);
+}
+
+function preserveInspectorToggleFocus(inspector) {
+  if (inspector.dataset.focusReplacementReady === 'true') return;
+  inspector.dataset.focusReplacementReady = 'true';
+
+  inspector.addEventListener(
+    'click',
+    (event) => {
+      const button = event.target.closest?.('button');
+      if (!button || !inspector.contains(button)) return;
+
+      const visibleButtons = [...inspector.querySelectorAll('button')].filter((element) => {
+        const rect = element.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      });
+      const inspectorRect = inspector.getBoundingClientRect();
+      const isCollapseButton =
+        button.id.startsWith('splitButton-') &&
+        button.id.endsWith('__primaryActionButton') &&
+        button.getBoundingClientRect().right > inspectorRect.right - 40;
+      const isReopenButton = visibleButtons.length === 1 && visibleButtons[0] === button;
+      if (!isCollapseButton && !isReopenButton) return;
+
+      inspector.dataset.focusTransition = 'true';
+      setTimeout(
+        () => {
+          if (inspector.dataset.focusToggleDestination !== 'external') focusInspector();
+          delete inspector.dataset.focusTransition;
+          delete inspector.dataset.focusToggleDestination;
+        },
+        isReopenButton ? 500 : 300
+      );
+    },
+    true
+  );
+}
+
+export function collapseInspector({ preserveFocus = true } = {}) {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return false;
+
+  const collapseButton = [
+    ...inspector.querySelectorAll('button[id^="splitButton-"][id$="__primaryActionButton"]'),
+  ]
+    .filter((button) => {
+      const rect = button.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    })
+    .at(-1);
+  if (!collapseButton) return false;
+
+  if (!preserveFocus) inspector.dataset.focusToggleDestination = 'external';
+  collapseButton.click();
+  return true;
+}
+
+export function isInspectorCollapsed() {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return false;
+
+  const visibleButtons = [...inspector.querySelectorAll('button')].filter((button) => {
+    const rect = button.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+  return visibleButtons.length === 1;
+}
+
+document.addEventListener('flock-inspector-escape-request', (event) => {
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (!inspector) return;
+
+  const hasOpenLayer = [
+    ...inspector.querySelectorAll(
+      '[aria-haspopup][aria-expanded="true"], [role="combobox"][aria-expanded="true"]'
+    ),
+  ].some((control) => {
+    const rect = control.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  });
+  if (hasOpenLayer || !collapseInspector({ preserveFocus: false })) return;
+
+  event.preventDefault();
+  document.dispatchEvent(new CustomEvent('flock-inspector-collapsed-by-escape'));
+});
+
+window.addEventListener(
+  'keydown',
+  (event) => {
+    if (
+      event.key !== 'Escape' ||
+      // Only claim Escape when focus is inside the inspector; otherwise an open
+      // modal (About, Shortcuts panel) must handle it first.
+      !document.activeElement?.closest?.('#babylon-inspector-container') ||
+      !document.querySelector(
+        '#babylon-inspector-container button[id^="splitButton-"][id$="__primaryActionButton"]'
+      )
+    ) {
+      return;
+    }
+
+    const inspectorEscape = new CustomEvent('flock-inspector-escape-request', {
+      cancelable: true,
+    });
+    document.dispatchEvent(inspectorEscape);
+    if (!inspectorEscape.defaultPrevented) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  },
+  true
+);
+
+// Keep Babylon's extensions, community links, duplicate gizmo controls
+// (flock has its own #gizmoButtons), and undockable pop-out windows (Texture
+// Editor, Animation Curve Editor) out of the embedded Inspector. Those pop-outs
+// are real, unsandboxed browser windows outside flock's UI, so letting them
+// open would hand the user the browser's own chrome (extensions, address bar).
+function hideInspectorExtras() {
+  try {
+    for (const key of INSPECTOR_SEEN_POPUPS) localStorage.setItem(key, 'true');
+  } catch {
+    // localStorage unavailable — the popups are only cosmetic
+  }
+
+  if (!window.__flockForumBlocked) {
+    window.__flockForumBlocked = true;
+    const nativeOpen = window.open.bind(window);
+    window.open = (url, ...rest) =>
+      // Inspector's Texture Editor / Curve Editor pop-outs call window.open("", ...);
+      // the browser's own popup blocker returns null for these, so this is a
+      // codepath the library already handles gracefully.
+      !url || (typeof url === 'string' && url.includes('forum.babylonjs.com'))
+        ? null
+        : nativeOpen(url, ...rest);
+  }
+
+  // Inspector v2 is a React app: calling .remove() on its nodes detaches them
+  // from the DOM while React's fiber tree still thinks they're attached, so a
+  // later reconciliation (e.g. selecting a different entity) can call
+  // removeChild on a parent that no longer actually contains that child and
+  // crash the whole page with a NotFoundError. Hiding via display:none keeps
+  // every node in place for React to manage, so this can't happen.
+  const hide = (el) => {
+    if (el && el.style.display !== 'none') el.style.display = 'none';
+  };
+
+  const removeButtons = () => {
+    const inspector = document.getElementById('babylon-inspector-container');
+    inspector?.querySelectorAll('button').forEach((button) => {
+      const tooltipId = button.getAttribute('aria-describedby');
+      const tooltip = tooltipId ? document.getElementById(tooltipId)?.textContent : '';
+      const label = [button.getAttribute('aria-label'), button.title, tooltip]
+        .filter(Boolean)
+        .join(' ');
+      const iconPath = button.querySelector('svg path')?.getAttribute('d') ?? '';
+      const isThemeControl = INSPECTOR_THEME_ICON_PATH_PREFIXES.some((prefix) =>
+        iconPath.startsWith(prefix)
+      );
+      if (isThemeControl) {
+        hide(button.closest('.fui-SplitButton') ?? button);
+      } else if (/extensions|forum|give feedback on inspector|select theme/i.test(label)) {
+        hide(button);
+      } else if (iconPath.startsWith(INSPECTOR_PANE_MENU_ICON_PATH_PREFIX)) {
+        hide(button);
+      }
+    });
+
+    for (const tooltip of document.querySelectorAll('[id^="tooltip-"]')) {
+      if (!/extensions|forum|give feedback on inspector|select theme/i.test(tooltip.textContent)) {
+        continue;
+      }
+      hide(
+        inspector
+          ?.querySelector(`[aria-describedby="${CSS.escape(tooltip.id)}"]`)
+          ?.closest('button')
+      );
+    }
+
+    // The Gizmo Toolbar's Translate/Rotate/Scale/Bounding Box buttons and their
+    // Coordinates Mode / Camera Gizmo dropdowns share one wrapper with no stable
+    // class name, so hide that wrapper rather than matching each control.
+    // Fluent puts the accessible name on aria-label on some renders and the
+    // title attribute on others, so both must be checked.
+    const findByLabel = (target) =>
+      [...(inspector?.querySelectorAll('button') ?? [])].find(
+        (button) => (button.getAttribute('aria-label') || button.title) === target
+      );
+    const translateButton = findByLabel('Translate');
+    const boundingBoxButton = findByLabel('Bounding Box');
+    let gizmoToolbar = translateButton;
+    while (gizmoToolbar && !gizmoToolbar.contains(boundingBoxButton)) {
+      gizmoToolbar = gizmoToolbar.parentElement;
+    }
+    if (gizmoToolbar && gizmoToolbar !== inspector) hide(gizmoToolbar);
+
+    // The side pane's collapse/expand split button has a dropdown whose only
+    // entry is "Undock" (pops the pane into its own browser window, already
+    // neutralised above). Its tooltip ("Hide Side Pane" / "Show Side Pane")
+    // lives on the wrapping .fui-SplitButton, not on either inner button, so
+    // it's not caught by the generic label-based removal above. Hide only the
+    // menu-trigger half (.fui-SplitButton__menuButton); the wrapper's other
+    // child is the actual collapse/expand toggle and must stay visible.
+    inspector?.querySelectorAll('.fui-SplitButton[aria-describedby]').forEach((splitButton) => {
+      const tooltipId = splitButton.getAttribute('aria-describedby');
+      const tooltip = tooltipId ? document.getElementById(tooltipId)?.textContent : '';
+      if (/hide side pane|show side pane/i.test(tooltip ?? '')) {
+        hide(splitButton.querySelector('.fui-SplitButton__menuButton'));
+      }
+    });
+
+    // Belt-and-braces: the dropdown's "Undock" entry renders via a portal
+    // outside #babylon-inspector-container, so search the whole document.
+    document.querySelectorAll('[role="menuitem"]').forEach((item) => {
+      if (item.textContent?.trim() === 'Undock') hide(item);
+    });
+
+    // Properties-tab sections flock doesn't want shown. Each section is a
+    // .fui-AccordionItem holding a header+panel wrapper plus its own trailing
+    // .fui-Divider as siblings — hide the whole item, not just the header's
+    // immediate wrapper, or the divider is left behind as a visible stub.
+    inspector?.querySelectorAll('.fui-AccordionHeader').forEach((header) => {
+      if (INSPECTOR_HIDDEN_PROPERTY_SECTIONS.includes(header.textContent?.trim())) {
+        hide(header.closest('.fui-AccordionItem') ?? header.parentElement);
+      }
+    });
+  };
+
+  inspectorExtrasObserver?.disconnect();
+  if (inspectorExtrasFrame !== null) cancelAnimationFrame(inspectorExtrasFrame);
+  inspectorExtrasFrame = null;
+  removeButtons();
+  inspectorExtrasObserver = new MutationObserver(() => {
+    if (inspectorExtrasFrame !== null) return;
+    inspectorExtrasFrame = requestAnimationFrame(() => {
+      inspectorExtrasFrame = null;
+      removeButtons();
+    });
+  });
+  inspectorExtrasObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+export function hideInspector() {
+  flock.scene?.debugLayer?.hide();
+  inspectorExtrasObserver?.disconnect();
+  inspectorExtrasObserver = null;
+  if (inspectorExtrasFrame !== null) cancelAnimationFrame(inspectorExtrasFrame);
+  inspectorExtrasFrame = null;
+  onResize('reset');
+}
+
+export async function showInspector({ focus = false, collapsed = false } = {}) {
+  if (!flock.scene || isNarrowScreen()) return false;
 
   // The inspector chunk is excluded from the service worker precache and
   // cached on first use instead, so loading it can fail offline.
   try {
     await import('@babylonjs/inspector');
   } catch (error) {
-    console.error('[flock] design mode inspector load failed:', error);
-    showBanner('design-mode-offline', {
-      message: translate('error_design_mode_offline'),
+    console.error('[flock] inspector load failed:', error);
+    showBanner('inspector-offline', {
+      message: translate('error_inspector_offline'),
     });
-    return;
+    return false;
   }
 
-  const blocklyArea = document.getElementById('codePanel');
-  const canvasArea = document.getElementById('canvasArea');
-  const gizmoButtons = document.getElementById('gizmoButtons');
-  const flockLink = document.getElementById('flocklink');
-  const infoPanel = document.getElementById('info-panel');
-  const resizer = document.getElementById('resizer');
-  if (!blocklyArea || !canvasArea || !gizmoButtons || !flockLink || !infoPanel) {
-    return;
+  hideInspectorExtras();
+  syncInspectorTheme();
+  const codePanel = document.getElementById('codePanel');
+  if (!codePanel) return false;
+
+  await flock.scene.debugLayer.show({
+    overlay: true,
+    embedMode: true,
+    globalRoot: codePanel,
+    enablePopup: false,
+  });
+  const inspector = document.getElementById('babylon-inspector-container');
+  if (inspector) preserveInspectorToggleFocus(inspector);
+
+  await disableGltfValidation();
+
+  if (collapsed && inspector) {
+    inspector.style.visibility = 'hidden';
+    try {
+      let collapseTriggered = false;
+      for (let attempt = 0; attempt < 30; attempt += 1) {
+        if (!collapseTriggered) {
+          collapseTriggered = collapseInspector({ preserveFocus: false });
+        }
+        if (collapseTriggered && isInspectorCollapsed()) break;
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    } finally {
+      inspector.style.visibility = '';
+    }
   }
 
-  if (flock.scene.debugLayer.isVisible()) {
-    canvasArea.style.flexDirection = '';
-    switchView('both');
-    flock.scene.debugLayer.hide();
-    flockLink.style.display = 'block';
-    // Defer to the stylesheet (flex on wide, hidden in narrow mode) rather than
-    // forcing inline flex, which would re-show the panel behind the pill bar.
-    infoPanel.style.display = '';
-  } else {
-    blocklyArea.style.display = 'none';
-    codeMode = 'none';
-    canvasArea.style.display = '';
-    canvasArea.style.flexDirection = 'row';
-    canvasArea.style.width = '0';
-    gizmoButtons.style.display = 'flex';
-    flockLink.style.display = 'none';
-    infoPanel.style.display = 'none';
-    if (resizer) resizer.style.display = 'none';
-
-    flock.scene.debugLayer.show({
-      embedMode: true,
-      enableClose: false,
-      enablePopup: false,
-    });
-
-    canvasArea.style.flex = '1 1 0';
-
-    // Prepare canvas for potential recording
-    setTimeout(prepareCanvasForRecording, 100);
+  if (focus) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      if (focusInspector()) break;
+    }
   }
 
+  setTimeout(prepareCanvasForRecording, 100);
   onResize('reset');
+  return true;
+}
+
+document.addEventListener('flock-theme-changed', async (event) => {
+  if (!flock.scene?.debugLayer?.isVisible()) return;
+  if (getInspectorThemeMode(event.detail?.previousThemeName) === getInspectorThemeMode()) return;
+
+  const inspector = document.getElementById('babylon-inspector-container');
+  const restoreFocus = inspector?.contains(document.activeElement) ?? false;
+  hideInspector();
+  await showInspector({ focus: restoreFocus });
+});
+
+export function isInspectorVisible() {
+  return !!flock.scene?.debugLayer?.isVisible();
+}
+
+export async function toggleInspector({ focus = false } = {}) {
+  if (flock.scene?.debugLayer?.isVisible()) {
+    hideInspector();
+    return false;
+  } else {
+    return showInspector({ focus });
+  }
 }
 
 let _keyboardWasOpen = false;
@@ -705,12 +1276,36 @@ const scrollEditingBlockIntoView = () => {
 
 let _lastViewportKey = null;
 
+const NON_TEXT_INPUT_TYPES = new Set([
+  'button',
+  'checkbox',
+  'color',
+  'file',
+  'image',
+  'radio',
+  'range',
+  'reset',
+  'submit',
+]);
+
+// Whether the focus is somewhere that would actually raise a soft keyboard.
+const editableFocused = () => {
+  const el = document.activeElement;
+  if (!el) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return false;
+  if (el.readOnly || el.disabled) return false;
+  return el.tagName === 'TEXTAREA' || !NON_TEXT_INPUT_TYPES.has(el.type);
+};
+
 const adjustViewport = () => {
   // Under pinch/auto zoom visualViewport.height shrinks though the layout
   // viewport hasn't; multiply by scale so --app-height doesn't collapse. At
   // scale 1 this is identical to the raw height.
   const vv = window.visualViewport;
   const viewportHeight = vv ? vv.height * vv.scale : window.innerHeight;
+  // Height alone can't tell a keyboard from expanded iOS browser chrome.
+  const keyboardOpen = !!vv && window.innerHeight - viewportHeight > 150 && editableFocused();
   const vh = viewportHeight * 0.01;
   document.documentElement.style.setProperty('--vh', `${vh}px`);
   document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
@@ -721,9 +1316,8 @@ const adjustViewport = () => {
   if (viewportKey !== _lastViewportKey) {
     _lastViewportKey = viewportKey;
     handleWindowResize();
+    logViewport('resize');
   }
-  const keyboardOpen =
-    window.visualViewport && window.innerHeight - window.visualViewport.height > 150;
   document.documentElement.classList.toggle('keyboard-open', keyboardOpen);
 
   if (keyboardOpen && !_keyboardWasOpen) {
@@ -810,8 +1404,9 @@ class PanelResizer {
     this.startCodeWidth = 0;
     // Floor for either panel; the canvas side is additionally clamped to the
     // gizmo toolbar's natural width so its buttons never wrap onto a second row.
-    this.minPanelFloor = 300;
+    this.minPanelFloor = MIN_PANEL_WIDTH;
     this.minCanvasWidth = this.minPanelFloor;
+    this.maxCanvasWidth = Infinity;
     this.touchActivationPointerId = null;
     this.touchActivationStartX = 0;
     this.touchActivationStartY = 0;
@@ -876,6 +1471,7 @@ class PanelResizer {
 
     // Cache the gizmo-based minimum once per drag (button set is stable mid-drag).
     this.minCanvasWidth = this.getMinCanvasWidth();
+    this.maxCanvasWidth = Math.max(this.startCanvasWidth, this.getMaxCanvasWidth());
 
     // Add visual feedback
     document.body.style.cursor = 'col-resize';
@@ -960,21 +1556,20 @@ class PanelResizer {
 
     const mainRect = this.mainContent.getBoundingClientRect();
 
-    const newCanvasWidth = this.startCanvasWidth + deltaX;
-    const newCodeWidth = this.startCodeWidth - deltaX;
+    const panelWidth = this.startCanvasWidth + this.startCodeWidth;
+    const maxCanvasWidth = Math.min(this.maxCanvasWidth, panelWidth - this.minPanelFloor);
+    const newCanvasWidth = Math.min(
+      maxCanvasWidth,
+      Math.max(this.minCanvasWidth, this.startCanvasWidth + deltaX)
+    );
+    const newCodeWidth = panelWidth - newCanvasWidth;
+    const totalWidth = mainRect.width;
 
-    // Ensure minimum widths (canvas side must keep the gizmo row on one line)
-    if (newCanvasWidth >= this.minCanvasWidth && newCodeWidth >= this.minPanelFloor) {
-      const totalWidth = mainRect.width;
-      const canvasFlexBasis = (newCanvasWidth / totalWidth) * 100;
-      const codeFlexBasis = (newCodeWidth / totalWidth) * 100;
+    this.canvasArea.style.flex = `0 0 ${(newCanvasWidth / totalWidth) * 100}%`;
+    this.codePanel.style.flex = `0 0 ${(newCodeWidth / totalWidth) * 100}%`;
 
-      this.canvasArea.style.flex = `0 0 ${canvasFlexBasis}%`;
-      this.codePanel.style.flex = `0 0 ${codeFlexBasis}%`;
-
-      // Trigger resize for canvas and Blockly
-      this.triggerContentResize();
-    }
+    shrinkInfoPanelForCanvasWidth(this.canvasArea, newCanvasWidth);
+    this.triggerContentResize();
 
     if (e.cancelable) e.preventDefault();
   }
@@ -996,7 +1591,7 @@ class PanelResizer {
   handleKeyboard(e) {
     if (!this.enabled) return;
     const step = 20; // pixels
-    let deltaX = 0;
+    let deltaX;
 
     switch (e.key) {
       case 'ArrowLeft':
@@ -1013,13 +1608,18 @@ class PanelResizer {
     const currentCanvasWidth = this.canvasArea.offsetWidth;
     const currentCodeWidth = this.codePanel.offsetWidth;
     const minCanvasWidth = this.getMinCanvasWidth();
+    const maxCanvasWidth = this.getMaxCanvasWidth();
 
     // Calculate new widths
     const newCanvasWidth = currentCanvasWidth + deltaX;
     const newCodeWidth = currentCodeWidth - deltaX;
 
     // Check minimum width constraint
-    if (newCanvasWidth < minCanvasWidth || newCodeWidth < this.minPanelFloor) {
+    if (
+      newCanvasWidth < minCanvasWidth ||
+      newCanvasWidth > maxCanvasWidth ||
+      newCodeWidth < this.minPanelFloor
+    ) {
       e.preventDefault();
       return; // Just return without changing anything
     }
@@ -1028,6 +1628,7 @@ class PanelResizer {
     this.canvasArea.style.flex = `0 0 ${newCanvasWidth}px`;
     this.codePanel.style.flex = `0 0 ${newCodeWidth}px`;
 
+    shrinkInfoPanelForCanvasWidth(this.canvasArea, newCanvasWidth);
     // Trigger content resize
     this.triggerContentResize();
 
@@ -1040,22 +1641,29 @@ class PanelResizer {
   // button's own width avoids counting the absolutely-positioned shape-menu
   // dropdown nested inside #shape-menu, which would otherwise inflate the min.
   // The buttons live in an inner wrapper (.gizmo-buttons-inner) that carries the
-  // flex layout + gap; #gizmoButtons itself carries the horizontal padding.
+  // flex layout, gap and the bar's own padding; #gizmoButtons adds the
+  // horizontal padding around it.
   getMinCanvasWidth() {
     const gizmo = document.getElementById('gizmoButtons');
+    if (isPortraitCanvas()) {
+      return this.minPanelFloor + (getDockedHelpWidth() > 0 ? MIN_HELP_WIDTH : 0);
+    }
     if (!gizmo) return this.minPanelFloor;
 
     const row = gizmo.querySelector('.gizmo-buttons-inner') || gizmo;
 
     const paddingStyle = window.getComputedStyle(gizmo);
     const paddingX =
-      (parseFloat(paddingStyle.paddingLeft) || 0) +
-      (parseFloat(paddingStyle.paddingRight) || 0);
+      (parseFloat(paddingStyle.paddingLeft) || 0) + (parseFloat(paddingStyle.paddingRight) || 0);
 
     const rowStyle = window.getComputedStyle(row);
     const gap = parseFloat(rowStyle.columnGap || rowStyle.gap) || 0;
+    const rowPaddingX =
+      row === gizmo
+        ? 0
+        : (parseFloat(rowStyle.paddingLeft) || 0) + (parseFloat(rowStyle.paddingRight) || 0);
 
-    let total = paddingX;
+    let total = paddingX + rowPaddingX;
     let visibleChildren = 0;
     for (const child of row.children) {
       const childStyle = window.getComputedStyle(child);
@@ -1073,6 +1681,22 @@ class PanelResizer {
     return Math.max(this.minPanelFloor, Math.ceil(total) + 1);
   }
 
+  getMaxCanvasWidth() {
+    // Cap against the panel minimum so a tall setting can't stall the drag.
+    if (isPortraitCanvas() && getDockedHelpWidth() > 0) return Infinity;
+    if (!infoPanelDocked()) {
+      const { areaHeight, horizontalChromeWidth } = getCanvasAvailableSize(this.canvasArea);
+      const width = Math.round(areaHeight * getCanvasAspect()) + horizontalChromeWidth;
+      return isPortraitCanvas() ? Math.max(this.getMinCanvasWidth(), width) : width;
+    }
+    const chrome = getCanvasChrome(this.canvasArea);
+    const avail = Math.max(
+      1,
+      chrome.areaHeight + chrome.tabsHeight - getMinInfoPanelHeight() - chrome.resizerHeight
+    );
+    return Math.round(avail * getCanvasAspect()) + chrome.horizontalChromeWidth;
+  }
+
   // A focusable role="separator" needs a value: the canvas panel's share of the split.
   syncAriaValue() {
     if (!this.enabled) return;
@@ -1087,9 +1711,160 @@ class PanelResizer {
   }
 }
 
+class InfoPanelResizer {
+  constructor() {
+    this.resizer = document.getElementById('infoResizer');
+    this.canvasArea = document.getElementById('canvasArea');
+    this.infoPanel = document.getElementById('info-panel');
+    this.gizmoButtons = document.getElementById('gizmoButtons');
+
+    this.isResizing = false;
+    this.startY = 0;
+    this.startHeight = 0;
+    this.minCanvasHeight = MIN_CANVAS_HEIGHT;
+    this.enabled = !!this.resizer && !!this.canvasArea && !!this.infoPanel;
+
+    this.init();
+  }
+
+  init() {
+    if (!this.enabled) return;
+
+    this.resizer.addEventListener('mousedown', this.startResize.bind(this));
+    document.addEventListener('mousemove', this.handleResize.bind(this));
+    document.addEventListener('mouseup', this.stopResize.bind(this));
+
+    this.resizer.addEventListener('touchstart', this.startResize.bind(this), {
+      passive: false,
+    });
+    document.addEventListener('touchmove', this.handleResize.bind(this), {
+      passive: false,
+    });
+    document.addEventListener('touchend', this.stopResize.bind(this));
+
+    this.resizer.addEventListener('keydown', this.handleKeyboard.bind(this));
+    this.resizer.addEventListener('selectstart', (e) => e.preventDefault());
+
+    const observer = new ResizeObserver(() => this.syncAriaValue());
+    observer.observe(this.canvasArea);
+    observer.observe(this.infoPanel);
+  }
+
+  isResizerVisible() {
+    const rect = this.resizer.getBoundingClientRect();
+    const style = window.getComputedStyle(this.resizer);
+    return (
+      rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden'
+    );
+  }
+
+  getChromeHeight() {
+    let chrome = 0;
+    if (this.gizmoButtons && getComputedStyle(this.gizmoButtons).display !== 'none') {
+      chrome += Math.ceil(this.gizmoButtons.getBoundingClientRect().height);
+    }
+    if (this.isResizerVisible()) {
+      chrome += Math.ceil(this.resizer.getBoundingClientRect().height);
+    }
+    return chrome;
+  }
+
+  clampHeight(height) {
+    const min = getMinInfoPanelHeight();
+    const max =
+      Math.max(1, Math.round(this.canvasArea.getBoundingClientRect().height)) -
+      this.getChromeHeight() -
+      this.minCanvasHeight;
+    if (max < min) return null;
+    return Math.min(max, Math.max(min, Math.round(height)));
+  }
+
+  applyHeight(height, floorWidth) {
+    const clamped = this.clampHeight(height);
+    if (clamped == null) return false;
+    // Growable basis absorbs width-bound slack.
+    this.infoPanel.style.flex = `1 1 ${clamped}px`;
+    infoPanelUserHeight = clamped;
+    widenCanvasForInfoPanel(
+      this.canvasArea,
+      floorWidth ?? this.canvasArea.getBoundingClientRect().width
+    );
+    this.triggerContentResize();
+    return true;
+  }
+
+  startResize(e) {
+    if (!this.enabled || !this.isResizerVisible()) return;
+    this.isResizing = true;
+    this.resizer.classList.add('resizing');
+
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    this.startY = clientY;
+    this.startHeight = this.infoPanel.getBoundingClientRect().height;
+    this.startCanvasWidth = this.canvasArea.getBoundingClientRect().width;
+
+    document.body.style.cursor = 'row-resize';
+    if (e.cancelable) e.preventDefault();
+  }
+
+  handleResize(e) {
+    if (!this.enabled || !this.isResizing) return;
+
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    this.applyHeight(this.startHeight - (clientY - this.startY), this.startCanvasWidth);
+
+    if (e.cancelable) e.preventDefault();
+  }
+
+  stopResize() {
+    if (!this.enabled || !this.isResizing) return;
+    this.isResizing = false;
+    this.resizer.classList.remove('resizing');
+    document.body.style.cursor = '';
+    this.triggerContentResize();
+  }
+
+  handleKeyboard(e) {
+    if (!this.enabled || !this.isResizerVisible()) return;
+    const step = 20;
+    let delta;
+
+    switch (e.key) {
+      case 'ArrowUp':
+        delta = step;
+        break;
+      case 'ArrowDown':
+        delta = -step;
+        break;
+      default:
+        return;
+    }
+
+    const current = this.infoPanel.getBoundingClientRect().height;
+    if (!this.applyHeight(current + delta)) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+  }
+
+  syncAriaValue() {
+    if (!this.enabled) return;
+    const total = this.canvasArea.getBoundingClientRect().height;
+    if (!total) return;
+    const share = Math.round((this.infoPanel.getBoundingClientRect().height / total) * 100);
+    this.resizer.setAttribute('aria-valuenow', String(share));
+  }
+
+  triggerContentResize() {
+    onResize();
+  }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   new PanelResizer();
+  new InfoPanelResizer();
 });
 
 /* ---- iOS Chrome: fullscreen-rotation recovery ----

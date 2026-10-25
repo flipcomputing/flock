@@ -8,6 +8,7 @@ export class JoystickSource {
   #thumbEllipse;
   #baseRadius;
   #thumbRadius;
+  #edgeInset;
   #scene;
 
   #started = false;
@@ -27,13 +28,18 @@ export class JoystickSource {
   #boundPointerMove;
   #boundPointerUp;
 
-  constructor(inputManager, onScreenSource, { canvas, thumbEllipse, baseRadius, thumbRadius = 0, scene } = {}) {
+  constructor(
+    inputManager,
+    onScreenSource,
+    { canvas, thumbEllipse, baseRadius, thumbRadius = 0, edgeInset = 0, scene } = {}
+  ) {
     this.#inputManager = inputManager;
     this.#onScreenSource = onScreenSource;
     this.#canvas = canvas;
     this.#thumbEllipse = thumbEllipse;
     this.#baseRadius = baseRadius;
     this.#thumbRadius = thumbRadius;
+    this.#edgeInset = edgeInset;
     this.#scene = scene ?? null;
 
     this.#boundPointerDown = this.#handlePointerDown.bind(this);
@@ -89,7 +95,7 @@ export class JoystickSource {
   pause() {
     if (this.#paused) return;
     this.#paused = true;
-    this.#onScreenSource.pause();
+    this.#onScreenSource.pause('joystick');
     this.#inputManager._setAxis('MOVE_X', 0);
     this.#inputManager._setAxis('MOVE_Y', 0);
   }
@@ -101,7 +107,7 @@ export class JoystickSource {
     this.#heldBackward = false;
     this.#heldLeft = false;
     this.#heldRight = false;
-    this.#onScreenSource.resume();
+    this.#onScreenSource.resume('joystick');
   }
 
   // Raw stick state for engine reads; zero while paused or in the dead zone.
@@ -130,7 +136,8 @@ export class JoystickSource {
   #computeBaseLayout() {
     const rect = this.#canvas.getBoundingClientRect();
     const r = this.#baseRadius * (rect.width / this.#canvas.width);
-    return { cx: rect.left + r, cy: rect.bottom - r, r };
+    const inset = this.#edgeInset * (rect.width / this.#canvas.width);
+    return { cx: rect.left + r + inset, cy: rect.bottom - r - inset, r };
   }
 
   #handlePointerDown(event) {
@@ -238,10 +245,22 @@ export class JoystickSource {
   }
 
   #releaseShimKeys() {
-    if (this.#heldForward) { this.#onScreenSource.release('w'); this.#heldForward = false; }
-    if (this.#heldBackward) { this.#onScreenSource.release('s'); this.#heldBackward = false; }
-    if (this.#heldLeft) { this.#onScreenSource.release('a'); this.#heldLeft = false; }
-    if (this.#heldRight) { this.#onScreenSource.release('d'); this.#heldRight = false; }
+    if (this.#heldForward) {
+      this.#onScreenSource.release('w');
+      this.#heldForward = false;
+    }
+    if (this.#heldBackward) {
+      this.#onScreenSource.release('s');
+      this.#heldBackward = false;
+    }
+    if (this.#heldLeft) {
+      this.#onScreenSource.release('a');
+      this.#heldLeft = false;
+    }
+    if (this.#heldRight) {
+      this.#onScreenSource.release('d');
+      this.#heldRight = false;
+    }
   }
 
   #resetThumb() {

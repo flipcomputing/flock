@@ -1,6 +1,14 @@
 import * as Blockly from 'blockly';
 import { translate } from './translation.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
+import { hideInspector } from './view.js';
+import {
+  isRestorableWorkspaceNode,
+  rememberWorkspaceFocus,
+  focusRememberedWorkspaceNode,
+} from './workspaceFocus.js';
+
+const BLOCKS_WORKSPACE_LABEL = 'Blocks workspace';
 
 export function setupInput() {
   // Get the canvas element
@@ -56,6 +64,22 @@ export function setupInput() {
   }
 
   function setupTabOrder() {
+    const inspectorFocusableSelector =
+      'button, input, select, textarea, a[href], [tabindex]:not([tabindex="-1"])';
+
+    function getInspectorFocusableElements() {
+      const inspector = document.getElementById('babylon-inspector-container');
+      if (!inspector) return [];
+
+      return Array.from(inspector.querySelectorAll(inspectorFocusableSelector)).filter(
+        (element) =>
+          element.tabIndex >= 0 &&
+          !element.disabled &&
+          element.getAttribute('aria-hidden') !== 'true' &&
+          isElementVisible(element)
+      );
+    }
+
     function getFocusableElements() {
       const elements = [];
 
@@ -75,14 +99,37 @@ export function setupInput() {
       // 2) Gizmo buttons
       document.querySelectorAll('#gizmoButtons button, #gizmoButtons input').forEach(pushUnique);
 
-      // 4) Keyboard tab, shortcuts panel contents (if open), logo link, resizer
-      pushUnique(document.querySelector('#info-tab-btn-shortcuts'));
+      // 3) Splitter follows the gizmos
+      pushUnique(document.querySelector('#infoResizer'));
+
+      // Open Help panel sorts between splitter and Help button.
+      const helpTabPanel = document.getElementById('info-tab-panel-help');
+      if (helpTabPanel && !helpTabPanel.classList.contains('hidden')) {
+        pushUnique(helpTabPanel);
+        helpTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
+
+      // 4) Info panel tabs and contents (if open), logo link, resizer
+      pushUnique(document.querySelector('#info-tab-btn-help'));
+
+      const howtoTabPanel = document.getElementById('info-tab-panel-howto');
+      if (howtoTabPanel && !howtoTabPanel.classList.contains('hidden')) {
+        pushUnique(howtoTabPanel);
+        howtoTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
 
       const shortcutsTabPanel = document.getElementById('info-tab-panel-shortcuts');
       if (shortcutsTabPanel && !shortcutsTabPanel.classList.contains('hidden')) {
         pushUnique(shortcutsTabPanel);
         shortcutsTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
+
+      const playerTabPanel = document.getElementById('info-tab-panel-player');
+      if (playerTabPanel && !playerTabPanel.classList.contains('hidden')) {
+        pushUnique(playerTabPanel);
+        playerTabPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
+      }
+
       pushUnique(document.querySelector('#info-panel-link'));
 
       // View toggle in canvas mode — after the logo link, before the resizer
@@ -144,20 +191,18 @@ export function setupInput() {
         // Force tabIndex=0 — Blockly's focus manager may have set it to -1
         workspaceGroup.setAttribute('tabindex', '0');
         workspaceGroup.setAttribute('role', 'group');
-        workspaceGroup.setAttribute('aria-label', 'Blocks workspace');
+        workspaceGroup.setAttribute('aria-label', BLOCKS_WORKSPACE_LABEL);
         pushUnique(workspaceGroup);
       }
 
-      // 6a) Workspace comments and block comment icons
-      document.querySelectorAll('g.blocklyComment').forEach((el) => {
-        if (!el.hasAttribute('tabindex') || el.tabIndex < 0) el.setAttribute('tabindex', '0');
-        if (!el.getAttribute('role')) el.setAttribute('role', 'group');
-        if (!el.getAttribute('aria-label')) el.setAttribute('aria-label', 'Workspace comment');
-        pushUnique(el);
-      });
-      document.querySelectorAll('textarea.blocklyCommentText').forEach(pushUnique);
+      // Treat the inspector as a managed region immediately after the Blockly
+      // workspace. Babylon handles Tab navigation within the region itself.
+      pushUnique(getInspectorFocusableElements()[0]);
 
-      // 6b) Trashcan + its flyout. The bin icon is ALWAYS a stop (Enter opens it when
+      // Workspace comments are deliberately not tab stops — Blockly's B/N stack
+      // navigation reaches them and supplies their ARIA.
+
+      // Trashcan + its flyout. The bin icon is ALWAYS a stop (Enter opens it when
       // closed, closes it when open). When the flyout is open, add its contents JUST
       // BEFORE the icon, so shift+tab off the icon drops into the code blocks and
       // tabbing forward into this region lands on the blocks, then the icon.
@@ -181,7 +226,7 @@ export function setupInput() {
         trashEl.setAttribute('tabindex', '0'); // focus manager may have set it to -1
         pushUnique(trashEl);
       }
-      // 6c) Shortcuts panel (when visible), then undo/redo/zoom
+      // Shortcuts panel (when visible), then undo/redo/zoom
 
       const shortcutsPanel = document.getElementById('shortcutsPanel');
       pushUnique(shortcutsPanel);
@@ -189,9 +234,14 @@ export function setupInput() {
         shortcutsPanel.querySelectorAll('a[href], button:not([disabled])').forEach(pushUnique);
       }
 
-      ['#workspaceSearchBtn', '#undoBtn', '#redoBtn', '#zoomOutBtn', '#zoomInBtn'].forEach((sel) =>
-        pushUnique(document.querySelector(sel))
-      );
+      [
+        '#blockHintsBtn',
+        '#workspaceSearchBtn',
+        '#undoBtn',
+        '#redoBtn',
+        '#zoomOutBtn',
+        '#zoomInBtn',
+      ].forEach((sel) => pushUnique(document.querySelector(sel)));
 
       // View toggle in code mode — right after zoomInBtn
       if (inCodeMode) {
@@ -203,14 +253,11 @@ export function setupInput() {
       // 7) Main UI controls (in natural order)
       [
         '#menuBtn',
+        '#exampleButton',
         '#runCodeButton',
-        '#stopCodeButton',
-        '#openButton',
+        '#pauseCodeButton',
         '#colorPickerButton',
         '#projectName',
-        '#exportCodeButton',
-        '#exampleButton',
-        '#toggleDesign',
         '#togglePlay',
         '#fullscreenToggle',
       ].forEach((sel) => pushUnique(document.querySelector(sel)));
@@ -238,6 +285,94 @@ export function setupInput() {
       return rect.width > 0 && rect.height > 0;
     }
 
+    function monitorInspectorFocus(inspector) {
+      const focusableElements = getFocusableElements();
+      const firstInspectorElement = getInspectorFocusableElements()[0];
+      const inspectorIndex = focusableElements.indexOf(firstInspectorElement);
+      const workspaceElement = document.querySelector(
+        'svg.blocklySvg g.blocklyWorkspace[aria-label="Blocks workspace"]'
+      );
+      const nextElement = focusableElements[inspectorIndex + 1];
+      const controller = new AbortController();
+      let checkQueued = false;
+
+      const stopMonitoring = () => controller.abort();
+      const checkFocus = () => {
+        checkQueued = false;
+        if (controller.signal.aborted) return;
+        if (!inspector.isConnected) {
+          stopMonitoring();
+          return;
+        }
+        if (inspector.dataset.focusTransition === 'true') return;
+
+        const focusedElement = document.activeElement;
+        if (inspector.contains(focusedElement)) return;
+
+        stopMonitoring();
+        const movedBackToWorkspace = focusedElement?.closest?.('svg.blocklySvg');
+        const movedForwardOnWorkspace = focusedElement?.closest?.('#blocklyDiv, .fc-block-toolbar');
+        if (!movedBackToWorkspace && !movedForwardOnWorkspace) return;
+
+        hideInspector();
+        const destination = movedBackToWorkspace ? workspaceElement : nextElement;
+        requestAnimationFrame(() => {
+          if (!destination || !isElementVisible(destination)) return;
+          destination.focus();
+          if (
+            destination === workspaceElement &&
+            !isRestorableWorkspaceNode(Blockly.getFocusManager?.()?.getFocusedNode?.())
+          ) {
+            focusRememberedWorkspaceNode();
+          }
+        });
+      };
+      const queueFocusCheck = () => {
+        if (checkQueued) return;
+        checkQueued = true;
+        requestAnimationFrame(checkFocus);
+      };
+
+      inspector.addEventListener('focusout', queueFocusCheck, { signal: controller.signal });
+      document.addEventListener('flock-inspector-collapsed-by-escape', stopMonitoring, {
+        once: true,
+        signal: controller.signal,
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        if (e.key !== 'Tab' || !e.shiftKey) return;
+
+        const firstInspectorElement = getInspectorFocusableElements()[0];
+        if (!firstInspectorElement || document.activeElement !== firstInspectorElement) return;
+
+        e.preventDefault();
+        hideInspector();
+        requestAnimationFrame(() => {
+          const workspaceElement = document.querySelector(
+            'svg.blocklySvg g.blocklyWorkspace[aria-label="Blocks workspace"]'
+          );
+          workspaceElement?.focus();
+          if (!isRestorableWorkspaceNode(Blockly.getFocusManager?.()?.getFocusedNode?.())) {
+            focusRememberedWorkspaceNode();
+          }
+        });
+      },
+      true
+    );
+
+    document.addEventListener('flock-inspector-collapsed-by-escape', () => {
+      setTimeout(() => {
+        document.querySelector('svg.blocklySvg g.blocklyWorkspace')?.focus();
+        focusRememberedWorkspaceNode();
+        announceToScreenReader(translate('code_workspace_focused'), {
+          requireCanvasFocus: false,
+        });
+      }, 350);
+    });
+
     document.addEventListener('keydown', (e) => {
       if (
         document.activeElement.id === 'resizer' &&
@@ -245,9 +380,40 @@ export function setupInput() {
       ) {
         return; // Don't prevent default, let resizer handle it
       }
+      if (document.activeElement.id === 'infoResizer' && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
+        return; // Don't prevent default, let resizer handle it
+      }
 
       if (e.key !== 'Tab') return;
       const activeElement = document.activeElement;
+
+      // Splitter Tab goes to the open panel, else opens Help; never
+      // replaces the panel being read.
+      if (activeElement?.id === 'infoResizer' && !e.shiftKey) {
+        const openPanel = document.querySelector('.info-tab-panel:not(.hidden)');
+        if (openPanel) {
+          e.preventDefault();
+          openPanel.focus({ preventScroll: true });
+          return;
+        }
+        if (window.flockHelpPanel) {
+          e.preventDefault();
+          window.flockHelpPanel.show();
+          return;
+        }
+        const helpBtn = document.getElementById('info-tab-btn-help');
+        if (helpBtn) {
+          e.preventDefault();
+          helpBtn.focus();
+        }
+        return;
+      }
+
+      const inspector = activeElement?.closest?.('#babylon-inspector-container');
+      if (inspector) {
+        // Babylon owns navigation between controls inside the inspector.
+        return;
+      }
 
       // Let workspace search handle tabs when focussed
       if (activeElement?.closest?.('.blockly-ws-search, .ws-search-mobile-bar')) {
@@ -293,6 +459,9 @@ export function setupInput() {
         nextIndex = currentIndex === focusableElements.length - 1 ? 0 : currentIndex + 1;
       }
 
+      const focusManager = Blockly.getFocusManager?.();
+      rememberWorkspaceFocus();
+
       const nextElement = focusableElements[nextIndex];
       if (nextElement) {
         // Ensure element is still focusable before focusing
@@ -301,11 +470,27 @@ export function setupInput() {
             focusToolboxRestoringCategory();
           } else {
             nextElement.focus();
+            const inspector = nextElement.closest?.('#babylon-inspector-container');
+            if (inspector) monitorInspectorFocus(inspector);
+            // Blockly restores the passive block when Tab arrives from another
+            // tree, but not from the trashcan (same tree) — fall back then.
+            if (
+              nextElement.getAttribute('aria-label') === BLOCKS_WORKSPACE_LABEL &&
+              !isRestorableWorkspaceNode(focusManager?.getFocusedNode?.())
+            ) {
+              focusRememberedWorkspaceNode();
+            }
           }
 
           // Announce for screen readers
           if (nextElement.id === 'renderCanvas') {
             announceToScreenReader(translate('canvas_focus_navigation'));
+          } else if (nextElement.closest('#babylon-inspector-container')) {
+            const focusedMessage = translate('focused_element_suffix').replace(
+              '{name}',
+              translate('inspector_tool_ui')
+            );
+            announceToScreenReader(focusedMessage);
           } else if (nextElement.closest('#gizmoButtons')) {
             const label =
               nextElement.getAttribute('aria-label') ||
@@ -313,7 +498,7 @@ export function setupInput() {
               translate('design_tool_label');
             const focusedMessage = translate('focused_element_suffix').replace('{name}', label);
             announceToScreenReader(focusedMessage);
-          } else if (nextElement.getAttribute('aria-label') === 'Blocks workspace') {
+          } else if (nextElement.getAttribute('aria-label') === BLOCKS_WORKSPACE_LABEL) {
             announceToScreenReader(translate('code_workspace_focused'));
           } else if (nextElement.tagName === 'BUTTON' || nextElement.tagName === 'LABEL') {
             const text =
@@ -324,7 +509,13 @@ export function setupInput() {
             const focusedMessage = translate('focused_element_suffix').replace('{name}', text);
             announceToScreenReader(focusedMessage);
           } else if (nextElement.id === 'resizer') {
-            announceToScreenReader(translate('panel_resizer_focused'));
+            announceToScreenReader(translate('panel_resizer_focused'), {
+              requireCanvasFocus: false,
+            });
+          } else if (nextElement.id === 'infoResizer') {
+            announceToScreenReader(translate('info_resizer_focused'), {
+              requireCanvasFocus: false,
+            });
           }
         }
       }
@@ -352,37 +543,17 @@ export function setupInput() {
   }
 
   function handleCanvasKeyboard(e) {
-    // Handle Ctrl+Z for undo when canvas is focused
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(false);
-        announceToScreenReader(translate('undo_performed'));
-      }
-      return;
-    }
-
-    // Handle Ctrl+Shift+Z or Ctrl+Y for redo when canvas is focused
-    if (
-      ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'z') ||
-      (e.ctrlKey && e.key.toLowerCase() === 'y')
-    ) {
-      e.preventDefault();
-      const workspace = window.mainWorkspace || Blockly.getMainWorkspace();
-      if (workspace) {
-        workspace.undo(true);
-        announceToScreenReader(translate('redo_performed'));
-      }
-      return;
-    }
+    // Undo/redo lives in the KeyboardDispatcher canvas bindings
+    // (ui/gizmos.js registerBindings) so it fires whenever the canvas owns
+    // the keyboard, not just when the canvas element itself is the key
+    // target. Handling it here too would undo/redo twice per press.
 
     // Announce camera movements to screen readers
     const announcements = {
       ArrowUp: translate('camera_moving_forward'),
       ArrowDown: translate('camera_moving_backward'),
-      ArrowLeft: translate('camera_moving_left'),
-      ArrowRight: translate('camera_moving_right'),
+      ArrowLeft: translate('camera_turning_left'),
+      ArrowRight: translate('camera_turning_right'),
       w: translate('moving_forward'),
       s: translate('moving_backward'),
       a: translate('moving_left'),

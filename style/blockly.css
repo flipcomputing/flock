@@ -10,9 +10,10 @@
   --color-border-highlight: #ee5d6c;
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
-  --color-outline-focus: #fc3;
-  --block-outline-focus: #fff200;
-  --color-toolbox-focus: var(--block-outline-focus);
+  /* Keyboard-focus highlight for Blockly UI (blocks, fields, toolbox, search).
+     Shares the app-wide blue focus colour (style.css --color-focus-outline).
+     The one exception is the Babylon canvas, which keeps its own gold ring. */
+  --color-blockly-focus: #0a84ff;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -31,7 +32,6 @@
   --color-border-highlight: #ee5d6c;
   --color-search-highlight: #ed808b;
   --color-shadow: grey;
-  --color-outline-focus: #fc3;
 
   /* Dropdown & menu semantics */
   --color-dropdown-text: var(--color-text);
@@ -41,7 +41,7 @@
   --color-dropdown-menu-border: var(--color-dropdown-menu-border, 1px solid rgba(0, 0, 0, 0.1));
 }
 
-[data-theme='low-vision'] {
+[data-theme='low-color'] {
   --color-bg: #121212;
   --color-text: #f0f0f0;
   --color-text-label: #f0f0f0;
@@ -49,11 +49,6 @@
   --color-border-highlight: #e0e0e0;
   --color-search-highlight: #cfcfcf;
   --color-shadow: rgba(0, 0, 0, 0.6);
-  --color-outline-focus: #e0e0e0;
-}
-
-[data-theme='low-vision'] {
-  --color-toolbox-focus: #fc3;
 }
 
 /* Only target text inputs with cursor: text */
@@ -95,7 +90,7 @@ body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput {
   color: #000000 !important;
 }
 
-body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput {
+body[data-theme='low-color'] .blocklyWidgetDiv input.blocklyHtmlInput {
   background-color: #ffffff !important;
   color: #000000 !important;
 }
@@ -106,7 +101,7 @@ body[data-theme='contrast'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInva
   color: #575e75 !important;
 }
 
-body[data-theme='low-vision'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
+body[data-theme='low-color'] .blocklyWidgetDiv input.blocklyHtmlInput.blocklyInvalidInput {
   background: #ffaaaa !important;
   color: #575e75 !important;
 }
@@ -164,12 +159,42 @@ textarea.blocklyCommentText::placeholder {
   color: #000 !important;
 }
 
+.blocklySelected .blocklyCommentHighlight,
+.blocklyCollapsed.blocklySelected .blocklyCommentTopbarBackground {
+  stroke: #511d91 !important;
+  stroke-width: 5px !important;
+  vector-effect: non-scaling-stroke !important;
+  filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff)
+    drop-shadow(0 -2px 0 #fff) !important;
+}
+
 .blocklyTreeRow {
   border-left: none !important;
 }
 
 .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(76, 76, 76, 0.5) !important;
+}
+
+.blocklyToolbox {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(76, 76, 76, 0.5) transparent;
+}
+
+[data-theme='dark'] .blocklyToolbox {
+  scrollbar-color: rgba(186, 186, 186, 0.5) transparent;
+}
+
+[data-theme='dark-contrast'] .blocklyToolbox {
+  scrollbar-color: rgba(205, 205, 205, 0.5) transparent;
+}
+
+[data-theme='contrast'] .blocklyToolbox {
+  scrollbar-color: rgba(255, 255, 255, 0.85) transparent;
+}
+
+[data-theme='low-color'] .blocklyToolbox {
+  scrollbar-color: rgba(224, 224, 224, 0.85) transparent;
 }
 
 [data-theme='dark'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
@@ -184,7 +209,7 @@ textarea.blocklyCommentText::placeholder {
   fill: rgba(255, 255, 255, 0.85) !important;
 }
 
-[data-theme='low-vision'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
+[data-theme='low-color'] .blocklyMainWorkspaceScrollbar .blocklyScrollbarHandle {
   fill: rgba(224, 224, 224, 0.85) !important;
 }
 
@@ -211,7 +236,7 @@ body[data-theme='contrast'] {
   }
 }
 
-body[data-theme='low-vision'] {
+body[data-theme='low-color'] {
   .blocklyField text.blocklyText.blocklyFieldText {
     fill: #f0f0f0 !important;
   }
@@ -246,35 +271,24 @@ body[data-theme='low-vision'] {
   transition: opacity 0.15s ease;
 }
 
-/* Non-current matches get a pale yellow background (desktop only) */
+/* Matches get a pale yellow background (desktop only); the current match is the selected block.
+   .blocklyPathSelected shares the blocklyPath class; filling it makes the selection glow filter flood the block. */
 @media (min-width: 769px) {
-  #blocklyDiv.blockly-search-active .ws-search-match:not(.ws-search-current) > path.blocklyPath {
+  #blocklyDiv.blockly-search-active .ws-search-match > path.blocklyPath:not(.blocklyPathSelected) {
     fill: rgba(255, 242, 0, 0.3) !important;
   }
 }
 
 /* Low-vision: replace fill with a dashed white stroke for better contrast */
-[data-theme='low-vision']
+[data-theme='low-color']
   #blocklyDiv.blockly-search-active
-  .ws-search-match:not(.ws-search-current)
-  > path.blocklyPath {
+  .ws-search-match
+  > path.blocklyPath:not(.blocklyPathSelected) {
   fill: revert !important;
   stroke: #ffffff !important;
   stroke-width: 10px !important;
   stroke-dasharray: 8 4;
   paint-order: stroke fill;
-}
-
-/* Current match gets a yellow outline */
-#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPath {
-  stroke: var(--block-outline-focus) !important;
-  stroke-width: 10px !important;
-  paint-order: stroke fill;
-}
-
-/* Suppress the Zelos selection glow path when the search outline is already showing */
-#blocklyDiv.blockly-search-active .ws-search-current > path.blocklyPathSelected {
-  display: none;
 }
 
 @media (min-width: 769px) {
@@ -324,17 +338,26 @@ body[data-theme='low-vision'] {
   right: 0;
   width: auto;
   box-sizing: border-box;
-  padding: 2px;
+  padding: 2px 2px 2px 8px;
   margin: 0 !important;
   font-size: 14px;
   min-width: 0;
   z-index: 10;
+  border: 1px solid #888;
+  border-radius: 4px;
 }
 
-.blocklyTreeRowContentContainer input[type='search']:focus {
-  outline: 3px solid var(--color-outline-focus);
-  outline-offset: 2px;
+/* Same square blue focus frame as the category rows — hugging the box, no gap. */
+.blocklyTreeRowContentContainer input[type='search']:focus-visible {
+  outline: 3px solid var(--color-blockly-focus);
+  outline-offset: 0;
+  border-radius: 0;
   background-color: var(--color-bg);
+}
+
+[data-theme='light'] .blocklyTreeRowContentContainer input[type='search'],
+[data-theme='light'] .blocklyTreeRowContentContainer input[type='search']:focus-visible {
+  background-color: var(--color-menu);
 }
 
 #blocklyDiv {
@@ -344,12 +367,33 @@ body[data-theme='low-vision'] {
   outline: none;
 }
 
-/* Keyboard-focused toolbox category (Blockly 13 FocusManager active node) */
+/* Blockly 13's FocusManager draws its own keyboard-nav rings from these
+   variables (injected on .injectionDiv): the active node ring on blocks,
+   fields, the workspace selection ring and flyout labels, and the active
+   tree outline on the toolbox/flyout. Blockly's default node colour is a
+   yellow that clashes with the app's blue focus treatment — pin both to
+   the shared blue. Specificity beats Blockly's own `.injectionDiv` rule. */
+#blocklyDiv .injectionDiv {
+  --blockly-active-node-color: var(--color-blockly-focus);
+  --blockly-active-tree-color: var(--color-blockly-focus);
+}
+
+/* Keyboard-focused toolbox category (Blockly 13 FocusManager active node).
+   A square outline hugging the coloured chip — no offset, so no gap for the
+   grey toolbox / neighbouring rows to show through. The rows carry a wider
+   side margin (below) so the 3px outline still clears the toolbox's
+   scroll-container clip on the left and right. */
 .blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus > .blocklyToolboxCategory,
 .blocklyKeyboardNavigation .blocklyToolbox .blocklyToolboxCategory.blocklyActiveFocus {
-  outline: none !important;
-  box-shadow: inset 0 0 0 3px var(--color-toolbox-focus) !important;
-  border-radius: 4px;
+  outline: 3px solid var(--color-blockly-focus) !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  /* Lift the focused row so its outline paints over the neighbouring rows
+     rather than being covered by their opaque backgrounds — including the
+     search input above it, which sits at z-index 10. */
+  position: relative;
+  z-index: 11;
 }
 
 .blocklyZoomIn,
@@ -363,6 +407,53 @@ body[data-theme='low-vision'] {
 .blocklyZoomOut > image {
   opacity: 1 !important;
   color: #4c4c4c !important;
+}
+
+/* Styling for the custom trash can */
+
+.blocklyTrash .flockTrashArtwork {
+  fill: currentColor;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.blocklyTrash.blocklyTrashOpen .flockTrashArtwork,
+.blocklyTrash.blocklyTrashFull:hover .flockTrashArtwork,
+.blocklyTrash.blocklyTrashFull:focus .flockTrashArtwork {
+  opacity: 0.8;
+}
+
+.blocklyTrash .flockTrashHitArea {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.blocklyTrash .flockTrashContents {
+  display: none;
+  pointer-events: none;
+}
+
+.blocklyTrash.blocklyTrashFull .flockTrashContents {
+  display: block;
+}
+
+.blocklyTrash .blocklyTrashLid {
+  opacity: 1;
+}
+
+[data-theme="light"] .blocklyTrash .flockTrashArtwork {
+  fill: var(--color-primary);
+}
+
+/* Light mode: tint the workspace trashcan with the brand purple (--color-primary,
+   #511d91). It is an external SVG sprite loaded via <image>, so `color`/`fill`
+   can't reach it — this filter chain maps the sprite to that exact colour
+   (brightness(0) flattens the grey sprite to black first). Target the <image>
+   only, not the whole group: the group also holds the keyboard-focus ring, and
+   filtering that would drag its blue stroke round to purple too. */
+[data-theme='light'] .blocklyTrash image {
+  filter: brightness(0) saturate(100%) invert(10%) sepia(64%) saturate(4926%)
+    hue-rotate(264deg) brightness(100%) contrast(95%) !important;
 }
 
 [data-theme='dark'] .blocklyTrash,
@@ -430,16 +521,17 @@ body[data-theme='low-vision'] {
 
 [data-theme='dark'] .blockly-ws-search button,
 [data-theme='dark-contrast'] .blockly-ws-search button,
-[data-theme='low-vision'] .blockly-ws-search button,
+[data-theme='low-color'] .blockly-ws-search button,
 [data-theme='contrast'] .blockly-ws-search button {
   filter: invert(1);
 }
 
-[data-theme='dark'] .blockly-ws-search button:focus,
-[data-theme='dark-contrast'] .blockly-ws-search button:focus,
-[data-theme='low-vision'] .blockly-ws-search button:focus,
-[data-theme='contrast'] .blockly-ws-search button:focus {
-  outline: 3px solid #0033cc; /* inverts to #ffcc33 (~#fc3) after filter: invert(1) */
+[data-theme='dark'] .blockly-ws-search button:focus-visible,
+[data-theme='dark-contrast'] .blockly-ws-search button:focus-visible,
+[data-theme='low-color'] .blockly-ws-search button:focus-visible,
+[data-theme='contrast'] .blockly-ws-search button:focus-visible {
+  filter: none;
+  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 
@@ -452,7 +544,7 @@ body[data-theme='low-vision'] {
 
 /* Override code area colour */
 .blocklySvg {
-  background-color: #ebebeb !important;
+  background-color: var(--color-menu) !important;
 }
 
 [data-theme='dark-contrast'] .blocklySvg {
@@ -467,11 +559,25 @@ body[data-theme='low-vision'] {
   background-color: #000000 !important;
 }
 
-[data-theme='low-vision'] .blocklySvg {
+[data-theme='low-color'] .blocklySvg {
   background-color: #d8d8d8 !important;
 }
 
-[data-theme='low-vision'] .blocklyPath {
+/* The darker info-panel ground (same as the keyboard-shortcuts and other info
+   panels), so the toolbox column reads as chrome rather than an extension of
+   the workspace. Blockly paints the toolbox from the theme, hence the
+   !important. Light only: the other themes set their toolbox a deliberate step
+   away from their workspace, and low-color's is dark under light category
+   text. */
+[data-theme='light'] .blocklyToolbox {
+  background-color: var(--color-panel-bg) !important;
+  /* The step down from the workspace leaves a seam; the column is also marked
+     with a rule. Same recipe as the app's other dividers. */
+  border-right: 1px solid var(--color-border);
+  border-right-color: color-mix(in srgb, var(--color-text-primary) 25%, transparent);
+}
+
+[data-theme='low-color'] .blocklyPath {
   stroke: #e0e0e0 !important;
   stroke-width: 2.5px !important;
 }
@@ -494,6 +600,94 @@ body[data-theme='low-vision'] {
   opacity: 0.45 !important;
 }
 
+.flockRangeSlider {
+  --slider-colour: #511d91;
+  --slider-track: #d9d9d9;
+  --slider-thumb-ring: #ffffff;
+  align-items: center;
+  color: #000000;
+  display: flex;
+  font-size: 12px;
+  gap: 6px;
+  padding: 4px 8px;
+  width: 180px;
+}
+
+body[data-theme='contrast'] .blocklyDropDownDiv:has(.flockRangeSlider),
+body[data-theme='low-color'] .blocklyDropDownDiv:has(.flockRangeSlider) {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+body[data-theme='contrast'] .blocklyDropDownDiv:has(.flockRangeSlider) .blocklyDropDownArrow,
+body[data-theme='low-color'] .blocklyDropDownDiv:has(.flockRangeSlider) .blocklyDropDownArrow {
+  background-color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+body[data-theme='contrast'] .flockRangeSlider,
+body[data-theme='low-color'] .flockRangeSlider {
+  --slider-track: #ffffff;
+  color: #ffffff;
+}
+
+.flockRangeSlider input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  cursor: pointer;
+  padding: 0;
+  flex: 1;
+  height: 20px;
+  margin: 0;
+  min-width: 0;
+}
+
+.flockRangeSlider input::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    var(--slider-colour) var(--slider-fill, 0%),
+    var(--slider-track) var(--slider-fill, 0%)
+  );
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-moz-range-track {
+  background: var(--slider-track);
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-moz-range-progress {
+  background: var(--slider-colour);
+  border-radius: 3px;
+  height: 6px;
+}
+
+.flockRangeSlider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--slider-colour);
+  border: 2px solid var(--slider-thumb-ring);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 18px;
+  margin-top: -6px;
+  width: 18px;
+}
+
+.flockRangeSlider input::-moz-range-thumb {
+  background: var(--slider-colour);
+  border: 2px solid var(--slider-thumb-ring);
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 18px;
+  width: 18px;
+}
+
 /* Make blocklyFieldGridContainer the offsetParent for grid items so the
    keyboard-scroll logic in GridItem.focus() targets the right element. */
 .blocklyFieldGridContainer {
@@ -505,16 +699,26 @@ body[data-theme='low-vision'] {
   color: #000000 !important;
 }
 
-.blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
-  box-shadow: 0 0 0 4px #000 !important;
+.blocklyFieldGridContainer:has(.blocklyFieldGridItem > img) {
+  padding: 4px;
 }
 
-[data-theme='low-vision'] .blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus {
-  box-shadow: 0 0 0 4px #fff !important;
+.blocklyFieldGrid:has(.blocklyFieldGridItem > img) {
+  grid-gap: 4px;
 }
 
-.blocklyFieldGrid .blocklyFieldGridItem:focus {
-  outline: 3px solid var(--color-outline-focus) !important;
+.blocklyFieldGrid .blocklyFieldGridItem:has(> img) {
+  border: none;
+  padding: 3px;
+  line-height: 0;
+}
+
+.blocklyFieldColour .blocklyFieldGrid .blocklyFieldGridItem:focus-visible {
+  box-shadow: 0 0 0 4px var(--color-blockly-focus) !important;
+}
+
+.blocklyFieldGrid .blocklyFieldGridItem:focus-visible {
+  outline: 3px solid var(--color-blockly-focus) !important;
 }
 
 body .blocklyHtmlInput {
@@ -576,18 +780,27 @@ body[data-theme='dark'] .blocklyTreeLabel {
   fill-opacity: 0.8 !important;
 }
 
-[data-theme='low-vision'] .blocklyFlyout,
-[data-theme='low-vision'] .blocklyFlyoutBackground {
+/* Touch tap-selection in the flyout. Blockly only paints `blocklyActiveFocus`
+   on block paths in keyboard-navigation mode, which touch never enters — so
+   the two-step tap helper's highlight would be invisible. Paint the same blue
+   unconditionally, scoped to flyout blocks. */
+.blocklyFlyout .blocklyDraggable > .blocklyPath.blocklyActiveFocus {
+  stroke: var(--blockly-active-node-color);
+  stroke-width: var(--blockly-selection-width);
+}
+
+[data-theme='low-color'] .blocklyFlyout,
+[data-theme='low-color'] .blocklyFlyoutBackground {
   opacity: 1 !important;
 }
 
-[data-theme='low-vision'] .blocklyFlyoutBackground {
+[data-theme='low-color'] .blocklyFlyoutBackground {
   fill: #3a3a3a !important;
   fill-opacity: 1 !important;
 }
 
 .blocklyTreeSelected {
-  border-left: 4px solid #fc3 !important;
+  border-left: 4px solid var(--color-focus-outline) !important;
 }
 
 .blocklyToolboxCategory {
@@ -598,8 +811,15 @@ body[data-theme='dark'] .blocklyTreeLabel {
   outline: none !important;
 }
 
+/* Blockly draws two workspace keyboard-focus rings: the "focus ring" (active
+   tree — stays lit the whole time focus is anywhere in the workspace, blocks
+   included) and the "selection ring" (active node — lit only while the empty
+   workspace itself is focused, clears the moment you move onto a block).
+   Keep just the selection ring: it's blue via --blockly-active-node-color, and
+   its 5px inset is pulled flush to the edge in blocklyinit.js. Suppress the
+   always-on focus ring so there's one quiet indicator, not two. */
 .blocklyWorkspaceFocusRing {
-  stroke: var(--color-outline-focus) !important;
+  stroke: none !important;
 }
 
 .blocklyKeyboardNavigation .blocklyToolbox:has(.blocklyActiveFocus),
@@ -617,55 +837,67 @@ body[data-theme='dark'] .blocklyTreeLabel {
   fill: white !important;
 }
 
-[data-theme='low-vision'] .blocklyText,
-[data-theme='low-vision'] .blocklyTreeLabel {
+[data-theme='low-color'] .blocklyText,
+[data-theme='low-color'] .blocklyTreeLabel {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText {
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText {
   fill: #000000 !important;
 }
 
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropdownText,
-body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropDownText {
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropdownText,
+body[data-theme='low-color'] .blocklyField text.blocklyText.blocklyFieldText.blocklyDropDownText {
   fill: #f0f0f0 !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownText,
-[data-theme='low-vision'] .blocklyDropDownText {
+[data-theme='low-color'] .blocklyDropdownText,
+[data-theme='low-color'] .blocklyDropDownText {
   fill: #f0f0f0 !important;
   color: #f0f0f0 !important;
 }
 
-[data-theme='low-vision'] .blocklyEditableText > rect,
-[data-theme='low-vision'] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
+[data-theme='low-color'] .blocklyEditableText > rect,
+[data-theme='low-color'] .blocklyNonEditableText > rect:not(.blocklyDropdownRect) {
   fill: #ffffff !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownRect {
+[data-theme='low-color'] .blocklyDropdownRect {
   fill: #1e1e1e !important;
   stroke: #cfcfcf !important;
   stroke-width: 1.5px !important;
 }
 
-[data-theme='low-vision'] .blocklyDropdownArrow,
-[data-theme='low-vision'] .blocklyDropdownArrow > path {
+[data-theme='low-color'] rect.flockParamPill {
+  stroke: #e0e0e0 !important;
+  stroke-width: 2.5px !important;
+}
+
+[data-theme='low-color'] .blocklyDropdownArrow,
+[data-theme='low-color'] .blocklyDropdownArrow > path {
   fill: #cfcfcf !important;
   stroke: #cfcfcf !important;
 }
 
 /* === Blockly v12 desktop: center icon + label within the full row === */
 @media (min-width: 769px) {
+  /* Subcategories are indented from the left but keep the top-level rows' right
+     edge, so they're narrower and read as nested while staying right-aligned.
+     They also take the darker info-panel ground to set them off from the
+     top-level rows. */
   .blocklyToolboxCategoryContainer[aria-level='2'] > .blocklyToolboxCategory {
-    border-left: 8px solid transparent !important;
+    margin-left: 13px !important;
+    margin-right: 7px !important;
+    background-color: var(--color-panel-bg) !important;
   }
 
   .blocklyToolbox {
-    background: #f3f3f3 !important;
+    background: #d3d3d3 !important;
     min-width: 130px;
+    padding-top: 0 !important;
   }
 
   [data-theme='dark-contrast'] .blocklyToolbox {
@@ -680,18 +912,58 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     background: #1f1f1f !important;
   }
 
+  /* #3a3a3a is this theme's own flyout colour. It stays a step lighter than the
+     category rows so the gaps still separate them. */
+  [data-theme='low-color'] .blocklyToolbox,
+  [data-theme='low-color'] .blocklyToolboxCategoryGroup {
+    background: #3a3a3a !important;
+  }
+
   .blocklyToolboxCategoryGroup {
-    background-color: #d3d3d3 !important;
+    background-color: transparent !important;
+  }
+
+  /* Reset Blockly v13's injected container margins so rows tile with no gap. */
+  .blocklyToolbox .blocklyToolboxCategoryContainer {
+    margin: 0 !important;
   }
 
   /* The row element */
   .blocklyToolbox .blocklyToolboxCategoryContainer > .blocklyToolboxCategory {
     display: flex !important;
     align-items: center !important; /* <-- centers within the full row */
-    min-height: 26px !important; /* pick your row height */
-    padding-top: 1.25px !important;
-    padding-bottom: 1.25px !important;
-    padding-left: 8px !important;
+    /* Blockly v13 injects an inline height (22px) that swallows the padding
+       below. Let the row grow to its content instead. */
+    height: auto !important;
+    min-height: 20px !important; /* pick your row height */
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    /* Side margins keep the row, its 2px border and the keyboard-focus outline
+       clear of the toolbox scroll clip; the smaller padding-left keeps the
+       icon/label in place. */
+    padding-left: 4px !important;
+    border-radius: 4px;
+    /* Full 1px outline on every row, in that category's own edge colour.
+       --fc-category-border-colour is set per row in toolbox.js to the exact
+       colourTertiary Blockly strokes that category's blocks with (a darker
+       shade of the fill); the grey mix is the fallback for the search row,
+       which carries no category colour. The negative margin-bottom overlaps
+       each row onto the next by the border width, so the lower row's top
+       border paints over the upper row's bottom border — one seam in the
+       lower row's colour, the way connected blocks (which overlap, lower
+       block on top) render their join. The run's outer top and bottom stay a
+       single border width. */
+    /* !important so all four sides win over the legacy
+       `.blocklyToolboxCategory { border-left: 0 !important }` reset above. */
+    border: 1px solid
+      var(
+        --fc-category-border-colour,
+        color-mix(in srgb, var(--color-text-primary) 30%, transparent)
+      ) !important;
+    margin-top: 0 !important;
+    margin-bottom: -1px !important;
+    margin-left: 7px;
+    margin-right: 7px;
   }
 
   /* The inner content wrapper (icon + label) */
@@ -728,6 +1000,22 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     height: 30px;
     margin: 0;
     box-sizing: border-box;
+    /* Line the box up with the category chips (same 7px side inset) so their
+       focus frames sit on the same vertical lines. */
+    top: 3px;
+    left: 7px;
+    right: 7px;
+  }
+
+  .blocklyToolbox .blocklyToolboxCategory:has(input[type='search']) {
+    min-height: 33px !important;
+    background-color: transparent !important;
+    /* No category outline on the search row: it only holds the <input>, which
+       draws its own 1px border. A positive margin-bottom (instead of the rows'
+       -2px overlap) sets the search box off on its own; 3px matches the gap
+       above the input (its top: 3px inset) so it sits evenly. */
+    border: 0 !important;
+    margin-bottom: 3px !important;
   }
 
   .blocklyToolbox
@@ -735,7 +1023,7 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     > .blocklyTreeRowContentContainer {
     display: block !important;
     position: static !important;
-    /*pointer-events: auto !important;*/
+    pointer-events: auto !important;
   }
 }
 
@@ -745,15 +1033,16 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     margin: 0 !important;
   }
 
-  /* Suppress keyboard-nav box-shadow on mobile — it doubled with the selection indicator */
+  /* Suppress the keyboard-nav focus ring on mobile — it doubled with the selection indicator */
   .blocklyKeyboardNavigation .blocklyToolbox .blocklyActiveFocus > .blocklyToolboxCategory,
   .blocklyKeyboardNavigation .blocklyToolbox .blocklyToolboxCategory.blocklyActiveFocus {
+    outline: none !important;
     box-shadow: none !important;
   }
 
   /* Selection indicator for mobile: left border on the v13 selected class */
   .blocklyToolbox .blocklyToolboxSelected {
-    border-left: 4px solid var(--color-toolbox-focus) !important;
+    border-left: 4px solid var(--color-focus-outline) !important;
   }
 
   .blocklyToolbox {
@@ -816,156 +1105,76 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
     margin: 0;
     box-sizing: border-box;
   }
-
-  /* Expanded search overlay — appended to body so it escapes toolbox overflow/transforms */
-  .mobile-search-overlay::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    height: calc(var(--dynamic-offset, 65px) - 50px);
-    background: var(--color-bg);
-  }
-
-  .mobile-search-overlay {
-    position: fixed;
-    top: var(--dynamic-offset, 65px);
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background: var(--color-bg);
-    box-shadow: 0 2px 12px var(--color-shadow);
-  }
-
-  .mobile-search-overlay input[type='search'] {
-    flex: 1;
-    height: 40px;
-    font-size: 16px;
-    box-sizing: border-box;
-    width: auto !important;
-    min-width: 0;
-    border: 1px solid #888;
-    border-radius: 4px;
-    outline: none;
-  }
-
-  .mobile-search-overlay input[type='search']:focus-visible {
-    outline: 3px solid var(--color-outline-focus);
-    outline-offset: 2px;
-  }
-
-  .mobile-search-overlay input[type='search']::-webkit-search-cancel-button {
-    display: none;
-  }
-
-  .mobile-search-cancel {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    color: var(--color-text-primary);
-    font-size: 36px;
-    line-height: 1;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-
-  /* Custom HTML results panel — replaces the SVG flyout on mobile */
-  .mobile-search-results {
-    position: fixed;
-    top: calc(var(--dynamic-offset, 65px) + 56px);
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 9999;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    background: var(--color-bg);
-  }
-
-  .mobile-search-empty {
-    padding: 24px 16px;
-    color: var(--color-text);
-    opacity: 0.6;
-    font-size: 15px;
-    text-align: center;
-  }
-
-  .mobile-search-result-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    border: none;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.15);
-    background: var(--color-bg);
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    min-height: 48px;
-    gap: 8px;
-    touch-action: manipulation;
-  }
-
-  .mobile-search-result-item:active {
-    background: rgba(128, 128, 128, 0.1);
-  }
-
-  .mobile-search-result-name {
-    font-size: 16px;
-    color: var(--color-text);
-    flex: 1;
-  }
-
-  .mobile-search-result-category {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-text-primary);
-    flex-shrink: 0;
-    padding: 3px 10px;
-    border-radius: 12px;
-  }
 }
 
-@keyframes mobile-search-expand {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-@keyframes mobile-search-collapse {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
+.ws-search-mobile-bar {
+  position: fixed;
+  top: var(--dynamic-offset, 65px);
+  left: auto;
+  right: 0;
+  width: 100%;
+  max-width: 23em;
+  box-sizing: border-box;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.5em;
+  background: var(--color-bg);
+  box-shadow: 0 2px 12px var(--color-shadow);
+  border-radius: 10px 0 0 10px;
 }
 
-@media (min-width: 481px) and (max-width: 768px) {
-  .mobile-search-overlay.expanding {
-    animation: mobile-search-expand 0.2s ease-out forwards;
-  }
-  .mobile-search-overlay.collapsing {
-    animation: mobile-search-collapse 0.2s ease-in forwards;
-  }
+.ws-search-mobile-input {
+  flex: 1;
+  height: 40px;
+  font-size: 16px;
+  box-sizing: border-box;
+  min-width: 0;
+  border: 1px solid #888;
+  border-radius: 4px;
+  outline: none;
+  padding: 0 8px;
+  color: var(--color-text-primary);
+  background: var(--color-bg);
 }
 
-@media (max-width: 768px) {
+.ws-search-mobile-input:focus-visible {
+  outline: 3px solid var(--color-blockly-focus);
+  outline-offset: -3px;
+}
+
+.ws-search-mobile-count {
+  font-size: 13px;
+  color: var(--color-text-primary);
+  opacity: 0.7;
+  min-width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ws-search-mobile-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.ws-search-mobile-close {
+  font-size: 30px;
+  width: 28px;
+}
+
+@media (max-width: 768px), (max-width: 899px) and (pointer: coarse) {
   .ws-search-mobile-bar::before {
     content: '';
     position: absolute;
@@ -977,71 +1186,21 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   }
 
   .ws-search-mobile-bar {
-    position: fixed;
-    top: var(--dynamic-offset, 65px);
     left: 0;
-    right: 0;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    max-width: none;
     padding: 8px;
-    background: var(--color-bg);
-    box-shadow: 0 2px 12px var(--color-shadow);
+    border-radius: 0;
   }
 
-  .ws-search-mobile-input {
-    flex: 1;
-    height: 40px;
-    font-size: 16px;
-    box-sizing: border-box;
-    min-width: 0;
-    border: 1px solid #888;
-    border-radius: 4px;
-    outline: none;
-    padding: 0 8px;
-    color: var(--color-text);
-    background: var(--color-bg);
-  }
-
-  .ws-search-mobile-input:focus-visible {
-    outline: 3px solid var(--color-outline-focus);
-    outline-offset: 2px;
-  }
-
-  .ws-search-mobile-count {
-    font-size: 13px;
-    color: var(--color-text);
-    opacity: 0.7;
-    min-width: 36px;
-    text-align: center;
-    flex-shrink: 0;
-  }
-
-  .ws-search-mobile-btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    color: var(--color-text-primary);
-    font-size: 18px;
-    line-height: 1;
+  .ws-search-mobile-close.flock-close-icon {
     width: 44px;
     height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-
-  .ws-search-mobile-close {
-    font-size: 30px;
   }
 }
 
 /* Keyboard focus for image BUTTON fields only (e.g. plus/minus/toggle icons) */
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField {
-  outline: 5px solid var(--block-outline-focus);
+  outline: 5px solid var(--color-blockly-focus);
   outline-offset: 2px;
 }
 
@@ -1049,18 +1208,18 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyDropdownField .blocklyDropdownRect,
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyEditableText .blocklyDropdownRect {
-  stroke: var(--block-outline-focus) !important;
+  stroke: var(--color-blockly-focus) !important;
   stroke-width: 3px !important;
 }
 
 .blocklyKeyboardNavigation .blocklyActiveFocus.blocklyImageField image[style*='cursor: pointer'] {
-  stroke: var(--block-outline-focus);
+  stroke: var(--color-blockly-focus);
   stroke-width: 5px;
 }
 
 /* Passive focus: lower emphasis */
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField {
-  outline: 5px dashed var(--block-outline-focus);
+  outline: 5px dashed var(--color-blockly-focus);
   outline-offset: 2px;
 }
 
@@ -1068,13 +1227,13 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyDropdownField .blocklyDropdownRect,
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyFieldDropdown .blocklyDropdownRect,
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyEditableText .blocklyDropdownRect {
-  stroke: var(--color-outline-focus) !important;
+  stroke: var(--color-blockly-focus) !important;
   stroke-width: 3px !important;
   stroke-dasharray: 4 2;
 }
 
 .blocklyKeyboardNavigation .blocklyPassiveFocus.blocklyImageField image[style*='cursor: pointer'] {
-  stroke: var(--color-outline-focus);
+  stroke: var(--color-blockly-focus);
   stroke-width: 5px;
   stroke-dasharray: 4 2; /* Blockly-style short dash */
   stroke-linecap: butt; /* square dash ends */
@@ -1107,73 +1266,23 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
   z-index: 21;
 }
 
-/* Custom Comment Icon Styles (block comment icon only) */
-.blocklyCommentIconPath {
-  fill: #fffcc7;
-  stroke: #555;
-  stroke-width: 30;
+/* Hover tooltips are replaced by the block hint bar, which touch users can
+   also reach. Blockly still supplies the tooltip text for the hint. */
+.blocklyTooltipDiv {
+  display: none !important;
 }
 
-/* Block comment bubble border - targets only block comments, not workspace comments */
-.blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-.blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
+.blocklyWarningIcon .blocklyIconShape {
+  fill: #511d91;
+  stroke: #fff;
+  stroke-width: 1px;
 }
 
-/* NEEDS UPDATING PER THEME: dark theme comment icon color */
-[data-theme='dark'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #555;
+.blocklyWarningIcon .blocklyIconSymbol {
+  fill: #fff;
 }
 
-[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-[data-theme='dark'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-/* NEEDS UPDATING PER THEME: dark-contrast theme comment icon color */
-[data-theme='dark-contrast'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #333;
-}
-
-[data-theme='dark-contrast']
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  .blocklyBubbleTail,
-[data-theme='dark-contrast']
-  .blocklyBubble.blocklyTextInputBubble
-  .blocklyEmboss
-  rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-/* NEEDS UPDATING PER THEME: contrast theme comment icon color */
-[data-theme='contrast'] .blocklyCommentIconPath {
-  fill: #ffff00;
-  stroke: #333;
-}
-
-[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss .blocklyBubbleTail,
-[data-theme='contrast'] .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-  fill: #c9b85a !important;
-  stroke: #a89940 !important;
-  stroke-width: 2px !important;
-}
-
-@media (pointer: coarse) {
-  .blocklyBubble.blocklyTextInputBubble .blocklyEmboss rect.blocklyDraggable {
-    stroke-width: 16px !important;
-  }
-}
-
-/* Keep block comment editor constrained to its bubble */
+/* Keep the comment editor constrained to its bubble (shared by workspace comments) */
 .blocklyCommentForeignObject > body.blocklyMinimalBody,
 .blocklyCommentForeignObject textarea.blocklyCommentText {
   width: 100% !important;
@@ -1198,4 +1307,97 @@ body[data-theme='low-vision'] .blocklyField text.blocklyText.blocklyFieldText.bl
 [data-axis='Z'].blocklySelected .blocklyPath {
   stroke: var(--axis-z-color) !important;
   stroke-width: 2px !important;
+}
+
+/* Inline block picker on the keyword block (see blocks/fieldBlockSearch.js) */
+.block-search-popup {
+  position: fixed;
+  z-index: 100000;
+  max-width: min(420px, calc(100vw - 16px));
+  background: var(--color-bg);
+  border: 1px solid rgba(128, 128, 128, 0.35);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px var(--color-shadow);
+  overflow: hidden;
+}
+
+.block-search-listbox {
+  max-height: min(320px, 40vh);
+  overflow-y: auto;
+}
+
+.block-search-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  min-height: 36px;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+
+.block-search-option.active,
+.block-search-option:hover {
+  background: rgba(128, 128, 128, 0.18);
+}
+
+.block-search-option-name {
+  font-size: 14px;
+  flex: 1;
+}
+
+.block-search-option-category {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.block-search-status {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  opacity: 0.75;
+}
+
+.block-search-status {
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+.block-search-status.is-empty {
+  border-top: none;
+}
+
+.block-search-status-offscreen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.block-search-flyout {
+  z-index: 205; /* above .fc-block-toolbar (200) and its hint (201) */
+}
+
+.block-search-scrollbar {
+  z-index: 206; /* above .block-search-flyout, which it sits alongside */
+}
+
+.blocklyWidgetDiv input.blocklyHtmlInput.block-search-input {
+  text-align: left;
+  padding-left: 4px;
+  font-weight: 400 !important; /* the toolbox search box weight, not block text */
+}
+
+/* Opaque and lifted: this flyout floats over the workspace rather than docking.
+   fill is left to the theme rules above so low-color keeps its own colour. */
+.block-search-flyout .blocklyFlyoutBackground {
+  opacity: 1 !important;
+  fill-opacity: 1 !important;
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
 }

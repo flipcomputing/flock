@@ -1,4 +1,9 @@
-import { flock } from "../flock.js";
+import { flock } from '../flock.js';
+
+// Where a click can place something: camera frames are skipped.
+export const isPlacementSurface = (mesh) => mesh.isPickable && mesh.metadata?.shape !== 'camera';
+
+export const SELECTED_HIDDEN_VISIBILITY = 0.001;
 
 export function roundToOneDecimal(value) {
   return Math.round(value * 10) / 10;
@@ -26,54 +31,14 @@ export function roundVectorToFixed(vector, decimals) {
   return new vector.constructor(
     parseFloat(vector.x.toFixed(decimals)),
     parseFloat(vector.y.toFixed(decimals)),
-    parseFloat(vector.z.toFixed(decimals)),
+    parseFloat(vector.z.toFixed(decimals))
   );
 }
 
-const PICK_OK = (m) => m && m.isPickable !== false;
-
-function isLeafMesh(m) {
-  if (!m || m.isDisposed?.()) return false;
-  const hasKids = (m.getChildren?.().length ?? 0) > 0;
-  const hasGeom =
-    typeof m.getTotalVertices === "function" && m.getTotalVertices() > 0;
-  return !hasKids && hasGeom;
-}
-
-function isInSubtree(root, node) {
-  if (!root || !node) return false;
-  if (root === node) return true;
-  for (let p = node.parent; p; p = p.parent) if (p === root) return true;
-  return false;
-}
+const PICK_OK = (m) => m && m.isPickable !== false && m.metadata?.shape !== 'camera';
 
 export function pickLeafFromRay(ray, scene) {
-  const leafFirst = scene.pickWithRay(ray, (m) => PICK_OK(m) && isLeafMesh(m));
-  if (leafFirst?.pickedMesh) return leafFirst.pickedMesh;
-
-  const primary = scene.pickWithRay(ray, PICK_OK);
-  const parent = primary?.pickedMesh;
-  if (!parent) return null;
-
-  if (isLeafMesh(parent)) return parent;
-
-  const maxDist = (primary.distance ?? Number.POSITIVE_INFINITY) + 1e-4;
-  const ray2 = ray.clone();
-  ray2.length = Math.min(ray.length ?? maxDist, maxDist);
-
-  const hits =
-    scene.multiPickWithRay(
-      ray2,
-      (m) => PICK_OK(m) && isLeafMesh(m) && isInSubtree(parent, m),
-      false,
-    ) || [];
-
-  if (hits.length) {
-    // ensure nearest leaf is chosen
-    hits.sort((a, b) => a.distance - b.distance);
-    return hits[0].pickedMesh;
-  }
-
-  // last resort: color the parent
-  return parent;
+  const isSeen = (m) =>
+    PICK_OK(m) && m.isEnabled() && m.isVisible && m.visibility > SELECTED_HIDDEN_VISIBILITY;
+  return scene.pickWithRay(ray, isSeen)?.pickedMesh ?? null;
 }

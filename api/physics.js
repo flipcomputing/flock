@@ -2,6 +2,199 @@ let flock;
 
 export const isBodyAlive = (body) => !!body?._pluginData?.hpBodyId;
 
+const activeDrives = new WeakMap();
+
+const isPhysicsEnabled = (mesh) =>
+  isBodyAlive(mesh?.physics) && mesh.metadata?.physicsType !== 'NONE';
+
+const applyDrivenState = (body) => {
+  body.disablePreStep = false;
+  body.setPrestepType(flock.BABYLON.PhysicsPrestepType.ACTION);
+  body.setMotionType(flock.BABYLON.PhysicsMotionType.ANIMATED);
+};
+
+const FALLEN_BELOW_Y = -1000;
+const FALLEN_CHECK_FRAMES = 60;
+
+const parkFallenBody = (body) => {
+  const zero = flock.BABYLON.Vector3.Zero();
+  body.setLinearVelocity(zero);
+  body.setAngularVelocity(zero);
+  body._flockFallen = { disablePreStep: body.disablePreStep };
+  body.disablePreStep = true;
+  body.disableSync = true;
+  flock.hk.setActivationControl(body, flock.BABYLON.PhysicsActivationControl.ALWAYS_INACTIVE);
+};
+
+const unparkFallenBody = (body) => {
+  const parked = body?._flockFallen;
+  if (!parked) return;
+  delete body._flockFallen;
+  body.disablePreStep = parked.disablePreStep;
+  body.disableSync = false;
+  flock.hk.setActivationControl(
+    body,
+    flock.BABYLON.PhysicsActivationControl.SIMULATION_CONTROLLED
+  );
+};
+
+export const parkFallenBodies = (scene) => {
+  let frame = 0;
+  scene.onAfterPhysicsObservable.add(() => {
+    if (++frame % FALLEN_CHECK_FRAMES) return;
+    for (const body of scene.getPhysicsEngine()?.getBodies?.() ?? []) {
+      if (body._flockFallen || !isBodyAlive(body)) continue;
+      if (body.getMotionType() !== flock.BABYLON.PhysicsMotionType.DYNAMIC) continue;
+      if (body.transformNode.getAbsolutePosition().y < FALLEN_BELOW_Y) parkFallenBody(body);
+    }
+  });
+};
+
+const teleportOne = (mesh) => {
+  if (!isPhysicsEnabled(mesh)) return;
+  const body = mesh.physics;
+  unparkFallenBody(body);
+  mesh.computeWorldMatrix(true);
+  const prestepType = body.getPrestepType();
+  body.setPrestepType(flock.BABYLON.PhysicsPrestepType.TELEPORT);
+  flock.hk.setPhysicsBodyTransformation(body, mesh);
+  body.setPrestepType(prestepType);
+};
+
+const driveOne = (mesh) => {
+  let drive = activeDrives.get(mesh);
+  if (!drive) {
+    const body = mesh.physics;
+    drive = {
+      count: 0,
+      motionType: body.getMotionType(),
+      disablePreStep: body.disablePreStep,
+      prestepType: body.getPrestepType(),
+      teleportQueued: false,
+      observer: flock.scene.onAfterAnimationsObservable.add(() => mesh.computeWorldMatrix(true)),
+    };
+    activeDrives.set(mesh, drive);
+    applyDrivenState(body);
+  }
+  drive.count += 1;
+
+  let released = false;
+  return {
+    teleport() {
+      if (released || drive.teleportQueued) return;
+      drive.teleportQueued = true;
+      flock.scene.onBeforePhysicsObservable.addOnce(() => {
+        drive.teleportQueued = false;
+        if (released || !isBodyAlive(mesh.physics)) return;
+        mesh.physics.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+        mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+        teleportOne(mesh);
+      });
+    },
+    release() {
+      if (released) return;
+      released = true;
+      drive.count -= 1;
+      if (drive.count > 0) return;
+      activeDrives.delete(mesh);
+      flock.scene.onAfterAnimationsObservable.remove(drive.observer);
+      const body = mesh.physics;
+      if (!isBodyAlive(body)) return;
+      body.setMotionType(drive.motionType);
+      body.setPrestepType(drive.prestepType);
+      body.disablePreStep = drive.disablePreStep;
+      body.setLinearVelocity(flock.BABYLON.Vector3.Zero());
+      body.setAngularVelocity(flock.BABYLON.Vector3.Zero());
+      teleportOne(mesh);
+    },
+  };
+};
+
+// A body cloned mid-drive would keep the drive's temporary ANIMATED state for
+// good, which pins the clone in place; give it the source's resting state.
+export const restoreRestingState = (sourceMesh, body) => {
+  const drive = activeDrives.get(sourceMesh);
+  if (!drive || !isBodyAlive(body)) return;
+  body.setMotionType(drive.motionType);
+  body.setPrestepType(drive.prestepType);
+  body.disablePreStep = drive.disablePreStep;
+};
+
+const adoptPhysicsChangeDuringDrive = (mesh) => {
+  const drive = activeDrives.get(mesh);
+  const body = mesh.physics;
+  if (!drive || !isBodyAlive(body)) return;
+  drive.motionType = body.getMotionType();
+  drive.disablePreStep = body.disablePreStep;
+  drive.prestepType = body.getPrestepType();
+  applyDrivenState(body);
+};
+
+const redriveRebuiltBody = (mesh) => {
+  const body = mesh.physics;
+  if (!activeDrives.has(mesh) || !isBodyAlive(body)) return;
+  applyDrivenState(body);
+};
+
+const withPhysicsDescendants = (mesh) =>
+  mesh ? [mesh, ...mesh.getChildMeshes(false)].filter(isPhysicsEnabled) : [];
+
+export const teleportBodyToMesh = (mesh) => {
+  withPhysicsDescendants(mesh).forEach(teleportOne);
+};
+
+// PhysicsBody.clone() shares its shape, so the last body to let go disposes
+// it. Shapes in physicsShapeCache (_isShared) go with the cache instead.
+export const shareShape = (shape) => {
+  if (!shape || shape._isShared) return;
+  shape._flockUsers = (shape._flockUsers ?? 1) + 1;
+};
+
+export const releaseShape = (shape) => {
+  if (!shape || shape._isShared) return;
+  if (shape._flockUsers > 1) {
+    shape._flockUsers -= 1;
+    return;
+  }
+  shape.dispose?.();
+};
+
+// Meshes under an active drive, so a child parented mid-motion can join it.
+const activeDriveRoots = new Map();
+
+export const driveBody = (mesh) => {
+  const drives = withPhysicsDescendants(mesh).map(driveOne);
+  const controller = {
+    teleport() {
+      drives.forEach((drive) => drive.teleport());
+    },
+    release() {
+      drives.forEach((drive) => drive.release());
+      const controllers = activeDriveRoots.get(mesh);
+      controllers?.delete(controller);
+      if (!controllers?.size) activeDriveRoots.delete(mesh);
+    },
+    adopt(child) {
+      withPhysicsDescendants(child).forEach((childMesh) => {
+        const drive = driveOne(childMesh);
+        drives.push(drive);
+        drive.teleport();
+      });
+    },
+  };
+  if (!activeDriveRoots.has(mesh)) activeDriveRoots.set(mesh, new Set());
+  activeDriveRoots.get(mesh).add(controller);
+  return controller;
+};
+
+// Without this, a child parented under a gliding group keeps a static body
+// where it was attached while its mesh travels on with the group.
+export const joinActiveDrives = (child) => {
+  for (let node = child?.parent; node; node = node.parent) {
+    activeDriveRoots.get(node)?.forEach((controller) => controller.adopt(child));
+  }
+};
+
 // Restitution lives on the shape material, not mass properties. Reads
 // metadata.bounciness (default 0), so it survives shape/body rebuilds. Combine
 // is MAXIMUM (bounciest surface wins) and must match on every material — objects
@@ -15,6 +208,30 @@ export const applyBounciness = (physicsBody, mesh) => {
     restitution,
     restitutionCombine: flock.BABYLON.PhysicsMaterialCombineMode.MAXIMUM,
   };
+};
+
+// Mass is opt-in (default 1) and stored in metadata so it survives shape/body
+// rebuilds like bounciness. Clamped positive: 0 means static in Havok.
+export const DEFAULT_MASS = 1;
+export const MIN_MASS = 0.01;
+export const DEFAULT_ANGULAR_DAMPING = 2;
+
+export const normalizeMass = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return DEFAULT_MASS;
+  return Math.max(MIN_MASS, n);
+};
+
+export const applyMass = (physicsBody, mesh) => {
+  if (!physicsBody) return;
+  physicsBody.setAngularDamping?.(DEFAULT_ANGULAR_DAMPING);
+  const mass = mesh?.metadata?.mass ?? DEFAULT_MASS;
+  if (mass === DEFAULT_MASS) {
+    physicsBody.setMassProperties({ mass });
+    return;
+  }
+  const { inertia } = physicsBody.computeMassProperties();
+  physicsBody.setMassProperties({ mass, inertia: inertia.scale(mass) });
 };
 
 // Returns the mesh's normalised local basis vectors in world space, so velocity
@@ -105,29 +322,588 @@ const applyVelocityDrive = (mesh) => {
   keepUpright(mesh);
 };
 
-// Register a single per-step observer that keeps the velocity applied until
-// it's changed. Self-removes once the mesh is disposed.
-const ensureVelocityDrive = (mesh) => {
-  if (mesh.metadata._velocityDriveObserver) return;
+const ARRIVE_DISTANCE = 0.05;
+const TOUCH_MARGIN = 0.1;
+const BLOCKED_SECONDS = 0.5;
+const BLOCKED_PROGRESS = 0.25;
+const SLOW_SECONDS = 0.25;
+const MIN_ARRIVE_FRACTION = 0.2;
+const MAX_TARGET_SPEED = 20;
+const TARGET_SMOOTHING_SECONDS = 0.15;
+const MAX_LOOKAHEAD_SECONDS = 1;
+const WANDER_MAX_ANGLE = Math.PI / 4;
+const WANDER_FADE_DISTANCE = 2;
+const WANDER_SHORT_WAVE = 1.3;
+const WANDER_LONG_WAVE = 3.1;
+const MAX_TURN_RATE = 2 * Math.PI;
+const SETTLE_ANGLE = Math.PI / 36;
+const SETTLE_SECONDS = 1;
+const SETTLE_TARGET_SPEED = 0.2;
+const FEEL_SECONDS = 0.5;
+const FEEL_STEP_CLEARANCE = 0.1;
+const FEEL_HEIGHT_FRACTION = 0.75;
+const CORNER_FEEL_SECONDS = 0.25;
+const MAX_WALKABLE_SLOPE = (75 * Math.PI) / 180;
+const WALKABLE_NORMAL_Y = Math.cos(MAX_WALKABLE_SLOPE);
+const MAX_WALKABLE_RISE = Math.tan(MAX_WALKABLE_SLOPE);
+const SAFE_DROP_STEPS = 3;
+const LEDGE_FEEL_SECONDS = 0.3;
+const LEDGE_SAMPLE_SPACING = 0.25;
+const LEDGE_FAN_ANGLES = [30, -30, 60, -60, 90, -90, 135, -135, 180].map(
+  (deg) => (deg * Math.PI) / 180
+);
+const LEDGE_GROUNDED_GRACE_MS = 250;
+const AVOID_PROGRESS = 0.5;
+const HEIGHT_WEIGHT = 2;
+const MIN_SLOPE_FOR_SIDE = Math.sin((5 * Math.PI) / 180);
+const MIN_SIDE_PREFERENCE = 0.2;
+const AVOID_MEMORY_SECONDS = 1;
+const AVOID_GIVE_UP_FACTOR = 4;
+const AVOID_GIVE_UP_EXTRA = 10;
+const LOOP_TURN = 2.2 * Math.PI;
+const DESCENT_BIAS = 1;
+const EDGE_LEAN = 0.3;
+const HUG_GAP = 0.3;
+const HUG_REACH = 1.5;
+const HUG_GAIN = 1;
+const HUG_MAX_LEAN = 0.7;
+const HUG_CORNER_MARGIN = 0.4;
+const SIGHT_LEDGE_REACH = 30;
+
+const endMoveToObject = (mesh) => {
+  const seek = mesh._moveToObject;
+  if (!seek) return;
+  mesh._moveToObject = null;
+  seek.resolve();
+};
+
+const stopMoveToObject = (mesh) => {
+  const v = mesh.physics.getLinearVelocity();
+  v.x = 0;
+  v.z = 0;
+  mesh.physics.setLinearVelocity(v);
+  mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.ZeroReadOnly);
+  endMoveToObject(mesh);
+};
+
+const footprintGaps = (mesh, target) => {
+  const a = mesh.getBoundingInfo().boundingBox;
+  const b = target.getBoundingInfo().boundingBox;
+  return ['x', 'z'].map((axis) =>
+    Math.max(
+      a.minimumWorld[axis] - b.maximumWorld[axis],
+      b.minimumWorld[axis] - a.maximumWorld[axis],
+      0
+    )
+  );
+};
+
+const isBlocked = (seek, anchor, step) => {
+  seek.progress +=
+    (anchor.x - seek.lastX) * seek.lastDirX + (anchor.z - seek.lastZ) * seek.lastDirZ;
+  seek.expected += seek.lastSpeed * step;
+  seek.elapsed += step;
+  if (seek.elapsed < BLOCKED_SECONDS) return false;
+  const blocked = seek.progress < seek.expected * BLOCKED_PROGRESS;
+  seek.progress = seek.expected = seek.elapsed = 0;
+  return blocked;
+};
+
+const trackTarget = (seek, elapsed) => {
+  const { x, z } = flock._getAnchor(seek.target);
+  if (seek.targetX !== null) {
+    const vx = (x - seek.targetX) / elapsed;
+    const vz = (z - seek.targetZ) / elapsed;
+    if (Math.hypot(vx, vz) > MAX_TARGET_SPEED) {
+      seek.targetVX = seek.targetVZ = 0;
+    } else {
+      const blend = 1 - Math.exp(-elapsed / TARGET_SMOOTHING_SECONDS);
+      seek.targetVX += (vx - seek.targetVX) * blend;
+      seek.targetVZ += (vz - seek.targetVZ) * blend;
+    }
+  }
+  seek.targetX = x;
+  seek.targetZ = z;
+};
+
+const wanderAngle = (wander, remaining) => {
+  if (!wander) return 0;
+  const { travelled, shortPhase, longPhase } = wander;
+  const wobble =
+    Math.sin(travelled / WANDER_SHORT_WAVE + shortPhase) * 0.6 +
+    Math.sin(travelled / WANDER_LONG_WAVE + longPhase) * 0.4;
+  const fade = Math.min(1, remaining / WANDER_FADE_DISTANCE, travelled / WANDER_FADE_DISTANCE);
+  return WANDER_MAX_ANGLE * wobble * fade;
+};
+
+const ensureFeeler = (mesh, cap) => {
+  const B = flock.BABYLON;
+  const radius = cap.radius * 0.9;
+  const length = Math.max(
+    0,
+    cap.height * FEEL_HEIGHT_FRACTION - stepHeight(cap) - FEEL_STEP_CLEARANCE - 2 * radius
+  );
+  let feeler = mesh._moveToFeeler;
+  if (feeler?.radius === radius && feeler.length === length) return feeler;
+  feeler?.shape.dispose();
+  if (!feeler) mesh.onDisposeObservable.addOnce(() => mesh._moveToFeeler?.shape.dispose());
+  feeler = mesh._moveToFeeler = {
+    radius,
+    length,
+    shape:
+      length > 0.05
+        ? new B.PhysicsShapeCapsule(
+            B.Vector3.Zero(),
+            new B.Vector3(0, length, 0),
+            radius,
+            flock.scene
+          )
+        : new B.PhysicsShapeSphere(B.Vector3.Zero(), radius, flock.scene),
+    query: {
+      shape: null,
+      rotation: new B.Quaternion(0, 0, 0, 1),
+      startPosition: new B.Vector3(),
+      endPosition: new B.Vector3(),
+      shouldHitTriggers: false,
+      ignoreBody: null,
+    },
+    result: new B.ShapeCastResult(),
+    hitResult: new B.ShapeCastResult(),
+  };
+  feeler.query.shape = feeler.shape;
+  return feeler;
+};
+
+const belongsTo = (body, target) => {
+  const node = body?.transformNode;
+  return !!node && !!target && (node === target || node.isDescendantOf(target));
+};
+
+const stepHeight = (cap) => Math.min(0.55, cap.height * 0.25);
+
+const feetLevel = (mesh, cap) => mesh.position.y + (cap.localCenter?.y ?? 0) - cap.height / 2;
+
+const centreIsOpen = (mesh, target) => {
+  const plugin = flock.scene.getPhysicsEngine()?.getPhysicsPlugin();
+  if (!plugin) return false;
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const feeler = ensureFeeler(mesh, cap);
+  const { min, max } = target.getHierarchyBoundingVectors(true);
+  const B = flock.BABYLON;
+  const query = {
+    shape: feeler.shape,
+    position: new B.Vector3(
+      (min.x + max.x) / 2,
+      min.y + stepHeight(cap) + FEEL_STEP_CLEARANCE + feeler.radius,
+      (min.z + max.z) / 2
+    ),
+    rotation: new B.Quaternion(0, 0, 0, 1),
+    maxDistance: 0,
+    shouldHitTriggers: false,
+    ignoreBody: mesh.physics,
+  };
+  const result = new B.ProximityCastResult();
+  const hitResult = new B.ProximityCastResult();
+  plugin.shapeProximity(query, result, hitResult);
+  return !(result.hasHit && belongsTo(hitResult.body, target));
+};
+
+const feel = (mesh, ignore, dirX, dirZ, reach) => {
+  const plugin = flock.scene.getPhysicsEngine()?.getPhysicsPlugin();
+  if (!plugin) return null;
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const feeler = ensureFeeler(mesh, cap);
+  const lift = stepHeight(cap) + FEEL_STEP_CLEARANCE;
+  const { query, result, hitResult } = feeler;
+  query.ignoreBody = mesh.physics;
+  query.startPosition.set(
+    mesh.position.x,
+    feetLevel(mesh, cap) + lift + feeler.radius,
+    mesh.position.z
+  );
+  query.endPosition.set(
+    query.startPosition.x + dirX * reach,
+    query.startPosition.y,
+    query.startPosition.z + dirZ * reach
+  );
+  plugin.shapeCast(query, result, hitResult);
+  if (!result.hasHit) return null;
+  const body = hitResult.body;
+  if (belongsTo(body, ignore)) return null;
+  if (body?.getMotionType?.() === flock.BABYLON.PhysicsMotionType.DYNAMIC) return null;
+  const n = hitResult.hitNormal;
+  const flat = Math.hypot(n.x, n.z);
+  if (n.y >= WALKABLE_NORMAL_Y * Math.hypot(n.x, n.y, n.z) || flat < 1e-6) return null;
+  return { x: n.x / flat, z: n.z / flat, distance: result.hitFraction * reach };
+};
+
+const groundAhead = (mesh, target, dirX, dirZ, reach) => {
+  const engine = flock.scene.getPhysicsEngine();
+  if (!engine) return true;
+  const B = flock.BABYLON;
+  const ray = (mesh._moveToGroundRay ??= {
+    from: new B.Vector3(),
+    to: new B.Vector3(),
+    result: new B.PhysicsRaycastResult(),
+  });
+  const cap = flock.ensurePhysicsCapsule(mesh);
+  const step = stepHeight(cap);
+  const maxDrop = SAFE_DROP_STEPS * step;
+  let y = feetLevel(mesh, cap);
+  let slope = 0;
+  let previous = -cap.radius;
+  for (let d = cap.radius + LEDGE_SAMPLE_SPACING; d <= reach; d += LEDGE_SAMPLE_SPACING) {
+    const run = d - previous;
+    const x = mesh.position.x + dirX * d;
+    const z = mesh.position.z + dirZ * d;
+    ray.from.set(x, y + Math.min(step + run * MAX_WALKABLE_RISE, cap.height), z);
+    ray.to.set(x, y - maxDrop - run * MAX_WALKABLE_RISE, z);
+    engine.raycastToRef(ray.from, ray.to, ray.result);
+    if (!ray.result.hasHit) return false;
+    if (ray.result.body === mesh.physics) continue;
+    if (ray.result.body?.getMotionType?.() === flock.BABYLON.PhysicsMotionType.DYNAMIC) continue;
+    if (belongsTo(ray.result.body, target)) return true;
+    const n = ray.result.hitNormalWorld;
+    const hitY = ray.result.hitPointWorld.y;
+    const up = Math.abs(n.y) / Math.hypot(n.x, n.y, n.z);
+    if (up < WALKABLE_NORMAL_Y) return false;
+    const hitSlope = Math.hypot(n.x, n.z) / Math.abs(n.y);
+    const allowance = run * Math.max(slope, hitSlope);
+    if (y - hitY > maxDrop + allowance || hitY - y > step + allowance) return false;
+    y = hitY;
+    slope = hitSlope;
+    previous = d;
+  }
+  return true;
+};
+
+const ledgeNormal = (mesh, target, dirX, dirZ, reach) => {
+  let x = -dirX;
+  let z = -dirZ;
+  for (const angle of LEDGE_FAN_ANGLES) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    const fanX = dirX * cos - dirZ * sin;
+    const fanZ = dirX * sin + dirZ * cos;
+    if (!groundAhead(mesh, target, fanX, fanZ, reach)) {
+      x -= fanX;
+      z -= fanZ;
+    }
+  }
+  const length = Math.hypot(x, z);
+  return length < 1e-6 ? { x: -dirX, z: -dirZ } : { x: x / length, z: z / length };
+};
+
+const feelLedge = (mesh, target, dirX, dirZ, reach) =>
+  groundAhead(mesh, target, dirX, dirZ, reach)
+    ? null
+    : ledgeNormal(mesh, target, dirX, dirZ, reach);
+
+const tangent = (normal, side) => ({ x: -normal.z * side, z: normal.x * side });
+
+const holdGap = (wall, side) => {
+  const along = tangent(wall, side);
+  const lean = Math.max(
+    -HUG_MAX_LEAN,
+    Math.min(HUG_MAX_LEAN, (wall.distance - HUG_GAP) * HUG_GAIN)
+  );
+  const x = along.x - wall.x * lean;
+  const z = along.z - wall.z * lean;
+  const length = Math.hypot(x, z);
+  return { x: x / length, z: z / length };
+};
+
+const followEdge = (normal, side) => {
+  const along = tangent(normal, side);
+  const x = along.x + normal.x * EDGE_LEAN;
+  const z = along.z + normal.z * EDGE_LEAN;
+  const length = Math.hypot(x, z);
+  return { x: x / length, z: z / length };
+};
+
+const rotateFlat = ({ x, z }, angle) => {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return { x: x * cos - z * sin, z: x * sin + z * cos };
+};
+
+const downhill = (mesh) => {
+  if (!(performance.now() - (mesh._lastGroundedAt ?? -Infinity) < LEDGE_GROUNDED_GRACE_MS)) {
+    return null;
+  }
+  const n = mesh._moveForwardCache?.groundHitResult?.hitNormal;
+  const flat = n ? Math.hypot(n.x, n.z) / Math.hypot(n.x, n.y, n.z) : 0;
+  return flat < MIN_SLOPE_FOR_SIDE
+    ? null
+    : { x: n.x / Math.hypot(n.x, n.z), z: n.z / Math.hypot(n.x, n.z) };
+};
+
+const chooseSide = (mesh, normal, goalX, goalZ, climb) => {
+  const left = tangent(normal, 1);
+  const slope = climb ? downhill(mesh) : null;
+  if (slope) {
+    const descent = (left.x * slope.x + left.z * slope.z) * -climb;
+    if (Math.abs(descent) > MIN_SIDE_PREFERENCE) return Math.sign(descent);
+  }
+  return left.x * goalX + left.z * goalZ >= 0 ? 1 : -1;
+};
+
+const avoidObstacles = (mesh, seek, { goalX, goalZ, distance, progress, climb, step }) => {
+  const radius = flock.ensurePhysicsCapsule(mesh).radius;
+  const wallReach = radius + seek.speed * FEEL_SECONDS;
+  const ledgeReach = radius + seek.speed * LEDGE_FEEL_SECONDS;
+  const cornerReach = radius + seek.speed * CORNER_FEEL_SECONDS;
+  const ignore = seek.enterable ? null : seek.target;
+  const obstacle = (dir, wall, ledge) =>
+    feel(mesh, ignore, dir.x, dir.z, wall) ?? feelLedge(mesh, ignore, dir.x, dir.z, ledge);
+  const inSight = () =>
+    !feel(mesh, ignore, goalX, goalZ, distance) &&
+    groundAhead(mesh, ignore, goalX, goalZ, Math.min(distance, SIGHT_LEDGE_REACH));
+
+  if (progress < seek.closest - AVOID_PROGRESS) {
+    seek.closest = progress;
+    seek.detour = 0;
+    seek.turned = 0;
+  }
+  const goal = { x: goalX, z: goalZ };
+  const ahead = obstacle(goal, Math.min(wallReach, distance), Math.min(ledgeReach, distance));
+  let avoid = seek.avoid;
+  if (!ahead) {
+    if (!avoid) return null;
+    avoid.clearTime += step;
+    const targetMoving = Math.hypot(seek.targetVX, seek.targetVZ) >= SETTLE_TARGET_SPEED;
+    if (
+      progress < avoid.startProgress - AVOID_PROGRESS ||
+      (targetMoving && avoid.clearTime > AVOID_MEMORY_SECONDS) ||
+      inSight()
+    ) {
+      seek.avoid = null;
+      return null;
+    }
+  } else if (!avoid) {
+    avoid = seek.avoid = {
+      side: chooseSide(mesh, ahead, goalX, goalZ, climb),
+      startProgress: progress,
+      clearTime: 0,
+      along: null,
+    };
+  }
+  seek.detour += seek.lastSpeed * step;
+  if (seek.detour > seek.closest * AVOID_GIVE_UP_FACTOR + AVOID_GIVE_UP_EXTRA) return 'give up';
+  if (Math.abs(seek.turned) > LOOP_TURN) return 'give up';
+
+  if (ahead) avoid.clearTime = 0;
+  let along;
+  if (!avoid.along) {
+    along = followEdge(ahead, avoid.side);
+  } else {
+    const towardWall = rotateFlat(avoid.along, (avoid.side * Math.PI) / 2);
+    const wall = feel(mesh, ignore, towardWall.x, towardWall.z, radius + HUG_REACH);
+    const edge = wall ? null : feelLedge(mesh, ignore, towardWall.x, towardWall.z, ledgeReach);
+    const near = wall ?? edge ?? ahead;
+    if (!near) {
+      along = rotateFlat(avoid.along, (avoid.side * seek.lastSpeed * step) / (radius + HUG_GAP));
+    } else if (near.distance === undefined) {
+      along = followEdge(near, avoid.side);
+    } else {
+      along = holdGap(near, avoid.side);
+    }
+  }
+  const slope = climb ? downhill(mesh) : null;
+  if (slope) {
+    const x = along.x - slope.x * climb * DESCENT_BIAS;
+    const z = along.z - slope.z * climb * DESCENT_BIAS;
+    const length = Math.hypot(x, z);
+    if (length > 1e-6) along = { x: x / length, z: z / length };
+  }
+  const corner =
+    feel(mesh, ignore, along.x, along.z, radius + HUG_GAP + HUG_CORNER_MARGIN) ??
+    feelLedge(mesh, ignore, along.x, along.z, cornerReach);
+  if (corner) along = followEdge(corner, avoid.side);
+  if (avoid.along) {
+    seek.turned += Math.atan2(
+      avoid.along.x * along.z - avoid.along.z * along.x,
+      avoid.along.x * along.x + avoid.along.z * along.z
+    );
+  }
+  return (avoid.along = along);
+};
+
+const faceMoveToObject = (mesh, dirX, dirZ) => {
+  const facing = (mesh._moveToFacing ??= new flock.BABYLON.Vector3());
+  facing.set(dirX, 0, dirZ);
+  return flock.faceTravel(mesh, facing, MAX_TURN_RATE);
+};
+
+const settleMoveToObject = (mesh, seek, step) => {
+  const v = mesh.physics.getLinearVelocity();
+  v.x = 0;
+  v.z = 0;
+  mesh.physics.setLinearVelocity(v);
+  const error = faceMoveToObject(mesh, seek.lastDirX, seek.lastDirZ);
+  seek.settleTime += step;
+  if (Math.abs(error) < SETTLE_ANGLE || seek.settleTime > SETTLE_SECONDS) stopMoveToObject(mesh);
+};
+
+const applyMoveToObject = (mesh) => {
+  const seek = mesh._moveToObject;
+  const { target, side, gap, speed } = seek;
+  if (target.isDisposed()) {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const elapsed = Math.max(flock.scene.getEngine().getDeltaTime(), 1) / 1000;
+  const step = Math.min(elapsed, 0.1);
+  if (seek.settling) {
+    settleMoveToObject(mesh, seek, step);
+    return;
+  }
+  trackTarget(seek, elapsed);
+  seek.enterable ??= !side && centreIsOpen(mesh, target);
+  const goal = flock._anchorGoal(mesh, target, side, gap);
+  const anchor = flock._getAnchor(mesh);
+  const dx = goal.x - anchor.x;
+  const dz = goal.z - anchor.z;
+  const distance = Math.hypot(dx, dz);
+  const gaps =
+    !side && !seek.enterable && isPhysicsEnabled(target) ? footprintGaps(mesh, target) : null;
+  if (distance <= ARRIVE_DISTANCE || gaps?.every((g) => g <= TOUCH_MARGIN)) {
+    const targetStill = Math.hypot(seek.targetVX, seek.targetVZ) < SETTLE_TARGET_SPEED;
+    if (targetStill && (seek.lastDirX || seek.lastDirZ)) {
+      seek.settling = true;
+      settleMoveToObject(mesh, seek, step);
+    } else {
+      stopMoveToObject(mesh);
+    }
+    return;
+  }
+  if (isBlocked(seek, anchor, step)) {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const lookahead = Math.min(distance / speed, MAX_LOOKAHEAD_SECONDS);
+  let aimX = dx + seek.targetVX * lookahead;
+  let aimZ = dz + seek.targetVZ * lookahead;
+  let aimDistance = Math.hypot(aimX, aimZ);
+  if (aimDistance < ARRIVE_DISTANCE) {
+    aimX = dx;
+    aimZ = dz;
+    aimDistance = distance;
+  }
+  const climb = goal.y - anchor.y;
+  const height =
+    HEIGHT_WEIGHT * Math.max(0, Math.abs(climb) - stepHeight(flock.ensurePhysicsCapsule(mesh)));
+  const progress = Math.hypot(distance, height);
+  const contact = gaps ? distance - Math.min(distance, Math.hypot(...gaps)) : 0;
+  const remaining = Math.hypot(Math.max(0, aimDistance - contact), height);
+  const targetAway = Math.max(0, (seek.targetVX * aimX + seek.targetVZ * aimZ) / aimDistance);
+  const arriveSpeed = Math.max(
+    speed * MIN_ARRIVE_FRACTION,
+    Math.min(speed, targetAway + remaining / SLOW_SECONDS)
+  );
+  const stepSpeed = Math.min(arriveSpeed, aimDistance / step);
+  const around = avoidObstacles(mesh, seek, {
+    goalX: aimX / aimDistance,
+    goalZ: aimZ / aimDistance,
+    distance,
+    progress,
+    climb: height > 0 ? Math.sign(climb) : 0,
+    step,
+  });
+  if (around === 'give up') {
+    stopMoveToObject(mesh);
+    return;
+  }
+  const baseX = around ? around.x : aimX / aimDistance;
+  const baseZ = around ? around.z : aimZ / aimDistance;
+  const angle = around ? 0 : wanderAngle(seek.wander, remaining);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const dirX = baseX * cos - baseZ * sin;
+  const dirZ = baseX * sin + baseZ * cos;
+  const error = faceMoveToObject(mesh, dirX, dirZ);
+  const turnSpeed = stepSpeed * Math.max(0, Math.cos(error));
+  if (seek.wander) seek.wander.travelled += turnSpeed * step;
+  Object.assign(seek, {
+    lastX: anchor.x,
+    lastZ: anchor.z,
+    lastDirX: dirX,
+    lastDirZ: dirZ,
+    lastSpeed: turnSpeed,
+  });
+  const desired = (mesh._moveToDesired ??= new flock.BABYLON.Vector3());
+  desired.set(dirX * turnSpeed, 0, dirZ * turnSpeed);
+  flock.applyGroundedMovement(mesh, desired);
+};
+
+// Default "no free sliding" behaviour for a mesh with the upright joint
+// constraint when nothing is actively driving it.
+const applyUprightStabiliser = (mesh) => {
+  if (!mesh.metadata?.constraint) return;
+  try {
+    const v = (mesh._stabiliserVelocity ??= new flock.BABYLON.Vector3());
+    mesh.physics.getLinearVelocityToRef(v);
+    const keepHorizontal =
+      v.x * v.x + v.z * v.z > 1e-6 &&
+      mesh.metadata.physicsCapsule &&
+      (!flock.checkGrounded(mesh) || mesh._jumpUntilGrounded);
+    if (!keepHorizontal) {
+      v.x = 0;
+      v.z = 0;
+      mesh.physics.setLinearVelocity(v);
+    }
+    mesh.physics.setAngularVelocity(flock.BABYLON.Vector3.ZeroReadOnly);
+  } catch (err) {
+    console.warn('Physics body became invalid:', err);
+  }
+};
+
+// Single per-mesh post-physics observer shared by ensureVerticalConstraint
+// and setSpeed, so only one of them ever touches a mesh's velocity per step.
+const ensurePostPhysicsUpkeep = (mesh) => {
+  // Kept on the mesh, not mesh.metadata, since cloneMesh shallow-copies metadata.
+  if (mesh._postPhysicsUpkeep) return;
   const scene = flock.scene;
   if (!scene?.onAfterPhysicsObservable) return;
-  // After the step (like the upright stabiliser) so the held velocity isn't
-  // left with a step's worth of gravity in it.
   const observer = scene.onAfterPhysicsObservable.add(() => {
-    if (!mesh || mesh.isDisposed?.()) {
+    if (!mesh || mesh.isDisposed?.() || !isBodyAlive(mesh.physics)) {
       scene.onAfterPhysicsObservable.remove(observer);
+      mesh._postPhysicsUpkeep = null;
+      endMoveToObject(mesh);
       return;
     }
-    applyVelocityDrive(mesh);
+    if (mesh._moveToObject) {
+      applyMoveToObject(mesh);
+    } else if (mesh.metadata?.velocityDrive) {
+      applyVelocityDrive(mesh);
+    } else {
+      applyUprightStabiliser(mesh);
+    }
   });
-  mesh.metadata._velocityDriveObserver = observer;
+  mesh._postPhysicsUpkeep = observer;
 };
 
 const getShapeTypeFromPhysics = (physics) => {
   if (!physics?.shape) return null;
   const shape = physics.shape;
+  if (
+    flock?.BABYLON?.PhysicsShapeContainer &&
+    shape instanceof flock.BABYLON.PhysicsShapeContainer
+  )
+    return 'CONTAINER';
   if (flock?.BABYLON?.PhysicsShapeCapsule && shape instanceof flock.BABYLON.PhysicsShapeCapsule)
     return 'CAPSULE';
+  if (
+    flock?.BABYLON?.PhysicsShapeConvexHull &&
+    shape instanceof flock.BABYLON.PhysicsShapeConvexHull
+  )
+    return 'CONVEX_HULL';
+  if (flock?.BABYLON?.PhysicsShapeBox && shape instanceof flock.BABYLON.PhysicsShapeBox)
+    return 'BOX';
+  if (flock?.BABYLON?.PhysicsShapeSphere && shape instanceof flock.BABYLON.PhysicsShapeSphere)
+    return 'SPHERE';
+  if (flock?.BABYLON?.PhysicsShapeCylinder && shape instanceof flock.BABYLON.PhysicsShapeCylinder)
+    return 'CYLINDER';
   if (flock?.BABYLON?.PhysicsShapeMesh && shape instanceof flock.BABYLON.PhysicsShapeMesh)
     return 'MESH';
   return null;
@@ -163,14 +939,8 @@ const disposePhysics = (targetMesh) => {
     console.warn('[physics] RemoveBody warning:', e);
   }
 
-  // Dispose the shape only if it is not shared with another body.
-  // PhysicsBody.clone() shares the same shape JS object between source and clone,
-  // so disposing it here would also destroy the source's shape, leaving the source
-  // body with a dangling reference that crashes the next clone attempt.
   try {
-    if (!body.shape?._isShared) {
-      body.shape?.dispose?.();
-    }
+    releaseShape(body.shape);
   } catch (error) {
     console.warn('Suppressed non-critical error:', error);
   }
@@ -186,13 +956,110 @@ const disposePhysics = (targetMesh) => {
   targetMesh.physics = null;
 };
 
+// Rings and donuts are hollow: a CONVEX_HULL shrink-wraps the hole shut, so a
+// dynamic ring balances on a pole instead of sliding down it. A container of
+// box segments leaves the hole open while staying dynamic-capable (a triangle
+// MESH shape is static-only in Havok).
+const HOLLOW_SEGMENTS = 12;
+
+const isHollowWalledMesh = (mesh) => {
+  const shapeType = mesh?.metadata?.shapeType;
+  if (shapeType !== 'Ring' && shapeType !== 'Donut') return false;
+  const dims = mesh?.metadata?.ringDimensions ?? mesh?.metadata?.donutDimensions;
+  if (!dims) return true;
+  return Number(dims.innerDiameter) > 1e-6;
+};
+
+const createHollowContainerShape = (mesh, scene) => {
+  const B = flock.BABYLON;
+  const shapeType = mesh?.metadata?.shapeType;
+  const sx = Math.abs(mesh?.scaling?.x ?? 1) || 1;
+  const sy = Math.abs(mesh?.scaling?.y ?? 1) || 1;
+  const sz = Math.abs(mesh?.scaling?.z ?? 1) || 1;
+  const radialScale = (sx + sz) / 2;
+
+  let meanRadius;
+  let wallRadial;
+  let height;
+  if (shapeType === 'Ring') {
+    const dims = mesh.metadata?.ringDimensions;
+    if (!dims) return null;
+    const outerR = (dims.diameter / 2) * radialScale;
+    const innerR = (dims.innerDiameter / 2) * radialScale;
+    if (!(outerR > 0) || !(innerR > 1e-6)) return null;
+    meanRadius = (outerR + innerR) / 2;
+    wallRadial = outerR - innerR;
+    height = dims.height * sy;
+  } else if (shapeType === 'Donut') {
+    const dims = mesh.metadata?.donutDimensions;
+    if (!dims) return null;
+    const tube = dims.thickness * radialScale;
+    if (!(tube > 0)) return null;
+    meanRadius = ((dims.diameter - dims.thickness) / 2) * radialScale;
+    if (!(meanRadius > 1e-6)) return null;
+    wallRadial = tube;
+    height = tube * sy;
+  } else {
+    return null;
+  }
+  if (!(meanRadius > 0) || !(wallRadial > 0) || !(height > 0)) return null;
+
+  const segments = HOLLOW_SEGMENTS;
+  // Overlap tangentially to seal corner gaps, but keep the radial depth exact:
+  // oversizing radially shrinks the hole (apothem = meanRadius - depth/2) and
+  // the pole then catches the rim and orbits instead of threading it.
+  const tangential = 2 * meanRadius * Math.tan(Math.PI / segments) * 1.25;
+  const container = new B.PhysicsShapeContainer(scene);
+  for (let i = 0; i < segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    const child = new B.PhysicsShapeBox(
+      B.Vector3.Zero(),
+      B.Quaternion.Identity(),
+      new B.Vector3(tangential, height, wallRadial),
+      scene
+    );
+    container.addChild(
+      child,
+      new B.Vector3(meanRadius * Math.cos(angle), 0, meanRadius * Math.sin(angle)),
+      B.Quaternion.RotationYawPitchRoll(-angle - Math.PI / 2, 0, 0)
+    );
+  }
+  return container;
+};
+
 const createPhysicsShape = (mesh, shapeType) => {
+  if (shapeType === 'CONTAINER') {
+    return createHollowContainerShape(mesh, flock.scene);
+  }
   if (shapeType === 'CAPSULE') {
     mesh.computeWorldMatrix(true);
     return flock.createCapsuleFromBoundingBox(mesh, flock.scene);
   }
+  if (shapeType === 'CONVEX_HULL') {
+    return new flock.BABYLON.PhysicsShapeConvexHull(mesh, flock.scene);
+  }
+  if (shapeType === 'BOX') {
+    return mesh.metadata?.shapeType === 'Freeform'
+      ? flock.createFreeformBox(mesh, flock.scene)
+      : flock.createBoxFromBoundingBox(mesh, flock.scene);
+  }
+  if (shapeType === 'SPHERE') {
+    return flock.createSphereFromBoundingBox(mesh, flock.scene);
+  }
+  if (shapeType === 'CYLINDER') {
+    return flock.createCylinderFromBoundingBox(mesh, flock.scene);
+  }
   return new flock.BABYLON.PhysicsShapeMesh(mesh, flock.scene);
 };
+
+const SHAPE_TYPES_KEPT_ON_REBUILD = [
+  'CAPSULE',
+  'CONVEX_HULL',
+  'BOX',
+  'SPHERE',
+  'CYLINDER',
+  'CONTAINER',
+];
 
 const applyPhysicsShape = (
   targetMesh,
@@ -200,7 +1067,7 @@ const applyPhysicsShape = (
   motionType = flock.BABYLON.PhysicsMotionType.STATIC,
   disablePreStep = false
 ) => {
-  const normalizedShapeType = shapeType === 'CAPSULE' ? 'CAPSULE' : 'MESH';
+  const normalizedShapeType = SHAPE_TYPES_KEPT_ON_REBUILD.includes(shapeType) ? shapeType : 'MESH';
   const physicsShape = createPhysicsShape(targetMesh, normalizedShapeType);
   if (!physicsShape) {
     console.error('[physics] Failed to create', normalizedShapeType, 'shape for', targetMesh.name);
@@ -214,7 +1081,7 @@ const applyPhysicsShape = (
     flock.scene
   );
   physicsBody.shape = physicsShape;
-  physicsBody.setMassProperties({ mass: 1 });
+  applyMass(physicsBody, targetMesh);
   applyBounciness(physicsBody, targetMesh);
   physicsBody.disablePreStep = disablePreStep;
   targetMesh.physics = physicsBody;
@@ -226,6 +1093,50 @@ const applyPhysicsShape = (
     disablePreStep: physicsBody.disablePreStep,
     shapeType: normalizedShapeType,
   };
+};
+
+// An object's body is built from a recipe once its DO has run, so one whose DO
+// sets physics none never allocates a shape. The recipe stays for a later
+// set physics, and for clones whose source has no live body.
+const deferBody = (mesh, recipe) => {
+  mesh._bodyRecipe = recipe;
+  mesh._pendingBody = recipe;
+};
+
+const PENDING_BODY_KEYS = ['_pendingBody', '_bodyRecipe', '_bodyHeld', '_pendingBodyStale'];
+
+export const movePendingBody = (from, to) => {
+  for (const key of PENDING_BODY_KEYS) {
+    if (key in from) to[key] = from[key];
+    delete from[key];
+  }
+};
+
+const hasPendingBody = (mesh) => !!mesh?._pendingBody && !mesh.physics;
+
+// A recipe sizes its shape from the object as created; one resized or
+// reshaped since is refitted once built.
+export const markPendingBodyStale = (mesh) => {
+  if (hasPendingBody(mesh)) mesh._pendingBodyStale = true;
+};
+
+const buildPendingBody = (mesh) => {
+  if (!hasPendingBody(mesh) || mesh.isDisposed?.() || mesh.metadata?.physicsType === 'NONE') {
+    return;
+  }
+  const build = mesh._pendingBody;
+  delete mesh._pendingBody;
+  build(mesh);
+  if (!isBodyAlive(mesh.physics)) return;
+  if (mesh._pendingBodyStale) {
+    delete mesh._pendingBodyStale;
+    flock.updatePhysics(mesh);
+  }
+  const physicsType = mesh.metadata?.physicsType;
+  if (physicsType) flock.setPhysicsForMesh(mesh, physicsType);
+  if (isBodyAlive(mesh.physics) && !flock._isShown(mesh)) {
+    flock.hk._hknp.HP_World_RemoveBody(flock.hk.world, mesh.physics._pluginData.hpBodyId);
+  }
 };
 
 function waitForSceneTransformFlush(scene) {
@@ -251,11 +1162,91 @@ export function setFlockReference(ref) {
   flock = ref;
 }
 
+const PICK_TRIGGER_NAMES = ['OnPickTrigger', 'OnPickDownTrigger', 'OnPickUpTrigger'];
+
+function isDescendantOf(mesh, ancestor) {
+  let node = mesh?.parent;
+  while (node) {
+    if (node === ancestor) return true;
+    node = node.parent;
+  }
+  return false;
+}
+
+function clickedMeshOf(evt) {
+  if (evt?.__flockDelegated) return evt.meshUnderPointer;
+  return evt?.additionalData?.pickedMesh || evt?.meshUnderPointer || evt?.source;
+}
+
+// A group shell encloses its members, so a ray aimed at a member hits
+// the (invisible) shell first and Babylon routes the click to the
+// shell. Give a member with its own trigger for this event first
+// refusal. Returns the mesh whose manager should fire instead, or
+// null when the owner itself should handle the click.
+function resolveDelegatedMesh(owner, triggerId, evt) {
+  if (owner?.metadata?.shapeType !== 'Group' && owner?.visibility !== 0) return null;
+  const x = evt?.pointerX;
+  const y = evt?.pointerY;
+  if (typeof x !== 'number' || typeof y !== 'number') return null;
+  if (typeof flock.scene?.multiPick !== 'function') return null;
+  let hits;
+  try {
+    hits = flock.scene.multiPick(
+      x,
+      y,
+      (m) => m.isPickable && m.isVisible && m.isEnabled?.() !== false
+    );
+  } catch {
+    return null;
+  }
+  if (!hits?.length) return null;
+  // multiPick returns hits in scene.meshes order, not nearest first.
+  hits.sort((a, b) => (a?.distance ?? Infinity) - (b?.distance ?? Infinity));
+  const ownerManager = owner.actionManager;
+  let candidate = null;
+  for (const hit of hits) {
+    const m = hit?.pickedMesh;
+    if (!m || m === owner) continue;
+    if (!isDescendantOf(m, owner)) break;
+    const mgr =
+      typeof m._getActionManagerForTrigger === 'function'
+        ? m._getActionManagerForTrigger(triggerId)
+        : null;
+    if (mgr && mgr !== ownerManager) {
+      // Nearest mesh up from the hit owning that manager (the hit
+      // itself, or an intermediate group). Fired with a delegated flag
+      // so it runs directly instead of re-delegating.
+      let o = m;
+      while (o && o !== owner && o.actionManager !== mgr) o = o.parent;
+      candidate = o && o !== owner ? o : m;
+      if (m.visibility !== 0) break;
+    } else if (m.visibility !== 0) {
+      break;
+    }
+  }
+  return candidate;
+}
+
+function shellHasRealTrigger(shell, triggerId) {
+  const actions = shell?.actionManager?.actions;
+  if (!actions) return false;
+  return actions.some((a) => a && a.trigger === triggerId && !a._flockForwarder);
+}
+
+function hasRealPickTrigger(mesh) {
+  const manager = mesh?.actionManager;
+  if (!manager?.hasPickTriggers) return false;
+  const ids = PICK_TRIGGER_NAMES.map((name) => flock.BABYLON.ActionManager[name]);
+  return (manager.actions || []).some((a) => a && ids.includes(a.trigger) && !a._flockForwarder);
+}
+
 export const flockPhysics = {
+  isHollowWalledMesh,
+  createHollowContainerShape,
   createPhysicsBody(mesh, shape, motionType = flock.BABYLON.PhysicsMotionType.STATIC) {
     const physicsBody = new flock.BABYLON.PhysicsBody(mesh, motionType, false, flock.scene);
     physicsBody.shape = shape;
-    physicsBody.setMassProperties({ mass: 1 });
+    applyMass(physicsBody, mesh);
     applyBounciness(physicsBody, mesh);
     mesh.physics = physicsBody;
   },
@@ -267,19 +1258,38 @@ export const flockPhysics = {
       flock.scene
     );
     physicsBody.shape = physicsShape;
-    physicsBody.setMassProperties({ mass: 1 });
+    applyMass(physicsBody, geometry);
     applyBounciness(physicsBody, geometry);
     physicsBody.disablePreStep = true;
 
     geometry.physics = physicsBody;
   },
+  disposeMeshPhysics(mesh) {
+    disposePhysics(mesh);
+  },
+  deferBody,
+  holdBody(mesh) {
+    if (hasPendingBody(mesh)) mesh._bodyHeld = true;
+  },
+  releaseBody(mesh) {
+    if (!mesh?._bodyHeld) return;
+    delete mesh._bodyHeld;
+    buildPendingBody(mesh);
+  },
+  ensureBody(mesh) {
+    buildPendingBody(mesh);
+    return mesh;
+  },
   updatePhysics(mesh, parent = null) {
     if (!parent) parent = mesh;
-    if (mesh.scaling.x < 0.01) mesh.scaling.x = Math.max(0.01, Math.abs(mesh.scaling.x));
-    if (mesh.scaling.y < 0.01) mesh.scaling.y = Math.max(0.01, Math.abs(mesh.scaling.y));
-    if (mesh.scaling.z < 0.01) mesh.scaling.z = Math.max(0.01, Math.abs(mesh.scaling.z));
+    // Keeps the sign: a negative axis is a deliberate mirror (flip, mirror).
+    for (const axis of ['x', 'y', 'z']) {
+      const value = mesh.scaling[axis];
+      if (Math.abs(value) < 0.01) mesh.scaling[axis] = value < 0 ? -0.01 : 0.01;
+    }
     mesh.computeWorldMatrix(true);
     mesh.refreshBoundingInfo(true);
+    markPendingBodyStale(parent);
     if (!isBodyAlive(parent.physics)) return;
 
     const { motionType, disablePreStep } = capturePhysicsState(parent);
@@ -287,16 +1297,26 @@ export const flockPhysics = {
     if (!physicsShape) return;
 
     const boundingBox = mesh.getBoundingInfo().boundingBox;
-    const width = boundingBox.maximumWorld.x - boundingBox.minimumWorld.x;
-    const height = boundingBox.maximumWorld.y - boundingBox.minimumWorld.y;
-    const depth = boundingBox.maximumWorld.z - boundingBox.minimumWorld.z;
+    const size = boundingBox.maximum
+      .subtract(boundingBox.minimum)
+      .multiplyInPlace(mesh.absoluteScaling);
+    const width = Math.abs(size.x);
+    const height = Math.abs(size.y);
+    const depth = Math.abs(size.z);
+    const center = boundingBox.center.multiply(mesh.absoluteScaling);
 
     let newShape;
     let detectedShapeType;
-    if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
+    if (
+      physicsShape instanceof flock.BABYLON.PhysicsShapeBox &&
+      mesh.metadata?.shapeType === 'Freeform'
+    ) {
+      detectedShapeType = 'BOX';
+      newShape = flock.createFreeformBox(mesh, flock.scene);
+    } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeBox) {
       detectedShapeType = 'BOX';
       newShape = new flock.BABYLON.PhysicsShapeBox(
-        flock.BABYLON.Vector3.Zero(),
+        center,
         new flock.BABYLON.Quaternion(0, 0, 0, 1),
         new flock.BABYLON.Vector3(width, height, depth),
         flock.scene
@@ -304,15 +1324,15 @@ export const flockPhysics = {
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeSphere) {
       detectedShapeType = 'SPHERE';
       newShape = new flock.BABYLON.PhysicsShapeSphere(
-        flock.BABYLON.Vector3.Zero(),
+        center,
         Math.max(width, height, depth) / 2,
         flock.scene
       );
     } else if (physicsShape instanceof flock.BABYLON.PhysicsShapeCylinder) {
       detectedShapeType = 'CYLINDER';
       newShape = new flock.BABYLON.PhysicsShapeCylinder(
-        new flock.BABYLON.Vector3(0, -height / 2, 0),
-        new flock.BABYLON.Vector3(0, height / 2, 0),
+        new flock.BABYLON.Vector3(center.x, center.y - height / 2, center.z),
+        new flock.BABYLON.Vector3(center.x, center.y + height / 2, center.z),
         Math.max(width, depth) / 2,
         flock.scene
       );
@@ -324,11 +1344,40 @@ export const flockPhysics = {
       newShape = createPhysicsShape(mesh, 'CAPSULE');
       if (!newShape) return;
     } else if (
+      flock?.BABYLON?.PhysicsShapeConvexHull &&
+      physicsShape instanceof flock.BABYLON.PhysicsShapeConvexHull
+    ) {
+      detectedShapeType = 'CONVEX_HULL';
+      newShape = createPhysicsShape(mesh, 'CONVEX_HULL');
+      if (!newShape) return;
+    } else if (
+      flock?.BABYLON?.PhysicsShapeContainer &&
+      physicsShape instanceof flock.BABYLON.PhysicsShapeContainer
+    ) {
+      detectedShapeType = 'CONTAINER';
+      if (isHollowWalledMesh(parent)) {
+        newShape = createHollowContainerShape(parent, flock.scene);
+      } else {
+        detectedShapeType = parent.metadata?.physicsShapeType || 'MESH';
+        newShape = createPhysicsShape(mesh, detectedShapeType);
+      }
+      if (!newShape) return;
+    } else if (
       flock?.BABYLON?.PhysicsShapeMesh &&
       physicsShape instanceof flock.BABYLON.PhysicsShapeMesh
     ) {
-      detectedShapeType = 'MESH';
-      newShape = createPhysicsShape(mesh, 'MESH');
+      // A live edit may have rebuilt a dynamic ring as a hollow MESH; repair
+      // it to the dynamic-capable container so the hole stays open.
+      if (
+        isHollowWalledMesh(parent) &&
+        motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC
+      ) {
+        detectedShapeType = 'CONTAINER';
+        newShape = createHollowContainerShape(parent, flock.scene);
+      } else {
+        detectedShapeType = 'MESH';
+        newShape = createPhysicsShape(mesh, 'MESH');
+      }
       if (!newShape) return;
     } else {
       detectedShapeType =
@@ -337,6 +1386,9 @@ export const flockPhysics = {
       newShape = createPhysicsShape(mesh, detectedShapeType);
       if (!newShape) return;
     }
+
+    const linearVelocity = parent.physics.getLinearVelocity();
+    const angularVelocity = parent.physics.getAngularVelocity();
 
     disposePhysics(parent);
 
@@ -350,9 +1402,11 @@ export const flockPhysics = {
       flock.scene
     );
     physicsBody.shape = newShape;
-    physicsBody.setMassProperties({ mass: 1 });
+    applyMass(physicsBody, parent);
     applyBounciness(physicsBody, parent);
     physicsBody.disablePreStep = disablePreStep ?? false;
+    physicsBody.setLinearVelocity(linearVelocity);
+    physicsBody.setAngularVelocity(angularVelocity);
     parent.physics = physicsBody;
     if (isCapsule) physicsBody.setMotionType(motionType ?? flock.BABYLON.PhysicsMotionType.STATIC);
     parent.metadata = parent.metadata || {};
@@ -362,6 +1416,7 @@ export const flockPhysics = {
       disablePreStep: physicsBody.disablePreStep,
       shapeType: detectedShapeType,
     };
+    redriveRebuiltBody(parent);
   },
   addBeforePhysicsObservable(scene, ...meshes) {
     const beforePhysicsObserver = scene.onBeforePhysicsObservable.add(() => {
@@ -372,7 +1427,7 @@ export const flockPhysics = {
     return beforePhysicsObserver;
   },
   up(meshName, upForce = 10) {
-    const mesh = flock.scene.getMeshByName(meshName);
+    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
     if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(0, upForce, 0),
@@ -385,9 +1440,14 @@ export const flockPhysics = {
   // Set how bouncy an object is (0 = no bounce, 1 = very bouncy). Stored in
   // metadata so it survives physics rebuilds; see applyBounciness.
   applyBounciness,
+  applyMass,
+  ensurePostPhysicsUpkeep,
   setBounciness(meshName, bounciness = 0.5) {
     const mesh = flock.scene.getMeshByName(meshName);
-    if (mesh && isBodyAlive(mesh.physics) && mesh.physics.shape) {
+    if (hasPendingBody(mesh)) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.bounciness = Math.max(0, Math.min(1, bounciness));
+    } else if (mesh && isBodyAlive(mesh.physics) && mesh.physics.shape) {
       mesh.metadata = mesh.metadata || {};
       mesh.metadata.bounciness = Math.max(0, Math.min(1, bounciness));
       applyBounciness(mesh.physics, mesh);
@@ -395,8 +1455,24 @@ export const flockPhysics = {
       console.error(`Model '${meshName}' not loaded or missing physics (setBounciness)`);
     }
   },
-  applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
+  // Set how heavy an object is (default 1). Stored in metadata so it survives
+  // physics rebuilds; see applyMass. Heavier objects need a larger force for
+  // the same motion (impulse Δv = J/m) and push lighter ones around.
+  setMass(meshName, mass = 1) {
     const mesh = flock.scene.getMeshByName(meshName);
+    if (hasPendingBody(mesh)) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.mass = normalizeMass(mass);
+    } else if (mesh && isBodyAlive(mesh.physics)) {
+      mesh.metadata = mesh.metadata || {};
+      mesh.metadata.mass = normalizeMass(mass);
+      applyMass(mesh.physics, mesh);
+    } else {
+      console.error(`Model '${meshName}' not loaded or missing physics (setMass)`);
+    }
+  },
+  applyForce(meshName, { forceX = 0, forceY = 0, forceZ = 0 } = {}) {
+    const mesh = flock.ensureBody(flock.scene.getMeshByName(meshName));
     if (mesh && isBodyAlive(mesh.physics)) {
       mesh.physics.applyImpulse(
         new flock.BABYLON.Vector3(forceX, forceY, forceZ),
@@ -442,8 +1518,13 @@ export const flockPhysics = {
   // directions follow the move-forward / glide convention (forward =
   // mesh.forward.negate()). 'all' to 0 is a full stop: it clears every maintained
   // direction and zeroes the velocity, so the object behaves normally afterwards.
+  // A non-zero speed makes the object dynamic, as move forward does.
   setSpeed(meshName, direction, speed = 0) {
-    const mesh = flock.scene.getMeshByName(meshName);
+    const target = flock.scene.getMeshByName(meshName);
+    if (target && speed !== 0 && target.metadata?.physicsType !== 'DYNAMIC') {
+      flock.setPhysicsForMesh(target, 'DYNAMIC');
+    }
+    const mesh = flock.ensureBody(target);
     if (!(mesh && isBodyAlive(mesh.physics))) {
       console.error(`Model '${meshName}' not loaded or missing physics (setSpeed)`);
       return;
@@ -451,6 +1532,7 @@ export const flockPhysics = {
     mesh.metadata = mesh.metadata || {};
     // Assign a physics capsule the same way move-forward does, for consistency.
     flock.ensurePhysicsCapsule(mesh);
+    endMoveToObject(mesh);
 
     if (direction === 'all') {
       if (speed === 0) {
@@ -467,14 +1549,79 @@ export const flockPhysics = {
       mesh.metadata.velocityDrive[worldAxis || direction] = speed;
     }
 
-    ensureVelocityDrive(mesh);
+    ensurePostPhysicsUpkeep(mesh);
     applyVelocityDrive(mesh); // take effect immediately, not next frame
+  },
+  async moveToObject(
+    meshName,
+    targetName,
+    { side = null, gap = 0, speed = 3, wander = false } = {}
+  ) {
+    const mesh = await flock.whenModelReady(meshName);
+    if (!mesh) return;
+    const target = await flock.whenModelReady(targetName);
+    if (!target) return;
+
+    endMoveToObject(mesh);
+    speed = Number(speed);
+    if (!(speed > 0)) return;
+    if (mesh.metadata?.physicsType !== 'DYNAMIC') flock.setPhysicsForMesh(mesh, 'DYNAMIC');
+    flock.ensureBody(mesh);
+    if (!isBodyAlive(mesh.physics)) {
+      console.error(`Model '${meshName}' not loaded or missing physics (moveToObject)`);
+      return;
+    }
+    flock.ensurePhysicsCapsule(mesh);
+    flock.ensureVerticalConstraint(mesh);
+    delete mesh.metadata.velocityDrive;
+
+    return new Promise((resolve) => {
+      mesh._moveToObject = {
+        target,
+        side,
+        gap,
+        speed,
+        wander: wander
+          ? {
+              travelled: 0,
+              shortPhase: Math.random() * 2 * Math.PI,
+              longPhase: Math.random() * 2 * Math.PI,
+            }
+          : null,
+        resolve,
+        lastX: 0,
+        lastZ: 0,
+        lastDirX: 0,
+        lastDirZ: 0,
+        lastSpeed: 0,
+        targetX: null,
+        targetZ: null,
+        targetVX: 0,
+        targetVZ: 0,
+        settling: false,
+        settleTime: 0,
+        avoid: null,
+        closest: Infinity,
+        detour: 0,
+        turned: 0,
+        progress: 0,
+        expected: 0,
+        elapsed: 0,
+      };
+      ensurePostPhysicsUpkeep(mesh);
+      applyMoveToObject(mesh);
+    });
   },
   setPhysicsForMesh(mesh, physicsType) {
     if (!mesh) return mesh;
 
     mesh.metadata = mesh.metadata || {};
     mesh.metadata.physicsType = physicsType;
+
+    if (hasPendingBody(mesh)) {
+      if (!mesh._bodyHeld) buildPendingBody(mesh);
+      return mesh;
+    }
 
     if (!mesh.physics && physicsType !== 'NONE') {
       const { motionType, disablePreStep, shapeType } = mesh.metadata.physicsCache || {};
@@ -486,14 +1633,40 @@ export const flockPhysics = {
 
     switch (physicsType) {
       case 'STATIC':
+        if (
+          getShapeTypeFromPhysics(mesh.physics) === 'CONTAINER' &&
+          isHollowWalledMesh(mesh)
+        ) {
+          disposePhysics(mesh);
+          applyPhysicsShape(mesh, 'MESH', flock.BABYLON.PhysicsMotionType.STATIC, true);
+          break;
+        }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.STATIC);
         mesh.physics.disablePreStep = true;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
       case 'DYNAMIC':
+        if (isHollowWalledMesh(mesh)) {
+          const current = getShapeTypeFromPhysics(mesh.physics);
+          if (current !== 'CONTAINER') {
+            disposePhysics(mesh);
+            applyPhysicsShape(
+              mesh,
+              'CONTAINER',
+              flock.BABYLON.PhysicsMotionType.DYNAMIC,
+              true
+            );
+            break;
+          }
+        } else if (getShapeTypeFromPhysics(mesh.physics) === 'MESH') {
+          disposePhysics(mesh);
+          applyPhysicsShape(mesh, 'CONVEX_HULL', flock.BABYLON.PhysicsMotionType.DYNAMIC, true);
+          break;
+        }
         mesh.physics.setMotionType(flock.BABYLON.PhysicsMotionType.DYNAMIC);
-        mesh.physics.disablePreStep = false;
+        mesh.physics.setAngularDamping?.(DEFAULT_ANGULAR_DAMPING);
+        mesh.physics.disablePreStep = true;
         if (mesh.physics.body) mesh.physics.body.disableSync = false;
         break;
 
@@ -505,11 +1678,14 @@ export const flockPhysics = {
 
       case 'NONE':
         mesh.metadata.physicsCache = capturePhysicsState(mesh);
+        delete mesh._pendingBody;
         disposePhysics(mesh);
         mesh.physics = null;
         break;
     }
 
+    adoptPhysicsChangeDuringDrive(mesh);
+    flock._syncTeleportMeshHierarchy?.(mesh);
     return mesh;
   },
   async setPhysics(meshName, physicsType) {
@@ -517,7 +1693,7 @@ export const flockPhysics = {
       ? flock.ensureModelReadyPromise(meshName)
       : new Promise((resolve) => flock.whenModelReady(meshName, resolve)));
 
-    if (flock.abortController?.signal?.aborted || !mesh) return mesh;
+    if (flock.abortController?.signal?.aborted || !mesh) return;
 
     mesh.computeWorldMatrix?.(true);
     mesh.refreshBoundingInfo?.();
@@ -532,17 +1708,18 @@ export const flockPhysics = {
     if (mesh.parent) {
       await waitForSceneTransformFlush(flock.scene);
 
-      if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return mesh;
+      if (flock.abortController?.signal?.aborted || mesh.isDisposed?.()) return;
 
       mesh.computeWorldMatrix?.(true);
       mesh.refreshBoundingInfo?.();
     }
 
-    return flock.setPhysicsForMesh(mesh, physicsType);
+    flock.setPhysicsForMesh(mesh, physicsType);
   },
   setPhysicsShape(meshName, shapeType) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
+        flock.ensureBody(mesh);
         const capturePhysicsState = (targetMesh) => ({
           motionType: targetMesh.physics?.getMotionType?.(),
           disablePreStep: targetMesh.physics?.disablePreStep,
@@ -570,7 +1747,7 @@ export const flockPhysics = {
             flock.scene
           );
           physicsBody.shape = physicsShape;
-          physicsBody.setMassProperties({ mass: 1 });
+          applyMass(physicsBody, targetMesh);
           applyBounciness(physicsBody, targetMesh);
           physicsBody.disablePreStep = disablePreStep ?? false;
 
@@ -597,7 +1774,21 @@ export const flockPhysics = {
 
           disposePhysics(targetMesh);
 
-          const physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          // A dynamic ring/donut keeps its hole via the container; rebuilding
+          // a triangle MESH here would undo that and restore an unsupported
+          // dynamic-mesh body.
+          let physicsShape;
+          let shapeType = 'MESH';
+          if (
+            isHollowWalledMesh(targetMesh) &&
+            motionType === flock.BABYLON.PhysicsMotionType.DYNAMIC
+          ) {
+            physicsShape = createHollowContainerShape(targetMesh, flock.scene);
+            if (physicsShape) shapeType = 'CONTAINER';
+            else physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          } else {
+            physicsShape = new flock.BABYLON.PhysicsShapeMesh(targetMesh, flock.scene);
+          }
 
           const physicsBody = new flock.BABYLON.PhysicsBody(
             targetMesh,
@@ -606,17 +1797,17 @@ export const flockPhysics = {
             flock.scene
           );
           physicsBody.shape = physicsShape;
-          physicsBody.setMassProperties({ mass: 1 });
+          applyMass(physicsBody, targetMesh);
           applyBounciness(physicsBody, targetMesh);
           physicsBody.disablePreStep = disablePreStep ?? false;
 
           targetMesh.physics = physicsBody;
 
-          targetMesh.metadata.physicsShapeType = 'MESH';
+          targetMesh.metadata.physicsShapeType = shapeType;
           targetMesh.metadata.physicsCache = {
             motionType: physicsBody.getMotionType?.(),
             disablePreStep: physicsBody.disablePreStep,
-            shapeType: 'MESH',
+            shapeType,
           };
         };
 
@@ -626,6 +1817,20 @@ export const flockPhysics = {
             // Only on root (player), no children
             applyCapsuleToRoot(mesh);
             break;
+
+          case 'SPHERE':
+          case 'BOX': {
+            mesh.computeWorldMatrix(true);
+            const { motionType, disablePreStep } = capturePhysicsState(mesh);
+            disposePhysics(mesh);
+            applyPhysicsShape(
+              mesh,
+              shapeType,
+              motionType ?? flock.BABYLON.PhysicsMotionType.STATIC,
+              disablePreStep ?? false
+            );
+            break;
+          }
 
           case 'MESH':
             applyMeshPhysicsShape(mesh);
@@ -653,10 +1858,58 @@ export const flockPhysics = {
     }
     return false;
   },
-  onTrigger(meshName, { trigger, callback, mode = 'wait', applyToGroup = false }) {
-    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
-
-    const groupName = getGroupRoot(meshName);
+  hasRealPickTrigger,
+  ensureGroupPickForwarder(shell) {
+    if (!shell || shell.metadata?.shapeType !== 'Group') return;
+    if (shell.isDisposed?.()) return;
+    const scene = shell.getScene?.() || flock.scene;
+    if (!scene) return;
+    if (!shell.actionManager) shell.actionManager = new flock.BABYLON.ActionManager(scene);
+    shell.actionManager.isRecursive = true;
+    if (shell.metadata._pickForwarded) return;
+    shell.metadata._pickForwarded = true;
+    // A trigger-less shell still occludes its members (it encloses them),
+    // so member clicks would die on the shell without ever reaching a
+    // handler. Forward them to the deepest member with a real trigger.
+    // Once the group itself gets a real trigger, its own handler takes
+    // over (member-first delegation) and the forwarders stand down.
+    for (const name of PICK_TRIGGER_NAMES) {
+      const triggerId = flock.BABYLON.ActionManager[name];
+      const forward = new flock.BABYLON.ExecuteCodeAction(triggerId, (evt) => {
+        if (shellHasRealTrigger(shell, triggerId)) return;
+        const clicked = clickedMeshOf(evt);
+        if (clicked !== shell) return;
+        const member = resolveDelegatedMesh(shell, triggerId, evt);
+        member?.actionManager?.processTrigger(triggerId, {
+          ...evt,
+          source: member,
+          meshUnderPointer: member,
+          __flockDelegated: true,
+        });
+      });
+      forward._flockForwarder = true;
+      shell.actionManager.registerAction(forward);
+    }
+  },
+  onTrigger(
+    meshName,
+    {
+      trigger,
+      callback,
+      mode = 'wait',
+      applyToGroup = false,
+      // Captured here, not re-read later - a pending trigger registers
+      // asynchronously, by which point this could be stale. Internal only,
+      // see onSectionStop in api/sections.js.
+      __owningSignal = flock.sectionSignal(),
+    }
+  ) {
+    if (!PICK_TRIGGER_NAMES.includes(trigger)) {
+      flock.reportBlockError({ key: 'invalid_callback', api: 'onTrigger', values: { trigger } });
+      return;
+    }
+    const groupName = flock._familyOf(meshName);
+    if (flock._isTag(meshName)) applyToGroup = true;
     const getAllGuiControls = () => {
       const root = flock.scene?.UITexture?._rootContainer ?? flock.scene?.UITexture?.rootContainer;
       if (!root) return [];
@@ -680,18 +1933,21 @@ export const flockPhysics = {
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
     if (applyToGroup) {
       let matchingButtons = [];
-      if (flock.scene.UITexture) {
+      if (flock.scene.UITexture && !flock._isTag(groupName)) {
         matchingButtons = getAllGuiControls().filter(
-          (control) => control?.name && getGroupRoot(control.name) === groupName
+          (control) =>
+            control instanceof flock.GUI.Button &&
+            control.name &&
+            flock._familyOf(control.name) === groupName
         );
       }
-      const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+      const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
 
       if (matchingButtons.length > 0) {
         for (const btn of matchingButtons) {
@@ -700,6 +1956,7 @@ export const flockPhysics = {
             callback,
             mode,
             applyToGroup: false,
+            __owningSignal,
           });
         }
       }
@@ -710,13 +1967,14 @@ export const flockPhysics = {
             callback,
             mode,
             applyToGroup: false,
+            __owningSignal,
           });
         }
       }
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
@@ -732,7 +1990,7 @@ export const flockPhysics = {
       if (!flock.pendingTriggers.has(groupName)) flock.pendingTriggers.set(groupName, []);
       flock.pendingTriggers
         .get(groupName)
-        .push({ meshName, trigger, callback, mode, applyToGroup });
+        .push({ meshName, trigger, callback, mode, applyToGroup, owningSignal: __owningSignal });
       return;
     }
 
@@ -757,44 +2015,47 @@ export const flockPhysics = {
           mesh.isPickable = true;
           if (!mesh.actionManager)
             mesh.actionManager = new flock.BABYLON.ActionManager(flock.scene);
-          mesh.actionManager.isRecursive = false; // 🛡️ Fix for sibling bleed
+          // Let clicks on members without their own trigger bubble to a
+          // group/parent handler. Babylon routes a pick to the nearest
+          // ancestor whose manager has this specific trigger, so a member
+          // with its own handler still wins and nothing fires twice.
+          mesh.actionManager.isRecursive = true;
 
-          let actionSequence = new flock.BABYLON.ExecuteCodeAction(
+          const codeAction = new flock.BABYLON.ExecuteCodeAction(
             flock.BABYLON.ActionManager[trigger],
             action
           );
-          for (let i = 1; i < callbacks.length; i++) {
-            actionSequence = actionSequence.then(
-              new flock.BABYLON.ExecuteCodeAction(
-                flock.BABYLON.ActionManager[trigger],
-                async () => await callbacks[i]()
-              )
-            );
-          }
-          mesh.actionManager.registerAction(actionSequence);
+          mesh.actionManager.registerAction(codeAction);
+          flock.onSectionStop(
+            () => mesh.actionManager?.unregisterAction(codeAction),
+            __owningSignal
+          );
         }
 
         function registerButtonAction(button, trigger, action) {
-          if (trigger === 'OnPointerUpTrigger') button.onPointerUpObservable.add(action);
-          else button.onPointerClickObservable.add(action);
+          const observable = {
+            OnPickDownTrigger: button.onPointerDownObservable,
+            OnPickUpTrigger: button.onPointerUpObservable,
+          }[trigger] ?? button.onPointerClickObservable;
+          const observer = observable.add(action);
+          flock.onSectionStop(() => observable.remove(observer), __owningSignal);
         }
 
         async function executeAction(meshId) {
-          // 🛡️ THE ROOT CAUSE FIX: Identity Guard
-          if (meshId !== target.name) return;
-
+          if (flock.isPaused()) return;
           if (mode === 'once' && hasExecuted) return;
           if (mode === 'wait' && isExecuting) return;
           if (mode === 'once') hasExecuted = true;
           if (mode === 'wait') isExecuting = true;
 
+          const index = currentIndex;
+          currentIndex = (currentIndex + 1) % callbacks.length;
           try {
-            await callbacks[currentIndex](meshId);
-            currentIndex = (currentIndex + 1) % callbacks.length;
+            await callbacks[index](meshId);
           } catch (e) {
             flock.reportBlockError({
-              key: "trigger_block_failed",
-              api: "onTrigger",
+              key: 'trigger_block_failed',
+              api: 'onTrigger',
               error: e,
             });
           } finally {
@@ -804,37 +2065,56 @@ export const flockPhysics = {
 
         if (target instanceof flock.BABYLON.AbstractMesh) {
           registerMeshAction(target, trigger, async (evt) => {
-            const clickedMesh = evt?.source || evt?.meshUnderPointer;
-            const meshId = clickedMesh ? clickedMesh.name : target.name;
-            await executeAction(meshId);
+            const clickedMesh = clickedMeshOf(evt) || target;
+            if (clickedMesh === target) {
+              if (!evt?.__flockDelegated) {
+                const delegatedMesh = resolveDelegatedMesh(
+                  target,
+                  flock.BABYLON.ActionManager[trigger],
+                  evt
+                );
+                if (delegatedMesh?.actionManager) {
+                  delegatedMesh.actionManager.processTrigger(flock.BABYLON.ActionManager[trigger], {
+                    ...evt,
+                    source: delegatedMesh,
+                    meshUnderPointer: delegatedMesh,
+                    __flockDelegated: true,
+                  });
+                  return;
+                }
+              }
+              await executeAction(target.name);
+              return;
+            }
+            // Bubbled from a member without its own trigger for this event.
+            if (isDescendantOf(clickedMesh, target)) {
+              await executeAction(target.name);
+            }
+            // Anything else is an unrelated mesh — ignore it.
           });
 
           // XR case
           if (flock.xrHelper && flock.xrHelper.baseExperience) {
+            let stopHitTest = null;
             const xrObs = flock.xrHelper.baseExperience.onStateChangedObservable.add((state) => {
-              if (
-                state === flock.BABYLON.WebXRState.IN_XR &&
-                flock.xrHelper.baseExperience.sessionManager.sessionMode === 'immersive-ar'
-              ) {
-                flock.xrHelper.baseExperience.featuresManager.enableFeature(
-                  flock.BABYLON.WebXRHitTest.Name,
-                  'latest',
-                  {
-                    onHitTestResultObservable: (results) => {
-                      if (results.length > 0) {
-                        const position = results[0].transformationMatrix.getTranslation();
-                        target.position.copyFrom(position);
-                        target.isVisible = true;
-                      }
-                    },
-                  }
-                );
-                // We removed flock.scene.onPointerDown here because ActionManager handles it more safely!
+              if (state === flock.BABYLON.WebXRState.IN_XR) {
+                // `position` carries the session's world scale; the raw matrix is in metres.
+                stopHitTest ??= flock._onARHitTest((results) => {
+                  if (!results.length) return;
+                  target.position.copyFrom(results[0].position);
+                  target.isVisible = true;
+                });
+              } else if (state === flock.BABYLON.WebXRState.EXITING_XR) {
+                stopHitTest?.();
+                stopHitTest = null;
               }
             });
             flock.abortController?.signal?.addEventListener(
               'abort',
-              () => flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(xrObs),
+              () => {
+                stopHitTest?.();
+                flock.xrHelper?.baseExperience?.onStateChangedObservable?.remove(xrObs);
+              },
               { once: true }
             );
           }
@@ -856,23 +2136,24 @@ export const flockPhysics = {
     otherMeshName,
     { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}
   ) {
-    const getGroupRoot = (name) => (name.includes('__') ? name.split('__')[0] : name.split('_')[0]);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
       const exact = scene?.getMeshByName?.(rawName);
-      if (exact?.name) return getGroupRoot(exact.name);
+      if (exact?.name) return flock._familyOf(exact.name);
 
-      let normalized = rawName.includes('__') ? rawName.split('__')[0] : rawName;
+      let normalized = flock._userName(rawName);
       normalized = normalized.replace(/[^a-zA-Z0-9._-]/g, '');
 
       if (normalized && normalized !== rawName) {
         if (scene?.getMeshByName?.(normalized) || flock.modelReadyPromises.has(normalized)) {
-          return getGroupRoot(normalized);
+          return flock._familyOf(normalized);
         }
       }
 
-      return getGroupRoot(rawName);
+      return flock._familyOf(rawName);
     };
+
+    if (flock._isTag(otherMeshName)) applyToGroupOther = true;
 
     if (applyToGroupSelf) {
       const groupName = resolveCanonicalGroupName(meshName);
@@ -889,7 +2170,7 @@ export const flockPhysics = {
       flock.pendingSelfIntersections.get(groupName).push(pendingEntry);
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
         const promises = [];
         for (let i = 0; i < matching.length; i++) {
           for (let j = i + 1; j < matching.length; j++) {
@@ -908,10 +2189,30 @@ export const flockPhysics = {
             }
           }
         }
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => {});
       }
 
       return;
+    }
+
+    const isTag = flock._isTag(meshName);
+    const mayBecomeTag =
+      applyToGroupOther &&
+      !flock._nameRegistry.has(meshName) &&
+      !flock.scene?.getMeshByName(meshName);
+    if (isTag || mayBecomeTag) {
+      const registered = new Set();
+      const register = (name) => {
+        if (registered.has(name)) return Promise.resolve();
+        registered.add(name);
+        return flock.onIntersect(name, otherMeshName, { trigger, callback, applyToGroupOther });
+      };
+      flock.pendingTagIntersections ??= new Map();
+      if (!flock.pendingTagIntersections.has(meshName)) {
+        flock.pendingTagIntersections.set(meshName, []);
+      }
+      flock.pendingTagIntersections.get(meshName).push({ register });
+      if (isTag) return Promise.all(flock.getObjectsWithTag(meshName).map(register)).then(() => {});
     }
 
     if (applyToGroupOther) {
@@ -942,9 +2243,9 @@ export const flockPhysics = {
       };
 
       if (flock.scene) {
-        const matching = flock.scene.meshes.filter((m) => getGroupRoot(m.name) === groupName);
+        const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
         const matchingNames = [...new Set(matching.map((m) => m.name))];
-        return Promise.all(matchingNames.map((name) => registerForOther(name)));
+        return Promise.all(matchingNames.map((name) => registerForOther(name))).then(() => {});
       }
 
       return;
@@ -977,6 +2278,7 @@ export const flockPhysics = {
               },
             },
             async function (evt) {
+              if (flock.isPaused()) return;
               const evtMesh = evt?.additionalData ?? evt?.mesh;
               if (evtMesh && evtMesh !== otherMesh) return;
               await callback(mesh.name, otherMesh.name);
@@ -1041,7 +2343,7 @@ export const flockPhysics = {
         startPosition: start,
         endPosition: end,
         shouldHitTriggers: false,
-        ignoredBodies: [mesh.physics],
+        ignoreBody: mesh.physics,
       },
       castResult,
       hitResult
@@ -1049,7 +2351,7 @@ export const flockPhysics = {
 
     if (!castResult.hasHit) return false;
 
-    const n = castResult.hitNormalWorld;
+    const n = hitResult.hitNormal;
     if (!n) return true;
     const dot = Math.min(Math.max(B.Vector3.Dot(n.normalizeToNew(), B.Vector3.UpReadOnly), -1), 1);
     return (Math.acos(dot) * 180) / Math.PI <= 50; // near-horizontal ground only

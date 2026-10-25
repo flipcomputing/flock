@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformera',
   CATEGORY_PHYSICS: 'Fysik',
   CATEGORY_CONNECT: 'Anslut',
-  CATEGORY_COMBINE: 'Kombinera',
+  CATEGORY_MODIFY: 'Modifiera',
   CATEGORY_ANIMATE: 'Animera',
   CATEGORY_KEYFRAME: 'Nyckelram',
   CATEGORY_CONTROL: 'Kontroll',
@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Funktioner',
   CATEGORY_SNIPPETS: 'Snippets',
   CATEGORY_MOVEMENT: 'Rörelse',
+  CATEGORY_BUILDING: 'Bygga',
 
   // Color picker translations
   choose_a_color: 'Välj en färg',
@@ -136,20 +137,24 @@ export default {
   show: 'visa %1',
   hide: 'dölj %1',
   dispose: 'borttag %1',
-  clone_mesh: 'lägg till %1 klon av %2',
+  clone_mesh: 'lägg till %1 klon av %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
-    'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12',
-  load_object: 'lägg till %1 %2 %3 skala: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6\nfärger: %7',
-  load_model: 'lägg till %1 %2 skala: %3 x: %4 y: %5 z: %6',
+    'lägg till %1 %2 skala: %3 %13 x: %4 y: %5 z: %6\nhår: %7 | hud: %8 | ögon: %9 | t-shirt: %10 | shorts: %11 | detalj: %12',
+  load_object: 'lägg till %1 %2 %3 skala: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'lägg till %1 %2 skala: %3 %8 x: %4 y: %5 z: %6\nfärger: %7',
+  load_model: 'lägg till %1 %2 skala: %3 %7 x: %4 y: %5 z: %6\nfärger: %8',
+  initial_position_label: 'position',
+  same_axis_value: 'samma',
+  initial_rotation_label: 'rotation',
+  initial_size_label: 'storlek',
 
   // Custom block translations - Animate blocks
-  glide_to: 'glid %1 till x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
-  glide_to_seconds: 'glid %1 till x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
+  glide_to: 'glid %1 till %10 x %2 y %3 z %4 på %5 ms\n%6 återvända? %7 loop? %8 %9',
+  glide_to_seconds: 'glid %1 till %10 x %2 y %3 z %4 på %5 sekunder\n%6 återvända? %7 loop? %8 %9',
   glide_to_object:
-    'glid %1 till %2 på %6 sekunder\nförskjutning x: %3 y: %4 z: %5\n%7 återvända? %8 loop? %9 %10',
+    'glid %1 %11 %2 avstånd %12 på %6 sekunder\n%7 återvända? %8 loop? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glid %1 %2 %3 på %4 sekunder\n%5 återvända? %6 loop? %7 %8',
   rotate_anim: 'rotera %1 till x %2 y %3 z %4 på %5 ms\n%6 omvänd? %7 loop? %8  %9',
   rotate_anim_seconds: 'rotera %1 till x %2 y %3 z %4 på %5 sekunder\n%6 omvänd? %7 loop? %8  %9',
@@ -157,7 +162,7 @@ export default {
   animate_property: 'animerar %1 %2 till %3 på %4 ms omvänd? %5 loop? %6 %7',
   colour_keyframe: 'vid %1 färg: %2',
   number_keyframe: 'vid: %1 värde: %2',
-  xyz_keyframe: 'vid: %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'vid: %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animera nyckelramar på %1 egenskap %2\nnyckelramar %3\neasing %4 omvänd %5 loop %6 %7',
   animation:
@@ -173,31 +178,38 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'kamera %1 %2',
-  camera_follow: 'kamera följ %1 med radie %2 fram %3',
+  camera_follow: 'kamera %5 följ %1 avstånd: %2 vinkel: %3 fram: %4', // AI-generated; needs validation
   get_camera: 'hämta kamera som %1',
+  create_fly_camera: 'lägg till flygkamera %1 \n%6 x: %2 y: %3 z: %4 synlig: %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'lägg till följkamera %1 på %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'lägg till kretskamera %1 runt %2 \n%7 avstånd: %3 upp: %4 runt: %5 synlig: %6 %8', // AI-generated; needs validation
+  switch_camera: 'byt kamera till %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'lägg till %1 som sammanfoga %2',
   subtract_meshes: 'lägg till %1 som %2 subtrahera %3',
+  embed_meshes: 'lägg till %1 som %2 bädda in %3',
   intersection_meshes: 'lägg till %1 som snitta %2',
   hull_meshes: 'lägg till %1 som hölje av %2',
 
   // Custom block translations - Connect blocks
   parent: 'förälder %1 barn %2',
+  parent_children: 'förälder %1 barn %2',
   parent_child: 'förälder %1 barn %2\nförskjutning x: %3 y: %4 z: %5',
   remove_parent: 'ta bort förälder från %1',
   stop_follow: 'sluta följa %1',
   hold: 'gör att %1 håller %2\nförskjutning x: %3 y: %4 z: %5',
   drop: 'släpp %1',
-  follow: 'gör att %1 följer %2 på %3\nförskjutning x: %4 y: %5 z: %6',
+  follow: 'gör att %1 följer %3 %2\nförskjutning x: %4 y: %5 z: %6',
   export_mesh: 'exportera %1 som %2',
+  export_mesh_unit_label: '1 enhet =',
   attach: 'fäst %1 på %2 vid %3\nförskjutning x: %4 y: %5 z: %6',
 
   // Custom block translations - Control blocks
   wait: 'vänta %1 ms',
   wait_seconds: 'vänta %1 sekunder',
   wait_until: 'vänta tills %1',
-  local_variable: 'lokal %1',
+  local_variable: 'lokal %1 = %2',
   for_loop2: 'för varje %1 från %2 till %3 med steg %4 gör %5',
   for_loop: 'för varje %1 från %2 till %3 med steg %4 gör %5',
   get_lexical_variable: '%1',
@@ -234,8 +246,15 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Ogiltigt CSS-färgvärde.', // ai
+  colour_contrast_warning: 'Texten kan vara svår att läsa: kontrasten är %1:1. Sikta på minst %2:1.', // ai
+  animation_missing_warning: "%1 har ingen animation '%2'. Den kan använda: %3.", // ai
+  animation_none_warning: '%1 har inga animationer.', // ai
+  animation_shape_warning: 'Former och 3D-text har inga animationer.', // ai
   random_colour: 'slumpmässig färg',
-  material: 'material %1 %2 alfa %3',
+  material: 'material %1 %2',
+  material_alpha: 'alfa',
+  material_scale: 'skala',
+  material_angle: 'vinkel',
   gradient_material: 'material %1 alfa %2',
   set_material: 'ställ in material för %1 till %2',
 
@@ -244,8 +263,11 @@ export default {
   add_physics_shape: 'lägg till fysikform %1 typ %2',
   apply_force: 'tillämpa kraft på %1 x: %2 y: %3 z: %4',
   set_speed: 'ställ in hastighet för %1 %2 till %3', // ai
+  move_to_object: 'flytta %1 %7 %2 %3 avstånd %4 hastighet %5 %6', // ai
   set_speed_tooltip:
-    'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.\nNyckelord: speed', // ai
+    'Håller ett objekt i rörelse med en bestämd hastighet i en riktning. Det rör sig precis som en spelfigur med "flytta" — kör uppför sluttningar, kliver över små kanter, stannar vid väggar och håller sig upprätt — men relativt objektet eller världen i stället för kameran. Det behåller hastigheten tills du ändrar den. Välj en riktning relativt objektet (framåt, åt sidan, upp) eller en världsaxel (x, y, z); använd "titta på" för att sikta och kör sedan framåt. Välj "alla" och 0 för att stanna.', // ai
+  move_to_object_tooltip:
+    'Flyttar ett objekt till ett annat objekt med en hastighet, med fysik. Det vänder sig åt det håll det rör sig, följer objektet om det flyttar sig, går runt hinder och knuffar undan objekt som kan röra sig. Det stannar när det kommer fram eller om det inte kan komma fram. Välj "strövande" för att ta en slingrande väg.', // ai
   show_physics: 'visa fysikformer %1',
 
   // Custom block translations - Sensing blocks
@@ -264,7 +286,8 @@ export default {
   canvas_controls: 'canvas kontroller %1',
   interact_indicator: 'interaktionsindikator %1',
   button_controls: 'knappkontroller %1 aktiverad %2 färg %3',
-  on_screen_controls: 'skärmkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3  färg: %4', // ai
+  on_screen_controls:
+    'spelarkontroller  rörelse: %1  åtgärder: %2  aktiverad: %3\nfärg: %4  bakgrund: %5  alfa: %6', // ai
   microbit_input: 'när micro:bit händelse %1',
   ui_slider: 'ui reglage %1 från %2 till %3 standard %4 vid x: %5 y: %6\nfärg: %7 bakgrund: %8 %9',
 
@@ -272,13 +295,24 @@ export default {
   create_particle_effect:
     'lägg till %1 partikeleffekt på: %2\nform: %3 start %4 slut %5 alfa: %6 till %7\nfrekvens: %8 storlek: %9 till %10 livslängd: %11 till %12\ngrundkrafter: %13 kraft x: %14 y: %15 z: %16\nvinkelhastighet: %17 till %18 initial vinkel: %19 till %20',
   control_particle_system: 'partikelsystem %1 %2',
-  create_box: 'lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \nvid x: %6 y: %7 z: %8',
+  create_box: 'lägg till box %1 %2 bredd: %3 höjd: %4 djup: %5 \n%9 x: %6 y: %7 z: %8',
   create_sphere:
-    'lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\nvid x: %6 y: %7 z: %8',
+    'lägg till sfär %1 %2 diameter x: %3 diameter y: %4 diameter z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\nvid x: %7 y: %8 z: %9',
-  create_capsule: 'lägg till kapsel %1 %2 diameter: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
-  create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \nvid x: %5 y: %6 z: %7',
+    'lägg till cylinder %1 %2 höjd: %3 topp: %4 botten: %5 sidor: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'lägg till kapsel %1 %2 diameter: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'lägg till kil %1 %2 bredd: %3 höjd: %4 djup: %5\ntopp: %6 längs: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut:
+    'lägg till munk %1 %2 ytter: %3 inner: %4 tjocklek: %5 sidor: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'lägg till ring %1 %2 höjd: %3 ytter: %4 inner: %5 tjocklek: %6 sidor: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_plane: 'lägg till plan %1 %2 bredd: %3 höjd: %4 \n%8 x: %5 y: %6 z: %7',
+  create_marker: 'lägg till markör %1 %7 %5 x: %2 y: %3 z: %4 redigera: %6', // AI-generated; needs validation
+  cross_option: 'kryss', // AI-generated; needs validation
+  sphere_option: 'sfär', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'spela tema %1 %2 från %3 \nhastighet: %4 volym: %5 läge: %6 asynkront: %7',
@@ -301,11 +335,12 @@ export default {
   subtitle: 'undertext %1 i %2 sekunder', // ai
   say: 'säg %1 för %2 s %3 \ntext %4 på %5 alfa %6 storlek %7 %8 %9',
   ui_text: 'ui text %1 %2 vid x: %3 y: %4\nstorlek: %5 för %6 sekunder färg: %7',
+  ui_align: 'från',
   ui_button: 'ui knapp %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 background: %8',
   ui_input: 'ui inmatning %1 %2 vid x: %3 y: %4\nstorlek: %5 textstorlek: %6 text: %7 bakgrund: %8',
   describe: 'beskriv %1 som %2',
   create_3d_text:
-    'lägg till %1 3D text: %2 font: %3 storlek: %4 färg: %5\ndjup: %6 x: %7 y: %8 z: %9 ',
+    'lägg till %1 3D text: %2 font: %3 färg: %5\nstorlek: %4 djup: %6 avstånd: %12 horisontell: %11 %10 x: %7 y: %8 z: %9 ',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'slumpmässigt heltal från %1 till %2 frö: %3',
@@ -314,9 +349,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'ändra positionen för %1 med x: %2 y: %3 z: %4',
   move_by_xyz_single: 'ändra positionen för %1 med %2 %3',
-  move_to_xyz: 'ställ in positionen för %1 till x: %2 y: %3 z: %4 y? %5',
+  move_to_xyz: 'ställ in positionen för %1 till %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'ställ in positionen för %1 till %2 %3',
-  move_to: 'ställ in positionen för %1 till %2 y? %3',
+  move_to: 'ställ in positionen för %1 %3 %2\nförskjutning x: %4 y: %5 z: %6',
   scale: 'skala %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7',
   resize: 'ändra storlek på %1 x: %2 y: %3 z: %4\nursprung x: %5 y: %6 z: %7',
   rotate_model_xyz: 'rotera %1 med x: %2 y: %3 z: %4',
@@ -325,12 +360,18 @@ export default {
   move_forward: 'flytta %1 %2 hastighet %3',
   rotate_camera: 'rotera kamera med %1 grader',
   up: 'upp %1 kraft %2',
-  set_pivot: 'ställ in ankare för %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'ställ in ankare för %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'ställ in pivotpunkt för %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
   device_camera_background: 'använd %1 kamera som bakgrund',
   set_xr_mode: 'ställ in XR-läge till %1',
+  set_xr_view_mode: 'ställ in VR-vy till %1 med kamerarörelse %2',
+  set_ar_scene_size: 'AR-scen skala: %1 cm avstånd: %2 cm höjd: %3 cm', // ai
+  set_xr_ui_placement: 'visa VR-gränssnitt på %1', // ai
+  add_teleport_target: 'lägg till teleporteringsmål %1',
+  remove_teleport_target: 'ta bort teleporteringsmål %1',
   play_rumble_pattern: 'spela vibrationsmönster %1',
   controller_rumble: 'vibrera %1 motor med styrka %2 i %3 ms',
   controller_rumble_pattern: 'vibrera %1 motor styrka %2 på %3 ms av %4 ms %5 gånger',
@@ -354,21 +395,20 @@ export default {
   BLOCK_CREATE_BOX_MESSAGE: 'skapa låda %1 färg %2 storlek %3 × %4 × %5 vid %6, %7, %8',
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Ställ in scenens himmelfärg.\nNyckelord: himmel',
-  create_ground_tooltip:
-    'Lägg till ett markplan med kollisioner aktiverade i scenen.\nNyckelord: mark',
-  set_background_color_tooltip: 'Ställ in bakgrundsfärgen i scenen.\nNyckelord: bakgrund',
-  create_map_tooltip: 'Skapa en karta med valt namn och material.\nNyckelord: karta',
-  show_tooltip: 'Visa det valda objektet.\nNyckelord: visa',
-  hide_tooltip: 'Dölj det valda objektet.\nNyckelord: dölj',
-  dispose_tooltip: 'Ta bort det angivna objektet från scenen.\nNyckelord: ta bort',
-  clone_mesh_tooltip: 'Kopiera ett objekt och tilldela det till en variabel.\nNyckelord: kopiera',
+  set_sky_color_tooltip: 'Ställ in scenens himmelfärg.',
+  create_ground_tooltip: 'Lägg till ett markplan med kollisioner aktiverade i scenen.',
+  set_background_color_tooltip: 'Ställ in bakgrundsfärgen i scenen.',
+  create_map_tooltip: 'Skapa en karta med valt namn och material.',
+  show_tooltip: 'Visa det valda objektet.',
+  hide_tooltip: 'Dölj det valda objektet.',
+  dispose_tooltip: 'Ta bort det angivna objektet från scenen.',
+  clone_mesh_tooltip: 'Kopiera ett objekt och tilldela det till en variabel.',
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Skapa en konfigurerbar karaktär.\nNyckelord: karaktär',
-  load_object_tooltip: 'Skapa ett objekt.\nNyckelord: objekt',
-  load_multi_object_tooltip: 'Skapa ett objekt med färger.\nNyckelord: objekt',
-  load_model_tooltip: 'Ladda en modell.\nNyckelord: modell',
+  load_character_tooltip: 'Skapa en konfigurerbar karaktär.',
+  load_object_tooltip: 'Skapa ett objekt.',
+  load_multi_object_tooltip: 'Skapa ett objekt med färger.',
+  load_model_tooltip: 'Ladda en modell.',
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -376,7 +416,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glid till en angiven position över en viss tid med alternativ för att reversera, loopa och mjuk övergång (easing).',
   glide_to_object_tooltip:
-    'Glid till positionen för ett annat objekt med valfria x/y/z‑förskjutningar (standard 0) och alternativ för att reversera, loopa och easing.',
+    'Glid till ett objekt, nära det från den sida du redan är på, eller mot en av dess sidor, till exempel ovanpå. Ett avstånd lämnar utrymme utanför sidan eller stannar före objektet. Med alternativ för att reversera, loopa och easing.', // ai
   glide_to_axis_tooltip:
     'Glid längs en axel (X, Y eller Z) till ett målvärde. De andra två axlarna fixeras till objektets aktuella position (ankerpunktsmedveten). Samma alternativ som standardblocket för glidning.',
   rotate_anim_tooltip:
@@ -396,126 +436,128 @@ export default {
   control_animation_group_tooltip:
     'Styr animationsgruppen genom att spela, pausa eller stoppa den.',
   animate_from_tooltip: 'Börja animera gruppen från angiven tid (i sekunder).',
-  stop_animations_tooltip:
-    'Stoppa alla nyckelruteanimationer på det valda objektet.\nNyckelord: stoppa',
-  switch_animation_tooltip:
-    'Byt animation på det angivna objektet till vald animation.\nNyckelord: byt',
-  play_animation_tooltip: 'Spela vald animation en gång på det angivna objektet.\nNyckelord: spela',
+  stop_animations_tooltip: 'Stoppa alla nyckelruteanimationer på det valda objektet.',
+  switch_animation_tooltip: 'Byt animation på det angivna objektet till vald animation.',
+  play_animation_tooltip: 'Spela vald animation en gång på det angivna objektet.',
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Skapar en vektor med X-, Y- och Z-koordinater',
+  xyz_tooltip: 'Skapar en vektor med X-, Y- och Z-koordinater.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Koppla en specifik tangent till en kamerakontrollfunktion.',
   camera_follow_tooltip:
-    'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.\nKeyword: follow',
-  get_camera_tooltip: 'Hämta den aktuella scenkameran',
+    'Få kameran att följa ett objekt med ett justerbart avstånd (radie) från målet.',
+  get_camera_tooltip: 'Hämta den aktuella scenkameran.',
+  create_fly_camera_tooltip: 'Lägg till en kamera som du kan flyga runt med. Den tittar dit dess ram pekar.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Lägg till en kamera som följer ett objekt. Spelaren kan vrida den runt objektet.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Lägg till en kamera som kretsar runt ett objekt. Dra för att kretsa och scrolla för att zooma.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Byt vy till en kamera.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    'Slå samman en lista med objekt till ett och spara resultatet.\nKeyword: merge',
+  merge_meshes_tooltip: 'Slå samman en lista med objekt till ett och spara resultatet.',
   subtract_meshes_tooltip:
-    'Subtrahera en lista med objekt från ett basobjekt och spara resultatet.\nKeyword: subtract',
+    'Subtrahera en lista med objekt från ett basobjekt och spara resultatet.',
+  embed_meshes_tooltip:
+    'Skär ut en lista med objekt ur ett basobjekt och spara resultatet. Objekten behålls.',
   intersection_meshes_tooltip:
-    'Skapa en geometri genom att skära en lista med objekt och spara resultatet.\nKeyword: intersect',
-  hull_meshes_tooltip:
-    'Skapa ett konvext hölje från en lista med objekt och spara resultatet.\nKeyword: hull',
+    'Skapa en geometri genom att skära en lista med objekt och spara resultatet.',
+  hull_meshes_tooltip: 'Skapa ett konvext hölje från en lista med objekt och spara resultatet.',
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition\nKeyword:parent',
+    'Skapa en förälder-barn-relation mellan två objekt och behåll barnets världsposition.',
+  parent_children_tooltip:
+    'Skapa en förälder-barn-relation mellan ett objekt och en lista med barn och behåll varje barns världsposition.',
   parent_child_tooltip:
-    'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.\nKeyword: child',
-  remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.\nKeyword: unparent',
-  stop_follow_tooltip: 'Stoppa det angivna objektet från att följa ett annat.\nKeyword: stopfollow',
+    'Skapa en förälder-barn-relation mellan två objekt med ett angivet avstånd i x-, y- och z-riktning.',
+  remove_parent_tooltip: 'Ta bort föräldrarelationen från det angivna objektet.',
+  stop_follow_tooltip: 'Stoppa det angivna objektet från att följa ett annat.',
   hold_tooltip:
-    'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.\nKeyword: hold',
-  drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.\nKeyword: drop',
+    'Fäst ett objekt till ett angivet ben på ett annat objekt med ett offset i x-, y- och z-led.',
+  drop_tooltip: 'Koppla loss ett objekt från det ben det är fäst vid.',
   follow_tooltip:
-    'Få ett objekt att följa ett annat vid en angiven position (topp, mitt eller botten) med offset i x-, y- och z-led.\nKeyword: follow',
-  export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.\nKeyword: export',
+    'Få ett objekt att följa ett annat: vid det, i dess mitt eller ovanpå det, flyttat med förskjutningen. Det rör sig med det andra objektet men vrider sig inte med det.', // ai
+  export_mesh_tooltip: 'Exportera ett objekt som STL, OBJ eller GLB.',
 
   // Tooltip translations - Control blocks
-  wait_tooltip: 'Vänta en angiven tid i millisekunder.\nKeyword: milli',
-  wait_seconds_tooltip: 'Vänta en angiven tid i sekunder.\nKeyword: wait',
-  wait_until_tooltip: 'Vänta tills villkoret är uppfyllt.\nKeyword:until',
+  wait_tooltip: 'Vänta en angiven tid i millisekunder.',
+  wait_seconds_tooltip: 'Vänta en angiven tid i sekunder.',
+  wait_until_tooltip: 'Vänta tills villkoret är uppfyllt.',
   local_variable_tooltip:
-    'Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.\nKeyword: local',
+    'Skapa en lokal version av en vald variabel. Den döljer den globala variabeln och kan ha ett annat värde.',
   for_loop2_tooltip: 'Loop från ett starttal till ett slutvärde med ett givet steg.',
   for_loop_tooltip:
-    'Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.\nKeyword: for',
-  get_lexical_variable_tooltip: 'Hämta värdet av en lexikal variabel',
+    'Loop från ett starttal till ett slutvärde med ett givet steg. Klicka på rullgardinsmenyn för att använda loopvariabeln i koden.',
+  get_lexical_variable_tooltip: 'Hämta värdet av en lexikal variabel.',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: 'Ställ in intensiteten på huvudljuset.\nKeyword: light intensity',
+  main_light_tooltip: 'Ställ in intensiteten på huvudljuset.',
   set_fog_tooltip:
-    'Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.\nKeyword: fog',
-  get_light_tooltip: 'Hämta huvudljuset på aktuella scen.\nKeyword: light',
+    'Konfigurera scenens dimma. Använd start och slut för att ställa in nära och långt avstånd.',
+  get_light_tooltip: 'Hämta huvudljuset på aktuella scen.',
 
   // Tooltip translations - Events blocks
-  start_tooltip: 'Kör blocken när projektet startar. Du kan ha flera startblock.\nKeyword: start',
-  forever_tooltip:
-    'Kör blocken varje bildruta eller när föregående iteration är klar.\nKeyword: forever',
-  when_clicked_tooltip: 'Kör blocken när objekt-triggern aktiveras.\nKeyword: click',
+  start_tooltip: 'Kör blocken när projektet startar. Du kan ha flera startblock.',
+  forever_tooltip: 'Kör blocken varje bildruta eller när föregående iteration är klar.',
+  when_clicked_tooltip: 'Kör blocken när objekt-triggern aktiveras.',
   on_collision_tooltip:
-    'Kör blocken när ett objekt kolliderar med eller slutar kollidera med ett annat.\nKeyword: collide',
+    'Kör blocken när ett objekt kolliderar med eller slutar kollidera med ett annat.',
   when_key_event_tooltip: 'Kör blocken när den angivna tangenten trycks ned eller släpps.',
   when_action_event_tooltip:
     'Kör blocken när den valda handlingen trycks ned eller släpps via tangentbord, touch eller XR.',
-  broadcast_event_tooltip: 'Sänd ett event som tas emot av on event.\nKeyword: broadcast',
-  on_event_tooltip: 'Kör kod när ett broadcast-event tas emot.\nKeyword: on',
+  broadcast_event_tooltip: 'Sänd ett event som tas emot av on event.',
+  on_event_tooltip: 'Kör kod när ett broadcast-event tas emot.',
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Ändra färgen på det valda objektet.\nKeyword: color',
-  change_material_tooltip:
-    'Applicera ett valt material med färgton på det angivna objektet.\nKeyword: material',
+  change_color_tooltip: 'Ändra färgen på det valda objektet.',
+  change_material_tooltip: 'Applicera ett valt material med färgton på det angivna objektet.',
   text_material_tooltip:
     'Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.',
   place_decal_tooltip: 'Placera en dekal på ett objekt med valt material.',
   decal_tooltip: 'Skapa en dekal på ett objekt med position, normal, storlek och material.',
-  highlight_tooltip: 'Markera det valda objektet.\nKeyword: highlight',
-  glow_tooltip: 'Lägg till ett glödeffekt på det valda objektet.\nKeyword: glow',
-  tint_tooltip: 'Lägg till en färgtonseffekt.\nKeyword: tint',
+  highlight_tooltip: 'Markera det valda objektet.',
+  glow_tooltip: 'Lägg till ett glödeffekt på det valda objektet.',
+  tint_tooltip: 'Lägg till en färgtonseffekt.',
   set_alpha_tooltip:
-    'Ställ in alfavärdet (transparens) för materialet/materialen på det angivna objektet. Värden ska vara mellan 0 och 1.\nKeyword:alpha',
-  clear_effects_tooltip: 'Ta bort visuella effekter från valt objekt.\nKeyword: clear',
-  colour_tooltip: 'Välj en färg.\nKeyword: color',
-  skin_colour_tooltip: 'Välj en hudfärg.\nKeyword: skin',
-  greyscale_colour_tooltip: 'Välj en gråskala-färg för höjd.\nKeyword: grey',
-  random_colour_tooltip: 'Generera en slumpmässig färg.\nKeyword: randcol',
-  material_tooltip: 'Definiera materialegenskaper',
-  gradient_material_tooltip: 'Definiera materialegenskaper',
+    'Ställ in alfavärdet (transparens) för materialet/materialen på det angivna objektet. Värden ska vara mellan 0 och 1.',
+  clear_effects_tooltip: 'Ta bort visuella effekter från valt objekt.',
+  colour_tooltip: 'Välj en färg.',
+  skin_colour_tooltip: 'Välj en hudfärg.',
+  greyscale_colour_tooltip: 'Välj en gråskala-färg för höjd.',
+  random_colour_tooltip: 'Generera en slumpmässig färg.',
+  material_tooltip: 'Definiera materialegenskaper.',
+  gradient_material_tooltip: 'Definiera materialegenskaper.',
   set_material_tooltip: 'Ange det angivna materialet på det valda objektet.',
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    'Lägg till fysik på objektet. Alternativen är dynamisk, statisk, animerad och ingen.\nKeyword:physics',
+    'Lägg till fysik på objektet. Alternativen är dynamisk, statisk, animerad och ingen.',
   add_physics_shape_tooltip:
-    'Lägg till en fysikform på objektet. Alternativen är objekt eller kapsel.\nKeyword:physics',
-  apply_force_tooltip: 'Applicera en kraft på ett objekt i XYZ-riktningar.\nKeyword: force',
+    'Lägg till en fysikform på objektet. Alternativen är objekt eller kapsel.',
+  apply_force_tooltip: 'Applicera en kraft på ett objekt i XYZ-riktningar.',
   show_physics_tooltip:
-    'Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.\nKeyword: debug physics collider',
+    'Visa eller dölj fysik-kollisionsobjekt för felsökning. Markera för att visa, avmarkera för att dölja.',
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: 'Returnerar sant om den angivna tangenten är nedtryckt.\nKeyword:ispressed',
+  key_pressed_tooltip: 'Returnerar sant om den angivna tangenten är nedtryckt.',
   action_pressed_tooltip:
     'Returnerar sant om den valda rörelse- eller åtgärdskontrollen är aktiv via tangentbord, pekskärm eller XR.',
   set_action_key: 'ställ in %1 tangent till %2',
   set_action_key_tooltip:
     'Ställer in tangenten som utlöser en specifik åtgärd (framåt, bakåt, vänster, höger eller knappar).',
-  meshes_touching_tooltip:
-    'Returnerar sant om de två valda objekten rör vid varandra.\nKeyword: istouching',
-  time_tooltip: 'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
+  meshes_touching_tooltip: 'Returnerar sant om de två valda objekten rör vid varandra.',
+  time_tooltip:
+    'Returnerar den förflutna tiden. Pausas medan fliken är dold – bäst för speltimers och nedräkningar.', // ai
   ground_level_tooltip: 'Returnerar markhöjden vid aktuell x/z-position.',
   distance_to_tooltip: 'Beräkna avståndet mellan två objekt.',
-  touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.\nKeyword: surface',
+  touching_surface_tooltip: 'Kontrollera om objektet rör vid en yta.',
   mesh_exists_tooltip: 'Returnerar sant om meshen med det här namnet finns i scenen.',
-  get_property_tooltip: 'Hämta värdet på den valda egenskapen för ett objekt.\nKeyword: get',
-  canvas_controls_tooltip: 'Lägg till eller ta bort rörelsekontroller på canvas.\nKeyword: canvas',
-  interact_indicator_tooltip:
-    'Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.\nKeyword: indicator',
-  button_controls_tooltip: 'Konfigurera knappkontroller.\nKeyword: button',
-  on_screen_controls_tooltip: 'Konfigurera skärmkontroller.\nKeyword: onscreen', // ai
+  get_property_tooltip: 'Hämta värdet på den valda egenskapen för ett objekt.',
+  canvas_controls_tooltip: 'Lägg till eller ta bort rörelsekontroller på canvas.',
+  interact_indicator_tooltip: 'Visa eller dölj interaktionsindikatorn bredvid närliggande objekt.',
+  button_controls_tooltip: 'Konfigurera knappkontroller.',
+  on_screen_controls_tooltip:
+    'Konfigurera spelarkontrollerna som ritas på arbetsytan. Auto följer inställningen i panelen Verktyg.', // ai
   microbit_input_tooltip: 'Kör blocken när ett specifikt micro:bit-event triggas.',
   ui_slider_tooltip: 'Lägg till en 2D-sliderkontroll i UI:t och lagra dess referens i en variabel.',
 
@@ -524,42 +566,44 @@ export default {
     'Skapa en partikeleffekt kopplad till ett objekt med konfigurerbar form, gravitation, storlek, färg, transparens, livstid, kraft och rotation.',
   control_particle_system_tooltip:
     'Styr partikeleffekten genom att starta, stoppa eller återställa den.',
-  create_box_tooltip: 'Skapa en färgad box med angivna dimensioner och position.\nKeyword: box',
-  create_sphere_tooltip:
-    'Skapa en färgad sfär med angivna dimensioner och position.\nKeyword: sphere',
-  create_cylinder_tooltip:
-    'Skapa en färgad cylinder med angivna dimensioner och position.\nKeyword: cylinder',
-  create_capsule_tooltip:
-    'Skapa en färgad kapsel med angivna dimensioner och position.\nKeyword: capsule',
-  create_plane_tooltip:
-    'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.\nKeyword: plane',
+  create_box_tooltip: 'Skapa en färgad box med angivna dimensioner och position.',
+  create_sphere_tooltip: 'Skapa en färgad sfär med angivna dimensioner och position.',
+  create_cylinder_tooltip: 'Skapa en färgad cylinder med angivna dimensioner och position.',
+  create_capsule_tooltip: 'Skapa en färgad kapsel med angivna dimensioner och position.',
+  create_wedge_tooltip:
+    'Lägger till en kil — ett triangulärt prisma för ramper, sluttningar och tak. Ändra toppen för att ändra formen: 0 ger en ramp, 0.5 ger ett tak.', // ai
+  create_donut_tooltip:
+    'Lägger till en munkform. Ytter och inner är diametrarna för munken och hålet; ändrar du inner eller tjockleken uppdateras den andra. Sidorna anger hur slät den ser ut.', // ai
+  create_ring_tooltip:
+    'Lägger till en ring med platta kanter, som en bricka eller ett rör. Ytter och inner är diametrarna för ringen och hålet; ändrar du inner eller tjockleken uppdateras den andra. Höjden anger hur hög den är och sidorna hur slät den ser ut.', // ai
+  create_plane_tooltip: 'Skapa ett färgat 2D-plan med angiven bredd, höjd och position.',
+  create_marker_tooltip:
+    'Lägg till en markör: en osynlig punkt att placera saker efter. Kryssa i redigera för att se markören och flytta den med gizmos. En markör syns aldrig i spelläget.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    'Spela upp ett musiktema på ett objekt med justerbar hastighet, volym och läge.\nKeyword: theme',
+    'Spela upp ett musiktema på ett objekt med justerbar hastighet, volym och läge.',
   play_sound_tooltip:
-    'Spela upp det valda ljudet på ett objekt med justerbar hastighet, volym och läge.\nKeyword: sound',
-  stop_all_sounds_tooltip: 'Stoppa alla ljud som spelas i scenen.\nKeyword:nosound',
+    'Spela upp det valda ljudet på ett objekt med justerbar hastighet, volym och läge.',
+  stop_all_sounds_tooltip: 'Stoppa alla ljud som spelas i scenen.',
   midi_note_tooltip: 'Ett MIDI-notvärde mellan 0 och 127.',
   rest_tooltip: 'En paus (tystnad) i en musiksekvens.',
   play_notes_tooltip:
     'Spela en sekvens av MIDI-noter och pauser med motsvarande längder, där objekt används för panorering. Kan returnera omedelbart eller efter uppspelning.',
-  set_scene_bpm_tooltip: 'Ställ in BPM för hela scenen',
-  set_mesh_bpm_tooltip: 'Ställ in BPM för ett valt objekt',
+  set_scene_bpm_tooltip: 'Ställ in BPM för hela scenen.',
+  set_mesh_bpm_tooltip: 'Ställ in BPM för ett valt objekt.',
   create_instrument_tooltip: 'Skapa ett instrument och tilldela det till den valda variabeln.',
   instrument_tooltip: 'Välj ett instrument att använda för att spela noter.',
   speak_tooltip:
-    'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.\nKeyword: speak',
-  enable_subtitles_tooltip:
-    'Visa undertexter på skärmen för talad text.\nKeyword: subtitles', // ai
+    'Konvertera text till tal med hjälp av Web Speech API och valfri 3D-positionering.',
+  enable_subtitles_tooltip: 'Visa undertexter på skärmen för talad text.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'En kommentarsrad för att hjälpa andra att förstå din kod.',
-  print_text_tooltip: 'Skriv ut text till utmatningspanelen.\nKeyword: print',
-  subtitle_tooltip: 'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.\nKeyword: subtitle', // ai
-  say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.\nKeyword: say',
-  describe_tooltip:
-    'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.\nNyckelord: describe',
+  print_text_tooltip: 'Skriv ut text till utmatningspanelen.',
+  subtitle_tooltip: 'Visa text som undertext på skärmen. 0 sekunder stannar tills nästa.', // ai
+  say_tooltip: 'Visa en textruta som ett pratmoln på ett objekt.',
+  describe_tooltip: 'Ange visningsnamnet för ett objekt. Uppdaterar metadata för tillgänglighet.',
   ui_text_tooltip:
     'Lägg till text på UI-skärmen och spara kontrollen i en variabel för senare användning.',
 
@@ -572,61 +616,55 @@ export default {
   create_3d_text_tooltip: 'Skapa 3D-text i scenen.',
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.\nKeyword: seed',
+  random_seeded_int_tooltip: 'Genererar ett slumpmässigt heltal med frö.',
   to_number_tooltip: 'Konverterar en sträng till ett heltal eller flyttal.',
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.\nKeyword: move',
-  move_by_xyz_single_tooltip:
-    'Flytta ett objekt en viss mängd i x-, y- eller z-led.\nKeyword: move',
-  move_to_xyz_tooltip:
-    'Teleportera objektet till angivna koordinater. Du kan välja att använda Y-axeln.\nKeyword: moveby',
-  move_to_xyz_single_tooltip:
-    'Teleportera objekt:en till den angivna enskilda koordinaten.\nKeyword: moveby',
+  move_by_xyz_tooltip: 'Flytta ett objekt ett angivet värde i x-, y- och z-led.',
+  move_by_xyz_single_tooltip: 'Flytta ett objekt en viss mängd i x-, y- eller z-led.',
+  move_to_xyz_tooltip: 'Teleportera objektet till angivna koordinater.',
+  move_to_xyz_single_tooltip: 'Teleportera objekt:en till den angivna enskilda koordinaten.',
   move_to_tooltip:
-    'Teleportera det första objektet till det andra objektets position.\nKeyword: moveto',
+    'Placera det första objektet vid det andra eller mot en av dess sidor och förskjut det. Sidor och förskjutning följer det andra objektets rotation.', // ai
   scale_tooltip:
-    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: scale',
+    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.',
   resize_tooltip:
-    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.\nKeyword: resize',
-  rotate_model_xyz_tooltip:
-    'Rotera ett objekt med angivna x-, y- och z-värden.\nKeyword: rotate\nKeyword: rotateby',
-  rotate_to_tooltip:
-    'Rotera ett objekt så att det pekar mot angivna koordinater.\nKeyword: rotateto',
-  look_at_tooltip: 'Rotera det första objektet mot det andra objektets position.\nKeyword: look',
+    'Ändra storleken på ett objekt till angivna x-, y- och z-värden och styr ursprunget för skalning.',
+  rotate_model_xyz_tooltip: 'Rotera ett objekt med angivna x-, y- och z-värden.',
+  rotate_to_tooltip: 'Rotera ett objekt så att det pekar mot angivna koordinater.',
+  look_at_tooltip: 'Rotera det första objektet mot det andra objektets position.',
   move_forward_tooltip:
-    "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.\nKeyword: push",
-  rotate_camera_tooltip:
-    'Roterar kameran åt vänster eller höger med angivet antal grader.\nKeyword: rotate',
-  up_tooltip: 'Applicerar den angivna uppåtriktade kraften.\nKeyword: up',
-  set_pivot_tooltip:
-    'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln\nKeyword: ankare',
-  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt\nKeyword: minmax',
+    "Flytta objektet i angiven riktning. 'Framåt' flyttar det i riktningen det pekar, 'sida' i kamerans riktning och 'strafe' i sidled relativt kameran.",
+  rotate_camera_tooltip: 'Roterar kameran åt vänster eller höger med angivet antal grader.',
+  up_tooltip: 'Applicerar den angivna uppåtriktade kraften.',
+  set_anchor_tooltip: 'Ställ in ankarpunkten för ett objekt längs X-, Y- och Z-axeln.',
+  set_pivot_tooltip: 'Ställ in punkten som ett objekt roterar runt. Objektet stannar där det är.',
+  min_centre_max_tooltip: 'Välj min, center eller max som pivotpunkt.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Använd enhetens kamera som bakgrund för scenen. Fungerar på både mobil och dator.',
-  set_xr_mode_tooltip: 'Ställ in XR-läget för scenen.\nAlternativ: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Ställ in XR-läget för scenen.\nVR-headset: startar bara i ett headset, så dator och mobil kör projektet som vanligt.\nVR-headset eller mobil: erbjuder även mobil-VR med en kartongvisare.\nAR: placerar scenen i rummet.\nMagic Window: titta dig omkring genom att röra mobilen; ett headset får VR.\nRöd/cyan-glasögon: 3D på vilken skärm som helst i spelvyn.', // ai
   play_rumble_pattern_tooltip:
-    'Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.\nNyckelord: rumble preset',
+    'Spelar ett fördefinierat vibrationsmönster på alla anslutna kontroller.',
   controller_rumble_tooltip:
-    'Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.\nNyckelord: rumble',
+    'Gör att en ansluten spelkontroll vibrerar. Välj alla, vänster eller höger motor, ange styrka (0 till 1) och hur länge den ska vibrera i millisekunder.',
   controller_rumble_pattern_tooltip:
-    'Gör att en spelkontroll vibrerar i ett upprepat mönster. Ange motor, styrka (0 till 1), på-tid, av-tid och antal upprepningar.\nNyckelord: rumble pattern',
+    'Gör att en spelkontroll vibrerar i ett upprepat mönster. Ange motor, styrka (0 till 1), på-tid, av-tid och antal upprepningar.',
 
   // Dropdown option translations
   AWAIT_option: 'await',
   START_option: 'start',
   CREATE_option: 'create',
 
-  Linear_option: 'Linjär',
-  SineEase_option: 'Sinusinterpolering',
-  CubicEase_option: 'Kubisk interpolering',
-  QuadraticEase_option: 'Kvadratisk interpolering',
-  ExponentialEase_option: 'Exponentiell interpolering',
-  BounceEase_option: 'Studsinterpolering',
-  ElasticEase_option: 'Elastisk interpolering',
-  BackEase_option: 'Tillbaka-interpolering',
+  Linear_option: 'linjär',
+  SineEase_option: 'sinusinterpolering',
+  CubicEase_option: 'kubisk interpolering',
+  QuadraticEase_option: 'kvadratisk interpolering',
+  ExponentialEase_option: 'exponentiell interpolering',
+  BounceEase_option: 'studsinterpolering',
+  ElasticEase_option: 'elastisk interpolering',
+  BackEase_option: 'tillbaka-interpolering',
   TOWARDS_option: 'towards',
   SAME_ROTATION_option: 'same rotation as',
 
@@ -634,11 +672,11 @@ export default {
   EASEOUT_option: 'ease-out',
   EASEINOUT_option: 'ease-in-out',
 
-  play_option: '▶️ Spela',
-  pause_option: '⏸️ Pausa',
-  stop_option: '⏹️ Stoppa',
-  start_option: '▶️ Starta',
-  reset_option: '🔄 Återställ',
+  play_option: '▶️ spela',
+  pause_option: '⏸️ pausa',
+  stop_option: '⏹️ stoppa',
+  start_option: '▶️ starta',
+  reset_option: '🔄 återställ',
 
   diffuseColor_option: 'diffus färg',
   emissiveColor_option: 'emitterande färg',
@@ -659,14 +697,14 @@ export default {
   scaling_y_option: 'skalning.y',
   scaling_z_option: 'skalning.z',
 
-  rotateLeft_option: 'Rotera vänster',
-  rotateRight_option: 'Rotera höger',
-  rotateUp_option: 'Titta uppåt',
-  rotateDown_option: 'Titta nedåt',
-  moveUp_option: 'Flytta uppåt',
-  moveDown_option: 'Flytta nedåt',
-  moveLeft_option: 'Flytta vänster',
-  moveRight_option: 'Flytta höger',
+  rotateLeft_option: 'rotera vänster',
+  rotateRight_option: 'rotera höger',
+  rotateUp_option: 'titta uppåt',
+  rotateDown_option: 'titta nedåt',
+  moveUp_option: 'flytta uppåt',
+  moveDown_option: 'flytta nedåt',
+  moveLeft_option: 'flytta vänster',
+  moveRight_option: 'flytta höger',
 
   _65_option: 'A ◁',
   _68_option: 'D',
@@ -696,17 +734,28 @@ export default {
   strafe_option: 'sidled',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'till', // ai
+  PLACE_TO_option: 'till', // ai
+  PLACE_CENTER_option: 'i mitten av', // ai
+  PLACE_TO_CENTER_option: 'till mitten av', // ai
+  PLACE_ON_TOP_option: 'ovanpå', // ai
+  PLACE_UNDER_option: 'under', // ai
+  PLACE_LEFT_option: 'till vänster om', // ai
+  PLACE_RIGHT_option: 'till höger om', // ai
+  PLACE_FRONT_option: 'framför', // ai
+  PLACE_BEHIND_option: 'bakom', // ai
+  STRAIGHT_option: 'direkt', // ai
+  WANDERING_option: 'strövande', // ai
+  PLACE_NEAR_option: 'nära', // ai
   user_option: 'fram',
   environment_option: 'bak',
 
-  LINEAR_option: 'Linjär',
+  LINEAR_option: 'linjär',
   NONE_option: 'Ingen',
-  EXP_option: 'Exp',
-  EXP2_option: 'Exp2',
+  EXP_option: 'exp',
+  EXP2_option: 'exp2',
 
   OnPickTrigger_option: 'klickad',
-  OnLeftPickTrigger_option: 'interagera',
-  OnDoublePickTrigger_option: 'dubbel interaktion',
   OnPickDownTrigger_option: 'interaktion start',
   OnPickUpTrigger_option: 'interaktion slut',
 
@@ -763,17 +812,23 @@ export default {
   starts_option: 'startar',
   ends_option: 'avslutas',
 
+  COPY_option: 'kopia',
+  LINKED_option: 'länkad',
+
   DYNAMIC_option: 'dynamisk',
   ANIMATED_option: 'animerad',
   STATIC_option: 'statisk',
 
   MESH_option: 'objekt',
   CAPSULE_option: 'kapsel',
+  SPHERE_option: 'klot',
+  BOX_option: 'låda',
 
-  FLAT_option: 'Platt', // Duplicate key NONE
+  FLAT_option: 'platt', // Duplicate key NONE
 
   ANY_option: 'vilken som helst',
   all_option: 'alla',
+  ground_option: 'mark',
   objectGrab_option: 'ta tag',
   objectDrop_option: 'släppa',
   smallCollision_option: 'liten stöt',
@@ -786,6 +841,12 @@ export default {
   machineRunning_option: 'maskin',
   explosion_option: 'explosion',
   teleport_option: 'teleporterar',
+  watch_option: 'titta',
+  embody_option: 'förkroppsliga',
+  hud_option: 'head-up-display', // ai
+  wrist_option: 'handled', // ai
+  smooth_option: 'mjuk',
+  comfort_option: 'komfort',
   space_infinity_option: 'rymd ❖', // Duplicate key space
   q_icon_option: 'Q ■', // Duplicate key q
   e_icon_option: 'E ✿', // Duplicate key e
@@ -826,6 +887,7 @@ export default {
   DISABLED_option: 'inaktiverad',
   BOTH_option: 'båda',
   ARROWS_option: 'pilar',
+  WASD_option: 'WASD',
   ACTIONS_option: 'åtgärder',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'ja', // ai
@@ -866,30 +928,30 @@ export default {
   LOOP_option: 'loopa',
   everywhere_option: 'överallt',
 
-  theme_bright_option: 'Livlig',
-  theme_calm_option: 'Lugn',
-  theme_electronic_option: 'Elektronisk',
-  theme_game_option: 'Spel',
-  theme_medieval_option: 'Medeltida',
-  theme_metal_option: 'Metal',
+  theme_bright_option: 'livlig',
+  theme_calm_option: 'lugn',
+  theme_electronic_option: 'elektronisk',
+  theme_game_option: 'spel',
+  theme_medieval_option: 'medeltida',
+  theme_metal_option: 'metal',
 
-  sound_highDown_option: 'Hög Nedåt',
-  sound_highUp_option: 'Hög Uppåt',
-  sound_laser1_option: 'Laser 1',
-  sound_laser2_option: 'Laser 2',
-  sound_laser3_option: 'Laser 3',
-  sound_lowDown_option: 'Låg Nedåt',
-  sound_lowRandom_option: 'Låg Slumpmässig',
-  sound_lowThreeTone_option: 'Låg Treton',
-  sound_phaseJump1_option: 'Fashopp 1',
-  sound_powerUp1_option: 'Uppgång 1',
-  sound_powerUp2_option: 'Uppgång 2',
-  sound_powerUp3_option: 'Uppgång 3',
-  sound_powerUp4_option: 'Uppgång 4',
-  sound_powerUp5_option: 'Uppgång 5',
-  sound_spaceTrash_option: 'Rymdsopor',
-  sound_threeTone1_option: 'Treton 1',
-  sound_threeTone2_option: 'Treton 2',
+  sound_highDown_option: 'hög nedåt',
+  sound_highUp_option: 'hög uppåt',
+  sound_laser1_option: 'laser 1',
+  sound_laser2_option: 'laser 2',
+  sound_laser3_option: 'laser 3',
+  sound_lowDown_option: 'låg nedåt',
+  sound_lowRandom_option: 'låg slumpmässig',
+  sound_lowThreeTone_option: 'låg treton',
+  sound_phaseJump1_option: 'fashopp 1',
+  sound_powerUp1_option: 'uppgång 1',
+  sound_powerUp2_option: 'uppgång 2',
+  sound_powerUp3_option: 'uppgång 3',
+  sound_powerUp4_option: 'uppgång 4',
+  sound_powerUp5_option: 'uppgång 5',
+  sound_spaceTrash_option: 'rymdsopor',
+  sound_threeTone1_option: 'treton 1',
+  sound_threeTone2_option: 'treton 2',
 
   sine_option: 'sinus',
   square_option: 'fyrkant',
@@ -902,17 +964,17 @@ export default {
   warble_option: 'drillar',
   robot_option: 'robot',
 
-  default_option: 'Standardinstrument (Sinus)',
-  piano_option: 'Piano (Fyrkant)',
-  guitar_option: 'Gitarr (Sågtand)',
-  violin_option: 'Violin (Triangel)',
+  default_option: 'standardinstrument (sinus)',
+  piano_option: 'piano (fyrkant)',
+  guitar_option: 'gitarr (sågtand)',
+  violin_option: 'violin (triangel)',
 
   female_option: 'kvinna',
   male_option: 'man',
 
-  en_GB_option: 'Engelska (UK)',
-  en_US_option: 'Engelska (USA)',
-  es_option: 'Spanska', // ai
+  en_GB_option: 'engelska (UK)',
+  en_US_option: 'engelska (USA)',
+  es_option: 'spanska', // ai
 
   ADD_option: 'lägg till',
   REPLACE_option: 'ersätt',
@@ -921,146 +983,213 @@ export default {
   _18px_option: 'medel',
   _24px_option: 'stor',
 
-  VR_option: 'VR (Oculus Quest eller mobilvisare)',
-  AR_option: 'AR (Förstärkt verklighet)',
-  MAGIC_WINDOW_option: 'Magic Window (titta runt)',
+  VR_option: 'VR-headset', // ai
+  VR_PHONE_option: 'VR-headset eller mobil', // ai
+  AR_option: 'AR (förstärkt verklighet)',
+  MAGIC_WINDOW_option: 'magic window (titta runt)',
+  RED_CYAN_option: 'röd/cyan-glasögon', // ai
 
-  circular_depression_png_option: 'Cirkulär sänka',
-  checkerboard_png_option: 'Schackmönster',
-  sloped_plane_png_option: 'Lutande plan',
-  cove_plateau_png_option: 'Buktplatå',
-  random_hills_png_option: 'Slumpmässiga kullar',
-  diagonal_ridge_png_option: 'Diagonal ås',
-  mixed_heights_png_option: 'Blandade höjder',
-  uneven_terrain_png_option: 'Ojämn terräng',
+  circular_depression_png_option: 'cirkulär sänka',
+  checkerboard_png_option: 'schackmönster',
+  sloped_plane_png_option: 'lutande plan',
+  cove_plateau_png_option: 'buktplatå',
+  random_hills_png_option: 'slumpmässiga kullar',
+  diagonal_ridge_png_option: 'diagonal ås',
+  mixed_heights_png_option: 'blandade höjder',
+  uneven_terrain_png_option: 'ojämn terräng',
 
-  Idle_option: 'Vila',
-  Walk_option: 'Gå',
-  Run_option: 'Spring',
-  Wave_option: 'Vinka',
-  Yes_option: 'Ja',
-  No_option: 'Nej',
-  Duck_option: 'Duva',
-  Fall_option: 'Falla',
-  Fly_option: 'Flyg',
-  Jump_option: 'Hoppa',
-  Flip_option: 'Volta',
-  Dance1_option: 'Dans 1',
-  Dance2_option: 'Dans 2',
-  Dance3_option: 'Dans 3',
-  Dance4_option: 'Dans 4',
-  JumpUp_option: 'Hoppa upp',
-  JumpIdle_option: 'Hoppa vila',
-  JumpLand_option: 'Hoppa landa',
-  Punch_option: 'Slag',
-  HitReact_option: 'Reaktion vid träff',
-  Idle_Hold_option: 'Vila håll',
-  Walk_Hold_option: 'Gå håll',
-  Run_Hold_option: 'Spring håll',
-  Idle_Attack_option: 'Vila attack',
-  Walk_Attack_option: 'Gå attack',
-  Run_Attack_option: 'Spring attack',
-  Sit_Down_option: 'Sätt dig',
-  Sitting_option: 'Sitter',
-  Stand_Up_option: 'Ställ dig upp',
-  Wobble_option: 'Vingla',
-  Clap_option: 'Applådera',
-  Climb_rope_option: 'Klättra rep',
+  Idle_option: 'vila',
+  Walk_option: 'gå',
+  Run_option: 'spring',
+  Wave_option: 'vinka',
+  Yes_option: 'ja',
+  No_option: 'nej',
+  Duck_option: 'ducka',
+  Fall_option: 'falla',
+  Fly_option: 'flyg',
+  Jump_option: 'hoppa',
+  Flip_option: 'volta',
+  Dance1_option: 'dans 1',
+  Dance2_option: 'dans 2',
+  Dance3_option: 'dans 3',
+  Dance4_option: 'dans 4',
+  JumpUp_option: 'hoppa upp',
+  JumpIdle_option: 'hoppa vila',
+  JumpLand_option: 'hoppa landa',
+  Punch_option: 'slag',
+  HitReact_option: 'reaktion vid träff',
+  Idle_Hold_option: 'vila håll',
+  Walk_Hold_option: 'gå håll',
+  Run_Hold_option: 'spring håll',
+  Idle_Attack_option: 'vila attack',
+  Walk_Attack_option: 'gå attack',
+  Run_Attack_option: 'spring attack',
+  Sit_Down_option: 'sätt dig',
+  Sitting_option: 'sitter',
+  Stand_Up_option: 'ställ dig upp',
+  Wobble_option: 'vingla',
+  Clap_option: 'applådera',
+  Climb_rope_option: 'klättra rep',
 
   // HTML translations
-  loading_ui: "Laddar Flock XR...",
-  loading_success_ui: "Flock XR laddades framgångsrikt",
-  canvas_accessible_name_ui: "3D scene",
-  loading_title_ui: "Laddar Flock XR",
-  import_project_file_ui: "Importera projektfil",
+  loading_ui: 'Laddar Flock XR...',
+  loading_success_ui: 'Flock XR laddades framgångsrikt',
+  canvas_accessible_name_ui: '3D scene',
+  loading_title_ui: 'Laddar Flock XR',
+  import_project_file_ui: 'Importera projektfil',
 
-  demo_ui: "Demo",
-  new_ui: "Ny",
-  starter_ui: "👋🏽 Start",
-  controller_starter_ui: "🎮 Kontrollstart",
-  snow_globe_ui: "❄️ Snöglob",
-  forest_base_ui: "🌲 Skogsbas",
-  character_animation_ui: "🎥 Karaktärsanimation",
-  cube_art_ui: "🎨 Kubkonst",
-  physics_fun_ui: "👆🏾 Fysiklek",
-  collect_the_gems_ui: "💎 Samla ädelstenarna",
-  water_map_ui: "💧 Vattenkarta",
-  skittles_ui: "🎳 Käglor",
-  beetle_ui: "🎲 Skalbagge",
-  roominator_ui: "🛋️ Rumsdesign",
-  ball_pit_ui: "🟠 Bollhav",
-  ur_enough_ui: "💗 Du är nog!",
-  tallest_buildings_ui: "📊 Högsta byggnaderna",
-  candy_dash_ui: "🎃 Godisjakt",
-  flockenspiel_ui: "🎵 Flockenspiel",
-  pendant_ui: "📿 3D-utskrivbart hänge",
-  tent_lights_ui: "⛺ Festivaltält",
-  my_place_ui: "🏠 Mitt ställe",
-  microbit_monkey_ui: "🐵 micro:bit-apa",
-  tree_jump_ui: "🌳 Träd-hopp",
-  shape_push_ui: "🔶 Skjuta form",
-  alien_planet_ui: "👽 Alienplanet",
-  boat_trip_ui: "⛵ Boat trip",
-  character_designer_ui: "👚 Karaktärsdesign",
-  sit_down_ui: "🪑 Sätt dig",
+  projects_ui: 'Projekt',
+  new_ui: 'Ny',
+  starter_ui: 'Välkommen',
+  controller_starter_ui: 'Kontrollstart',
+  snow_globe_ui: 'Snöglob',
+  forest_base_ui: 'Skogsbas',
+  character_animation_ui: 'Karaktärsanimation',
+  cube_art_ui: 'Kubkonst',
+  physics_fun_ui: 'Fysiklek',
+  collect_the_gems_ui: 'Samla ädelstenarna',
+  water_map_ui: 'Vattenkarta',
+  skittles_ui: 'Käglor',
+  block_tower_ui: 'Klosstorn',
+  beetle_ui: 'Skalbagge',
+  roominator_ui: 'Rumsdesign',
+  ball_pit_ui: 'Bollhav',
+  ur_enough_ui: 'Du är nog!',
+  tallest_buildings_ui: 'Högsta byggnaderna',
+  candy_dash_ui: 'Godisjakt',
+  flockenspiel_ui: 'Flockenspiel',
+  pendant_ui: '3D-utskrivbart hänge',
+  flockxr_keyring_ui: 'Flock XR-nyckelring',
+  tent_lights_ui: 'Festivaltält',
+  my_place_ui: 'Mitt ställe',
+  microbit_monkey_ui: 'micro:bit-apa',
+  ar_demo_ui: 'AR-demo',
+  vr_demo_ui: 'VR-demo',
+  tower_of_hanoi_ui: 'Tornen i Hanoi',
+  tree_jump_ui: 'Träd-hopp',
+  shape_push_ui: 'Skjuta form',
+  alien_planet_ui: 'Alienplanet',
+  boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Rymdscen',
+  snowman_glide_ui: 'Snögubbe som glider',
+  pancake_flip_ui: 'Pannkaksvändning',
+  backpack_maker_ui: 'Ryggsäcksmakare', // AI-generated; needs validation
+  grid_race_ui: 'Rutnätsrace',
+  escape_room_ui: 'Escape room',
+  toy_finder_ui: 'Leksaksletare',
+  birdmerge_ui: 'Slå ihop fåglar',
+  character_designer_ui: 'Karaktärsdesign',
+  sit_down_ui: 'Sätt dig',
 
-  main_menu_ui: "Huvudmeny",
-  menu_button_sr_label_ui: "Meny",
-  project_submenu_ui: "Projekt",
-  project_new_ui: "Nytt",
-  project_open_ui: "Öppna",
-  project_save_ui: "Spara",
-  language_submenu_ui: "Språk",
-  about_submenu_ui: "Om",
-  hub_submenu_ui: "Nav",
+  main_menu_ui: 'Huvudmeny',
+  menu_button_sr_label_ui: 'Meny',
+  project_submenu_ui: 'Projekt',
+  project_new_ui: 'Nytt',
+  project_open_ui: 'Öppna',
+  project_save_ui: 'Spara',
+  tools_submenu_ui: 'Verktyg',
+  tools_options_tab_ui: 'Alternativ', // ai
+  tools_export_tab_ui: 'Exportera', // ai
+  export_web_page_heading_ui: 'Webbsida', // ai
+  export_web_page_description_ui: 'Spara en enda fil som spelar upp ditt projekt i en webbläsare.', // ai
+  export_web_page_button_ui: 'Spara som webbsida', // ai
+  export_web_zip_button_ui: 'Spara som webb-zip', // ai
+  export_embed_heading_ui: 'Inbäddningskod', // ai
+  export_embed_description_ui: 'Kopiera den här koden och klistra in den på en annan webbplats för att visa ditt projekt där.', // ai
+  export_embed_copy_button_ui: 'Kopiera kod', // ai
+  export_hosted_heading_ui: 'Inbäddningskod för ett projekt på webben', // ai
+  export_hosted_comment: 'Byt ut adressen efter project= mot adressen till din egen projektfil, till exempel en raw-länk från GitHub.', // ai
+  export_embed_copied: 'Kopierat.', // ai
+  export_embed_copy_failed: 'Det gick inte att kopiera. Markera koden och kopiera den själv.', // ai
+  export_web_page_file_description: 'Webbsida', // ai
+  export_web_zip_file_description: 'ZIP-fil', // ai
+  tools_capture_tab_ui: 'Spela in', // ai
+  tools_debug_tab_ui: 'Felsökning', // ai
+  capture_picture_heading_ui: 'Bild', // ai
+  capture_picture_description_ui: 'Spara en bild av 3D-scenen.', // ai
+  capture_picture_button_ui: 'Ta bild', // ai
+  capture_include_everything_ui: 'Ta med allt', // ai
+  capture_gif_heading_ui: 'Animerad GIF', // ai
+  capture_gif_description_ui: 'Spela in en kort animation som spelas i en loop, upp till 10 sekunder lång.', // ai
+  capture_gif_button_ui: 'Spela in GIF', // ai
+  capture_video_heading_ui: 'Video', // ai
+  capture_video_description_ui: 'Spela in en video av 3D-scenen, upp till 1 minut lång.', // ai
+  capture_video_button_ui: 'Spela in video', // ai
+  capture_recording: 'Spelar in', // ai
+  capture_time_up: 'Tiden är slut!', // ai
+  capture_stop_button: 'Stoppa', // ai
+  capture_save_button: 'Spara', // ai
+  capture_making_gif: 'Skapar din GIF…', // ai
+  capture_saving: 'Sparar…', // ai
+  capture_saved: 'Sparat!', // ai
+  capture_picture_saved: 'Bilden har sparats.', // ai
+  capture_failed: 'Tyvärr, det fungerade inte.', // ai
+  capture_picture_file_description: 'PNG-bild', // ai
+  capture_gif_file_description: 'GIF-animation', // ai
+  capture_video_file_description: 'Video', // ai
+  fps_option_ui: 'Bildfrekvens', // ai
+  physics_shapes_option_ui: 'Visa fysikformer', // ai
+  physics_shapes_note_ui: 'Stäng av och slå på för att uppdatera', // ai
+  inspector_tool_ui: 'Inspektör',
+  player_controls_option_ui: 'Spelarkontroller', // ai
+  gizmo_controls_option_ui: 'Gizmo-kontroller', // ai
+  portrait_canvas_option_ui: 'Stående canvas (9:16)', // ai
+  close_tools_ui: 'Stäng verktyg', // ai
+  show_block_hints_ui: 'Visa blocktips',
+  hide_block_hints_ui: 'Dölj blocktips',
+  language_submenu_ui: 'Språk',
+  about_submenu_ui: 'Om',
+  hub_submenu_ui: 'Nav',
 
-  theme_submenu_ui: "Tema",
-  light_theme_ui: "Ljust",
-  dark_theme_ui: "Mörkt",
-  contrast_theme_ui: "Kontrast",
-  low_vision_theme_ui: "Nedsatt syn",
+  theme_submenu_ui: 'Tema',
+  light_theme_ui: 'Ljust',
+  dark_theme_ui: 'Mörkt',
+  contrast_theme_ui: 'Kontrast',
+  low_color_theme_ui: 'Lite färg', // ai
 
-  run_code_button_ui: "Kör din kod",
-  stop_code_button_ui: "Stoppa din kod",
-  canvas_overlay_play_ui: "Tryck på Spela för att börja", // ai
-  open_button_ui: "Öppna ett projekt från en fil på din dator",
-  open_file_input_label_ui: "Välj projektfil att öppna",
-  export_code_button_ui: "Spara detta projekt till en fil på din dator.",
-  example_select_ui: "Välj ett exempelprojekt att ladda",
-  demo_heading_ui: "Demos", // ai
-  close_demos_ui: "Stäng demos", // ai
-  examples_cat_start_ui: "Start", // ai
-  examples_cat_games_ui: "Spel", // ai
-  examples_cat_physics_ui: "Fysik", // ai
-  examples_cat_worlds_ui: "Världar", // ai
-  examples_cat_create_ui: "Kreativt", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Kör din kod',
+  pause_code_button_ui: 'Pausa din kod', // ai
+  unpause_code_button_ui: 'Avsluta pausen i din kod', // ai
+  pause_hint: 'Pausad. Din kod har stannat, men du kan fortfarande använda gizmona. Tryck på Pausa eller {keys} för att avsluta pausen i din kod.', // ai
+  open_button_ui: 'Öppna ett projekt från en fil på din dator',
+  open_file_input_label_ui: 'Välj projektfil att öppna',
+  export_code_button_ui: 'Spara detta projekt till en fil på din dator.',
+  example_select_ui: 'Välj ett exempelprojekt att ladda',
+  close_projects_ui: 'Stäng projekt', // ai
+  examples_cat_games_ui: 'Spel', // ai
+  examples_cat_physics_ui: 'Fysik', // ai
+  examples_cat_worlds_ui: 'Världar', // ai
+  examples_cat_create_ui: 'Kreativt', // ai
+  examples_cat_data_ui: 'Data', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Designa ditt projekt",
-  toggle_play_ui: "Använd ditt projekt",
-  fullscreen_toggle_ui: "Växla mellan helskärm och normalvy.",
+  toggle_play_ui: 'Använd ditt projekt',
+  fullscreen_toggle_ui: 'Växla mellan helskärm och normalvy.',
 
-  show_shapes_button_ui: "Lägg till former och modeller",
-  color_picker_button_ui: "Ändra objektfärg",
-  position_button_ui: "Positionera objekt",
-  rotation_button_ui: "Rotera objekt",
-  scale_button_ui: "Skala objekt-storlek",
-  select_button_ui: "Välj objekt",
-  duplicate_button_ui: "Duplicera valt objekt",
-  delete_button_ui: "Radera valt objekt",
-  camera_button_ui: "Kamerakontroller",
-  eye_button_ui: "Kretsa runt valt objekt",
+  show_shapes_button_ui: 'Lägg till former och modeller',
+  color_picker_button_ui: 'Ändra objektfärg',
+  position_button_ui: 'Positionera objekt',
+  rotation_button_ui: 'Rotera objekt',
+  scale_button_ui: 'Skala objekt-storlek',
+  select_button_ui: 'Välj objekt',
+  duplicate_button_ui: 'Duplicera valt objekt',
+  delete_button_ui: 'Radera valt objekt',
+  delete_block_button_ui: 'Radera block',
+  duplicate_block_button_ui: 'Duplicera block',
+  camera_button_ui: 'Kamerakontroller',
+  eye_button_ui: 'Kretsa runt valt objekt',
+  position_pin_button_ui: 'Välj position för valt objekt',
 
-  info_panel_link_ui: "Besök Flock XR:s webbplats (öppnas i ny flik)",
-  skip_to_scene_ui: "Hoppa till 3D-scenen", // ai
+  info_panel_link_ui: 'Besök Flock XR:s webbplats (öppnas i ny flik)',
+  skip_to_scene_ui: 'Hoppa till 3D-scenen', // ai
 
-  project_name_ui: "Projektnamn",
+  project_name_ui: 'Projektnamn',
 
-  about_heading_ui: "Om Flock XR",
-  about_description_intro_ui: "Flock XR är ett ",
-  about_description_prototype_ui: "prototyp",
-  about_description_made_by_ui: " utvecklat av ",
-  about_description_company_ui: "Flip Computing",
+  about_heading_ui: 'Om Flock XR',
+  about_description_intro_ui: 'Flock XR är ett ',
+  about_description_prototype_ui: 'prototyp',
+  about_description_made_by_ui: ' utvecklat av ',
+  about_description_company_ui: 'Flip Computing',
   about_description_disclaimer_ui:
     ' Testa gärna, men kom ihåg att saker kan ändras och vissa funktioner är ännu inte färdiga. Vi söker för närvarande stöd för att utveckla Flock så att du kan lita på det.',
   about_run_intro_ui:
@@ -1085,6 +1214,8 @@ export default {
   toolbox_search_results_aria: 'Verktygslådans sökresultat.',
   context_delete_option: 'Radera',
   context_delete_all_blocks_option: 'Radera alla block',
+  context_tidy_workspace_option: 'Städa',
+  context_cleanup_option: 'Städa upp',
   context_inline_inputs_option: 'Horisontella ingångar',
   context_external_inputs_option: 'Vertikala ingångar',
   context_collapse_option: 'Fäll ihop',
@@ -1093,6 +1224,10 @@ export default {
   context_expand_all_option: 'Expandera alla',
   context_disable_option: 'Inaktivera',
   context_enable_option: 'Aktivera',
+  view_in_canvas: 'Visa i canvas',
+  exit_canvas_view: 'Sluta kretsa runt objektet',
+  detach_block_option: 'Koppla loss',
+  view_in_canvas_option: 'Visa i canvas',
   context_copy_option: 'Kopiera',
   context_paste_option: 'Klistra in',
   context_cut_option: 'Klipp ut',
@@ -1114,8 +1249,8 @@ export default {
   redo_performed: 'Gör om utförd',
   camera_moving_forward: 'Kameran rör sig framåt',
   camera_moving_backward: 'Kameran rör sig bakåt',
-  camera_moving_left: 'Kameran rör sig åt vänster',
-  camera_moving_right: 'Kameran rör sig åt höger',
+  camera_turning_left: 'Kameran svänger åt vänster',
+  camera_turning_right: 'Kameran svänger åt höger',
   moving_forward: 'Rör mig framåt',
   moving_backward: 'Rör mig bakåt',
   moving_left: 'Rör mig åt vänster',
@@ -1124,7 +1259,7 @@ export default {
   snippet_file_description: 'Flock XR-snippet',
   snippet_filename_prompt: 'Ange ett filnamn för snippeten:',
   project_file_description: 'Flock XR-projekt',
-  file_too_large_alert: 'Filen är för stor. Maxstorlek är 5 MB.',
+  file_too_large_alert: 'Det här projektet är för stort.', // ai
   invalid_filetype_alert: 'Endast .json- eller .flock-projektfiler är tillåtna.',
   invalid_project_alert: 'Den här filen är inte ett giltigt Flock XR-projekt.',
   failed_to_read_file_alert: 'Det gick inte att läsa filen.',
@@ -1139,26 +1274,40 @@ export default {
     'Fysikmotorn fick slut på minne. Försök minska antalet fysikobjekt eller ladda om projektet.', // AI-generated; needs validation
   runtime_error_message: 'Fel: {message}',
   error_audio: 'Ljud är inte tillgängligt på den här enheten. Ditt projekt körs utan ljud.', // Google translate
-  error_speech:
-    'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
+  error_speech: 'Talsyntes är inte tillgänglig just nu. Ditt projekt körs utan talade ord.', // ai
   error_physics_unsupported:
     'Den här webbläsaren är för gammal för att köra Flock XR:s fysik. Uppdatera din webbläsare om det går.', // ai
   error_physics_unsupported_ios:
     'Flock XR behöver iOS 16.4 eller senare på den här enheten. Uppdatera din iPhone eller iPad om det går.', // ai
-  error_design_mode_offline:
-    'Designläget behöver en internetanslutning första gången du använder det. Anslut till internet och försök igen.', // ai
+  error_inspector_offline:
+    'Inspektören behöver en internetanslutning första gången du använder den. Anslut till internet och försök igen.', // ai
+  error_xr_models_offline:
+    'Anslut till internet för att ladda modellerna för handkontrollerna och händerna (valfria). XR fungerar ändå utan dem.', // ai
+  error_chunk_load:
+    'En del av Flock kunde inte laddas. Kontrollera din internetanslutning och ladda sedan om sidan.', // ai
   xr_mode_message: 'XR-läge!',
-  fly_camera_instructions: 'ℹ️ Flygkamera, använd piltangenterna och Page Up/Down',
+  fly_camera_instructions: 'Titta omkring med piltangenterna och Page Up/Down eller Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    'ℹ️ Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
-  select_mesh_delete_prompt: 'ℹ️ Klicka på ett objekt för att ta bort det.',
-  select_mesh_duplicate_prompt: 'ℹ️ Välj ett objekt att duplicera.',
-  place_duplicate_prompt: 'ℹ️ Klicka för att placera en kopia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Klicka på ett objekt för att kretsa runt det.',
-  place_object_prompt: 'ℹ️ Klicka på en yta för att placera objektet.',
+    'Flygkamera, använd skärmkontrollerna och dra för att se dig omkring',
+  select_mesh_prompt: 'Välj ett objekt, eller använd piltangenterna för att flytta kursorn.',
+  select_mesh_delete_prompt: 'Klicka på ett objekt för att ta bort det.',
+  select_mesh_position_prompt: 'Välj ett objekt att placera.',
+  select_mesh_duplicate_prompt: 'Välj ett objekt att duplicera.',
+  place_duplicate_prompt: 'Klicka för att placera en kopia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Kopia placerad.', // AI-generated; needs validation
+  orbit_origin_info: 'Dra för att flytta kameran runt origo. Klicka på ett objekt för att kretsa runt det.',
+  orbit_mesh_info: 'Dra för att flytta kameran runt objektet',
+  camera_preview_info: 'Du tittar genom kameran. Klicka på kameraknappen för att gå tillbaka.', // AI-generated; needs validation
+  capture_camera_view_label: 'Ställ in den här kameran efter den aktuella vyn', // AI-generated; needs validation
+  select_camera_target_prompt: 'Klicka på objektet som den här kameran ska titta på.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Den här kameran tittar alltid på sitt mål. Flytta den, eller använd dess kameraknapp för att ställa in den från din vy.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Välj först ett objekt som kameran ska titta på: välj det i blocket eller använd kameraknappen.',
+  view_camera_label: 'Titta genom den här kameran', // AI-generated; needs validation
+  place_object_prompt: 'Klicka på en yta för att placera objektet.',
   position_readout: 'Position: {position}',
-  eyedropper_not_supported_alert:
-    'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
+  eyedropper_not_supported_alert: 'Färgval är tillgängligt i Chrome/Edge på dator.', // ai
   blocks_copied_alert: 'Block kopierade till lokal lagring!',
   no_blocks_to_copy_alert: 'Inga block att kopiera.',
   copy_blocks_failed_alert: 'Det gick inte att kopiera blocken.',
@@ -1175,39 +1324,73 @@ export default {
   update_available_ui: 'En ny version av Flock är tillgänglig.',
   reload_button_ui: 'Ladda om',
 
-  colour_rgb: 'röd %1 grön %2 blå %3',
-  colour_random: 'slumpmässig färg',
-  colour_blend: 'blanda %1 och %2 med %3',
 
   dark_contrast_theme_ui: 'Mörk',
 
   // Attachment point options
-  LeftHand_option: 'Vänster hand',
-  RightHand_option: 'Höger hand',
-  Head_option: 'Huvud',
-  Hips_option: 'Höfter',
-  Spine_option: 'Ryggrad',
-  Spine1_option: 'Ryggrad 1',
-  Spine2_option: 'Ryggrad 2',
-  Neck_option: 'Hals',
-  LeftShoulder_option: 'Vänster axel',
-  LeftArm_option: 'Vänster överarm',
-  LeftForeArm_option: 'Vänster underarm',
-  RightShoulder_option: 'Höger axel',
-  RightArm_option: 'Höger överarm',
-  RightForeArm_option: 'Höger underarm',
-  LeftUpLeg_option: 'Vänster lår',
-  LeftLeg_option: 'Vänster smalben',
-  LeftFoot_option: 'Vänster fot',
-  RightUpLeg_option: 'Höger lår',
-  RightLeg_option: 'Höger smalben',
-  RightFoot_option: 'Höger fot',
+  LeftHand_option: 'vänster hand',
+  RightHand_option: 'höger hand',
+  Head_option: 'huvud',
+  Hips_option: 'höfter',
+  Spine_option: 'ryggrad',
+  Spine1_option: 'ryggrad 1',
+  Spine2_option: 'ryggrad 2',
+  Neck_option: 'hals',
+  LeftShoulder_option: 'vänster axel',
+  LeftArm_option: 'vänster överarm',
+  LeftForeArm_option: 'vänster underarm',
+  RightShoulder_option: 'höger axel',
+  RightArm_option: 'höger överarm',
+  RightForeArm_option: 'höger underarm',
+  LeftUpLeg_option: 'vänster lår',
+  LeftLeg_option: 'vänster smalben',
+  LeftFoot_option: 'vänster fot',
+  RightUpLeg_option: 'höger lår',
+  RightLeg_option: 'höger smalben',
+  RightFoot_option: 'höger fot',
 
   // Workspace toolbar
   toolbar_undo_ui: 'Ångra',
   toolbar_redo_ui: 'Gör om',
   toolbar_zoom_out_ui: 'Zooma ut',
   toolbar_zoom_in_ui: 'Zooma in',
+  // Player controls panel — title, sections and control names
+  help_panel_title: 'Hjälp',
+  link_opens_in_new_tab: 'öppnas i en ny flik',
+  player_panel_title: 'Spelarkontroller',
+  player_section_onscreen: 'Skärmkontroller',
+  player_section_gamepad: 'Handkontroll',
+  player_section_sr: 'Skärmläsare med handkontroll',
+  player_action_move: 'Flytta',
+  player_action_look: 'Se dig omkring',
+  player_action_turn: 'Sväng vänster / höger',
+  player_action_camera_up: 'Kamera upp / Knapp 1',
+  player_action_interact: 'Interagera / Knapp 2',
+  player_action_camera_down: 'Kamera ner / Knapp 3',
+  player_action_spare: 'Allmän åtgärd / Knapp 4',
+  player_control_arrows: 'Pilar',
+  player_control_button: 'Knapp %1',
+  player_control_dpad_note: 'På handkontroller utan vänster spak används styrkorset istället.',
+  player_control_dpad_up: 'Scensammanfattning',
+  player_control_dpad_down: 'Objekt framför',
+  player_control_dpad_left: 'Närmaste objekt',
+
+  // Player panel controls
+  player_decrease_font_size: 'Minska textstorlek',
+  player_increase_font_size: 'Öka textstorlek',
+
+  // Player control key labels
+  gamepad_left_stick: 'Vänster spak',
+  gamepad_right_stick: 'Höger spak',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangel / Y',
+  gamepad_square_x: 'Kvadrat / X',
+  gamepad_circle_b: 'Cirkel / B',
+  gamepad_cross_a: 'Kryss / A',
+  dpad_up: 'Up',
+  dpad_down: 'Ner',
+  dpad_left: 'Vänster',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Tangentbordskontroller',
   shortcut_panel_close: 'Stäng tangentbordsgenvägar',
@@ -1219,6 +1402,7 @@ export default {
   shortcut_confirm: 'Bekräfta',
   shortcut_exit: 'Avsluta',
   shortcut_play: 'Kör',
+  shortcut_pause: 'Pausa', // ai
   shortcut_undo: 'Ångra',
   shortcut_redo: 'Gör om',
   shortcut_browser_nav: 'Webbläsarens adressfält (blockerade genvägar fungerar härifrån)',
@@ -1243,8 +1427,7 @@ export default {
   shortcut_toggle_block_toolbar: 'Visa/dölj blockets tipsfält',
   shortcut_duplicate_block: 'Duplicera block',
   shortcut_detach_block: 'Koppla loss block',
-  shortcut_comment_block: 'Visa/dölj kommentar',
-  shortcut_delete_comment: 'Ta bort kommentar',
+  shortcut_enable_disable_block: 'Aktivera/inaktivera block',
   shortcut_start_move_block: 'Flytta block',
   shortcut_move_arrows: 'Flytta: till anslutning',
   shortcut_move_anywhere: 'Flytta: var som helst',
@@ -1261,6 +1444,16 @@ export default {
   shortcut_lock_transform: 'Lås transformering till axel',
   shortcut_transform_3d: 'Transformera i 3D',
   shortcut_focus_camera: 'Rikta kameran mot objekt',
+  shortcut_toggle_hud: 'Visa/dölj gizmo-kontroller', // ai
+  hud_hidden: 'Gizmo-kontroller dolda', // ai
+  hud_shown: 'Gizmo-kontroller visas', // ai
+  ui_control_gizmo_hint: 'Dra den eller dess pilar, eller använd piltangenterna (Skift för små steg). Enter för att avsluta.', // ai
+  gizmo_controls_hint: 'Visa eller dölj gizmo-kontrollerna via Meny > Verktyg.', // ai
+  xr_mode_missing_hint:
+    'Inget XR-lägesblock, så projektet öppnas inte i ditt headset. Lägg till ett från Scen > XR.', // ai
+  unknown_block_warning: 'Blocket känns inte igen i den här versionen av Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Vissa block känns inte igen av den här versionen av Flock XR, så de har inaktiverats.', // ai
   shortcut_quick_colour: 'Snabb färganvändning i färgväljaren',
   shortcut_delete_object: 'Ta bort objekt',
 

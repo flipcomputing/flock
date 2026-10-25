@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformation',
   CATEGORY_PHYSICS: 'Physique',
   CATEGORY_CONNECT: 'Connecter',
-  CATEGORY_COMBINE: 'Combiner',
+  CATEGORY_MODIFY: 'Modifier',
   CATEGORY_ANIMATE: 'Animer',
   CATEGORY_KEYFRAME: 'Image clé',
   CATEGORY_CONTROL: 'Contrôle',
@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Fonctions',
   CATEGORY_SNIPPETS: 'Extraits',
   CATEGORY_MOVEMENT: 'Mouvement',
+  CATEGORY_BUILDING: 'Construction',
 
   // Color picker translations
   choose_a_color: 'Choisissez une couleur',
@@ -137,19 +138,23 @@ export default {
   show: 'afficher %1',
   hide: 'cacher %1',
   dispose: 'supprimer %1',
-  clone_mesh: 'ajouter %1 clone de %2',
+  clone_mesh: 'ajouter %1 clone de %2 %3',
 
   // Custom block translations - Models blocks
-  load_character: `ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6 cheveux: %7 |  peau: %8 |  yeux: %9 |  t-shirt: %10 |  shorts: %11 |  détail: %12`,
-  load_object: 'ajouter %1 %2 %3 échelle: %4 x: %5 y: %6 z: %7',
-  load_multi_object: 'ajouter %1 %2 échelle: %3 x: %4 y: %5 z: %6\ncouleurs: %7',
-  load_model: 'ajouter %1 %2 échelle:: %3 x: %4 y: %5 z: %6',
+  load_character: `ajouter %1 %2 échelle: %3 %13 x: %4 y: %5 z: %6 cheveux: %7 |  peau: %8 |  yeux: %9 |  t-shirt: %10 |  shorts: %11 |  détail: %12`,
+  load_object: 'ajouter %1 %2 %3 échelle: %4 %8 x: %5 y: %6 z: %7',
+  load_multi_object: 'ajouter %1 %2 échelle: %3 %8 x: %4 y: %5 z: %6\ncouleurs: %7',
+  load_model: 'ajouter %1 %2 échelle:: %3 %7 x: %4 y: %5 z: %6\ncouleurs: %8',
+  initial_position_label: 'position',
+  same_axis_value: 'pareil',
+  initial_rotation_label: 'rotation',
+  initial_size_label: 'taille',
 
   // Custom block translations - Animate blocks
-  glide_to: 'glisser %1 vers x %2 y %3 z %4 en %5 ms\n%6 retour? %7 boucle? %8 %9',
-  glide_to_seconds: 'glisser %1 vers x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9',
+  glide_to: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 ms\n%6 retour? %7 boucle? %8 %9',
+  glide_to_seconds: 'glisser %1 vers %10 x %2 y %3 z %4 en %5 secondes \n%6 retour? %7 boucle? %8 %9',
   glide_to_object:
-    'glisser %1 vers %2 en %6 secondes\ndécalage x: %3 y: %4 z: %5\n%7 retour? %8 boucle? %9 %10',
+    'glisser %1 %11 %2 écart %12 en %6 secondes\n%7 retour? %8 boucle? %9 %10\n%3 %4 %5',
   glide_to_axis: 'glisser %1 %2 %3 en %4 secondes\n%5 retour? %6 boucle? %7 %8',
   rotate_anim: 'tourner %1 vers x %2 y %3 z %4 en %5 ms\n%6 inverse? %7 boucle? %8 %9',
   rotate_anim_seconds:
@@ -158,7 +163,7 @@ export default {
   animate_property: 'animer %1 %2 vers %3 en %4 ms inverse? %5 boucle? %6 %7',
   colour_keyframe: 'à %1 couleur: %2',
   number_keyframe: 'à: %1 valeur: %2',
-  xyz_keyframe: 'à: %1 x: %2 y: %3 z: %4',
+  xyz_keyframe: 'à: %1 %5 x: %2 y: %3 z: %4',
   animate_keyframes:
     'animer les images clés sur %1 propriété %2\nimages clés %3\naccélération %4 inverse %5 boucle %6 %7',
   animation:
@@ -174,31 +179,38 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'caméra %1 %2',
-  camera_follow: 'caméra suivre %1 avec un rayon de %2 devant %3',
+  camera_follow: 'caméra %5 suivre %1 distance : %2 angle : %3 devant : %4', // AI-generated; needs validation
   get_camera: 'obtenir la caméra comme %1',
+  create_fly_camera: 'ajouter caméra de vol %1 \n%6 x : %2 y : %3 z : %4 visible : %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'ajouter caméra de suivi %1 sur %2 \n%7 distance : %3 haut : %4 autour : %5 visible : %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'ajouter caméra en orbite %1 autour de %2 \n%7 distance : %3 haut : %4 autour : %5 visible : %6 %8', // AI-generated; needs validation
+  switch_camera: 'changer de caméra vers %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'ajouter %1 en tant que fusion de %2',
   subtract_meshes: 'ajouter %1 en tant que %2 moins %3',
+  embed_meshes: 'ajouter %1 en tant que %2 incruster %3',
   intersection_meshes: 'ajouter %1 en tant qu’intersection de %2',
   hull_meshes: 'ajouter %1 en tant qu’enveloppe de %2',
 
   // Custom block translations - Connect blocks
   parent: 'parent %1 enfant %2',
+  parent_children: 'parent %1 enfants %2',
   parent_child: 'parent %1 enfant %2\ndécalage x: %3 y: %4 z: %5',
   remove_parent: 'retirer le parent de %1',
   stop_follow: 'arrêter de suivre %1',
   hold: 'faire en sorte que %1 tienne %2\ndécalage x: %3 y: %4 z: %5',
   drop: 'lâcher %1',
-  follow: 'faire en sorte que %1 suive %2 à %3\ndécalage x: %4 y: %5 z: %6',
+  follow: 'faire en sorte que %1 suive %3 %2\ndécalage x: %4 y: %5 z: %6',
   export_mesh: 'exporter %1 comme %2',
+  export_mesh_unit_label: '1 unité =',
   attach: 'attacher %1 à %2 à %3\ndécalage x: %4 y: %5 z: %6',
 
   // Custom block translations - Control blocks
   wait: 'attendre %1 ms',
   wait_seconds: 'attendre %1 secondes',
   wait_until: 'attendre jusqu’à ce que %1',
-  local_variable: 'variable locale %1',
+  local_variable: 'variable locale %1 = %2',
   for_loop2: 'pour chaque %1 de %2 à %3 par %4 faire %5',
   for_loop: 'pour chaque %1 de %2 à %3 par %4 faire %5',
   get_lexical_variable: '%1',
@@ -235,8 +247,15 @@ export default {
   greyscale_colour: '%1',
   colour_from_string: '- %1 -',
   colour_from_string_invalid: 'Valeur de couleur CSS non valide.', // ai
+  colour_contrast_warning: 'Le texte peut être difficile à lire : le contraste est de %1:1. Visez au moins %2:1.', // ai
+  animation_missing_warning: "%1 n'a pas d'animation « %2 ». Animations possibles : %3.", // ai
+  animation_none_warning: "%1 n'a aucune animation.", // ai
+  animation_shape_warning: "Les formes et le texte 3D n'ont pas d'animations.", // ai
   random_colour: 'couleur aléatoire',
-  material: 'matériau %1 %2 opacité %3',
+  material: 'matériau %1 %2',
+  material_alpha: 'opacité',
+  material_scale: 'échelle',
+  material_angle: 'angle',
   gradient_material: 'matériau %1 opacité %2',
   set_material: 'définir le matériau de %1 à %2',
 
@@ -245,8 +264,11 @@ export default {
   add_physics_shape: 'ajouter forme physique %1 type %2',
   apply_force: 'appliquer force à %1 x: %2 y: %3 z: %4',
   set_speed: 'définir la vitesse de %1 %2 à %3', // ai
+  move_to_object: 'déplacer %1 %7 %2 %3 écart %4 vitesse %5 %6', // ai
   set_speed_tooltip:
-    'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.\nMot-clé : speed', // ai
+    'Fait avancer un objet à une vitesse définie dans une direction. Il se déplace comme un personnage avec "déplacer" — il monte les pentes, franchit les petites marches, s\'arrête contre les murs et reste droit — mais par rapport à l\'objet ou au monde plutôt qu\'à la caméra. Il garde cette vitesse jusqu\'à ce que tu la changes. Choisis une direction par rapport à l\'objet (avant, latéral, haut) ou un axe du monde (x, y, z) ; utilise "regarder" pour viser, puis avance. Choisis "tous" et 0 pour arrêter.', // ai
+  move_to_object_tooltip:
+    "Déplace un objet vers un autre objet à une vitesse donnée, avec la physique. Il se tourne dans la direction du mouvement, suit l'objet s'il bouge, contourne les obstacles et pousse les objets qui peuvent bouger. Il s'arrête à l'arrivée ou s'il ne peut pas l'atteindre. Choisis « en flânant » pour suivre un chemin sinueux.", // ai
   show_physics: 'afficher les formes physiques %1',
 
   // Custom block translations - Sensing blocks
@@ -265,7 +287,8 @@ export default {
   canvas_controls: 'contrôles de la toile %1',
   interact_indicator: "indicateur d'interaction %1",
   button_controls: 'contrôles du bouton %1 activé %2 couleur %3',
-  on_screen_controls: "contrôles à l'écran  mouvement: %1  actions: %2  activé: %3  couleur: %4", // ai
+  on_screen_controls:
+    'commandes du joueur  mouvement: %1  actions: %2  activé: %3\ncouleur: %4  fond: %5  alpha: %6', // ai
   microbit_input: "lors de l'événement micro:bit %1",
   ui_slider: 'curseur UI %1 de %2 à %3 par défaut %4 à x: %5 y: %6\ncouleur: %7 fond: %8 %9',
 
@@ -273,13 +296,24 @@ export default {
   create_particle_effect:
     'ajouter effet de particules %1 sur: %2\nforme: %3 début %4 fin %5 opacité: %6 à %7\nfréquence: %8 taille: %9 à %10 durée de vie: %11 à %12\ngravité: %13 force x: %14 y: %15 z: %16\nvitesse angulaire: %17 à %18 angle initial: %19 à %20',
   control_particle_system: 'système de particules %1 %2',
-  create_box: 'ajouter boîte %1 %2 largeur: %3 hauteur: %4 profondeur: %5\nà x: %6 y: %7 z: %8',
+  create_box: 'ajouter boîte %1 %2 largeur: %3 hauteur: %4 profondeur: %5\n%9 x: %6 y: %7 z: %8',
   create_sphere:
-    'ajouter sphère %1 %2 diamètre x: %3 diamètre y: %4 diamètre z: %5\nà x: %6 y: %7 z: %8',
+    'ajouter sphère %1 %2 diamètre x: %3 diamètre y: %4 diamètre z: %5\n%9 x: %6 y: %7 z: %8',
   create_cylinder:
-    'ajouter cylindre %1 %2 hauteur: %3 haut: %4 bas: %5 côtés: %6\nà x: %7 y: %8 z: %9',
-  create_capsule: 'ajouter capsule %1 %2 diamètre: %3 hauteur: %4\nà x: %5 y: %6 z: %7',
-  create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\nà x: %5 y: %6 z: %7',
+    'ajouter cylindre %1 %2 hauteur: %3 haut: %4 bas: %5 côtés: %6\n%10 x: %7 y: %8 z: %9',
+  create_capsule: 'ajouter capsule %1 %2 diamètre: %3 hauteur: %4\n%8 x: %5 y: %6 z: %7',
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'ajouter coin %1 %2 largeur: %3 hauteur: %4 profondeur: %5\nsommet: %6 le long de: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut:
+    'ajouter donut %1 %2 extérieur: %3 intérieur: %4 épaisseur: %5 côtés: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'ajouter anneau %1 %2 hauteur: %3 extérieur: %4 intérieur: %5 épaisseur: %6 côtés: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_plane: 'ajouter plan %1 %2 largeur: %3 hauteur: %4\n%8 x: %5 y: %6 z: %7',
+  create_marker: 'ajouter marqueur %1 %7 %5 x: %2 y: %3 z: %4 modifier: %6', // AI-generated; needs validation
+  cross_option: 'croix', // AI-generated; needs validation
+  sphere_option: 'sphère', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'jouer le thème %1 %2 depuis %3\nvitesse: %4 volume: %5 mode: %6 asynchrone: %7',
@@ -302,12 +336,13 @@ export default {
   subtitle: 'sous-titre %1 pendant %2 secondes', // ai
   say: 'dire %1 pendant %2 s %3\ntexte %4 sur %5 opacité %6 taille %7 %8 %9',
   ui_text: 'texte UI %1 %2 à x: %3 y: %4\ntaille: %5 pendant %6 secondes couleur: %7',
+  ui_align: 'depuis',
   ui_button: 'bouton UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8',
   ui_input:
     'champ de saisie UI %1 %2 à x: %3 y: %4\ntaille: %5 taille du texte: %6 texte: %7 fond: %8',
   describe: 'décrire %1 comme %2',
   create_3d_text:
-    'ajouter texte 3D %1: %2 police: %3 taille: %4 couleur: %5\nprofondeur: %6 x: %7 y: %8 z: %9',
+    'ajouter texte 3D %1: %2 police: %3 couleur: %5\ntaille: %4 profondeur: %6 espacement: %12 horizontal: %11 %10 x: %7 y: %8 z: %9',
 
   // Custom block translations - Math blocks
   random_seeded_int: 'entier aléatoire de %1 à %2 graine : %3',
@@ -316,9 +351,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'changer la position de %1 de x: %2 y: %3 z: %4',
   move_by_xyz_single: 'changer la position de %1 de %2 %3',
-  move_to_xyz: 'définir la position de %1 à x: %2 y: %3 z: %4 y ? %5',
+  move_to_xyz: 'définir la position de %1 à %5 x: %2 y: %3 z: %4',
   move_to_xyz_single: 'définir la position de %1 à %2 %3',
-  move_to: 'définir la position de %1 à %2 y ? %3',
+  move_to: 'définir la position de %1 %3 %2\ndécalage x: %4 y: %5 z: %6',
   scale: 'échelle %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   resize: 'redimensionner %1 x: %2 y: %3 z: %4\norigine x: %5 y: %6 z: %7',
   rotate_model_xyz: 'pivoter %1 de x: %2 y: %3 z: %4',
@@ -327,12 +362,18 @@ export default {
   move_forward: 'avancer %1 %2 vitesse %3',
   rotate_camera: 'faire pivoter la caméra de %1 degrés',
   up: 'vers le haut %1 force %2',
-  set_pivot: 'définir l’ancre de %1\nx: %2 y: %3 z: %4',
+  set_anchor: 'définir l’ancre de %1\nx: %2 y: %3 z: %4',
+  set_pivot: 'définir le pivot de %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1',
 
   // Custom block translations - XR blocks
   device_camera_background: 'utiliser la caméra %1 comme arrière-plan',
   set_xr_mode: 'définir le mode XR sur %1',
+  set_xr_view_mode: 'définir la vue RV sur %1 avec mouvement de caméra %2',
+  set_ar_scene_size: 'scène RA échelle : %1 cm distance : %2 cm hauteur : %3 cm', // ai
+  set_xr_ui_placement: "afficher l'interface RV sur %1", // ai
+  add_teleport_target: 'ajouter la cible de téléportation %1',
+  remove_teleport_target: 'retirer la cible de téléportation %1',
   play_rumble_pattern: 'jouer le motif de vibration %1',
   controller_rumble: 'faire vibrer le moteur %1 à force %2 pendant %3 ms',
   controller_rumble_pattern: 'faire vibrer le moteur %1 force %2 allumé %3 ms éteint %4 ms %5 fois',
@@ -358,22 +399,20 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene blocks
-  set_sky_color_tooltip: 'Définir la couleur du ciel de la scène.\nMot-clé: sky',
-  create_ground_tooltip:
-    'Ajouter un plan de sol avec collisions activées à la scène.\nMot-clé: ground',
-  set_background_color_tooltip:
-    "Définir la couleur d'arrière-plan de la scène.\nMot-clé: background",
-  create_map_tooltip: 'Créer une carte avec le nom et le matériau sélectionnés.\nMot-clé: map',
-  show_tooltip: "Afficher l'objet sélectionné.\nMot-clé: show",
-  hide_tooltip: "Cacher l'objet sélectionné.\nMot-clé: hide",
-  dispose_tooltip: "Supprimer l'objet spécifié de la scène.\nMot-clé: dispose",
-  clone_mesh_tooltip: "Cloner un objet et l'assigner à une variable.\nMot-clé: clone",
+  set_sky_color_tooltip: 'Définir la couleur du ciel de la scène.',
+  create_ground_tooltip: 'Ajouter un plan de sol avec collisions activées à la scène.',
+  set_background_color_tooltip: "Définir la couleur d'arrière-plan de la scène.",
+  create_map_tooltip: 'Créer une carte avec le nom et le matériau sélectionnés.',
+  show_tooltip: "Afficher l'objet sélectionné.",
+  hide_tooltip: "Cacher l'objet sélectionné.",
+  dispose_tooltip: "Supprimer l'objet spécifié de la scène.",
+  clone_mesh_tooltip: "Cloner un objet et l'assigner à une variable.",
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Créer un personnage configurable.\nMot-clé: character',
-  load_object_tooltip: 'Créer un objet.\nMot-clé: object',
-  load_multi_object_tooltip: 'Créer un objet avec des couleurs.\nMot-clé: object',
-  load_model_tooltip: 'Charger un modèle.\nMot-clé: model',
+  load_character_tooltip: 'Créer un personnage configurable.',
+  load_object_tooltip: 'Créer un objet.',
+  load_multi_object_tooltip: 'Créer un objet avec des couleurs.',
+  load_model_tooltip: 'Charger un modèle.',
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -381,7 +420,7 @@ export default {
   glide_to_seconds_tooltip:
     'Glisser vers une position spécifiée sur une durée avec des options pour inverser, boucler et appliquer une accélération.',
   glide_to_object_tooltip:
-    'Glisser vers la position d’une autre forme avec des décalages x/y/z optionnels (0 par défaut) et des options d’inversion, de boucle et d’accélération.',
+    'Glisser jusqu’à un objet, près de lui du côté où tu es déjà, ou contre l’un de ses côtés, par exemple au-dessus de. Un écart laisse de l’espace devant le côté ou s’arrête avant l’objet. Avec des options d’inversion, de boucle et d’accélération.', // ai
   glide_to_axis_tooltip:
     "Glisser le long d'un axe (X, Y ou Z) vers une valeur cible. Les deux autres axes sont fixés à la position actuelle de l'objet (ancre prise en compte). Mêmes options que le bloc de glissement standard.",
   rotate_anim_tooltip:
@@ -401,133 +440,133 @@ export default {
   control_animation_group_tooltip:
     "Contrôler le groupe d'animation en le lançant, en le mettant en pause ou en l'arrêtant.",
   animate_from_tooltip: 'Commencer à animer le groupe depuis le temps spécifié (en secondes).',
-  stop_animations_tooltip:
-    "Arrêter toutes les animations d'images clés sur la forme sélectionnée.\nMot-clé: stop",
-  switch_animation_tooltip:
-    "Changer l'animation de la forme spécifiée vers l'animation donnée.\nMot-clé: switch",
-  play_animation_tooltip:
-    "Lancer l'animation sélectionnée une fois sur la forme spécifiée.\nMot-clé: play",
+  stop_animations_tooltip: "Arrêter toutes les animations d'images clés sur la forme sélectionnée.",
+  switch_animation_tooltip: "Changer l'animation de la forme spécifiée vers l'animation donnée.",
+  play_animation_tooltip: "Lancer l'animation sélectionnée une fois sur la forme spécifiée.",
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Crée un vecteur avec des coordonnées X, Y, Z',
+  xyz_tooltip: 'Crée un vecteur avec des coordonnées X, Y, Z.',
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Associer une touche spécifique à une action de contrôle de la caméra.',
   camera_follow_tooltip:
-    'Faire suivre un objet par la caméra avec une distance (rayon) personnalisable par rapport à la cible.\nMot-clé: follow',
-  get_camera_tooltip: 'Obtenir la caméra actuelle de la scène',
+    'Faire suivre un objet par la caméra avec une distance (rayon) personnalisable par rapport à la cible.',
+  get_camera_tooltip: 'Obtenir la caméra actuelle de la scène.',
+  create_fly_camera_tooltip: 'Ajoute une caméra avec laquelle vous pouvez voler. Elle regarde dans la direction de son cadre.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Ajoute une caméra qui suit un objet. Le joueur peut la tourner autour de l’objet.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Ajoute une caméra qui tourne autour d’un objet. Glissez pour tourner et faites défiler pour zoomer.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Passer la vue sur une caméra.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    "Fusionner une liste d'objets en un seul et stocker le résultat.\nMot-clé: merge",
+  merge_meshes_tooltip: "Fusionner une liste d'objets en un seul et stocker le résultat.",
   subtract_meshes_tooltip:
-    "Soustraire une liste d'objets d’un objet de base et stocker le résultat.\nMot-clé: subtract",
-  intersection_meshes_tooltip:
-    "Intersecter une liste d'objets et stocker la géométrie résultante.\nMot-clé: intersect",
+    "Soustraire une liste d'objets d’un objet de base et stocker le résultat.",
+  embed_meshes_tooltip:
+    "Découpe une liste d'objets dans un objet de base et stocke le résultat. Les objets sont conservés.",
+  intersection_meshes_tooltip: "Intersecter une liste d'objets et stocker la géométrie résultante.",
   hull_meshes_tooltip:
-    "Créer une enveloppe convexe à partir d’une liste d'objets et stocker le résultat.\nMot-clé: hull",
+    "Créer une enveloppe convexe à partir d’une liste d'objets et stocker le résultat.",
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde\nMot-clé: parent",
+    "Définit une relation parent-enfant entre deux objets et maintient l'enfant dans sa position dans le monde.",
+  parent_children_tooltip:
+    "Définit une relation parent-enfant entre un objet et une liste d'enfants en maintenant chaque enfant dans sa position dans le monde.",
   parent_child_tooltip:
-    'Définit une relation parent-enfant entre deux objets avec un décalage spécifié dans les directions x, y et z.\nMot-clé: child',
-  remove_parent_tooltip: "Supprime la relation de parenté de l'objet spécifié.\nMot-clé: unparent",
-  stop_follow_tooltip: "Arrête l'objet spécifié de suivre un autre.\nMot-clé: stopfollow",
+    'Définit une relation parent-enfant entre deux objets avec un décalage spécifié dans les directions x, y et z.',
+  remove_parent_tooltip: "Supprime la relation de parenté de l'objet spécifié.",
+  stop_follow_tooltip: "Arrête l'objet spécifié de suivre un autre.",
   hold_tooltip:
-    'Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.\nMot-clé: hold',
-  drop_tooltip: 'Détache un objet de l’os auquel il est actuellement attaché.\nMot-clé: drop',
+    'Attache un objet à l’os spécifié d’un autre objet avec un décalage défini en x, y et z.',
+  drop_tooltip: 'Détache un objet de l’os auquel il est actuellement attaché.',
   follow_tooltip:
-    'Fait en sorte qu’un objet suive un autre à une position spécifiée (haut, centre ou bas) avec un décalage en x, y et z.\nMot-clé: follow',
-  export_mesh_tooltip: 'Exporte un objet au format STL, OBJ ou GLB.\nMot-clé: export',
+    'Fait en sorte qu’un objet suive un autre : à sa position, en son centre ou au-dessus de lui, déplacé selon le décalage. Il se déplace avec l’autre objet mais ne tourne pas avec lui.', // ai
+  export_mesh_tooltip: 'Exporte un objet au format STL, OBJ ou GLB.',
 
   // Tooltip translations - Control blocks
-  wait_tooltip: 'Attendre pendant un temps spécifié en millisecondes.\nMot-clé: milli',
-  wait_seconds_tooltip: 'Attendre pendant un temps spécifié en secondes.\nMot-clé: wait',
-  wait_until_tooltip: 'Attendre jusqu’à ce que la condition soit vraie.\nMot-clé: until',
+  wait_tooltip: 'Attendre pendant un temps spécifié en millisecondes.',
+  wait_seconds_tooltip: 'Attendre pendant un temps spécifié en secondes.',
+  wait_until_tooltip: 'Attendre jusqu’à ce que la condition soit vraie.',
   local_variable_tooltip:
-    "Créer une version locale d'une variable sélectionnée. Cela masque la variable globale et peut avoir une valeur différente.\nMot-clé: local",
+    "Créer une version locale d'une variable sélectionnée. Cela masque la variable globale et peut avoir une valeur différente.",
   for_loop2_tooltip: 'Boucle d’un nombre de départ à un nombre de fin avec un pas donné.',
   for_loop_tooltip:
-    'Boucle d’un nombre de départ à un nombre de fin avec un pas donné. Cliquez sur le menu déroulant pour obtenir la variable de boucle à utiliser dans votre code.\nMot-clé: for',
-  get_lexical_variable_tooltip: 'Obtenir la valeur d’une variable lexicale',
+    'Boucle d’un nombre de départ à un nombre de fin avec un pas donné. Cliquez sur le menu déroulant pour obtenir la variable de boucle à utiliser dans votre code.',
+  get_lexical_variable_tooltip: 'Obtenir la valeur d’une variable lexicale.',
 
   // Tooltip translations - Effects blocks
-  main_light_tooltip: "Définit l'intensité de la lumière principale.\nMot-clé: light intensity",
+  main_light_tooltip: "Définit l'intensité de la lumière principale.",
   set_fog_tooltip:
-    'Configure le brouillard de la scène. Utilisez début et fin pour définir les distances proche et lointaine.\nMot-clé: fog',
-  get_light_tooltip: 'Obtenir la lumière principale de la scène actuelle.\nMot-clé: light',
+    'Configure le brouillard de la scène. Utilisez début et fin pour définir les distances proche et lointaine.',
+  get_light_tooltip: 'Obtenir la lumière principale de la scène actuelle.',
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    "Exécute les blocs à l'intérieur au démarrage du projet. Vous pouvez avoir plusieurs blocs de démarrage.\nMot-clé: start",
-  forever_tooltip:
-    'Exécute les blocs à chaque image ou lorsque l’itération précédente se termine.\nMot-clé: forever',
+    "Exécute les blocs à l'intérieur au démarrage du projet. Vous pouvez avoir plusieurs blocs de démarrage.",
+  forever_tooltip: 'Exécute les blocs à chaque image ou lorsque l’itération précédente se termine.',
   when_clicked_tooltip:
-    "Exécute les blocs à l’intérieur lorsque le déclencheur de l'objet se produit.\nMot-clé: click",
+    "Exécute les blocs à l’intérieur lorsque le déclencheur de l'objet se produit.",
   on_collision_tooltip:
-    "Exécute les blocs à l’intérieur lorsque l'objet entre ou sort en collision avec un autre objet.\nMot-clé: collide",
+    "Exécute les blocs à l’intérieur lorsque l'objet entre ou sort en collision avec un autre objet.",
   when_key_event_tooltip:
     'Exécute les blocs à l’intérieur lorsque la touche spécifiée est appuyée ou relâchée.',
   when_action_event_tooltip:
     'Exécute les blocs à l’intérieur lorsque l’action choisie est appuyée ou relâchée (clavier, tactile ou XR).',
-  broadcast_event_tooltip: "Diffuse un événement qui est reçu par 'on event'.\nMot-clé: broadcast",
-  on_event_tooltip: 'Exécute le code lorsqu’un événement diffusé est reçu.\nMot-clé: on',
+  broadcast_event_tooltip: "Diffuse un événement qui est reçu par 'on event'.",
+  on_event_tooltip: 'Exécute le code lorsqu’un événement diffusé est reçu.',
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: "Change la couleur de l'objet sélectionné.\nMot-clé: color",
+  change_color_tooltip: "Change la couleur de l'objet sélectionné.",
   change_material_tooltip:
-    "Applique un matériau sélectionné avec une teinte de couleur à l'objet spécifié.\nMot-clé: material",
+    "Applique un matériau sélectionné avec une teinte de couleur à l'objet spécifié.",
   text_material_tooltip:
     'Crée un matériau avec du texte ou un emoji, en spécifiant la largeur, la hauteur, la couleur de fond et la taille du texte.',
   place_decal_tooltip: 'Place une décalcomanie sur un objet à l’aide du matériau sélectionné.',
   decal_tooltip: 'Crée une décalcomanie sur un objet avec position, normale, taille et matériau.',
-  highlight_tooltip: "Met en surbrillance l'objet sélectionné.\nMot-clé: highlight",
-  glow_tooltip: "Ajoute un effet de lueur à l'objet sélectionné.\nMot-clé: glow",
-  tint_tooltip: 'Ajoute un effet de teinte colorée.\nMot-clé: tint',
+  highlight_tooltip: "Met en surbrillance l'objet sélectionné.",
+  glow_tooltip: "Ajoute un effet de lueur à l'objet sélectionné.",
+  tint_tooltip: 'Ajoute un effet de teinte colorée.',
   set_alpha_tooltip:
-    "Définit l'opacité (alpha) du ou des matériaux sur un objet spécifié. Les valeurs doivent être entre 0 et 1.\nMot-clé: alpha",
-  clear_effects_tooltip: "Efface les effets visuels de l'objet sélectionné.\nMot-clé: clear",
-  colour_tooltip: 'Choisir une couleur.\nMot-clé: color',
-  skin_colour_tooltip: 'Choisir une couleur de peau.\nMot-clé: skin',
-  greyscale_colour_tooltip:
-    "Choisir une couleur en niveaux de gris pour l'élévation.\nMot-clé: grey",
-  random_colour_tooltip: 'Génère une couleur aléatoire.\nMot-clé: randcol',
-  material_tooltip: 'Définit les propriétés du matériau',
-  gradient_material_tooltip: 'Définit les propriétés du matériau',
+    "Définit l'opacité (alpha) du ou des matériaux sur un objet spécifié. Les valeurs doivent être entre 0 et 1.",
+  clear_effects_tooltip: "Efface les effets visuels de l'objet sélectionné.",
+  colour_tooltip: 'Choisir une couleur.',
+  skin_colour_tooltip: 'Choisir une couleur de peau.',
+  greyscale_colour_tooltip: "Choisir une couleur en niveaux de gris pour l'élévation.",
+  random_colour_tooltip: 'Génère une couleur aléatoire.',
+  material_tooltip: 'Définit les propriétés du matériau.',
+  gradient_material_tooltip: 'Définit les propriétés du matériau.',
   set_material_tooltip: "Définit le matériau spécifié sur l'objet donné.",
 
   // Tooltip translations - Physics blocks
   add_physics_tooltip:
-    "Ajoute la physique à l'objet. Les options sont dynamique, statique, animée et aucune.\nMot-clé: physics",
+    "Ajoute la physique à l'objet. Les options sont dynamique, statique, animée et aucune.",
   add_physics_shape_tooltip:
-    "Ajoute une forme physique à l'objet. Les options sont objet ou capsule.\nMot-clé: physics",
-  apply_force_tooltip:
-    'Applique une force à un objet selon les directions X, Y et Z.\nMot-clé: force',
+    "Ajoute une forme physique à l'objet. Les options sont objet ou capsule.",
+  apply_force_tooltip: 'Applique une force à un objet selon les directions X, Y et Z.',
   show_physics_tooltip:
-    'Afficher ou masquer les colliders physiques pour le débogage. Cochez pour afficher, décochez pour masquer.\nMot-clé: debug physics collider',
+    'Afficher ou masquer les colliders physiques pour le débogage. Cochez pour afficher, décochez pour masquer.',
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip: 'Renvoie vrai si la touche spécifiée est enfoncée.\nMot-clé: ispressed',
+  key_pressed_tooltip: 'Renvoie vrai si la touche spécifiée est enfoncée.',
   action_pressed_tooltip:
     'Renvoie vrai si le contrôle de déplacement ou d’action choisi est actif sur clavier, tactile ou XR.',
   set_action_key: 'définir la touche %1 sur %2',
   set_action_key_tooltip:
     'Définit la touche qui déclenche une action spécifique (avant, arrière, gauche, droite ou boutons).',
-  meshes_touching_tooltip:
-    'Renvoie vrai si les deux objets sélectionnés se touchent.\nMot-clé: istouching',
-  time_tooltip: 'Renvoie le temps écoulé. Se met en pause quand l\'onglet est masqué, idéal pour les minuteurs et comptes à rebours.', // ai
+  meshes_touching_tooltip: 'Renvoie vrai si les deux objets sélectionnés se touchent.',
+  time_tooltip:
+    "Renvoie le temps écoulé. Se met en pause quand l'onglet est masqué, idéal pour les minuteurs et comptes à rebours.", // ai
   ground_level_tooltip: 'Renvoie la hauteur du sol à la position x/z actuelle.',
   distance_to_tooltip: 'Calcule la distance entre deux objets.',
-  touching_surface_tooltip: "Vérifie si l'objet touche une surface.\nMot-clé: surface",
+  touching_surface_tooltip: "Vérifie si l'objet touche une surface.",
   mesh_exists_tooltip: "Renvoie vrai si l'objet portant ce nom est présent dans la scène.",
-  get_property_tooltip: 'Obtient la valeur de la propriété sélectionnée d’un objet.\nMot-clé: get',
-  canvas_controls_tooltip:
-    'Ajoute ou supprime les contrôles de mouvement de la toile.\nMot-clé: canvas',
+  get_property_tooltip: 'Obtient la valeur de la propriété sélectionnée d’un objet.',
+  canvas_controls_tooltip: 'Ajoute ou supprime les contrôles de mouvement de la toile.',
   interact_indicator_tooltip:
-    "Affiche ou masque l'indicateur d'interaction à côté des objets proches.\nMot-clé: indicator",
-  button_controls_tooltip: 'Configure les contrôles par boutons.\nMot-clé: button',
-  on_screen_controls_tooltip: "Configure les contrôles à l'écran.\nMot-clé: onscreen", // ai
+    "Affiche ou masque l'indicateur d'interaction à côté des objets proches.",
+  button_controls_tooltip: 'Configure les contrôles par boutons.',
+  on_screen_controls_tooltip:
+    'Configure les commandes du joueur dessinées sur la toile. Auto suit le réglage du panneau Outils.', // ai
   microbit_input_tooltip:
     'Exécute les blocs à l’intérieur lorsqu’un événement micro:bit spécifié est déclenché.',
   ui_slider_tooltip: 'Ajoute un curseur UI 2D et stocke sa référence dans une variable.',
@@ -537,44 +576,46 @@ export default {
     'Crée un effet de particules attaché à un objet avec forme, gravité, taille, couleur, transparence, durée de vie, force et rotation configurables.',
   control_particle_system_tooltip:
     'Contrôle le système de particules en le démarrant, l’arrêtant ou le réinitialisant.',
-  create_box_tooltip:
-    'Crée une boîte colorée avec des dimensions et une position spécifiées.\nMot-clé: box',
-  create_sphere_tooltip:
-    'Crée une sphère colorée avec des dimensions et une position spécifiées.\nMot-clé: sphere',
+  create_box_tooltip: 'Crée une boîte colorée avec des dimensions et une position spécifiées.',
+  create_sphere_tooltip: 'Crée une sphère colorée avec des dimensions et une position spécifiées.',
   create_cylinder_tooltip:
-    'Crée un cylindre coloré avec des dimensions et une position spécifiées.\nMot-clé: cylinder',
+    'Crée un cylindre coloré avec des dimensions et une position spécifiées.',
   create_capsule_tooltip:
-    'Crée une capsule colorée avec des dimensions et une position spécifiées.\nMot-clé: capsule',
-  create_plane_tooltip:
-    'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.\nMot-clé: plane',
+    'Crée une capsule colorée avec des dimensions et une position spécifiées.',
+  create_wedge_tooltip:
+    'Ajoute un coin — un prisme triangulaire pour construire des rampes, des pentes et des toits. Change le sommet pour changer la forme : 0 donne une rampe, 0.5 un toit.', // ai
+  create_donut_tooltip:
+    'Ajoute une forme de donut. Extérieur et intérieur sont les diamètres du donut et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. Les côtés définissent sa douceur.', // ai
+  create_ring_tooltip:
+    'Ajoute un anneau à bords plats, comme une rondelle ou un tuyau. Extérieur et intérieur sont les diamètres de l’anneau et du trou ; modifier l’intérieur ou l’épaisseur met l’autre à jour. La hauteur définit sa hauteur et les côtés sa douceur.', // ai
+  create_plane_tooltip: 'Crée un plan 2D coloré avec largeur, hauteur et position spécifiées.',
+  create_marker_tooltip:
+    'Ajoute un marqueur : un point invisible pour placer des objets. Coche modifier pour voir le marqueur et le déplacer avec les gizmos. Un marqueur n’est jamais visible en mode jeu.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
-  play_theme_tooltip:
-    'Joue un thème musical sur un objet avec vitesse, volume et mode réglables.\nMot-clé: theme',
+  play_theme_tooltip: 'Joue un thème musical sur un objet avec vitesse, volume et mode réglables.',
   play_sound_tooltip:
-    'Joue le son sélectionné sur un objet avec vitesse, volume et mode réglables.\nMot-clé: sound',
-  stop_all_sounds_tooltip:
-    'Arrête tous les sons en cours de lecture dans la scène.\nMot-clé: nosound',
+    'Joue le son sélectionné sur un objet avec vitesse, volume et mode réglables.',
+  stop_all_sounds_tooltip: 'Arrête tous les sons en cours de lecture dans la scène.',
   midi_note_tooltip: 'Une valeur de note MIDI comprise entre 0 et 127.',
   rest_tooltip: 'Un silence (pause) dans une séquence musicale.',
   play_notes_tooltip:
     'Joue une séquence de notes MIDI et de silences avec des durées correspondantes, en utilisant un objet pour le panoramique. Peut retourner immédiatement ou après la fin des notes.',
-  set_scene_bpm_tooltip: 'Définit le BPM pour toute la scène',
-  set_mesh_bpm_tooltip: 'Définit le BPM pour un objet sélectionné',
+  set_scene_bpm_tooltip: 'Définit le BPM pour toute la scène.',
+  set_mesh_bpm_tooltip: 'Définit le BPM pour un objet sélectionné.',
   create_instrument_tooltip: 'Crée un instrument et l’assigne à la variable sélectionnée.',
   instrument_tooltip: 'Sélectionner un instrument pour jouer des notes.',
   speak_tooltip:
-    'Convertit du texte en parole avec l’API Web Speech et un positionnement 3D optionnel.\nMot-clé: speak',
-  enable_subtitles_tooltip:
-    'Affiche des sous-titres à l’écran pour le texte parlé.\nMot-clé: subtitles', // ai
+    'Convertit du texte en parole avec l’API Web Speech et un positionnement 3D optionnel.',
+  enable_subtitles_tooltip: 'Affiche des sous-titres à l’écran pour le texte parlé.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Une ligne de commentaire pour aider à comprendre le code.',
-  print_text_tooltip: 'Affiche un texte dans le panneau de sortie.\nMot-clé: print',
-  subtitle_tooltip: 'Affiche le texte en sous-titre à l’écran. 0 seconde reste jusqu’au suivant.\nMot-clé: subtitle', // ai
-  say_tooltip: 'Affiche un texte comme bulle de dialogue sur un objet.\nMot-clé: say',
+  print_text_tooltip: 'Affiche un texte dans le panneau de sortie.',
+  subtitle_tooltip: 'Affiche le texte en sous-titre à l’écran. 0 seconde reste jusqu’au suivant.', // ai
+  say_tooltip: 'Affiche un texte comme bulle de dialogue sur un objet.',
   describe_tooltip:
-    "Définir le nom d'affichage d'un objet. Met à jour les métadonnées pour l'accessibilité.\nMot-clé: describe",
+    "Définir le nom d'affichage d'un objet. Met à jour les métadonnées pour l'accessibilité.",
   ui_text_tooltip:
     'Ajoute un texte à l’interface utilisateur et stocke le contrôle dans une variable pour une utilisation ultérieure.',
   ui_button_tooltip:
@@ -584,60 +625,56 @@ export default {
   create_3d_text_tooltip: 'Crée du texte 3D dans la scène.',
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip: 'Génère un entier aléatoire avec une graine.\nMot-clé: seed',
+  random_seeded_int_tooltip: 'Génère un entier aléatoire avec une graine.',
   to_number_tooltip: 'Convertit une chaîne en entier ou en nombre flottant.',
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip: "Déplace un objet d'une certaine valeur selon X, Y et Z.\nMot-clé: move",
-  move_by_xyz_single_tooltip:
-    'Déplacer un objet d’un montant donné sur l’axe x, y ou z.\nMot-clé: move',
-  move_to_xyz_tooltip:
-    "Téléporte l'objet aux coordonnées données. Utilise l’axe Y en option.\nMot-clé: moveby",
-  move_to_xyz_single_tooltip:
-    "Téléporter l'objet vers la coordonnée unique indiquée.\nMot-clé: moveby",
-  move_to_tooltip: 'Téléporte le premier objet à l’emplacement du second.\nMot-clé: moveto',
+  move_by_xyz_tooltip: "Déplace un objet d'une certaine valeur selon X, Y et Z.",
+  move_by_xyz_single_tooltip: 'Déplacer un objet d’un montant donné sur l’axe x, y ou z.',
+  move_to_xyz_tooltip: "Téléporte l'objet aux coordonnées données.",
+  move_to_xyz_single_tooltip: "Téléporter l'objet vers la coordonnée unique indiquée.",
+  move_to_tooltip:
+    'Place le premier objet sur le second ou contre l’un de ses côtés, puis le décale. Les côtés et le décalage suivent la rotation du second objet.', // ai
   scale_tooltip:
-    'Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: scale',
+    'Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.',
   resize_tooltip:
-    'Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.\nMot-clé: resize',
-  rotate_model_xyz_tooltip:
-    "Fait tourner l'objet selon les valeurs x, y, z.\nMot-clé: rotate\nMot-clé: rotateby",
-  rotate_to_tooltip: "Fait tourner l'objet pour pointer vers les coordonnées.\nMot-clé: rotateto",
-  look_at_tooltip:
-    'Fait pivoter le premier objet pour regarder vers la position du second.\nMot-clé: look',
+    'Redimensionne un objet aux valeurs x, y, z données, et contrôle l’origine de l’échelle.',
+  rotate_model_xyz_tooltip: "Fait tourner l'objet selon les valeurs x, y, z.",
+  rotate_to_tooltip: "Fait tourner l'objet pour pointer vers les coordonnées.",
+  look_at_tooltip: 'Fait pivoter le premier objet pour regarder vers la position du second.',
   move_forward_tooltip:
-    "Déplace l'objet dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.\nMot-clé: push",
+    "Déplace l'objet dans la direction spécifiée. 'Forward' le fait avancer, 'sideways' le fait se déplacer par rapport à la caméra, 'strafe' le fait se déplacer latéralement.",
   rotate_camera_tooltip:
-    'Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.\nMot-clé: rotate',
-  up_tooltip: 'Applique la force vers le haut spécifiée.\nMot-clé: up',
-  set_pivot_tooltip:
-    'Définit le point d’ancrage d’un objet selon les axes X, Y et Z\nMot-clé: ancre',
-  min_centre_max_tooltip: 'Choisit min, centre ou max comme point de pivot\nMot-clé: minmax',
+    'Fait pivoter la caméra vers la gauche ou la droite du nombre de degrés indiqué.',
+  up_tooltip: 'Applique la force vers le haut spécifiée.',
+  set_anchor_tooltip: 'Définit le point d’ancrage d’un objet selon les axes X, Y et Z.',
+  set_pivot_tooltip: 'Définit le point autour duquel un objet tourne. L’objet reste à sa place.',
+  min_centre_max_tooltip: 'Choisit min, centre ou max comme point de pivot.',
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
     'Utilise la caméra de l’appareil comme arrière-plan pour la scène. Fonctionne sur mobile et ordinateur.',
-  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nOptions: VR, AR, Magic Window.',
+  set_xr_mode_tooltip: 'Définit le mode XR pour la scène.\nCasque VR : ne démarre que sur un casque, l\'ordinateur et le téléphone jouent le projet normalement.\nCasque VR ou téléphone : propose aussi la VR sur téléphone avec un viewer en carton.\nRA : place la scène dans la pièce.\nFenêtre magique : regardez autour en bougeant le téléphone ; un casque obtient la VR.\nLunettes rouge/cyan : 3D sur tout écran en vue de jeu.', // ai
   play_rumble_pattern_tooltip:
-    'Joue un motif de vibration prédéfini sur toutes les manettes connectées.\nMot-clé: rumble preset',
+    'Joue un motif de vibration prédéfini sur toutes les manettes connectées.',
   controller_rumble_tooltip:
-    'Fait vibrer une manette de jeu connectée. Choisissez le moteur tous, gauche ou droite, définissez la force (0 à 1) et la durée en millisecondes.\nMot-clé: rumble',
+    'Fait vibrer une manette de jeu connectée. Choisissez le moteur tous, gauche ou droite, définissez la force (0 à 1) et la durée en millisecondes.',
   controller_rumble_pattern_tooltip:
-    'Fait vibrer une manette de jeu en motif répété. Définissez le moteur, la force (0 à 1), le temps allumé, le temps éteint et le nombre de répétitions.\nMot-clé: rumble pattern',
+    'Fait vibrer une manette de jeu en motif répété. Définissez le moteur, la force (0 à 1), le temps allumé, le temps éteint et le nombre de répétitions.',
 
   // Dropdown option translations
   AWAIT_option: 'attendre',
   START_option: 'démarrer',
   CREATE_option: 'créer',
 
-  Linear_option: 'Linéaire',
-  SineEase_option: 'Sine Facile',
-  CubicEase_option: 'Cubic Facile',
-  QuadraticEase_option: 'Quadratic Facile',
-  ExponentialEase_option: 'Exponential Facile',
-  BounceEase_option: 'Rebond Facile',
-  ElasticEase_option: 'Élastique Facile',
-  BackEase_option: 'Retour Facile',
+  Linear_option: 'linéaire',
+  SineEase_option: 'sine facile',
+  CubicEase_option: 'cubic facile',
+  QuadraticEase_option: 'quadratic facile',
+  ExponentialEase_option: 'exponential facile',
+  BounceEase_option: 'rebond facile',
+  ElasticEase_option: 'élastique facile',
+  BackEase_option: 'retour facile',
   TOWARDS_option: 'towards',
   SAME_ROTATION_option: 'same rotation as',
 
@@ -645,11 +682,11 @@ export default {
   EASEOUT_option: 'décélération',
   EASEINOUT_option: 'accélération-décélération',
 
-  play_option: '▶️ Jouer',
-  pause_option: '⏸️ Pause',
-  stop_option: '⏹️ Arrêter',
-  start_option: '▶️ Démarrer',
-  reset_option: '🔄 Réinitialiser',
+  play_option: '▶️ jouer',
+  pause_option: '⏸️ pause',
+  stop_option: '⏹️ arrêter',
+  start_option: '▶️ démarrer',
+  reset_option: '🔄 réinitialiser',
 
   diffuseColor_option: 'couleur diffuse',
   emissiveColor_option: 'couleur émissive',
@@ -670,14 +707,14 @@ export default {
   scaling_y_option: 'échelle.y',
   scaling_z_option: 'échelle.z',
 
-  rotateLeft_option: 'Tourner à gauche',
-  rotateRight_option: 'Tourner à droite',
-  rotateUp_option: 'Regarder en haut',
-  rotateDown_option: 'Regarder en bas',
-  moveUp_option: 'Se déplacer vers le haut',
-  moveDown_option: 'Se déplacer vers le bas',
-  moveLeft_option: 'Se déplacer à gauche',
-  moveRight_option: 'Se déplacer à droite',
+  rotateLeft_option: 'tourner à gauche',
+  rotateRight_option: 'tourner à droite',
+  rotateUp_option: 'regarder en haut',
+  rotateDown_option: 'regarder en bas',
+  moveUp_option: 'se déplacer vers le haut',
+  moveDown_option: 'se déplacer vers le bas',
+  moveLeft_option: 'se déplacer à gauche',
+  moveRight_option: 'se déplacer à droite',
 
   _65_option: 'A ◁',
   _68_option: 'D',
@@ -707,17 +744,28 @@ export default {
   strafe_option: 'déplacement latéral',
   MIN_option: 'min',
   MAX_option: 'max',
+  PLACE_AT_option: 'à', // ai
+  PLACE_TO_option: 'vers', // ai
+  PLACE_CENTER_option: 'au centre de', // ai
+  PLACE_TO_CENTER_option: 'au centre de', // ai
+  PLACE_ON_TOP_option: 'au-dessus de', // ai
+  PLACE_UNDER_option: 'sous', // ai
+  PLACE_LEFT_option: 'à gauche de', // ai
+  PLACE_RIGHT_option: 'à droite de', // ai
+  PLACE_FRONT_option: 'devant', // ai
+  PLACE_BEHIND_option: 'derrière', // ai
+  STRAIGHT_option: 'directement', // ai
+  WANDERING_option: 'en flânant', // ai
+  PLACE_NEAR_option: 'près de', // ai
   user_option: 'avant',
   environment_option: 'arrière',
 
-  LINEAR_option: 'Linéaire',
+  LINEAR_option: 'linéaire',
   NONE_option: 'Aucun',
-  EXP_option: 'Exp',
-  EXP2_option: 'Exp2',
+  EXP_option: 'exp',
+  EXP2_option: 'exp2',
 
   OnPickTrigger_option: 'cliqué',
-  OnLeftPickTrigger_option: 'interagir',
-  OnDoublePickTrigger_option: 'double interaction',
   OnPickDownTrigger_option: 'début interaction',
   OnPickUpTrigger_option: 'fin interaction',
 
@@ -774,17 +822,23 @@ export default {
   starts_option: 'démarre',
   ends_option: 'se termine',
 
+  COPY_option: 'copie',
+  LINKED_option: 'lié',
+
   DYNAMIC_option: 'dynamique',
   ANIMATED_option: 'animé',
   STATIC_option: 'statique',
 
   MESH_option: 'objet',
   CAPSULE_option: 'capsule',
+  SPHERE_option: 'sphère',
+  BOX_option: 'boîte',
 
-  FLAT_option: 'Plat',
+  FLAT_option: 'plat',
 
   ANY_option: "n'importe lequel",
   all_option: 'tous',
+  ground_option: 'sol',
   objectGrab_option: 'saisir',
   objectDrop_option: 'lâcher',
   smallCollision_option: 'petit choc',
@@ -797,6 +851,12 @@ export default {
   machineRunning_option: 'machine',
   explosion_option: 'explosion',
   teleport_option: 'téléporter',
+  watch_option: 'observer',
+  embody_option: 'incarner',
+  hud_option: 'affichage tête haute', // ai
+  wrist_option: 'poignet', // ai
+  smooth_option: 'fluide',
+  comfort_option: 'confort',
   space_infinity_option: 'espace ❖',
   q_icon_option: 'Q ■',
   e_icon_option: 'E ✿',
@@ -838,6 +898,7 @@ export default {
 
   BOTH_option: 'les deux',
   ARROWS_option: 'flèches',
+  WASD_option: 'ZQSD',
   ACTIONS_option: 'actions',
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'oui', // ai
@@ -878,30 +939,30 @@ export default {
   LOOP_option: 'boucle',
   everywhere_option: 'partout',
 
-  theme_bright_option: 'Vif',
-  theme_calm_option: 'Calme',
-  theme_electronic_option: 'Électronique',
-  theme_game_option: 'Jeu',
-  theme_medieval_option: 'Médiéval',
-  theme_metal_option: 'Métal',
+  theme_bright_option: 'vif',
+  theme_calm_option: 'calme',
+  theme_electronic_option: 'électronique',
+  theme_game_option: 'jeu',
+  theme_medieval_option: 'médiéval',
+  theme_metal_option: 'métal',
 
-  sound_highDown_option: 'Haut Descendant',
-  sound_highUp_option: 'Haut Montant',
-  sound_laser1_option: 'Laser 1',
-  sound_laser2_option: 'Laser 2',
-  sound_laser3_option: 'Laser 3',
-  sound_lowDown_option: 'Bas Descendant',
-  sound_lowRandom_option: 'Bas Aléatoire',
-  sound_lowThreeTone_option: 'Bas Triple Ton',
-  sound_phaseJump1_option: 'Saut de Phase 1',
-  sound_powerUp1_option: 'Montée en Puissance 1',
-  sound_powerUp2_option: 'Montée en Puissance 2',
-  sound_powerUp3_option: 'Montée en Puissance 3',
-  sound_powerUp4_option: 'Montée en Puissance 4',
-  sound_powerUp5_option: 'Montée en Puissance 5',
-  sound_spaceTrash_option: 'Débris Spatiaux',
-  sound_threeTone1_option: 'Triple Ton 1',
-  sound_threeTone2_option: 'Triple Ton 2',
+  sound_highDown_option: 'haut descendant',
+  sound_highUp_option: 'haut montant',
+  sound_laser1_option: 'laser 1',
+  sound_laser2_option: 'laser 2',
+  sound_laser3_option: 'laser 3',
+  sound_lowDown_option: 'bas descendant',
+  sound_lowRandom_option: 'bas aléatoire',
+  sound_lowThreeTone_option: 'bas triple ton',
+  sound_phaseJump1_option: 'saut de phase 1',
+  sound_powerUp1_option: 'montée en puissance 1',
+  sound_powerUp2_option: 'montée en puissance 2',
+  sound_powerUp3_option: 'montée en puissance 3',
+  sound_powerUp4_option: 'montée en puissance 4',
+  sound_powerUp5_option: 'montée en puissance 5',
+  sound_spaceTrash_option: 'débris spatiaux',
+  sound_threeTone1_option: 'triple ton 1',
+  sound_threeTone2_option: 'triple ton 2',
 
   sine_option: 'sinusoïdal',
   square_option: 'carré',
@@ -914,17 +975,17 @@ export default {
   warble_option: 'gazouillis',
   robot_option: 'robot',
 
-  default_option: 'Instrument par défaut (Sinusoïdal)',
-  piano_option: 'Piano (Carré)',
-  guitar_option: 'Guitare (Dent de scie)',
-  violin_option: 'Violon (Triangle)',
+  default_option: 'instrument par défaut (sinusoïdal)',
+  piano_option: 'piano (carré)',
+  guitar_option: 'guitare (dent de scie)',
+  violin_option: 'violon (triangle)',
 
   female_option: 'féminin',
   male_option: 'masculin',
 
-  en_GB_option: 'Anglais (RU)',
-  en_US_option: 'Anglais (US)',
-  es_option: 'Espagnol', // ai
+  en_GB_option: 'anglais (RU)',
+  en_US_option: 'anglais (US)',
+  es_option: 'espagnol', // ai
 
   ADD_option: 'ajouter',
   REPLACE_option: 'remplacer',
@@ -935,126 +996,189 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans',
 
-  VR_option: 'VR (Oculus Quest ou visionneuse mobile)',
-  AR_option: 'RA (Réalité Augmentée)',
-  MAGIC_WINDOW_option: 'Fenêtre magique (regarder autour)',
+  VR_option: 'casque VR', // ai
+  VR_PHONE_option: 'casque VR ou téléphone', // ai
+  AR_option: 'RA (réalité augmentée)',
+  MAGIC_WINDOW_option: 'fenêtre magique (regarder autour)',
+  RED_CYAN_option: 'lunettes rouge/cyan', // ai
 
-  circular_depression_png_option: 'Creux circulaire',
-  checkerboard_png_option: 'Damier',
-  sloped_plane_png_option: 'Plan incliné',
-  cove_plateau_png_option: 'Plateau en crique',
-  random_hills_png_option: 'Collines aléatoires',
-  diagonal_ridge_png_option: 'Crête diagonale',
-  mixed_heights_png_option: 'Hauteurs mixtes',
-  uneven_terrain_png_option: 'Terrain irrégulier',
+  circular_depression_png_option: 'creux circulaire',
+  checkerboard_png_option: 'damier',
+  sloped_plane_png_option: 'plan incliné',
+  cove_plateau_png_option: 'plateau en crique',
+  random_hills_png_option: 'collines aléatoires',
+  diagonal_ridge_png_option: 'crête diagonale',
+  mixed_heights_png_option: 'hauteurs mixtes',
+  uneven_terrain_png_option: 'terrain irrégulier',
 
-  Idle_option: 'Inactif',
-  Walk_option: 'Marcher',
-  Run_option: 'Courir',
-  Wave_option: 'Saluer',
-  Yes_option: 'Oui',
-  No_option: 'Non',
-  Duck_option: 'Se baisser',
-  Fall_option: 'Tomber',
-  Fly_option: 'Voler',
-  Jump_option: 'Sauter',
-  Flip_option: 'Salto',
-  Dance1_option: 'Danse1',
-  Dance2_option: 'Danse2',
-  Dance3_option: 'Danse3',
-  Dance4_option: 'Danse4',
-  JumpUp_option: 'Sauter vers le haut',
-  JumpIdle_option: 'Saut stationnaire',
-  JumpLand_option: 'Atterrissage',
-  Punch_option: 'Coup de poing',
-  HitReact_option: 'Réaction au coup',
-  Idle_Hold_option: 'Attente immobile',
-  Walk_Hold_option: 'Marche maintenue',
-  Run_Hold_option: 'Course maintenue',
-  Idle_Attack_option: 'Attaque immobile',
-  Walk_Attack_option: 'Attaque en marche',
-  Run_Attack_option: 'Attaque en course',
-  Sit_Down_option: "S'asseoir",
-  Sitting_option: 'Assis',
-  Stand_Up_option: 'Se lever',
-  Wobble_option: 'Osciller',
-  Clap_option: 'Applaudir',
-  Climb_rope_option: 'Grimper à la corde',
+  Idle_option: 'inactif',
+  Walk_option: 'marcher',
+  Run_option: 'courir',
+  Wave_option: 'saluer',
+  Yes_option: 'oui',
+  No_option: 'non',
+  Duck_option: 'se baisser',
+  Fall_option: 'tomber',
+  Fly_option: 'voler',
+  Jump_option: 'sauter',
+  Flip_option: 'salto',
+  Dance1_option: 'danse1',
+  Dance2_option: 'danse2',
+  Dance3_option: 'danse3',
+  Dance4_option: 'danse4',
+  JumpUp_option: 'sauter vers le haut',
+  JumpIdle_option: 'saut stationnaire',
+  JumpLand_option: 'atterrissage',
+  Punch_option: 'coup de poing',
+  HitReact_option: 'réaction au coup',
+  Idle_Hold_option: 'attente immobile',
+  Walk_Hold_option: 'marche maintenue',
+  Run_Hold_option: 'course maintenue',
+  Idle_Attack_option: 'attaque immobile',
+  Walk_Attack_option: 'attaque en marche',
+  Run_Attack_option: 'attaque en course',
+  Sit_Down_option: "s'asseoir",
+  Sitting_option: 'assis',
+  Stand_Up_option: 'se lever',
+  Wobble_option: 'osciller',
+  Clap_option: 'applaudir',
+  Climb_rope_option: 'grimper à la corde',
 
   // HTML translations
   loading_ui: 'Chargement de Flock XR...',
   loading_title_ui: 'Chargement de Flock XR',
   import_project_file_ui: 'Importer un fichier de projet',
 
-  demo_ui: 'Démo',
+  projects_ui: 'Projets',
   new_ui: 'Nouveau',
-  starter_ui: '👋🏽 Débutant',
-  controller_starter_ui: '🎮 Départ avec manette',
-  snow_globe_ui: '❄️ Boule à neige',
-  forest_base_ui: '🌲 Base forestière',
-  character_animation_ui: '🎥 Animation de personnage',
-  cube_art_ui: '🎨 Art en cubes',
-  physics_fun_ui: '👆🏾 Physique amusante',
-  collect_the_gems_ui: '💎 Ramasse les gemmes',
-  water_map_ui: '💧 Carte aquatique',
-  skittles_ui: '🎳 Quilles',
-  beetle_ui: '🎲 Scarabée',
-  roominator_ui: '🛋️ Roominator',
-  ball_pit_ui: '🟠 Piscine à balles',
-  ur_enough_ui: '💗 Tu es suffisant·e !',
-  tallest_buildings_ui: '📊 Plus hauts bâtiments',
-  candy_dash_ui: '🎃 Course aux bonbons',
-  flockenspiel_ui: '🎵 Flockenspiel',
-  pendant_ui: '📿 Pendentif imprimable en 3D',
-  tent_lights_ui: '⛺ Tente de festival',
-  my_place_ui: '🏠 Mon endroit',
-  microbit_monkey_ui: '🐵 Singe micro:bit',
-  tree_jump_ui: '🌳 Saut d’arbre',
-  shape_push_ui: '🔶 Pousser la forme',
-  alien_planet_ui: '👽 Planète alien',
-  boat_trip_ui: '⛵ Boat trip',
-  character_designer_ui: '👚 Créateur de personnages',
+  starter_ui: 'Bienvenue',
+  controller_starter_ui: 'Départ avec manette',
+  snow_globe_ui: 'Boule à neige',
+  forest_base_ui: 'Base forestière',
+  character_animation_ui: 'Animation de personnage',
+  cube_art_ui: 'Art en cubes',
+  physics_fun_ui: 'Physique amusante',
+  collect_the_gems_ui: 'Ramasse les gemmes',
+  water_map_ui: 'Carte aquatique',
+  skittles_ui: 'Quilles',
+  block_tower_ui: 'Tour de blocs',
+  beetle_ui: 'Scarabée',
+  roominator_ui: 'Roominator',
+  ball_pit_ui: 'Piscine à balles',
+  ur_enough_ui: 'Tu es suffisant·e !',
+  tallest_buildings_ui: 'Plus hauts bâtiments',
+  candy_dash_ui: 'Course aux bonbons',
+  flockenspiel_ui: 'Flockenspiel',
+  pendant_ui: 'Pendentif imprimable en 3D',
+  flockxr_keyring_ui: 'Porte-clés Flock XR',
+  tent_lights_ui: 'Tente de festival',
+  my_place_ui: 'Mon endroit',
+  microbit_monkey_ui: 'Singe micro:bit',
+  ar_demo_ui: 'Démo RA',
+  vr_demo_ui: 'Démo RV',
+  tower_of_hanoi_ui: 'Tours de Hanoï',
+  tree_jump_ui: 'Saut d’arbre',
+  shape_push_ui: 'Pousser la forme',
+  alien_planet_ui: 'Planète alien',
+  boat_trip_ui: 'Boat trip',
+  space_scene_ui: 'Scène spatiale',
+  snowman_glide_ui: 'Glissade du bonhomme de neige',
+  pancake_flip_ui: 'Crêpe sautée',
+  backpack_maker_ui: 'Créateur de sac à dos', // AI-generated; needs validation
+  grid_race_ui: 'Course sur grille',
+  escape_room_ui: 'Escape game',
+  toy_finder_ui: 'Chercheur de jouets',
+  birdmerge_ui: "Fusion d'oiseaux",
+  character_designer_ui: 'Créateur de personnages',
 
-  sit_down_ui: '🪑 Assieds-toi',
+  sit_down_ui: 'Assieds-toi',
 
   main_menu_ui: "Ouvrir le menu pour plus d'options",
-  menu_button_sr_label_ui: "Menu",
-  project_submenu_ui: "Projet",
-  project_new_ui: "Nouveau",
-  project_open_ui: "Ouvrir",
-  project_save_ui: "Enregistrer",
-  language_submenu_ui: "Langue",
-  about_submenu_ui: "À propos",
-  hub_submenu_ui: "Hub",
+  menu_button_sr_label_ui: 'Menu',
+  project_submenu_ui: 'Projet',
+  project_new_ui: 'Nouveau',
+  project_open_ui: 'Ouvrir',
+  project_save_ui: 'Enregistrer',
+  tools_submenu_ui: 'Outils',
+  tools_options_tab_ui: 'Options', // ai
+  tools_export_tab_ui: 'Exporter', // ai
+  export_web_page_heading_ui: 'Page web', // ai
+  export_web_page_description_ui: 'Enregistre un seul fichier qui lit ton projet dans un navigateur web.', // ai
+  export_web_page_button_ui: 'Enregistrer comme page web', // ai
+  export_web_zip_button_ui: 'Enregistrer en ZIP web', // ai
+  export_embed_heading_ui: "Code d'intégration", // ai
+  export_embed_description_ui: 'Copie ce code et colle-le dans un autre site web pour y montrer ton projet.', // ai
+  export_embed_copy_button_ui: 'Copier le code', // ai
+  export_hosted_heading_ui: 'Code d’intégration pour un projet hébergé', // ai
+  export_hosted_comment: 'Remplace l’adresse après project= par l’adresse de ton propre fichier de projet, comme un lien raw de GitHub.', // ai
+  export_embed_copied: 'Copié.', // ai
+  export_embed_copy_failed: 'Impossible de copier. Sélectionne le code et copie-le toi-même.', // ai
+  export_web_page_file_description: 'Page web', // ai
+  export_web_zip_file_description: 'Fichier ZIP', // ai
+  tools_capture_tab_ui: 'Capturer', // ai
+  tools_debug_tab_ui: 'Débogage', // ai
+  capture_picture_heading_ui: 'Image', // ai
+  capture_picture_description_ui: 'Enregistre une image de la scène 3D.', // ai
+  capture_picture_button_ui: 'Prendre une photo', // ai
+  capture_include_everything_ui: 'Tout inclure', // ai
+  capture_gif_heading_ui: 'GIF animé', // ai
+  capture_gif_description_ui: 'Enregistre une courte animation qui tourne en boucle, jusqu’à 10 secondes.', // ai
+  capture_gif_button_ui: 'Enregistrer un GIF', // ai
+  capture_video_heading_ui: 'Vidéo', // ai
+  capture_video_description_ui: 'Enregistre une vidéo de la scène 3D, jusqu’à 1 minute.', // ai
+  capture_video_button_ui: 'Enregistrer une vidéo', // ai
+  capture_recording: 'Enregistrement', // ai
+  capture_time_up: 'Le temps est écoulé !', // ai
+  capture_stop_button: 'Arrêter', // ai
+  capture_save_button: 'Enregistrer', // ai
+  capture_making_gif: 'Création de ton GIF…', // ai
+  capture_saving: 'Enregistrement…', // ai
+  capture_saved: 'Enregistré !', // ai
+  capture_picture_saved: 'Image enregistrée.', // ai
+  capture_failed: 'Désolé, ça n’a pas marché.', // ai
+  capture_picture_file_description: 'Image PNG', // ai
+  capture_gif_file_description: 'Animation GIF', // ai
+  capture_video_file_description: 'Vidéo', // ai
+  fps_option_ui: 'Fréquence d’images', // ai
+  physics_shapes_option_ui: 'Afficher les formes physiques', // ai
+  physics_shapes_note_ui: 'Désactivez puis réactivez pour actualiser', // ai
+  inspector_tool_ui: 'Inspecteur',
+  player_controls_option_ui: 'Commandes du joueur', // ai
+  gizmo_controls_option_ui: 'Commandes de manipulation', // ai
+  portrait_canvas_option_ui: 'Toile en portrait (9:16)', // ai
+  close_tools_ui: 'Fermer les outils', // ai
+  show_block_hints_ui: 'Afficher les astuces des blocs',
+  hide_block_hints_ui: 'Masquer les astuces des blocs',
+  language_submenu_ui: 'Langue',
+  about_submenu_ui: 'À propos',
+  hub_submenu_ui: 'Hub',
 
-  theme_submenu_ui: "Thème",
-  light_theme_ui: "Clair",
-  dark_theme_ui: "Sombre",
-  contrast_theme_ui: "Contraste",
-  low_vision_theme_ui: "Basse vision",
+  theme_submenu_ui: 'Thème',
+  light_theme_ui: 'Clair',
+  dark_theme_ui: 'Sombre',
+  contrast_theme_ui: 'Contraste',
+  low_color_theme_ui: 'Couleur réduite', // ai
 
-  run_code_button_ui: "Exécuter votre code",
-  stop_code_button_ui: "Arrêter votre code",
-  canvas_overlay_play_ui: "Appuyez sur Lecture pour démarrer", // ai
-  open_button_ui: "Ouvrir un projet depuis un fichier sur votre ordinateur",
-  open_file_input_label_ui: "Sélectionnez le fichier projet à ouvrir",
-  export_code_button_ui:
-    "Enregistrer ce projet dans un fichier sur votre ordinateur.",
-  example_select_ui: "Choisir un projet exemple à charger",
-  demo_heading_ui: "Démos", // ai
-  close_demos_ui: "Fermer les démos", // ai
-  examples_cat_start_ui: "Démarrer", // ai
-  examples_cat_games_ui: "Jeux", // ai
-  examples_cat_physics_ui: "Physique", // ai
-  examples_cat_worlds_ui: "Mondes", // ai
-  examples_cat_create_ui: "Créatif", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Exécuter votre code',
+  pause_code_button_ui: 'Mettre votre code en pause', // ai
+  unpause_code_button_ui: 'Enlever la pause de votre code', // ai
+  pause_hint: 'En pause. Votre code est arrêté, mais vous pouvez toujours utiliser les gizmos. Appuyez sur Pause ou {keys} pour enlever la pause de votre code.', // ai
+  open_button_ui: 'Ouvrir un projet depuis un fichier sur votre ordinateur',
+  open_file_input_label_ui: 'Sélectionnez le fichier projet à ouvrir',
+  export_code_button_ui: 'Enregistrer ce projet dans un fichier sur votre ordinateur.',
+  example_select_ui: 'Choisir un projet exemple à charger',
+  close_projects_ui: 'Fermer les projets', // ai
+  examples_cat_games_ui: 'Jeux', // ai
+  examples_cat_physics_ui: 'Physique', // ai
+  examples_cat_worlds_ui: 'Mondes', // ai
+  examples_cat_create_ui: 'Créatif', // ai
+  examples_cat_data_ui: 'Données', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Concevez votre projet",
-  toggle_play_ui: "Utilisez votre projet",
-  fullscreen_toggle_ui: "Basculer entre les vues plein écran et normale.",
+  toggle_play_ui: 'Utilisez votre projet',
+  fullscreen_toggle_ui: 'Basculer entre les vues plein écran et normale.',
 
-  show_shapes_button_ui: "Ajouter des formes et des modèles",
+  show_shapes_button_ui: 'Ajouter des formes et des modèles',
   color_picker_button_ui: "Changer la couleur de l'objet",
   position_button_ui: "Positionner l'objet",
   rotation_button_ui: "Faire pivoter l'objet",
@@ -1062,8 +1186,11 @@ export default {
   select_button_ui: "Sélectionner l'objet",
   duplicate_button_ui: "Dupliquer l'objet sélectionné",
   delete_button_ui: "Supprimer l'objet sélectionné",
+  delete_block_button_ui: 'Supprimer le bloc',
+  duplicate_block_button_ui: 'Dupliquer le bloc',
   camera_button_ui: 'Contrôles de la caméra',
   eye_button_ui: "Orbiter autour de l'objet sélectionné",
+  position_pin_button_ui: "Choisir la position de l'objet sélectionné",
 
   info_panel_link_ui: 'Visiter le site web de Flock XR (ouvre dans un nouvel onglet)',
   skip_to_scene_ui: 'Aller à la scène 3D', // ai
@@ -1100,6 +1227,8 @@ export default {
   toolbox_search_results_aria: 'Résultats de recherche de la boîte à outils.',
   context_delete_option: 'Supprimer',
   context_delete_all_blocks_option: 'Supprimer tous les blocs',
+  context_tidy_workspace_option: 'Ranger',
+  context_cleanup_option: 'Nettoyer',
   context_inline_inputs_option: 'Entrées horizontales',
   context_external_inputs_option: 'Entrées verticales',
   context_collapse_option: 'Réduire',
@@ -1108,6 +1237,10 @@ export default {
   context_expand_all_option: 'Tout développer',
   context_disable_option: 'Désactiver',
   context_enable_option: 'Activer',
+  view_in_canvas: 'Afficher dans le canvas',
+  exit_canvas_view: "Arrêter l'orbite",
+  detach_block_option: 'Détacher',
+  view_in_canvas_option: 'Afficher dans le canvas',
   context_copy_option: 'Copier',
   context_paste_option: 'Coller',
   context_cut_option: 'Couper',
@@ -1128,8 +1261,8 @@ export default {
   redo_performed: 'Rétablissement effectué',
   camera_moving_forward: "Caméra en mouvement vers l'avant",
   camera_moving_backward: "Caméra en mouvement vers l'arrière",
-  camera_moving_left: 'Caméra en mouvement vers la gauche',
-  camera_moving_right: 'Caméra en mouvement vers la droite',
+  camera_turning_left: 'Caméra tournant vers la gauche',
+  camera_turning_right: 'Caméra tournant vers la droite',
   moving_forward: "En mouvement vers l'avant",
   moving_backward: "En mouvement vers l'arrière",
   moving_left: 'En mouvement vers la gauche',
@@ -1138,7 +1271,7 @@ export default {
   snippet_file_description: 'Extrait Flock XR',
   snippet_filename_prompt: "Entrez un nom de fichier pour l'extrait:",
   project_file_description: 'Projet Flock XR',
-  file_too_large_alert: 'Fichier trop volumineux. La taille maximale est de 5 Mo.',
+  file_too_large_alert: 'Ce projet est trop volumineux.', // ai
   invalid_filetype_alert: 'Seuls les fichiers .json ou .flock sont autorisés.',
   invalid_project_alert: "Ce fichier n'est pas un projet Flock XR valide.",
   failed_to_read_file_alert: 'Échec de lecture du fichier.',
@@ -1161,17 +1294,33 @@ export default {
     'Ce navigateur est trop ancien pour exécuter la physique de Flock XR. Mettez à jour votre navigateur si possible.', // ai
   error_physics_unsupported_ios:
     'Flock XR nécessite iOS 16.4 ou une version ultérieure sur cet appareil. Mettez à jour votre iPhone ou iPad si possible.', // ai
-  error_design_mode_offline:
-    'Le mode conception nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
+  error_inspector_offline:
+    'L’inspecteur nécessite une connexion Internet lors de la première utilisation. Connectez-vous à Internet et réessayez.', // ai
+  error_xr_models_offline:
+    'Connectez-vous à Internet pour charger les modèles des manettes et des mains (facultatifs). La XR fonctionne quand même sans eux.', // ai
+  error_chunk_load:
+    "Une partie de Flock n'a pas pu se charger. Vérifiez votre connexion Internet, puis rechargez la page.", // ai
   xr_mode_message: 'Mode XR !',
-  fly_camera_instructions: 'ℹ️ Caméra en vol, utilisez les flèches et Page haut/bas',
+  fly_camera_instructions: 'Regardez autour avec les flèches et Page haut/bas ou Fn + ↑ ↓',
   fly_camera_instructions_touch:
-    "ℹ️ Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
-  select_mesh_delete_prompt: 'ℹ️ Cliquez sur un objet pour le supprimer.',
-  select_mesh_duplicate_prompt: 'ℹ️ Sélectionnez un objet à dupliquer.',
-  place_duplicate_prompt: 'ℹ️ Cliquez pour placer une copie.', // AI-generated; needs validation
-  select_mesh_eye_prompt: "ℹ️ Cliquez sur un objet pour orbiter autour de lui.",
-  place_object_prompt: "ℹ️ Cliquez sur une surface pour placer l'objet.",
+    "Caméra en vol, utilisez les commandes à l'écran et faites glisser pour regarder autour",
+  select_mesh_prompt: 'Sélectionnez un objet, ou utilisez les flèches pour déplacer le curseur.',
+  select_mesh_delete_prompt: 'Cliquez sur un objet pour le supprimer.',
+  select_mesh_position_prompt: "Sélectionne un objet à placer.",
+  select_mesh_duplicate_prompt: 'Sélectionnez un objet à dupliquer.',
+  place_duplicate_prompt: 'Cliquez pour placer une copie.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copie placée.', // AI-generated; needs validation
+  orbit_origin_info: "Glissez pour déplacer la caméra autour de l'origine. Cliquez sur un objet pour orbiter autour de lui.",
+  orbit_mesh_info: "Glissez pour déplacer la caméra autour de l'objet",
+  camera_preview_info: 'Vue à travers la caméra. Cliquez sur le bouton caméra pour revenir.', // AI-generated; needs validation
+  capture_camera_view_label: 'Régler cette caméra sur la vue actuelle', // AI-generated; needs validation
+  select_camera_target_prompt: 'Cliquez sur l’objet que cette caméra doit regarder.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Cette caméra regarde toujours sa cible. Déplacez-la ou utilisez son bouton caméra pour la régler depuis votre vue.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Choisissez d’abord un objet que cette caméra doit regarder : dans son bloc, ou avec son bouton caméra.',
+  view_camera_label: 'Regarder à travers cette caméra', // AI-generated; needs validation
+  place_object_prompt: "Cliquez sur une surface pour placer l'objet.",
   position_readout: 'Position: {position}',
   eyedropper_not_supported_alert:
     'La sélection de couleur est disponible dans Chrome/Edge sur ordinateur.', // ai
@@ -1191,41 +1340,76 @@ export default {
   update_available_ui: 'Une nouvelle version de Flock est disponible.',
   reload_button_ui: 'Recharger',
 
-  colour_rgb: 'rouge %1 vert %2 bleu %3',
-  colour_random: 'couleur aléatoire',
-  colour_blend: 'mélanger %1 et %2 selon %3',
 
   dark_contrast_theme_ui: 'Sombre',
   loading_success_ui: 'Flock XR a été chargé avec succès',
   canvas_accessible_name_ui: '3D scene',
 
   // Attachment point options
-  LeftHand_option: 'Main gauche',
-  RightHand_option: 'Main droite',
-  Head_option: 'Tête',
-  Hips_option: 'Hanches',
-  Spine_option: 'Colonne vertébrale',
-  Spine1_option: 'Colonne 1',
-  Spine2_option: 'Colonne 2',
-  Neck_option: 'Cou',
-  LeftShoulder_option: 'Épaule gauche',
-  LeftArm_option: 'Bras supérieur gauche',
-  LeftForeArm_option: 'Avant-bras gauche',
-  RightShoulder_option: 'Épaule droite',
-  RightArm_option: 'Bras supérieur droit',
-  RightForeArm_option: 'Avant-bras droit',
-  LeftUpLeg_option: 'Cuisse gauche',
-  LeftLeg_option: 'Tibia gauche',
-  LeftFoot_option: 'Pied gauche',
-  RightUpLeg_option: 'Cuisse droite',
-  RightLeg_option: 'Tibia droit',
-  RightFoot_option: 'Pied droit',
+  LeftHand_option: 'main gauche',
+  RightHand_option: 'main droite',
+  Head_option: 'tête',
+  Hips_option: 'hanches',
+  Spine_option: 'colonne vertébrale',
+  Spine1_option: 'colonne 1',
+  Spine2_option: 'colonne 2',
+  Neck_option: 'cou',
+  LeftShoulder_option: 'épaule gauche',
+  LeftArm_option: 'bras supérieur gauche',
+  LeftForeArm_option: 'avant-bras gauche',
+  RightShoulder_option: 'épaule droite',
+  RightArm_option: 'bras supérieur droit',
+  RightForeArm_option: 'avant-bras droit',
+  LeftUpLeg_option: 'cuisse gauche',
+  LeftLeg_option: 'tibia gauche',
+  LeftFoot_option: 'pied gauche',
+  RightUpLeg_option: 'cuisse droite',
+  RightLeg_option: 'tibia droit',
+  RightFoot_option: 'pied droit',
 
   // Workspace toolbar
   toolbar_undo_ui: 'Annuler',
   toolbar_redo_ui: 'Rétablir',
   toolbar_zoom_out_ui: 'Dézoomer',
   toolbar_zoom_in_ui: 'Zoomer',
+  // Player controls panel — title, sections and control names
+  help_panel_title: 'Aide',
+  link_opens_in_new_tab: 's’ouvre dans un nouvel onglet',
+  player_panel_title: 'Commandes du joueur',
+  player_section_onscreen: "Commandes à l'écran",
+  player_section_gamepad: 'Manette de jeu',
+  player_section_sr: "Lecteur d'écran avec manette de jeu",
+  player_action_move: 'Se déplacer',
+  player_action_look: 'Regarder autour',
+  player_action_turn: 'Tourner à gauche / droite',
+  player_action_camera_up: 'Caméra vers le haut / Bouton 1',
+  player_action_interact: 'Interagir / Bouton 2',
+  player_action_camera_down: 'Caméra vers le bas / Bouton 3',
+  player_action_spare: 'Action générale / Bouton 4',
+  player_control_arrows: 'Flèches',
+  player_control_button: 'Bouton %1',
+  player_control_dpad_note:
+    'Sur les manettes sans joystick gauche, la croix directionnelle permet de se déplacer à la place.',
+  player_control_dpad_up: 'Résumé de la scène',
+  player_control_dpad_down: 'Objet devant',
+  player_control_dpad_left: 'Objet le plus proche',
+
+  // Player panel controls
+  player_decrease_font_size: 'Réduire la taille du texte',
+  player_increase_font_size: 'Augmenter la taille du texte',
+
+  // Player control key labels
+  gamepad_left_stick: 'Joystick gauche',
+  gamepad_right_stick: 'Joystick droit',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triangle / Y',
+  gamepad_square_x: 'Carré / X',
+  gamepad_circle_b: 'Cercle / B',
+  gamepad_cross_a: 'Croix / A',
+  dpad_up: 'Haut',
+  dpad_down: 'Bas',
+  dpad_left: 'Gauche',
+
   // Keyboard shortcuts panel — title and close button
   shortcut_panel_title: 'Commandes clavier',
   shortcut_panel_close: 'Fermer les raccourcis clavier',
@@ -1237,6 +1421,7 @@ export default {
   shortcut_confirm: 'Confirmer',
   shortcut_exit: 'Quitter',
   shortcut_play: 'Lancer',
+  shortcut_pause: 'Pause', // ai
   shortcut_undo: 'Annuler',
   shortcut_redo: 'Rétablir',
   shortcut_browser_nav:
@@ -1262,8 +1447,7 @@ export default {
   shortcut_toggle_block_toolbar: "Afficher/masquer la barre d'astuces du bloc",
   shortcut_duplicate_block: 'Dupliquer le bloc',
   shortcut_detach_block: 'Détacher le bloc',
-  shortcut_comment_block: 'Afficher/masquer le commentaire',
-  shortcut_delete_comment: 'Supprimer le commentaire',
+  shortcut_enable_disable_block: 'Activer/désactiver le bloc',
   shortcut_start_move_block: 'Déplacer le bloc',
   shortcut_move_arrows: 'Déplacer : vers une connexion',
   shortcut_move_anywhere: "Déplacer : n'importe où",
@@ -1280,6 +1464,17 @@ export default {
   shortcut_lock_transform: 'Verrouiller la transformation sur un axe',
   shortcut_transform_3d: 'Transformer en 3D',
   shortcut_focus_camera: "Centrer la caméra sur l'objet",
+  shortcut_toggle_hud: 'Afficher/masquer les commandes de manipulation', // ai
+  hud_hidden: 'Commandes de manipulation masquées', // ai
+  hud_shown: 'Commandes de manipulation affichées', // ai
+  ui_control_gizmo_hint: 'Faites-le glisser, ou ses flèches, ou utilisez les touches fléchées (Maj pour de petits pas). Entrée pour terminer.', // ai
+  gizmo_controls_hint:
+    'Affichez ou masquez les commandes de manipulation depuis Menu > Outils.', // ai
+  xr_mode_missing_hint:
+    "Sans bloc mode XR, ce projet ne s'ouvrira pas dans votre casque. Ajoutez-en un depuis Scène > XR.", // ai
+  unknown_block_warning: 'Bloc non reconnu dans cette version de Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Certains blocs ne sont pas reconnus par cette version de Flock XR, ils ont donc été désactivés.', // ai
   shortcut_quick_colour: 'Utiliser rapidement une couleur dans le sélecteur',
   shortcut_delete_object: "Supprimer l'objet",
 

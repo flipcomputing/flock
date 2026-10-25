@@ -1,10 +1,261 @@
+import { clampToRange } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Gradient direction follows CSS linear-gradient: 0 is bottom to top, increasing
+// clockwise, rotating within each mesh's own local XY plane.
+function gradientAxisFor(direction) {
+  const radians = ((Number(direction) || 0) * Math.PI) / 180;
+  return { x: Math.sin(radians), y: Math.cos(radians) };
+}
+
+// The angle is part of a gradient's identity, so it has to reach the material cache key.
+function withGradientDirection(colorKey, direction) {
+  return Number.isFinite(direction) ? `${colorKey}@${direction}` : colorKey;
+}
+
+// Built on first use: the class needs BABYLON, which arrives with the flock ref.
+let gradientPlugin = null;
+
+function gradientPluginClass() {
+  if (gradientPlugin) return gradientPlugin;
+
+  gradientPlugin = class FlockGradientPlugin extends flock.BABYLON.MaterialPluginBase {
+    constructor(material) {
+      super(material, 'FlockGradient', 200, { FLOCK_GRADIENT: true }, true, true);
+      this.colors = [];
+      this.direction = 0;
+      this.ramp = null;
+      this.axis = gradientAxisFor(0);
+    }
+
+    getClassName() {
+      return 'FlockGradientPlugin';
+    }
+
+    prepareDefines(defines) {
+      defines.FLOCK_GRADIENT = true;
+    }
+
+    getSamplers(samplers) {
+      samplers.push('gradientRamp');
+    }
+
+    getActiveTextures(activeTextures) {
+      if (this.ramp) activeTextures.push(this.ramp);
+    }
+
+    hasTexture(texture) {
+      return this.ramp === texture;
+    }
+
+    getUniforms() {
+      return {
+        ubo: [
+          { name: 'gradientAxis', size: 2, type: 'vec2' },
+          { name: 'gradientRange', size: 2, type: 'vec2' },
+        ],
+        fragment: 'uniform vec2 gradientAxis;\nuniform vec2 gradientRange;\n',
+      };
+    }
+
+    // Per draw, so meshes sharing this material get their own range; it spans
+    // the whole mesh, so submeshes of one mesh share it.
+    bindForSubMesh(uniformBuffer, scene, engine, subMesh) {
+      const mesh = subMesh?.getMesh?.();
+      const axis = this.axis;
+      let low = -1;
+      let high = 1;
+
+      if (mesh) {
+        const bb = mesh.getBoundingInfo().boundingBox;
+        low = Infinity;
+        high = -Infinity;
+        for (const x of [bb.minimum.x, bb.maximum.x]) {
+          for (const y of [bb.minimum.y, bb.maximum.y]) {
+            const projected = x * axis.x + y * axis.y;
+            low = Math.min(low, projected);
+            high = Math.max(high, projected);
+          }
+        }
+      }
+
+      uniformBuffer.updateFloat2('gradientAxis', axis.x, axis.y);
+      uniformBuffer.updateFloat2('gradientRange', low, high);
+      if (this.ramp) uniformBuffer.setTexture('gradientRamp', this.ramp);
+    }
+
+    getCustomCode(shaderType) {
+      if (shaderType === 'vertex') {
+        return {
+          CUSTOM_VERTEX_DEFINITIONS: 'varying vec3 vGradientPosition;\n',
+          CUSTOM_VERTEX_UPDATE_POSITION: 'vGradientPosition = positionUpdated;\n',
+        };
+      }
+
+      return {
+        CUSTOM_FRAGMENT_DEFINITIONS:
+          'varying vec3 vGradientPosition;\nuniform sampler2D gradientRamp;\n',
+        CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `
+          float gradientSpan = max(1e-5, gradientRange.y - gradientRange.x);
+          float gradientT = clamp(
+            (dot(vGradientPosition.xy, gradientAxis) - gradientRange.x) / gradientSpan, 0.0, 1.0);
+          baseColor.rgb = texture2D(gradientRamp, vec2(0.5, gradientT)).rgb;
+        `,
+      };
+    }
+
+    setColors(colors, direction) {
+      this.colors = colors.slice();
+      this.direction = Number(direction) || 0;
+      this.axis = gradientAxisFor(this.direction);
+
+      const previous = this.ramp;
+      this.ramp = flock.createLinearGradientTexture(colors, { size: 256, horizontal: false });
+      if (this.ramp) {
+        this.ramp.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+        this.ramp.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
+      }
+      previous?.dispose();
+
+      this.markAllDefinesAsDirty();
+    }
+
+    serialize() {
+      return { name: this.name, colors: this.colors, direction: this.direction };
+    }
+
+    parse(source) {
+      if (source?.colors?.length) this.setColors(source.colors, source.direction);
+    }
+
+    dispose() {
+      this.ramp?.dispose();
+      this.ramp = null;
+    }
+  };
+
+  // Lets a material parsed back from a serialised scene rebuild its gradient.
+  flock.BABYLON.RegisterClass?.('BABYLON.FlockGradientPlugin', gradientPlugin);
+
+  return gradientPlugin;
+}
+
+function gradientPluginOn(material) {
+  return (
+    material?.pluginManager?._plugins?.find((p) => p.getClassName() === 'FlockGradientPlugin') ??
+    null
+  );
+}
+
+function readGradientDirection(value) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  return Number.isFinite(value.direction) ? value.direction : undefined;
+}
+
+const characterPartOriginals = new WeakMap();
+// Held off-mesh for later reuse, so replacing them on a mesh must not dispose them.
+const retainedMaterials = new WeakSet();
+
+function readTextureOption(value, key) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
+  const inner = value.color ?? value.baseColor;
+  const isInnerObject = typeof inner === 'object' && inner !== null && !Array.isArray(inner);
+  return Number(isInnerObject && inner[key] !== undefined ? inner[key] : value[key]);
+}
+
+const textureTilingFactors = {
+  'tiles.png': 0.8,
+};
+
+function readTextureScale(value) {
+  const scale = readTextureOption(value, 'scale');
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
+function readTextureAngle(value) {
+  const angle = readTextureOption(value, 'angle');
+  return Number.isFinite(angle) ? ((angle % 360) + 360) % 360 : 0;
+}
+
+function gradientWithAngle(rawColor, texName, direction, angle) {
+  const isGradient =
+    Array.isArray(rawColor) && rawColor.length >= 2 && ['none.png', 'NONE'].includes(texName);
+  if (!isGradient || angle === 0) return { direction, angle };
+  return { direction: ((direction ?? 0) + angle) % 360, angle: 0 };
+}
+
+function materialCacheKey(colorKey, alpha, texName, glow, scale = 1, angle = 0) {
+  const alphaKey = parseFloat(alpha).toFixed(2);
+  const scaleKey = scale === 1 ? '' : `~s${scale}`;
+  const angleKey = angle === 0 ? '' : `~a${angle}`;
+  const glowKey = glow ? 'glow' : 'noglow';
+  return `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}${scaleKey}${angleKey}`.toLowerCase();
+}
+
+// 3D text takes a plain colour list one letter at a time rather than as a
+// gradient. Returns the list when it applies to this mesh, otherwise null.
+function textLetterColors(mesh, colorInput) {
+  if (!mesh?.metadata?.textLetterIndex) return null;
+  if (readGradientDirection(colorInput) !== undefined) return null;
+  const isDescriptor =
+    typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
+  if (isDescriptor) {
+    const texture = colorInput.materialName ?? colorInput.textureSet;
+    if (texture && texture !== 'none.png' && texture !== 'NONE') return null;
+  }
+  const raw = isDescriptor ? (colorInput.color ?? colorInput.baseColor) : colorInput;
+  if (!Array.isArray(raw) || raw.length < 2) return null;
+  return raw.every((c) => typeof c === 'string') ? raw : null;
+}
+
 export const flockMaterial = {
+  // The floating billboard plane created by say(), or a plane using a say GUI
+  // texture. These helpers must never take part in tint/highlight/glow.
+  // Metadata decides: a user mesh merely named 'textPlane' is still a real
+  // target unless it carries a say relationship.
+  _isSayHelperMesh(mesh) {
+    if (!mesh) return false;
+    if (mesh.metadata?.isTextPlane || mesh.metadata?.hasSayTexture) return true;
+    return mesh.name === 'textPlane' && mesh.metadata?.sayTarget != null;
+  },
+  _paintTextLetters(mesh, colors) {
+    const letterIndex = mesh.metadata.textLetterIndex;
+    const palette = colors.map((c) =>
+      flock.BABYLON.Color3.FromHexString(flock.getColorFromString(c))
+    );
+    const data = new Float32Array(letterIndex.length * 4);
+    letterIndex.forEach((letter, i) => {
+      const c = palette[letter % palette.length];
+      data.set([c.r, c.g, c.b, 1], i * 4);
+    });
+    mesh.setVerticesData(flock.BABYLON.VertexBuffer.ColorKind, data, true);
+    mesh.metadata.textLetterColors = [...colors];
+  },
+  _clearTextLetters(mesh) {
+    if (!mesh?.metadata?.textLetterColors) return;
+    mesh.removeVerticesData(flock.BABYLON.VertexBuffer.ColorKind);
+    delete mesh.metadata.textLetterColors;
+  },
+  // Paints a colour list onto 3D text letters over a white base material.
+  // Returns false (after clearing any letter colours) when the input is
+  // not a letter list, so the caller applies it normally.
+  _applyTextLetterColors(mesh, colorInput, opts = {}) {
+    const colors = textLetterColors(mesh, colorInput);
+    if (!colors) {
+      flock._clearTextLetters(mesh);
+      return false;
+    }
+    const alpha = colorInput?.alpha ?? opts.alpha;
+    const white = alpha === undefined ? '#ffffff' : { color: '#ffffff', alpha };
+    flock.applyMaterialToHierarchy(mesh, white, { ...opts, applyColor: true });
+    flock._paintTextLetters(mesh, colors);
+    return true;
+  },
   adjustMaterialTilingToMesh(mesh, material, _unitsPerTile = null) {
     return; // Don't scale textures - need to change the mesh UVs instead
   },
@@ -40,13 +291,24 @@ export const flockMaterial = {
     return '#' + result.join('');
   },
   hexToRgba(hex, alpha) {
-    hex = hex.replace(/^#/, '');
+    hex = flock.getColorFromString(hex).replace(/^#/, '');
     let r = parseInt(hex.substring(0, 2), 16);
     let g = parseInt(hex.substring(2, 4), 16);
     let b = parseInt(hex.substring(4, 6), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   },
   getColorFromString(colourString) {
+    // A colour list or a material/gradient descriptor can reach solid-colour APIs
+    // such as tint and highlight; fall back to the first colour rather than black.
+    if (Array.isArray(colourString)) {
+      return flock.getColorFromString(colourString[0]);
+    }
+
+    if (typeof colourString === 'object' && colourString !== null) {
+      const inner = colourString.color ?? colourString.baseColor;
+      return inner === undefined ? '#000000' : flock.getColorFromString(inner);
+    }
+
     if (typeof colourString !== 'string') {
       return '#000000';
     }
@@ -57,8 +319,7 @@ export const flockMaterial = {
 
     // Babylon's Color3.fromHexString only accepts #RRGGBB, so expand the
     // #RGB shorthand (e.g. #f0c -> #ff00cc) rather than passing it through.
-    const expandShortHex = (hex) =>
-      hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex;
+    const expandShortHex = (hex) => (hex.length === 3 ? hex.replace(/(.)/g, '$1$1') : hex);
 
     if (/^([0-9A-F]{3}|[0-9A-F]{6})$/i.test(colourString)) {
       return `#${expandShortHex(colourString).toLowerCase()}`;
@@ -99,22 +360,17 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        if (mesh.material) {
-          mesh.renderOverlay = true;
-          mesh.overlayAlpha = 0.5;
-          mesh.overlayColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
-        }
-
-        mesh.getChildMeshes().forEach(function (childMesh) {
-          if (childMesh.material) {
-            childMesh.renderOverlay = true;
-            childMesh.overlayAlpha = 0.5;
-            childMesh.overlayColor = flock.BABYLON.Color3.FromHexString(
-              flock.getColorFromString(flock.getColorFromString(color))
-            );
-          }
+        flock._applyLinked(mesh, 'effects', (target) => {
+          [target, ...target.getChildMeshes()].forEach((part) => {
+            if (part.material && !flock._isSayHelperMesh(part)) {
+              part.renderOverlay = true;
+              part.overlayAlpha = 0.5;
+              part.overlayColor = flock.BABYLON.Color3.FromHexString(
+                flock.getColorFromString(color)
+              );
+            }
+          });
         });
-        mesh.metadata?.clones?.forEach((cloneName) => flock.tint(cloneName, { color: color }));
         resolve();
       });
     });
@@ -122,7 +378,7 @@ export const flockMaterial = {
   highlight(meshName, { color } = {}) {
     if (flock.materialsDebug) console.log(`Highlighting ${meshName} with ${color}`);
     const applyHighlight = (mesh) => {
-      if (mesh.material) {
+      if (mesh.material && !flock._isSayHelperMesh(mesh)) {
         flock.highlighter.addMesh(
           mesh,
           flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
@@ -136,9 +392,10 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        applyHighlight(mesh);
-        mesh.getChildMeshes().forEach(applyHighlight);
-        mesh.metadata?.clones?.forEach((cloneName) => flock.highlight(cloneName, { color: color }));
+        flock._applyLinked(mesh, 'effects', (target) => {
+          applyHighlight(target);
+          target.getChildMeshes().forEach(applyHighlight);
+        });
         resolve();
       });
     });
@@ -156,6 +413,16 @@ export const flockMaterial = {
           flock.glowLayer.intensity = 0.5;
           if (flock.sky) {
             flock.glowLayer.addExcludedMesh(flock.sky);
+          }
+          // Say helpers created before this layer existed were never excluded.
+          for (const m of flock.scene.meshes) {
+            if (flock._isSayHelperMesh(m)) {
+              try {
+                flock.glowLayer.addExcludedMesh(m);
+              } catch {
+                // Non-fatal: glowMesh() still skips helpers.
+              }
+            }
           }
           flock.glowLayer.customEmissiveColorSelector = (
             glowingMesh,
@@ -178,10 +445,7 @@ export const flockMaterial = {
         // each submesh's draw-wrapper array grow and slows every later run.
         flock.glowLayer.isEnabled = true;
 
-        flock.glowMesh(mesh, color);
-        mesh.metadata?.clones?.forEach((_cloneName) =>
-          flock.whenModelReady((cloneMesh) => flock.glowMesh(cloneMesh, { color: color }))
-        );
+        flock._applyLinked(mesh, 'effects', (target) => flock.glowMesh(target, color));
         resolve();
       });
     });
@@ -190,40 +454,47 @@ export const flockMaterial = {
     const mat = mesh.material;
     if (!mat) return null;
 
+    const scale = mat.metadata?.textureScale ?? 1;
+    const angle = mat.metadata?.textureAngle ?? 0;
+    const withScale = (params) => ({
+      ...params,
+      ...(scale === 1 ? {} : { scale }),
+      ...(angle === 0 ? {} : { angle }),
+    });
+
     if (mat.metadata?.cacheKey) {
-      const parts = mat.metadata.cacheKey.split('_');
+      const parts = mat.metadata.cacheKey.split('~')[0].split('_');
       const lastPart = parts[parts.length - 1];
       const hasGlowPart = lastPart === 'glow' || lastPart === 'noglow';
-      const colorPart = parts[1];
+      const [colorPart, directionPart] = parts[1].split('@');
       const color = colorPart.includes('-') ? colorPart.split('-') : colorPart;
+      const parsedDirection = parseFloat(directionPart);
       const parsedAlpha = parseFloat(parts[2]);
-      return {
+      return withScale({
         color,
+        ...(Number.isFinite(parsedDirection) ? { direction: parsedDirection } : {}),
         materialName:
           mat.metadata.texName ||
           parts.slice(3, hasGlowPart ? -1 : parts.length).join('_') ||
           'none.png',
         alpha: Number.isFinite(parsedAlpha) ? parsedAlpha : (mat.alpha ?? 1),
         glow: hasGlowPart ? lastPart === 'glow' : (mesh.metadata?.glow ?? false),
-      };
+      });
     }
 
     const matColor = mat.diffuseColor || mat.albedoColor;
-    const textureName =
-      mat.diffuseTexture?.name?.split('/').pop() ||
-      mat.albedoTexture?.name?.split('/').pop() ||
-      'none.png';
-    return {
+    const textureName = flock.materialTexture(mat)?.name?.split('/').pop() || 'none.png';
+    return withScale({
       color: matColor ? '#' + matColor.toHexString().slice(1) : '#ffffff',
       materialName: textureName,
       alpha: mat.alpha ?? 1,
       glow: mesh.metadata?.glow ?? false,
-    };
+    });
   },
   glowMesh(mesh, glowColor = null) {
     const applyGlow = (m) => {
       // Don't glow the separate say helper plane or planes using say GUI textures.
-      if (m.name === 'textPlane' || m.metadata?.isTextPlane || m.metadata?.hasSayTexture) {
+      if (flock._isSayHelperMesh(m)) {
         return;
       }
 
@@ -241,7 +512,12 @@ export const flockMaterial = {
             ? flock.getColorFromString(baseColor)
             : '#ffffff';
 
-      if (params) {
+      // The halo comes from the glow layer, not the material, so rebuilding one
+      // without an emissive channel just costs a duplicate.
+      const canEmit =
+        m.material?.emissiveColor !== undefined && !m.material?.metadata?.gradientColors;
+
+      if (params && canEmit) {
         const materialParams = {
           ...params,
           color:
@@ -266,14 +542,16 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        const allMeshes = [mesh, ...mesh.getDescendants()].filter(
-          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
-        );
+        const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
+        const meshesOf = (target) =>
+          [target, ...target.getDescendants()].filter(
+            (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
+          );
 
-        allMeshes.forEach((nextMesh) => {
+        const setOne = (nextMesh) => {
           if (!nextMesh.material) return;
 
-          if (!nextMesh.metadata?.hasSayTexture) {
+          if (!nextMesh.metadata?.hasSayTexture && !isTextPlaneMesh(nextMesh)) {
             const params = flock.getMaterialParamsFromMesh(nextMesh);
             const materialParams = { ...params, alpha: value };
 
@@ -285,9 +563,10 @@ export const flockMaterial = {
           if (nextMesh.material) {
             nextMesh.material.transparencyMode =
               value < 1 ? flock.BABYLON.Material.MATERIAL_ALPHABLEND : null;
-            nextMesh.material.needDepthPrePass = value > 0 && value < 1;
+            flock.setDepthPrePass(nextMesh.material, value > 0 && value < 1);
           }
-        });
+        };
+        flock._applyLinked(mesh, 'alpha', (target) => meshesOf(target).forEach(setOne));
         resolve();
       });
     });
@@ -300,10 +579,15 @@ export const flockMaterial = {
           return;
         }
         if (flock.materialsDebug) console.log(`Clear effects from ${meshName}:`);
+        const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
         const removeEffects = (targetMesh) => {
           targetMesh.metadata = targetMesh.metadata || {};
 
-          if (targetMesh.material && !targetMesh.metadata.hasSayTexture) {
+          if (
+            targetMesh.material &&
+            !targetMesh.metadata.hasSayTexture &&
+            !isTextPlaneMesh(targetMesh)
+          ) {
             const params = flock.getMaterialParamsFromMesh(targetMesh);
             const materialParams = { ...params, alpha: 1, glow: false };
 
@@ -311,7 +595,7 @@ export const flockMaterial = {
 
             if (targetMesh.material) {
               targetMesh.material.transparencyMode = null;
-              targetMesh.material.needDepthPrePass = false;
+              flock.setDepthPrePass(targetMesh.material, false);
             }
           }
 
@@ -330,9 +614,10 @@ export const flockMaterial = {
           targetMesh.renderOverlay = false;
         };
 
-        removeEffects(mesh);
-        mesh.getChildMeshes().forEach(removeEffects);
-        mesh?.metadata?.clones?.forEach((cloneName) => flock.clearEffects(cloneName));
+        flock._applyLinked(mesh, 'effects', (target) => {
+          removeEffects(target);
+          target.getChildMeshes().forEach(removeEffects);
+        });
         resolve();
       });
     });
@@ -340,7 +625,14 @@ export const flockMaterial = {
   ensureUniqueMaterial(mesh) {
     // Helper function to clone material for a mesh
     const cloneMaterial = (originalMaterial) => {
-      return originalMaterial.clone(`${originalMaterial.name}`);
+      const clone = originalMaterial.clone(`${originalMaterial.name}`);
+      // Babylon copies metadata by reference and doesn't clone plugins at all.
+      clone.metadata = { ...(originalMaterial.metadata || {}) };
+      if (clone.metadata.gradientColors) {
+        const plugin = gradientPluginOn(clone) ?? new (gradientPluginClass())(clone);
+        plugin.setColors(clone.metadata.gradientColors, clone.metadata.gradientDirection);
+      }
+      return flock.inheritPendingTexture(originalMaterial, clone);
     };
 
     // Recursive function to collect all meshes in the hierarchy
@@ -463,7 +755,7 @@ export const flockMaterial = {
         targetMesh.material.transparencyMode = flock.BABYLON.Material.MATERIAL_OPAQUE;
         // targetMesh.material.alphaMode = undefined;
         //targetMesh.material.reflectionTexture = null;
-        targetMesh.material.needDepthPrePass = false;
+        flock.setDepthPrePass(targetMesh.material, false);
         targetMesh.material.specularColor = new flock.BABYLON.Color3(0, 0, 0);
       }
     };
@@ -471,14 +763,8 @@ export const flockMaterial = {
     replaceIfPBRMaterial(mesh);
     // Replace materials on all child meshes
     mesh.getChildMeshes().forEach(replaceIfPBRMaterial);
-    // Dispose replaced PBR materials only if no other mesh still references them
-    // (the cached template may still hold references to the same material objects)
-    replacedMaterialsMap.forEach((newMaterial, oldMaterial) => {
-      const stillInUse = flock.scene.meshes.some(
-        (m) => !m.isDisposed() && m.material === oldMaterial
-      );
-      if (!stillInUse) oldMaterial.dispose();
-    });
+    // The cached template may still hold the same material objects.
+    replacedMaterialsMap.forEach((_, oldMaterial) => flock.disposeOldMaterial(oldMaterial));
   },
   changeColor(meshName, { color } = {}) {
     return new Promise((resolve) => {
@@ -497,7 +783,7 @@ export const flockMaterial = {
           return;
         }
 
-        flock.changeColorMesh(mesh, color);
+        flock._applyLinked(mesh, 'colour', (target) => flock.changeColorMesh(target, color));
         resolve();
       });
     });
@@ -505,6 +791,19 @@ export const flockMaterial = {
   changeColorMesh(mesh, color) {
     if (!mesh) {
       flock.scene.clearColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color));
+      return;
+    }
+
+    if (flock._applyTextLetterColors(mesh, color)) {
+      if (mesh.metadata?.glow) flock.glowMesh(mesh);
+      return;
+    }
+
+    // One material on every part rather than a colour each. Each mesh in the
+    // hierarchy spans the gradient across its own bounds, not the model's.
+    if (readGradientDirection(color) !== undefined) {
+      flock.applyMaterialToHierarchy(mesh, color, { applyColor: true });
+      if (mesh.metadata?.glow) flock.glowMesh(mesh);
       return;
     }
 
@@ -540,11 +839,7 @@ export const flockMaterial = {
       flock.ensureStandardMaterial(root);
     }
 
-    if (
-      mesh.metadata?.sharedMaterial &&
-      !(mesh?.metadata?.clones && mesh.metadata?.clones?.length >= 1)
-    )
-      flock.ensureUniqueMaterial(mesh);
+    if (mesh.metadata?.sharedMaterial) flock.ensureUniqueMaterial(mesh);
 
     const normalizeColorInput = (input) => {
       if (Array.isArray(input)) return input;
@@ -563,6 +858,8 @@ export const flockMaterial = {
 
     const normalizedColor = normalizeColorInput(color);
     const colors = Array.isArray(normalizedColor) ? normalizedColor : [normalizedColor];
+
+    const useColorSlots = !isCharacterLike && colors.length > 1;
     let colorIndex = 0;
 
     if (flock.materialsDebug) console.log(` Changing the colour of ${mesh.name} to ${colors}`);
@@ -620,7 +917,9 @@ export const flockMaterial = {
 
     // Start applying colours to the main mesh and its hierarchy
 
-    if (!isCharacterLike) {
+    if (useColorSlots) {
+      flock.applyMaterialToHierarchy(mesh, colors, { applyColor: true, includeRoot: true });
+    } else if (!isCharacterLike) {
       applyColorInOrder(mesh);
     } else {
       const root = getRootMesh(mesh);
@@ -661,7 +960,7 @@ export const flockMaterial = {
     }
 
     // If no material was found, create a new one and set metadata
-    if (materialToColorMap.size === 0) {
+    if (!useColorSlots && materialToColorMap.size === 0) {
       flock.setMaterialWithCleanup(mesh, { color: colors[0] });
       mesh.metadata = mesh.metadata || {};
       if (mesh.metadata.materialIndex === undefined) {
@@ -673,6 +972,7 @@ export const flockMaterial = {
       if (mesh.metadata.shapeType === 'Cylinder') {
         mesh.forceSharedVertices();
         mesh.convertToFlatShadedMesh();
+        mesh.refreshBoundingInfo();
       }
     } catch (e) {
       console.log('Error converting mesh to flat shaded:', e);
@@ -718,19 +1018,56 @@ export const flockMaterial = {
     const partName = flock.getCanonicalPartName(part);
 
     if (part.material && targetPart && partName === targetPart) {
-      part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color)
-      );
-      part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
-        flock.getColorFromString(color)
-      );
       part.metadata = part.metadata || {};
       part.metadata.materialPartName = targetPart;
+      if (typeof color === 'object' && color !== null && !Array.isArray(color)) {
+        flock.applyMaterialToCharacterPart(part, color);
+      } else {
+        flock.restoreCharacterPartMaterial(part);
+        part.material.diffuseColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color)
+        );
+        part.material.albedoColor = flock.BABYLON.Color3.FromHexString(
+          flock.getColorFromString(color)
+        );
+      }
     }
 
     part.getChildMeshes().forEach((child) => {
       flock.applyColorToMaterial(child, materialName, color);
     });
+  },
+  applyMaterialToCharacterPart(part, descriptor) {
+    if (!part.material.metadata?.isManaged && !characterPartOriginals.has(part)) {
+      const original = part.material;
+      characterPartOriginals.set(part, {
+        material: original,
+        uvs: Array.from(part.getVerticesData(flock.BABYLON.VertexBuffer.UVKind) ?? []),
+      });
+      flock.retainMaterial(original);
+      part.onDisposeObservable.addOnce(() => {
+        retainedMaterials.delete(original);
+        flock.disposeOldMaterial(original, [part]);
+      });
+    }
+    flock.setMaterialWithCleanup(part, descriptor);
+    flock.retileMeshTexture(part);
+  },
+  restoreCharacterPartMaterial(part) {
+    const replaced = part.material;
+    if (!replaced?.metadata?.isManaged) return;
+
+    const saved = characterPartOriginals.get(part);
+    if (saved && flock.scene.materials.includes(saved.material)) {
+      part.material = saved.material;
+      if (saved.uvs.length) {
+        part.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, saved.uvs, true);
+      }
+    } else {
+      part.material = new flock.BABYLON.StandardMaterial(`${part.name}_colour`, flock.scene);
+      part.material.backFaceCulling = replaced.backFaceCulling;
+    }
+    flock.disposeOldMaterial(replaced, [part]);
   },
   applyColorsToCharacter(mesh, colors) {
     const {
@@ -795,7 +1132,9 @@ export const flockMaterial = {
         if (flock.materialsDebug)
           console.log(`Changing material of ${meshName} to ${materialName}`);
         const texturePath = flock.texturePath + materialName;
-        flock.changeMaterialMesh(mesh, materialName, texturePath, color);
+        flock._applyLinked(mesh, 'material', (target) =>
+          flock.changeMaterialMesh(target, materialName, texturePath, color)
+        );
         resolve();
       });
     });
@@ -810,6 +1149,103 @@ export const flockMaterial = {
         }
       : null;
   },
+  // The depth pre-pass shader paints opaque black, so hot swapping must not be
+  // allowed to stand it in for the colour variant while that one compiles.
+  setDepthPrePass(material, enabled) {
+    if (!material) return;
+    material.needDepthPrePass = enabled;
+    material.allowShaderHotSwapping = !enabled;
+  },
+  // Babylon skips a mesh until every texture on its material has loaded, so
+  // attaching up front leaves a hole where the mesh should be. Show the flat
+  // colour immediately and attach once the image is in.
+  attachTextureWhenLoaded(material, texture) {
+    if (!material || !texture) return texture;
+
+    if (texture.isReady()) {
+      material.diffuseTexture = texture;
+      return texture;
+    }
+
+    material.metadata ??= {};
+    material.metadata.pendingTexture = texture;
+
+    let loaded = false;
+    const observer = texture.onLoadObservable.addOnce(() => {
+      loaded = true;
+      material.diffuseTexture = texture;
+      if (material.metadata?.pendingTexture === texture) {
+        delete material.metadata.pendingTexture;
+      }
+    });
+    material.onDisposeObservable.addOnce(() => {
+      texture.onLoadObservable.remove(observer);
+      if (!loaded) flock._disposeTextureIfUnused(texture);
+    });
+
+    return texture;
+  },
+  // A clone taken mid-load waits for the same load, then takes its own texture copy.
+  inheritPendingTexture(source, clone) {
+    const pending = source?.metadata?.pendingTexture;
+    if (!pending || !clone || clone.diffuseTexture) return clone;
+
+    if (pending.isReady()) {
+      clone.diffuseTexture = pending.clone();
+      return clone;
+    }
+
+    clone.metadata ??= {};
+    clone.metadata.pendingTexture = pending;
+
+    let loaded = false;
+    const observer = pending.onLoadObservable.addOnce(() => {
+      loaded = true;
+      clone.diffuseTexture = pending.clone();
+      if (clone.metadata?.pendingTexture === pending) {
+        delete clone.metadata.pendingTexture;
+      }
+    });
+    clone.onDisposeObservable.addOnce(() => {
+      pending.onLoadObservable.remove(observer);
+      if (!loaded) flock._disposeTextureIfUnused(pending);
+    });
+
+    return clone;
+  },
+  // 1x1 white stand-in for shader materials, which sample the texture directly
+  // and so can't defer it. Scene-owned so it dies with the scene.
+  whitePlaceholderTexture() {
+    const scene = flock.scene;
+    if (!scene) return null;
+
+    const store = (scene.reservedDataStore ??= {});
+    if (!store.flockWhitePlaceholder || store.flockWhitePlaceholder.isDisposed?.()) {
+      const texture = new flock.BABYLON.DynamicTexture(
+        'flockTexturePlaceholder',
+        { width: 1, height: 1 },
+        scene,
+        false
+      );
+      const ctx = texture.getContext();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 1, 1);
+      texture.update();
+      store.flockWhitePlaceholder = texture;
+    }
+    return store.flockWhitePlaceholder;
+  },
+  // The texture a material renders with, which mid-load is still pending.
+  materialTexture(material) {
+    if (!material) return null;
+    return (
+      material.diffuseTexture ||
+      material.albedoTexture ||
+      material.baseTexture ||
+      material.metadata?.pendingTexture ||
+      null
+    );
+  },
   changeMaterialMesh(mesh, materialName, texturePath, color, alpha = 1) {
     if (flock.materialsDebug) console.log('Change material', materialName, color);
     flock.ensureUniqueMaterial(mesh);
@@ -819,8 +1255,7 @@ export const flockMaterial = {
 
     // Load the texture if provided
     if (texturePath) {
-      const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-      material.diffuseTexture = texture;
+      flock.attachTextureWhenLoaded(material, new flock.BABYLON.Texture(texturePath, flock.scene));
     }
 
     // Set colour if provided
@@ -837,10 +1272,12 @@ export const flockMaterial = {
 
     // Assign the material to the mesh and its descendants
     const allMeshes = [mesh].concat(mesh.getDescendants()).filter((part) => !isTextPlaneMesh(part));
+    const oldMaterials = new Set(allMeshes.map((part) => part.material).filter(Boolean));
     allMeshes.forEach((part) => {
       part.material = material;
       flock.adjustMaterialTilingToMesh(part, material);
     });
+    oldMaterials.forEach((old) => flock.disposeOldMaterial(old));
 
     if (mesh.metadata?.glow) {
       flock.glowMesh(mesh);
@@ -853,12 +1290,6 @@ export const flockMaterial = {
     const materialArray = Array.isArray(materials) ? materials : [materials];
 
     flock.setMaterialInternal(meshName, materialArray);
-
-    flock.whenModelReady(meshName, (mesh) => {
-      mesh.metadata?.clones?.forEach((cloneName) => {
-        flock.setMaterialInternal(cloneName, materialArray);
-      });
-    });
   },
   setMaterialInternal(meshName, materials) {
     return new Promise((resolve) => {
@@ -867,19 +1298,33 @@ export const flockMaterial = {
           resolve();
           return;
         }
-        flock.applyMaterialToHierarchy(mesh, materials, {
-          applyColor: true,
-          blockKey: null,
-        });
+        flock._applyLinked(mesh, 'material', (target) => {
+          flock.applyMaterialToHierarchy(target, materials, {
+            applyColor: true,
+            blockKey: null,
+          });
 
-        if (mesh.metadata?.glow) {
-          flock.glowMesh(mesh);
-        }
+          if (target.metadata?.glow) {
+            flock.glowMesh(target);
+          }
+        });
         resolve();
       });
     });
   },
-  createMaterial({ color, materialName, alpha, glow = false } = {}) {
+  createMaterial({
+    color,
+    materialName,
+    alpha,
+    glow = false,
+    direction,
+    scale = 1,
+    angle = 0,
+  } = {}) {
+    const tiling =
+      (textureTilingFactors[materialName] ?? 1) /
+      (Number.isFinite(scale) && scale > 0 ? scale : 1);
+    const rotation = ((Number(angle) || 0) * Math.PI) / 180;
     if (flock?.materialsDebug) console.log(`Create material: ${materialName}`);
     let material;
     const texturePath = flock.texturePath + materialName;
@@ -897,25 +1342,21 @@ export const flockMaterial = {
     if (Array.isArray(color) && color.length >= 2) {
       // Use gradient for Flat material
       if (materialName === 'none.png') {
-        if (color.length === 2) {
-          material = new flock.GradientMaterial(materialName, flock.scene);
-          material.bottomColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[0])
-          );
-          material.topColor = flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(color[1])
-          );
-          material.offset = 0.5;
-          material.smoothness = 0.5;
-          material.scale = 1.0;
-          material.backFaceCulling = false;
-        } else {
-          material = flock.createMultiColorGradientMaterial(materialName, color);
-          material.backFaceCulling = false;
-        }
+        material = flock.createGradientMaterial(
+          materialName,
+          color,
+          ((Number(direction) || 0) + (Number(angle) || 0)) % 360
+        );
+        material.backFaceCulling = false;
       } else {
         // Use shader-based color replacement for patterned materials
-        material = flock.createColorReplaceShaderMaterial(materialName, texturePath, color);
+        material = flock.createColorReplaceShaderMaterial(
+          materialName,
+          texturePath,
+          color,
+          tiling,
+          rotation
+        );
         material.backFaceCulling = false;
       }
     } else {
@@ -925,10 +1366,12 @@ export const flockMaterial = {
       // Load texture if provided
       if (texturePath) {
         const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-        // Apply default tiling for consistency
-        texture.uScale = 1;
-        texture.vScale = 1;
-        material.diffuseTexture = texture;
+        texture.uScale = tiling;
+        texture.vScale = tiling;
+        texture.wAng = rotation;
+        texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+        texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+        flock.attachTextureWhenLoaded(material, texture);
       }
 
       // Set single color if provided
@@ -948,142 +1391,32 @@ export const flockMaterial = {
       material.setFloat('alpha', alpha);
     }
 
-    // Apply glow properties if enabled
-    if (glow && material.emissiveColor !== undefined) {
-      const emissiveColor = color
-        ? flock.BABYLON.Color3.FromHexString(
-            flock.getColorFromString(Array.isArray(color) ? color[0] : color)
-          )
+    // Emissive would flatten a gradient, so those glow through the halo alone.
+    if (glow && material.emissiveColor !== undefined && !Array.isArray(color)) {
+      material.emissiveColor = color
+        ? flock.BABYLON.Color3.FromHexString(flock.getColorFromString(color))
         : flock.BABYLON.Color3.White();
-      material.emissiveColor = emissiveColor;
       material.emissiveIntensity = 1.0;
     }
 
     if (flock.materialsDebug) console.log(`Created the material: ${material.name}`);
     return material;
   },
-  createMultiColorGradientMaterial(name, colors) {
-    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader']) {
-      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogVertexShader'] = `
-        precision highp float;
-        attribute vec3 position;
-        uniform mat4 worldViewProjection;
-        uniform mat4 world;
-        uniform mat4 view;
-        uniform vec2 minMax;
-        varying float vGradient;
-        varying vec3 vFogPosition;
+  // A gradient material is shared between meshes, so the range it spans has to be
+  // set per draw call. Every route that produces one must attach this, or the
+  // gradient keeps the placeholder bounds it was constructed with.
+  createGradientMaterial(name, colors, direction) {
+    const material = new flock.BABYLON.StandardMaterial(name, flock.scene);
+    const plugin = gradientPluginOn(material) ?? new (gradientPluginClass())(material);
+    plugin.setColors(colors, direction);
 
-        void main(void) {
-          vec4 worldPosition = world * vec4(position, 1.0);
-          vec4 viewPosition = view * worldPosition;
-          gl_Position = worldViewProjection * vec4(position, 1.0);
-          vGradient = (position.y - minMax.x) / (minMax.y - minMax.x);
-          vFogPosition = viewPosition.xyz;
-        }
-      `;
-    }
-    if (!flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader']) {
-      flock.BABYLON.Effect.ShadersStore['multiColorGradientFogFragmentShader'] = `
-        precision highp float;
-        varying float vGradient;
-        varying vec3 vFogPosition;
-        uniform int colorCount;
-        uniform vec3 colors[16];
-        uniform float alpha;
-        uniform vec3 fogColor;
-        uniform float fogDensity;
-        uniform float fogStart;
-        uniform float fogEnd;
-        uniform int fogMode;
+    material.metadata = {
+      ...(material.metadata || {}),
+      gradientDirection: Number(direction) || 0,
+      gradientColors: colors.slice(),
+    };
 
-        void main(void) {
-          float t = clamp(vGradient, 0.0, 1.0);
-          int count = colorCount;
-
-          if (count > 16) count = 16;
-          if (count < 2) count = 2;
-
-          float position = t * float(count - 1);
-          int segment = int(floor(position));
-          float localT = position - float(segment);
-
-          if (segment >= count - 1) {
-            segment = count - 2;
-            localT = 1.0;
-          }
-
-          vec3 color1 = colors[segment];
-          vec3 color2 = colors[segment + 1];
-          vec3 finalColor = mix(color1, color2, localT);
-
-          float fogDistance = length(vFogPosition);
-          float fogFactor = 1.0;
-          if (fogMode == 1) {
-            fogFactor = exp(-fogDensity * fogDistance);
-          } else if (fogMode == 2) {
-            fogFactor = exp(-pow(fogDensity * fogDistance, 2.0));
-          } else if (fogMode == 3) {
-            fogFactor = (fogEnd - fogDistance) / max(0.0001, fogEnd - fogStart);
-          }
-          fogFactor = clamp(fogFactor, 0.0, 1.0);
-
-          vec3 foggedColor = mix(fogColor, finalColor, fogFactor);
-          gl_FragColor = vec4(foggedColor, alpha);
-        }
-      `;
-    }
-
-    const shaderMaterial = new flock.BABYLON.ShaderMaterial(
-      name,
-      flock.scene,
-      {
-        vertex: 'multiColorGradientFog',
-        fragment: 'multiColorGradientFog',
-      },
-      {
-        attributes: ['position'],
-        uniforms: [
-          'worldViewProjection',
-          'world',
-          'view',
-          'colorCount',
-          'colors',
-          'alpha',
-          'minMax',
-          'fogColor',
-          'fogDensity',
-          'fogStart',
-          'fogEnd',
-          'fogMode',
-        ],
-      }
-    );
-
-    // Convert colors to Color3 array (max 16, matching shader array size)
-    const color3Array = colors
-      .slice(0, 16)
-      .map((c) => {
-        const hex = flock.getColorFromString(c);
-        const color3 = flock.BABYLON.Color3.FromHexString(hex);
-        return [color3.r, color3.g, color3.b];
-      })
-      .flat();
-
-    if (flock.materialsDebug) {
-      console.log('Color count:', colors.length);
-      console.log('Color array:', color3Array);
-    }
-
-    shaderMaterial.setInt('colorCount', Math.min(colors.length, 16));
-    shaderMaterial.setArray3('colors', color3Array);
-    shaderMaterial.setFloat('alpha', 1.0);
-    shaderMaterial.setVector2('minMax', new flock.BABYLON.Vector2(-1, 1));
-
-    flock.registerFogAwareShaderMaterial(shaderMaterial);
-    flock.updateFogUniformsForShaderMaterial(shaderMaterial);
-
-    return shaderMaterial;
+    return material;
   },
   // Create shader material for color replacement
   registerFogAwareShaderMaterial(material) {
@@ -1112,24 +1445,27 @@ export const flockMaterial = {
       flock.updateFogUniformsForShaderMaterial(material);
     });
   },
-  createColorReplaceShaderMaterial(materialName, texturePath, colors) {
+  createColorReplaceShaderMaterial(materialName, texturePath, colors, tiling = 1, rotation = 0) {
     // Define vertex shader
     const vertexShader = `
       precision highp float;
       attribute vec3 position;
       attribute vec2 uv;
+      #include<bonesDeclaration>
 
-      uniform mat4 worldViewProjection;
       uniform mat4 world;
       uniform mat4 view;
+      uniform mat4 viewProjection;
 
       varying vec2 vUV;
       varying vec3 vFogPosition;
 
       void main(void) {
-        vec4 worldPosition = world * vec4(position, 1.0);
+        mat4 finalWorld = world;
+        #include<bonesVertex>
+        vec4 worldPosition = finalWorld * vec4(position, 1.0);
         vec4 viewPosition = view * worldPosition;
-        gl_Position = worldViewProjection * vec4(position, 1.0);
+        gl_Position = viewProjection * worldPosition;
         vUV = uv;
         vFogPosition = viewPosition.xyz;
       }
@@ -1149,6 +1485,7 @@ export const flockMaterial = {
       uniform float alpha;
       uniform float uScale;         // Horizontal tiling
       uniform float vScale;         // Vertical tiling
+      uniform float uvAngle;
       uniform vec3 fogColor;
       uniform float fogDensity;
       uniform float fogStart;
@@ -1158,7 +1495,10 @@ export const flockMaterial = {
       varying vec3 vFogPosition;
 
       void main(void) {
-        vec2 scaledUV = vec2(vUV.x * uScale, vUV.y * vScale);
+        vec2 tiledUV = vec2(vUV.x * uScale, vUV.y * vScale);
+        float c = cos(uvAngle);
+        float s = sin(uvAngle);
+        vec2 scaledUV = vec2(c * tiledUV.x - s * tiledUV.y, s * tiledUV.x + c * tiledUV.y);
         vec4 texColor = texture2D(textureSampler, scaledUV);
 
         if (texColor.a < 0.5) {
@@ -1213,7 +1553,7 @@ export const flockMaterial = {
       {
         attributes: ['position', 'uv'],
         uniforms: [
-          'worldViewProjection',
+          'viewProjection',
           'world',
           'view',
           'textureSampler',
@@ -1224,6 +1564,7 @@ export const flockMaterial = {
           'alpha',
           'uScale',
           'vScale',
+          'uvAngle',
           'fogColor',
           'fogDensity',
           'fogStart',
@@ -1243,11 +1584,27 @@ export const flockMaterial = {
       const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
       texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
       texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-      shaderMaterial.setTexture('textureSampler', texture);
+      const placeholder = texture.isReady() ? null : flock.whitePlaceholderTexture();
+      if (placeholder) {
+        // White resolves to the first colour below, so the mesh shows flat
+        // colour rather than vanishing until the image arrives.
+        shaderMaterial.setTexture('textureSampler', placeholder);
+        let loaded = false;
+        const observer = texture.onLoadObservable.addOnce(() => {
+          loaded = true;
+          shaderMaterial.setTexture('textureSampler', texture);
+        });
+        shaderMaterial.onDisposeObservable.addOnce(() => {
+          texture.onLoadObservable.remove(observer);
+          if (!loaded) flock._disposeTextureIfUnused(texture);
+        });
+      } else {
+        shaderMaterial.setTexture('textureSampler', texture);
+      }
       // Apply tiling through shader uniforms (shader materials don't automatically use texture matrix)
-      // Use scale of 1 to match single-color material behavior
-      shaderMaterial.setFloat('uScale', 1);
-      shaderMaterial.setFloat('vScale', 1);
+      shaderMaterial.setFloat('uScale', tiling);
+      shaderMaterial.setFloat('vScale', tiling);
+      shaderMaterial.setFloat('uvAngle', rotation);
     }
 
     // Convert colors and set uniforms
@@ -1403,40 +1760,75 @@ export const flockMaterial = {
 
     return shaderMaterial;
   },
+  isMaterialStillInUse(material, excludeMeshes = []) {
+    return flock.scene.meshes.some((m) => {
+      if (excludeMeshes.includes(m) || m.isDisposed() || !m.material) return false;
+      if (m.material === material) return true;
+      return (
+        m.material instanceof flock.BABYLON.MultiMaterial &&
+        m.material.subMaterials.includes(material)
+      );
+    });
+  },
+  retainMaterial(material) {
+    if (material) retainedMaterials.add(material);
+  },
+  // A texture another material samples, or is still waiting to load, stays alive.
+  _disposeTextureIfUnused(texture) {
+    const scene = texture?.getScene?.();
+    if (!scene?.textures.includes(texture)) return;
+    if (texture === scene.reservedDataStore?.flockWhitePlaceholder) return;
+    const inUse = scene.materials.some(
+      (m) => m.hasTexture?.(texture) || m.metadata?.pendingTexture === texture
+    );
+    if (!inUse) texture.dispose();
+  },
+  disposeOldMaterial(material, excludeMeshes = []) {
+    const scene = material?.getScene?.();
+    const isMulti = material instanceof flock.BABYLON.MultiMaterial;
+    if (!(isMulti ? scene?.multiMaterials : scene?.materials)?.includes(material)) return;
+    if (material === scene._defaultMaterial || retainedMaterials.has(material)) return;
+    if (flock.isMaterialStillInUse(material, excludeMeshes)) return;
+
+    const cacheKey = material.metadata?.cacheKey;
+    if (cacheKey && flock.materialCache?.[cacheKey] === material) {
+      delete flock.materialCache[cacheKey];
+    }
+
+    if (isMulti) {
+      const subMaterials = material.subMaterials.filter(Boolean);
+      material.dispose();
+      subMaterials.forEach((sub) => flock.disposeOldMaterial(sub, excludeMeshes));
+      return;
+    }
+
+    const textures = material.getActiveTextures?.() ?? [];
+    material.dispose();
+    textures.forEach((texture) => flock._disposeTextureIfUnused(texture));
+  },
   setMaterialWithCleanup(mesh, materialData) {
-    if (!mesh) return;
+    if (!mesh || mesh.getClassName?.() === 'InstancedMesh') return;
 
     const oldMat = mesh.material;
 
-    // Get or create from cache
-    const newMat = flock.getOrCreateMaterial(materialData);
+    // Transparency belongs to the object: a colour naming no alpha keeps the
+    // mesh's own.
+    const newMat = flock.getOrCreateMaterial(materialData, oldMat?.alpha ?? 1);
 
     if (oldMat === newMat) return;
 
     mesh.material = newMat;
-
-    if (oldMat && oldMat.metadata && oldMat.metadata.isManaged) {
-      const cacheKey = oldMat.metadata.cacheKey;
-      const isStillInUse = flock.scene.meshes.some(
-        (m) => m !== mesh && !m.isDisposed() && m.material === oldMat
-      );
-
-      if (!isStillInUse) {
-        if (cacheKey && flock.materialCache[cacheKey]) {
-          delete flock.materialCache[cacheKey];
-        }
-        oldMat.dispose(false, true);
-      }
-    }
+    flock.disposeOldMaterial(oldMat, [mesh]);
   },
-  getOrCreateMaterial(colorInput, alpha = 1) {
+  getOrCreateMaterial(colorInput, alpha = 1, { cached = true } = {}) {
     const isObject =
       typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
 
-    let rawColor = '#ffffff';
+    let rawColor;
     let texName = 'none.png';
     let finalAlpha = alpha;
     let finalGlow = false;
+    let finalDirection;
 
     if (isObject) {
       const inner = colorInput.color || colorInput.baseColor;
@@ -1457,29 +1849,54 @@ export const flockMaterial = {
               ? colorInput.alpha
               : alpha;
         finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
+        finalDirection = readGradientDirection(inner) ?? readGradientDirection(colorInput);
       } else {
         rawColor = inner || '#ffffff';
         texName = colorInput.materialName || colorInput.textureSet || 'none.png';
         finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
         finalGlow = colorInput.glow ?? false;
+        finalDirection = readGradientDirection(colorInput);
       }
     } else {
       rawColor = colorInput || '#ffffff';
     }
 
-    const colorKey = Array.isArray(rawColor) ? rawColor.join('-') : rawColor;
-    const alphaKey = parseFloat(finalAlpha).toFixed(2);
-    const glowKey = finalGlow ? 'glow' : 'noglow';
-    const cacheKey = `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
+    const folded = gradientWithAngle(
+      rawColor,
+      texName,
+      finalDirection,
+      readTextureAngle(colorInput)
+    );
+    finalDirection = folded.direction;
+    const numericAlpha =
+      typeof finalAlpha === 'string' && finalAlpha.trim() !== '' ? Number(finalAlpha) : finalAlpha;
+    if (Number.isFinite(numericAlpha)) finalAlpha = clampToRange(numericAlpha, 'unit');
+    const finalAngle = folded.angle;
+    const colorKey = withGradientDirection(
+      Array.isArray(rawColor) ? rawColor.join('-') : rawColor,
+      finalDirection
+    );
+    const finalScale = readTextureScale(colorInput);
+    const cacheKey = materialCacheKey(
+      colorKey,
+      finalAlpha,
+      texName,
+      finalGlow,
+      finalScale,
+      finalAngle
+    );
 
     if (!flock.materialCache) flock.materialCache = {};
-    if (flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
+    if (cached && flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
 
     const materialParams = {
       color: rawColor,
       materialName: texName,
       alpha: finalAlpha,
       glow: finalGlow,
+      scale: finalScale,
+      angle: finalAngle,
+      ...(Number.isFinite(finalDirection) ? { direction: finalDirection } : {}),
     };
 
     const newMat = flock.createMaterial(materialParams);
@@ -1491,26 +1908,51 @@ export const flockMaterial = {
     newMat.metadata.cacheKey = cacheKey;
     newMat.metadata.isManaged = true;
     newMat.metadata.texName = texName;
+    if (finalScale !== 1) newMat.metadata.textureScale = finalScale;
+    if (finalAngle !== 0) newMat.metadata.textureAngle = finalAngle;
 
     if (finalAlpha < 1) {
       newMat.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
-      newMat.needDepthPrePass = true;
+      flock.setDepthPrePass(newMat, true);
     }
 
-    flock.materialCache[cacheKey] = newMat;
+    if (cached) flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
-  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
-    const applyColor = opts.applyColor ?? true;
-    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
-
+  _ownerBlockKey(node) {
+    for (let current = node; current; current = current.parent) {
+      if (current.metadata?.blockKey !== undefined) return current.metadata.blockKey;
+    }
+    return undefined;
+  },
+  _isSeparateObject(node) {
+    const key = node?.metadata?.blockKey;
+    if (key === undefined || !node.parent) return false;
+    return key !== flock._ownerBlockKey(node.parent);
+  },
+  _ownDescendants(rootMesh) {
+    const own = [];
+    const walk = (node) => {
+      for (const child of node.getChildren()) {
+        if (flock._isSeparateObject(child)) continue;
+        own.push(child);
+        walk(child);
+      }
+    };
+    walk(rootMesh);
+    return own;
+  },
+  getColorSlots(rootMesh, { includeRoot = false, ownOnly = false, includeInstances = true } = {}) {
     const isTextPlaneMesh = (part) => part?.name === 'textPlane' || part?.metadata?.isTextPlane;
+    const hasGeometry = (n) =>
+      (n instanceof flock.BABYLON.Mesh ||
+        (includeInstances && n instanceof flock.BABYLON.InstancedMesh)) &&
+      n.getTotalVertices() > 0 &&
+      !isTextPlaneMesh(n);
 
-    const geometryMeshes = rootMesh
-      .getDescendants(false)
-      .filter(
-        (n) => n instanceof flock.BABYLON.Mesh && n.getTotalVertices() > 0 && !isTextPlaneMesh(n)
-      )
+    const descendants = ownOnly ? flock._ownDescendants(rootMesh) : rootMesh.getDescendants(false);
+    const geometryMeshes = descendants
+      .filter(hasGeometry)
       .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, {
           numeric: true,
@@ -1518,7 +1960,53 @@ export const flockMaterial = {
         })
       );
 
-    const targets = geometryMeshes.length ? geometryMeshes : [rootMesh];
+    // Creation leaves a model's own root out of the list; changeColor keeps
+    // a primitive parent that has geometry of its own as the first slot.
+    const rootIsSlot =
+      includeRoot && hasGeometry(rootMesh) && rootMesh.metadata?.shapeType !== 'Group';
+    const withRoot = rootIsSlot ? [rootMesh, ...geometryMeshes] : geometryMeshes;
+    const targets = withRoot.length ? withRoot : [rootMesh];
+
+    // Character models split a single logical part (e.g. the shorts) across
+    // several sub-meshes. Group those by canonical part name so the whole
+    // part draws one entry from the list, mirroring how the colour list is
+    // distributed; otherwise the top and bottom of the shorts would land on
+    // adjacent indices and get different materials. Meshes with no recognised
+    // part name fall back to one slot each, preserving the per-mesh ordering
+    // used by ordinary multi-mesh objects.
+    const isCharacterLike = targets.some((m) => flock.getCanonicalPartName(m));
+
+    if (isCharacterLike) {
+      const groupIndexByKey = new Map();
+      return targets.map((mesh) => {
+        const part = flock.getCanonicalPartName(mesh);
+        if (part) {
+          mesh.metadata = mesh.metadata || {};
+          mesh.metadata.materialPartName ||= part;
+        }
+        const key = part || `mesh:${mesh.uniqueId}`;
+        let index = groupIndexByKey.get(key);
+        if (index === undefined) {
+          index = groupIndexByKey.size;
+          groupIndexByKey.set(key, index);
+        }
+        return { mesh, index };
+      });
+    }
+
+    return targets.map((mesh, index) => ({ mesh, index }));
+  },
+  applyMaterialToHierarchy(rootMesh, colorInput, opts = {}) {
+    const applyColor = opts.applyColor ?? true;
+    if (!applyColor || !rootMesh || !colorInput) return rootMesh;
+    if (flock._applyTextLetterColors(rootMesh, colorInput, opts)) return rootMesh;
+    flock._claimLinked?.(rootMesh, 'colour');
+
+    const slots = flock.getColorSlots(rootMesh, {
+      includeRoot: opts.includeRoot,
+      ownOnly: opts.ownOnly,
+      includeInstances: false,
+    });
 
     const isMaterialDescriptor = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -1532,21 +2020,28 @@ export const flockMaterial = {
     const getTexName = (v) =>
       isMaterialDescriptor(v) ? v.materialName || v.textureSet || 'NONE' : 'NONE';
 
-    const getAlpha = (v) =>
-      isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha ?? 1) : (opts.alpha ?? 1);
+    const getAlpha = (v, m) =>
+      (isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha) : opts.alpha) ?? m?.material?.alpha ?? 1;
 
-    const makeTargetCacheKey = (v) => {
+    const makeTargetCacheKey = (v, m) => {
       const rawColor = getRawColor(v);
-      const colorKey = Array.isArray(rawColor)
-        ? rawColor.join('-')
-        : flock.getColorFromString(rawColor) || '#ffffff';
       const texName = String(getTexName(v));
-      const alphaKey = parseFloat(getAlpha(v)).toFixed(2);
+      const { direction, angle } = gradientWithAngle(
+        rawColor,
+        texName,
+        readGradientDirection(v),
+        readTextureAngle(v)
+      );
+      const colorKey = withGradientDirection(
+        Array.isArray(rawColor)
+          ? rawColor.join('-')
+          : flock.getColorFromString(rawColor) || '#ffffff',
+        direction
+      );
       const glow =
         typeof v === 'object' && v !== null && !Array.isArray(v) ? (v.glow ?? false) : false;
-      const glowKey = glow ? 'glow' : 'noglow';
 
-      return `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}`.toLowerCase();
+      return materialCacheKey(colorKey, getAlpha(v, m), texName, glow, readTextureScale(v), angle);
     };
 
     const applyOne = (m, v, index) => {
@@ -1557,25 +2052,14 @@ export const flockMaterial = {
       if (index !== undefined) m.metadata.materialIndex = index;
       else if (m.metadata.materialIndex !== undefined) delete m.metadata.materialIndex;
 
-      const targetCacheKey = makeTargetCacheKey(v);
+      const targetCacheKey = makeTargetCacheKey(v, m);
       if (m.material?.metadata?.cacheKey === targetCacheKey) return;
 
       flock.setMaterialWithCleanup(m, v);
 
       if (m.material) {
-        flock.adjustMaterialTilingToMesh(m, m.material);
-        m.material.needDepthPrePass = getAlpha(v) > 0;
-
-        if (
-          m.material instanceof flock.BABYLON.ShaderMaterial &&
-          !m.material.metadata._minMaxObserver
-        ) {
-          const mat = m.material;
-          mat.metadata._minMaxObserver = mat.onBindObservable.add((boundMesh) => {
-            const bb = boundMesh.getBoundingInfo().boundingBox;
-            mat.setVector2('minMax', new flock.BABYLON.Vector2(bb.minimum.y, bb.maximum.y));
-          });
-        }
+        if (!flock.isTilingPrimitive(m)) flock.retileMeshTexture(m);
+        flock.setDepthPrePass(m.material, getAlpha(v, m) > 0);
       }
     };
 
@@ -1583,34 +2067,9 @@ export const flockMaterial = {
       const flat = colorInput.flat();
       if (!flat.length) return rootMesh;
 
-      // Character models split a single logical part (e.g. the shorts) across
-      // several sub-meshes. Group those by canonical part name so the whole
-      // part draws one entry from the list, mirroring how the colour list is
-      // distributed; otherwise the top and bottom of the shorts would land on
-      // adjacent indices and get different materials. Meshes with no recognised
-      // part name fall back to one slot each, preserving the per-mesh ordering
-      // used by ordinary multi-mesh objects.
-      const isCharacterLike = targets.some((m) => flock.getCanonicalPartName(m));
-
-      if (isCharacterLike) {
-        const groupIndexByKey = new Map();
-        targets.forEach((m) => {
-          const key = flock.getCanonicalPartName(m) || `mesh:${m.uniqueId}`;
-          let index = groupIndexByKey.get(key);
-          if (index === undefined) {
-            index = groupIndexByKey.size;
-            groupIndexByKey.set(key, index);
-          }
-          applyOne(m, flat[index % flat.length], index);
-        });
-      } else {
-        targets.forEach((m, i) => {
-          const v = flat[i % flat.length];
-          applyOne(m, v, i);
-        });
-      }
+      slots.forEach(({ mesh, index }) => applyOne(mesh, flat[index % flat.length], index));
     } else {
-      targets.forEach((m) => applyOne(m, colorInput));
+      slots.forEach(({ mesh }) => applyOne(mesh, colorInput));
     }
 
     return rootMesh;

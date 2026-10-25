@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -110,7 +111,7 @@
                     "type": "text",
                     "id": "tu226(eQzlW@;(uN)]~=",
                     "fields": {
-                      "TEXT": "🎳 A - left; D - right; SPACE  (4) - launch"
+                      "TEXT": "🎳 A/D or◁/▷ to move, Space/④ to launch"
                     }
                   }
                 },
@@ -899,6 +900,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "-I6:$PKfG(}|luD1iXmp",
+        "x": 10,
+        "y": 2258,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "jqM^yF^G8J3CAa?DMP88",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

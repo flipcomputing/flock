@@ -32,8 +32,7 @@ function _createSrRoot() {
   root.setAttribute('role', 'group');
   root.setAttribute('aria-label', 'UI controls');
   // Visually hidden but accessible; individual elements are moved into view on focus
-  root.style.cssText =
-    'position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;';
+  root.style.cssText = 'position:absolute;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;';
   document.body.appendChild(root);
   return root;
 }
@@ -52,9 +51,13 @@ function _installCanvasTabHandler(canvas) {
 
 function _getFocusableElements() {
   if (!_srRoot) return [];
-  return Array.from(
-    _srRoot.querySelectorAll('[data-flock-twin]')
-  ).filter((el) => el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'P' || el.tagName === 'SPAN');
+  return Array.from(_srRoot.querySelectorAll('[data-flock-twin]')).filter(
+    (el) =>
+      el.tagName === 'BUTTON' ||
+      el.tagName === 'INPUT' ||
+      el.tagName === 'P' ||
+      el.tagName === 'SPAN'
+  );
 }
 
 // Cycle focus within shadow controls; return to canvas at either end
@@ -72,7 +75,14 @@ function _onTwinKeydown(e) {
 
 // Compute the viewport-fixed CSS rect for a Babylon GUI control.
 // Position params are passed directly from ui.js (raw x/y/w/h in Babylon GUI pixels).
-function _computeFixedRect({ x, y, w, h }) {
+function _edgeStart(edge, offset, space, size) {
+  if (edge === 'center') return (space - size) / 2 + offset;
+  if (edge === 'end') return space - size + offset;
+  if (edge === 'start') return offset;
+  return offset < 0 ? space - Math.abs(offset) - size : offset;
+}
+
+function _computeFixedRect({ x, y, w, h, hEdge, vEdge }) {
   if (!_canvas) return null;
   const cr = _canvas.getBoundingClientRect();
   const cw = cr.width;
@@ -87,14 +97,13 @@ function _computeFixedRect({ x, y, w, h }) {
   const px = x * scaleX;
   const py = y * scaleY;
 
-  // Negative coordinates mean right/bottom alignment (same logic as ui.js)
-  const cssLeft = x < 0 ? cw - Math.abs(px) - pw : px;
-  const cssTop  = y < 0 ? ch - Math.abs(py) - ph : py;
+  const cssLeft = _edgeStart(hEdge, px, cw, pw);
+  const cssTop = _edgeStart(vEdge, py, ch, ph);
 
   return {
-    left:   cr.left + cssLeft,
-    top:    cr.top  + cssTop,
-    width:  pw,
+    left: cr.left + cssLeft,
+    top: cr.top + cssTop,
+    width: pw,
     height: ph,
   };
 }
@@ -115,15 +124,16 @@ function _attachFocusBehavior(el, posParams) {
   const indicator = document.createElement('div');
   indicator.style.cssText =
     `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
-    'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
+    'outline:3px solid var(--color-focus-outline);outline-offset:2px;border-radius:3px;box-sizing:border-box;';
   document.body.appendChild(indicator);
 
   el.addEventListener('focus', () => {
+    if (!el.matches(':focus-visible')) return;
     const rect = _computeFixedRect(posParams);
     if (rect) {
-      indicator.style.left   = `${rect.left}px`;
-      indicator.style.top    = `${rect.top}px`;
-      indicator.style.width  = `${rect.width}px`;
+      indicator.style.left = `${rect.left}px`;
+      indicator.style.top = `${rect.top}px`;
+      indicator.style.width = `${rect.width}px`;
       indicator.style.height = `${rect.height}px`;
       indicator.style.display = 'block';
     }
@@ -168,7 +178,11 @@ export function registerUIButton(id, text, babylonButton, posParams) {
       btn.removeEventListener('click', onClick);
       btn.removeEventListener('keydown', _onTwinKeydown);
       indicator.remove();
-      try { babylonButton.onDisposeObservable.remove(disposeObs); } catch { /* already gone */ }
+      try {
+        babylonButton.onDisposeObservable.remove(disposeObs);
+      } catch {
+        /* already gone */
+      }
     },
   });
 }
@@ -208,15 +222,30 @@ export function registerUISlider(id, babylonSlider, posParams) {
       range.removeEventListener('input', onInput);
       range.removeEventListener('keydown', _onTwinKeydown);
       indicator.remove();
-      try { babylonSlider.onValueChangedObservable.remove(valueObs); } catch { /* already gone */ }
-      try { babylonSlider.onDisposeObservable.remove(disposeObs); } catch { /* already gone */ }
+      try {
+        babylonSlider.onValueChangedObservable.remove(valueObs);
+      } catch {
+        /* already gone */
+      }
+      try {
+        babylonSlider.onDisposeObservable.remove(disposeObs);
+      } catch {
+        /* already gone */
+      }
     },
   });
 }
 
 // ─── UIInput twin ─────────────────────────────────────────────────────────────
 
-export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, inputPosParams, submitPosParams) {
+export function registerUIInput(
+  inputId,
+  submitId,
+  babylonInput,
+  babylonSubmit,
+  inputPosParams,
+  submitPosParams
+) {
   if (!_srRoot) return;
   unregisterUIControl(inputId);
 
@@ -233,9 +262,7 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
     // Capture next focus target before the twins are removed by dispose
     const focusable = _getFocusableElements();
     const idx = focusable.indexOf(submitBtn);
-    const nextTarget = idx >= 0 && idx < focusable.length - 1
-      ? focusable[idx + 1]
-      : _canvas;
+    const nextTarget = idx >= 0 && idx < focusable.length - 1 ? focusable[idx + 1] : _canvas;
 
     babylonInput.text = htmlInput.value;
     babylonSubmit.onPointerUpObservable.notifyObservers({});
@@ -251,12 +278,13 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
   const _applyStyle = (focused) => {
     const rect = _computeFixedRect(inputPosParams);
     if (!rect) return;
-    const bg   = babylonInput.background   || '#ffffff';
-    const fg   = babylonInput.color        || '#000000';
-    const fs   = babylonInput.fontSize     || '16px';
-    const border = focused ? '2px solid #005fcc' : '1px solid rgba(128,128,128,0.6)';
-    _phStyle.textContent =
-      `#${_styleId}-el::placeholder { color: ${fg}; opacity: 0.5; }`;
+    const bg = babylonInput.background || '#ffffff';
+    const fg = babylonInput.color || '#000000';
+    const fs = babylonInput.fontSize || '16px';
+    const border = focused
+      ? '2px solid var(--color-focus-outline)'
+      : '1px solid rgba(128,128,128,0.6)';
+    _phStyle.textContent = `#${_styleId}-el::placeholder { color: ${fg}; opacity: 0.5; }`;
     htmlInput.id = `${_styleId}-el`;
     htmlInput.style.cssText =
       `position:fixed;left:${rect.left}px;top:${rect.top}px;` +
@@ -271,7 +299,7 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
 
   htmlInput.addEventListener('focus', () => {
     if (babylonInput.text) htmlInput.value = babylonInput.text;
-    _applyStyle(true);
+    _applyStyle(htmlInput.matches(':focus-visible'));
   });
 
   htmlInput.addEventListener('blur', () => {
@@ -288,8 +316,12 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
       const idx = focusable.indexOf(htmlInput);
       e.preventDefault();
       (e.shiftKey
-        ? (idx > 0 ? focusable[idx - 1] : _canvas)
-        : (idx < focusable.length - 1 ? focusable[idx + 1] : _canvas)
+        ? idx > 0
+          ? focusable[idx - 1]
+          : _canvas
+        : idx < focusable.length - 1
+          ? focusable[idx + 1]
+          : _canvas
       )?.focus();
     }
   };
@@ -319,24 +351,28 @@ export function registerUIInput(inputId, submitId, babylonInput, babylonSubmit, 
       submitBtn.removeEventListener('keydown', _onTwinKeydown);
       submitIndicator.remove();
       _phStyle.remove();
-      try { babylonInput.onDisposeObservable.remove(disposeObs); } catch { /* already gone */ }
+      try {
+        babylonInput.onDisposeObservable.remove(disposeObs);
+      } catch {
+        /* already gone */
+      }
     },
   });
 }
 
 // ─── UIText twin (aria-live + tab stop) ───────────────────────────────────────
 
-let _textSeq = 0;
-
-export function registerUIText(id, text, posParams) {
+export function registerUIText(id, text, posParams, { announce = true } = {}) {
   if (!_srRoot) return;
 
   const existing = _twins.get(id);
   if (existing) {
+    if (existing.posParams && posParams) Object.assign(existing.posParams, posParams);
     const p = existing.elements.find((el) => el.tagName === 'P');
-    if (p) _announceToP(p, text);
+    if (p && announce) _announceToP(p, text);
     return;
   }
+  posParams = posParams ? { ...posParams } : posParams;
 
   const p = document.createElement('p');
   p.setAttribute('data-flock-twin', id);
@@ -356,15 +392,16 @@ export function registerUIText(id, text, posParams) {
     indicator = document.createElement('div');
     indicator.style.cssText =
       `display:none;position:fixed;pointer-events:none;z-index:${TWIN_Z_INDEX};` +
-      'outline:3px solid #005fcc;outline-offset:2px;border-radius:3px;box-sizing:border-box;';
+      'outline:3px solid var(--color-focus-outline);outline-offset:2px;border-radius:3px;box-sizing:border-box;';
     document.body.appendChild(indicator);
 
     p.addEventListener('focus', () => {
+      if (!p.matches(':focus-visible')) return;
       const rect = _computeFixedRect(posParams);
       if (rect) {
-        indicator.style.left   = `${rect.left}px`;
-        indicator.style.top    = `${rect.top}px`;
-        indicator.style.width  = `${rect.width}px`;
+        indicator.style.left = `${rect.left}px`;
+        indicator.style.top = `${rect.top}px`;
+        indicator.style.width = `${rect.width}px`;
         indicator.style.height = `${rect.height}px`;
         indicator.style.display = 'block';
       }
@@ -384,6 +421,7 @@ export function registerUIText(id, text, posParams) {
 
   _twins.set(id, {
     elements: indicator ? [p, indicator] : [p],
+    posParams,
     cleanup() {
       p.removeEventListener('keydown', _onTwinKeydown);
       indicator?.remove();
@@ -392,10 +430,10 @@ export function registerUIText(id, text, posParams) {
 }
 
 function _announceToP(p, text) {
-  const seq = ++_textSeq;
+  const seq = (p._announceSeq = (p._announceSeq ?? 0) + 1);
   p.textContent = '';
   setTimeout(() => {
-    if (_textSeq !== seq) return;
+    if (p._announceSeq !== seq) return;
     p.textContent = String(text ?? '');
   }, 20);
 }

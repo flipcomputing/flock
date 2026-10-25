@@ -1,39 +1,160 @@
+import { clampToRange } from '../config.js';
+
 let flock;
 
 export function setFlockReference(ref) {
   flock = ref;
 }
 
+// Headlamp tracks this fraction of the main light's intensity, so it stays
+// proportional to lightIntensity() and goes to 0 when that does.
+const HEADLAMP_INTENSITY_RATIO = 0.4;
+
+function applyParticleOptions(
+  particleSystem,
+  { emitRate, colors, alphas, sizes, lifetime, shape, gravity, direction, rotation }
+) {
+  if (shape && particleSystem.metadata?.shape !== shape) {
+    particleSystem.particleTexture?.dispose();
+    particleSystem.particleTexture = new flock.BABYLON.Texture(
+      flock.texturePath + shape,
+      flock.scene
+    );
+    particleSystem.metadata = { ...particleSystem.metadata, shape };
+  }
+
+  const startColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(colors.start));
+  const endColor = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(colors.end));
+  particleSystem.color1 = new flock.BABYLON.Color4(
+    startColor.r,
+    startColor.g,
+    startColor.b,
+    clampToRange(alphas.start, 'unit')
+  );
+  particleSystem.color2 = new flock.BABYLON.Color4(
+    endColor.r,
+    endColor.g,
+    endColor.b,
+    clampToRange(alphas.end, 'unit')
+  );
+  particleSystem.colorDead = new flock.BABYLON.Color4(endColor.r, endColor.g, endColor.b, 0);
+
+  particleSystem.minSize = sizes.start;
+  particleSystem.maxSize = sizes.end;
+
+  particleSystem.minLifeTime = lifetime.min;
+  particleSystem.maxLifeTime = lifetime.max;
+
+  if (Number.isFinite(Number(emitRate))) {
+    particleSystem.emitRate = clampToRange(Number(emitRate), 'particleRate');
+  }
+
+  particleSystem.gravity = gravity
+    ? new flock.BABYLON.Vector3(0, -9.81, 0)
+    : flock.BABYLON.Vector3.Zero();
+
+  const meshEmitter = particleSystem.particleEmitterType;
+  if (direction && (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)) {
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 3;
+    meshEmitter.useMeshNormalsForDirection = false;
+    meshEmitter.direction1 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
+    meshEmitter.direction2 = new flock.BABYLON.Vector3(direction.x, direction.y, direction.z);
+  } else {
+    particleSystem.minEmitPower = 1;
+    particleSystem.maxEmitPower = 1;
+    meshEmitter.useMeshNormalsForDirection = true;
+  }
+
+  if (rotation) {
+    const toRad = Math.PI / 180;
+    if (rotation.angularSpeed) {
+      particleSystem.minAngularSpeed = rotation.angularSpeed.min * toRad;
+      particleSystem.maxAngularSpeed = rotation.angularSpeed.max * toRad;
+    }
+    if (rotation.initialRotation) {
+      particleSystem.minInitialRotation = rotation.initialRotation.min * toRad;
+      particleSystem.maxInitialRotation = rotation.initialRotation.max * toRad;
+    }
+  }
+}
+
+function updateHeadlampIntensity() {
+  if (!flock.headlampLight) return;
+  const soft = flock._lightStyleSoft !== false;
+  flock.headlampLight.intensity = soft
+    ? (flock.mainLight?.intensity ?? 1) * HEADLAMP_INTENSITY_RATIO
+    : 0;
+}
+
+function castsShadowWhenAll(mesh) {
+  if (flock.shadowCasters.has(mesh)) return true;
+  if (mesh === flock.ground || mesh === flock.sky) return false;
+  if (!mesh.isEnabled() || !mesh.isVisible || mesh.getTotalVertices() === 0) return false;
+  let root = mesh;
+  while (true) {
+    if (flock.shadowExcluded.has(root)) return false;
+    if (!root.parent) break;
+    root = root.parent;
+  }
+  return root.metadata?.blockKey !== undefined;
+}
+
 export const flockEffects = {
   /*    Category: Scene>Effects  */
+  // Called by flockEffects itself and by flock.js on scene init.
+  updateHeadlampIntensity,
   lightIntensity(intensity) {
     if (flock.mainLight) {
-      flock.mainLight.intensity = intensity;
+      flock.mainLight.intensity = clampToRange(intensity, 'nonNegative');
+      updateHeadlampIntensity();
     } else {
-      console.warn(
-        "Main light is not defined. Please ensure flock.mainLight exists.",
-      );
+      console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
     }
   },
   lightColor(diffuse, groundColor) {
     if (flock.mainLight) {
-      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(diffuse);
-      flock.mainLight.groundColor =
-        flock.BABYLON.Color3.FromHexString(groundColor);
-    } else {
-      console.warn(
-        "Main light is not defined. Please ensure flock.mainLight exists.",
+      flock.mainLight.diffuse = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(diffuse)
       );
+      flock.mainLight.groundColor = flock.BABYLON.Color3.FromHexString(
+        flock.getColorFromString(groundColor)
+      );
+    } else {
+      console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
+    }
+  },
+  // Soft (default): no specular hotspot on the main light, gentle tone
+  // mapping. Classic: original look, full specular, no tone mapping.
+  lightStyle(style) {
+    if (!flock.mainLight) {
+      console.warn('Main light is not defined. Please ensure flock.mainLight exists.');
+      return;
+    }
+    const soft = (style || 'SOFT').toString().toUpperCase() !== 'CLASSIC';
+    flock._lightStyleSoft = soft;
+
+    flock.mainLight.specular = soft
+      ? new flock.BABYLON.Color3(0, 0, 0)
+      : new flock.BABYLON.Color3(1, 1, 1);
+
+    updateHeadlampIntensity();
+
+    const ipc = flock.scene?.imageProcessingConfiguration;
+    if (ipc) {
+      ipc.toneMappingEnabled = soft;
+      if (soft) {
+        ipc.toneMappingType =
+          flock.BABYLON.ImageProcessingConfiguration.TONEMAPPING_KHR_PBR_NEUTRAL;
+      }
     }
   },
   getMainLight() {
-    return "__main_light__";
+    return '__main_light__';
   },
-  enableShadows({ enabled = true } = {}) {
+  enableShadows({ enabled = true, all = false } = {}) {
     if (!flock.shadowLight) {
-      console.warn(
-        "Shadow light is not defined. Please ensure flock.shadowLight exists.",
-      );
+      console.warn('Shadow light is not defined. Please ensure flock.shadowLight exists.');
       return;
     }
     if (enabled) {
@@ -49,9 +170,11 @@ export const flockEffects = {
       flock.shadowLight.intensity = 0.4;
       if (flock.ground) flock.ground.receiveShadows = true;
       // Register any meshes already marked as casters (order-independent).
-      flock.shadowCasters.forEach((m) => {
-        if (!m.isDisposed()) flock.shadowGenerator.addShadowCaster(m);
-      });
+      const shadowMap = flock.shadowGenerator.getShadowMap();
+      shadowMap.renderListPredicate = all ? castsShadowWhenAll : null;
+      shadowMap.renderList = [...flock.shadowCasters].filter((m) => !m.isDisposed());
+      // A scaled-down AR scene catches its shadow on the room's floor instead.
+      flock._syncARGround?.();
     } else {
       // Turn the directional light back off so the scene returns to its
       // flat hemispheric look (no shading, no cast shadows). Marked casters
@@ -61,18 +184,25 @@ export const flockEffects = {
         flock.shadowGenerator.dispose();
         flock.shadowGenerator = null;
       }
+      flock._syncARGround?.();
     }
   },
   setShadow(meshName, { cast = true } = {}) {
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, (mesh) => {
-        const meshes = [mesh, ...mesh.getDescendants()].filter(
-          (m) =>
-            m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0,
+        flock._realiseLinked(mesh);
+        const nodes = [mesh, ...mesh.getDescendants()];
+        const meshes = nodes.filter(
+          (m) => m instanceof flock.BABYLON.Mesh && m.getTotalVertices() > 0
         );
         // Marking a caster does NOT turn shadows on — enableShadows is the
         // master switch. Track the intent and apply it live if a generator
         // already exists.
+        if (cast) {
+          nodes.forEach((n) => flock.shadowExcluded.delete(n));
+        } else {
+          flock.shadowExcluded.add(mesh);
+        }
         meshes.forEach((m) => {
           if (cast) {
             flock.shadowCasters.add(m);
@@ -99,7 +229,8 @@ export const flockEffects = {
       gravity,
       direction,
       rotation,
-    } = {},
+      blockKey = null,
+    } = {}
   ) {
     const resultName = flock._reserveName(name);
 
@@ -107,8 +238,8 @@ export const flockEffects = {
       flock.whenModelReady(emitterMesh, (meshInstance) => {
         if (!(meshInstance instanceof flock.BABYLON.AbstractMesh)) {
           flock.reportBlockError({
-            key: "particle_emitter_not_mesh",
-            api: "createParticleEffect",
+            key: 'particle_emitter_not_mesh',
+            api: 'createParticleEffect',
             values: { effect: resultName, emitter: emitterMesh },
           });
           resolve(null);
@@ -127,100 +258,32 @@ export const flockEffects = {
               });
           }
 
-          const particleSystem = new flock.BABYLON.ParticleSystem(
-            resultName,
-            500,
-            flock.scene,
-          );
-          const texturePath = flock.texturePath + shape;
-          particleSystem.particleTexture = new flock.BABYLON.Texture(
-            texturePath,
-            flock.scene,
-          );
+          const particleSystem = new flock.BABYLON.ParticleSystem(resultName, 500, flock.scene);
+          particleSystem.metadata = { blockKey };
           particleSystem.emitter = meshInstance;
-
-          const meshEmitter = new flock.BABYLON.MeshParticleEmitter(
-            meshInstance,
-          );
-          particleSystem.particleEmitterType = meshEmitter;
+          particleSystem.particleEmitterType = new flock.BABYLON.MeshParticleEmitter(meshInstance);
           particleSystem.blendMode = 4;
-
-          const startColor = flock.BABYLON.Color4.FromHexString(colors.start);
-          const endColor = flock.BABYLON.Color4.FromHexString(colors.end);
-
-          particleSystem.color1 = new flock.BABYLON.Color4(
-            startColor.r,
-            startColor.g,
-            startColor.b,
-            alphas.start,
-          );
-          particleSystem.color2 = new flock.BABYLON.Color4(
-            endColor.r,
-            endColor.g,
-            endColor.b,
-            alphas.end,
-          );
-          particleSystem.colorDead = new flock.BABYLON.Color4(
-            endColor.r,
-            endColor.g,
-            endColor.b,
-            0,
-          );
-
-          particleSystem.minSize = sizes.start;
-          particleSystem.maxSize = sizes.end;
-
-          particleSystem.minLifeTime = lifetime.min;
-          particleSystem.maxLifeTime = lifetime.max;
-
-          const MAX_EMIT_RATE = 500;
-          particleSystem.emitRate = Math.min(emitRate, MAX_EMIT_RATE);
-
-          particleSystem.gravity = gravity
-            ? new flock.BABYLON.Vector3(0, -9.81, 0)
-            : flock.BABYLON.Vector3.Zero();
-
-          if (
-            direction &&
-            (direction.x !== 0 || direction.y !== 0 || direction.z !== 0)
-          ) {
-            particleSystem.minEmitPower = 1;
-            particleSystem.maxEmitPower = 3;
-            meshEmitter.useMeshNormalsForDirection = false;
-            meshEmitter.direction1 = new flock.BABYLON.Vector3(
-              direction.x,
-              direction.y,
-              direction.z,
-            );
-            meshEmitter.direction2 = new flock.BABYLON.Vector3(
-              direction.x,
-              direction.y,
-              direction.z,
-            );
-          }
-
-          if (rotation) {
-            const toRad = Math.PI / 180;
-            if (rotation.angularSpeed) {
-              particleSystem.minAngularSpeed =
-                rotation.angularSpeed.min * toRad;
-              particleSystem.maxAngularSpeed =
-                rotation.angularSpeed.max * toRad;
-            }
-            if (rotation.initialRotation) {
-              particleSystem.minInitialRotation =
-                rotation.initialRotation.min * toRad;
-              particleSystem.maxInitialRotation =
-                rotation.initialRotation.max * toRad;
-            }
-          }
+          particleSystem.imageProcessingConfiguration =
+            new flock.BABYLON.ImageProcessingConfiguration();
+          applyParticleOptions(particleSystem, {
+            emitRate,
+            colors,
+            alphas,
+            sizes,
+            lifetime,
+            shape,
+            gravity,
+            direction,
+            rotation,
+          });
 
           particleSystem.start();
+          if (flock.isPaused()) flock._freezeParticleSystem(particleSystem);
           resolve(particleSystem);
         } catch (error) {
           flock.reportBlockError({
-            key: "particle_effect_failed",
-            api: "createParticleEffect",
+            key: 'particle_effect_failed',
+            api: 'createParticleEffect',
             values: { effect: resultName },
             error,
           });
@@ -232,10 +295,15 @@ export const flockEffects = {
     flock.modelReadyPromises.set(resultName, particlePromise);
     return resultName;
   },
+  // Live edit of a running effect's block: apply the new settings in place
+  // and, if paused, let it run so the change can be seen.
+  updateParticleEffect(particleSystem, options) {
+    if (!particleSystem) return;
+    applyParticleOptions(particleSystem, options);
+    flock._thawParticleSystem(particleSystem);
+  },
   startParticleSystem(systemName) {
-    const particleSystem = flock.scene.particleSystems.find(
-      (system) => system.name === systemName,
-    );
+    const particleSystem = flock.scene.particleSystems.find((system) => system.name === systemName);
     if (particleSystem) {
       particleSystem.start();
     } else {
@@ -243,9 +311,7 @@ export const flockEffects = {
     }
   },
   stopParticleSystem(systemName) {
-    const particleSystem = flock.scene.particleSystems.find(
-      (system) => system.name === systemName,
-    );
+    const particleSystem = flock.scene.particleSystems.find((system) => system.name === systemName);
 
     if (particleSystem) {
       particleSystem.stop();
@@ -254,43 +320,33 @@ export const flockEffects = {
     }
   },
   resetParticleSystem(systemName) {
-    const particleSystem = flock.scene.particleSystems.find(
-      (system) => system.name === systemName,
-    );
+    const particleSystem = flock.scene.particleSystems.find((system) => system.name === systemName);
     if (particleSystem) {
       particleSystem.reset();
     } else {
       console.warn(`Particle system '${systemName}' not found.`);
     }
   },
-  setFog({
-    fogColorHex,
-    fogMode,
-    fogDensity = 0.1,
-    fogStart = 50,
-    fogEnd = 100,
-  } = {}) {
-    const fogColorRgb = flock.BABYLON.Color3.FromHexString(
-      flock.getColorFromString(fogColorHex),
-    );
+  setFog({ fogColorHex, fogMode, fogDensity = 0.1, fogStart = 50, fogEnd = 100 } = {}) {
+    const fogColorRgb = flock.BABYLON.Color3.FromHexString(flock.getColorFromString(fogColorHex));
 
     switch (fogMode) {
-      case "NONE":
+      case 'NONE':
         flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_NONE;
         break;
-      case "EXP":
+      case 'EXP':
         flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP;
         break;
-      case "EXP2":
+      case 'EXP2':
         flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_EXP2;
         break;
-      case "LINEAR":
+      case 'LINEAR':
         flock.scene.fogMode = flock.BABYLON.Scene.FOGMODE_LINEAR;
         break;
     }
 
     flock.scene.fogColor = fogColorRgb;
-    flock.scene.fogDensity = fogDensity;
+    flock.scene.fogDensity = clampToRange(fogDensity, 'unit');
     flock.scene.fogStart = fogStart;
     flock.scene.fogEnd = fogEnd;
     flock.updateFogAwareShaderMaterials?.();

@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -56,7 +57,7 @@
                   "type": "create_map",
                   "id": "jy{.~r-y@IKde~Fn,u|B",
                   "fields": {
-                    "MAP_NAME": "NONE"
+                    "MAP_NAME": "mixed_heights.png"
                   },
                   "inputs": {
                     "MATERIAL": {
@@ -82,6 +83,24 @@
                               "id": "bSeFhwLRy)4zp1-uH%hF",
                               "fields": {
                                 "NUM": 1
+                              }
+                            }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "D@8SEQuRCAWizDV}7.S}",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "Wn2`r4z3t~VnJs{?!tP#",
+                              "fields": {
+                                "NUM": 0
                               }
                             }
                           }
@@ -111,6 +130,24 @@
                                 "NUM": 1
                               }
                             }
+                          },
+                          "SCALE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "*|7TSE8?BbrveA[L99%M",
+                              "fields": {
+                                "NUM": 1
+                              }
+                            }
+                          },
+                          "ANGLE": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "6{g9v]T;;6IazUW59uz1",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            }
                           }
                         }
                       }
@@ -126,13 +163,13 @@
         "type": "start",
         "id": "8s$*ox(T?3eAC1O!3N|v",
         "x": 10,
-        "y": 488,
+        "y": 490,
         "inputs": {
           "DO": {
             "block": {
               "type": "create_box",
               "id": "dKY66CTvaRqnqoW]zyb%",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": "D3G_}[AOUIY=dyu@Zy6P"
@@ -145,6 +182,51 @@
                     "id": ",+/m,HSHMQOM{+iYqrF1",
                     "fields": {
                       "COLOR": "#996633"
+                    }
+                  },
+                  "block": {
+                    "type": "material",
+                    "id": "-2B,0._ajj2aKlq[UmDj",
+                    "fields": {
+                      "TEXTURE_SET": "planks.png"
+                    },
+                    "inputs": {
+                      "BASE_COLOR": {
+                        "shadow": {
+                          "type": "colour",
+                          "id": "wnqx|Q2%:@1/*?Y7R8Ia",
+                          "fields": {
+                            "COLOR": "#cc6600"
+                          }
+                        }
+                      },
+                      "ALPHA": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": ";ThspFvdw@%hW.?S80RZ",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      },
+                      "SCALE": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "gASvuD@{?v@Q=hNw0~Mq",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      },
+                      "ANGLE": {
+                        "shadow": {
+                          "type": "math_number",
+                          "id": "9-V]86-r5G2u3uj5:YmW",
+                          "fields": {
+                            "NUM": 0
+                          }
+                        }
+                      }
                     }
                   }
                 },
@@ -202,75 +284,6 @@
                     }
                   }
                 }
-              },
-              "next": {
-                "block": {
-                  "type": "set_material",
-                  "id": "r^TnaNU=V,#;Or_0UEGP",
-                  "fields": {
-                    "MESH": {
-                      "id": "D3G_}[AOUIY=dyu@Zy6P"
-                    }
-                  },
-                  "inputs": {
-                    "MATERIAL": {
-                      "shadow": {
-                        "type": "material",
-                        "id": "gFGh7Arzq4b[URFGw;ti",
-                        "fields": {
-                          "TEXTURE_SET": "planks.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "wnqx|Q2%:@1/*?Y7R8Ia",
-                              "fields": {
-                                "COLOR": "#cc6600"
-                              }
-                            }
-                          },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": ";ThspFvdw@%hW.?S80RZ",
-                              "fields": {
-                                "NUM": 1
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "block": {
-                        "type": "material",
-                        "id": "-2B,0._ajj2aKlq[UmDj",
-                        "fields": {
-                          "TEXTURE_SET": "planks.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "wnqx|Q2%:@1/*?Y7R8Ia",
-                              "fields": {
-                                "COLOR": "#cc6600"
-                              }
-                            }
-                          },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": ";ThspFvdw@%hW.?S80RZ",
-                              "fields": {
-                                "NUM": 1
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
               }
             }
           }
@@ -292,7 +305,7 @@
                     "type": "text",
                     "id": ",RmOh]r6cN`Zy0pE[!@L",
                     "fields": {
-                      "TEXT": "Hold left mouse button down to look around"
+                      "TEXT": "Drag to look around"
                     }
                   }
                 },
@@ -325,7 +338,7 @@
                         "type": "text",
                         "id": "V8;_4T!B,V:$GY2AWQ*t",
                         "fields": {
-                          "TEXT": "W - forward; S - backward"
+                          "TEXT": "W/S or the △▽ pad to move"
                         }
                       }
                     },
@@ -358,18 +371,18 @@
         "type": "start",
         "id": "NE/9)5bz4F)yulJ$MAd/",
         "x": 10,
-        "y": 773,
+        "y": 734,
         "inputs": {
           "DO": {
             "block": {
               "type": "load_character",
               "id": "XS=]S@^O8?2llH#ZV||{",
-              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+              "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
               "fields": {
                 "ID_VAR": {
                   "id": ";rbQk{Wn/~2Q`R:_lp=y"
                 },
-                "MODELS": "Liz2.glb"
+                "MODELS": "Block2.glb"
               },
               "inputs": {
                 "SCALE": {
@@ -413,7 +426,7 @@
                     "type": "colour",
                     "id": "z;m9)K*g}{62A2`@412u",
                     "fields": {
-                      "COLOR": "#000000"
+                      "COLOR": "#663333"
                     }
                   }
                 },
@@ -449,7 +462,7 @@
                     "type": "colour",
                     "id": "Y5m2wQ2nGEk:7G~xr!t+",
                     "fields": {
-                      "COLOR": "#00008b"
+                      "COLOR": "#663300"
                     }
                   }
                 },
@@ -478,6 +491,9 @@
                       "type": "camera_follow",
                       "id": "YqhDoHxHy;b9FtlNwH:{",
                       "fields": {
+                        "CAM_VAR": {
+                          "id": "V^9k70]BV^D{6l1DuvgD"
+                        },
                         "MESH_VAR": {
                           "id": ";rbQk{Wn/~2Q`R:_lp=y"
                         },
@@ -490,6 +506,15 @@
                             "id": ".0-xUZzE(+VdM,@Ta,zH",
                             "fields": {
                               "NUM": 7
+                            }
+                          }
+                        },
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "dIgJ)Q|ISMn7k^-&7Jo2",
+                            "fields": {
+                              "NUM": 90
                             }
                           }
                         }
@@ -517,7 +542,7 @@
         "type": "procedures_defnoreturn",
         "id": "%6CG-tkp5Z0nX(~e6^Z5",
         "x": 10,
-        "y": 2252,
+        "y": 2181,
         "extraState": {
           "params": [
             {
@@ -532,6 +557,15 @@
           "4x,MHnokG#8v!]57RIsK": "seed"
         },
         "inputs": {
+          "4x,MHnokG#8v!]57RIsK": {
+            "shadow": {
+              "type": "math_number",
+              "id": "GqBi(vLq[X%z?vz)]j#E",
+              "fields": {
+                "NUM": 0
+              }
+            }
+          },
           "STACK": {
             "block": {
               "type": "controls_for",
@@ -1184,12 +1218,12 @@
                                                                   "block": {
                                                                     "type": "load_multi_object",
                                                                     "id": "i6V@0np8BhR:^b@.XT_r",
-                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                    "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                     "fields": {
                                                                       "ID_VAR": {
                                                                         "id": "LOE54v[a8sU%wLiUljwe"
                                                                       },
-                                                                      "MODELS": "tree.glb"
+                                                                      "MODELS": "tree4.glb"
                                                                     },
                                                                     "inputs": {
                                                                       "SCALE": {
@@ -1235,6 +1269,10 @@
                                                                           "fields": {
                                                                             "NUM": 0
                                                                           }
+                                                                        },
+                                                                        "block": {
+                                                                          "type": "ground_level",
+                                                                          "id": "adZTIj=GQy]H2Ee=ZSDK"
                                                                         }
                                                                       },
                                                                       "Z": {
@@ -1269,7 +1307,7 @@
                                                                                 "type": "colour",
                                                                                 "id": "%4B|~9{TdFyR//8Yfv8P",
                                                                                 "fields": {
-                                                                                  "COLOR": "#66cdaa"
+                                                                                  "COLOR": "#0d5b28"
                                                                                 }
                                                                               }
                                                                             },
@@ -1278,7 +1316,7 @@
                                                                                 "type": "colour",
                                                                                 "id": "7O`Z#u)qRMNjVp4^:]sD",
                                                                                 "fields": {
-                                                                                  "COLOR": "#cd853f"
+                                                                                  "COLOR": "#6d6c51"
                                                                                 }
                                                                               }
                                                                             }
@@ -1336,12 +1374,12 @@
                                                                       "block": {
                                                                         "type": "load_multi_object",
                                                                         "id": "dLo|/VrDvfF3h`MAiuA2",
-                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                        "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                         "fields": {
                                                                           "ID_VAR": {
                                                                             "id": "c$R~ugRwM!vz)Q!Q+b|V"
                                                                           },
-                                                                          "MODELS": "tree.glb"
+                                                                          "MODELS": "tree4.glb"
                                                                         },
                                                                         "inputs": {
                                                                           "SCALE": {
@@ -1387,6 +1425,10 @@
                                                                               "fields": {
                                                                                 "NUM": 0
                                                                               }
+                                                                            },
+                                                                            "block": {
+                                                                              "type": "ground_level",
+                                                                              "id": "3.;3ZTGH0hO_DW.B[++S"
                                                                             }
                                                                           },
                                                                           "Z": {
@@ -1421,7 +1463,7 @@
                                                                                     "type": "colour",
                                                                                     "id": "]n[IzX}Hsy7_wm)-uOAt",
                                                                                     "fields": {
-                                                                                      "COLOR": "#cc9933"
+                                                                                      "COLOR": "#009900"
                                                                                     }
                                                                                   }
                                                                                 },
@@ -1430,7 +1472,7 @@
                                                                                     "type": "colour",
                                                                                     "id": "_2jk2^,?{Lw`[ttS2a0d",
                                                                                     "fields": {
-                                                                                      "COLOR": "#ffcc99"
+                                                                                      "COLOR": "#6d6c51"
                                                                                     }
                                                                                   }
                                                                                 }
@@ -1457,12 +1499,12 @@
                                                                           "block": {
                                                                             "type": "load_multi_object",
                                                                             "id": ",JbveqRTYSbxji6N`%v8",
-                                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\"></mutation>",
+                                                                            "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" has_do=\"false\" has_then=\"false\"></mutation>",
                                                                             "fields": {
                                                                               "ID_VAR": {
                                                                                 "id": "VC=w.:}Z1*[,wP2aSL3I"
                                                                               },
-                                                                              "MODELS": "tree.glb"
+                                                                              "MODELS": "mushroom_2.glb"
                                                                             },
                                                                             "inputs": {
                                                                               "SCALE": {
@@ -1508,6 +1550,10 @@
                                                                                   "fields": {
                                                                                     "NUM": 0
                                                                                   }
+                                                                                },
+                                                                                "block": {
+                                                                                  "type": "ground_level",
+                                                                                  "id": "@A*NSK^7Tiw|THArN5C-"
                                                                                 }
                                                                               },
                                                                               "Z": {
@@ -1534,7 +1580,7 @@
                                                                                   "id": "e^6,{}OMQr+H=DDeL;ql",
                                                                                   "inline": true,
                                                                                   "extraState": {
-                                                                                    "itemCount": 2
+                                                                                    "itemCount": 3
                                                                                   },
                                                                                   "inputs": {
                                                                                     "ADD0": {
@@ -1542,7 +1588,7 @@
                                                                                         "type": "colour",
                                                                                         "id": "[,,ql%Wba[2@-~%r`q(g",
                                                                                         "fields": {
-                                                                                          "COLOR": "#009900"
+                                                                                          "COLOR": "#ffffff"
                                                                                         }
                                                                                       }
                                                                                     },
@@ -1551,11 +1597,32 @@
                                                                                         "type": "colour",
                                                                                         "id": "V@+OsgAvXieaQ}I:?[v$",
                                                                                         "fields": {
-                                                                                          "COLOR": "#cc6600"
+                                                                                          "COLOR": "#e73a49"
+                                                                                        }
+                                                                                      }
+                                                                                    },
+                                                                                    "ADD2": {
+                                                                                      "shadow": {
+                                                                                        "type": "colour",
+                                                                                        "id": "gfi}8Kp_w/cfT=:NE^O}",
+                                                                                        "fields": {
+                                                                                          "COLOR": "#8f7a61"
                                                                                         }
                                                                                       }
                                                                                     }
                                                                                   }
+                                                                                }
+                                                                              }
+                                                                            },
+                                                                            "next": {
+                                                                              "block": {
+                                                                                "type": "add_physics",
+                                                                                "id": "]wDRH;Ka8je2GsOq^rnZ",
+                                                                                "fields": {
+                                                                                  "MODEL_VAR": {
+                                                                                    "id": "VC=w.:}Z1*[,wP2aSL3I"
+                                                                                  },
+                                                                                  "PHYSICS_TYPE": "NONE"
                                                                                 }
                                                                               }
                                                                             }
@@ -1598,7 +1665,7 @@
         "type": "start",
         "id": "I_zBad|Vs4|xy8j^3MJT",
         "x": 10,
-        "y": 2036,
+        "y": 2013,
         "inputs": {
           "DO": {
             "block": {
@@ -1629,7 +1696,7 @@
         "type": "forever",
         "id": "+-%,!$X@ve.0)P[0$/Cf",
         "x": 10,
-        "y": 1156,
+        "y": 1120,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "inputs": {
           "DO": {
@@ -1936,6 +2003,24 @@
             }
           }
         }
+      },
+      {
+        "type": "start",
+        "id": "yUZh8V|?4%EDC+/`B)yN",
+        "x": 10,
+        "y": 3725,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "1JcEt`R^ZzknmDv;Lzy(",
+              "fields": {
+                "MODE": "VR"
+              }
+            }
+          }
+        }
       }
     ]
   },
@@ -1985,8 +2070,12 @@
       "id": "c$R~ugRwM!vz)Q!Q+b|V"
     },
     {
-      "name": "tree 3",
+      "name": "mushrooms",
       "id": "VC=w.:}Z1*[,wP2aSL3I"
+    },
+    {
+      "name": "playerCamera",
+      "id": "V^9k70]BV^D{6l1DuvgD"
     }
   ]
 }

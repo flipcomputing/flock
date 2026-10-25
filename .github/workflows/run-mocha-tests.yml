@@ -5,9 +5,9 @@ name: Run mocha tests
 
 on:
   push:
-    branches: ["testable"]
+    branches: ['testable']
   pull_request:
-    branches: ["testable"]
+    branches: ['testable']
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: 'npm'
       - run: npm ci
       - name: Get installed Playwright version
         id: playwright-version

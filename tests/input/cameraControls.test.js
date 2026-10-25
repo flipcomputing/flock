@@ -1,6 +1,6 @@
-import { expect } from "chai";
-import { InputManager } from "../../input/inputManager.js";
-import { CameraControls } from "../../input/cameraControls.js";
+import { expect } from 'chai';
+import { InputManager } from '../../input/inputManager.js';
+import { CameraControls } from '../../input/cameraControls.js';
 
 class StubVector3 {
   constructor(x = 0, y = 0, z = 0) {
@@ -42,7 +42,7 @@ function makeFreeCamera() {
     rotation: { x: 0, y: 0 },
     position: new StubVector3(0, 0, 0),
     getDirection: (v) => new StubVector3(v.x, v.y, v.z),
-    getClassName: () => "FreeCamera",
+    getClassName: () => 'FreeCamera',
   };
 }
 
@@ -50,9 +50,25 @@ function makeArcRotateCamera() {
   return {
     alpha: 1,
     beta: 1,
+    radius: 10,
+    lowerRadiusLimit: null,
+    upperRadiusLimit: null,
+    metadata: {},
     position: new StubVector3(0, 0, 0),
-    getClassName: () => "ArcRotateCamera",
+    getClassName: () => 'ArcRotateCamera',
   };
+}
+
+function makeOrbitCamera() {
+  const camera = makeArcRotateCamera();
+  camera.metadata = { orbitView: true };
+  return camera;
+}
+
+function makeProjectOrbitCamera() {
+  const camera = makeArcRotateCamera();
+  camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+  return camera;
 }
 
 function makeFlock() {
@@ -72,7 +88,7 @@ function makeFlock() {
 }
 
 export function runCameraControlsTests() {
-  describe("CameraControls @camera @input", function () {
+  describe('CameraControls @camera @input', function () {
     let flock, controls;
 
     beforeEach(function () {
@@ -85,89 +101,374 @@ export function runCameraControlsTests() {
       controls.stop();
     });
 
-    describe("lifecycle", function () {
-      it("start() adds one observer, stop() removes it", function () {
+    describe('lifecycle', function () {
+      it('start() adds one observer, stop() removes it', function () {
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(1);
         controls.stop();
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(0);
       });
 
-      it("double start() does not add a second observer", function () {
+      it('double start() does not add a second observer', function () {
         controls.start();
         expect(flock.scene.onBeforeRenderObservable.count()).to.equal(1);
       });
     });
 
-    describe("movement sources", function () {
-      it("MOVE axes fly a free camera", function () {
-        flock.inputManager._setAxis("MOVE_Y", -1);
+    describe('movement sources', function () {
+      it('MOVE axes fly a free camera', function () {
+        flock.inputManager._setAxis('MOVE_Y', -1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("joystick getMove() flies the camera when MOVE axes are zero", function () {
+      it('joystick getMove() flies the camera when MOVE axes are zero', function () {
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("joystick x strafes the camera", function () {
+      // The XR camera is never an ArcRotateCamera, so the project's own answer decides.
+      it('leaves the camera alone in a session when the project camera orbits', function () {
+        flock._xrSessionActive = true;
+        flock._xrProjectCameraOrbits = true;
+        flock._joystickSource = { getMove: () => ({ x: 1, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.equal(0);
+        expect(flock.scene.activeCamera.position.x).to.equal(0);
+      });
+
+      // A free-camera project flies in a session as it does on the desktop.
+      it('still flies the camera in a session when the project camera is free', function () {
+        flock._xrSessionActive = true;
+        flock._xrProjectCameraOrbits = false;
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
+
+      // Outside a session the scene's own camera type decides, as it always has.
+      it('flies the camera outside a session whatever the project camera was', function () {
+        flock._xrProjectCameraOrbits = true;
+        flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
+
+      it('joystick x strafes the camera', function () {
         flock._joystickSource = { getMove: () => ({ x: 1, y: 0 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.x).to.be.greaterThan(0);
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
 
-      it("MOVE axes take precedence over the joystick", function () {
-        flock.inputManager._setAxis("MOVE_Y", 1);
+      it('MOVE axes take precedence over the joystick', function () {
+        flock.inputManager._setAxis('MOVE_Y', 1);
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.lessThan(0);
       });
 
-      it("physical WASD flies the camera when axes and joystick are idle", function () {
+      it('physical WASD flies the camera when axes and joystick are idle', function () {
         flock._joystickSource = { getMove: () => ({ x: 0, y: 0 }) };
-        flock._keyboardSource = { isKeyDown: (k) => k === "w" };
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
       });
 
-      it("no input → camera untouched", function () {
+      it('no input → camera untouched', function () {
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
         expect(flock.scene.activeCamera.rotation.y).to.equal(0);
       });
 
-      it("blocked when canvas controls are disabled", function () {
+      it('blocked when canvas controls are disabled', function () {
         flock._canvasControlsEnabled = false;
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
+
+      it("the editor's fly camera still flies when canvas controls are disabled", function () {
+        flock._canvasControlsEnabled = false;
+        flock.inputManager.setInputOwner('editor');
+        flock._keyboardSource = { isKeyDown: (k) => k === 'w' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.z).to.be.greaterThan(0);
+      });
     });
 
-    describe("look input", function () {
-      it("LOOK_X yaws a free camera", function () {
-        flock.inputManager._setAxis("LOOK_X", 1);
+    describe('look input', function () {
+      it('LOOK_X yaws a free camera', function () {
+        flock.inputManager._setAxis('LOOK_X', 1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.rotation.y).to.be.greaterThan(0);
       });
 
-      it("LOOK axes adjust ArcRotateCamera alpha/beta without moving it", function () {
+      it('physical ArrowLeft/ArrowRight turn a free camera without moving it', function () {
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowRight' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.be.greaterThan(0);
+        expect(flock.scene.activeCamera.position.x).to.equal(0);
+        flock.scene.activeCamera = makeFreeCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.be.lessThan(0);
+      });
+
+      it('an arrow the project bound with camera control is left to Babylon', function () {
+        flock.scene.activeCamera.keysLeft = [37];
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.rotation.y).to.equal(0);
+      });
+
+      it('on-screen ◁ ▷ strafe a free camera instead of turning it', function () {
+        flock._onScreenSource = { isKeyDown: (k) => k === 'd' || k === 'ArrowRight' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.position.x).to.be.greaterThan(0);
+        expect(flock.scene.activeCamera.rotation.y).to.equal(0);
+      });
+
+      it('LOOK axes adjust ArcRotateCamera alpha/beta without moving it', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
-        flock.inputManager._setAxis("LOOK_X", 1);
-        flock.inputManager._setAxis("LOOK_Y", 1);
+        flock.inputManager._setAxis('LOOK_X', 1);
+        flock.inputManager._setAxis('LOOK_Y', 1);
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
         expect(flock.scene.activeCamera.beta).to.be.lessThan(1);
         expect(flock.scene.activeCamera.position.z).to.equal(0);
       });
 
-      it("joystick does not move an ArcRotateCamera", function () {
+      it('joystick does not move an ArcRotateCamera', function () {
         flock.scene.activeCamera = makeArcRotateCamera();
         flock._joystickSource = { getMove: () => ({ x: 0, y: -1 }) };
         flock.scene.onBeforeRenderObservable.fire();
         expect(flock.scene.activeCamera.position.z).to.equal(0);
+      });
+    });
+
+    describe('orbit rotation', function () {
+      afterEach(function () {
+        flock.inputManager._clearAllKeys();
+        flock._keyboardSource = null;
+      });
+
+      it('ArrowLeft/ArrowRight rotate alpha like the native keys', function () {
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowLeft', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+        flock.inputManager._setKey('ArrowLeft', false);
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowRight', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.greaterThan(1);
+      });
+
+      it('ArrowUp/ArrowDown pitch beta like the native keys', function () {
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.be.lessThan(1);
+        flock.inputManager._setKey('ArrowUp', false);
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowDown', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.be.greaterThan(1);
+      });
+
+      it('WASD rotates (A left, D right, W up, S down)', function () {
+        for (const [key, axis, dir] of [
+          ['a', 'alpha', -1],
+          ['d', 'alpha', 1],
+          ['w', 'beta', -1],
+          ['s', 'beta', 1],
+        ]) {
+          flock.scene.activeCamera = makeOrbitCamera();
+          flock.inputManager._setKey(key, true);
+          flock.scene.onBeforeRenderObservable.fire();
+          expect(flock.scene.activeCamera[axis]).to.be[dir < 0 ? 'lessThan' : 'greaterThan'](1);
+          flock.inputManager._setKey(key, false);
+        }
+      });
+
+      it('letter and arrow for the same direction take one step, not two', function () {
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        const single = flock.scene.activeCamera.beta;
+        flock.inputManager._clearAllKeys();
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('w', true);
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.beta).to.equal(single);
+      });
+
+      it('physical keys rotate via KeyboardSource', function () {
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+      });
+
+      // Orbit view owns input (InputManager itself never sees the press — the
+      // point of this test is that CameraControls still rotates from
+      // OnScreenSource's own always-live button state).
+      it('on-screen button presses rotate via OnScreenSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._onScreenSource = { isKeyDown: (k) => k === 'a' || k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.be.lessThan(1);
+      });
+
+      it('opposing keys cancel out', function () {
+        flock.scene.activeCamera = makeProjectOrbitCamera();
+        flock.inputManager._setKey('ArrowLeft', true);
+        flock.inputManager._setKey('ArrowRight', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+      });
+
+      it('orbit view leaves the arrows to the canvas keyboard cursor', function () {
+        for (const key of ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']) {
+          flock.scene.activeCamera = makeOrbitCamera();
+          flock._keyboardSource = { isKeyDown: (k) => k === key };
+          flock.scene.onBeforeRenderObservable.fire();
+          expect(flock.scene.activeCamera.alpha).to.equal(1);
+          expect(flock.scene.activeCamera.beta).to.equal(1);
+        }
+      });
+
+      it('orbit view ignores an arrow the project bound to an action', function () {
+        flock.inputManager.setActionKey('LEFT', 'ArrowLeft');
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === 'ArrowLeft' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+      });
+
+      it('a project orbit camera rotates and zooms like orbit view', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock.inputManager._setKey('a', true);
+        flock.inputManager._setKey('w', true);
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(camera.alpha).to.be.lessThan(1);
+        expect(camera.beta).to.be.lessThan(1);
+        expect(camera.radius).to.be.lessThan(10);
+      });
+
+      it('the joystick turns an orbit camera', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock._joystickSource = { getMove: () => ({ x: 1, y: -1 }) };
+        flock.scene.onBeforeRenderObservable.fire();
+        flock._joystickSource = null;
+        expect(camera.alpha).to.be.greaterThan(1);
+        expect(camera.beta).to.be.lessThan(1);
+      });
+
+      it('an orbit camera ignores the keys while canvas controls are off', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'orbit' };
+        flock.scene.activeCamera = camera;
+        flock._canvasControlsEnabled = false;
+        flock.inputManager._setKey('a', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        flock._canvasControlsEnabled = undefined;
+        expect(camera.alpha).to.equal(1);
+      });
+
+      it('a project follow camera ignores the keys', function () {
+        const camera = makeArcRotateCamera();
+        camera.metadata = { cameraRig: true, cameraType: 'follow' };
+        flock.scene.activeCamera = camera;
+        flock.inputManager._setKey('a', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(camera.alpha).to.equal(1);
+      });
+
+      it('a follow camera without orbitView ignores the keys', function () {
+        flock.scene.activeCamera = makeArcRotateCamera();
+        flock.inputManager._setKey('a', true);
+        flock.inputManager._setKey('ArrowUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.alpha).to.equal(1);
+        expect(flock.scene.activeCamera.beta).to.equal(1);
+      });
+    });
+
+    describe('orbit zoom', function () {
+      afterEach(function () {
+        flock.inputManager._clearAllKeys();
+        flock._keyboardSource = null;
+      });
+
+      it('BUTTON1 key zooms an orbit camera in', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('BUTTON3 key zooms an orbit camera out', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('f', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.greaterThan(10);
+      });
+
+      it('PageUp/PageDown zoom (on-screen 1/3 and gamepad extra keys)', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('PageUp', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+        flock.inputManager._setKey('PageUp', false);
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('PageDown', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.greaterThan(10);
+      });
+
+      it('physical keyboard zooms via KeyboardSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._keyboardSource = { isKeyDown: (k) => k === '1' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('on-screen button presses zoom via OnScreenSource', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock._onScreenSource = { isKeyDown: (k) => k === '1' };
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.be.lessThan(10);
+      });
+
+      it('opposing zoom keys cancel out', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.inputManager._setKey('r', true);
+        flock.inputManager._setKey('f', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(10);
+      });
+
+      it('a follow camera without orbitView ignores zoom keys', function () {
+        flock.scene.activeCamera = makeArcRotateCamera();
+        flock.inputManager._setKey('r', true);
+        flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(10);
+      });
+
+      it('zoom clamps to radius limits', function () {
+        flock.scene.activeCamera = makeOrbitCamera();
+        flock.scene.activeCamera.lowerRadiusLimit = 9.99;
+        flock.inputManager._setKey('r', true);
+        for (let i = 0; i < 60; i++) flock.scene.onBeforeRenderObservable.fire();
+        expect(flock.scene.activeCamera.radius).to.equal(9.99);
       });
     });
   });

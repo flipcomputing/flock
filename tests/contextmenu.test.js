@@ -2,6 +2,12 @@ import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { initContextMenus } from '../ui/contextmenu.js';
 import { setBlockLocked, isBlockLocked } from '../ui/blocklyutil.js';
+import {
+  insertBlockSnapshot,
+  captureStackAnchor,
+  reattachBlockToAnchor,
+  chainBlockAfter,
+} from '../ui/blocklyutil.js';
 import { defineControlBlocks } from '../blocks/control.js';
 import { translate } from '../main/translation.js';
 
@@ -204,6 +210,12 @@ export function runContextMenuTests(_flock) {
       });
     });
 
+    describe('cleanWorkspace removal', function () {
+      it('removes the built-in clean-up item from the workspace menu', function () {
+        expect(getItem('cleanWorkspace')).to.not.exist;
+      });
+    });
+
     describe('workspaceFindInWorkspace', function () {
       it('is always enabled', function () {
         expect(getItem('workspaceFindInWorkspace').preconditionFn({})).to.equal('enabled');
@@ -276,32 +288,200 @@ export function runContextMenuTests(_flock) {
       });
     });
 
+    describe('canvas clipboard stack anchor', function () {
+      const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+      function chain(count = 3) {
+        const blocks = [];
+        for (let i = 0; i < count; i++) blocks.push(makeBlock());
+        for (let i = 0; i + 1 < count; i++) {
+          blocks[i].nextConnection.connect(blocks[i + 1].previousConnection);
+        }
+        return blocks;
+      }
+
+      function snapshotOf(block) {
+        const snapshot = Blockly.serialization.blocks.save(block, { includeShadows: true });
+        if (snapshot.next) delete snapshot.next;
+        return snapshot;
+      }
+
+      it('captureStackAnchor records the parent and next block', function () {
+        const [a, b, c] = chain();
+        const anchor = captureStackAnchor(b);
+        expect(anchor.parentId).to.equal(a.id);
+        expect(anchor.inputName).to.equal(null);
+        expect(anchor.nextId).to.equal(c.id);
+      });
+
+      it('cut-style paste reinserts the block into its stack position', async function () {
+        const [a, b, c] = chain();
+        const snapshot = snapshotOf(b);
+        const anchor = captureStackAnchor(b);
+        b.dispose(true);
+        createdBlocks = createdBlocks.filter((x) => x !== b);
+        expect(a.getNextBlock()).to.equal(c);
+
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(true);
+        expect(a.getNextBlock()).to.equal(pasted);
+        expect(pasted.getNextBlock()).to.equal(c);
+        await flush();
+      });
+
+      it('reattach leaves the block detached when the parent is gone', async function () {
+        const [a, b] = chain(2);
+        const snapshot = snapshotOf(b);
+        const anchor = captureStackAnchor(b);
+        b.dispose(true);
+        createdBlocks = createdBlocks.filter((x) => x !== b);
+        a.dispose();
+        createdBlocks = createdBlocks.filter((x) => x !== a);
+
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(false);
+        expect(pasted.getParent()).to.equal(null);
+        await flush();
+      });
+
+      it('chainBlockAfter inserts between a target and its next block', async function () {
+        const [a, c] = chain(2);
+        const loose = makeBlock();
+        expect(chainBlockAfter(workspace, a, loose)).to.equal(true);
+        expect(a.getNextBlock()).to.equal(loose);
+        expect(loose.getNextBlock()).to.equal(c);
+        await flush();
+      });
+
+      it('cut lone block then paste chains after the selected block', async function () {
+        const lone = makeBlock();
+        const snapshot = snapshotOf(lone);
+        const anchor = captureStackAnchor(lone);
+        expect(anchor).to.equal(null);
+        lone.dispose();
+        createdBlocks = createdBlocks.filter((x) => x !== lone);
+
+        const target = makeBlock();
+        const pasted = insertBlockSnapshot(snapshot, workspace, { x: 0, y: 0, z: 0 }, null);
+        createdBlocks.push(pasted);
+        expect(reattachBlockToAnchor(workspace, pasted, anchor)).to.equal(false);
+        expect(chainBlockAfter(workspace, target, pasted)).to.equal(true);
+        expect(target.getNextBlock()).to.equal(pasted);
+        await flush();
+      });
+    });
+
     describe('floating block toolbar', function () {
       // Blockly fires its change events asynchronously.
       const flush = () => new Promise((resolve) => setTimeout(resolve, 50));
+      // Long enough for a click's reveal-on-release to have run if it was going to.
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
 
-      it('dismisses itself when repositioned against a collapsed workspace', async function () {
+      it('does not open when a block is merely selected', async function () {
         const block = makeBlock();
-        // Keyboard modality shows the toolbar at once; pointer waits for a hover.
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
         block.select();
         await flush();
-        expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        expect(blockToolbar.classList.contains('visible')).to.equal(false);
+      });
 
-        // Collapse rather than display:none — the toolbar survives this, so the
-        // dismissal below is the visibility guard rather than a Blockly deselect.
-        container.style.width = '0px';
-        container.style.height = '0px';
+      it('stays shut for a selection the pointer never landed on', async function () {
+        // Blockly selects on its own too — moving focus to a neighbour after a
+        // delete, say — and that is not a request for the toolbar.
+        const block = makeBlock();
+        document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+        document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+        block.select();
+        await settle();
+        expect(blockToolbar.classList.contains('visible')).to.equal(false);
+      });
+
+      it('opens via a click on the block itself', async function () {
+        const block = makeBlock();
         try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
           await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        } finally {
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('hides when a toolbox category opens on narrow screens', async function () {
+        const block = makeBlock();
+        const origMatchMedia = window.matchMedia;
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
           expect(blockToolbar.classList.contains('visible')).to.equal(true);
 
-          block.moveBy(1, 1); // any event that repositions the toolbar
-          await flush();
+          window.matchMedia = () => ({ matches: true });
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => true }) });
+          workspace.fireChangeListener({
+            type: Blockly.Events.TOOLBOX_ITEM_SELECT,
+            newItem: 'Logic',
+          });
           expect(blockToolbar.classList.contains('visible')).to.equal(false);
         } finally {
-          container.style.width = '300px';
-          container.style.height = '200px';
+          window.matchMedia = origMatchMedia;
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('stays open on toolbox selection when the flyout is shut', async function () {
+        const block = makeBlock();
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => false }) });
+          workspace.fireChangeListener({
+            type: Blockly.Events.TOOLBOX_ITEM_SELECT,
+            newItem: null,
+          });
+          expect(blockToolbar.classList.contains('visible')).to.equal(true);
+        } finally {
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
+        }
+      });
+
+      it('does not open while the toolbox flyout is open on narrow screens', async function () {
+        const block = makeBlock();
+        const origMatchMedia = window.matchMedia;
+        const origGetToolbox = workspace.getToolbox;
+        try {
+          block
+            .getSvgRoot()
+            .dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0 }));
+          block.select();
+          await flush();
+          window.matchMedia = () => ({ matches: true });
+          workspace.getToolbox = () => ({ getFlyout: () => ({ isVisible: () => true }) });
+          document.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          expect(blockToolbar.classList.contains('visible')).to.equal(false);
+        } finally {
+          window.matchMedia = origMatchMedia;
+          workspace.getToolbox = origGetToolbox;
+          window.flockBlockToolbar?.hide();
         }
       });
     });

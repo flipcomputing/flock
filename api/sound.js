@@ -1,5 +1,6 @@
 import { showBanner, dismissBanner } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
+import { clampToRange } from '../config.js';
 
 let flock;
 
@@ -18,19 +19,25 @@ const SPEECH_UNAVAILABLE = new Set([
 // --- Native Web Audio helpers for playSound ---
 
 const soundBufferCache = new Map(); // soundUrl → Promise<AudioBuffer>
+const instruments = new Map();
+const instrumentIds = new Map();
 
 // Smoothing constants — one-pole lowpass applied per render frame.
 // α = 0.4 gives a ~33 ms time constant at 60 fps, enough to damp
 // rapid panning swings without perceptible spatial lag.
 const LISTENER_SMOOTH = 0.4;
-const PANNER_SMOOTH   = 0.4;
+const PANNER_SMOOTH = 0.4;
 
 // Smoothed listener state — shared across all sounds in the same context.
 // Stored at module level so every updateListenerPositionAndOrientation call
 // continues from the same running average rather than resetting each time.
 let _listenerCtx = null;
-let _slx = 0, _sly = 0, _slz = 0; // smoothed listener position
-let _sfx = 0, _sfy = 0, _sfz = 0; // smoothed listener forward
+let _slx = 0,
+  _sly = 0,
+  _slz = 0; // smoothed listener position
+let _sfx = 0,
+  _sfy = 0,
+  _sfz = 0; // smoothed listener forward
 
 const _gestureWaits = new WeakMap();
 
@@ -47,13 +54,18 @@ async function loadAudioBuffer(url, context) {
         .catch((err) => {
           soundBufferCache.delete(url);
           throw err;
-        }),
+        })
     );
   }
   return soundBufferCache.get(url);
 }
 
-function playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate }) {
+function playBufferEverywhere(
+  context,
+  buffer,
+  soundName,
+  { id, loop, volume, playbackRate, owningSignal }
+) {
   const gainNode = context.createGain();
   gainNode.gain.value = volume;
   gainNode.connect(context.destination);
@@ -68,13 +80,22 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   const finish = () => {
     if (done) return;
     done = true;
-    try { source.stop(); } catch { /* already stopped */ }
-    try { gainNode.disconnect(); } catch { /* already disconnected */ }
+    try {
+      source.stop();
+    } catch {
+      /* already stopped */
+    }
+    try {
+      gainNode.disconnect();
+    } catch {
+      /* already disconnected */
+    }
     const idx = flock.globalSounds.indexOf(soundRef);
     if (idx !== -1) flock.globalSounds.splice(idx, 1);
   };
 
   const soundRef = {
+    id,
     name: soundName,
     stop() {
       finish();
@@ -82,22 +103,31 @@ function playBufferEverywhere(context, buffer, soundName, { loop, volume, playba
   };
 
   flock.globalSounds.push(soundRef);
+  // Not mesh-attached, so nothing else disposes it on unload.
+  flock.onStop(finish, owningSignal);
   source.start();
 
   if (!loop) {
     return new Promise((resolve) => {
-      source.onended = () => { finish(); resolve(); };
+      source.onended = () => {
+        finish();
+        resolve();
+      };
     });
   }
   return soundRef;
 }
 
-function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate }) {
+function playBufferOnMesh(context, mesh, buffer, soundName, { id, loop, volume, playbackRate }) {
   if (!mesh.metadata || typeof mesh.metadata !== 'object') mesh.metadata = {};
 
   const currentSound = mesh.metadata.currentSound;
   if (currentSound) {
-    try { currentSound.stop(); } catch { /* already stopped */ }
+    try {
+      currentSound.stop();
+    } catch {
+      /* already stopped */
+    }
   }
 
   const panner = context.createPanner();
@@ -119,11 +149,19 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
   source.connect(gainNode);
 
   // Smoothed panner position — initialised to the mesh's starting position.
-  let sx = mesh.position.x, sy = mesh.position.y, sz = mesh.position.z;
+  let sx = mesh.position.x,
+    sy = mesh.position.y,
+    sz = mesh.position.z;
 
   const updatePosition = () => {
-    if (!flock.scene || context.state === 'closed') { finish(); return; }
-    if (mesh.isDisposed?.()) { finish(); return; }
+    if (!flock.scene || context.state === 'closed') {
+      finish();
+      return;
+    }
+    if (mesh.isDisposed?.()) {
+      finish();
+      return;
+    }
     const { x, y, z } = mesh.position;
     sx += PANNER_SMOOTH * (x - sx);
     sy += PANNER_SMOOTH * (y - sy);
@@ -143,16 +181,33 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
     if (done) return;
     done = true;
     flock.scene?.onBeforeRenderObservable?.remove(observer);
-    try { source.stop(); } catch { /* already stopped */ }
-    try { source.disconnect(); } catch { /* already disconnected */ }
-    try { gainNode.disconnect(); } catch { /* already disconnected */ }
-    try { panner.disconnect(); } catch { /* already disconnected */ }
+    try {
+      source.stop();
+    } catch {
+      /* already stopped */
+    }
+    try {
+      source.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    try {
+      gainNode.disconnect();
+    } catch {
+      /* already disconnected */
+    }
+    try {
+      panner.disconnect();
+    } catch {
+      /* already disconnected */
+    }
     if (mesh.metadata?.currentSound === soundRef) delete mesh.metadata.currentSound;
     const idx = flock.globalSounds.indexOf(soundRef);
     if (idx !== -1) flock.globalSounds.splice(idx, 1);
   };
 
   const soundRef = {
+    id,
     name: soundName,
     _attachedMesh: mesh,
     stop() {
@@ -166,7 +221,10 @@ function playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, play
 
   if (!loop) {
     return new Promise((resolve) => {
-      source.onended = () => { finish(); resolve(); };
+      source.onended = () => {
+        finish();
+        resolve();
+      };
     });
   }
   return soundRef;
@@ -190,7 +248,7 @@ function getOrCreateContext() {
     // Fallback only: Babylon's engine has its own watchdog and a second would race it.
     ctx.addEventListener('statechange', () => {
       if (flock.audioContext !== ctx) return;
-      if (flock._audioSuspendedByVisibility) return;
+      if (flock._audioSuspendedByFreeze) return;
       safeResume(ctx).catch(() => {});
     });
     flock.audioContext = ctx;
@@ -222,13 +280,19 @@ async function safeResume(context) {
         };
         const handler = () => {
           cleanup();
-          context.resume().catch(() => {}).finally(resolve);
+          context
+            .resume()
+            .catch(() => {})
+            .finally(resolve);
         };
         document.addEventListener('pointerdown', handler);
         document.addEventListener('touchstart', handler, { passive: true });
         // Abandon after 10 s — prevents a permanent listener leak when programmatic
         // audio fires but the user never gestures (e.g. background tab, navigation).
-        timer = setTimeout(() => { cleanup(); resolve(); }, 10000);
+        timer = setTimeout(() => {
+          cleanup();
+          resolve();
+        }, 10000);
       });
       _gestureWaits.set(context, wait);
     }
@@ -285,15 +349,23 @@ function getNoteBus(context) {
 export const flockSound = {
   async playSound(
     meshName,
-    { soundName, loop = false, volume = 1, playbackRate = 1 } = {},
+    {
+      id = null,
+      soundName,
+      loop = false,
+      volume = 1,
+      playbackRate = 1,
+      // Captured before the first await - see onStop in api/sections.js.
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     volume = Number.isFinite(Number(volume)) ? Math.max(0, Math.min(1, Number(volume))) : 1;
     playbackRate =
       Number.isFinite(Number(playbackRate)) && Number(playbackRate) > 0
-        ? Number(playbackRate)
+        ? clampToRange(Number(playbackRate), 'soundSpeed')
         : 1;
-    if (!soundName || typeof soundName !== "string") {
-      console.warn("playSound: invalid soundName");
+    if (!soundName || typeof soundName !== 'string') {
+      console.warn('playSound: invalid soundName');
       return;
     }
 
@@ -309,41 +381,51 @@ export const flockSound = {
       buffer = await loadAudioBuffer(soundUrl, context);
     } catch (err) {
       flock.reportBlockError({
-        key: "sound_load_failed",
-        api: "playSound",
+        key: 'sound_load_failed',
+        api: 'playSound',
         values: { sound: soundName, url: soundUrl },
         error: err,
       });
       return;
     }
 
-    if (context.state === "closed") return;
+    if (context.state === 'closed') return;
 
-    if (meshName === "__everywhere__") {
-      return playBufferEverywhere(context, buffer, soundName, { loop, volume, playbackRate });
+    if (meshName === '__everywhere__') {
+      await playBufferEverywhere(context, buffer, soundName, {
+        id,
+        loop,
+        volume,
+        playbackRate,
+        owningSignal: __owningSignal,
+      });
+      return;
     }
 
     const mesh = flock.scene.getMeshByName(meshName);
     if (mesh && !mesh.isDisposed?.()) {
-      return playBufferOnMesh(context, mesh, buffer, soundName, { loop, volume, playbackRate });
+      await playBufferOnMesh(context, mesh, buffer, soundName, { id, loop, volume, playbackRate });
+      return;
     }
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, async (resolvedMesh) => {
-        if (flock.audioContext !== context) { resolve(); return; }
-        // Spatial playback reads resolvedMesh.position every frame.
-        if (!flock.requireMesh(resolvedMesh, { api: "playSound", name: meshName })) {
+        if (flock.audioContext !== context) {
           resolve();
           return;
         }
-        const result = await playBufferOnMesh(
-          context,
-          resolvedMesh,
-          buffer,
-          soundName,
-          { loop, volume, playbackRate },
-        );
-        resolve(result);
+        // Spatial playback reads resolvedMesh.position every frame.
+        if (!flock.requireMesh(resolvedMesh, { api: 'playSound', name: meshName })) {
+          resolve();
+          return;
+        }
+        await playBufferOnMesh(context, resolvedMesh, buffer, soundName, {
+          id,
+          loop,
+          volume,
+          playbackRate,
+        });
+        resolve();
       });
     });
   },
@@ -351,9 +433,13 @@ export const flockSound = {
     // The generation bump drops any speak() still awaiting voices.
     if (flock) {
       flock._speechGeneration = (flock._speechGeneration ?? 0) + 1;
-      flock._speechPausedByVisibility = false;
+      flock._speechPausedByFreeze = false;
     }
-    try { window.speechSynthesis?.cancel(); } catch { /* unsupported */ }
+    try {
+      window.speechSynthesis?.cancel();
+    } catch {
+      /* unsupported */
+    }
 
     if (!flock?.globalSounds) return;
     soundBufferCache.clear();
@@ -363,14 +449,18 @@ export const flockSound = {
       try {
         sound.stop();
       } catch (e) {
-        console.warn("Error stopping sound:", sound.name, e);
+        console.warn('Error stopping sound:', sound.name, e);
       }
     }
 
     // Immediately disconnect the __everywhere__ gain — context.close() is async and
     // a brief window exists where the old gain can still feed the destination.
     if (flock._everywhereGain) {
-      try { flock._everywhereGain.disconnect(); } catch { /* already detached */ }
+      try {
+        flock._everywhereGain.disconnect();
+      } catch {
+        /* already detached */
+      }
       flock._everywhereGain = null;
     }
 
@@ -383,14 +473,14 @@ export const flockSound = {
     // so _listenerCtx would otherwise hold the last closed context indefinitely.
     _listenerCtx = null;
 
-    if (!ctx || ctx.state === "closed") return;
+    if (!ctx || ctx.state === 'closed') return;
 
     // Don't close Babylon's own context — it gets closed when audioEngine.dispose() runs.
     // Closing it here would break Babylon's audio graph on the next scene load.
     const isBabylonOwned = flock.audioEngine?._audioContext === ctx;
     if (!isBabylonOwned) {
       ctx.close().catch((error) => {
-        console.error("Error closing audio context:", error);
+        console.error('Error closing audio context:', error);
       });
     }
   },
@@ -400,13 +490,17 @@ export const flockSound = {
   // Babylon must be paused via pauseAsync(): its resumeOnPause watchdog
   // undoes a raw context.suspend(). Only resume suspensions we caused —
   // resuming without a user gesture throws NotAllowedError on iOS.
-  async syncAudioWithPageState() {
-    if (document.visibilityState === 'hidden') {
+  async syncAudioWithFreeze() {
+    if (flock.isFrozen()) {
       // Ahead of the engine handling, which can bail early.
       const synth = window.speechSynthesis;
       if (synth?.speaking && !synth.paused) {
-        flock._speechPausedByVisibility = true;
-        try { synth.pause(); } catch { /* unsupported */ }
+        flock._speechPausedByFreeze = true;
+        try {
+          synth.pause();
+        } catch {
+          /* unsupported */
+        }
       }
 
       // An interruption before visibilitychange leaves 'interrupted', not 'running'.
@@ -414,25 +508,29 @@ export const flockSound = {
       const engine = flock.audioEngine;
       if (engine) {
         if (!resumable(engine.state)) return;
-        flock._audioSuspendedByVisibility = true;
+        flock._audioSuspendedByFreeze = true;
         if (engine.state === 'running') await engine.pauseAsync().catch(() => {});
       } else {
         const ctx = flock.audioContext;
         if (ctx && resumable(ctx.state)) {
-          flock._audioSuspendedByVisibility = true;
+          flock._audioSuspendedByFreeze = true;
           if (ctx.state === 'running') await ctx.suspend().catch(() => {});
         }
       }
       return;
     }
 
-    if (flock._speechPausedByVisibility) {
-      flock._speechPausedByVisibility = false;
-      try { window.speechSynthesis?.resume(); } catch { /* unsupported */ }
+    if (flock._speechPausedByFreeze) {
+      flock._speechPausedByFreeze = false;
+      try {
+        window.speechSynthesis?.resume();
+      } catch {
+        /* unsupported */
+      }
     }
 
-    if (!flock._audioSuspendedByVisibility) return;
-    flock._audioSuspendedByVisibility = false;
+    if (!flock._audioSuspendedByFreeze) return;
+    flock._audioSuspendedByFreeze = false;
     if (flock.audioEngine) {
       // If this rejects (no gesture yet), resumeOnInteraction takes over.
       await flock.audioEngine.resumeAsync().catch(() => {});
@@ -445,30 +543,28 @@ export const flockSound = {
     {
       notes = [],
       durations = [],
-      instrument = flock.createInstrument("square"),
-    } = {},
+      instrument = flock.createInstrument('square'),
+      // Captured here, before any real await - see playSound's __owningSignal.
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     // Clear any prior stopAllSounds abort; stop must not disable future playback.
     flock._audioStopped = false;
-    notes = notes.map((note) => (note === "_" ? null : note));
+    notes = notes.map((note) => (note === '_' ? null : note));
     durations = durations.map(Number);
 
     const getBPM = (obj) => obj?.metadata?.bpm || null;
 
     await flock.ensureAudio();
     const context = getOrCreateContext();
-    if (!context || context.state === "closed") return;
+    if (!context || context.state === 'closed') return;
     await safeResume(context);
-    if (context.state === "closed") return;
+    if (context.state === 'closed') return;
     if (flock._audioStopped) return;
 
     const scheduleNotes = (mesh, outputNode, observer) => {
       return new Promise((resolve) => {
-        let bpm =
-          getBPM(mesh) ||
-          getBPM(mesh?.parent) ||
-          getBPM(flock.scene) ||
-          60;
+        let bpm = getBPM(mesh) || getBPM(mesh?.parent) || getBPM(flock.scene) || 60;
         bpm = Number(bpm);
         if (!isFinite(bpm) || bpm <= 0) bpm = 60;
 
@@ -489,6 +585,7 @@ export const flockSound = {
               bpm,
               baseTime + offsetTime,
               instrument,
+              __owningSignal
             );
           }
 
@@ -505,10 +602,14 @@ export const flockSound = {
       });
     };
 
-    if (meshName === "__everywhere__") {
+    if (meshName === '__everywhere__') {
       // context.close() is async; a lingering prior gain would briefly double the output.
       if (flock._everywhereGain) {
-        try { flock._everywhereGain.disconnect(); } catch { /* already detached */ }
+        try {
+          flock._everywhereGain.disconnect();
+        } catch {
+          /* already detached */
+        }
         flock._everywhereGain = null;
       }
       const gain = context.createGain();
@@ -516,7 +617,11 @@ export const flockSound = {
       gain.connect(getNoteBus(context));
       return scheduleNotes(null, gain, null).then(() => {
         if (flock._everywhereGain === gain) flock._everywhereGain = null;
-        try { gain.disconnect(); } catch { /* already detached */ }
+        try {
+          gain.disconnect();
+        } catch {
+          /* already detached */
+        }
       });
     }
 
@@ -527,7 +632,7 @@ export const flockSound = {
           return;
         }
         if (!mesh?.position) {
-          console.error("Mesh does not have a position property:", mesh);
+          console.error('Mesh does not have a position property:', mesh);
           resolve();
           return;
         }
@@ -536,18 +641,26 @@ export const flockSound = {
 
         if (!mesh.metadata.panner || mesh.metadata.panner.context !== context) {
           if (mesh.metadata.panner) {
-            try { mesh.metadata.panner.disconnect(); } catch { /* already disconnected */ }
+            try {
+              mesh.metadata.panner.disconnect();
+            } catch {
+              /* already disconnected */
+            }
           }
           const panner = context.createPanner();
           mesh.metadata.panner = panner;
-          panner.panningModel = "equalpower";
-          panner.distanceModel = "linear";
+          panner.panningModel = 'equalpower';
+          panner.distanceModel = 'linear';
           panner.refDistance = 1;
           panner.maxDistance = 20;
           panner.rolloffFactor = 1;
           panner.connect(getNoteBus(context));
           mesh.onDisposeObservable?.addOnce(() => {
-            try { panner.disconnect(); } catch { /* already disconnected */ }
+            try {
+              panner.disconnect();
+            } catch {
+              /* already disconnected */
+            }
             if (mesh.metadata?.panner === panner) delete mesh.metadata.panner;
           });
         }
@@ -561,10 +674,7 @@ export const flockSound = {
           panner.positionY.value = y;
           panner.positionZ.value = z;
           if (!flock.audioEngine && flock.scene.activeCamera) {
-            flockSound.updateListenerPositionAndOrientation(
-              context,
-              flock.scene.activeCamera,
-            );
+            flockSound.updateListenerPositionAndOrientation(context, flock.scene.activeCamera);
           }
         };
         updatePositions();
@@ -575,19 +685,12 @@ export const flockSound = {
       });
     });
   },
-  playMidiNote(
-    context,
-    mesh,
-    note,
-    duration,
-    bpm,
-    playTime,
-    instrument = null,
-  ) {
-    if (!context || context.state === "closed") return;
+  playMidiNote(context, mesh, note, duration, bpm, playTime, instrumentId = null, owningSignal = null) {
+    if (!context || context.state === 'closed') return;
+    const instrument = flock.getInstrument(instrumentId);
 
     if (!isFinite(duration) || !isFinite(playTime) || !isFinite(bpm)) {
-      console.warn("playMidiNote: Invalid parameters", {
+      console.warn('playMidiNote: Invalid parameters', {
         duration,
         playTime,
         bpm,
@@ -601,25 +704,23 @@ export const flockSound = {
     gainNode.gain.setValueAtTime(0, context.currentTime); // silent until envelope starts
     const panner = mesh.metadata.panner;
 
-    osc.type = instrument?.type ?? "sine";
+    osc.type = instrument?.type ?? 'sine';
     osc.frequency.value = flock.midiToFrequency(note);
 
-    const effect = instrument?.effect ?? "none";
+    const effect = instrument?.effect ?? 'none';
     const effectRate = instrument?.effectRate ?? 5;
     const effectDepth = instrument?.effectDepth ?? 0.5;
     let lfo = null;
     let lfoGain = null;
-    if (effect !== "none") {
+    if (effect !== 'none') {
       lfo = context.createOscillator();
       lfoGain = context.createGain();
-      lfo.type = effect === "warble" ? "square" : "sine";
-      lfo.frequency.value = effect === "robot" ? effectRate * 100 : effectRate;
+      lfo.type = effect === 'warble' ? 'square' : 'sine';
+      lfo.frequency.value = effect === 'robot' ? effectRate * 100 : effectRate;
       lfoGain.gain.value =
-        effect === "tremolo"
-          ? effectDepth
-          : osc.frequency.value * effectDepth * 0.5;
+        effect === 'tremolo' ? effectDepth : osc.frequency.value * effectDepth * 0.5;
       lfo.connect(lfoGain);
-      if (effect === "tremolo") {
+      if (effect === 'tremolo') {
         lfoGain.connect(gainNode.gain);
       } else {
         lfoGain.connect(osc.frequency);
@@ -683,15 +784,23 @@ export const flockSound = {
     const cleanupDelay = Math.max(100, (stopTime - context.currentTime + 0.5) * 1000);
     cancelCleanup = audioTimer(context, cleanupDelay, doDisconnect);
 
-    noteRef = { name: 'note', stop() { try { osc.stop(0); } catch { /* already stopped */ } doDisconnect(); } };
+    noteRef = {
+      name: 'note',
+      stop() {
+        try {
+          osc.stop(0);
+        } catch {
+          /* already stopped */
+        }
+        doDisconnect();
+      },
+    };
     if (flock.globalSounds) flock.globalSounds.push(noteRef);
+    flock.onStop(() => noteRef.stop(), owningSignal);
   },
   midiToFrequency(note) {
     const parsed = Number(note);
-    note = Math.min(
-      127,
-      Math.max(0, Math.round(Number.isNaN(parsed) ? 60 : parsed)),
-    ); // Clamp to valid MIDI range 0-127
+    note = clampToRange(Math.round(Number.isNaN(parsed) ? 60 : parsed), 'midiNote');
     return 440 * Math.pow(2, (note - 69) / 12); // Convert MIDI note to frequency
   },
   durationInSeconds(duration, bpm) {
@@ -705,28 +814,27 @@ export const flockSound = {
       decay = 0.3,
       sustain = 0.7,
       release = 1.0,
-      effect = "none",
+      effect = 'none',
       effectRate = 5,
       effectDepth = 0.5,
-    } = {},
+    } = {}
   ) {
     // Clamp parameters to valid ranges
     const toNum = (v, def) => {
       const n = Number(v);
       return Number.isNaN(n) ? def : n;
     };
-    const validEffects = ["none", "tremolo", "vibrato", "warble", "robot"];
-    effect = validEffects.includes(effect) ? effect : "none";
-    volume = Math.min(1, Math.max(0, toNum(volume, 1.0)));
-    attack = Math.min(5, Math.max(0, toNum(attack, 0.1)));
-    decay = Math.min(5, Math.max(0, toNum(decay, 0.3)));
-    sustain = Math.min(1, Math.max(0, toNum(sustain, 0.7)));
-    release = Math.min(10, Math.max(0, toNum(release, 1.0)));
-    effectRate = Math.min(20, Math.max(0.1, toNum(effectRate, 5)));
-    effectDepth = Math.min(1, Math.max(0, toNum(effectDepth, 0.5)));
+    const validEffects = ['none', 'tremolo', 'vibrato', 'warble', 'robot'];
+    effect = validEffects.includes(effect) ? effect : 'none';
+    volume = clampToRange(toNum(volume, 1.0), 'unit');
+    attack = clampToRange(toNum(attack, 0.1), 'envelope');
+    decay = clampToRange(toNum(decay, 0.3), 'envelope');
+    sustain = clampToRange(toNum(sustain, 0.7), 'unit');
+    release = clampToRange(toNum(release, 1.0), 'release');
+    effectRate = clampToRange(toNum(effectRate, 5), 'effectRate');
+    effectDepth = clampToRange(toNum(effectDepth, 0.5), 'unit');
 
-    // Return configuration only — audio nodes are created fresh per note in playMidiNote
-    return {
+    const config = {
       type,
       volume,
       attack,
@@ -737,13 +845,24 @@ export const flockSound = {
       effectRate,
       effectDepth,
     };
+    const key = JSON.stringify(config);
+    let id = instrumentIds.get(key);
+    if (!id) {
+      id = `instrument_${instrumentIds.size + 1}`;
+      instrumentIds.set(key, id);
+      instruments.set(id, config);
+    }
+    return id;
+  },
+  getInstrument(id) {
+    return instruments.get(id) ?? null;
   },
   setBPM(meshName, bpm) {
     const safeBpm = Number.isFinite(Number(bpm)) && Number(bpm) > 0 ? Number(bpm) : 60;
     bpm = safeBpm;
 
-    if (meshName === "__everywhere__") {
-      if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
+    if (meshName === '__everywhere__') {
+      if (!flock.scene.metadata || typeof flock.scene.metadata !== 'object') {
         flock.scene.metadata = {};
       }
       flock.scene.metadata.bpm = bpm;
@@ -754,15 +873,15 @@ export const flockSound = {
       flock.whenModelReady(meshName, async function (mesh) {
         if (!mesh) {
           flock.reportBlockError({
-            key: "object_not_found",
-            api: "setBPM",
+            key: 'object_not_found',
+            api: 'setBPM',
             values: { object: meshName },
           });
           resolve();
           return;
         }
 
-        if (!mesh.metadata || typeof mesh.metadata !== "object") {
+        if (!mesh.metadata || typeof mesh.metadata !== 'object') {
           mesh.metadata = {};
         }
 
@@ -772,11 +891,8 @@ export const flockSound = {
     });
   },
   async playMusic(meshName, { notes = [], instrument = null } = {}) {
-    const effectiveInstrument = instrument ?? flock.createInstrument("sine");
-    const flatNotes =
-      notes.length > 0 && Array.isArray(notes[0])
-        ? notes.flat()
-        : notes;
+    const effectiveInstrument = instrument ?? flock.createInstrument('sine');
+    const flatNotes = notes.length > 0 && Array.isArray(notes[0]) ? notes.flat() : notes;
     const pitches = flatNotes.map((n) => n?.pitch ?? null);
     const baseDurations = flatNotes.map((n) => n?.duration ?? 0.5);
 
@@ -784,10 +900,10 @@ export const flockSound = {
       Math.max(
         0.01,
         Number(
-          meshName === "__everywhere__"
+          meshName === '__everywhere__'
             ? flock.scene?.metadata?.musicSpeed
-            : mesh?.metadata?.musicSpeed,
-        ) || 1,
+            : mesh?.metadata?.musicSpeed
+        ) || 1
       );
 
     const playForMesh = async (mesh) => {
@@ -800,7 +916,7 @@ export const flockSound = {
       });
     };
 
-    if (meshName === "__everywhere__") {
+    if (meshName === '__everywhere__') {
       return playForMesh(null);
     }
 
@@ -814,8 +930,8 @@ export const flockSound = {
   setMusicSpeed(meshName, speed) {
     const validSpeed = Math.max(0.01, Number(speed) || 1);
 
-    if (meshName === "__everywhere__") {
-      if (!flock.scene.metadata || typeof flock.scene.metadata !== "object") {
+    if (meshName === '__everywhere__') {
+      if (!flock.scene.metadata || typeof flock.scene.metadata !== 'object') {
         flock.scene.metadata = {};
       }
       flock.scene.metadata.musicSpeed = validSpeed;
@@ -824,7 +940,7 @@ export const flockSound = {
 
     return new Promise((resolve) => {
       flock.whenModelReady(meshName, function (mesh) {
-        if (!mesh.metadata || typeof mesh.metadata !== "object") {
+        if (!mesh.metadata || typeof mesh.metadata !== 'object') {
           mesh.metadata = {};
         }
         mesh.metadata.musicSpeed = validSpeed;
@@ -836,18 +952,24 @@ export const flockSound = {
     if (!context || !camera) return;
     const { x: cx, y: cy, z: cz } = camera.position;
     const fwd = camera.getForwardRay().direction;
-    const tfx = -fwd.x, tfy = fwd.y, tfz = fwd.z;
+    const tfx = -fwd.x,
+      tfy = fwd.y,
+      tfz = fwd.z;
 
     // Reset smooth state when the audio context changes (e.g. after stopAllSounds).
     // Otherwise continue from the running average so position/orientation never jump.
     if (context !== _listenerCtx) {
       _listenerCtx = context;
-      _slx = cx;  _sly = cy;  _slz = cz;
-      _sfx = tfx; _sfy = tfy; _sfz = tfz;
+      _slx = cx;
+      _sly = cy;
+      _slz = cz;
+      _sfx = tfx;
+      _sfy = tfy;
+      _sfz = tfz;
     } else {
-      _slx += LISTENER_SMOOTH * (cx  - _slx);
-      _sly += LISTENER_SMOOTH * (cy  - _sly);
-      _slz += LISTENER_SMOOTH * (cz  - _slz);
+      _slx += LISTENER_SMOOTH * (cx - _slx);
+      _sly += LISTENER_SMOOTH * (cy - _sly);
+      _slz += LISTENER_SMOOTH * (cz - _slz);
       _sfx += LISTENER_SMOOTH * (tfx - _sfx);
       _sfy += LISTENER_SMOOTH * (tfy - _sfy);
       _sfz += LISTENER_SMOOTH * (tfz - _sfz);
@@ -880,19 +1002,12 @@ export const flockSound = {
   async speak(
     meshName,
     text,
-    {
-      voice = "female",
-      language = "en-US",
-      rate = 1,
-      pitch = 1,
-      volume = 1,
-      mode = "start",
-    } = {},
+    { voice = 'female', language = 'en-US', rate = 1, pitch = 1, volume = 1, mode = 'start' } = {}
   ) {
     // Check for Web Speech API support
-    if (!("speechSynthesis" in window)) {
-      console.warn("Text-to-speech not supported in this browser");
-      return mode === "await" ? Promise.resolve() : undefined;
+    if (!('speechSynthesis' in window)) {
+      console.warn('Text-to-speech not supported in this browser');
+      return mode === 'await' ? Promise.resolve() : undefined;
     }
 
     // cancel() cannot reach an utterance that is not queued yet.
@@ -906,18 +1021,16 @@ export const flockSound = {
     const utterance = new SpeechSynthesisUtterance(text);
 
     // Set basic properties
-    utterance.rate = Math.max(0.1, Math.min(10, rate));
-    utterance.pitch = Math.max(0, Math.min(2, pitch));
+    const toSpeech = (value) => (Number.isFinite(Number(value)) ? Number(value) : 1);
+    utterance.rate = clampToRange(toSpeech(rate), 'speechRate');
+    utterance.pitch = clampToRange(toSpeech(pitch), 'speechPitch');
     utterance.volume = Math.max(0, Math.min(1, volume));
     utterance.lang = language;
 
     // Handle spatial audio if meshName is provided and not "__everywhere__"
     let spatialAudioSetup = null;
-    if (meshName && meshName !== "__everywhere__") {
-      spatialAudioSetup = await flockSound.setupSpatialSpeech(
-        utterance,
-        meshName,
-      );
+    if (meshName && meshName !== '__everywhere__') {
+      spatialAudioSetup = await flockSound.setupSpatialSpeech(utterance, meshName);
     }
 
     // Set voice if available - handle voice loading timing
@@ -950,110 +1063,108 @@ export const flockSound = {
 
       // Common voice names by platform and gender
       const commonVoices = {
-        "en-US": {
+        'en-US': {
           male: [
             // Windows
-            "david",
-            "mark",
-            "zira",
-            "james",
+            'david',
+            'mark',
+            'zira',
+            'james',
             // macOS/iOS
-            "nathan",
-            "alex",
-            "daniel",
-            "fred",
-            "jorge",
-            "tom",
+            'nathan',
+            'alex',
+            'daniel',
+            'fred',
+            'jorge',
+            'tom',
             // Android/Chrome
-            "male",
-            "man",
+            'male',
+            'man',
           ],
           female: [
             // Windows
-            "zira",
-            "hazel",
-            "helen",
+            'zira',
+            'hazel',
+            'helen',
             // macOS/iOS
-            "samantha",
-            "susan",
-            "allison",
-            "ava",
-            "zoe",
-            "karen",
-            "moira",
-            "tessa",
-            "veera",
-            "victoria",
+            'samantha',
+            'susan',
+            'allison',
+            'ava',
+            'zoe',
+            'karen',
+            'moira',
+            'tessa',
+            'veera',
+            'victoria',
             // Android/Chrome
-            "female",
-            "woman",
+            'female',
+            'woman',
           ],
         },
-        "en-GB": {
+        'en-GB': {
           male: [
             // Windows
-            "george",
-            "hazel",
+            'george',
+            'hazel',
             // macOS/iOS
-            "daniel",
-            "oliver",
-            "jamie",
+            'daniel',
+            'oliver',
+            'jamie',
             // Android/Chrome
-            "male",
-            "man",
+            'male',
+            'man',
           ],
           female: [
             // Windows
-            "hazel",
-            "susan",
+            'hazel',
+            'susan',
             // macOS/iOS
-            "kate",
-            "serena",
-            "stephanie",
+            'kate',
+            'serena',
+            'stephanie',
             // Android/Chrome
-            "female",
-            "woman",
+            'female',
+            'woman',
           ],
         },
-        "es-ES": {
+        'es-ES': {
           male: [
             // macOS/iOS
-            "jorge",
-            "juan",
-            "diego",
-            "carlos",
-            "eddy",
-            "grandpa",
-            "reed",
-            "rocko",
+            'jorge',
+            'juan',
+            'diego',
+            'carlos',
+            'eddy',
+            'grandpa',
+            'reed',
+            'rocko',
           ],
           female: [
             // macOS/iOS
-            "marisol",
-            "paulina",
-            "isabela",
-            "francisca",
-            "jimena",
-            "soledad",
-            "angelica",
-            "monica",
-            "flo",
-            "grandma",
-            "sandy",
-            "shelly",
+            'marisol',
+            'paulina',
+            'isabela',
+            'francisca',
+            'jimena',
+            'soledad',
+            'angelica',
+            'monica',
+            'flo',
+            'grandma',
+            'sandy',
+            'shelly',
           ],
-        }
+        },
       };
 
       // Filter voices by requested language
       const languageVoices = voices.filter((v) => v.lang.startsWith(language));
 
       if (languageVoices.length === 0) {
-        console.warn(
-          `No voices found for language ${language}, falling back to any English voice`,
-        );
+        console.warn(`No voices found for language ${language}, falling back to any English voice`);
         // Fallback to any English voice
-        const englishVoices = voices.filter((v) => v.lang.startsWith("en"));
+        const englishVoices = voices.filter((v) => v.lang.startsWith('en'));
         if (englishVoices.length > 0) {
           selectedVoice = englishVoices[0];
         }
@@ -1063,7 +1174,7 @@ export const flockSound = {
         // 1. Try common voice names for the platform/language
         for (const voiceName of voiceNames) {
           selectedVoice = languageVoices.find((v) =>
-            v.name.toLowerCase().includes(voiceName.toLowerCase()),
+            v.name.toLowerCase().includes(voiceName.toLowerCase())
           );
           if (selectedVoice) break;
         }
@@ -1071,89 +1182,83 @@ export const flockSound = {
         // 2. Look for explicit "Male" or "Female" in name
         if (!selectedVoice) {
           selectedVoice = languageVoices.find((v) =>
-            v.name.toLowerCase().includes(voice.toLowerCase()),
+            v.name.toLowerCase().includes(voice.toLowerCase())
           );
         }
 
         // 3. For male voices, avoid known female names
-        if (!selectedVoice && voice === "male") {
+        if (!selectedVoice && voice === 'male') {
           const femaleTerms = [
-            "female",
-            "woman",
-            "lady",
-            "girl",
-            "samantha",
-            "susan",
-            "kate",
-            "zira",
-            "hazel",
-            "helen",
-            "karen",
-            "moira",
-            "tessa",
-            "fiona",
-            "allison",
-            "ava",
-            "veera",
-            "victoria",
-            "stephanie",
-            "serena",
-            "marisol",
-            "paulina",
-            "isabela",
-            "francisca",
-            "jimena",
-            "soledad",
-            "angelica",
-            "monica",
-            "flo",
-            "grandma",
-            "sandy",
-            "shelly",
-            "zoe",
+            'female',
+            'woman',
+            'lady',
+            'girl',
+            'samantha',
+            'susan',
+            'kate',
+            'zira',
+            'hazel',
+            'helen',
+            'karen',
+            'moira',
+            'tessa',
+            'fiona',
+            'allison',
+            'ava',
+            'veera',
+            'victoria',
+            'stephanie',
+            'serena',
+            'marisol',
+            'paulina',
+            'isabela',
+            'francisca',
+            'jimena',
+            'soledad',
+            'angelica',
+            'monica',
+            'flo',
+            'grandma',
+            'sandy',
+            'shelly',
+            'zoe',
           ];
           selectedVoice = languageVoices.find(
-            (v) =>
-              !femaleTerms.some((term) =>
-                v.name.toLowerCase().includes(term.toLowerCase()),
-              ),
+            (v) => !femaleTerms.some((term) => v.name.toLowerCase().includes(term.toLowerCase()))
           );
         }
 
         // 4. For female voices, avoid known male names
-        if (!selectedVoice && voice === "female") {
+        if (!selectedVoice && voice === 'female') {
           const maleTerms = [
-            "male",
-            "man",
-            "david",
-            "alex",
-            "daniel",
-            "mark",
-            "tom",
-            "george",
-            "peter",
-            "john",
-            "michael",
-            "robert",
-            "fred",
-            "jorge",
-            "james",
-            "oliver",
-            "eddy",
-            "nathan",
-            "jamie",
-            "juan",
-            "diego",
-            "carlos",
-            "grandpa",
-            "reed",
-            "rocko",
+            'male',
+            'man',
+            'david',
+            'alex',
+            'daniel',
+            'mark',
+            'tom',
+            'george',
+            'peter',
+            'john',
+            'michael',
+            'robert',
+            'fred',
+            'jorge',
+            'james',
+            'oliver',
+            'eddy',
+            'nathan',
+            'jamie',
+            'juan',
+            'diego',
+            'carlos',
+            'grandpa',
+            'reed',
+            'rocko',
           ];
           selectedVoice = languageVoices.find(
-            (v) =>
-              !maleTerms.some((term) =>
-                v.name.toLowerCase().includes(term.toLowerCase()),
-              ),
+            (v) => !maleTerms.some((term) => v.name.toLowerCase().includes(term.toLowerCase()))
           );
         }
 
@@ -1171,7 +1276,7 @@ export const flockSound = {
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       } else {
-        console.warn("No voice found for type:", voice, "using default");
+        console.warn('No voice found for type:', voice, 'using default');
       }
     }
 
@@ -1193,8 +1298,7 @@ export const flockSound = {
       // even if onend is dropped (~14 chars/sec at rate 1, floor 2s, +1s buffer).
       // Use utterance.rate (already clamped to 0.1–10) so the estimate matches
       // the rate actually spoken.
-      const seconds =
-        Math.max(2, String(text).length / 14) / utterance.rate + 1;
+      const seconds = Math.max(2, String(text).length / 14) / utterance.rate + 1;
       flock.showSubtitle(text, seconds);
       subtitleToken = flock._subtitleToken;
     };
@@ -1206,7 +1310,7 @@ export const flockSound = {
     };
 
     const onSpeechError = (event) => {
-      console.warn("Speech synthesis error:", event.error);
+      console.warn('Speech synthesis error:', event.error);
       if (SPEECH_UNAVAILABLE.has(event.error)) {
         showBanner('speech', { message: translate('error_speech') });
       }
@@ -1215,7 +1319,7 @@ export const flockSound = {
       dismissBanner('speech');
     };
 
-    if (mode === "await") {
+    if (mode === 'await') {
       return new Promise((resolve) => {
         utterance.onend = () => {
           onSpeechEnd();
@@ -1272,7 +1376,7 @@ export const flockSound = {
       if (!mesh || mesh.isDisposed?.() || !flock.scene.activeCamera) return;
       const distance = flock.BABYLON.Vector3.Distance(
         flock.scene.activeCamera.position,
-        mesh.position,
+        mesh.position
       );
 
       // Camera can't get closer than ~7 units; treat that as "full volume" range.
@@ -1287,7 +1391,7 @@ export const flockSound = {
       } else if (adjustedDistance < maxDistance) {
         volumeGain = Math.max(
           0.15,
-          refDistance / (refDistance + rolloffFactor * (adjustedDistance - refDistance)),
+          refDistance / (refDistance + rolloffFactor * (adjustedDistance - refDistance))
         );
       } else {
         volumeGain = 0.1;

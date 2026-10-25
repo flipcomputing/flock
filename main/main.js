@@ -5,10 +5,9 @@
 import * as Blockly from 'blockly';
 import '@babylonjs/core/Debug/debugLayer';
 import { flock } from '../flock.js';
-import { initializeVariableIndexes } from '../blocks/blocks';
 import { enableGizmos } from '../ui/gizmos.js';
-import { handleError, installGlobalErrorHandlers } from '../ui/notifications.js';
-import { executeCode, stopCode } from './execution.js';
+import { handleError, installGlobalErrorHandlers, isReported } from '../ui/notifications.js';
+import { executeCode, togglePause } from './execution.js';
 import '../ui/addmeshes.js';
 import '../ui/colourpicker.js';
 import { TOP_BLOCK_TYPES, AUTOSAVE_TO_FILE_ENABLED } from '../config.js';
@@ -29,15 +28,28 @@ import {
   newProject,
   openFile,
   updateSaveButtonState,
+  isProjectModified,
+  isFileSaveUnknown,
+  initProjectModifiedTracking,
 } from './files.js';
 import { initExampleGallery } from './examples.js';
-import { onResize, toggleDesignMode, togglePlayMode, initializeUI, switchView } from './view.js';
+import {
+  onResize,
+  toggleInspector,
+  isInspectorVisible,
+  togglePlayMode,
+  initializeUI,
+  switchView,
+} from './view.js';
 import { hideLoadingScreen } from './loading.js';
 //import "./debug.js";
-import { initializeBlockHandling } from './blockhandling.js';
-import { setupInput } from './input.js';
+import { initializeBlockHandling, showSelectedBlockHint } from './blockhandling.js';
+import { announceToScreenReader, setupInput } from './input.js';
 import { focusToolboxRestoringCategory } from './toolboxfocus.js';
 import { addExportContextMenuOptions } from './export.js';
+import { initExportPanel } from '../ui/exportPanel.js';
+import { initCapturePanel } from '../ui/capturePanel.js';
+import { initFpsCounter } from '../ui/fpsCounter.js';
 import {
   setLanguage,
   initializeLanguageMenu,
@@ -46,7 +58,14 @@ import {
 } from './translation.js';
 import { ShortcutsPanel } from '../accessibility/keyboardui.js';
 import { KeyboardDispatcher } from './keyboardDispatcher.js';
-import { ContextManager } from './context.js';
+import { ContextManager, toggleContextDebug } from './context.js';
+import {
+  areBlockHintsEnabled,
+  setBlockHintsEnabled,
+  showBlockHintMessage,
+  hideBlockHint,
+} from '../ui/blockHint.js';
+import { setProjectLoading } from './projectLoading.js';
 
 function isEmbedModeEnabled() {
   const embedParam = new URLSearchParams(window.location.search).get('embed');
@@ -118,10 +137,11 @@ function addEmbedPlaybackControls() {
   });
   buttonRow.appendChild(playButton);
 
-  const stopButton = createActionButton('stopCodeButton', 'Stop', () => {
-    stopCode();
+  const pauseButton = createActionButton('pauseCodeButton', 'Pause', () => {
+    togglePause({ focusCanvas: true });
   });
-  buttonRow.appendChild(stopButton);
+  pauseButton.classList.add('pause-toggle');
+  buttonRow.appendChild(pauseButton);
   topBar.appendChild(buttonRow);
 
   const actions = document.createElement('div');
@@ -258,7 +278,6 @@ function applyEmbedMode() {
   }
 
   if (mainContent) {
-    mainContent.style.transform = 'translateX(0px)';
     mainContent.style.marginTop = '0';
     mainContent.style.height = 'auto';
     mainContent.tabIndex = -1;
@@ -272,6 +291,7 @@ function applyEmbedMode() {
 
   if (flockLink) flockLink.style.display = 'none';
   flock.embedMode = true;
+  flock.setEditorView(false);
 
   document.documentElement.style.setProperty('--dynamic-offset', '0px');
   document.documentElement.style.background = '#e5e5eb';
@@ -452,10 +472,20 @@ function registerBlocklyPlayShortcut() {
   });
 }
 
-function registerTopBlockReorderShortcuts() {
+// Replace a registered shortcut's callback, passing the original as the last arg.
+function wrapShortcut(name, handler) {
   const registry = Blockly.ShortcutRegistry.registry;
-  const origRegistry = registry.getRegistry?.() ?? {};
+  const existing = registry.getRegistry?.()?.[name];
+  if (!existing) return;
+  const orig = existing.callback;
+  registry.unregister(name);
+  registry.register({
+    ...existing,
+    callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
+  });
+}
 
+function registerTopBlockReorderShortcuts() {
   // Active move session, set on start_move / start_move_stack.
   // snapshot: Map<block, originalY> for all top blocks at session start,
   // so abort_move can restore everything we displaced.
@@ -537,17 +567,6 @@ function registerTopBlockReorderShortcuts() {
     return true;
   }
 
-  function wrap(name, handler) {
-    const existing = origRegistry[name];
-    if (!existing) return;
-    const orig = existing.callback;
-    registry.unregister(name);
-    registry.register({
-      ...existing,
-      callback: (ws, event, shortcut) => handler(ws, event, shortcut, orig),
-    });
-  }
-
   function openSession(ws) {
     session = null;
     const block = focusedBlock();
@@ -560,32 +579,32 @@ function registerTopBlockReorderShortcuts() {
     session = { block, snapshot };
   }
 
-  wrap('start_move', (ws, e, s, orig) => {
+  wrapShortcut('start_move', (ws, e, s, orig) => {
     const r = orig(ws, e, s);
     openSession(ws);
     return r;
   });
-  wrap('start_move_stack', (ws, e, s, orig) => {
+  wrapShortcut('start_move_stack', (ws, e, s, orig) => {
     const r = orig(ws, e, s);
     openSession(ws);
     return r;
   });
 
-  wrap('move_up', (ws, e, s, orig) => {
+  wrapShortcut('move_up', (ws, e, s, orig) => {
     if (session && isTopBlock(session.block)) return swap('up', ws);
     return orig(ws, e, s);
   });
-  wrap('move_down', (ws, e, s, orig) => {
+  wrapShortcut('move_down', (ws, e, s, orig) => {
     if (session && isTopBlock(session.block)) return swap('down', ws);
     return orig(ws, e, s);
   });
 
-  wrap('finish_move', (ws, e, s, orig) => {
+  wrapShortcut('finish_move', (ws, e, s, orig) => {
     session = null;
     return orig(ws, e, s);
   });
 
-  wrap('abort_move', (ws, e, s, orig) => {
+  wrapShortcut('abort_move', (ws, e, s, orig) => {
     if (session) {
       const focused = session.block;
       const focusedOrigY = session.snapshot.get(focused);
@@ -610,6 +629,45 @@ function registerTopBlockReorderShortcuts() {
       session = null;
     }
     return orig(ws, e, s);
+  });
+}
+
+function registerBlockInfoHint() {
+  let describedBlockId = null;
+
+  const dismiss = () => {
+    describedBlockId = null;
+    hideBlockHint();
+  };
+
+  wrapShortcut('information', (ws, event, shortcut, orig) => {
+    const handled = orig?.(ws, event, shortcut);
+    if (Blockly.getFocusManager().ephemeralFocusTaken()) return handled;
+
+    const node = Blockly.getFocusManager().getFocusedNode();
+    const block = ws.getNavigator?.().getSourceBlockFromNode(node) ?? null;
+    if (!block || describedBlockId === block.id) {
+      dismiss();
+      return handled;
+    }
+    describedBlockId = block.id;
+    showBlockHintMessage(Blockly.Tooltip.getTooltipOfObject(block));
+    document.addEventListener('focusin', dismiss, { once: true, capture: true });
+    return handled;
+  });
+}
+
+// Blockly's "menu" shortcut opens nothing when the bare workspace is focused —
+// its focus-target node has no showContextMenu. Fall back to the workspace menu.
+function registerWorkspaceContextMenuFallback() {
+  wrapShortcut('menu', (ws, event, shortcut, orig) => {
+    if (orig?.(ws, event, shortcut)) return true;
+    const focusedTree = Blockly.getFocusManager?.()?.getFocusedTree?.();
+    if (focusedTree === ws && typeof ws.showContextMenu === 'function') {
+      ws.showContextMenu(event);
+      return true;
+    }
+    return false;
   });
 }
 
@@ -715,26 +773,24 @@ function initializeApp() {
   });
   // Add event listeners for menu buttons and controls
   const runCodeButton = document.getElementById('runCodeButton');
-  const toggleDesignButton = document.getElementById('toggleDesign');
+  const inspectorCheckbox = document.getElementById('inspectorCheckbox');
+  const physicsShapesCheckbox = document.getElementById('physicsShapesCheckbox');
+  const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
-  const stopCodeButton = document.getElementById('stopCodeButton');
+  const pauseCodeButton = document.getElementById('pauseCodeButton');
   const fileInput = document.getElementById('fileInput');
   const exportCodeButton = document.getElementById('exportCodeButton');
   const openButton = document.getElementById('openButton');
-  const menuButton = document.getElementById('menuBtn');
-  if (!runCodeButton || !stopCodeButton || !exportCodeButton || !fileInput) {
+  const mainMenuButton = document.getElementById('menuBtn');
+  if (!runCodeButton || !pauseCodeButton || !exportCodeButton || !fileInput) {
     return;
   }
   runCodeButton.addEventListener('click', executeCode);
-  stopCodeButton.addEventListener('click', stopCode);
-  // Clicking anywhere on the stopped overlay (not just the play button) starts
-  // the scene — matches the pointer cursor shown across the whole overlay. The
-  // inner button's click bubbles up here, and executeCode's isExecuting guard
-  // makes the resulting second call a no-op.
-  document
-    .getElementById('canvasStoppedOverlay')
-    ?.addEventListener('click', executeCode);
+  pauseCodeButton.addEventListener('click', () => togglePause({ focusCanvas: true }));
   exportCodeButton.addEventListener('click', () => exportCode(workspace));
+  initExportPanel(workspace);
+  initCapturePanel();
+  initFpsCounter();
 
   // Add toolbar buttons
   const zoomInBtn = document.getElementById('zoomInBtn');
@@ -751,9 +807,19 @@ function initializeApp() {
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => zoomTopLeft(-1));
   const workspaceSearchBtn = document.getElementById('workspaceSearchBtn');
   if (workspaceSearchBtn)
-    workspaceSearchBtn.addEventListener('click', () => window.flockWorkspaceSearch?.open());
+    workspaceSearchBtn.addEventListener('click', () => {
+      const workspaceSearch = window.flockWorkspaceSearch;
+      if (!workspaceSearch) return;
+      if (document.getElementById('blocklyDiv')?.classList.contains('blockly-search-active')) {
+        workspaceSearch.close();
+      } else {
+        workspaceSearch.open();
+      }
+    });
   if (undoBtn) undoBtn.addEventListener('click', () => workspace.undo(false));
   if (redoBtn) redoBtn.addEventListener('click', () => workspace.undo(true));
+  document.getElementById('gizmoUndoBtn')?.addEventListener('click', () => workspace.undo(false));
+  document.getElementById('gizmoRedoBtn')?.addEventListener('click', () => workspace.undo(true));
   const shortcutsBtn = document.getElementById('shortcutsBtn');
   if (shortcutsBtn) shortcutsBtn.addEventListener('click', () => ShortcutsPanel.toggle());
 
@@ -788,17 +854,31 @@ function initializeApp() {
     e.preventDefault();
     void executeCode();
   });
+  KeyboardDispatcher.on('*', 'Mod+KeyK', (e) => {
+    // Matches the Pause button, so it works while editing code as well.
+    e.preventDefault();
+    togglePause();
+  });
   KeyboardDispatcher.on('*', 'Mod+Slash', (e) => {
     e.preventDefault();
     ShortcutsPanel.toggle();
   });
   KeyboardDispatcher.on('*', 'Mod+KeyM', (e) => {
     e.preventDefault();
-    if (menuButton) menuButton.focus();
+    mainMenuButton?.focus();
   });
   KeyboardDispatcher.on('*', 'Mod+KeyE', (e) => {
     e.preventDefault();
     Blockly.getFocusManager()?.focusTree?.(workspace);
+  });
+  KeyboardDispatcher.on('*', 'Mod+Shift+KeyD', (e) => {
+    // Desktop fallback that toggles both debug panels together: the context
+    // banner, and the console log panel normally opened with a three-finger
+    // tap on touch devices.
+    if (!window.__flockToggleDebugLog) return;
+    e.preventDefault();
+    window.__flockToggleDebugLog();
+    toggleContextDebug();
   });
   KeyboardDispatcher.on('*', 'KeyT', (e) => {
     const ctx = ContextManager.getCurrentContext();
@@ -815,9 +895,55 @@ function initializeApp() {
       focusToolboxRestoringCategory(workspace);
     }, 0);
   });
-  if (toggleDesignButton) {
-    toggleDesignButton.addEventListener('click', toggleDesignMode);
-  }
+  // The inspector can also be closed from its own header, so read its live state.
+  document.addEventListener('toolspanelsync', () => {
+    if (inspectorCheckbox) inspectorCheckbox.checked = isInspectorVisible();
+    if (physicsShapesCheckbox) {
+      physicsShapesCheckbox.checked = !!flock.physicsViewer && !!flock.physicsViewerActive;
+    }
+  });
+  physicsShapesCheckbox?.addEventListener('change', () => {
+    flock.showPhysics(physicsShapesCheckbox.checked);
+    physicsShapesCheckbox.checked = !!flock.physicsViewer && !!flock.physicsViewerActive;
+  });
+  inspectorCheckbox?.addEventListener('change', async () => {
+    const opening = inspectorCheckbox.checked;
+    // The inspector docks behind the panel, so close it before focus moves.
+    if (opening) document.dispatchEvent(new CustomEvent('toolspanelclose'));
+    const opened = await toggleInspector({ focus: opening });
+    inspectorCheckbox.checked = opened;
+    const inspector = document.getElementById('babylon-inspector-container');
+    if (opened && inspector?.contains(document.activeElement)) {
+      const focusedMessage = translate('focused_element_suffix').replace(
+        '{name}',
+        translate('inspector_tool_ui')
+      );
+      announceToScreenReader(focusedMessage, { requireCanvasFocus: false });
+    }
+  });
+
+  const updateBlockHintsButton = () => {
+    if (!blockHintsButton) return;
+    const expanded = areBlockHintsEnabled();
+    const key = expanded ? 'hide_block_hints' : 'show_block_hints';
+    const label = translate(`${key}_ui`);
+    blockHintsButton.dataset.i18n = key;
+    blockHintsButton.setAttribute('aria-expanded', String(expanded));
+    blockHintsButton.setAttribute('aria-label', label);
+    blockHintsButton.title = label;
+    blockHintsButton.classList.toggle('active', expanded);
+  };
+  updateBlockHintsButton();
+  document.addEventListener('flock-block-hints-changed', updateBlockHintsButton);
+  // Taking focus would deselect the workspace block, leaving nothing to hint about.
+  blockHintsButton?.addEventListener('pointerdown', (event) => event.preventDefault());
+  blockHintsButton?.addEventListener('click', () => {
+    setBlockHintsEnabled(!areBlockHintsEnabled());
+    if (areBlockHintsEnabled()) {
+      showSelectedBlockHint();
+    }
+    updateBlockHintsButton();
+  });
 
   if (togglePlayButton) {
     togglePlayButton.addEventListener('click', togglePlayMode);
@@ -897,27 +1023,27 @@ function initializeApp() {
   if (exampleButton) exampleButton.removeAttribute('disabled');
 
   if (fullscreenToggle) {
-    // iOS browsers (iPad/iPhone, Safari and Chrome) drop out of fullscreen as
-    // soon as a text field is focused and the keyboard appears, so hiding the
-    // button is better than offering one that breaks. Installed PWA / standalone
-    // is already fullscreen and is handled separately.
-    const isIOSBrowser = () => {
-      const isIOS =
-        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      const isStandalone =
-        window.matchMedia('(display-mode: standalone)').matches ||
-        window.matchMedia('(display-mode: fullscreen)').matches ||
-        navigator.standalone === true;
-      return isIOS && !isStandalone;
-    };
+    const isIOS = () =>
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isMobile = () => /Mobi|Android/i.test(navigator.userAgent) || isIOS();
+    const isInstalledApp = () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches ||
+      navigator.standalone === true;
 
     const fullscreenSupported =
       document.documentElement.requestFullscreen ||
       document.documentElement.mozRequestFullScreen ||
       document.documentElement.webkitRequestFullscreen ||
       document.documentElement.msRequestFullscreen;
-    if (fullscreenSupported && !isIOSBrowser()) {
+
+    // iOS browsers drop out of fullscreen as soon as a text field takes focus and
+    // the keyboard appears. A home-screen app can still hide the system bars, but
+    // not for enough gain to spend a button on.
+    const fullscreenShown = fullscreenSupported && !isIOS() && !(isMobile() && isInstalledApp());
+
+    if (fullscreenShown) {
       fullscreenToggle.removeAttribute('disabled');
     } else {
       fullscreenToggle.style.display = 'none';
@@ -974,9 +1100,12 @@ window.onload = async function () {
 
   registerBlocklyPlayShortcut();
   registerTopBlockReorderShortcuts();
+  registerWorkspaceContextMenuFallback();
+  registerBlockInfoHint();
   initializeWorkspace();
   overrideSearchPlugin(workspace);
   initializeBlockHandling();
+  initProjectModifiedTracking(workspace);
 
   console.log('Welcome to Flock XR 🐦🐦🐦');
   console.log('Release 1');
@@ -990,6 +1119,15 @@ window.onload = async function () {
     }
   }, 30000);
 
+  // A custom dialog can't run synchronously here, so save to localStorage and
+  // fall back to the browser's own "leave site?" prompt.
+  window.addEventListener('beforeunload', (event) => {
+    if (!isProjectModified() && !isFileSaveUnknown()) return;
+    saveWorkspace(workspace);
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
   (async () => {
     try {
       await flock.initialize();
@@ -998,7 +1136,7 @@ window.onload = async function () {
       // Hide loading screen once Flock is fully initialized
       setTimeout(hideLoadingScreen, 500);
     } catch (error) {
-      handleError(error, { source: 'startup', fatal: true });
+      if (!isReported(error)) handleError(error, { source: 'startup', fatal: true });
     }
   })();
 
@@ -1006,13 +1144,12 @@ window.onload = async function () {
 
   workspace.addChangeListener(function (event) {
     if (event.type === Blockly.Events.FINISHED_LOADING) {
-      initializeVariableIndexes();
-      window.loadingCode = false;
+      setProjectLoading(false);
     }
   });
 
   // Initial view setup
-  window.loadingCode = true;
+  setProjectLoading(true);
 
   // Initialize saved language before loading workspace
   await initializeSavedLanguage();

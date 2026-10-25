@@ -1,5 +1,5 @@
-import * as Blockly from "blockly";
-import { getFieldValue } from "./generators-utilities.js";
+import * as Blockly from 'blockly';
+import { getFieldValue } from './generators-utilities.js';
 
 export function registerSensingGenerators(javascriptGenerator) {
   // -------------------------------
@@ -8,14 +8,14 @@ export function registerSensingGenerators(javascriptGenerator) {
   // Movement or action control
   javascriptGenerator.forBlock['action_pressed'] = function (block) {
     const action = block.getFieldValue('ACTION');
-    return [`actionPressed("${action}")`, javascriptGenerator.ORDER_NONE];
+    return [`actionPressed(${JSON.stringify(action)})`, javascriptGenerator.ORDER_NONE];
   };
 
   // Set % key to %
   javascriptGenerator.forBlock['set_action_key'] = function (block) {
     const action = block.getFieldValue('ACTION');
     const key = block.getFieldValue('KEY');
-    return `setActionKey("${action}", ${JSON.stringify(key)});\n`;
+    return `setActionKey(${JSON.stringify(action)}, ${JSON.stringify(key)});\n`;
   };
 
   // Object exists?
@@ -61,7 +61,7 @@ export function registerSensingGenerators(javascriptGenerator) {
     );
     const propertyName = block.getFieldValue('PROPERTY');
 
-    const code = `getProperty(${modelName}, '${propertyName}')`;
+    const code = `getProperty(${modelName}, ${JSON.stringify(propertyName)})`;
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
@@ -90,7 +90,7 @@ export function registerSensingGenerators(javascriptGenerator) {
   // Time in seconds
   javascriptGenerator.forBlock['time'] = function (block) {
     const unit = block.getFieldValue('UNIT') || 'seconds';
-    const code = `getTime("${unit}")`;
+    const code = `getTime(${JSON.stringify(unit)})`;
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
@@ -111,16 +111,20 @@ export function registerSensingGenerators(javascriptGenerator) {
     const color = getFieldValue(block, 'COLOR', '"#ffffff"');
     const control = block.getFieldValue('CONTROL');
     const mode = block.getFieldValue('ENABLED');
-    return `buttonControls("${control}", "${mode}", ${color});\n`;
+    return `buttonControls(${JSON.stringify(control)}, ${JSON.stringify(mode)}, ${color});\n`;
   };
 
   // On-screen controls
   javascriptGenerator.forBlock['on_screen_controls'] = function (block) {
     const color = getFieldValue(block, 'COLOR', '"#ffffff"');
+    // Older saved projects predate these inputs; fall back to a transparent
+    // background so their controls render exactly as before.
+    const background = getFieldValue(block, 'BACKGROUND', '"#000000"');
+    const alpha = getFieldValue(block, 'ALPHA', '0');
     const movement = block.getFieldValue('MOVEMENT');
     const actions = block.getFieldValue('ACTIONS');
     const mode = block.getFieldValue('ENABLED');
-    return `onScreenControls("${movement}", "${actions}", "${mode}", ${color});\n`;
+    return `onScreenControls(${JSON.stringify(movement)}, ${JSON.stringify(actions)}, ${JSON.stringify(mode)}, ${color}, ${background}, ${alpha});\n`;
   };
 
   // Add a micro:bit and set its radio channel
@@ -155,9 +159,9 @@ export function registerSensingGenerators(javascriptGenerator) {
     // "any" (and legacy XML, which has no DEVICE field) keeps the original
     // key-event behaviour; micro:bit events also pulse the key pipeline.
     if (!deviceName) {
-      return `whenKeyEvent("${event}", async () => {${statements_do}});\n`;
+      return `whenKeyEvent(${JSON.stringify(event)}, async () => {${statements_do}});\n`;
     }
-    return `onMicrobitEvent(${JSON.stringify(deviceName)}, "${event}", async () => {${statements_do}});\n`;
+    return `onMicrobitEvent(${JSON.stringify(deviceName)}, ${JSON.stringify(event)}, async () => {${statements_do}});\n`;
   };
 
   // Show an image on a micro:bit's LED display ("" = every tethered board)

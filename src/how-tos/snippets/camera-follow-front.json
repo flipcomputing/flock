@@ -1,0 +1,15 @@
+{
+  "type": "camera_follow",
+  "fields": {
+    "MESH_VAR": { "name": "player", "type": "" },
+    "FRONT": true
+  },
+  "inputs": {
+    "RADIUS": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 7 } }
+    },
+    "ANGLE": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 90 } }
+    }
+  }
+}

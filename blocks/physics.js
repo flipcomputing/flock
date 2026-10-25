@@ -1,265 +1,355 @@
-import * as Blockly from "blockly";
-import { categoryColours } from "../toolbox.js";
-import { getHelpUrlFor } from "./blocks.js";
-import {
-  translate,
-  getTooltip,
-  getDropdownOption,
-} from "../main/translation.js";
+import * as Blockly from 'blockly';
+import { categoryColours } from '../toolbox.js';
+import { getHelpUrlFor } from './blocks.js';
+import { otherObjectName } from './variableNames.js';
+import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 
 export function definePhysicsBlocks() {
-  Blockly.Blocks["add_physics"] = {
+  Blockly.Blocks['add_physics'] = {
     init: function () {
       this.jsonInit({
-        type: "add_physics",
-        message0: translate("add_physics"),
+        type: 'add_physics',
+        message0: translate('add_physics'),
         args0: [
           {
-            type: "field_variable",
-            name: "MODEL_VAR",
+            type: 'field_variable',
+            name: 'MODEL_VAR',
             variable: window.currentMesh,
           },
           {
-            type: "field_dropdown",
-            name: "PHYSICS_TYPE",
+            type: 'field_dropdown',
+            name: 'PHYSICS_TYPE',
             options: [
-              getDropdownOption("DYNAMIC"),
-              getDropdownOption("ANIMATED"),
-              getDropdownOption("STATIC"),
-              getDropdownOption("NONE"),
+              getDropdownOption('DYNAMIC'),
+              getDropdownOption('ANIMATED'),
+              getDropdownOption('STATIC'),
+              getDropdownOption('NONE'),
             ],
-            default: "DYNAMIC",
+            default: 'DYNAMIC',
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("add_physics"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('add_physics'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
     },
   };
 
-  Blockly.Blocks["add_physics_shape"] = {
+  Blockly.Blocks['add_physics_shape'] = {
     init: function () {
       this.jsonInit({
-        type: "add_physics_shape",
-        message0: translate("add_physics_shape"),
+        type: 'add_physics_shape',
+        message0: translate('add_physics_shape'),
         args0: [
           {
-            type: "field_variable",
-            name: "MODEL_VAR",
+            type: 'field_variable',
+            name: 'MODEL_VAR',
             variable: window.currentMesh,
           },
           {
-            type: "field_dropdown",
-            name: "SHAPE_TYPE",
-            options: [getDropdownOption("MESH"), getDropdownOption("CAPSULE")],
-            default: "MESH",
-          },
-        ],
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("add_physics_shape"),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
-    },
-  };
-
-  Blockly.Blocks["apply_force"] = {
-    init: function () {
-      this.jsonInit({
-        type: "apply_force",
-        message0: translate("apply_force"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "MESH_VAR",
-            variable: window.currentMesh,
-          },
-          {
-            type: "input_value",
-            name: "X",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Y",
-            check: "Number",
-          },
-          {
-            type: "input_value",
-            name: "Z",
-            check: "Number",
-          },
-        ],
-        inputsInline: true,
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("apply_force"),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
-    },
-  };
-
-  Blockly.Blocks["jump"] = {
-    init: function () {
-      this.jsonInit({
-        type: "jump",
-        message0: translate("jump"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "MODEL_VAR",
-            variable: window.currentMesh,
-          },
-          {
-            type: "input_value",
-            name: "JUMP_HEIGHT",
-            check: "Number",
-          },
-        ],
-        inputsInline: true,
-        previousStatement: null,
-        nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("jump"),
-      });
-      this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
-    },
-  };
-
-  Blockly.Blocks["set_speed"] = {
-    init: function () {
-      this.jsonInit({
-        type: "set_speed",
-        message0: translate("set_speed"),
-        args0: [
-          {
-            type: "field_variable",
-            name: "MESH_VAR",
-            variable: window.currentMesh,
-          },
-          {
-            type: "field_dropdown",
-            name: "DIRECTION",
+            type: 'field_dropdown',
+            name: 'SHAPE_TYPE',
             options: [
-              getDropdownOption("forward"),
-              getDropdownOption("sideways"),
-              getDropdownOption("up"),
-              getDropdownOption("x_coordinate"),
-              getDropdownOption("y_coordinate"),
-              getDropdownOption("z_coordinate"),
-              getDropdownOption("all"),
+              getDropdownOption('MESH'),
+              getDropdownOption('CAPSULE'),
+              getDropdownOption('SPHERE'),
+              getDropdownOption('BOX'),
             ],
-          },
-          {
-            type: "input_value",
-            name: "SPEED",
-            check: "Number",
+            default: 'MESH',
           },
         ],
-        inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("set_speed"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('add_physics_shape'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
     },
   };
 
-  Blockly.Blocks["set_bounciness"] = {
+  Blockly.Blocks['apply_force'] = {
     init: function () {
       this.jsonInit({
-        type: "set_bounciness",
-        message0: translate("set_bounciness"),
+        type: 'apply_force',
+        message0: translate('apply_force'),
         args0: [
           {
-            type: "field_variable",
-            name: "MESH_VAR",
+            type: 'field_variable',
+            name: 'MESH_VAR',
             variable: window.currentMesh,
           },
           {
-            type: "input_value",
-            name: "BOUNCINESS",
-            check: "Number",
+            type: 'input_value',
+            name: 'X',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Y',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'Z',
+            check: 'Number',
           },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("set_bounciness"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('apply_force'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
     },
   };
 
-  Blockly.Blocks["show_physics"] = {
+  Blockly.Blocks['jump'] = {
     init: function () {
       this.jsonInit({
-        type: "show_physics",
-        message0: translate("show_physics"),
+        type: 'jump',
+        message0: translate('jump'),
         args0: [
           {
-            type: "field_checkbox",
-            name: "SHOW",
+            type: 'field_variable',
+            name: 'MODEL_VAR',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'input_value',
+            name: 'JUMP_HEIGHT',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('jump'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['set_speed'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_speed',
+        message0: translate('set_speed'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH_VAR',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'DIRECTION',
+            options: [
+              getDropdownOption('forward'),
+              getDropdownOption('sideways'),
+              getDropdownOption('up'),
+              getDropdownOption('x_coordinate'),
+              getDropdownOption('y_coordinate'),
+              getDropdownOption('z_coordinate'),
+              getDropdownOption('all'),
+            ],
+          },
+          {
+            type: 'input_value',
+            name: 'SPEED',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('set_speed'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['set_bounciness'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_bounciness',
+        message0: translate('set_bounciness'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH_VAR',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'input_value',
+            name: 'BOUNCINESS',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('set_bounciness'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['set_mass'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'set_mass',
+        message0: translate('set_mass'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MESH_VAR',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'input_value',
+            name: 'MASS',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('set_mass'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['show_physics'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'show_physics',
+        message0: translate('show_physics'),
+        args0: [
+          {
+            type: 'field_checkbox',
+            name: 'SHOW',
             checked: true,
           },
         ],
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("show_physics"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('show_physics'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
     },
   };
 
-  Blockly.Blocks["move_forward"] = {
+  Blockly.Blocks['move_to_object'] = {
     init: function () {
       this.jsonInit({
-        type: "move",
-        message0: translate("move_forward"),
+        type: 'move_to_object',
+        message0: translate('move_to_object'),
         args0: [
           {
-            type: "field_variable",
-            name: "MODEL",
+            type: 'field_variable',
+            name: 'MODEL1',
             variable: window.currentMesh,
           },
           {
-            type: "field_dropdown",
-            name: "DIRECTION",
+            type: 'field_dropdown',
+            name: 'SIDE',
             options: [
-              getDropdownOption("forward"),
-              getDropdownOption("sideways"),
-              getDropdownOption("strafe"),
-            ],
+              'PLACE_TO',
+              'PLACE_NEAR',
+              'PLACE_LEFT',
+              'PLACE_RIGHT',
+              'PLACE_FRONT',
+              'PLACE_BEHIND',
+            ].map(getDropdownOption),
           },
           {
-            type: "input_value",
-            name: "SPEED",
-            check: "Number",
+            type: 'field_variable',
+            name: 'MODEL2',
+            variable: otherObjectName('object2'),
+          },
+          {
+            type: 'input_value',
+            name: 'GAP',
+            check: 'Number',
+          },
+          {
+            type: 'input_value',
+            name: 'SPEED',
+            check: 'Number',
+          },
+          {
+            type: 'field_dropdown',
+            name: 'MODE',
+            options: [getDropdownOption('AWAIT'), getDropdownOption('START')],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'PATH',
+            options: [getDropdownOption('STRAIGHT'), getDropdownOption('WANDERING')],
           },
         ],
         inputsInline: true,
         previousStatement: null,
         nextStatement: null,
-        colour: categoryColours["Transform"],
-        tooltip: getTooltip("move_forward"),
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('move_to_object'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
-      this.setStyle("transform_blocks");
+      this.setStyle('transform_blocks');
+    },
+  };
+
+  Blockly.Blocks['move_forward'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'move',
+        message0: translate('move_forward'),
+        args0: [
+          {
+            type: 'field_variable',
+            name: 'MODEL',
+            variable: window.currentMesh,
+          },
+          {
+            type: 'field_dropdown',
+            name: 'DIRECTION',
+            options: [
+              getDropdownOption('forward'),
+              getDropdownOption('sideways'),
+              getDropdownOption('strafe'),
+            ],
+          },
+          {
+            type: 'input_value',
+            name: 'SPEED',
+            check: 'Number',
+          },
+        ],
+        inputsInline: true,
+        previousStatement: null,
+        nextStatement: null,
+        colour: categoryColours['Transform'],
+        tooltip: getTooltip('move_forward'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('transform_blocks');
     },
   };
 }

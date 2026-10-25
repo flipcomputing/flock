@@ -1,37 +1,42 @@
-import * as Blockly from "blockly";
-import { flock } from "../flock.js";
+import * as Blockly from 'blockly';
+import { flock } from '../flock.js';
 import {
   multiObjectNames,
   objectNames,
   characterNames,
+  modelNames,
   objectColours,
-} from "../config.js";
+} from '../config.js';
 import {
   highlightBlockById,
   setPositionValues,
   getCanvasXAndCanvasYValues,
   createBlockForObject,
   createBlockForCharacter,
-} from "./blocklyutil.js";
-import { roundPositionValue } from "./blocklyshadowutil.js";
+} from './blocklyutil.js';
+import { roundPositionValue } from './blocklyshadowutil.js';
 import {
   startCanvasKeyboardMode,
   stopCanvasKeyboardMode,
   setCrosshairCursor,
   setDefaultCursor,
-} from "./canvas-utils.js";
-import { GizmoMenuManager } from "../accessibility/keyboardui.js";
-import { showStatus, clearStatus } from "./status.js";
-import { translate } from "../main/translation.js";
-import { KeyboardDispatcher } from "../main/keyboardDispatcher.js";
+} from './canvas-utils.js';
+import { GizmoMenuManager } from '../accessibility/keyboardui.js';
+import { selectMeshForBlock } from './gizmos.js';
+import { isPlacementSurface } from './meshhelpers.js';
+import { ensureInitialRotation } from './initialTransform.js';
+import { showStatus, clearStatus } from './status.js';
+import { translate } from '../main/translation.js';
+import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
+import { CUBE_POINTS } from '../api/freeformgeometry.js';
 
 const colorFields = {
-  HAIR_COLOR: "#000000", // Hair: black
-  SKIN_COLOR: "#A15C33", // Skin: custom skin tone
-  EYES_COLOR: "#000000", // Eyes: black
-  SLEEVES_COLOR: "#fpo008B8B", // Sleeves: dark cyan
-  SHORTS_COLOR: "#00008B", // Shorts: dark blue
-  TSHIRT_COLOR: "#FF8F60", // T-Shirt: light orange
+  HAIR_COLOR: '#000000', // Hair: black
+  SKIN_COLOR: '#A15C33', // Skin: custom skin tone
+  EYES_COLOR: '#000000', // Eyes: black
+  SLEEVES_COLOR: '#fpo008B8B', // Sleeves: dark cyan
+  SHORTS_COLOR: '#00008B', // Shorts: dark blue
+  TSHIRT_COLOR: '#FF8F60', // T-Shirt: light orange
 };
 
 export function createBlockWithShadows(shapeType, position, colour, decimals = 1) {
@@ -39,12 +44,9 @@ export function createBlockWithShadows(shapeType, position, colour, decimals = 1
   const spec = __CREATE_SPEC[shapeType];
   if (!spec) return null;
 
-  const posX =
-    position?.x !== undefined ? roundPositionValue(position.x, decimals) : 0;
-  const posY =
-    position?.y !== undefined ? roundPositionValue(position.y, decimals) : 0;
-  const posZ =
-    position?.z !== undefined ? roundPositionValue(position.z, decimals) : 0;
+  const posX = position?.x !== undefined ? roundPositionValue(position.x, decimals) : 0;
+  const posY = position?.y !== undefined ? roundPositionValue(position.y, decimals) : 0;
+  const posZ = position?.z !== undefined ? roundPositionValue(position.z, decimals) : 0;
 
   const defaults = {
     ...spec.defaults({ c: colour }),
@@ -54,18 +56,22 @@ export function createBlockWithShadows(shapeType, position, colour, decimals = 1
   };
 
   let allInputs;
-  if (shapeType === "set_sky_color") {
+  if (shapeType === 'set_sky_color') {
     allInputs = [...spec.inputs];
   } else {
-    allInputs = [...spec.inputs, "X", "Y", "Z"];
+    allInputs = [...spec.inputs, 'X', 'Y', 'Z'];
   }
 
   const data = { type: shapeType, inputs: {} };
   for (const name of allInputs) {
     const { type, field } = __metaFor(name);
-    data.inputs[name] = {
-      shadow: makeShadowSpec(type, { [field]: defaults[name] }),
-    };
+    const shadow = makeShadowSpec(type, { [field]: defaults[name] });
+    data.inputs[name] = spec.listInputs?.includes(name)
+      ? { shadow, block: makeListSpec(shadow) }
+      : { shadow };
+  }
+  for (const [name, makeBlock] of Object.entries(spec.blocks ?? {})) {
+    data.inputs[name] = { block: makeBlock() };
   }
 
   const existingGroup = Blockly.Events.getGroup();
@@ -107,10 +113,43 @@ function makeShadowSpec(type, fields) {
   return { type, fields };
 }
 
+// A one-item list holding a copy of the shadow, as the toolbox sets up
+// colour inputs that also take a list.
+function makeVectorSpec(point) {
+  const inputs = Object.fromEntries(
+    ['X', 'Y', 'Z'].map((axis, i) => [
+      axis,
+      { shadow: makeShadowSpec('math_number', { NUM: point[i] }) },
+    ])
+  );
+  return { type: 'vector', inputs };
+}
+
+// The cube a freeform starts as, one vector per point, as in the toolbox.
+function makeCubePointsSpec() {
+  return {
+    type: 'lists_create_with',
+    extraState: { itemCount: CUBE_POINTS.length },
+    inline: false,
+    inputs: Object.fromEntries(
+      CUBE_POINTS.map((point, i) => [`ADD${i}`, { block: makeVectorSpec(point) }])
+    ),
+  };
+}
+
+function makeListSpec(shadow) {
+  return {
+    type: 'lists_create_with',
+    extraState: { itemCount: 1 },
+    inline: true,
+    inputs: { ADD0: { shadow: { ...shadow } } },
+  };
+}
+
 const __CREATE_SPEC = {
   create_box: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 1, HEIGHT: 1, DEPTH: 1 }),
-    inputs: ["COLOR", "WIDTH", "HEIGHT", "DEPTH"],
+    inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH'],
   },
   create_sphere: {
     defaults: ({ c }) => ({
@@ -119,7 +158,7 @@ const __CREATE_SPEC = {
       DIAMETER_Y: 1,
       DIAMETER_Z: 1,
     }),
-    inputs: ["COLOR", "DIAMETER_X", "DIAMETER_Y", "DIAMETER_Z"],
+    inputs: ['COLOR', 'DIAMETER_X', 'DIAMETER_Y', 'DIAMETER_Z'],
   },
   create_cylinder: {
     defaults: ({ c }) => ({
@@ -129,43 +168,67 @@ const __CREATE_SPEC = {
       DIAMETER_BOTTOM: 1,
       TESSELLATIONS: 24,
     }),
-    inputs: [
-      "COLOR",
-      "HEIGHT",
-      "DIAMETER_TOP",
-      "DIAMETER_BOTTOM",
-      "TESSELLATIONS",
-    ],
+    inputs: ['COLOR', 'HEIGHT', 'DIAMETER_TOP', 'DIAMETER_BOTTOM', 'TESSELLATIONS'],
   },
   create_capsule: {
     defaults: ({ c }) => ({ COLOR: c, DIAMETER: 1, HEIGHT: 2 }),
-    inputs: ["COLOR", "DIAMETER", "HEIGHT"],
+    inputs: ['COLOR', 'DIAMETER', 'HEIGHT'],
+  },
+  create_wedge: {
+    defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 1, DEPTH: 1, PEAK: 0 }),
+    inputs: ['COLOR', 'WIDTH', 'HEIGHT', 'DEPTH', 'PEAK'],
+  },
+  create_donut: {
+    defaults: ({ c }) => ({
+      COLOR: c,
+      DIAMETER: 1.5,
+      INNER_DIAMETER: 0.5,
+      THICKNESS: 0.5,
+      SIDES: 24,
+    }),
+    inputs: ['COLOR', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'],
+  },
+  create_ring: {
+    defaults: ({ c }) => ({
+      COLOR: c,
+      HEIGHT: 0.5,
+      DIAMETER: 2,
+      INNER_DIAMETER: 1.5,
+      THICKNESS: 0.25,
+      SIDES: 24,
+    }),
+    inputs: ['COLOR', 'HEIGHT', 'DIAMETER', 'INNER_DIAMETER', 'THICKNESS', 'SIDES'],
   },
   create_plane: {
     defaults: ({ c }) => ({ COLOR: c, WIDTH: 2, HEIGHT: 2 }),
-    inputs: ["COLOR", "WIDTH", "HEIGHT"],
+    inputs: ['COLOR', 'WIDTH', 'HEIGHT'],
+  },
+  create_freeform: {
+    defaults: ({ c }) => ({ COLOR: c, RADIUS: 0.1 }),
+    inputs: ['COLOR', 'RADIUS'],
+    blocks: { VERTICES: makeCubePointsSpec },
+  },
+  create_3d_text: {
+    defaults: () => ({
+      TEXT: 'Hello World',
+      SIZE: 1,
+      COLOR: '#511d91',
+      DEPTH: 0.3,
+      SPACING: 0,
+    }),
+    inputs: ['TEXT', 'SIZE', 'COLOR', 'DEPTH', 'SPACING'],
+    listInputs: ['COLOR'],
   },
   set_sky_color: {
     defaults: ({ c }) => ({ COLOR: c }),
-    inputs: ["COLOR"],
+    inputs: ['COLOR'],
   },
 };
 
 function __metaFor(name) {
-  return name === "COLOR"
-    ? { type: "colour", field: "COLOR" }
-    : { type: "math_number", field: "NUM" };
-}
-
-// Matches the ground detection used elsewhere (see api/scene.js).
-function isGroundMesh(mesh) {
-  if (!mesh) return false;
-  const name = mesh?.name?.toLowerCase?.() ?? "";
-  return (
-    name === "ground" ||
-    name.includes("ground") ||
-    mesh?.metadata?.blockKey === "ground"
-  );
+  if (name === 'COLOR') return { type: 'colour', field: 'COLOR' };
+  if (name === 'TEXT') return { type: 'text', field: 'TEXT' };
+  return { type: 'math_number', field: 'NUM' };
 }
 
 // Rotation (in degrees) that makes a default plane — whose normal faces
@@ -198,72 +261,6 @@ function planeRotationForNormal(normal) {
   return { x: toDeg(euler.x), y: toDeg(euler.y), z: toDeg(euler.z) };
 }
 
-// Nest a rotate_to block inside a create block's DO section, mirroring the
-// rotate gizmo (see findOrCreateRotateBlock in ui/gizmos.js). The rotate_to
-// references the create block's own mesh variable (ID_VAR) and is given the
-// supplied {x, y, z} rotation in degrees.
-// Apply a flat-lying rotation to the live preview mesh. The preview mesh is
-// created from the block on a later tick (Blockly fires create events
-// asynchronously), and we look it up by metadata.blockKey rather than by name,
-// which whenModelReady cannot do. So poll for the mesh, then rotate it
-// directly (with physics) the way the rotate gizmo does.
-function applyLiveRotationWhenReady(blockId, rotation, attempts = 0) {
-  if (!rotation) return;
-  // createPlane strips the "<name>__<blockId>" suffix off the mesh name and
-  // stores the block id in metadata.blockKey, so look the mesh up by that
-  // rather than by name.
-  const mesh = (flock.scene?.meshes || []).find(
-    (m) => m.metadata?.blockKey === blockId,
-  );
-  if (mesh) {
-    flock.rotateTo(mesh.name, rotation);
-    return;
-  }
-  if (attempts < 60) {
-    requestAnimationFrame(() =>
-      applyLiveRotationWhenReady(blockId, rotation, attempts + 1),
-    );
-  }
-}
-
-function addRotationToCreateBlock(block, rotation) {
-  const workspace = Blockly.getMainWorkspace();
-  const modelVariable = block.getFieldValue("ID_VAR");
-
-  if (!block.getInput("DO")) {
-    block.appendStatementInput("DO").setCheck(null).appendField("");
-  }
-
-  const rotateBlock = workspace.newBlock("rotate_to");
-  rotateBlock.setFieldValue(modelVariable, "MODEL");
-  rotateBlock.initSvg();
-  rotateBlock.render();
-
-  const axisValues = { X: rotation.x, Y: rotation.y, Z: rotation.z };
-  for (const axis of ["X", "Y", "Z"]) {
-    const input = rotateBlock.getInput(axis);
-    const shadow = workspace.newBlock("math_number");
-    shadow.setFieldValue(String(axisValues[axis]), "NUM");
-    shadow.setShadow(true);
-    shadow.initSvg();
-    shadow.render();
-    input.connection.connect(shadow.outputConnection);
-  }
-  rotateBlock.render();
-
-  const doConnection = block.getInput("DO").connection;
-  const firstBlock = doConnection.targetBlock();
-  if (firstBlock) {
-    let tail = firstBlock;
-    while (tail.getNextBlock()) tail = tail.getNextBlock();
-    tail.nextConnection.connect(rotateBlock.previousConnection);
-  } else {
-    doConnection.connect(rotateBlock.previousConnection);
-  }
-
-  return rotateBlock;
-}
-
 function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null) {
   const workspace = Blockly.getMainWorkspace();
 
@@ -277,12 +274,7 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
 
   try {
     Blockly.Events.setGroup(groupId);
-    const block = createBlockWithShadows(
-      shapeType,
-      position,
-      flock.randomColour(),
-      decimals,
-    );
+    const block = createBlockWithShadows(shapeType, position, flock.randomColour(), decimals);
     if (!block) {
       console.error(`Failed to create block of type: ${shapeType}`);
       return null;
@@ -291,10 +283,10 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
     try {
       setPositionValues(block, position, shapeType, decimals);
     } catch (e) {
-      console.error("Error setting position values:", e);
+      console.error('Error setting position values:', e);
     }
 
-    const startSpec = { type: "start" };
+    const startSpec = { type: 'start' };
     let startBlock;
     try {
       startBlock = Blockly.serialization.blocks.append(startSpec, workspace, {
@@ -310,36 +302,34 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
     startBlock?.initSvg?.();
     startBlock?.render?.();
 
-    const connection = startBlock?.getInput("DO")?.connection;
+    const connection = startBlock?.getInput('DO')?.connection;
     if (connection && block.previousConnection) {
       try {
         connection.connect(block.previousConnection);
       } catch (e) {
-        console.error("Error connecting to start block:", e);
+        console.error('Error connecting to start block:', e);
       }
     }
 
-    // For a plane placed flat against a surface, nest a rotate_to block
-    // inside the create block's DO section — the same shape the rotate gizmo
-    // produces — so the orientation lives with the plane and is captured in
-    // the program.
     if (rotation) {
       try {
-        addRotationToCreateBlock(block, rotation);
+        ensureInitialRotation(block, rotation);
       } catch (e) {
-        console.error("Error adding rotation block:", e);
+        console.error('Error adding rotation block:', e);
       }
     }
 
     try {
       highlightBlockById(workspace, block);
     } catch (e) {
-      console.error("Error highlighting block:", e);
+      console.error('Error highlighting block:', e);
     }
+
+    selectMeshForBlock(block);
 
     return block;
   } catch (error) {
-    console.error("Error in addShapeToWorkspace:", error);
+    console.error('Error in addShapeToWorkspace:', error);
     return null;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
@@ -349,13 +339,12 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
 }
 
 function selectCharacter(characterName) {
-  const dd = document.getElementById("shapes-dropdown");
-  if (dd) dd.style.display = "none";
+  const dd = document.getElementById('shapes-dropdown');
+  if (dd) dd.style.display = 'none';
   removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
-  const canvas =
-    flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
+  const canvas = flock.canvas || flock.scene?.getEngine()?.getRenderingCanvas?.();
 
   function cleanup() {
     cleanupPlacementMode();
@@ -373,21 +362,26 @@ function selectCharacter(characterName) {
     }
 
     // Uses scene.pick(x, y) for raycasting
-    const pick = flock.scene.pick(x, y);
+    const pick = flock.scene.pick(
+      x,
+      y,
+      (mesh) => isPlacementSurface(mesh) && mesh.isVisible && mesh.isEnabled()
+    );
     if (!pick?.hit) {
       return cleanup();
     }
 
     const pickedPosition = pick.pickedPoint;
 
-    createBlockForCharacter(
+    const block = createBlockForCharacter(
       workspace,
       characterName,
       pickedPosition,
       colorFields,
       setPositionValues,
-      highlightBlockById,
+      highlightBlockById
     );
+    selectMeshForBlock(block);
 
     cleanup();
   };
@@ -395,11 +389,11 @@ function selectCharacter(characterName) {
   try {
     startPlacementKeyboardMode();
   } catch (error) {
-    console.warn("Unable to start keyboard placement mode.", error);
+    console.warn('Unable to start keyboard placement mode.', error);
   }
 
   setCrosshairCursor();
-  showStatus(translate("place_object_prompt"), { owner: "placement" });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -407,8 +401,8 @@ function selectCharacter(characterName) {
 }
 
 function selectShape(shapeType) {
-  const dropdown = document.getElementById("shapes-dropdown");
-  if (dropdown) dropdown.style.display = "none";
+  const dropdown = document.getElementById('shapes-dropdown');
+  if (dropdown) dropdown.style.display = 'none';
   removeKeyboardNavigation();
   detachActivePickHandler();
 
@@ -433,19 +427,13 @@ function selectShape(shapeType) {
       canvasX,
       canvasY,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
+      flock.scene.activeCamera
     );
 
-    const pickResult = flock.scene.pickWithRay(
-      pickRay,
-      (mesh) => mesh.isPickable,
-    );
+    const pickResult = flock.scene.pickWithRay(pickRay, isPlacementSurface);
     if (pickResult && pickResult.hit) {
-      // A plane dropped onto another object's surface ends up coplanar with
-      // the hit face and z-fights with it. Only in that case do we nudge the
-      // plane clear along the surface normal. Planes placed on the ground (or
-      // any non-plane shape) keep their exact picked position.
-      if (shapeType === "create_plane" && !isGroundMesh(pickResult.pickedMesh)) {
+      // Lay planes flat against the hit face, nudged clear along its normal.
+      if (shapeType === 'create_plane') {
         // Use the geometric face normal (useVerticesNormals = false) in world
         // space, so the plane lies flat against the actual clicked face rather
         // than an interpolated/averaged vertex normal.
@@ -479,26 +467,10 @@ function selectShape(shapeType) {
             roundPositionValue(p.y, 2),
             roundPositionValue(p.z, 2)
           );
-          // Nudge along the outward normal so the plane sits just clear of the
-          // surface (toward the viewer) and does not z-fight the clicked face.
+          // Centre-pivot planes need no base-rule compensation.
           const position = base.add(normal.scale(0.02));
 
-          // Compensate for flock's "base rule": when the plane is created it is
-          // still upright (height 2), and the base rule places the unrotated
-          // bottom at position.y — shifting the centre up by half the height.
-          // rotate_to then flattens the plane around that centre, so without
-          // this it would float ~1 unit above the surface. Subtract that shift
-          // (height/2 of the default plane) so the flat plane lands on the
-          // clicked surface. See applyPositionWithCurrentBaseRule in
-          // api/transform.js.
-          const DEFAULT_PLANE_HALF_HEIGHT = 1; // create_plane default HEIGHT (2) / 2
-          position.y -= DEFAULT_PLANE_HALF_HEIGHT;
-
-          const planeBlock = addShapeToWorkspace(shapeType, position, 2, rotation);
-
-          if (rotation && planeBlock) {
-            applyLiveRotationWhenReady(planeBlock.id, rotation);
-          }
+          addShapeToWorkspace(shapeType, position, 2, rotation);
         } else {
           addShapeToWorkspace(shapeType, pickResult.pickedPoint);
         }
@@ -515,7 +487,7 @@ function selectShape(shapeType) {
 
   // Also set up mouse click as fallback
   setCrosshairCursor();
-  showStatus(translate("place_object_prompt"), { owner: "placement" });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -523,17 +495,21 @@ function selectShape(shapeType) {
 }
 
 function selectObject(objectName) {
-  selectObjectWithCommand(objectName, "shapes-dropdown", "load_object");
+  selectObjectWithCommand(objectName, 'shapes-dropdown', 'load_object');
 }
 
 function selectMultiObject(objectName) {
-  selectObjectWithCommand(objectName, "shapes-dropdown", "load_multi_object");
+  selectObjectWithCommand(objectName, 'shapes-dropdown', 'load_multi_object');
+}
+
+function selectModel(modelName) {
+  selectObjectWithCommand(modelName, 'shapes-dropdown', 'load_model');
 }
 
 function selectObjectWithCommand(objectName, menu, command) {
   // Hide menu
   const menuEl = document.getElementById(menu);
-  if (menuEl) menuEl.style.display = "none";
+  if (menuEl) menuEl.style.display = 'none';
   removeKeyboardNavigation();
 
   const workspace = Blockly.getMainWorkspace();
@@ -561,22 +537,23 @@ function selectObjectWithCommand(objectName, menu, command) {
       x,
       y,
       flock.BABYLON.Matrix.Identity(),
-      flock.scene.activeCamera,
+      flock.scene.activeCamera
     );
-    const pick = flock.scene.pickWithRay(pickRay, (m) => m.isPickable);
+    const pick = flock.scene.pickWithRay(pickRay, isPlacementSurface);
     if (!pick?.hit) return cleanup();
 
     const pickedPosition = pick.pickedPoint;
 
-    createBlockForObject(
+    const block = createBlockForObject(
       workspace,
       command,
       objectName,
       pickedPosition,
       objectColours,
       setPositionValues,
-      highlightBlockById,
+      highlightBlockById
     );
+    selectMeshForBlock(block);
 
     cleanup();
   };
@@ -584,12 +561,12 @@ function selectObjectWithCommand(objectName, menu, command) {
   try {
     startPlacementKeyboardMode();
   } catch (error) {
-    console.warn("Unable to start keyboard placement mode.", error);
+    console.warn('Unable to start keyboard placement mode.', error);
   }
 
   // Mouse click fallback (capture=true)
   setCrosshairCursor();
-  showStatus(translate("place_object_prompt"), { owner: "placement" });
+  showStatus(translate('place_object_prompt'), { owner: 'placement', hint: true });
   registerActivePickHandler(flock.activePickHandler, {
     capture: true,
     delay: 0,
@@ -598,19 +575,33 @@ function selectObjectWithCommand(objectName, menu, command) {
 
 // Function to load characters into the menu
 function loadCharacterImages() {
-  const characterRow = document.getElementById("character-row");
+  const characterRow = document.getElementById('character-row');
   characterRow.replaceChildren();
   // Clear existing characters
 
   characterNames.forEach((name) => {
-    const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+    const baseName = name.replace(/\.[^/.]+$/, ''); // Remove extension
 
-    const img = document.createElement("img");
+    const img = document.createElement('img');
     img.src = `./images/${baseName}.png`;
     img.alt = baseName;
-    img.addEventListener("click", () => selectCharacter(name));
+    img.addEventListener('click', () => selectCharacter(name));
 
-    const li = document.createElement("li");
+    const li = document.createElement('li');
+    li.appendChild(img);
+
+    characterRow.appendChild(li);
+  });
+
+  modelNames.forEach((name) => {
+    const baseName = name.replace(/\.[^/.]+$/, '');
+
+    const img = document.createElement('img');
+    img.src = `./images/${baseName}.png`;
+    img.alt = baseName;
+    img.addEventListener('click', () => selectModel(name));
+
+    const li = document.createElement('li');
     li.appendChild(img);
 
     characterRow.appendChild(li);
@@ -618,30 +609,30 @@ function loadCharacterImages() {
 }
 
 function getAllNavigableItems() {
-  const dropdown = document.getElementById("shapes-dropdown");
+  const dropdown = document.getElementById('shapes-dropdown');
   if (!dropdown) return [];
 
   // Get all clickable items from all rows
   const items = [];
 
-  const shapeRow = dropdown.querySelector("#shape-row");
+  const shapeRow = dropdown.querySelector('#shape-row');
   if (shapeRow) {
-    items.push(...Array.from(shapeRow.querySelectorAll("li")));
+    items.push(...Array.from(shapeRow.querySelectorAll('li')));
   }
 
-  const objectRow = dropdown.querySelector("#object-row");
+  const objectRow = dropdown.querySelector('#object-row');
   if (objectRow) {
-    items.push(...Array.from(objectRow.querySelectorAll("li")));
+    items.push(...Array.from(objectRow.querySelectorAll('li')));
   }
 
-  const modelRow = dropdown.querySelector("#model-row");
+  const modelRow = dropdown.querySelector('#model-row');
   if (modelRow) {
-    items.push(...Array.from(modelRow.querySelectorAll("li")));
+    items.push(...Array.from(modelRow.querySelectorAll('li')));
   }
 
-  const characterRow = dropdown.querySelector("#character-row");
+  const characterRow = dropdown.querySelector('#character-row');
   if (characterRow) {
-    items.push(...Array.from(characterRow.querySelectorAll("li")));
+    items.push(...Array.from(characterRow.querySelectorAll('li')));
   }
 
   return items;
@@ -649,17 +640,17 @@ function getAllNavigableItems() {
 
 function focusItem(item) {
   if (currentFocusedElement) {
-    currentFocusedElement.classList.remove("keyboard-focused");
-    currentFocusedElement.setAttribute("tabindex", "-1");
+    currentFocusedElement.classList.remove('keyboard-focused');
+    currentFocusedElement.setAttribute('tabindex', '-1');
   }
 
   currentFocusedElement = item;
-  item.classList.add("keyboard-focused");
-  item.setAttribute("tabindex", "0");
+  item.classList.add('keyboard-focused');
+  item.setAttribute('tabindex', '0');
   item.focus();
 
   // Scroll item into view if needed
-  item.scrollIntoView({ block: "nearest", inline: "nearest" });
+  item.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 function navigateHorizontal(allItems, currentIndex, direction) {
@@ -681,21 +672,17 @@ function navigateHorizontal(allItems, currentIndex, direction) {
   if (rowItems.length <= 1) return; // No other items in this row
 
   // Sort row items by X position
-  rowItems.sort(
-    (a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left,
-  );
+  rowItems.sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
 
   const currentRowIndex = rowItems.indexOf(currentItem);
   let nextRowIndex;
 
   if (direction > 0) {
     // Moving right
-    nextRowIndex =
-      currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
+    nextRowIndex = currentRowIndex < rowItems.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving left
-    nextRowIndex =
-      currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
+    nextRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : rowItems.length - 1;
   }
 
   focusItem(rowItems[nextRowIndex]);
@@ -725,9 +712,7 @@ function navigateVertical(allItems, currentIndex, direction) {
   });
 
   // Sort rows by Y position
-  const sortedRows = Array.from(itemsByRow.entries()).sort(
-    ([y1], [y2]) => y1 - y2,
-  );
+  const sortedRows = Array.from(itemsByRow.entries()).sort(([y1], [y2]) => y1 - y2);
 
   // Find current row index
   const currentRowIndex = sortedRows.findIndex(([y]) => y === currentY);
@@ -737,12 +722,10 @@ function navigateVertical(allItems, currentIndex, direction) {
   let targetRowIndex;
   if (direction > 0) {
     // Moving down
-    targetRowIndex =
-      currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
+    targetRowIndex = currentRowIndex < sortedRows.length - 1 ? currentRowIndex + 1 : 0;
   } else {
     // Moving up
-    targetRowIndex =
-      currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
+    targetRowIndex = currentRowIndex > 0 ? currentRowIndex - 1 : sortedRows.length - 1;
   }
 
   const targetRowItems = sortedRows[targetRowIndex][1];
@@ -752,13 +735,11 @@ function navigateVertical(allItems, currentIndex, direction) {
   let closestDistance = Math.abs(
     closestItem.getBoundingClientRect().left +
       closestItem.getBoundingClientRect().width / 2 -
-      currentX,
+      currentX
   );
 
   targetRowItems.forEach((item) => {
-    const itemX =
-      item.getBoundingClientRect().left +
-      item.getBoundingClientRect().width / 2;
+    const itemX = item.getBoundingClientRect().left + item.getBoundingClientRect().width / 2;
     const distance = Math.abs(itemX - currentX);
     if (distance < closestDistance) {
       closestDistance = distance;
@@ -781,45 +762,45 @@ function scrollRowWithWrap(row, direction, step = 68) {
   // out of alignment. Flooring keeps us on a grid line and stops at the end
   // instead of wrapping back to the start.
   const maxStep = Math.floor(max / step);
-  const nextStep = Math.max(
-    0,
-    Math.min(maxStep, Math.round(current / step) + direction),
-  );
+  const nextStep = Math.max(0, Math.min(maxStep, Math.round(current / step) + direction));
   const next = nextStep * step;
 
   if (Math.abs(next - current) < 1) return; // already at this position
 
-  row.scrollTo({ left: next, behavior: "smooth" });
+  row.scrollTo({ left: next, behavior: 'smooth' });
 }
 
+function scrollShapes(direction) {
+  scrollRowWithWrap(document.getElementById('shape-row'), direction, 68);
+}
 function scrollModels(direction) {
-  scrollRowWithWrap(document.getElementById("model-row"), direction, 68);
+  scrollRowWithWrap(document.getElementById('model-row'), direction, 68);
 }
 function scrollObjects(direction) {
-  scrollRowWithWrap(document.getElementById("object-row"), direction, 68);
+  scrollRowWithWrap(document.getElementById('object-row'), direction, 68);
 }
 function scrollCharacters(direction) {
-  scrollRowWithWrap(document.getElementById("character-row"), direction, 68);
+  scrollRowWithWrap(document.getElementById('character-row'), direction, 68);
 }
 
 // Shared function to load images into the menu
 function loadImages(rowId, namesArray, selectCallback) {
   const row = document.getElementById(rowId);
- 
+
   row.replaceChildren(); // Clear existing items
 
   namesArray.forEach((name) => {
-    const baseName = name.replace(/\.[^/.]+$/, ""); // Remove extension
+    const baseName = name.replace(/\.[^/.]+$/, ''); // Remove extension
 
-    const img = document.createElement("img");
+    const img = document.createElement('img');
     img.src = `./images/${baseName}.png`;
     img.alt = baseName;
-    img.addEventListener("click", () => {
+    img.addEventListener('click', () => {
       // Use a global function or bind properly if needed
       window[selectCallback](name);
     });
 
-    const li = document.createElement("li");
+    const li = document.createElement('li');
     li.appendChild(img);
 
     row.appendChild(li);
@@ -827,11 +808,11 @@ function loadImages(rowId, namesArray, selectCallback) {
 }
 
 function loadMultiImages() {
-  loadImages("model-row", multiObjectNames, "selectMultiObject");
+  loadImages('model-row', multiObjectNames, 'selectMultiObject');
 }
 
 function loadObjectImages() {
-  loadImages("object-row", objectNames, "selectObject");
+  loadImages('object-row', objectNames, 'selectObject');
 }
 
 if (!window.flock) window.flock = {};
@@ -840,48 +821,44 @@ flock.activePickHandlerCapture = false;
 
 function detachActivePickHandler() {
   if (flock.activePickHandler) {
-    window.removeEventListener(
-      "click",
-      flock.activePickHandler,
-      flock.activePickHandlerCapture,
-    );
+    window.removeEventListener('click', flock.activePickHandler, flock.activePickHandlerCapture);
     flock.activePickHandler = null;
   }
   flock.activePickHandlerCapture = false;
 }
 
-function registerActivePickHandler(
-  handler,
-  { capture = false, delay = 0 } = {},
-) {
+function registerActivePickHandler(handler, { capture = false, delay = 0 } = {}) {
   detachActivePickHandler();
-  document.getElementById("showShapesButton")?.classList.add("active");
+  document.getElementById('showShapesButton')?.classList.add('active');
   flock.activePickHandler = handler;
   flock.activePickHandlerCapture = capture;
 
   setTimeout(() => {
     if (flock.activePickHandler === handler) {
-      window.addEventListener("click", handler, flock.activePickHandlerCapture);
+      window.addEventListener('click', handler, flock.activePickHandlerCapture);
     }
   }, delay);
 }
 
 function cleanupPlacementMode() {
+  // Only tear down when a placement is actually pending: the outside-click
+  // handler below runs on every click, and the canvas keyboard mode and cursor
+  // it clears may belong to a gizmo rather than to us.
+  if (!flock.activePickHandler) return;
   detachActivePickHandler();
   stopCanvasKeyboardMode();
   setDefaultCursor();
-  clearStatus("placement");
-  document.getElementById("showShapesButton")?.classList.remove("active");
+  clearStatus('placement');
+  document.getElementById('showShapesButton')?.classList.remove('active');
 }
 
 // The two phone layouts in style.css, where the popup opens into space that can
 // be shorter than the full menu: portrait (below the toolbar) and landscape
 // (rightward from the plus button, across the docked toolbar).
 const isPhoneShapesLayout = () =>
-  window.matchMedia("(max-width: 600px)").matches ||
-  window.matchMedia(
-    "(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)",
-  ).matches;
+  window.matchMedia('(max-width: 600px)').matches ||
+  window.matchMedia('(max-width: 1024px) and (orientation: landscape) and (max-height: 500px)')
+    .matches;
 
 // In those layouts the menu can run off the bottom of the canvas. Cap its
 // height to the gap between its top and the bottom view-toggle bar (mirroring
@@ -890,15 +867,13 @@ const isPhoneShapesLayout = () =>
 function fitShapesDropdownToViewport(dropdown) {
   // Always measure unclipped: a cap left over from a previous open would hide
   // how tall the menu actually wants to be.
-  dropdown.style.maxHeight = "";
-  dropdown.style.overflow = "";
+  dropdown.style.maxHeight = '';
+  dropdown.style.overflow = '';
   if (!isPhoneShapesLayout()) return;
 
   const top = dropdown.getBoundingClientRect().top;
-  const bottomBar = document.getElementById("bottomBar");
-  const limit = bottomBar
-    ? bottomBar.getBoundingClientRect().top
-    : window.innerHeight;
+  const bottomBar = document.getElementById('bottomBar');
+  const limit = bottomBar ? bottomBar.getBoundingClientRect().top : window.innerHeight;
   // Stop the menu just above the bar. No lower floor here: a floor taller than
   // the available space would push the menu's bottom down over the bar, which
   // is exactly the overlap we're avoiding. When space is tight it scrolls.
@@ -907,21 +882,21 @@ function fitShapesDropdownToViewport(dropdown) {
   // which would cut off the row chevrons where they sit outside the menu box.
   if (dropdown.scrollHeight <= available) return;
   dropdown.style.maxHeight = `${available}px`;
-  dropdown.style.overflow = "hidden auto"; // clip x, scroll y when needed
+  dropdown.style.overflow = 'hidden auto'; // clip x, scroll y when needed
 }
 
 function showShapes() {
   cancelPlacement(); // Always remove all placement modes when menu is opened/closed
 
-  const dropdown = document.getElementById("shapes-dropdown");
+  const dropdown = document.getElementById('shapes-dropdown');
   if (!dropdown) return;
-  const isVisible = dropdown.style.display !== "none";
+  const isVisible = dropdown.style.display !== 'none';
 
   if (isVisible) {
-    dropdown.style.display = "none";
+    dropdown.style.display = 'none';
     removeKeyboardNavigation();
   } else {
-    dropdown.style.display = "block";
+    dropdown.style.display = 'block';
     loadObjectImages();
     loadMultiImages();
     loadCharacterImages();
@@ -933,17 +908,16 @@ function showShapes() {
 }
 
 // Close the shapes menu if the user clicks outside of it
-document.addEventListener("click", function (event) {
-  const dropdown = document.getElementById("shapes-dropdown");
+document.addEventListener('click', function (event) {
+  const dropdown = document.getElementById('shapes-dropdown');
   if (!dropdown) return;
 
   const isClickInside = dropdown.contains(event.target);
-  const showShapesButton = document.getElementById("showShapesButton");
-  const isClickOnToggle =
-    showShapesButton && showShapesButton.contains(event.target);
+  const showShapesButton = document.getElementById('showShapesButton');
+  const isClickOnToggle = showShapesButton && showShapesButton.contains(event.target);
 
   if (!isClickInside && !isClickOnToggle) {
-    dropdown.style.display = "none";
+    dropdown.style.display = 'none';
     removeKeyboardNavigation();
     cancelPlacement(); // Clean up any pending placements
   }
@@ -957,9 +931,9 @@ function cancelPlacement() {
 // Close the add-shape dropdown when the gizmo overlay opens (e.g. Ctrl+G),
 // so it doesn't sit on top of the gizmo buttons it's meant to reveal.
 GizmoMenuManager.registerCloseHook(() => {
-  const dropdown = document.getElementById("shapes-dropdown");
-  if (!dropdown || dropdown.style.display === "none") return;
-  dropdown.style.display = "none";
+  const dropdown = document.getElementById('shapes-dropdown');
+  if (!dropdown || dropdown.style.display === 'none') return;
+  dropdown.style.display = 'none';
   removeKeyboardNavigation();
   cancelPlacement();
 });
@@ -974,12 +948,12 @@ function setupKeyboardNavigation() {
   keyboardNavigationActive = true;
   currentFocusedElement = null;
 
-  document.addEventListener("keydown", handleShapeMenuKeydown);
+  document.addEventListener('keydown', handleShapeMenuKeydown);
 
   const allItems = getAllNavigableItems();
   allItems.forEach((item, index) => {
-    item.setAttribute("tabindex", index === 0 ? "0" : "-1");
-    item.classList.add("keyboard-navigable");
+    item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+    item.classList.add('keyboard-navigable');
   });
 
   if (allItems.length > 0) {
@@ -991,12 +965,12 @@ function removeKeyboardNavigation() {
   keyboardNavigationActive = false;
   currentFocusedElement = null;
 
-  document.removeEventListener("keydown", handleShapeMenuKeydown);
+  document.removeEventListener('keydown', handleShapeMenuKeydown);
 
   const allItems = getAllNavigableItems();
   allItems.forEach((item) => {
-    item.removeAttribute("tabindex");
-    item.classList.remove("keyboard-navigable", "keyboard-focused");
+    item.removeAttribute('tabindex');
+    item.classList.remove('keyboard-navigable', 'keyboard-focused');
   });
 }
 
@@ -1007,67 +981,74 @@ function handleShapeMenuKeydown(event) {
   const allItems = getAllNavigableItems();
   if (allItems.length === 0) return;
 
-  const currentIndex = currentFocusedElement
-    ? allItems.indexOf(currentFocusedElement)
-    : -1;
+  const currentIndex = currentFocusedElement ? allItems.indexOf(currentFocusedElement) : -1;
 
   switch (event.key) {
-    case "ArrowRight":
+    case 'ArrowRight':
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, 1);
       break;
-    case "ArrowLeft":
+    case 'ArrowLeft':
       event.preventDefault();
       navigateHorizontal(allItems, currentIndex, -1);
       break;
-    case "ArrowDown":
+    case 'ArrowDown':
       event.preventDefault();
       navigateVertical(allItems, currentIndex, 1);
       break;
-    case "ArrowUp":
+    case 'ArrowUp':
       event.preventDefault();
       navigateVertical(allItems, currentIndex, -1);
       break;
-    case "Enter":
-    case " ":
+    case 'Enter':
+    case ' ':
       event.preventDefault();
       if (currentFocusedElement) {
-        const img = currentFocusedElement.querySelector("img");
+        const img = currentFocusedElement.querySelector('img');
         if (img) {
           const altText = img.alt;
           const parentRow = currentFocusedElement.closest(
-            "#shape-row, #object-row, #model-row, #character-row",
+            '#shape-row, #object-row, #model-row, #character-row'
           );
           if (parentRow) {
             const rowId = parentRow.id;
-            if (rowId === "shape-row") {
+            if (rowId === 'shape-row') {
               const shapeTypeMap = {
-                box: "create_box",
-                sphere: "create_sphere",
-                cylinder: "create_cylinder",
-                capsule: "create_capsule",
-                plane: "create_plane",
+                box: 'create_box',
+                sphere: 'create_sphere',
+                cylinder: 'create_cylinder',
+                capsule: 'create_capsule',
+                wedge: 'create_wedge',
+                donut: 'create_donut',
+                ring: 'create_ring',
+                plane: 'create_plane',
+                '3d text': 'create_3d_text',
+                freeform: 'create_freeform',
               };
               const shapeType = shapeTypeMap[altText.toLowerCase()];
               if (shapeType) selectShape(shapeType);
-            } else if (rowId === "object-row") {
-              selectObject(altText + ".glb");
-            } else if (rowId === "model-row") {
-              selectMultiObject(altText + ".glb");
-            } else if (rowId === "character-row") {
-              selectCharacter(altText + ".glb");
+            } else if (rowId === 'object-row') {
+              selectObject(altText + '.glb');
+            } else if (rowId === 'model-row') {
+              selectMultiObject(altText + '.glb');
+            } else if (rowId === 'character-row') {
+              if (modelNames.includes(altText + '.glb')) {
+                selectModel(altText + '.glb');
+              } else {
+                selectCharacter(altText + '.glb');
+              }
             }
           }
         }
       }
       break;
-    case "Escape": {
+    case 'Escape': {
       event.preventDefault();
-      const dropdown = document.getElementById("shapes-dropdown");
-      if (dropdown) dropdown.style.display = "none";
+      const dropdown = document.getElementById('shapes-dropdown');
+      if (dropdown) dropdown.style.display = 'none';
       removeKeyboardNavigation();
       cancelPlacement();
-      const shapesButton = document.getElementById("showShapesButton");
+      const shapesButton = document.getElementById('showShapesButton');
       if (shapesButton) shapesButton.focus();
       break;
     }
@@ -1077,8 +1058,7 @@ function handleShapeMenuKeydown(event) {
 function startPlacementKeyboardMode() {
   const canvas = flock.scene?.getEngine?.().getRenderingCanvas?.();
   if (!flock.scene || !canvas) return;
-  const isValidHit = (x, y) =>
-    !!flock.scene.pick(x, y, (mesh) => mesh.isPickable)?.hit;
+  const isValidHit = (x, y) => !!flock.scene.pick(x, y, isPlacementSurface)?.hit;
 
   startCanvasKeyboardMode(
     (x, y) => {
@@ -1091,7 +1071,7 @@ function startPlacementKeyboardMode() {
       cancelPlacement();
     },
     keyboardNavigationActive,
-    isValidHit,
+    isValidHit
   );
 }
 
@@ -1100,6 +1080,8 @@ window.selectCharacter = selectCharacter;
 window.selectShape = selectShape;
 window.selectObject = selectObject;
 window.selectMultiObject = selectMultiObject;
+window.selectModel = selectModel;
+window.scrollShapes = scrollShapes;
 window.scrollObjects = scrollObjects;
 window.scrollCharacters = scrollCharacters;
 window.scrollModels = scrollModels;

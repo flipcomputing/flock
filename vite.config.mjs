@@ -1,0 +1,487 @@
+import { VitePWA } from 'vite-plugin-pwa';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { copyFileSync, readFileSync } from 'fs';
+import { resolve } from 'path';
+import { createHash } from 'node:crypto';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+import { writeFileSync, mkdirSync } from 'fs';
+import { appendFile, rename, stat } from 'fs/promises';
+
+// Determine if we are in production mode
+const isProduction = process.env.NODE_ENV === 'production';
+const BASE_URL = process.env.VITE_BASE_URL || '/';
+
+const SES_LOCKDOWN_PATH = 'node_modules/ses/dist/lockdown.umd.min.js';
+const SES_LOCKDOWN_SRI = `sha256-${createHash('sha256')
+  .update(readFileSync(SES_LOCKDOWN_PATH))
+  .digest('base64')}`;
+
+// Chunk basenames reachable only through the Inspector's dynamic import. The
+// find-inspector-chunks plugin computes these for the service worker manifest.
+const inspectorOnlyChunks = new Set();
+
+// `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
+const CSP_META_POLICY =
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
+
+// Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
+const CSP_DEV_POLICY =
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: ws: https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'; frame-ancestors 'self'";
+
+// An Origin that will not parse is not this server's.
+function sameHost(origin, host) {
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
+export default {
+  // Ensure assets/chunk URLs are correct in standalone/PWA and under subpaths
+  base: BASE_URL,
+
+  define: {
+    __FLOCK_SES_SRI__: JSON.stringify(SES_LOCKDOWN_SRI),
+  },
+
+  plugins: [
+    // Dev-only sink: on-device XR samples land in logs/xr-debug.log.
+    {
+      name: 'xr-debug-sink',
+      apply: 'serve',
+      configureServer(server) {
+        const LOG_PATH = 'logs/xr-debug.log';
+        const MAX_SAMPLE_BYTES = 100_000;
+        const MAX_LOG_BYTES = 5_000_000;
+        mkdirSync('logs', { recursive: true });
+        // Chained, not parallel: the server must not stall on disk, and a trace must stay in order.
+        let appending = Promise.resolve();
+
+        server.middlewares.use('/__xr-debug', (req, res) => {
+          if (req.method !== 'POST') {
+            res.statusCode = 405;
+            res.end();
+            return;
+          }
+          // A browser always sends an Origin, so a mismatch is forged; tools that send none are local.
+          const { origin, host } = req.headers;
+          if (origin && !sameHost(origin, host)) {
+            res.statusCode = 403;
+            res.end();
+            return;
+          }
+
+          let body = '';
+          req.on('data', (chunk) => {
+            body += chunk;
+            if (body.length > MAX_SAMPLE_BYTES) req.destroy();
+          });
+          req.on('end', () => {
+            const line = `${new Date().toISOString()} ${body}\n`;
+            appending = appending
+              .then(async () => {
+                const size = await stat(LOG_PATH).then(
+                  (info) => info.size,
+                  () => 0
+                );
+                // One rotation bounds the log without losing the recent trace.
+                if (size + line.length > MAX_LOG_BYTES) await rename(LOG_PATH, `${LOG_PATH}.1`);
+                await appendFile(LOG_PATH, line);
+              })
+              .catch(() => {
+                // The log is a convenience; never fail the request over it.
+              });
+            res.statusCode = 204;
+            res.end();
+          });
+        });
+      },
+    },
+    cssInjectedByJsPlugin(),
+    viteStaticCopy({
+      targets: [
+        { src: 'models/*.{glb,gltf}', dest: 'models' },
+        { src: 'animations/*.{glb,gltf}', dest: 'animations' },
+        { src: 'sounds/*.{mp3,aac,wav}', dest: 'sounds' },
+        { src: 'images/*.*', dest: 'images' },
+        // Flat glob above, so the project tile thumbnails need their own target.
+        { src: 'images/thumbnails/*.webp', dest: 'images/thumbnails' },
+        { src: 'examples/*.flock', dest: 'examples' },
+        { src: 'textures/*.png', dest: 'textures' },
+        { src: 'fonts/*.{json,woff2,ttf}', dest: 'fonts' },
+        // Flock micro:bit firmware (universal hex built in MakeCode).
+        // Precached so first-use flashing works in the offline PWA.
+        { src: 'util/microbit-flockusb.hex', dest: 'util' },
+        { src: 'node_modules/manifold-3d/manifold.wasm', dest: 'wasm' },
+        { src: 'node_modules/blockly/media/*', dest: 'blockly/media' },
+        { src: 'images/dropdown-arrow.svg', dest: 'blockly/media' },
+        {
+          src: 'node_modules/ses/dist/lockdown.umd.min.js',
+          dest: 'vendor/ses', // => served at /vendor/ses/lockdown.umd.min.js
+        },
+        // Copy the Draco decoder files from Babylon's package
+        {
+          src: 'node_modules/@babylonjs/core/assets/Draco/*',
+          dest: 'draco', // will be served from /draco/
+        },
+      ].map((target) => ({ ...target, rename: { stripBase: true } })),
+    }),
+    VitePWA({
+      base: BASE_URL,
+      registerType: 'autoUpdate',
+      devOptions: { enabled: false },
+
+      includeAssets: [
+        '**/*.glb',
+        '**/*.gltf',
+        '**/*.aac',
+        '**/*.mp3',
+        '**/*.json',
+        '**/*.flock',
+        '**/*.png',
+        '**/*.woff',
+        '**/*.woff2',
+        '**/*.css',
+        '**/*.svg',
+        '**/*.wasm',
+      ],
+
+      manifest: {
+        name: 'Flock XR - Creative coding in 3D',
+        short_name: 'Flock XR',
+        description: 'Create 3D apps with code blocks',
+        theme_color: '#511d91',
+        background_color: '#ffffff',
+        display: 'standalone',
+
+        start_url: BASE_URL,
+        id: BASE_URL,
+        scope: BASE_URL,
+
+        orientation: 'any',
+        categories: ['education', 'games'],
+        // Maskable icons must be opaque, bird inside the centre 80% circle.
+        icons: [
+          {
+            src: 'images/icon_192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'images/icon_512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
+            src: 'images/icon_maskable_192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+          {
+            src: 'images/icon_maskable_512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+
+      workbox: {
+        maximumFileSizeToCacheInBytes: 25_000_000,
+        // Cache the optional Inspector on first use. Its generated chunk names
+        // are unpredictable, so the plugin below removes them from precache.
+        manifestTransforms: [
+          (entries) => ({
+            manifest: entries.filter(
+              (entry) => !inspectorOnlyChunks.has(entry.url.split('/').pop())
+            ),
+          }),
+        ],
+        navigateFallback: `${BASE_URL}index.html`,
+        navigateFallbackAllowlist: [new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)],
+        globPatterns: [
+          '**/*.{js,css,html,ico,png,svg,glb,gltf,mp3,aac,wasm,json,woff,woff2}',
+          'models/**/*',
+          'sounds/**/*.{mp3,aac,wav}',
+          'images/**/*',
+          'examples/**/*',
+          'textures/**/*',
+          'fonts/**/*',
+          'blockly/media/**/*',
+          'wasm/**/*',
+          'util/microbit-flockusb.hex',
+        ],
+        modifyURLPrefix: isProduction ? { '': BASE_URL } : {},
+
+        // Safe runtime caching: NetworkFirst for navigations; CacheFirst for real static assets
+        runtimeCaching: [
+          {
+            // HTML shell (navigations)
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              networkTimeoutSeconds: 5,
+            },
+          },
+          {
+            // The profile index must be able to learn about hardware released after this build.
+            urlPattern: ({ url }) =>
+              url.origin === 'https://immersive-web.github.io' &&
+              url.pathname.endsWith('/profilesList.json'),
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'xr-profiles-index',
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // XR input models, cached on first use (see dev-docs/INPUT.md). Babylon fetches
+            // them by XHR, whose empty `destination` the rule below cannot match; status 0
+            // keeps an opaque response cacheable.
+            urlPattern: ({ url }) =>
+              (url.origin === 'https://immersive-web.github.io' &&
+                url.pathname.startsWith('/webxr-input-profiles/')) ||
+              (url.origin === 'https://assets.babylonjs.com' &&
+                url.pathname.startsWith('/core/HandMeshes/')) ||
+              url.origin === 'https://controllers.babylonjs.com',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'xr-input-models',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Fine-grained caches first: Workbox uses the first matching route, and
+          // these path-based rules would otherwise be shadowed by the broader
+          // destination-based rule below (e.g. sounds loaded via <audio> would
+          // never reach sounds-cache's rangeRequests: true).
+          {
+            urlPattern: /\/models\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'models-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /\/sounds\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'sounds-cache',
+              rangeRequests: true,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /\/textures\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'textures-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+          {
+            urlPattern: /\/examples\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'examples-cache',
+              expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
+            },
+          },
+          {
+            urlPattern: /\/blockly\/media\/.*/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'blockly-media',
+              expiration: { maxEntries: 50, maxAgeSeconds: 365 * 24 * 60 * 60 },
+            },
+          },
+          {
+            // Catch-all for static assets not covered by a path above.
+            urlPattern: ({ request }) =>
+              ['script', 'style', 'image', 'font', 'audio', 'video', 'worker'].includes(
+                request.destination
+              ),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 1000,
+                maxAgeSeconds: 365 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
+
+        cleanupOutdatedCaches: true,
+      },
+    }),
+
+    // Works out which chunks exist only to serve the Inspector. Inspector v2
+    // ships unbundled, so it arrives as a spray of anonymous chunks (React,
+    // FluentUI and their transitive deps) whose names can't be predicted --
+    // walking the import graph avoids hard-coding a package list that would
+    // silently rot the next time Babylon changes its dependencies.
+    {
+      name: 'find-inspector-chunks',
+      generateBundle(_options, bundle) {
+        const chunks = Object.entries(bundle).filter(([, c]) => c.type === 'chunk');
+        const edges = (file) => {
+          const chunk = bundle[file];
+          return chunk ? [...chunk.imports, ...chunk.dynamicImports] : [];
+        };
+        const walk = (roots, skip = new Set()) => {
+          const seen = new Set();
+          const queue = [...roots];
+          while (queue.length) {
+            const file = queue.pop();
+            if (seen.has(file) || skip.has(file)) continue;
+            seen.add(file);
+            queue.push(...edges(file));
+          }
+          return seen;
+        };
+
+        const inspectorRoots = chunks
+          .filter(([, c]) => (c.moduleIds ?? []).some((id) => id.includes('@babylonjs/inspector')))
+          .map(([file]) => file);
+        if (!inspectorRoots.length) {
+          this.warn('no inspector chunk found; the whole bundle will be precached');
+          return;
+        }
+
+        const rootSet = new Set(inspectorRoots);
+        const appEntries = chunks.filter(([, c]) => c.isEntry).map(([file]) => file);
+        const reachableWithoutInspector = walk(appEntries, rootSet);
+
+        inspectorOnlyChunks.clear();
+        for (const file of walk(inspectorRoots)) {
+          if (!reachableWithoutInspector.has(file)) {
+            inspectorOnlyChunks.add(file.split('/').pop());
+          }
+        }
+      },
+    },
+
+    // Build-time proxy that generates a stable 'flock.js' re-export
+    {
+      name: 'create-flock-proxy',
+      writeBundle(options, bundle) {
+        let hashedFileName;
+        for (const fileName in bundle) {
+          // isEntry matters: the inspector's own chunk is also called
+          // assets/index-*, so a name check alone can pick the wrong one.
+          if (bundle[fileName].isEntry && fileName.startsWith('assets/index-')) {
+            hashedFileName = fileName;
+            break;
+          }
+        }
+        if (hashedFileName) {
+          const proxyContent = `export * from './${hashedFileName}';\n`;
+          const proxyPath = resolve(options.dir, 'flock.js');
+          try {
+            writeFileSync(proxyPath, proxyContent);
+            console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
+          } catch (error) {
+            console.error(`Failed to create proxy file: ${error.message}`);
+          }
+        } else {
+          console.error('No hashed flock file found in the bundle.');
+        }
+      },
+    },
+
+    // Copy demo files and generate Cloudflare Pages _headers
+    {
+      name: 'copy-library-files',
+      writeBundle(options) {
+        const outDir = options.dir ?? 'dist';
+        copyFileSync('cubeart.html', resolve(outDir, 'cubeart.html'));
+        copyFileSync('embed-example.html', resolve(outDir, 'embed-example.html'));
+        copyFileSync('standalone.css', resolve(outDir, 'standalone.css'));
+        mkdirSync(resolve(outDir, 'standalone'), { recursive: true });
+        copyFileSync(
+          'examples/standalone/alien-planet.html',
+          resolve(outDir, 'standalone/alien-planet.html')
+        );
+        // Generate _headers for Cloudflare Pages (and any static host that supports it).
+        // The Vite dev/preview server sets these headers directly; the _headers file
+        // ensures the same headers are served in production.
+        // Note: frame-ancestors is only enforced via HTTP headers, not CSP meta tags.
+        const headersContent = `/*
+  Content-Security-Policy: ${CSP_HEADER_POLICY}
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), payment=(), usb=(self), gamepad=(self)
+
+/standalone/*
+  Access-Control-Allow-Origin: *
+
+/examples/*
+  Access-Control-Allow-Origin: *
+`;
+        writeFileSync(resolve(outDir, '_headers'), headersContent);
+      },
+    },
+  ],
+
+  server: {
+    host: '0.0.0.0',
+    headers: {
+      'Content-Security-Policy': CSP_DEV_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
+      // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self), gamepad=(self)',
+    },
+    fs: { allow: ['../..'] },
+    allowedHosts: [
+      '27c4c3b0-9860-47aa-a95d-03ca8acd6af0-00-2qj22wjmgrujn.picard.replit.dev',
+      '1099a351-df60-40b5-bf61-4999bad0d153-00-4np7mg24c4rr.janeway.replit.dev',
+      '.app.github.dev',
+    ],
+  },
+
+  preview: {
+    headers: {
+      'Content-Security-Policy': CSP_HEADER_POLICY,
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      // usb=(self) permits WebUSB for the micro:bit connect flow (same origin
+      // only) — gamepad=(self) explicitly permits the Gamepad API for controllers
+      'Permissions-Policy': 'geolocation=(), payment=(), usb=(self), gamepad=(self)',
+    },
+  },
+
+  optimizeDeps: {
+    exclude: ['@babylonjs/havok', 'manifold-3d'],
+  },
+
+  build: {
+    assetsInlineLimit: 100000, // include font files inline if needed
+    cssCodeSplit: false, // inline CSS into JS
+    rollupOptions: { input: 'index.html' },
+  },
+};

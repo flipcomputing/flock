@@ -1,6 +1,14 @@
-import * as Blockly from "blockly";
-import { meshMap, meshBlockIdMap } from "./mesh-state.js";
-import { getFieldValue } from "./generators-utilities.js";
+import * as Blockly from 'blockly';
+import { meshMap, meshBlockIdMap } from './mesh-state.js';
+import {
+  getFieldValue,
+  getSideOption,
+  getSideValue,
+  getVariableInfo,
+  getThenCallback,
+  maybeParentToGroup,
+  withGroupParent,
+} from './generators-utilities.js';
 
 export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
@@ -8,282 +16,231 @@ export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
 
   // Change position of object by xyz coordinates
-  javascriptGenerator.forBlock["move_by_xyz"] = function (block) {
+  javascriptGenerator.forBlock['move_by_xyz'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BLOCK_NAME"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('BLOCK_NAME'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
 
     return `await moveByVector(${modelName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Change position of object by single xyz coordinate
-  javascriptGenerator.forBlock["move_by_xyz_single"] = function (block) {
+  javascriptGenerator.forBlock['move_by_xyz_single'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BLOCK_NAME"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('BLOCK_NAME'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
-    const value = getFieldValue(block, "VALUE", "0");
+    const coordinate = block.getFieldValue('COORDINATE') || 'x_coordinate';
+    const value = getFieldValue(block, 'VALUE', '0');
 
     switch (coordinate) {
-      case "x_coordinate":
+      case 'x_coordinate':
         return `await moveByVector(${modelName}, { x: ${value}, y: 0, z: 0 });\n`;
-      case "y_coordinate":
+      case 'y_coordinate':
         return `await moveByVector(${modelName}, { x: 0, y: ${value}, z: 0 });\n`;
-      case "z_coordinate":
+      case 'z_coordinate':
         return `await moveByVector(${modelName}, { x: 0, y: 0, z: ${value} });\n`;
     }
   };
 
   // Set position of object to xyz coordinates
-  javascriptGenerator.forBlock["move_to_xyz"] = function (block) {
+  javascriptGenerator.forBlock['move_to_xyz'] = function (block) {
     const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const x =
-      javascriptGenerator.valueToCode(
-        block,
-        "X",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const y =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const z =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+    const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    const useY = block.getFieldValue("USE_Y") === "TRUE";
-
-    return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z}, useY: ${useY} });\n`;
+    return `await positionAt(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Set position of object to single xyz coordinate
-  javascriptGenerator.forBlock["move_to_xyz_single"] = function (block) {
+  javascriptGenerator.forBlock['move_to_xyz_single'] = function (block) {
     const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const coordinate = block.getFieldValue("COORDINATE") || "x_coordinate";
-    const value = getFieldValue(block, "VALUE", "0");
+    const coordinate = block.getFieldValue('COORDINATE') || 'x_coordinate';
+    const value = getFieldValue(block, 'VALUE', '0');
 
-    return `await positionAtSingleCoordinate(${meshName}, "${coordinate}", ${value});\n`;
+    return `await positionAtSingleCoordinate(${meshName}, ${JSON.stringify(coordinate)}, ${value});\n`;
   };
 
   // Set position of object to another object's position
-  javascriptGenerator.forBlock["move_to"] = function (block) {
+  javascriptGenerator.forBlock['move_to'] = function (block) {
     const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL1'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL2'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const useY = block.getFieldValue("USE_Y") === "TRUE";
+    const xOffset = getFieldValue(block, 'X_OFFSET', '0');
+    const yOffset = getFieldValue(block, 'Y_OFFSET', '0');
+    const zOffset = getFieldValue(block, 'Z_OFFSET', '0');
 
-    return `await moveTo(${meshName1}, { target: ${meshName2}, useY: ${useY} });\n`;
+    return `await moveTo(${meshName1}, { target: ${meshName2}${getSideOption(block)}, offsetX: ${xOffset}, offsetY: ${yOffset}, offsetZ: ${zOffset} });\n`;
   };
 
   // Rotate object BY xyz coordinates
-  javascriptGenerator.forBlock["rotate_model_xyz"] = function (block) {
+  javascriptGenerator.forBlock['rotate_model_xyz'] = function (block) {
     const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
 
     return `await rotate(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Rotate object TO specific xyz coordinates
-  javascriptGenerator.forBlock["rotate_to"] = function (block) {
+  javascriptGenerator.forBlock['rotate_to'] = function (block) {
     const meshName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const x =
-      javascriptGenerator.valueToCode(
-        block,
-        "X",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const y =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const z =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+    const x = javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const y = javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const z = javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     return `await rotateTo(${meshName}, { x: ${x}, y: ${y}, z: ${z} });\n`;
   };
 
   // Look object at another object
-  javascriptGenerator.forBlock["look_at"] = function (block) {
+  javascriptGenerator.forBlock['look_at'] = function (block) {
     const meshName1 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL1"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL1'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshName2 = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL2"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL2'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const useY = block.getFieldValue("USE_Y") === "TRUE";
+    const useY = block.getFieldValue('USE_Y') === 'TRUE';
 
     return `await lookAt(${meshName1}, { target: ${meshName2}, useY: ${useY} });\n`;
   };
 
   // Scale object by xyz coordinates
-  javascriptGenerator.forBlock["scale"] = function (block) {
+  javascriptGenerator.forBlock['scale'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BLOCK_NAME"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('BLOCK_NAME'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
 
     // Retrieve the origin values for x, y, and z axes
-    const xOrigin = block.getFieldValue("X_ORIGIN") || "'CENTRE'";
-    const yOrigin = block.getFieldValue("Y_ORIGIN") || "'CENTRE'";
-    const zOrigin = block.getFieldValue("Z_ORIGIN") || "'CENTRE'";
+    const xOrigin = block.getFieldValue('X_ORIGIN') || "'CENTRE'";
+    const yOrigin = block.getFieldValue('Y_ORIGIN') || "'CENTRE'";
+    const zOrigin = block.getFieldValue('Z_ORIGIN') || "'CENTRE'";
 
-    return `await scale(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+    return `await scale(${modelName}, { x: ${x}, y: ${y}, z: ${z}, xOrigin: ${JSON.stringify(xOrigin)}, yOrigin: ${JSON.stringify(yOrigin)}, zOrigin: ${JSON.stringify(zOrigin)} });\n`;
   };
 
   // Resize object by xyz coordinates
-  javascriptGenerator.forBlock["resize"] = function (block) {
+  javascriptGenerator.forBlock['resize'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BLOCK_NAME"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('BLOCK_NAME'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const x = getFieldValue(block, "X", "0");
-    const y = getFieldValue(block, "Y", "0");
-    const z = getFieldValue(block, "Z", "0");
+    const x = getFieldValue(block, 'X', '0');
+    const y = getFieldValue(block, 'Y', '0');
+    const z = getFieldValue(block, 'Z', '0');
 
     // Retrieve the origin values for x, y, and z axes
-    const xOrigin = block.getFieldValue("X_ORIGIN") || "'CENTRE'";
-    const yOrigin = block.getFieldValue("Y_ORIGIN") || "'CENTRE'";
-    const zOrigin = block.getFieldValue("Z_ORIGIN") || "'CENTRE'";
+    const xOrigin = block.getFieldValue('X_ORIGIN') || "'CENTRE'";
+    const yOrigin = block.getFieldValue('Y_ORIGIN') || "'CENTRE'";
+    const zOrigin = block.getFieldValue('Z_ORIGIN') || "'CENTRE'";
 
-    return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: '${xOrigin}', yOrigin: '${yOrigin}', zOrigin: '${zOrigin}' });\n`;
+    return `await resize(${modelName}, { width: ${x}, height: ${y}, depth: ${z}, xOrigin: ${JSON.stringify(xOrigin)}, yOrigin: ${JSON.stringify(yOrigin)}, zOrigin: ${JSON.stringify(zOrigin)} });\n`;
   };
 
-  // Set anchor of object by xyz coordinates
-  javascriptGenerator.forBlock["set_pivot"] = function (block) {
+  function pointCode(block, api, inputPrefix) {
     const meshVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
+    const [x, y, z] = ['X', 'Y', 'Z'].map(
+      (axis) =>
+        javascriptGenerator.valueToCode(
+          block,
+          `${axis}_${inputPrefix}`,
+          javascriptGenerator.ORDER_ATOMIC
+        ) || 0
+    );
+    return `await ${api}(${meshVar}, { x: ${x}, y: ${y}, z: ${z} });\n`;
+  }
 
-    const xPivot =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_PIVOT",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || 0;
-    const yPivot =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_PIVOT",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || 0;
-    const zPivot =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_PIVOT",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || 0;
+  javascriptGenerator.forBlock['set_pivot'] = (block) => pointCode(block, 'setPivot', 'PIVOT');
 
-    return `await setAnchor(${meshVar}, { xPivot: ${xPivot}, yPivot: ${yPivot}, zPivot: ${zPivot} });\n`;
-  };
+  javascriptGenerator.forBlock['set_anchor'] = (block) => pointCode(block, 'setAnchor', 'ANCHOR');
 
   // -------------------------------
   // PHYSICS
   // -------------------------------
 
   // Add physics to object
-  javascriptGenerator.forBlock["add_physics"] = function (block) {
+  javascriptGenerator.forBlock['add_physics'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const physicsType = block.getFieldValue("PHYSICS_TYPE");
+    const physicsType = block.getFieldValue('PHYSICS_TYPE');
 
     // Note: Ensure that the execution environment supports async/await at this level
-    return `await setPhysics(${modelName}, "${physicsType}");\n`;
+    return `await setPhysics(${modelName}, ${JSON.stringify(physicsType)});\n`;
   };
 
   // Add physics shape to object
-  javascriptGenerator.forBlock["add_physics_shape"] = function (block) {
+  javascriptGenerator.forBlock['add_physics_shape'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    const shapeType = block.getFieldValue("SHAPE_TYPE");
+    const shapeType = block.getFieldValue('SHAPE_TYPE');
 
     // Note: Ensure that the execution environment supports async/await at this level
-    return `await setPhysicsShape(${modelName}, "${shapeType}");\n`;
+    return `await setPhysicsShape(${modelName}, ${JSON.stringify(shapeType)});\n`;
   };
 
   // Apply force to object
-  javascriptGenerator.forBlock["apply_force"] = function (block) {
+  javascriptGenerator.forBlock['apply_force'] = function (block) {
     // Get the name of the mesh variable
     const mesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Get the force values
     const forceX =
-      javascriptGenerator.valueToCode(
-        block,
-        "X",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'X', javascriptGenerator.ORDER_ATOMIC) || '0';
     const forceY =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Y', javascriptGenerator.ORDER_ATOMIC) || '0';
     const forceZ =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Z', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     // Generate the code
     return `applyForce(${mesh}, { forceX: ${forceX}, forceY: ${forceY}, forceZ: ${forceZ} });\n`;
@@ -291,78 +248,101 @@ export function registerTransformGenerators(javascriptGenerator) {
 
   // Make a character jump to a target height, keeping current horizontal speed
   // for momentum. A direct, height-based replacement for a vertical force.
-  javascriptGenerator.forBlock["jump"] = function (block) {
+  javascriptGenerator.forBlock['jump'] = function (block) {
     const mesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
     const jumpHeight =
-      javascriptGenerator.valueToCode(
-        block,
-        "JUMP_HEIGHT",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "1.5";
+      javascriptGenerator.valueToCode(block, 'JUMP_HEIGHT', javascriptGenerator.ORDER_ATOMIC) ||
+      '1.5';
 
     return `jump(${mesh}, { jumpHeight: ${jumpHeight} });\n`;
   };
 
   // Set the speed an object travels at in a direction (forward/sideways/up or
   // world x/y/z). Maintained until changed; 'all' to 0 stops it.
-  javascriptGenerator.forBlock["set_speed"] = function (block) {
+  javascriptGenerator.forBlock['set_speed'] = function (block) {
     const mesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const direction = block.getFieldValue("DIRECTION") || "forward";
+    const direction = block.getFieldValue('DIRECTION') || 'forward';
     const speed =
-      javascriptGenerator.valueToCode(block, "SPEED", javascriptGenerator.ORDER_ATOMIC) || "0";
+      javascriptGenerator.valueToCode(block, 'SPEED', javascriptGenerator.ORDER_ATOMIC) || '0';
 
-    return `setSpeed(${mesh}, '${direction}', ${speed});\n`;
+    return `setSpeed(${mesh}, ${JSON.stringify(direction)}, ${speed});\n`;
+  };
+
+  javascriptGenerator.forBlock['move_to_object'] = function (block) {
+    const meshName1 = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MODEL1'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const meshName2 = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MODEL2'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const gap = getFieldValue(block, 'GAP', '0');
+    const speed = getFieldValue(block, 'SPEED', '3');
+    const asyncWrapper = block.getFieldValue('MODE') === 'AWAIT' ? 'await ' : '';
+    const wander = block.getFieldValue('PATH') === 'WANDERING' ? ', wander: true' : '';
+
+    return `${asyncWrapper}moveToObject(${meshName1}, ${meshName2}, { speed: ${speed}${getSideOption(block)}, gap: ${gap}${wander} });\n`;
   };
 
   // Set how bouncy an object is (restitution, 0..1)
-  javascriptGenerator.forBlock["set_bounciness"] = function (block) {
+  javascriptGenerator.forBlock['set_bounciness'] = function (block) {
     const mesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
     const bounciness =
-      javascriptGenerator.valueToCode(block, "BOUNCINESS", javascriptGenerator.ORDER_ATOMIC) || "0.5";
+      javascriptGenerator.valueToCode(block, 'BOUNCINESS', javascriptGenerator.ORDER_ATOMIC) ||
+      '0.5';
 
     return `setBounciness(${mesh}, ${bounciness});\n`;
   };
 
+  // Set how heavy an object is (default 1, heavier needs a larger force)
+  javascriptGenerator.forBlock['set_mass'] = function (block) {
+    const mesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH_VAR'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const mass =
+      javascriptGenerator.valueToCode(block, 'MASS', javascriptGenerator.ORDER_ATOMIC) || '1';
+
+    return `setMass(${mesh}, ${mass});\n`;
+  };
+
   // Show physics shapes
-  javascriptGenerator.forBlock["show_physics"] = function (block) {
-    const show = block.getFieldValue("SHOW") === "TRUE";
+  javascriptGenerator.forBlock['show_physics'] = function (block) {
+    const show = block.getFieldValue('SHOW') === 'TRUE';
     return `showPhysics(${show});\n`;
   };
 
   // Move object forward
-  javascriptGenerator.forBlock["move_forward"] = function (block) {
+  javascriptGenerator.forBlock['move_forward'] = function (block) {
     const modelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MODEL"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MODEL'),
+      Blockly.Names.NameType.VARIABLE
     );
     const speed =
-      javascriptGenerator.valueToCode(
-        block,
-        "SPEED",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
-    const direction = block.getFieldValue("DIRECTION");
+      javascriptGenerator.valueToCode(block, 'SPEED', javascriptGenerator.ORDER_ATOMIC) || '0';
+    const direction = block.getFieldValue('DIRECTION');
 
     // Choose the appropriate helper function based on the direction
     let helperFunction;
     switch (direction) {
-      case "sideways":
-        helperFunction = "moveSideways";
+      case 'sideways':
+        helperFunction = 'moveSideways';
         break;
-      case "strafe":
-        helperFunction = "strafe";
+      case 'strafe':
+        helperFunction = 'strafe';
         break;
       default:
-        helperFunction = "moveForward";
+        helperFunction = 'moveForward';
     }
 
     return `${helperFunction}(${modelName}, ${speed});\n`;
@@ -373,153 +353,128 @@ export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
 
   // Parent child
-  javascriptGenerator.forBlock["parent"] = function (block) {
+  javascriptGenerator.forBlock['parent'] = function (block) {
     const parentMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("PARENT_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('PARENT_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
     const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('CHILD_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Establish the parent-child relationship with offset
-    return `setParent(${parentMesh}, ${childMesh});\n`;
+    return `await setParent(${parentMesh}, ${childMesh});\n`;
+  };
+
+  javascriptGenerator.forBlock['parent_children'] = function (block) {
+    const parentMesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('PARENT_MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const meshList =
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
+
+    return `await setParent(${parentMesh}, ${meshList});\n`;
   };
 
   // Parent child with offset
-  javascriptGenerator.forBlock["parent_child"] = function (block) {
+  javascriptGenerator.forBlock['parent_child'] = function (block) {
     const parentMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("PARENT_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('PARENT_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
     const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('CHILD_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'X_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Y_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Z_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     // Establish the parent-child relationship with offset
-    return `parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
+    return `await parentChild(${parentMesh}, ${childMesh}, ${xOffset}, ${yOffset}, ${zOffset});\n`;
   };
 
   // Remove parent from object
-  javascriptGenerator.forBlock["remove_parent"] = function (block) {
+  javascriptGenerator.forBlock['remove_parent'] = function (block) {
     const childMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("CHILD_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('CHILD_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
-    return `removeParent(${childMesh});\n`;
+    return `await removeParent(${childMesh});\n`;
   };
 
   // Make follower follow target
-  javascriptGenerator.forBlock["follow"] = function (block) {
+  javascriptGenerator.forBlock['follow'] = function (block) {
     const followerMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("FOLLOWER_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('FOLLOWER_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
     const targetMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("TARGET_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('TARGET_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const followPosition = block.getFieldValue("FOLLOW_POSITION");
+    const followPosition = getSideValue(block) ?? 'at';
 
     const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'X_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Y_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Z_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
 
     // Use the helper method makeFollow for following the target
     const code = `
-                        makeFollow(${followerMesh}, ${targetMesh}, "${followPosition}", ${xOffset}, ${yOffset}, ${zOffset});
+                        makeFollow(${followerMesh}, ${targetMesh}, ${JSON.stringify(followPosition)}, ${xOffset}, ${yOffset}, ${zOffset});
                 `;
     return code;
   };
 
   // Stop following object
-  javascriptGenerator.forBlock["stop_follow"] = function (block) {
+  javascriptGenerator.forBlock['stop_follow'] = function (block) {
     const followerModelName = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("FOLLOWER_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('FOLLOWER_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Generate code to call the stopFollow helper function
-    const code = `stopFollow("${followerModelName}");\n`;
+    const code = `stopFollow(${JSON.stringify(followerModelName)});\n`;
     return code;
   };
 
   // Attach object to target at hold
-  javascriptGenerator.forBlock["attach"] = function (block) {
+  javascriptGenerator.forBlock['attach'] = function (block) {
     const meshToAttach = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_TO_ATTACH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_TO_ATTACH'),
+      Blockly.Names.NameType.VARIABLE
     );
     const targetMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("TARGET_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('TARGET_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
-    const boneName = block.getFieldValue("BONE_NAME");
+    const boneName = block.getFieldValue('BONE_NAME');
     const xOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "X_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'X_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const yOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Y_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Y_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     const zOffset =
-      javascriptGenerator.valueToCode(
-        block,
-        "Z_OFFSET",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "0";
+      javascriptGenerator.valueToCode(block, 'Z_OFFSET', javascriptGenerator.ORDER_ATOMIC) || '0';
     // Establish the attach action with bone name and offset
-    return `await attach(${meshToAttach}, ${targetMesh}, { boneName: ${JSON.stringify(boneName ?? "")}, x: ${xOffset}, y: ${yOffset}, z: ${zOffset} });
+    return `await attach(${meshToAttach}, ${targetMesh}, { boneName: ${JSON.stringify(boneName ?? '')}, x: ${xOffset}, y: ${yOffset}, z: ${zOffset} });
         `;
   };
 
   // Drop object
-  javascriptGenerator.forBlock["drop"] = function (block) {
+  javascriptGenerator.forBlock['drop'] = function (block) {
     const meshToDetach = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("MESH_TO_DETACH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('MESH_TO_DETACH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     // Establish the drop action
@@ -532,103 +487,182 @@ export function registerTransformGenerators(javascriptGenerator) {
   // -------------------------------
 
   // Add merged as merge list
-  javascriptGenerator.forBlock["merge_meshes"] = function (block) {
+  javascriptGenerator.forBlock['merge_meshes'] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
 
     const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to merge the meshes
-    return `${resultVar} = await mergeMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await mergeMeshes(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Add subtracted as object subtract list
-  javascriptGenerator.forBlock["subtract_meshes"] = function (block) {
+  javascriptGenerator.forBlock['subtract_meshes'] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
     const baseMesh = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("BASE_MESH"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('BASE_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
 
     const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to subtract meshes from the base mesh
-    return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n`;
+    return `${resultVar} = await subtractMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
-  // Add intersection as intersect list
-  javascriptGenerator.forBlock["intersection_meshes"] = function (block) {
+  javascriptGenerator.forBlock['embed_meshes'] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const baseMesh = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('BASE_MESH'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
+
+    const meshId = `${resultVar}__${block.id}`;
+    meshMap[meshId] = block;
+    meshBlockIdMap[meshId] = block.id;
+
+    return `${resultVar} = await embedMeshes(${JSON.stringify(meshId)}, ${baseMesh}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
+  };
+
+  // Add intersection as intersect list
+  javascriptGenerator.forBlock['intersection_meshes'] = function (block) {
+    const resultVar = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    const meshList =
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
 
     const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to intersect the meshes
-    return `${resultVar} = await intersectMeshes(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await intersectMeshes(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
   // Add hull as hull list
-  javascriptGenerator.forBlock["hull_meshes"] = function (block) {
+  javascriptGenerator.forBlock['hull_meshes'] = function (block) {
     const resultVar = javascriptGenerator.nameDB_.getName(
-      block.getFieldValue("RESULT_VAR"),
-      Blockly.Names.NameType.VARIABLE,
+      block.getFieldValue('RESULT_VAR'),
+      Blockly.Names.NameType.VARIABLE
     );
 
     const meshList =
-      javascriptGenerator.valueToCode(
-        block,
-        "MESH_LIST",
-        javascriptGenerator.ORDER_ATOMIC,
-      ) || "[]";
+      javascriptGenerator.valueToCode(block, 'MESH_LIST', javascriptGenerator.ORDER_ATOMIC) || '[]';
 
     const meshId = `${resultVar}__${block.id}`;
     meshMap[meshId] = block;
     meshBlockIdMap[meshId] = block.id;
 
     // Use helper function to create the hull
-    return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n`;
+    return `${resultVar} = await createHull(${JSON.stringify(meshId)}, ${meshList});\n${maybeParentToGroup(resultVar)}`;
   };
 
-  // Used as an input inside set_pivot
+  javascriptGenerator.forBlock['combine'] = function (block) {
+    const hasTools = Boolean(block.getInput('TOOLS'));
+    const statements = (name) => javascriptGenerator.statementToCode(block, name) || '';
+
+    if (block.getFieldValue('ACTIVE') !== 'TRUE') {
+      return statements('PARTS') + (hasTools ? statements('TOOLS') : '');
+    }
+
+    const { generatedName: resultVar, userVariableName } = getVariableInfo(block, 'RESULT_VAR');
+    const meshId = `${userVariableName}__${block.id}`;
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+
+    const compartment = (key, name) => {
+      const group = javascriptGenerator.nameDB_.getDistinctName(
+        name.toLowerCase(),
+        Blockly.Names.NameType.VARIABLE
+      );
+      const body = withGroupParent(group, () => statements(name));
+      return `  ${key}: async function (${group}) {\n${body}  },\n`;
+    };
+
+    return `${resultVar} = await combineMeshes(${JSON.stringify(meshId)}, {
+  operation: ${JSON.stringify(block.getFieldValue('OPERATION'))},
+${compartment('build', 'PARTS')}${hasTools ? compartment('tools', 'TOOLS') : ''}});\n${maybeParentToGroup(resultVar)}`;
+  };
+
+  // Mirror an object across one axis
+  javascriptGenerator.forBlock['flip'] = function (block) {
+    const meshName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    const axis = block.getFieldValue('AXIS') || 'x_coordinate';
+    const normalized = String(axis).toLowerCase().includes('y')
+      ? 'y'
+      : String(axis).toLowerCase().includes('z')
+        ? 'z'
+        : 'x';
+
+    return `await flip(${meshName}, ${JSON.stringify(normalized)});\n`;
+  };
+
+  javascriptGenerator.forBlock['mirror_mesh'] = function (block) {
+    const sourceMeshName = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('SOURCE_MESH'),
+      Blockly.Names.NameType.VARIABLE
+    );
+    const { generatedName: mirrorVar, userVariableName: mirrorName } = getVariableInfo(
+      block,
+      'ID_VAR'
+    );
+    const axis = String(block.getFieldValue('AXIS') || 'x_coordinate').toLowerCase();
+    const key = axis.includes('y') ? 'y' : axis.includes('z') ? 'z' : 'x';
+    const about = javascriptGenerator.nameDB_.getName(
+      block.getFieldValue('ABOUT'),
+      Blockly.Names.NameType.VARIABLE
+    );
+
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+
+    const doBody = block.getInput('DO') ? javascriptGenerator.statementToCode(block, 'DO') : '';
+    const callback = doBody ? `,\ncallback: async function(${mirrorVar}) {\n${doBody}\n}` : '';
+
+    return `${mirrorVar} = mirror(${sourceMeshName}, {
+                          mirrorId: ${JSON.stringify(mirrorName)},
+                          mirrorName: ${JSON.stringify(mirrorName)},
+                          axis: ${JSON.stringify(key)},
+                          aboutMeshName: ${about},
+                          blockKey: ${JSON.stringify(block.id)}${callback}${getThenCallback(block, mirrorVar)}
+                  });\n${maybeParentToGroup(mirrorVar)}`;
+  };
+
+  // Used as an input inside set_pivot and set_anchor
   // (not a block in its own right)
-  javascriptGenerator.forBlock["min_centre_max"] = function (block) {
-    const pivotOption = block.getFieldValue("PIVOT_OPTION");
+  javascriptGenerator.forBlock['min_centre_max'] = function (block) {
+    const pivotOption = block.getFieldValue('PIVOT_OPTION');
 
     // Return the string value as a quoted literal
-    return [`"${pivotOption}"`, javascriptGenerator.ORDER_ATOMIC];
+    return [JSON.stringify(pivotOption), javascriptGenerator.ORDER_ATOMIC];
   };
 }

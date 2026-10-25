@@ -31,21 +31,28 @@
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
 
     <meta name="theme-color" content="#511d91" />
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-QCGT3X072N"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QCGT3X072N"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
+      gtag('js', new Date());
 
-      gtag("config", "G-QCGT3X072N", {
-        client_storage: "none", // Prevents setting cookies
-        anonymize_ip: true, // Hides IP addresses for privacy
-      });
+      {
+        const pageUrl = new URL(location.href);
+        pageUrl.hash = '';
+        const project = pageUrl.searchParams.get('project');
+        if (project && project !== 'starter' && project !== 'new') {
+          pageUrl.searchParams.set('project', 'link');
+        }
+
+        gtag('config', 'G-QCGT3X072N', {
+          page_location: pageUrl.href,
+          client_storage: 'none', // Prevents setting cookies
+          anonymize_ip: true, // Hides IP addresses for privacy
+        });
+      }
     </script>
 
     <script>
@@ -62,9 +69,9 @@
           if (!this.isConnected) return false;
           const style = window.getComputedStyle(this);
           return (
-            style.display !== "none" &&
-            style.visibility !== "hidden" &&
-            style.visibility !== "collapse" &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.visibility !== 'collapse' &&
             parseFloat(style.opacity) !== 0
           );
         };
@@ -94,7 +101,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        background: #fcfaf1;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -151,9 +158,7 @@
         font-size: 18px;
         font-weight: 500;
         margin: 0;
-        font-family:
-          "Atkinson Hyperlegible Next", "Asap", Helvetica, Arial, Lucida,
-          sans-serif;
+        font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
         order: 4;
       }
 
@@ -197,85 +202,12 @@
   </head>
 
   <body class="loading" aria-busy="true">
-<script>
-      (function () {
-        if (!new URLSearchParams(window.location.search).has("touchDebug"))
-          return;
-        const overlay = document.createElement("div");
-        Object.assign(overlay.style, {
-          position: "fixed",
-          left: "0",
-          bottom: "0",
-          width: "100%",
-          maxHeight: "45vh",
-          overflowY: "auto",
-          background: "rgba(0,0,0,.8)",
-          color: "#0f0",
-          font: "12px/1.4 monospace",
-          padding: "8px",
-          zIndex: 2147483647,
-          display: "none",
-        });
-        document.addEventListener(
-          "touchstart",
-          (e) => {
-            if (e.touches.length >= 3)
-              overlay.style.display =
-                overlay.style.display === "none" ? "block" : "none";
-          },
-          { passive: true },
-        );
-        document.body.appendChild(overlay);
-
-        const append = (tag, args) => {
-          const line = document.createElement("div");
-          line.textContent =
-            `[${tag}] ` +
-            args
-              .map((a) => {
-                try {
-                  return typeof a === "string" ? a : JSON.stringify(a);
-                } catch (_) {
-                  return String(a);
-                }
-              })
-              .join(" ");
-          overlay.appendChild(line);
-          overlay.scrollTop = overlay.scrollHeight;
-        };
-
-        const orig = {
-          log: console.log,
-          warn: console.warn,
-          error: console.error,
-        };
-        console.log = (...a) => {
-          append("log", a);
-          orig.log.apply(console, a);
-        };
-        console.warn = (...a) => {
-          append("warn", a);
-          orig.warn.apply(console, a);
-        };
-        console.error = (...a) => {
-          append("error", a);
-          orig.error.apply(console, a);
-        };
-
-        window.addEventListener("error", (e) =>
-          append("uncaught", [e.message, e.filename + ":" + e.lineno]),
-        );
-        window.addEventListener("unhandledrejection", (e) =>
-          append("rejection", [String(e.reason)]),
-        );
-      })();
+    <script type="module">
+      import { isDebugModeEnabled } from './main/debugMode.js';
+      if (isDebugModeEnabled()) import('./main/debugConsole.js');
     </script>
     <!-- Loading Screen -->
-    <div
-      id="loadingScreen"
-      class="loading-screen"
-      aria-hidden="true"
-    >
+    <div id="loadingScreen" class="loading-screen" aria-hidden="true">
       <div class="loading-content">
         <img
           src="images/flock-bird-mascot.svg"
@@ -284,17 +216,9 @@
           width="120"
           height="120"
         />
-        <img
-          src="images/inline-flock-xr.svg"
-          alt="Flock XR Logo"
-          class="loading-logo"
-        />
+        <img src="images/inline-flock-xr.svg" alt="Flock XR Logo" class="loading-logo" />
         <div class="loading-spinner"></div>
-        <h2
-          id="loading-description"
-          data-i18n="loading"
-          class="loading-text"
-        >
+        <h2 id="loading-description" data-i18n="loading" class="loading-text">
           Loading Flock XR...
         </h2>
       </div>
@@ -307,24 +231,13 @@
     <label for="importFile" class="sr-only" aria-hidden="true" data-i18n="import_project_file"
       >Import project file</label
     >
-    <input
-      type="file"
-      id="importFile"
-      style="display: none"
-      accept=".fsnip,.json,.svg,.png"
-    />
+    <input type="file" id="importFile" style="display: none" accept=".fsnip,.json,.png" />
 
     <div id="flockeditor">
       <header role="banner">
         <nav id="menu" role="navigation" aria-label="Main navigation">
           <div id="menuleft">
-            <img
-              src="./images/flock-bird-mascot.svg"
-              alt="Flock XR logo"
-              id="logo"
-            />
-            <!-- Menu Button -->
-            <!-- Added the menu wrapper for mobile screens and put about option when clicked shows the popup modal for the screen of the button show info inherently disabled the showinfo button on mobile screens-->
+            <img src="./images/flock-bird-mascot.svg" alt="Flock XR logo" id="logo" />
             <div id="main-menu">
               <button
                 class="bigbutton"
@@ -336,20 +249,10 @@
                 data-i18n="main_menu"
                 data-i18n-attrs="title,aria-label"
               >
-                <span class="sr-only" data-i18n="menu_button_sr_label"
-                  >Menu</span
-                >
+                <span class="sr-only" data-i18n="menu_button_sr_label">Menu</span>
                 <!-- Inline CSS for 1.25em otherwise this could be .bigbutton .icon -->
-                <div
-                  class="icon"
-                  style="width: 1.25em; height: 1.25em"
-                  aria-hidden="true"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 448 512"
-                    fill="currentColor"
-                  >
+                <div class="icon" style="width: 1.25em; height: 1.25em" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
                     <path
                       fill="currentColor"
                       d="M0 96C0 78.3 14.3 64 32 64h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zm0 160c0-17.7 14.3-32 32-32h384c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zm448 160c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32h384c17.7 0 32-14.3 32 32z"
@@ -358,16 +261,11 @@
                 </div>
               </button>
 
-              <ul
-                id="menuDropdown"
-                class="dropdown hidden"
-                role="menu"
-                aria-labelledby="menuBtn"
-              >
+              <ul id="menuDropdown" class="dropdown hidden" role="menu" aria-labelledby="menuBtn">
                 <!-- Project menu item with submenu -->
                 <li
                   id="project-menu-item"
-                  class="menu-item"
+                  class="menu-item hidden"
                   role="menuitem"
                   tabindex="-1"
                   aria-haspopup="true"
@@ -386,17 +284,11 @@
                       />
                     </svg>
                   </span>
-                  <span
-                    id="project-label"
-                    class="menu-label"
-                    data-i18n="project_submenu"
+                  <span id="project-label" class="menu-label" data-i18n="project_submenu"
                     >Project</span
                   >
                   <span class="menu-arrow" aria-hidden="true">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 320 512"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                       <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                       <path
                         fill="currentColor"
@@ -467,17 +359,11 @@
                       />
                     </svg>
                   </span>
-                  <span
-                    id="language-label"
-                    class="menu-label"
-                    data-i18n="language_submenu"
+                  <span id="language-label" class="menu-label" data-i18n="language_submenu"
                     >Language</span
                   >
                   <span class="menu-arrow" aria-hidden="true">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 320 512"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                       <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                       <path
                         fill="currentColor"
@@ -498,14 +384,10 @@
                       >
                   </li-->
                     <li role="none">
-                      <a href="#" data-lang="en" role="menuitem" tabindex="-1"
-                        >English</a
-                      >
+                      <a href="#" data-lang="en" role="menuitem" tabindex="-1">English</a>
                     </li>
                     <li role="none">
-                      <a href="#" data-lang="es" role="menuitem" tabindex="-1"
-                        >Español</a
-                      >
+                      <a href="#" data-lang="es" role="menuitem" tabindex="-1">Español</a>
                     </li>
                     <!--li>
                       <a href="#" data-lang="fr" role="menuitem" tabindex="-1"
@@ -556,17 +438,9 @@
                       />
                     </svg>
                   </span>
-                  <span
-                    id="theme-label"
-                    class="menu-label"
-                    data-i18n="theme_submenu"
-                    >Theme</span
-                  >
+                  <span id="theme-label" class="menu-label" data-i18n="theme_submenu">Theme</span>
                   <span class="menu-arrow" aria-hidden="true">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 320 512"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
                       <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                       <path
                         fill="currentColor"
@@ -595,16 +469,6 @@
                     <li role="none">
                       <a
                         href="#"
-                        data-theme-target="dark-contrast"
-                        data-i18n="dark_contrast_theme"
-                        role="menuitem"
-                        tabindex="-1"
-                        >Dark</a
-                      >
-                    </li>
-                    <li role="none">
-                      <a
-                        href="#"
                         data-theme-target="dark"
                         data-i18n="dark_theme"
                         role="menuitem"
@@ -625,42 +489,39 @@
                     <li role="none">
                       <a
                         href="#"
-                        data-theme-target="low-vision"
-                        data-i18n="low_vision_theme"
+                        data-theme-target="low-color"
+                        data-i18n="low_color_theme"
                         role="menuitem"
                         tabindex="-1"
-                        >Low vision</a
+                        >Low color</a
                       >
                     </li>
                   </ul>
                 </li>
-                <!-- Hub menu item -->
                 <li
-                  id="hub-menu-item"
+                  id="tools-menu-item"
                   class="menu-item"
                   role="menuitem"
                   tabindex="-1"
+                  aria-haspopup="dialog"
+                  aria-controls="toolsModal"
                 >
                   <span class="menu-icon">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 512 512"
+                      aria-hidden="true"
                     >
-                      <!--!Font Awesome Free v7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc. -->
                       <path
-                        d="M512 48c0-8.3-4.3-16-11.3-20.4s-15.9-4.8-23.3-1.1L352.5 88.1 180 29.4c-13.7-4.7-28.7-3.8-41.9 2.3L13.8 90.3C5.4 94.2 0 102.7 0 112L0 464c0 8.2 4.2 15.9 11.1 20.3s15.6 4.9 23.1 1.4l127.3-59.9 170.7 56.9c13.7 4.6 28.5 3.7 41.6-2.5l124.4-58.5c8.4-4 13.8-12.4 13.8-21.7l0-352zM144 82.1l0 299-96 45.2 0-299 96-45.2zm48 303.3l0-301.1 128 43.5 0 300.3-128-42.7zM368 134l96-47.4 0 298.2-96 45.2 0-296z"
+                        d="M352 320c88.4 0 160-71.6 160-160c0-15.3-2.2-30.1-6.2-44.2c-3.1-10.8-16.4-13.2-24.3-5.3l-76.8 76.8c-3 3-7.1 4.7-11.3 4.7L336 192c-8.8 0-16-7.2-16-16l0-57.4c0-4.2 1.7-8.3 4.7-11.3l76.8-76.8c7.9-7.9 5.4-21.2-5.3-24.3C382.1 2.2 367.3 0 352 0C263.6 0 192 71.6 192 160c0 19.1 3.4 37.5 9.5 54.5L19.9 396.1C7.2 408.8 0 426.1 0 444.1C0 481.6 30.4 512 67.9 512c18 0 35.3-7.2 48-19.9L297.5 310.5c17 6.2 35.4 9.5 54.5 9.5zM80 408a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
                       />
                     </svg>
                   </span>
-                  <span class="menu-label" data-i18n="hub_submenu">Hub</span>
+                  <span class="menu-label" data-i18n="tools_submenu">Tools</span>
                 </li>
                 <!-- About menu item -->
-                <li
-                  id="about-menu-item"
-                  class="menu-item"
-                  role="menuitem"
-                  tabindex="-1"
-                >
+                <li id="about-menu-item" class="menu-item" role="menuitem" tabindex="-1">
                   <span class="menu-icon">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -672,12 +533,19 @@
                       />
                     </svg>
                   </span>
-                  <span class="menu-label" data-i18n="about_submenu"
-                    >About</span
-                  >
+                  <span class="menu-label" data-i18n="about_submenu">About</span>
                 </li>
               </ul>
             </div>
+            <button
+              id="exampleButton"
+              class="bigbutton"
+              aria-haspopup="dialog"
+              aria-controls="exampleModal"
+              disabled
+            >
+              <span data-i18n="projects">Projects</span>
+            </button>
             <div
               id="exampleModal"
               class="modal hidden"
@@ -685,28 +553,90 @@
               aria-labelledby="exampleModalTitle"
             >
               <div class="modal-content example-modal-content" tabindex="-1">
-                <button
-                  type="button"
-                  class="close-button"
-                  id="closeExampleModal"
-                  data-i18n="close_demos"
-                  data-i18n-attrs="aria-label"
-                  aria-label="Close demos"
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
-                <h2
-                  id="exampleModalTitle"
-                  class="sr-only"
-                  data-i18n="demo_heading"
-                >
-                  Demos
-                </h2>
-                <div
-                  id="exampleTabs"
-                  class="example-tabs"
-                  role="tablist"
-                ></div>
+                <div class="example-modal-header">
+                  <button
+                    type="button"
+                    class="close-button flock-close-icon"
+                    id="closeExampleModal"
+                    data-i18n="close_projects"
+                    data-i18n-attrs="aria-label"
+                    aria-label="Close projects"
+                  >
+                    <span aria-hidden="true"></span>
+                  </button>
+                  <h2 id="exampleModalTitle" class="sr-only" data-i18n="projects">Projects</h2>
+                  <div class="project-actions">
+                    <label for="fileInput" class="sr-only" data-i18n="open_file_input_label"
+                      >Select project file to open</label
+                    >
+                    <input type="file" id="fileInput" style="display: none" disabled />
+                    <button
+                      type="button"
+                      id="newProjectButton"
+                      class="project-action-button"
+                      data-i18n="project_new"
+                      data-i18n-attrs="title,aria-label"
+                      title="New"
+                      aria-label="New"
+                    >
+                      <span class="project-action-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                          <!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc. -->
+                          <path
+                            fill="currentColor"
+                            d="M234.7 42.7L197 56.8c-3 1.1-5 4-5 7.2s2 6.1 5 7.2l37.7 14.1L248.8 123c1.1 3 4 5 7.2 5s6.1-2 7.2-5l14.1-37.7L315 71.2c3-1.1 5-4 5-7.2s-2-6.1-5-7.2L277.3 42.7 263.2 5c-1.1-3-4-5-7.2-5s-6.1 2-7.2 5L234.7 42.7zM46.1 395.4c-18.7 18.7-18.7 49.1 0 67.9l34.6 34.6c18.7 18.7 49.1 18.7 67.9 0L529.9 116.5c18.7-18.7 18.7-49.1 0-67.9L495.3 14.1c-18.7-18.7-49.1-18.7-67.9 0L46.1 395.4zM484.6 82.6l-105 105-23.3-23.3 105-105 23.3 23.3zM7.5 117.2C3 118.9 0 123.2 0 128s3 9.1 7.5 10.8L64 160l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L128 160l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L128 96 106.8 39.5C105.1 35 100.8 32 96 32s-9.1 3-10.8 7.5L64 96 7.5 117.2zm352 256c-4.5 1.7-7.5 6-7.5 10.8s3 9.1 7.5 10.8L416 416l21.2 56.5c1.7 4.5 6 7.5 10.8 7.5s9.1-3 10.8-7.5L480 416l56.5-21.2c4.5-1.7 7.5-6 7.5-10.8s-3-9.1-7.5-10.8L480 352l-21.2-56.5c-1.7-4.5-6-7.5-10.8-7.5s-9.1 3-10.8 7.5L416 352l-56.5 21.2z"
+                          />
+                        </svg>
+                      </span>
+                      <span data-i18n="project_new">New</span>
+                    </button>
+                    <button
+                      type="button"
+                      id="exportCodeButton"
+                      class="project-action-button"
+                      data-i18n="project_save"
+                      data-i18n-attrs="title,aria-label"
+                      title="Save"
+                      aria-label="Save"
+                      aria-describedby="export-desc"
+                    >
+                      <span class="project-action-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                          <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                          <path
+                            fill="currentColor"
+                            d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
+                          />
+                        </svg>
+                      </span>
+                      <span data-i18n="project_save">Save</span>
+                    </button>
+                    <button
+                      type="button"
+                      id="openButton"
+                      class="project-action-button"
+                      data-i18n="project_open"
+                      data-i18n-attrs="title,aria-label"
+                      title="Open"
+                      aria-label="Open"
+                    >
+                      <span class="project-action-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                          <!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                          <path
+                            fill="currentColor"
+                            d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+                          />
+                        </svg>
+                      </span>
+                      <span data-i18n="project_open">Open</span>
+                    </button>
+                    <div id="export-desc" class="sr-only">
+                      Downloads your project to your computer
+                    </div>
+                  </div>
+                  <div id="exampleTabs" class="example-tabs" role="tablist"></div>
+                </div>
                 <div id="examplePanels"></div>
               </div>
             </div>
@@ -720,15 +650,11 @@
               <div class="modal-content" tabindex="-1">
                 <button
                   type="button"
-                  class="close-button"
+                  class="close-button flock-close-icon"
                   id="closeInfoModal"
                   aria-label="Close information modal"
-                >
-                  &times;
-                </button>
-                <h2 id="modal-title" data-i18n="about_heading">
-                  About Flock XR
-                </h2>
+                ></button>
+                <h2 id="modal-title" data-i18n="about_heading">About Flock XR</h2>
 
                 <div id="model-panel-content">
                   <p>
@@ -747,10 +673,7 @@
                   <div class="about-run">
                     <span data-i18n="about_run_intro"></span>
                     <div class="icon icon--inline" aria-hidden="true">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 512 512"
-                      >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
                         <path
                           fill="currentColor"
                           d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
@@ -780,7 +703,338 @@
                 </div>
               </div>
             </div>
-            <!-- Moved menu script to main/menu.js -->
+            <div
+              id="toolsModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="tools-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeToolsModal"
+                  data-i18n="close_tools"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close tools"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="tools-modal-title" data-i18n="tools_submenu">Tools</h2>
+                <div
+                  class="example-tabs tools-tabs"
+                  role="tablist"
+                  aria-labelledby="tools-modal-title"
+                >
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsOptionsTab"
+                    aria-controls="toolsOptionsPanel"
+                    aria-selected="true"
+                    data-i18n="tools_options_tab"
+                  >
+                    Options
+                  </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsExportTab"
+                    aria-controls="toolsExportPanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_export_tab"
+                  >
+                    Export
+                  </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsCaptureTab"
+                    aria-controls="toolsCapturePanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_capture_tab"
+                  >
+                    Capture
+                  </button>
+                  <button
+                    type="button"
+                    class="example-tab"
+                    role="tab"
+                    id="toolsDebugTab"
+                    aria-controls="toolsDebugPanel"
+                    aria-selected="false"
+                    tabindex="-1"
+                    data-i18n="tools_debug_tab"
+                  >
+                    Debug
+                  </button>
+                </div>
+                <div
+                  class="tools-options"
+                  id="toolsOptionsPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsOptionsTab"
+                >
+                  <label class="tools-option" for="playerControlsCheckbox">
+                    <input type="checkbox" id="playerControlsCheckbox" />
+                    <span data-i18n="player_controls_option">Player controls</span>
+                  </label>
+                  <label class="tools-option" for="gizmoControlsCheckbox">
+                    <input type="checkbox" id="gizmoControlsCheckbox" />
+                    <span data-i18n="gizmo_controls_option">Gizmo controls</span>
+                  </label>
+                  <label class="tools-option" for="gizmoHintsCheckbox">
+                    <input type="checkbox" id="gizmoHintsCheckbox" />
+                    <span data-i18n="gizmo_hints_option">Gizmo hints</span>
+                  </label>
+                  <label class="tools-option" for="portraitCanvasCheckbox">
+                    <input type="checkbox" id="portraitCanvasCheckbox" />
+                    <span data-i18n="portrait_canvas_option">Portrait canvas (9:16)</span>
+                  </label>
+                </div>
+                <div
+                  class="tools-export"
+                  id="toolsExportPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsExportTab"
+                  hidden
+                >
+                  <section class="tools-export-section" aria-labelledby="exportWebPageHeading">
+                    <h3 id="exportWebPageHeading" data-i18n="export_web_page_heading">Web page</h3>
+                    <p id="exportWebPageDescription" data-i18n="export_web_page_description">
+                      Save a single file that plays your project in a web browser.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button project-action-button--primary"
+                        id="exportWebPageButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_page_button"
+                      >
+                        Save as web page
+                      </button>
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportWebZipButton"
+                        aria-describedby="exportWebPageDescription"
+                        data-i18n="export_web_zip_button"
+                      >
+                        Save as web zip
+                      </button>
+                    </div>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportEmbedHeading">
+                    <h3 id="exportEmbedHeading" data-i18n="export_embed_heading">Embed code</h3>
+                    <p id="exportEmbedDescription" data-i18n="export_embed_description">
+                      Copy this code and paste it into another website to show your project there.
+                    </p>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportEmbedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportEmbedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportEmbedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportEmbedHeading"
+                      aria-describedby="exportEmbedDescription"
+                    ></textarea>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="exportHostedHeading">
+                    <h3 id="exportHostedHeading" data-i18n="export_hosted_heading">
+                      Embed code for a hosted project
+                    </h3>
+                    <div class="tools-export-actions tools-export-actions--above">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="exportHostedCopyButton"
+                        data-i18n="export_embed_copy_button"
+                      >
+                        Copy code
+                      </button>
+                      <span id="exportHostedStatus" role="status"></span>
+                    </div>
+                    <textarea
+                      id="exportHostedCode"
+                      class="tools-export-code"
+                      rows="4"
+                      readonly
+                      spellcheck="false"
+                      aria-labelledby="exportHostedHeading"
+                    ></textarea>
+                  </section>
+                </div>
+                <div
+                  class="tools-export"
+                  id="toolsCapturePanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsCaptureTab"
+                  hidden
+                >
+                  <section class="tools-export-section" aria-labelledby="capturePictureHeading">
+                    <h3 id="capturePictureHeading" data-i18n="capture_picture_heading">Picture</h3>
+                    <p id="capturePictureDescription" data-i18n="capture_picture_description">
+                      Save a picture of the 3D scene.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button project-action-button--primary"
+                        id="capturePictureButton"
+                        aria-describedby="capturePictureDescription"
+                        data-i18n="capture_picture_button"
+                      >
+                        Take picture
+                      </button>
+                      <label class="tools-option" for="captureIncludeEverything">
+                        <input type="checkbox" id="captureIncludeEverything" />
+                        <span data-i18n="capture_include_everything">Include everything</span>
+                      </label>
+                    </div>
+                  </section>
+                  <section class="tools-export-section" aria-labelledby="captureGifHeading">
+                    <h3 id="captureGifHeading" data-i18n="capture_gif_heading">Animated GIF</h3>
+                    <p id="captureGifDescription" data-i18n="capture_gif_description">
+                      Record a short animation that plays on a loop, up to 10 seconds long.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="captureGifButton"
+                        aria-describedby="captureGifDescription"
+                        data-i18n="capture_gif_button"
+                      >
+                        Record GIF
+                      </button>
+                    </div>
+                  </section>
+                  <section
+                    class="tools-export-section"
+                    id="captureVideoSection"
+                    aria-labelledby="captureVideoHeading"
+                  >
+                    <h3 id="captureVideoHeading" data-i18n="capture_video_heading">Video</h3>
+                    <p id="captureVideoDescription" data-i18n="capture_video_description">
+                      Record a video of the 3D scene, up to 1 minute long.
+                    </p>
+                    <div class="tools-export-actions">
+                      <button
+                        type="button"
+                        class="project-action-button"
+                        id="captureVideoButton"
+                        aria-describedby="captureVideoDescription"
+                        data-i18n="capture_video_button"
+                      >
+                        Record video
+                      </button>
+                    </div>
+                  </section>
+                  <p id="captureStatus" role="status"></p>
+                </div>
+                <div
+                  class="tools-options"
+                  id="toolsDebugPanel"
+                  role="tabpanel"
+                  aria-labelledby="toolsDebugTab"
+                  hidden
+                >
+                  <label class="tools-option" for="fpsCheckbox">
+                    <input type="checkbox" id="fpsCheckbox" />
+                    <span data-i18n="fps_option">Frame rate</span>
+                  </label>
+                  <label class="tools-option" for="physicsShapesCheckbox">
+                    <input
+                      type="checkbox"
+                      id="physicsShapesCheckbox"
+                      aria-describedby="physicsShapesNote"
+                    />
+                    <span data-i18n="physics_shapes_option">Show physics shapes</span>
+                    <span
+                      class="tools-option-note"
+                      id="physicsShapesNote"
+                      data-i18n="physics_shapes_note"
+                      >Turn off and on to refresh</span
+                    >
+                  </label>
+                  <label class="tools-option" id="inspectorOption" for="inspectorCheckbox">
+                    <input type="checkbox" id="inspectorCheckbox" />
+                    <span data-i18n="inspector_tool">Inspector</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div
+              id="unsavedChangesModal"
+              class="modal hidden"
+              role="dialog"
+              aria-labelledby="unsaved-changes-modal-title"
+              aria-modal="true"
+            >
+              <div class="modal-content" tabindex="-1">
+                <button
+                  type="button"
+                  class="close-button flock-close-icon"
+                  id="closeUnsavedChangesModal"
+                  data-i18n="close_unsaved_changes"
+                  data-i18n-attrs="aria-label"
+                  aria-label="Close"
+                >
+                  <span aria-hidden="true"></span>
+                </button>
+                <h2 id="unsaved-changes-modal-title" data-i18n="unsaved_changes_title">
+                  Unsaved changes
+                </h2>
+                <p id="unsavedChangesMessage" data-i18n="unsaved_changes_message">
+                  This project has changes that haven't been saved to a file. What would you like to
+                  do?
+                </p>
+                <div class="unsaved-changes-actions">
+                  <button
+                    type="button"
+                    class="project-action-button"
+                    id="unsavedChangesCancelButton"
+                    data-i18n="unsaved_changes_cancel_button"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="project-action-button"
+                    id="unsavedChangesDiscardButton"
+                    data-i18n="unsaved_changes_discard_button"
+                  >
+                    Continue without saving
+                  </button>
+                  <button
+                    type="button"
+                    class="project-action-button project-action-button--primary"
+                    id="unsavedChangesSaveButton"
+                    data-i18n="unsaved_changes_save_button"
+                  >
+                    Save to file
+                  </button>
+                </div>
+              </div>
+            </div>
             <script type="module" src="main/menu.js"></script>
 
             <button
@@ -801,51 +1055,19 @@
               </div>
             </button>
             <button
-              class="bigbutton"
-              id="stopCodeButton"
-              data-i18n="stop_code_button"
-              title="Stop your code"
-              aria-label="Stop your code"
+              class="bigbutton pause-toggle"
+              id="pauseCodeButton"
+              data-i18n="pause_code_button"
+              title="Pause your code"
+              aria-label="Pause your code"
             >
               <div class="icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2  by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                   <path
                     fill="currentColor"
-                    d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM192 160l128 0c17.7 0 32 14.3 32 32l0 128c0 17.7-14.3 32-32 32l-128 0c-17.7 0-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <button
-              class="bigbutton"
-              id="openButton"
-              data-i18n="open_button"
-              title="Open a project from a file on your computer"
-              aria-label="Open a project from a file on your computer"
-            >
-              <label
-                for="fileInput"
-                class="sr-only"
-                data-i18n="open_file_input_label"
-                >Select project file to open</label
-              >
-              <input
-                type="file"
-                id="fileInput"
-                style="display: none"
-                disabled
-              />
-              <div
-                class="icon"
-                style="width: 1.25em; height: 1.25em"
-                aria-hidden="true"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free v6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M288 109.3L288 352c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-242.7-73.4 73.4c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l128-128c12.5-12.5 32.8-12.5 45.3 0l128 128c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L288 109.3zM64 352l128 0c0 35.3 28.7 64 64 64s64-28.7 64-64l128 0c35.3 0 64 28.7 64 64l0 32c0 35.3-28.7 64-64 64L64 512c-35.3 0-64-28.7-64-64l0-32c0-35.3 28.7-64 64-64zM432 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+                    fill-rule="evenodd"
+                    d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM224 192l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32zm128 0l0 128c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-128c0-17.7 14.3-32 32-32s32 14.3 32 32z"
                   />
                 </svg>
               </div>
@@ -861,57 +1083,9 @@
             <div id="project-name-desc" class="sr-only">
               Enter a name for your project to use when saving or exporting
             </div>
-            <button
-              class="bigbutton"
-              id="exportCodeButton"
-              data-i18n="export_code_button"
-              title="Save this project to a file on your computer."
-              aria-label="Save this project to a file on your computer"
-              aria-describedby="export-desc"
-            >
-              <div class="icon icon--sm" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 242.7-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7 288 32zM64 352c-35.3 0-64 28.7-64 64l0 32c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-32c0-35.3-28.7-64-64-64l-101.5 0-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352 64 352zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <div id="export-desc" class="sr-only">
-              Downloads your project to your computer
-            </div>
-            <button id="exampleButton" class="bigbutton" disabled>
-              <span data-i18n="demo">Demo</span>
-              <span class="example-caret" aria-hidden="true">▾</span>
-            </button>
           </div>
 
           <div id="menuright">
-            <button
-              class="bigbutton"
-              id="toggleDesign"
-              data-i18n="toggle_design"
-              title="Design your project"
-              aria-label="Switch to design mode"
-              aria-describedby="design-desc"
-              aria-pressed="false"
-            >
-              <div class="icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zM323.8 202.5c-4.5-6.6-11.9-10.5-19.8-10.5s-15.4 3.9-19.8 10.5l-87 127.6L170.7 297c-4.6-5.7-11.5-9-18.7-9s-14.2 3.3-18.7 9l-64 80c-5.8 7.2-6.9 17.1-2.9 25.4s12.4 13.6 21.6 13.6l96 0 32 0 208 0c8.9 0 17.1-4.9 21.2-12.8s3.6-17.4-1.4-24.7l-120-176zM112 192a48 48 0 1 0 0-96 48 48 0 1 0 0 96z"
-                  />
-                </svg>
-              </div>
-            </button>
-            <div id="design-desc" class="sr-only">
-              Toggle design mode to visually create and modify 3D objects in
-              your scene
-            </div>
             <button
               class="bigbutton"
               id="togglePlay"
@@ -969,359 +1143,489 @@
               aria-describedby="canvas-desc canvas-controls-desc"
             ></canvas>
             <div id="canvas-desc" class="sr-only">
-              Interactive 3D scene where your project runs. Use keyboard
-              controls to navigate and interact with objects.
+              Interactive 3D scene where your project runs. Use keyboard controls to navigate and
+              interact with objects.
             </div>
             <div id="canvas-controls-desc" class="sr-only">
-              Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse
-              to look around, Space for actions, Tab to navigate to other
-              interface elements.
+              Canvas keyboard controls: Arrow keys or WASD to move camera, Mouse to look around,
+              Space for actions, Tab to navigate to other interface elements.
             </div>
             <div id="fullscreen-desc" class="sr-only">
               Toggle between fullscreen and windowed view of the application
             </div>
-            <div
-              id="canvasStoppedOverlay"
-              class="canvas-stopped-overlay"
-              hidden
-            >
+            <div class="capture-indicator" id="captureIndicator" hidden>
+              <span class="capture-indicator__dot" aria-hidden="true"></span>
+              <span id="captureIndicatorStatus" role="status"></span>
+              <span
+                id="captureIndicatorTime"
+                class="capture-indicator__time"
+                aria-hidden="true"
+              ></span>
+              <button type="button" id="captureStopButton" class="capture-indicator__stop"></button>
+            </div>
+            <div class="gizmo-toast" id="gizmoStatusToast">
+              <p id="gizmoStatus" class="gizmo-status" role="status"></p>
               <button
                 type="button"
-                class="canvas-stopped-overlay__play"
-                id="overlayPlayButton"
-                data-i18n="canvas_overlay_play"
-                data-i18n-attrs="aria-label,title"
-                aria-label="Press Play to start"
-                title="Press Play to start"
+                id="gizmoStatusClose"
+                class="gizmo-toast__close"
+                data-i18n="close_status_message"
+                data-i18n-attrs="aria-label"
+                aria-label="Close message"
               >
-                <span class="icon" aria-hidden="true">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                    <path
-                      fill="currentColor"
-                      d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
-                    />
-                  </svg>
-                </span>
+                <span aria-hidden="true">&times;</span>
               </button>
             </div>
+
             <aside
               class="gizmo-buttons"
               id="gizmoButtons"
-              aria-label="Design tools"
+              data-i18n="design_tool_label"
+              data-i18n-attrs="aria-label"
+              aria-label="Design tool"
             >
               <div class="gizmo-buttons-inner">
-              <div id="shape-menu">
-                <!-- Gizmo button to toggle the shape menu -->
-                <button
-                  class="gizmo-button"
-                  id="showShapesButton"
-                  data-i18n="show_shapes_button"
-                  disabled
-                  aria-label="Add shapes and models"
-                  title="Add shapes and models"
-                  aria-expanded="false"
-                  aria-haspopup="true"
-                >
-                  <svg
-                    version="1.1"
-                    id="Layer_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    width="122.875px"
-                    height="122.648px"
-                    viewBox="0 0 122.875 122.648"
-                    enable-background="new 0 0 122.875 122.648"
-                    xml:space="preserve"
+                <div class="gizmo-group">
+                  <div id="shape-menu">
+                    <!-- Gizmo button to toggle the shape menu -->
+                    <button
+                      class="gizmo-button"
+                      id="showShapesButton"
+                      data-i18n="show_shapes_button"
+                      disabled
+                      aria-label="Add shapes and models"
+                      title="Add shapes and models"
+                      aria-expanded="false"
+                      aria-haspopup="true"
+                    >
+                      <svg
+                        version="1.1"
+                        id="Layer_1"
+                        xmlns="http://www.w3.org/2000/svg"
+                        xmlns:xlink="http://www.w3.org/1999/xlink"
+                        x="0px"
+                        y="0px"
+                        width="122.875px"
+                        height="122.648px"
+                        viewBox="0 0 122.875 122.648"
+                        enable-background="new 0 0 122.875 122.648"
+                        xml:space="preserve"
+                      >
+                        <g>
+                          <path
+                            fill="currentColor"
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M108.993,47.079c7.683-0.059,13.898,6.12,13.882,13.805 c-0.018,7.683-6.26,13.959-13.942,14.019L75.24,75.138l-0.235,33.73c-0.063,7.619-6.338,13.789-14.014,13.78 c-7.678-0.01-13.848-6.197-13.785-13.818l0.233-33.497l-33.558,0.235C6.2,75.628-0.016,69.448,0,61.764 c0.018-7.683,6.261-13.959,13.943-14.018l33.692-0.236l0.236-33.73C47.935,6.161,54.209-0.009,61.885,0 c7.678,0.009,13.848,6.197,13.784,13.818l-0.233,33.497L108.993,47.079L108.993,47.079z"
+                          />
+                        </g>
+                      </svg>
+                    </button>
+
+                    <!-- Dropdown for shapes and models -->
+                    <span id="shapes-dropdown" style="display: none">
+                      <!-- Shape Row with scroll buttons -->
+                      <div class="scrollable-container">
+                        <button
+                          class="scroll-button left"
+                          id="scrollShapesLeftButton"
+                          disabled
+                          aria-label="Scroll shapes left"
+                        >
+                          &Lang;
+                        </button>
+                        <ul id="shape-row">
+                          <li>
+                            <button
+                              onclick="selectShape('create_box')"
+                              aria-label="Create box shape"
+                            >
+                              <img src="./images/box.png" alt="Box" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_sphere')"
+                              aria-label="Create sphere shape"
+                            >
+                              <img src="./images/sphere.png" alt="Sphere" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_cylinder')"
+                              aria-label="Create cylinder shape"
+                            >
+                              <img src="./images/cylinder.png" alt="Cylinder" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_capsule')"
+                              aria-label="Create capsule shape"
+                            >
+                              <img src="./images/capsule.png" alt="Capsule" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_wedge')"
+                              aria-label="Create wedge shape"
+                            >
+                              <img src="./images/wedge.png" alt="Wedge" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_donut')"
+                              aria-label="Create donut shape"
+                            >
+                              <img src="./images/torus.png" alt="Donut" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_ring')"
+                              aria-label="Create ring shape"
+                            >
+                              <img src="./images/ring.png" alt="Ring" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_plane')"
+                              aria-label="Create plane shape"
+                            >
+                              <img src="./images/plane.png" alt="Plane" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_3d_text')"
+                              aria-label="Create 3D text"
+                            >
+                              <img src="./images/text3d.png" alt="3D text" />
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              onclick="selectShape('create_freeform')"
+                              aria-label="Create freeform shape"
+                            >
+                              <img src="./images/freeform.png" alt="Freeform" />
+                            </button>
+                          </li>
+                        </ul>
+                        <button
+                          class="scroll-button right"
+                          id="scrollShapesRightButton"
+                          disabled
+                          aria-label="Scroll shapes right"
+                        >
+                          &Rang;
+                        </button>
+                      </div>
+                      <!-- Model Row with scroll buttons -->
+                      <div class="scrollable-container">
+                        <button
+                          class="scroll-button left"
+                          id="scrollModelsLeftButton"
+                          disabled
+                          aria-label="Scroll models left"
+                        >
+                          &Lang;
+                        </button>
+                        <ul id="model-row">
+                          <!-- Dynamically generated model items will be inserted here -->
+                        </ul>
+                        <button
+                          class="scroll-button right"
+                          id="scrollModelsRightButton"
+                          disabled
+                          aria-label="Scroll models right"
+                        >
+                          &Rang;
+                        </button>
+                      </div>
+                      <!-- Object Row -->
+                      <div class="scrollable-container">
+                        <button
+                          class="scroll-button left"
+                          id="scrollObjectsLeftButton"
+                          disabled
+                          aria-label="Scroll objects left"
+                        >
+                          &Lang;
+                        </button>
+                        <ul id="object-row">
+                          <!-- Dynamically generated object items will be inserted here -->
+                        </ul>
+                        <button
+                          class="scroll-button right"
+                          id="scrollObjectsRightButton"
+                          disabled
+                          aria-label="Scroll objects right"
+                        >
+                          &Rang;
+                        </button>
+                      </div>
+                      <!-- Character Row -->
+                      <div class="scrollable-container">
+                        <button
+                          class="scroll-button left"
+                          id="scrollCharactersLeftButton"
+                          disabled
+                          aria-label="Scroll characters left"
+                        >
+                          &Lang;
+                        </button>
+                        <ul id="character-row">
+                          <!-- Dynamically generated character items will be inserted here -->
+                        </ul>
+                        <button
+                          class="scroll-button right"
+                          id="scrollCharactersRightButton"
+                          disabled
+                          aria-label="Scroll characters right"
+                        >
+                          &Rang;
+                        </button>
+                      </div>
+                    </span>
+                  </div>
+                  <button
+                    class="gizmo-button"
+                    id="colorPickerButton"
+                    data-i18n="color_picker_button"
+                    aria-label="Choose a color"
+                    title="Choose a color"
+                    aria-pressed="false"
                   >
-                    <g>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                       <path
                         fill="currentColor"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                        d="M108.993,47.079c7.683-0.059,13.898,6.12,13.882,13.805 c-0.018,7.683-6.26,13.959-13.942,14.019L75.24,75.138l-0.235,33.73c-0.063,7.619-6.338,13.789-14.014,13.78 c-7.678-0.01-13.848-6.197-13.785-13.818l0.233-33.497l-33.558,0.235C6.2,75.628-0.016,69.448,0,61.764 c0.018-7.683,6.261-13.959,13.943-14.018l33.692-0.236l0.236-33.73C47.935,6.161,54.209-0.009,61.885,0 c7.678,0.009,13.848,6.197,13.784,13.818l-0.233,33.497L108.993,47.079L108.993,47.079z"
+                        d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3L344 320c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"
                       />
-                    </g>
-                  </svg>
-                </button>
-
-                <!-- Dropdown for shapes and models -->
-                <span id="shapes-dropdown" style="display: none">
-                  <!-- Shape Row -->
-                  <ul id="shape-row">
-                    <li>
-                      <button
-                        onclick="selectShape('create_box')"
-                        aria-label="Create box shape"
-                      >
-                        <img src="./images/box.png" alt="Box" />
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onclick="selectShape('create_sphere')"
-                        aria-label="Create sphere shape"
-                      >
-                        <img src="./images/sphere.png" alt="Sphere" />
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onclick="selectShape('create_cylinder')"
-                        aria-label="Create cylinder shape"
-                      >
-                        <img src="./images/cylinder.png" alt="Cylinder" />
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onclick="selectShape('create_capsule')"
-                        aria-label="Create capsule shape"
-                      >
-                        <img src="./images/capsule.png" alt="Capsule" />
-                      </button>
-                    </li>
-                    <li>
-                      <button
-                        onclick="selectShape('create_plane')"
-                        aria-label="Create plane shape"
-                      >
-                        <img src="./images/plane.png" alt="Plane" />
-                      </button>
-                    </li>
-                  </ul>
-                  <!-- Model Row with scroll buttons -->
-                  <div class="scrollable-container">
-                    <button
-                      class="scroll-button left"
-                      id="scrollModelsLeftButton"
-                      disabled
-                      aria-label="Scroll models left"
-                    >
-                      &Lang;
-                    </button>
-                    <ul id="model-row">
-                      <!-- Dynamically generated model items will be inserted here -->
-                    </ul>
-                    <button
-                      class="scroll-button right"
-                      id="scrollModelsRightButton"
-                      disabled
-                      aria-label="Scroll models right"
-                    >
-                      &Rang;
-                    </button>
-                  </div>
-                  <!-- Object Row -->
-                  <div class="scrollable-container">
-                    <button
-                      class="scroll-button left"
-                      id="scrollObjectsLeftButton"
-                      disabled
-                      aria-label="Scroll objects left"
-                    >
-                      &Lang;
-                    </button>
-                    <ul id="object-row">
-                      <!-- Dynamically generated object items will be inserted here -->
-                    </ul>
-                    <button
-                      class="scroll-button right"
-                      id="scrollObjectsRightButton"
-                      disabled
-                      aria-label="Scroll objects right"
-                    >
-                      &Rang;
-                    </button>
-                  </div>
-                  <!-- Character Row -->
-                  <div class="scrollable-container">
-                    <button
-                      class="scroll-button left"
-                      id="scrollCharactersLeftButton"
-                      disabled
-                      aria-label="Scroll characters left"
-                    >
-                      &Lang;
-                    </button>
-                    <ul id="character-row">
-                      <!-- Dynamically generated character items will be inserted here -->
-                    </ul>
-                    <button
-                      class="scroll-button right"
-                      id="scrollCharactersRightButton"
-                      disabled
-                      aria-label="Scroll characters right"
-                    >
-                      &Rang;
-                    </button>
-                  </div>
-                </span>
+                    </svg>
+                  </button>
+                </div>
+                <div class="gizmo-group">
+                  <button
+                    class="gizmo-button"
+                    id="positionButton"
+                    data-i18n="position_button"
+                    disabled
+                    aria-label="Position mesh"
+                    title="Position mesh"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="gizmo-button"
+                    id="rotationButton"
+                    data-i18n="rotation_button"
+                    disabled
+                    aria-label="Rotate mesh"
+                    title="Rotate mesh"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M142.9 142.9c-17.5 17.5-30.1 38-37.8 59.8c-5.9 16.7-24.2 25.4-40.8 19.5s-25.4-24.2-19.5-40.8C55.6 150.7 73.2 122 97.6 97.6c87.2-87.2 228.3-87.5 315.8-1L455 55c6.9-6.9 17.2-8.9 26.2-5.2s14.8 12.5 14.8 22.2l0 128c0 13.3-10.7 24-24 24l-8.4 0c0 0 0 0 0 0L344 224c-9.7 0-18.5-5.8-22.2-14.8s-1.7-19.3 5.2-26.2l41.1-41.1c-62.6-61.5-163.1-61.2-225.3 1zM16 312c0-13.3 10.7-24 24-24l7.6 0 .7 0L168 288c9.7 0 18.5 5.8 22.2 14.8s1.7 19.3-5.2 26.2l-41.1 41.1c62.6 61.5 163.1 61.2 225.3-1c17.5-17.5 30.1-38 37.8-59.8c5.9-16.7 24.2-25.4 40.8-19.5s25.4 24.2 19.5 40.8c-10.8 30.6-28.4 59.3-52.9 83.8c-87.2 87.2-228.3 87.5-315.8 1L57 457c-6.9 6.9-17.2 8.9-26.2 5.2S16 449.7 16 440l0-119.6 0-.7 0-7.6z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="gizmo-button"
+                    id="scaleButton"
+                    data-i18n="scale_button"
+                    disabled
+                    aria-label="Scale mesh size"
+                    title="Scale mesh size"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com/icons/classic/solid/up-right-and-down-left-from-center License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M344 0L488 0c13.3 0 24 10.7 24 24l0 144c0 9.7-5.8 18.5-14.8 22.2s-19.3 1.7-26.2-5.2l-39-39-87 87c-9.4 9.4-24.6 9.4-33.9 0l-32-32c-9.4-9.4-9.4-24.6 0-33.9l87-87L327 41c-6.9-6.9-8.9-17.2-5.2-26.2S334.3 0 344 0zM168 512L24 512c-13.3 0-24-10.7-24-24L0 344c0-9.7 5.8-18.5 14.8-22.2s19.3-1.7 26.2 5.2l39 39 87-87c9.4-9.4 24.6-9.4 33.9 0l32 32c9.4 9.4 9.4 24.6 0 33.9l-87 87 39 39c6.9 6.9 8.9 17.2 5.2 26.2s-12.5 14.8-22.2 14.8z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div class="gizmo-group">
+                  <button
+                    class="gizmo-button"
+                    id="selectButton"
+                    data-i18n="select_button"
+                    disabled
+                    aria-label="Select object"
+                    title="Select object"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M0 55.2L0 426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320l118.1 0c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="gizmo-button"
+                    id="duplicateButton"
+                    data-i18n="duplicate_button"
+                    disabled
+                    aria-label="Duplicate mesh"
+                    title="Duplicate selected mesh"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="gizmo-button"
+                    id="deleteButton"
+                    data-i18n="delete_button"
+                    disabled
+                    aria-label="Delete mesh"
+                    title="Delete selected mesh"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div class="gizmo-group">
+                  <button
+                    class="gizmo-button"
+                    id="cameraButton"
+                    data-i18n="camera_button"
+                    disabled
+                    aria-label="Camera controls"
+                    title="Camera controls"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M0 128C0 92.7 28.7 64 64 64l256 0c35.3 0 64 28.7 64 64l0 256c0 35.3-28.7 64-64 64L64 448c-35.3 0-64-28.7-64-64L0 128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2l0 256c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1l0-17.1 0-128 0-17.1 14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    class="gizmo-button"
+                    id="eyeButton"
+                    data-i18n="eye_button"
+                    disabled
+                    aria-label="Orbit view"
+                    title="Orbit around selected mesh"
+                    aria-pressed="false"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"
+                      />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <button
-                class="gizmo-button"
-                id="colorPickerButton"
-                data-i18n="color_picker_button"
-                aria-label="Choose a color"
-                title="Choose a color"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M512 256c0 .9 0 1.8 0 2.7c-.4 36.5-33.6 61.3-70.1 61.3L344 320c-26.5 0-48 21.5-48 48c0 3.4 .4 6.7 1 9.9c2.1 10.2 6.5 20 10.8 29.9c6.1 13.8 12.1 27.5 12.1 42c0 31.8-21.6 60.7-53.4 62c-3.5 .1-7 .2-10.6 .2C114.6 512 0 397.4 0 256S114.6 0 256 0S512 114.6 512 256zM128 288a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm0-96a32 32 0 1 0 0-64 32 32 0 1 0 0 64zM288 96a32 32 0 1 0 -64 0 32 32 0 1 0 64 0zm96 96a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="positionButton"
-                data-i18n="position_button"
-                disabled
-                aria-label="Position mesh"
-                title="Position mesh"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="rotationButton"
-                data-i18n="rotation_button"
-                disabled
-                aria-label="Rotate mesh"
-                title="Rotate mesh"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M142.9 142.9c-17.5 17.5-30.1 38-37.8 59.8c-5.9 16.7-24.2 25.4-40.8 19.5s-25.4-24.2-19.5-40.8C55.6 150.7 73.2 122 97.6 97.6c87.2-87.2 228.3-87.5 315.8-1L455 55c6.9-6.9 17.2-8.9 26.2-5.2s14.8 12.5 14.8 22.2l0 128c0 13.3-10.7 24-24 24l-8.4 0c0 0 0 0 0 0L344 224c-9.7 0-18.5-5.8-22.2-14.8s-1.7-19.3 5.2-26.2l41.1-41.1c-62.6-61.5-163.1-61.2-225.3 1zM16 312c0-13.3 10.7-24 24-24l7.6 0 .7 0L168 288c9.7 0 18.5 5.8 22.2 14.8s1.7 19.3-5.2 26.2l-41.1 41.1c62.6 61.5 163.1 61.2 225.3-1c17.5-17.5 30.1-38 37.8-59.8c5.9-16.7 24.2-25.4 40.8-19.5s25.4 24.2 19.5 40.8c-10.8 30.6-28.4 59.3-52.9 83.8c-87.2 87.2-228.3 87.5-315.8 1L57 457c-6.9 6.9-17.2 8.9-26.2 5.2S16 449.7 16 440l0-119.6 0-.7 0-7.6z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="scaleButton"
-                data-i18n="scale_button"
-                disabled
-                aria-label="Scale mesh size"
-                title="Scale mesh size"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="selectButton"
-                data-i18n="select_button"
-                disabled
-                aria-label="Select object"
-                title="Select object"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M0 55.2L0 426c0 12.2 9.9 22 22 22c6.3 0 12.4-2.7 16.6-7.5L121.2 346l58.1 116.3c7.9 15.8 27.1 22.2 42.9 14.3s22.2-27.1 14.3-42.9L179.8 320l118.1 0c12.2 0 22.1-9.9 22.1-22.1c0-6.3-2.7-12.3-7.4-16.5L38.6 37.9C34.3 34.1 28.9 32 23.2 32C10.4 32 0 42.4 0 55.2z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="duplicateButton"
-                data-i18n="duplicate_button"
-                disabled
-                aria-label="Duplicate mesh"
-                title="Duplicate selected mesh"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="deleteButton"
-                data-i18n="delete_button"
-                disabled
-                aria-label="Delete mesh"
-                title="Delete selected mesh"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="cameraButton"
-                data-i18n="camera_button"
-                disabled
-                aria-label="Camera controls"
-                title="Camera controls"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M0 128C0 92.7 28.7 64 64 64l256 0c35.3 0 64 28.7 64 64l0 256c0 35.3-28.7 64-64 64L64 448c-35.3 0-64-28.7-64-64L0 128zM559.1 99.8c10.4 5.6 16.9 16.4 16.9 28.2l0 256c0 11.8-6.5 22.6-16.9 28.2s-23 5-32.9-1.6l-96-64L416 337.1l0-17.1 0-128 0-17.1 14.2-9.5 96-64c9.8-6.5 22.4-7.2 32.9-1.6z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="gizmo-button"
-                id="eyeButton"
-                data-i18n="eye_button"
-                disabled
-                aria-label="Orbit view"
-                title="Orbit around selected mesh"
-                aria-pressed="false"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                  <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
-                  <path
-                    fill="currentColor"
-                    d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"
-                  />
-                </svg>
-              </button>
+              <div class="gizmo-undo-redo">
+                <div class="gizmo-group">
+                  <button
+                    class="gizmo-button"
+                    id="positionPinButton"
+                    data-i18n="position_pin_button"
+                    disabled
+                    aria-label="Pick position for selected object"
+                    title="Pick position for selected object"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512">
+                      <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                      <path
+                        fill="currentColor"
+                        d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div class="gizmo-undo-redo-row">
+                  <button
+                    class="bigbutton"
+                    id="gizmoUndoBtn"
+                    aria-label="Undo"
+                    title="Undo"
+                    data-i18n="toolbar_undo"
+                    data-i18n-attrs="title,aria-label"
+                  >
+                    <div class="icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                        <path
+                          fill="currentColor"
+                          d="M48.5 224H40c-13.3 0-24-10.7-24-24V72c0-9.7 5.8-18.5 14.8-22.2s19.3-1.7 26.2 5.2L98.6 96.6c87.6-86.5 228.7-86.2 315.8 1c87.8 87.8 87.8 230.2 0 318s-230.2 87.8-318 0c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0c62.5 62.5 163.8 62.5 226.3 0s62.5-163.8 0-226.3c-62.2-62.2-162.7-62.5-225.3-1L185 183c6.9 6.9 8.9 17.2 5.2 26.2s-12.5 14.8-22.2 14.8H48.5z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                  <button
+                    class="bigbutton"
+                    id="gizmoRedoBtn"
+                    aria-label="Redo"
+                    title="Redo"
+                    data-i18n="toolbar_redo"
+                    data-i18n-attrs="title,aria-label"
+                  >
+                    <div class="icon" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                        <path
+                          fill="currentColor"
+                          d="M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.8 87.8-87.8 230.2 0 318s230.2 87.8 318 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z"
+                        />
+                      </svg>
+                    </div>
+                  </button>
+                </div>
               </div>
-              <p id="gizmoStatus" class="gizmo-status" role="status"></p>
             </aside>
+            <div
+              class="resizer resizer-horizontal"
+              id="infoResizer"
+              aria-label="Drag to resize canvas and information panel"
+              role="separator"
+              aria-orientation="horizontal"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="50"
+              tabindex="0"
+            ></div>
             <!-- Info panel collapse starts -->
 
-            <aside
-              id="info-panel"
-              role="complementary"
-              aria-label="Information panel"
-            >
+            <aside id="info-panel" role="complementary" aria-label="Information panel">
               <div id="info-panel-body"></div>
               <div id="info-panel-tabs">
                 <div
@@ -1329,6 +1633,7 @@
                   role="tablist"
                   aria-label="Information panel tabs"
                 ></div>
+                <span id="fpsCounter" hidden></span>
                 <div id="flocklink">
                   <a
                     href="https://flockxr.com/"
@@ -1339,14 +1644,8 @@
                     aria-label="Visit Flock XR website (opens in new tab)"
                     title="Visit Flock XR website"
                   >
-                    <img
-                      src="./images/inline-flock-xr.svg"
-                      alt="Flock XR logo"
-                      id="flocklogo"
-                    />
-                    <span class="sr-only">
-                      Visit Flock XR website in a new tab
-                    </span>
+                    <img src="./images/inline-flock-xr.svg" alt="Flock XR logo" id="flocklogo" />
+                    <span class="sr-only"> Visit Flock XR website in a new tab </span>
                   </a>
                 </div>
               </div>
@@ -1372,14 +1671,56 @@
               tabindex="-1"
             ></div>
             <div id="blockly-desc" class="sr-only">
-              Drag and drop code blocks to create your program. Use arrow keys
-              and Enter to navigate and interact with blocks.
+              Drag and drop code blocks to create your program. Use arrow keys and Enter to navigate
+              and interact with blocks.
             </div>
-            <div
-              id="blocklyZoomControls"
-              role="toolbar"
-              aria-label="Workspace controls"
-            >
+            <div id="blockHint" class="block-hint" hidden>
+              <svg
+                class="block-hint__icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 512 512"
+                aria-hidden="true"
+              >
+                <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                <path
+                  fill="currentColor"
+                  d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
+                />
+              </svg>
+              <p id="blockHintText" class="block-hint__text" role="status"></p>
+              <button
+                type="button"
+                id="blockHintClose"
+                class="block-hint__close"
+                data-i18n="close_status_message"
+                data-i18n-attrs="aria-label"
+                aria-label="Close message"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id="blocklyZoomControls" role="toolbar" aria-label="Workspace controls">
+              <button
+                class="bigbutton"
+                id="blockHintsBtn"
+                aria-label="Show block hints"
+                title="Show block hints"
+                aria-expanded="false"
+                aria-controls="blockHint"
+                data-i18n="show_block_hints"
+                data-i18n-attrs="title,aria-label"
+              >
+                <div class="icon" aria-hidden="true">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <path
+                      fill="currentColor"
+                      d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm40-208a32 32 0 1 1 0 64 32 32 0 1 1 0-64z"
+                    />
+                  </svg>
+                </div>
+              </button>
+              <div class="toolbar-divider" aria-hidden="true"></div>
               <button
                 class="bigbutton"
                 id="workspaceSearchBtn"
@@ -1444,10 +1785,10 @@
               >
                 <div class="icon" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com/icons/classic/solid/circle-minus License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                     <path
                       fill="currentColor"
-                      d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM136 184c-13.3 0-24 10.7-24 24s10.7 24 24 24l144 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-144 0z"
+                      d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM184 232l144 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-144 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"
                     />
                   </svg>
                 </div>
@@ -1462,10 +1803,10 @@
               >
                 <div class="icon" aria-hidden="true">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com/icons/classic/solid/circle-plus License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.-->
                     <path
                       fill="currentColor"
-                      d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM184 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-64 64 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-64 0 0-64c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 64-64 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l64 0 0 64z"
+                      d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM232 344l0-64-64 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l64 0 0-64c0-13.3 10.7-24 24-24s24 10.7 24 24l0 64 64 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-64 0 0 64c0 13.3-10.7 24-24 24s-24-10.7-24-24z"
                     />
                   </svg>
                 </div>
@@ -1494,18 +1835,66 @@
         >
           <img src="./images/inline-flock-xr.svg" alt="" />
         </a>
-        <div id="switch-desc" class="sr-only">
-          Toggle between coding view and 3D scene view
-        </div>
+        <div id="switch-desc" class="sr-only">Toggle between coding view and 3D scene view</div>
       </div>
 
       <!-- Live region for dynamic announcements -->
-      <div
-        id="announcements"
-        aria-live="polite"
-        aria-atomic="true"
-        class="sr-only"
-      ></div>
+      <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    </div>
+    <div
+      id="untrustedProjectUrlModal"
+      class="modal hidden"
+      role="dialog"
+      aria-labelledby="untrusted-project-url-modal-title"
+      aria-modal="true"
+    >
+      <div class="modal-content" tabindex="-1">
+        <button
+          type="button"
+          class="close-button flock-close-icon"
+          id="closeUntrustedProjectUrlModal"
+          data-i18n="close_untrusted_project_url"
+          data-i18n-attrs="aria-label"
+          aria-label="Close"
+        >
+          <span aria-hidden="true"></span>
+        </button>
+        <h2 id="untrusted-project-url-modal-title" data-i18n="untrusted_project_url_title">
+          Open project from another website?
+        </h2>
+        <p id="untrustedProjectUrlMessage" data-i18n="untrusted_project_url_message">
+          This project link isn't on Flock XR's trusted list. Only continue if you trust the source
+          — it will run in your browser.
+        </p>
+        <p><strong id="untrustedProjectUrlOrigin"></strong></p>
+        <div class="unsaved-changes-actions">
+          <button
+            type="button"
+            class="project-action-button"
+            id="untrustedProjectUrlCancelButton"
+            data-i18n="untrusted_project_url_cancel_button"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="project-action-button project-action-button--primary"
+            id="untrustedProjectUrlOpenButton"
+            data-i18n="untrusted_project_url_open_button"
+          >
+            Open project
+          </button>
+          <a
+            class="project-action-button project-action-button--primary hidden"
+            id="untrustedProjectUrlNewTabLink"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-i18n="untrusted_project_url_new_tab_link"
+          >
+            Open in new tab
+          </a>
+        </div>
+      </div>
     </div>
     <script>
       window.BABYLON_SKIP_FONT_LOADING = true;

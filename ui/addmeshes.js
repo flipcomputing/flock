@@ -1,15 +1,26 @@
-import { meshMap, meshBlockIdMap } from "../generators/generators.js";
-import { flock } from "../flock.js";
+import { meshMap, meshBlockIdMap } from '../generators/generators.js';
+import { flock } from '../flock.js';
 import {
   extractMaterialInfo,
   getMeshFromBlock,
+  getOwnVar,
   readColourValue,
-} from "./blockmesh.js";
+  readColourFromInputOrShadow,
+  readColourList,
+  attachToEnclosingGroupIfAny,
+  applyInitialTransformsFromBlock,
+  applyCloneDoBlocks,
+  rebuildDependentClones,
+  readNumberOrList,
+  deleteMeshFromBlock,
+  hasComputedValue,
+} from './blockmesh.js';
 
 export function createMeshOnCanvas(block) {
-  if (!isEligibleForMeshCreation(block)) {
+  if (!isEligibleForMeshCreation(block) || hasComputedValue(block)) {
     return;
   }
+  if (adoptCloneTemplate(block)) return;
 
   // Bail if this block already has a mesh, so one block never spawns two meshes.
   // We can't rely solely on getMeshFromBlock here: its block→mesh index is built
@@ -28,19 +39,42 @@ export function createMeshOnCanvas(block) {
 
   // For shapes (not models), defer creation with aggressive event isolation
   const isShape = [
-    "create_box",
-    "create_sphere",
-    "create_cylinder",
-    "create_capsule",
-    "create_plane",
-    "create_3d_text",
+    'create_box',
+    'create_sphere',
+    'create_cylinder',
+    'create_capsule',
+    'create_wedge',
+    'create_freeform',
+    'create_donut',
+    'create_ring',
+    'create_plane',
+    'create_marker',
+    'create_3d_text',
+    'create_fly_camera',
+    'create_follow_camera',
+    'create_orbit_camera',
   ].includes(block.type);
 
   if (isShape) {
     // Use the same grouping approach as objects for consistency
     // Group all shape creation events together
-    createShapeInternal(block);
+    applyInitialTransformsWhenReady(block, createShapeInternal(block));
 
+    return;
+  }
+
+  if (block.type === 'create_group') {
+    createGroupInternal(block);
+    return;
+  }
+
+  if (block.type === 'mirror_mesh') {
+    createMirrorInternal(block);
+    return;
+  }
+
+  if (block.type === 'clone_mesh') {
+    createCloneInternal(block);
     return;
   }
 
@@ -48,12 +82,7 @@ export function createMeshOnCanvas(block) {
   let position, scale, color, modelName, newMesh;
 
   if (
-    ![
-      "set_sky_color",
-      "set_background_color",
-      "create_ground",
-      "create_map",
-    ].includes(block.type)
+    !['set_sky_color', 'set_background_color', 'create_ground', 'create_map'].includes(block.type)
   ) {
     // Helper function to safely get position value
     function getPositionValue(inputName, defaultValue = 0) {
@@ -63,14 +92,14 @@ export function createMeshOnCanvas(block) {
       const targetBlock = input.connection.targetBlock();
       if (!targetBlock) return defaultValue;
 
-      const value = targetBlock.getFieldValue("NUM");
+      const value = targetBlock.getFieldValue('NUM');
       return value !== null ? parseFloat(value) : defaultValue;
     }
 
     position = {
-      x: getPositionValue("X", 0),
-      y: getPositionValue("Y", 0),
-      z: getPositionValue("Z", 0),
+      x: getPositionValue('X', 0),
+      y: getPositionValue('Y', 0),
+      z: getPositionValue('Z', 0),
     };
   }
 
@@ -87,45 +116,53 @@ export function createMeshOnCanvas(block) {
     diameterBottom,
     capsuleHeight,
     capsuleDiameter,
+    wedgeWidth,
+    wedgeHeight,
+    wedgeDepth,
+    wedgePeak,
+    wedgeAxis,
+    donutDiameter,
+    donutInnerDiameter,
+    donutThickness,
+    donutSides,
+    ringDiameter,
+    ringInnerDiameter,
+    ringThickness,
+    ringHeight,
+    ringSides,
     planeWidth,
     planeHeight;
 
   // Handle block types
   switch (shapeType) {
-    case "set_sky_color":
-      meshId = "sky";
+    case 'set_sky_color':
+      meshId = 'sky';
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
       flock.setSky(color);
       break;
-    case "set_background_color":
-      meshId = "sky";
+    case 'set_background_color':
+      meshId = 'sky';
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
       flock.setSky(color, { clear: true });
       break;
-    case "create_map": {
-      meshId = "ground";
+    case 'create_map': {
+      meshId = 'ground';
       meshMap[meshId] = block;
       meshBlockIdMap[meshId] = block.id;
 
-      const mapName = block.getFieldValue("MAP_NAME") || "NONE";
-      const materialBlock = block.getInputTargetBlock("MATERIAL");
+      const mapName = block.getFieldValue('MAP_NAME') || 'NONE';
+      const materialBlock = block.getInputTargetBlock('MATERIAL');
 
-      let textureSet, baseColor, alpha;
+      let textureSet, baseColor, alpha, scale, angle;
       if (materialBlock) {
-        ({ textureSet, baseColor, alpha } = extractMaterialInfo(materialBlock));
+        ({ textureSet, baseColor, alpha, scale, angle } = extractMaterialInfo(materialBlock));
       } else {
         textureSet = null;
-        baseColor = "#808080";
+        baseColor = '#808080';
         alpha = 1;
       }
 
@@ -133,20 +170,19 @@ export function createMeshOnCanvas(block) {
         color: baseColor,
         materialName: textureSet,
         alpha,
+        scale,
+        angle,
       });
 
-      console.log("Create mesh on canvas");
+      console.log('Create mesh on canvas');
       flock.createMap(mapName, material);
 
       break;
     }
     // --- Model Loading Blocks --
-    case "load_model":
-      modelName = block.getFieldValue("MODELS");
-      scale = block
-        .getInput("SCALE")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'load_model':
+      modelName = block.getFieldValue('MODELS');
+      scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -156,45 +192,25 @@ export function createMeshOnCanvas(block) {
       newMesh = flock.createModel({
         modelName: modelName,
         modelId: meshId,
+        colors: block.colorsEdited ? readColourList(block.getInputTargetBlock('COLORS')) : null,
         scale: scale,
         position: { x: position.x, y: position.y, z: position.z },
       });
       break;
 
-    case "load_character":
-      modelName = block.getFieldValue("MODELS");
+    case 'load_character':
+      modelName = block.getFieldValue('MODELS');
 
-      scale = block
-        .getInput("SCALE")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+      scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
       // Retrieve colours
       colors = {
-        hair: block
-          .getInput("HAIR_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        skin: block
-          .getInput("SKIN_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        eyes: block
-          .getInput("EYES_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        tshirt: block
-          .getInput("TSHIRT_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        shorts: block
-          .getInput("SHORTS_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
-        sleeves: block
-          .getInput("SLEEVES_COLOR")
-          .connection.targetBlock()
-          .getFieldValue("COLOR"),
+        hair: block.getInput('HAIR_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+        skin: block.getInput('SKIN_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+        eyes: block.getInput('EYES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+        tshirt: block.getInput('TSHIRT_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+        shorts: block.getInput('SHORTS_COLOR').connection.targetBlock().getFieldValue('COLOR'),
+        sleeves: block.getInput('SLEEVES_COLOR').connection.targetBlock().getFieldValue('COLOR'),
       };
 
       meshId = `${modelName}__${block.id}`;
@@ -211,29 +227,11 @@ export function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_object":
-      modelName = block.getFieldValue("MODELS");
-      scale = block
-        .getInput("SCALE")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'load_object':
+      modelName = block.getFieldValue('MODELS');
+      scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
-      {
-        const colorInput = block.getInput("COLOR");
-        const target = colorInput?.connection?.targetBlock?.();
-
-        if (target) {
-          const read = readColourValue(target);
-          color = read.value;
-        } else {
-          const shadowDom = colorInput?.connection?.getShadowDom?.();
-          const shadowField =
-            shadowDom?.querySelector?.('field[name="COLOUR"]') ||
-            shadowDom?.querySelector?.('field[name="COLOR"]');
-
-          color = shadowField?.textContent || shadowField?.innerText || null;
-        }
-      }
+      color = readColourFromInputOrShadow(block, 'COLOR').value;
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -250,29 +248,11 @@ export function createMeshOnCanvas(block) {
 
       break;
 
-    case "load_multi_object": {
-      modelName = block.getFieldValue("MODELS");
-      scale = block
-        .getInput("SCALE")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'load_multi_object': {
+      modelName = block.getFieldValue('MODELS');
+      scale = block.getInput('SCALE').connection.targetBlock().getFieldValue('NUM');
 
-      const colorsBlock = block.getInput("COLORS").connection.targetBlock();
-      let colorsArray = [];
-      if (colorsBlock && colorsBlock.type === "lists_create_with") {
-        colorsBlock.inputList.forEach((input) => {
-          // Only process value inputs named "ADD*"
-          if (input.name && input.name.startsWith("ADD") && input.connection) {
-            const colorBlock = input.connection.targetBlock();
-            if (colorBlock) {
-              const colorVal = colorBlock.getFieldValue("COLOR");
-              if (colorVal) {
-                colorsArray.push(colorVal);
-              }
-            }
-          }
-        });
-      }
+      const colorsArray = readColourList(block.getInputTargetBlock('COLORS'));
 
       meshId = `${modelName}__${block.id}`;
       meshMap[block.id] = block;
@@ -290,23 +270,11 @@ export function createMeshOnCanvas(block) {
       break;
     }
     // --- Shape Creation Blocks ---
-    case "create_box":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      width = block
-        .getInput("WIDTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      height = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      depth = block
-        .getInput("DEPTH")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'create_box':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      width = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
+      height = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      depth = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
 
       meshId = `box__${block.id}`;
       meshMap[block.id] = block;
@@ -321,23 +289,11 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
-    case "create_sphere":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      diameterX = block
-        .getInput("DIAMETER_X")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterY = block
-        .getInput("DIAMETER_Y")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterZ = block
-        .getInput("DIAMETER_Z")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'create_sphere':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      diameterX = block.getInput('DIAMETER_X').connection.targetBlock().getFieldValue('NUM');
+      diameterY = block.getInput('DIAMETER_Y').connection.targetBlock().getFieldValue('NUM');
+      diameterZ = block.getInput('DIAMETER_Z').connection.targetBlock().getFieldValue('NUM');
 
       meshId = `sphere__${block.id}`;
       meshMap[block.id] = block;
@@ -352,23 +308,14 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
-    case "create_cylinder":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      cylinderHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      diameterTop = block
-        .getInput("DIAMETER_TOP")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'create_cylinder':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      cylinderHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      diameterTop = block.getInput('DIAMETER_TOP').connection.targetBlock().getFieldValue('NUM');
       diameterBottom = block
-        .getInput("DIAMETER_BOTTOM")
+        .getInput('DIAMETER_BOTTOM')
         .connection.targetBlock()
-        .getFieldValue("NUM");
+        .getFieldValue('NUM');
 
       meshId = `cylinder__${block.id}`;
       meshMap[block.id] = block;
@@ -384,19 +331,10 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
-    case "create_capsule":
-      color = block
-        .getInput("COLOR")
-        .connection.targetBlock()
-        .getFieldValue("COLOR");
-      capsuleDiameter = block
-        .getInput("DIAMETER")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
-      capsuleHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+    case 'create_capsule':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      capsuleDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      capsuleHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
 
       meshId = `capsule__${block.id}`;
       meshMap[block.id] = block;
@@ -410,19 +348,83 @@ export function createMeshOnCanvas(block) {
       });
       break;
 
-    case "create_plane":
-      color = block
-        .getInput("COLOR")
+    case 'create_wedge':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      wedgeWidth = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
+      wedgeHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      wedgeDepth = block.getInput('DEPTH').connection.targetBlock().getFieldValue('NUM');
+      wedgePeak = block.getInput('PEAK').connection.targetBlock().getFieldValue('NUM');
+      wedgeAxis = block.getFieldValue('AXIS');
+
+      meshId = `wedge__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createWedge(meshId, {
+        color,
+        width: wedgeWidth,
+        height: wedgeHeight,
+        depth: wedgeDepth,
+        peak: wedgePeak,
+        axis: wedgeAxis,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case 'create_donut':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      donutDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      donutInnerDiameter = block
+        .getInput('INNER_DIAMETER')
         .connection.targetBlock()
-        .getFieldValue("COLOR");
-      planeWidth = block
-        .getInput("WIDTH")
+        .getFieldValue('NUM');
+      donutThickness = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
+      donutSides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
+
+      meshId = `donut__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createDonut(meshId, {
+        color,
+        diameter: donutDiameter,
+        innerDiameter: donutInnerDiameter,
+        thickness: donutThickness,
+        tessellation: donutSides,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case 'create_ring':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      ringDiameter = block.getInput('DIAMETER').connection.targetBlock().getFieldValue('NUM');
+      ringInnerDiameter = block
+        .getInput('INNER_DIAMETER')
         .connection.targetBlock()
-        .getFieldValue("NUM");
-      planeHeight = block
-        .getInput("HEIGHT")
-        .connection.targetBlock()
-        .getFieldValue("NUM");
+        .getFieldValue('NUM');
+      ringThickness = block.getInput('THICKNESS').connection.targetBlock().getFieldValue('NUM');
+      ringHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
+      ringSides = block.getInput('SIDES').connection.targetBlock().getFieldValue('NUM');
+
+      meshId = `ring__${block.id}`;
+      meshMap[block.id] = block;
+      meshBlockIdMap[block.id] = block.id;
+
+      newMesh = flock.createRing(meshId, {
+        color,
+        diameter: ringDiameter,
+        innerDiameter: ringInnerDiameter,
+        thickness: ringThickness,
+        height: ringHeight,
+        tessellation: ringSides,
+        position: [position.x, position.y, position.z],
+      });
+      break;
+
+    case 'create_plane':
+      color = block.getInput('COLOR').connection.targetBlock().getFieldValue('COLOR');
+      planeWidth = block.getInput('WIDTH').connection.targetBlock().getFieldValue('NUM');
+      planeHeight = block.getInput('HEIGHT').connection.targetBlock().getFieldValue('NUM');
 
       meshId = `plane__${block.id}`;
       meshMap[block.id] = block;
@@ -444,7 +446,45 @@ export function createMeshOnCanvas(block) {
   if (newMesh) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
+    applyInitialTransformsWhenReady(block, newMesh);
   }
+}
+
+function applyInitialTransformsWhenReady(block, meshName) {
+  if (typeof meshName !== 'string' || meshName.startsWith('error_')) return;
+  const run = currentRun();
+  creatingMeshes.set(block.id, run);
+  flock.whenModelReady(meshName, (mesh) => {
+    if (creatingMeshes.get(block.id) === run) creatingMeshes.delete(block.id);
+    if (!mesh) return;
+    applyInitialTransformsFromBlock(block, mesh);
+    if (!isCloneTemplate(block)) rebuildDependentClones(block);
+  });
+}
+
+export function resolveVariableMeshName(block, fieldName) {
+  const variableId = block?.getFieldValue?.(fieldName);
+  if (!variableId) return null;
+  const owner = block.workspace
+    ?.getAllBlocks(false)
+    .find((b) => b !== block && getOwnVar(b) === variableId && getMeshFromBlock(b));
+  return owner ? getMeshFromBlock(owner).name : null;
+}
+
+export function readTargetCameraOptions(block) {
+  const readNumber = (name, fallback) => {
+    const value = parseFloat(block.getInputTargetBlock(name)?.getFieldValue('NUM'));
+    return Number.isFinite(value) ? value : fallback;
+  };
+  return {
+    target:
+      block.getFieldValue('TARGET') === '__origin__'
+        ? '__origin__'
+        : resolveVariableMeshName(block, 'TARGET'),
+    distance: readNumber('DISTANCE', 7),
+    up: readNumber('UP', 30),
+    around: readNumber('AROUND', 0),
+  };
 }
 
 function isEligibleForMeshCreation(block) {
@@ -477,6 +517,20 @@ function createShapeInternal(block) {
     diameterBottom,
     capsuleHeight,
     capsuleDiameter,
+    wedgeWidth,
+    wedgeHeight,
+    wedgeDepth,
+    wedgePeak,
+    wedgeAxis,
+    donutDiameter,
+    donutInnerDiameter,
+    donutThickness,
+    donutSides,
+    ringDiameter,
+    ringInnerDiameter,
+    ringThickness,
+    ringHeight,
+    ringSides,
     planeWidth,
     planeHeight;
 
@@ -488,7 +542,7 @@ function createShapeInternal(block) {
     const targetBlock = input.connection.targetBlock();
     if (!targetBlock) return defaultValue;
 
-    const value = targetBlock.getFieldValue("NUM");
+    const value = targetBlock.getFieldValue('NUM');
     return value !== null ? parseFloat(value) : defaultValue;
   }
 
@@ -496,17 +550,13 @@ function createShapeInternal(block) {
   function getConnectedFieldValue(inputName, fieldName, defaultValue) {
     const input = block.getInput(inputName);
     if (!input || !input.connection) {
-      console.warn(
-        `Input ${inputName} not found or has no connection on block ${block.type}`,
-      );
+      console.warn(`Input ${inputName} not found or has no connection on block ${block.type}`);
       return defaultValue;
     }
 
     const targetBlock = input.connection.targetBlock();
     if (!targetBlock) {
-      console.warn(
-        `No target block connected to input ${inputName} on block ${block.type}`,
-      );
+      console.warn(`No target block connected to input ${inputName} on block ${block.type}`);
       return defaultValue;
     }
 
@@ -514,30 +564,26 @@ function createShapeInternal(block) {
       const value = targetBlock.getFieldValue(fieldName);
       return value !== null ? value : defaultValue;
     } catch (e) {
-      console.error(
-        `Error getting field ${fieldName} from connected block:`,
-        e,
-      );
+      console.error(`Error getting field ${fieldName} from connected block:`, e);
       return defaultValue;
     }
   }
 
   position = {
-    x: getPositionValue("X", 0),
-    y: getPositionValue("Y", 0),
-    z: getPositionValue("Z", 0),
+    x: getPositionValue('X', 0),
+    y: getPositionValue('Y', 0),
+    z: getPositionValue('Z', 0),
   };
 
-  const resolveColorOrMaterial = (defaultColor = "#ff0000") => {
-    const colorInput = block.getInputTargetBlock("COLOR");
+  const resolveColorOrMaterial = (defaultColor = '#ff0000') => {
+    const colorInput = block.getInputTargetBlock('COLOR');
     let alpha = 1;
-    let colorOrMaterial = defaultColor;
+    let colorOrMaterial;
 
-    if (colorInput?.type === "material") {
+    if (colorInput?.type === 'material') {
       const materialInfo = extractMaterialInfo(colorInput);
       alpha = materialInfo.alpha ?? 1;
-      const hasMaterial =
-        materialInfo.textureSet && materialInfo.textureSet !== "NONE";
+      const hasMaterial = materialInfo.textureSet && materialInfo.textureSet !== 'NONE';
       const baseColor = materialInfo.baseColor ?? defaultColor;
 
       colorOrMaterial = hasMaterial
@@ -545,6 +591,8 @@ function createShapeInternal(block) {
             materialName: materialInfo.textureSet,
             color: baseColor,
             alpha,
+            scale: materialInfo.scale,
+            angle: materialInfo.angle,
           }
         : baseColor;
     } else {
@@ -557,11 +605,11 @@ function createShapeInternal(block) {
 
   // Handle shape creation blocks
   switch (shapeType) {
-    case "create_box":
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
-      width = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "1"));
-      height = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
-      depth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
+    case 'create_box':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      width = parseFloat(getConnectedFieldValue('WIDTH', 'NUM', '1'));
+      height = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '1'));
+      depth = parseFloat(getConnectedFieldValue('DEPTH', 'NUM', '1'));
 
       newMesh = flock.createBox(`box__${block.id}`, {
         color,
@@ -573,11 +621,11 @@ function createShapeInternal(block) {
       });
       break;
 
-    case "create_sphere":
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
-      diameterX = parseFloat(getConnectedFieldValue("DIAMETER_X", "NUM", "1"));
-      diameterY = parseFloat(getConnectedFieldValue("DIAMETER_Y", "NUM", "1"));
-      diameterZ = parseFloat(getConnectedFieldValue("DIAMETER_Z", "NUM", "1"));
+    case 'create_sphere':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      diameterX = parseFloat(getConnectedFieldValue('DIAMETER_X', 'NUM', '1'));
+      diameterY = parseFloat(getConnectedFieldValue('DIAMETER_Y', 'NUM', '1'));
+      diameterZ = parseFloat(getConnectedFieldValue('DIAMETER_Z', 'NUM', '1'));
 
       newMesh = flock.createSphere(`sphere__${block.id}`, {
         color,
@@ -589,15 +637,11 @@ function createShapeInternal(block) {
       });
       break;
 
-    case "create_cylinder":
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
-      cylinderHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
-      diameterTop = parseFloat(
-        getConnectedFieldValue("DIAMETER_TOP", "NUM", "1"),
-      );
-      diameterBottom = parseFloat(
-        getConnectedFieldValue("DIAMETER_BOTTOM", "NUM", "1"),
-      );
+    case 'create_cylinder':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      cylinderHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '1'));
+      diameterTop = parseFloat(getConnectedFieldValue('DIAMETER_TOP', 'NUM', '1'));
+      diameterBottom = parseFloat(getConnectedFieldValue('DIAMETER_BOTTOM', 'NUM', '1'));
 
       newMesh = flock.createCylinder(`cylinder__${block.id}`, {
         color,
@@ -610,12 +654,10 @@ function createShapeInternal(block) {
       });
       break;
 
-    case "create_capsule":
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
-      capsuleDiameter = parseFloat(
-        getConnectedFieldValue("DIAMETER", "NUM", "1"),
-      );
-      capsuleHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "1"));
+    case 'create_capsule':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      capsuleDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '1'));
+      capsuleHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '1'));
 
       newMesh = flock.createCapsule(`capsule__${block.id}`, {
         color,
@@ -626,10 +668,80 @@ function createShapeInternal(block) {
       });
       break;
 
-    case "create_plane":
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#ff0000"));
-      planeWidth = parseFloat(getConnectedFieldValue("WIDTH", "NUM", "2"));
-      planeHeight = parseFloat(getConnectedFieldValue("HEIGHT", "NUM", "2"));
+    case 'create_wedge':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      wedgeWidth = parseFloat(getConnectedFieldValue('WIDTH', 'NUM', '2'));
+      wedgeHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '1'));
+      wedgeDepth = parseFloat(getConnectedFieldValue('DEPTH', 'NUM', '1'));
+      wedgePeak = parseFloat(getConnectedFieldValue('PEAK', 'NUM', '0'));
+      wedgeAxis = block.getFieldValue('AXIS');
+
+      newMesh = flock.createWedge(`wedge__${block.id}`, {
+        color,
+        width: wedgeWidth,
+        height: wedgeHeight,
+        depth: wedgeDepth,
+        peak: wedgePeak,
+        axis: wedgeAxis,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_freeform':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+
+      newMesh = flock.createFreeform(`freeform__${block.id}`, {
+        color,
+        vertices: block.getPoints(),
+        faces: block.getFaces(),
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_donut':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      donutDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '1.5'));
+      donutInnerDiameter = parseFloat(getConnectedFieldValue('INNER_DIAMETER', 'NUM', '0.5'));
+      donutThickness = parseFloat(getConnectedFieldValue('THICKNESS', 'NUM', '0.5'));
+      donutSides = parseFloat(getConnectedFieldValue('SIDES', 'NUM', '24'));
+
+      newMesh = flock.createDonut(`donut__${block.id}`, {
+        color,
+        diameter: donutDiameter,
+        innerDiameter: donutInnerDiameter,
+        thickness: donutThickness,
+        tessellation: donutSides,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_ring':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      ringDiameter = parseFloat(getConnectedFieldValue('DIAMETER', 'NUM', '2'));
+      ringInnerDiameter = parseFloat(getConnectedFieldValue('INNER_DIAMETER', 'NUM', '1.5'));
+      ringThickness = parseFloat(getConnectedFieldValue('THICKNESS', 'NUM', '0.25'));
+      ringHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '0.5'));
+      ringSides = parseFloat(getConnectedFieldValue('SIDES', 'NUM', '24'));
+
+      newMesh = flock.createRing(`ring__${block.id}`, {
+        color,
+        diameter: ringDiameter,
+        innerDiameter: ringInnerDiameter,
+        thickness: ringThickness,
+        height: ringHeight,
+        tessellation: ringSides,
+        position: [position.x, position.y, position.z],
+        alpha,
+      });
+      break;
+
+    case 'create_plane':
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#ff0000'));
+      planeWidth = parseFloat(getConnectedFieldValue('WIDTH', 'NUM', '2'));
+      planeHeight = parseFloat(getConnectedFieldValue('HEIGHT', 'NUM', '2'));
 
       newMesh = flock.createPlane(`plane__${block.id}`, {
         color,
@@ -640,31 +752,57 @@ function createShapeInternal(block) {
       });
       break;
 
-    case "create_3d_text": {
-      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial("#FFFFFF"));
+    case 'create_marker':
+      newMesh = flock.createMarker(`marker__${block.id}`, {
+        type: block.getFieldValue('TYPE') || 'cross',
+        position: [position.x, position.y, position.z],
+        edit: block.getFieldValue('EDIT') === 'TRUE',
+      });
+      break;
 
-      const textInput = block.getInput("TEXT");
+    case 'create_fly_camera':
+      newMesh = flock.createCamera(`camera__${block.id}`, {
+        type: 'fly',
+        position: [position.x, position.y, position.z],
+        visible: block.getFieldValue('VISIBLE') === 'TRUE',
+      });
+      break;
+
+    case 'create_follow_camera':
+    case 'create_orbit_camera':
+      newMesh = flock.createCamera(`camera__${block.id}`, {
+        type: block.type === 'create_follow_camera' ? 'follow' : 'orbit',
+        ...readTargetCameraOptions(block),
+        visible: block.getFieldValue('VISIBLE') === 'TRUE',
+      });
+      break;
+
+    case 'create_3d_text': {
+      ({ colorOrMaterial: color, alpha } = resolveColorOrMaterial('#FFFFFF'));
+
+      const textInput = block.getInput('TEXT');
       const textTarget = textInput?.connection?.targetBlock?.();
       const textValue = textTarget
-        ? (textTarget.getFieldValue("TEXT") ??
-          textTarget.getFieldValue("NUM") ??
-          "Hello World")
-        : "Hello World";
+        ? (textTarget.getFieldValue('TEXT') ?? textTarget.getFieldValue('NUM') ?? 'Hello World')
+        : 'Hello World';
 
-      const fontSize = parseFloat(getConnectedFieldValue("SIZE", "NUM", "50"));
-      const textDepth = parseFloat(getConnectedFieldValue("DEPTH", "NUM", "1"));
+      const fontSize = parseFloat(getConnectedFieldValue('SIZE', 'NUM', '50'));
+      const textDepth = readNumberOrList(block, 'DEPTH', 1);
+      const textSpacing = parseFloat(getConnectedFieldValue('SPACING', 'NUM', '0'));
 
       meshMap[block.id] = block;
       meshBlockIdMap[block.id] = block.id;
 
       newMesh = flock.create3DText({
         text: String(textValue),
-        font: "fonts/FreeSansBold.ttf",
+        font: 'fonts/FreeSansBold.ttf',
         color,
         alpha,
         size: fontSize,
         depth: textDepth,
+        spacing: textSpacing,
         position: { x: position.x, y: position.y, z: position.z },
+        horizontal: block.getFieldValue('HORIZONTAL') === 'TRUE',
         modelId: `3dtext__${block.id}`,
       });
       break;
@@ -677,5 +815,214 @@ function createShapeInternal(block) {
   if (newMesh) {
     meshMap[block.id] = block;
     meshBlockIdMap[block.id] = block.id;
+    // The blockKey index rebuilds lazily and may still be mid-flight right
+    // after creation - use the name flock.create*() just handed back.
+    attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
+  }
+  return newMesh;
+}
+
+// Live-editor counterpart of the mirror_mesh generator, followed by the DO
+// edits the live editor applies to clones.
+function createMirrorInternal(block) {
+  const sourceName = resolveVariableMeshName(block, 'SOURCE_MESH');
+  if (!sourceName) return;
+  const mirrorName = block.getField('ID_VAR')?.getText() || 'mirror';
+  const axis = String(block.getFieldValue('AXIS') || 'x_coordinate').toLowerCase();
+
+  const newMesh = flock.mirror(sourceName, {
+    mirrorId: mirrorName,
+    mirrorName,
+    axis: axis.includes('y') ? 'y' : axis.includes('z') ? 'z' : 'x',
+    aboutMeshName: resolveVariableMeshName(block, 'ABOUT'),
+    blockKey: block.id,
+  });
+  if (!newMesh || newMesh.startsWith('error_')) return;
+
+  meshMap[block.id] = block;
+  meshBlockIdMap[block.id] = block.id;
+  flock.whenModelReady(newMesh, (mesh) => {
+    if (!mesh || block.disposed) return;
+    attachToEnclosingGroupIfAny(block, mesh);
+    applyCloneDoBlocks(block, mesh);
+    rebuildDependentClones(block);
+  });
+}
+
+const cloneTemplates = new Map();
+const creatingMeshes = new Map();
+const pendingClones = new Map();
+const trackedScenes = new WeakSet();
+
+function currentRun() {
+  const scene = flock.scene;
+  if (scene && !trackedScenes.has(scene)) {
+    trackedScenes.add(scene);
+    scene.onDisposeObservable.addOnce(() => {
+      for (const [id, run] of [...creatingMeshes, ...pendingClones]) {
+        if (run.scene === scene) {
+          creatingMeshes.delete(id);
+          pendingClones.delete(id);
+        }
+      }
+      for (const [id, template] of cloneTemplates) {
+        if (template.run.scene === scene) cloneTemplates.delete(id);
+      }
+    });
+  }
+  return { scene, signal: flock.abortController?.signal };
+}
+
+function isCurrentRun(run) {
+  return !!run && run.scene === flock.scene && !run.signal?.aborted;
+}
+let buildingTemplate = false;
+
+function cloneSourceBlock(block) {
+  const sourceVar = block.getFieldValue('SOURCE_MESH');
+  if (!sourceVar) return null;
+  return (
+    block.workspace
+      .getAllBlocks(false)
+      .find((b) => b !== block && getOwnVar(b) === sourceVar && isEligibleForMeshCreation(b)) ??
+    null
+  );
+}
+
+function findBlockMesh(block) {
+  const mesh = getMeshFromBlock(block);
+  if (mesh && !mesh.isDisposed()) return mesh;
+  return flock.scene?.meshes?.find((m) => m?.metadata?.blockKey === block.id && !m.isDisposed());
+}
+
+async function waitForBlockMesh(block, frames = 600) {
+  for (let i = 0; i < frames; i++) {
+    if (block.disposed) return null;
+    const mesh = findBlockMesh(block);
+    if (mesh) return mesh;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  }
+  return null;
+}
+
+function liveTemplate(sourceBlock) {
+  const template = cloneTemplates.get(sourceBlock.id);
+  return template && !template.adopted && isCurrentRun(template.run) ? template : null;
+}
+
+export function isCloneTemplate(block) {
+  return !!liveTemplate(block);
+}
+
+function adoptCloneTemplate(block) {
+  const template = liveTemplate(block);
+  if (!template || buildingTemplate) return false;
+  template.adopted = true;
+  findBlockMesh(block)?.setEnabled(true);
+  return true;
+}
+
+function acquireTemplate(sourceBlock) {
+  let template = liveTemplate(sourceBlock);
+  if (!template) {
+    template = { run: currentRun(), users: 0, adopted: false };
+    cloneTemplates.set(sourceBlock.id, template);
+    buildingTemplate = true;
+    try {
+      createMeshOnCanvas(sourceBlock);
+    } finally {
+      buildingTemplate = false;
+    }
+    template.ready = waitForBlockMesh(sourceBlock).then((mesh) => {
+      template.mesh = mesh;
+      if (mesh && !template.adopted) mesh.setEnabled(false);
+      return mesh?.name ?? null;
+    });
+  }
+  template.users += 1;
+  return template;
+}
+
+function releaseTemplate(sourceBlock, template) {
+  template.users -= 1;
+  if (template.users > 0 || cloneTemplates.get(sourceBlock.id) !== template) return;
+  cloneTemplates.delete(sourceBlock.id);
+  if (template.adopted || !isCurrentRun(template.run)) return;
+  deleteMeshFromBlock(sourceBlock.id);
+  if (template.mesh && !template.mesh.isDisposed()) flock.disposeMesh(template.mesh);
+}
+
+function acquireCloneSource(block) {
+  const sourceBlock = cloneSourceBlock(block);
+  if (!sourceBlock) {
+    const name = resolveVariableMeshName(block, 'SOURCE_MESH');
+    return name ? { ready: Promise.resolve(name), release() {} } : null;
+  }
+  const mesh = !isCloneTemplate(sourceBlock) && findBlockMesh(sourceBlock);
+  if (mesh) return { ready: Promise.resolve(mesh.name), release() {} };
+  if (isCurrentRun(creatingMeshes.get(sourceBlock.id))) {
+    return { ready: waitForBlockMesh(sourceBlock).then((m) => m?.name ?? null), release() {} };
+  }
+  const template = acquireTemplate(sourceBlock);
+  return {
+    ready: template.ready,
+    fromTemplate: true,
+    release: () => releaseTemplate(sourceBlock, template),
+  };
+}
+
+export function hasCloneSource(block) {
+  return !!cloneSourceBlock(block) || !!resolveVariableMeshName(block, 'SOURCE_MESH');
+}
+
+function createCloneInternal(block) {
+  if (isCurrentRun(pendingClones.get(block.id))) return;
+  const source = acquireCloneSource(block);
+  if (!source) return;
+  const run = currentRun();
+  pendingClones.set(block.id, run);
+  meshMap[block.id] = block;
+  meshBlockIdMap[block.id] = block.id;
+
+  source.ready.then((sourceName) => {
+    const done = () => {
+      if (pendingClones.get(block.id) === run) pendingClones.delete(block.id);
+      source.release();
+    };
+    if (!sourceName || block.disposed || !isCurrentRun(run) || findBlockMesh(block)) return done();
+    const cloneName = block.getField('CLONE_VAR')?.getText() || 'clone';
+    const newMesh = flock.cloneMesh({
+      sourceMeshName: sourceName,
+      cloneId: cloneName,
+      cloneName,
+      blockKey: block.id,
+      mode: block.getFieldValue('MODE') === 'LINKED' ? 'linked' : 'copy',
+    });
+    if (!newMesh || newMesh.startsWith('error_')) return done();
+
+    flock.whenModelReady(newMesh, async (mesh) => {
+      done();
+      if (!mesh || block.disposed) return;
+      if (source.fromTemplate) mesh.setEnabled(true);
+      await applyInitialTransformsFromBlock(block, mesh);
+      if (block.disposed || mesh.isDisposed()) return;
+      attachToEnclosingGroupIfAny(block, mesh);
+      applyCloneDoBlocks(block, mesh);
+      rebuildDependentClones(block);
+    });
+  });
+}
+
+// Live-editor counterpart of the create_group generator: an empty group
+// mesh, parented to an outer group too when nested (mirroring codegen). No
+// position fields: the position derives from the contents.
+function createGroupInternal(block) {
+  const newMesh = flock.createGroup(`group__${block.id}`);
+
+  if (newMesh) {
+    meshMap[block.id] = block;
+    meshBlockIdMap[block.id] = block.id;
+    // Same lookup, minus the index (see above).
+    attachToEnclosingGroupIfAny(block, flock.scene?.getMeshByName(newMesh));
   }
 }

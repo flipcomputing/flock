@@ -10,10 +10,7 @@ export const flockControl = {
   */
 
   wait(duration) {
-    const ms =
-      Number.isFinite(Number(duration)) && Number(duration) >= 0
-        ? Math.min(Number(duration) * 1000, 2147483647)
-        : 0;
+    const ms = Number(duration) >= 0 ? Number(duration) * 1000 : 0;
     const signal = flock.abortController?.signal;
     return new Promise((resolve, reject) => {
       // Reject (not resolve) on abort so cooperative loops stop on Stop.
@@ -21,51 +18,29 @@ export const flockControl = {
         reject(flock.makeAbortError());
         return;
       }
-      const timeoutId = setTimeout(() => {
-        signal?.removeEventListener("abort", onAbort);
+
+      // Holds while the tab is hidden or the project is paused, so frozen
+      // time is not spent waiting.
+      const timer = flock.freezeAwareTimeout(() => {
+        signal?.removeEventListener('abort', onAbort);
         resolve();
       }, ms);
-
       const onAbort = () => {
-        clearTimeout(timeoutId);
-        signal?.removeEventListener("abort", onAbort);
+        timer.cancel();
         reject(flock.makeAbortError());
       };
 
-      signal?.addEventListener("abort", onAbort);
+      signal?.addEventListener('abort', onAbort);
     });
   },
   makeAbortError() {
-    const err = new Error("Run stopped");
-    err.name = "AbortError";
+    const err = new Error('Run stopped');
+    err.name = 'AbortError';
     return err;
   },
-  async safeLoop(
-    iteration,
-    loopBody,
-    chunkSize = 100,
-    timing = { lastFrameTime: performance.now() },
-    state = {},
-  ) {
-    if (state.stopExecution) return; // Check if we should stop further iterations
-    if (flock.abortController?.signal?.aborted) return;
-
-    // Execute the loop body
-    await loopBody(iteration);
-
-    // Yield control after every `chunkSize` iterations
-    if (iteration % chunkSize === 0) {
-      const currentTime = performance.now();
-
-      if (currentTime - timing.lastFrameTime > 16) {
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        timing.lastFrameTime = performance.now(); // Update timing for this loop
-      }
-    }
-  },
   waitUntil(conditionFunc) {
-    if (typeof conditionFunc !== "function") {
-      console.warn("waitUntil: conditionFunc must be a function");
+    if (typeof conditionFunc !== 'function') {
+      console.warn('waitUntil: conditionFunc must be a function');
       return Promise.resolve();
     }
     const signal = flock.abortController?.signal;
@@ -92,16 +67,77 @@ export const flockControl = {
           reject(error);
         }
       };
-      const observer = flock.scene.onBeforeRenderObservable.add(checkCondition);
+      // The condition is project code, so it isn't checked while paused.
+      const observer = flock.scene.onBeforeRenderObservable.add(() => {
+        if (!flock.isPaused()) checkCondition();
+      });
 
       signal?.addEventListener(
-        "abort",
+        'abort',
         () => {
           flock.scene?.onBeforeRenderObservable?.remove(observer);
           reject(flock.makeAbortError());
         },
-        { once: true },
+        { once: true }
       );
     });
+  },
+  createTag(tagName) {
+    if (typeof tagName !== 'string' || !tagName) {
+      console.warn('createTag: tagName must be a non-empty string');
+      return null;
+    }
+    for (const [name, rec] of flock._nameRegistry) {
+      if (rec.tag && rec.tagName === tagName) return name;
+    }
+    const families = new Set([
+      ...[...flock._nameRegistry.values()].map((rec) => rec.family),
+      ...(flock.scene?.meshes ?? []).map((mesh) => flock._familyOf(mesh.name)),
+    ]);
+    const used = (name) =>
+      flock._nameRegistry.has(name) || !!flock.scene?.getMeshByName(name) || families.has(name);
+    let tag = tagName;
+    while (used(tag)) {
+      tag = `${tagName}_${flock.scene.getUniqueId()}`;
+    }
+    flock._nameRegistry.set(tag, { pending: false, exists: true, family: tag, tag: true, tagName });
+    return tag;
+  },
+  tagObject(meshNames, tag) {
+    if (!flock._isTag(tag)) {
+      flock.reportBlockError({ key: 'tag_not_found', api: 'tagObject', values: { tag } });
+      return Promise.resolve();
+    }
+    const names = [meshNames].flat(Infinity).filter((name) => name != null);
+    return Promise.all(
+      names.map((meshName) =>
+        flock.whenModelReady(meshName, (mesh) => {
+          if (!flock.requireMesh(mesh, { api: 'tagObject', name: meshName })) return;
+          mesh.metadata ??= {};
+          mesh.metadata.tags ??= [];
+          if (mesh.metadata.tags.includes(tag)) return;
+          mesh.metadata.tags.push(tag);
+          flock._applyGroupHandlers(mesh.name, tag);
+        })
+      )
+    ).then(() => {});
+  },
+  getObjectsWithTag(tag) {
+    return (flock.scene?.meshes ?? [])
+      .filter((mesh) => !mesh.isDisposed() && mesh.metadata?.tags?.includes(tag))
+      .map((mesh) => mesh.name);
+  },
+  getClonesOf(meshName) {
+    if (typeof meshName !== 'string') return [];
+    const source = flock.scene?.getMeshByName(meshName);
+    if (!source) return [];
+    return flock.scene.meshes
+      .filter(
+        (mesh) =>
+          !mesh.isDisposed() &&
+          !mesh.metadata?.deletedOriginal &&
+          mesh.metadata?.cloneOf?.includes(source.uniqueId)
+      )
+      .map((mesh) => mesh.name);
   },
 };

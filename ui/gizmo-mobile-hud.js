@@ -1,4 +1,9 @@
 import { flock } from '../flock.js';
+import {
+  getGizmoControlsEnabled,
+  setGizmoControlsEnabled,
+  onControlPreferenceChange,
+} from './controlPreferences.js';
 
 const fontFamily = 'Atkinson Hyperlegible Next';
 
@@ -8,8 +13,12 @@ export function createGizmoMobileHud({
   stepFast,
   mode = 'slider',
   showUniform = false,
+  uniformOnly = false,
+  onlyAxis = null,
+  axes = null,
   stepLabels = ['◁', '▷'],
   onAxisChange = null,
+  onCollapsedChange = null,
   stepLabelsByAxis = null,
   getValues = null,
   initialAxis = null,
@@ -19,8 +28,8 @@ export function createGizmoMobileHud({
   const s = flock.displayScale ?? 1;
   const canvas = flock.canvas;
 
-  const savedControls = flock.controlsTexture ?? null;
-  if (savedControls) savedControls.rootContainer.isVisible = false;
+  flock._playerControlsSuppressed = true;
+  if (flock.controlsTexture) flock.controlsTexture.rootContainer.isVisible = false;
   if (flock._joystickSource) flock._joystickSource.pause();
 
   const hudTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
@@ -30,12 +39,19 @@ export function createGizmoMobileHud({
   );
 
   // ── Axis state ────────────────────────────────────────────────────────────
-  const AXIS_DEFS = [
+  const UNIFORM_DEF = { key: 'all', label: '=', color: '#aaaaaa' };
+  const SINGLE_AXIS_DEFS = [
     { key: 'x', label: 'X', color: '#0072B2' },
     { key: 'y', label: 'Y', color: '#009E73' },
     { key: 'z', label: 'Z', color: '#D55E00' },
-    ...(showUniform ? [{ key: 'all', label: '★', color: '#aaaaaa' }] : []),
   ];
+  const AXIS_DEFS = uniformOnly
+    ? [UNIFORM_DEF]
+    : onlyAxis
+      ? SINGLE_AXIS_DEFS.filter((def) => def.key === onlyAxis)
+      : axes
+        ? SINGLE_AXIS_DEFS.filter((def) => axes.includes(def.key))
+        : [...SINGLE_AXIS_DEFS, ...(showUniform ? [UNIFORM_DEF] : [])];
   const firstAxis = AXIS_DEFS[0]?.key ?? 'x';
   let axis = initialAxis && AXIS_DEFS.find((d) => d.key === initialAxis) ? initialAxis : firstAxis;
   const numAxes = AXIS_DEFS.length;
@@ -44,10 +60,11 @@ export function createGizmoMobileHud({
   const GAP = 6 * s;
   const HALF = canvas.width / 2;
   const BOTTOM_PADDING = 24 * s;
-  // Cap at the same size as the existing on-screen controls (70 * s),
-  // but shrink if there isn't room for all axis buttons in the right half.
-  const BTN_SIZE = Math.min(70 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
+  // Cap at the same size as the existing on-screen controls (62 * s),
+  const BTN_SIZE = Math.min(62 * s, (HALF - (numAxes + 1) * GAP) / numAxes);
   const TOTAL_H = BTN_SIZE + 2 * GAP;
+
+  const symbolTextTop = `${-Math.round(BTN_SIZE * 0.04)}px`;
 
   // ── Transparent container ─────────────────────────────────────────────────
   const container = new flock.GUI.Rectangle('gizmoHudContainer');
@@ -60,6 +77,31 @@ export function createGizmoMobileHud({
   container.top = `-${BOTTOM_PADDING}px`;
   container.isPointerBlocker = false;
   hudTexture.addControl(container);
+
+  let collapsed = !getGizmoControlsEnabled();
+  // Cancel anything mid-gesture that would otherwise keep firing against
+  // controls the user can no longer see.
+  const collapseHooks = [];
+
+  function applyCollapsed() {
+    container.isVisible = !collapsed;
+    if (collapsed) collapseHooks.forEach((fn) => fn());
+    // The mouse gizmo can rotate the mesh while the strip is hidden, so the
+    // thumb has to be re-read from the mesh on the way back.
+    else refreshThumb?.();
+  }
+
+  function setCollapsed(next) {
+    if (next === collapsed) return;
+    collapsed = next;
+    applyCollapsed();
+    onCollapsedChange?.(collapsed);
+  }
+
+  // The Tools panel owns the same preference.
+  const unsubscribePreference = onControlPreferenceChange(() =>
+    setCollapsed(!getGizmoControlsEnabled())
+  );
 
   // ── Axis buttons (right half, single horizontal row) ──────────────────────
   const axisButtons = {};
@@ -77,7 +119,12 @@ export function createGizmoMobileHud({
     btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     btn.left = `${HALF + GAP + i * (BTN_SIZE + GAP)}px`;
     btn.top = `${GAP}px`;
+    btn.shadowColor = 'rgba(120,120,120,0.5)';
+    btn.shadowBlur = 6 * s;
+    btn.shadowOffsetX = 3 * s;
+    btn.shadowOffsetY = 3 * s;
     container.addControl(btn);
+    if (label === '=' || label === '-' || label === '+') btn.textBlock.top = symbolTextTop;
     axisButtons[key] = btn;
   });
 
@@ -146,7 +193,9 @@ export function createGizmoMobileHud({
       btn.fontSize = `${Math.min(56 * s, Math.floor(BTN_SIZE * 0.75))}px`;
       btn.fontFamily = fontFamily;
       btn.cornerRadius = 8 * s;
-      btn.background = 'transparent';
+      // A fully transparent fill casts no canvas shadow, so give it a faint
+      // one purely to carry the drop shadow the border alone can't cast.
+      btn.background = 'rgba(0,0,0,0.35)';
       btn.color = 'white';
       btn.thickness = 3 * s;
       btn.isPointerBlocker = true;
@@ -154,10 +203,13 @@ export function createGizmoMobileHud({
       btn.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
       btn.left = `${leftPos}px`;
       btn.top = `${GAP}px`;
+      btn.shadowColor = 'rgba(120,120,120,0.5)';
+      btn.shadowBlur = 6 * s;
+      btn.shadowOffsetX = 3 * s;
+      btn.shadowOffsetY = 3 * s;
       container.addControl(btn);
-      // The +/- glyphs sit low within their line-box in this font; nudge up to
-      // visually re-centre them in the button.
-      btn.textBlock.top = `${-Math.round(BTN_SIZE * 0.08)}px`;
+      // Shares the symbol nudge above so -/+ stay optically centred.
+      btn.textBlock.top = symbolTextTop;
 
       let timeoutId = null;
       let intervalId = null;
@@ -200,6 +252,7 @@ export function createGizmoMobileHud({
       btn.onPointerOutObservable.add(stopRepeat);
 
       cleanups.push(stopRepeat);
+      collapseHooks.push(stopRepeat);
       return btn;
     }
 
@@ -237,7 +290,7 @@ export function createGizmoMobileHud({
       const tick = new flock.GUI.Rectangle(`gizmoTick${deg}`);
       tick.width = `${tickW}px`;
       tick.height = `${tickH}px`;
-      tick.background = 'rgba(255,255,255,0.55)';
+      tick.background = 'white';
       tick.thickness = 0;
       tick.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
       tick.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
@@ -255,7 +308,28 @@ export function createGizmoMobileHud({
     thumb.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     thumb.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
     thumb.top = `${TRACK_CENTER_Y - THUMB_R}px`;
+    thumb.shadowColor = 'rgba(120,120,120,0.5)';
+    thumb.shadowBlur = 6 * s;
+    thumb.shadowOffsetX = 3 * s;
+    thumb.shadowOffsetY = 3 * s;
     container.addControl(thumb);
+
+    // The covered tick sits *under* the 85%-opaque thumb, so recolouring it can
+    // only ever wash back out toward white (0.85*white + 0.15*anything is still
+    // ~85% of the way to white) — that's why it read as a flicker, not a solid
+    // grey. Draw the grey mark on top of the thumb instead, where it's opaque.
+    const notchW = tickW;
+    const notchH = THUMB_R * 0.7;
+    const thumbNotch = new flock.GUI.Rectangle('gizmoThumbNotch');
+    thumbNotch.width = `${notchW}px`;
+    thumbNotch.height = `${notchH}px`;
+    thumbNotch.background = '#999999';
+    thumbNotch.thickness = 0;
+    thumbNotch.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    thumbNotch.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+    thumbNotch.top = `${TRACK_CENTER_Y - notchH / 2}px`;
+    thumbNotch.isVisible = false;
+    container.addControl(thumbNotch);
 
     let rawOffsetGUI = 0; // follows finger exactly
     let thumbOffsetGUI = 0; // snapped display position
@@ -314,10 +388,16 @@ export function createGizmoMobileHud({
       }
     }
 
+    function updateThumbNotch(gui) {
+      thumbNotch.left = `${HALF / 2 - notchW / 2 + gui}px`;
+      thumbNotch.isVisible = isSnapPoint(gui);
+    }
+
     refreshThumb = () => {
       rawOffsetGUI = degToGUI(getAxisDeg());
       thumbOffsetGUI = snapGUI(rawOffsetGUI);
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
+      updateThumbNotch(thumbOffsetGUI);
     };
     refreshThumb();
 
@@ -336,6 +416,8 @@ export function createGizmoMobileHud({
     }
 
     function onPointerDown(e) {
+      // Turn off slider explicitly when collapsed
+      if (collapsed) return;
       if (activePointer !== null) return;
       const b = sliderBounds();
       if (e.clientY < b.top || e.clientY > b.bottom) return;
@@ -359,6 +441,7 @@ export function createGizmoMobileHud({
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       updateThumbHeldColour(newThumbOffsetGUI);
+      updateThumbNotch(newThumbOffsetGUI);
     }
 
     function onPointerMove(e) {
@@ -375,6 +458,7 @@ export function createGizmoMobileHud({
       thumbOffsetGUI = newThumbOffsetGUI;
       thumb.left = `${HALF / 2 - THUMB_R + thumbOffsetGUI}px`;
       updateThumbHeldColour(newThumbOffsetGUI);
+      updateThumbNotch(newThumbOffsetGUI);
     }
 
     function onPointerUp(e) {
@@ -389,8 +473,17 @@ export function createGizmoMobileHud({
     canvas.addEventListener('pointerup', onPointerUp);
     canvas.addEventListener('pointercancel', onPointerUp);
 
+    // Collapsing mid-drag has to release the pointer, or activePointer stays
+    // set and the slider ignores the first touch after expanding again.
+    collapseHooks.push(() => {
+      activePointer = null;
+      lastSnappedGUI = null;
+      thumb.background = 'rgba(255,255,255,0.85)';
+    });
+
     // Block camera/scene for slider touches — including the initial pointerdown
     const prePointerObserver = flock.scene.onPrePointerObservable.add((info) => {
+      if (collapsed) return;
       const e = info.event;
       if (activePointer !== null && e.pointerId === activePointer) {
         info.skipOnPointerObservable = true;
@@ -418,16 +511,29 @@ export function createGizmoMobileHud({
     });
   }
 
+  applyCollapsed();
+
   // ── Stop / cleanup ────────────────────────────────────────────────────────
   let stopped = false;
   function stop() {
     if (stopped) return;
     stopped = true;
+    unsubscribePreference();
     cleanups.forEach((fn) => fn());
     hudTexture.dispose();
-    if (savedControls) savedControls.rootContainer.isVisible = true;
+    flock._playerControlsSuppressed = false;
+    // Not the texture captured at creation: the preference can rebuild it mid-HUD.
+    if (flock.controlsTexture) flock.controlsTexture.rootContainer.isVisible = true;
     if (flock._joystickSource) flock._joystickSource.resume();
   }
+  stop.toggleCollapsed = () => {
+    if (stopped) return collapsed;
+    // Writing the preference notifies back into setCollapsed.
+    setGizmoControlsEnabled(collapsed);
+    return collapsed;
+  };
+  stop.isCollapsed = () => collapsed;
+  stop.getAxis = () => axis;
   stop.setAxis = (newAxis) => {
     if (stopped) return;
     const def = AXIS_DEFS.find((d) => d.key === newAxis);

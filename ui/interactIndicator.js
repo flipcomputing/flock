@@ -4,23 +4,40 @@ import {
   DynamicTexture,
   Color3,
   Vector3,
+  Matrix,
   Mesh,
   ActionManager,
-  ActionEvent,
   Ray,
+  VertexBuffer,
 } from '@babylonjs/core';
+import { hideFromInspector } from './inspectorVisibility.js';
 
-const ICON_MESH_NAME = '__flock_interact_indicator';
+export const ICON_MESH_NAME = '__flock_interact_indicator';
 const ICON_SIZE_PX = 24;
 const TEX_SIZE = 128;
 const MAX_RANGE = 4;
 const MAX_RANGE_FREE_CAMERA = 12;
 const MAX_HALF_ANGLE = Math.PI / 4; // 45 degrees
+const BAND_FRACTION = 0.08;
+const PARTS_REFRESH_FRAMES = 30;
 const _COS_MAX_HALF_ANGLE = Math.cos(MAX_HALF_ANGLE);
 
 // Module-level local axis constants (no per-frame allocation).
 const _LOCAL_FORWARD = new Vector3(0, 0, 1);
 const _LOCAL_RIGHT = new Vector3(1, 0, 0);
+const _LOCAL_UP = new Vector3(0, 1, 0);
+
+const _SUPPORT_DIRS = [];
+for (let x = -1; x <= 1; x++) {
+  for (let y = -1; y <= 1; y++) {
+    for (let z = -1; z <= 1; z++) {
+      if (x || y || z) _SUPPORT_DIRS.push(new Vector3(x, y, z).normalize());
+    }
+  }
+}
+const _supportCache = new WeakMap();
+const _boneMat = new Matrix();
+const _skinMat = new Matrix();
 
 let _enabled = true;
 let _icon = null;
@@ -29,6 +46,9 @@ let _observer = null;
 let _currentTarget = null;
 let _actionCallback = null;
 let _actionObserver = null;
+let _actionUpCallback = null;
+let _actionUpObserver = null;
+let _pressedTarget = null;
 let _inputManager = null;
 
 const _interactListeners = [];
@@ -49,10 +69,17 @@ let _losRay = null;
 // Scratch vectors reused across frames — no per-frame allocation in targeting path.
 let _cameraForward = null;
 let _cameraRight = null;
+let _cameraUp = null;
+let _worldPt = null;
+let _partsOwner = null;
+let _parts = null;
+let _partsAge = 0;
 let _toMesh = null;
 let _closestPt = null;
 // Pre-allocated candidate array — cleared each frame.
 let _candidates = null;
+const _candidateSet = new Set();
+const _isCandidate = (m) => _candidateSet.has(m);
 // Predicate allocated once; captures module variables by reference.
 let _predicate = null;
 // LOS predicate — all visible, pickable meshes (not just interactables).
@@ -89,11 +116,246 @@ function _closestPointOnBBToRef(mesh, p, result) {
   result.z = Math.max(bb.minimumWorld.z, Math.min(p.z, bb.maximumWorld.z));
 }
 
+function _isSayPlane(mesh) {
+  return (
+    !!mesh.metadata?.isTextPlane || (mesh.name === 'textPlane' && mesh.metadata?.sayTarget != null)
+  );
+}
+
+function _extremePoints(positions, vertexOffsets) {
+  const n = _SUPPORT_DIRS.length;
+  const best = new Float64Array(n).fill(-Infinity);
+  const bestIdx = new Int32Array(n);
+  const count = vertexOffsets ? vertexOffsets.length : positions.length / 3;
+  for (let v = 0; v < count; v++) {
+    const i = vertexOffsets ? vertexOffsets[v] : v * 3;
+    const x = positions[i];
+    const y = positions[i + 1];
+    const z = positions[i + 2];
+    for (let d = 0; d < n; d++) {
+      const dir = _SUPPORT_DIRS[d];
+      const dot = x * dir.x + y * dir.y + z * dir.z;
+      if (dot > best[d]) {
+        best[d] = dot;
+        bestIdx[d] = i;
+      }
+    }
+  }
+
+  const unique = [...new Set(bestIdx)];
+  const points = new Float32Array(unique.length * 3);
+  unique.forEach((idx, k) => {
+    points[k * 3] = positions[idx];
+    points[k * 3 + 1] = positions[idx + 1];
+    points[k * 3 + 2] = positions[idx + 2];
+  });
+  return points;
+}
+
+function _boneGroups(positions, indices, weights) {
+  const byBone = new Map();
+  for (let v = 0; v < positions.length / 3; v++) {
+    let bestW = -1;
+    let bone = 0;
+    for (let k = 0; k < 4; k++) {
+      const w = weights[v * 4 + k];
+      if (w > bestW) {
+        bestW = w;
+        bone = indices[v * 4 + k];
+      }
+    }
+    let offsets = byBone.get(bone);
+    if (!offsets) byBone.set(bone, (offsets = []));
+    offsets.push(v * 3);
+  }
+  const groups = [];
+  for (const [bone, offsets] of byBone) {
+    groups.push({ bone, points: _extremePoints(positions, offsets) });
+  }
+  return groups;
+}
+
+function _supportData(mesh) {
+  const source = mesh.sourceMesh ?? mesh;
+  const buffer = source.getVertexBuffer?.(VertexBuffer.PositionKind);
+  if (!buffer) return null;
+  const cached = _supportCache.get(buffer);
+  if (cached) return cached;
+  const positions = source.getVerticesData(VertexBuffer.PositionKind);
+  if (!positions || positions.length < 3) return null;
+
+  const indices = source.skeleton && source.getVerticesData(VertexBuffer.MatricesIndicesKind);
+  const weights = source.skeleton && source.getVerticesData(VertexBuffer.MatricesWeightsKind);
+  const data =
+    indices && weights
+      ? { groups: _boneGroups(positions, indices, weights) }
+      : { points: _extremePoints(positions, null) };
+  _supportCache.set(buffer, data);
+  return data;
+}
+
+const _piece = { minR: 0, minU: 0, maxU: 0 };
+const _extents = {
+  minR: 0,
+  minU: 0,
+  maxU: 0,
+  minF: 0,
+  maxF: 0,
+  bandLo: 0,
+  bandHi: 0,
+  bandMinR: 0,
+};
+
+function _placementOwner(target) {
+  let node = target;
+  while (node) {
+    if (_hasRealPickTrigger(node)) return node;
+    node = node.parent;
+  }
+  return target;
+}
+
+function _isPlacementCandidate(m) {
+  return m !== _icon && !_isSayPlane(m) && m.getTotalVertices?.() > 0;
+}
+
+function _isShown(m) {
+  return m.isVisible && m.visibility > 0 && m.isEnabled?.() !== false;
+}
+
+function _placementParts(owner) {
+  if (owner === _partsOwner && ++_partsAge < PARTS_REFRESH_FRAMES) return _parts;
+  _partsOwner = owner;
+  _partsAge = 0;
+  _parts = [owner, ...owner.getChildMeshes(false)].filter(_isPlacementCandidate);
+  return _parts;
+}
+
+function _addExtentPoint(p, result) {
+  const r = Vector3.Dot(p, _cameraRight);
+  const u = Vector3.Dot(p, _cameraUp);
+  const f = Vector3.Dot(p, _cameraForward);
+  if (r < result.minR) result.minR = r;
+  if (u < result.minU) result.minU = u;
+  if (u > result.maxU) result.maxU = u;
+  if (f < result.minF) result.minF = f;
+  if (f > result.maxF) result.maxF = f;
+  if (r < _piece.minR) _piece.minR = r;
+  if (u < _piece.minU) _piece.minU = u;
+  if (u > _piece.maxU) _piece.maxU = u;
+}
+
+function _beginPiece() {
+  _piece.minR = Infinity;
+  _piece.minU = Infinity;
+  _piece.maxU = -Infinity;
+}
+
+function _endPiece(result) {
+  if (_piece.maxU >= result.bandLo && _piece.minU <= result.bandHi) {
+    if (_piece.minR < result.bandMinR) result.bandMinR = _piece.minR;
+  }
+}
+
+function _addPointsExtents(points, matrix, result) {
+  _beginPiece();
+  for (let i = 0; i < points.length; i += 3) {
+    Vector3.TransformCoordinatesFromFloatsToRef(
+      points[i],
+      points[i + 1],
+      points[i + 2],
+      matrix,
+      _worldPt
+    );
+    _addExtentPoint(_worldPt, result);
+  }
+  _endPiece(result);
+}
+
+function _addMeshExtents(mesh, result) {
+  const data = _supportData(mesh);
+  const world = mesh.getWorldMatrix();
+  const source = mesh.sourceMesh ?? mesh;
+  const boneMatrices = data?.groups ? source.skeleton?.getTransformMatrices(source) : null;
+  if (data?.groups && boneMatrices) {
+    for (const group of data.groups) {
+      if ((group.bone + 1) * 16 > boneMatrices.length) continue;
+      Matrix.FromArrayToRef(boneMatrices, group.bone * 16, _boneMat);
+      _boneMat.multiplyToRef(world, _skinMat);
+      _addPointsExtents(group.points, _skinMat, result);
+    }
+  } else if (data?.points) {
+    _addPointsExtents(data.points, world, result);
+  } else {
+    _beginPiece();
+    for (const corner of mesh.getBoundingInfo().boundingBox.vectorsWorld) {
+      _addExtentPoint(corner, result);
+    }
+    _endPiece(result);
+  }
+}
+
+function _accumulateExtents(owner, result) {
+  result.minR = Infinity;
+  result.minU = Infinity;
+  result.maxU = -Infinity;
+  result.minF = Infinity;
+  result.maxF = -Infinity;
+  result.bandMinR = Infinity;
+
+  let shown = 0;
+  for (const part of _placementParts(owner)) {
+    if (!_isShown(part)) continue;
+    _addMeshExtents(part, result);
+    shown++;
+  }
+  if (shown === 0) _addMeshExtents(owner, result);
+}
+
+function _iconSizeAt(f, camF, sizeScale) {
+  return sizeScale * Math.max(f - camF, 0);
+}
+
+function _geometryExtentsToRef(owner, result, camF, sizeScale) {
+  result.bandLo = Infinity;
+  result.bandHi = -Infinity;
+  _accumulateExtents(owner, result);
+
+  const midU = (result.minU + result.maxU) * 0.5;
+  const midF = (result.minF + result.maxF) * 0.5;
+  const halfBand = Math.max(
+    _iconSizeAt(midF, camF, sizeScale) * 0.5,
+    (result.maxU - result.minU) * BAND_FRACTION
+  );
+  result.bandLo = midU - halfBand;
+  result.bandHi = midU + halfBand;
+  _accumulateExtents(owner, result);
+  if (result.bandMinR === Infinity) result.bandMinR = result.minR;
+}
+
 function _isDescendantOf(mesh, ancestor) {
   let node = mesh.parent;
   while (node) {
     if (node === ancestor) return true;
     node = node.parent;
+  }
+  return false;
+}
+
+// Forwarder actions (group shells passing clicks through to members) are
+// pick triggers technically, but the shell itself isn't interactable.
+function _hasRealPickTrigger(mesh) {
+  const manager = mesh?.actionManager;
+  if (!manager?.hasPickTriggers) return false;
+  for (const action of manager.actions || []) {
+    if (!action || action._flockForwarder) continue;
+    if (
+      action.trigger === ActionManager.OnPickTrigger ||
+      action.trigger === ActionManager.OnPickDownTrigger ||
+      action.trigger === ActionManager.OnPickUpTrigger
+    ) {
+      return true;
+    }
   }
   return false;
 }
@@ -116,6 +378,7 @@ export function attachInteractIndicator(scene, inputManager) {
   _icon.isPickable = false;
   _icon.checkCollisions = false;
   _icon.isVisible = false;
+  hideFromInspector(_icon);
 
   const mat = new StandardMaterial(ICON_MESH_NAME + '_mat', scene);
   _texture = new DynamicTexture(ICON_MESH_NAME + '_tex', TEX_SIZE, scene, false);
@@ -147,6 +410,8 @@ export function attachInteractIndicator(scene, inputManager) {
   _losRay = new Ray(Vector3.Zero(), new Vector3(0, 0, 1), 1);
   _cameraForward = new Vector3(0, 0, 1);
   _cameraRight = new Vector3(1, 0, 0);
+  _cameraUp = new Vector3(0, 1, 0);
+  _worldPt = new Vector3();
   _toMesh = new Vector3();
   _closestPt = new Vector3();
   _candidates = [];
@@ -154,14 +419,24 @@ export function attachInteractIndicator(scene, inputManager) {
   _predicate = (m) => {
     // An actionManager alone doesn't make a mesh interactable — onIntersect
     // attaches one purely for intersection triggers. Require a real pick trigger
-    // (matching the OnPickTrigger/OnLeftPickTrigger the BUTTON2 handler fires).
-    if (m === _icon || !m.actionManager?.hasPickTriggers) return false;
-    if (!m.isVisible || !m.isEnabled?.()) return false;
+    // (matching the pick triggers the BUTTON2 handler fires).
+    if (m === _icon || !m.isVisible || !m.isEnabled?.()) return false;
+    if (_isSayPlane(m)) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
-    return true;
+    if (_hasRealPickTrigger(m)) return true;
+    // Bubble: a member without its own trigger still clicks through to a
+    // group/parent handler (see onTrigger's recursive action managers).
+    let node = m.parent;
+    while (node) {
+      if (_hasRealPickTrigger(node)) return true;
+      node = node.parent;
+    }
+    return false;
   };
   _losPredicate = (m) => {
     if (m === _icon || !m.isVisible || !m.isPickable) return false;
+    // The XR UI panel is head- or wrist-locked, so it always sits on the ray.
+    if (m.metadata?.isXRHUD) return false;
     if (_playerMesh && (m === _playerMesh || _isDescendantOf(m, _playerMesh))) return false;
     return true;
   };
@@ -170,25 +445,43 @@ export function attachInteractIndicator(scene, inputManager) {
 
   if (inputManager) {
     _inputManager = inputManager;
+    // Route like a pointer click: nearest manager up the hierarchy wins,
+    // so a member without its own trigger bubbles to its group/parent.
+    // No pointer coords here, so pass a synthetic event that skips the
+    // shell's occlusion re-delegation (which needs screen coordinates).
+    const fire = (target, trigger) => {
+      const mgr =
+        typeof target._getActionManagerForTrigger === 'function'
+          ? target._getActionManagerForTrigger(trigger)
+          : null;
+      (mgr ?? target.actionManager)?.processTrigger(trigger, {
+        source: target,
+        meshUnderPointer: target,
+        pointerX: undefined,
+        pointerY: undefined,
+        __flockDelegated: true,
+      });
+    };
     _actionCallback = (action) => {
       if (action !== 'BUTTON2') return;
       if (_inputManager?.hasActionOverride('BUTTON2')) return;
-      if (!_currentTarget?.actionManager) return;
-      const target = _currentTarget;
-      target.actionManager.processTrigger(
-        ActionManager.OnPickTrigger,
-        ActionEvent.CreateNew(target)
-      );
-      target.actionManager.processTrigger(
-        ActionManager.OnLeftPickTrigger,
-        ActionEvent.CreateNew(target)
-      );
-      for (const cb of _interactListeners) cb(target);
+      if (!_currentTarget) return;
+      _pressedTarget = _currentTarget;
+      fire(_pressedTarget, ActionManager.OnPickDownTrigger);
+      for (const cb of _interactListeners) cb(_pressedTarget);
+    };
+    _actionUpCallback = (action) => {
+      if (action !== 'BUTTON2' || !_pressedTarget) return;
+      const target = _pressedTarget;
+      _pressedTarget = null;
+      fire(target, ActionManager.OnPickUpTrigger);
+      if (target === _currentTarget) fire(target, ActionManager.OnPickTrigger);
     };
     // Keep the observer handle: SimpleObservable.remove() matches on the
     // observer object returned by add(), not the raw callback. Passing the
     // callback removes nothing and leaks a listener on every attach/detach.
     _actionObserver = inputManager.onActionDownObservable.add(_actionCallback);
+    _actionUpObserver = inputManager.onActionUpObservable.add(_actionUpCallback);
   }
 }
 
@@ -214,8 +507,11 @@ function _updateIndicator(scene) {
     return;
   }
 
-  // Suppress icon and click when BUTTON2 has been rebound.
-  if (_inputManager?.hasActionOverride('BUTTON2')) {
+  // Suppress icon and click when BUTTON2 has been rebound or nothing is clickable.
+  if (
+    _inputManager?.hasActionOverride('BUTTON2') ||
+    !scene.actionManagers.some((manager) => manager.hasPickTriggers)
+  ) {
     _icon.isVisible = false;
     _currentTarget = null;
     return;
@@ -226,12 +522,15 @@ function _updateIndicator(scene) {
   _playerMesh = camera.metadata?.following ?? null;
   camera.getDirectionToRef(_LOCAL_FORWARD, _cameraForward);
   camera.getDirectionToRef(_LOCAL_RIGHT, _cameraRight);
+  camera.getDirectionToRef(_LOCAL_UP, _cameraUp);
 
   // Build candidate list into pre-allocated array.
   _candidates.length = 0;
+  _candidateSet.clear();
   for (const m of scene.meshes) {
     if (!_predicate(m)) continue;
     _candidates.push(m);
+    _candidateSet.add(m);
   }
 
   if (_candidates.length === 0) {
@@ -244,12 +543,33 @@ function _updateIndicator(scene) {
   const renderW = engine.getRenderWidth();
   const renderH = engine.getRenderHeight();
   scene.createPickingRayToRef(renderW / 2, renderH / 2, null, _ray, camera);
-  const hit = scene.pickWithRay(_ray, _predicate);
+  const hit = scene.pickWithRay(_ray, _isCandidate);
 
   let target = null;
 
   if (hit?.hit && hit.pickedMesh) {
     target = hit.pickedMesh;
+    // A group shell encloses its members, so the ray hits the shell first
+    // even when aiming at a member. See through it to the aimed-at member.
+    if (
+      (target.visibility === 0 || target.metadata?.shapeType === 'Group') &&
+      typeof scene.multiPickWithRay === 'function'
+    ) {
+      try {
+        const hits = scene.multiPickWithRay(_ray, _isCandidate);
+        if (hits?.length) {
+          for (const h of hits) {
+            const m = h?.pickedMesh;
+            if (!m || m === target) continue;
+            if (!_isDescendantOf(m, target)) break;
+            target = m;
+            if (m.visibility !== 0) break;
+          }
+        }
+      } catch {
+        // Fall through with the shell target.
+      }
+    }
   } else {
     // Fallback: candidate with smallest angle to camera forward within the half-angle cone.
     let bestCos = _COS_MAX_HALF_ANGLE;
@@ -308,7 +628,7 @@ function _updateIndicator(scene) {
   // interactable is reachable and the check would falsely block via floor/environment geometry.
   if (target && _playerMesh) {
     const playerPos = _playerMesh.getAbsolutePosition();
-    _toMesh.copyFrom(target.getAbsolutePosition()).subtractInPlace(playerPos);
+    _toMesh.copyFrom(target.getBoundingInfo().boundingBox.centerWorld).subtractInPlace(playerPos);
     const losLen = _toMesh.length();
     if (losLen > 0) {
       _losRay.origin.copyFrom(playerPos);
@@ -319,7 +639,8 @@ function _updateIndicator(scene) {
         losHit?.hit &&
         losHit.pickedMesh &&
         losHit.pickedMesh !== target &&
-        !_isDescendantOf(losHit.pickedMesh, target)
+        !_isDescendantOf(losHit.pickedMesh, target) &&
+        !_isDescendantOf(target, losHit.pickedMesh)
       ) {
         target = null;
       }
@@ -330,33 +651,27 @@ function _updateIndicator(scene) {
 
   if (!target) {
     _icon.isVisible = false;
+    _partsOwner = null;
+    _parts = null;
     return;
   }
 
-  // Position icon to the left of target (camera-relative), scaled to a constant screen size.
-  const meshPos = target.getAbsolutePosition();
+  // Position icon to the left of the interactable's geometry (camera-relative),
+  // scaled to a constant screen size.
   const camPos = camera.position;
-  const dist = Vector3.Distance(camPos, meshPos);
+  const camF = Vector3.Dot(camPos, _cameraForward);
+  const dpr = 1 / engine.getHardwareScalingLevel();
+  const sizeScale = (ICON_SIZE_PX * dpr * 2 * Math.tan(camera.fov / 2)) / renderH;
 
-  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  const worldSize = (ICON_SIZE_PX * dpr * 2 * dist * Math.tan(camera.fov / 2)) / renderH;
+  _geometryExtentsToRef(_placementOwner(target), _extents, camF, sizeScale);
+  const midU = (_extents.minU + _extents.maxU) * 0.5;
+  const midF = (_extents.minF + _extents.maxF) * 0.5;
+  const worldSize = _iconSizeAt(midF, camF, sizeScale);
 
-  // Offset icon toward camera slightly to prevent z-fighting.
-  _toMesh.copyFrom(camPos).subtractInPlace(meshPos);
-  const len = _toMesh.length();
-  if (len > 0) _toMesh.scaleInPlace(worldSize / (2 * len));
-  meshPos.addToRef(_toMesh, _icon.position);
-
-  // Offset to camera-left so the icon sits beside rather than on top of the object.
-  // Use projected half-extent onto camera-right so the offset matches the object's
-  // apparent width rather than its full diagonal.
-  const bb = target.getBoundingInfo().boundingBox;
-  const ext = bb.extendSizeWorld;
-  const halfWidth =
-    Math.abs(ext.x * _cameraRight.x) +
-    Math.abs(ext.y * _cameraRight.y) +
-    Math.abs(ext.z * _cameraRight.z);
-  _toMesh.copyFrom(_cameraRight).scaleInPlace(-(halfWidth + worldSize * 0.5));
+  _icon.position.copyFrom(_cameraRight).scaleInPlace(_extents.bandMinR - worldSize * 0.5);
+  _toMesh.copyFrom(_cameraUp).scaleInPlace(midU);
+  _icon.position.addInPlace(_toMesh);
+  _toMesh.copyFrom(_cameraForward).scaleInPlace(midF - worldSize * 0.5);
   _icon.position.addInPlace(_toMesh);
 
   _icon.scaling.setAll(worldSize);
@@ -366,11 +681,15 @@ function _updateIndicator(scene) {
 export function detachInteractIndicator() {
   if (_actionCallback && _inputManager) {
     _inputManager.onActionDownObservable.remove(_actionObserver);
+    _inputManager.onActionUpObservable.remove(_actionUpObserver);
     _actionCallback = null;
     _actionObserver = null;
+    _actionUpCallback = null;
+    _actionUpObserver = null;
     _inputManager = null;
   }
   _currentTarget = null;
+  _pressedTarget = null;
 
   if (_observer) {
     const scene = _icon?.getScene?.();
@@ -392,9 +711,14 @@ export function detachInteractIndicator() {
   _losRay = null;
   _cameraForward = null;
   _cameraRight = null;
+  _cameraUp = null;
+  _worldPt = null;
+  _partsOwner = null;
+  _parts = null;
   _toMesh = null;
   _closestPt = null;
   _candidates = null;
+  _candidateSet.clear();
   _predicate = null;
   _losPredicate = null;
   _playerMesh = null;

@@ -13,7 +13,7 @@ the script lives outside the repo).
 ## Launch
 
 - Chromium needs `headless: false` plus args `--no-sandbox
-  --disable-setuid-sandbox --headless=old`. This is not a contradiction:
+--disable-setuid-sandbox --headless=old`. This is not a contradiction:
   `headless: false` stops Playwright adding its own headless flags (its
   headless mode uses the new headless shell, which drops WebGL), and
   `--headless=old` then puts Chromium itself in legacy headless mode,
@@ -53,8 +53,10 @@ the script lives outside the repo).
 flock.js listens on the top document. Stub and dispatch:
 
 ```js
-Object.defineProperty(document, "visibilityState",
-  { configurable: true, get: () => document.__fakeVis || "visible" });
-document.__fakeVis = "hidden"; // or "visible"
-document.dispatchEvent(new Event("visibilitychange"));
+Object.defineProperty(document, 'visibilityState', {
+  configurable: true,
+  get: () => document.__fakeVis || 'visible',
+});
+document.__fakeVis = 'hidden'; // or "visible"
+document.dispatchEvent(new Event('visibilitychange'));
 ```

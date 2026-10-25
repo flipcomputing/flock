@@ -1,7 +1,25 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
+      {
+        "type": "start",
+        "id": "shapePushCanvasStart",
+        "x": 320,
+        "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "canvas_controls",
+              "id": "shapePushCanvasControls",
+              "fields": {
+                "CONTROLS": false
+              }
+            }
+          }
+        }
+      },
       {
         "type": "start",
         "id": "m/unI3g/rHBBhym`JU1=",
@@ -1063,7 +1081,7 @@
                     "type": "text",
                     "id": "Pp(7b$ZpWQ#Rx9_eL!yW",
                     "fields": {
-                      "TEXT": "WASD to move, push the colored shapes onto the grey shapes"
+                      "TEXT": "WASD or the △▽ pad to move. Push shapes onto the grey ones."
                     }
                   }
                 },
@@ -2244,6 +2262,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "0(IC]mPaU4TmAmxBh}g3",
+        "x": 10,
+        "y": 5291,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "pMF7cli,C){:9=`7Gx=E",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

@@ -1,55 +1,114 @@
-// Example ("Demo") gallery: a tabbed, tile-based, accessible picker that
-// replaces the old <select id="exampleSelect"> dropdown. To add an example:
-// append an entry below (with its `category`), drop its .flock file in
-// /examples, and add an `<key>_ui` label in the locale files. To add a
-// category, add an entry to CATEGORIES with an `examples_cat_<id>_ui` label.
-import { applyTranslations, translate } from "./translation.js";
-import { loadExample } from "./files.js";
+// To add a project, add its file to /examples and register it in EXAMPLES with
+// a matching `<key>_ui` locale entry, then run `npm run thumbnails` to capture
+// its tile image. Register new categories in CATEGORIES.
+import { applyTranslations, translate } from './translation.js';
+import { loadExample, newProject } from './files.js';
+
+// Tile thumbnails, captured by scripts/capture-thumbnails.mjs. 16:9 to match the
+// canvas the screenshots come from.
+export const THUMBNAIL_DIR = 'images/thumbnails';
+export const THUMBNAIL_WIDTH = 480;
+export const THUMBNAIL_HEIGHT = 270;
 
 // Tabs, in display order. `i18nKey` maps to an `examples_cat_<…>_ui` locale
 // entry. Categories with no examples are skipped when building the tabs.
 export const CATEGORIES = [
-  { id: "start", i18nKey: "examples_cat_start" },
-  { id: "worlds", i18nKey: "examples_cat_worlds" },
-  { id: "games", i18nKey: "examples_cat_games" },
-  { id: "physics", i18nKey: "examples_cat_physics" },
-  { id: "create", i18nKey: "examples_cat_create" },
-  { id: "xr", i18nKey: "examples_cat_xr" },
+  { id: 'worlds', i18nKey: 'examples_cat_worlds' },
+  { id: 'games', i18nKey: 'examples_cat_games' },
+  { id: 'physics', i18nKey: 'examples_cat_physics' },
+  { id: 'create', i18nKey: 'examples_cat_create' },
+  { id: 'data', i18nKey: 'examples_cat_data' },
+  { id: 'xr', i18nKey: 'examples_cat_xr' },
 ];
 
-// Ordered list of bundled examples. `i18nKey` maps to the existing `<key>_ui`
-// locale entries (which already include the leading emoji); `emoji` is kept as
-// a fallback used before translations are applied; `category` is a CATEGORIES id.
+// Ordered list of bundled examples. `i18nKey` maps to a `<key>_ui` locale entry
+// and to `images/thumbnails/<key>.webp`; `category` is a CATEGORIES id.
+// `thumbnailSettleMs` overrides the capture script's default settle delay for
+// projects that keep visibly changing after their mesh count stabilises.
 export const EXAMPLES = [
-  { i18nKey: "starter", file: "examples/starter.flock", emoji: "👋🏽", category: "start" },
-  { i18nKey: "tree_jump", file: "examples/tree_jump.flock", emoji: "🌳", category: "games" },
-  { i18nKey: "collect_the_gems", file: "examples/collect_the_gems.flock", emoji: "💎", category: "games" },
-  { i18nKey: "candy_dash", file: "examples/candy_dash.flock", emoji: "🎃", category: "games" },
-  { i18nKey: "beetle", file: "examples/beetle.flock", emoji: "🪲", category: "games" },
-  { i18nKey: "physics_fun", file: "examples/physics_fun.flock", emoji: "👆🏾", category: "physics" },
-  { i18nKey: "shape_push", file: "examples/shape_push.flock", emoji: "🔶", category: "physics" },
-  { i18nKey: "ball_pit", file: "examples/ball_pit.flock", emoji: "🟠", category: "physics" },
-  { i18nKey: "skittles", file: "examples/skittles.flock", emoji: "🎳", category: "physics" },
-  { i18nKey: "alien_planet", file: "examples/alien_planet.flock", emoji: "👽", category: "worlds" },
-  { i18nKey: "my_place", file: "examples/my_place.flock", emoji: "🏠", category: "worlds" },
-  { i18nKey: "forest_base", file: "examples/forest_base.flock", emoji: "🌲", category: "worlds" },
-  { i18nKey: "water_map", file: "examples/water_map.flock", emoji: "💧", category: "worlds" },
-  { i18nKey: "boat_trip", file: "examples/boat_trip.flock", emoji: "⛵", category: "worlds" },
-  { i18nKey: "tent_lights", file: "examples/tent_lights.flock", emoji: "⛺", category: "worlds" },
-  { i18nKey: "roominator", file: "examples/roominator.flock", emoji: "🛋️", category: "worlds" },
-  { i18nKey: "character_animation", file: "examples/character_animation.flock", emoji: "🎥", category: "create" },
-  { i18nKey: "sit_down", file: "examples/sit_down.flock", emoji: "🪑", category: "create" },
-  { i18nKey: "cube_art", file: "examples/cube_art.flock", emoji: "🎨", category: "create" },
-  { i18nKey: "snow_globe", file: "examples/snow_globe.flock", emoji: "❄️", category: "create" },
-  { i18nKey: "ur_enough", file: "examples/ur_enough.flock", emoji: "💗", category: "create" },
-  { i18nKey: "flockenspiel", file: "examples/flockenspiel.flock", emoji: "🎵", category: "create" },
-  { i18nKey: "tallest_buildings", file: "examples/tallest_buildings.flock", emoji: "📊", category: "create" },
-  { i18nKey: "pendant", file: "examples/pendant.flock", emoji: "📿", category: "xr" },
-  { i18nKey: "microbit_monkey", file: "examples/microbit_monkey.flock", emoji: "🐵", category: "xr" },
+  { i18nKey: 'starter', file: 'examples/starter.flock', category: 'worlds' },
+  { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', category: 'games' },
+  {
+    i18nKey: 'collect_the_gems',
+    file: 'examples/collect_the_gems.flock',
+    category: 'games',
+  },
+  {
+    i18nKey: 'candy_dash',
+    file: 'examples/candy_dash.flock',
+    category: 'games',
+    // Candies keep falling into view well after the mesh count settles.
+    thumbnailSettleMs: 6000,
+  },
+  { i18nKey: 'beetle', file: 'examples/beetle.flock', category: 'games' },
+  { i18nKey: 'grid_race', file: 'examples/grid_race.flock', category: 'games' },
+  { i18nKey: 'escape_room', file: 'examples/escape_room.flock', category: 'games' },
+  /*{
+    i18nKey: 'gem_tilt_game',
+    file: 'examples/gem_tilt_game.flock',
+    category: 'games',
+  },*/
+  { i18nKey: 'physics_fun', file: 'examples/physics_fun.flock', category: 'physics' },
+  { i18nKey: 'shape_push', file: 'examples/shape_push.flock', category: 'physics' },
+  { i18nKey: 'ball_pit', file: 'examples/ball_pit.flock', category: 'physics' },
+  { i18nKey: 'skittles', file: 'examples/skittles.flock', category: 'physics' },
+  {
+    i18nKey: 'block_tower',
+    file: 'examples/block_tower.flock',
+    category: 'physics',
+    thumbnailSettleMs: 7000,
+  },
+  { i18nKey: 'toy_finder', file: 'examples/toy_finder.flock', category: 'physics' },
+  { i18nKey: 'birdmerge', file: 'examples/birdmerge.flock', category: 'physics' },
+  { i18nKey: 'alien_planet', file: 'examples/alien_planet.flock', category: 'worlds' },
+  { i18nKey: 'my_place', file: 'examples/my_place.flock', category: 'worlds' },
+  { i18nKey: 'forest_base', file: 'examples/forest_base.flock', category: 'worlds' },
+  { i18nKey: 'water_map', file: 'examples/water_map.flock', category: 'worlds' },
+  { i18nKey: 'boat_trip', file: 'examples/boat_trip.flock', category: 'worlds' },
+  { i18nKey: 'tent_lights', file: 'examples/tent_lights.flock', category: 'worlds' },
+  { i18nKey: 'roominator', file: 'examples/roominator.flock', category: 'worlds' },
+  {
+    i18nKey: 'character_animation',
+    file: 'examples/character_animation.flock',
+    category: 'create',
+  },
+  { i18nKey: 'sit_down', file: 'examples/sit_down.flock', category: 'create' },
+  { i18nKey: 'cube_art', file: 'examples/cube_art.flock', category: 'create' },
+  { i18nKey: 'snow_globe', file: 'examples/snow_globe.flock', category: 'create' },
+  { i18nKey: 'ur_enough', file: 'examples/ur_enough.flock', category: 'create' },
+  { i18nKey: 'flockenspiel', file: 'examples/flockenspiel.flock', category: 'create' },
+  { i18nKey: 'space_scene', file: 'examples/space_scene.flock', category: 'create' },
+  { i18nKey: 'snowman_glide', file: 'examples/snowman_glide.flock', category: 'create' },
+  { i18nKey: 'pancake_flip', file: 'examples/pancake_flip.flock', category: 'create' },
+  {
+    i18nKey: 'backpack_maker',
+    file: 'examples/backpack_maker.flock',
+    category: 'create',
+  },
+  {
+    i18nKey: 'tallest_buildings',
+    file: 'examples/tallest_buildings.flock',
+    category: 'data',
+  },
+  { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
+  {
+    i18nKey: 'flockxr_keyring',
+    file: 'examples/flockxr_keyring.flock',
+    category: 'xr',
+  },
+  {
+    i18nKey: 'microbit_monkey',
+    file: 'examples/microbit_monkey.flock',
+    category: 'xr',
+  },
+  { i18nKey: 'ar_demo', file: 'examples/ardemo.flock', category: 'xr' },
+  { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', category: 'xr' },
+  { i18nKey: 'tower_of_hanoi', file: 'examples/tower_of_hanoi.flock', category: 'xr' },
 ];
 
 let previouslyFocused = null;
 let galleryInitialised = false;
+let lastFocusedAction = null;
 
 function canRestoreFocus(element) {
   if (!element || !element.isConnected) {
@@ -58,7 +117,7 @@ function canRestoreFocus(element) {
   let currentElement = element;
   while (currentElement) {
     const style = window.getComputedStyle(currentElement);
-    if (style.display === "none" || style.visibility === "hidden") {
+    if (style.display === 'none' || style.visibility === 'hidden') {
       return false;
     }
     currentElement = currentElement.parentElement;
@@ -72,48 +131,51 @@ function createTile(example) {
   // an option with its position (e.g. "Starter, 1 of 7"), and roving tabindex
   // (set by focusTile / populateExampleGrid) makes arrow-key navigation the
   // expected, announced behaviour — mirroring the tablist.
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "example-tile";
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'example-tile';
   button.dataset.key = example.i18nKey;
-  button.dataset.emoji = example.emoji;
   button.dataset.file = example.file;
-  button.setAttribute("role", "option");
-  button.setAttribute("aria-selected", "false");
+  button.setAttribute('role', 'option');
+  button.setAttribute('aria-selected', 'false');
   button.tabIndex = -1;
 
-  // Name first (the accessible label), emoji after it and aria-hidden so screen
-  // readers don't lead with / announce the emoji. localizeTiles() fills the name.
-  const name = document.createElement("span");
-  name.className = "example-tile-name";
-  const emoji = document.createElement("span");
-  emoji.className = "example-tile-emoji";
-  emoji.setAttribute("aria-hidden", "true");
-  emoji.textContent = example.emoji;
-  button.append(name, emoji);
+  // Decorative (alt=""): the name span beside it is the tile's accessible name,
+  // and the thumbnail only re-states what the project looks like. The intrinsic
+  // width/height give the tile its 16:9 box before the image arrives.
+  const thumb = document.createElement('img');
+  thumb.className = 'example-tile-thumb';
+  thumb.src = `${THUMBNAIL_DIR}/${example.i18nKey}.webp`;
+  thumb.alt = '';
+  thumb.loading = 'lazy';
+  thumb.decoding = 'async';
+  thumb.width = THUMBNAIL_WIDTH;
+  thumb.height = THUMBNAIL_HEIGHT;
+  // A project whose thumbnail hasn't been captured yet keeps a plain tile.
+  thumb.addEventListener('error', () => button.classList.add('example-tile--no-thumb'));
 
-  button.addEventListener("click", () => {
-    loadExample(example.file, name.textContent.trim());
+  // localizeTiles() fills the name.
+  const name = document.createElement('span');
+  name.className = 'example-tile-name';
+  button.append(thumb, name);
+
+  button.addEventListener('click', () => {
     hideExampleModal();
+    loadExample(example.file, name.textContent.trim());
   });
 
   return button;
 }
 
-// Set each tile's visible name from its localised label, with the leading
-// emoji (which the locale strings bake in) stripped off — the emoji is shown
-// separately via the aria-hidden span. Runs on build and on every language
-// change (see the "translationsapplied" listener in initExampleGallery).
+// Set each tile's visible name from its localised label. Runs on build and on
+// every language change (see the "translationsapplied" listener in
+// initExampleGallery).
 function localizeTiles() {
-  document.querySelectorAll(".example-tile").forEach((tile) => {
+  document.querySelectorAll('.example-tile').forEach((tile) => {
     const key = tile.dataset.key;
-    const emoji = tile.dataset.emoji || "";
-    const full = translate(`${key}_ui`) || key;
-    const nameEl = tile.querySelector(".example-tile-name");
+    const nameEl = tile.querySelector('.example-tile-name');
     if (nameEl) {
-      nameEl.textContent = full.startsWith(emoji)
-        ? full.slice(emoji.length).trim()
-        : full;
+      nameEl.textContent = translate(`${key}_ui`) || key;
     }
   });
 }
@@ -121,13 +183,11 @@ function localizeTiles() {
 // Build the tablist + one tabpanel (grid) per non-empty category, then localise
 // all labels. Idempotent.
 export function populateExampleGrid() {
-  const tablist = document.getElementById("exampleTabs");
-  const panels = document.getElementById("examplePanels");
+  const tablist = document.getElementById('exampleTabs');
+  const panels = document.getElementById('examplePanels');
   if (!tablist || !panels || tablist.childElementCount > 0) return;
 
-  const categories = CATEGORIES.filter((cat) =>
-    EXAMPLES.some((ex) => ex.category === cat.id),
-  );
+  const categories = CATEGORIES.filter((cat) => EXAMPLES.some((ex) => ex.category === cat.id));
   if (categories.length === 0) return;
 
   categories.forEach((cat, index) => {
@@ -135,38 +195,38 @@ export function populateExampleGrid() {
     const panelId = `examplePanel-${cat.id}`;
     const isFirst = index === 0;
 
-    const tab = document.createElement("button");
-    tab.type = "button";
-    tab.className = "example-tab";
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'example-tab';
     tab.id = tabId;
     tab.dataset.category = cat.id;
     tab.dataset.i18n = cat.i18nKey;
-    tab.setAttribute("role", "tab");
-    tab.setAttribute("aria-selected", isFirst ? "true" : "false");
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', isFirst ? 'true' : 'false');
     tab.tabIndex = isFirst ? 0 : -1;
     tab.textContent = cat.i18nKey;
-    tab.addEventListener("click", () => selectTab(cat.id));
+    tab.addEventListener('click', () => selectTab(cat.id));
     tablist.appendChild(tab);
 
     // Plain container (no role="tabpanel"/aria-controls): the tabpanel layer
     // only made the reader announce a redundant "<tab name> property page".
     // The listbox below provides the navigable content.
-    const panel = document.createElement("div");
-    panel.className = "example-panel";
+    const panel = document.createElement('div');
+    panel.className = 'example-panel';
     panel.id = panelId;
     panel.dataset.category = cat.id;
     panel.hidden = !isFirst;
 
-    const grid = document.createElement("div");
-    grid.className = "example-grid";
-    grid.setAttribute("role", "listbox");
-    grid.setAttribute("aria-labelledby", tabId);
+    const grid = document.createElement('div');
+    grid.className = 'example-grid';
+    grid.setAttribute('role', 'listbox');
+    grid.setAttribute('aria-labelledby', tabId);
     EXAMPLES.filter((ex) => ex.category === cat.id).forEach((ex, i) => {
       const tile = createTile(ex);
       // Roving tabindex: the first option is the listbox's single Tab stop.
       if (i === 0) {
         tile.tabIndex = 0;
-        tile.setAttribute("aria-selected", "true");
+        tile.setAttribute('aria-selected', 'true');
       }
       grid.appendChild(tile);
     });
@@ -175,31 +235,31 @@ export function populateExampleGrid() {
   });
 
   applyTranslations(); // localises the tab labels
-  localizeTiles(); // fills tile names (emoji stripped, shown after the name)
+  localizeTiles(); // fills tile names
 }
 
 function getActivePanel() {
-  return document.querySelector("#examplePanels .example-panel:not([hidden])");
+  return document.querySelector('#examplePanels .example-panel:not([hidden])');
 }
 
 // Switch to a category tab: toggle aria-selected / roving tabindex on the tabs
 // (tablist uses roving tabindex, the standard pattern) and show its panel.
 function selectTab(id, { focusTab = false } = {}) {
-  document.querySelectorAll(".example-tab").forEach((tab) => {
+  document.querySelectorAll('.example-tab').forEach((tab) => {
     const selected = tab.dataset.category === id;
-    tab.setAttribute("aria-selected", selected ? "true" : "false");
+    tab.setAttribute('aria-selected', selected ? 'true' : 'false');
     tab.tabIndex = selected ? 0 : -1;
     if (selected && focusTab) tab.focus();
   });
 
-  document.querySelectorAll(".example-panel").forEach((panel) => {
+  document.querySelectorAll('.example-panel').forEach((panel) => {
     panel.hidden = panel.dataset.category !== id;
   });
 }
 
 function getTiles() {
   const panel = getActivePanel();
-  return panel ? Array.from(panel.querySelectorAll(".example-tile")) : [];
+  return panel ? Array.from(panel.querySelectorAll('.example-tile')) : [];
 }
 
 // Selection follows focus within the listbox (as it does in the tablist):
@@ -209,19 +269,19 @@ function focusTile(tile) {
   getTiles().forEach((t) => {
     const isCurrent = t === tile;
     t.tabIndex = isCurrent ? 0 : -1;
-    t.setAttribute("aria-selected", isCurrent ? "true" : "false");
+    t.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
   });
   tile.focus();
-  tile.scrollIntoView({ block: "nearest", inline: "nearest" });
+  tile.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 // Read the live number of columns from the resolved grid template, so arrow
 // navigation always matches whatever the responsive auto-fill grid renders.
 function getColumnCount() {
-  const grid = getActivePanel()?.querySelector(".example-grid");
+  const grid = getActivePanel()?.querySelector('.example-grid');
   if (!grid) return 1;
   const template = getComputedStyle(grid).gridTemplateColumns;
-  const count = template ? template.split(" ").filter(Boolean).length : 1;
+  const count = template ? template.split(' ').filter(Boolean).length : 1;
   return Math.max(1, count);
 }
 
@@ -237,16 +297,16 @@ function moveFocus(current, key) {
   const cols = getColumnCount();
   let next = index;
   switch (key) {
-    case "ArrowRight":
+    case 'ArrowRight':
       next = (index + 1) % tiles.length;
       break;
-    case "ArrowLeft":
+    case 'ArrowLeft':
       next = (index - 1 + tiles.length) % tiles.length;
       break;
-    case "ArrowDown":
+    case 'ArrowDown':
       if (index + cols < tiles.length) next = index + cols;
       break;
-    case "ArrowUp":
+    case 'ArrowUp':
       if (index - cols >= 0) next = index - cols;
       break;
   }
@@ -257,33 +317,35 @@ function moveFocus(current, key) {
 // the focused tile natively (it's a <button>), so they need no handling here.
 function handleGridKeydown(e) {
   const active = document.activeElement;
-  const current = active?.classList.contains("example-tile") ? active : null;
+  const current = active?.classList.contains('example-tile') ? active : null;
   const tiles = getTiles();
   if (tiles.length === 0) return false;
 
   switch (e.key) {
-    case "ArrowUp": {
+    case 'ArrowUp': {
       e.preventDefault();
       // From the top row, return focus to the active tab.
       const index = current ? tiles.indexOf(current) : -1;
       if (index >= 0 && index < getColumnCount()) {
-        getTabs().find((t) => t.getAttribute("aria-selected") === "true")?.focus();
+        getTabs()
+          .find((t) => t.getAttribute('aria-selected') === 'true')
+          ?.focus();
       } else {
         moveFocus(current, e.key);
       }
       break;
     }
-    case "ArrowRight":
-    case "ArrowLeft":
-    case "ArrowDown":
+    case 'ArrowRight':
+    case 'ArrowLeft':
+    case 'ArrowDown':
       e.preventDefault();
       moveFocus(current, e.key);
       break;
-    case "Home":
+    case 'Home':
       e.preventDefault();
       focusTile(tiles[0]);
       break;
-    case "End":
+    case 'End':
       e.preventDefault();
       focusTile(tiles[tiles.length - 1]);
       break;
@@ -294,8 +356,37 @@ function handleGridKeydown(e) {
 }
 
 function getTabs() {
-  const tablist = document.getElementById("exampleTabs");
-  return tablist ? Array.from(tablist.querySelectorAll(".example-tab")) : [];
+  const tablist = document.getElementById('exampleTabs');
+  return tablist ? Array.from(tablist.querySelectorAll('.example-tab')) : [];
+}
+
+function getActionButtons() {
+  return Array.from(document.querySelectorAll('#exampleModal .project-action-button'));
+}
+
+function handleActionKeydown(e) {
+  const actions = getActionButtons();
+  const index = actions.indexOf(document.activeElement);
+  if (index === -1) return false;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowLeft': {
+      e.preventDefault();
+      const dir = e.key === 'ArrowRight' ? 1 : -1;
+      actions[(index + dir + actions.length) % actions.length].focus();
+      break;
+    }
+    case 'ArrowDown': {
+      e.preventDefault();
+      const selectedTab = getTabs().find((tab) => tab.getAttribute('aria-selected') === 'true');
+      selectedTab?.focus();
+      break;
+    }
+    default:
+      return false;
+  }
+  return true;
 }
 
 // Tablist keyboard navigation (focus on a tab): Left/Right (and Home/End) move
@@ -307,40 +398,44 @@ function handleTabKeydown(e) {
   if (index === -1) return false;
 
   switch (e.key) {
-    case "ArrowRight":
-    case "ArrowLeft": {
+    case 'ArrowRight':
+    case 'ArrowLeft': {
       e.preventDefault();
-      const dir = e.key === "ArrowRight" ? 1 : -1;
+      const dir = e.key === 'ArrowRight' ? 1 : -1;
       const next = tabs[(index + dir + tabs.length) % tabs.length];
       selectTab(next.dataset.category, { focusTab: true });
       break;
     }
-    case "Home":
+    case 'Home':
       e.preventDefault();
       selectTab(tabs[0].dataset.category, { focusTab: true });
       break;
-    case "End":
+    case 'End':
       e.preventDefault();
       selectTab(tabs[tabs.length - 1].dataset.category, { focusTab: true });
       break;
-    case "ArrowDown":
-    case "Enter":
-    case " ": {
+    case 'ArrowDown':
+    case 'Enter':
+    case ' ': {
       e.preventDefault();
       const firstTile = getTiles()[0];
       if (firstTile) focusTile(firstTile);
       break;
     }
+    case 'ArrowUp':
+      e.preventDefault();
+      (lastFocusedAction || getActionButtons()[0])?.focus();
+      break;
     default:
       return false;
   }
   return true;
 }
 
-// Anchor the panel directly under the Demo button, clamped to the viewport.
+// Anchor the panel directly under the Projects button, clamped to the viewport.
 function positionPanel(modal) {
-  const trigger = document.getElementById("exampleButton");
-  const panel = modal.querySelector(".example-modal-content");
+  const trigger = document.getElementById('exampleButton');
+  const panel = modal.querySelector('.example-modal-content');
   if (!trigger || !panel) return;
 
   const margin = 8;
@@ -360,15 +455,17 @@ function positionPanel(modal) {
     left = viewportWidth - panelWidth - margin;
   }
   panel.style.left = `${Math.max(margin, left)}px`;
-  panel.style.maxHeight = `${window.innerHeight - rect.bottom - gap - margin}px`;
+  const bottomBarTop = document.getElementById('bottomBar')?.getBoundingClientRect().top;
+  const limit = bottomBarTop > 0 ? bottomBarTop : window.innerHeight;
+  panel.style.maxHeight = `${limit - rect.bottom - gap - margin}px`;
 }
 
 export function openExampleModal() {
-  const modal = document.getElementById("exampleModal");
+  const modal = document.getElementById('exampleModal');
   if (!modal) return;
 
   previouslyFocused = document.activeElement;
-  modal.classList.remove("hidden");
+  modal.classList.remove('hidden');
   // Containment comes from role="dialog" + the Tab focus trap below, not
   // aria-modal. Toggling aria-modal made NVDA/JAWS announce the returning focus
   // twice on close (once for the focus, once for "left the dialog"); and the
@@ -376,27 +473,30 @@ export function openExampleModal() {
   positionPanel(modal);
 
   setTimeout(() => {
-    const selectedTab = modal.querySelector('.example-tab[aria-selected="true"]');
-    if (selectedTab) {
-      selectedTab.focus();
+    const firstAction = getActionButtons()[0];
+    if (firstAction) {
+      lastFocusedAction = firstAction;
+      firstAction.focus();
     } else {
-      document.getElementById("closeExampleModal")?.focus();
+      document.getElementById('closeExampleModal')?.focus();
     }
   }, 0);
 }
 
-export function hideExampleModal() {
-  const modal = document.getElementById("exampleModal");
+export function hideExampleModal({ restoreFocus = true } = {}) {
+  const modal = document.getElementById('exampleModal');
   if (!modal) return;
 
   // Remove the dialog from the a11y tree first (display:none via .hidden), then
-  // move focus, so the screen reader announces the Demo button exactly once.
-  modal.classList.add("hidden");
+  // move focus, so the screen reader announces the Projects button exactly once.
+  modal.classList.add('hidden');
 
-  if (canRestoreFocus(previouslyFocused)) {
-    previouslyFocused.focus();
-  } else {
-    document.getElementById("exampleButton")?.focus();
+  if (restoreFocus) {
+    if (canRestoreFocus(previouslyFocused)) {
+      previouslyFocused.focus();
+    } else {
+      document.getElementById('exampleButton')?.focus();
+    }
   }
   previouslyFocused = null;
 }
@@ -404,9 +504,12 @@ export function hideExampleModal() {
 // Wire up the trigger button and the modal's keyboard / click behaviour. Call
 // once during init after the DOM exists.
 export function initExampleGallery() {
-  const modal = document.getElementById("exampleModal");
-  const trigger = document.getElementById("exampleButton");
-  const closeButton = document.getElementById("closeExampleModal");
+  const modal = document.getElementById('exampleModal');
+  const trigger = document.getElementById('exampleButton');
+  const closeButton = document.getElementById('closeExampleModal');
+  const newButton = document.getElementById('newProjectButton');
+  const openButton = document.getElementById('openButton');
+  const saveButton = document.getElementById('exportCodeButton');
   if (!modal || !trigger) return;
   // Idempotent: a second call must not stack duplicate listeners.
   if (galleryInitialised) return;
@@ -415,31 +518,47 @@ export function initExampleGallery() {
   populateExampleGrid();
 
   // Re-localise tile names when the language changes.
-  document.addEventListener("translationsapplied", localizeTiles);
+  document.addEventListener('translationsapplied', localizeTiles);
 
-  trigger.addEventListener("click", openExampleModal);
-  closeButton?.addEventListener("click", hideExampleModal);
+  trigger.addEventListener('click', () => {
+    if (modal.classList.contains('hidden')) {
+      openExampleModal();
+    } else {
+      hideExampleModal();
+    }
+  });
+  closeButton?.addEventListener('click', hideExampleModal);
+  newButton?.addEventListener('click', () => {
+    hideExampleModal();
+    newProject();
+  });
+  openButton?.addEventListener('click', hideExampleModal);
+  saveButton?.addEventListener('click', hideExampleModal);
+  modal.querySelector('.project-actions')?.addEventListener('focusin', (e) => {
+    if (e.target?.classList.contains('project-action-button')) {
+      lastFocusedAction = e.target;
+    }
+  });
 
   // Escape to close + trap Tab focus within the modal (mirrors the About modal).
-  modal.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
+  modal.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
       e.preventDefault();
       e.stopPropagation();
       hideExampleModal();
-    } else if (
-      document.activeElement?.classList.contains("example-tab") &&
-      handleTabKeydown(e)
-    ) {
+    } else if (handleActionKeydown(e)) {
+      // Left / Right stays within project actions; Down moves to the tabs.
+    } else if (document.activeElement?.classList.contains('example-tab') && handleTabKeydown(e)) {
       // Arrow / Home / End / Enter handled by the tablist.
     } else if (handleGridKeydown(e)) {
       // Arrow / Home / End handled by the grid.
-    } else if (e.key === "Tab") {
+    } else if (e.key === 'Tab') {
       // Only genuinely tabbable, visible elements: roving tabindex parks most
       // tabs/tiles at -1, and hidden panels' tiles have no layout box.
       const focusable = Array.from(
         modal.querySelectorAll(
-          'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])',
-        ),
+          'button, input, select, textarea, [href], [tabindex]:not([tabindex="-1"])'
+        )
       ).filter((el) => el.tabIndex !== -1 && el.offsetParent !== null);
       if (focusable.length === 0) return;
       const first = focusable[0];
@@ -455,16 +574,18 @@ export function initExampleGallery() {
   });
 
   // Keep the panel anchored and on-screen if the window is resized while open.
-  window.addEventListener("resize", () => {
-    if (!modal.classList.contains("hidden")) {
+  window.addEventListener('resize', () => {
+    if (!modal.classList.contains('hidden')) {
       positionPanel(modal);
     }
   });
 
-  // Click on the backdrop (outside the content) closes the modal.
-  window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-      hideExampleModal();
-    }
+  const content = modal.querySelector('.example-modal-content');
+  const panelLinkTargets = ['newprojectbutton', 'saveproject', 'openproject'];
+  document.addEventListener('click', (e) => {
+    if (modal.classList.contains('hidden')) return;
+    if (content?.contains(e.target) || trigger.contains(e.target)) return;
+    if (panelLinkTargets.includes(e.target.closest?.('.help-link')?.dataset.target)) return;
+    hideExampleModal({ restoreFocus: false });
   });
 }

@@ -1,0 +1,167 @@
+{
+  "type": "start",
+  "inputs": {
+    "DO": {
+      "block": {
+        "type": "load_object",
+        "fields": {
+          "ID_VAR": {
+            "name": "star1",
+            "type": ""
+          },
+          "MODELS": "Star.glb"
+        },
+        "inputs": {
+          "COLOR": {
+            "shadow": {
+              "type": "colour",
+              "fields": {
+                "COLOR": "#ffd700"
+              }
+            }
+          },
+          "SCALE": {
+            "shadow": {
+              "type": "math_number",
+              "fields": {
+                "NUM": 1
+              }
+            }
+          },
+          "X": {
+            "shadow": {
+              "type": "math_number",
+              "fields": {
+                "NUM": -2.5
+              }
+            }
+          },
+          "Y": {
+            "shadow": {
+              "type": "math_number",
+              "fields": {
+                "NUM": 0
+              }
+            }
+          },
+          "Z": {
+            "shadow": {
+              "type": "math_number",
+              "fields": {
+                "NUM": 1
+              }
+            }
+          }
+        },
+        "next": {
+          "block": {
+            "type": "load_object",
+            "fields": {
+              "ID_VAR": {
+                "name": "star2",
+                "type": ""
+              },
+              "MODELS": "Star.glb"
+            },
+            "inputs": {
+              "COLOR": {
+                "shadow": {
+                  "type": "colour",
+                  "fields": {
+                    "COLOR": "#ffd700"
+                  }
+                }
+              },
+              "SCALE": {
+                "shadow": {
+                  "type": "math_number",
+                  "fields": {
+                    "NUM": 1
+                  }
+                }
+              },
+              "X": {
+                "shadow": {
+                  "type": "math_number",
+                  "fields": {
+                    "NUM": 0
+                  }
+                }
+              },
+              "Y": {
+                "shadow": {
+                  "type": "math_number",
+                  "fields": {
+                    "NUM": 0
+                  }
+                }
+              },
+              "Z": {
+                "shadow": {
+                  "type": "math_number",
+                  "fields": {
+                    "NUM": 1
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "load_object",
+                "fields": {
+                  "ID_VAR": {
+                    "name": "star3",
+                    "type": ""
+                  },
+                  "MODELS": "Star.glb"
+                },
+                "inputs": {
+                  "COLOR": {
+                    "shadow": {
+                      "type": "colour",
+                      "fields": {
+                        "COLOR": "#ffd700"
+                      }
+                    }
+                  },
+                  "SCALE": {
+                    "shadow": {
+                      "type": "math_number",
+                      "fields": {
+                        "NUM": 1
+                      }
+                    }
+                  },
+                  "X": {
+                    "shadow": {
+                      "type": "math_number",
+                      "fields": {
+                        "NUM": 2.5
+                      }
+                    }
+                  },
+                  "Y": {
+                    "shadow": {
+                      "type": "math_number",
+                      "fields": {
+                        "NUM": 0
+                      }
+                    }
+                  },
+                  "Z": {
+                    "shadow": {
+                      "type": "math_number",
+                      "fields": {
+                        "NUM": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

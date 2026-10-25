@@ -122,6 +122,66 @@ export function runAxisKeyboardTests(_flock) {
         topHandler()(makeEvent({ key: 'u' }));
         expect(stop.getAxis()).to.equal(null);
       });
+
+      it("treats '=' the same as 'u'", function () {
+        make({ allowUniform: true });
+        topHandler()(makeEvent({ key: '=' }));
+        expect(stop.getAxis()).to.equal('all');
+        topHandler()(makeEvent({ key: '=' }));
+        expect(stop.getAxis()).to.equal(null);
+      });
+    });
+
+    describe('uniformOnly', function () {
+      it("starts locked to 'all' whatever the initial axis", function () {
+        make({ uniformOnly: true, initialAxis: 'x' });
+        expect(stop.getAxis()).to.equal('all');
+      });
+
+      it('ignores x/y/z/u and keeps the uniform lock', function () {
+        make({ uniformOnly: true });
+        for (const key of ['x', 'Y', 'z', 'u']) topHandler()(makeEvent({ key }));
+        expect(stop.getAxis()).to.equal('all');
+        expect(axisChanges).to.deep.equal([]);
+      });
+
+      it('moves all axes together on an arrow key', function () {
+        make({ uniformOnly: true });
+        topHandler()(makeEvent({ key: 'ArrowRight' }));
+        expect(moves).to.deep.equal([[1, 1, 1]]);
+      });
+
+      it("setAxis cannot leave 'all'", function () {
+        make({ uniformOnly: true });
+        stop.setAxis('x');
+        expect(stop.getAxis()).to.equal('all');
+      });
+    });
+
+    describe('onlyAxis', function () {
+      it('starts locked to that axis whatever the initial axis', function () {
+        make({ onlyAxis: 'y', initialAxis: 'x' });
+        expect(stop.getAxis()).to.equal('y');
+      });
+
+      it('ignores x/y/z/u and keeps the lock', function () {
+        make({ onlyAxis: 'y' });
+        for (const key of ['x', 'Y', 'z', 'u']) topHandler()(makeEvent({ key }));
+        expect(stop.getAxis()).to.equal('y');
+        expect(axisChanges).to.deep.equal([]);
+      });
+
+      it('moves only that axis on an arrow key', function () {
+        make({ onlyAxis: 'y' });
+        topHandler()(makeEvent({ key: 'ArrowRight' }));
+        expect(moves).to.deep.equal([[0, 1, 0]]);
+      });
+
+      it('setAxis cannot leave that axis', function () {
+        make({ onlyAxis: 'y' });
+        stop.setAxis('x');
+        expect(stop.getAxis()).to.equal('y');
+      });
     });
 
     describe('initialAxis / normalizeAxis', function () {

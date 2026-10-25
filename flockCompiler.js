@@ -1,0 +1,85 @@
+import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+
+import { defineBlocks } from './blocks/blocks.js';
+import { defineBaseBlocks } from './blocks/base.js';
+import { defineShapeBlocks } from './blocks/shapes.js';
+import { defineSceneBlocks } from './blocks/scene.js';
+import { defineModelBlocks } from './blocks/models.js';
+import { defineEffectsBlocks } from './blocks/effects.js';
+import { defineCameraBlocks } from './blocks/camera.js';
+import { defineXRBlocks } from './blocks/xr.js';
+import { defineEventsBlocks } from './blocks/events.js';
+import { definePhysicsBlocks } from './blocks/physics.js';
+import { defineConnectBlocks } from './blocks/connect.js';
+import { defineModifyBlocks } from './blocks/modify.js';
+import { defineTransformBlocks } from './blocks/transform.js';
+import { defineControlBlocks } from './blocks/control.js';
+import { defineSectionBlock } from './blocks/section.js';
+import { generateWorkspaceCode } from './blocks/sectionContainment.js';
+import { defineConditionBlocks } from './blocks/condition.js';
+import { defineAnimateBlocks } from './blocks/animate.js';
+import { defineSoundBlocks } from './blocks/sound.js';
+import { defineMaterialsBlocks } from './blocks/materials.js';
+import { defineColourBlocks } from './blocks/colour.js';
+import { defineSensingBlocks } from './blocks/sensing.js';
+import { defineTextBlocks } from './blocks/text.js';
+import { defineUnknownBlock, replaceUnrecognisedBlocks } from './blocks/unknownBlock.js';
+import { defineGenerators } from './generators/generators.js';
+
+let registered = false;
+
+function registerBlocksAndGenerators() {
+  if (registered) return;
+  registered = true;
+
+  const steps = [
+    defineBaseBlocks,
+    defineBlocks,
+    defineSceneBlocks,
+    defineModelBlocks,
+    defineShapeBlocks,
+    defineEffectsBlocks,
+    defineCameraBlocks,
+    defineXRBlocks,
+    defineEventsBlocks,
+    definePhysicsBlocks,
+    defineConnectBlocks,
+    defineModifyBlocks,
+    defineTransformBlocks,
+    defineControlBlocks,
+    defineSectionBlock,
+    defineConditionBlocks,
+    defineAnimateBlocks,
+    defineSoundBlocks,
+    defineMaterialsBlocks,
+    defineColourBlocks,
+    defineSensingBlocks,
+    defineTextBlocks,
+    defineUnknownBlock,
+    defineGenerators,
+  ];
+
+  for (const step of steps) {
+    try {
+      step();
+    } catch (error) {
+      if (!/already (registered|been registered|exists)/i.test(String(error && error.message))) {
+        throw error;
+      }
+    }
+  }
+}
+
+export function compileFlockProject(projectJson) {
+  registerBlocksAndGenerators();
+
+  const workspace = new Blockly.Workspace();
+  try {
+    replaceUnrecognisedBlocks(projectJson);
+    Blockly.serialization.workspaces.load(projectJson, workspace);
+    return generateWorkspaceCode(workspace, javascriptGenerator);
+  } finally {
+    workspace.dispose();
+  }
+}

@@ -240,6 +240,58 @@ export function runNameRegistryTests(flock) {
       }
     });
 
+    describe('generated ids', function () {
+      // Blockly IDs are 20 characters and can contain "__".
+      const BLOCK_ID = 'a1B2c3D4e5F6g7H8i9J0';
+      const UNDERSCORE_ID = 'ab__cdEFghIJklMNopQR';
+
+      it('splits a generated id into the name and block key', function () {
+        expect(flock._splitBlockKey(`box1__${BLOCK_ID}`)).to.deep.equal(['box1', BLOCK_ID]);
+      });
+
+      it('keeps __ in the name the user wrote', function () {
+        expect(flock._splitBlockKey(`my__box__${BLOCK_ID}`)).to.deep.equal(['my__box', BLOCK_ID]);
+      });
+
+      it('keeps a block ID that contains __ whole', function () {
+        expect(flock._splitBlockKey(`box1__${UNDERSCORE_ID}`)).to.deep.equal([
+          'box1',
+          UNDERSCORE_ID,
+        ]);
+      });
+
+      it('splits other ids at the last __, and uses an id without __ as its own key', function () {
+        expect(flock._splitBlockKey('box__123')).to.deep.equal(['box', '123']);
+        expect(flock._splitBlockKey('plain')).to.deep.equal(['plain', 'plain']);
+        expect(flock._splitBlockKey('trailing__')).to.deep.equal(['trailing__', 'trailing__']);
+      });
+
+      it('gives the name the user wrote from a create id', function () {
+        expect(flock._userName(`my__box__${BLOCK_ID}`)).to.equal('my__box');
+        expect(flock._userName(`box1__${UNDERSCORE_ID}`)).to.equal('box1');
+        // Hand-written IDs in older projects aren't 20 characters.
+        expect(flock._userName('button1__bx00000wl905zg75')).to.equal('button1');
+        expect(flock._userName('box1_17')).to.equal('box1_17');
+      });
+
+      it("keeps a real object's name whole, even with __ in it", function () {
+        const name = flock._reserveName('gen_my__box');
+        try {
+          expect(flock._userName(name)).to.equal('gen_my__box');
+        } finally {
+          flock._releaseName(name);
+        }
+      });
+
+      it('creates an object named as written and keyed to its block', function () {
+        const name = makeBox(`my__box__${UNDERSCORE_ID}`);
+        const mesh = flock.scene.getMeshByName(name);
+        expect(name).to.equal('my__box');
+        expect(mesh.metadata.blockKey).to.equal(UNDERSCORE_ID);
+        expect(flock._familyOf(name)).to.equal('my__box');
+      });
+    });
+
     describe('character aliases @slow', function () {
       this.timeout(20000);
 
@@ -318,7 +370,7 @@ export function runNameRegistryTests(flock) {
         const meshBxBefore = meshB.position.x;
         await flock.positionAt(meshAId, { x: 5, y: 0, z: 0 });
         flock.scene.render();
-        expect(meshA.position.x).to.be.closeTo(5, 1e-3);
+        expect(flock._getAnchor(meshA).x).to.be.closeTo(5, 1e-3);
         expect(meshB.position.x).to.equal(meshBxBefore);
 
         // Each name resolves to its own mesh, after the move too.

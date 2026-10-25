@@ -1,4 +1,4 @@
-import * as Blockly from "blockly";
+import * as Blockly from 'blockly';
 import {
   addNumberShadow,
   addXYZShadows,
@@ -6,7 +6,9 @@ import {
   buildColorsListShadowSpec,
   addPositionShadows,
   addColourShadow,
-} from "./blocklyshadowutil.js";
+} from './blocklyshadowutil.js';
+import { rememberObjectBlock } from '../blocks/variableNames.js';
+import { rangeForInput } from '../config.js';
 let lastAddMenuHighlighted = null;
 
 // Whether a block has been locked (non-editable / non-movable / non-deletable).
@@ -17,7 +19,7 @@ export function isBlockLocked(block) {
 // Recursively remove lock-related serialized attributes from a block-save JSON
 // node and its inputs/next, so a pasted/duplicated copy is created unlocked.
 export function stripLockState(node) {
-  if (!node || typeof node !== "object") return;
+  if (!node || typeof node !== 'object') return;
   delete node.movable;
   delete node.editable;
   delete node.deletable;
@@ -77,16 +79,16 @@ function makeNoopDragStrategy(block) {
 export function applyBlockLockState(b, locked) {
   if (!b) return;
   b.locked = locked;
-  if (typeof b.setEditable === "function") b.setEditable(!locked);
+  if (typeof b.setEditable === 'function') b.setEditable(!locked);
   // Shadow blocks are inherently non-movable/non-deletable; toggling those on
   // them would wrongly make them draggable/removable when unlocked.
   if (!b.isShadow?.()) {
-    if (typeof b.setDeletable === "function") b.setDeletable(!locked);
-    if (typeof b.setMovable === "function") b.setMovable(!locked);
+    if (typeof b.setDeletable === 'function') b.setDeletable(!locked);
+    if (typeof b.setMovable === 'function') b.setMovable(!locked);
     // Swap in a no-op drag strategy while locked. setMovable(false) alone
     // makes Blockly pan the workspace when you try to drag the block; a
     // movable-but-no-op strategy consumes the drag gesture instead.
-    if (typeof b.setDragStrategy === "function") {
+    if (typeof b.setDragStrategy === 'function') {
       if (locked) {
         if (!b._origDragStrategy) b._origDragStrategy = b.getDragStrategy?.();
         b.setDragStrategy(makeNoopDragStrategy(b));
@@ -98,13 +100,13 @@ export function applyBlockLockState(b, locked) {
   }
   // Tag each locked block individually so the "no entry" cursor applies to the
   // locked subtree only, not to sibling blocks nested below it in the SVG DOM.
-  b.getSvgRoot?.()?.classList.toggle("blockly-locked", locked);
+  b.getSvgRoot?.()?.classList.toggle('blockly-locked', locked);
 }
 
 // Colour-swatch blocks carry only a colour field. They stay editable even
 // inside a locked block so the colour can still be changed while every other
 // input stays frozen.
-const COLOUR_BLOCK_TYPES = new Set(["colour", "skin_colour", "colour_picker"]);
+const COLOUR_BLOCK_TYPES = new Set(['colour', 'skin_colour', 'colour_picker']);
 function isColourBlock(b) {
   return COLOUR_BLOCK_TYPES.has(b?.type);
 }
@@ -117,52 +119,6 @@ export function setBlockLocked(block, locked) {
   }
 }
 
-// Toggle a comment on a block: remove it if present, otherwise add an empty one
-// and open its bubble for editing. Used by the floating block toolbar's comment
-// button (which is an add/remove affordance).
-export function toggleBlockComment(block) {
-  if (!block) return;
-  if (block.getCommentText() !== null) {
-    block.setCommentText(null);
-  } else {
-    block.setCommentText("");
-    getCommentIcon(block)?.setBubbleVisible(true);
-  }
-}
-
-function getCommentIcon(block) {
-  return (
-    block?.getIcons?.().find((i) => typeof i.setBubbleVisible === "function") ??
-    null
-  );
-}
-
-// Toggle the comment bubble open/closed, creating the comment if the block
-// doesn't have one yet. When opening, move keyboard focus into the comment
-// editor so the user can type straight away. Used by the 'K' shortcut; never
-// deletes (use deleteBlockComment for that). Async because Blockly's
-// setBubbleVisible resolves once the bubble has been (re)rendered.
-export async function toggleCommentBubble(block) {
-  if (!block) return;
-  if (block.getCommentText() === null) block.setCommentText("");
-  const icon = getCommentIcon(block);
-  if (!icon) return;
-  if (icon.bubbleIsVisible?.()) {
-    await icon.setBubbleVisible(false);
-    return;
-  }
-  await icon.setBubbleVisible(true);
-  // performAction() is the comment bubble's documented keyboard-navigation
-  // entry point: it focuses the editor's text area.
-  icon.getBubble?.()?.performAction?.();
-}
-
-// Remove a block's comment entirely (icon and text), if it has one.
-export function deleteBlockComment(block) {
-  if (!block) return;
-  if (block.getCommentText() !== null) block.setCommentText(null);
-}
-
 function trackBlockHighlight(workspace, blockId) {
   lastAddMenuHighlighted = { workspace, blockId };
   const block = workspace.getBlockById(blockId);
@@ -171,17 +127,17 @@ function trackBlockHighlight(workspace, blockId) {
 }
 
 function ensurePassiveFocusWrapper(workspace) {
-    if (!workspace || workspace.__addMenuPassiveFocusWrapped) return;
-    const orig = workspace.getRestoredFocusableNode?.bind(workspace);
-    if (!orig) return;
-    workspace.getRestoredFocusableNode = (prevTree, prevNode) => {
-      if (lastAddMenuHighlighted?.workspace === workspace) {
-        const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
-        if (block) return block;
-      }
-      return orig(prevTree, prevNode);
-    };
-    workspace.__addMenuPassiveFocusWrapped = true;
+  if (!workspace || workspace.__addMenuPassiveFocusWrapped) return;
+  const orig = workspace.getRestoredFocusableNode?.bind(workspace);
+  if (!orig) return;
+  workspace.getRestoredFocusableNode = (prevTree, prevNode) => {
+    if (lastAddMenuHighlighted?.workspace === workspace) {
+      const block = workspace.getBlockById(lastAddMenuHighlighted.blockId);
+      if (block) return block;
+    }
+    return orig(prevTree, prevNode);
+  };
+  workspace.__addMenuPassiveFocusWrapped = true;
 }
 
 function clearAddMenuHighlight(workspace, newSelectedId) {
@@ -217,34 +173,17 @@ export function appendWithUndo(spec, ws, groupId) {
   return block;
 }
 
-export function getLastHighlightedBlockId(workspace) {
-  return lastAddMenuHighlighted?.workspace === workspace
-    ? lastAddMenuHighlighted.blockId
-    : null;
-}
-
-export function restoreBlockFocus(workspace, blockId) {
-  if (!workspace || !blockId) return;
-  const block = workspace.getBlockById(blockId);
-  if (!block) return;
-
-  // On a view switch (canvas -> code) just bring the block back into view.
-  // Deliberately do NOT select or focus it: re-selecting armed the persistent
-  // getRestoredFocusableNode override, which hijacked focus on the next tap
-  // (first tap showed no toolbar) and left a stale selection ring on the old
-  // block. Leaving nothing selected means the next tap selects cleanly.
-  scrollToBlockTopParentLeft(workspace, blockId);
-}
-
 export function highlightBlockById(workspace, block) {
   if (!workspace || !block || block.workspace !== workspace) return;
+
+  rememberObjectBlock(block);
 
   // Select and scroll only when the code view is actually visible. `window.codeMode`
   // only tracks the wide-screen split-view toggle (switchView) — the narrow-screen
   // canvas/code tab toggle (showCanvasView/showCodeView) hides #codePanel via
   // style.display without ever updating codeMode, so check the DOM directly.
-  const codePanel = document.getElementById("codePanel");
-  const codeVisible = !codePanel || codePanel.style.display !== "none";
+  const codePanel = document.getElementById('codePanel');
+  const codeVisible = !codePanel || codePanel.style.display !== 'none';
   if (codeVisible) {
     ensureAddMenuSelectionCleanup(workspace);
 
@@ -261,11 +200,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
   if (!workspace || workspace.__addMenuSelectionCleanupAttached) return;
 
   const listener = (event) => {
-    const isSelectEvent =
-      event.type === Blockly.Events.SELECTED ||
-      (event.type === Blockly.Events.UI && event.element === "selected");
-
-    if (isSelectEvent) {
+    if (event.type === Blockly.Events.SELECTED) {
       clearAddMenuHighlight(workspace, event.newElementId);
     }
   };
@@ -276,7 +211,7 @@ function ensureAddMenuSelectionCleanup(workspace) {
 
 export function scrollToBlockTopParentLeft(workspace, blockId) {
   if (!workspace.isMovable()) {
-    console.warn("Tried to move a non-movable workspace.");
+    console.warn('Tried to move a non-movable workspace.');
     return;
   }
 
@@ -332,9 +267,8 @@ export function setPositionValues(block, position, blockType, decimals = 1) {
         let targetBlock = input.connection.targetBlock();
         if (!targetBlock) {
           // Create a shadow block if none exists
-          const shadowBlock =
-            Blockly.getMainWorkspace().newBlock("math_number");
-          shadowBlock.setFieldValue(String(roundedValue), "NUM");
+          const shadowBlock = Blockly.getMainWorkspace().newBlock('math_number');
+          shadowBlock.setFieldValue(String(roundedValue), 'NUM');
           shadowBlock.setShadow(true);
           shadowBlock.setMovable(false);
           shadowBlock.setDeletable(false);
@@ -343,15 +277,15 @@ export function setPositionValues(block, position, blockType, decimals = 1) {
           input.connection.connect(shadowBlock.outputConnection);
         } else {
           // Set the value if a block is already connected
-          targetBlock.setFieldValue(String(roundedValue), "NUM");
+          targetBlock.setFieldValue(String(roundedValue), 'NUM');
         }
       }
 
-      setOrCreatePositionInput("X", position.x);
-      setOrCreatePositionInput("Y", position.y);
-      setOrCreatePositionInput("Z", position.z);
+      setOrCreatePositionInput('X', position.x);
+      setOrCreatePositionInput('Y', position.y);
+      setOrCreatePositionInput('Z', position.z);
     } catch (e) {
-      console.warn("Could not set position values for block:", blockType, e);
+      console.warn('Could not set position values for block:', blockType, e);
     }
   }
 }
@@ -367,7 +301,7 @@ export function createBlockForObject(
   pickedPosition,
   objectColours,
   setPositionValues,
-  highlightBlockById,
+  highlightBlockById
 ) {
   const prevGroup = Blockly.Events.getGroup();
   const startTempGroup = !prevGroup;
@@ -383,26 +317,24 @@ export function createBlockForObject(
     const spec = { type: command, fields: {}, inputs: {} };
 
     if (
-      command === "load_object" ||
-      command === "load_multi_object" ||
-      command === "load_model" ||
-      command === "load_character"
+      command === 'load_object' ||
+      command === 'load_multi_object' ||
+      command === 'load_model' ||
+      command === 'load_character'
     ) {
       spec.fields.MODELS = objectName;
     }
 
     addXYZShadows(spec, pickedPosition);
-    addNumberShadow(spec, "SCALE", 1);
+    addNumberShadow(spec, 'SCALE', 1);
 
-    if (command === "load_object") {
+    if (command === 'load_object') {
       const configColors = objectColours?.[objectName];
-      const color = Array.isArray(configColors)
-        ? configColors[0]
-        : configColors || "#FFD700";
-      addColourShadowSpec(spec, "COLOR", color, "colour");
+      const color = Array.isArray(configColors) ? configColors[0] : configColors || '#FFD700';
+      addColourShadowSpec(spec, 'COLOR', color, 'colour');
     }
 
-    if (command === "load_multi_object") {
+    if (command === 'load_multi_object' || command === 'load_model') {
       spec.inputs.COLORS = {
         shadow: buildColorsListShadowSpec(objectName),
       };
@@ -413,24 +345,26 @@ export function createBlockForObject(
     try {
       setPositionValues?.(block, pickedPosition, command);
     } catch (error) {
-      console.warn("setPositionValues failed for object block:", error);
+      console.warn('setPositionValues failed for object block:', error);
     }
 
-    const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-    const conn = startBlock?.getInput("DO")?.connection;
+    const startBlock = appendWithUndo({ type: 'start' }, workspace, groupId);
+    const conn = startBlock?.getInput('DO')?.connection;
     if (conn && block?.previousConnection) {
       try {
         conn.connect(block.previousConnection);
       } catch (e) {
-        console.error("connect error:", e);
+        console.error('connect error:', e);
       }
     }
 
     try {
       highlightBlockById?.(workspace, block);
     } catch (error) {
-      console.warn("highlightBlockById failed for object block:", error);
+      console.warn('highlightBlockById failed for object block:', error);
     }
+
+    return block;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);
@@ -448,7 +382,7 @@ export function createBlockForCharacter(
   pickedPosition,
   colorFields,
   setPositionValues,
-  highlightBlockById,
+  highlightBlockById
 ) {
   const prevGroup = Blockly.Events.getGroup();
   const startTempGroup = !prevGroup;
@@ -462,18 +396,17 @@ export function createBlockForCharacter(
     Blockly.Events.setGroup(groupId);
 
     const spec = {
-      type: "load_character",
+      type: 'load_character',
       fields: { MODELS: characterName },
       inputs: {},
     };
 
     addPositionShadows(spec, pickedPosition);
-    addNumberShadow(spec, "SCALE", 1);
+    addNumberShadow(spec, 'SCALE', 1);
 
-    if (typeof colorFields === "object" && colorFields) {
+    if (typeof colorFields === 'object' && colorFields) {
       for (const [inputName, hex] of Object.entries(colorFields)) {
-        const shadowType =
-          inputName === "SKIN_COLOR" ? "skin_colour" : "colour";
+        const shadowType = inputName === 'SKIN_COLOR' ? 'skin_colour' : 'colour';
         addColourShadow(spec, inputName, shadowType, hex);
       }
     }
@@ -481,13 +414,13 @@ export function createBlockForCharacter(
     const charBlock = appendWithUndo(spec, workspace, groupId);
 
     try {
-      setPositionValues?.(charBlock, pickedPosition, "load_character");
+      setPositionValues?.(charBlock, pickedPosition, 'load_character');
     } catch (error) {
-      console.warn("setPositionValues failed for character block:", error);
+      console.warn('setPositionValues failed for character block:', error);
     }
 
-    const startBlock = appendWithUndo({ type: "start" }, workspace, groupId);
-    const conn = startBlock?.getInput("DO")?.connection;
+    const startBlock = appendWithUndo({ type: 'start' }, workspace, groupId);
+    const conn = startBlock?.getInput('DO')?.connection;
     if (conn && charBlock?.previousConnection) {
       try {
         conn.connect(charBlock.previousConnection);
@@ -499,8 +432,10 @@ export function createBlockForCharacter(
     try {
       highlightBlockById?.(workspace, charBlock);
     } catch (error) {
-      console.warn("highlightBlockById failed for character block:", error);
+      console.warn('highlightBlockById failed for character block:', error);
     }
+
+    return charBlock;
   } finally {
     if (startTempGroup) Blockly.Events.setGroup(false);
     else Blockly.Events.setGroup(prevGroup);
@@ -508,34 +443,81 @@ export function createBlockForCharacter(
   }
 }
 
-const roundToOneDecimal = (value) => Math.round(value * 10) / 10;
+// Block values are 1dp app-wide; group bakes round to the same and snap
+// live meshes back (see snapMemberPositionToBlock in gizmos.js).
+const roundToPrecision = (value, decimals = 1) => {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+};
 
-export function setBlockXYZ(block, x, y, z) {
+export function setBlockXYZ(block, x, y, z, { decimals = 1 } = {}) {
   const setInputValue = (inputName, value) => {
     const input = block.getInput(inputName);
     if (!input?.connection) return;
     const connectedBlock = input.connection.targetBlock();
 
-    if (connectedBlock?.getField?.("NUM")) {
-      connectedBlock.setFieldValue(String(value), "NUM");
+    if (connectedBlock?.getField?.('NUM')) {
+      connectedBlock.setFieldValue(String(value), 'NUM');
     }
   };
 
-  setInputValue("X", roundToOneDecimal(x));
-  setInputValue("Y", roundToOneDecimal(y));
-  setInputValue("Z", roundToOneDecimal(z));
+  setInputValue('X', roundToPrecision(x, decimals));
+  setInputValue('Y', roundToPrecision(y, decimals));
+  setInputValue('Z', roundToPrecision(z, decimals));
 }
 
-export function duplicateBlockAndInsert(
-  originalBlock,
-  workspace,
-  pickedPosition,
+export function isDoOpen(block) {
+  const input = block?.getInput?.('DO');
+  return Boolean(input) && (input.isVisible?.() ?? true);
+}
+
+export function findOrCreateDoBlock(
+  ownerBlock,
+  { type, varField, varId, inputs = {} },
+  { atStart = false } = {}
 ) {
+  let addedDoSection = false;
+  if (!isDoOpen(ownerBlock)) {
+    if (typeof ownerBlock.toggleDoBlock === 'function') {
+      ownerBlock.toggleDoBlock();
+    } else {
+      ownerBlock.appendStatementInput('DO').setCheck(null).appendField('');
+    }
+    addedDoSection = true;
+  }
+
+  const doConnection = ownerBlock.getInput('DO').connection;
+  for (let cur = doConnection.targetBlock(); cur; cur = cur.getNextBlock()) {
+    if (cur.type === type && cur.getFieldValue(varField) === varId) {
+      return { block: cur, created: false, addedDoSection };
+    }
+  }
+
+  const block = Blockly.serialization.blocks.append(
+    { type, fields: { [varField]: { id: varId } }, inputs },
+    ownerBlock.workspace
+  );
+
+  const first = doConnection.targetBlock();
+  if (!first) {
+    doConnection.connect(block.previousConnection);
+  } else if (atStart) {
+    first.previousConnection.disconnect();
+    doConnection.connect(block.previousConnection);
+    block.nextConnection.connect(first.previousConnection);
+  } else {
+    let tail = first;
+    while (tail.getNextBlock()) tail = tail.getNextBlock();
+    tail.nextConnection.connect(block.previousConnection);
+  }
+
+  return { block, created: true, addedDoSection };
+}
+
+export function duplicateBlockAndInsert(originalBlock, workspace, pickedPosition) {
   if (!originalBlock) {
     return null;
   }
-
-  Blockly.Events.setGroup("duplicate");
 
   const blockJson = Blockly.serialization.blocks.save(originalBlock, {
     includeShadows: true,
@@ -545,67 +527,116 @@ export function duplicateBlockAndInsert(
     delete blockJson.next;
   }
 
-  // A copy of a locked block must come out unlocked/movable.
-  stripLockState(blockJson);
+  return insertBlockSnapshot(blockJson, workspace, pickedPosition, originalBlock);
+}
 
-  const duplicateBlock = Blockly.serialization.blocks.append(
-    blockJson,
-    workspace,
-  );
-
-  setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
-
-  if (originalBlock.nextConnection && duplicateBlock.previousConnection) {
-    originalBlock.nextConnection.connect(duplicateBlock.previousConnection);
-  } else {
-    duplicateBlock.moveBy(50, 50);
+export function insertBlockSnapshot(snapshotJson, workspace, pickedPosition, connectAfter = null) {
+  if (!snapshotJson || !workspace) {
+    return null;
   }
 
-  Blockly.Events.setGroup(false);
+  const ownsGroup = !Blockly.Events.getGroup();
+  if (ownsGroup) Blockly.Events.setGroup(true);
 
-  // Trigger update of mesh from block values
-  queueMicrotask(() => {
-    Blockly.Events.setGroup("duplicate");
+  let duplicateBlock;
+  try {
+    const snapshot = JSON.parse(JSON.stringify(snapshotJson));
+    stripLockState(snapshot);
 
-    const descendants = duplicateBlock.getDescendants(false);
+    duplicateBlock = Blockly.serialization.blocks.append(snapshot, workspace, {
+      recordUndo: true,
+    });
 
-    for (const b of descendants) {
-      const transformChildTypes = ["rotate_to", "resize"];
-      if (!transformChildTypes.includes(b.type)) continue;
+    setPositionValues(duplicateBlock, pickedPosition, duplicateBlock.type);
 
-      for (const input of b.inputList ?? []) {
-        const numBlock = input.connection?.targetBlock?.();
-        if (!numBlock) continue;
-
-        if (typeof numBlock.getFieldValue !== "function") continue;
-        const current = numBlock.getFieldValue("NUM");
-        if (current === null || current === undefined) continue;
-
-        const currNum = Number(current);
-        const oldValue = Number.isFinite(currNum)
-          ? String(currNum - 1e-6)
-          : "__refresh_old__";
-        const newValue = String(current);
-
-        Blockly.Events.fire(
-          new Blockly.Events.BlockChange(
-            numBlock,
-            "field",
-            "NUM",
-            oldValue,
-            newValue,
-          ),
-        );
-      }
+    if (connectAfter?.nextConnection && duplicateBlock.previousConnection) {
+      connectAfter.nextConnection.connect(duplicateBlock.previousConnection);
+    } else {
+      duplicateBlock.moveBy(50, 50);
     }
-
-    Blockly.Events.setGroup(false);
-  });
+  } finally {
+    if (ownsGroup) Blockly.Events.setGroup(false);
+  }
 
   duplicateBlock.initSvg();
   duplicateBlock.render();
 
   return duplicateBlock;
+}
+
+export function captureStackAnchor(block) {
+  if (!block || block.disposed) return null;
+  const parent = block.getParent?.();
+  if (!parent || parent.disposed) return null;
+  const input = parent.getInputWithBlock?.(block);
+  const next = block.getNextBlock?.();
+  return {
+    parentId: parent.id,
+    inputName: input ? input.name : null,
+    nextId: next && !next.disposed ? next.id : null,
+  };
+}
+
+export function reattachBlockToAnchor(workspace, block, anchor) {
+  if (!workspace || !block || block.disposed || !anchor?.parentId) return false;
+  const parent = workspace.getBlockById(anchor.parentId);
+  if (!parent || parent.disposed) return false;
+  let fromConn;
+  let toConn;
+  if (anchor.inputName) {
+    const input = parent.getInput?.(anchor.inputName);
+    if (!input?.connection) return false;
+    fromConn = input.connection;
+    toConn =
+      input.type === Blockly.NEXT_STATEMENT ? block.previousConnection : block.outputConnection;
+  } else {
+    fromConn = parent.nextConnection;
+    toConn = block.previousConnection;
+  }
+  if (!fromConn || !toConn) return false;
+  try {
+    const occupant = fromConn.targetBlock?.();
+    if (occupant && occupant !== block) fromConn.disconnect();
+    if (!fromConn.isConnected()) fromConn.connect(toConn);
+    let follow = anchor.nextId ? workspace.getBlockById(anchor.nextId) : null;
+    if (follow && (follow.disposed || follow.previousConnection?.isConnected())) follow = null;
+    const target = occupant && occupant !== block ? occupant : follow;
+    if (
+      target?.previousConnection &&
+      block.nextConnection &&
+      !block.nextConnection.isConnected()
+    ) {
+      block.nextConnection.connect(target.previousConnection);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function chainBlockAfter(workspace, target, block) {
+  if (!workspace || !target || target.disposed || !block || block.disposed) return false;
+  const fromConn = target.nextConnection;
+  const toConn = block.previousConnection;
+  if (!fromConn || !toConn) return false;
+  try {
+    const occupant = fromConn.targetBlock?.();
+    if (occupant && occupant !== block) fromConn.disconnect();
+    if (!fromConn.isConnected()) fromConn.connect(toConn);
+    if (
+      occupant &&
+      occupant !== block &&
+      !occupant.disposed &&
+      occupant.previousConnection &&
+      block.nextConnection &&
+      !block.nextConnection.isConnected()
+    ) {
+      block.nextConnection.connect(occupant.previousConnection);
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function findParentWithBlockId(mesh) {
@@ -632,7 +663,7 @@ export function calculateYPosition(mesh) {
   return Number.isFinite(minY) ? minY : mesh.position.y;
 }
 
-export function setNumberInputs(block, valuesByInputName) {
+export function setNumberInputs(block, valuesByInputName, { decimals = 1 } = {}) {
   if (!block || !valuesByInputName) return;
 
   for (const [inputName, value] of Object.entries(valuesByInputName)) {
@@ -642,8 +673,14 @@ export function setNumberInputs(block, valuesByInputName) {
     if (!Number.isFinite(n)) continue;
 
     const target = block.getInput(inputName)?.connection?.targetBlock?.();
-    if (!target?.getField?.("NUM")) continue;
-    target.setFieldValue(String(roundToOneDecimal(n)), "NUM");
+    if (!target?.getField?.('NUM')) continue;
+    const range = rangeForInput(block.type, inputName);
+    const rounded = roundToPrecision(n, decimals);
+    const next =
+      range && range.clamp !== false && !range.wrap
+        ? Math.min(range.max, Math.max(range.min, rounded))
+        : rounded;
+    target.setFieldValue(String(next), 'NUM');
   }
 }
 
@@ -651,7 +688,8 @@ export function getNumberInput(block, inputName) {
   const target = block?.getInput(inputName)?.connection?.targetBlock?.();
   if (!target?.getFieldValue) return NaN;
 
-  const n = Number(target.getFieldValue("NUM"));
+  const value = target.getFieldValue('NUM');
+  if (value === '' || value === null) return NaN;
+  const n = Number(value);
   return Number.isFinite(n) ? n : NaN;
 }
-

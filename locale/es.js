@@ -9,7 +9,7 @@ export default {
   CATEGORY_TRANSFORM: 'Transformar', // human
   CATEGORY_PHYSICS: 'Física', // human
   CATEGORY_CONNECT: 'Conectar', // human
-  CATEGORY_COMBINE: 'Combinar', // human
+  CATEGORY_MODIFY: 'Modificar',
   CATEGORY_ANIMATE: 'Animar', // human
   CATEGORY_KEYFRAME: 'Fotograma clave', // human
   CATEGORY_CONTROL: 'Control', // human
@@ -26,6 +26,7 @@ export default {
   CATEGORY_FUNCTIONS: 'Funciones', // human
   CATEGORY_SNIPPETS: 'Fragmentos', // human
   CATEGORY_MOVEMENT: 'Movimiento', // human
+  CATEGORY_BUILDING: 'Construcción',
 
   // Color picker translations
   choose_a_color: 'Elige un color', // human
@@ -136,21 +137,26 @@ export default {
   show: 'mostrar %1', // human
   hide: 'ocultar %1', // human
   dispose: 'eliminar %1', // human
-  clone_mesh: 'añadir %1 clon de %2', // human
+  clone_mesh: 'añadir %1 clon de %2 %3',
 
   // Custom block translations - Models blocks
   load_character:
-    'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12', // human
-  load_object: 'añadir %1 %2 %3 escala: %4 x: %5 y: %6 z: %7', // human
-  load_multi_object: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6\ncolores: %7', // human
-  load_model: 'añadir %1 %2 escala: %3 x: %4 y: %5 z: %6', // human
+    'añadir %1 %2 escala: %3 %13 x: %4 y: %5 z: %6\npelo: %7 |  piel: %8 |  ojos: %9 |  camiseta: %10 |  pantalones cortos: %11 |  detalle: %12', // human
+  load_object: 'añadir %1 %2 %3 escala: %4 %8 x: %5 y: %6 z: %7', // human
+  load_multi_object: 'añadir %1 %2 escala: %3 %8 x: %4 y: %5 z: %6\ncolores: %7', // human
+  load_model: 'añadir %1 %2 escala: %3 %7 x: %4 y: %5 z: %6\ncolores: %8', // human
+  initial_position_label: 'posición',
+  same_axis_value: 'igual',
+  initial_rotation_label: 'rotación',
+  initial_size_label: 'tamaño',
+  then_label: 'luego', // human
 
   // Custom block translations - Animate blocks
-  glide_to: 'deslizar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
+  glide_to: 'deslizar %1 a %10 x %2 y %3 z %4 en %5 ms\n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_seconds:
-    'deslizar %1 a x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
+    'deslizar %1 a %10 x %2 y %3 z %4 en %5 segundos \n%6 ¿regresar? %7 ¿repetir? %8 %9', // human
   glide_to_object:
-    'deslizar %1 a %2 en %6 segundos\ndesplazamiento x: %3 y: %4 z: %5\n%7 ¿regresar? %8 ¿repetir? %9 %10', // human
+    'deslizar %1 %11 %2 separación %12 en %6 segundos\n%7 ¿regresar? %8 ¿repetir? %9 %10\n%3 %4 %5', // ai
   glide_to_axis: 'deslizar %1 %2 %3 en %4 segundos\n%5 ¿regresar? %6 ¿repetir? %7 %8', // human
   rotate_anim: 'rotar %1 a x %2 y %3 z %4 en %5 ms\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
   rotate_anim_seconds: 'rotar %1 a x %2 y %3 z %4 en %5 segundos\n%6 ¿invertir? %7 ¿repetir? %8 %9', // human
@@ -158,7 +164,7 @@ export default {
   animate_property: 'animar %1 %2 a %3 en %4 ms ¿invertir? %5 ¿repetir? %6 %7', // human
   colour_keyframe: 'en %1 color: %2', // human
   number_keyframe: 'en: %1 valor: %2', // human
-  xyz_keyframe: 'en: %1 x: %2 y: %3 z: %4', // human
+  xyz_keyframe: 'en: %1 %5 x: %2 y: %3 z: %4', // human
   animate_keyframes:
     'animar fotogramas clave en %1 propiedad %2\nfotogramas clave %3\nsuavizado %4 invertir %5 repetir %6 %7', // human
   animation:
@@ -174,37 +180,44 @@ export default {
 
   // Custom block translations - Camera blocks
   camera_control: 'cámara %1 %2', // human
-  camera_follow: 'cámara sigue a %1 con radio %2 frente %3', // human
+  camera_follow: 'cámara %5 sigue a %1 distancia: %2 ángulo: %3 frente: %4', // AI-generated; needs validation
   get_camera: 'obtener cámara como %1', // human
+  create_fly_camera: 'añadir cámara de vuelo %1 \n%6 x: %2 y: %3 z: %4 visible: %5 %7', // AI-generated; needs validation
+  create_follow_camera: 'añadir cámara que sigue %1 a %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
+  create_orbit_camera: 'añadir cámara en órbita %1 alrededor de %2 \n%7 distancia: %3 arriba: %4 alrededor: %5 visible: %6 %8', // AI-generated; needs validation
+  switch_camera: 'cambiar cámara a %1', // AI-generated; needs validation
 
   // Custom block translations - Combine blocks
   merge_meshes: 'añadir %1 como unir %2', // human
   subtract_meshes: 'añadir %1 como %2 restar %3', // human
+  embed_meshes: 'añadir %1 como %2 incrustar %3',
   intersection_meshes: 'añadir %1 como intersección %2', // human
   hull_meshes: 'añadir %1 como envoltura de %2', // human
 
   // Custom block translations - Connect blocks
   parent: 'hacer padre a %1 hijo %2', // human
+  parent_children: 'hacer padre a %1 hijos %2',
   parent_child: 'hacer padre a %1 hijo %2\ndesplazamiento x: %3 y: %4 z: %5', // human
   remove_parent: 'quitar padre de %1', // human
   stop_follow: 'parar seguimiento de %1', // human
   hold: 'hacer que %1 sostenga %2\ndesplazamiento x: %3 y: %4 z: %5', // human
   drop: 'soltar %1', // human
-  follow: 'hacer que %1 siga a %2 a %3\ndesplazamiento x: %4 y: %5 z: %6', // human
+  follow: 'hacer que %1 siga %3 %2\ndesplazamiento x: %4 y: %5 z: %6', // ai
   export_mesh: 'exportar %1 como %2', // human
+  export_mesh_unit_label: '1 unidad =',
   attach: 'adjuntar %1 a %2 en %3\ndesplazamiento x: %4 y: %5 z: %6', // human
 
   // Custom block translations - Control blocks
   wait: 'esperar %1 ms', // human
   wait_seconds: 'esperar %1 segundos', // human
   wait_until: 'esperar hasta %1', // human
-  local_variable: 'local %1', // human
+  local_variable: 'local %1 = %2',
   for_loop2: 'para cada %1 desde %2 hasta %3 de %4 haz %5', // human
   for_loop: 'para cada %1 desde %2 hasta %3 de %4 haz %5', // human
   get_lexical_variable: '%1', // human
 
   // Custom block translations - Effects blocks
-  main_light: 'intensidad de luz: %1 color: %2 suelo: %3', // human
+  main_light: 'intensidad de luz: %1 color: %2 suelo: %3 sombreado %4', // human
   set_fog: 'establecer niebla color %1 modo %2 densidad %3\ninicio %4 fin %5', // human
   get_light: 'obtener luz como %1', // human
 
@@ -217,6 +230,7 @@ export default {
   when_action_event: 'cuando %1 %2', // human
   broadcast_event: 'transmitir evento %1', // human
   on_event: 'al evento %1', // human
+  restart: 'reiniciar', // ai
 
   // Custom block translations - Materials blocks
   change_color: 'cambiar color de %1 a %2', // human
@@ -227,6 +241,8 @@ export default {
     'calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11', // human
   highlight: 'resaltar %1 %2', // human
   glow: 'resplandor en %1', // human
+  set_shadow: 'proyectar sombra de %1 %2', // ai
+  enable_shadows: 'activar sombras %1 todos %2', // ai
   tint: 'tinte %1 %2', // human
   set_alpha: 'establecer alfa de %1 a %2', // human
   clear_effects: 'limpiar efectos de %1', // human
@@ -235,9 +251,17 @@ export default {
   greyscale_colour: '%1', // human
   colour_from_string: '- %1 -', // human
   colour_from_string_invalid: 'No es un valor de color CSS válido.', // ai
+  colour_contrast_warning: 'El texto puede ser difícil de leer: el contraste es %1:1. Intenta que sea al menos %2:1.', // ai
+  animation_missing_warning: "%1 no tiene la animación '%2'. Puede usar: %3.", // ai
+  animation_none_warning: '%1 no tiene animaciones.', // ai
+  animation_shape_warning: 'Las formas y el texto 3D no tienen animaciones.', // ai
   random_colour: 'color aleatorio', // human
-  material: 'material %1 %2 alfa %3', // human
+  material: 'material %1 %2', // human
+  material_alpha: 'alfa',
+  material_scale: 'escala',
+  material_angle: 'ángulo',
   gradient_material: 'material %1 alfa %2', // human
+  gradient_colour: 'degradado %1 dirección %2°', // ai
   set_material: 'establecer material de %1 a %2', // human
 
   // Custom block translations - Physics blocks
@@ -246,8 +270,12 @@ export default {
   apply_force: 'aplicar fuerza a %1 x: %2 y: %3 z: %4', // human
   jump: 'saltar %1 altura %2', // ai
   set_speed: 'establecer velocidad de %1 %2 a %3', // ai
+  move_to_object: 'mover %1 %7 %2 %3 separación %4 velocidad %5 %6', // ai
   set_speed_tooltip:
-    'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.\nPalabra clave: speed', // ai
+    'Mantiene un objeto moviéndose a una velocidad establecida en una dirección. Se mueve igual que un personaje con "mover" — sube rampas, salva pequeños escalones, se detiene en las paredes y se mantiene erguido — pero relativo al objeto o al mundo en lugar de a la cámara. Mantiene esa velocidad hasta que la cambies. Elige una dirección relativa al objeto (adelante, al lado, arriba) o un eje del mundo (x, y, z); usa "mirar a" para apuntar y luego avanza. Elige "todos" y 0 para detener.', // ai
+  move_to_object_tooltip:
+    'Mueve un objeto hacia otro objeto a una velocidad, usando la física. Se gira hacia donde va, sigue al objeto si se mueve, rodea lo que se interpone y empuja los objetos que se pueden mover. Se detiene al llegar o si no puede llegar. Elige «deambulando» para que siga un camino sinuoso.', // ai
+  set_bounciness: 'establecer rebote de %1 a %2', // ai
   show_physics: 'mostrar formas físicas %1', // human
 
   // Custom block translations - Sensing blocks
@@ -267,7 +295,7 @@ export default {
   interact_indicator: 'indicador de interacción %1', // ai
   button_controls: 'controles de botón %1 habilitados %2 color %3', // human
   on_screen_controls:
-    'controles en pantalla  movimiento: %1  acciones: %2  habilitado: %3  color: %4', // ai
+    'controles del jugador  movimiento: %1  acciones: %2  mostrar: %3\ncolor: %4  fondo: %5  alfa: %6', // ai
   microbit_input: 'cuando evento micro:bit %1', // human
   add_microbit: 'añadir micro:bit %1 canal de radio %2', // ai
   microbit_any_option: 'cualquiera', // ai
@@ -306,20 +334,35 @@ export default {
   create_particle_effect:
     'añadir efecto de partículas %1 en: %2\nforma: %3 inicio %4 fin %5 alfa: %6 a %7\ntasa: %8 tamaño: %9 a %10 duración: %11 a %12\ngravedad: %13 fuerza x: %14 y: %15 z: %16\nvelocidad angular: %17 a %18 ángulo inicial: %19 a %20', // human
   control_particle_system: 'sistema de partículas %1 %2', // human
-  create_box: 'añadir caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \nen x: %6 y: %7 z: %8', // human
+  create_box: 'añadir caja %1 %2 ancho: %3 alto: %4 profundidad: %5 \n%9 x: %6 y: %7 z: %8', // human
   create_sphere:
-    'añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\nen x: %6 y: %7 z: %8', // human
+    'añadir esfera %1 %2 diámetro x: %3 diámetro y: %4 diámetro z: %5\n%9 x: %6 y: %7 z: %8', // human
   create_cylinder:
-    'añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\nen x: %7 y: %8 z: %9', // human
-  create_capsule: 'añadir cápsula %1 %2 diámetro: %3 altura: %4 \nen x: %5 y: %6 z: %7', // human
-  create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \nen x: %5 y: %6 z: %7', // human
+    'añadir cilindro %1 %2 altura: %3 parte superior: %4 parte inferior: %5 lados: %6\n%10 x: %7 y: %8 z: %9', // human
+  create_capsule: 'añadir cápsula %1 %2 diámetro: %3 altura: %4 \n%8 x: %5 y: %6 z: %7', // human
+  X_option: 'x', // ai
+  Z_option: 'z', // ai
+  create_wedge:
+    'añadir cuña %1 %2 ancho: %3 alto: %4 profundidad: %5\npico: %6 a lo largo de: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_donut:
+    'añadir rosquilla %1 %2 exterior: %3 interior: %4 grosor: %5 lados: %6\n%10 x: %7 y: %8 z: %9', // ai
+  create_ring:
+    'añadir anillo %1 %2 altura: %3 exterior: %4 interior: %5 grosor: %6 lados: %7\n%11 x: %8 y: %9 z: %10', // ai
+  create_plane: 'añadir plano %1 %2 ancho: %3 alto: %4 \n%8 x: %5 y: %6 z: %7', // human
+  create_marker: 'añadir marcador %1 %7 %5 x: %2 y: %3 z: %4 editar: %6', // AI-generated; needs validation
+  cross_option: 'cruz', // AI-generated; needs validation
+  sphere_option: 'esfera', // AI-generated; needs validation
 
   // Custom block translations - Sound blocks
   play_theme: 'reproducir tema %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
   play_sound: 'reproducir sonido %1 %2 desde %3 \nvelocidad: %4 volumen: %5 modo: %6 asíncrono: %7', // human
   stop_all_sounds: 'parar todos los sonidos', // human
+  note: 'nota MIDI %1 %2', // ai
   midi_note: 'nota MIDI %1', // human
   rest: 'pausa', // human
+  play_tune: 'reproducir melodía', // ai
+  play_tune_notes: 'reproducir notas %1 instrumento: %2\nnotas: %3', // ai
+  set_music_speed: 'establecer velocidad de música de %1 %2', // ai
   play_notes: 'reproducir notas en %1\nnotas: %2 duraciones: %3\ninstrumento: %4 modo: %5', // human
   set_scene_bpm: 'establecer BPM de la escena a %1', // human
   set_mesh_bpm: 'establecer BPM de %1 a %2', // human
@@ -335,11 +378,12 @@ export default {
   subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
+  ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   ui_input: 'UI aporte %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
   describe: 'describir %1 como %2', // human
   create_3d_text:
-    'añadir %1 texto 3D: %2 fuente: %3 tamaño: %4 color: %5\nprofundidad: %6 x: %7 y: %8 z: %9', // human
+    'añadir %1 texto 3D: %2 fuente: %3 color: %5\ntamaño: %4 profundidad: %6 espaciado: %12 horizontal: %11 %10 x: %7 y: %8 z: %9', // human
 
   // Custom block translations - Math blocks
   random_seeded_int: 'numero entero aleatorio de %1 a %2 semilla: %3', // human
@@ -348,9 +392,9 @@ export default {
   // Custom block translations - Transform blocks
   move_by_xyz: 'cambiar posición de %1 por x: %2 y: %3 z: %4', // human
   move_by_xyz_single: 'cambiar posición de %1 por %2 %3', // human
-  move_to_xyz: 'establecer posición de %1 a x: %2 y: %3 z: %4 y? %5', // human
+  move_to_xyz: 'establecer posición de %1 a %5 x: %2 y: %3 z: %4', // human
   move_to_xyz_single: 'establecer posición de %1 a %2 %3', // human
-  move_to: 'establecer posición de %1 a %2 y? %3', // human
+  move_to: 'establecer posición de %1 %3 %2\ndesplazamiento x: %4 y: %5 z: %6', // human
   scale: 'escalar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7', // human
   resize: 'redimensionar %1 x: %2 y: %3 z: %4\norigen x: %5 y: %6 z: %7', // human
   rotate_model_xyz: 'rotar %1 por x: %2 y: %3 z: %4', // human
@@ -359,12 +403,20 @@ export default {
   move_forward: 'mover %1 %2 velocidad %3', // human
   rotate_camera: 'rotar cámara %1 grados', // human
   up: 'arriba %1 fuerza %2', // human
-  set_pivot: 'establecer ancla de %1\nx: %2 y: %3 z: %4', // human
+  set_anchor: 'establecer ancla de %1\nx: %2 y: %3 z: %4', // human
+  set_pivot: 'establecer pivote de %1\nx: %2 y: %3 z: %4',
   min_centre_max: '%1', // human
 
   // Custom block translations - XR blocks
   device_camera_background: 'usar cámara %1 como fondo', // human
   set_xr_mode: 'establecer modo XR a %1', // human
+  set_xr_view_mode: 'establecer vista de RV a %1 con movimiento de cámara %2',
+  set_ar_scene_size: 'escena AR escala: %1 cm distancia: %2 cm altura: %3 cm', // ai
+  set_vr_comfort: 'confort de RV visión de túnel %1 intensidad %2 color %3 alfa %4', // ai
+  set_vr_comfort_overlay: 'superposición %1 mostrada %2 espaciado %3 color %4', // ai
+  set_xr_ui_placement: 'mostrar interfaz de RV en %1', // ai
+  add_teleport_target: 'añadir destino de teletransporte %1',
+  remove_teleport_target: 'eliminar destino de teletransporte %1',
   play_rumble_pattern: 'reproducir patrón de vibración %1', // human
   controller_rumble: 'vibrar motor %1 con fuerza %2 durante %3 ms', // human
   controller_rumble_pattern: 'vibrar %1 fuerza de motor %2 encendido %3 ms apagado %4 ms %5 veces', // human
@@ -390,22 +442,20 @@ export default {
   // Add more custom block translations as needed
 
   // Tooltip translations - Scene Blocks
-  set_sky_color_tooltip: 'Establece el cielo del cielo de la escena.\nPalabra clave: cielo', // human
-  create_ground_tooltip:
-    'Añide un plano de tierra con collisions habilitadas a la escena.\nPalabra clave: suelo', // human
-  set_background_color_tooltip:
-    'Establece el color de fondo de las escenas.\nPalabra clave: background', // human
-  create_map_tooltip: 'Crea un mapa con el nombre y matieral seleccionado.\nPalabra clave: mapa', // human
-  show_tooltip: 'mostrar el objeto seleccionado.\nPalabra clave: mostrar', // human
-  hide_tooltip: 'Ocultar el objeto seleccionado.\nPalabra clave: Oculater', // human
-  dispose_tooltip: 'Eliminar el objeto especificado de la escena.\nPalabra clave: disponer', // human
-  clone_mesh_tooltip: 'clonar un objeto y asignrla a una variable.\nPalabra clave: clonar', // human
+  set_sky_color_tooltip: 'Establece el cielo del cielo de la escena.', // human
+  create_ground_tooltip: 'Añide un plano de tierra con collisions habilitadas a la escena.', // human
+  set_background_color_tooltip: 'Establece el color de fondo de las escenas.', // human
+  create_map_tooltip: 'Crea un mapa con el nombre y matieral seleccionado.', // human
+  show_tooltip: 'mostrar el objeto seleccionado.', // human
+  hide_tooltip: 'Ocultar el objeto seleccionado.', // human
+  dispose_tooltip: 'Eliminar el objeto especificado de la escena.', // human
+  clone_mesh_tooltip: 'clonar un objeto y asignrla a una variable.', // human
 
   // Tooltip translations - Models blocks
-  load_character_tooltip: 'Crear un personaje configurable.\nPalabra clave: personaje', // human
-  load_object_tooltip: 'crear un objeto.\nPalabra clave: objecto', // human
-  load_multi_object_tooltip: 'crear un objeto con colores.\nPalabra clave: objecto', // human
-  load_model_tooltip: 'cargar un modelo.\nPalabra clave: modelo', // human
+  load_character_tooltip: 'Crear un personaje configurable.', // human
+  load_object_tooltip: 'crear un objeto.', // human
+  load_multi_object_tooltip: 'crear un objeto con colores.', // human
+  load_model_tooltip: 'cargar un modelo.', // human
 
   // Tooltip translations - Animate blocks
   glide_to_tooltip:
@@ -413,7 +463,7 @@ export default {
   glide_to_seconds_tooltip:
     'Deslízate a una posición especificada durante una duración, con opciones para inversión, bucle y facilidando.', // human
   glide_to_object_tooltip:
-    'Deslízate a la posición de otro objeto con desplazamientos x/y/z opcionales (0 por defecto) y opciones de invertir, bucle y facilidando.', // human
+    'Deslízate hasta un objeto, cerca de él por el lado en el que ya estás, o junto a uno de sus lados, como encima de. Una separación deja espacio fuera del lado o se detiene antes del objeto. Incluye opciones de invertir, bucle y suavizado.', // ai
   glide_to_axis_tooltip:
     'Desliza a lo largo de un eje (X, Y o Z) hasta un valor objetivo. Los otros dos ejes se fijan a la posición actual del objeto (con soporte de anclaje). Mismas opciones que el bloque de deslizamiento estándar.', // human
   rotate_anim_tooltip:
@@ -434,150 +484,150 @@ export default {
     'Controla el grupo de animación reproduciéndolo, pausándolo o parandolo.', // human
   animate_from_tooltip: 'Comienza a animar el grupo desde el tiempo especificado (en segundos).', // human
   stop_animations_tooltip:
-    'Para todas las animaciones de fotogramas clave en el objeto seleccionado.\nPalabra clave: para', // human
-  switch_animation_tooltip:
-    'Cambia la animación del objeto indicado a la animación dada.\nPalabra clave: cambia', // human
-  play_animation_tooltip:
-    'Reproduce la animación seleccionada una vez en el objeto indicado.\nPalabra clave: Reproduce', // human
+    'Para todas las animaciones de fotogramas clave en el objeto seleccionado.', // human
+  switch_animation_tooltip: 'Cambia la animación del objeto indicado a la animación dada.', // human
+  play_animation_tooltip: 'Reproduce la animación seleccionada una vez en el objeto indicado.', // human
 
   // Tooltip translations - Base blocks
-  xyz_tooltip: 'Crea un vector con coordenadas X, Y, Z', // human
+  xyz_tooltip: 'Crea un vector con coordenadas X, Y, Z.', // human
 
   // Tooltip translations - Camera blocks
   camera_control_tooltip: 'Asocia una tecla específica a una acción de control de cámara.', // human
   camera_follow_tooltip:
-    'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.\nPalabra clave: Sigue', // human
-  get_camera_tooltip: 'Obtén la cámara actual de la escena', // human
+    'Haz que la cámara siga un objeto con una distancia personalizable (radio) al objetivo.', // human
+  get_camera_tooltip: 'Obtén la cámara actual de la escena.', // human
+  create_fly_camera_tooltip: 'Añade una cámara con la que puedes volar. Mira hacia donde apunta su marco.', // AI-generated; needs validation
+  create_follow_camera_tooltip: 'Añade una cámara que sigue a un objeto. El jugador puede girarla alrededor del objeto.', // AI-generated; needs validation
+  create_orbit_camera_tooltip: 'Añade una cámara que orbita alrededor de un objeto o del origen. Arrastra para orbitar y desplaza para hacer zoom.', // AI-generated; needs validation
+  switch_camera_tooltip: 'Cambia la vista a una cámara.', // AI-generated; needs validation
 
   // Tooltip translations - Combine blocks
-  merge_meshes_tooltip:
-    'Fusiona una lista de objetos en uno y almacena el resultado.\nPalabra clave: fusiona', // human
-  subtract_meshes_tooltip:
-    'Resta una lista de objetos de un objeto base y almacena el resultado.\nPalabra clave: Resta', // human
+  merge_meshes_tooltip: 'Fusiona una lista de objetos en uno y almacena el resultado.', // human
+  subtract_meshes_tooltip: 'Resta una lista de objetos de un objeto base y almacena el resultado.', // human
+  embed_meshes_tooltip:
+    'Recorta una lista de objetos en un objeto base y almacena el resultado. Los objetos se conservan.',
   intersection_meshes_tooltip:
-    'Intersecta una lista de objetos y almacena la geometría resultante.\nPalabra clave: intersecta', // human
+    'Intersecta una lista de objetos y almacena la geometría resultante.', // human
   hull_meshes_tooltip:
-    'Crea una envolvente convexa de una lista de objetos y almacena el resultado.\nPalabra clave: envolvente', // human
+    'Crea una envolvente convexa de una lista de objetos y almacena el resultado.', // human
 
   // Tooltip translations - Connect blocks
   parent_tooltip:
-    'Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.\nPalabra clave: padre', // human
+    'Establece relación padre‑hijo entre dos objetos conservando la posición mundial del hijo.', // human
+  parent_children_tooltip:
+    'Establece relación padre‑hijo entre un objeto y una lista de hijos conservando la posición mundial de cada hijo.',
   parent_child_tooltip:
-    'Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.\nPalabra clave: hijo', // human
-  remove_parent_tooltip:
-    'Elimina la relación de paternidad del objeto especificado.\nPalabra clave: elimina', // human
-  stop_follow_tooltip:
-    'Prevenir que el objeto especificado siga a otro.\nPalabra clave: paraseguir', // human
-  hold_tooltip:
-    'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.\nPalabra clave: sostenga', // human
-  drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.\nPalabra clave: soltar', // human
+    'Establece relación padre‑hijo entre dos objetos con desplazamiento en la dirección x, y, y z.', // human
+  remove_parent_tooltip: 'Elimina la relación de paternidad del objeto especificado.', // human
+  stop_follow_tooltip: 'Prevenir que el objeto especificado siga a otro.', // human
+  hold_tooltip: 'Adjuntar un objeto al hueso especificado de otro con desplazamiento en x, y, z.', // human
+  drop_tooltip: 'Desprende un objeto del hueso al que está adjunto.', // human
   follow_tooltip:
-    'Haz que un objeto siga a otro en una posición especificada (arriba, centro o abajo) con desplazamiento en dirección x, y, y z.\nPalabra clave: siigue', // human
-  export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.\nPalabra clave: exporta', // human
+    'Haz que un objeto siga a otro: en él, en su centro o encima de él, movido por el desplazamiento. Se mueve con el otro objeto, pero no gira con él.', // ai
+  export_mesh_tooltip: 'Exporta un objeto en STL, OBJ o GLB.', // human
 
   // Tooltip translations - Control blocks
-  wait_tooltip: 'Espera un tiempo especificado en milisegundos.\nPalabra clave: mili', // human
-  wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.\nPalabra clave: espera', // human
-  wait_until_tooltip: 'Espera hasta que la condición sea verdadera.\nPalabra clave: hasta', // human
+  if_clause_tooltip:
+    'Ejecuta los bloques conectados si la condición es verdadera. Cambia el menú desplegable a "sino si" o "sino", y conecta otro bloque si debajo para crear cadenas de si / sino si / sino.', // ai
+  wait_tooltip: 'Espera un tiempo especificado en milisegundos.', // human
+  wait_seconds_tooltip: 'Espera un tiempo especificado en segundos.', // human
+  wait_until_tooltip: 'Espera hasta que la condición sea verdadera.', // human
   local_variable_tooltip:
-    'Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.\nPalabra clave: local', // human
+    'Crea una versión local de una variable seleccionada. Oculta la variable global y puede tener un valor distinto.', // human
   for_loop2_tooltip: 'Bucle desde un número inicial hasta uno final usando un cierto paso.', // human
   for_loop_tooltip:
-    'Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código\nPalabra clave: para', // human
-  get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica', // human
+    'Bucle desde un número inicial hasta uno final usando un cierto paso. Haz clic en el menú para seleccionar la variable del bucle para usar en tu código', // human
+  get_lexical_variable_tooltip: 'Obtiene el valor de una variable léxica.', // human
 
   // Tooltip translations - Effects blocks
   main_light_tooltip:
-    'Establece la intensidad de la luz principal.\nPalabra clave: intensidad de luz', // human
+    'Establece la intensidad y los colores difuso y de suelo de la luz principal, y elige entre sombreado suave (uniforme, sin brillos) y clásico (más brillante, el original).', // human
   set_fog_tooltip:
-    'Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.\nPalabra clave: niebla', // human
-  get_light_tooltip: 'Obtén la luz principal de la escena actual.\nPalabra clave: luz', // human
+    'Configura la niebla de la escena. Usa inicio y fin para definir las distancias cercana y lejana.', // human
+  get_light_tooltip: 'Obtén la luz principal de la escena actual.', // human
 
   // Tooltip translations - Events blocks
   start_tooltip:
-    'Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.\nPalabra clave: Iniciar', // human
+    'Ejecuta los bloques internos al iniciar el proyecto. Puede haber múltiples bloques de inicio.', // human
   forever_tooltip:
-    'Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.\nPalabra clave: para siempre', // human
-  when_clicked_tooltip:
-    'Ejecuta los bloques en el interior cuando active el objeto.\nPalabra clave: clic', // human
+    'Ejecuta los bloques dentro de cada fotograma o tras finalizar la iteración anterior.', // human
+  when_clicked_tooltip: 'Ejecuta los bloques en el interior cuando active el objeto.', // human
   on_collision_tooltip:
-    'Ejecuta los bloques internos cuando un objeto intersecta o deja de intersectar otro.\nPalabra clave: chocar', // human
+    'Ejecuta los bloques internos cuando un objeto intersecta o deja de intersectar otro.', // human
   when_key_event_tooltip:
     'Ejecuta los bloques internos cuando la tecla especificada se pulsa o se suelta.', // human
   when_action_event_tooltip:
     'Ejecuta los bloques internos cuando la acción elegida se pulsa o se suelta en teclado, toque o XR.', // human
-  broadcast_event_tooltip:
-    "Emite un evento que es recibido por el bloque 'on event'.\nPalabra clave: emite", // human
-  on_event_tooltip:
-    'Ejecuta el código cuando se recibe un evento emitido.\nPalabra clave: encender', // human
+  broadcast_event_tooltip: "Emite un evento que es recibido por el bloque 'on event'.", // human
+  on_event_tooltip: 'Ejecuta el código cuando se recibe un evento emitido.', // human
+  restart_tooltip: 'Reinicia el proyecto desde el principio, igual que pulsar Reproducir.', // ai
 
   // Tooltip translations - Materials blocks
-  change_color_tooltip: 'Cambia el color del objeto seleccionado.\nPalabra clave: color', // human
+  change_color_tooltip: 'Cambia el color del objeto seleccionado.', // human
   change_material_tooltip:
-    'Aplica un material seleccionado con tinte de color al objeto especificado.\nPalabra clave: material', // human
+    'Aplica un material seleccionado con tinte de color al objeto especificado.', // human
   text_material_tooltip:
     'Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.', // human
   place_decal_tooltip: 'Coloca una calcomanía en un objeto usando el material seleccionado.', // human
   decal_tooltip: 'Crea una calcomanía en un objeto con posición, normal, tamaño y material.', // human
-  highlight_tooltip: 'Resalta el objeto seleccionado.\nPalabra clave: resalta', // human
-  glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.\nPalabra clave: resplandor', // human
-  tint_tooltip: 'Añade un tinte de color.\nPalabra clave: tinte', // human
+  highlight_tooltip: 'Resalta el objeto seleccionado.', // human
+  glow_tooltip: 'Añade un efecto de resplandor al objeto seleccionado.', // human
+  set_shadow_tooltip: 'Activa o desactiva si un objeto proyecta sombra.', // ai
+  enable_shadows_tooltip: 'Activa o desactiva las sombras de la escena. Marca todos para que todos los objetos proyecten sombra.', // ai
+  tint_tooltip: 'Añade un tinte de color.', // human
   set_alpha_tooltip:
-    'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.\nPalabra clave: alfa', // human
-  clear_effects_tooltip:
-    'Elimina efectos visuales del objeto seleccionado.\nPalabra clave: elimina', // human
-  colour_tooltip: 'Selecciona un color.\nPalabra clave: color', // human
-  skin_colour_tooltip: 'Selecciona un color de piel.\nPalabra clave: piel', // human
-  greyscale_colour_tooltip:
-    'Selecciona un color en escala de grises para elevación.\nPalabra clave: gris', // human
-  random_colour_tooltip: 'Genera un color aleatorio.\nPalabra clave: color aleatorio', // human
-  material_tooltip: 'Define propiedades del material', // human
-  gradient_material_tooltip: 'Define propiedades del material (gradiente)', // human
+    'Establece el canal alfa (transparencia) del material de un objeto. Valores entre 0 y 1.', // human
+  clear_effects_tooltip: 'Elimina efectos visuales del objeto seleccionado.', // human
+  colour_tooltip: 'Selecciona un color.', // human
+  skin_colour_tooltip: 'Selecciona un color de piel.', // human
+  greyscale_colour_tooltip: 'Selecciona un color en escala de grises para elevación.', // human
+  random_colour_tooltip: 'Genera un color aleatorio.', // human
+  material_tooltip: 'Define propiedades del material.', // human
+  gradient_material_tooltip: 'Define propiedades del material (gradiente).', // human
+  gradient_colour_tooltip:
+    'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.', // ai
   set_material_tooltip: 'Establecer el material especificado al objeto indicado.', // human
 
   // Tooltip translations - Physics blocks
-  add_physics_tooltip:
-    'Añade física al objeto. Opciones: dinámico, estático, animado o nada.\nPalabra clave: física', // human
-  add_physics_shape_tooltip:
-    'Añade una forma física al objeto. Opciones: objeto o cápsula.\nPalabra clave: física', // human
-  apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.\nPalabra clave: fuerza', // human
+  add_physics_tooltip: 'Añade física al objeto. Opciones: dinámico, estático, animado o nada.', // human
+  add_physics_shape_tooltip: 'Añade una forma física al objeto. Opciones: objeto o cápsula.', // human
+  apply_force_tooltip: 'Aplica una fuerza a un objeto en direcciones XYZ.', // human
   jump_tooltip:
-    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual, así que saltas hacia adelante con impulso como en los juegos de plataformas. Necesita física.\nPalabra clave: saltar brincar', // ai
+    'Hace que un personaje salte a una altura (en bloques). Mantiene tu velocidad de carrera actual. Necesita física.', // ai
+  set_bounciness_tooltip:
+    'Establece cuánto rebota un objeto. 0 significa que no rebota, 1 significa que rebota mucho. El objeto necesita física primero.', // ai
   show_physics_tooltip:
-    'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.\nPalabra clave: depuración de coliionador de física', // human
+    'Mostrar u ocultar colisionadores físicos para depuración. Marque para mostrar, desmarque para ocultar.', // human
 
   // Tooltip translations - Sensing blocks
-  key_pressed_tooltip:
-    'Devuelve verdadero si la tecla especificada está pulsado.\nPalabra clave: estápulsado', // human
+  key_pressed_tooltip: 'Devuelve verdadero si la tecla especificada está pulsado.', // human
   action_pressed_tooltip:
     'Devuelve verdadero si el control de movimiento o acción specificado está activo en teclado, toque o XR.', // human
   set_action_key: 'establecer tecla %1 a %2', // human
   set_action_key_tooltip:
     'Establece la tecla que activa una acción específica (adelante, atrás, izquierda, derecha o botones).', // ai
-  meshes_touching_tooltip:
-    'Devuelve verdadero si los dos objetos seleccionados se están tocando.\nPalabra clave: estántocando', // human
-  time_tooltip: 'Devuelve el tiempo transcurrido. Se pausa mientras la pestaña está oculta, ideal para temporizadores y cuentas atrás.', // ai
+  meshes_touching_tooltip: 'Devuelve verdadero si los dos objetos seleccionados se están tocando.', // human
+  time_tooltip:
+    'Devuelve el tiempo transcurrido. Se pausa mientras la pestaña está oculta, ideal para temporizadores y cuentas atrás.', // ai
   ground_level_tooltip: 'Devuelve la altura del suelo a la posición x/z actual.', // human
   distance_to_tooltip: 'Calcula la distancia entre dos objetos.', // human
-  touching_surface_tooltip:
-    'Comprueba si el objeto está tocando una superficie.\nPalabra clave: superficie', // human
+  touching_surface_tooltip: 'Comprueba si el objeto está tocando una superficie.', // human
   mesh_exists_tooltip: 'devuelve verdadero si el objeto con este nombre está presente en la escena', // human
-  get_property_tooltip:
-    'Obtiene el valor de la propiedad seleccionada de un objeto.\nPalabra clave: obtiene', // human
-  canvas_controls_tooltip:
-    'Añade o elimina controles de movimiento en el lienzo.\nPalabra clave: lienzo', // human
+  get_property_tooltip: 'Obtiene el valor de la propiedad seleccionada de un objeto.', // human
+  canvas_controls_tooltip: 'Añade o elimina controles de movimiento en el lienzo.', // human
   interact_indicator_tooltip:
-    'Muestra u oculta el indicador de interacción junto a los objetos cercanos.\nPalabra clave: indicator', // ai
-  button_controls_tooltip: 'Configura controles de botónes.\nPalabra clave: botón', // human
-  on_screen_controls_tooltip: 'Configura los controles en pantalla.\nPalabra clave: onscreen', // ai
+    'Muestra u oculta el indicador de interacción junto a los objetos cercanos.', // ai
+  button_controls_tooltip: 'Configura controles de botónes.', // human
+  on_screen_controls_tooltip:
+    'Configura los controles del jugador dibujados en el lienzo. Auto sigue el ajuste del panel Herramientas.', // ai
   microbit_input_tooltip:
     'Ejecuta los bloques dentro cuando se desencadena un evento micro:bit especificado.', // human
   add_microbit_tooltip:
     'Conecta un micro:bit y haz referencia a él con esta variable. Haz clic en el icono de estado para conectar un micro:bit por USB. Los micro:bit desenchufados envían eventos por radio a través de cualquier micro:bit enchufado en el mismo canal.', // ai
   microbit_show_image_tooltip:
-    'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.\nPalabra clave: leds', // ai
+    'Muestra una imagen en la pantalla LED de un micro:bit conectado por USB. Haz clic en la imagen para editarla.', // ai
   microbit_scroll_text_tooltip:
-    'Desplaza un texto por la pantalla LED de un micro:bit conectado por USB. Los textos largos se recortan a 16 caracteres.\nPalabra clave: scroll', // ai
+    'Desplaza un texto por la pantalla LED de un micro:bit conectado por USB. Los textos largos se recortan a 16 caracteres.', // ai
   ui_slider_tooltip:
     'Añade un control deslizante 2D en la UI y almacena su referencia en una variable.', // human
 
@@ -586,26 +636,35 @@ export default {
     'Crea un efecto de partículas conectado a un objeto con forma, gravedad, tamaño, color, transparencia, duración, fuerza y rotación configurables.', // human
   control_particle_system_tooltip:
     'Controla el sistema de partículas iniciándolo, deteniéndolo o reiniciándolo.', // human
-  create_box_tooltip:
-    'Crea una caja de color con dimensiones y posición especificadas.\nPalabra clave: caja', // human
-  create_sphere_tooltip:
-    'Crea una esfera de color con dimensiones y posición especificadas.\nPalabra clave: esfera', // human
-  create_cylinder_tooltip:
-    'Crea un cilindro de color con dimensiones y posición especificadas.\nPalabra clave: cilindro', // human
-  create_capsule_tooltip:
-    'Crea una cápsula de color con dimensiones y posición especificadas.\nPalabra clave: cápsula', // human
-  create_plane_tooltip:
-    'Crea un plano 2D de color con ancho, alto y posición especificadas.\nPalabra clave: plano', // human
+  create_box_tooltip: 'Crea una caja de color con dimensiones y posición especificadas.', // human
+  create_sphere_tooltip: 'Crea una esfera de color con dimensiones y posición especificadas.', // human
+  create_cylinder_tooltip: 'Crea un cilindro de color con dimensiones y posición especificadas.', // human
+  create_capsule_tooltip: 'Crea una cápsula de color con dimensiones y posición especificadas.', // human
+  create_wedge_tooltip:
+    'Añade una cuña: un prisma triangular para construir rampas, pendientes y tejados. Cambia el pico para cambiar la forma: 0 hace una rampa, 0.5 hace un tejado.', // ai
+  create_donut_tooltip:
+    'Añade una forma de rosquilla. Exterior e interior son los diámetros de la rosquilla y del agujero; al cambiar el interior o el grosor, el otro se actualiza. Los lados definen lo suave que se ve.', // ai
+  create_ring_tooltip:
+    'Añade un anillo de bordes planos, como una arandela o un tubo. Exterior e interior son los diámetros del anillo y del agujero; al cambiar el interior o el grosor, el otro se actualiza. La altura define lo alto que es y los lados lo suave que se ve.', // ai
+  create_plane_tooltip: 'Crea un plano 2D de color con ancho, alto y posición especificadas.', // human
+  create_marker_tooltip:
+    'Añade un marcador: un punto invisible para colocar cosas. Marca editar para ver el marcador y moverlo con los gizmos. Un marcador nunca se ve en el modo de juego.', // AI-generated; needs validation
 
   // Tooltip translations - Sound blocks
   play_theme_tooltip:
-    'Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: tema', // human
+    'Reproduce un tema musical en un objeto con velocidad, volumen y modo ajustables.', // human
   play_sound_tooltip:
-    'Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.\nPalabra clave: sonido', // human
-  stop_all_sounds_tooltip:
-    'Para todos los sonidos que estén reproduciendo en la escena.\nPalabra clave: nosonido', // human
+    'Reproduce el sonido seleccionado en un objeto con velocidad, volumen y modo ajustables.', // human
+  stop_all_sounds_tooltip: 'Para todos los sonidos que estén reproduciendo en la escena.', // human
+  note_tooltip: 'Una nota musical con un tono (MIDI 0–127) y una duración en tiempos.', // ai
   midi_note_tooltip: 'Un valor de nota MIDI entre 0 y 127.', // human
   rest_tooltip: 'Un pausa (silencio) en una secuencia musical.', // human
+  play_tune_tooltip:
+    'Importa una cadena en notación ABC para generar una melodía con notas y repeticiones.', // ai
+  play_tune_notes_tooltip:
+    'Reproduce una secuencia de notas y silencios en un objeto usando el instrumento especificado.', // ai
+  set_music_speed_tooltip:
+    'Establece el multiplicador de velocidad de reproducción de música para un objeto.', // ai
   play_notes_tooltip:
     'Reproduce una secuencia de notas y silencios MIDI con duraciones correspondientes, usando el objeto para paneo. Puede devolver inmediatamente o al finalizar.', // human
   set_scene_bpm_tooltip: 'Establece el BPM para toda la escena.', // human
@@ -613,17 +672,17 @@ export default {
   create_instrument_tooltip: 'Crea un instrumento y lo asigna a la variable seleccionada.', // human
   instrument_tooltip: 'Selecciona un instrumento para reproducir notas.', // human
   speak_tooltip:
-    'Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.\nPalabra clave: hablar', // human
-  enable_subtitles_tooltip:
-    'Muestra subtítulos en pantalla para el texto hablado.\nPalabra clave: subtitles', // ai
+    'Convierte texto en voz usando el Web Speech API (API de voz web) con posicionamiento 3D opcional.', // human
+  enable_subtitles_tooltip: 'Muestra subtítulos en pantalla para el texto hablado.', // ai
 
   // Tooltip translations - Text blocks
   comment_tooltip: 'Una línea de comentario para ayudar la comprensión de tu código.', // human
-  print_text_tooltip: 'Texto en el panel de salida.\nPalabra clave: imprimir', // human
-  subtitle_tooltip: 'Muestra el texto como subtítulo en pantalla. 0 segundos permanece hasta el siguiente.\nPalabra clave: subtitle', // ai
-  say_tooltip: 'Muestra un texto como burbuja de diálogo en un objeto.\nPalabra clave: di', // human
+  print_text_tooltip: 'Texto en el panel de salida.', // human
+  subtitle_tooltip:
+    'Muestra el texto como subtítulo en pantalla. 0 segundos permanece hasta el siguiente.', // ai
+  say_tooltip: 'Muestra un texto como burbuja de diálogo en un objeto.', // human
   describe_tooltip:
-    'Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.\nPalabra clave: describe', // human
+    'Establece el nombre visible de un objeto. Actualiza los metadatos para accesibilidad.', // human
   ui_text_tooltip:
     'Añade texto a la pantalla UI y almacena el control en una variable para usar o eliminar luego.', // human
   ui_button_tooltip:
@@ -633,63 +692,68 @@ export default {
   create_3d_text_tooltip: 'Crea texto 3D en la escena.', // human
 
   // Tooltip translations - Math blocks
-  random_seeded_int_tooltip:
-    'Generar un numero entero aleatorio con una semilla.\nPalabra clave: semilla', // human
+  random_seeded_int_tooltip: 'Generar un numero entero aleatorio con una semilla.', // human
   to_number_tooltip: 'Convertir una cadena a un numero entero o un flotante', // human
 
   // Tooltip translations - Transform blocks
-  move_by_xyz_tooltip:
-    'Mueve un objeto cierta cantidad en direcciones x, y, y z.\nPalabra clave: mueve', // human
-  move_by_xyz_single_tooltip:
-    'Mueve un objeto una cantidad en cualquiera dirección x, y, o z.\nPalabra clave: mueve', // human
-  move_to_xyz_tooltip:
-    'Teletransporta el objeto a las coordenadas. Opcionalmente, usa el eje Y.\nPalabra clave: muevepor', // human
-  move_to_xyz_single_tooltip:
-    'Teletransporta el objeto a la coordenada única especificada.\nPalabra clave: muevepor', // human
+  move_by_xyz_tooltip: 'Mueve un objeto cierta cantidad en direcciones x, y, y z.', // human
+  move_by_xyz_single_tooltip: 'Mueve un objeto una cantidad en cualquiera dirección x, y, o z.', // human
+  move_to_xyz_tooltip: 'Teletransporta el objeto a las coordenadas.', // human
+  move_to_xyz_single_tooltip: 'Teletransporta el objeto a la coordenada única especificada.', // human
   move_to_tooltip:
-    'Teletransporta el primer objeto a la ubicación del segundo.\nPalabra clave: muevea', // human
+    'Coloca el primer objeto en el segundo o junto a uno de sus lados y lo desplaza. Los lados y el desplazamiento siguen la rotación del segundo objeto.', // ai
   scale_tooltip:
-    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: escala', // human
+    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.', // human
   resize_tooltip:
-    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.\nPalabra clave: redimensiona', // human
-  rotate_model_xyz_tooltip:
-    'Rota el objeto por los valores x, y, z indicados.\nPalabra clave: rota\nKeyword: rotapor', // human
-  rotate_to_tooltip: 'Rota el objeto para q apunte hacia las coordenadas.\nPalabra clave: rotaa', // human
-  look_at_tooltip: 'Rota el primer objeto hacia la posición de la segunda.\nPalabra clave: mira', // human
+    'Redimensiona un objeto a los valores x, y, y z y controla el origen del escalado.', // human
+  rotate_model_xyz_tooltip: 'Rota el objeto por los valores x, y, z indicados.', // human
+  rotate_to_tooltip: 'Rota el objeto para q apunte hacia las coordenadas.', // human
+  look_at_tooltip: 'Rota el primer objeto hacia la posición de la segunda.', // human
   move_forward_tooltip:
-    "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.\nPalabra clave: empuja", // human
-  rotate_camera_tooltip:
-    'Rota la cámara a la izquierda o derecha los grados indicados.\nPalabra clave: rotate', // human
-  up_tooltip: 'Aplica la fuerza especificada hacia arriba .\nPalabra clave: up', // human
-  set_pivot_tooltip:
-    'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.\nPalabra clave: ancla', // human
-  min_centre_max_tooltip:
-    'Elige minimo, centro o maximo para el punto de pivote.\nPalabra clave: minmax', // human
+    "Mueve el objeto en la dirección especificada. 'adelante' sigue su dirección, 'al lado' lo mueve relativo a la posición de la cámara, y 'strafear' lo mueve al lado relative a la posición de la cámara.", // human
+  rotate_camera_tooltip: 'Rota la cámara a la izquierda o derecha los grados indicados.', // human
+  up_tooltip: 'Aplica la fuerza especificada hacia arriba .', // human
+  set_anchor_tooltip: 'Establece el punto de anclaje para un objeto en los ejes X, Y, y Z.', // human
+  set_pivot_tooltip: 'Establece el punto alrededor del cual gira un objeto. El objeto se queda donde está.',
+  min_centre_max_tooltip: 'Elige minimo, centro o maximo para el punto de pivote.', // human
 
   // Tooltip translations - XR blocks
   device_camera_background_tooltip:
-    'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora.', // human
-  set_xr_mode_tooltip: 'Establece el modo XR para la escena.\nOpciones: VR, RA, Ventana Mágica.', // human
+    'Usa la cámara del dispositivo como fondo para la escena. Funciona en móvil y computadora. En unas gafas de RV la escena aparece en tu habitación.', // ai
+  set_xr_mode_tooltip:
+    'Establece el modo XR para la escena.\nVisor VR: solo se inicia en un visor, así que el ordenador y el teléfono siguen ejecutando el proyecto con normalidad.\nVisor VR o teléfono: también ofrece VR en el teléfono con un visor de cartón.\nRA: coloca la escena en la habitación.\nVentana Mágica: mira alrededor moviendo el teléfono; un visor obtiene VR.\nGafas rojo/cian: 3D en cualquier pantalla en la vista de juego.', // ai
+  set_xr_view_mode_tooltip:
+    'Elige si observar o encarnar el objeto seguido y cómo se mueve su cámara. En observar, la comodidad de la cámara se ajusta después de detenerse el movimiento; en encarnar, la teletransportación usa el rayo del mando.', // ai
+  set_ar_scene_size_tooltip:
+    'Escala: cuán ancha aparece la escena en la habitación, o 0 para tamaño real. Distancia: a qué distancia delante de ti comienza. Altura: a qué distancia flota sobre el suelo.', // ai
+  set_vr_comfort_tooltip:
+    'Opciones de comodidad para un visor de RV. La visión de túnel estrecha los bordes de tu vista mientras la escena se mueve; la superposición añade marcadores tenues (puntos o una jaula de cuadrícula del tamaño de la habitación) que permanecen fijos en tu habitación real. El espaciado y el color determinan el aspecto de los puntos y la cuadrícula.', // ai
+  set_xr_ui_placement_tooltip:
+    'Elige dónde aparecen los botones, controles deslizantes y texto en RV. La pantalla frontal flota delante de ti; la muñeca los coloca en tu mando izquierdo como un reloj.', // ai
+  add_teleport_target_tooltip:
+    'Permite teletransportarse al suelo, a un objeto o a todos los objetos.',
+  remove_teleport_target_tooltip:
+    'Impide teletransportarse al suelo, a un objeto o a todos los objetos.',
   play_rumble_pattern_tooltip:
-    'Reproduce un patrón de vibración predefinido en todos los mandos conectados.\nPalabra clave: rumble preset', // human
+    'Reproduce un patrón de vibración predefinido en todos los mandos conectados.', // human
   controller_rumble_tooltip:
-    'Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.\nPalabra clave: vibrar', // human
+    'Hace vibrar un mando conectado. Elige todos, el izquierdo o el derecho motor, establece la fuerza (0 a 1) y cuánto tiempo para vibrar en milisegundos.', // human
   controller_rumble_pattern_tooltip:
-    'Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.\nPalabra clave: patrón de vibrar', // human
+    'Hace vibrar un mando conectado en un patrón repetido. Establece el motor, la fuerza (0 a 1), el tiempo encendido, el tiempo apagado y el número de repeticiones.', // human
 
   // Dropdown option translations
   AWAIT_option: 'esperar', // human
   START_option: 'iniciar', // human
   CREATE_option: 'crear', // human
 
-  Linear_option: 'Lineal', // human
-  SineEase_option: 'Suavizado seno', // human
-  CubicEase_option: 'Suavizado cúbico', // human
-  QuadraticEase_option: 'Suavizado cuadrático', // human
-  ExponentialEase_option: 'Suavizado exponencial', // human
-  BounceEase_option: 'Suavizado rebote', // human
-  ElasticEase_option: 'Suavizado elástico', // human
-  BackEase_option: 'Suavizado retroceso', // human
+  Linear_option: 'lineal', // human
+  SineEase_option: 'suavizado seno', // human
+  CubicEase_option: 'suavizado cúbico', // human
+  QuadraticEase_option: 'suavizado cuadrático', // human
+  ExponentialEase_option: 'suavizado exponencial', // human
+  BounceEase_option: 'suavizado rebote', // human
+  ElasticEase_option: 'suavizado elástico', // human
+  BackEase_option: 'suavizado retroceso', // human
   TOWARDS_option: 'hacia', // human
   SAME_ROTATION_option: 'la mismo rotación que', // human
 
@@ -697,11 +761,11 @@ export default {
   EASEOUT_option: 'salida suavizado', // human
   EASEINOUT_option: 'entrada-salida suavizado', // human
 
-  play_option: '▶️ Reproducir', // human
-  pause_option: '⏸️ Pausa', // human
-  stop_option: '⏹️ Para', // human
-  start_option: '▶️ Iniciar', // human
-  reset_option: '🔄 Reiniciar', // human
+  play_option: '▶️ reproducir', // human
+  pause_option: '⏸️ pausa', // human
+  stop_option: '⏹️ para', // human
+  start_option: '▶️ iniciar', // human
+  reset_option: '🔄 reiniciar', // human
 
   diffuseColor_option: 'color difuso', // human
   emissiveColor_option: 'color emisivo', // human
@@ -722,14 +786,14 @@ export default {
   scaling_y_option: 'escalado.y', // human
   scaling_z_option: 'escalado.z', // human
 
-  rotateLeft_option: 'Girar izquierda', // human
-  rotateRight_option: 'Girar derecha', // human
-  rotateUp_option: 'Mirar arriba', // human
-  rotateDown_option: 'Mirar abajo', // human
-  moveUp_option: 'Mover arriba', // human
-  moveDown_option: 'Mover abajo', // human
-  moveLeft_option: 'Mover izquierda', // human
-  moveRight_option: 'Mover derecha', // human
+  rotateLeft_option: 'girar izquierda', // human
+  rotateRight_option: 'girar derecha', // human
+  rotateUp_option: 'mirar arriba', // human
+  rotateDown_option: 'mirar abajo', // human
+  moveUp_option: 'mover arriba', // human
+  moveDown_option: 'mover abajo', // human
+  moveLeft_option: 'mover izquierda', // human
+  moveRight_option: 'mover derecha', // human
 
   _65_option: 'A ◁', // human
   _68_option: 'D', // human
@@ -759,17 +823,31 @@ export default {
   strafe_option: 'strafear', // human
   MIN_option: 'mín', // human
   MAX_option: 'máx', // human
+  PLACE_AT_option: 'a', // ai
+  PLACE_TO_option: 'a', // ai
+  PLACE_CENTER_option: 'en el centro de', // ai
+  PLACE_TO_CENTER_option: 'al centro de', // ai
+  PLACE_ON_TOP_option: 'encima de', // ai
+  PLACE_UNDER_option: 'debajo de', // ai
+  PLACE_LEFT_option: 'a la izquierda de', // ai
+  PLACE_RIGHT_option: 'a la derecha de', // ai
+  PLACE_FRONT_option: 'delante de', // ai
+  PLACE_BEHIND_option: 'detrás de', // ai
+  STRAIGHT_option: 'directo', // ai
+  WANDERING_option: 'deambulando', // ai
+  PLACE_NEAR_option: 'cerca de', // ai
   user_option: 'delantero', // human
   environment_option: 'trasero', // human
 
-  LINEAR_option: 'Lineal', // human
-  NONE_option: 'Ninguno', // human
-  EXP_option: 'Exp', // human
-  EXP2_option: 'Exp2', // human
+  LINEAR_option: 'lineal', // human
+  NONE_option: 'ninguno', // human
+  EXP_option: 'exp', // human
+  EXP2_option: 'exp2', // human
+
+  SOFT_option: 'suave',
+  CLASSIC_option: 'clásico',
 
   OnPickTrigger_option: 'clickeado', // human
-  OnLeftPickTrigger_option: 'interactuar', // human
-  OnDoublePickTrigger_option: 'doble interacción', // human
   OnPickDownTrigger_option: 'inicio de interacción', // human
   OnPickUpTrigger_option: 'fin de interacción', // human
 
@@ -826,17 +904,23 @@ export default {
   starts_option: 'empieza', // human
   ends_option: 'termina', // human
 
+  COPY_option: 'copia',
+  LINKED_option: 'vinculado',
+
   DYNAMIC_option: 'dinámico', // human
   ANIMATED_option: 'animado', // human
   STATIC_option: 'estático', // human
 
   MESH_option: 'objeto', // human
   CAPSULE_option: 'cápsula', // human
+  SPHERE_option: 'esfera',
+  BOX_option: 'caja',
 
-  FLAT_option: 'Plano', // human
+  FLAT_option: 'plano', // human
 
   ANY_option: 'cualquiera', // human
   all_option: 'todos', // human
+  ground_option: 'suelo',
   objectGrab_option: 'agarrar', // human
   objectDrop_option: 'soltar', // human
   smallCollision_option: 'golpe pequeño', // human
@@ -849,6 +933,24 @@ export default {
   machineRunning_option: 'máquina', // human
   explosion_option: 'explosión', // human
   teleport_option: 'teletransportar', // human
+  watch_option: 'observar',
+  embody_option: 'encarnar',
+  hud_option: 'pantalla frontal', // ai
+  wrist_option: 'muñeca', // ai
+  smooth_option: 'suave',
+  comfort_option: 'confort',
+  auto_option: 'automático', // ai
+  dots_option: 'puntos', // ai
+  grid_option: 'cuadrícula', // ai
+  horizon_option: 'horizonte', // ai
+  moving_option: 'al moverse', // ai
+  always_option: 'siempre', // ai
+  low_option: 'baja', // ai
+  medium_option: 'media', // ai
+  high_option: 'alta', // ai
+  small_option: 'pequeño', // ai
+  large_option: 'grande', // ai
+  off_option: 'desactivado', // ai
   space_infinity_option: 'espacio ❖', // human
   q_icon_option: 'Q ■', // human
   e_icon_option: 'E ✿', // human
@@ -887,13 +989,18 @@ export default {
   AUTO_option: 'automático', // human
   ENABLED_option: 'habilitado', // human
   DISABLED_option: 'deshabilitado', // human
+  SHOW_option: 'mostrar', // ai
+  HIDE_option: 'ocultar', // ai
 
   BOTH_option: 'ambos', // human
   ARROWS_option: 'flechas', // human
+  WASD_option: 'WASD', // ai
   ACTIONS_option: 'acciones', // human
   JOYSTICK_option: 'joystick', // ai
   YES_option: 'sí', // ai
   NO_option: 'no', // ai
+  NUMBERS_option: 'números', // ai
+  LETTERS_option: 'letras', // ai
   ACTION_FORWARD_option: 'adelante', // human
   ACTION_BACKWARD_option: 'atrás', // human
   ACTION_LEFT_option: 'izquierda', // human
@@ -929,31 +1036,38 @@ export default {
   ONCE_option: 'una vez', // human
   LOOP_option: 'bucle', // human
   everywhere_option: 'en todas partes', // human
+  origin_option: 'origen', // AI-generated; needs validation
 
-  theme_bright_option: 'Brillante', // human
-  theme_calm_option: 'Tranquilo', // human
-  theme_electronic_option: 'Electrónico', // human
-  theme_game_option: 'Juego', // human
-  theme_medieval_option: 'Medieval', // human
-  theme_metal_option: 'Metal', // human
+  theme_bright_option: 'brillante', // human
+  theme_calm_option: 'tranquilo', // human
+  theme_electronic_option: 'electrónico', // human
+  theme_game_option: 'juego', // human
+  theme_medieval_option: 'medieval', // human
+  theme_metal_option: 'metal', // human
 
-  sound_highDown_option: 'Tono Alto Descendente', // human
-  sound_highUp_option: 'Tono Alto Ascendente', // human
-  sound_laser1_option: 'Láser 1', // human
-  sound_laser2_option: 'Láser 2', // human
-  sound_laser3_option: 'Láser 3', // human
-  sound_lowDown_option: 'Tono Bajo Descendente', // human
-  sound_lowRandom_option: 'Tono Bajo Aleatorio', // human
-  sound_lowThreeTone_option: 'Tono Bajo Tres', // human
-  sound_phaseJump1_option: 'Salto de Fase 1', // human
-  sound_powerUp1_option: 'Potenciador 1', // human
-  sound_powerUp2_option: 'Potenciador 2', // human
-  sound_powerUp3_option: 'Potenciador 3', // human
-  sound_powerUp4_option: 'Potenciador 4', // human
-  sound_powerUp5_option: 'Potenciador 5', // human
-  sound_spaceTrash_option: 'Basura Espacial', // human
-  sound_threeTone1_option: 'Tres Tono 1', // human
-  sound_threeTone2_option: 'Tres Tono 2', // human
+  sound_highDown_option: 'tono alto descendente', // human
+  sound_highUp_option: 'tono alto ascendente', // human
+  sound_laser1_option: 'láser 1', // human
+  sound_laser2_option: 'láser 2', // human
+  sound_laser3_option: 'láser 3', // human
+  sound_lowDown_option: 'tono bajo descendente', // human
+  sound_lowRandom_option: 'tono bajo aleatorio', // human
+  sound_lowThreeTone_option: 'tono bajo tres', // human
+  sound_phaseJump1_option: 'salto de fase 1', // human
+  sound_powerUp1_option: 'potenciador 1', // human
+  sound_powerUp2_option: 'potenciador 2', // human
+  sound_powerUp3_option: 'potenciador 3', // human
+  sound_powerUp4_option: 'potenciador 4', // human
+  sound_powerUp5_option: 'potenciador 5', // human
+  sound_spaceTrash_option: 'basura espacial', // human
+  sound_threeTone1_option: 'tres tono 1', // human
+  sound_threeTone2_option: 'tres tono 2', // human
+  sound_chop_option: 'hachazo', // ai
+  sound_creak_option: 'crujido', // ai
+  sound_footstep_option: 'paso', // ai
+  sound_door_open_option: 'apertura de puerta', // ai
+  sound_door_close_option: 'cierre de puerta', // ai
+  sound_metal_latch_option: 'pestillo metálico', // ai
 
   sine_option: 'seno', // human
   square_option: 'cuadrada', // human
@@ -966,17 +1080,17 @@ export default {
   warble_option: 'gorjeo', // human
   robot_option: 'robot', // human
 
-  default_option: 'Instrumento por defecto (Seno)', // human
-  piano_option: 'Piano (Cuadrado)', // human
-  guitar_option: 'Guitarra (Diente de sierra)', // human
-  violin_option: 'Violín (Triángulo)', // human
+  default_option: 'instrumento por defecto (seno)', // human
+  piano_option: 'piano (cuadrado)', // human
+  guitar_option: 'guitarra (diente de sierra)', // human
+  violin_option: 'violín (triángulo)', // human
 
   female_option: 'hembra', // human
   male_option: 'macho', // human
 
-  en_GB_option: 'Inglés (Reino Unido)', // human
-  en_US_option: 'Inglés (EE.UU.)', // human
-  es_option: 'Español', // ai
+  en_GB_option: 'inglés (Reino Unido)', // human
+  en_US_option: 'inglés (EE.UU.)', // human
+  es_option: 'español', // ai
 
   ADD_option: 'añadir', // human
   REPLACE_option: 'reemplazar', // human
@@ -987,149 +1101,224 @@ export default {
 
   __fonts_FreeSans_Bold_json_option: 'Free Sans', // human
 
-  VR_option: 'VR (Oculus Quest o visor de teléfono)', // human
-  AR_option: 'RA (Realidad Aumentada)', // human
-  MAGIC_WINDOW_option: 'Ventana Mágica (mirar alrededor)', // human
+  VR_option: 'visor VR', // ai
+  VR_PHONE_option: 'visor VR o teléfono', // ai
+  AR_option: 'RA (realidad aumentada)', // human
+  MAGIC_WINDOW_option: 'ventana mágica (mirar alrededor)', // human
+  RED_CYAN_option: 'gafas rojo/cian', // ai
 
-  circular_depression_png_option: 'Depresión Circular', // human
-  checkerboard_png_option: 'Tablero de damas', // human
-  sloped_plane_png_option: 'Plano Inclinado', // human
-  cove_plateau_png_option: 'Meseta de la cala', // human
-  random_hills_png_option: 'Colinas Aleatorias', // human
-  diagonal_ridge_png_option: 'Cresta Diagonal', // human
-  mixed_heights_png_option: 'Alturas Mixtas', // human
-  uneven_terrain_png_option: 'Terreno Irregular', // human
+  circular_depression_png_option: 'depresión circular', // human
+  checkerboard_png_option: 'tablero de damas', // human
+  sloped_plane_png_option: 'plano inclinado', // human
+  cove_plateau_png_option: 'meseta de la cala', // human
+  random_hills_png_option: 'colinas aleatorias', // human
+  diagonal_ridge_png_option: 'cresta diagonal', // human
+  mixed_heights_png_option: 'alturas mixtas', // human
+  uneven_terrain_png_option: 'terreno irregular', // human
+  mountains_png_option: 'montañas', // ai
+  Islands_png_option: 'islas', // ai
+  Lookout_png_option: 'mirador', // ai
+  Valley_png_option: 'valle', // ai
 
-  Idle_option: 'Inactivo', // human
-  Walk_option: 'Caminar', // human
-  Run_option: 'Correr', // human
-  Wave_option: 'Saludar', // human
-  Yes_option: 'Sí', // human
-  No_option: 'No', // human
-  Duck_option: 'Agacharse', // human
-  Fall_option: 'Caer', // human
-  Fly_option: 'Volar', // human
-  Jump_option: 'Saltar', // human
-  Flip_option: 'Voltear', // human
-  Dance1_option: 'Baile1', // human
-  Dance2_option: 'Baile2', // human
-  Dance3_option: 'Baile3', // human
-  Dance4_option: 'Baile4', // human
-  JumpUp_option: 'Saltar arriba', // human
-  JumpIdle_option: 'Saltar Inactivo', // human
-  JumpLand_option: 'Aterrizaje de Salto', // human
-  Punch_option: 'Golpear', // human
-  HitReact_option: 'Reacción al Golpe', // human
-  Idle_Hold_option: 'Inactivo Sostener', // human
-  Walk_Hold_option: 'Caminar Sostener', // human
-  Run_Hold_option: 'Correr Sostener', // human
-  Idle_Attack_option: 'Ataque Inactivo', // human
-  Walk_Attack_option: 'Ataque al Caminar', // human
-  Run_Attack_option: 'Ataque al Correr', // human
-  Sit_Down_option: 'Sentarse', // human
-  Sitting_option: 'Sentado', // human
-  Stand_Up_option: 'Levantarse', // human
-  Wobble_option: 'Tambalearse', // human
-  Clap_option: 'Aplaudir', // human
-  Climb_rope_option: 'Trepar la cuerda', // human
+  Idle_option: 'inactivo', // human
+  Walk_option: 'caminar', // human
+  Run_option: 'correr', // human
+  Wave_option: 'saludar', // human
+  Yes_option: 'sí', // human
+  No_option: 'no', // human
+  Duck_option: 'agacharse', // human
+  Fall_option: 'caer', // human
+  Fly_option: 'volar', // human
+  Jump_option: 'saltar', // human
+  Flip_option: 'voltear', // human
+  Dance1_option: 'baile1', // human
+  Dance2_option: 'baile2', // human
+  Dance3_option: 'baile3', // human
+  Dance4_option: 'baile4', // human
+  JumpUp_option: 'saltar arriba', // human
+  JumpIdle_option: 'saltar inactivo', // human
+  JumpLand_option: 'aterrizaje de salto', // human
+  Punch_option: 'golpear', // human
+  HitReact_option: 'reacción al golpe', // human
+  Idle_Hold_option: 'inactivo sostener', // human
+  Walk_Hold_option: 'caminar sostener', // human
+  Run_Hold_option: 'correr sostener', // human
+  Idle_Attack_option: 'ataque inactivo', // human
+  Walk_Attack_option: 'ataque al caminar', // human
+  Run_Attack_option: 'ataque al correr', // human
+  Sit_Down_option: 'sentarse', // human
+  Sitting_option: 'sentado', // human
+  Stand_Up_option: 'levantarse', // human
+  Wobble_option: 'tambalearse', // human
+  Clap_option: 'aplaudir', // human
+  Climb_rope_option: 'trepar la cuerda', // human
 
   // HTML translations
-  loading_ui: "Cargando Flock XR...", // human
-  loading_success_ui: "Flock XR se cargó correctamente", // human
-  canvas_accessible_name_ui: "3D scene",
-  loading_title_ui: "Cargando Flock XR", // human
-  import_project_file_ui: "Importar archivo de proyecto", // human
+  loading_ui: 'Cargando Flock XR...', // human
+  loading_success_ui: 'Flock XR se cargó correctamente', // human
+  canvas_accessible_name_ui: '3D scene',
+  loading_title_ui: 'Cargando Flock XR', // human
+  import_project_file_ui: 'Importar archivo de proyecto', // human
 
-  demo_ui: "Demostración", // human
-  new_ui: "Nuevo", // human
-  starter_ui: "👋🏽 Inicial", // human
-  controller_starter_ui: "🎮 Inicial con Controlador", // human
-  snow_globe_ui: "❄️ Globo de Nieve", // human
-  forest_base_ui: "🌲 Base en el Bosque", // human
-  character_animation_ui: "🎥 Animación de Personaje", // human
-  cube_art_ui: "🎨 Arte Cubo", // human
-  physics_fun_ui: "👆🏾 Diversión Física", // human
-  collect_the_gems_ui: "💎 Recoger las Gemas", // human
-  water_map_ui: "💧 Mapa de Agua", // human
-  skittles_ui: "🎳 Bolos", // human
-  beetle_ui: "🎲 Escarabajo", // human
-  roominator_ui: "🛋️ Habitación", // human
-  ball_pit_ui: "🟠 Piscina de Pelotas", // human
-  ur_enough_ui: "💗 ¡Eres Suficiente!", // human
-  tallest_buildings_ui: "📊 Edificios Más Altos", // human
-  candy_dash_ui: "🎃 Carrera de Dulces", // human
-  flockenspiel_ui: "🎵 Flockenspiel", // human
-  pendant_ui: "📿 Colgante imprimible en 3D", // human
-  tent_lights_ui: "⛺ Carpa de Festival", // human
-  my_place_ui: "🏠 Mi Lugar", // human
-  microbit_monkey_ui: "🐵 Mono micro:bit", // human
-  tree_jump_ui: "🌳 Salto de árbol", // human
-  shape_push_ui: "🔶 Empujar forma", // human
-  alien_planet_ui: "👽 Planeta alienígena", // human
-  boat_trip_ui: "⛵ Viaje en barco", // human
-  character_designer_ui: "👚 Diseñador de personajes", // human
-  sit_down_ui: "🪑 Siéntate", // human
+  projects_ui: 'Proyectos', // human
+  new_ui: 'Nuevo', // human
+  starter_ui: 'Bienvenida', // human
+  controller_starter_ui: 'Inicial con Controlador', // human
+  snow_globe_ui: 'Globo de Nieve', // human
+  forest_base_ui: 'Base en el Bosque', // human
+  character_animation_ui: 'Animación de Personaje', // human
+  cube_art_ui: 'Arte Cubo', // human
+  physics_fun_ui: 'Diversión Física', // human
+  collect_the_gems_ui: 'Recoger las Gemas', // human
+  water_map_ui: 'Mapa de Agua', // human
+  skittles_ui: 'Bolos', // human
+  block_tower_ui: 'Torre de bloques', // ai
+  beetle_ui: 'Escarabajo', // human
+  gem_tilt_game_ui: 'Inclina la Gema', // ai
+  roominator_ui: 'Habitación', // human
+  ball_pit_ui: 'Piscina de Pelotas', // human
+  ur_enough_ui: '¡Eres Suficiente!', // human
+  tallest_buildings_ui: 'Edificios Más Altos', // human
+  candy_dash_ui: 'Carrera de Dulces', // human
+  flockenspiel_ui: 'Flockenspiel', // human
+  pendant_ui: 'Colgante imprimible en 3D', // human
+  flockxr_keyring_ui: 'Llavero de Flock XR', // ai
+  tent_lights_ui: 'Carpa de Festival', // human
+  my_place_ui: 'Mi Lugar', // human
+  microbit_monkey_ui: 'Mono micro:bit', // human
+  ar_demo_ui: 'Demo de RA', // ai
+  vr_demo_ui: 'Demo de RV', // ai
+  tower_of_hanoi_ui: 'Torres de Hanói', // ai
+  tree_jump_ui: 'Salto de árbol', // human
+  shape_push_ui: 'Empujar forma', // human
+  alien_planet_ui: 'Planeta alienígena', // human
+  boat_trip_ui: 'Viaje en barco', // human
+  space_scene_ui: 'Escena espacial',
+  snowman_glide_ui: 'Muñeco de nieve deslizante',
+  pancake_flip_ui: 'Voltear tortitas',
+  backpack_maker_ui: 'Creador de mochilas', // AI-generated; needs validation
+  grid_race_ui: 'Carrera en cuadrícula',
+  escape_room_ui: 'Sala de escape',
+  toy_finder_ui: 'Buscador de juguetes',
+  birdmerge_ui: 'Fusión de pájaros',
+  character_designer_ui: 'Diseñador de personajes', // human
+  sit_down_ui: 'Siéntate', // human
 
-  main_menu_ui: "Menú Principal", // human
-  menu_button_sr_label_ui: "Menú", // human
-  project_submenu_ui: "Proyecto", // human
-  project_new_ui: "Nuevo", // human
-  project_open_ui: "Abrir", // human
-  project_save_ui: "Guardar", // human
-  language_submenu_ui: "Idioma", // human
-  about_submenu_ui: "Sobre nosotros", // human
-  hub_submenu_ui: "Centro", // human
+  main_menu_ui: 'Menú Principal', // human
+  menu_button_sr_label_ui: 'Menú', // human
+  project_submenu_ui: 'Proyecto', // human
+  project_new_ui: 'Nuevo', // human
+  project_open_ui: 'Abrir', // human
+  project_save_ui: 'Guardar', // human
+  tools_submenu_ui: 'Herramientas', // ai
+  tools_options_tab_ui: 'Opciones', // ai
+  tools_export_tab_ui: 'Exportar', // ai
+  export_web_page_heading_ui: 'Página web', // ai
+  export_web_page_description_ui: 'Guarda un único archivo que reproduce tu proyecto en un navegador web.', // ai
+  export_web_page_button_ui: 'Guardar como página web', // ai
+  export_web_zip_button_ui: 'Guardar como ZIP web', // ai
+  export_embed_heading_ui: 'Código para insertar', // ai
+  export_embed_description_ui: 'Copia este código y pégalo en otro sitio web para mostrar tu proyecto allí.', // ai
+  export_embed_copy_button_ui: 'Copiar código', // ai
+  export_hosted_heading_ui: 'Código para insertar un proyecto alojado', // ai
+  export_hosted_comment: 'Sustituye la dirección después de project= por la dirección de tu propio archivo de proyecto, como un enlace raw de GitHub.', // ai
+  export_embed_copied: 'Copiado.', // ai
+  export_embed_copy_failed: 'No se pudo copiar. Selecciona el código y cópialo tú.', // ai
+  export_web_page_file_description: 'Página web', // ai
+  export_web_zip_file_description: 'Archivo ZIP', // ai
+  tools_capture_tab_ui: 'Capturar', // ai
+  tools_debug_tab_ui: 'Depurar', // ai
+  capture_picture_heading_ui: 'Imagen', // ai
+  capture_picture_description_ui: 'Guarda una imagen de la escena 3D.', // ai
+  capture_picture_button_ui: 'Hacer foto', // ai
+  capture_include_everything_ui: 'Incluir todo', // ai
+  capture_gif_heading_ui: 'GIF animado', // ai
+  capture_gif_description_ui: 'Graba una animación corta que se repite, de hasta 10 segundos.', // ai
+  capture_gif_button_ui: 'Grabar GIF', // ai
+  capture_video_heading_ui: 'Vídeo', // ai
+  capture_video_description_ui: 'Graba un vídeo de la escena 3D, de hasta 1 minuto.', // ai
+  capture_video_button_ui: 'Grabar vídeo', // ai
+  capture_recording: 'Grabando', // ai
+  capture_time_up: '¡Se acabó el tiempo!', // ai
+  capture_stop_button: 'Parar', // ai
+  capture_save_button: 'Guardar', // ai
+  capture_making_gif: 'Creando tu GIF…', // ai
+  capture_saving: 'Guardando…', // ai
+  capture_saved: '¡Guardado!', // ai
+  capture_picture_saved: 'Imagen guardada.', // ai
+  capture_failed: 'Lo siento, no ha funcionado.', // ai
+  capture_picture_file_description: 'Imagen PNG', // ai
+  capture_gif_file_description: 'Animación GIF', // ai
+  capture_video_file_description: 'Vídeo', // ai
+  fps_option_ui: 'Fotogramas por segundo', // ai
+  physics_shapes_option_ui: 'Mostrar formas físicas', // ai
+  physics_shapes_note_ui: 'Desactívalo y actívalo para actualizar', // ai
+  inspector_tool_ui: 'Inspector', // ai
+  player_controls_option_ui: 'Controles del jugador', // ai
+  gizmo_controls_option_ui: 'Controles de manipulación', // ai
+  portrait_canvas_option_ui: 'Lienzo vertical (9:16)', // ai
+  gizmo_hints_option_ui: 'Consejos de manipulación', // ai
+  close_tools_ui: 'Cerrar herramientas', // ai
+  show_block_hints_ui: 'Mostrar sugerencias de bloques',
+  hide_block_hints_ui: 'Ocultar sugerencias de bloques',
+  language_submenu_ui: 'Idioma', // human
+  about_submenu_ui: 'Sobre nosotros', // human
+  hub_submenu_ui: 'Centro', // human
 
-  theme_submenu_ui: "Tema", // human
-  light_theme_ui: "Claro", // human
-  dark_theme_ui: "Oscuro", // human
-  contrast_theme_ui: "Contraste", // human
-  low_vision_theme_ui: "Baja visión",
+  theme_submenu_ui: 'Tema', // human
+  light_theme_ui: 'Claro', // human
+  dark_theme_ui: 'Oscuro', // human
+  contrast_theme_ui: 'Contraste', // human
+  low_color_theme_ui: 'Color reducido', // ai
 
-  run_code_button_ui: "Ejecutar tu código", // human
-  stop_code_button_ui: "Detener tu código", // human
-  canvas_overlay_play_ui: "Pulsa Play para empezar", // ai
-  open_button_ui: "Abrir un proyecto desde un archivo en tu computadora", // human
-  open_file_input_label_ui: "Selecciona el archivo de proyecto para abrir", // human
-  export_code_button_ui:
-    "Guardar este proyecto en un archivo en tu computadora.", // human
-  example_select_ui: "Elige un proyecto de ejemplo para cargar", // human
-  demo_heading_ui: "Demos", // ai
-  close_demos_ui: "Cerrar demos", // ai
-  examples_cat_start_ui: "Inicio", // ai
-  examples_cat_games_ui: "Juegos", // ai
-  examples_cat_physics_ui: "Física", // ai
-  examples_cat_worlds_ui: "Mundos", // ai
-  examples_cat_create_ui: "Creativo", // ai
-  examples_cat_xr_ui: "XR", // ai
+  run_code_button_ui: 'Ejecutar tu código', // human
+  pause_code_button_ui: 'Pausar tu código', // ai
+  unpause_code_button_ui: 'Quitar la pausa a tu código', // ai
+  pause_hint: 'En pausa. Tu código se ha detenido, pero puedes seguir usando los gizmos. Pulsa Pausa o {keys} para quitar la pausa a tu código.', // ai
+  open_button_ui: 'Abrir un proyecto desde un archivo en tu computadora', // human
+  open_file_input_label_ui: 'Selecciona el archivo de proyecto para abrir', // human
+  export_code_button_ui: 'Guardar este proyecto en un archivo en tu computadora.', // human
+  example_select_ui: 'Elige un proyecto de ejemplo para cargar', // human
+  close_projects_ui: 'Cerrar proyectos', // ai
+  examples_cat_games_ui: 'Juegos', // ai
+  examples_cat_physics_ui: 'Física', // ai
+  examples_cat_worlds_ui: 'Mundos', // ai
+  examples_cat_create_ui: 'Creativo', // ai
+  examples_cat_data_ui: 'Datos', // ai
+  examples_cat_xr_ui: 'XR', // ai
 
-  toggle_design_ui: "Diseña tu proyecto", // human
-  toggle_play_ui: "Usa tu proyecto", // human
-  fullscreen_toggle_ui:
-    "Cambiar entre vista de pantalla completa y vista normal.", // human
+  toggle_play_ui: 'Usa tu proyecto', // human
+  fullscreen_toggle_ui: 'Cambiar entre vista de pantalla completa y vista normal.', // human
+  exit_play_mode_hint_ui:
+    'Modo de juego. Pulsa Escape o el botón de modo de juego de la barra superior para salir.', // ai
 
-  show_shapes_button_ui: "añadir formas y modelos", // human
-  color_picker_button_ui: "Escoge color del objeto", // human
-  position_button_ui: "Posicionar objeto", // human
-  rotation_button_ui: "Rotar objeto", // human
-  scale_button_ui: "Escalar tamaño de objeto", // human
-  select_button_ui: "Seleccionar objeto", // human
-  duplicate_button_ui: "Duplicar objeto seleccionado", // human
-  delete_button_ui: "Eliminar objeto seleccionado", // human
-  camera_button_ui: "Controles de cámara", // human
-  eye_button_ui: "Orbitar alrededor del objeto seleccionado",
+  show_shapes_button_ui: 'añadir formas y modelos', // human
+  color_picker_button_ui: 'Escoge color del objeto', // human
+  position_button_ui: 'Posicionar objeto', // human
+  rotation_button_ui: 'Rotar objeto', // human
+  scale_button_ui: 'Escalar tamaño de objeto', // human
+  select_button_ui: 'Seleccionar objeto', // human
+  duplicate_button_ui: 'Duplicar objeto seleccionado', // human
+  delete_button_ui: 'Eliminar objeto seleccionado', // human
+  delete_block_button_ui: 'Eliminar bloque',
+  block_menu: 'Menú de bloque', // ai
+  block_menu_announcement: 'Menú de bloque: %1', // ai
+  duplicate_block_button_ui: 'Duplicar bloque',
+  camera_button_ui: 'Controles de cámara', // human
+  eye_button_ui: 'Orbitar alrededor del objeto seleccionado',
+  position_pin_button_ui: 'Elegir posición del objeto seleccionado',
+  close_status_message_ui: 'Cerrar mensaje', // ai
 
-  info_panel_link_ui:
-    "Visitar pagina web de Flock XR (se abre en una pestaña nueva)", // human
-  skip_to_scene_ui: "Saltar a la escena 3D", // ai
+  info_panel_link_ui: 'Visitar pagina web de Flock XR (se abre en una pestaña nueva)', // human
+  skip_to_scene_ui: 'Saltar a la escena 3D', // ai
 
-  project_name_ui: "Nombre del proyecto", // human
+  project_name_ui: 'Nombre del proyecto', // human
 
-  about_heading_ui: "Sobre Flock XR", // human
-  about_description_intro_ui: "Flock XR es un ", // human
-  about_description_prototype_ui: "prototipo", // human
-  about_description_made_by_ui: " hecho por ", // human
-  about_description_company_ui: "Flip Computing", // human
+  about_heading_ui: 'Sobre Flock XR', // human
+  about_description_intro_ui: 'Flock XR es un ', // human
+  about_description_prototype_ui: 'prototipo', // human
+  about_description_made_by_ui: ' hecho por ', // human
+  about_description_company_ui: 'Flip Computing', // human
   about_description_disclaimer_ui:
     ' Estamos buscando mojoras, asi que Flock esta siempre cambiando. Si tienes sugerencias o puedes ayudarnos con el desarollo de flock, por favor contactanos.', // human
   about_run_intro_ui:
@@ -1155,6 +1344,8 @@ export default {
   toolbox_search_results_aria: 'Resultados de búsqueda de la caja de herramientas.', // human
   context_delete_option: 'Eliminar', // human
   context_delete_all_blocks_option: 'Eliminar todos los bloques',
+  context_tidy_workspace_option: 'Ordenar',
+  context_cleanup_option: 'Limpiar',
   context_inline_inputs_option: 'Entradas horizontales',
   context_external_inputs_option: 'Entradas verticales',
   context_collapse_option: 'Contraer',
@@ -1163,20 +1354,33 @@ export default {
   context_expand_all_option: 'Expandir todo',
   context_disable_option: 'Deshabilitar',
   context_enable_option: 'Habilitar',
+  comment_text_label: 'Texto del comentario', // ai
+  view_in_canvas: 'Ver en el lienzo',
+  exit_canvas_view: 'Dejar de orbitar el objeto',
+  detach_block_option: 'Desconectar',
+  view_in_canvas_option: 'Ver en el lienzo',
   context_copy_option: 'Copiar', // human
   context_paste_option: 'Pegar', // human
   context_cut_option: 'Cortar', // human
+  move_item_up_option: 'Mover elemento hacia arriba', // ai
+  move_item_down_option: 'Mover elemento hacia abajo', // ai
   lock_block_option: 'Bloquear',
   unlock_block_option: 'Desbloquear',
   canvas_focus_navigation: 'Lienzo 3D enfocado. Usa las flechas o WASD para navegar.', // human
   design_tool_label: 'Herramienta de diseño', // human
-  focused_element_suffix: '{nombre} enfocado', // human
+  focused_element_suffix: '{name} enfocado', // human
   search_toolbox_focused: 'Búsqueda de la caja de herramientas enfocada', // human
   toolbox_search_placeholder: 'Buscar',
   workspace_search_placeholder: 'Buscar en el espacio',
   close: 'Cerrar',
   search_no_matching: 'No se encontraron bloques',
   search_type_to_search: 'Escribe para buscar bloques',
+  block_search_prompt: 'escribe para buscar un bloque', // ai
+  block_search_placeholder: 'Escribe para buscar un bloque', // ai
+  block_search_label: 'Buscar un bloque', // ai
+  block_search_result: 'bloque encontrado', // ai
+  block_search_results: 'bloques encontrados', // ai
+  block_search_tooltip: 'Escribe para buscar un bloque y pulsa Intro para añadirlo.', // ai
   code_workspace_focused: 'Espacio de trabajo de código enfocado', // human
   interactive_element_label: 'Elemento interactivo', // human
   panel_resizer_focused:
@@ -1185,8 +1389,8 @@ export default {
   redo_performed: 'Rehacer realizado', // human
   camera_moving_forward: 'Cámara moviéndose hacia adelante', // human
   camera_moving_backward: 'Cámara moviéndose hacia atrás', // human
-  camera_moving_left: 'Cámara moviéndose a la izquierda', // human
-  camera_moving_right: 'Cámara moviéndose a la derecha', // human
+  camera_turning_left: 'Cámara girando a la izquierda', // ai
+  camera_turning_right: 'Cámara girando a la derecha', // ai
   moving_forward: 'Moviéndose hacia adelante', // human
   moving_backward: 'Moviéndose hacia atrás', // human
   moving_left: 'Moviéndose a la izquierda', // human
@@ -1195,12 +1399,43 @@ export default {
   snippet_file_description: 'Fragmento de Flock XR', // human
   snippet_filename_prompt: 'Introduce un nombre de archivo para el fragmento:', // human
   project_file_description: 'Proyecto de Flock XR', // human
-  file_too_large_alert: 'Archivo demasiado grande. El tamaño máximo es 5 MB.', // human
+  file_too_large_alert: 'Este proyecto es demasiado grande.', // ai
   invalid_filetype_alert: 'Solo se permiten archivos de proyecto .json o .flock.', // human
   invalid_project_alert: 'Este archivo no es un proyecto válido de Flock XR.', // human
   failed_to_read_file_alert: 'No pudo leer el archivo.', // human
+  save_failed_alert:
+    'No se pudo guardar tu proyecto. Inténtalo de nuevo o guárdalo en otro lugar.', // ai
+  example_load_failed_alert:
+    'No se pudo abrir este proyecto. Comprueba tu conexión a internet e inténtalo de nuevo.', // ai
+  snippet_too_large_alert: 'Este archivo es demasiado grande para importarlo.', // ai
+  invalid_snippet_alert: 'Este archivo no contiene bloques de Flock XR.', // ai
+  snippet_png_no_blocks_alert: 'Esta imagen no tiene bloques de Flock XR.', // ai
+  project_url_load_failed_alert:
+    'Flock XR no pudo cargar este proyecto. Puede que el enlace sea incorrecto o que el sitio web no permita que otros sitios abran sus archivos.', // ai
   drag_drop_hint: 'Suelta aqui para abrir el proyecto o importar un fragmento', // human
   drop_unsupported_file_alert: 'Solo se pueden soltar archivos .flock, .json, .fsnip o .png.', // human
+  unsaved_changes_title_ui: 'Cambios sin guardar', // ai
+  unsaved_changes_message_ui:
+    'Este proyecto tiene cambios que no se han guardado en un archivo. ¿Qué te gustaría hacer?', // ai
+  unsaved_changes_maybe_title_ui: '¿Guardar tu proyecto?', // ai
+  unsaved_changes_maybe_message_ui:
+    'Es posible que este proyecto aún no se haya guardado en un archivo. ¿Qué te gustaría hacer?', // ai
+  unsaved_changes_save_button_ui: 'Guardar en archivo', // ai
+  unsaved_changes_discard_button_ui: 'Continuar sin guardar', // ai
+  unsaved_changes_cancel_button_ui: 'Cancelar', // ai
+  close_unsaved_changes_ui: 'Cerrar', // ai
+  untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
+  untrusted_project_url_message_ui:
+    'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
+  untrusted_project_url_framed_message_ui:
+    'Este enlace de proyecto no está en la lista de confianza de Flock XR, así que se abre en una pestaña nueva donde puedes decidir si ejecutarlo.', // ai
+  untrusted_project_url_new_tab_link_ui: 'Abrir en una pestaña nueva', // ai
+  untrusted_project_link_title_ui: '¿Abrir este proyecto?', // ai
+  untrusted_project_link_message_ui:
+    'Este proyecto venía dentro de un enlace, así que Flock XR no puede saber de dónde viene. Continúa solo si confías en el lugar donde conseguiste el enlace — se ejecutará en tu navegador.', // ai
+  untrusted_project_url_cancel_button_ui: 'Cancelar', // ai
+  untrusted_project_url_open_button_ui: 'Abrir proyecto', // ai
+  close_untrusted_project_url_ui: 'Cerrar', // ai
 
   // UI status messages
   max_mesh_limit_reached: '⚠️ Límite alcanzado: solo puedes tener {max} objetos en tu mundo.', // human
@@ -1209,40 +1444,140 @@ export default {
   physics_out_of_memory_banner_ui:
     'El motor de física se quedó sin memoria. Intenta reducir el número de objetos físicos o recargar el proyecto.', // human
   runtime_error_message: 'Error: {mensaje}', // human
+  error_autosave:
+    'Este navegador no pudo hacer una copia de seguridad de tu proyecto. Guárdalo en un archivo para no perder tu trabajo.', // ai
   error_audio:
     'El sonido no está disponible en este dispositivo. Tu proyecto se ejecutará sin audio.', // Google translate
   error_speech:
     'La voz no está disponible en este momento. Tu proyecto se ejecutará sin palabras habladas.', // ai
   error_startup: 'Flock no se pudo iniciar. Intenta recargar la página.', // human
   error_project_crash:
-    'Tu proyecto tuvo un problema. Pulsa Detener, revisa tus bloques y pulsa Reproducir otra vez.', // human
+    'Tu proyecto tuvo un problema. Revisa tus bloques y pulsa Reproducir otra vez.', // ai
+  error_run_setup: 'Flock XR no pudo iniciar tu proyecto. Intenta recargar la página.', // ai
+  error_block_handler: 'Hubo un problema al editar tus bloques.', // ai
   error_webgl_restoring: 'Vista 3D pausada, restaurando…', // human
   error_webgl_lost: 'La vista 3D dejó de funcionar. Intenta recargar la página.', // human
+  error_webgl_unavailable: 'Flock XR no puede iniciar la vista 3D. Intenta recargar la página.', // ai
+  error_webgl_unsupported:
+    'Este navegador no puede mostrar gráficos 3D, así que Flock XR no puede funcionar aquí.', // ai
   error_physics_oom:
     'Tu proyecto se quedó sin memoria. Recarga la página e intenta usar menos bloques.', // human
   error_physics_unsupported:
     'Este navegador es demasiado antiguo para ejecutar la física de Flock XR. Actualiza tu navegador si es posible.', // ai
   error_physics_unsupported_ios:
     'Flock XR necesita iOS 16.4 o posterior en este dispositivo. Actualiza tu iPhone o iPad si es posible.', // ai
-  error_design_mode_offline:
-    'El modo diseño necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
+  error_inspector_offline:
+    'El inspector necesita conexión a internet la primera vez que lo usas. Conéctate e inténtalo de nuevo.', // ai
+  error_xr_models_offline:
+    'Conéctate a internet para cargar los modelos de los mandos y las manos (opcionales). La XR funciona igual sin ellos.', // ai
+  error_chunk_load:
+    'No se ha podido cargar una parte de Flock. Comprueba tu conexión a internet y vuelve a cargar la página.', // ai
+  recursion_too_deep:
+    'Una función se seguía llamando a sí misma, así que se detuvo. Comprueba que pueda terminar.', // ai
+  unhandled_rejection: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
+  uncaught_error: 'Algo salió mal mientras tu proyecto se ejecutaba.', // ai
+  object_not_found:
+    'No se encontró {object}. Comprueba que se añade antes de que se ejecute este bloque.', // ai
+  target_not_a_mesh: '{object} no es un objeto que este bloque pueda cambiar.', // ai
+  target_not_clickable: 'No se puede hacer clic en {object}. Elige un objeto o un botón.', // ai
+  move_failed: 'No se pudo mover {object}.', // ai
+  tag_not_found: '{tag} no es una etiqueta.', // ai
+  animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
+  sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
+  text_creation_failed:
+    'No se pudo crear el texto 3D. Prueba con otro texto o con otra fuente.', // ai
+  csg_empty_result:
+    'No se pudieron restar estas formas. El texto 3D y las formas combinadas a menudo no se pueden cortar.', // ai
+  particle_effect_failed: 'No se pudo crear el efecto de partículas.', // ai
+  particle_emitter_not_mesh: 'Un efecto de partículas necesita un objeto del que salir.', // ai
+  invalid_callback: 'No se pudo preparar este bloque de evento.', // ai
+  forever_block_failed: 'Algo salió mal dentro de un bloque «siempre».', // ai
+  trigger_block_failed:
+    'Algo salió mal en los bloques que se ejecutan al hacer clic en un objeto o tocarlo.', // ai
+  not_a_microbit: '{object} no es una micro:bit.', // ai
   banner_reload: 'Recargar', // human
   banner_dismiss: 'Cerrar', // human
   xr_mode_message: '¡Modo XR!', // human
-  fly_camera_instructions: 'ℹ️ Cámara en vuelo, usa las flechas y Page Up/Down', // human
+  fly_camera_instructions: 'Mira alrededor con las flechas y Page Up/Down o Fn + ↑ ↓', // human
   fly_camera_instructions_touch:
-    'ℹ️ Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
-  select_mesh_delete_prompt: 'ℹ️ Haz clic en un objeto para eliminarlo.', // Google translate
-  select_mesh_duplicate_prompt: 'ℹ️ Selecciona un objeto para duplicar.', // Google (had to update it)
-  place_duplicate_prompt: 'ℹ️ Haz clic para colocar una copia.', // AI-generated; needs validation
-  select_mesh_eye_prompt: 'ℹ️ Haz clic en un objeto para orbitar alrededor de él.',
-  place_object_prompt: 'ℹ️ Haz clic en una superficie para colocar el objeto.', // ai
+    'Cámara en vuelo, usa los controles en pantalla y arrastra para mirar alrededor',
+  select_mesh_prompt: 'Selecciona un objeto, o usa las flechas para mover el cursor.',
+  select_mesh_delete_prompt: 'Haz clic en un objeto para eliminarlo.', // Google translate
+  select_mesh_position_prompt: 'Selecciona un objeto para colocarlo.',
+  select_mesh_duplicate_prompt: 'Selecciona un objeto para duplicar.', // Google (had to update it)
+  place_duplicate_prompt: 'Haz clic para colocar una copia.', // AI-generated; needs validation
+  duplicate_placed_status: 'Copia colocada.', // AI-generated; needs validation
+  orbit_origin_info: 'Arrastra para mover la cámara alrededor del origen. Haz clic en un objeto para orbitar alrededor de él.',
+  orbit_mesh_info: 'Arrastra para mover la cámara alrededor del objeto',
+  camera_preview_info: 'Mirando a través de la cámara. Haz clic en el botón de la cámara para volver.', // AI-generated; needs validation
+  capture_camera_view_label: 'Ajustar esta cámara a la vista actual', // AI-generated; needs validation
+  select_camera_target_prompt: 'Haz clic en el objeto que debe mirar esta cámara.', // AI-generated; needs validation
+  camera_faces_target_hint: // AI-generated; needs validation
+    'Esta cámara siempre mira a su objetivo. Muévela o usa su botón de cámara para ajustarla desde tu vista.',
+  camera_needs_target_hint: // AI-generated; needs validation
+    'Primero elige un objeto para que esta cámara lo mire: elígelo en su bloque o usa su botón de cámara.',
+  view_camera_label: 'Mirar a través de esta cámara', // AI-generated; needs validation
+  place_object_prompt: 'Haz clic en una superficie para colocar el objeto.', // ai
   position_readout: 'Posición: {position}', // human
   eyedropper_not_supported_alert:
     'La selección de color está disponible en Chrome/Edge en ordenadores de escritorio.', // ai
   blocks_copied_alert: '¡Bloques copiados al almacenamiento local!', // human
   no_blocks_to_copy_alert: 'No hay bloques para copiar.', // human
   copy_blocks_failed_alert: 'No se pudieron copiar los bloques.', // human
+
+  // Model display names
+  model_display_liz1: 'Gato', // ai
+  model_display_liz2: 'Mono', // ai
+  model_display_liz3: 'Personaje con coleta larga', // ai
+  model_display_liz4: 'Personaje con pelo de punta', // ai
+  model_display_liz5: 'Alienígena', // ai
+  model_display_liz6: 'Elfo', // ai
+  model_display_block1: 'Personaje de bloques con coletas altas', // ai
+  model_display_block2: 'Personaje de bloques con coletas largas', // ai
+  model_display_block3: 'Personaje de bloques con coleta', // ai
+  model_display_block4: 'Personaje de bloques con pelo corto rizado', // ai
+  model_display_block5: 'Personaje de bloques con pelo corto', // ai
+  model_display_block6: 'Personaje de bloques con pelo largo', // ai
+  model_display_tree: 'Árbol', // ai
+  model_display_tree2: 'Árbol con dos ramas', // ai
+  model_display_tree3: 'Árbol de invierno', // ai
+  model_display_tree4: 'Abeto', // ai
+  model_display_hut: 'Cabaña redonda', // ai
+  model_display_hut2: 'Cabaña', // ai
+  model_display_hut3: 'Carpa de festival', // ai
+  model_display_hut4: 'Cabaña con forma de seta', // ai
+  model_display_rocks: 'Plataforma de roca', // ai
+  model_display_rocks2: 'Roca de esquina', // ai
+  model_display_rocks3: 'Roca de varios niveles', // ai
+  model_display_rocks4: 'Cascada', // ai
+  model_display_pond: 'Estanque', // ai
+  model_display_boat: 'Barco', // ai
+  model_display_airplane: 'Avión', // ai
+  model_display_airplane2: 'Avión con asiento', // ai
+  model_display_skateboard: 'Monopatín', // ai
+  model_display_humped: 'Puente jorobado', // ai
+  model_display_jetty: 'Muelle', // ai
+  model_display_flower: 'Flor', // ai
+  model_display_flower2: 'Tulipán', // ai
+  model_display_star: 'Estrella', // ai
+  model_display_heart: 'Corazón', // ai
+  model_display_coin: 'Moneda', // ai
+  model_display_egg: 'Huevo', // ai
+  model_display_gem1: 'Gema cuadrada', // ai
+  model_display_gem2: 'Diamante', // ai
+  model_display_gem3: 'Gema alargada', // ai
+  model_display_key: 'Llave', // ai
+  model_display_wand: 'Varita', // ai
+  model_display_hat: 'Sombrero', // ai
+  model_display_donut: 'Rosquilla', // ai
+  model_display_pumpkin: 'Calabaza', // ai
+  model_display_apple: 'Manzana', // ai
+  model_display_starboppers: 'Starboppers', // ai
+  model_display_headphones: 'Auriculares', // ai
+  model_display_flock: 'Pájaro Flock', // ai
+  model_display_flock_santa: 'Pájaro Flock con gorro de Papá Noel', // ai
+  model_display_character: 'Personaje', // ai
+  model_display_rhino: 'Rinoceronte', // ai
 
   // Context menu option translations
   export_JSON_snippet: 'Exportar bloque como fragmento JSON', // human
@@ -1256,33 +1591,30 @@ export default {
   update_available_ui: 'Una nueva versión de Flock está disponible.', // human
   reload_button_ui: 'Recargar', // human
 
-  colour_rgb: 'rojo %1 verde %2 azul %3', // human
-  colour_random: 'color aleatorio', // human
-  colour_blend: 'mezclar %1 y %2 en %3', // human
 
   dark_contrast_theme_ui: 'Oscuro', // human
 
   // Attachment point options
-  LeftHand_option: 'Mano izquierda', // human
-  RightHand_option: 'Mano derecha', // human
-  Head_option: 'Cabeza', // human
-  Hips_option: 'Caderas', // human
-  Spine_option: 'Columna', // human
-  Spine1_option: 'Columna 1', // human
-  Spine2_option: 'Columna 2', // human
-  Neck_option: 'Cuello', // human
-  LeftShoulder_option: 'Hombro izquierdo', // human
-  LeftArm_option: 'Brazo superior izquierdo', // human
-  LeftForeArm_option: 'Antebrazo izquierdo', // human
-  RightShoulder_option: 'Hombro derecho', // human
-  RightArm_option: 'Brazo superior derecho', // human
-  RightForeArm_option: 'Antebrazo derecho', // human
-  LeftUpLeg_option: 'Muslo izquierdo', // human
-  LeftLeg_option: 'Espinilla izquierda', // human
-  LeftFoot_option: 'Pie izquierdo', // human
-  RightUpLeg_option: 'Muslo derecho', // human
-  RightLeg_option: 'Espinilla derecha', // human
-  RightFoot_option: 'Pie derecho', // human
+  LeftHand_option: 'mano izquierda', // human
+  RightHand_option: 'mano derecha', // human
+  Head_option: 'cabeza', // human
+  Hips_option: 'caderas', // human
+  Spine_option: 'columna', // human
+  Spine1_option: 'columna 1', // human
+  Spine2_option: 'columna 2', // human
+  Neck_option: 'cuello', // human
+  LeftShoulder_option: 'hombro izquierdo', // human
+  LeftArm_option: 'brazo superior izquierdo', // human
+  LeftForeArm_option: 'antebrazo izquierdo', // human
+  RightShoulder_option: 'hombro derecho', // human
+  RightArm_option: 'brazo superior derecho', // human
+  RightForeArm_option: 'antebrazo derecho', // human
+  LeftUpLeg_option: 'muslo izquierdo', // human
+  LeftLeg_option: 'espinilla izquierda', // human
+  LeftFoot_option: 'pie izquierdo', // human
+  RightUpLeg_option: 'muslo derecho', // human
+  RightLeg_option: 'espinilla derecha', // human
+  RightFoot_option: 'pie derecho', // human
 
   // Workspace toolbar
   toolbar_undo_ui: 'Deshacer',
@@ -1294,12 +1626,50 @@ export default {
   shortcut_panel_close: 'Cerrar atajos de teclado',
   shortcut_panel_help_link: 'Abrir enlace de ayuda de controles de teclado',
 
+  // Player controls panel — title, sections and control names
+  help_panel_title: 'Ayuda',
+  link_opens_in_new_tab: 'se abre en una pestaña nueva',
+  player_panel_title: 'Controles del jugador',
+  player_section_onscreen: 'Controles en pantalla',
+  player_section_gamepad: 'Controlador de juego',
+  player_section_sr: 'Lector de pantalla con controlador de juego',
+  player_action_move: 'Mover',
+  player_action_look: 'Mirar alrededor',
+  player_action_turn: 'Girar izquierda / derecha',
+  player_action_camera_up: 'Cámara arriba / Botón 1',
+  player_action_interact: 'Interactuar / Botón 2',
+  player_action_camera_down: 'Cámara abajo / Botón 3',
+  player_action_spare: 'Acción general / Botón 4',
+  player_control_arrows: 'Flechas',
+  player_control_button: 'Botón %1',
+  player_control_dpad_note: 'En controles sin palanca izquierda, el D-pad se mueve en su lugar.',
+  player_control_dpad_up: 'Resumen de la escena',
+  player_control_dpad_down: 'Objeto adelante',
+  player_control_dpad_left: 'Objeto más cercano',
+
+  // Player panel controls
+  player_decrease_font_size: 'Reducir tamaño de texto',
+  player_increase_font_size: 'Aumentar tamaño de texto',
+
+  // Player control key labels
+  gamepad_left_stick: 'Palanca izquierda',
+  gamepad_right_stick: 'Palanca derecha',
+  gamepad_l1_r1: 'L1 / R1',
+  gamepad_triangle_y: 'Triángulo / Y',
+  gamepad_square_x: 'Cuadrado / X',
+  gamepad_circle_b: 'Círculo / B',
+  gamepad_cross_a: 'Cruz / A',
+  dpad_up: 'Arriba',
+  dpad_down: 'Abajo',
+  dpad_left: 'Izquierda',
+
   // Keyboard shortcuts panel — labels
   shortcut_show_hide_help: 'Mostrar/ocultar atajos de teclado',
   shortcut_move_between_areas: 'Moverse entre menús, canvas y editor',
   shortcut_confirm: 'Confirmar',
   shortcut_exit: 'Salir',
   shortcut_play: 'Reproducir',
+  shortcut_pause: 'Pausar', // ai
   shortcut_undo: 'Deshacer',
   shortcut_redo: 'Rehacer',
   shortcut_browser_nav:
@@ -1322,17 +1692,19 @@ export default {
   shortcut_toolbox_typing: 'Ir a la categoría',
   shortcut_toolbox_typing_hint: 'Empieza a escribir su nombre',
   shortcut_context_menu: 'Abrir menú contextual',
-  shortcut_toggle_block_toolbar: 'Mostrar/ocultar la barra de sugerencias del bloque',
+  shortcut_toggle_block_toolbar: 'Mostrar/ocultar el menú de bloque', // ai
+  shortcut_block_info: 'Mostrar/ocultar la información del bloque', // ai
   shortcut_duplicate_block: 'Duplicar bloque',
   shortcut_detach_block: 'Desconectar bloque',
-  shortcut_comment_block: 'Mostrar/ocultar comentario',
-  shortcut_delete_comment: 'Eliminar comentario',
+  shortcut_enable_disable_block: 'Habilitar/deshabilitar bloque',
   shortcut_start_move_block: 'Mover bloque',
   shortcut_move_arrows: 'Mover: a conexión',
   shortcut_move_anywhere: 'Mover: a cualquier lugar',
   shortcut_select_workspace: 'Seleccionar área de trabajo',
   shortcut_move_through_blocks: 'Moverse por los bloques',
   shortcut_move_in_out_blocks: 'Entrar/salir de un bloque',
+  shortcut_step_out_block: 'Salir al bloque contenedor',
+  shortcut_dropdown_typeahead: 'Saltar por una lista desplegable abierta escribiendo un nombre', // ai
   shortcut_next_block_stack: 'Siguiente pila de bloques',
   shortcut_prev_block_stack: 'Pila de bloques anterior',
   shortcut_open_gizmos: 'Gizmos',
@@ -1343,8 +1715,22 @@ export default {
   shortcut_lock_transform: 'Bloquear transformación en eje',
   shortcut_transform_3d: 'Transformar en 3D',
   shortcut_focus_camera: 'Enfocar cámara en objeto',
+  shortcut_toggle_hud: 'Mostrar/ocultar controles de manipulación', // ai
+  hud_hidden: 'Controles de manipulación ocultos', // ai
+  hud_shown: 'Controles de manipulación visibles', // ai
+  ui_control_gizmo_hint: 'Arrástralo o arrastra sus flechas, o usa las teclas de flecha (Mayús para pasos pequeños). Intro para terminar.', // ai
+  gizmo_controls_hint: 'Muestra u oculta los controles de manipulación desde Menú > Herramientas.', // ai
+  xr_mode_missing_hint:
+    'Sin bloque de modo XR, este proyecto no se abrirá en tu visor. Añade uno desde Escena > XR.', // ai
+  unknown_block_warning: 'Bloque no reconocido en esta versión de Flock XR', // ai
+  unrecognised_blocks_loaded:
+    'Algunos bloques no se reconocen en esta versión de Flock XR, así que se han desactivado.', // ai
   shortcut_quick_colour: 'Usar color rápido en el selector de color',
   shortcut_delete_object: 'Eliminar objeto',
+  shortcut_fly_move: 'Cámara libre: mover', // ai
+  shortcut_fly_height: 'Cámara libre: subir / bajar', // ai
+  shortcut_orbit_rotate: 'Cámara orbital: girar alrededor del objeto', // ai
+  shortcut_orbit_zoom: 'Cámara orbital: acercar / alejar', // ai
 
   // AI-generated; needs validation
   axis_lock_x: 'Teclado bloqueado en el eje X',
@@ -1359,6 +1745,7 @@ export default {
   shortcut_category_toolbox: 'Caja de herramientas',
   shortcut_category_editor: 'Editor',
   shortcut_category_gizmos: 'Gizmos',
+  shortcut_category_camera: 'Cámara', // ai
 
   // Blockly keyboard navigation toast messages
   KEYBOARD_NAV_WORKSPACE_NAVIGATION_HINT: 'Usa las teclas de flecha para navegar', // machine

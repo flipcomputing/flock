@@ -72,7 +72,9 @@ Before starting, we suggest you [get in touch](https://flipcomputing.com/contact
 7. **Create a Pull Request** on GitHub
 
 ### Deploying your fork to GitHub Pages
+
 1. **Push your fork to GitHub**:
+
    ```bash
    git push origin main
    ```
@@ -108,7 +110,6 @@ Understanding the codebase – key files:
 - **`index.html`** - Main HTML file that defines the application structure, UI layout (menu, canvas, code panel), and loads all necessary scripts and stylesheets
 - **`main/main.js`** - Main application entry point that initializes Blockly workspace, handles code execution, manages UI views (canvas/blocks/split), and controls file operations
 - **`flock.js`** - Main Flock engine
-- **`ui/designview.js`** - Visual design interface enabling direct 3D object manipulation with gizmos, synchronizing 3D changes with Blockly blocks
 - **`blocks.js`** - Block definitions
 - **`generators.js`** - Blockly JavaScript generators for blocks
 - **`toolbox.js`** - Blockly toolbox configuration
@@ -121,6 +122,7 @@ Directories:
 - **`examples/`** - Example project JSON files including those featured in the Demo dropdown
 - **`fonts/`** - Fonts used in UI and 3D text generation
 - **`images/`** - Images used in UI
+- **`input/`** - Player input: keyboard, gamepad, on-screen controls and XR controllers, all feeding a single input manager (see [INPUT.md](dev-docs/INPUT.md))
 - **`locale/`** - localisation / translation
 - **`main/`** - application file to support flock engine
 - **`models/`** - 3D models (.glb files)

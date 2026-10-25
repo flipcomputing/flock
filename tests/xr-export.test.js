@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 function waitForModel(flock, meshName) {
   return new Promise((resolve) => {
@@ -7,17 +7,17 @@ function waitForModel(flock, meshName) {
 }
 
 export function runXRExportTests(flock) {
-  describe("XR exportMesh GLB tests @new", function () {
+  describe('XR exportMesh GLB tests @new', function () {
     this.timeout(20000);
 
-    it("preserves attached children when exporting a wrapper model", async function () {
+    it('preserves attached children when exporting a wrapper model', async function () {
       const hutId = flock.createObject({
-        modelName: "hut.glb",
+        modelName: 'hut.glb',
         modelId: `hut.glb__export_parent_${Date.now()}`,
         position: { x: 0, y: 0, z: 0 },
       });
       const treeId = flock.createObject({
-        modelName: "tree.glb",
+        modelName: 'tree.glb',
         modelId: `tree.glb__export_child_${Date.now()}`,
         position: { x: 2, y: 0, z: 0 },
       });
@@ -28,31 +28,23 @@ export function runXRExportTests(flock) {
       ]);
       await flock.setParent(hutId, treeId);
 
-      const hutRootChild = hutMesh
-        .getChildMeshes()
-        .find((child) => child.name === "__root__");
-      const treeRootChild = treeMesh
-        .getChildMeshes()
-        .find((child) => child.name === "__root__");
+      const hutRootChild = hutMesh.getChildMeshes().find((child) => child.name === '__root__');
+      const treeRootChild = treeMesh.getChildMeshes().find((child) => child.name === '__root__');
 
       const originalGLBAsync = flock.EXPORT.GLTF2Export.GLBAsync;
       let shouldExportNode;
-      flock.EXPORT.GLTF2Export.GLBAsync = async (
-        _scene,
-        _filename,
-        options,
-      ) => {
+      flock.EXPORT.GLTF2Export.GLBAsync = async (_scene, _filename, options) => {
         shouldExportNode = options?.shouldExportNode;
         return { downloadFiles() {} };
       };
 
       try {
-        await flock.exportMesh(hutId, "GLB");
+        await flock.exportMesh(hutId, 'GLB');
       } finally {
         flock.EXPORT.GLTF2Export.GLBAsync = originalGLBAsync;
       }
 
-      expect(shouldExportNode).to.be.a("function");
+      expect(shouldExportNode).to.be.a('function');
       if (hutRootChild) {
         expect(shouldExportNode(hutMesh)).to.equal(true);
         expect(shouldExportNode(hutRootChild)).to.equal(true);
@@ -67,9 +59,9 @@ export function runXRExportTests(flock) {
       }
     });
 
-    it("keeps regular single-model export coverage", async function () {
+    it('keeps regular single-model export coverage', async function () {
       const treeId = flock.createObject({
-        modelName: "tree.glb",
+        modelName: 'tree.glb',
         modelId: `tree.glb__single_export_${Date.now()}`,
         position: { x: -2, y: 0, z: 0 },
       });
@@ -77,25 +69,19 @@ export function runXRExportTests(flock) {
 
       const originalGLBAsync = flock.EXPORT.GLTF2Export.GLBAsync;
       let shouldExportNode;
-      flock.EXPORT.GLTF2Export.GLBAsync = async (
-        _scene,
-        _filename,
-        options,
-      ) => {
+      flock.EXPORT.GLTF2Export.GLBAsync = async (_scene, _filename, options) => {
         shouldExportNode = options?.shouldExportNode;
         return { downloadFiles() {} };
       };
 
       try {
-        await flock.exportMesh(treeId, "GLB");
+        await flock.exportMesh(treeId, 'GLB');
       } finally {
         flock.EXPORT.GLTF2Export.GLBAsync = originalGLBAsync;
       }
 
-      expect(shouldExportNode).to.be.a("function");
-      const treeRootChild = treeMesh
-        .getChildMeshes()
-        .find((child) => child.name === "__root__");
+      expect(shouldExportNode).to.be.a('function');
+      const treeRootChild = treeMesh.getChildMeshes().find((child) => child.name === '__root__');
       if (treeRootChild) {
         expect(shouldExportNode(treeMesh)).to.equal(true);
         expect(shouldExportNode(treeRootChild)).to.equal(true);

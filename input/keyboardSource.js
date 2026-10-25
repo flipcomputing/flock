@@ -1,4 +1,4 @@
-import { normaliseKey } from "./normaliseKey.js";
+import { normaliseKey } from './normaliseKey.js';
 
 export class KeyboardSource {
   #inputManager;
@@ -6,7 +6,7 @@ export class KeyboardSource {
   #onBlur;
   #started = false;
   #heldKeys = new Set();
-  #flyMode = false;
+  #ownerObserver = null;
 
   // Bound handlers kept so stop() can remove them.
   #onKeyDown;
@@ -15,51 +15,61 @@ export class KeyboardSource {
   #onWindowBlur;
   #onDocKeyDown;
 
+  // An editor camera owns input: keep tracking the real keyboard for camera
+  // reads, but stop reporting to InputManager so the project can't react.
+  get #editorOwned() {
+    return this.#inputManager.inputOwner === 'editor';
+  }
+
   constructor(inputManager, { target, onBlur } = {}) {
     this.#inputManager = inputManager;
     this.#target = target;
     this.#onBlur = onBlur ?? null;
 
     this.#onDocKeyDown = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // Don't feed scene/input events to the running project while the user is
       // interacting with an open modal dialog (e.g. navigating the demo picker
       // with arrow keys) — the focused control, not the scene, owns the key.
-      if (event.target?.closest?.(".modal:not(.hidden)")) return;
+      if (event.target?.closest?.('.modal:not(.hidden)')) return;
       this.#inputManager._notifyRawKeyDown(event);
     };
 
     this.#onKeyDown = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // Shortcut chords (Ctrl+Z undo, ⌘S…) belong to the app/browser, not
       // gameplay — without this, undo on a focused canvas walks the player
       // ("z" is bound to FORWARD for AZERTY keyboards).
       if (event.ctrlKey || event.metaKey || event.altKey) return;
+      // A document-level shortcut can move focus away mid-dispatch; the keyup
+      // would then go elsewhere and leave the key held forever.
+      const doc = this.#target.ownerDocument;
+      if (doc && doc.activeElement !== this.#target) return;
       const key = normaliseKey(event.key);
       if (event.repeat) {
         // OS auto-repeat while held: drive "while held" event blocks via the
         // repeat signal, but leave refcount/movement (the down edge) alone.
-        if (!this.#flyMode && this.#heldKeys.has(key)) {
+        if (!this.#editorOwned && this.#heldKeys.has(key)) {
           this.#inputManager._repeatKey(key);
         }
         return;
       }
       if (this.#heldKeys.has(key)) return;
       this.#heldKeys.add(key);
-      if (!this.#flyMode) this.#inputManager._setKey(key, true);
+      if (!this.#editorOwned) this.#inputManager._setKey(key, true);
     };
     this.#onKeyUp = (event) => {
-      if (event.__flockSynthetic) return;
+      if (event.__flockSynthetic || !event.key) return;
       // macOS browsers suppress keyup for keys released while ⌘ is held, so
       // anything still tracked when ⌘ comes up would be stuck down forever.
-      if (event.key === "Meta") {
+      if (event.key === 'Meta') {
         this.#releaseAll();
         return;
       }
       const key = normaliseKey(event.key);
       if (!this.#heldKeys.has(key)) return;
       this.#heldKeys.delete(key);
-      if (!this.#flyMode) this.#inputManager._setKey(key, false);
+      if (!this.#editorOwned) this.#inputManager._setKey(key, false);
     };
     this.#onTargetBlur = () => {
       this.#releaseAll();
@@ -71,9 +81,9 @@ export class KeyboardSource {
     };
   }
 
-  // In fly mode held keys were never reported to InputManager, so releasing
-  // them there would corrupt refcounts owned by other sources (e.g. gamepad).
-  #releaseAll({ notifyInputManager = !this.#flyMode } = {}) {
+  // Keys held while the editor owned input were never reported to InputManager,
+  // so releasing them there would corrupt refcounts owned by other sources.
+  #releaseAll({ notifyInputManager = !this.#editorOwned } = {}) {
     if (notifyInputManager) {
       for (const key of this.#heldKeys) {
         this.#inputManager._setKey(key, false);
@@ -82,44 +92,45 @@ export class KeyboardSource {
     this.#heldKeys.clear();
   }
 
-  // Physical key state — always reflects the real keyboard, regardless of fly mode.
-  // Use this for internal engine reads (e.g. camera movement) so fly mode
-  // blocking of InputManager doesn't prevent the camera from moving.
+  // Physical key state — always reflects the real keyboard, whoever owns input.
+  // Used for internal engine reads (e.g. camera movement) so suppressing the
+  // project's view of a key doesn't prevent the camera from moving.
   isKeyDown(key) {
     return this.#heldKeys.has(normaliseKey(key));
   }
 
-  setFlyMode(enabled) {
-    if (!!enabled === this.#flyMode) return;
-    this.#flyMode = !!enabled;
-    if (this.#flyMode) {
-      // Release keys that were held before entering fly mode — those were
-      // reported to InputManager while fly mode was still off.
+  #onOwnerChanged = (owner) => {
+    if (owner === 'editor') {
+      // Keys held before the handover were reported to InputManager.
       this.#releaseAll({ notifyInputManager: true });
     } else {
-      // Discard any keys tracked during fly mode — InputManager was never told
-      // about them, so no corresponding release is needed.
+      // InputManager was never told about keys tracked during the handover.
       this.#heldKeys.clear();
     }
-  }
+  };
 
   start() {
     if (this.#started) return;
     this.#started = true;
-    document.addEventListener("keydown", this.#onDocKeyDown, true);
-    this.#target.addEventListener("keydown", this.#onKeyDown);
-    this.#target.addEventListener("keyup", this.#onKeyUp);
-    this.#target.addEventListener("blur", this.#onTargetBlur);
-    window.addEventListener("blur", this.#onWindowBlur);
+    this.#ownerObserver = this.#inputManager.onInputOwnerChangedObservable.add(
+      this.#onOwnerChanged
+    );
+    document.addEventListener('keydown', this.#onDocKeyDown, true);
+    this.#target.addEventListener('keydown', this.#onKeyDown);
+    this.#target.addEventListener('keyup', this.#onKeyUp);
+    this.#target.addEventListener('blur', this.#onTargetBlur);
+    window.addEventListener('blur', this.#onWindowBlur);
   }
 
   stop() {
     if (!this.#started) return;
     this.#started = false;
-    document.removeEventListener("keydown", this.#onDocKeyDown, true);
-    this.#target.removeEventListener("keydown", this.#onKeyDown);
-    this.#target.removeEventListener("keyup", this.#onKeyUp);
-    this.#target.removeEventListener("blur", this.#onTargetBlur);
-    window.removeEventListener("blur", this.#onWindowBlur);
+    this.#inputManager.onInputOwnerChangedObservable.remove(this.#ownerObserver);
+    this.#ownerObserver = null;
+    document.removeEventListener('keydown', this.#onDocKeyDown, true);
+    this.#target.removeEventListener('keydown', this.#onKeyDown);
+    this.#target.removeEventListener('keyup', this.#onKeyUp);
+    this.#target.removeEventListener('blur', this.#onTargetBlur);
+    window.removeEventListener('blur', this.#onWindowBlur);
   }
 }

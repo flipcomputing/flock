@@ -1,0 +1,24 @@
+{
+  "type": "load_object",
+  "fields": {
+    "ID_VAR": { "name": "star", "type": "" },
+    "MODELS": "Star.glb"
+  },
+  "inputs": {
+    "COLOR": {
+      "shadow": { "type": "colour", "fields": { "COLOR": "#ffd700" } }
+    },
+    "SCALE": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 1 } }
+    },
+    "X": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 2.5 } }
+    },
+    "Y": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 0 } }
+    },
+    "Z": {
+      "shadow": { "type": "math_number", "fields": { "NUM": 1 } }
+    }
+  }
+}

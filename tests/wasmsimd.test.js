@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { translate } from '../main/translation.js';
 
 export function runWasmSimdTests(flock) {
   describe('WebAssembly SIMD capability @wasmsimd', function () {
@@ -125,6 +126,79 @@ export function runWasmSimdTests(flock) {
           expect(result).to.equal(instance);
         } finally {
           flock.havokInstance = previousInstance;
+        }
+      });
+
+      it('blames the connection, not the project, when the Havok load fails', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        flock.havokInstance = null;
+        let thrown = null;
+
+        try {
+          await flock.ensurePhysicsInstance(async () => {
+            throw new TypeError('Failed to fetch');
+          });
+        } catch (error) {
+          thrown = error;
+        } finally {
+          flock.havokInstance = previousInstance;
+        }
+
+        expect(thrown?.flockReported).to.equal(true);
+        const banners = document.querySelectorAll('.flock-banner');
+        expect(banners).to.have.length(1);
+        expect(banners[0].textContent).to.contain(translate('error_chunk_load'));
+      });
+
+      it('treats a Havok memory abort during load as out of memory, not a connection problem', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        const originalHandler = flock.handlePhysicsOutOfMemory;
+        const oomCalls = [];
+        // The real handler stops the shared render loop, which later tests need.
+        flock.handlePhysicsOutOfMemory = (error) => oomCalls.push(error);
+        flock.havokInstance = null;
+        const abort = new WebAssembly.RuntimeError('Aborted(out of memory)');
+        let thrown = null;
+
+        try {
+          await flock.ensurePhysicsInstance(async () => {
+            throw abort;
+          });
+        } catch (error) {
+          thrown = error;
+        } finally {
+          flock.handlePhysicsOutOfMemory = originalHandler;
+          flock.havokInstance = previousInstance;
+        }
+
+        expect(oomCalls).to.deep.equal([abort]);
+        expect(thrown?.flockReported).to.equal(true);
+        expect(document.querySelector('.flock-banner')).to.not.exist;
+      });
+
+      it('discards a load whose promise was reset mid-flight (OOM)', async function () {
+        flock._wasmSimdSupported = true;
+        const previousInstance = flock.havokInstance;
+        flock.havokInstance = null;
+        const stale = { havok: 'stale' };
+        let release;
+        const loadHavok = () => new Promise((resolve) => (release = () => resolve(stale)));
+
+        try {
+          const pending = flock.ensurePhysicsInstance(loadHavok);
+          // handlePhysicsOutOfMemory clears these while the load is in flight.
+          flock.havokInstance = null;
+          flock._havokInstancePromise = undefined;
+          release();
+          const result = await pending;
+
+          expect(flock.havokInstance).to.equal(null);
+          expect(result).to.equal(null);
+        } finally {
+          flock.havokInstance = previousInstance;
+          flock._havokInstancePromise = undefined;
         }
       });
     });

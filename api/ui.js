@@ -1,4 +1,5 @@
 import { getBoundKeys } from '../input/bindings.js';
+import { isVector } from './math.js';
 import { JoystickSource } from '../input/joystickSource.js';
 import {
   registerUIButton,
@@ -8,16 +9,31 @@ import {
   unregisterUIControl,
 } from '../accessibility/uiA11y.js';
 import { setInteractIndicatorEnabled } from '../ui/interactIndicator.js';
+import { getPlayerControlsEnabled, onControlPreferenceChange } from '../ui/controlPreferences.js';
 
 let flock;
 //let fontFamily = "Asap";
 let fontFamily = 'Atkinson Hyperlegible Next';
 
+// On-screen control geometry, in unscaled px. Each grid cell holds one button
+// plus a gutter, and the whole grid is inset from the canvas edge by the margin.
+const CONTROL_BUTTON_SIZE = 62;
+const CONTROL_CELL_SIZE = 72;
+const CONTROLS_EDGE_MARGIN = 5;
+// Distance from the canvas edge to the nearest button face.
+const CONTROLS_EDGE_INSET = CONTROLS_EDGE_MARGIN + (CONTROL_CELL_SIZE - CONTROL_BUTTON_SIZE) / 2;
+// Minimum space kept between the movement and action grids when the canvas is
+// too narrow and the controls shrink to fit.
+const CONTROLS_MIN_GAP = 16;
+
 // Canvas-painted GUI text can't inherit the browser's font-size preferences,
 // so approximate them from the root font-size. baseCssPx is the size at a 16px
 // root.
 function uiFontSizePx(baseCssPx = 16) {
-  const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+  const hardwareScaling = flock?.engine?.getHardwareScalingLevel?.();
+  const dpr = hardwareScaling
+    ? 1 / hardwareScaling
+    : (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
   let rootPx = 16;
   try {
     const px = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -31,11 +47,465 @@ function uiFontSizePx(baseCssPx = 16) {
   return Math.round(baseCssPx * prefScale * dpr);
 }
 
+// A fullscreen GUI layer is not rendered inside an immersive session, so the controls
+// ride on the XR HUD plane instead while one is running.
+function controlsHost() {
+  return flock._xrHUDActive && flock.meshTexture ? flock.meshTexture : flock.controlsTexture;
+}
+
+function addControlsRoot(control) {
+  const host = controlsHost();
+  host.addControl(control);
+  if (host !== flock.controlsTexture) flock._xrHUDControlRoots.push(control);
+}
+
+function disposeControls() {
+  flock._xrHUDControlRoots.forEach((control) => control.dispose());
+  flock._xrHUDControlRoots = [];
+  flock.controlsTexture?.dispose();
+  flock.controlsTexture = null;
+}
+
+function currentControlsScale() {
+  const baseDisplayScale = flock._controlsBaseDisplayScale ?? flock.displayScale;
+  const baseHardwareScaling = flock._controlsBaseHardwareScaling ?? 1;
+  const hardwareScaling = flock.engine?.getHardwareScalingLevel?.() ?? baseHardwareScaling;
+  return baseDisplayScale * (baseHardwareScaling / hardwareScaling);
+}
+
+function controlsSides(layout) {
+  if (layout.kind === 'buttons') {
+    return {
+      movement: layout.control === 'ARROWS' || layout.control === 'BOTH',
+      actions: layout.control === 'ACTIONS' || layout.control === 'BOTH',
+    };
+  }
+  return {
+    movement: ['ARROWS', 'WASD', 'JOYSTICK'].includes(layout.movement),
+    actions: !!actionButtonLabels(layout.actions),
+  };
+}
+
+// Shrinks the controls on a narrow canvas (e.g. a portrait phone) so the
+// movement and action grids never overlap or run off the edge.
+function fitControlsScale(layout, scale) {
+  if (!layout || controlsHost() !== flock.controlsTexture) return scale;
+  const renderWidth = flock.engine?.getRenderWidth?.();
+  if (!renderWidth) return scale;
+  const { movement, actions } = controlsSides(layout);
+  let needed = 0;
+  if (movement) needed += CONTROLS_EDGE_MARGIN + 3 * CONTROL_CELL_SIZE;
+  if (actions) needed += CONTROLS_EDGE_MARGIN + 2 * CONTROL_CELL_SIZE;
+  if (movement && actions) needed += CONTROLS_MIN_GAP;
+  if (!needed) return scale;
+  return Math.min(scale, renderWidth / needed);
+}
+
+// AUTO defers to the Tools panel preference, so the layout keeps the mode and
+// re-derives visibility per render rather than caching an answer.
+function controlsShouldShow(mode) {
+  return mode === 'ENABLED' || (mode === 'AUTO' && getPlayerControlsEnabled());
+}
+
+// What the four action buttons show. 'LETTERS' matches the r/e/f/space key
+// bindings (with the usual spacebar glyph); 'NUMBERS' is the 1-4 pad. The block
+// keeps the old field values, so 'YES' means the number pad and 'NO' means no
+// action buttons; 'NUMBERS'/'NONE' are accepted too for direct script calls.
+const ACTION_BUTTON_LABELS = {
+  YES: ['1', '2', '3', '4'],
+  NUMBERS: ['1', '2', '3', '4'],
+  LETTERS: ['R', 'E', 'F', '␣'],
+};
+function actionButtonLabels(actions) {
+  return ACTION_BUTTON_LABELS[actions] || null;
+}
+
+function renderControls(layout, scale) {
+  flock._onScreenSource?.releaseAll();
+  if (flock._joystickSource) {
+    flock._joystickSource.stop();
+    flock._joystickSource = null;
+  }
+  disposeControls();
+  flock._controlsRenderedScale = null;
+  if (!layout || !controlsShouldShow(layout.mode)) return;
+
+  const previousDisplayScale = flock.displayScale;
+  flock.displayScale = fitControlsScale(layout, scale);
+  flock._controlsRenderedScale = flock.displayScale;
+  try {
+    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      'VirtualControls',
+      true,
+      flock.scene
+    );
+    // A gizmo HUD hides the player controls for its lifetime, rebuilds included.
+    flock.controlsTexture.rootContainer.isVisible = !flock._playerControlsSuppressed;
+
+    // color/background may each be a single value or a [movement, actions] pair.
+    const moveColor = controlSideColor(layout.color, 0, '#ffffff');
+    const actionColor = controlSideColor(layout.color, 1, '#ffffff');
+    const moveBackground = controlsButtonBackground(layout, 0);
+    const actionBackground = controlsButtonBackground(layout, 1);
+
+    if (layout.kind === 'buttons') {
+      if (layout.control === 'ARROWS' || layout.control === 'BOTH') {
+        flock.createArrowControls(moveColor, moveBackground);
+      }
+      if (layout.control === 'ACTIONS' || layout.control === 'BOTH') {
+        flock.createButtonControls(actionColor, actionBackground);
+      }
+      return;
+    }
+
+    // The joystick tracks canvas pointer events, which an immersive session never delivers.
+    const onXRHUD = controlsHost() !== flock.controlsTexture;
+    const movement =
+      onXRHUD && (layout.movement === 'JOYSTICK' || layout.movement === 'WASD')
+        ? 'ARROWS'
+        : layout.movement;
+    if (movement === 'ARROWS') {
+      flock.createArrowControls(moveColor, moveBackground);
+    } else if (movement === 'WASD') {
+      flock.createWASDControls(moveColor, moveBackground);
+    } else if (movement === 'JOYSTICK') {
+      flock._joystickSource = flock.createJoystickControls(moveColor, moveBackground);
+      flock._joystickSource?.start();
+    }
+    const actionLabels = actionButtonLabels(layout.actions);
+    if (actionLabels) flock.createButtonControls(actionColor, actionBackground, actionLabels);
+  } finally {
+    flock.displayScale = previousDisplayScale;
+  }
+}
+
+// color/background inputs accept a [movement/joystick, actions] pair. A single
+// value (or a one-item list) applies to both sides; an empty list falls back to
+// the default so the controls never lose their colour.
+function controlSideColor(color, index, fallback) {
+  if (Array.isArray(color)) return color[index] || color[0] || fallback;
+  return color || fallback;
+}
+
+// The fill painted inside each control's border. Resolves to 'transparent'
+// unless alpha is above 0, so older saved projects (which can only produce
+// alpha 0) render exactly as before.
+function controlsButtonBackground(layout, index) {
+  const alpha = Number(layout?.alpha);
+  if (!isFinite(alpha) || alpha <= 0) return 'transparent';
+  const hex = controlSideColor(layout.background, index, '#000000');
+  return flock.hexToRgba(hex, Math.min(alpha, 1));
+}
+
+function sayAlpha(alpha) {
+  return isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
+}
+
+function saySize(size) {
+  return isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+}
+
+function configureControlsResizeHandling() {
+  const engine = flock.engine;
+  if (!engine || flock._controlsResizeEngine === engine) return;
+
+  if (flock._controlsResizeEngine && flock._controlsResizeObserver) {
+    flock._controlsResizeEngine.onResizeObservable.remove(flock._controlsResizeObserver);
+  }
+
+  flock._controlsResizeEngine = engine;
+  flock._controlsBaseHardwareScaling = engine.getHardwareScalingLevel();
+  flock._controlsLastHardwareScaling = flock._controlsBaseHardwareScaling;
+  flock._controlsResizeObserver = engine.onResizeObservable.add(() => {
+    const hardwareScaling = engine.getHardwareScalingLevel();
+    const scale =
+      flock._controlsBaseDisplayScale * (flock._controlsBaseHardwareScaling / hardwareScaling);
+    if (
+      hardwareScaling === flock._controlsLastHardwareScaling &&
+      (flock._controlsRenderedScale == null ||
+        fitControlsScale(flock._controlsLayout, scale) === flock._controlsRenderedScale)
+    ) {
+      return;
+    }
+
+    flock._controlsLastHardwareScaling = hardwareScaling;
+    renderControls(flock._controlsLayout, scale);
+  });
+}
+
+// The Tools panel can flip the preference between block runs.
+onControlPreferenceChange(() => {
+  if (!flock?._controlsLayout) return;
+  renderControls(flock._controlsLayout, currentControlsScale());
+});
+
 export function setFlockReference(ref) {
   flock = ref;
 }
 
+export function anchorAxis(offset, align, endName) {
+  const value = String(align ?? '').toUpperCase();
+  if (value === 'CENTER') return { edge: 'center', px: offset };
+  if (value === endName) return { edge: 'end', px: -offset };
+  return offset < 0 ? { edge: 'end', px: offset } : { edge: 'start', px: offset };
+}
+
+function placeControl(control, h, v) {
+  const { Control } = flock.GUI;
+  control.left = `${h.px}px`;
+  control.top = `${v.px}px`;
+  control.horizontalAlignment = {
+    start: Control.HORIZONTAL_ALIGNMENT_LEFT,
+    center: Control.HORIZONTAL_ALIGNMENT_CENTER,
+    end: Control.HORIZONTAL_ALIGNMENT_RIGHT,
+  }[h.edge];
+  control.verticalAlignment = {
+    start: Control.VERTICAL_ALIGNMENT_TOP,
+    center: Control.VERTICAL_ALIGNMENT_CENTER,
+    end: Control.VERTICAL_ALIGNMENT_BOTTOM,
+  }[v.edge];
+}
+
+function anchorControl(control, x, y, { hAlign, vAlign } = {}) {
+  const h = anchorAxis(x, hAlign, 'RIGHT');
+  const v = anchorAxis(y, vAlign, 'BOTTOM');
+  placeControl(control, h, v);
+  return { h, v };
+}
+
+function a11yRect(h, v, w, height) {
+  return { x: h.px, y: v.px, w, h: height, hEdge: h.edge, vEdge: v.edge };
+}
+
+function storeLayout(control, options) {
+  const layout = { ...options, x: Number(options.x || 0), y: Number(options.y || 0) };
+  control.metadata = { ...control.metadata, layout };
+  return layout;
+}
+
+function sanitizeInputText(val, { maxLen = 500 } = {}) {
+  if (val == null) return '';
+  let s = String(val);
+  s = s.normalize('NFKC');
+  const doc = new DOMParser().parseFromString(s, 'text/html');
+  s = doc.body.textContent || '';
+  s = s.replace(/\p{Cc}/gu, '');
+  s = s.replace(/\s+/g, ' ').trim();
+  if (s.length > maxLen) s = s.slice(0, maxLen);
+  return s;
+}
+
+function layoutUIText(bg, options, { announce = true } = {}) {
+  const textBlock = bg.children[0];
+  const { text, fontSize, color, backgroundColor, alpha } = options;
+  const { x, y } = storeLayout(bg, options);
+  const resolvedAlpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 1;
+  const paddingV = 6 * flock.displayScale;
+
+  bg.background = flock.hexToRgba(backgroundColor || '#ffffff', resolvedAlpha);
+
+  textBlock.text = text;
+  textBlock.color = color || 'white';
+
+  const px = Number(fontSize || 24) * flock.displayScale;
+  textBlock.fontSize = px;
+  const linePx = Math.max(1, Math.round(px * 1.2));
+  textBlock.lineHeight = `${linePx}px`;
+  textBlock.height = `${Math.max(linePx, px + 4) + paddingV * 2}px`;
+
+  const { h, v } = anchorControl(bg, x, y, options);
+  textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+
+  registerUIText(
+    textBlock.name,
+    textBlock.text,
+    a11yRect(h, v, 200, Math.max(linePx, px + 4) + paddingV * 2),
+    { announce }
+  );
+}
+
+const BUTTON_SIZES = {
+  SMALL: { width: 100, height: 40 },
+  MEDIUM: { width: 150, height: 50 },
+  LARGE: { width: 200, height: 60 },
+};
+
+function layoutUIButton(button, options) {
+  const { text, width, textSize, textColor, backgroundColor } = options;
+  const { x, y } = storeLayout(button, options);
+  const size = BUTTON_SIZES[String(width).toUpperCase()] || BUTTON_SIZES.SMALL;
+  const scaledWidth = Math.round(size.width * flock.displayScale);
+  const scaledHeight = Math.round(size.height * flock.displayScale);
+  button.width = `${scaledWidth}px`;
+  button.height = `${scaledHeight}px`;
+
+  if (button.textBlock) {
+    button.textBlock.text = text;
+    button.textBlock.textWrapping = true;
+    button.textBlock.resizeToFit = true;
+    button.textBlock.fontSize = Math.round((parseInt(textSize) || 20) * flock.displayScale);
+  }
+
+  button.color = textColor || 'white';
+  button.background = backgroundColor || 'blue';
+  const { h, v } = anchorControl(button, x, y, options);
+
+  registerUIButton(button.name, text, button, a11yRect(h, v, scaledWidth, scaledHeight));
+}
+
+const INPUT_SIZES = {
+  SMALL: { width: 200, height: 40 },
+  MEDIUM: { width: 300, height: 50 },
+  LARGE: { width: 400, height: 60 },
+};
+
+function layoutUIInput(input, options) {
+  const button = input.metadata.submit;
+  const { text, size, fontSize, textColor, backgroundColor } = options;
+  const { x, y } = storeLayout(input, options);
+  const resolvedSize = INPUT_SIZES[(size || '').toUpperCase()] || INPUT_SIZES.MEDIUM;
+  const scaledInputWidth = Math.round(resolvedSize.width * flock.displayScale);
+  const scaledInputHeight = Math.round(resolvedSize.height * flock.displayScale);
+  const buttonWidth = Math.round(50 * flock.displayScale);
+  const spacing = Math.round(10 * flock.displayScale);
+  const scaledFontSize = Math.round((fontSize || 24) * flock.displayScale);
+
+  input.placeholderText = sanitizeInputText(text);
+  input.width = `${scaledInputWidth}px`;
+  input.height = `${scaledInputHeight}px`;
+  input.color = textColor || 'black';
+  input.placeholderColor = input.color;
+  input.background = backgroundColor || 'white';
+  input.focusedBackground = backgroundColor || 'white';
+  input.fontSize = scaledFontSize;
+  const pair = anchorAxis(x, options.hAlign, 'RIGHT');
+  const v = anchorAxis(y, options.vAlign, 'BOTTOM');
+  const inputH = { ...pair };
+  const submitH = { ...pair };
+  if (pair.edge === 'start') submitH.px = pair.px + scaledInputWidth + spacing;
+  else if (pair.edge === 'end') inputH.px = pair.px - buttonWidth - spacing;
+  else {
+    inputH.px = pair.px - (buttonWidth + spacing) / 2;
+    submitH.px = pair.px + (scaledInputWidth + spacing) / 2;
+  }
+  placeControl(input, inputH, v);
+
+  button.width = `${buttonWidth}px`;
+  button.height = `${scaledInputHeight}px`;
+  button.color = backgroundColor || 'gray';
+  button.background = textColor || 'white';
+  button.fontSize = scaledFontSize;
+  placeControl(button, submitH, v);
+
+  registerUIInput(
+    input.name,
+    button.name,
+    input,
+    button,
+    a11yRect(inputH, v, scaledInputWidth, scaledInputHeight),
+    a11yRect(submitH, v, buttonWidth, scaledInputHeight)
+  );
+}
+
+const SLIDER_SIZES = {
+  SMALL: { width: 100, height: 20 },
+  MEDIUM: { width: 200, height: 30 },
+  LARGE: { width: 300, height: 40 },
+};
+
+function layoutUISlider(slider, options, { previous } = {}) {
+  const { size, textColor, backgroundColor, min, max, value } = options;
+  const { x, y } = storeLayout(slider, options);
+  if (Number.isFinite(Number(min))) slider.minimum = Number(min);
+  if (Number.isFinite(Number(max))) slider.maximum = Number(max);
+  if (value !== previous?.value && Number.isFinite(Number(value))) slider.value = Number(value);
+  const resolvedSize = SLIDER_SIZES[(size || 'MEDIUM').toUpperCase()] || SLIDER_SIZES.MEDIUM;
+  const scaledWidth = Math.round(resolvedSize.width * flock.displayScale);
+  const scaledHeight = Math.round(resolvedSize.height * flock.displayScale);
+
+  slider.color = textColor || '#000000';
+  slider.background = backgroundColor || '#ffffff';
+  slider.height = `${scaledHeight}px`;
+  slider.width = `${scaledWidth}px`;
+  const { h, v } = anchorControl(slider, x, y, options);
+
+  registerUISlider(slider.name, slider, a11yRect(h, v, scaledWidth, scaledHeight));
+}
+
+const UI_LAYOUTS = {
+  text: layoutUIText,
+  button: layoutUIButton,
+  input: layoutUIInput,
+  slider: layoutUISlider,
+};
+
+function tagUIControl(control, uiKind, blockKey) {
+  control.metadata = { ...control.metadata, uiKind, blockKey };
+}
+
+function adoptEditorPreview(blockKey) {
+  if (!blockKey) return null;
+  const preview = flock.scene.UITexture.rootContainer.children.find(
+    (control) => control.metadata?.blockKey === blockKey && control.metadata.editorPreview
+  );
+  if (!preview) return null;
+  preview.metadata.editorPreview = false;
+  return preview.metadata.controlId;
+}
+
+function discardEditorPreview(blockKey) {
+  if (!blockKey) return;
+  for (const control of [...flock.scene.UITexture.rootContainer.children]) {
+    if (control.metadata?.blockKey === blockKey && control.metadata.editorPreview) {
+      flock._removeUIControl(control);
+    }
+  }
+}
+
+function markEditorPreview(control, editorPreview) {
+  if (editorPreview) control.metadata.editorPreview = true;
+  else discardEditorPreview(control.metadata.blockKey);
+}
+
 export const flockUI = {
+  _restyleUIControl(control, changes) {
+    const layout = UI_LAYOUTS[control?.metadata?.uiKind];
+    if (!layout || !control.parent) return;
+    const previous = control.metadata.layout;
+    const announce = changes.text !== undefined && changes.text !== previous.text;
+    layout(control, { ...previous, ...changes }, { announce, previous });
+  },
+  _relayoutUIControls() {
+    for (const control of flock.scene?.UITexture?.rootContainer.children ?? []) {
+      flock._restyleUIControl(control, {});
+    }
+  },
+  _sayBubblesForBlock(blockKey) {
+    if (!flock.scene || !blockKey) return [];
+    return flock.scene.meshes.flatMap(
+      (mesh) =>
+        mesh.advancedTexture
+          ?.getControlByName('stackPanel')
+          ?.children.filter((bg) => bg.metadata?.blockKey === blockKey) ?? []
+    );
+  },
+  _restyleSayBubble(bg, changes) {
+    const textBlock = bg.children[0];
+    if (!textBlock) return;
+    const style = { ...bg.metadata.sayStyle, ...changes };
+    style.alpha = sayAlpha(style.alpha);
+    style.size = saySize(style.size);
+    bg.metadata.sayStyle = style;
+    bg.background = flock.hexToRgba(style.backgroundColor, style.alpha);
+    if (changes.text !== undefined) textBlock.text = String(changes.text);
+    textBlock.color = style.textColor;
+    textBlock.fontSize = style.size * 8 * bg.metadata.uiScale;
+  },
+  _removeUIControl(control) {
+    control.metadata?.submit?.dispose();
+    control.dispose();
+    if (control.metadata?.uiKind === 'text') unregisterUIControl(control.metadata.controlId);
+  },
   UIText({
     text,
     x,
@@ -46,22 +516,27 @@ export const flockUI = {
     alpha = 1,
     duration,
     id = null,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
+    blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) return;
+
+    const __owningSection = flock._currentSection;
 
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
-    const textBlockId = id || `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const textBlockId =
+      id ||
+      (!editorPreview && adoptEditorPreview(blockKey)) ||
+      `textBlock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const bgId = `${textBlockId}_bg`;
 
-    const resolvedX = Number(x || 0);
-    const resolvedY = Number(y || 0);
-    const resolvedAlpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 1;
     const paddingH = 12 * flock.displayScale;
     const paddingV = 6 * flock.displayScale;
 
@@ -99,32 +574,13 @@ export const flockUI = {
       });
     }
 
-    bg.background = flock.hexToRgba(backgroundColor || '#ffffff', resolvedAlpha);
+    bg.sectionOwner = __owningSection;
+    tagUIControl(bg, 'text', blockKey);
+    bg.metadata.controlId = textBlockId;
+    if (editorPreview) bg.metadata.editorPreview = true;
 
-    textBlock.text = text;
-    textBlock.color = color || 'white';
     textBlock.isVisible = true;
-
-    const px = Number(fontSize || 24) * flock.displayScale;
-    textBlock.fontSize = px;
-    const linePx = Math.max(1, Math.round(px * 1.2));
-    textBlock.lineHeight = `${linePx}px`;
-    textBlock.height = `${Math.max(linePx, px + 4) + paddingV * 2}px`;
-
-    bg.left = `${resolvedX}px`;
-    bg.top = `${resolvedY}px`;
-
-    bg.horizontalAlignment =
-      resolvedX < 0
-        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-
-    bg.verticalAlignment =
-      resolvedY < 0
-        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
-    textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    layoutUIText(bg, { text, x, y, fontSize, color, backgroundColor, alpha, hAlign, vAlign });
 
     if (document.fonts && document.fonts.status !== 'loaded') {
       bg.alpha = 0;
@@ -138,35 +594,46 @@ export const flockUI = {
       Promise.resolve().then(() => bg._markAsDirty());
     }
 
-    registerUIText(textBlockId, textBlock.text, {
-      x: resolvedX,
-      y: resolvedY,
-      w: 200,
-      h: Math.max(linePx, px + 4) + paddingV * 2,
-    });
-
     if (duration > 0) {
-      setTimeout(() => {
+      const expireTimer = flock.freezeAwareTimeout(() => {
         const ctl = flock.scene.UITexture.getControlByName(bgId);
         if (ctl) {
           ctl.dispose();
         }
         unregisterUIControl(textBlockId);
       }, duration * 1000);
+
+      flock.abortController?.signal.addEventListener('abort', () => expireTimer.cancel(), {
+        once: true,
+      });
     }
 
     return textBlockId;
   },
-  UIButton({ text, x, y, width, textSize, textColor, backgroundColor, buttonId } = {}) {
+  UIButton({
+    text,
+    x,
+    y,
+    width,
+    textSize,
+    textColor,
+    backgroundColor,
+    buttonId,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
+    blockKey = null,
+    editorPreview = false,
+  } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
 
+    const __owningSection = flock._currentSection;
+
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
     if (!buttonId || typeof buttonId !== 'string') {
@@ -178,56 +645,29 @@ export const flockUI = {
       existing.dispose();
     }
 
-    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
-
-    const buttonSizes = {
-      SMALL: { width: '100px', height: '40px' },
-      MEDIUM: { width: '150px', height: '50px' },
-      LARGE: { width: '200px', height: '60px' },
-    };
-
     if (typeof width !== 'string') {
       throw new Error("Invalid button size. Use 'SMALL', 'MEDIUM', or 'LARGE'.");
     }
 
-    const size = buttonSizes[width.toUpperCase()] || buttonSizes['SMALL'];
-    const scaledWidth = Math.round(parseInt(size.width) * flock.displayScale);
-    const scaledHeight = Math.round(parseInt(size.height) * flock.displayScale);
-    button.width = `${scaledWidth}px`;
-    button.height = `${scaledHeight}px`;
-
-    if (button.textBlock) {
-      button.textBlock.textWrapping = true;
-      button.textBlock.resizeToFit = true;
-      const parsedSize = parseInt(textSize) || 20;
-      const scaledSize = Math.round(parsedSize * flock.displayScale);
-      button.textBlock.fontSize = scaledSize;
-    }
-
-    button.color = textColor || 'white';
-    button.background = backgroundColor || 'blue';
-
-    button.left = `${x}px`;
-    button.top = `${y}px`;
-
-    button.horizontalAlignment =
-      x < 0
-        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-
-    button.verticalAlignment =
-      y < 0
-        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
+    const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
+    button.sectionOwner = __owningSection;
+    tagUIControl(button, 'button', blockKey);
+    markEditorPreview(button, editorPreview);
     flock.scene.UITexture.addControl(button);
-
-    registerUIButton(buttonId, text, button, {
+    layoutUIButton(button, {
+      text,
       x,
       y,
-      w: parseInt(size.width),
-      h: parseInt(size.height),
+      width,
+      textSize,
+      textColor,
+      backgroundColor,
+      hAlign,
+      vAlign,
     });
+
+    const buttonFamily = flock._familyOf(buttonId);
+    if (!flock._isTag(buttonFamily)) flock._flushPendingTriggers(buttonId, buttonFamily);
 
     return buttonId;
   },
@@ -241,28 +681,22 @@ export const flockUI = {
     backgroundColor,
     id = null,
     mode = 'AWAIT',
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
+    blockKey = null,
+    editorPreview = false,
   } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
+    const __owningSection = flock._currentSection;
     flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
       'UI',
       true,
-      flock.scene,
-      window.devicePixelRatio || 1
+      flock.scene
     );
 
-    const sanitize = (val, { maxLen = 500 } = {}) => {
-      if (val == null) return '';
-      let s = String(val);
-      s = s.normalize('NFKC');
-      const doc = new DOMParser().parseFromString(s, 'text/html');
-      s = doc.body.textContent || '';
-      s = s.replace(/\p{Cc}/gu, '');
-      s = s.replace(/\s+/g, ' ').trim();
-      if (s.length > maxLen) s = s.slice(0, maxLen);
-      return s;
-    };
+    const sanitize = sanitizeInputText;
 
     const inputId = id
       ? sanitize(id, { maxLen: 100 })
@@ -274,75 +708,46 @@ export const flockUI = {
     if (existingInput) existingInput.dispose();
     if (existingSubmit) existingSubmit.dispose();
 
-    const sizeMap = {
-      SMALL: { width: '200px', height: '40px' },
-      MEDIUM: { width: '300px', height: '50px' },
-      LARGE: { width: '400px', height: '60px' },
-    };
-    const resolvedSize = sizeMap[(size || '').toUpperCase()] || sizeMap['MEDIUM'];
-    const scaledInputWidth = Math.round(parseInt(resolvedSize.width) * flock.displayScale);
-    const scaledInputHeight = Math.round(parseInt(resolvedSize.height) * flock.displayScale);
-    const buttonWidth = Math.round(50 * flock.displayScale);
-    const spacing = Math.round(10 * flock.displayScale);
-
     const input = new flock.GUI.InputText(inputId);
-    input.placeholderText = sanitize(text);
-    input.width = `${scaledInputWidth}px`;
-    input.height = `${scaledInputHeight}px`;
-    input.color = textColor || 'black';
-    input.background = backgroundColor || 'white';
-    input.focusedBackground = backgroundColor || 'white';
-    input.fontSize = Math.round((fontSize || 24) * flock.displayScale);
     input.text = '';
-
-    input.left = `${x}px`;
-    input.top = `${y}px`;
-    input.horizontalAlignment =
-      x < 0
-        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    input.verticalAlignment =
-      y < 0
-        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
     const button = flock.GUI.Button.CreateSimpleButton(submitId, '✓');
-    button.width = `${buttonWidth}px`;
-    button.height = `${scaledInputHeight}px`;
-    button.color = backgroundColor || 'gray';
-    button.background = textColor || 'white';
-    button.fontSize = Math.round((fontSize || 24) * flock.displayScale);
 
-    const offset = scaledInputWidth + spacing;
-    button.left = x < 0 ? `${x - offset}px` : `${x + offset}px`;
-    button.top = `${y}px`;
-    button.horizontalAlignment = input.horizontalAlignment;
-    button.verticalAlignment = input.verticalAlignment;
+    input.sectionOwner = __owningSection;
+    button.sectionOwner = __owningSection;
+    tagUIControl(input, 'input', blockKey);
+    input.metadata.submit = button;
+    markEditorPreview(input, editorPreview);
 
     flock.scene.UITexture.addControl(input);
     flock.scene.UITexture.addControl(button);
-
-    const submitX = x < 0 ? x - (scaledInputWidth + spacing) : x + (scaledInputWidth + spacing);
-    registerUIInput(
-      inputId,
-      submitId,
-      input,
-      button,
-      { x, y, w: scaledInputWidth, h: scaledInputHeight },
-      { x: submitX, y, w: buttonWidth, h: scaledInputHeight }
-    );
+    layoutUIInput(input, {
+      text,
+      x,
+      y,
+      size,
+      fontSize,
+      textColor,
+      backgroundColor,
+      hAlign,
+      vAlign,
+    });
 
     if (mode === 'START') {
+      input.onFocusObservable.add(() => flock._showXRKeyboardForInput?.(input));
       return inputId;
     }
 
     return new Promise((resolve) => {
+      let settled = false;
       const submit = () => {
+        if (settled) return;
+        settled = true;
         const cleanValue = sanitize(input.text);
         input.dispose();
         button.dispose();
         resolve(cleanValue);
       };
+      input.onFocusObservable.add(() => flock._showXRKeyboardForInput?.(input, submit));
       button.onPointerUpObservable.add(submit);
       input.onKeyboardEventProcessedObservable.add((event) => {
         if (event.type === 'keydown' && event.key === 'Enter') {
@@ -351,72 +756,75 @@ export const flockUI = {
       });
     });
   },
-  UISlider({ id, min, max, value, x, y, size, textColor, backgroundColor } = {}) {
+  UISlider({
+    id,
+    min,
+    max,
+    value,
+    x,
+    y,
+    size,
+    textColor,
+    backgroundColor,
+    onChange,
+    hAlign = 'LEFT',
+    vAlign = 'TOP',
+    blockKey = null,
+    editorPreview = false,
+  } = {}) {
     if (!flock.scene || !flock.GUI) {
       throw new Error('flock.scene or flock.GUI is not initialized.');
     }
 
-    if (!flock.scene.UITexture) {
-      flock.scene.UITexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-        'UI',
-        true,
-        flock.scene
-      );
-    }
+    const __owningSection = flock._currentSection;
+
+    flock.scene.UITexture ??= flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+      'UI',
+      true,
+      flock.scene
+    );
 
     const existing = flock.scene.UITexture.getControlByName(id);
     if (existing) existing.dispose();
 
-    const sliderSizes = {
-      SMALL: { width: '100px', height: '20px' },
-      MEDIUM: { width: '200px', height: '30px' },
-      LARGE: { width: '300px', height: '40px' },
-    };
-
-    const resolvedSize = sliderSizes[(size || 'MEDIUM').toUpperCase()] || sliderSizes.MEDIUM;
-
     const slider = new flock.GUI.Slider(id);
-    slider.minimum = min;
-    slider.maximum = max;
-    slider.value = value;
-
     slider.thickness = 0;
     slider.borderColor = 'transparent';
 
     slider.isPointerBlocker = true;
-    slider.thumbWidth = '20px';
+    slider.thumbWidth = `${Math.round(20 * flock.displayScale)}px`;
     slider.isFocusLinker = true;
 
-    slider.color = textColor || '#000000'; // Color of the "filled" part and thumb
-    slider.background = backgroundColor || '#ffffff'; // Color of the "empty" track
-    slider.height = resolvedSize.height;
-    slider.width = resolvedSize.width;
-
-    slider.left = `${x}px`;
-    slider.top = `${y}px`;
-    slider.horizontalAlignment =
-      x < 0
-        ? flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT
-        : flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
-    slider.verticalAlignment =
-      y < 0
-        ? flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM
-        : flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
-
     slider.zIndex = 1000;
+    slider.sectionOwner = __owningSection;
+    tagUIControl(slider, 'slider', blockKey);
+    markEditorPreview(slider, editorPreview);
 
     flock.scene.UITexture.addControl(slider);
-
-    registerUISlider(id, slider, {
+    layoutUISlider(slider, {
       x,
       y,
-      w: parseInt(resolvedSize.width),
-      h: parseInt(resolvedSize.height),
+      size,
+      textColor,
+      backgroundColor,
+      min,
+      max,
+      value,
+      hAlign,
+      vAlign,
     });
+    if (typeof onChange === 'function') {
+      slider.onValueChangedObservable.add((newValue) => onChange(newValue));
+    }
 
-    return slider;
+    return id;
   },
-  createSmallButton(text, keys, color) {
+  createSmallButton(
+    text,
+    keys,
+    color,
+    { thickness = 3, fontSize = 36, cornerRadius = 8, background = 'transparent' } = {}
+  ) {
     if (!flock.controlsTexture) return;
 
     const keyList = Array.isArray(keys) ? keys : [keys];
@@ -425,13 +833,23 @@ export const flockUI = {
     const buttonId = `small-${text}-${Math.random().toString(36).slice(2)}`;
     const button = flock.GUI.Button.CreateSimpleButton(buttonId, text);
 
-    const size = 70 * flock.displayScale;
+    const size = CONTROL_BUTTON_SIZE * flock.displayScale;
     button.width = `${size}px`;
     button.height = `${size}px`;
     button.color = color;
-    button.background = 'transparent';
-    button.fontSize = `${40 * flock.displayScale}px`;
+    button.thickness = thickness * flock.displayScale;
+    button.cornerRadius = cornerRadius * flock.displayScale;
+    button.background = background;
+    button.fontSize = `${fontSize * flock.displayScale}px`;
     button.fontFamily = fontFamily;
+
+    if (button.textBlock) {
+      button.textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+      button.textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+      if (text === '1') {
+        button.textBlock.left = `${-2 * flock.displayScale}px`;
+      }
+    }
 
     const releaseKeys = () => {
       uniqueKeys.forEach((key) => {
@@ -459,51 +877,111 @@ export const flockUI = {
 
     return button;
   },
-  createArrowControls(color) {
+  createArrowControls(color, background = 'transparent') {
     if (!flock.controlsTexture) return;
 
     const grid = new flock.GUI.Grid();
-    grid.width = `${240 * flock.displayScale}px`;
-    grid.height = `${160 * flock.displayScale}px`;
+    grid.width = `${3 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
     grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    grid.left = `${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
     grid.addRowDefinition(1);
     grid.addRowDefinition(1);
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
     grid.addColumnDefinition(1);
 
-    flock.controlsTexture.addControl(grid);
+    addControlsRoot(grid);
 
-    const upButton = flock.createSmallButton('△', ['w', 'ArrowUp'], color);
-    const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color);
-    const leftButton = flock.createSmallButton('◁', ['a', 'ArrowLeft'], color);
-    const rightButton = flock.createSmallButton('▷', ['d', 'ArrowRight'], color);
+    const upButton = flock.createSmallButton('△', ['w', 'ArrowUp'], color, { background });
+    const downButton = flock.createSmallButton('▽', ['s', 'ArrowDown'], color, { background });
+    const leftButton = flock.createSmallButton('◁', ['a', 'ArrowLeft'], color, { background });
+    const rightButton = flock.createSmallButton('▷', ['d', 'ArrowRight'], color, { background });
 
     grid.addControl(upButton, 0, 1);
     grid.addControl(leftButton, 1, 0);
     grid.addControl(downButton, 1, 1);
     grid.addControl(rightButton, 1, 2);
   },
-  createButtonControls(color) {
+  createWASDControls(color, background = 'transparent') {
+    if (!flock.controlsTexture) return;
+
+    // Same behaviour as the arrows, only the faces differ: WASD on QWERTY,
+    // ZQSD on AZERTY (French). Each button presses its letter keys (both
+    // layouts) plus the matching arrow key, so key and action events fire
+    // exactly as they do for the arrow pad.
+    let labels = ['W', 'A', 'S', 'D'];
+    try {
+      if (localStorage.getItem('flock-language') === 'fr') labels = ['Z', 'Q', 'S', 'D'];
+    } catch {
+      /* non-DOM env (e.g. tests) — fall back to WASD */
+    }
+
+    const grid = new flock.GUI.Grid();
+    grid.width = `${3 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    grid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+    grid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    grid.left = `${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    grid.addRowDefinition(1);
+    grid.addRowDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+    grid.addColumnDefinition(1);
+
+    addControlsRoot(grid);
+
+    const style = { background, fontSize: 30 };
+    const upButton = flock.createSmallButton(labels[0], ['w', 'z', 'ArrowUp'], color, style);
+    const downButton = flock.createSmallButton(labels[2], ['s', 'ArrowDown'], color, style);
+    const leftButton = flock.createSmallButton(labels[1], ['a', 'q', 'ArrowLeft'], color, style);
+    const rightButton = flock.createSmallButton(labels[3], ['d', 'ArrowRight'], color, style);
+
+    grid.addControl(upButton, 0, 1);
+    grid.addControl(leftButton, 1, 0);
+    grid.addControl(downButton, 1, 1);
+    grid.addControl(rightButton, 1, 2);
+  },
+  createButtonControls(color, background = 'transparent', labels = ['1', '2', '3', '4']) {
     if (!flock.controlsTexture) return;
 
     const rightGrid = new flock.GUI.Grid();
-    rightGrid.width = `${160 * flock.displayScale}px`;
-    rightGrid.height = `${160 * flock.displayScale}px`;
+    rightGrid.width = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
+    rightGrid.height = `${2 * CONTROL_CELL_SIZE * flock.displayScale}px`;
     rightGrid.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
     rightGrid.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    rightGrid.left = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
+    rightGrid.top = `-${CONTROLS_EDGE_MARGIN * flock.displayScale}px`;
     rightGrid.addRowDefinition(1);
     rightGrid.addRowDefinition(1);
     rightGrid.addColumnDefinition(1);
     rightGrid.addColumnDefinition(1);
 
-    flock.controlsTexture.addControl(rightGrid);
+    addControlsRoot(rightGrid);
 
-    const button1 = flock.createSmallButton('①', [...getBoundKeys('BUTTON1'), 'PageUp'], color);
-    const button2 = flock.createSmallButton('②', getBoundKeys('BUTTON2'), color);
-    const button3 = flock.createSmallButton('③', [...getBoundKeys('BUTTON3'), 'PageDown'], color);
-    const button4 = flock.createSmallButton('④', getBoundKeys('BUTTON4'), color);
+    const actionStyle = {
+      thickness: 3,
+      fontSize: 30,
+      cornerRadius: CONTROL_BUTTON_SIZE / 2,
+      background,
+    };
+    const button1 = flock.createSmallButton(
+      labels[0],
+      [...getBoundKeys('BUTTON1'), 'PageUp'],
+      color,
+      actionStyle
+    );
+    const button2 = flock.createSmallButton(labels[1], getBoundKeys('BUTTON2'), color, actionStyle);
+    const button3 = flock.createSmallButton(
+      labels[2],
+      [...getBoundKeys('BUTTON3'), 'PageDown'],
+      color,
+      actionStyle
+    );
+    const button4 = flock.createSmallButton(labels[3], getBoundKeys('BUTTON4'), color, actionStyle);
 
     rightGrid.addControl(button1, 0, 0);
     rightGrid.addControl(button2, 0, 1);
@@ -511,49 +989,28 @@ export const flockUI = {
     rightGrid.addControl(button4, 1, 1);
   },
   buttonControls(control = 'BOTH', mode = 'AUTO', color = '#ffffff') {
-    // Check if touch is available
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-
-    const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
-
-    if (!shouldShow) {
-      if (flock.controlsTexture) {
-        flock.controlsTexture.dispose();
-        flock.controlsTexture = null;
-      }
-      return;
-    }
-
-    // Clean restart
-    if (flock.controlsTexture) flock.controlsTexture.dispose();
-
-    // Attach to the scene so it receives input
-    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      'VirtualControls',
-      true,
-      flock.scene
-    );
-
-    if (control === 'ARROWS' || control === 'BOTH') flock.createArrowControls(color);
-    if (control === 'ACTIONS' || control === 'BOTH') flock.createButtonControls(color);
+    configureControlsResizeHandling();
+    flock._controlsBaseDisplayScale = flock.displayScale;
+    flock._controlsLayout = { kind: 'buttons', control, color, mode };
+    renderControls(flock._controlsLayout, currentControlsScale());
   },
-  createJoystickControls(color) {
+  createJoystickControls(color, background = 'transparent') {
     if (!flock.controlsTexture) return;
 
     const baseRadius = 55 * flock.displayScale;
     const thumbRadius = 30 * flock.displayScale;
+    const edgeInset = CONTROLS_EDGE_INSET * flock.displayScale;
 
     const base = new flock.GUI.Ellipse();
     base.width = `${baseRadius * 2}px`;
     base.height = `${baseRadius * 2}px`;
     base.color = color;
     base.thickness = 3 * flock.displayScale;
-    base.background = 'transparent';
+    base.background = background;
     base.horizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
     base.verticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    base.left = `${edgeInset}px`;
+    base.top = `-${edgeInset}px`;
 
     const thumb = new flock.GUI.Ellipse();
     thumb.width = `${thumbRadius * 2}px`;
@@ -563,7 +1020,7 @@ export const flockUI = {
     thumb.thickness = 0;
 
     base.addControl(thumb);
-    flock.controlsTexture.addControl(base);
+    addControlsRoot(base);
 
     return new JoystickSource(flock.inputManager, flock._onScreenSource, {
       canvas: flock.canvas,
@@ -571,55 +1028,38 @@ export const flockUI = {
       thumbEllipse: thumb,
       baseRadius,
       thumbRadius,
+      edgeInset,
       scene: flock.scene,
     });
   },
-  onScreenControls(movement = 'ARROWS', actions = 'YES', mode = 'AUTO', color = '#ffffff') {
-    const isTouchDevice =
-      'ontouchstart' in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches;
-
-    const shouldShow = mode === 'ENABLED' || (mode === 'AUTO' && isTouchDevice);
-
-    if (flock._joystickSource) {
-      flock._joystickSource.stop();
-      flock._joystickSource = null;
-    }
-
-    if (!shouldShow) {
-      if (flock.controlsTexture) {
-        flock.controlsTexture.dispose();
-        flock.controlsTexture = null;
-      }
-      return;
-    }
-
-    if (flock.controlsTexture) flock.controlsTexture.dispose();
-
-    flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-      'VirtualControls',
-      true,
-      flock.scene
-    );
-
-    if (movement === 'ARROWS') {
-      flock.createArrowControls(color);
-    } else if (movement === 'JOYSTICK') {
-      flock._joystickSource = flock.createJoystickControls(color);
-      flock._joystickSource?.start();
-    }
-
-    if (actions === 'YES') flock.createButtonControls(color);
+  onScreenControls(
+    movement = 'ARROWS',
+    actions = 'YES',
+    mode = 'AUTO',
+    color = '#ffffff',
+    background = '#000000',
+    alpha = 0
+  ) {
+    configureControlsResizeHandling();
+    flock._controlsBaseDisplayScale = flock.displayScale;
+    flock._controlsLayout = { kind: 'onscreen', movement, actions, color, background, alpha, mode };
+    renderControls(flock._controlsLayout, currentControlsScale());
 
     window.__flockSizeDebug?.sample('controls-created');
   },
+  // XR entry and exit swap the texture the controls live on, so they have to be rebuilt.
+  _refreshOnScreenControls() {
+    if (!flock._controlsLayout) return;
+    renderControls(flock._controlsLayout, currentControlsScale());
+  },
   canvasControls(setting) {
     flock._canvasControlsEnabled = !!setting;
+    flock._applyXRInputState?.();
+    flock._applyTeleportationState?.();
     if (setting) {
-      flock.scene.activeCamera.attachControl(flock.canvas, false);
+      flock.scene?.activeCamera?.attachControl(flock.canvas, false);
     } else {
-      flock.scene.activeCamera.detachControl();
+      flock.scene?.activeCamera?.detachControl();
     }
   },
   interactIndicator(setting) {
@@ -634,14 +1074,13 @@ export const flockUI = {
       alpha = 1,
       size = 24,
       mode = 'ADD',
+      blockKey = null,
     } = options;
 
     // Validate duration
     duration = isFinite(Number(duration)) && Number(duration) >= 0 ? Number(duration) : 0;
-    // Validate alpha
-    alpha = isFinite(Number(alpha)) ? Math.min(Math.max(Number(alpha), 0), 1) : 0.7;
-    // Validate size
-    size = isFinite(Number(size)) && Number(size) > 0 ? Number(size) : 16;
+    alpha = sayAlpha(alpha);
+    size = saySize(size);
 
     if (!flock.scene) {
       console.error('Scene is not available.');
@@ -669,18 +1108,35 @@ export const flockUI = {
       return new Promise((resolve) => {
         let plane;
         let background = 'transparent';
+        let originalPlaneAlpha = 1;
 
         if (targetMesh.metadata && targetMesh.metadata.shape == 'plane') {
           plane = targetMesh;
-          background = plane.material.diffuseColor.toHexString();
-          plane.material.needDepthPrePass = true;
+          const savedBackground = plane.metadata?.sayBackground;
+          background = savedBackground?.color ?? plane.material.diffuseColor.toHexString();
+          originalPlaneAlpha = savedBackground?.alpha ?? plane.material.alpha ?? 1;
+          flock.setDepthPrePass(plane.material, true);
           plane.metadata = {
             ...(plane.metadata || {}),
             hasSayTexture: true,
             originalPlaneColor: plane.material?.diffuseColor?.toHexString?.() || '#ffffff',
+            sayBackground: { color: background, alpha: originalPlaneAlpha },
           };
         } else {
-          plane = targetMesh.getDescendants().find((child) => child.name === 'textPlane');
+          const cachedPlane = targetMesh.metadata?.sayPlane;
+          plane =
+            cachedPlane &&
+            !cachedPlane.isDisposed?.() &&
+            cachedPlane.metadata?.sayTarget === targetMesh
+              ? cachedPlane
+              : null;
+          if (!plane) {
+            plane = flock.scene.meshes.find(
+              (child) =>
+                child.name === 'textPlane' &&
+                (child.parent === targetMesh || child.metadata?.sayTarget === targetMesh)
+            );
+          }
         }
 
         if (!plane) {
@@ -694,11 +1150,14 @@ export const flockUI = {
           plane.metadata = {
             ...(plane.metadata || {}),
             isTextPlane: true,
+            sayTarget: targetMesh,
+            isXREmbodiedHUD: flock._isXREmbodiedTarget?.(targetMesh) ?? false,
           };
           plane.checkCollisions = false;
           plane.isPickable = false;
           plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
 
+          const parentScale = new flock.BABYLON.Vector3();
           // FIX: Cleanup observer to prevent memory leak
           const observer = flock.scene.onBeforeRenderObservable.add(() => {
             if (targetMesh.isDisposed()) {
@@ -706,31 +1165,100 @@ export const flockUI = {
               plane.dispose();
               return;
             }
-            const boundingInfo = targetMesh.getBoundingInfo();
-            const parentScale = targetMesh.scaling;
+            const xrCamera = flock.xrHelper?.baseExperience?.camera;
+            if (flock._isXREmbodiedTarget?.(targetMesh) && xrCamera) {
+              plane.metadata.isXREmbodiedHUD = true;
+              flock._xrEmbodiedVisibility?.delete(plane);
+              if (plane.parent !== xrCamera) plane.parent = xrCamera;
+              plane.billboardMode = 0;
+              plane.position.set(0, -0.35, 2);
+              plane.rotation?.set?.(0, 0, 0);
+              plane.scaling.set(0.22, 0.22, 0.22);
+              plane.isVisible = true;
+              return;
+            }
+            plane.metadata.isXREmbodiedHUD = false;
+            if (plane.parent !== targetMesh) plane.parent = targetMesh;
+            plane.billboardMode = flock.BABYLON.Mesh.BILLBOARDMODE_ALL;
+            // A billboard child sees only its parent's decomposed scale and
+            // translation, and decompose moves a mirror's negative sign to y,
+            // so size and lift the plane by that rather than mesh.scaling.
+            const world = targetMesh.getWorldMatrix();
+            world.decompose(parentScale);
             plane.scaling.set(1 / parentScale.x, 1 / parentScale.y, 1 / parentScale.z);
-            plane.position.y = boundingInfo.boundingBox.maximum.y + 2.1 / parentScale.y;
+            const top = targetMesh.getBoundingInfo().boundingBox.maximumWorld.y - world.m[13];
+            plane.position.y = (top + 2.1) / parentScale.y;
           });
 
           plane.onDisposeObservable.add(() => {
             flock.scene.onBeforeRenderObservable.remove(observer);
+            if (targetMesh.metadata?.sayPlane === plane) {
+              targetMesh.metadata.sayPlane = null;
+            }
           });
         }
 
+        if (plane !== targetMesh) {
+          targetMesh.metadata = { ...(targetMesh.metadata || {}), sayPlane: plane };
+        }
+
+        // Say surfaces are labels, not scene geometry: keep the selected plane
+        // out of both effect layers in every case (new helper, reused helper,
+        // or plane target carrying a say texture). Removal first so a plane
+        // highlighted before say() stops receiving the effect.
+        try {
+          flock.highlighter?.removeMesh?.(plane);
+        } catch {
+          // Highlight layer may be unavailable in some pass-throughs.
+        }
+        try {
+          flock.highlighter?.addExcludedMesh?.(plane);
+        } catch {
+          // Older Babylon pass-throughs may not expose exclusions; the
+          // highlight()/tint() guards still skip these helpers.
+        }
+        try {
+          flock.glowLayer?.addExcludedMesh?.(plane);
+        } catch {
+          // Glow layer is created lazily; glowMesh() also skips helpers.
+        }
+
         let advancedTexture;
+        let uiScale = 1;
         if (!plane.advancedTexture) {
           const planeBoundingInfo = plane.getBoundingInfo();
           const planeWidth = planeBoundingInfo.boundingBox.extendSize.x * 2;
           const planeHeight = planeBoundingInfo.boundingBox.extendSize.y * 2;
           const aspectRatio = planeWidth / planeHeight;
-          const baseResolution = 1024;
-          const textureWidth = baseResolution * (aspectRatio > 1 ? 1 : aspectRatio);
-          const textureHeight = baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1);
+          // Size the canvas to the plane's world size so a small label doesn't
+          // each cost a full 1024px texture. Pixel metrics below scale with
+          // uiScale so the layout stays proportionally identical.
+          plane.computeWorldMatrix(true);
+          const worldBox = plane.getBoundingInfo().boundingBox;
+          const worldSize = Math.max(
+            worldBox.maximumWorld.x - worldBox.minimumWorld.x,
+            worldBox.maximumWorld.y - worldBox.minimumWorld.y,
+            worldBox.maximumWorld.z - worldBox.minimumWorld.z
+          );
+          const baseResolution =
+            Number.isFinite(worldSize) && worldSize > 0
+              ? Math.min(1024, Math.max(256, Math.round(worldSize * 512)))
+              : 1024;
+          uiScale = baseResolution / 1024;
+          const textureWidth = Math.round(baseResolution * (aspectRatio > 1 ? 1 : aspectRatio));
+          const textureHeight = Math.round(
+            baseResolution * (aspectRatio > 1 ? 1 / aspectRatio : 1)
+          );
 
           advancedTexture = flock.GUI.AdvancedDynamicTexture.CreateForMesh(
             plane,
             textureWidth,
-            textureHeight
+            textureHeight,
+            true,
+            false,
+            undefined,
+            undefined,
+            flock.BABYLON.Texture.LINEAR_LINEAR_MIPNEAREST
           );
           advancedTexture.isTransparent = true;
           plane.advancedTexture = advancedTexture;
@@ -739,7 +1267,7 @@ export const flockUI = {
             let fullScreenRect = new flock.GUI.Rectangle();
             fullScreenRect.width = '100%';
             fullScreenRect.height = '100%';
-            fullScreenRect.background = background;
+            fullScreenRect.background = flock.hexToRgba(background, originalPlaneAlpha);
             fullScreenRect.color = 'transparent';
             advancedTexture.addControl(fullScreenRect);
           }
@@ -753,10 +1281,14 @@ export const flockUI = {
           stackPanel.resizeToFit = true;
           stackPanel.forceResizeWidth = true;
           stackPanel.forceResizeHeight = true;
-          stackPanel.spacing = 4;
+          stackPanel.spacing = 4 * uiScale;
           advancedTexture.addControl(stackPanel);
         } else {
           advancedTexture = plane.advancedTexture;
+          const existingSize = advancedTexture.getSize?.();
+          if (existingSize && existingSize.width > 0 && existingSize.height > 0) {
+            uiScale = Math.max(existingSize.width, existingSize.height) / 1024;
+          }
         }
 
         const stackPanel = advancedTexture.getControlByName('stackPanel');
@@ -769,15 +1301,20 @@ export const flockUI = {
           bg.background = flock.hexToRgba(backgroundColor, alpha);
           bg.adaptWidthToChildren = true;
           bg.adaptHeightToChildren = true;
-          bg.cornerRadius = 30;
+          bg.cornerRadius = 30 * uiScale;
           bg.thickness = 0;
           bg.resizeToFit = true;
           bg.forceResizeWidth = true;
           bg.checkCollisions = false;
           bg.isPickable = false;
+          bg.metadata = {
+            blockKey,
+            uiScale,
+            sayStyle: { textColor, backgroundColor, alpha, size },
+          };
           stackPanel.addControl(bg);
 
-          const scale = 8;
+          const scale = 8 * uiScale;
           const textBlock = new flock.GUI.TextBlock();
           textBlock.text = String(text);
           textBlock.color = textColor;
@@ -786,29 +1323,29 @@ export const flockUI = {
           textBlock.textWrapping = flock.GUI.TextWrapping.WordWrap;
           textBlock.resizeToFit = true;
           textBlock.forceResizeWidth = true;
-          textBlock.paddingLeft = 50;
-          textBlock.paddingRight = 50;
-          textBlock.paddingTop = 20;
-          textBlock.paddingBottom = 20;
+          textBlock.paddingLeft = 50 * uiScale;
+          textBlock.paddingRight = 50 * uiScale;
+          textBlock.paddingTop = 20 * uiScale;
+          textBlock.paddingBottom = 20 * uiScale;
           textBlock.textVerticalAlignment = flock.GUI.Control.VERTICAL_ALIGNMENT_TOP;
           textBlock.textHorizontalAlignment = flock.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
           bg.addControl(textBlock);
 
           if (duration > 0) {
-            const timeoutId = setTimeout(() => {
+            const sayTimer = flock.freezeAwareTimeout(() => {
               stackPanel.removeControl(bg);
               bg.dispose();
               textBlock.dispose();
               resolve();
             }, duration * 1000);
 
-            flock.abortController.signal.addEventListener(
+            flock.abortController?.signal.addEventListener(
               'abort',
               () => {
-                clearTimeout(timeoutId);
+                sayTimer.cancel();
                 bg.dispose();
                 textBlock.dispose();
-                resolve(new Error('Action aborted'));
+                resolve();
               },
               { once: true }
             );
@@ -822,6 +1359,7 @@ export const flockUI = {
     }
   },
   printText({ text, duration = 30, color = 'white' } = {}) {
+    if (isVector(text)) text = `(${text.x}, ${text.y}, ${text.z})`;
     console.log(text);
 
     if (!flock.scene || !flock.stackPanel) return;
@@ -882,17 +1420,15 @@ export const flockUI = {
         });
       };
 
-      let timeoutId = null;
+      let fadeTimer = null;
       if (safeDuration > 0) {
-        timeoutId = setTimeout(fadeOut, safeDuration * 1000);
+        fadeTimer = flock.freezeAwareTimeout(fadeOut, safeDuration * 1000);
       }
 
-      flock.abortController.signal.addEventListener(
+      flock.abortController?.signal.addEventListener(
         'abort',
         () => {
-          if (timeoutId !== null) {
-            clearTimeout(timeoutId);
-          }
+          fadeTimer?.cancel();
           if (flock.stackPanel) {
             flock.stackPanel.removeControl(bg);
             bg.dispose();
@@ -942,22 +1478,22 @@ export const flockUI = {
       let captionWidth = screenWidth > 0 ? Math.min(0.8 * screenWidth, maxWidth) : maxWidth;
 
       // Position relative to the on-screen touch controls when they're visible.
-      // They sit in the bottom corners: arrows/joystick (~240px) bottom-left and
-      // action buttons (~160px) bottom-right, scaled by displayScale. If the gap
-      // between them is at least a third of the screen width, drop the caption
-      // into that gap; otherwise lift it clear above the whole control band.
+      // They sit in the bottom corners: arrows/joystick bottom-left and action
+      // buttons bottom-right. If the gap between them is at least a third of the
+      // screen width, drop the caption into that gap; otherwise lift it clear
+      // above the whole control band.
       let leftOffset = 0;
       let bottomMargin = 20 * flock.displayScale;
       if (flock.controlsTexture) {
-        const leftReserve = 240 * flock.displayScale; // arrows / joystick
-        const rightReserve = 160 * flock.displayScale; // action buttons
+        const leftReserve = (3 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN) * flock.displayScale;
+        const rightReserve = (2 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN) * flock.displayScale;
         const gap = screenWidth - leftReserve - rightReserve;
         if (screenWidth > 0 && gap >= screenWidth / 3) {
           captionWidth = Math.min(gap, maxWidth);
           // Centre the block within the gap (shift toward the narrower right).
           leftOffset = Math.round((leftReserve - rightReserve) / 2);
         } else {
-          bottomMargin = 180 * flock.displayScale;
+          bottomMargin = (2 * CONTROL_CELL_SIZE + CONTROLS_EDGE_MARGIN + 24) * flock.displayScale;
         }
       }
 
@@ -1043,7 +1579,7 @@ export const flockUI = {
 
       const seconds = Number(duration);
       if (isFinite(seconds) && seconds > 0) {
-        flock._subtitleTimer = setTimeout(() => {
+        flock._subtitleTimer = flock.freezeAwareTimeout(() => {
           if (flock._subtitleToken === token) flock.clearSubtitle();
         }, seconds * 1000);
       }
@@ -1059,7 +1595,7 @@ export const flockUI = {
 
   clearSubtitle() {
     if (flock._subtitleTimer) {
-      clearTimeout(flock._subtitleTimer);
+      flock._subtitleTimer.cancel();
       flock._subtitleTimer = null;
     }
     if (!flock._subtitleControl) return;

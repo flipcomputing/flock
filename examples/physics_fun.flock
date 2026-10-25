@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -10,77 +11,117 @@
         "inputs": {
           "DO": {
             "block": {
-              "type": "set_sky_color",
-              "id": "F1rZ^*Q{VH-E^`6qq9zl",
+              "type": "on_screen_controls",
+              "id": "physics_fun_osc_0",
+              "fields": {
+                "MOVEMENT": "NONE",
+                "ACTIONS": "NO",
+                "ENABLED": "DISABLED"
+              },
               "inputs": {
                 "COLOR": {
                   "shadow": {
                     "type": "colour",
-                    "id": "77CPMH)$4}i`PnCB+%fB",
+                    "id": "physics_fun_osc_1",
                     "fields": {
-                      "COLOR": "#ffccff"
+                      "COLOR": "#ffffff"
+                    }
+                  }
+                },
+                "BACKGROUND": {
+                  "shadow": {
+                    "type": "colour",
+                    "id": "physics_fun_osc_2",
+                    "fields": {
+                      "COLOR": "#000000"
+                    }
+                  }
+                },
+                "ALPHA": {
+                  "shadow": {
+                    "type": "math_number",
+                    "id": "physics_fun_osc_3",
+                    "fields": {
+                      "NUM": 0
                     }
                   }
                 }
               },
               "next": {
                 "block": {
-                  "type": "create_map",
-                  "id": "|;D!u$2t;/Wis3JF|LWi",
-                  "fields": {
-                    "MAP_NAME": "NONE"
-                  },
+                  "type": "set_sky_color",
+                  "id": "F1rZ^*Q{VH-E^`6qq9zl",
                   "inputs": {
-                    "MATERIAL": {
+                    "COLOR": {
                       "shadow": {
-                        "type": "material",
-                        "id": "8|j)^A#W|x]Yq|up.}/`",
+                        "type": "colour",
+                        "id": "77CPMH)$4}i`PnCB+%fB",
                         "fields": {
-                          "TEXTURE_SET": "none.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "@pZmt/,iwz`)yYN7kS[Q",
-                              "fields": {
-                                "COLOR": "#71bc78"
-                              }
-                            }
-                          },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "e|5cNj7%WDwMR7#eQ(KG",
-                              "fields": {
-                                "NUM": 1
-                              }
-                            }
-                          }
+                          "COLOR": "#ffccff"
                         }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "create_map",
+                      "id": "|;D!u$2t;/Wis3JF|LWi",
+                      "fields": {
+                        "MAP_NAME": "NONE"
                       },
-                      "block": {
-                        "type": "material",
-                        "id": "8|j)^A#W|x]Yq|up.}/`",
-                        "fields": {
-                          "TEXTURE_SET": "gridxy.png"
-                        },
-                        "inputs": {
-                          "BASE_COLOR": {
-                            "shadow": {
-                              "type": "colour",
-                              "id": "@pZmt/,iwz`)yYN7kS[Q",
-                              "fields": {
-                                "COLOR": "#feea76"
+                      "inputs": {
+                        "MATERIAL": {
+                          "shadow": {
+                            "type": "material",
+                            "id": "8|j)^A#W|x]Yq|up.}/`",
+                            "fields": {
+                              "TEXTURE_SET": "none.png"
+                            },
+                            "inputs": {
+                              "BASE_COLOR": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "@pZmt/,iwz`)yYN7kS[Q",
+                                  "fields": {
+                                    "COLOR": "#71bc78"
+                                  }
+                                }
+                              },
+                              "ALPHA": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "e|5cNj7%WDwMR7#eQ(KG",
+                                  "fields": {
+                                    "NUM": 1
+                                  }
+                                }
                               }
                             }
                           },
-                          "ALPHA": {
-                            "shadow": {
-                              "type": "math_number",
-                              "id": "e|5cNj7%WDwMR7#eQ(KG",
-                              "fields": {
-                                "NUM": 1
+                          "block": {
+                            "type": "material",
+                            "id": "8|j)^A#W|x]Yq|up.}/`",
+                            "fields": {
+                              "TEXTURE_SET": "gridxy.png"
+                            },
+                            "inputs": {
+                              "BASE_COLOR": {
+                                "shadow": {
+                                  "type": "colour",
+                                  "id": "@pZmt/,iwz`)yYN7kS[Q",
+                                  "fields": {
+                                    "COLOR": "#feea76"
+                                  }
+                                }
+                              },
+                              "ALPHA": {
+                                "shadow": {
+                                  "type": "math_number",
+                                  "id": "e|5cNj7%WDwMR7#eQ(KG",
+                                  "fields": {
+                                    "NUM": 1
+                                  }
+                                }
                               }
                             }
                           }
@@ -143,7 +184,7 @@
                         "type": "text",
                         "id": "gI+Y:?g)#|^}Za8|YGH9",
                         "fields": {
-                          "TEXT": "Click them in different orders"
+                          "TEXT": "Click or tap them in different orders"
                         }
                       }
                     },
@@ -162,41 +203,6 @@
                         "id": "P(,2QR#`/N/3O9)n0sVB",
                         "fields": {
                           "COLOR": "#000080"
-                        }
-                      }
-                    }
-                  },
-                  "next": {
-                    "block": {
-                      "type": "print_text",
-                      "id": "|:EfKK`a00i$4,Q#0-um",
-                      "inputs": {
-                        "TEXT": {
-                          "shadow": {
-                            "type": "text",
-                            "id": "Oon//!1Y1oAT+qGM!sYS",
-                            "fields": {
-                              "TEXT": "Does the same thing happen each time?"
-                            }
-                          }
-                        },
-                        "DURATION": {
-                          "shadow": {
-                            "type": "math_number",
-                            "id": "+AS+)9uiWnlBQ~ki`S|W",
-                            "fields": {
-                              "NUM": 20
-                            }
-                          }
-                        },
-                        "COLOR": {
-                          "shadow": {
-                            "type": "colour",
-                            "id": "5s.^%?MHzw=~gFbXs#g:",
-                            "fields": {
-                              "COLOR": "#000080"
-                            }
-                          }
                         }
                       }
                     }
@@ -786,6 +792,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "y!*ai_^)]E_phBg,YX~@",
+        "x": 10,
+        "y": 1875,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "a?n@c+#o7`ljm)]uKaW|",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

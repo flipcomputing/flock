@@ -43,8 +43,8 @@ Plays an animation on a specified mesh.
 **Example:**
 
 ```javascript
-await playAnimation("character1", {
-  animationName: "walk",
+await playAnimation('character1', {
+  animationName: 'walk',
   loop: true,
 });
 ```
@@ -64,8 +64,8 @@ Switches to a different animation on a mesh.
 **Example:**
 
 ```javascript
-await switchAnimation("character1", {
-  animationName: "run",
+await switchAnimation('character1', {
+  animationName: 'run',
 });
 ```
 
@@ -86,12 +86,12 @@ Animates a property using keyframes.
 **Example:**
 
 ```javascript
-await animateKeyFrames("box1", {
+await animateKeyFrames('box1', {
   keyframes: [
-    { duration: 0, value: "#FF0000" },
-    { duration: 2, value: "#00FF00" },
+    { duration: 0, value: '#FF0000' },
+    { duration: 2, value: '#00FF00' },
   ],
-  property: "color",
+  property: 'color',
   loop: true,
 });
 ```
@@ -113,12 +113,12 @@ Smoothly moves a mesh to a new position.
 **Example:**
 
 ```javascript
-await glideTo("player", {
+await glideTo('player', {
   x: 5,
   y: 0,
   z: 3,
   duration: 2,
-  easing: "SineEase",
+  easing: 'SineEase',
 });
 ```
 
@@ -130,7 +130,7 @@ Rotates a mesh with animation.
 
 - `meshName` (string): Name of the mesh to rotate
 - `options` (object): Rotation configuration
-  - `x`, `y`, `z` (number, default: 0): Rotation angles in degrees
+  - `x`, `y`, `z` (number, default: 0): Rotation angles in degrees, relative to the parent for a child mesh
   - `duration` (number, default: 1): Duration in seconds
   - `easing` (string, default: "Linear"): Easing function
   - `reverse` (boolean, default: false): Whether to reverse
@@ -139,7 +139,7 @@ Rotates a mesh with animation.
 **Example:**
 
 ```javascript
-await rotateAnim("box1", {
+await rotateAnim('box1', {
   x: 90,
   y: 180,
   z: 0,
@@ -199,14 +199,14 @@ Creates a character model in the scene.
 
 ```javascript
 const player = createCharacter({
-  modelName: "Character2.glb",
-  modelId: "player_unique_id",
+  modelName: 'Character2.glb',
+  modelId: 'player_unique_id',
   scale: 1,
   position: { x: 0, y: 0, z: 0 },
   colors: {
-    hair: "#ffcc00",
-    skin: "#f0d5b1",
-    eyes: "#33cc00",
+    hair: '#ffcc00',
+    skin: '#f0d5b1',
+    eyes: '#33cc00',
   },
 });
 ```
@@ -235,7 +235,7 @@ Creates a box geometry.
 **Example:**
 
 ```javascript
-const box1 = createBox("myBox", "#ff0000", 2, 2, 2, [0, 1, 0]);
+const box1 = createBox('myBox', '#ff0000', 2, 2, 2, [0, 1, 0]);
 ```
 
 #### `createSphere(name, options)`
@@ -249,6 +249,56 @@ Creates a cylinder geometry.
 #### `createCapsule(name, options)`
 
 Creates a capsule geometry.
+
+#### `createWedge(name, options)`
+
+Creates a wedge (triangular prism) geometry.
+
+**Options:**
+
+- `width`, `height`, `depth` (number): Bounding size
+- `axis` (`'X'` | `'Z'`): The axis `peak` moves the ridge along. The ridge itself extends along the other horizontal axis, so `axis: 'X'` gives a ridge running along Z
+- `peak` (number, 0-1): Where the ridge sits on that axis — 0 or 1 for a ramp, 0.5 for a roof
+- `color` (string), `position` (array), `alpha` (number)
+
+#### `createFreeform(name, options)`
+
+Creates a closed shape from a list of points and the faces that join them.
+
+**Options:**
+
+- `vertices` (array): Points, each a `Vector3` or `[x, y, z]`, relative to the shape's position
+- `faces` (array): Each face is a list of indices into `vertices`, clockwise seen from outside. Every edge must be shared by exactly two faces. Defaults to a box joining 8 points in this order: the bottom corners (-x -z, +x -z, +x +z, -x +z), then the top corners in the same order. Points and faces that don't make a closed shape give a 1 × 1 × 1 cube
+- `rounding` (string): `"none"` (default) keeps the flat faces, `"edges"` rounds the edges and corners and keeps the faces flat, and `"smooth"` makes a smooth surface that sits inside the points
+- `radius` (number): How far in from each edge `"edges"` rounds, at most 40% of the shorter edge at each corner. Defaults to 0.1; 0 turns the rounding off
+- A rounded shape is kept to 3,000 triangles: a bigger one is smoothed less, or rounds its edges more simply, until it fits
+- Its physics shape is a box fitted to the surface it draws, turned to lie along the shape when that is clearly tighter. `setPhysicsShape` replaces it
+- `color` (string), `position` (array), `alpha` (number)
+
+#### `createDonut(name, options)`
+
+Creates a donut (torus) geometry.
+
+**Options:**
+
+- `diameter` (number): Outside diameter
+- `innerDiameter` (number): Diameter of the hole. Used only when `thickness` is not given
+- `thickness` (number): Diameter of the tube, so `innerDiameter` is `diameter - 2 * thickness` and the donut is `thickness` tall. Clamped to at most half of `diameter`, where the hole closes
+- `tessellation` (number): Sides around the ring — 3 gives a triangle, 24 looks smooth
+- `color` (string), `position` (array), `alpha` (number)
+
+#### `createRing(name, options)`
+
+Creates a flat-edged ring, like a washer or a short pipe.
+
+**Options:**
+
+- `diameter` (number): Outside diameter
+- `innerDiameter` (number): Diameter of the hole. Used only when `thickness` is not given
+- `thickness` (number): Width of the wall, so `innerDiameter` is `diameter - 2 * thickness`. Clamped to at most 90% of the radius so the hole stays open
+- `height` (number): Height of the ring
+- `tessellation` (number): Sides around the ring — 6 gives a hex nut, 24 looks smooth
+- `color` (string), `position` (array), `alpha` (number)
 
 #### `createPlane(name, options)`
 
@@ -268,7 +318,7 @@ Sets the transparency of a mesh.
 **Example:**
 
 ```javascript
-await setAlpha("box1", 0.75);
+await setAlpha('box1', 0.75);
 ```
 
 #### `changeColor(meshName, color)`
@@ -293,9 +343,16 @@ Removes all visual effects from a mesh.
 
 ### Movement and Transform
 
-#### `moveTo(meshName, position, options)`
+#### `moveTo(meshName, { target, side })`
 
-Moves a mesh to a specific position instantly.
+Moves a mesh to another mesh instantly, lining up their anchors.
+
+**Parameters:**
+
+- `meshName` (string): Name of the mesh to move
+- `target` (string): Name of the mesh to move to
+- `side` (string, optional): `'on_top'`, `'under'`, `'left'`, `'right'`, `'front'` or `'behind'` places the mesh against that side of the target's bounding box instead, centred on it. Sides are the target's own, following its rotation: front is its local -z, the way Flock models face, so its left is local +x.
+- `offsetX`, `offsetY`, `offsetZ` (number, optional): Added after placing, along the target's rotated axes. The target's scale doesn't change the distance.
 
 #### `moveForward(meshName, distance)`
 
@@ -317,11 +374,31 @@ Rotates a mesh instantly.
 
 #### `rotateTo(meshName, x, y, z)`
 
-Rotates a mesh to a specific 3D rotation instantly.
+Rotates a mesh to a specific 3D rotation instantly. For a child mesh the angles are relative to its parent, as with `rotateAnim`; members of a group use world angles.
 
 #### `scale(meshName, scaling, options)`
 
 Scales a mesh.
+
+#### `setPivot(meshName, { x, y, z })`
+
+Sets the point a mesh rotates around. The mesh stays where it is and positions keep their meaning. Each axis is `'MIN'`, `'CENTER'`, `'MAX'` or a number offset from the centre; the default is the centre.
+
+#### `setAnchor(meshName, { x, y, z })`
+
+Sets the point a mesh's position refers to, for positioning, gliding and reading its position. Keyframe scaling animations also grow and shrink about it. The mesh stays where it is; set its position afterwards to put the new anchor somewhere. Axes take the same values as `setPivot`; the default is centre X/Z and base Y.
+
+#### `mirror(sourceMeshName, options)`
+
+Adds a mirrored copy of a mesh, reflected across a plane across one axis of the about mesh (world axes without one). The copy is its own object, with its own name, events and colour. Returns the copy's name. Animated characters are not mirrored.
+
+**Parameters:**
+
+- `sourceMeshName` (string): Name of the mesh to mirror
+- `options.mirrorId` (string): Name for the copy
+- `options.axis` (string): `'x'`, `'y'` or `'z'`
+- `options.aboutMeshName` (string, optional): The plane passes through this mesh's centre and turns with it; without it, the plane passes through the origin. If this mesh is inside the source group it is left out of the copy.
+- `options.callback` (function, optional): Runs with the copy's name once it is ready
 
 ### Physics
 
@@ -334,15 +411,27 @@ Applies physics properties to a mesh.
 - `meshName` (string): Name of the mesh
 - `physicsType` (string): Type of physics ("DYNAMIC", "STATIC", "KINEMATIC")
 
+Note: hollow rings and donuts made `DYNAMIC` use a segmented container shape so the hole stays open (a convex hull would fill it in and a triangle mesh is static-only).
+
 **Example:**
 
 ```javascript
-await setPhysics("player", "DYNAMIC");
+await setPhysics('player', 'DYNAMIC');
 ```
 
 #### `applyForce(meshName, force)`
 
-Applies a force to a physics-enabled mesh.
+Applies a force to a physics-enabled mesh as a one-shot impulse. Heavier objects (see `setMass`) need a larger force for the same motion.
+
+#### `setMass(meshName, mass)`
+
+Sets how heavy an object is. Default is 1. Stored on the object so it survives physics rebuilds. Clamped to a small positive minimum. Heavier objects need a larger force for the same motion and push lighter ones around.
+
+**Example:**
+
+```javascript
+setMass('bowlingBall', 5);
+```
 
 ### Scene Environment
 
@@ -358,7 +447,7 @@ Creates a ground plane.
 **Example:**
 
 ```javascript
-createGround("#ffffff", "ground");
+createGround('#ffffff', 'ground');
 ```
 
 #### `setSky(color)`
@@ -372,7 +461,7 @@ Sets the skybox/environment color.
 **Example:**
 
 ```javascript
-setSky("#ffffff");
+setSky('#ffffff');
 ```
 
 #### `lightIntensity(intensity)`
@@ -395,8 +484,8 @@ Adds fog to the scene for atmospheric effects.
 
 ```javascript
 setFog({
-  fogColorHex: "#ffffff",
-  fogMode: "LINEAR",
+  fogColorHex: '#ffffff',
+  fogMode: 'LINEAR',
   fogDensity: 0.1,
   fogStart: 50,
   fogEnd: 100,
@@ -431,7 +520,7 @@ Attaches the camera to follow a specific mesh.
 **Example:**
 
 ```javascript
-await attachCamera("player", 7);
+await attachCamera('player', 7);
 ```
 
 ### UI
@@ -449,7 +538,7 @@ Displays text in the UI.
 **Example:**
 
 ```javascript
-printText("🌈 Hello", 30, "#000080");
+printText('🌈 Hello', 30, '#000080');
 ```
 
 #### `buttonControls(type, enabled, color)`
@@ -465,7 +554,7 @@ Creates button controls for user interaction.
 **Example:**
 
 ```javascript
-buttonControls("ARROWS", true, "#cc33cc");
+buttonControls('ARROWS', true, '#cc33cc');
 ```
 
 #### `say(meshName, text, duration)`
@@ -527,7 +616,7 @@ Checks if a specific key is currently pressed.
 **Example:**
 
 ```javascript
-if (keyPressed("w")) {
+if (keyPressed('w')) {
   // Move forward
 }
 ```
@@ -540,10 +629,19 @@ Checks if a movement or action input is active across keyboard, touch, or XR con
 
 - `action` (string): One of `FORWARD`, `BACKWARD`, `LEFT`, `RIGHT`, `BUTTON1`, `BUTTON2`, `BUTTON3`, or `BUTTON4`.
 
+The four action buttons use the same 2×2 spatial layout across the on-screen controls, keyboard shortcuts, conventional gamepads, and Meta Quest controllers:
+
+| Position     | Action    | On-screen | Keyboard   | Gamepad | Meta Quest |
+| ------------ | --------- | --------- | ---------- | ------- | ---------- |
+| Top-left     | `BUTTON1` | Button 1  | R or 1     | Y       | Left Y     |
+| Top-right    | `BUTTON2` | Button 2  | E or 2     | B       | Right B    |
+| Bottom-left  | `BUTTON3` | Button 3  | F or 3     | X       | Left X     |
+| Bottom-right | `BUTTON4` | Button 4  | Space or 4 | A       | Right A    |
+
 **Example:**
 
 ```javascript
-if (actionPressed("FORWARD")) {
+if (actionPressed('FORWARD')) {
   // Move forward regardless of whether the player is using W, Z, touch, or XR input
 }
 ```
@@ -561,8 +659,8 @@ Run a callback when the chosen action is pressed or released across keyboard, to
 **Example:**
 
 ```javascript
-whenActionEvent("BUTTON1", async () => {
-  // Respond to the action button, regardless of whether it came from E, touch, or XR
+whenActionEvent('BUTTON1', async () => {
+  // Respond to R/1, on-screen button 1, or the left Meta Quest Y button
 });
 ```
 
@@ -589,11 +687,11 @@ Runs a function in an infinite loop.
 
 ```javascript
 forever(async () => {
-  if (keyPressed("w")) {
-    moveForward("player", 3);
-    await switchAnimation("player", { animationName: "Walk" });
+  if (keyPressed('w')) {
+    moveForward('player', 3);
+    await switchAnimation('player', { animationName: 'Walk' });
   } else {
-    await switchAnimation("player", { animationName: "Idle" });
+    await switchAnimation('player', { animationName: 'Idle' });
   }
 });
 ```
@@ -609,6 +707,49 @@ Broadcasts a custom event.
 #### `onTrigger(meshName, callback)`
 
 Sets up collision/trigger detection for a mesh.
+
+`trigger` is `'OnPickTrigger'` (clicked), `'OnPickDownTrigger'` (interact start) or `'OnPickUpTrigger'` (interact end). Any other trigger is reported as an error and nothing is registered.
+
+`callback` can be a list of functions. Each trigger runs the next one in the list, wrapping back to the first after the last. With the default `mode: 'wait'`, triggers are ignored until the current function has finished. Each mesh keeps its own place in the list, even when the handler was registered on a tag or group.
+
+```javascript
+onTrigger(door, {
+  trigger: 'OnPickTrigger',
+  callback: [
+    async () => await rotateTo(door, { x: 0, y: 90, z: 0 }),
+    async () => await rotateTo(door, { x: 0, y: 0, z: 0 }),
+  ],
+});
+```
+
+#### `createTag(tagName)`
+
+Creates a tag and returns its name, which has a numeric suffix if `tagName` is already used by an object. Calling it again with the same `tagName` returns the same tag. Pass a tag to `onTrigger` or `onIntersect` in place of a mesh name to respond to every mesh with that tag, including meshes tagged later and copies of tagged meshes.
+
+The callback receives the names of the actual meshes involved, never the tag. `onTrigger` passes the clicked mesh. `onIntersect(first, second, …)` passes `(firstMesh, secondMesh)` in the same order as the arguments, so `onIntersect(ball, ring, …)` gives the ball and then the ring that was hit.
+
+#### `tagObject(meshNames, tag)`
+
+Gives each mesh in a list a tag. A single mesh name works too. Copies made with `cloneMesh` keep their source's tags; mirrored copies do not.
+
+#### `getObjectsWithTag(tag)`
+
+Returns the names of all meshes with the tag, in creation order.
+
+#### `getClonesOf(meshName)`
+
+Returns the names of all copies made with `cloneMesh` from the mesh or from its copies, in creation order. The mesh itself and mirrored copies are not included. Returns an empty list if the mesh doesn't exist yet.
+
+**Example:**
+
+```javascript
+const ring = createTag('ring');
+await tagObject([bigRing, smallRing], ring);
+onTrigger(ring, {
+  trigger: 'OnPickTrigger',
+  callback: async (picked) => await changeColor(picked, { color: '#ff0000' }),
+});
+```
 
 ### micro:bit
 
@@ -638,7 +779,7 @@ Shows a 5×5 image on a micro:bit's LED display. The micro:bit must be connected
 
 ```javascript
 // A sun on every plugged-in micro:bit
-microbitShowImage("", "9090909990999990999090909");
+microbitShowImage('', '9090909990999990999090909');
 ```
 
 ## Examples
@@ -648,19 +789,19 @@ For a complete working example, see [example.html](example.html) in the reposito
 ### Basic Scene Setup
 
 ```javascript
-setSky("#ffffff");
-createGround("#ffffff", "ground");
-printText("🌈 Hello", 30, "#000080");
-buttonControls("ARROWS", true, "#cc33cc");
+setSky('#ffffff');
+createGround('#ffffff', 'ground');
+printText('🌈 Hello', 30, '#000080');
+buttonControls('ARROWS', true, '#cc33cc');
 
 const player = createCharacter({
-  modelName: "Character2.glb",
-  modelId: "player_unique_id",
+  modelName: 'Character2.glb',
+  modelId: 'player_unique_id',
   scale: 1,
   position: { x: 0, y: 0, z: 0 },
 });
 
-await setPhysics(player, "DYNAMIC");
+await setPhysics(player, 'DYNAMIC');
 await attachCamera(player, 7);
 ```
 
@@ -668,14 +809,14 @@ await attachCamera(player, 7);
 
 ```javascript
 forever(async () => {
-  if (keyPressed("w")) {
-    moveForward("player", 3);
-    await switchAnimation("player", { animationName: "Walk" });
-  } else if (keyPressed("s")) {
-    moveForward("player", -3);
-    await switchAnimation("player", { animationName: "Walk" });
+  if (keyPressed('w')) {
+    moveForward('player', 3);
+    await switchAnimation('player', { animationName: 'Walk' });
+  } else if (keyPressed('s')) {
+    moveForward('player', -3);
+    await switchAnimation('player', { animationName: 'Walk' });
   } else {
-    await switchAnimation("player", { animationName: "Idle" });
+    await switchAnimation('player', { animationName: 'Idle' });
   }
 });
 ```
@@ -684,23 +825,23 @@ forever(async () => {
 
 ```javascript
 // Keyframe animation
-await animateKeyFrames("box1", {
+await animateKeyFrames('box1', {
   keyframes: [
-    { duration: 0, value: "#FF0000" },
-    { duration: 2, value: "#00FF00" },
-    { duration: 4, value: "#0000FF" },
+    { duration: 0, value: '#FF0000' },
+    { duration: 2, value: '#00FF00' },
+    { duration: 4, value: '#0000FF' },
   ],
-  property: "color",
+  property: 'color',
   loop: true,
 });
 
 // Smooth movement
-await glideTo("player", {
+await glideTo('player', {
   x: 10,
   y: 0,
   z: 5,
   duration: 3,
-  easing: "SineEase",
+  easing: 'SineEase',
 });
 ```
 

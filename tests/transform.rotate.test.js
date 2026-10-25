@@ -1,12 +1,12 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runRotationTests(flock) {
-  describe("rotate API Tests @rotation", function () {
+  describe('rotate API Tests @rotation', function () {
     let boxId;
     beforeEach(function () {
       boxId = `box_${Date.now()}`;
       flock.createBox(boxId, {
-        color: "#FF00FF",
+        color: '#FF00FF',
         width: 2,
         height: 2,
         depth: 2,
@@ -17,11 +17,9 @@ export function runRotationTests(flock) {
       if (boxId) flock.dispose(boxId);
     });
 
-    it("should rotate a box around X axis", async function () {
+    it('should rotate a box around X axis', async function () {
       const box = flock.scene.getMeshByName(boxId);
-      const initialRotation = box.rotationQuaternion
-        ? box.rotationQuaternion.clone()
-        : null;
+      const initialRotation = box.rotationQuaternion ? box.rotationQuaternion.clone() : null;
 
       await flock.rotate(boxId, { x: 90, y: 0, z: 0 });
 
@@ -35,27 +33,24 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.x)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees in radians
     });
 
-    it("should ignore rotate/rotateTo on a non-mesh target", async function () {
-      const group = new flock.BABYLON.AnimationGroup(
-        "rotateNonMeshGroup",
-        flock.scene,
-      );
+    it('should ignore rotate/rotateTo on a non-mesh target', async function () {
+      const group = new flock.BABYLON.AnimationGroup('rotateNonMeshGroup', flock.scene);
       const reported = [];
       const previousOnBlockError = flock.onBlockError;
       flock.onBlockError = (info) => reported.push(info);
       try {
-        await flock.rotate("rotateNonMeshGroup", { x: 90, y: 0, z: 0 });
-        await flock.rotateTo("rotateNonMeshGroup", { x: 90, y: 0, z: 0 });
+        await flock.rotate('rotateNonMeshGroup', { x: 90, y: 0, z: 0 });
+        await flock.rotateTo('rotateNonMeshGroup', { x: 90, y: 0, z: 0 });
 
         expect(reported).to.have.lengthOf(2);
-        expect(reported.every((r) => r.key === "target_not_a_mesh")).to.be.true;
+        expect(reported.every((r) => r.key === 'target_not_a_mesh')).to.be.true;
       } finally {
         flock.onBlockError = previousOnBlockError;
         group.dispose();
       }
     });
 
-    it("should recover when an Euler write has nulled the quaternion", async function () {
+    it('should recover when an Euler write has nulled the quaternion', async function () {
       const box = flock.scene.getMeshByName(boxId);
       // Babylon's rotation setter nulls the quaternion; rotate() must reseed.
       box.rotation = new flock.BABYLON.Vector3(0, Math.PI / 4, 0);
@@ -66,14 +61,14 @@ export function runRotationTests(flock) {
       expect(euler.y).to.be.closeTo(Math.PI / 2, 1e-6);
     });
 
-    it("round-trips Euler degrees through the quaternion helpers", function () {
+    it('round-trips Euler degrees through the quaternion helpers', function () {
       const result = flock.quatToEulerDegrees(flock.eulerDegreesToQuat(30, 60, 20));
       expect(result.x).to.be.closeTo(30, 1e-6);
       expect(result.y).to.be.closeTo(60, 1e-6);
       expect(result.z).to.be.closeTo(20, 1e-6);
     });
 
-    it("should rotate a box around Y axis", async function () {
+    it('should rotate a box around Y axis', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: 0, y: 90, z: 0 });
@@ -83,7 +78,7 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.y)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees in radians
     });
 
-    it("should rotate a box around Z axis", async function () {
+    it('should rotate a box around Z axis', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: 0, y: 0, z: 90 });
@@ -93,7 +88,7 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.z)).to.be.closeTo(Math.PI / 2, 0.1); // 90 degrees in radians
     });
 
-    it("should rotate a box around multiple axes", async function () {
+    it('should rotate a box around multiple axes', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: 45, y: 45, z: 45 });
@@ -101,12 +96,11 @@ export function runRotationTests(flock) {
       expect(box.rotationQuaternion).to.not.be.null;
       // For combined rotations, just verify that rotation was applied
       const euler = box.rotationQuaternion.toEulerAngles();
-      const totalRotation =
-        Math.abs(euler.x) + Math.abs(euler.y) + Math.abs(euler.z);
+      const totalRotation = Math.abs(euler.x) + Math.abs(euler.y) + Math.abs(euler.z);
       expect(totalRotation).to.be.greaterThan(0.1);
     });
 
-    it("should apply rotations cumulatively", async function () {
+    it('should apply rotations cumulatively', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: 45, y: 0, z: 0 });
@@ -121,7 +115,7 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.x)).to.be.closeTo(Math.PI / 2, 0.1);
     });
 
-    it("should handle negative rotation values", async function () {
+    it('should handle negative rotation values', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: -90, y: 0, z: 0 });
@@ -131,7 +125,7 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.x)).to.be.closeTo(Math.PI / 2, 0.1); // Magnitude should be same
     });
 
-    it("should handle partial rotation parameters", async function () {
+    it('should handle partial rotation parameters', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { y: 90 }); // Only Y specified, X and Z default to 0
@@ -143,11 +137,9 @@ export function runRotationTests(flock) {
       expect(Math.abs(euler.z)).to.be.lessThan(0.1); // Should be close to 0
     });
 
-    it("should handle zero rotation (all defaults)", async function () {
+    it('should handle zero rotation (all defaults)', async function () {
       const box = flock.scene.getMeshByName(boxId);
-      const initialRotation = box.rotationQuaternion
-        ? box.rotationQuaternion.clone()
-        : null;
+      const initialRotation = box.rotationQuaternion ? box.rotationQuaternion.clone() : null;
 
       await flock.rotate(boxId); // All default to 0
 
@@ -164,7 +156,7 @@ export function runRotationTests(flock) {
       }
     });
 
-    it("should handle large rotation values", async function () {
+    it('should handle large rotation values', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotate(boxId, { x: 360, y: 0, z: 0 }); // Full rotation
@@ -186,16 +178,16 @@ export function runRotationTests(flock) {
 	  });*/
   });
 
-  describe("rotate Camera API Tests @rotation", function () {
-    it("should handle camera rotation without throwing errors", async function () {
+  describe('rotate Camera API Tests @rotation', function () {
+    it('should handle camera rotation without throwing errors', async function () {
       // This test assumes there's an active camera
       try {
-        await flock.rotate("__active_camera__", { x: 10, y: 15, z: 0 });
+        await flock.rotate('__active_camera__', { x: 10, y: 15, z: 0 });
         // If we get here without throwing, the test passes
         expect(true).to.be.true;
       } catch (error) {
         // If there's no active camera, we should get a specific error
-        expect(error.message).to.include("No active camera found");
+        expect(error.message).to.include('No active camera found');
       }
     });
 
@@ -213,16 +205,16 @@ export function runRotationTests(flock) {
 	  });*/
   });
 
-  describe("rotateTo camera pitch clamp @rotation", function () {
+  describe('rotateTo camera pitch clamp @rotation', function () {
     let prevActiveCamera;
     let freeCamera;
 
     beforeEach(function () {
       prevActiveCamera = flock.scene.activeCamera;
       freeCamera = new flock.BABYLON.FreeCamera(
-        "rotateToClampCamera",
+        'rotateToClampCamera',
         new flock.BABYLON.Vector3(0, 7, 0),
-        flock.scene,
+        flock.scene
       );
       flock.scene.activeCamera = freeCamera;
     });
@@ -232,39 +224,33 @@ export function runRotationTests(flock) {
       if (freeCamera && !freeCamera.isDisposed()) freeCamera.dispose();
     });
 
-    it("keeps a straight-down pitch just off the ±90° singularity", async function () {
-      await flock.rotateTo("__active_camera__", { x: 90, y: 0, z: 0 });
+    it('keeps a straight-down pitch just off the ±90° singularity', async function () {
+      await flock.rotateTo('__active_camera__', { x: 90, y: 0, z: 0 });
 
       const euler = freeCamera.rotationQuaternion.toEulerAngles();
-      expect(euler.x).to.be.closeTo(
-        flock.BABYLON.Tools.ToRadians(89.95),
-        1e-6,
-      );
+      expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(89.95), 1e-6);
       expect(euler.x).to.be.below(Math.PI / 2);
     });
 
-    it("clamps straight-up pitch, including wrapped angles like 270°", async function () {
-      await flock.rotateTo("__active_camera__", { x: 270, y: 0, z: 0 });
+    it('clamps straight-up pitch, including wrapped angles like 270°', async function () {
+      await flock.rotateTo('__active_camera__', { x: 270, y: 0, z: 0 });
 
       const euler = freeCamera.rotationQuaternion.toEulerAngles();
-      expect(euler.x).to.be.closeTo(
-        flock.BABYLON.Tools.ToRadians(-89.95),
-        1e-6,
-      );
+      expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(-89.95), 1e-6);
     });
 
-    it("applies increments on top of a mouse-look pose (radians in camera.rotation)", async function () {
+    it('applies increments on top of a mouse-look pose (radians in camera.rotation)', async function () {
       freeCamera.rotation.set(0, Math.PI / 4, 0); // dragged to look 45° right
 
-      await flock.rotate("__active_camera__", { x: 0, y: 10, z: 0 });
+      await flock.rotate('__active_camera__', { x: 0, y: 10, z: 0 });
 
       const euler = freeCamera.rotationQuaternion.toEulerAngles();
       expect(euler.y).to.be.closeTo(flock.BABYLON.Tools.ToRadians(55), 1e-6);
     });
 
-    it("yaws a pitched camera turntable-style without rolling the horizon", async function () {
-      await flock.rotateTo("__active_camera__", { x: 45, y: 0, z: 0 });
-      await flock.rotate("__active_camera__", { x: 0, y: 30, z: 0 });
+    it('yaws a pitched camera turntable-style without rolling the horizon', async function () {
+      await flock.rotateTo('__active_camera__', { x: 45, y: 0, z: 0 });
+      await flock.rotate('__active_camera__', { x: 0, y: 30, z: 0 });
 
       const euler = freeCamera.rotationQuaternion.toEulerAngles();
       expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(45), 1e-6);
@@ -272,8 +258,8 @@ export function runRotationTests(flock) {
       expect(euler.z).to.be.closeTo(0, 1e-6);
     });
 
-    it("leaves ordinary pitches unchanged and syncs camera.rotation", async function () {
-      await flock.rotateTo("__active_camera__", { x: 45, y: 30, z: 0 });
+    it('leaves ordinary pitches unchanged and syncs camera.rotation', async function () {
+      await flock.rotateTo('__active_camera__', { x: 45, y: 30, z: 0 });
 
       const euler = freeCamera.rotationQuaternion.toEulerAngles();
       expect(euler.x).to.be.closeTo(flock.BABYLON.Tools.ToRadians(45), 1e-6);
@@ -283,12 +269,12 @@ export function runRotationTests(flock) {
     });
   });
 
-  describe("rotateTo API Tests @rotation", function () {
+  describe('rotateTo API Tests @rotation', function () {
     let boxId;
     beforeEach(function () {
       boxId = `box_${Date.now()}`;
       flock.createBox(boxId, {
-        color: "#FF00FF",
+        color: '#FF00FF',
         width: 2,
         height: 2,
         depth: 2,
@@ -309,7 +295,7 @@ export function runRotationTests(flock) {
       );
     }
 
-    it("should rotate a box to absolute X rotation", async function () {
+    it('should rotate a box to absolute X rotation', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       // First rotate to some position
@@ -323,13 +309,13 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(0), // y
         flock.BABYLON.Tools.ToRadians(90), // x
-        flock.BABYLON.Tools.ToRadians(0), // z
+        flock.BABYLON.Tools.ToRadians(0) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
 
-    it("should rotate a box to absolute Y rotation", async function () {
+    it('should rotate a box to absolute Y rotation', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotateTo(boxId, { x: 0, y: 180, z: 0 });
@@ -338,13 +324,13 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(180), // y
         flock.BABYLON.Tools.ToRadians(0), // x
-        flock.BABYLON.Tools.ToRadians(0), // z
+        flock.BABYLON.Tools.ToRadians(0) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
 
-    it("should rotate a box to absolute Z rotation", async function () {
+    it('should rotate a box to absolute Z rotation', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotateTo(boxId, { x: 0, y: 0, z: 45 });
@@ -353,13 +339,13 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(0), // y
         flock.BABYLON.Tools.ToRadians(0), // x
-        flock.BABYLON.Tools.ToRadians(45), // z
+        flock.BABYLON.Tools.ToRadians(45) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
 
-    it("should handle multiple absolute rotations correctly", async function () {
+    it('should handle multiple absolute rotations correctly', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       // Rotate to one position
@@ -372,13 +358,13 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(20), // y
         flock.BABYLON.Tools.ToRadians(10), // x
-        flock.BABYLON.Tools.ToRadians(30), // z
+        flock.BABYLON.Tools.ToRadians(30) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
 
-    it("should use default values when parameters are omitted", async function () {
+    it('should use default values when parameters are omitted', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       await flock.rotateTo(boxId, { x: 45 }); // y and z should default to 0
@@ -387,13 +373,13 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(0), // y
         flock.BABYLON.Tools.ToRadians(45), // x
-        flock.BABYLON.Tools.ToRadians(0), // z
+        flock.BABYLON.Tools.ToRadians(0) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
 
-    it("should work with empty object (all defaults)", async function () {
+    it('should work with empty object (all defaults)', async function () {
       const box = flock.scene.getMeshByName(boxId);
 
       // First rotate to some position
@@ -406,14 +392,14 @@ export function runRotationTests(flock) {
       const expectedQuat = flock.BABYLON.Quaternion.RotationYawPitchRoll(
         flock.BABYLON.Tools.ToRadians(0), // y
         flock.BABYLON.Tools.ToRadians(0), // x
-        flock.BABYLON.Tools.ToRadians(0), // z
+        flock.BABYLON.Tools.ToRadians(0) // z
       ).normalize();
 
       expect(quaternionsEqual(finalRotation, expectedQuat)).to.be.true;
     });
   });
 
-  describe("lookAt API Tests @rotation", function () {
+  describe('lookAt API Tests @rotation', function () {
     let mesh1Id, mesh2Id;
 
     beforeEach(function () {
@@ -422,7 +408,7 @@ export function runRotationTests(flock) {
 
       // Create first mesh (the one that will look)
       flock.createBox(mesh1Id, {
-        color: "#FF0000",
+        color: '#FF0000',
         width: 1,
         height: 1,
         depth: 1,
@@ -431,7 +417,7 @@ export function runRotationTests(flock) {
 
       // Create second mesh (the target)
       flock.createBox(mesh2Id, {
-        color: "#00FF00",
+        color: '#00FF00',
         width: 1,
         height: 1,
         depth: 1,
@@ -444,7 +430,7 @@ export function runRotationTests(flock) {
       if (mesh2Id) flock.dispose(mesh2Id);
     });
 
-    it("should make mesh1 look at mesh2", async function () {
+    it('should make mesh1 look at mesh2', async function () {
       const mesh1 = flock.scene.getMeshByName(mesh1Id);
       const initialRotation = mesh1.rotationQuaternion
         ? mesh1.rotationQuaternion.clone()
@@ -452,14 +438,12 @@ export function runRotationTests(flock) {
 
       await flock.lookAt(mesh1Id, { target: mesh2Id });
 
-      const finalRotation = mesh1.rotationQuaternion
-        ? mesh1.rotationQuaternion
-        : mesh1.rotation;
+      const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
       expect(finalRotation.equals(initialRotation)).to.be.false;
       expect(mesh1.absolutePosition).to.be.ok;
     });
 
-    it("should handle useY parameter correctly", async function () {
+    it('should handle useY parameter correctly', async function () {
       const mesh1 = flock.scene.getMeshByName(mesh1Id);
 
       await flock.lookAt(mesh1Id, { target: mesh2Id, useY: true });
@@ -470,15 +454,13 @@ export function runRotationTests(flock) {
       mesh1.position.set(0, 0, 0);
 
       await flock.lookAt(mesh1Id, { target: mesh2Id, useY: false });
-      const finalRotation2 = mesh1.rotationQuaternion
-        ? mesh1.rotationQuaternion
-        : mesh1.rotation;
+      const finalRotation2 = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
 
       expect(finalRotation1.equals(finalRotation2)).to.be.false;
     });
 
-    it("should work with physics-enabled objects", async function () {
-      await flock.setPhysics(mesh1Id, "DYNAMIC");
+    it('should work with physics-enabled objects', async function () {
+      await flock.setPhysics(mesh1Id, 'DYNAMIC');
       const mesh1 = flock.scene.getMeshByName(mesh1Id);
       const initialRotation = mesh1.rotationQuaternion
         ? mesh1.rotationQuaternion.clone()
@@ -486,21 +468,19 @@ export function runRotationTests(flock) {
 
       await flock.lookAt(mesh1Id, { target: mesh2Id });
 
-      const finalRotation = mesh1.rotationQuaternion
-        ? mesh1.rotationQuaternion
-        : mesh1.rotation;
+      const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
 
       expect(finalRotation.equals(initialRotation)).to.be.false;
       expect(mesh1.physics).to.be.ok;
     });
 
-    it("should handle default useY parameter", async function () {
+    it('should handle default useY parameter', async function () {
       const mesh1 = flock.scene.getMeshByName(mesh1Id);
       await flock.lookAt(mesh1Id, { target: mesh2Id });
       expect(mesh1.absolutePosition).to.be.ok;
     });
 
-    it("should handle objects at different heights", async function () {
+    it('should handle objects at different heights', async function () {
       const mesh2 = flock.scene.getMeshByName(mesh2Id);
       mesh2.position.y = 10;
 
@@ -510,14 +490,12 @@ export function runRotationTests(flock) {
         : mesh1.rotation.clone();
 
       await flock.lookAt(mesh1Id, { target: mesh2Id, useY: true });
-      const finalRotation = mesh1.rotationQuaternion
-        ? mesh1.rotationQuaternion
-        : mesh1.rotation;
+      const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
 
       expect(finalRotation.equals(initialRotation)).to.be.false;
     });
 
-    it("should work with same Y level when useY is false", async function () {
+    it('should work with same Y level when useY is false', async function () {
       const mesh2 = flock.scene.getMeshByName(mesh2Id);
       mesh2.position.y = 10;
 
@@ -527,14 +505,12 @@ export function runRotationTests(flock) {
         : mesh1.rotation.clone();
 
       await flock.lookAt(mesh1Id, { target: mesh2Id, useY: false });
-      const finalRotation = mesh1.rotationQuaternion
-        ? mesh1.rotationQuaternion
-        : mesh1.rotation;
+      const finalRotation = mesh1.rotationQuaternion ? mesh1.rotationQuaternion : mesh1.rotation;
 
       expect(finalRotation.equals(initialRotation)).to.be.false;
     });
 
-    it("should handle meshes at the same position", async function () {
+    it('should handle meshes at the same position', async function () {
       const mesh2 = flock.scene.getMeshByName(mesh2Id);
       mesh2.position.set(0, 0, 0);
 
@@ -546,6 +522,335 @@ export function runRotationTests(flock) {
       }
 
       expect(error).to.be.null;
+    });
+  });
+
+  // A Group member uses the same unrotated base rule as a free-standing
+  // mesh (see the @rotation describe below), so dragging a rotated mesh
+  // into or out of a group leaves its block Y unchanged.
+  describe('base-rule Y with rotated meshes in a Group @rotation', function () {
+    let groupId, rotatedId;
+    beforeEach(async function () {
+      groupId = `rotbasegroup_${Date.now()}`;
+      rotatedId = `rotbase_${Date.now()}`;
+      await flock.createGroup(groupId, { position: [0, 0, 0] });
+      // Non-cubic, so rotating changes the vertical extent.
+      await flock.createBox(rotatedId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+      await flock.setParent(groupId, rotatedId);
+    });
+    afterEach(function () {
+      if (rotatedId) flock.dispose(rotatedId);
+      if (groupId) flock.dispose(groupId);
+    });
+
+    it('should read the unrotated base, the same as outside the group', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      const upright = flock.getBlockPositionFromMesh(mesh);
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: -60 });
+
+      mesh.computeWorldMatrix(true);
+      const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      const grouped = flock.getBlockPositionFromMesh(mesh);
+      expect(grouped.y).to.be.closeTo(upright.y, 0.02);
+      expect(Math.abs(grouped.y - worldMinY)).to.be.greaterThan(0.03);
+
+      const group = mesh.parent;
+      mesh.setParent(null);
+      const free = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(group);
+      expect(grouped.x).to.be.closeTo(free.x, 0.02);
+      expect(grouped.y).to.be.closeTo(free.y, 0.02);
+      expect(grouped.z).to.be.closeTo(free.z, 0.02);
+    });
+
+    it('should round-trip a rotated mesh without moving it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+
+      const before = mesh.getAbsolutePosition().clone();
+      const read = flock.getBlockPositionFromMesh(mesh);
+      await flock.setBlockPositionOnMesh(mesh, { x: read.x, y: read.y, z: read.z, useY: true });
+
+      const after = mesh.getAbsolutePosition();
+      expect(after.x).to.be.closeTo(before.x, 0.02);
+      expect(after.y).to.be.closeTo(before.y, 0.02);
+      expect(after.z).to.be.closeTo(before.z, 0.02);
+    });
+
+    // Must use the world-decomposed scale, as unparenting does; a rotation-independent one breaks the round-trip.
+    it('should read a member of a non-uniformly scaled group as it reads unparented, and round-trip it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      const group = mesh.parent;
+      group.scaling.set(2, 1, 1);
+      mesh.rotationQuaternion = flock.eulerDegreesToQuat(0, 0, 90);
+      mesh.computeWorldMatrix(true);
+
+      const before = mesh.getAbsolutePosition().clone();
+      const grouped = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(null);
+      const free = flock.getBlockPositionFromMesh(mesh);
+      mesh.setParent(group);
+      expect(grouped.y).to.be.closeTo(free.y, 0.02);
+      expect(grouped.y).to.be.closeTo(before.y - 2, 0.02);
+
+      await flock.setBlockPositionOnMesh(mesh, { x: grouped.x, y: grouped.y, z: grouped.z, useY: true });
+      const after = mesh.getAbsolutePosition();
+      expect(after.x).to.be.closeTo(before.x, 0.02);
+      expect(after.y).to.be.closeTo(before.y, 0.02);
+      expect(after.z).to.be.closeTo(before.z, 0.02);
+    });
+
+    it('rebuilds a resized, rotated model member at its block position, inside or outside the group', async function () {
+      this.timeout(20000);
+      const position = { x: 1.5, y: 1.2, z: 0 };
+      let done;
+      const constructed = new Promise((resolve) => (done = resolve));
+      const treeId = flock.createObject({
+        modelName: 'tree.glb',
+        modelId: `rotbasetree_${Date.now()}`,
+        scale: 1,
+        position,
+        callback: async function () {
+          await flock.resize(treeId, {
+            width: 0.5,
+            height: 2,
+            depth: 0.5,
+            xOrigin: 'CENTRE',
+            yOrigin: 'BASE',
+            zOrigin: 'CENTRE',
+          });
+          await flock.rotateTo(treeId, { x: 0, y: 0, z: -60 });
+          done();
+        },
+      });
+      await flock.setParent(groupId, treeId);
+      try {
+        await constructed;
+        const tree = flock.scene.getMeshByName(treeId);
+        expect(tree.parent?.name).to.equal(groupId);
+
+        const grouped = flock.getBlockPositionFromMesh(tree);
+        expect(grouped.x).to.be.closeTo(position.x, 0.02);
+        expect(grouped.y).to.be.closeTo(position.y, 0.02);
+        expect(grouped.z).to.be.closeTo(position.z, 0.02);
+
+        const group = tree.parent;
+        tree.setParent(null);
+        const free = flock.getBlockPositionFromMesh(tree);
+        tree.setParent(group);
+        expect(free.y).to.be.closeTo(position.y, 0.02);
+      } finally {
+        flock.dispose(treeId);
+      }
+    });
+
+    // Play builds a member in generated order: create (upright, unparented)
+    // -> setParent -> rotateTo. It must land where the live edit showed it.
+    it('replays a rotated member where the live scene had it', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: -60 });
+      mesh.position.y += 1.5;
+      mesh.computeWorldMatrix(true);
+      const liveMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      const captured = flock.getBlockPositionFromMesh(mesh);
+
+      const replayId = `${rotatedId}_replay`;
+      await flock.createBox(replayId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [captured.x, captured.y, captured.z],
+      });
+      try {
+        await flock.setParent(groupId, replayId);
+        await flock.rotateTo(replayId, { x: 0, y: 0, z: -60 });
+        const replay = flock.scene.getMeshByName(replayId);
+        replay.computeWorldMatrix(true);
+        expect(replay.getBoundingInfo().boundingBox.minimumWorld.y).to.be.closeTo(liveMinY, 0.02);
+      } finally {
+        flock.dispose(replayId);
+      }
+    });
+  });
+
+  describe('base-rule Y for free-standing meshes @rotation', function () {
+    let rotatedId;
+    beforeEach(function () {
+      rotatedId = `rotbasefree_${Date.now()}`;
+      // Non-cubic (like a carrot's cylinder): a cube's AABB is unchanged by
+      // an exact 90 degree turn, which would hide the bug this covers.
+      flock.createBox(rotatedId, {
+        color: '#FF00FF',
+        width: 1,
+        height: 2,
+        depth: 1,
+        position: [0, 0, 0],
+      });
+    });
+    afterEach(function () {
+      if (rotatedId) flock.dispose(rotatedId);
+    });
+
+    it('should keep the unrotated base-rule behaviour, not the rotated world base', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+      const upright = flock.getBlockPositionFromMesh(mesh);
+      expect(upright.y).to.be.closeTo(0, 0.01);
+
+      await flock.rotateTo(rotatedId, { x: 45, y: 0, z: 0 });
+      mesh.computeWorldMatrix(true);
+      const worldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
+      // A free-standing mesh's read must not change just because it was
+      // rotated - it keeps reporting the unrotated-equivalent base, which
+      // stays valid because rotate never moves the pivot for it.
+      const readAfterRotate = flock.getBlockPositionFromMesh(mesh);
+      expect(readAfterRotate.y).to.be.closeTo(upright.y, 0.02);
+      expect(Math.abs(readAfterRotate.y - worldMinY)).to.be.greaterThan(0.03);
+    });
+
+    // Regression for the 71d1b217 "group block" commit, which switched the
+    // free-standing base-rule from an order-independent unrotated-bounds
+    // formula to the rotation-aware world-AABB formula. A tapered
+    // cylinder ("carrot") rotated horizontal and positioned via the
+    // position gizmo would then jump the instant the program re-ran:
+    // creation always applies the block's position before any later
+    // rotate_to block runs, so a Y captured from the *rotated* world base
+    // landed on the *unrotated* mesh, and the subsequent rotate (which
+    // does not re-anchor free-standing objects) swung it away from where
+    // it visually sat in the editor.
+    it('replays a position-after-rotate gizmo edit without jumping', async function () {
+      const mesh = flock.scene.getMeshByName(rotatedId);
+
+      // Live editing: tip the box on its side, then drag the position gizmo
+      // so its lowest point rests exactly on a surface at world Y = 5. A
+      // gizmo drag sets mesh.position directly (no base-rule involved) -
+      // only the write-back that follows goes through the base-rule.
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: 90 });
+      mesh.computeWorldMatrix(true);
+      const restY = 5;
+      const beforeDragMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      mesh.position.y += restY - beforeDragMinY;
+      mesh.computeWorldMatrix(true);
+      const liveWorldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      expect(liveWorldMinY).to.be.closeTo(restY, 0.02);
+
+      // What the position gizmo's drag-end handler writes into the create
+      // block, captured while the mesh is already rotated.
+      const capturedBlockY = flock.getBlockPositionFromMesh(mesh).y;
+
+      // Simulate a fresh Play run: object created upright (position applied
+      // before any rotation, as initializeMesh always does), then the
+      // rotate_to block - appended after the create block by
+      // findOrCreateRotateBlock - runs afterward.
+      mesh.rotationQuaternion = flock.BABYLON.Quaternion.Identity();
+      mesh.position.set(0, 0, 0);
+      mesh.computeWorldMatrix(true);
+
+      await flock.setBlockPositionOnMesh(mesh, { x: 0, y: capturedBlockY, z: 0, useY: true });
+      await flock.rotateTo(rotatedId, { x: 0, y: 0, z: 90 });
+
+      mesh.computeWorldMatrix(true);
+      const replayedWorldMinY = mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+
+      // Must land in the same resting spot as the live edit - no jump.
+      expect(replayedWorldMinY).to.be.closeTo(liveWorldMinY, 0.02);
+    });
+  });
+
+  describe('rotation of parented children @rotation', function () {
+    let parentId, childId, targetId;
+
+    beforeEach(async function () {
+      const stamp = Date.now();
+      parentId = `rotParent_${stamp}`;
+      childId = `rotChild_${stamp}`;
+      targetId = `rotTarget_${stamp}`;
+      await flock.createBox(parentId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox(childId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox(targetId, { width: 1, height: 1, depth: 1, position: [0, 0, 10] });
+      await flock.rotateTo(parentId, { x: 0, y: 90, z: 0 });
+      await flock.parentChild(parentId, childId, 2, 0, 0);
+    });
+
+    afterEach(function () {
+      [childId, targetId, parentId].forEach((id) => flock.dispose(id));
+    });
+
+    function worldQuat(id) {
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.computeWorldMatrix(true);
+      const q = new flock.BABYLON.Quaternion();
+      mesh.getWorldMatrix().decompose(undefined, q);
+      return q;
+    }
+
+    function expectSameRotation(actual, expected) {
+      expect(Math.abs(flock.BABYLON.Quaternion.Dot(actual, expected))).to.be.closeTo(1, 1e-3);
+    }
+
+    function lookQuat(fromId, toId) {
+      const from = flock.scene.getMeshByName(fromId);
+      const to = flock.scene.getMeshByName(toId);
+      from.computeWorldMatrix(true);
+      to.computeWorldMatrix(true);
+      const dir = to.getAbsolutePosition().subtract(from.getAbsolutePosition());
+      dir.y = 0;
+      return flock.BABYLON.Quaternion.FromLookDirectionRH(dir.normalize(), flock.BABYLON.Axis.Y);
+    }
+
+    it('rotateTo is relative to the parent', async function () {
+      await flock.rotateTo(childId, { x: 0, y: -90, z: 0 });
+      expectSameRotation(worldQuat(childId), flock.BABYLON.Quaternion.Identity());
+    });
+
+    it('rotateTo and rotateAnim land on the same rotation', async function () {
+      await flock.rotateTo(childId, { x: 0, y: 30, z: 0 });
+      const instant = worldQuat(childId);
+      await flock.rotateTo(childId, { x: 0, y: 0, z: 0 });
+      await flock.rotateAnim(childId, { x: 0, y: 30, z: 0, duration: 0.05 });
+      expectSameRotation(worldQuat(childId), instant);
+    });
+
+    it('rotateTo with world: true sets the world rotation', async function () {
+      await flock.rotateTo(childId, { x: 0, y: 45, z: 0, world: true });
+      expectSameRotation(worldQuat(childId), flock.eulerDegreesToQuat(0, 45, 0));
+    });
+
+    it('lookAt faces the target in world space', async function () {
+      await flock.lookAt(childId, { target: targetId });
+      expectSameRotation(worldQuat(childId), lookQuat(childId, targetId));
+    });
+
+    it('rotateToObject towards faces the target in world space', async function () {
+      const expected = lookQuat(childId, targetId);
+      await flock.rotateToObject(childId, targetId, { mode: 'towards', duration: 0.05 });
+      expectSameRotation(worldQuat(childId), expected);
+    });
+
+    it('rotateToObject same_rotation matches the target world rotation', async function () {
+      await flock.rotateTo(targetId, { x: 0, y: 20, z: 0 });
+      await flock.rotateToObject(childId, targetId, { mode: 'same_rotation', duration: 0.05 });
+      expectSameRotation(worldQuat(childId), worldQuat(targetId));
+    });
+
+    it('removeParent keeps the world rotation and position', async function () {
+      await flock.rotateTo(childId, { x: 0, y: -30, z: 0 });
+      const rotationBefore = worldQuat(childId);
+      const child = flock.scene.getMeshByName(childId);
+      const positionBefore = child.getAbsolutePosition().clone();
+
+      await flock.removeParent(childId);
+
+      expect(child.parent).to.equal(null);
+      expectSameRotation(worldQuat(childId), rotationBefore);
+      expect(child.getAbsolutePosition().equalsWithEpsilon(positionBefore, 1e-3)).to.be.true;
     });
   });
 }

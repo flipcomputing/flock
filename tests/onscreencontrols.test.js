@@ -1,7 +1,7 @@
-import { expect } from "chai";
+import { expect } from 'chai';
 
 export function runOnScreenControlsTests(flock) {
-  describe("onScreenControls function tests", function () {
+  describe('onScreenControls function tests', function () {
     beforeEach(function () {
       flock.displayScale = 1;
     });
@@ -11,6 +11,12 @@ export function runOnScreenControlsTests(flock) {
         flock._joystickSource.stop();
         flock._joystickSource = null;
       }
+      if (flock._controlsResizeEngine && flock._controlsResizeObserver) {
+        flock._controlsResizeEngine.onResizeObservable.remove(flock._controlsResizeObserver);
+      }
+      flock._controlsResizeEngine = null;
+      flock._controlsResizeObserver = null;
+      flock._controlsLayout = null;
       if (flock.controlsTexture) {
         flock.controlsTexture.dispose();
         flock.controlsTexture = null;
@@ -19,247 +25,414 @@ export function runOnScreenControlsTests(flock) {
     });
 
     // onScreenControls tests
-    describe("onScreenControls function tests", function () {
+    describe('onScreenControls function tests', function () {
       it('should create controlsTexture when mode is "ENABLED"', function () {
-        flock.onScreenControls("ARROWS", "YES", "ENABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
       });
 
       it('should not create controlsTexture when mode is "DISABLED"', function () {
-        flock.onScreenControls("ARROWS", "YES", "DISABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'DISABLED');
         expect(flock.controlsTexture).to.be.null;
       });
 
       it('should dispose an existing controlsTexture when mode is "DISABLED"', function () {
-        flock.onScreenControls("ARROWS", "YES", "ENABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
         const first = flock.controlsTexture;
         expect(first).to.exist;
-        flock.onScreenControls("ARROWS", "YES", "DISABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'DISABLED');
         expect(flock.controlsTexture).to.be.null;
       });
 
       it('should add arrow controls when movement is "ARROWS"', function () {
-        flock.onScreenControls("ARROWS", "NO", "ENABLED");
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
       it('should add action controls when actions is "YES"', function () {
-        flock.onScreenControls("NONE", "YES", "ENABLED");
+        flock.onScreenControls('NONE', 'YES', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
       it('should add both movement and action controls with defaults', function () {
-        flock.onScreenControls("ARROWS", "YES", "ENABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
       it('should add joystick controls when movement is "JOYSTICK"', function () {
-        flock.onScreenControls("JOYSTICK", "NO", "ENABLED");
+        flock.onScreenControls('JOYSTICK', 'NO', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock._joystickSource).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
       it('should stop and clear existing joystick source when called again', function () {
-        flock.onScreenControls("JOYSTICK", "NO", "ENABLED");
+        flock.onScreenControls('JOYSTICK', 'NO', 'ENABLED');
         const first = flock._joystickSource;
         expect(first).to.exist;
-        flock.onScreenControls("ARROWS", "NO", "ENABLED");
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
         expect(flock._joystickSource).to.be.null;
       });
 
-      it("should replace the previous texture when called twice", function () {
-        flock.onScreenControls("ARROWS", "YES", "ENABLED");
+      it('should replace the previous texture when called twice', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
         const first = flock.controlsTexture;
-        flock.onScreenControls("ARROWS", "YES", "ENABLED");
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture).to.not.equal(first);
       });
 
+      it('should not rebuild controls for a resize at the same hardware scaling', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
+        const first = flock.controlsTexture;
+
+        flock.engine.onResizeObservable.notifyObservers(flock.engine);
+
+        expect(flock.controlsTexture).to.equal(first);
+      });
+
+      it('should resize controls for hardware scaling changes and restore them afterwards', function () {
+        const originalHardwareScaling = flock.engine.getHardwareScalingLevel();
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        try {
+          flock.engine.setHardwareScalingLevel(originalHardwareScaling * 2);
+          const scaledButton = flock.controlsTexture
+            .getDescendants()
+            .find((control) => control.textBlock?.text === '△');
+          expect(scaledButton.width).to.equal('31px');
+
+          flock.engine.setHardwareScalingLevel(originalHardwareScaling);
+          const restoredButton = flock.controlsTexture
+            .getDescendants()
+            .find((control) => control.textBlock?.text === '△');
+          expect(restoredButton.width).to.equal('62px');
+        } finally {
+          if (flock.engine.getHardwareScalingLevel() !== originalHardwareScaling) {
+            flock.engine.setHardwareScalingLevel(originalHardwareScaling);
+          }
+        }
+      });
+
       it('should show no controls when movement is "NONE" and actions is "NO"', function () {
-        flock.onScreenControls("NONE", "NO", "ENABLED");
+        flock.onScreenControls('NONE', 'NO', 'ENABLED');
         expect(flock.controlsTexture).to.exist;
         expect(flock.controlsTexture.getDescendants().length).to.equal(0);
+      });
+
+      const arrowButtons = (texture) =>
+        texture
+          .getDescendants()
+          .filter((control) => ['△', '▽', '◁', '▷'].includes(control.textBlock?.text));
+      const actionButtons = (texture) =>
+        texture
+          .getDescendants()
+          .filter((control) => ['1', '2', '3', '4'].includes(control.textBlock?.text));
+
+      it('should keep control backgrounds transparent when alpha defaults to 0', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        const buttons = arrowButtons(flock.controlsTexture);
+        expect(buttons.length).to.equal(4);
+        buttons.forEach((button) => expect(button.background).to.equal('transparent'));
+      });
+
+      it('should fill each control border with the tinted background when alpha is above 0', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED', '#ffffff', '#123456', 0.5);
+        const buttons = arrowButtons(flock.controlsTexture);
+        expect(buttons.length).to.equal(4);
+        buttons.forEach((button) =>
+          expect(button.background).to.equal('rgba(18, 52, 86, 0.5)')
+        );
+      });
+
+      it('should send the first colour to the arrows and the second to the actions', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', ['#ff0000', '#00ff00']);
+        arrowButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.color).to.equal('#ff0000')
+        );
+        actionButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.color).to.equal('#00ff00')
+        );
+      });
+
+      it('should split a background colour pair between the arrows and the actions', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', '#ffffff', ['#123456', '#654321'], 0.5);
+        arrowButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.background).to.equal('rgba(18, 52, 86, 0.5)')
+        );
+        actionButtons(flock.controlsTexture).forEach((button) =>
+          expect(button.background).to.equal('rgba(101, 67, 33, 0.5)')
+        );
+      });
+
+      it('should reuse a single colour for both sides', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', ['#abcdef']);
+        [...arrowButtons(flock.controlsTexture), ...actionButtons(flock.controlsTexture)].forEach(
+          (button) => expect(button.color).to.equal('#abcdef')
+        );
+      });
+
+      it('should fall back to white when a colour list is empty', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED', []);
+        [...arrowButtons(flock.controlsTexture), ...actionButtons(flock.controlsTexture)].forEach(
+          (button) => expect(button.color).to.equal('#ffffff')
+        );
+      });
+    });
+
+    describe('XR HUD hosting', function () {
+      let hudTexture;
+      let originalMeshTexture;
+
+      const arrowCount = (texture) =>
+        texture.getDescendants().filter((control) => control.textBlock?.text === '△').length;
+
+      beforeEach(function () {
+        originalMeshTexture = flock.meshTexture;
+        hudTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestXRHUD',
+          true,
+          flock.scene
+        );
+        flock.meshTexture = hudTexture;
+        flock._xrHUDActive = true;
+      });
+
+      afterEach(function () {
+        flock.onScreenControls('NONE', 'NO', 'DISABLED');
+        flock._xrHUDActive = false;
+        flock.meshTexture = originalMeshTexture;
+        hudTexture.dispose();
+      });
+
+      it('adds the controls to the HUD texture rather than the fullscreen one', function () {
+        flock.onScreenControls('ARROWS', 'YES', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+        expect(flock.controlsTexture.getDescendants().length).to.equal(0);
+      });
+
+      it('falls back to arrows for joystick movement', function () {
+        flock.onScreenControls('JOYSTICK', 'NO', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+        expect(flock._joystickSource).to.not.exist;
+      });
+
+      it('replaces the HUD controls instead of stacking them up', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(1);
+      });
+
+      it('removes the HUD controls when the controls are disabled', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+        flock.onScreenControls('ARROWS', 'NO', 'DISABLED');
+
+        expect(arrowCount(hudTexture)).to.equal(0);
+      });
+
+      it('rebuilds the controls on the fullscreen texture once the HUD closes', function () {
+        flock.onScreenControls('ARROWS', 'NO', 'ENABLED');
+
+        flock._xrHUDActive = false;
+        flock._refreshOnScreenControls();
+
+        expect(arrowCount(hudTexture)).to.equal(0);
+        expect(arrowCount(flock.controlsTexture)).to.equal(1);
       });
     });
 
     // createSmallButton tests (unchanged — shared with button controls)
-    describe("createSmallButton function tests", function () {
+    describe('createSmallButton function tests', function () {
       beforeEach(function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
       });
 
-      it("should return undefined when controlsTexture is missing", function () {
+      it('should return undefined when controlsTexture is missing', function () {
         flock.controlsTexture.dispose();
         flock.controlsTexture = null;
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         expect(button).to.be.undefined;
       });
 
-      it("should return a button with the correct text", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
+      it('should return a button with the correct text', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         expect(button).to.exist;
-        expect(button.textBlock.text).to.equal("△");
+        expect(button.textBlock.text).to.equal('△');
       });
 
-      it("should set width and height to 70px at default displayScale", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
-        expect(button.width).to.equal("70px");
-        expect(button.height).to.equal("70px");
+      it('should set width and height to 62px at default displayScale', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
+        expect(button.width).to.equal('62px');
+        expect(button.height).to.equal('62px');
       });
 
-      it("should set font size to 40px at default displayScale", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
-        expect(button.fontSize).to.equal("40px");
+      it('should match the gizmo control outline and rounding without changing its size', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
+        expect(button.width).to.equal('62px');
+        expect(button.height).to.equal('62px');
+        expect(button.thickness).to.equal(3);
+        expect(button.cornerRadius).to.equal(8);
       });
 
-      it("should apply the specified color", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "red");
-        expect(button.color).to.equal("red");
+      it('should set font size to 36px at default displayScale', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
+        expect(button.fontSize).to.equal('36px');
       });
 
-      it("should register key in inputManager on pointer down", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
+      it('should apply the specified color', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', 'red');
+        expect(button.color).to.equal('red');
+      });
+
+      it('should register key in inputManager on pointer down', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.true;
       });
 
-      it("should clear key from inputManager on pointer up", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
+      it('should clear key from inputManager on pointer up', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.false;
       });
 
-      it("should clear key from inputManager on pointer out for touch", function () {
-        const button = flock.createSmallButton("△", "ArrowUp", "#ffffff");
+      it('should clear key from inputManager on pointer out for touch', function () {
+        const button = flock.createSmallButton('△', 'ArrowUp', '#ffffff');
         // Pointer-out only releases for touch (finger sliding off the button);
         // mouse leaving keeps the key held. See createSmallButton.
-        button.onPointerDownObservable.notifyObservers({ pointerType: "touch" });
+        button.onPointerDownObservable.notifyObservers({ pointerType: 'touch' });
         button.onPointerOutObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.false;
       });
 
-      it("should register all keys in inputManager when an array is provided", function () {
-        const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
+      it('should register all keys in inputManager when an array is provided', function () {
+        const button = flock.createSmallButton('△', ['w', 'ArrowUp'], '#ffffff');
         button.onPointerDownObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("w")).to.be.true;
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown('w')).to.be.true;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.true;
       });
 
-      it("should clear all keys from inputManager on release when an array is provided", function () {
-        const button = flock.createSmallButton("△", ["w", "ArrowUp"], "#ffffff");
+      it('should clear all keys from inputManager on release when an array is provided', function () {
+        const button = flock.createSmallButton('△', ['w', 'ArrowUp'], '#ffffff');
         button.onPointerDownObservable.notifyObservers({});
         button.onPointerUpObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("w")).to.be.false;
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.false;
+        expect(flock.inputManager.isKeyDown('w')).to.be.false;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.false;
       });
     });
 
     // createArrowControls tests
-    describe("createArrowControls function tests", function () {
-      it("should return early without error when controlsTexture is missing", function () {
-        expect(() => flock.createArrowControls("#ffffff")).to.not.throw();
+    describe('createArrowControls function tests', function () {
+      it('should return early without error when controlsTexture is missing', function () {
+        expect(() => flock.createArrowControls('#ffffff')).to.not.throw();
       });
 
-      it("should add controls to controlsTexture", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        flock.createArrowControls("#ffffff");
+      it('should add controls to controlsTexture', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        flock.createArrowControls('#ffffff');
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
-      it("should create an up arrow button that registers ArrowUp in inputManager", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        flock.createArrowControls("#ffffff");
-        const upBtn = flock.controlsTexture
-          .getDescendants()
-          .find((c) => c.textBlock?.text === "△");
+      it('should create an up arrow button that registers ArrowUp in inputManager', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        flock.createArrowControls('#ffffff');
+        const upBtn = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '△');
         expect(upBtn).to.exist;
         upBtn.onPointerDownObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("ArrowUp")).to.be.true;
+        expect(flock.inputManager.isKeyDown('ArrowUp')).to.be.true;
       });
     });
 
     // createButtonControls tests
-    describe("createButtonControls function tests", function () {
-      it("should return early without error when controlsTexture is missing", function () {
-        expect(() => flock.createButtonControls("#ffffff")).to.not.throw();
+    describe('createButtonControls function tests', function () {
+      it('should return early without error when controlsTexture is missing', function () {
+        expect(() => flock.createButtonControls('#ffffff')).to.not.throw();
       });
 
-      it("should add controls to controlsTexture", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        flock.createButtonControls("#ffffff");
+      it('should add controls to controlsTexture', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        flock.createButtonControls('#ffffff');
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
       });
 
-      it("should create a ② button that registers the e key in inputManager", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        flock.createButtonControls("#ffffff");
-        const btn2 = flock.controlsTexture
-          .getDescendants()
-          .find((c) => c.textBlock?.text === "②");
+      it('should create a "2" button that registers the e key in inputManager', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        flock.createButtonControls('#ffffff');
+        const btn2 = flock.controlsTexture.getDescendants().find((c) => c.textBlock?.text === '2');
         expect(btn2).to.exist;
         btn2.onPointerDownObservable.notifyObservers({});
-        expect(flock.inputManager.isKeyDown("e")).to.be.true;
+        expect(flock.inputManager.isKeyDown('e')).to.be.true;
       });
     });
 
     // createJoystickControls tests
-    describe("createJoystickControls function tests", function () {
-      it("should return undefined when controlsTexture is missing", function () {
-        const result = flock.createJoystickControls("#ffffff");
+    describe('createJoystickControls function tests', function () {
+      it('should return undefined when controlsTexture is missing', function () {
+        const result = flock.createJoystickControls('#ffffff');
         expect(result).to.be.undefined;
       });
 
-      it("should create a JoystickSource when controlsTexture exists", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        const joystick = flock.createJoystickControls("#ffffff");
+      it('should create a JoystickSource when controlsTexture exists', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        const joystick = flock.createJoystickControls('#ffffff');
         expect(joystick).to.exist;
         joystick.stop();
       });
 
-      it("should add base and thumb ellipses to controlsTexture", function () {
-        flock.controlsTexture =
-          flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
-            "TestControls",
-            true,
-            flock.scene,
-          );
-        const joystick = flock.createJoystickControls("#ffffff");
+      it('should add base and thumb ellipses to controlsTexture', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        const joystick = flock.createJoystickControls('#ffffff');
         expect(flock.controlsTexture.getDescendants().length).to.be.greaterThan(0);
+        joystick.stop();
+      });
+
+      it('should inset the joystick by the same gap as the arrow buttons', function () {
+        flock.controlsTexture = flock.GUI.AdvancedDynamicTexture.CreateFullscreenUI(
+          'TestControls',
+          true,
+          flock.scene
+        );
+        const joystick = flock.createJoystickControls('#ffffff');
+        const base = flock.controlsTexture
+          .getDescendants()
+          .find((control) => control.width === '110px');
+        expect(base.left).to.equal('10px');
+        expect(base.top).to.equal('-10px');
         joystick.stop();
       });
     });

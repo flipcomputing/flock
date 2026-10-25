@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -159,7 +160,7 @@
                                 "type": "text",
                                 "id": "=L-/-1HT`]edbp63Mo8Q",
                                 "fields": {
-                                  "TEXT": "Hold left mouse button down to look around"
+                                  "TEXT": "Drag to look around"
                                 }
                               }
                             },
@@ -192,7 +193,7 @@
                                     "type": "text",
                                     "id": "rDKLD?S[.4^HZ(g*vX^y",
                                     "fields": {
-                                      "TEXT": "W - forward; S backward; Space - Jump"
+                                      "TEXT": "W/S or △▽ to move; Space or ④ to jump"
                                     }
                                   }
                                 },
@@ -864,6 +865,43 @@
                         "fields": {
                           "COLOR": "#ffd700"
                         }
+                      },
+                      "block": {
+                        "type": "lists_create_with",
+                        "id": ",]mY@=?_kX^$sg4k/c@;",
+                        "inline": true,
+                        "extraState": {
+                          "itemCount": 3
+                        },
+                        "inputs": {
+                          "ADD0": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "W9NosRf{J_-@{nNH/#P_",
+                              "fields": {
+                                "COLOR": "#ff99ff"
+                              }
+                            }
+                          },
+                          "ADD1": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "Q(PcXp78Pk*S.s5Ac@}7",
+                              "fields": {
+                                "COLOR": "#ffffff"
+                              }
+                            }
+                          },
+                          "ADD2": {
+                            "shadow": {
+                              "type": "colour",
+                              "id": "/h@PO,#{)sRU9O0a*%P~",
+                              "fields": {
+                                "COLOR": "#666666"
+                              }
+                            }
+                          }
+                        }
                       }
                     },
                     "SCALE": {
@@ -905,132 +943,82 @@
                   },
                   "next": {
                     "block": {
-                      "type": "change_color",
-                      "id": "eqLWnvns1y6OT*Wq+ssE",
+                      "type": "attach",
+                      "id": "z(9DWUfR@]sb,}j)a66W",
                       "fields": {
-                        "MODEL_VAR": {
+                        "MESH_TO_ATTACH": {
                           "id": "2a-O~15)a9!SRY$?;|r!"
-                        }
+                        },
+                        "TARGET_MESH": {
+                          "id": "f=8($HYZoE:IjT|U8x8J"
+                        },
+                        "BONE_NAME": "Head"
                       },
                       "inputs": {
-                        "COLOR": {
+                        "X_OFFSET": {
                           "shadow": {
-                            "type": "colour",
-                            "id": "keVq=sx74V)VpO0w:^%,",
+                            "type": "math_number",
+                            "id": "nznwkmHZ/Q!@hkM_J!{r",
                             "fields": {
-                              "COLOR": "#008080"
+                              "NUM": 0
                             }
-                          },
-                          "block": {
-                            "type": "lists_create_with",
-                            "id": ",]mY@=?_kX^$sg4k/c@;",
-                            "inline": true,
-                            "extraState": {
-                              "itemCount": 3
-                            },
-                            "inputs": {
-                              "ADD0": {
-                                "shadow": {
-                                  "type": "colour",
-                                  "id": "W9NosRf{J_-@{nNH/#P_",
-                                  "fields": {
-                                    "COLOR": "#ff99ff"
-                                  }
-                                }
-                              },
-                              "ADD1": {
-                                "shadow": {
-                                  "type": "colour",
-                                  "id": "Q(PcXp78Pk*S.s5Ac@}7",
-                                  "fields": {
-                                    "COLOR": "#ffffff"
-                                  }
-                                }
-                              },
-                              "ADD2": {
-                                "shadow": {
-                                  "type": "colour",
-                                  "id": "/h@PO,#{)sRU9O0a*%P~",
-                                  "fields": {
-                                    "COLOR": "#666666"
-                                  }
-                                }
-                              }
+                          }
+                        },
+                        "Y_OFFSET": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "RtP5Edt[IS22?SwTEu{`",
+                            "fields": {
+                              "NUM": 0
+                            }
+                          }
+                        },
+                        "Z_OFFSET": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "/%*!0JL3gGO/WiO^S|@^",
+                            "fields": {
+                              "NUM": 0
                             }
                           }
                         }
                       },
                       "next": {
                         "block": {
-                          "type": "attach",
-                          "id": "z(9DWUfR@]sb,}j)a66W",
+                          "type": "add_physics",
+                          "id": "}[0KVV#U`=m1,aAs`kQ0",
                           "fields": {
-                            "MESH_TO_ATTACH": {
-                              "id": "2a-O~15)a9!SRY$?;|r!"
-                            },
-                            "TARGET_MESH": {
+                            "MODEL_VAR": {
                               "id": "f=8($HYZoE:IjT|U8x8J"
                             },
-                            "BONE_NAME": "Head"
-                          },
-                          "inputs": {
-                            "X_OFFSET": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "nznwkmHZ/Q!@hkM_J!{r",
-                                "fields": {
-                                  "NUM": 0
-                                }
-                              }
-                            },
-                            "Y_OFFSET": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "RtP5Edt[IS22?SwTEu{`",
-                                "fields": {
-                                  "NUM": 0
-                                }
-                              }
-                            },
-                            "Z_OFFSET": {
-                              "shadow": {
-                                "type": "math_number",
-                                "id": "/%*!0JL3gGO/WiO^S|@^",
-                                "fields": {
-                                  "NUM": 0
-                                }
-                              }
-                            }
+                            "PHYSICS_TYPE": "DYNAMIC"
                           },
                           "next": {
                             "block": {
-                              "type": "add_physics",
-                              "id": "}[0KVV#U`=m1,aAs`kQ0",
+                              "type": "camera_follow",
+                              "id": "=39$mB$yofvxHJhF}YU^",
                               "fields": {
-                                "MODEL_VAR": {
+                                "MESH_VAR": {
                                   "id": "f=8($HYZoE:IjT|U8x8J"
                                 },
-                                "PHYSICS_TYPE": "DYNAMIC"
+                                "FRONT": true
                               },
-                              "next": {
-                                "block": {
-                                  "type": "camera_follow",
-                                  "id": "=39$mB$yofvxHJhF}YU^",
-                                  "fields": {
-                                    "MESH_VAR": {
-                                      "id": "f=8($HYZoE:IjT|U8x8J"
-                                    },
-                                    "FRONT": true
-                                  },
-                                  "inputs": {
-                                    "RADIUS": {
-                                      "shadow": {
-                                        "type": "math_number",
-                                        "id": "icW8|w~Byhl-L39L7H9w",
-                                        "fields": {
-                                          "NUM": 5
-                                        }
-                                      }
+                              "inputs": {
+                                "RADIUS": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "icW8|w~Byhl-L39L7H9w",
+                                    "fields": {
+                                      "NUM": 5
+                                    }
+                                  }
+                                },
+                                "ANGLE": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "i9C3FlvG.Rq`gq9wD~U`",
+                                    "fields": {
+                                      "NUM": 90
                                     }
                                   }
                                 }
@@ -1296,6 +1284,81 @@
                     "movable": false,
                     "fields": {
                       "NUM": -0.1
+                    }
+                  }
+                },
+                "COLORS": {
+                  "shadow": {
+                    "type": "lists_create_with",
+                    "inline": true,
+                    "extraState": {
+                      "itemCount": 8
+                    },
+                    "inputs": {
+                      "ADD0": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      },
+                      "ADD1": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#33125B"
+                          }
+                        }
+                      },
+                      "ADD2": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#FFFFFF"
+                          }
+                        }
+                      },
+                      "ADD3": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#000000"
+                          }
+                        }
+                      },
+                      "ADD4": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      },
+                      "ADD5": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#F77100"
+                          }
+                        }
+                      },
+                      "ADD6": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#343434"
+                          }
+                        }
+                      },
+                      "ADD7": {
+                        "shadow": {
+                          "type": "colour",
+                          "fields": {
+                            "COLOR": "#511D91"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -1713,6 +1776,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "O|Q9M$=nxq#NRga.gBQZ",
+        "x": 10,
+        "y": 3610,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "Q4|rOa,(_6dIE]nhnI=z",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }

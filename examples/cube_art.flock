@@ -1,4 +1,5 @@
 {
+  "version": "2.0.0",
   "blocks": {
     "languageVersion": 0,
     "blocks": [
@@ -579,6 +580,15 @@
                               "NUM": 7
                             }
                           }
+                        },
+                        "ANGLE": {
+                          "shadow": {
+                            "type": "math_number",
+                            "id": "?I9NB.u/M1,?=1xM2fQu",
+                            "fields": {
+                              "NUM": 90
+                            }
+                          }
                         }
                       }
                     }
@@ -896,6 +906,24 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": ",GZF23(+Ocp5^k(_$T?;",
+        "x": 10,
+        "y": 2078,
+        "collapsed": true,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "set_xr_mode",
+              "id": "zK_6x;/3yJw4-U90~x4w",
+              "fields": {
+                "MODE": "VR"
               }
             }
           }
