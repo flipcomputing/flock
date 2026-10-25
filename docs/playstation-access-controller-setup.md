@@ -1,32 +1,37 @@
 # Complete Setup Guide: PlayStation Access Controller for Flock XR
 
-This guide walks you through setting up and configuring the PlayStation Access controller for use with **Flock XR**, covering initial profile creation on the PS5 console, button-to-direction mapping, building an external second joystick for camera control, Bluetooth pairing across **mobile phones (iOS / Android)** and **computers (Windows / macOS)**, and testing.
+> **Disclosure:** This guide was drafted with AI (Google Gemini) assistance and reviewed and verified by a human.
+
+---
+
+> **Note on Accessibility Controllers (PlayStation Access, Xbox Adaptive Controller, & Other Systems):**
+> Flock XR relies on a standard 4-way cardinal spatial button layout (1 at East, 2 at North, 3 at West, 4 at South). Even if an adaptive controller—such as the **Xbox Adaptive Controller (XAC)** for Xbox One/Series/PC, **Logitech Adaptive Gaming Kit**, or custom switch interfaces—does not feature PlayStation geometric symbols ($\bigcirc, \triangle, \square, \times$), the exact same setup principles apply across all accessibility hardware. On an Xbox Adaptive Controller or Xbox-compatible setup, simply map whichever physical switches, jack inputs, or buttons occupy those spatial positions to Buttons 1 through 4 (or $B, Y, X, A$) in the Xbox Accessories app or your controller's profile settings.
 
 ---
 
 ## Step 1: Create & Configure a Profile on the PS5
 
-Before connecting to your mobile device or computer, you must create a custom profile directly on a PlayStation 5 console to assign physical directions to the specific **Button Numbers** used by Flock XR and configure joystick inputs.
+Before connecting to your mobile device or computer, you must create a custom profile directly on a PlayStation 5 console to assign physical positions to the specific **Button Numbers** used by Flock XR and configure joystick inputs.
 
 1. Connect your Access controller to a PS5 console using the included USB-C cable.
 2. Navigate to **Settings** > **Accessibility** > **Access Controller** on the PS5 menu.
 3. Select **Create Profile** (or edit an existing custom profile).
-4. **Set Orientation**: Select the physical orientation of the controller on your desk/surface so the console correctly registers **North**, **East**, **South**, and **West**.
+4. **Set Orientation**: Select the physical orientation of the controller on your desk or mounting surface so the console correctly registers the **North**, **East**, **South**, and **West** cardinal layout around the button ring.
 
 ---
 
-## Step 2: Map Directions to Flock XR Button Numbers & Symbols
+## Step 2: Map Cardinal Positions to Flock XR Button Numbers & Symbols
 
-In the PS5 button assignment menu, assign each cardinal direction to its corresponding **Flock XR Button Number** and PlayStation face symbol:
+In the PS5 button assignment menu, assign each cardinal position around the controller ring to its corresponding **Flock XR Button Number** and PlayStation face symbol:
 
-| Direction | Flock XR Button Number | PlayStation Symbol Tag | PS5 Input Assignment |
-| --- | --- | --- | --- |
-| **East** | **Button 1** | **Circle ($\bigcirc$)** | Assign to **Button 1** (or $\bigcirc$) |
-| **North** | **Button 2** | **Triangle ($\triangle$)** | Assign to **Button 2** (or $\triangle$) |
-| **West** | **Button 3** | **Square ($\square$)** | Assign to **Button 3** (or $\square$) |
-| **South** | **Button 4** | **Cross ($\times$)** | Assign to **Button 4** (or $\times$) |
+| Spatial Position | Flock XR Button Number | PlayStation Symbol Tag | PS5 Input Assignment | Xbox Equivalent |
+| --- | --- | --- | --- | --- |
+| **East** | **Button 1** | **Circle ($\bigcirc$)** | Assign to **Button 1** (or $\bigcirc$) | **B Button** |
+| **North** | **Button 2** | **Triangle ($\triangle$)** | Assign to **Button 2** (or $\triangle$) | **Y Button** |
+| **West** | **Button 3** | **Square ($\square$)** | Assign to **Button 3** (or $\square$) | **X Button** |
+| **South** | **Button 4** | **Cross ($\times$)** | Assign to **Button 4** (or $\times$) | **A Button** |
 
-*Tip: You can swap the physical button cap tags ($\bigcirc, \triangle, \square, \times$) on the Access controller so the visual tags match your physical layout.*
+*Tip: You can swap the physical button cap tags ($\bigcirc, \triangle, \square, \times$) on the Access controller so the visual tags match your physical spatial layout.*
 
 ---
 
@@ -40,7 +45,7 @@ Flock XR requires two joysticks for standard 3D navigation (one for player movem
 
 
 2. **External Right Joystick (Camera Movement)**:
-* Because the PlayStation Access controller comes with only one built-in joystick, you will need a second analog stick plugged into one of the 3.5mm expansion ports to handle camera movement.
+* Because the PlayStation Access controller comes with only one built-in joystick, you will need a second analogue stick plugged into one of the 3.5mm expansion ports to handle camera movement.
 * You can 3D print and assemble your own custom module using open designs like the **[PS5 Access Controller Second Stick on Thingiverse](https://www.thingiverse.com/thing:6533366)** by Harakan.
 * This design uses a standard dual-axis joystick module (such as an Arduino KY-023), a 3.5mm 4-pole audio connector wired to the appropriate pins (Sleeve for Vdd, Ring 2 for Gnd, Ring 1 for X-Axis, Tip for Y-Axis), and a 3D-printed enclosure.
 * Plug your completed external joystick into a 3.5mm expansion port on the Access controller, and map it as the **Right Stick** in your PS5 profile settings.
@@ -99,11 +104,11 @@ To connect the Access controller wirelessly to the device running Flock XR:
 ## Step 6: Test in Flock XR
 
 1. Open **Flock XR** on your mobile phone or computer.
-2. Test inputs to verify that pressing each cardinal direction registers the correct software button and PlayStation symbol:
-* **East** $\rightarrow$ **Button 1 ($\bigcirc$)**
-* **North** $\rightarrow$ **Button 2 ($\triangle$)**
-* **West** $\rightarrow$ **Button 3 ($\square$)**
-* **South** $\rightarrow$ **Button 4 ($\times$)**
+2. Test inputs to verify that pressing each cardinal position registers the correct software button and symbol:
+* **East** $\rightarrow$ **Button 1 ($\bigcirc$ / B)**
+* **North** $\rightarrow$ **Button 2 ($\triangle$ / Y)**
+* **West** $\rightarrow$ **Button 3 ($\square$ / X)**
+* **South** $\rightarrow$ **Button 4 ($\times$ / A)**
 
 
 3. Verify that the **Left Joystick** controls character movement and the **External Right Joystick** controls camera rotation smoothly.
