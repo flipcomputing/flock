@@ -2086,7 +2086,8 @@ a.project-action-button {
   height: 100%;
 }
 
-#unsavedChangesModal.anchored .modal-content {
+#unsavedChangesModal.anchored .modal-content,
+#toolsModal.anchored .modal-content {
   position: fixed;
   box-sizing: border-box;
   width: min(600px, calc(100vw - 16px));

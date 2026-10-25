@@ -122,11 +122,38 @@ toolsTabs.forEach((tab, index) => {
   });
 });
 
+function positionToolsPanel() {
+  const content = toolsModal?.querySelector('.modal-content');
+  const rect = menuBtn?.getBoundingClientRect();
+  if (!content) return;
+  if (!rect || rect.width === 0) {
+    toolsModal.classList.remove('anchored');
+    content.style.top = content.style.left = content.style.maxHeight = '';
+    return;
+  }
+
+  const margin = 8;
+  const gap = 6;
+  const viewportWidth = document.documentElement.clientWidth;
+  toolsModal.classList.add('anchored');
+  content.style.top = `${rect.bottom + gap}px`;
+  const bottomBarTop = document.getElementById('bottomBar')?.getBoundingClientRect().top;
+  const limit = bottomBarTop > 0 ? bottomBarTop : window.innerHeight;
+  content.style.maxHeight = `${limit - rect.bottom - gap - margin}px`;
+  const left = Math.min(rect.left, viewportWidth - content.offsetWidth - margin);
+  content.style.left = `${Math.max(margin, left)}px`;
+}
+
 function openToolsModal() {
   syncToolsModal();
   if (toolsTabs.length) selectToolsTab(toolsTabs[0]);
   openModal(toolsModal, playerControlsCheckbox ?? closeToolsModal);
+  positionToolsPanel();
 }
+
+window.addEventListener('resize', () => {
+  if (toolsModal && !toolsModal.classList.contains('hidden')) positionToolsPanel();
+});
 
 function hideToolsModal() {
   hideModal(toolsModal);
