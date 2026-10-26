@@ -5,7 +5,11 @@ import { defineGenerators } from '../generators/generators.js';
 import '../blocks/blocks.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
 import { getParamDefaultShadowState } from '../blocks/procedureParams.js';
-import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
+import {
+  isInsideProcedureDefinition,
+  localVariableIds,
+  unavailableVariableUses,
+} from '../blocks/variableScope.js';
 import { isProjectLoading, setProjectLoading } from '../main/projectLoading.js';
 
 function appendDefinition(workspace, params, inputs = {}) {
@@ -174,6 +178,57 @@ export function runProcedureParamsTests() {
         'y',
         'y_ROW',
       ]);
+    });
+
+    it('saves and restores a definition placed inline in a stack', function () {
+      const start = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
+      const definition = appendDefinition(workspace, ['x']);
+      expect(definition.previousConnection).to.equal(null);
+      definition.updateInlineShape_(true);
+      start.getInput('DO').connection.connect(definition.previousConnection);
+
+      const state = Blockly.serialization.blocks.save(start);
+      expect(state.inputs.DO.block.extraState.inline).to.equal(true);
+      expect(state.inputs.DO.block.extraState.params).to.have.length(1);
+
+      start.dispose();
+      const restored = Blockly.serialization.blocks.append(state, workspace);
+      const inner = restored.getInputTargetBlock('DO');
+      expect(inner.type).to.equal('procedures_defnoreturn');
+      expect(inner.isInline).to.equal(true);
+      expect(inner.argData_.map((arg) => arg.model.name)).to.deep.equal(['x']);
+
+      inner.unplug();
+      inner.updateInlineShape_(false);
+      expect(inner.previousConnection).to.equal(null);
+      expect(inner.saveExtraState().inline).to.equal(undefined);
+    });
+
+    it('treats only the body of an inline definition as inside it', function () {
+      const start = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
+      const definition = appendDefinition(workspace, ['size'], {
+        STACK: { block: { type: 'create_box', fields: { ID_VAR: { name: 'part' } } } },
+      });
+      definition.updateInlineShape_(true);
+      start.getInput('DO').connection.connect(definition.previousConnection);
+      const size = workspace.getVariableMap().getVariable('size');
+      const after = Blockly.serialization.blocks.append(
+        {
+          type: 'print_text',
+          inputs: {
+            TEXT: { block: { type: 'variables_get', fields: { VAR: { id: size.getId() } } } },
+          },
+        },
+        workspace
+      );
+      definition.nextConnection.connect(after.previousConnection);
+      const body = definition.getInputTargetBlock('STACK');
+      const read = after.getInputTargetBlock('TEXT');
+
+      expect(isInsideProcedureDefinition(body)).to.equal(true);
+      expect(isInsideProcedureDefinition(after)).to.equal(false);
+      expect(isInsideProcedureDefinition(start)).to.equal(false);
+      expect(unavailableVariableUses(workspace).get(read)).to.deep.equal([size.getId()]);
     });
 
     it('keeps default blocks attached when the definition reloads its state', function () {

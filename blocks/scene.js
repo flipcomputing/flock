@@ -12,6 +12,7 @@ import {
 import { flock } from '../flock.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { nextVariableName } from './variableNames.js';
+import { isInsideProcedureDefinition } from './variableScope.js';
 import { mapNames } from '../config.js';
 import { updateOrCreateMeshFromBlock, watchCloneSources } from '../ui/blockmesh.js';
 import { addInitialTransformRows, defineSameNumberBlock } from './initialTransformRows.js';
@@ -98,8 +99,7 @@ const SETTING_EVENT_TYPES = [
 function isSettingLive(block) {
   if (!block.isEnabled()) return false;
   if (block.previousConnection && !block.previousConnection.isConnected()) return false;
-  const root = block.getRootBlock();
-  return root.isEnabled() && !root.type.startsWith('procedures_def');
+  return block.getRootBlock().isEnabled() && !isInsideProcedureDefinition(block);
 }
 
 function editsSetting(block, changeEvent) {

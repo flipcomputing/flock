@@ -244,6 +244,7 @@ export default {
   prefab_y_label: 'y:',
   prefab_z_label: 'z:',
   prefab_rotate_y_label: 'rotate y:',
+  prefab_nested_warning: "A prefab can't add another prefab. Move this block outside the prefab.",
 
   // Custom block translations - Effects blocks
   main_light: 'light intensity: %1 color: %2 ground: %3 shading %4',

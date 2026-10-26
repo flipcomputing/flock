@@ -4,7 +4,8 @@ import { javascriptGenerator } from 'blockly/javascript';
 import { defineGenerators } from '../generators/generators.js';
 import { blockKeyByBlockId } from '../generators/generators.js';
 import { clonePrefabInstanceForDuplicate, deleteMeshFromBlock } from '../ui/blockmesh.js';
-import '../blocks/blocks.js';
+import { dispatchBlockEvent, enableBlockHandlers } from '../blocks/blocks.js';
+import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
@@ -299,6 +300,51 @@ export function runPrefabTests(flock) {
       const caller = appendCaller(workspace, []);
       start.getInput('DO').connection.connect(caller.previousConnection);
       expect(javascriptGenerator.workspaceToCode(workspace)).to.match(/^let .*\bbookcase1\b/m);
+    });
+
+    describe('add blocks inside a prefab', function () {
+      let restoreBlockHandlers;
+
+      beforeEach(function () {
+        restoreBlockHandlers = setAsideBlockHandlers();
+        enableBlockHandlers(workspace);
+      });
+
+      afterEach(function () {
+        restoreBlockHandlers();
+      });
+
+      it('disables an add block inside a prefab and enables it again when moved out', function () {
+        const definition = appendDefinition(workspace);
+        const caller = appendCaller(workspace, []);
+        definition.getInput('STACK').connection.connect(caller.previousConnection);
+        dispatchBlockEvent(workspace, { type: Blockly.Events.FINISHED_LOADING });
+
+        expect(caller.isEnabled()).to.equal(false);
+        expect(caller.getDisabledReasons().has('PREFAB_INSIDE_PREFAB')).to.equal(true);
+        javascriptGenerator.init(workspace);
+        expect(javascriptGenerator.blockToCode(definition)).to.not.include('addPrefab');
+
+        caller.unplug();
+        dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_MOVE, blockId: caller.id });
+
+        expect(caller.isEnabled()).to.equal(true);
+      });
+
+      it('disables an add block inside a prefab that is itself inline in a stack', function () {
+        const start = Blockly.serialization.blocks.append({ type: 'start' }, workspace);
+        const definition = appendDefinition(workspace);
+        definition.updateInlineShape_(true);
+        start.getInput('DO').connection.connect(definition.previousConnection);
+        const caller = appendCaller(workspace, []);
+        definition.getInput('STACK').connection.connect(caller.previousConnection);
+        const after = appendCaller(workspace, []);
+        definition.nextConnection.connect(after.previousConnection);
+        dispatchBlockEvent(workspace, { type: Blockly.Events.FINISHED_LOADING });
+
+        expect(caller.isEnabled()).to.equal(false);
+        expect(after.getDisabledReasons().has('PREFAB_INSIDE_PREFAB')).to.equal(false);
+      });
     });
 
     it('parents body meshes to the group parameter', function () {

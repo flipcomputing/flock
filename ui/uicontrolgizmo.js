@@ -3,6 +3,7 @@ import { flock } from '../flock.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { isValueInputDescendantOf } from '../blocks/blocks.js';
+import { isInsideProcedureDefinition } from '../blocks/variableScope.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { readColourValue } from './blockmesh.js';
 import { anchorAxis } from '../api/ui.js';
@@ -222,8 +223,7 @@ export function removeUIControlsForBlock(blockId) {
 function isLive(block) {
   if (!block.isEnabled()) return false;
   if (block.previousConnection && !block.previousConnection.isConnected()) return false;
-  const root = block.getRootBlock();
-  return root.isEnabled() && !root.type.startsWith('procedures_def');
+  return block.getRootBlock().isEnabled() && !isInsideProcedureDefinition(block);
 }
 
 function isOwnLifecycleEvent(block, event) {

@@ -498,9 +498,10 @@ export function updateShape(block, isInline) {
 }
 
 function setInlineShape(block, isInline) {
-  const oldState = Blockly.Xml.domToText(block.mutationToDom());
-  block.updateShape_(isInline);
-  const newState = Blockly.Xml.domToText(block.mutationToDom());
+  const extraState = () => Blockly.Events.BlockChange.getExtraBlockState_(block);
+  const oldState = extraState();
+  (block.updateInlineShape_ ?? block.updateShape_).call(block, isInline);
+  const newState = extraState();
   Blockly.Events.fire(new Blockly.Events.BlockChange(block, 'mutation', null, oldState, newState));
 }
 
@@ -515,6 +516,9 @@ class InlineOnDragStrategy extends Blockly.dragging.BlockDragStrategy {
       setInlineShape(this.block, true);
       this.block.queueRender();
       Blockly.renderManagement.triggerQueuedRenders(this.block.workspace);
+      const origin = this.block.getRelativeToSurfaceXY();
+      this.block.previousConnection?.moveToOffset(origin);
+      this.block.nextConnection?.moveToOffset(origin);
     }
     const draggable = super.startDrag(e);
     this.previewShape_(!this.connectionCandidate);
@@ -554,6 +558,28 @@ class InlineOnDragStrategy extends Blockly.dragging.BlockDragStrategy {
 
 export function addInlineOnDrag(block) {
   block.setDragStrategy?.(new InlineOnDragStrategy(block));
+}
+
+export function addProcedureInlineOnDrag(block) {
+  block.isInline = false;
+  block.updateInlineShape_ = function (isInline) {
+    updateShape(this, isInline);
+  };
+
+  const saveExtraState = block.saveExtraState;
+  block.saveExtraState = function (...args) {
+    const state = saveExtraState.apply(this, args);
+    if (!this.isInline) return state;
+    return { ...state, inline: true };
+  };
+
+  const loadExtraState = block.loadExtraState;
+  block.loadExtraState = function (state) {
+    loadExtraState.call(this, state);
+    updateShape(this, state?.inline === true);
+  };
+
+  addInlineOnDrag(block);
 }
 
 export function handleBlockDelete(event) {
@@ -2535,6 +2561,7 @@ for (const type of ['procedures_defreturn', 'procedures_defnoreturn']) {
   Blockly.Blocks[type].init = function () {
     originalInit.call(this);
     setupProcedureParams(this);
+    addProcedureInlineOnDrag(this);
   };
 }
 

@@ -12,6 +12,7 @@ import {
   registerBlockHandler,
 } from '../blocks/blocks.js';
 import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
+import { injectTestWorkspace, disposeTestWorkspace } from './utils/blocklyTestUtils.js';
 import { dismissBanner } from '../ui/notifications.js';
 import { translate } from '../main/translation.js';
 import { setProjectLoading } from '../main/projectLoading.js';
@@ -320,6 +321,40 @@ export function runBlocksTests() {
 
         changed.toggleOptions_();
         expect(changed.getField('OPTIONS_BUTTON').getValue()).to.equal(DISCLOSURE_OPEN_INLINE_CODE);
+      });
+    });
+
+    describe('inline on drag', function () {
+      let container;
+      let workspace;
+
+      beforeEach(function () {
+        container = document.createElement('div');
+        container.style.width = '800px';
+        container.style.height = '600px';
+        document.body.appendChild(container);
+        workspace = injectTestWorkspace(container, {});
+      });
+
+      afterEach(function () {
+        Blockly.Events.setGroup(false);
+        disposeTestWorkspace(workspace);
+        container.remove();
+      });
+
+      it('places the new connections on a block dragged out of the flyout', function () {
+        const block = workspace.newBlock('procedures_defnoreturn');
+        block.initSvg();
+        block.render();
+        block.moveTo(new Blockly.utils.Coordinate(200, 150));
+        block.setDragging(true);
+        block.startDrag();
+
+        expect(block.isInline).to.equal(true);
+        const origin = block.getRelativeToSurfaceXY();
+        const offset = block.previousConnection.getOffsetInBlock();
+        expect(block.previousConnection.x).to.be.closeTo(origin.x + offset.x, 0.01);
+        expect(block.previousConnection.y).to.be.closeTo(origin.y + offset.y, 0.01);
       });
     });
 

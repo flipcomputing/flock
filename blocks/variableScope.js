@@ -44,7 +44,15 @@ function scopedVariableIds(block) {
 }
 
 function coversChild(ancestor, child) {
-  return !child || !LOOP_TYPES.has(ancestor.type) || child !== ancestor.getNextBlock();
+  const encloses = LOOP_TYPES.has(ancestor.type) || PROCEDURE_DEFINITION_TYPES.has(ancestor.type);
+  return !child || !encloses || child !== ancestor.getNextBlock();
+}
+
+export function isInsideProcedureDefinition(block) {
+  for (let ancestor = block; ancestor; ancestor = ancestor.getSurroundParent()) {
+    if (PROCEDURE_DEFINITION_TYPES.has(ancestor.type)) return true;
+  }
+  return false;
 }
 
 function idsInScope(block, scopeOf = scopedVariableIds) {

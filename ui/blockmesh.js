@@ -9,6 +9,7 @@ import { getOwnDoOwner, getOwnVar } from '../generators/generators-utilities.js'
 import { flock } from '../flock.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { normaliseColourInput } from '../blocks/colourvalidation.js';
+import { isInsideProcedureDefinition } from '../blocks/variableScope.js';
 
 export { getOwnVar };
 import { objectColours, TEXTURE_TILE_SIZE } from '../config.js';
@@ -814,7 +815,7 @@ export function updateOrCreateMeshFromBlock(block, changeEvent) {
     meshes.length === 0;
 
   if (!isConnectedToEnabledChain) {
-    if (!isInsideDefinition(block) && meshes.length) deleteMeshFromBlock(block.id);
+    if (!isInsideProcedureDefinition(block) && meshes.length) deleteMeshFromBlock(block.id);
     return;
   }
   if ((isProjectLoading() && !changeEvent?.recordUndo) || block.disposed) return;
@@ -861,10 +862,6 @@ function isInsideActiveCombine(block) {
   return false;
 }
 
-function isInsideDefinition(block) {
-  return Boolean(block?.getRootBlock?.()?.type?.startsWith('procedures_def'));
-}
-
 function isBlockConnectedToEnabledChain(block) {
   if (!block?.isEnabled?.()) return false;
   if (block.previousConnection && !block.previousConnection.isConnected?.()) {
@@ -878,7 +875,7 @@ function isBlockConnectedToEnabledChain(block) {
     parent = parent.getParent?.();
   }
 
-  if (root.type.startsWith('procedures_def')) {
+  if (isInsideProcedureDefinition(block)) {
     return false;
   }
 

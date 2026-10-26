@@ -1,5 +1,6 @@
 import * as Blockly from 'blockly';
 import {
+  addProcedureInlineOnDrag,
   handleBlockCreateEvent,
   registerBlockHandler,
   getHelpUrlFor,
@@ -18,6 +19,7 @@ export const PREFAB_DEF_TYPE = 'procedures_defprefab';
 export const PREFAB_CALL_TYPE = 'procedures_callprefab';
 export const MATERIAL_ARG = 'MATERIAL';
 
+const NESTED_REASON = 'PREFAB_INSIDE_PREFAB';
 const PARAMS_ROW = 'PARAMS_ROW';
 const TRANSFORM_ROW = 'TRANSFORM_ROW';
 const NUMBER_SHADOW = { type: 'math_number', fields: { NUM: 0 } };
@@ -68,6 +70,25 @@ function updateLive(block, changeEvent) {
   groups.forEach((group) => flock.positionAt(group.name, { x, y, z }));
 }
 
+function updateNesting(block, changeEvent) {
+  if (![Blockly.Events.BLOCK_MOVE, Blockly.Events.FINISHED_LOADING].includes(changeEvent.type)) {
+    return;
+  }
+  if (block.isInFlyout || block.isDeadOrDying() || block.workspace.isDragging?.()) return;
+  let nested = false;
+  for (let parent = block.getSurroundParent(); parent; parent = parent.getSurroundParent()) {
+    nested ||= parent.type === PREFAB_DEF_TYPE;
+  }
+  block.setWarningText(nested ? translate('prefab_nested_warning') : null, NESTED_REASON);
+  const recordUndo = Blockly.Events.getRecordUndo();
+  Blockly.Events.setRecordUndo(false);
+  try {
+    block.setDisabledReason(nested, NESTED_REASON);
+  } finally {
+    Blockly.Events.setRecordUndo(recordUndo);
+  }
+}
+
 function appendNumberInput(block, name, labelKey) {
   block
     .appendValueInput(name)
@@ -96,6 +117,7 @@ export function definePrefabBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       setupProcedureParams(this, { fixedParams: { [MATERIAL_ARG]: MATERIAL_SHADOW } });
+      addProcedureInlineOnDrag(this);
       this.appendEndRowInput(TRANSFORM_ROW);
       for (const [name, labelKey] of POSITION_INPUTS) appendNumberInput(this, name, labelKey);
       appendNumberInput(this, 'ROTATE_Y', 'prefab_rotate_y_label');
@@ -154,6 +176,7 @@ export function definePrefabBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(this, changeEvent, this.getProcedureCall());
+        updateNesting(this, changeEvent);
         updateLive(this, changeEvent);
       });
     },
