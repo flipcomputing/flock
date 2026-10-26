@@ -1140,6 +1140,7 @@ export default {
   fps_option_ui: 'Taxa de quadros', // ai
   physics_shapes_option_ui: 'Mostrar formas físicas', // ai
   physics_shapes_note_ui: 'Desative e ative para atualizar', // ai
+  name_labels_option_ui: 'Mostrar nomes', // ai
   inspector_tool_ui: 'Inspetor',
   player_controls_option_ui: 'Controlos do jogador', // ai
   gizmo_controls_option_ui: 'Controlos de manipulação', // ai

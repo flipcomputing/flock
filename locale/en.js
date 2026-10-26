@@ -1350,6 +1350,7 @@ export default {
   fps_option_ui: 'Frame rate',
   physics_shapes_option_ui: 'Show physics shapes',
   physics_shapes_note_ui: 'Turn off and on to refresh',
+  name_labels_option_ui: 'Show names',
   inspector_tool_ui: 'Inspector',
   player_controls_option_ui: 'Player controls',
   gizmo_controls_option_ui: 'Gizmo controls',

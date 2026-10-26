@@ -436,10 +436,13 @@ export const flockReadiness = {
   /** Reserve a unique name. If desired is taken or pending, suffix it. */
   _reserveName(desired, family = desired) {
     const has = (n) => flock._nameRegistry.has(n) || !!flock.scene?.getMeshByName(n);
+    const counters = (flock._nameCounters ??= new Map());
+    let count = counters.get(desired) ?? 0;
     let name = desired;
     while (has(name)) {
-      name = `${desired}_${flock.scene.getUniqueId()}`;
+      name = `${desired}_${++count}`;
     }
+    counters.set(desired, count);
     if (flock._isTag(family)) family = `${family}__object`;
     flock._nameRegistry.set(name, {
       pending: true,

@@ -1137,6 +1137,7 @@ export default {
   fps_option_ui: 'Liczba klatek', // ai
   physics_shapes_option_ui: 'Pokaż kształty fizyczne', // ai
   physics_shapes_note_ui: 'Wyłącz i włącz, aby odświeżyć', // ai
+  name_labels_option_ui: 'Pokaż nazwy', // ai
   inspector_tool_ui: 'Inspektor',
   player_controls_option_ui: 'Sterowanie gracza', // ai
   gizmo_controls_option_ui: 'Sterowanie gizmo', // ai

@@ -1141,6 +1141,7 @@ export default {
   fps_option_ui: 'Bildrate', // ai
   physics_shapes_option_ui: 'Physikformen anzeigen', // ai
   physics_shapes_note_ui: 'Zum Aktualisieren aus- und wieder einschalten', // ai
+  name_labels_option_ui: 'Namen anzeigen', // ai
   inspector_tool_ui: 'Inspektor',
   player_controls_option_ui: 'Spielersteuerung', // ai
   gizmo_controls_option_ui: 'Gizmo-Steuerung', // ai

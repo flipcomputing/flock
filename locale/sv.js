@@ -1133,6 +1133,7 @@ export default {
   fps_option_ui: 'Bildfrekvens', // ai
   physics_shapes_option_ui: 'Visa fysikformer', // ai
   physics_shapes_note_ui: 'Stäng av och slå på för att uppdatera', // ai
+  name_labels_option_ui: 'Visa namn', // ai
   inspector_tool_ui: 'Inspektör',
   player_controls_option_ui: 'Spelarkontroller', // ai
   gizmo_controls_option_ui: 'Gizmo-kontroller', // ai

@@ -4,12 +4,13 @@ import { flock } from '../flock.js';
 import { translate } from '../main/translation.js';
 import { openSaveTarget } from '../main/saveFile.js';
 import { ICON_MESH_NAME } from './interactIndicator.js';
+import { NAME_LABELS_TEXTURE } from './nameLabels.js';
 
 const GIF_MAX_SIDE = 480;
 const GIF_FRAME_MS = 100;
 const GIF_MAX_MS = 10_000;
 const VIDEO_MAX_MS = 60_000;
-const EDITOR_GUI_TEXTURES = new Set(['VirtualControls', 'GizmoHUD']);
+const EDITOR_GUI_TEXTURES = new Set(['VirtualControls', 'GizmoHUD', NAME_LABELS_TEXTURE]);
 const VIDEO_TYPES = [
   { mimeType: 'video/mp4;codecs=avc1', type: 'video/mp4', extension: '.mp4' },
   { mimeType: 'video/mp4', type: 'video/mp4', extension: '.mp4' },

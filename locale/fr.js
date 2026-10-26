@@ -1145,6 +1145,7 @@ export default {
   fps_option_ui: 'Fréquence d’images', // ai
   physics_shapes_option_ui: 'Afficher les formes physiques', // ai
   physics_shapes_note_ui: 'Désactivez puis réactivez pour actualiser', // ai
+  name_labels_option_ui: 'Afficher les noms', // ai
   inspector_tool_ui: 'Inspecteur',
   player_controls_option_ui: 'Commandes du joueur', // ai
   gizmo_controls_option_ui: 'Commandes de manipulation', // ai

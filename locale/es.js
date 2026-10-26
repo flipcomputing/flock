@@ -1256,6 +1256,7 @@ export default {
   fps_option_ui: 'Fotogramas por segundo', // ai
   physics_shapes_option_ui: 'Mostrar formas físicas', // ai
   physics_shapes_note_ui: 'Desactívalo y actívalo para actualizar', // ai
+  name_labels_option_ui: 'Mostrar nombres', // ai
   inspector_tool_ui: 'Inspector', // ai
   player_controls_option_ui: 'Controles del jugador', // ai
   gizmo_controls_option_ui: 'Controles de manipulación', // ai

@@ -50,6 +50,7 @@ import { addExportContextMenuOptions } from './export.js';
 import { initExportPanel } from '../ui/exportPanel.js';
 import { initCapturePanel } from '../ui/capturePanel.js';
 import { initFpsCounter } from '../ui/fpsCounter.js';
+import { setNameLabelsVisible } from '../ui/nameLabels.js';
 import {
   setLanguage,
   initializeLanguageMenu,
@@ -775,6 +776,7 @@ function initializeApp() {
   const runCodeButton = document.getElementById('runCodeButton');
   const inspectorCheckbox = document.getElementById('inspectorCheckbox');
   const physicsShapesCheckbox = document.getElementById('physicsShapesCheckbox');
+  const nameLabelsCheckbox = document.getElementById('nameLabelsCheckbox');
   const blockHintsButton = document.getElementById('blockHintsBtn');
   const togglePlayButton = document.getElementById('togglePlay');
   const pauseCodeButton = document.getElementById('pauseCodeButton');
@@ -905,6 +907,9 @@ function initializeApp() {
   physicsShapesCheckbox?.addEventListener('change', () => {
     flock.showPhysics(physicsShapesCheckbox.checked);
     physicsShapesCheckbox.checked = !!flock.physicsViewer && !!flock.physicsViewerActive;
+  });
+  nameLabelsCheckbox?.addEventListener('change', () => {
+    setNameLabelsVisible(nameLabelsCheckbox.checked);
   });
   inspectorCheckbox?.addEventListener('change', async () => {
     const opening = inspectorCheckbox.checked;
