@@ -1,0 +1,46 @@
+<!-- Content of the "Create a prefab" how-to. Edit freely — see README.md in src/how-tos. -->
+<topic>
+  <topic-title>When to use a prefab</topic-title>
+  <p>
+    A <vocab>prefab</vocab> is a template for an object. Use one when you want lots of similar
+    objects that can be slightly different, such as shelves of different widths and colours.
+    You build the object once, then add as many objects as you need.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>Build the template</topic-title>
+  <p>
+    Drag the <vocab>add prefab</vocab> block from
+    <ui-button target="toolbox:FUNCTIONS">Functions</ui-button> into the code area and give it a
+    name. Put the blocks that build the object inside it. Nothing appears in the scene until
+    you add the prefab.
+  </p>
+  <snippet src="prefab-shelf"></snippet>
+  <p>
+    Press the plus button <block-icon name="plus"></block-icon> to add an
+    <vocab>input</vocab>, such as width, and use it inside the prefab. Use the
+    <vocab>material</vocab> input to colour the parts. To remove an input, press its
+    minus button. To get the material back, right-click the prefab and choose
+    <strong>Add material input</strong>. With the keyboard, press <kbd>Ctrl</kbd>+<kbd>Enter</kbd>
+    on the prefab block to open the same menu.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>Add objects from it</topic-title>
+  <p>
+    <ui-button target="toolbox:FUNCTIONS">Functions</ui-button> has an add block for each
+    prefab. Each add block makes one object, with its own position, rotation and input
+    values.
+  </p>
+  <snippet src="add-two-shelves"></snippet>
+  <p>
+    If you change the blocks inside the prefab, every object made from it changes too.
+  </p>
+</topic>
+
+<related>
+  <related-howto slug="duplicate-objects"></related-howto>
+  <related-howto slug="respond-to-clicks"></related-howto>
+</related>

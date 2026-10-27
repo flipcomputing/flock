@@ -135,13 +135,14 @@ export function registerFunctionsGenerators(javascriptGenerator) {
     );
     const value = (name) =>
       javascriptGenerator.valueToCode(block, name, javascriptGenerator.ORDER_NONE) || '0';
+    const material = block.hasMaterial_() ? '' : '\n  material: false,';
 
     return `${variableName} = await addPrefab(${JSON.stringify(`${userVariableName}__${block.id}`)}, {
   x: ${value('X')},
   y: ${value('Y')},
   z: ${value('Z')},
   rotationY: ${value('ROTATE_Y')},
-  args: [${args.join(', ')}],
+  args: [${args.join(', ')}],${material}
   build: async function (${group}, ${values}) {
     await ${functionName}(...${values}, ${group});
   },

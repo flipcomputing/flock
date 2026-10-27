@@ -847,17 +847,20 @@ export const flockShapes = {
       if (mesh.metadata?.shape === 'marker') flock._applyMarkerVisibility(mesh);
     }
   },
-  async addPrefab(groupId, { x = 0, y = 0, z = 0, rotationY = 0, args = [], build = null } = {}) {
+  async addPrefab(
+    groupId,
+    { x = 0, y = 0, z = 0, rotationY = 0, args = [], material = true, build = null } = {}
+  ) {
     const groupName = flock.createGroup(groupId);
     if (!groupName) return null;
     const group = flock.scene.getMeshByName(groupName);
     group.metadata.isPrefab = true;
     group.setEnabled(false);
     // Material arguments carry their index so the meshes they colour can be found for
-    // live edits. The last argument is the prefab's own material.
+    // live edits. The last argument is the prefab's own material, unless material is false.
     const tagged = args.map((arg, index) => {
       const value =
-        index === args.length - 1 && typeof arg === 'string'
+        material && index === args.length - 1 && typeof arg === 'string'
           ? { color: arg, materialName: 'none.png', alpha: 1 }
           : arg;
       if (!isPlainObject(value)) return value;

@@ -31,13 +31,10 @@ function setNameQuietly(field, name) {
   field.setValidator(validator);
 }
 
-function onRowButton(block, argId) {
-  if (block.isInFlyout) return;
-  const arg = block.argData_.find((element) => element.argId === argId);
-  if (!arg) return;
+export function changeParamsUndoably(block, change) {
   Blockly.Events.setGroup(true);
   const oldState = getExtraBlockState(block);
-  block.setRowBreak_(argId, !arg.rowBreak);
+  change();
   Blockly.Procedures.mutateCallers(block);
   const newState = getExtraBlockState(block);
   if (oldState !== newState) {
@@ -46,6 +43,13 @@ function onRowButton(block, argId) {
     );
   }
   Blockly.Events.setGroup(false);
+}
+
+function onRowButton(block, argId) {
+  if (block.isInFlyout) return;
+  const arg = block.argData_.find((element) => element.argId === argId);
+  if (!arg) return;
+  changeParamsUndoably(block, () => block.setRowBreak_(argId, !arg.rowBreak));
 }
 
 function addRowInput(block, argId, on) {
@@ -183,7 +187,9 @@ export function setupProcedureParams(block, { fixedParams = {} } = {}) {
   block.addVarInput_ = function (name, argId) {
     const input = this.appendValueInput(argId).setCheck(null);
     if (isFixed(argId)) {
-      input.appendField(new ParamNameField(name, null, { editable: false }), argId);
+      input
+        .appendField(createMinusField(Blockly.Msg['ARIA_LABEL_REMOVE_INPUT'], argId))
+        .appendField(new ParamNameField(name, null, { editable: false }), argId);
       input.connection.setShadowState(fixedParams[argId]);
       return;
     }

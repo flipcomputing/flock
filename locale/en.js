@@ -244,6 +244,7 @@ export default {
   prefab_y_label: 'y:',
   prefab_z_label: 'z:',
   prefab_rotate_y_label: 'rotate y:',
+  prefab_add_material_option: 'Add material input',
   prefab_nested_warning: "A prefab can't add another prefab. Move this block outside the prefab.",
 
   // Custom block translations - Effects blocks
@@ -1741,6 +1742,7 @@ export default {
   howto_position_with_code_ui: 'Position an object with code',
   howto_first_and_then_compartments_ui: 'Use the first and then compartments',
   howto_respond_to_clicks_ui: 'Respond to clicks',
+  howto_create_a_prefab_ui: 'Create a prefab as a template for new objects',
   howto_position_from_block_ui: 'Position from block',
   howto_duplicate_objects_ui: 'Duplicate an object',
   howto_look_around_ui: 'Explore your world',

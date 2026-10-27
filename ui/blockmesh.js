@@ -20,7 +20,12 @@ import {
   readTargetCameraOptions,
   hasCloneSource,
 } from './addmeshes.js';
-import { highlightBlockById, findParentWithBlockId, findOrCreateDoBlock } from './blocklyutil.js';
+import {
+  highlightBlockById,
+  findParentWithBlockId,
+  findOrCreateDoBlock,
+  isPrefabPart,
+} from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
 import {
   isInitialTransformBlock,
@@ -470,6 +475,8 @@ export function clonePrefabInstanceForDuplicate(originalBlock, newBlock) {
   const varText = newBlock.getField?.('ID_VAR')?.getText?.()?.trim() || 'prefab';
   const cloneId = `${varText}__${newBlock.id}`.slice(0, 100);
   flock.cloneMesh({ sourceMeshName: group.name, cloneId, blockKey: newBlock.id });
+  meshMap[newBlock.id] = newBlock;
+  meshBlockIdMap[newBlock.id] = newBlock.id;
   return settlePrefabDuplicateAtBlock(newBlock);
 }
 
@@ -3582,16 +3589,16 @@ export function updateBlockColorAndHighlight(mesh, selectedColor, { letter } = {
     return;
   }
 
-  let prefab = null;
-  let slot;
-  for (let node = mesh; node; node = node.parent) {
-    if (node.metadata?.isPrefab) prefab = node;
-    slot ??= node.metadata?.prefabMaterialIndex;
-  }
-  const prefabBlock = meshMap?.[prefab?.metadata?.blockKey];
-  if (prefabBlock && !prefabBlock.disposed) {
-    const inputs = prefabBlock.argInputNames_();
-    const input = prefabBlock.getInput(inputs[slot ?? inputs.length - 1]);
+  if (isPrefabPart(findParentWithBlockId(mesh))) {
+    let prefab = null;
+    let slot;
+    for (let node = mesh; node && !prefab; node = node.parent) {
+      if (node.metadata?.isPrefab) prefab = node;
+      slot ??= node.metadata?.prefabMaterialIndex;
+    }
+    const prefabBlock = meshMap?.[prefab?.metadata?.blockKey];
+    if (!prefabBlock || prefabBlock.disposed || slot === undefined) return;
+    const input = prefabBlock.getInput(prefabBlock.argInputNames_()[slot]);
     const found = findNestedColorTarget(ensureColorTargetOnInput(input));
     if (!found) return;
     withUndoGroup(() => {

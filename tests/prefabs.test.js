@@ -2,10 +2,15 @@ import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import { defineGenerators } from '../generators/generators.js';
-import { blockKeyByBlockId } from '../generators/generators.js';
-import { clonePrefabInstanceForDuplicate, deleteMeshFromBlock } from '../ui/blockmesh.js';
+import { blockKeyByBlockId, meshBlockIdMap, meshMap } from '../generators/generators.js';
+import {
+  clonePrefabInstanceForDuplicate,
+  deleteMeshFromBlock,
+  updateBlockColorAndHighlight,
+} from '../ui/blockmesh.js';
 import { dispatchBlockEvent, enableBlockHandlers } from '../blocks/blocks.js';
 import { setAsideBlockHandlers } from './utils/blockHandlerTestUtils.js';
+import { findOwnerWithBlockId } from '../ui/blocklyutil.js';
 import { defineMaterialsBlocks } from '../blocks/materials.js';
 import { defineColourBlocks } from '../blocks/colour.js';
 import { defineShapeBlocks } from '../blocks/shapes.js';
@@ -193,6 +198,77 @@ export function runPrefabTests(flock) {
       expect(caller.getProcedureCall()).to.equal('shelf');
     });
 
+    it('removes the material input from the definition and its add blocks', function () {
+      const definition = appendDefinition(workspace, ['width']);
+      const caller = appendCaller(workspace, ['width']);
+      definition.minus(MATERIAL_ARG);
+
+      expect(definition.argData_.map((arg) => arg.argId)).to.deep.equal(['width']);
+      expect(definition.getInput(MATERIAL_ARG)).to.equal(null);
+      expect(definition.getInput('PARAMS_ROW')).to.equal(null);
+      expect(caller.arguments_).to.deep.equal(['width']);
+      expect(inputNames(caller)).to.deep.equal([
+        'TOPROW',
+        'ARG0',
+        'TRANSFORM_ROW',
+        'PICK',
+        'X',
+        'Y',
+        'Z',
+        'ROTATE_Y',
+      ]);
+    });
+
+    it('does not add a second break before x for a row break on the last parameter', function () {
+      const definition = appendDefinition(workspace, ['width']);
+      definition.minus(MATERIAL_ARG);
+      definition.setRowBreak_('width', true);
+      const names = inputNames(definition);
+      expect(names.slice(names.indexOf('width'), names.indexOf('X') + 1)).to.deep.equal([
+        'width',
+        'width_ROW',
+        'X',
+      ]);
+    });
+
+    it('keeps the material removed after saving a prefab with no other inputs', function () {
+      const definition = appendDefinition(workspace);
+      definition.minus(MATERIAL_ARG);
+      const state = Blockly.serialization.blocks.save(definition);
+      expect(state.extraState.params).to.deep.equal([]);
+      definition.dispose();
+
+      const copy = Blockly.serialization.blocks.append(state, workspace);
+      expect(copy.argData_).to.deep.equal([]);
+      expect(copy.getInput(MATERIAL_ARG)).to.equal(null);
+    });
+
+    it('adds the material input back from the context menu', function () {
+      const definition = appendDefinition(workspace, ['width']);
+      const caller = appendCaller(workspace, ['width']);
+      const item = Blockly.ContextMenuRegistry.registry.getItem('prefabAddMaterial');
+      expect(item.preconditionFn({ block: definition })).to.equal('hidden');
+      definition.minus(MATERIAL_ARG);
+      expect(item.preconditionFn({ block: definition })).to.equal('enabled');
+
+      item.callback({ block: definition });
+
+      expect(definition.argData_.map((arg) => arg.argId)).to.deep.equal(['width', MATERIAL_ARG]);
+      expect(caller.arguments_).to.deep.equal(['width', 'material']);
+      expect(caller.getInputTargetBlock('ARG1').type).to.equal('material');
+      expect(inputNames(caller).slice(1, 5)).to.deep.equal(['ARG0', 'PARAMS_ROW', 'ARG1', 'TRANSFORM_ROW']);
+      expect(item.preconditionFn({ block: definition })).to.equal('hidden');
+    });
+
+    it('tells addPrefab when the prefab has no material', function () {
+      const definition = appendDefinition(workspace, ['label']);
+      definition.minus(MATERIAL_ARG);
+      const caller = appendCaller(workspace, ['label']);
+      caller.loadExtraState({ name: 'bookcase', params: ['label'] });
+      javascriptGenerator.init(workspace);
+      expect(javascriptGenerator.blockToCode(caller)).to.include('material: false,');
+    });
+
     it('lists the definition and one add block per prefab in the flyout', function () {
       appendDefinition(workspace, [], {
         inputs: { X: { shadow: { type: 'math_number', fields: { NUM: 4 } } } },
@@ -329,6 +405,17 @@ export function runPrefabTests(flock) {
         dispatchBlockEvent(workspace, { type: Blockly.Events.BLOCK_MOVE, blockId: caller.id });
 
         expect(caller.isEnabled()).to.equal(true);
+      });
+
+      it('lays out an add block loaded before its prefab once loading finishes', function () {
+        const caller = appendCaller(workspace, ['width']);
+        const definition = appendDefinition(workspace, ['width']);
+        definition.minus(MATERIAL_ARG);
+        caller.loadExtraState({ name: 'bookcase', params: ['width'] });
+        caller.appendEndRowInput('PARAMS_ROW');
+        dispatchBlockEvent(workspace, { type: Blockly.Events.FINISHED_LOADING });
+
+        expect(caller.getInput('PARAMS_ROW')).to.equal(null);
       });
 
       it('disables an add block inside a prefab that is itself inline in a stack', function () {
@@ -491,6 +578,93 @@ export function runPrefabTests(flock) {
       expect(parts.map((part) => part.metadata.prefabMaterialIndex)).to.deep.equal([1, 2]);
     });
 
+    // A prefab whose definition holds two box blocks, an add block for it, and
+    // a box block outside the prefab, all registered as the blocks behind meshes.
+    function prefabBlocks() {
+      const workspace = new Blockly.Workspace();
+      const box = (name) => ({ type: 'create_box', fields: { ID_VAR: { name } } });
+      const definition = appendDefinition(workspace, [], {
+        inputs: { STACK: { block: { ...box('tinted'), next: { block: box('fixed') } } } },
+      });
+      const caller = appendCaller(workspace, []);
+      const outside = Blockly.serialization.blocks.append(box('indie'), workspace);
+      const tinted = definition.getInputTargetBlock('STACK');
+      const fixed = tinted.getNextBlock();
+      const blocks = { caller, tinted, fixed, outside };
+      Object.values(blocks).forEach((block) => (meshMap[block.id] = block));
+      return {
+        ...blocks,
+        dispose() {
+          Object.values(blocks).forEach((block) => delete meshMap[block.id]);
+          workspace.dispose();
+        },
+      };
+    }
+
+    async function addPrefabWithParts(blocks) {
+      const name = await flock.addPrefab(`parts__${blocks.caller.id}`, {
+        args: [{ color: '#00ff00', materialName: 'none.png', alpha: 1 }],
+        build: async (group, [material]) => {
+          const tinted = flock.createBox(`tinted__${blocks.tinted.id}`, { color: material });
+          const fixed = flock.createBox(`fixed__${blocks.fixed.id}`, { color: '#123456' });
+          await flock.setParent(group, tinted);
+          await flock.setParent(group, fixed);
+        },
+      });
+      const indie = flock.createBox(`indie__${blocks.outside.id}`, { width: 1, height: 1, depth: 1 });
+      await flock.setParent(name, indie);
+      created.push(name, indie);
+      const group = flock.scene.getMeshByName(name);
+      const find = (prefix) => group.getChildMeshes().find((mesh) => mesh.name.startsWith(prefix));
+      return { group, tinted: find('tinted'), fixed: find('fixed'), indie: find('indie') };
+    }
+
+    it('resolves a part to the prefab, but not a mesh parented to it', async function () {
+      const blocks = prefabBlocks();
+      try {
+        const { group, tinted, indie } = await addPrefabWithParts(blocks);
+        expect(findOwnerWithBlockId(tinted)).to.equal(group);
+        expect(findOwnerWithBlockId(indie)).to.equal(indie);
+      } finally {
+        blocks.dispose();
+      }
+    });
+
+    it('colours only the material input a picked part uses', async function () {
+      const blocks = prefabBlocks();
+      const baseColour = () =>
+        blocks.caller
+          .getInputTargetBlock('ARG0')
+          .getInputTargetBlock('BASE_COLOR')
+          .getFieldValue('COLOR');
+      try {
+        const { tinted, fixed, indie } = await addPrefabWithParts(blocks);
+        const before = baseColour();
+
+        updateBlockColorAndHighlight(fixed, '#ff0000');
+        updateBlockColorAndHighlight(indie, '#ff0000');
+        expect(baseColour()).to.equal(before);
+
+        updateBlockColorAndHighlight(tinted, '#ff0000');
+        expect(baseColour().toLowerCase()).to.equal('#ff0000');
+      } finally {
+        blocks.dispose();
+      }
+    });
+
+    it('passes a last string argument through when the prefab has no material', async function () {
+      let received;
+      const name = await flock.addPrefab('noMaterial__prefabblock4', {
+        args: ['#ff0000'],
+        material: false,
+        build: async (group, args) => {
+          received = args;
+        },
+      });
+      created.push(name);
+      expect(received).to.deep.equal(['#ff0000']);
+    });
+
     it('builds a pasted second instance at the same position with the same physics', async function () {
       const build = async (group) => {
         const part = flock.createBox('pastePart', { width: 1, height: 1, depth: 1 });
@@ -557,6 +731,8 @@ export function runPrefabTests(flock) {
         expect(clonePart.physics?.getMotionType?.()).to.equal(
           flock.BABYLON.PhysicsMotionType.DYNAMIC
         );
+        expect(meshBlockIdMap.gizmoblockB).to.equal('gizmoblockB');
+        expect(meshMap.gizmoblockB).to.equal(newBlock);
         // Undoing the duplicate removes only the clone.
         newBlock.disposed = true;
         deleteMeshFromBlock('gizmoblockB');

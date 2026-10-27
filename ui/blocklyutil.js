@@ -8,6 +8,7 @@ import {
   addColourShadow,
 } from './blocklyshadowutil.js';
 import { rememberObjectBlock } from '../blocks/variableNames.js';
+import { meshMap } from '../generators/mesh-state.js';
 import { rangeForInput } from '../config.js';
 let lastAddMenuHighlighted = null;
 
@@ -649,6 +650,22 @@ export function findParentWithBlockId(mesh) {
   }
 
   return null;
+}
+
+export function isPrefabPart(mesh) {
+  for (let block = meshMap[mesh?.metadata?.blockKey]; block; block = block.getSurroundParent()) {
+    if (block.type === 'procedures_defprefab') return true;
+  }
+  return false;
+}
+
+export function findOwnerWithBlockId(mesh) {
+  const owner = findParentWithBlockId(mesh);
+  if (!isPrefabPart(owner)) return owner;
+  for (let node = owner.parent; node; node = node.parent) {
+    if (node.metadata?.isPrefab) return node;
+  }
+  return owner;
 }
 
 export function calculateYPosition(mesh) {

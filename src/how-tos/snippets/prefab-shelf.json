@@ -1,0 +1,46 @@
+{
+  "type": "procedures_defprefab",
+  "fields": { "NAME": "shelf" },
+  "extraState": {
+    "params": [
+      { "name": "width", "argId": "width" },
+      { "name": "material", "argId": "MATERIAL" }
+    ]
+  },
+  "inputs": {
+    "width": { "shadow": { "type": "math_number", "fields": { "NUM": 2 } } },
+    "MATERIAL": {
+      "shadow": {
+        "type": "material",
+        "inputs": {
+          "BASE_COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#a0522d" } } }
+        }
+      }
+    },
+    "X": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+    "Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+    "Z": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+    "ROTATE_Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+    "STACK": {
+      "block": {
+        "type": "create_box",
+        "fields": { "ID_VAR": { "name": "board" } },
+        "inputs": {
+          "COLOR": {
+            "shadow": { "type": "colour", "fields": { "COLOR": "#a0522d" } },
+            "block": { "type": "variables_get", "fields": { "VAR": { "name": "material" } } }
+          },
+          "WIDTH": {
+            "shadow": { "type": "math_number", "fields": { "NUM": 2 } },
+            "block": { "type": "variables_get", "fields": { "VAR": { "name": "width" } } }
+          },
+          "HEIGHT": { "shadow": { "type": "math_number", "fields": { "NUM": 0.1 } } },
+          "DEPTH": { "shadow": { "type": "math_number", "fields": { "NUM": 0.5 } } },
+          "X": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+          "Y": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } },
+          "Z": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } }
+        }
+      }
+    }
+  }
+}

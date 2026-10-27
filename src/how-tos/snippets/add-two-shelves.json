@@ -1,0 +1,51 @@
+{
+  "type": "start",
+  "inputs": {
+    "DO": {
+      "block": {
+        "type": "procedures_callprefab",
+        "extraState": { "name": "shelf", "params": ["width", "material"] },
+        "fields": { "ID_VAR": { "name": "shelf1" } },
+        "inputs": {
+          "ARG0": { "shadow": { "type": "math_number", "fields": { "NUM": 2 } } },
+          "ARG1": {
+            "shadow": {
+              "type": "material",
+              "inputs": {
+                "BASE_COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#a0522d" } } }
+              }
+            }
+          },
+          "X": { "shadow": { "type": "math_number", "fields": { "NUM": -2 } } },
+          "Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+          "Z": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+          "ROTATE_Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } }
+        },
+        "next": {
+          "block": {
+            "type": "procedures_callprefab",
+            "extraState": { "name": "shelf", "params": ["width", "material"] },
+            "fields": { "ID_VAR": { "name": "shelf2" } },
+            "inputs": {
+              "ARG0": { "shadow": { "type": "math_number", "fields": { "NUM": 4 } } },
+              "ARG1": {
+                "shadow": {
+                  "type": "material",
+                  "inputs": {
+                    "BASE_COLOR": {
+                      "shadow": { "type": "colour", "fields": { "COLOR": "#4682b4" } }
+                    }
+                  }
+                }
+              },
+              "X": { "shadow": { "type": "math_number", "fields": { "NUM": 2 } } },
+              "Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+              "Z": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } },
+              "ROTATE_Y": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } }
+            }
+          }
+        }
+      }
+    }
+  }
+}

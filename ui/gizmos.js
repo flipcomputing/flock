@@ -29,6 +29,7 @@ import {
   reattachBlockToAnchor,
   chainBlockAfter,
   findParentWithBlockId,
+  findOwnerWithBlockId,
   setNumberInputs,
   getNumberInput,
   isBlockLocked,
@@ -58,7 +59,7 @@ import { createGizmoMobileHud } from './gizmo-mobile-hud.js';
 import { KeyboardDispatcher } from '../main/keyboardDispatcher.js';
 import { announceToScreenReader } from '../main/input.js';
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
-import { isBodyAlive } from '../api/physics.js';
+import { driveBody, isBodyAlive } from '../api/physics.js';
 import { markerArrowVertexData } from '../api/shapes.js';
 import { hideFromInspector } from './inspectorVisibility.js';
 import { isPositionPickActive, startPositionPick } from './pickposition.js';
@@ -1219,7 +1220,7 @@ export function copyCanvasSelection() {
 
 function pinBlockForMesh(mesh) {
   if (!mesh || mesh.name === 'ground' || mesh.isDisposed?.()) return null;
-  const blockKey = findParentWithBlockId(mesh)?.metadata?.blockKey;
+  const blockKey = findOwnerWithBlockId(mesh)?.metadata?.blockKey;
   const blockId = blockKey != null ? meshBlockIdMap[blockKey] : null;
   const block = blockId ? Blockly.getMainWorkspace?.()?.getBlockById(blockId) : null;
   return block?.getField?.('PICK_POSITION') ? block : null;
@@ -2643,6 +2644,18 @@ function startScaleKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = n
 // never keep a scale of their own, so its size can't be saved.
 function isPrefab(mesh) {
   return Boolean(mesh?.metadata?.isPrefab);
+}
+
+let prefabDrive = null;
+
+function drivePrefabBodies(mesh) {
+  releasePrefabBodies();
+  if (isPrefab(mesh)) prefabDrive = driveBody(mesh);
+}
+
+function releasePrefabBodies() {
+  prefabDrive?.release();
+  prefabDrive = null;
 }
 
 function isGroupClone(mesh) {
@@ -4439,11 +4452,13 @@ function handleRotationGizmo() {
   onExit(() => {
     linkedEdit?.end();
     linkedEdit = null;
+    releasePrefabBodies();
   });
 
   const rotDragStart = gizmoManager.gizmos.rotationGizmo.onDragStartObservable.add(() => {
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
+    drivePrefabBodies(mesh);
     linkedEdit = flock._beginLinkedEdit?.(mesh, 'rotation') ?? null;
     const blockMesh = linkedEdit?.owner ?? mirrorSourceOf(mesh) ?? mesh;
     markCombineFrames(blockMesh);
@@ -4479,6 +4494,7 @@ function handleRotationGizmo() {
   onExit(() => gizmoManager.gizmos.rotationGizmo.onDragObservable.remove(rotDrag));
 
   const rotDragEnd = gizmoManager.gizmos.rotationGizmo.onDragEndObservable.add(function () {
+    releasePrefabBodies();
     let mesh = gizmoManager.attachedMesh;
     while (mesh?.parent && !mesh.parent.physics) {
       mesh = mesh.parent;
@@ -4859,6 +4875,7 @@ function handlePositionGizmo() {
     }
     const mesh = gizmoManager.attachedMesh;
     if (!mesh) return;
+    drivePrefabBodies(mesh);
     dragStartPosition = mesh.getAbsolutePosition().clone();
     linkedEdit = flock._beginLinkedEdit?.(mesh, 'position') ?? null;
     restoreCameraTarget = holdCameraTargetDuringDrag(mesh);
@@ -4888,6 +4905,7 @@ function handlePositionGizmo() {
   onExit(() => {
     restoreCameraTarget?.();
     restoreCameraTarget = null;
+    releasePrefabBodies();
   });
 
   const posDragEnd = gizmoManager.gizmos.positionGizmo.onDragEndObservable.add(function () {
@@ -4898,6 +4916,7 @@ function handlePositionGizmo() {
     const dragged = gizmoManager.attachedMesh;
     restoreCameraTarget?.();
     restoreCameraTarget = null;
+    releasePrefabBodies();
 
     if (dragged.savedMotionType != null && isBodyAlive(dragged.physics)) {
       dragged.physics.setMotionType(dragged.savedMotionType);
@@ -5040,7 +5059,7 @@ function handleDeleteGizmo(selectToolActive = false) {
       }, 0);
       return;
     }
-    const blockKey = findParentWithBlockId(pickedMesh)?.metadata?.blockKey;
+    const blockKey = findOwnerWithBlockId(pickedMesh)?.metadata?.blockKey;
     const blockId = meshBlockIdMap[blockKey];
     deleteBlockWithUndo(blockId);
     setTimeout(() => {

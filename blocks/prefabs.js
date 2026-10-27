@@ -6,6 +6,7 @@ import {
   getHelpUrlFor,
 } from './blocks.js';
 import {
+  changeParamsUndoably,
   setupProcedureParams,
   rowInputName,
   getParamDefaultShadowState,
@@ -20,6 +21,7 @@ export const PREFAB_CALL_TYPE = 'procedures_callprefab';
 export const MATERIAL_ARG = 'MATERIAL';
 
 const NESTED_REASON = 'PREFAB_INSIDE_PREFAB';
+const ADD_MATERIAL_ITEM = 'prefabAddMaterial';
 const PARAMS_ROW = 'PARAMS_ROW';
 const TRANSFORM_ROW = 'TRANSFORM_ROW';
 const NUMBER_SHADOW = { type: 'math_number', fields: { NUM: 0 } };
@@ -118,11 +120,16 @@ export function definePrefabBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       setupProcedureParams(this, { fixedParams: { [MATERIAL_ARG]: MATERIAL_SHADOW } });
       addProcedureInlineOnDrag(this);
-      this.appendEndRowInput(TRANSFORM_ROW);
       for (const [name, labelKey] of POSITION_INPUTS) appendNumberInput(this, name, labelKey);
       appendNumberInput(this, 'ROTATE_Y', 'prefab_rotate_y_label');
       this.addArg_(translate('prefab_material_param'), null, MATERIAL_ARG);
-      this.getInput('TOP').removeField('WITH', true);
+
+      const saveExtraState = this.saveExtraState;
+      this.saveExtraState = function (...args) {
+        const state = saveExtraState.apply(this, args);
+        if (this.hasMaterial_()) return state;
+        return { ...state, params: state?.params ?? [] };
+      };
     },
 
     getProcedureDef: function () {
@@ -133,10 +140,31 @@ export function definePrefabBlocks() {
       return this.argData_.map(({ argId }) => argId);
     },
 
+    hasMaterial_: function () {
+      return this.argData_.some(({ argId }) => argId === MATERIAL_ARG);
+    },
+
+    addMaterial_: function () {
+      if (this.hasMaterial_()) return;
+      const names = this.argData_.map((arg) => arg.model.name);
+      const base = translate('prefab_material_param');
+      let name = base;
+      for (let n = 2; names.includes(name); n++) name = base + n;
+      this.addArg_(name, null, MATERIAL_ARG);
+    },
+
     layoutInputs_: function () {
+      this.getField('WITH')?.setVisible(false);
       const params = this.argData_.filter(({ argId }) => argId !== MATERIAL_ARG);
+      const breaksAfterParams = Boolean(params.at(-1)?.rowBreak);
       this.removeInput(PARAMS_ROW, true);
-      if (!params.at(-1)?.rowBreak) this.appendEndRowInput(PARAMS_ROW);
+      this.removeInput(TRANSFORM_ROW, true);
+      if (this.hasMaterial_()) {
+        if (!breaksAfterParams) this.appendEndRowInput(PARAMS_ROW);
+        this.appendEndRowInput(TRANSFORM_ROW);
+      } else if (!breaksAfterParams) {
+        this.appendEndRowInput(TRANSFORM_ROW);
+      }
       const names = params.flatMap(({ argId }) => [argId, rowInputName(argId)]);
       names.push(PARAMS_ROW, MATERIAL_ARG, TRANSFORM_ROW, 'X', 'Y', 'Z', 'ROTATE_Y');
       for (const name of names) {
@@ -176,6 +204,7 @@ export function definePrefabBlocks() {
 
       registerBlockHandler(this, (changeEvent) => {
         handleBlockCreateEvent(this, changeEvent, this.getProcedureCall());
+        if (changeEvent.type === Blockly.Events.FINISHED_LOADING) this.layoutInputs_();
         updateNesting(this, changeEvent);
         updateLive(this, changeEvent);
       });
@@ -212,10 +241,19 @@ export function definePrefabBlocks() {
       this.layoutInputs_();
     },
 
+    hasMaterial_: function () {
+      const workspace = this.workspace.isFlyout ? this.workspace.targetWorkspace : this.workspace;
+      const definition = workspace && Blockly.Procedures.getDefinition(this.getProcedureCall(), workspace);
+      return definition?.type === PREFAB_DEF_TYPE ? definition.hasMaterial_() : true;
+    },
+
     layoutInputs_: function () {
+      const hasMaterial = this.hasMaterial_();
       const last = this.arguments_.length - 1;
-      const material = 'ARG' + last;
-      this.removeInput('ROW_' + (last - 1), true);
+      const material = hasMaterial ? 'ARG' + last : null;
+      this.removeInput('ROW_' + (hasMaterial ? last - 1 : last), true);
+      if (!hasMaterial) this.removeInput(PARAMS_ROW, true);
+      else if (!this.getInput(PARAMS_ROW)) this.appendEndRowInput(PARAMS_ROW);
       const params = this.inputList
         .map((input) => input.name)
         .filter((name) => /^(ARG|ROW_)\d+$/.test(name) && name !== material);
@@ -234,6 +272,23 @@ export function definePrefabBlocks() {
       }
     },
   };
+
+  const registry = Blockly.ContextMenuRegistry.registry;
+  if (!registry.getItem(ADD_MATERIAL_ITEM)) {
+    registry.register({
+      id: ADD_MATERIAL_ITEM,
+      weight: 10,
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+      displayText: () => translate('prefab_add_material_option'),
+      preconditionFn: ({ block }) => {
+        if (block?.type !== PREFAB_DEF_TYPE || block.isInFlyout || block.hasMaterial_()) {
+          return 'hidden';
+        }
+        return block.isEditable() ? 'enabled' : 'disabled';
+      },
+      callback: ({ block }) => changeParamsUndoably(block, () => block.addMaterial_()),
+    });
+  }
 }
 
 const CALLER_DEFAULT_INPUTS = ['X', 'Y', 'Z', 'ROTATE_Y'];

@@ -605,7 +605,8 @@ export function handleBlockDelete(event) {
         blockJson.type.startsWith('load_') ||
         blockJson.type.startsWith('create_') ||
         blockJson.type === 'clone_mesh' ||
-        blockJson.type === 'mirror_mesh'
+        blockJson.type === 'mirror_mesh' ||
+        blockJson.type === 'procedures_callprefab'
       ) {
         deleteMeshFromBlock(blockJson.id);
         if (blockJson.type === 'create_map') {
