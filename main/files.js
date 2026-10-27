@@ -615,6 +615,18 @@ export async function loadWorkspace(workspace, executeCallback) {
   const savedState = localStorage.getItem(AUTOSAVE_KEY);
   const starter = 'examples/starter.flock';
 
+  if (!flock.embedMode && (urlParams.has('project') || urlParams.has('reset'))) {
+    const cleaned = new URLSearchParams(urlParams);
+    cleaned.delete('project');
+    cleaned.delete('reset');
+    const query = cleaned.toString();
+    history.replaceState(
+      null,
+      '',
+      window.location.pathname + (query ? `?${query}` : '') + window.location.hash,
+    );
+  }
+
   function loadStarter() {
     fetchProjectJson(starter)
       .then((json) => {
