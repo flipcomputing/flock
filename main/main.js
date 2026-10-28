@@ -871,6 +871,7 @@ function initializeApp() {
   });
   KeyboardDispatcher.on('*', 'Mod+KeyE', (e) => {
     e.preventDefault();
+    Blockly.keyboardNavigationController?.setIsActive?.(true);
     Blockly.getFocusManager()?.focusTree?.(workspace);
   });
   KeyboardDispatcher.on('*', 'Mod+Shift+KeyD', (e) => {
@@ -886,6 +887,7 @@ function initializeApp() {
     const ctx = ContextManager.getCurrentContext();
     if (ctx === 'TYPING') return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (!document.activeElement?.closest('.injectionDiv')) return;
     if (document.activeElement?.closest('.blocklyToolbox')) return;
     e.preventDefault();
     e.stopImmediatePropagation();

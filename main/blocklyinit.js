@@ -2593,7 +2593,12 @@ export function createBlocklyWorkspace() {
           stopEvent(e);
           const flyoutWorkspace = flyout.getWorkspace?.();
           if (flyoutWorkspace) {
-            Blockly.getFocusManager().focusTree(flyoutWorkspace);
+            const focusManager = Blockly.getFocusManager();
+            focusManager.focusTree(flyoutWorkspace);
+            if (focusManager.getFocusedNode() === flyoutWorkspace) {
+              const first = flyoutWorkspace.getNavigator?.()?.getFirstNode?.();
+              if (first) focusManager.focusNode(first);
+            }
           }
           return;
         }
