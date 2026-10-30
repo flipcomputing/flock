@@ -223,7 +223,16 @@ export const flockAnimate = {
   },
   async rotateAnim(
     meshName,
-    { x = 0, y = 0, z = 0, duration = 1, reverse = false, loop = false, easing = 'Linear' } = {}
+    {
+      x = 0,
+      y = 0,
+      z = 0,
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = 'Linear',
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     const rawDuration = Number(duration);
     duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
@@ -392,6 +401,9 @@ export const flockAnimate = {
         const motion = { animatable, key, home: homeQuat, origin: originQuat, interrupted: false };
         mesh.metadata = mesh.metadata || {};
         mesh.metadata._activeRotate = motion;
+        flock.onSectionStop(() => {
+          if (mesh.metadata?._activeRotate === motion) interruptMotion(mesh, '_activeRotate');
+        }, __owningSignal);
 
         if (homeQuat && !homeQuat.equalsWithEpsilon(startQuat)) {
           animatable.onAnimationLoopObservable.addOnce(() => {
@@ -415,7 +427,16 @@ export const flockAnimate = {
   },
   async glideTo(
     meshName,
-    { x = 0, y = 0, z = 0, duration = 1, reverse = false, loop = false, easing = 'Linear' } = {}
+    {
+      x = 0,
+      y = 0,
+      z = 0,
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = 'Linear',
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     const rawDuration = Number(duration);
     duration = Number.isFinite(rawDuration) && rawDuration > 0 ? rawDuration : 1;
@@ -549,6 +570,9 @@ export const flockAnimate = {
       };
       mesh.metadata = mesh.metadata || {};
       mesh.metadata._activeGlide = motion;
+      flock.onSectionStop(() => {
+        if (mesh.metadata?._activeGlide === motion) interruptMotion(mesh, '_activeGlide');
+      }, __owningSignal);
 
       if (homePosition && !homePosition.equalsWithEpsilon(startPosition)) {
         animatable.onAnimationLoopObservable.addOnce(() => {
@@ -587,6 +611,7 @@ export const flockAnimate = {
       reverse = false,
       loop = false,
       easing = 'Linear',
+      __owningSignal = flock.sectionSignal(),
     } = {}
   ) {
     const mesh1 = await flock.whenModelReady(meshName1);
@@ -607,6 +632,7 @@ export const flockAnimate = {
         easing,
         reverse,
         loop,
+        __owningSignal,
       });
       return;
     }
@@ -620,6 +646,7 @@ export const flockAnimate = {
       reverse,
       loop,
       easing,
+      __owningSignal,
     });
   },
   async glideDirection(
@@ -631,6 +658,7 @@ export const flockAnimate = {
       reverse = false,
       loop = false,
       easing = 'Linear',
+      __owningSignal = flock.sectionSignal(),
     } = {}
   ) {
     const mesh = await flock.whenModelReady(meshName);
@@ -652,12 +680,20 @@ export const flockAnimate = {
       reverse,
       loop,
       easing,
+      __owningSignal,
     });
   },
   async rotateToObject(
     meshName1,
     meshName2,
-    { mode = 'towards', duration = 1, reverse = false, loop = false, easing = 'Linear' } = {}
+    {
+      mode = 'towards',
+      duration = 1,
+      reverse = false,
+      loop = false,
+      easing = 'Linear',
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     const mesh1 = await flock.whenModelReady(meshName1);
     if (!mesh1) return;
@@ -696,11 +732,19 @@ export const flockAnimate = {
       reverse,
       loop,
       easing,
+      __owningSignal,
     });
   },
   async animateKeyFrames(
     meshName,
-    { keyframes, property, easing = 'Linear', loop = false, reverse = false } = {}
+    {
+      keyframes,
+      property,
+      easing = 'Linear',
+      loop = false,
+      reverse = false,
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
     let mesh = await flock.whenModelReady(meshName);
     if (!mesh) return;
@@ -835,6 +879,9 @@ export const flockAnimate = {
 
     mesh.metadata = mesh.metadata || {};
     mesh.metadata[activeKey] = animatable;
+    flock.onSectionStop(() => {
+      if (mesh.metadata?.[activeKey] === animatable) animatable.stop();
+    }, __owningSignal);
 
     return new Promise((resolve) => {
       animatable.onAnimationEndObservable.add(() => {

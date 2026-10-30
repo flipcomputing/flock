@@ -13,6 +13,8 @@ export const flockSections = {
   // can enumerate loaded sections. Reset per run in flock.js.
   _loadedSections: new Set(),
 
+  _loadsInProgress: new Set(),
+
   // Serializes independent load/switch/unload calls - see loadSectionQueued.
   // Reset per run in flock.js.
   _loadQueueTail: Promise.resolve(),
@@ -32,6 +34,8 @@ export const flockSections = {
 
     const parentSignal = flock.abortController?.signal;
     if (parentSignal?.aborted) return;
+    const parentSectionSignal = flock.sectionSignal(flock._loadingSection);
+    if (parentSectionSignal?.aborted) return;
 
     const controller = new AbortController();
     parentSignal?.addEventListener('abort', () => controller.abort(), { once: true });
@@ -40,11 +44,24 @@ export const flockSections = {
     section.controller = controller;
     flock._loadedSections.add(fn);
 
+    if (parentSectionSignal) {
+      const unloadWithParent = () => flock.unloadSection(fn);
+      parentSectionSignal.addEventListener('abort', unloadWithParent, { once: true });
+      controller.signal.addEventListener(
+        'abort',
+        () => parentSectionSignal.removeEventListener('abort', unloadWithParent),
+        { once: true }
+      );
+    }
+
     // Entity-creating APIs read this synchronously to stamp sectionOwner.
-    // Save/restore rather than a stack, so a section loading another section
-    // nests correctly.
-    const previousSection = flock._currentSection;
+    // On finishing, hand back to the parent load only if it is still running:
+    // a load started from a handler resumes after that handler has returned,
+    // so the handler's own value is stale by then.
+    const previousLoading = flock._loadingSection;
+    flock._loadsInProgress.add(fn);
     flock._currentSection = fn;
+    flock._loadingSection = fn;
     try {
       await fn();
     } catch (err) {
@@ -53,7 +70,12 @@ export const flockSections = {
       flock.unloadSection(fn);
       throw err;
     } finally {
-      flock._currentSection = previousSection;
+      flock._loadsInProgress.delete(fn);
+      if (flock._loadingSection === fn) {
+        const resumed = flock._loadsInProgress.has(previousLoading) ? previousLoading : null;
+        flock._loadingSection = resumed;
+        flock._currentSection = resumed;
+      }
     }
   },
 
@@ -64,6 +86,24 @@ export const flockSections = {
   sectionSignal(fn = flock._currentSection) {
     if (!fn) return null;
     return flock._sections.get(fn)?.controller?.signal ?? null;
+  },
+
+  _runAsSection(owner, fn, ...args) {
+    const previous = flock._currentSection;
+    flock._currentSection = owner;
+    try {
+      return fn(...args);
+    } finally {
+      if (flock._currentSection === owner) flock._currentSection = previous;
+    }
+  },
+
+  _bindToSection(fn) {
+    if (typeof fn !== 'function' || '__flockSection' in fn) return fn;
+    const owner = flock._currentSection ?? null;
+    const bound = (...args) => flock._runAsSection(owner, fn, ...args);
+    bound.__flockSection = owner;
+    return bound;
   },
 
   // Runs `cleanup` once, on whichever comes first: the whole run stopping, or
@@ -102,7 +142,7 @@ export const flockSections = {
     signal.addEventListener('abort', cleanup, { once: true });
   },
 
-  // Meshes, animation groups, and GUI controls are swept here by sectionOwner;
+  // Meshes, animation groups, particle systems and GUI controls are swept here by sectionOwner;
   // everything else registered its own cleanup via sectionSignal()/onStop().
   unloadSection(fn) {
     const section = flock._sections.get(fn);
@@ -128,6 +168,11 @@ export const flockSections = {
         animationGroup.stop();
         animationGroup.dispose();
       });
+
+    flock.scene?.particleSystems
+      ?.slice()
+      .filter((particleSystem) => particleSystem.sectionOwner === fn)
+      .forEach((particleSystem) => particleSystem.dispose());
 
     // GUI controls aren't in scene.meshes either. Disposing a container (e.g.
     // UIText's background rectangle) disposes its children too, so only

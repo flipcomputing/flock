@@ -18,7 +18,12 @@ export const flockCamera = {
                 Category: Scene>Camera
         */
   attachCamera(meshName, options = {}) {
-    const { front = true, angle = 90, name = 'camera' } = options;
+    const {
+      front = true,
+      angle = 90,
+      name = 'camera',
+      __owningSignal = flock.sectionSignal(),
+    } = options;
     const radius = clampToRange(Number(options.radius ?? 7) || 0, 'cameraDistance');
 
     return new Promise((resolve) => {
@@ -97,9 +102,19 @@ export const flockCamera = {
         flockCamera._reapplyCameraBindings(camera);
 
         flock._frameXRFromProjectCamera(camera);
+        flock.onSectionStop(() => flockCamera._detachSectionCamera(camera), __owningSignal);
         resolve(camera.name);
       });
     });
+  },
+  _detachSectionCamera(camera) {
+    if (camera.isDisposed()) return;
+    const fallback = flock.defaultCamera;
+    if (flock.mainCamera === camera) flock.mainCamera = fallback;
+    if (flock.savedCamera === camera) flock.savedCamera = fallback;
+    flock._editorCameraOverride?.cameraDisposed?.(camera, { rebuilding: false });
+    if (flock.scene?.activeCamera === camera) flockCamera._activateCamera(fallback);
+    camera.dispose();
   },
   // Upper limit sits at the requested angle itself, since callers place the camera
   // there; lower limit allows orbiting 30° further overhead.
@@ -653,7 +668,14 @@ export const flockCamera = {
   async _glideCameraTo(
     source,
     toFrame,
-    { offset = null, duration = 1, easing = 'Linear', reverse = false, loop = false } = {}
+    {
+      offset = null,
+      duration = 1,
+      easing = 'Linear',
+      reverse = false,
+      loop = false,
+      __owningSignal = null,
+    } = {}
   ) {
     const BABYLON = flock.BABYLON;
     const scene = flock.scene;
@@ -778,6 +800,9 @@ export const flockCamera = {
       loop
     );
     target.metadata._cameraGlide = animatable;
+    flock.onSectionStop(() => {
+      if (target.metadata._cameraGlide === animatable) animatable.stop();
+    }, __owningSignal);
     await new Promise((resolve) => {
       animatable.onAnimationEndObservable.add(() => {
         if (target.metadata._cameraGlide === animatable) target.metadata._cameraGlide = null;

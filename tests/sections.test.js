@@ -1,4 +1,9 @@
 import { expect } from 'chai';
+import * as Blockly from 'blockly';
+import { javascriptGenerator } from 'blockly/javascript';
+import { defineGenerators } from '../generators/generators.js';
+import { defineBlocks } from '../blocks/blocks.js';
+import { generateWorkspaceCode } from '../blocks/sectionContainment.js';
 
 export function runSectionsTests(flock) {
   describe('Sections @sections', function () {
@@ -381,6 +386,62 @@ export function runSectionsTests(flock) {
       expect(ticks).to.equal(ticksBeforeUnload);
     });
 
+    it('stops a forever started by a section-owned click handler when the section unloads', async function () {
+      const boxId = 'sectionTestBoxForeverClick';
+      boxIds.push(boxId);
+      await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+
+      let ticks = 0;
+      async function section() {
+        flock.onTrigger(boxId, {
+          trigger: 'OnPickTrigger',
+          callback: () => {
+            flock.forever(() => {
+              ticks++;
+            });
+          },
+        });
+      }
+
+      await flock.loadSection(section);
+      await new Promise((r) => setTimeout(r, 50));
+      flock.scene
+        .getMeshByName(boxId)
+        .actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      await new Promise((r) => setTimeout(r, 200));
+      const ticksBeforeUnload = ticks;
+      expect(ticksBeforeUnload).to.be.above(0);
+
+      flock.unloadSection(section);
+      await new Promise((r) => setTimeout(r, 200));
+
+      expect(ticks).to.equal(ticksBeforeUnload);
+    });
+
+    it('does not tie a forever to a loading section when an outside handler starts it', async function () {
+      let ticks = 0;
+      let stopped = false;
+      flock.onEvent('sectionTestOutsideEvent', () => {
+        flock.forever(() => {
+          if (!stopped) ticks++;
+        });
+      });
+
+      async function section() {
+        await new Promise((r) => setTimeout(r, 300));
+      }
+
+      setTimeout(() => flock.broadcastEvent('sectionTestOutsideEvent'), 100);
+      await flock.loadSection(section);
+      flock.unloadSection(section);
+
+      const ticksAtUnload = ticks;
+      await new Promise((r) => setTimeout(r, 200));
+      stopped = true;
+
+      expect(ticks).to.be.above(ticksAtUnload);
+    });
+
     it('stops a when-clicked (onTrigger) handler started inside the section when it unloads', async function () {
       const boxId = 'sectionTestBoxClick';
       boxIds.push(boxId);
@@ -531,6 +592,290 @@ export function runSectionsTests(flock) {
 
       expect(flock.meshExists(boxIdOutside)).to.be.true;
       expect(flock.meshExists(boxIdInside)).to.be.false;
+    });
+
+    it('unloading a section also unloads a section it loaded during its own load', async function () {
+      const outerBox = 'sectionTestOuterBox';
+      const innerBox = 'sectionTestInnerBox';
+      boxIds.push(outerBox, innerBox);
+
+      async function inner() {
+        await flock.createBox(innerBox, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      }
+      async function outer() {
+        await flock.createBox(outerBox, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
+        await flock.loadSection(inner);
+      }
+
+      await flock.loadSection(outer);
+      expect(flock.meshExists(innerBox)).to.be.true;
+
+      flock.unloadSection(outer);
+
+      expect(flock.meshExists(outerBox)).to.be.false;
+      expect(flock.meshExists(innerBox)).to.be.false;
+      expect(flock._loadedSections.has(inner)).to.be.false;
+    });
+
+    it('a switch from a section-owned click handler still loads the target section', async function () {
+      const boxId = 'sectionTestSwitchButton';
+      const targetBox = 'sectionTestSwitchTarget';
+      boxIds.push(boxId, targetBox);
+      await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+
+      async function level2() {
+        await new Promise((r) => setTimeout(r, 20));
+        await flock.createBox(targetBox, { width: 1, height: 1, depth: 1, position: [2, 0, 0] });
+      }
+      let switched;
+      async function level1() {
+        flock.onTrigger(boxId, {
+          trigger: 'OnPickTrigger',
+          callback: () => {
+            switched = flock.switchSection(level2);
+          },
+        });
+      }
+
+      await flock.loadSection(level1);
+      await new Promise((r) => setTimeout(r, 50));
+      flock.scene
+        .getMeshByName(boxId)
+        .actionManager.processTrigger(flock.BABYLON.ActionManager.OnPickTrigger);
+      await switched;
+
+      expect(flock._loadedSections.has(level1)).to.be.false;
+      expect(flock.meshExists(targetBox)).to.be.true;
+      expect(flock._currentSection).to.equal(null);
+
+      flock.unloadSection(level2);
+      expect(flock.meshExists(targetBox)).to.be.false;
+    });
+
+    it('removes a collision (onIntersect) handler registered inside the section when it unloads', async function () {
+      const boxA = 'sectionTestIntersectA';
+      const boxB = 'sectionTestIntersectB';
+      boxIds.push(boxA, boxB);
+      await flock.createBox(boxA, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      await flock.createBox(boxB, { width: 1, height: 1, depth: 1, position: [10, 0, 0] });
+
+      const enter = flock.BABYLON.ActionManager.OnIntersectionEnterTrigger;
+      const intersectActions = () =>
+        (flock.scene.getMeshByName(boxA).actionManager?.actions ?? []).filter(
+          (action) => action.trigger === enter
+        ).length;
+
+      async function section() {
+        await flock.onIntersect(boxA, boxB, {
+          trigger: 'OnIntersectionEnterTrigger',
+          callback: () => {},
+        });
+      }
+
+      await flock.loadSection(section);
+      expect(intersectActions()).to.equal(1);
+
+      flock.unloadSection(section);
+      expect(intersectActions()).to.equal(0);
+    });
+
+    it('disposes a particle effect started inside the section on a mesh it does not own', async function () {
+      const boxId = 'sectionTestEmitter';
+      boxIds.push(boxId);
+      await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+
+      const options = {
+        emitterMesh: boxId,
+        emitRate: 10,
+        colors: { start: '#FFFFFF', end: '#000000' },
+        alphas: { start: 1, end: 1 },
+        sizes: { start: 0.1, end: 1 },
+        lifetime: { min: 1, max: 5 },
+        shape: 'Point',
+        gravity: false,
+        direction: { x: 0, y: 0, z: 0 },
+        rotation: {
+          angularSpeed: { min: 0, max: 0 },
+          initialRotation: { min: 0, max: 0 },
+        },
+      };
+      async function section() {
+        flock.createParticleEffect('sectionTestSparks', options);
+      }
+
+      await flock.loadSection(section);
+      const system = await flock.modelReadyPromises.get(
+        [...flock.modelReadyPromises.keys()].find((key) => key.startsWith('sectionTestSparks'))
+      );
+      expect(system).to.exist;
+      expect(flock.scene.particleSystems).to.include(system);
+
+      flock.unloadSection(section);
+
+      expect(flock.scene.particleSystems).to.not.include(system);
+      expect(flock.meshExists(boxId)).to.be.true;
+    });
+  });
+
+  describe('Section-started motion @sections', function () {
+    const boxIds = [];
+    const makeBox = async (id, x = 0) => {
+      boxIds.push(id);
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [x, 0, 0] });
+      return flock.scene.getMeshByName(id);
+    };
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.scene.getMeshByName?.(id)?.dispose());
+      boxIds.length = 0;
+    });
+
+    it('stops a follow started inside the section on meshes it does not own', async function () {
+      const lead = await makeBox('sectionTestLead');
+      const tail = await makeBox('sectionTestTail', 5);
+
+      async function section() {
+        await flock.makeFollow('sectionTestTail', 'sectionTestLead', 'at');
+      }
+      await flock.loadSection(section);
+      expect(tail._followObserver).to.exist;
+
+      flock.unloadSection(section);
+      expect(tail._followObserver).to.not.exist;
+
+      lead.position.x = 20;
+      await new Promise((r) => setTimeout(r, 100));
+      expect(tail.position.x).to.be.below(10);
+    });
+
+    it('leaves a follow started outside any section running when a section unloads', async function () {
+      await makeBox('sectionTestLeadOutside');
+      const tail = await makeBox('sectionTestTailOutside', 5);
+      await flock.makeFollow('sectionTestTailOutside', 'sectionTestLeadOutside', 'at');
+
+      async function section() {}
+      await flock.loadSection(section);
+      flock.unloadSection(section);
+
+      expect(tail._followObserver).to.exist;
+      await flock.stopFollow('sectionTestTailOutside');
+    });
+
+    it('returns to the default camera when a section that attached the camera unloads', async function () {
+      const player = await makeBox('sectionTestCameraPlayer');
+
+      let cameraName;
+      async function section() {
+        cameraName = await flock.attachCamera('sectionTestCameraPlayer', { name: 'sectionTestCam' });
+      }
+      await flock.loadSection(section);
+      const attached = flock.scene.getCameraByName(cameraName);
+      expect(attached?.metadata?.following).to.equal(player);
+      expect(flock.scene.activeCamera).to.equal(attached);
+
+      flock.unloadSection(section);
+
+      expect(attached.isDisposed()).to.be.true;
+      expect(flock.scene.activeCamera).to.equal(flock.defaultCamera);
+      expect(flock.mainCamera).to.equal(flock.defaultCamera);
+    });
+
+    it('stops a glide started inside the section, leaving the mesh where it is', async function () {
+      const mesh = await makeBox('sectionTestGlider');
+
+      async function section() {
+        flock.glideTo('sectionTestGlider', { x: 10, y: 0, z: 0, duration: 2 });
+      }
+      await flock.loadSection(section);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mesh.metadata._activeGlide).to.exist;
+
+      flock.unloadSection(section);
+      const stoppedAt = mesh.position.x;
+      await new Promise((r) => setTimeout(r, 200));
+
+      expect(mesh.metadata._activeGlide).to.not.exist;
+      expect(mesh.position.x).to.be.closeTo(stoppedAt, 1e-6);
+      expect(stoppedAt).to.be.below(10);
+    });
+
+    it('stops a glide to an object started inside the section', async function () {
+      const mesh = await makeBox('sectionTestGliderToObject');
+      await makeBox('sectionTestGlideGoal', 10);
+
+      async function section() {
+        flock.glideToObject('sectionTestGliderToObject', 'sectionTestGlideGoal', { duration: 2 });
+      }
+      await flock.loadSection(section);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mesh.metadata._activeGlide).to.exist;
+
+      flock.unloadSection(section);
+      expect(mesh.metadata._activeGlide).to.not.exist;
+    });
+
+    it('stops a rotation started inside the section', async function () {
+      const mesh = await makeBox('sectionTestRotator');
+
+      async function section() {
+        flock.rotateAnim('sectionTestRotator', { y: 90, duration: 2 });
+      }
+      await flock.loadSection(section);
+      await new Promise((r) => setTimeout(r, 300));
+      expect(mesh.metadata._activeRotate).to.exist;
+
+      flock.unloadSection(section);
+      expect(mesh.metadata._activeRotate).to.not.exist;
+    });
+
+    it('stops a looping keyframe animation started inside the section', async function () {
+      const mesh = await makeBox('sectionTestKeyframes');
+
+      async function section() {
+        flock.animateKeyFrames('sectionTestKeyframes', {
+          property: 'position',
+          loop: true,
+          keyframes: [
+            { value: { x: 0, y: 0, z: 0 }, duration: 1 },
+            { value: { x: 5, y: 0, z: 0 }, duration: 1 },
+          ],
+        });
+      }
+      await flock.loadSection(section);
+      await new Promise((r) => setTimeout(r, 200));
+      expect(mesh.metadata._activeAnim_position).to.exist;
+
+      flock.unloadSection(section);
+      expect(mesh.metadata._activeAnim_position).to.not.exist;
+    });
+  });
+
+  describe('Section generators @sections', function () {
+    before(function () {
+      if (!Blockly.Blocks['section']) defineBlocks();
+      if (!javascriptGenerator.forBlock['section']) defineGenerators();
+    });
+
+    it('loads a nested autostart section directly, not through the queue', function () {
+      const workspace = new Blockly.Workspace();
+      try {
+        const append = (state) => Blockly.serialization.blocks.append(state, workspace);
+        append({ type: 'section', id: 'inner', fields: { NAME: 'inner', START: 'TRUE' } });
+        append({
+          type: 'section',
+          id: 'outer',
+          fields: { NAME: 'outer', START: 'TRUE' },
+          extraState: { contains: ['inner'] },
+        });
+
+        const code = generateWorkspaceCode(workspace, javascriptGenerator);
+
+        expect(code).to.include('await loadSection(inner);');
+        expect(code).to.include('await loadSectionQueued(outer);');
+        expect(code).to.not.include('loadSectionQueued(inner)');
+      } finally {
+        workspace.dispose();
+      }
     });
   });
 }

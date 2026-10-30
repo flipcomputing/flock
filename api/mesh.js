@@ -1758,7 +1758,8 @@ export const flockMesh = {
     followPosition,
     offsetX = 0,
     offsetY = 0,
-    offsetZ = 0
+    offsetZ = 0,
+    __owningSignal = flock.sectionSignal()
   ) {
     return new Promise((resolve) => {
       flock.whenModelReady(followerModelName, (followerMesh) => {
@@ -1792,12 +1793,16 @@ export const flockMesh = {
           const followerDisposed = followerMesh.onDisposeObservable.addOnce(end);
           const targetDisposed = targetMesh.onDisposeObservable.addOnce(end);
           followerMesh._followObserver = observer;
-          followerMesh._endFollow = () => {
+          const endThisFollow = () => {
             flock.scene.onBeforeRenderObservable.remove(observer);
             followerMesh.onDisposeObservable.remove(followerDisposed);
             targetMesh.onDisposeObservable.remove(targetDisposed);
             drive.release();
           };
+          followerMesh._endFollow = endThisFollow;
+          flock.onSectionStop(() => {
+            if (followerMesh._endFollow === endThisFollow) endFollow(followerMesh);
+          }, __owningSignal);
           resolve();
         });
       });

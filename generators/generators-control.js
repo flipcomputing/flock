@@ -49,9 +49,11 @@ export function registerControlGenerators(javascriptGenerator) {
 
     let code = `async function ${fnName}() {\n${lines}}\n`;
     // Non-autostart sections stay defined but dormant until loaded explicitly.
-    // Queued: this is top-level, not nested inside another section.
+    // A nested section loads directly - queueing would deadlock against its
+    // parent's still-in-progress load.
     if (autoStart) {
-      code += `await loadSectionQueued(${fnName});\n`;
+      const nested = !!findOwningSection(ws, block.id);
+      code += `await ${nested ? 'loadSection' : 'loadSectionQueued'}(${fnName});\n`;
     }
     return code;
   };

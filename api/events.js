@@ -27,6 +27,7 @@ export const flockEvents = {
     if (key === null) return;
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
+    handler = flock._bindToSection(handler);
 
     let observable = flock.events.get(key);
     if (!observable) {
@@ -66,6 +67,7 @@ export const flockEvents = {
     }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
+    callback = flock._bindToSection(callback);
 
     const handler = (a) => {
       if (a === action && !flock.isPaused()) callback();
@@ -100,6 +102,7 @@ export const flockEvents = {
     }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
+    callback = flock._bindToSection(callback);
 
     const handler = (k) => {
       if (k === key && !flock.isPaused()) callback();
@@ -134,6 +137,7 @@ export const flockEvents = {
     }
     const signal = flock.abortController?.signal;
     if (signal?.aborted) return;
+    callback = flock._bindToSection(callback);
 
     // All micro:bit events are momentary edges — no repeat semantics.
     // Registering against a variable with no bound board is valid and silent.
@@ -147,6 +151,7 @@ export const flockEvents = {
     flock.scene.onBeforeRenderObservable.addOnce(() => flock.whenRunning(action));
   },
   async forever(action) {
+    action = flock._bindToSection(action);
     let isDisposed = false;
     let pace = null;
 

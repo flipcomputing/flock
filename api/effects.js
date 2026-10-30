@@ -230,6 +230,8 @@ export const flockEffects = {
       direction,
       rotation,
       blockKey = null,
+      __owningSection = flock._currentSection,
+      __owningSignal = flock.sectionSignal(),
     } = {}
   ) {
     const resultName = flock._reserveName(name);
@@ -242,6 +244,10 @@ export const flockEffects = {
             api: 'createParticleEffect',
             values: { effect: resultName, emitter: emitterMesh },
           });
+          resolve(null);
+          return;
+        }
+        if (__owningSignal?.aborted) {
           resolve(null);
           return;
         }
@@ -260,6 +266,7 @@ export const flockEffects = {
 
           const particleSystem = new flock.BABYLON.ParticleSystem(resultName, 500, flock.scene);
           particleSystem.metadata = { blockKey };
+          particleSystem.sectionOwner = __owningSection;
           particleSystem.emitter = meshInstance;
           particleSystem.particleEmitterType = new flock.BABYLON.MeshParticleEmitter(meshInstance);
           particleSystem.blendMode = 4;

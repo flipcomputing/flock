@@ -165,8 +165,10 @@ export const flock = {
   inputManager: null,
   canvas: null,
   abortController: null,
-  // Set only while a section's own setup code (loadSection) is running.
+  // _currentSection is also set while a section's handlers run; _loadingSection
+  // only while its own setup code (loadSection) runs.
   _currentSection: null,
+  _loadingSection: null,
   _renderLoop: null,
   _renderLoopStopped: false,
   _contextLostAt: null,

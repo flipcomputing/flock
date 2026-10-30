@@ -999,6 +999,11 @@ export const flockLifecycle = {
     flock.abortController = new AbortController();
     // Strong-reference Set, unlike _sections - reset per run to avoid leaking.
     flock._loadedSections = new Set();
+    flock._loadsInProgress = new Set();
+    // A previous run's section body can be left pending forever, so its
+    // finally never clears these.
+    flock._currentSection = null;
+    flock._loadingSection = null;
     // Reset so a stale queued load from a previous run can't hold up this one.
     flock._loadQueueTail = Promise.resolve();
     flock._canvasControlsEnabled = undefined;

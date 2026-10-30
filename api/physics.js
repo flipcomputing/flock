@@ -139,6 +139,11 @@ const redriveRebuiltBody = (mesh) => {
 const withPhysicsDescendants = (mesh) =>
   mesh ? [mesh, ...mesh.getChildMeshes(false)].filter(isPhysicsEnabled) : [];
 
+const removePending = (list, entry) => {
+  const index = list?.indexOf(entry) ?? -1;
+  if (index !== -1) list.splice(index, 1);
+};
+
 export const teleportBodyToMesh = (mesh) => {
   withPhysicsDescendants(mesh).forEach(teleportOne);
 };
@@ -1908,6 +1913,9 @@ export const flockPhysics = {
       flock.reportBlockError({ key: 'invalid_callback', api: 'onTrigger', values: { trigger } });
       return;
     }
+    callback = Array.isArray(callback)
+      ? callback.map((fn) => flock._bindToSection(fn))
+      : flock._bindToSection(callback);
     const groupName = flock._familyOf(meshName);
     if (flock._isTag(meshName)) applyToGroup = true;
     const getAllGuiControls = () => {
@@ -2134,8 +2142,15 @@ export const flockPhysics = {
   onIntersect(
     meshName,
     otherMeshName,
-    { trigger, callback, applyToGroupOther = false, applyToGroupSelf = false } = {}
+    {
+      trigger,
+      callback,
+      applyToGroupOther = false,
+      applyToGroupSelf = false,
+      __owningSignal = flock.sectionSignal(),
+    } = {}
   ) {
+    callback = flock._bindToSection(callback);
     const resolveCanonicalGroupName = (rawName) => {
       const scene = flock.scene;
       const exact = scene?.getMeshByName?.(rawName);
@@ -2165,9 +2180,14 @@ export const flockPhysics = {
       const pendingEntry = {
         trigger,
         callback,
+        owningSignal: __owningSignal,
         registeredPairs: new Set(),
       };
       flock.pendingSelfIntersections.get(groupName).push(pendingEntry);
+      flock.onSectionStop(
+        () => removePending(flock.pendingSelfIntersections.get(groupName), pendingEntry),
+        __owningSignal
+      );
 
       if (flock.scene) {
         const matching = flock.scene.meshes.filter((m) => flock._inGroup(m, groupName));
@@ -2184,6 +2204,7 @@ export const flockPhysics = {
                   trigger,
                   callback,
                   applyToGroupOther: false,
+                  __owningSignal,
                 })
               );
             }
@@ -2205,13 +2226,23 @@ export const flockPhysics = {
       const register = (name) => {
         if (registered.has(name)) return Promise.resolve();
         registered.add(name);
-        return flock.onIntersect(name, otherMeshName, { trigger, callback, applyToGroupOther });
+        return flock.onIntersect(name, otherMeshName, {
+          trigger,
+          callback,
+          applyToGroupOther,
+          __owningSignal,
+        });
       };
       flock.pendingTagIntersections ??= new Map();
       if (!flock.pendingTagIntersections.has(meshName)) {
         flock.pendingTagIntersections.set(meshName, []);
       }
-      flock.pendingTagIntersections.get(meshName).push({ register });
+      const tagEntry = { register };
+      flock.pendingTagIntersections.get(meshName).push(tagEntry);
+      flock.onSectionStop(
+        () => removePending(flock.pendingTagIntersections?.get(meshName), tagEntry),
+        __owningSignal
+      );
       if (isTag) return Promise.all(flock.getObjectsWithTag(meshName).map(register)).then(() => {});
     }
 
@@ -2226,9 +2257,14 @@ export const flockPhysics = {
         meshName,
         trigger,
         callback,
+        owningSignal: __owningSignal,
         registeredOthers: new Set(),
       };
       flock.pendingIntersections.get(groupName).push(pendingEntry);
+      flock.onSectionStop(
+        () => removePending(flock.pendingIntersections.get(groupName), pendingEntry),
+        __owningSignal
+      );
 
       const registerForOther = (name) => {
         if (name === meshName || pendingEntry.registeredOthers.has(name)) {
@@ -2239,6 +2275,7 @@ export const flockPhysics = {
           trigger,
           callback,
           applyToGroupOther: false,
+          __owningSignal,
         });
       };
 
@@ -2289,6 +2326,7 @@ export const flockPhysics = {
           );
 
           mesh.actionManager.registerAction(action);
+          flock.onSectionStop(() => mesh.actionManager?.unregisterAction(action), __owningSignal);
 
           const otherDisposeObserver = otherMesh.onDisposeObservable.addOnce(() => {
             mesh.actionManager?.unregisterAction(action);

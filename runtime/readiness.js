@@ -404,6 +404,7 @@ export const flockReadiness = {
             trigger: pending.trigger,
             callback: pending.callback,
             applyToGroupOther: false,
+            __owningSignal: pending.owningSignal,
           });
         }
       }
@@ -426,6 +427,7 @@ export const flockReadiness = {
                 trigger: pending.trigger,
                 callback: pending.callback,
                 applyToGroupOther: false,
+                __owningSignal: pending.owningSignal,
               });
             }
           }
