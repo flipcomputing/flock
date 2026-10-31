@@ -3,6 +3,7 @@
 const PLAYER_CONTROLS_KEY = 'flock-player-controls';
 const GIZMO_CONTROLS_KEY = 'flock-gizmo-controls';
 const GIZMO_HINTS_KEY = 'flock-gizmo-hints';
+const PLACE_ON_GROUND_KEY = 'flock-place-on-ground';
 
 // Only keys localStorage refused, so private mode still honours the choice.
 const unpersisted = new Map();
@@ -65,6 +66,14 @@ export function getGizmoHintsEnabled() {
 
 export function setGizmoHintsEnabled(enabled) {
   write(GIZMO_HINTS_KEY, !!enabled);
+}
+
+export function getPlaceOnGroundEnabled() {
+  return read(PLACE_ON_GROUND_KEY) === true;
+}
+
+export function setPlaceOnGroundEnabled(enabled) {
+  write(PLACE_ON_GROUND_KEY, !!enabled);
 }
 
 // Returns an unsubscribe function.

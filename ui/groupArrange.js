@@ -3,6 +3,7 @@ import { flock } from '../flock.js';
 import { getMeshFromBlock, writeClonePosition } from './blockmesh.js';
 import { getNumberInput, setNumberInputs } from './blocklyutil.js';
 import { findOwnMove } from './initialTransform.js';
+import { hasGroundLevelY, readBlockY, setNumberY } from './groundLevel.js';
 
 export const ARRANGE_AXES = ['x', 'y', 'z'];
 export const ARRANGE_MODES = ['min', 'centre', 'max', 'distribute'];
@@ -39,7 +40,11 @@ const movesAsUnit = (block, mesh) =>
   mesh.metadata?.shapeType === 'Group' || block.type === 'combine';
 
 const hasLiteralPosition = (block, prefix = '') =>
-  ['X', 'Y', 'Z'].every((axis) => !!block.getInputTargetBlock(prefix + axis)?.getField('NUM'));
+  ['X', 'Y', 'Z'].every(
+    (axis) =>
+      !!block.getInputTargetBlock(prefix + axis)?.getField('NUM') ||
+      (axis === 'Y' && !prefix && hasGroundLevelY(block))
+  );
 
 // A member with a computed coordinate is left out rather than counted in the
 // bounds: that coordinate can't be written, and the live view doesn't follow
@@ -109,8 +114,9 @@ function moveMember({ block, mesh }, axis, offset, translateGroupedMesh) {
     return;
   }
   const input = axis.toUpperCase();
-  const current = getNumberInput(block, input);
+  const current = input === 'Y' ? readBlockY(block) : getNumberInput(block, input);
   if (Number.isFinite(current)) {
+    if (input === 'Y') setNumberY(block, current);
     setNumberInputs(block, { [input]: current + offset }, { decimals: DECIMALS });
   }
 }

@@ -15,7 +15,11 @@ import {
   enableGizmos,
   updateRotationBlock,
   updateScaleBlock,
+  translateGroupedMesh,
 } from '../ui/gizmos.js';
+import { getPlaceOnGroundEnabled, setPlaceOnGroundEnabled } from '../ui/controlPreferences.js';
+import { defineSensingBlocks } from '../blocks/sensing.js';
+import { defineModifyBlocks } from '../blocks/modify.js';
 import { showStatus, clearStatus } from '../ui/status.js';
 import { getNumberInput } from '../ui/blocklyutil.js';
 import { ensureOwnMove } from '../ui/initialTransform.js';
@@ -585,6 +589,198 @@ export function runGizmoTests(flock) {
           expect(Number.isFinite(v)).to.be.true;
           expect(v).to.be.at.least(0.01);
         }
+      });
+    });
+
+    // ─── ground level placement ──────────────────────────────────────────
+
+    describe('ground level placement', function () {
+      let positionButton;
+      let codePanel;
+      let savedGroundLevelAt;
+      let savedPlaceOnGround;
+      const blocks = [];
+      const keys = [];
+      const slope = (x) => x / 2;
+
+      before(function () {
+        if (!Blockly.Blocks['ground_level']) defineSensingBlocks();
+        if (!Blockly.Blocks['combine']) defineModifyBlocks();
+      });
+
+      beforeEach(function () {
+        positionButton = document.createElement('button');
+        positionButton.id = 'positionButton';
+        document.body.appendChild(positionButton);
+        // Hidden code view: moving then skips highlighting blocks, which needs SVG.
+        codePanel = document.createElement('div');
+        codePanel.id = 'codePanel';
+        codePanel.style.display = 'none';
+        document.body.appendChild(codePanel);
+        savedGroundLevelAt = flock.getGroundLevelAt;
+        flock.getGroundLevelAt = (x) => slope(x);
+        savedPlaceOnGround = getPlaceOnGroundEnabled();
+      });
+
+      afterEach(function () {
+        exitGizmoState();
+        positionButton.remove();
+        codePanel.remove();
+        flock.getGroundLevelAt = savedGroundLevelAt;
+        setPlaceOnGroundEnabled(savedPlaceOnGround);
+        blocks.splice(0).forEach((b) => !b.disposed && b.dispose(false));
+        keys.splice(0).forEach((key) => delete meshMap[key]);
+      });
+
+      const number = (value) => ({ shadow: { type: 'math_number', fields: { NUM: value } } });
+      const boxState = ({ x, y = 0, onGround = true }) => ({
+        type: 'create_box',
+        inputs: {
+          X: number(x),
+          Y: { ...number(y), ...(onGround ? { block: { type: 'ground_level' } } : {}) },
+          Z: number(0),
+          WIDTH: number(1),
+          HEIGHT: number(1),
+          DEPTH: number(1),
+        },
+      });
+
+      function append(state) {
+        const block = Blockly.serialization.blocks.append(state, Blockly.getMainWorkspace());
+        blocks.push(block);
+        return block;
+      }
+
+      async function meshFor(block, name, { x, y }) {
+        const mesh = flock.scene.getMeshByName(
+          await flock.createBox(name, { width: 1, height: 1, depth: 1, position: [x, y, 0] })
+        );
+        createdMeshes.push(mesh);
+        const key = `${name}Key`;
+        mesh.metadata = { ...mesh.metadata, blockKey: key };
+        meshMap[key] = block;
+        keys.push(key);
+        return mesh;
+      }
+
+      async function groundedBox(x, { y = slope(x), onGround = true } = {}) {
+        const block = append(boxState({ x, y, onGround }));
+        const mesh = await meshFor(block, `groundBox${blocks.length}`, { x, y });
+        return { block, mesh };
+      }
+
+      function bottom(mesh) {
+        mesh.computeWorldMatrix(true);
+        mesh.refreshBoundingInfo();
+        return mesh.getBoundingInfo().boundingBox.minimumWorld.y;
+      }
+
+      const heightAboveGround = (mesh) => bottom(mesh) - slope(mesh.getAbsolutePosition().x);
+      const yTarget = (block) => block.getInputTargetBlock('Y');
+
+      function drag(mesh, dx, dy, steps = 4) {
+        const pg = mgr.gizmos.positionGizmo;
+        const heights = [];
+        pg.onDragStartObservable.notifyObservers({});
+        for (let i = 0; i < steps; i++) {
+          const p = mesh.getAbsolutePosition().clone();
+          p.x += dx / steps;
+          p.y += dy / steps;
+          mesh.setAbsolutePosition(p);
+          mesh.computeWorldMatrix(true);
+          pg.onDragObservable.notifyObservers({});
+          heights.push(heightAboveGround(mesh));
+        }
+        pg.onDragEndObservable.notifyObservers({});
+        return heights;
+      }
+
+      function startMoving(mesh) {
+        mgr.attachToMesh(mesh);
+        toggleGizmo('position');
+      }
+
+      it('keeps ground level and follows the ground while dragged sideways', async function () {
+        const { block, mesh } = await groundedBox(2);
+        startMoving(mesh);
+        const heights = drag(mesh, 2, 0);
+        heights.forEach((h) => expect(h).to.be.closeTo(0, 1e-3));
+        expect(yTarget(block).type).to.equal('ground_level');
+        expect(getNumberInput(block, 'X')).to.equal(4);
+        expect(heightAboveGround(mesh)).to.be.closeTo(0, 1e-3);
+      });
+
+      it('turns ground level into a number when lifted', async function () {
+        const { block, mesh } = await groundedBox(2);
+        startMoving(mesh);
+        drag(mesh, 0, 2);
+        expect(yTarget(block).type).to.equal('math_number');
+        expect(getNumberInput(block, 'Y')).to.be.closeTo(slope(2) + 2, 0.05);
+      });
+
+      it('snaps back to ground level near the ground with place on ground on', async function () {
+        setPlaceOnGroundEnabled(true);
+        const { block, mesh } = await groundedBox(2, { y: slope(2) + 2, onGround: false });
+        startMoving(mesh);
+        drag(mesh, 0, -1.95);
+        expect(yTarget(block).type).to.equal('ground_level');
+        expect(heightAboveGround(mesh)).to.be.closeTo(0, 1e-3);
+      });
+
+      it('keeps a number near the ground with place on ground off', async function () {
+        setPlaceOnGroundEnabled(false);
+        const { block, mesh } = await groundedBox(2, { y: slope(2) + 2, onGround: false });
+        startMoving(mesh);
+        drag(mesh, 0, -1.95);
+        expect(yTarget(block).type).to.equal('math_number');
+      });
+
+      it('keeps ground level and follows the ground for keyboard moves', async function () {
+        const { block, mesh } = await groundedBox(2);
+        startMoving(mesh);
+        topHandler()(makeKeyEvent({ key: 'ArrowRight' }));
+        topHandler()(makeKeyEvent({ key: 'ArrowRight' }));
+        expect(mesh.getAbsolutePosition().x).to.be.above(2);
+        expect(yTarget(block).type).to.equal('ground_level');
+        expect(heightAboveGround(mesh)).to.be.closeTo(0, 1e-3);
+      });
+
+      it('puts ground level members of a moved group on the ground at their new place', async function () {
+        const groupBlock = append({
+          type: 'create_group',
+          extraState: '<mutation xmlns="http://www.w3.org/1999/xhtml" has_do="true"></mutation>',
+          inputs: { DO: { block: boxState({ x: 2, y: slope(2) }) } },
+        });
+        const memberBlock = groupBlock.getInputTargetBlock('DO');
+        const groupMesh = flock.scene.getMeshByName(
+          await flock.createGroup('groundGroup', { position: [0, 0, 0] })
+        );
+        createdMeshes.push(groupMesh);
+        groupMesh.metadata = { ...groupMesh.metadata, blockKey: 'groundGroupKey' };
+        meshMap.groundGroupKey = groupBlock;
+        keys.push('groundGroupKey');
+        const member = await meshFor(memberBlock, 'groundGroupMember', { x: 2, y: slope(2) });
+        member.setParent(groupMesh);
+        flock.recomputeGroupGeometry(groupMesh);
+
+        startMoving(groupMesh);
+        drag(groupMesh, 2, 0);
+        expect(yTarget(memberBlock).type).to.equal('ground_level');
+        expect(getNumberInput(memberBlock, 'X')).to.be.closeTo(4, 1e-3);
+        expect(heightAboveGround(member)).to.be.closeTo(0, 1e-3);
+      });
+
+      it('gives combine parts a number when the combined mesh moves, keeping its shape', async function () {
+        const combineBlock = append({
+          type: 'combine',
+          inputs: { PARTS: { block: boxState({ x: 2, y: slope(2) }) } },
+        });
+        const part = combineBlock.getInputTargetBlock('PARTS');
+        const combined = await meshFor(combineBlock, 'groundCombined', { x: 2, y: slope(2) });
+        translateGroupedMesh(combined, new BABYLON.Vector3(2, 0, 0));
+        expect(yTarget(part).type).to.equal('math_number');
+        expect(getNumberInput(part, 'Y')).to.be.closeTo(slope(2), 1e-3);
+        expect(getNumberInput(part, 'X')).to.be.closeTo(4, 1e-3);
       });
     });
 

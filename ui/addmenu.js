@@ -24,6 +24,7 @@ import {
 import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { selectMeshForBlock } from './gizmos.js';
 import { isPlacementSurface } from './meshhelpers.js';
+import { isGroundMesh, placesOnGround, setGroundLevelY } from './groundLevel.js';
 import { ensureInitialRotation } from './initialTransform.js';
 import { showStatus, clearStatus } from './status.js';
 import { translate } from '../main/translation.js';
@@ -261,7 +262,14 @@ function planeRotationForNormal(normal) {
   return { x: toDeg(euler.x), y: toDeg(euler.y), z: toDeg(euler.z) };
 }
 
-function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null) {
+function placeOnPick(pick) {
+  return (block, position, blockType, decimals) => {
+    setPositionValues(block, position, blockType, decimals);
+    if (isGroundMesh(pick?.pickedMesh) && placesOnGround(block)) setGroundLevelY(block);
+  };
+}
+
+function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null, pick = null) {
   const workspace = Blockly.getMainWorkspace();
 
   const existingGroup = Blockly.Events.getGroup();
@@ -281,7 +289,7 @@ function addShapeToWorkspace(shapeType, position, decimals = 1, rotation = null)
     }
 
     try {
-      setPositionValues(block, position, shapeType, decimals);
+      placeOnPick(pick)(block, position, shapeType, decimals);
     } catch (e) {
       console.error('Error setting position values:', e);
     }
@@ -378,7 +386,7 @@ function selectCharacter(characterName) {
       characterName,
       pickedPosition,
       colorFields,
-      setPositionValues,
+      placeOnPick(pick),
       highlightBlockById
     );
     selectMeshForBlock(block);
@@ -475,7 +483,7 @@ function selectShape(shapeType) {
           addShapeToWorkspace(shapeType, pickResult.pickedPoint);
         }
       } else {
-        addShapeToWorkspace(shapeType, pickResult.pickedPoint);
+        addShapeToWorkspace(shapeType, pickResult.pickedPoint, 1, null, pickResult);
       }
     }
 
@@ -550,7 +558,7 @@ function selectObjectWithCommand(objectName, menu, command) {
       objectName,
       pickedPosition,
       objectColours,
-      setPositionValues,
+      placeOnPick(pick),
       highlightBlockById
     );
     selectMeshForBlock(block);

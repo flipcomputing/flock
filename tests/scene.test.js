@@ -378,6 +378,41 @@ export function runSceneTests(flock) {
       });
     });
 
+    describe('groundLevelAt', function () {
+      afterEach(function () {
+        if (flock.ground) {
+          flock.disposeMesh(flock.ground);
+          flock.ground = null;
+        }
+      });
+
+      it('should return 0 without waiting when no ground exists', function () {
+        expect(flock.groundLevelAt(3, 4)).to.equal(0);
+      });
+
+      it('should return the ground height on a flat ground', function () {
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        expect(flock.groundLevelAt(0, 0)).to.equal(flock.getGroundLevelAt(0, 0));
+      });
+
+      it('groundReady should resolve at once when no ground exists', async function () {
+        expect(await flock.groundReady()).to.equal(undefined);
+      });
+
+      it('groundReady should wait for a height map ground to load @slow', async function () {
+        this.timeout(10000);
+        flock.createMap('Islands.png', ['#336633', '#88cc88']);
+        expect(flock._isGroundReady()).to.equal(false);
+        await flock.groundReady();
+        expect(flock._isGroundReady()).to.equal(true);
+      });
+
+      it('should treat non-numbers as 0', function () {
+        flock.createMap('NONE', ['#336633', '#88cc88']);
+        expect(flock.groundLevelAt('a', undefined)).to.equal(flock.getGroundLevelAt(0, 0));
+      });
+    });
+
     // ─── waitForGroundReady ────────────────────────────────────────────────────
 
     describe('waitForGroundReady', function () {
@@ -392,6 +427,18 @@ export function runSceneTests(flock) {
         flock.createMap('NONE', ['#336633', '#88cc88']);
         const ground = await flock.waitForGroundReady();
         expect(ground).to.equal(flock.ground);
+      });
+
+      it('should not count a height map ground as ready until it has loaded @slow', async function () {
+        this.timeout(10000);
+        flock.createMap('Islands.png', ['#336633', '#88cc88']);
+        expect(flock._isGroundReady()).to.equal(false);
+        const start = Date.now();
+        while (!flock.ground?.metadata && Date.now() - start < 8000) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+        expect(flock._isGroundReady()).to.equal(true);
+        expect(await flock.waitForGroundReady()).to.equal(flock.ground);
       });
     });
 

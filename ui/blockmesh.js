@@ -27,6 +27,7 @@ import {
   isPrefabPart,
 } from './blocklyutil.js';
 import { createBlockWithShadows } from './addmenu.js';
+import { groundYForBlock, hasGroundLevelY } from './groundLevel.js';
 import {
   isInitialTransformBlock,
   getInitialTransformOwner,
@@ -907,6 +908,7 @@ function isBlockConnectedToEnabledChain(block) {
 
 const LITERAL_VALUE_TYPES = new Set([
   'math_number',
+  'ground_level',
   'same_number',
   'text',
   'text_multiline',
@@ -1057,7 +1059,7 @@ function updateLoadBlockScaleFromEvent(mesh, block, changeEvent) {
     const v = tgt ? Number(tgt.getFieldValue('NUM')) : def;
     return Number.isFinite(v) ? v : def;
   };
-  const baseY = getNumInput(block, 'Y', 0);
+  const baseY = hasGroundLevelY(block) ? groundYForBlock(block) : getNumInput(block, 'Y', 0);
   mesh.position.y = baseY + ext.y;
 
   mesh.computeWorldMatrix(true);
@@ -1532,7 +1534,7 @@ export function getXYZFromBlock(block) {
 
   return {
     x: getNum('X'),
-    y: getNum('Y'),
+    y: hasGroundLevelY(block) ? String(groundYForBlock(block)) : getNum('Y'),
     z: getNum('Z'),
   };
 }

@@ -695,6 +695,8 @@ export const flockSandbox = {
       positionAt: this.positionAt?.bind(this),
       positionAtSingleCoordinate: this.positionAtSingleCoordinate?.bind(this),
       distanceTo: this.distanceTo?.bind(this),
+      groundLevelAt: this.groundLevelAt?.bind(this),
+      groundReady: this.groundReady?.bind(this),
       waitUntil: this.waitUntil?.bind(this),
       createTag: this.createTag?.bind(this),
       tagObject: this.tagObject?.bind(this),

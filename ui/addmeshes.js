@@ -1,5 +1,6 @@
 import { meshMap, meshBlockIdMap } from '../generators/generators.js';
 import { flock } from '../flock.js';
+import { GROUND_LEVEL_SENTINEL, GROUND_LEVEL_TYPE } from './groundLevel.js';
 import {
   extractMaterialInfo,
   getMeshFromBlock,
@@ -91,6 +92,7 @@ export function createMeshOnCanvas(block) {
 
       const targetBlock = input.connection.targetBlock();
       if (!targetBlock) return defaultValue;
+      if (targetBlock.type === GROUND_LEVEL_TYPE) return GROUND_LEVEL_SENTINEL;
 
       const value = targetBlock.getFieldValue('NUM');
       return value !== null ? parseFloat(value) : defaultValue;
@@ -542,6 +544,7 @@ function createShapeInternal(block) {
 
     const targetBlock = input.connection.targetBlock();
     if (!targetBlock) return defaultValue;
+    if (targetBlock.type === GROUND_LEVEL_TYPE) return GROUND_LEVEL_SENTINEL;
 
     const value = targetBlock.getFieldValue('NUM');
     return value !== null ? parseFloat(value) : defaultValue;

@@ -5,6 +5,8 @@ import {
   setGizmoControlsEnabled,
   getGizmoHintsEnabled,
   setGizmoHintsEnabled,
+  getPlaceOnGroundEnabled,
+  setPlaceOnGroundEnabled,
   onControlPreferenceChange,
 } from '../ui/controlPreferences.js';
 import {
@@ -25,6 +27,7 @@ const closeToolsModal = document.getElementById('closeToolsModal');
 const playerControlsCheckbox = document.getElementById('playerControlsCheckbox');
 const gizmoControlsCheckbox = document.getElementById('gizmoControlsCheckbox');
 const gizmoHintsCheckbox = document.getElementById('gizmoHintsCheckbox');
+const placeOnGroundCheckbox = document.getElementById('placeOnGroundCheckbox');
 const portraitCanvasCheckbox = document.getElementById('portraitCanvasCheckbox');
 const toolsTabs = toolsModal ? Array.from(toolsModal.querySelectorAll('[role="tab"]')) : [];
 let previouslyFocused = null;
@@ -90,6 +93,7 @@ function syncToolsModal() {
   if (playerControlsCheckbox) playerControlsCheckbox.checked = getPlayerControlsEnabled();
   if (gizmoControlsCheckbox) gizmoControlsCheckbox.checked = getGizmoControlsEnabled();
   if (gizmoHintsCheckbox) gizmoHintsCheckbox.checked = getGizmoHintsEnabled();
+  if (placeOnGroundCheckbox) placeOnGroundCheckbox.checked = getPlaceOnGroundEnabled();
   if (portraitCanvasCheckbox) portraitCanvasCheckbox.checked = isPortraitCanvas();
   // main.js fills in the inspector row.
   document.dispatchEvent(new CustomEvent('toolspanelsync'));
@@ -532,6 +536,12 @@ if (gizmoControlsCheckbox) {
 if (gizmoHintsCheckbox) {
   gizmoHintsCheckbox.addEventListener('change', () => {
     setGizmoHintsEnabled(gizmoHintsCheckbox.checked);
+  });
+}
+
+if (placeOnGroundCheckbox) {
+  placeOnGroundCheckbox.addEventListener('change', () => {
+    setPlaceOnGroundEnabled(placeOnGroundCheckbox.checked);
   });
 }
 

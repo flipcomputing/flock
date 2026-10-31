@@ -5,7 +5,14 @@ import { translate } from '../main/translation.js';
 import { CLOSED_ARROW, OPEN_ARROW } from '../blocks/blocks.js';
 import { announceToScreenReader } from '../main/input.js';
 import { getMeshFromBlock } from './blockmesh.js';
-import { setBlockLocked, isBlockLocked, stripLockState } from './blocklyutil.js';
+import { setBlockLocked, isBlockLocked, stripLockState, getNumberInput } from './blocklyutil.js';
+import { placeAtBlockPosition } from './initialTransform.js';
+import {
+  groundYForBlock,
+  hasGroundLevelY,
+  placesOnGround,
+  setGroundLevelY,
+} from './groundLevel.js';
 import { focusBlocklyBlock, rememberUndoFocusTarget } from '../main/blockhandling.js';
 
 // Section blocks fold via their own sectionCollapsed_ flag rather than
@@ -267,6 +274,46 @@ export function initContextMenus(workspace) {
             viewMeshWithCamera(block);
           }
         );
+      },
+      scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+    });
+  })();
+
+  (function registerPutOnGroundContextMenuItem() {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    const id = 'putBlockOnGround';
+    if (registry.getItem && registry.getItem(id)) return;
+
+    const ownerOf = (block) => (block?.isShadow() ? block.getParent() : block);
+
+    registry.register({
+      id,
+      weight: 10,
+      displayText: () => translate('put_on_ground_option'),
+      preconditionFn: (scope) => {
+        const block = ownerOf(scope.block);
+        if (!block || block.isInFlyout || !placesOnGround(block) || hasGroundLevelY(block)) {
+          return 'hidden';
+        }
+        const y = block.getInputTargetBlock('Y');
+        return y?.isShadow() && block.isEditable() ? 'enabled' : 'hidden';
+      },
+      callback: (scope) => {
+        const block = ownerOf(scope.block);
+        const prevGroup = Blockly.Events.getGroup();
+        Blockly.Events.setGroup(true);
+        try {
+          setGroundLevelY(block);
+        } finally {
+          Blockly.Events.setGroup(prevGroup || null);
+        }
+        const mesh = getMeshFromBlock(block);
+        if (!mesh) return;
+        placeAtBlockPosition(mesh, block, {
+          x: getNumberInput(block, 'X'),
+          y: groundYForBlock(block),
+          z: getNumberInput(block, 'Z'),
+        });
       },
       scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
     });

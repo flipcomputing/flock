@@ -1365,6 +1365,8 @@ export default {
   gizmo_controls_option_ui: 'Gizmo controls',
   portrait_canvas_option_ui: 'Portrait canvas (9:16)',
   gizmo_hints_option_ui: 'Gizmo hints',
+  place_on_ground_option_ui: 'Place on ground level',
+  put_on_ground_option: 'Put on ground',
   close_tools_ui: 'Close tools',
   show_block_hints_ui: 'Show block hints',
   hide_block_hints_ui: 'Hide block hints',

@@ -280,6 +280,13 @@
           pattern: 'generators/generators-transform',
         },
         {
+          id: 'sensinggenerators',
+          name: 'Sensing Generator Tests',
+          importPath: './generators-sensing.test.js',
+          importFn: 'runSensingGeneratorTests',
+          pattern: 'generators/generators-sensing',
+        },
+        {
           id: 'controlgenerators',
           name: 'Control Generator Tests',
           importPath: './generators-control.test.js',
@@ -664,6 +671,13 @@
           importPath: './accessibility/index.test.js',
           importFn: 'runAccessibilityTests',
           pattern: '@accessibility',
+        },
+        {
+          id: 'groundlevel',
+          name: 'Ground Level Placement Tests',
+          importPath: './groundLevel.test.js',
+          importFn: 'runGroundLevelTests',
+          pattern: '@groundlevel',
         },
         {
           id: 'initialtransform',

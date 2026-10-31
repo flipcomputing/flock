@@ -503,7 +503,7 @@ export const flockTransform = {
       const { x, y, z } = positionXYZ(position);
       const onGround = isGroundLevel(y);
       moveAnchorTo(mesh, { x, y: onGround ? flock.getGroundLevelAt(x, z) : y, z });
-      if (onGround && !flock.ground) {
+      if (onGround && !flock._isGroundReady()) {
         flock.waitForGroundReady().then(() => {
           if (mesh.isDisposed()) return;
           moveAnchorTo(mesh, { x, y: flock.getGroundLevelAt(x, z), z });

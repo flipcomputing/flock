@@ -743,7 +743,7 @@ export const flockMesh = {
 
     mesh.metadata.sharedGeometry = true;
 
-    if (shouldResolveGroundLevel && !flock.ground && !rotation) {
+    if (shouldResolveGroundLevel && !flock._isGroundReady() && !rotation) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(px, pz);
         flock.setBlockPositionOnMesh(mesh, {
@@ -1553,7 +1553,7 @@ export const flockMesh = {
     // Set metadata on the root mesh
     setMetadata(bb);
 
-    if (shouldResolveGroundLevel && !flock.ground) {
+    if (shouldResolveGroundLevel && !flock._isGroundReady()) {
       flock.waitForGroundReady().then(() => {
         const groundY = flock.getGroundLevelAt(x, z);
         bb.position.y = groundY;

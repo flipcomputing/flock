@@ -276,8 +276,7 @@ export function setPositionValues(block, position, blockType, decimals = 1) {
           shadowBlock.initSvg();
           shadowBlock.render();
           input.connection.connect(shadowBlock.outputConnection);
-        } else {
-          // Set the value if a block is already connected
+        } else if (targetBlock.getField('NUM')) {
           targetBlock.setFieldValue(String(roundedValue), 'NUM');
         }
       }

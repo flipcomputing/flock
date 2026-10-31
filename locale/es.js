@@ -1269,6 +1269,8 @@ export default {
   gizmo_controls_option_ui: 'Controles de manipulación', // ai
   portrait_canvas_option_ui: 'Lienzo vertical (9:16)', // ai
   gizmo_hints_option_ui: 'Consejos de manipulación', // ai
+  place_on_ground_option_ui: 'Colocar a nivel del suelo', // ai
+  put_on_ground_option: 'Poner en el suelo', // ai
   close_tools_ui: 'Cerrar herramientas', // ai
   show_block_hints_ui: 'Mostrar sugerencias de bloques',
   hide_block_hints_ui: 'Ocultar sugerencias de bloques',

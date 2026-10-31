@@ -13,7 +13,20 @@ import { setPositionValues, getCanvasXAndCanvasYValues } from './blocklyutil.js'
 import { hideFromInspector } from './inspectorVisibility.js';
 import { announceToScreenReader } from '../main/input.js';
 import { isPlacementSurface } from './meshhelpers.js';
-import { usesAnchorPosition, writeClonePositionAxes } from './initialTransform.js';
+import {
+  placeAtBlockPosition,
+  usesAnchorPosition,
+  writeClonePositionAxes,
+} from './initialTransform.js';
+import {
+  groundYAt,
+  hasGroundLevelY,
+  isGroundMesh,
+  placesOnGround,
+  readBlockY,
+  setGroundLevelY,
+  setNumberY,
+} from './groundLevel.js';
 import {
   startAlignBlobs,
   getAlignDelta,
@@ -79,7 +92,7 @@ function showPositionPickedPing(position) {
 function formatPickedPositionAnnouncement(block) {
   const readAxis = (name) => block.getInput(name)?.connection?.targetBlock()?.getFieldValue('NUM');
   const x = readAxis('X');
-  const y = readAxis('Y');
+  const y = hasGroundLevelY(block) ? translate('ground_level') : readAxis('Y');
   const z = readAxis('Z');
   return translate('pick_position_confirmed')
     .replace('%1', x ?? '0')
@@ -97,12 +110,25 @@ function activeGroupOf(mesh) {
 
 let activeCleanup = null;
 
-function writePickedPosition(block, position, decimals = 1) {
+function writePickedPosition(
+  block,
+  position,
+  decimals = 1,
+  { onGround = false, mesh = null } = {}
+) {
   const previousGroup = Blockly.Events.getGroup();
   Blockly.Events.setGroup(true);
   try {
-    if (block.type === 'clone_mesh') writeClonePositionAxes(block, position, { decimals });
-    else setPositionValues(block, position, block.type, decimals);
+    if (block.type === 'clone_mesh') {
+      writeClonePositionAxes(block, position, { decimals });
+      return;
+    }
+    if (onGround && placesOnGround(block)) setGroundLevelY(block);
+    else if (hasGroundLevelY(block)) setNumberY(block, readBlockY(block));
+    setPositionValues(block, position, block.type, decimals);
+    if (mesh && hasGroundLevelY(block)) {
+      placeAtBlockPosition(mesh, block, { ...position, y: groundYAt(position.x, position.z) });
+    }
   } finally {
     Blockly.Events.setGroup(previousGroup);
   }
@@ -134,13 +160,16 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     return surfaceMarker(pick.pickedPoint, normal);
   }
 
-  function placeAgainst(marker) {
+  function placeAgainst(marker, onGround = false) {
     if (!group) {
       const anchored =
         usesAnchorPosition(block) ||
         block.type === 'clone_mesh' ||
         Boolean(mover.metadata?.isPrefab);
-      writePickedPosition(block, getAlignedBlockPosition(mover, marker, { anchored }), 2);
+      writePickedPosition(block, getAlignedBlockPosition(mover, marker, { anchored }), 2, {
+        onGround,
+        mesh: mover,
+      });
       return;
     }
     const delta = getAlignDelta(group, marker);
@@ -166,9 +195,10 @@ export function startPositionPick(block, { showCircleImmediately = false } = {})
     );
     const pick = flock.scene.pickWithRay(pickRay, isSurface);
     if (!pick?.hit) return;
+    const onGround = isGroundMesh(pick.pickedMesh);
     const surface = surfaceMarkerAt(pick, pickRay);
-    if (surface) placeAgainst(surface);
-    else writePickedPosition(block, pick.pickedPoint);
+    if (surface) placeAgainst(surface, onGround);
+    else writePickedPosition(block, pick.pickedPoint, 1, { onGround, mesh: member });
     if (CONFIRMATION_PING_BLOCK_TYPES.has(block.type)) {
       showPositionPickedPing(pick.pickedPoint);
     }

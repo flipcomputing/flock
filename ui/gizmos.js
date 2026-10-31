@@ -62,6 +62,13 @@ import { GizmoMenuManager } from '../accessibility/keyboardui.js';
 import { driveBody, isBodyAlive } from '../api/physics.js';
 import { markerArrowVertexData } from '../api/shapes.js';
 import { hideFromInspector } from './inspectorVisibility.js';
+import {
+  groundYAt,
+  hasGroundLevelY,
+  readBlockY,
+  setNumberY,
+  syncGroundLevelY,
+} from './groundLevel.js';
 import { isPositionPickActive, startPositionPick } from './pickposition.js';
 import { shapeError } from '../api/freeformgeometry.js';
 import { freeformEditorFor, freeformHandleAt, FREEFORM_STEP } from './freeformedit.js';
@@ -2325,10 +2332,12 @@ function startMoveKeyboardHandler(mesh, savedHudAxis = null, onHudAxisSaved = nu
 
   const onMove = (dx, dy, dz) => {
     const startPosition = mesh.getAbsolutePosition().clone();
+    const groundFollow = followGround(mesh);
     mesh.position.x += dx;
     mesh.position.y += dy;
     mesh.position.z += dz;
     mesh.computeWorldMatrix(true);
+    groundFollow?.();
     const block = meshMap[mesh?.metadata?.blockKey];
 
     if (isTargetCameraFrame(mesh)) {
@@ -2771,8 +2780,21 @@ function findOrCreateRotateBlock(mesh) {
 const MEMBER_DECIMALS = 4;
 
 function writePositionToBlock(block, pos, { decimals = 1 } = {}) {
-  if (block.type === 'clone_mesh') writeClonePosition(block, pos, { decimals });
-  else setBlockXYZ(block, pos.x, pos.y, pos.z, { decimals });
+  if (block.type === 'clone_mesh') {
+    writeClonePosition(block, pos, { decimals });
+    return;
+  }
+  syncGroundLevelY(block, pos, { decimals });
+  setBlockXYZ(block, pos.x, pos.y, pos.z, { decimals });
+}
+
+// A rigid move keeps the height the part has now; otherwise only a vertical
+// move takes a part off ground level.
+function shiftBlockXYZ(block, current, delta, { rigid = false } = {}) {
+  const y = current.y + delta.y;
+  const lifts = delta.y || (rigid && (delta.x || delta.z));
+  if (lifts && hasGroundLevelY(block)) setNumberY(block, y);
+  setBlockXYZ(block, current.x + delta.x, y, current.z + delta.z, { decimals: MEMBER_DECIMALS });
 }
 
 function blockPositionOf(mesh) {
@@ -3505,9 +3527,12 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
     // the unrotated base Play positions by - persist where it ended up.
     if (!['create_group', 'clone_mesh', 'combine'].includes(block.type)) {
       const pos = blockPositionOf(mesh);
-      const stale = ['x', 'y', 'z'].some(
-        (axis) => !(Math.abs(getNumberInput(block, axis.toUpperCase()) - pos[axis]) <= 0.05)
-      );
+      const current = {
+        x: getNumberInput(block, 'X'),
+        y: readBlockY(block),
+        z: getNumberInput(block, 'Z'),
+      };
+      const stale = ['x', 'y', 'z'].some((axis) => !(Math.abs(current[axis] - pos[axis]) <= 0.05));
       if (stale) writePositionToBlock(block, pos);
     }
   } catch (e) {
@@ -3515,9 +3540,29 @@ export function updateScaleBlock(mesh, originalBottomY = null) {
   }
 }
 
+// A ground-level object rides the ground while dragged; vertical drag lifts it.
+function followGround(mesh) {
+  const block = meshMap[mesh?.metadata?.blockKey];
+  if (!hasGroundLevelY(block) || mesh.parent || isPrefab(mesh)) return null;
+  const base = blockPositionOf(mesh);
+  const start = mesh.getAbsolutePosition().clone();
+  const startGround = groundYAt(base.x, base.z);
+  let lastY = start.y;
+  let lift = 0;
+  return () => {
+    const at = mesh.getAbsolutePosition().clone();
+    lift += at.y - lastY;
+    const ground = groundYAt(base.x + at.x - start.x, base.z + at.z - start.z);
+    at.y = start.y + ground - startGround + lift;
+    mesh.setAbsolutePosition(at);
+    mesh.computeWorldMatrix(true);
+    lastY = at.y;
+  };
+}
+
 function blockPositionNumbers(block) {
   const x = getNumberInput(block, 'X');
-  const y = getNumberInput(block, 'Y');
+  const y = readBlockY(block);
   const z = getNumberInput(block, 'Z');
   return [x, y, z].every(Number.isFinite) ? { x, y, z } : null;
 }
@@ -3598,7 +3643,11 @@ function commitMoveToBlocks(mesh, startPosition) {
     if (block?.type === 'combine' && !block.disposed) shiftCombineParts(block, delta);
   } else if (block && !block.disposed) {
     const before = block.type === 'clone_mesh' ? null : blockPositionNumbers(block);
-    writePositionToBlock(block, blockPositionOf(mesh));
+    const position = blockPositionOf(mesh);
+    writePositionToBlock(block, position);
+    if (hasGroundLevelY(block)) {
+      placeAtBlockPosition(mesh, block, { ...position, y: groundYAt(position.x, position.z) });
+    }
     const after = before ? blockPositionNumbers(block) : null;
     if (after) delta = { x: after.x - before.x, y: after.y - before.y, z: after.z - before.z };
   }
@@ -3656,13 +3705,12 @@ function updateChildBlockPositions(mesh, delta = null) {
     if (delta && current) {
       suppressBlockLiveUpdates(childBlock.id);
       suppressed.add(childBlock.id);
-      setBlockXYZ(
-        childBlock,
-        current.x + delta.x,
-        current.y + delta.y,
-        current.z + delta.z,
-        { decimals: MEMBER_DECIMALS }
-      );
+      shiftBlockXYZ(childBlock, current, delta);
+      if (hasGroundLevelY(childBlock)) {
+        const x = current.x + delta.x;
+        const z = current.z + delta.z;
+        placeAtBlockPosition(child, childBlock, { x, y: groundYAt(x, z), z });
+      }
       return;
     }
 
@@ -3700,9 +3748,7 @@ function forEachCombinePart(containerBlock, visit) {
 
 function shiftCombineParts(containerBlock, delta) {
   forEachCombinePart(containerBlock, (part, current) =>
-    setBlockXYZ(part, current.x + delta.x, current.y + delta.y, current.z + delta.z, {
-      decimals: MEMBER_DECIMALS,
-    })
+    shiftBlockXYZ(part, current, delta, { rigid: true })
   );
 }
 
@@ -4864,6 +4910,7 @@ function handlePositionGizmo() {
   let dragStartPosition = null;
   let restoreCameraTarget = null;
   let linkedEdit = null;
+  let groundFollow = null;
   onExit(() => {
     linkedEdit?.end();
     linkedEdit = null;
@@ -4878,6 +4925,7 @@ function handlePositionGizmo() {
     drivePrefabBodies(mesh);
     dragStartPosition = mesh.getAbsolutePosition().clone();
     linkedEdit = flock._beginLinkedEdit?.(mesh, 'position') ?? null;
+    groundFollow = linkedEdit ? null : followGround(mesh);
     restoreCameraTarget = holdCameraTargetDuringDrag(mesh);
     if (isTargetCameraFrame(mesh)) flock._releaseFollowCameraLimits(mesh.metadata.camera);
 
@@ -4897,6 +4945,7 @@ function handlePositionGizmo() {
       freeformEditor.dragPointTo(freeformEditor.pointNode.getAbsolutePosition());
       return;
     }
+    groundFollow?.();
     linkedEdit?.update();
     syncMirrorsDuringDrag(linkedEdit?.owner ?? gizmoManager.attachedMesh);
   });
@@ -4914,6 +4963,7 @@ function handlePositionGizmo() {
       return;
     }
     const dragged = gizmoManager.attachedMesh;
+    groundFollow = null;
     restoreCameraTarget?.();
     restoreCameraTarget = null;
     releasePrefabBodies();

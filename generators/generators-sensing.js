@@ -81,10 +81,29 @@ export function registerSensingGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
-  // Ground level
-  javascriptGenerator.forBlock['ground_level'] = function () {
-    const code = '-999999';
-    return [code, javascriptGenerator.ORDER_NONE];
+  // Ground level: position APIs resolve the placeholder; maths needs the height.
+  javascriptGenerator.forBlock['ground_level'] = function (block) {
+    if (!block.getParent()?.type.startsWith('math_')) {
+      return ['-999999', javascriptGenerator.ORDER_NONE];
+    }
+    let owner = block.getParent();
+    while (owner && !(owner.getInput('X') && owner.getInput('Z'))) owner = owner.getParent();
+    // A coordinate that itself uses ground level would generate this again.
+    const usesGroundLevel = (target) =>
+      !!target?.getDescendants(false).some((b) => b.type === 'ground_level');
+    const axis = (name) =>
+      (owner &&
+        !usesGroundLevel(owner.getInputTargetBlock(name)) &&
+        javascriptGenerator.valueToCode(owner, name, javascriptGenerator.ORDER_NONE)) ||
+      '0';
+    const height = `groundLevelAt(${axis('X')}, ${axis('Z')})`;
+    // wait_until checks its condition synchronously every frame.
+    let inCondition = false;
+    for (let b = block.getParent(); b; b = b.getParent()) inCondition ||= b.type === 'wait_until';
+    return [
+      inCondition ? height : `(await groundReady(), ${height})`,
+      javascriptGenerator.ORDER_ATOMIC,
+    ];
   };
 
   // Time in seconds

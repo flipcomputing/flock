@@ -1103,13 +1103,24 @@ export const flockScene = {
 
     return 0;
   },
+  groundLevelAt(x = 0, z = 0) {
+    return flock.getGroundLevelAt(Number(x) || 0, Number(z) || 0);
+  },
+  // Waits only for terrain that is loading; with no ground it resolves at once.
+  async groundReady() {
+    if (flock.ground && !flock._isGroundReady()) await flock.waitForGroundReady();
+  },
+  // A height map ground gets its metadata once its terrain has loaded.
+  _isGroundReady() {
+    return !!flock.ground?.metadata && !flock.ground.isDisposed?.();
+  },
   waitForGroundReady() {
     if (!sceneReady()) return Promise.resolve(null);
-    if (flock.ground) return Promise.resolve(flock.ground);
+    if (flock._isGroundReady()) return Promise.resolve(flock.ground);
 
     return new Promise((resolve) => {
       const observer = flock.scene.onBeforeRenderObservable.add(() => {
-        if (flock.ground) {
+        if (flock._isGroundReady()) {
           flock.scene.onBeforeRenderObservable.remove(observer);
           resolve(flock.ground);
         }

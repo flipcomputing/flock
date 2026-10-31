@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import '@blockly/toolbox-search';
 import { buildColorsListShadowSpec } from './ui/blocklyshadowutil.js';
 import { newerObjectName, recentObjectNames } from './blocks/variableNames.js';
+import { getPlaceOnGroundEnabled, onControlPreferenceChange } from './ui/controlPreferences.js';
 
 export const categoryColours = {
   Events: 5,
@@ -7413,6 +7414,45 @@ export const toolbox = {
     toolboxSnippets,
   ],
 };
+
+export const GROUND_PLACED_TYPES = new Set([
+  'load_model',
+  'load_character',
+  'load_object',
+  'load_multi_object',
+  'create_box',
+  'create_sphere',
+  'create_cylinder',
+  'create_capsule',
+  'create_wedge',
+  'create_donut',
+  'create_ring',
+  'create_plane',
+  'create_freeform',
+  'create_marker',
+  'create_3d_text',
+]);
+
+
+function setGroundLevelDefaults(contents, enabled) {
+  for (const item of contents ?? []) {
+    if (item === toolboxSnippets) continue;
+    if (item.kind === 'category') setGroundLevelDefaults(item.contents, enabled);
+    if (item.kind !== 'block' || !GROUND_PLACED_TYPES.has(item.type) || !item.inputs?.Y) continue;
+    if (enabled) item.inputs.Y.block = { type: 'ground_level' };
+    else delete item.inputs.Y.block;
+  }
+}
+
+let groundLevelDefaults = getPlaceOnGroundEnabled();
+setGroundLevelDefaults(toolbox.contents, groundLevelDefaults);
+onControlPreferenceChange(() => {
+  if (getPlaceOnGroundEnabled() === groundLevelDefaults) return;
+  groundLevelDefaults = !groundLevelDefaults;
+  setGroundLevelDefaults(toolbox.contents, groundLevelDefaults);
+  const workspace = Blockly.getMainWorkspace();
+  if (workspace?.getToolbox?.()) workspace.updateToolbox(workspace.options.languageTree);
+});
 
 const isMobileToolbox = () => window.matchMedia('(max-width: 768px)').matches;
 const isLightTheme = () => document.body.dataset.theme === 'light';

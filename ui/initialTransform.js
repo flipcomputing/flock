@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { getOwnVar, getOwnDoOwner } from '../generators/generators-utilities.js';
 import { setNumberInputs, getNumberInput, isDoOpen, findOrCreateDoBlock } from './blocklyutil.js';
 import { flock } from '../flock.js';
+import { syncGroundLevelY } from './groundLevel.js';
 
 const ROTATE = { type: 'rotate_to', varField: 'MODEL' };
 const RESIZE = { type: 'resize', varField: 'BLOCK_NAME' };
@@ -60,6 +61,7 @@ export function readBlockPosition(mesh, block) {
 
 // Only moved axes are written, so finer values elsewhere are not rounded away.
 export function writeMovedPosition(block, position, { decimals = 1 } = {}) {
+  syncGroundLevelY(block, position, { decimals });
   const moved = {};
   for (const axis of ['X', 'Y', 'Z']) {
     const value = position[axis.toLowerCase()];
