@@ -1019,6 +1019,7 @@ export function runMeshHierarchyTests(flock) {
           id,
           type: 'create_box',
           disposed: false,
+          getSurroundParent: () => null,
           inputList: [{ name: 'COLOR', connection: { targetBlock: () => target.block } }],
         });
         const targetA = colorTarget();
@@ -1031,6 +1032,7 @@ export function runMeshHierarchyTests(flock) {
           id: 'colorPickGroup',
           type: 'create_group',
           disposed: false,
+          getSurroundParent: () => null,
           inputList: [{ name: 'DO', connection: { targetBlock: () => mockA } }],
         };
         groupMesh.metadata = groupMesh.metadata || {};

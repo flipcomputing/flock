@@ -539,6 +539,16 @@ export function runCreateObjectTests(flock) {
         expect(parts(third).map((m) => m.material.diffuseColor.toHexString())).to.deep.equal(before);
       });
 
+      it('keeps colour edits on an instanced copy rather than its template', async function () {
+        await addTree('tree.glb__owner_a', ['#445566', '#778899'], 0);
+        const second = await addTree('tree.glb__owner_b', ['#445566', '#778899'], 3);
+        const part = parts(second)[0];
+
+        expect(part.getClassName()).to.equal('InstancedMesh');
+        expect(flock._linkedPart(part, 'colour')).to.equal(part);
+        expect(flock._linkedOwner(flock.scene.getMeshByName(second), 'colour').name).to.equal(second);
+      });
+
       it('removes the template once its last object is disposed', async function () {
         await addTree('tree.glb__template_a', ['#334455', '#667788'], 0);
         const second = await addTree('tree.glb__template_b', ['#334455', '#667788'], 3);

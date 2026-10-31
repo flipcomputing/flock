@@ -1527,7 +1527,13 @@ export const flockScene = {
     const keys = LINK_PROPERTY_KEYS[property] ?? [];
     let owner = mesh;
     for (let link = linkOf.get(owner); link; link = linkOf.get(owner)) {
-      if (link.source.isDisposed() || keys.some((key) => link.overrides.has(key))) break;
+      if (
+        link.template ||
+        link.source.isDisposed() ||
+        keys.some((key) => link.overrides.has(key))
+      ) {
+        break;
+      }
       owner = link.source;
     }
     return owner;
