@@ -173,6 +173,39 @@ export function runSceneTests(flock) {
         expect(ground.name).to.equal('ground');
       });
 
+      it('should turn a gradient on a flat ground by the material angle', function () {
+        const gradientAt = (angle) => {
+          flock.createMap('NONE', {
+            color: ['#336633', '#88cc88'],
+            materialName: 'none.png',
+            angle,
+          });
+          const positions = flock.ground.getVerticesData('position');
+          const uvs = flock.ground.getVerticesData('uv');
+          const { minimum, maximum } = flock.ground.getBoundingInfo();
+          const at = (x, z) => {
+            for (let i = 0; i < positions.length / 3; i++) {
+              if (positions[i * 3] === x && positions[i * 3 + 2] === z) return uvs[i * 2 + 1];
+            }
+          };
+          return {
+            nearLeft: at(minimum.x, minimum.z),
+            farLeft: at(minimum.x, maximum.z),
+            nearRight: at(maximum.x, minimum.z),
+          };
+        };
+
+        const straight = gradientAt(0);
+        expect(straight.nearLeft).to.be.closeTo(0, 1e-6);
+        expect(straight.farLeft).to.be.closeTo(1, 1e-6);
+        expect(straight.nearRight).to.be.closeTo(0, 1e-6);
+
+        const turned = gradientAt(90);
+        expect(turned.nearLeft).to.be.closeTo(0, 1e-6);
+        expect(turned.farLeft).to.be.closeTo(0, 1e-6);
+        expect(turned.nearRight).to.be.closeTo(1, 1e-6);
+      });
+
       it('should return nothing', function () {
         expect(flock.createMap('NONE', ['#336633', '#88cc88'])).to.equal(undefined);
         expect(flock.ground).to.exist;

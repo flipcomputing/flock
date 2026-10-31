@@ -892,12 +892,26 @@ export const flockScene = {
         const positions = mesh.getVerticesData(flock.BABYLON.VertexBuffer.PositionKind);
         if (positions) {
           const { minimum, maximum } = mesh.getBoundingInfo();
-          const rangeX = maximum.x - minimum.x || 1;
-          const rangeZ = maximum.z - minimum.z || 1;
+          const turn =
+            Array.isArray(mat) || !mat
+              ? 0
+              : (((Number(mat.direction) || 0) + (Number(mat.angle) || 0)) * Math.PI) / 180;
+          const axisX = Math.sin(turn);
+          const axisZ = Math.cos(turn);
+          let low = Infinity;
+          let high = -Infinity;
+          for (const x of [minimum.x, maximum.x]) {
+            for (const z of [minimum.z, maximum.z]) {
+              const projected = x * axisX + z * axisZ;
+              low = Math.min(low, projected);
+              high = Math.max(high, projected);
+            }
+          }
+          const span = high - low || 1;
           const uvs = new Float32Array((positions.length / 3) * 2);
           for (let i = 0, ui = 0; i < positions.length; i += 3, ui += 2) {
-            uvs[ui] = (positions[i] - minimum.x) / rangeX;
-            uvs[ui + 1] = (positions[i + 2] - minimum.z) / rangeZ;
+            uvs[ui] = 0.5;
+            uvs[ui + 1] = (positions[i] * axisX + positions[i + 2] * axisZ - low) / span;
           }
           mesh.setVerticesData(flock.BABYLON.VertexBuffer.UVKind, uvs, true);
         }
