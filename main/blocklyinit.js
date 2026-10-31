@@ -1769,7 +1769,13 @@ export function createBlocklyWorkspace() {
   );
 
   workspace = Blockly.inject('blocklyDiv', options);
-  new ScrollOptions(workspace).init();
+  new ScrollOptions(workspace).init({
+    edgeScrollOptions: {
+      oversizeBlockThreshold: 0,
+      fastBlockSpeed: 0.6,
+      fastMouseSpeed: 0.7,
+    },
+  });
 
   // Blockly insets the workspace "selection ring" (the keyboard-focus outline
   // shown while the empty workspace is the active node) by 5px so its stroke
