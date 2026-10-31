@@ -60,6 +60,58 @@ export function runMaterialGeneratorTests() {
       expect(gradientColour('["#ff5733", "#fdfd96"]', 0)).to.not.include('alpha');
     });
 
+    function gradientMaterial(fields = {}, inputs = {}) {
+      const originalValueToCode = javascriptGenerator.valueToCode;
+      javascriptGenerator.valueToCode = (_block, name) =>
+        name === 'COLORS' ? '["#3a7bd5", "#ffffff"]' : (inputs[name] ?? '');
+      const values = {
+        TEXTURE_SET: 'none.png',
+        STYLE: 'smooth',
+        MODE: 'by_height',
+        DIRECTION: 0,
+        ...fields,
+      };
+      try {
+        const block = { getFieldValue: (name) => values[name] };
+        const [code] = javascriptGenerator.forBlock['gradient_texture_material'](block);
+        return code;
+      } finally {
+        javascriptGenerator.valueToCode = originalValueToCode;
+      }
+    }
+
+    it('emits a smooth height gradient by default', function () {
+      expect(gradientMaterial()).to.equal(
+        '{ color: ["#3a7bd5", "#ffffff"], materialName: "none.png", direction: "height", bands: false, alpha: 1, scale: 1, noise: 0 }'
+      );
+    });
+
+    it('marks bands separately from the direction', function () {
+      expect(gradientMaterial({ STYLE: 'bands' })).to.include('direction: "height", bands: true');
+    });
+
+    it('emits the angle when the colors run across', function () {
+      expect(gradientMaterial({ MODE: 'across', DIRECTION: 45 })).to.include('direction: 45,');
+    });
+
+    it('ignores the angle field when the colors run by height', function () {
+      expect(gradientMaterial({ DIRECTION: 45 })).to.include('direction: "height"');
+    });
+
+    it('passes the chosen texture through', function () {
+      expect(gradientMaterial({ TEXTURE_SET: 'grass.png' })).to.include(
+        'materialName: "grass.png"'
+      );
+    });
+
+    it('passes alpha and scale through', function () {
+      expect(gradientMaterial({}, { ALPHA: '0.5', SCALE: '3' })).to.include('alpha: 0.5, scale: 3');
+    });
+
+    it('passes noise through', function () {
+      expect(gradientMaterial({}, { NOISE: '0.6' })).to.include('noise: 0.6 }');
+    });
+
     function materialCode(inputs) {
       const originalValueToCode = javascriptGenerator.valueToCode;
       javascriptGenerator.valueToCode = (_block, name) => inputs[name] ?? '';

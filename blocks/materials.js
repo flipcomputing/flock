@@ -9,7 +9,7 @@ import {
 } from './blocks.js';
 import { materialNames } from '../config.js';
 import { flock } from '../flock.js';
-import { translate, getTooltip } from '../main/translation.js';
+import { translate, getTooltip, getDropdownOption } from '../main/translation.js';
 import { isValidColourInput } from './colourvalidation.js';
 import {
   makeTouchesInputSubtree,
@@ -26,6 +26,78 @@ const MATERIAL_OPTION_INPUTS = [
   ['SCALE', 'material_scale', 1],
   ['ANGLE', 'material_angle', 0],
 ];
+
+const GRADIENT_MATERIAL_OPTION_INPUTS = [
+  ...MATERIAL_OPTION_INPUTS.filter(([name]) => name !== 'ANGLE'),
+  ['NOISE', 'material_noise', 0],
+];
+
+function appendMaterialOptions(block, optionInputs) {
+  block.optionInputs_ = optionInputs;
+  block.appendDummyInput('OPTIONS').appendField(
+    new Blockly.FieldImage(DISCLOSURE_CLOSED, 24, 24, 'show material options', () =>
+      block.toggleOptions_()
+    ),
+    'OPTIONS_BUTTON'
+  );
+  for (const [name, label, value] of optionInputs) {
+    block
+      .appendValueInput(name)
+      .appendField(translate(label))
+      .connection.setShadowState({ type: 'math_number', fields: { NUM: value } });
+  }
+  block.setOptionsShown_(false);
+}
+
+const materialOptionsMethods = {
+  saveExtraState: function () {
+    return this.optionsShown_ ? { options: true } : null;
+  },
+
+  loadExtraState: function (state) {
+    this.setOptionsShown_(state?.options === true);
+  },
+
+  setOptionsShown_: function (show) {
+    this.optionsShown_ = show;
+    for (const [name] of this.optionInputs_) this.getInput(name).setVisible(show);
+    this.syncDisclosureIcons_();
+  },
+
+  syncDisclosureIcons_: function () {
+    const hasCode = this.optionInputs_.some(([name, , value]) => {
+      const target = this.getInputTargetBlock(name);
+      if (!target) return false;
+      if (!target.isShadow()) return true;
+      return Number(target.getFieldValue('NUM')) !== value;
+    });
+    setDisclosureIcon(
+      this.getField('OPTIONS_BUTTON'),
+      this.optionsShown_,
+      hasCode,
+      'material options',
+      { inline: true }
+    );
+  },
+
+  toggleOptions_: function () {
+    const oldState = JSON.stringify(this.saveExtraState());
+    this.setOptionsShown_(!this.optionsShown_);
+    if (this.rendered) {
+      this.render();
+      this.bumpNeighbours();
+    }
+    const newState = JSON.stringify(this.saveExtraState());
+    Blockly.Events.fire(new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState));
+  },
+};
+
+function textureGridOptions() {
+  return materialNames.map((name) => {
+    const baseName = name.replace(/\.[^/.]+$/, '');
+    return [{ src: `./textures/${baseName}.png`, width: 50, height: 50, alt: baseName }, name];
+  });
+}
 
 export function defineMaterialsBlocks() {
   Blockly.Blocks['change_color'] = {
@@ -67,18 +139,7 @@ export function defineMaterialsBlocks() {
             type: 'field_grid_dropdown',
             name: 'MATERIALS',
             columns: 4,
-            options: materialNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, '');
-              return [
-                {
-                  src: `./textures/${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
-                },
-                name,
-              ];
-            }),
+            options: textureGridOptions(),
           },
           {
             type: 'field_variable',
@@ -667,18 +728,7 @@ export function defineMaterialsBlocks() {
             type: 'field_grid_dropdown',
             name: 'TEXTURE_SET',
             columns: 4,
-            options: materialNames.map((name) => {
-              const baseName = name.replace(/\.[^/.]+$/, '');
-              return [
-                {
-                  src: `./textures/${baseName}.png`,
-                  width: 50,
-                  height: 50,
-                  alt: baseName,
-                },
-                name,
-              ];
-            }),
+            options: textureGridOptions(),
           },
           {
             type: 'input_value',
@@ -695,62 +745,10 @@ export function defineMaterialsBlocks() {
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
-      this.appendDummyInput('OPTIONS').appendField(
-        new Blockly.FieldImage(DISCLOSURE_CLOSED, 24, 24, 'show material options', () =>
-          this.toggleOptions_()
-        ),
-        'OPTIONS_BUTTON'
-      );
-      for (const [name, label, value] of MATERIAL_OPTION_INPUTS) {
-        this.appendValueInput(name)
-          .appendField(translate(label))
-          .connection.setShadowState({ type: 'math_number', fields: { NUM: value } });
-      }
-      this.setOptionsShown_(false);
+      appendMaterialOptions(this, MATERIAL_OPTION_INPUTS);
     },
 
-    saveExtraState: function () {
-      return this.optionsShown_ ? { options: true } : null;
-    },
-
-    loadExtraState: function (state) {
-      this.setOptionsShown_(state?.options === true);
-    },
-
-    setOptionsShown_: function (show) {
-      this.optionsShown_ = show;
-      for (const [name] of MATERIAL_OPTION_INPUTS) this.getInput(name).setVisible(show);
-      this.syncDisclosureIcons_();
-    },
-
-    syncDisclosureIcons_: function () {
-      const hasCode = MATERIAL_OPTION_INPUTS.some(([name, , value]) => {
-        const target = this.getInputTargetBlock(name);
-        if (!target) return false;
-        if (!target.isShadow()) return true;
-        return Number(target.getFieldValue('NUM')) !== value;
-      });
-      setDisclosureIcon(
-        this.getField('OPTIONS_BUTTON'),
-        this.optionsShown_,
-        hasCode,
-        'material options',
-        { inline: true }
-      );
-    },
-
-    toggleOptions_: function () {
-      const oldState = JSON.stringify(this.saveExtraState());
-      this.setOptionsShown_(!this.optionsShown_);
-      if (this.rendered) {
-        this.render();
-        this.bumpNeighbours();
-      }
-      const newState = JSON.stringify(this.saveExtraState());
-      Blockly.Events.fire(
-        new Blockly.Events.BlockChange(this, 'mutation', null, oldState, newState)
-      );
-    },
+    ...materialOptionsMethods,
   };
 
   Blockly.Blocks['gradient_material'] = {
@@ -808,6 +806,70 @@ export function defineMaterialsBlocks() {
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
     },
+  };
+
+  Blockly.Blocks['gradient_texture_material'] = {
+    init: function () {
+      this.jsonInit({
+        type: 'gradient_texture_material',
+        message0: translate('gradient_texture_material'),
+        args0: [
+          {
+            type: 'field_grid_dropdown',
+            name: 'TEXTURE_SET',
+            columns: 4,
+            options: textureGridOptions(),
+          },
+          {
+            type: 'input_value',
+            name: 'COLORS',
+            check: 'Array',
+          },
+          {
+            type: 'field_dropdown',
+            name: 'STYLE',
+            options: [getDropdownOption('smooth'), getDropdownOption('bands')],
+          },
+          {
+            type: 'field_dropdown',
+            name: 'MODE',
+            options: [getDropdownOption('by_height'), getDropdownOption('across')],
+          },
+          {
+            type: 'field_number',
+            name: 'DIRECTION',
+            value: 0,
+            min: 0,
+            max: 360,
+            precision: 1,
+          },
+          {
+            type: 'field_label',
+            name: 'DEGREES',
+            text: '°',
+          },
+        ],
+        output: ['Gradient', 'Material'],
+        inputsInline: true,
+        colour: categoryColours['Materials'],
+        tooltip: getTooltip('gradient_texture_material'),
+      });
+      this.setHelpUrl(getHelpUrlFor(this.type));
+      this.setStyle('materials_blocks');
+      appendMaterialOptions(this, GRADIENT_MATERIAL_OPTION_INPUTS);
+      const showAngle = (mode) => {
+        this.getField('DIRECTION').setVisible(mode === 'across');
+        this.getField('DEGREES').setVisible(mode === 'across');
+        if (this.rendered) this.queueRender();
+      };
+      this.getField('MODE').setValidator((mode) => {
+        showAngle(mode);
+        return mode;
+      });
+      showAngle(this.getFieldValue('MODE'));
+    },
+
+    ...materialOptionsMethods,
   };
 
   function attachSetMaterialOnChange(block) {

@@ -135,7 +135,7 @@ export default {
   set_sky_color: 'sky %1',
   create_ground: 'ground %1',
   set_background_color: 'background %1',
-  create_map: 'map %1 with material %2',
+  create_map: 'map %1 with %2',
   show: 'show %1',
   hide: 'hide %1',
   dispose: 'dispose %1',
@@ -290,9 +290,11 @@ export default {
   material: 'material %1 %2',
   material_alpha: 'alpha',
   material_scale: 'scale',
+  material_noise: 'noise',
   material_angle: 'angle',
   gradient_material: 'material %1 alpha %2',
   gradient_colour: 'gradient %1 direction %2°',
+  gradient_texture_material: 'gradient material %1 %2 %3 %4 %5%6',
   set_material: 'set material of %1 to %2',
 
   // Custom block translations - Physics blocks
@@ -646,6 +648,8 @@ export default {
     'Define a material using a color, gradient, or list of colors, with adjustable alpha (transparency).',
   gradient_colour_tooltip:
     'Blend between two or more colors. Direction is in degrees: 0 is bottom to top, 90 is left to right.',
+  gradient_texture_material_tooltip:
+    'Spread a list of colors over an object or the ground. By height puts the first color at the lowest point and the last at the highest. Across runs the colors at an angle: 0 is bottom to top, 90 is left to right. Pick a pattern to tint it with the colors. Smooth blends the colors; bands gives each color its own strip. Use + to set transparency, pattern scale and noise, which roughens the edges between colors.',
   set_material_tooltip: 'Set the specified material on the given object.',
 
   // Tooltip translations - Physics blocks
@@ -1034,6 +1038,9 @@ export default {
   hud_option: 'heads-up display',
   wrist_option: 'wrist',
   smooth_option: 'smooth',
+  bands_option: 'bands',
+  by_height_option: 'by height',
+  across_option: 'across',
   comfort_option: 'comfort',
   auto_option: 'auto',
   dots_option: 'dots',

@@ -13,9 +13,18 @@ function gradientAxisFor(direction) {
   return { x: Math.sin(radians), y: Math.cos(radians) };
 }
 
+export function isHeightDirection(direction) {
+  return direction === 'height';
+}
+
+function isGradientDirection(direction) {
+  return Number.isFinite(direction) || isHeightDirection(direction);
+}
+
 // The angle is part of a gradient's identity, so it has to reach the material cache key.
-function withGradientDirection(colorKey, direction) {
-  return Number.isFinite(direction) ? `${colorKey}@${direction}` : colorKey;
+function withGradientDirection(colorKey, direction, { bands = false, noise = 0 } = {}) {
+  if (!isGradientDirection(direction)) return colorKey;
+  return `${colorKey}@${direction}${bands ? '@bands' : ''}${noise ? `@n${noise}` : ''}`;
 }
 
 // Built on first use: the class needs BABYLON, which arrives with the flock ref.
@@ -29,6 +38,9 @@ function gradientPluginClass() {
       super(material, 'FlockGradient', 200, { FLOCK_GRADIENT: true }, true, true);
       this.colors = [];
       this.direction = 0;
+      this.height = false;
+      this.bands = false;
+      this.noise = 0;
       this.ramp = null;
       this.axis = gradientAxisFor(0);
     }
@@ -56,10 +68,13 @@ function gradientPluginClass() {
     getUniforms() {
       return {
         ubo: [
-          { name: 'gradientAxis', size: 2, type: 'vec2' },
+          { name: 'gradientAxis', size: 3, type: 'vec3' },
           { name: 'gradientRange', size: 2, type: 'vec2' },
+          { name: 'gradientHeight', size: 1, type: 'float' },
+          { name: 'gradientNoise', size: 2, type: 'vec2' },
         ],
-        fragment: 'uniform vec2 gradientAxis;\nuniform vec2 gradientRange;\n',
+        fragment:
+          'uniform vec3 gradientAxis;\nuniform vec2 gradientRange;\nuniform float gradientHeight;\nuniform vec2 gradientNoise;\n',
       };
     }
 
@@ -67,55 +82,128 @@ function gradientPluginClass() {
     // the whole mesh, so submeshes of one mesh share it.
     bindForSubMesh(uniformBuffer, scene, engine, subMesh) {
       const mesh = subMesh?.getMesh?.();
-      const axis = this.axis;
+      const flat = mesh?.metadata?.blockKey === 'ground';
+      const axis = flat
+        ? { x: this.axis.x, y: 0, z: this.axis.y }
+        : { x: this.axis.x, y: this.axis.y, z: 0 };
       let low = -1;
       let high = 1;
+      let extent = 1;
 
       if (mesh) {
+        const size = mesh.getBoundingInfo().boundingBox.extendSize;
+        extent = Math.max(size.x, size.y, size.z) * 2 || 1;
+      }
+
+      if (mesh && this.height) {
+        const bb = mesh.getBoundingInfo().boundingBox;
+        low = bb.minimumWorld.y;
+        high = bb.maximumWorld.y;
+      } else if (mesh) {
         const bb = mesh.getBoundingInfo().boundingBox;
         low = Infinity;
         high = -Infinity;
         for (const x of [bb.minimum.x, bb.maximum.x]) {
           for (const y of [bb.minimum.y, bb.maximum.y]) {
-            const projected = x * axis.x + y * axis.y;
-            low = Math.min(low, projected);
-            high = Math.max(high, projected);
+            for (const z of [bb.minimum.z, bb.maximum.z]) {
+              const projected = x * axis.x + y * axis.y + z * axis.z;
+              low = Math.min(low, projected);
+              high = Math.max(high, projected);
+            }
           }
         }
       }
 
-      uniformBuffer.updateFloat2('gradientAxis', axis.x, axis.y);
+      uniformBuffer.updateFloat3('gradientAxis', axis.x, axis.y, axis.z);
       uniformBuffer.updateFloat2('gradientRange', low, high);
+      uniformBuffer.updateFloat('gradientHeight', this.height ? 1 : 0);
+      uniformBuffer.updateFloat2(
+        'gradientNoise',
+        this.noise / Math.max(1, this.colors.length - (this.bands ? 0 : 1)),
+        6 / extent
+      );
       if (this.ramp) uniformBuffer.setTexture('gradientRamp', this.ramp);
     }
 
     getCustomCode(shaderType) {
       if (shaderType === 'vertex') {
         return {
-          CUSTOM_VERTEX_DEFINITIONS: 'varying vec3 vGradientPosition;\n',
+          CUSTOM_VERTEX_DEFINITIONS:
+            'varying vec3 vGradientPosition;\nvarying float vGradientWorldY;\n',
           CUSTOM_VERTEX_UPDATE_POSITION: 'vGradientPosition = positionUpdated;\n',
+          CUSTOM_VERTEX_UPDATE_WORLDPOS: 'vGradientWorldY = worldPos.y;\n',
         };
       }
 
       return {
         CUSTOM_FRAGMENT_DEFINITIONS:
-          'varying vec3 vGradientPosition;\nuniform sampler2D gradientRamp;\n',
+          `varying vec3 vGradientPosition;
+          varying float vGradientWorldY;
+          uniform sampler2D gradientRamp;
+          float flockGradientHash(vec3 p) {
+            p = fract(p * 0.3183099 + 0.1);
+            p *= 17.0;
+            return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+          }
+          float flockGradientValueNoise(vec3 p) {
+            vec3 i = floor(p);
+            vec3 f = fract(p);
+            f = f * f * (3.0 - 2.0 * f);
+            return mix(
+              mix(
+                mix(flockGradientHash(i), flockGradientHash(i + vec3(1.0, 0.0, 0.0)), f.x),
+                mix(flockGradientHash(i + vec3(0.0, 1.0, 0.0)), flockGradientHash(i + vec3(1.0, 1.0, 0.0)), f.x),
+                f.y),
+              mix(
+                mix(flockGradientHash(i + vec3(0.0, 0.0, 1.0)), flockGradientHash(i + vec3(1.0, 0.0, 1.0)), f.x),
+                mix(flockGradientHash(i + vec3(0.0, 1.0, 1.0)), flockGradientHash(i + 1.0), f.x),
+                f.y),
+              f.z);
+          }
+          `,
         CUSTOM_FRAGMENT_UPDATE_DIFFUSE: `
           float gradientSpan = max(1e-5, gradientRange.y - gradientRange.x);
-          float gradientT = clamp(
-            (dot(vGradientPosition.xy, gradientAxis) - gradientRange.x) / gradientSpan, 0.0, 1.0);
-          baseColor.rgb = texture2D(gradientRamp, vec2(0.5, gradientT)).rgb;
+          float gradientCoord = gradientHeight > 0.5
+            ? vGradientWorldY
+            : dot(vGradientPosition, gradientAxis);
+          float gradientT = (gradientCoord - gradientRange.x) / gradientSpan;
+          if (gradientNoise.x > 0.0) {
+            vec3 noiseAt = vGradientPosition * gradientNoise.y;
+            float wobble = 0.5 * flockGradientValueNoise(noiseAt)
+              + 0.25 * flockGradientValueNoise(noiseAt * 2.03)
+              + 0.125 * flockGradientValueNoise(noiseAt * 4.01)
+              + 0.0625 * flockGradientValueNoise(noiseAt * 8.07);
+            float offset = (wobble / 0.9375 - 0.5) * 2.0;
+            #ifdef DIFFUSE
+              vec3 lumaWeights = vec3(0.299, 0.587, 0.114);
+              float textureAverage = dot(
+                texture2D(diffuseSampler, vDiffuseUV + uvOffset, 16.0).rgb, lumaWeights);
+              float textureLift = clamp(
+                (dot(baseColor.rgb, lumaWeights) - textureAverage) * 4.0, -1.0, 1.0);
+              offset = 0.5 * offset + 0.5 * textureLift;
+            #endif
+            gradientT += offset * gradientNoise.x;
+          }
+          gradientT = clamp(gradientT, 0.0, 1.0);
+          baseColor.rgb *= texture2D(gradientRamp, vec2(0.5, gradientT)).rgb;
         `,
       };
     }
 
-    setColors(colors, direction) {
+    setColors(colors, direction, { bands = false, noise = 0 } = {}) {
       this.colors = colors.slice();
-      this.direction = Number(direction) || 0;
-      this.axis = gradientAxisFor(this.direction);
+      this.bands = bands === true;
+      this.noise = Number(noise) || 0;
+      this.height = isHeightDirection(direction);
+      this.direction = this.height ? direction : Number(direction) || 0;
+      this.axis = gradientAxisFor(this.height ? 0 : this.direction);
 
       const previous = this.ramp;
-      this.ramp = flock.createLinearGradientTexture(colors, { size: 256, horizontal: false });
+      this.ramp = flock.createLinearGradientTexture(colors, {
+        size: 256,
+        horizontal: false,
+        bands: this.bands,
+      });
       if (this.ramp) {
         this.ramp.wrapU = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
         this.ramp.wrapV = flock.BABYLON.Texture.CLAMP_ADDRESSMODE;
@@ -126,11 +214,22 @@ function gradientPluginClass() {
     }
 
     serialize() {
-      return { name: this.name, colors: this.colors, direction: this.direction };
+      return {
+        name: this.name,
+        colors: this.colors,
+        direction: this.direction,
+        bands: this.bands,
+        noise: this.noise,
+      };
     }
 
     parse(source) {
-      if (source?.colors?.length) this.setColors(source.colors, source.direction);
+      if (source?.colors?.length) {
+        this.setColors(source.colors, source.direction, {
+          bands: source.bands,
+          noise: source.noise,
+        });
+      }
     }
 
     dispose() {
@@ -154,7 +253,18 @@ function gradientPluginOn(material) {
 
 function readGradientDirection(value) {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return undefined;
-  return Number.isFinite(value.direction) ? value.direction : undefined;
+  return isGradientDirection(value.direction) ? value.direction : undefined;
+}
+
+function readGradientStyle(value) {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return { bands: false, noise: 0 };
+  }
+  const noise = Number(value.noise);
+  return {
+    bands: value.bands === true,
+    noise: Number.isFinite(noise) ? clampToRange(noise, 'unit') : 0,
+  };
 }
 
 const characterPartOriginals = new WeakMap();
@@ -182,10 +292,12 @@ function readTextureAngle(value) {
   return Number.isFinite(angle) ? ((angle % 360) + 360) % 360 : 0;
 }
 
-function gradientWithAngle(rawColor, texName, direction, angle) {
+function gradientWithAngle(rawColor, texName, direction, angle, style = {}) {
   const isGradient =
     Array.isArray(rawColor) && rawColor.length >= 2 && ['none.png', 'NONE'].includes(texName);
+  if (isGradient && direction === undefined && (style.bands || style.noise)) direction = 0;
   if (!isGradient || angle === 0) return { direction, angle };
+  if (isHeightDirection(direction)) return { direction, angle: 0 };
   return { direction: ((direction ?? 0) + angle) % 360, angle: 0 };
 }
 
@@ -466,13 +578,18 @@ export const flockMaterial = {
       const parts = mat.metadata.cacheKey.split('~')[0].split('_');
       const lastPart = parts[parts.length - 1];
       const hasGlowPart = lastPart === 'glow' || lastPart === 'noglow';
-      const [colorPart, directionPart] = parts[1].split('@');
+      const [colorPart, directionPart, ...styleParts] = parts[1].split('@');
+      const noisePart = styleParts.find((part) => part.startsWith('n'));
       const color = colorPart.includes('-') ? colorPart.split('-') : colorPart;
-      const parsedDirection = parseFloat(directionPart);
+      const parsedDirection = isHeightDirection(directionPart)
+        ? directionPart
+        : parseFloat(directionPart);
       const parsedAlpha = parseFloat(parts[2]);
       return withScale({
         color,
-        ...(Number.isFinite(parsedDirection) ? { direction: parsedDirection } : {}),
+        ...(isGradientDirection(parsedDirection) ? { direction: parsedDirection } : {}),
+        ...(styleParts.includes('bands') ? { bands: true } : {}),
+        ...(noisePart ? { noise: parseFloat(noisePart.slice(1)) } : {}),
         materialName:
           mat.metadata.texName ||
           parts.slice(3, hasGlowPart ? -1 : parts.length).join('_') ||
@@ -630,7 +747,10 @@ export const flockMaterial = {
       clone.metadata = { ...(originalMaterial.metadata || {}) };
       if (clone.metadata.gradientColors) {
         const plugin = gradientPluginOn(clone) ?? new (gradientPluginClass())(clone);
-        plugin.setColors(clone.metadata.gradientColors, clone.metadata.gradientDirection);
+        plugin.setColors(clone.metadata.gradientColors, clone.metadata.gradientDirection, {
+          bands: clone.metadata.gradientBands,
+          noise: clone.metadata.gradientNoise,
+        });
       }
       return flock.inheritPendingTexture(originalMaterial, clone);
     };
@@ -1318,6 +1438,8 @@ export const flockMaterial = {
     alpha,
     glow = false,
     direction,
+    bands = false,
+    noise = 0,
     scale = 1,
     angle = 0,
   } = {}) {
@@ -1339,14 +1461,28 @@ export const flockMaterial = {
       }
     }
 
+    const attachTiledTexture = (target) => {
+      const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
+      texture.uScale = tiling;
+      texture.vScale = tiling;
+      texture.wAng = rotation;
+      texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+      flock.attachTextureWhenLoaded(target, texture);
+    };
+
     if (Array.isArray(color) && color.length >= 2) {
-      // Use gradient for Flat material
-      if (materialName === 'none.png') {
+      const textured = materialName !== 'none.png';
+      if (!textured || isGradientDirection(direction)) {
         material = flock.createGradientMaterial(
           materialName,
           color,
-          ((Number(direction) || 0) + (Number(angle) || 0)) % 360
+          textured || isHeightDirection(direction)
+            ? direction
+            : ((Number(direction) || 0) + (Number(angle) || 0)) % 360,
+          { bands, noise }
         );
+        if (textured) attachTiledTexture(material);
         material.backFaceCulling = false;
       } else {
         // Use shader-based color replacement for patterned materials
@@ -1364,15 +1500,7 @@ export const flockMaterial = {
       material = new flock.BABYLON.StandardMaterial(materialName, flock.scene);
 
       // Load texture if provided
-      if (texturePath) {
-        const texture = new flock.BABYLON.Texture(texturePath, flock.scene);
-        texture.uScale = tiling;
-        texture.vScale = tiling;
-        texture.wAng = rotation;
-        texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-        texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
-        flock.attachTextureWhenLoaded(material, texture);
-      }
+      if (texturePath) attachTiledTexture(material);
 
       // Set single color if provided
       if (color) {
@@ -1405,15 +1533,17 @@ export const flockMaterial = {
   // A gradient material is shared between meshes, so the range it spans has to be
   // set per draw call. Every route that produces one must attach this, or the
   // gradient keeps the placeholder bounds it was constructed with.
-  createGradientMaterial(name, colors, direction) {
+  createGradientMaterial(name, colors, direction, { bands = false, noise = 0 } = {}) {
     const material = new flock.BABYLON.StandardMaterial(name, flock.scene);
     const plugin = gradientPluginOn(material) ?? new (gradientPluginClass())(material);
-    plugin.setColors(colors, direction);
+    plugin.setColors(colors, direction, { bands, noise });
 
     material.metadata = {
       ...(material.metadata || {}),
-      gradientDirection: Number(direction) || 0,
+      gradientDirection: isHeightDirection(direction) ? direction : Number(direction) || 0,
       gradientColors: colors.slice(),
+      gradientBands: bands === true,
+      gradientNoise: Number(noise) || 0,
     };
 
     return material;
@@ -1829,6 +1959,7 @@ export const flockMaterial = {
     let finalAlpha = alpha;
     let finalGlow = false;
     let finalDirection;
+    let finalStyle = readGradientStyle(null);
 
     if (isObject) {
       const inner = colorInput.color || colorInput.baseColor;
@@ -1850,12 +1981,19 @@ export const flockMaterial = {
               : alpha;
         finalGlow = inner.glow !== undefined ? inner.glow : (colorInput.glow ?? false);
         finalDirection = readGradientDirection(inner) ?? readGradientDirection(colorInput);
+        const innerStyle = readGradientStyle(inner);
+        const outerStyle = readGradientStyle(colorInput);
+        finalStyle = {
+          bands: innerStyle.bands || outerStyle.bands,
+          noise: innerStyle.noise || outerStyle.noise,
+        };
       } else {
         rawColor = inner || '#ffffff';
         texName = colorInput.materialName || colorInput.textureSet || 'none.png';
         finalAlpha = colorInput.alpha !== undefined ? colorInput.alpha : alpha;
         finalGlow = colorInput.glow ?? false;
         finalDirection = readGradientDirection(colorInput);
+        finalStyle = readGradientStyle(colorInput);
       }
     } else {
       rawColor = colorInput || '#ffffff';
@@ -1865,7 +2003,8 @@ export const flockMaterial = {
       rawColor,
       texName,
       finalDirection,
-      readTextureAngle(colorInput)
+      readTextureAngle(colorInput),
+      finalStyle
     );
     finalDirection = folded.direction;
     const numericAlpha =
@@ -1874,7 +2013,8 @@ export const flockMaterial = {
     const finalAngle = folded.angle;
     const colorKey = withGradientDirection(
       Array.isArray(rawColor) ? rawColor.join('-') : rawColor,
-      finalDirection
+      finalDirection,
+      finalStyle
     );
     const finalScale = readTextureScale(colorInput);
     const cacheKey = materialCacheKey(
@@ -1896,7 +2036,9 @@ export const flockMaterial = {
       glow: finalGlow,
       scale: finalScale,
       angle: finalAngle,
-      ...(Number.isFinite(finalDirection) ? { direction: finalDirection } : {}),
+      ...(isGradientDirection(finalDirection) ? { direction: finalDirection } : {}),
+      ...(finalStyle.bands ? { bands: true } : {}),
+      ...(finalStyle.noise ? { noise: finalStyle.noise } : {}),
     };
 
     const newMat = flock.createMaterial(materialParams);
@@ -2026,17 +2168,20 @@ export const flockMaterial = {
     const makeTargetCacheKey = (v, m) => {
       const rawColor = getRawColor(v);
       const texName = String(getTexName(v));
+      const style = readGradientStyle(v);
       const { direction, angle } = gradientWithAngle(
         rawColor,
         texName,
         readGradientDirection(v),
-        readTextureAngle(v)
+        readTextureAngle(v),
+        style
       );
       const colorKey = withGradientDirection(
         Array.isArray(rawColor)
           ? rawColor.join('-')
           : flock.getColorFromString(rawColor) || '#ffffff',
-        direction
+        direction,
+        style
       );
       const glow =
         typeof v === 'object' && v !== null && !Array.isArray(v) ? (v.glow ?? false) : false;

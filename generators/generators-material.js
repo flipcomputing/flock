@@ -165,4 +165,24 @@ export function registerMaterialGenerators(javascriptGenerator) {
     const code = `{ color: ${colors}, materialName: "none.png", direction: ${direction} }`;
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
+
+  javascriptGenerator.forBlock['gradient_texture_material'] = function (block) {
+    const colors =
+      javascriptGenerator.valueToCode(block, 'COLORS', javascriptGenerator.ORDER_ATOMIC) || '[]';
+    const direction =
+      block.getFieldValue('MODE') === 'across'
+        ? Number(block.getFieldValue('DIRECTION')) || 0
+        : 'height';
+    const bands = block.getFieldValue('STYLE') === 'bands';
+    const texture = JSON.stringify(block.getFieldValue('TEXTURE_SET') || 'none.png');
+    const alpha =
+      javascriptGenerator.valueToCode(block, 'ALPHA', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const scale =
+      javascriptGenerator.valueToCode(block, 'SCALE', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const noise =
+      javascriptGenerator.valueToCode(block, 'NOISE', javascriptGenerator.ORDER_ATOMIC) || '0';
+
+    const code = `{ color: ${colors}, materialName: ${texture}, direction: ${JSON.stringify(direction)}, bands: ${bands}, alpha: ${alpha}, scale: ${scale}, noise: ${noise} }`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
 }

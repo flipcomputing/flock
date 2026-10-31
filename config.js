@@ -491,6 +491,8 @@ export const NUMBER_RANGES = Object.freeze({
 export const RANGED_INPUTS = Object.freeze({
   'set_alpha.ALPHA': 'unit',
   'material.ALPHA': 'unit',
+  'gradient_texture_material.ALPHA': 'unit',
+  'gradient_texture_material.NOISE': 'unit',
   'gradient_material.ALPHA': 'unit',
   'say.ALPHA': 'unit',
   'ui_text.ALPHA': 'unit',
@@ -511,6 +513,7 @@ export const RANGED_INPUTS = Object.freeze({
   'note.PITCH': 'midiNote',
   'speak.PITCH': 'speechPitch',
   'gradient_colour.DIRECTION': 'angle',
+  'gradient_texture_material.DIRECTION': 'angle',
   'material.ANGLE': 'angle',
   'create_particle_effect.MIN_INITIAL_ROTATION': 'particleAngle',
   'create_particle_effect.MAX_INITIAL_ROTATION': 'particleAngle',

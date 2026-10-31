@@ -3874,6 +3874,29 @@ const toolboxMaterials = {
     },
     {
       kind: 'block',
+      type: 'gradient_texture_material',
+      keyword: 'gradientmat',
+      fields: {
+        TEXTURE_SET: 'none.png',
+      },
+      inputs: {
+        COLORS: {
+          block: {
+            type: 'lists_create_with',
+            extraState: { itemCount: 4 },
+            inline: true,
+            inputs: {
+              ADD0: { shadow: { type: 'colour', fields: { COLOR: '#3a7bd5' } } },
+              ADD1: { shadow: { type: 'colour', fields: { COLOR: '#4caf50' } } },
+              ADD2: { shadow: { type: 'colour', fields: { COLOR: '#8d6e63' } } },
+              ADD3: { shadow: { type: 'colour', fields: { COLOR: '#ffffff' } } },
+            },
+          },
+        },
+      },
+    },
+    {
+      kind: 'block',
       type: 'lists_create_with',
       keyword: 'materiallist',
       extraState: { itemCount: 1 },

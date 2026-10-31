@@ -1,4 +1,5 @@
 import { TEXTURE_TILE_SIZE } from '../config.js';
+import { isHeightDirection } from './material.js';
 import {
   isBodyAlive,
   movePendingBody,
@@ -846,7 +847,12 @@ export const flockScene = {
       const hex = flock.getColorFromString(normalizedColors[i]);
       const c3 = flock.BABYLON.Color3.FromHexString(hex);
       const rgb = `rgb(${Math.round(c3.r * 255)}, ${Math.round(c3.g * 255)}, ${Math.round(c3.b * 255)})`;
-      grad.addColorStop(stop, rgb);
+      if (opts.bands) {
+        grad.addColorStop(i / n, rgb);
+        grad.addColorStop((i + 1) / n, rgb);
+      } else {
+        grad.addColorStop(stop, rgb);
+      }
     }
 
     if (horizontal) {
@@ -882,7 +888,9 @@ export const flockScene = {
               typeof mat === 'object' &&
               Array.isArray(mat.color) &&
               mat.color.length >= 2 &&
-              (mat.materialName === 'none.png' || !mat.materialName)
+              (mat.materialName === 'none.png' || !mat.materialName) &&
+              !isHeightDirection(mat.direction) &&
+              !(Number(mat.noise) > 0)
             ? mat.color
             : null;
 
@@ -921,6 +929,7 @@ export const flockScene = {
         const dt = flock.createLinearGradientTexture(colorList, {
           size: 1024,
           horizontal: false,
+          bands: mat?.bands === true,
         });
         standardMat.diffuseTexture = dt;
         if (mat && typeof mat === 'object' && mat.alpha !== undefined) {
@@ -984,7 +993,9 @@ export const flockScene = {
       !Array.isArray(material) &&
       Array.isArray(material.color) &&
       material.color.length >= 2 &&
-      (material.materialName === 'none.png' || !material.materialName);
+      (material.materialName === 'none.png' || !material.materialName) &&
+      !isHeightDirection(material.direction) &&
+      !(Number(material.noise) > 0);
     const shouldScaleUVs =
       !(Array.isArray(material) && material.length >= 2) &&
       !isMaterialColorList &&

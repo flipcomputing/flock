@@ -261,6 +261,75 @@ export function runSceneTests(flock) {
         expect(ground.metadata.heightMapImage).to.equal('Islands.png');
       });
 
+      it('should spread a height gradient over a heightmap ground by height @slow', async function () {
+        this.timeout(10000);
+        flock.createMap('Islands.png', {
+          color: ['#3a7bd5', '#4caf50', '#ffffff'],
+          materialName: 'none.png',
+          direction: 'height',
+          bands: true,
+        });
+        const ground = await waitForGroundMetadata();
+        const plugin = ground.material.pluginManager?._plugins?.find(
+          (p) => p.getClassName() === 'FlockGradientPlugin'
+        );
+        expect(plugin?.height).to.equal(true);
+        expect(ground.material.metadata.gradientDirection).to.equal('height');
+        expect(plugin.bands).to.equal(true);
+      });
+
+      it('should send a noisy flat gradient on the ground through the gradient shader', function () {
+        flock.createMap('NONE', {
+          color: ['#3a7bd5', '#ffffff'],
+          materialName: 'none.png',
+          direction: 0,
+          noise: 0.5,
+        });
+        const plugin = flock.ground.material.pluginManager?._plugins?.find(
+          (p) => p.getClassName() === 'FlockGradientPlugin'
+        );
+        expect(plugin?.noise).to.equal(0.5);
+      });
+
+      it('should run a textured gradient across a flat ground', function () {
+        flock.createMap('NONE', {
+          color: ['#3a7bd5', '#ffffff'],
+          materialName: 'grass.png',
+          direction: 90,
+        });
+        const plugin = flock.ground.material.pluginManager?._plugins?.find(
+          (p) => p.getClassName() === 'FlockGradientPlugin'
+        );
+        const captured = {};
+        plugin.bindForSubMesh(
+          {
+            updateFloat3: (name, x, y, z) => (captured[name] = { x, y, z }),
+            updateFloat2: (name, x, y) => (captured[name] = { x, y }),
+            updateFloat() {},
+            setTexture() {},
+          },
+          flock.scene,
+          flock.scene.getEngine(),
+          flock.ground.subMeshes[0]
+        );
+        expect(captured.gradientAxis.x).to.be.closeTo(1, 1e-6);
+        expect(captured.gradientAxis.y).to.be.closeTo(0, 1e-6);
+        expect(captured.gradientRange.y - captured.gradientRange.x).to.be.closeTo(100, 1e-6);
+      });
+
+      it('should keep a heightmap ground tiled for a textured height material @slow', async function () {
+        this.timeout(10000);
+        flock.createMap('Islands.png', {
+          color: ['#3a7bd5', '#4caf50', '#ffffff'],
+          materialName: 'grass.png',
+          direction: 'height',
+        });
+        const ground = await waitForGroundMetadata();
+        const uvs = ground.getVerticesData('uv');
+        expect(Math.max(...uvs.filter((_, i) => i % 2 === 0))).to.be.greaterThan(1);
+        expect(flock.materialTexture(ground.material)?.name).to.include('grass.png');
+      });
+
       it('should replace a flat ground with a heightmap ground @slow', async function () {
         this.timeout(10000);
         flock.createMap('NONE', ['#336633', '#88cc88']);

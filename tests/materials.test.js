@@ -15,6 +15,10 @@ export function runMaterialsTests(flock) {
         updateFloat2: (name, x, y) => {
           captured[name] = { x, y };
         },
+        updateFloat3: (name, x, y, z) => {
+          captured[name] = { x, y, z };
+        },
+        updateFloat() {},
         setTexture() {},
       },
       flock.scene,
@@ -2019,6 +2023,188 @@ export function runMaterialsTests(flock) {
       const target = getTarget(id);
       expect(gradientPluginOf(target.material)).to.exist;
       expect(target.material.metadata.gradientDirection).to.equal(30);
+    });
+  });
+
+  describe('height gradients @materials', function () {
+    this.timeout(5000);
+    const boxIds = [];
+    const colors = ['#3a7bd5', '#4caf50', '#ffffff'];
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    async function createHeightBox(id, direction, position = [0, 0, 0], extra = {}) {
+      await flock.createBox(id, {
+        width: 1,
+        height: 4,
+        depth: 1,
+        color: { color: colors, materialName: 'none.png', direction, ...extra },
+        position,
+      });
+      boxIds.push(id);
+      const mesh = flock.scene.getMeshByName(id);
+      mesh.computeWorldMatrix(true);
+      return mesh;
+    }
+
+    it('spans the mesh in world height', async function () {
+      const mesh = await createHeightBox('heightWorld', 'height', [0, 6, 0]);
+      const { minimumWorld, maximumWorld } = mesh.getBoundingInfo().boundingBox;
+
+      const range = gradientRangeFor(mesh);
+      expect(range.x).to.be.closeTo(minimumWorld.y, 1e-6);
+      expect(range.y).to.be.closeTo(maximumWorld.y, 1e-6);
+      expect(range.y - range.x).to.be.closeTo(4, 1e-6);
+      expect(range.x).to.be.greaterThan(1);
+    });
+
+    it('stays level when the mesh is turned on its side', async function () {
+      const mesh = await createHeightBox('heightTurned', 'height');
+      await flock.rotateTo('heightTurned', { z: 90 });
+      mesh.computeWorldMatrix(true);
+
+      const range = gradientRangeFor(mesh);
+      expect(range.y - range.x).to.be.closeTo(1, 1e-6);
+    });
+
+    it('keeps the height mode through the cache key and clones', async function () {
+      const mesh = await createHeightBox('heightClone', 'height', [0, 0, 0], { bands: true });
+      expect(mesh.material.metadata.gradientDirection).to.equal('height');
+      expect(mesh.material.metadata.gradientBands).to.equal(true);
+      const params = flock.getMaterialParamsFromMesh(mesh);
+      expect(params.direction).to.equal('height');
+      expect(params.bands).to.equal(true);
+
+      mesh.metadata.sharedMaterial = true;
+      flock.ensureUniqueMaterial(mesh);
+      expect(gradientPluginOf(mesh.material).height).to.equal(true);
+      expect(gradientPluginOf(mesh.material).bands).to.equal(true);
+    });
+
+    it('gives smooth and banded height gradients separate materials', async function () {
+      const smooth = await createHeightBox('heightSmooth', 'height');
+      const bands = await createHeightBox('heightBands', 'height', [0, 0, 0], { bands: true });
+      expect(smooth.material.uniqueId).to.not.equal(bands.material.uniqueId);
+    });
+
+    it('tints a chosen texture by height', async function () {
+      await flock.createBox('heightTextured', {
+        width: 1,
+        height: 4,
+        depth: 1,
+        color: { color: colors, materialName: 'grass.png', direction: 'height' },
+        position: [0, 0, 0],
+      });
+      boxIds.push('heightTextured');
+      const mesh = flock.scene.getMeshByName('heightTextured');
+
+      expect(gradientPluginOf(mesh.material).height).to.equal(true);
+      expect(flock.materialTexture(mesh.material)?.name).to.include('grass.png');
+      expect(mesh.material.metadata.texName).to.equal('grass.png');
+    });
+
+    it('applies alpha and texture scale to a height material', async function () {
+      await flock.createBox('heightScaled', {
+        width: 1,
+        height: 4,
+        depth: 1,
+        color: {
+          color: colors,
+          materialName: 'grass.png',
+          direction: 'height',
+          alpha: 0.5,
+          scale: 2,
+        },
+        position: [0, 0, 0],
+      });
+      boxIds.push('heightScaled');
+      const mesh = flock.scene.getMeshByName('heightScaled');
+
+      expect(mesh.material.alpha).to.be.closeTo(0.5, 1e-6);
+      expect(mesh.material.metadata.textureScale).to.equal(2);
+      expect(gradientPluginOf(mesh.material).height).to.equal(true);
+    });
+
+    it('tints a texture along an angle instead of recolouring it', async function () {
+      const mesh = await createHeightBox('acrossTextured', 45, [0, 0, 0], {
+        materialName: 'grass.png',
+        bands: true,
+      });
+      const plugin = gradientPluginOf(mesh.material);
+      expect(plugin.height).to.equal(false);
+      expect(plugin.bands).to.equal(true);
+      expect(plugin.direction).to.equal(45);
+      expect(flock.materialTexture(mesh.material)?.name).to.include('grass.png');
+    });
+
+    it('still recolours a pattern for a plain colour list', async function () {
+      await flock.createBox('patternList', {
+        width: 1,
+        height: 1,
+        depth: 1,
+        color: { color: colors, materialName: 'grass.png' },
+        position: [0, 0, 0],
+      });
+      boxIds.push('patternList');
+      const mesh = flock.scene.getMeshByName('patternList');
+      expect(gradientPluginOf(mesh.material)).to.equal(null);
+    });
+
+    it('keeps noise through the cache key and clones', async function () {
+      const mesh = await createHeightBox('heightNoise', 'height', [0, 0, 0], { noise: 0.6 });
+      expect(mesh.material.metadata.gradientNoise).to.be.closeTo(0.6, 1e-6);
+      expect(flock.getMaterialParamsFromMesh(mesh).noise).to.be.closeTo(0.6, 1e-6);
+
+      mesh.metadata.sharedMaterial = true;
+      flock.ensureUniqueMaterial(mesh);
+      expect(gradientPluginOf(mesh.material).noise).to.be.closeTo(0.6, 1e-6);
+    });
+
+    it('gives noisy and clean gradients separate materials', async function () {
+      const clean = await createHeightBox('heightClean', 'height');
+      const noisy = await createHeightBox('heightNoisy', 'height', [0, 0, 0], { noise: 0.5 });
+      expect(clean.material.uniqueId).to.not.equal(noisy.material.uniqueId);
+    });
+
+    it('keys bands on a gradient with no direction', async function () {
+      for (const [id, extra] of [
+        ['plainList', {}],
+        ['bandedList', { bands: true }],
+      ]) {
+        await flock.createBox(id, {
+          width: 1,
+          height: 4,
+          depth: 1,
+          color: { color: colors, materialName: 'none.png', ...extra },
+          position: [0, 0, 0],
+        });
+        boxIds.push(id);
+      }
+      const plain = flock.scene.getMeshByName('plainList');
+      const banded = flock.scene.getMeshByName('bandedList');
+
+      expect(banded.material.uniqueId).to.not.equal(plain.material.uniqueId);
+      expect(gradientPluginOf(plain.material).bands).to.equal(false);
+      expect(gradientPluginOf(banded.material).bands).to.equal(true);
+      expect(flock.getMaterialParamsFromMesh(banded).bands).to.equal(true);
+    });
+
+    it('limits noise to between 0 and 1', async function () {
+      const mesh = await createHeightBox('heightNoiseHigh', 'height', [0, 0, 0], { noise: 5 });
+      expect(gradientPluginOf(mesh.material).noise).to.equal(1);
+    });
+
+    it('ignores the material angle', async function () {
+      const plain = await createHeightBox('heightPlain', 'height');
+      const angled = await createHeightBox('heightAngled', 'height');
+      await flock.changeColor('heightAngled', {
+        color: { color: colors, materialName: 'none.png', direction: 'height', angle: 45 },
+      });
+      expect(angled.material.metadata.gradientDirection).to.equal('height');
+      expect(angled.material.uniqueId).to.equal(plain.material.uniqueId);
     });
   });
 

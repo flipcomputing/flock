@@ -554,17 +554,33 @@ export function readColourValue(block) {
     };
   }
 
-  if (block.type === 'gradient_colour') {
+  if (block.type === 'gradient_colour' || block.type === 'gradient_texture_material') {
     const colors = readColourValue(block.getInputTargetBlock('COLORS'));
     if (colors.kind === 'unknown') return UNKNOWN_COLOUR;
     const list = Array.isArray(colors.value) ? colors.value : colors.value ? [colors.value] : [];
     if (!list.length) return { value: null, kind: 'none' };
 
+    const isTextureGradient = block.type === 'gradient_texture_material';
+    const direction =
+      isTextureGradient && safeGetFieldValue(block, 'MODE') !== 'across'
+        ? 'height'
+        : Number(safeGetFieldValue(block, 'DIRECTION')) || 0;
+
     return {
       value: {
         color: list,
-        materialName: 'none.png',
-        direction: Number(safeGetFieldValue(block, 'DIRECTION')) || 0,
+        materialName: isTextureGradient
+          ? safeGetFieldValue(block, 'TEXTURE_SET') || 'none.png'
+          : 'none.png',
+        direction,
+        ...(isTextureGradient
+          ? {
+              bands: safeGetFieldValue(block, 'STYLE') === 'bands',
+              alpha: readNumberInput(block, 'ALPHA', 1),
+              scale: readNumberInput(block, 'SCALE', 1),
+              noise: readNumberInput(block, 'NOISE', 0),
+            }
+          : {}),
       },
       kind: 'gradient',
     };
@@ -902,6 +918,7 @@ const LITERAL_VALUE_TYPES = new Set([
   'random_colour',
   'material',
   'gradient_colour',
+  'gradient_texture_material',
   'gradient_material',
   'lists_create_with',
 ]);

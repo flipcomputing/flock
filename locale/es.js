@@ -133,7 +133,7 @@ export default {
   set_sky_color: 'cielo %1', // human
   create_ground: 'suelo %1', // human
   set_background_color: 'fondo %1', // human
-  create_map: 'mapa %1 con material %2', // human
+  create_map: 'mapa %1 con %2', // human
   show: 'mostrar %1', // human
   hide: 'ocultar %1', // human
   dispose: 'eliminar %1', // human
@@ -259,9 +259,11 @@ export default {
   material: 'material %1 %2', // human
   material_alpha: 'alfa',
   material_scale: 'escala',
+  material_noise: 'ruido', // ai
   material_angle: 'ángulo',
   gradient_material: 'material %1 alfa %2', // human
   gradient_colour: 'degradado %1 dirección %2°', // ai
+  gradient_texture_material: 'material degradado %1 %2 %3 %4 %5%6', // ai
   set_material: 'establecer material de %1 a %2', // human
 
   // Custom block translations - Physics blocks
@@ -586,6 +588,8 @@ export default {
   gradient_material_tooltip: 'Define propiedades del material (gradiente).', // human
   gradient_colour_tooltip:
     'Mezcla dos o más colores. La dirección se indica en grados: 0 es de abajo a arriba, 90 es de izquierda a derecha.', // ai
+  gradient_texture_material_tooltip:
+    'Reparte una lista de colores sobre un objeto o el suelo. Por altura pone el primer color en el punto más bajo y el último en el más alto. A lo ancho reparte los colores según un ángulo: 0 es de abajo a arriba, 90 es de izquierda a derecha. Elige un patrón para teñirlo con los colores. Suave mezcla los colores; bandas da a cada color su propia franja. Usa + para ajustar la transparencia, la escala del patrón y el ruido, que hace irregulares los bordes entre colores.', // ai
   set_material_tooltip: 'Establecer el material especificado al objeto indicado.', // human
 
   // Tooltip translations - Physics blocks
@@ -941,6 +945,9 @@ export default {
   hud_option: 'pantalla frontal', // ai
   wrist_option: 'muñeca', // ai
   smooth_option: 'suave',
+  bands_option: 'bandas', // ai
+  by_height_option: 'por altura', // ai
+  across_option: 'a lo ancho', // ai
   comfort_option: 'confort',
   auto_option: 'automático', // ai
   dots_option: 'puntos', // ai
