@@ -962,6 +962,8 @@ function patchFieldMinimumEditSize(FieldClass) {
 patchFieldMinimumEditSize(FieldMultilineInput);
 patchFieldMinimumEditSize(Blockly.FieldTextInput);
 
+const MULTILINE_WRAP_LENGTH = 60;
+
 function wrapLineToMaxLength(line, maxLength) {
   if (line.length <= maxLength) return [line];
 
@@ -994,7 +996,7 @@ function patchFieldWrapWhenStatic(FieldClass) {
 
       const wrapped = text
         .split('\n')
-        .flatMap((line) => wrapLineToMaxLength(line, this.maxDisplayLength))
+        .flatMap((line) => wrapLineToMaxLength(line, MULTILINE_WRAP_LENGTH))
         .map((line) => line.replace(/\s/g, Blockly.Field.NBSP))
         .join('\n');
 

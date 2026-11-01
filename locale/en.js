@@ -826,6 +826,7 @@ export default {
   snippet_hinged_door_hint: 'A room with a door that swings open into the room when clicked, then shuts after a few seconds.',
   snippet_bookcase_hint: 'A bookcase prefab. Give it a width, height, depth, number of shelves, a shelf material and a material for the frame.',
   snippet_desk_hint: 'A desk prefab. Give it a width, height, depth, a drawer material and a material for the frame. Its half-width top drawer sits to the right with open knee space beside it, and slides open when clicked, then shuts after a few seconds. The full-depth drawer is an open box you can place objects inside.',
+  snippet_maze_hint: 'A maze prefab with an empty room in the middle that has one way in. Give it a seed, the number of cells across, the number of cells across the center, a cell size, a wall height and a material. Use odd numbers of cells, and a center of 0 for no empty room. The same seed always makes the same maze. With the starting values the maze takes up about a quarter of the ground map, and its entrance faces the camera, just in front of x 0, z 0, where a character can start.',
   snippet_map_barrier_hint: 'An almost invisible wall around the edge of the ground map so you cannot walk off. It is tall enough for maps with hills and valleys. A wall glows for a moment when the player touches it.',
 
   // Dropdown option translations

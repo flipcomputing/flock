@@ -7062,6 +7062,224 @@ const snippetBarrierWall = (name, WIDTH, DEPTH, X, Z) => ({
   },
 });
 
+const snippetSet = (name, VALUE) => ({
+  block: { type: 'variables_set', fields: { VAR: { name } }, inputs: { VALUE } },
+});
+const snippetMazeWall = (WIDTH, DEPTH, X, Z) => ({
+  block: {
+    type: 'create_box',
+    fields: { ID_VAR: { name: 'maze wall' } },
+    inputs: {
+      COLOR: snippetVar('material'),
+      WIDTH,
+      HEIGHT: snippetVar('wall height'),
+      DEPTH,
+      X,
+      Y: snippetNum(0),
+      Z,
+    },
+  },
+});
+const snippetNeg = (value) => snippetMath('MINUS', snippetNum(0), value);
+const snippetHalfOf = (name) => snippetMath('DIVIDE', snippetVar(name), snippetNum(2));
+const snippetMazeSquare = (half, side, doorSign) => {
+  const across = (OP) =>
+    snippetMath(OP, snippetMath('MULTIPLY', snippetVar(half), snippetNum(2)), snippetNum(1));
+  const doorX = snippetMath(
+    'DIVIDE',
+    snippetMath(
+      'ADD',
+      snippetMath('MINUS', snippetVar('cell size'), snippetNum(1)),
+      snippetVar(side)
+    ),
+    snippetNum(2)
+  );
+  const doorZ = doorSign < 0 ? snippetNeg(snippetVar(half)) : snippetVar(half);
+  const wallZ = doorSign < 0 ? snippetVar(half) : snippetNeg(snippetVar(half));
+  return [
+    snippetMazeWall(across('ADD'), snippetNum(1), snippetNum(0), wallZ),
+    snippetMazeWall(snippetNum(1), across('MINUS'), snippetVar(half), snippetNum(0)),
+    snippetMazeWall(snippetNum(1), across('MINUS'), snippetNeg(snippetVar(half)), snippetNum(0)),
+    snippetMazeWall(snippetVar(side), snippetNum(1), snippetNeg(doorX), doorZ),
+    snippetMazeWall(snippetVar(side), snippetNum(1), doorX, doorZ),
+  ];
+};
+const snippetMazeLoop = (VAR, DO) => ({
+  block: {
+    type: 'controls_for',
+    fields: { VAR: { name: VAR } },
+    inputs: {
+      FROM: snippetNum(0),
+      TO: snippetMath('MINUS', snippetVar('cells'), snippetNum(2)),
+      BY: snippetNum(1),
+      DO,
+    },
+  },
+});
+const snippetMazeCorner = (index) =>
+  snippetMath(
+    'MINUS',
+    snippetMath('MULTIPLY', snippetVar(index), snippetVar('cell size')),
+    snippetVar('edge')
+  );
+const snippetAnd = (A, B) => ({
+  block: { type: 'logic_operation', fields: { OP: 'AND' }, inputs: { A, B } },
+});
+const snippetCompare = (OP, A, B) => ({
+  block: { type: 'logic_compare', fields: { OP }, inputs: { A, B } },
+});
+const snippetInRoom = (index) =>
+  snippetAnd(
+    snippetCompare('GTE', snippetVar(index), snippetVar('center start')),
+    snippetCompare('LTE', snippetVar(index), snippetVar('center end'))
+  );
+const snippetIf = (mode, inputs) => ({
+  block: {
+    type: 'if_clause',
+    extraState: { mode, stashedCondState: null },
+    fields: { MODE: mode },
+    inputs,
+  },
+});
+
+const snippetMazeBody = snippetChain(
+  snippetSet(
+    'edge',
+    snippetMath(
+      'DIVIDE',
+      snippetMath('MULTIPLY', snippetVar('cells'), snippetVar('cell size')),
+      snippetNum(2)
+    )
+  ),
+  snippetSet(
+    'side length',
+    snippetMath(
+      'MINUS',
+      snippetMath('ADD', snippetVar('edge'), snippetNum(1)),
+      snippetHalfOf('cell size')
+    )
+  ),
+  snippetSet(
+    'center edge',
+    snippetMath(
+      'DIVIDE',
+      snippetMath('MULTIPLY', snippetVar('center'), snippetVar('cell size')),
+      snippetNum(2)
+    )
+  ),
+  snippetSet(
+    'center side length',
+    snippetMath(
+      'MINUS',
+      snippetMath('ADD', snippetVar('center edge'), snippetNum(1)),
+      snippetHalfOf('cell size')
+    )
+  ),
+  snippetSet(
+    'center start',
+    snippetMath(
+      'MINUS',
+      snippetMath(
+        'DIVIDE',
+        snippetMath('MINUS', snippetVar('cells'), snippetVar('center')),
+        snippetNum(2)
+      ),
+      snippetNum(1)
+    )
+  ),
+  snippetSet('center end', snippetMath('ADD', snippetVar('center start'), snippetVar('center'))),
+  snippetSet('wall center', snippetMath('ADD', snippetHalfOf('cell size'), snippetNum(0.5))),
+  ...snippetMazeSquare('edge', 'side length', -1),
+  snippetIf('IF', {
+    COND: snippetCompare('GT', snippetVar('center'), snippetNum(0)),
+    DO: snippetChain(...snippetMazeSquare('center edge', 'center side length', 1)),
+  }),
+  snippetMazeLoop(
+    'row',
+    snippetMazeLoop(
+      'column',
+      snippetChain(
+        snippetSet('x', snippetMazeCorner('column')),
+        snippetSet('z', snippetMazeCorner('row')),
+        snippetIf('IF', {
+          COND: {
+            block: {
+              type: 'logic_negate',
+              inputs: { BOOL: snippetAnd(snippetInRoom('row'), snippetInRoom('column')) },
+            },
+          },
+          DO: snippetChain(
+            snippetIf('IF', {
+              COND: snippetCompare(
+                'EQ',
+                {
+                  block: {
+                    type: 'random_seeded_int',
+                    inputs: {
+                      FROM: snippetNum(0),
+                      TO: snippetNum(1),
+                      SEED: snippetMath(
+                        'ADD',
+                        snippetMath(
+                          'ADD',
+                          snippetMath('MULTIPLY', snippetVar('seed'), snippetNum(1000)),
+                          snippetMath('MULTIPLY', snippetVar('row'), snippetVar('cells'))
+                        ),
+                        snippetVar('column')
+                      ),
+                    },
+                  },
+                },
+                snippetNum(0)
+              ),
+              DO: snippetMazeWall(
+                snippetNum(1),
+                snippetVar('cell size'),
+                snippetMath('ADD', snippetVar('x'), snippetVar('cell size')),
+                snippetMath('ADD', snippetVar('z'), snippetVar('wall center'))
+              ),
+            }),
+            snippetIf('ELSE', {
+              DO: snippetMazeWall(
+                snippetVar('cell size'),
+                snippetNum(1),
+                snippetMath('ADD', snippetVar('x'), snippetVar('wall center')),
+                snippetMath('ADD', snippetVar('z'), snippetVar('cell size'))
+              ),
+            })
+          ),
+        })
+      )
+    )
+  )
+);
+
+const mazeComment = [
+  'A maze prefab.',
+  'seed: any number, and the same seed makes the same maze.',
+  'cells: an odd number of cells across the maze, from 3 to 31.',
+  'center: an odd number of cells across the empty center, ' +
+    'at least 4 fewer than cells, or 0 for none.',
+  'cell size: the width of each cell, from 3 up, with cells times cell size below 100.',
+].join('\n');
+const mazeParams = ['seed', 'cells', 'center', 'cell size', 'wall height', 'material'];
+const mazeDefaults = {
+  seed: snippetNum(1),
+  cells: snippetNum(9),
+  center: snippetNum(3),
+  'cell size': snippetNum(5),
+  'wall height': snippetNum(4),
+  material: {
+    shadow: {
+      type: 'material',
+      fields: { TEXTURE_SET: 'hedge.png' },
+      inputs: {
+        BASE_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#2e7d32' } } },
+      },
+    },
+  },
+};
+
 const toolboxSnippetsScene = {
   kind: 'category',
   icon: './images/scene.svg',
@@ -7153,6 +7371,33 @@ const toolboxSnippetsScene = {
               },
             },
           }
+        ),
+      },
+    },
+    {
+      kind: 'block',
+      type: 'procedures_defprefab',
+      keyword: 'maze',
+      hint: 'snippet_maze_hint',
+      extraState: {
+        params: mazeParams.map((name) => ({
+          name,
+          argId: name === 'material' ? 'MATERIAL' : name,
+        })),
+      },
+      fields: { NAME: 'maze' },
+      inputs: {
+        ...Object.fromEntries(
+          mazeParams.map((name) => [name === 'material' ? 'MATERIAL' : name, mazeDefaults[name]])
+        ),
+        X: snippetNum(0),
+        Y: snippetNum(0),
+        Z: snippetNum(27),
+        ROTATE_Y: snippetNum(0),
+        STACK: snippetPrefabGroup(
+          'maze group',
+          mazeComment,
+          snippetMazeBody
         ),
       },
     },

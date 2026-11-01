@@ -76,6 +76,32 @@ function trackHoverPointer(inputElement) {
   });
 }
 
+const hasRealPointerAction = (manager) =>
+  !!manager?.actions?.some(
+    (action) =>
+      !action._flockForwarder &&
+      action.trigger >= BABYLON.ActionManager.OnPickTrigger &&
+      action.trigger <= BABYLON.ActionManager.OnPointerOutTrigger &&
+      action._evaluateConditionForCurrentFrame()
+  );
+
+const pointerManagerOf = (mesh) => {
+  for (let node = mesh, first = true; node; node = node.parent, first = false) {
+    const manager = node.actionManager;
+    if (manager && (first || manager.isRecursive) && hasRealPointerAction(manager)) {
+      return manager;
+    }
+  }
+  return null;
+};
+
+const isAncestorOf = (node, mesh) => {
+  for (let parent = mesh?.parent; parent; parent = parent.parent) {
+    if (parent === node) return true;
+  }
+  return false;
+};
+
 function keepHoverCursorCurrent(scene) {
   const move = BABYLON.PointerEventTypes.POINTERMOVE;
   let overlayHasPointer = false;
@@ -84,10 +110,7 @@ function keepHoverCursorCurrent(scene) {
   trackHoverPointer(scene.getEngine().getInputElement());
 
   const hoveredMesh = () => {
-    if (
-      !hoverPointer.inside ||
-      !scene.actionManagers.some((manager) => manager.hasPointerTriggers)
-    ) {
+    if (!hoverPointer.inside || !scene.actionManagers.some(hasRealPointerAction)) {
       return null;
     }
     const camera = scene.cameraToUseForPointers ?? scene.activeCamera;
@@ -114,29 +137,34 @@ function keepHoverCursorCurrent(scene) {
       (camera.layerMask & mesh.layerMask) !== 0;
     const clickable = scene.pickWithRay(
       ray,
-      (mesh) => pickable(mesh) && !!mesh._getActionManagerForTrigger()?.hasPointerTriggers
+      (mesh) => pickable(mesh) && !!pointerManagerOf(mesh)
     );
     if (!clickable?.hit) return null;
     ray.length = clickable.distance;
-    const nearest = scene.pickWithRay(ray, pickable);
+    const nearest = scene.pickWithRay(
+      ray,
+      (mesh) =>
+        pickable(mesh) &&
+        !(mesh.metadata?.shapeType === 'Group' && isAncestorOf(mesh, clickable.pickedMesh))
+    );
     return nearest?.hit ? nearest.pickedMesh : clickable.pickedMesh;
   };
 
-  let wanted = null;
   const applyCursor = () => {
     const canvas = scene.getEngine().getInputElement();
     if (!canvas || scene.doNotHandleCursors || overlayHasPointer) return;
-    const paused = flock?.isPaused?.();
-    const manager = paused ? null : hoveredMesh()?._getActionManagerForTrigger();
-    const cursor = manager?.hasPointerTriggers
-      ? manager.hoverCursor || scene.hoverCursor
-      : scene.defaultCursor;
-    if (cursor === wanted && !paused) return;
-    wanted = cursor;
-    if (canvas.style.cursor !== 'none') canvas.style.cursor = cursor;
+    if (canvas.style.cursor === 'none') return;
+    const manager = flock?.isPaused?.() ? null : pointerManagerOf(hoveredMesh());
+    const cursor = manager ? manager.hoverCursor || scene.hoverCursor : scene.defaultCursor;
+    if (canvas.style.cursor !== cursor) canvas.style.cursor = cursor;
   };
-  scene.onPointerObservable.add(() => {
-    if (flock?.isPaused?.()) applyCursor();
+  scene.onPointerObservable.add((pointerInfo) => {
+    if (pointerInfo.event?.pointerType !== 'touch') {
+      hoverPointer.x = scene.pointerX;
+      hoverPointer.y = scene.pointerY;
+      hoverPointer.inside = true;
+    }
+    applyCursor();
   }, move);
   scene.onAfterRenderObservable.add(applyCursor);
 }
