@@ -844,9 +844,27 @@ function nearestUnlockedMesh(x, y) {
   return null;
 }
 
+const isGroupShell = (mesh) => mesh?.metadata?.shapeType === 'Group';
+
+function lookPastGroupShell(mesh, x, y) {
+  if (!isGroupShell(mesh)) return mesh;
+  const hits = flock.scene.multiPick(
+    x,
+    y,
+    (m) => m.isPickable && m.isVisible && m.isEnabled() && !isGroupShell(m)
+  );
+  const first = hits?.sort((a, b) => a.distance - b.distance)[0]?.pickedMesh;
+  if (!first || first.name === 'ground' || first.isDescendantOf(mesh)) return mesh;
+  return first;
+}
+
 function preferNewestCoincident(mesh, x, y) {
   if (!mesh || mesh.name === 'ground') return mesh;
-  const hits = flock.scene.multiPick(x, y, (m) => m.isPickable && m.name !== 'ground');
+  const hits = flock.scene.multiPick(
+    x,
+    y,
+    (m) => m.isPickable && m.name !== 'ground' && (!isGroupShell(m) || m === mesh)
+  );
   if (!hits?.length) return mesh;
   const nearest = Math.min(...hits.map((h) => h.distance));
   const roots = new Set();
@@ -1766,7 +1784,6 @@ function showOrbitFrontArrow(mesh) {
       new BABYLON.Vector3(0, 0, extendSize.z),
     ].map((v) => BABYLON.Vector3.TransformNormal(v, world));
     const reach = halfAxes.reduce((sum, v) => sum + Math.abs(BABYLON.Vector3.Dot(v, front)), 0);
-    const scale = Math.max(1, ...halfAxes.map((v) => Math.hypot(v.x, v.z)));
     const centre = box.centerWorld;
     arrow.position.set(
       centre.x + front.x * reach,
@@ -1774,7 +1791,6 @@ function showOrbitFrontArrow(mesh) {
       centre.z + front.z * reach
     );
     arrow.rotation.y = Math.atan2(-front.x, -front.z);
-    arrow.scaling.setAll(scale);
     arrow.isVisible = true;
   });
   orbitFrontArrow = { arrow, observer, scene };
@@ -1832,6 +1848,7 @@ function frameSceneObjects(orbitCamera) {
   for (const mesh of flock.scene.meshes) {
     if (!mesh.metadata?.blockKey || mesh.parent?.metadata?.blockKey) continue;
     if (mesh === flock.ground || mesh.name === 'ground' || mesh.name === 'sky') continue;
+    if (mesh === flock._constraintBox) continue;
     if (isCameraFrame(mesh) || isMarker(mesh) || !mesh.isEnabled()) continue;
     mesh.computeWorldMatrix(true);
     const { min, max } = mesh.getHierarchyBoundingVectors(true);
@@ -1864,7 +1881,7 @@ function frameSceneObjects(orbitCamera) {
   };
   const fits = (radius) => offsetRange(radius, 'x', slopeX) !== null && offsetRange(radius, 'y', slopeY) !== null;
 
-  let near = Math.max(...corners.map((corner) => -corner.depth)) + orbitCamera.minZ;
+  let near = Math.max(0, ...corners.map((corner) => -corner.depth)) + orbitCamera.minZ;
   let far = Math.max(near * 2, 1);
   while (!fits(far)) far *= 2;
   for (let i = 0; i < 40; i++) {
@@ -2875,11 +2892,9 @@ function pickMeshFromScene(onPicked, persistent = false, prompt = null) {
       hasPicked = true;
       cleanupScenePick();
     }
-    let mesh = preferNewestCoincident(
-      pickedMesh,
-      x ?? flock.scene.pointerX,
-      y ?? flock.scene.pointerY
-    );
+    const px = x ?? flock.scene.pointerX;
+    const py = y ?? flock.scene.pointerY;
+    let mesh = preferNewestCoincident(lookPastGroupShell(pickedMesh, px, py), px, py);
     // For tools that can't act on a locked mesh (transform/colour/delete), if
     // the topmost hit is locked, fall through to the nearest non-locked mesh at
     // the same point — i.e. the visible/operable one (e.g. an unlocked
@@ -3550,6 +3565,7 @@ function followGround(mesh) {
   let lastY = start.y;
   let lift = 0;
   return () => {
+    mesh.computeWorldMatrix(true);
     const at = mesh.getAbsolutePosition().clone();
     lift += at.y - lastY;
     const ground = groundYAt(base.x + at.x - start.x, base.z + at.z - start.z);
@@ -5593,7 +5609,11 @@ export function setGizmoManager(value) {
         gizmoManager.scaleGizmoEnabled;
       if (!transformActive) return;
 
-      let pickedMesh = event.pickInfo?.pickedMesh;
+      let pickedMesh = lookPastGroupShell(
+        event.pickInfo?.pickedMesh,
+        flock.scene.pointerX,
+        flock.scene.pointerY
+      );
       if (!pickedMesh || pickedMesh.name === 'ground') return;
       if (pickedMesh.parent) pickedMesh = getRootMesh(pickedMesh.parent);
       pickedMesh = preferNewestCoincident(pickedMesh, flock.scene.pointerX, flock.scene.pointerY);

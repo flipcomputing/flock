@@ -683,11 +683,8 @@ export function runGizmoTests(flock) {
         const heights = [];
         pg.onDragStartObservable.notifyObservers({});
         for (let i = 0; i < steps; i++) {
-          const p = mesh.getAbsolutePosition().clone();
-          p.x += dx / steps;
-          p.y += dy / steps;
-          mesh.setAbsolutePosition(p);
-          mesh.computeWorldMatrix(true);
+          mesh.position.x += dx / steps;
+          mesh.position.y += dy / steps;
           pg.onDragObservable.notifyObservers({});
           heights.push(heightAboveGround(mesh));
         }
