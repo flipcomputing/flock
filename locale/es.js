@@ -1129,6 +1129,8 @@ export default {
   Islands_png_option: 'islas', // ai
   Lookout_png_option: 'mirador', // ai
   Valley_png_option: 'valle', // ai
+  Loop_track_png_option: 'circuito en bucle', // ai
+  Figure_eight_png_option: 'circuito en ocho', // ai
 
   Idle_option: 'inactivo', // human
   Walk_option: 'caminar', // human

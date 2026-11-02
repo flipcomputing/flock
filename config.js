@@ -383,6 +383,8 @@ export function mapNames() {
     getDropdownOption('Lookout.png'),
     getDropdownOption('Valley.png'),
     getDropdownOption('Basin.png'),
+    getDropdownOption('Loop_track.png'),
+    getDropdownOption('Figure_eight.png'),
   ];
 }
 

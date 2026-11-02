@@ -1224,6 +1224,8 @@ export default {
   Lookout_png_option: 'lookout',
   Valley_png_option: 'valley',
   Basin_png_option: 'basin',
+  Loop_track_png_option: 'loop track',
+  Figure_eight_png_option: 'figure of eight track',
 
   Idle_option: 'idle',
   Walk_option: 'walk',
