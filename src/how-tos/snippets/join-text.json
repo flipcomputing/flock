@@ -1,0 +1,20 @@
+{
+  "type": "variables_set",
+  "fields": { "VAR": { "name": "message", "type": "" } },
+  "inputs": {
+    "VALUE": {
+      "block": {
+        "type": "text_join",
+        "extraState": { "itemCount": 2 },
+        "inline": true,
+        "inputs": {
+          "ADD0": { "shadow": { "type": "text", "fields": { "TEXT": "Clicks: " } } },
+          "ADD1": {
+            "shadow": { "type": "text", "fields": { "TEXT": "" } },
+            "block": { "type": "variables_get", "fields": { "VAR": { "name": "clicks", "type": "" } } }
+          }
+        }
+      }
+    }
+  }
+}

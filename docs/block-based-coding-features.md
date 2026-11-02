@@ -151,7 +151,7 @@ In Blockly, variables are global. There are some situations where you want a var
 
 ## Inline functions and top-level blocks
 
-In Flock XR you can click on the arrow on some top-level blocks to allow them to be placed in a stack. This can be used with local variables to give an 'on event' block access to locally scoped variables.
+In Flock XR you can click on the arrow on some top-level blocks to allow them to be placed in a stack. This can be used with local variables to give an 'on message' block access to locally scoped variables.
 
 ![The arrow on a top-level "on collision" event block, used to allow it to be placed in a stack](images/block-coding-inline-arrow.png)
 

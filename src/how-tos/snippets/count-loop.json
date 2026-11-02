@@ -1,0 +1,22 @@
+{
+  "type": "controls_for",
+  "fields": { "VAR": { "name": "count", "type": "" } },
+  "inputs": {
+    "FROM": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } },
+    "TO": { "shadow": { "type": "math_number", "fields": { "NUM": 5 } } },
+    "BY": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } },
+    "DO": {
+      "block": {
+        "type": "print_text",
+        "inputs": {
+          "TEXT": {
+            "shadow": { "type": "text", "fields": { "TEXT": "" } },
+            "block": { "type": "variables_get", "fields": { "VAR": { "name": "count", "type": "" } } }
+          },
+          "DURATION": { "shadow": { "type": "math_number", "fields": { "NUM": 30 } } },
+          "COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#000080" } } }
+        }
+      }
+    }
+  }
+}

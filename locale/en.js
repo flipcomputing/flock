@@ -259,8 +259,8 @@ export default {
   on_collision: 'on %1 collision %2 %3',
   when_key_event: 'when key %1 %2',
   when_action_event: 'when %1 %2',
-  broadcast_event: 'broadcast event %1',
-  on_event: 'on event %1',
+  broadcast_event: 'broadcast message %1',
+  on_event: 'on message %1',
   restart: 'restart',
 
   // Custom block translations - Materials blocks
@@ -619,8 +619,8 @@ export default {
     'Execute the blocks inside when the specified key is pressed or released.',
   when_action_event_tooltip:
     'Execute the blocks inside when the selected action is pressed or released across keyboard, touch, or XR.',
-  broadcast_event_tooltip: 'Broadcast an event that is received by on event.',
-  on_event_tooltip: 'Run code when a broadcast event is received.',
+  broadcast_event_tooltip: 'Broadcast a message that is received by on message.',
+  on_event_tooltip: 'Run code when a broadcast message is received.',
   restart_tooltip: 'Restart the project from the beginning, same as pressing Play.',
 
   // Tooltip translations - Materials blocks
@@ -1752,6 +1752,14 @@ export default {
   howto_position_with_code_ui: 'Position an object with code',
   howto_first_and_then_compartments_ui: 'Use the first and then compartments',
   howto_respond_to_clicks_ui: 'Respond to clicks',
+  howto_run_code_at_the_start_ui: 'Run code when the project starts',
+  howto_repeat_with_loops_ui: 'Repeat with loops',
+  howto_respond_to_controls_ui: 'Respond to input controls',
+  howto_respond_to_collisions_ui: 'Respond when objects touch',
+  howto_send_messages_ui: 'Send and receive messages',
+  howto_use_variables_ui: 'Use variables',
+  howto_join_text_ui: 'Join text together',
+  howto_use_lists_ui: 'Use lists',
   howto_create_a_prefab_ui: 'Create a prefab as a template for new objects',
   howto_position_from_block_ui: 'Position from block',
   howto_duplicate_objects_ui: 'Duplicate an object',

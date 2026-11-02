@@ -1,0 +1,14 @@
+{
+  "type": "variables_set",
+  "fields": { "VAR": { "name": "target", "type": "" } },
+  "inputs": {
+    "VALUE": { "block": { "type": "variables_get", "fields": { "VAR": { "name": "star1", "type": "" } } } }
+  },
+  "next": {
+    "block": {
+      "type": "change_color",
+      "fields": { "MODEL_VAR": { "name": "target", "type": "" } },
+      "inputs": { "COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#ff0000" } } } }
+    }
+  }
+}

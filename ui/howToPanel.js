@@ -65,8 +65,16 @@ const HOW_TOS = [
   { slug: 'color-an-object', i18nKey: 'howto_colour_an_object_ui', tone: 8, tags: ['gizmo'], icon: 'colorpicker' },
   { slug: 'position-objects', i18nKey: 'howto_position_objects_ui', tone: 3, tags: ['gizmo'], icon: 'positiongizmo' },
   { slug: 'position-with-code', i18nKey: 'howto_position_with_code_ui', tone: 15, tags: ['code'] },
-  { slug: 'first-and-then-compartments', i18nKey: 'howto_first_and_then_compartments_ui', tone: 38, tags: ['code'] },
+  { slug: 'run-code-at-the-start', i18nKey: 'howto_run_code_at_the_start_ui', tone: 41, tags: ['code'] },
+  { slug: 'repeat-with-loops', i18nKey: 'howto_repeat_with_loops_ui', tone: 42, tags: ['code'] },
   { slug: 'respond-to-clicks', i18nKey: 'howto_respond_to_clicks_ui', tone: 39, tags: ['code'] },
+  { slug: 'respond-to-controls', i18nKey: 'howto_respond_to_controls_ui', tone: 43, tags: ['code'] },
+  { slug: 'respond-to-collisions', i18nKey: 'howto_respond_to_collisions_ui', tone: 44, tags: ['code'] },
+  { slug: 'send-messages', i18nKey: 'howto_send_messages_ui', tone: 45, tags: ['code'] },
+  { slug: 'use-variables', i18nKey: 'howto_use_variables_ui', tone: 46, tags: ['code'] },
+  { slug: 'join-text', i18nKey: 'howto_join_text_ui', tone: 48, tags: ['code'] },
+  { slug: 'use-lists', i18nKey: 'howto_use_lists_ui', tone: 47, tags: ['code'] },
+  { slug: 'first-and-then-compartments', i18nKey: 'howto_first_and_then_compartments_ui', tone: 38, tags: ['code'] },
   { slug: 'create-a-prefab', i18nKey: 'howto_create_a_prefab_ui', tone: 40, tags: ['code'] },
   { slug: 'rotate-an-object', i18nKey: 'howto_rotate_an_object_ui', tone: 9, tags: ['gizmo'], icon: 'rotategizmo' },
   { slug: 'resize-an-object', i18nKey: 'howto_resize_an_object_ui', tone: 10, tags: ['gizmo'], icon: 'scalegizmo' },
@@ -552,6 +560,14 @@ const BLOCK_ICONS = {
   plus: {
     viewBox: '0 0 30 30',
     path: 'M9 2H21A7 7 0 0 1 28 9V21A7 7 0 0 1 21 28H9A7 7 0 0 1 2 21V9A7 7 0 0 1 9 2ZM9 4A5 5 0 0 0 4 9V21A5 5 0 0 0 9 26H21A5 5 0 0 0 26 21V9A5 5 0 0 0 21 4ZM13.5 8h3v5.5H22v3h-5.5V22h-3v-5.5H8v-3h5.5z',
+  },
+  'add-item': {
+    viewBox: '0 0 24 24',
+    path: 'M18 10h-4v-4c0-1.104-.896-2-2-2s-2 .896-2 2l.071 4h-4.071c-1.104 0-2 .896-2 2s.896 2 2 2l4.071-.071-.071 4.071c0 1.104.896 2 2 2s2-.896 2-2v-4.071l4 .071c1.104 0 2-.896 2-2s-.896-2-2-2z',
+  },
+  'remove-item': {
+    viewBox: '0 0 24 24',
+    path: 'M18 10h-12c-1.104 0-2 .896-2 2s.896 2 2 2h12c1.104 0 2-.896 2-2s-.896-2-2-2z',
   },
   pin: {
     viewBox: '0 0 384 512',

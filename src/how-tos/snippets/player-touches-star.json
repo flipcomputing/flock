@@ -1,0 +1,17 @@
+{
+  "type": "on_collision",
+  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+  "fields": {
+    "MODEL_VAR": { "name": "player", "type": "" },
+    "TRIGGER": "OnIntersectionEnterTrigger",
+    "OTHER_MODEL_VAR": { "name": "star1", "type": "" }
+  },
+  "inputs": {
+    "DO": {
+      "block": {
+        "type": "dispose",
+        "fields": { "MODEL_VAR": { "name": "star1", "type": "" } }
+      }
+    }
+  }
+}

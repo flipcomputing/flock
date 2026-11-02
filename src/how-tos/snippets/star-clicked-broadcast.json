@@ -1,0 +1,16 @@
+{
+  "type": "when_clicked",
+  "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
+  "fields": {
+    "MODEL_VAR": { "name": "star1", "type": "" },
+    "TRIGGER": "OnPickTrigger"
+  },
+  "inputs": {
+    "DO": {
+      "block": {
+        "type": "broadcast_event",
+        "inputs": { "EVENT_NAME": { "shadow": { "type": "text", "fields": { "TEXT": "go" } } } }
+      }
+    }
+  }
+}

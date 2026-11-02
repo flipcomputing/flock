@@ -1,0 +1,5 @@
+{
+  "type": "variables_set",
+  "fields": { "VAR": { "name": "clicks", "type": "" } },
+  "inputs": { "VALUE": { "shadow": { "type": "math_number", "fields": { "NUM": 0 } } } }
+}

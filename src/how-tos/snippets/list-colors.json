@@ -1,0 +1,18 @@
+{
+  "type": "variables_set",
+  "fields": { "VAR": { "name": "colors", "type": "" } },
+  "inputs": {
+    "VALUE": {
+      "block": {
+        "type": "lists_create_with",
+        "extraState": { "itemCount": 3 },
+        "inline": true,
+        "inputs": {
+          "ADD0": { "shadow": { "type": "colour", "fields": { "COLOR": "#ff0000" } } },
+          "ADD1": { "shadow": { "type": "colour", "fields": { "COLOR": "#00aa00" } } },
+          "ADD2": { "shadow": { "type": "colour", "fields": { "COLOR": "#0000ff" } } }
+        }
+      }
+    }
+  }
+}

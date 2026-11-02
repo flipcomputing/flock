@@ -1,0 +1,19 @@
+<!-- Content of the "Send and receive messages" how-to. Edit freely — see README.md in src/how-tos. -->
+<topic>
+  <topic-title>Send a message</topic-title>
+  <p>
+    The <strong>broadcast message</strong> block in
+    <ui-button target="toolbox:EVENTS">Events</ui-button> sends a message with a name, such as
+    <code>go</code>.
+  </p>
+  <snippet src="star-clicked-broadcast"></snippet>
+</topic>
+
+<topic>
+  <topic-title>Receive it</topic-title>
+  <p>
+    An <strong>on message</strong> block with the same name runs its blocks each time the message is
+    sent. You can have more than one, and they all run.
+  </p>
+  <snippet src="on-event-go"></snippet>
+</topic>

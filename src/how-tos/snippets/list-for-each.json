@@ -1,0 +1,25 @@
+{
+  "type": "controls_forEach",
+  "fields": { "VAR": { "name": "color", "type": "" } },
+  "inputs": {
+    "LIST": { "block": { "type": "variables_get", "fields": { "VAR": { "name": "colors", "type": "" } } } },
+    "DO": {
+      "block": {
+        "type": "change_color",
+        "fields": { "MODEL_VAR": { "name": "star1", "type": "" } },
+        "inputs": {
+          "COLOR": {
+            "shadow": { "type": "colour", "fields": { "COLOR": "#008080" } },
+            "block": { "type": "variables_get", "fields": { "VAR": { "name": "color", "type": "" } } }
+          }
+        },
+        "next": {
+          "block": {
+            "type": "wait_seconds",
+            "inputs": { "DURATION": { "shadow": { "type": "math_number", "fields": { "NUM": 1 } } } }
+          }
+        }
+      }
+    }
+  }
+}

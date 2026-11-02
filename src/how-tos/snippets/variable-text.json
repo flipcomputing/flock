@@ -1,0 +1,18 @@
+{
+  "type": "variables_set",
+  "fields": { "VAR": { "name": "name", "type": "" } },
+  "inputs": { "VALUE": { "shadow": { "type": "text", "fields": { "TEXT": "Ada" } } } },
+  "next": {
+    "block": {
+      "type": "print_text",
+      "inputs": {
+        "TEXT": {
+          "shadow": { "type": "text", "fields": { "TEXT": "" } },
+          "block": { "type": "variables_get", "fields": { "VAR": { "name": "name", "type": "" } } }
+        },
+        "DURATION": { "shadow": { "type": "math_number", "fields": { "NUM": 30 } } },
+        "COLOR": { "shadow": { "type": "colour", "fields": { "COLOR": "#000080" } } }
+      }
+    }
+  }
+}
