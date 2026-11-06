@@ -1,0 +1,53 @@
+<!-- Content of the "Make choices with if blocks" how-to. Edit freely — see README.md in src/how-tos. -->
+<topic>
+  <topic-title>Run blocks if something is true</topic-title>
+  <p>
+    Add an <strong>if</strong> block from
+    <ui-button target="toolbox:CONDITION">Condition</ui-button>. Put a condition in its slot and
+    blocks inside it. The blocks inside run only when the condition is true.
+  </p>
+  <p>
+    In this example, <code>count</code> counts how many times the player has pressed button 1. It
+    is set to 0 at the start:
+  </p>
+  <snippet src="count-set"></snippet>
+  <p>
+    Each press checks <code>count</code> and then adds 1 to it. <code>count</code> is only 0 on
+    the first press, so the message shows once.
+  </p>
+  <snippet src="if-first-press"></snippet>
+</topic>
+
+<topic>
+  <topic-title>Change if to else if or else</topic-title>
+  <p>
+    Click the word <strong>if</strong> on the block and choose <strong>else if</strong> or
+    <strong>else</strong>. Connect these blocks under an <strong>if</strong> block to make one
+    choice:
+  </p>
+  <ul>
+    <li><strong>else if</strong> checks its own condition when the blocks above it did not run.</li>
+    <li><strong>else</strong> has no condition. It runs when none of the blocks above it ran.</li>
+  </ul>
+  <p>This example shows a different message as the player keeps pressing button 1:</p>
+  <snippet src="if-else-if-else"></snippet>
+  <p>
+    Only one part of the choice runs, and the blocks are checked from the top. That is why
+    <strong>count = 0</strong> comes first: 0 is also less than 10, so if
+    <strong>count &lt; 10</strong> came first, <strong>First press!</strong> would never show.
+  </p>
+</topic>
+
+<topic>
+  <topic-title>Connect them in order</topic-title>
+  <p>The blocks only work in this order:</p>
+  <ul>
+    <li><strong>if</strong> comes first.</li>
+    <li><strong>else if</strong> comes after <strong>if</strong> or another <strong>else if</strong>. You can have as many as you need.</li>
+    <li><strong>else</strong> comes last. You can only have one.</li>
+  </ul>
+  <p>
+    A block in the wrong place is greyed out and does not run. Move it to the right place, or
+    change it to a different choice, and it works again.
+  </p>
+</topic>

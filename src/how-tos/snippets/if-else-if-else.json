@@ -1,0 +1,223 @@
+{
+  "type": "when_action_event",
+  "fields": {
+    "ACTION": "BUTTON1",
+    "EVENT": "pressed"
+  },
+  "inputs": {
+    "DO": {
+      "block": {
+        "type": "if_clause",
+        "extraState": {
+          "mode": "IF",
+          "stashedCondState": null
+        },
+        "fields": {
+          "MODE": "IF"
+        },
+        "inputs": {
+          "COND": {
+            "block": {
+              "type": "logic_compare",
+              "fields": {
+                "OP": "EQ"
+              },
+              "inputs": {
+                "A": {
+                  "block": {
+                    "type": "variables_get",
+                    "fields": {
+                      "VAR": {
+                        "name": "count",
+                        "type": ""
+                      }
+                    }
+                  }
+                },
+                "B": {
+                  "shadow": {
+                    "type": "math_number",
+                    "fields": {
+                      "NUM": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "DO": {
+            "block": {
+              "type": "print_text",
+              "inputs": {
+                "TEXT": {
+                  "shadow": {
+                    "type": "text",
+                    "fields": {
+                      "TEXT": "First press!"
+                    }
+                  }
+                },
+                "DURATION": {
+                  "shadow": {
+                    "type": "math_number",
+                    "fields": {
+                      "NUM": 30
+                    }
+                  }
+                },
+                "COLOR": {
+                  "shadow": {
+                    "type": "colour",
+                    "fields": {
+                      "COLOR": "#000080"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "next": {
+          "block": {
+            "type": "if_clause",
+            "extraState": {
+              "mode": "ELSEIF",
+              "stashedCondState": null
+            },
+            "fields": {
+              "MODE": "ELSEIF"
+            },
+            "inputs": {
+              "COND": {
+                "block": {
+                  "type": "logic_compare",
+                  "fields": {
+                    "OP": "LT"
+                  },
+                  "inputs": {
+                    "A": {
+                      "block": {
+                        "type": "variables_get",
+                        "fields": {
+                          "VAR": {
+                            "name": "count",
+                            "type": ""
+                          }
+                        }
+                      }
+                    },
+                    "B": {
+                      "shadow": {
+                        "type": "math_number",
+                        "fields": {
+                          "NUM": 10
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "DO": {
+                "block": {
+                  "type": "print_text",
+                  "inputs": {
+                    "TEXT": {
+                      "shadow": {
+                        "type": "text",
+                        "fields": {
+                          "TEXT": "Keep pressing"
+                        }
+                      }
+                    },
+                    "DURATION": {
+                      "shadow": {
+                        "type": "math_number",
+                        "fields": {
+                          "NUM": 30
+                        }
+                      }
+                    },
+                    "COLOR": {
+                      "shadow": {
+                        "type": "colour",
+                        "fields": {
+                          "COLOR": "#000080"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "next": {
+              "block": {
+                "type": "if_clause",
+                "extraState": {
+                  "mode": "ELSE",
+                  "stashedCondState": null
+                },
+                "fields": {
+                  "MODE": "ELSE"
+                },
+                "inputs": {
+                  "DO": {
+                    "block": {
+                      "type": "print_text",
+                      "inputs": {
+                        "TEXT": {
+                          "shadow": {
+                            "type": "text",
+                            "fields": {
+                              "TEXT": "Lots of presses"
+                            }
+                          }
+                        },
+                        "DURATION": {
+                          "shadow": {
+                            "type": "math_number",
+                            "fields": {
+                              "NUM": 30
+                            }
+                          }
+                        },
+                        "COLOR": {
+                          "shadow": {
+                            "type": "colour",
+                            "fields": {
+                              "COLOR": "#000080"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "next": {
+                  "block": {
+                    "type": "math_change",
+                    "fields": {
+                      "VAR": {
+                        "name": "count",
+                        "type": ""
+                      }
+                    },
+                    "inputs": {
+                      "DELTA": {
+                        "shadow": {
+                          "type": "math_number",
+                          "fields": {
+                            "NUM": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
