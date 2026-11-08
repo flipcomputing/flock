@@ -7,6 +7,7 @@ import { isInsideProcedureDefinition } from '../blocks/variableScope.js';
 import { isProjectLoading } from '../main/projectLoading.js';
 import { readColourValue } from './blockmesh.js';
 import { anchorAxis } from '../api/ui.js';
+import { svgIcon } from './dom.js';
 
 const KEY_STEP = 10;
 const KEY_STEP_FINE = 1;
@@ -561,13 +562,15 @@ function arrowSvg(axis, colour) {
   const horizontal = axis === 'x';
   const w = horizontal ? ARROW_LENGTH : 16;
   const h = horizontal ? 16 : ARROW_LENGTH;
-  const line = horizontal
-    ? `<line x1="0" y1="8" x2="${w - 8}" y2="8" />`
-    : `<line x1="8" y1="0" x2="8" y2="${h - 8}" />`;
-  const head = horizontal
-    ? `<polygon points="${w - 10},2 ${w},8 ${w - 10},14" stroke="none" />`
-    : `<polygon points="2,${h - 10} 8,${h} 14,${h - 10}" stroke="none" />`;
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true" stroke="${colour}" fill="${colour}" stroke-width="4">${line}${head}</svg>`;
+  const line = horizontal ? { x1: 0, y1: 8, x2: w - 8, y2: 8 } : { x1: 8, y1: 0, x2: 8, y2: h - 8 };
+  const points = horizontal ? `${w - 10},2 ${w},8 ${w - 10},14` : `2,${h - 10} 8,${h} 14,${h - 10}`;
+  return svgIcon(
+    { width: w, height: h, viewBox: `0 0 ${w} ${h}`, 'aria-hidden': 'true', stroke: colour, fill: colour, 'stroke-width': '4' },
+    [
+      ['line', line],
+      ['polygon', { points, stroke: 'none' }],
+    ]
+  );
 }
 
 function createOverlay(axisColors, freeAxes) {
@@ -580,7 +583,7 @@ function createOverlay(axisColors, freeAxes) {
   for (const axis of freeAxes) {
     const arrow = document.createElement('div');
     arrow.className = `ui-control-gizmo-arrow ui-control-gizmo-arrow-${axis}`;
-    arrow.innerHTML = arrowSvg(axis, axisColors[axis]);
+    arrow.append(arrowSvg(axis, axisColors[axis]));
     const label = document.createElement('span');
     label.className = 'ui-control-gizmo-label';
     label.setAttribute('aria-hidden', 'true');

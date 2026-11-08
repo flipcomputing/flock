@@ -9,24 +9,44 @@ import {
   getArrangeMembers,
   minMembersFor,
 } from '../ui/groupArrange.js';
+import { s } from '../ui/dom.js';
 
 const ICON_SIZE = 28;
 const AXIS_COLOURS = { x: '#0072B2', y: '#009E73', z: '#D55E00' };
 const BUTTON_ICON_PATH = 'M11 3h2v18h-2zM4 6h16v4H4zM7 14h10v4H7z';
 
+// Each icon is three rects, as [x, y, width, height].
 const MODE_ICONS = {
-  min: '<rect x="3" y="3" width="2" height="18"/><rect x="5" y="6" width="14" height="4"/><rect x="5" y="14" width="8" height="4"/>',
-  centre:
-    '<rect x="11" y="3" width="2" height="18"/><rect x="4" y="6" width="16" height="4"/><rect x="7" y="14" width="10" height="4"/>',
-  max: '<rect x="19" y="3" width="2" height="18"/><rect x="5" y="6" width="14" height="4"/><rect x="11" y="14" width="8" height="4"/>',
-  distribute:
-    '<rect x="2" y="7" width="4" height="10"/><rect x="10" y="4" width="4" height="16"/><rect x="18" y="8" width="4" height="8"/>',
+  min: [
+    [3, 3, 2, 18],
+    [5, 6, 14, 4],
+    [5, 14, 8, 4],
+  ],
+  centre: [
+    [11, 3, 2, 18],
+    [4, 6, 16, 4],
+    [7, 14, 10, 4],
+  ],
+  max: [
+    [19, 3, 2, 18],
+    [5, 6, 14, 4],
+    [11, 14, 8, 4],
+  ],
+  distribute: [
+    [2, 7, 4, 10],
+    [10, 4, 4, 16],
+    [18, 8, 4, 8],
+  ],
 };
 
 function modeIcon(axis, mode) {
   // Y and Z use the X icons turned a quarter, so min is at the bottom.
-  const transform = axis === 'x' ? '' : ' transform="rotate(-90 12 12)"';
-  return `<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="currentColor"><g${transform}>${MODE_ICONS[mode]}</g></svg>`;
+  const rects = MODE_ICONS[mode].map(([x, y, width, height]) => s('rect', { x, y, width, height }));
+  return s(
+    'svg',
+    { viewBox: '0 0 24 24', width: '24', height: '24', 'aria-hidden': 'true', fill: 'currentColor' },
+    s('g', { transform: axis === 'x' ? null : 'rotate(-90 12 12)' }, rects)
+  );
 }
 
 function arrangeText(key, axis) {
@@ -93,7 +113,7 @@ export class FieldGroupArrange extends Blockly.FieldImage {
         const label = arrangeText(`group_arrange_${mode}_label`, axis);
         button.title = label;
         button.setAttribute('aria-label', label);
-        button.innerHTML = modeIcon(axis, mode);
+        button.append(modeIcon(axis, mode));
         const caption = document.createElement('span');
         caption.textContent = arrangeText(`group_arrange_${mode}`, axis);
         button.appendChild(caption);

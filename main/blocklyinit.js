@@ -59,6 +59,7 @@ import {
   setBlockLocked,
 } from '../ui/blocklyutil.js';
 import { installDropdownTypeahead } from './dropdownTypeahead.js';
+import { svgIcon } from '../ui/dom.js';
 
 // Priority 0 — below the 'blocks' serializer's 20, so blocks exist before locks are re-applied.
 if (!Blockly.serialization.registry.getClass?.('flockLock')) {
@@ -2742,15 +2743,17 @@ export function createBlocklyWorkspace() {
       cancelBtn.type = 'button';
       cancelBtn.className = 'fc-confirm-btn fc-confirm-btn--cancel';
       cancelBtn.setAttribute('aria-label', translate('cancel') || 'Cancel');
-      cancelBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="24" height="24" fill="currentColor"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
+      cancelBtn.append(
+        svgIcon({ viewBox: '0 0 384 512', width: '24', height: '24', fill: 'currentColor' }, [['path', { d: 'M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z' }]])
+      );
 
       const okBtn = document.createElement('button');
       okBtn.type = 'button';
       okBtn.className = 'fc-confirm-btn fc-confirm-btn--ok';
       okBtn.setAttribute('aria-label', Blockly.Msg['DIALOG_OK'] || 'OK');
-      okBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="24" height="24" fill="currentColor"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>';
+      okBtn.append(
+        svgIcon({ viewBox: '0 0 448 512', width: '24', height: '24', fill: 'currentColor' }, [['path', { d: 'M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z' }]])
+      );
 
       const close = (result) => {
         overlay.remove();

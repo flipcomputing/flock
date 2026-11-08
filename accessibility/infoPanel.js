@@ -1,6 +1,7 @@
 import { translate } from '../main/translation.js';
 import { logViewport } from '../main/viewportDebug.js';
 import { isPortraitCanvas } from '../main/canvasAspect.js';
+import { h, svgIcon } from '../ui/dom.js';
 
 // Narrow landscape layouts (phones and small tablets alike) set
 // #info-panel-body to display:none in CSS, so there's no docked area to
@@ -137,10 +138,27 @@ const ModalPanelBehaviour = {
     );
   },
 
-  fontControlsHTML() {
-    return `
-            <button class="bigbutton font-decrease-btn" aria-label="${translate('player_decrease_font_size')}" title="${translate('player_decrease_font_size')}"><span aria-hidden="true">A</span></button>
-            <button class="bigbutton font-increase-btn" aria-label="${translate('player_increase_font_size')}" title="${translate('player_increase_font_size')}"><span aria-hidden="true">A</span></button>`;
+  // The header shared by the info panels. The spaces keep the gaps between the inline buttons.
+  panelHeader(titleId) {
+    const fontButton = (className, key) =>
+      h(
+        'button',
+        { class: `bigbutton ${className}`, 'aria-label': translate(key), title: translate(key) },
+        h('span', { 'aria-hidden': 'true' }, 'A')
+      );
+    return h(
+      'div',
+      { class: 'shortcuts-panel-header' },
+      h('h2', { id: titleId, class: 'shortcuts-panel-title' }),
+      h(
+        'div',
+        { class: 'shortcuts-panel-controls' },
+        fontButton('font-decrease-btn', 'player_decrease_font_size'),
+        ' ',
+        fontButton('font-increase-btn', 'player_increase_font_size'),
+        ' '
+      )
+    );
   },
 
   initFontControls() {
@@ -241,7 +259,7 @@ const ModalPanelBehaviour = {
     closeBtn.className = 'bigbutton shortcuts-modal-close';
     closeBtn.setAttribute('aria-label', translate(this._closeLabelKey));
     closeBtn.setAttribute('title', translate(this._closeLabelKey));
-    closeBtn.innerHTML = '<span aria-hidden="true">X</span>';
+    closeBtn.append(h('span', { 'aria-hidden': 'true' }, 'X'));
     closeBtn.addEventListener('click', () => this.hide());
     panel.querySelector('.shortcuts-panel-controls')?.appendChild(closeBtn);
     this._closeBtn = closeBtn;
@@ -321,7 +339,8 @@ const ModalPanelBehaviour = {
   },
 };
 
-const EXTERNAL_LINK_ICON = `<svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true"><path fill="currentColor" d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z"/></svg>`;
+const EXTERNAL_LINK_PATH =
+  'M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3l0 82.7c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 32C35.8 32 0 67.8 0 112L0 432c0 44.2 35.8 80 80 80l320 0c44.2 0 80-35.8 80-80l0-112c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 112c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-320c0-8.8 7.2-16 16-16l112 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 32z';
 
 // External links in the help content are marked up automatically, so the docs
 // maintainer only ever has to write a plain <a href>. The icon sits inside the link
@@ -330,9 +349,11 @@ function decorateExternalLinks(root) {
   root.querySelectorAll('a[href^="http"]').forEach((link) => {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.insertAdjacentHTML(
-      'beforeend',
-      `<span class="sr-only"> (${translate('link_opens_in_new_tab')})</span>${EXTERNAL_LINK_ICON}`
+    link.append(
+      h('span', { class: 'sr-only' }, ` (${translate('link_opens_in_new_tab')})`),
+      svgIcon({ class: 'external-link-icon', viewBox: '0 0 512 512', 'aria-hidden': 'true' }, [
+        ['path', { fill: 'currentColor', d: EXTERNAL_LINK_PATH }],
+      ])
     );
   });
 }

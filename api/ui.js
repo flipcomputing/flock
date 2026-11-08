@@ -287,8 +287,6 @@ function sanitizeInputText(val, { maxLen = 500 } = {}) {
   if (val == null) return '';
   let s = String(val);
   s = s.normalize('NFKC');
-  const doc = new DOMParser().parseFromString(s, 'text/html');
-  s = doc.body.textContent || '';
   s = s.replace(/\p{Cc}/gu, '');
   s = s.replace(/\s+/g, ' ').trim();
   if (s.length > maxLen) s = s.slice(0, maxLen);

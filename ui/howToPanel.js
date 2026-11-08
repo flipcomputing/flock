@@ -1,6 +1,8 @@
 import * as Blockly from 'blockly';
 import { translate, getCurrentLanguage } from '../main/translation.js';
-import { generateSVG } from '../main/export.js';
+import { generateSVGElement } from '../main/export.js';
+import { h, s, svgIcon } from './dom.js';
+import { renderAuthoredContent } from './authoredContent.js';
 import { options as blocklyOptions } from '../blocks/blocks.js';
 import { toolbox as toolboxDefinition } from '../toolbox.js';
 import {
@@ -347,7 +349,7 @@ const HOWTO_LINK_TARGETS = {
 // Text-only buttons (projects, canvasview, codeview) have no entry and render
 // as a label-only highlight link. Entries are { viewBox, path }, except
 // block-duplicate (custom two-rect glyph, not a single path) which uses
-// { viewBox, inner }. block-expand and block-collapse copy the show/hide
+// { viewBox, shapes }. block-expand and block-collapse copy the show/hide
 // arrows in blocks/blocks.js (CLOSED_ARROW, OPEN_ARROW).
 const UI_BUTTON_ICONS = {
   addmenu: {
@@ -446,8 +448,13 @@ const UI_BUTTON_ICONS = {
   },
   'block-duplicate': {
     viewBox: '0 0 28 26',
-    inner:
-      '<rect x="7" y="8" width="20" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="2" width="20" height="16" rx="3" fill="currentColor"/>',
+    shapes: [
+      [
+        'rect',
+        { x: '7', y: '8', width: '20', height: '16', rx: '3', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' },
+      ],
+      ['rect', { x: '1', y: '2', width: '20', height: '16', rx: '3', fill: 'currentColor' }],
+    ],
   },
   'block-paste': {
     viewBox: '0 0 512 512',
@@ -474,17 +481,16 @@ UI_BUTTON_ICONS['block-view'] = UI_BUTTON_ICONS.viewgizmo;
 
 // Copies of the workspace trashcan artwork in main/blocklyinit.js, with the
 // lid moved to sit on top of the bin rather than in Blockly's lid group.
-const TRASHCAN_BIN =
-  '<path fill="currentColor" d="M36.965,11.956c.022.112.035.226.035.344v37.899c0,.993-.808,1.801-1.801,1.801H6.801c-.993,0-1.801-.808-1.801-1.801V12.301c0-.118.013-.232.035-.344h-2c-.01.115-.035.226-.035.344v37.899c0,2.099,1.702,3.801,3.801,3.801h28.399c2.099,0,3.801-1.702,3.801-3.801V12.301c0-.118-.024-.229-.035-.344h-2Z"/>' +
-  '<path fill="currentColor" d="M0,3v6h42V3h-10.5l-3-3h-15l-3,3H0Z"/>';
+const TRASHCAN_BIN = [
+  ['path', { fill: 'currentColor', d: 'M36.965,11.956c.022.112.035.226.035.344v37.899c0,.993-.808,1.801-1.801,1.801H6.801c-.993,0-1.801-.808-1.801-1.801V12.301c0-.118.013-.232.035-.344h-2c-.01.115-.035.226-.035.344v37.899c0,2.099,1.702,3.801,3.801,3.801h28.399c2.099,0,3.801-1.702,3.801-3.801V12.301c0-.118-.024-.229-.035-.344h-2Z' }],
+  ['path', { fill: 'currentColor', d: 'M0,3v6h42V3h-10.5l-3-3h-15l-3,3H0Z' }],
+];
 const TRASHCAN_CONTENTS = [
   'M8.226,39.333l.757-.08c.302-.032.604.066.83.268l.716.64c.227.203.528.3.831.268l2.216-.233c.266-.028.513-.154.691-.354l.85-.953c.178-.2.425-.326.691-.354l7.902-.833c.591-.062,1.122.367,1.184.958l.799,7.581c.062.591-.367,1.121-.958,1.184l-7.391.779c-.228.024-.443.12-.612.275l-1.355,1.234c-.17.154-.384.251-.612.275l-2.633.277c-.255.027-.511-.038-.722-.183l-1.137-.781c-.211-.145-.467-.21-.722-.183l-.289.03c-.591.062-1.121-.364-1.183-.955l-.809-7.678c-.062-.592.367-1.118.959-1.181Z',
   'M18.812,24.223l.755.101c.301.04.571.206.744.457l.544.791c.172.25.443.416.744.457l2.209.296c.266.036.535-.029.755-.181l1.051-.726c.22-.152.49-.217.755-.181l7.875,1.056c.589.079,1.003.621.924,1.211l-1.014,7.555c-.079.589-.621,1.003-1.211.924l-7.366-.988c-.227-.03-.458.012-.66.122l-1.608.879c-.201.11-.432.153-.66.122l-2.624-.352c-.254-.034-.488-.158-.659-.348l-.921-1.027c-.171-.191-.405-.314-.659-.348l-.288-.039c-.589-.079-1.004-.618-.925-1.207l1.027-7.652c.079-.59.621-1,1.21-.921Z',
   'M8.106,13.149l.759-.058c.303-.023.602.083.822.292l.697.66c.221.209.52.315.823.292l2.222-.17c.267-.02.517-.14.701-.335l.877-.929c.184-.195.434-.314.701-.335l7.923-.607c.593-.045,1.111.398,1.156.991l.582,7.601c.045.593-.398,1.111-.991,1.156l-7.411.568c-.229.018-.446.108-.62.257l-1.39,1.195c-.174.149-.391.24-.62.257l-2.64.202c-.256.02-.51-.053-.717-.204l-1.114-.813c-.207-.151-.461-.223-.717-.204l-.29.022c-.593.045-1.11-.395-1.156-.988l-.59-7.698c-.045-.593.399-1.108.992-1.153Z',
-]
-  .map((d) => `<path fill="currentColor" d="${d}"/>`)
-  .join('');
-UI_BUTTON_ICONS.trashcan = { viewBox: '0 0 42 54', inner: TRASHCAN_BIN };
+].map((d) => ['path', { fill: 'currentColor', d }]);
+UI_BUTTON_ICONS.trashcan = { viewBox: '0 0 42 54', shapes: TRASHCAN_BIN };
 
 // Upgrades each <workspace-comment>text</workspace-comment> into a picture of
 // a Blockly workspace comment holding that text — drawn in HTML rather than
@@ -499,7 +505,9 @@ function wireHowToWorkspaceComments(root) {
     note.setAttribute('aria-label', `${translate('howto_workspace_comment_ui')}: ${text}`);
     const topbar = document.createElement('div');
     topbar.className = 'howto-workspace-comment-topbar';
-    topbar.innerHTML = '<svg viewBox="0 0 10 6" aria-hidden="true"><path fill="currentColor" d="M0 0h10L5 6z"/></svg>';
+    topbar.append(
+      svgIcon({ viewBox: '0 0 10 6', 'aria-hidden': 'true' }, [['path', { fill: 'currentColor', d: 'M0 0h10L5 6z' }]])
+    );
     const body = document.createElement('div');
     body.className = 'howto-workspace-comment-body';
     body.textContent = text;
@@ -517,7 +525,8 @@ function wireHowToTrashcanIcons(root) {
     svg.setAttribute('viewBox', '0 0 42 54');
     svg.setAttribute('aria-hidden', 'true');
     svg.setAttribute('class', 'howto-trashcan-icon');
-    svg.innerHTML = el.hasAttribute('full') ? TRASHCAN_BIN + TRASHCAN_CONTENTS : TRASHCAN_BIN;
+    const shapes = el.hasAttribute('full') ? [...TRASHCAN_BIN, ...TRASHCAN_CONTENTS] : TRASHCAN_BIN;
+    svg.append(...shapes.map(([tag, attrs]) => s(tag, attrs)));
     el.replaceWith(svg);
   });
 }
@@ -540,8 +549,8 @@ function createIconElement(icon) {
     svg.setAttribute('viewBox', icon.viewBox);
     svg.setAttribute('aria-hidden', 'true');
     svg.setAttribute('class', 'howto-icon');
-    if (icon.inner) {
-      svg.innerHTML = icon.inner;
+    if (icon.shapes) {
+      svg.append(...icon.shapes.map(([tag, attrs]) => s(tag, attrs)));
     } else {
       const path = document.createElementNS(svgNS, 'path');
       path.setAttribute('fill', 'currentColor');
@@ -948,7 +957,7 @@ async function renderSnippetSVG(blockJson, { selected = false, highlightInput = 
     const highlight = selected || !!highlightInput;
     if (highlight) blockToHighlight.select();
     const label = stackAriaLabel(block);
-    const svg = await generateSVG(block, { rasterSafe: true, keepSelected: highlight });
+    const svg = await generateSVGElement(block, { rasterSafe: true, keepSelected: highlight });
     return { svg, label };
   } finally {
     block.dispose();
@@ -1008,7 +1017,7 @@ function wireHowToSnippets(root) {
     }
     renderSnippetSVG(blockJson, { selected: selected || !!blockMenu, highlightInput })
       .then(({ svg, label }) => {
-        figure.insertAdjacentHTML('afterbegin', svg);
+        figure.prepend(svg);
         matchWorkspaceScale(figure.firstElementChild);
         if (blockMenu) figure.prepend(createBlockMenuPicture(blockMenu));
         // The figcaption (when present) is the accessible description; the
@@ -1047,6 +1056,9 @@ function wireHowToSteps(root) {
 
 // Second info panel tab: a grid of how-to cards that swaps to an article
 // view (inline, in the same docked tab) when a card is clicked.
+const HOWTO_ICON_PATH =
+  'M152.1 38.2c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 113C-2.3 103.6-2.3 88.4 7 79s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zm0 160c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zM224 96c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32l288 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-288 0c-17.7 0-32-14.3-32-32zM48 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96z';
+
 const HowToPanel = {
   ...ModalPanelBehaviour,
   panel: null,
@@ -1070,15 +1082,16 @@ const HowToPanel = {
   createPanel() {
     const panel = InfoPanel.register('howto', translate('howto_panel_title'), this, { tab: false });
     const btn = document.getElementById('info-tab-btn-howto');
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M152.1 38.2c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 113C-2.3 103.6-2.3 88.4 7 79s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zm0 160c9.9 8.9 10.7 24 1.8 33.9l-72 80c-4.4 4.9-10.6 7.8-17.2 7.9s-12.9-2.4-17.6-7L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l22.1 22.1 55.1-61.2c8.9-9.9 24-10.7 33.9-1.8zM224 96c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32l288 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-288 0c-17.7 0-32-14.3-32-32zM48 368a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"/></svg></div>`;
-    panel.innerHTML = `
-        <div class="shortcuts-panel-header">
-          <h2 id="howto-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
-          </div>
-        </div>
-        <div id="howto-list"></div>
-      `;
+    // Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com
+    // License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
+    btn.replaceChildren(
+      h(
+        'div',
+        { class: 'icon', 'aria-hidden': 'true' },
+        svgIcon({ viewBox: '0 0 512 512' }, [['path', { fill: 'currentColor', d: HOWTO_ICON_PATH }]])
+      )
+    );
+    panel.replaceChildren(this.panelHeader('howto-panel-title'), h('div', { id: 'howto-list' }));
     this.panel = panel;
     this.initFontControls();
     this.renderContent();
@@ -1105,7 +1118,10 @@ const HowToPanel = {
     const tags = [...new Set([...TAG_ORDER, ...HOW_TOS.flatMap((h) => h.tags ?? [])])].filter((tag) =>
       HOW_TOS.some((h) => h.tags?.includes(tag))
     );
-    list.innerHTML = `<div class="howto-filter" role="group" aria-label="${translate('howto_filter_label_ui')}"></div><ul class="howto-grid"></ul>`;
+    list.replaceChildren(
+      h('div', { class: 'howto-filter', role: 'group', 'aria-label': translate('howto_filter_label_ui') }),
+      h('ul', { class: 'howto-grid' })
+    );
     const filter = list.querySelector('.howto-filter');
     const addChip = (tag, label) => {
       const chip = document.createElement('button');
@@ -1146,14 +1162,19 @@ const HowToPanel = {
 
   renderArticle(list, slug) {
     const howTo = HOW_TOS.find((t) => t.slug === slug);
-    list.innerHTML = `
-      <button type="button" class="howto-back">${translate('howto_back_to_list')}</button>
-      <h3 class="howto-article-title">${howTo ? translate(howTo.i18nKey) : ''}</h3>
-      <div class="howto-article">${howToContentFor(slug, getCurrentLanguage())}</div>
-      <button type="button" class="howto-back">${translate('howto_back_to_list')}</button>
-    `;
-    list.querySelectorAll('.howto-back').forEach((btn) => btn.addEventListener('click', () => this.closeHowTo()));
-    const article = list.querySelector('.howto-article');
+    const backButton = () => {
+      const btn = h('button', { type: 'button', class: 'howto-back' }, translate('howto_back_to_list'));
+      btn.addEventListener('click', () => this.closeHowTo());
+      return btn;
+    };
+    const article = h('div', { class: 'howto-article' });
+    renderAuthoredContent(article, howToContentFor(slug, getCurrentLanguage()), `src/how-tos/${slug}`);
+    list.replaceChildren(
+      backButton(),
+      h('h3', { class: 'howto-article-title' }, howTo ? translate(howTo.i18nKey) : null),
+      article,
+      backButton()
+    );
     decorateExternalLinks(article);
     wireHowToLinks(article, (slug) => this.openHowTo(slug));
     wireHowToButtons(article);

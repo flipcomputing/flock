@@ -5,6 +5,7 @@
 import * as Blockly from 'blockly';
 import { isDebugModeEnabled } from './debugMode.js';
 import { whenDomReady } from './domReady.js';
+import { h } from '../ui/dom.js';
 
 export const ContextManager = {
   // Define priority order (Top of list = most important)
@@ -149,7 +150,19 @@ export function toggleContextDebug() {
     // 2. Create the Element
     debugDiv = document.createElement('div');
     debugDiv.id = 'flock-context-debug';
-    debugDiv.innerHTML = `CONTEXT: <span id="ctx-value">...</span><br>INPUT: <span id="input-debug-value">...</span><button class="flock-close-icon" id="flock-context-debug-close" aria-label="Close debug panel" type="button"></button>`;
+    debugDiv.append(
+      'CONTEXT: ',
+      h('span', { id: 'ctx-value' }, '...'),
+      h('br'),
+      'INPUT: ',
+      h('span', { id: 'input-debug-value' }, '...'),
+      h('button', {
+        class: 'flock-close-icon',
+        id: 'flock-context-debug-close',
+        'aria-label': 'Close debug panel',
+        type: 'button',
+      })
+    );
     document.body.appendChild(debugDiv);
 
     // Update loop

@@ -1,6 +1,24 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
 
+const DOM_CONTENT_LOADED = {
+  selector: "CallExpression[callee.property.name='addEventListener'][arguments.0.value='DOMContentLoaded']",
+  message: "Use whenDomReady from main/domReady.js: in production the app's modules can run after DOMContentLoaded.",
+};
+
+// Flock never turns strings into HTML (see AGENTS.md): build elements with ui/dom.js.
+const HTML_MESSAGE =
+  'Build elements with h/s/svgIcon from ui/dom.js and set text with textContent; authored pages go through renderAuthoredContent.';
+const HTML_STRINGS = [
+  { selector: "AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]", message: HTML_MESSAGE },
+  {
+    selector: "CallExpression[callee.property.name=/^(insertAdjacentHTML|setHTMLUnsafe|createContextualFragment)$/]",
+    message: HTML_MESSAGE,
+  },
+  { selector: "CallExpression[callee.object.name='document'][callee.property.name=/^write(ln)?$/]", message: HTML_MESSAGE },
+];
+const DOM_PARSER = { selector: "NewExpression[callee.name='DOMParser']", message: HTML_MESSAGE };
+
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
@@ -63,17 +81,15 @@ export default [
     },
   },
   {
-    ignores: ['tests/**', 'scripts/**', 'main/domReady.js'],
-    rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          selector:
-            "CallExpression[callee.property.name='addEventListener'][arguments.0.value='DOMContentLoaded']",
-          message:
-            "Use whenDomReady from main/domReady.js: in production the app's modules can run after DOMContentLoaded.",
-        },
-      ],
-    },
+    ignores: ['tests/**', 'scripts/**', 'main/domReady.js', 'ui/authoredContent.js'],
+    rules: { 'no-restricted-syntax': ['error', DOM_CONTENT_LOADED, ...HTML_STRINGS, DOM_PARSER] },
+  },
+  {
+    files: ['main/domReady.js'],
+    rules: { 'no-restricted-syntax': ['error', ...HTML_STRINGS, DOM_PARSER] },
+  },
+  {
+    files: ['ui/authoredContent.js'],
+    rules: { 'no-restricted-syntax': ['error', DOM_CONTENT_LOADED, ...HTML_STRINGS] },
   },
 ];

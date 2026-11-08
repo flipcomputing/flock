@@ -266,11 +266,12 @@ function bakeResolvedTextPaint(clonedText, liveText) {
   if (computed.fill && computed.fill !== 'none') clonedText.style.fill = computed.fill;
 }
 
-export async function generateSVG(block, { rasterSafe = false, keepSelected = false } = {}) {
+// The block as a standalone <svg> element, styled and sized for export.
+export async function generateSVGElement(block, { rasterSafe = false, keepSelected = false } = {}) {
   const isSection = block.type === 'section';
   if (isSection) beginSectionDragFollow(block);
 
-  let svgBlock, serializer, bbox;
+  let svgBlock, bbox;
   // Live paint for editable fields uses CSS vars / color-mix() that cannot
   // resolve once the SVG is standalone (exported <img> / canvas), leaving
   // text comment fields as a black box. Capture the resolved values now so
@@ -337,8 +338,6 @@ export async function generateSVG(block, { rasterSafe = false, keepSelected = fa
         path.setAttribute('stroke-width', '2');
       });
     }
-
-    serializer = new XMLSerializer();
 
     svgBlock.removeAttribute('transform');
 
@@ -446,12 +445,12 @@ export async function generateSVG(block, { rasterSafe = false, keepSelected = fa
   metadata.textContent = `{"blockJson": "${encodedJson}"}`;
   wrapperSVG.appendChild(metadata);
 
-  const svgString = serializer.serializeToString(wrapperSVG);
-  const svgDeclaration = '<?xml version="1.0" encoding="UTF-8"?>';
+  return wrapperSVG;
+}
 
-  const finalSVG = `${svgDeclaration}${svgString}`;
-
-  return finalSVG;
+export async function generateSVG(block, options) {
+  const svgString = new XMLSerializer().serializeToString(await generateSVGElement(block, options));
+  return `<?xml version="1.0" encoding="UTF-8"?>${svgString}`;
 }
 
 import { addMetadata } from 'meta-png';

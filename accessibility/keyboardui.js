@@ -7,6 +7,8 @@ import { stopCanvasKeyboardMode } from '../ui/canvas-utils.js';
 import { focusToolboxRestoringCategory } from '../main/toolboxfocus.js';
 import { InfoPanel, ModalPanelBehaviour, decorateExternalLinks } from './infoPanel.js';
 import { HowToPanel, drawAttention } from '../ui/howToPanel.js';
+import { h, s, svgIcon } from '../ui/dom.js';
+import { renderAuthoredContent } from '../ui/authoredContent.js';
 
 // Area menu accessed with Ctrl + B to quickly skip to
 // different areas on the interface
@@ -85,7 +87,7 @@ const AreaManager = {
     div.setAttribute('aria-modal', 'true');
     div.setAttribute('aria-label', 'Area navigation menu');
     div.tabIndex = -1;
-    div.innerHTML = `<div id="area-menu-content"> </div>`;
+    div.append(h('div', { id: 'area-menu-content' }, ' '));
     document.body.appendChild(div);
     this.overlay = div;
   },
@@ -221,7 +223,7 @@ const AreaManager = {
 
   renderHighlights() {
     const container = document.getElementById('area-menu-content');
-    container.innerHTML = ''; // Clear old numbers
+    container.replaceChildren(); // Clear old numbers
 
     this.effectiveAreas.forEach((area) => {
       const el = document.querySelector(area.selector);
@@ -287,7 +289,7 @@ const GizmoMenuManager = {
     const div = document.createElement('div');
     div.id = 'gizmo-menu-overlay';
     div.className = 'hidden';
-    div.innerHTML = `<div id="gizmo-menu-content"></div>`;
+    div.append(h('div', { id: 'gizmo-menu-content' }));
     document.body.appendChild(div);
     this.overlay = div;
   },
@@ -400,7 +402,7 @@ const GizmoMenuManager = {
   // Badges float into the gap .gizmo-status leaves below the buttons.
   renderBadges() {
     const container = document.getElementById('gizmo-menu-content');
-    container.innerHTML = '';
+    container.replaceChildren();
     const visible = this.buttons
       .map((entry) => {
         const el = document.getElementById(entry.id);
@@ -734,22 +736,35 @@ function getShortcuts() {
 // Use [/] for a literal slash key.
 function formatKeys(keys) {
   if (keys.startsWith('"') && keys.endsWith('"')) {
-    return keys.slice(1, -1);
+    return [keys.slice(1, -1)];
   }
-  return keys
-    .split(/( \+ | \/ )/)
-    .map((part) =>
-      part === ' + '
-        ? part
-        : part === ' / '
-          ? `<span aria-label="or"> / </span>`
-          : part
-              .split(' ')
-              .map((k) => (k === '[/]' ? '<kbd>/</kbd>' : `<kbd>${k}</kbd>`))
-              .join(' ')
-    )
-    .join('');
+  return keys.split(/( \+ | \/ )/).flatMap((part) =>
+    part === ' + '
+      ? [part]
+      : part === ' / '
+        ? [h('span', { 'aria-label': 'or' }, ' / ')]
+        : part
+            .split(' ')
+            .flatMap((k, i) => [i ? ' ' : null, h('kbd', {}, k === '[/]' ? '/' : k || null)])
+  );
 }
+
+// Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com
+// License: https://fontawesome.com/license/free  Copyright 2025 Fonticons, Inc.
+const HELP_ICON_PATH =
+  'M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z';
+const KEYBOARD_ICON_PATH =
+  'M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zm16 64l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80-176c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM160 336c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16l0-32zM272 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM256 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM368 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM352 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM464 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16z';
+const CONTROLLER_ICON_PATH =
+  'M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z';
+
+// An info-panel tab button's icon.
+const tabIcon = (viewBox, pathAttrs) =>
+  h(
+    'div',
+    { class: 'icon', 'aria-hidden': 'true' },
+    svgIcon({ viewBox }, [['path', { fill: 'currentColor', ...pathAttrs }]])
+  );
 
 // Help text lives in docs/help/<lang>.html so it can be edited without touching code;
 // bundled at build time (?raw) rather than fetched, so it works offline in the PWA.
@@ -814,15 +829,8 @@ const HelpPanel = {
   createPanel() {
     const panel = InfoPanel.register('help', translate('help_panel_title'), this);
     const btn = document.getElementById('info-tab-btn-help');
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></div>`;
-    panel.innerHTML = `
-        <div class="shortcuts-panel-header">
-          <h2 id="help-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
-          </div>
-        </div>
-        <div id="help-list"></div>
-      `;
+    btn.replaceChildren(tabIcon('0 0 512 512', { d: HELP_ICON_PATH }));
+    panel.replaceChildren(this.panelHeader('help-panel-title'), h('div', { id: 'help-list' }));
     this.panel = panel;
     this.initFontControls();
     this.renderContent();
@@ -836,7 +844,7 @@ const HelpPanel = {
     this.panel.querySelector('#help-panel-title').textContent = title;
 
     const list = this.panel.querySelector('#help-list');
-    list.innerHTML = helpContentFor(getCurrentLanguage());
+    renderAuthoredContent(list, helpContentFor(getCurrentLanguage()), 'docs/help');
     if (isMac()) list.querySelectorAll('[data-mod-key]').forEach((k) => (k.textContent = '⌘'));
     decorateExternalLinks(list);
     wireHelpLinks(list);
@@ -911,16 +919,25 @@ const ShortcutsPanel = {
     const btn = document.getElementById('info-tab-btn-shortcuts');
     btn.setAttribute('aria-label', translate('shortcut_panel_title'));
     btn.setAttribute('title', translate('shortcut_panel_title'));
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" d="M64 64C28.7 64 0 92.7 0 128L0 384c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 64zm16 64l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM64 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zm80-176c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM160 336c0-8.8 7.2-16 16-16l224 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-224 0c-8.8 0-16-7.2-16-16l0-32zM272 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM256 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM368 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM352 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zM464 128l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16zM448 240c0-8.8 7.2-16 16-16l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32zm16 80l32 0c8.8 0 16 7.2 16 16l0 32c0 8.8-7.2 16-16 16l-32 0c-8.8 0-16-7.2-16-16l0-32c0-8.8 7.2-16 16-16z"/></svg></div>`;
-    panel.innerHTML = `
-        <div class="shortcuts-panel-header">
-          <h2 id="shortcuts-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
-            <a href="${SHORTCUTS_HELP_URL}" target="_blank" rel="noopener noreferrer" class="help-link-button" aria-label="${translate('shortcut_panel_help_link')}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="20" height="20" aria-hidden="true"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM169.8 165.3c7.9-22.3 29.1-37.3 52.8-37.3l58.3 0c34.9 0 63.1 28.3 63.1 63.1c0 22.6-12.1 43.5-31.7 54.8L280 264.4c-.2 13-10.9 23.6-24 23.6c-13.3 0-24-10.7-24-24l0-13.5c0-8.6 4.6-16.5 12.1-20.8l44.3-25.4c4.7-2.7 7.6-7.7 7.6-13.1c0-8.4-6.8-15.1-15.1-15.1l-58.3 0c-3.4 0-6.4 2.1-7.5 5.3l-.4 1.2c-4.4 12.5-18.2 19-30.6 14.6s-19-18.2-14.6-30.6l.4-1.2zM224 352a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg></a>
-          </div>
-        </div>
-        <div id="shortcuts-list"></div>
-      `;
+    btn.replaceChildren(tabIcon('0 0 576 512', { d: KEYBOARD_ICON_PATH }));
+    const header = this.panelHeader('shortcuts-panel-title');
+    header.querySelector('.shortcuts-panel-controls').append(
+      h(
+        'a',
+        {
+          href: SHORTCUTS_HELP_URL,
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          class: 'help-link-button',
+          'aria-label': translate('shortcut_panel_help_link'),
+        },
+        svgIcon({ viewBox: '0 0 512 512', width: '20', height: '20', 'aria-hidden': 'true' }, [
+          ['path', { fill: 'currentColor', d: HELP_ICON_PATH }],
+        ])
+      ),
+      ' '
+    );
+    panel.replaceChildren(header, h('div', { id: 'shortcuts-list' }));
     this.panel = panel;
     this.initFontControls();
     this.renderContent();
@@ -940,16 +957,18 @@ const ShortcutsPanel = {
       (acc[s.category] ??= []).push(s);
       return acc;
     }, {});
-    container.innerHTML = Object.entries(groups)
-      .map(
-        ([cat, items]) => `
-      <h3 class="shortcuts-category">${cat}</h3>
-      <dl class="shortcuts-group">
-        ${items.map(({ label, keys }) => `<div class="shortcuts-entry"><dt>${label}</dt><dd>${formatKeys(keys)}</dd></div>`).join('')}
-      </dl>
-    `
-      )
-      .join('');
+    container.replaceChildren(
+      ...Object.entries(groups).flatMap(([cat, items]) => [
+        h('h3', { class: 'shortcuts-category' }, cat),
+        h(
+          'dl',
+          { class: 'shortcuts-group' },
+          items.map(({ label, keys }) =>
+            h('div', { class: 'shortcuts-entry' }, h('dt', {}, label), h('dd', {}, formatKeys(keys)))
+          )
+        ),
+      ])
+    );
   },
 
   show() {
@@ -1000,22 +1019,50 @@ const ShortcutsPanel = {
 };
 
 const CONTROL_MARKS = {
-  up: '<path d="M12 5 20 18 4 18Z"/>',
-  down: '<path d="M12 19 4 6 20 6Z"/>',
-  left: '<path d="M5 12 18 4 18 20Z"/>',
-  right: '<path d="M19 12 6 20 6 4Z"/>',
-  triangle: '<path d="M12 4 21 19 3 19Z"/>',
-  circle: '<circle cx="12" cy="12" r="8"/>',
-  square: '<rect x="4.5" y="4.5" width="15" height="15" rx="1"/>',
-  cross: '<path d="M5 5 19 19M19 5 5 19"/>',
-  stick: '<circle cx="12" cy="8.5" r="4.5"/><path d="M12 13v4M7 20h10"/>',
+  up: [['path', { d: 'M12 5 20 18 4 18Z' }]],
+  down: [['path', { d: 'M12 19 4 6 20 6Z' }]],
+  left: [['path', { d: 'M5 12 18 4 18 20Z' }]],
+  right: [['path', { d: 'M19 12 6 20 6 4Z' }]],
+  triangle: [['path', { d: 'M12 4 21 19 3 19Z' }]],
+  circle: [['circle', { cx: '12', cy: '12', r: '8' }]],
+  square: [['rect', { x: '4.5', y: '4.5', width: '15', height: '15', rx: '1' }]],
+  cross: [['path', { d: 'M5 5 19 19M19 5 5 19' }]],
+  stick: [
+    ['circle', { cx: '12', cy: '8.5', r: '4.5' }],
+    ['path', { d: 'M12 13v4M7 20h10' }],
+  ],
 };
 
 const svgMark = (name) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${CONTROL_MARKS[name]}</svg>`;
+  svgIcon(
+    {
+      viewBox: '0 0 24 24',
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linejoin': 'round',
+      'stroke-linecap': 'round',
+    },
+    CONTROL_MARKS[name]
+  );
 
 const svgRingedChar = (char) =>
-  `<svg viewBox="0 0 24 24"><text x="12" y="12" text-anchor="middle" dominant-baseline="central" font-size="16" fill="currentColor">${char}</text></svg>`;
+  s(
+    'svg',
+    { viewBox: '0 0 24 24' },
+    s(
+      'text',
+      {
+        x: '12',
+        y: '12',
+        'text-anchor': 'middle',
+        'dominant-baseline': 'central',
+        'font-size': '16',
+        fill: 'currentColor',
+      },
+      String(char)
+    )
+  );
 
 function getPlayerControls() {
   return [
@@ -1159,15 +1206,8 @@ const PlayerPanel = {
       tab: false,
     });
     const btn = document.getElementById('info-tab-btn-player');
-    btn.innerHTML = `<div class="icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path fill="currentColor" fill-rule="evenodd" d="M60,144H516A36,36 0 0 1 552,180V332A36,36 0 0 1 516,368H60A36,36 0 0 1 24,332V180A36,36 0 0 1 60,144ZM134,180h52v50h50v52h-50v50h-52v-50h-50v-52h50ZM364,224a40,40 0 1 0 80,0a40,40 0 1 0 -80,0ZM428,296a40,40 0 1 0 80,0a40,40 0 1 0 -80,0Z"/></svg></div>`;
-    panel.innerHTML = `
-        <div class="shortcuts-panel-header">
-          <h2 id="player-panel-title" class="shortcuts-panel-title"></h2>
-          <div class="shortcuts-panel-controls">${this.fontControlsHTML()}
-          </div>
-        </div>
-        <div id="player-list"></div>
-      `;
+    btn.replaceChildren(tabIcon('0 0 576 512', { d: CONTROLLER_ICON_PATH, 'fill-rule': 'evenodd' }));
+    panel.replaceChildren(this.panelHeader('player-panel-title'), h('div', { id: 'player-list' }));
     this.panel = panel;
     this.initFontControls();
     this.renderContent();
@@ -1181,40 +1221,37 @@ const PlayerPanel = {
     this.panel.querySelector('#player-panel-title').textContent = title;
 
     const renderControl = (entry) => {
-      if (entry.marks) {
-        const keys = entry.keys ? `<span class="pc-sep"> / </span>${formatKeys(entry.keys)}` : '';
-        const srText = entry.keys ? `${entry.label} ${formatKeys(entry.keys)}` : entry.label;
-        const chipClass = entry.ringed ? 'pc-chip pc-chip--ringed' : 'pc-chip';
-        return `<span class="pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}" aria-hidden="true">${entry.marks
-          .map((m) => `<span class="${chipClass}">${m}</span>`)
-          .join('')}${keys}</span><span class="sr-only">${srText}</span>`;
-      }
-      return formatKeys(entry.keys);
+      if (!entry.marks) return formatKeys(entry.keys);
+      const chipClass = entry.ringed ? 'pc-chip pc-chip--ringed' : 'pc-chip';
+      return [
+        h(
+          'span',
+          { class: `pc-keys${entry.layout ? ` pc-keys--${entry.layout}` : ''}`, 'aria-hidden': 'true' },
+          entry.marks.map((mark) => h('span', { class: chipClass }, mark)),
+          entry.keys ? [h('span', { class: 'pc-sep' }, ' / '), formatKeys(entry.keys)] : null
+        ),
+        h('span', { class: 'sr-only' }, entry.keys ? [`${entry.label} `, formatKeys(entry.keys)] : entry.label),
+      ];
     };
 
-    const sections = getPlayerControls()
-      .map(
-        ({ section, entries, hideHeader, note }) => `
-      ${hideHeader ? '' : `<h3 class="shortcuts-category">${translate(section)}</h3>`}
-      <dl class="shortcuts-group">
-        ${entries
-          .map(
-            (entry) => `
-        <div class="shortcuts-entry">
-          <dt>${translate(entry.action)}</dt>
-          <dd>${renderControl(entry)}</dd>
-        </div>`
-          )
-          .join('')}
-      </dl>
-      ${note ? `<p class="player-controls-note">${translate(note)}</p>` : ''}`
-      )
-      .join('');
+    const sections = getPlayerControls().flatMap(({ section, entries, hideHeader, note }) => [
+      hideHeader ? null : h('h3', { class: 'shortcuts-category' }, translate(section)),
+      h(
+        'dl',
+        { class: 'shortcuts-group' },
+        entries.map((entry) =>
+          h('div', { class: 'shortcuts-entry' }, h('dt', {}, translate(entry.action)), h('dd', {}, renderControl(entry)))
+        )
+      ),
+      note ? h('p', { class: 'player-controls-note' }, translate(note)) : null,
+    ]);
 
-    this.panel.querySelector('#player-list').innerHTML = `
-        ${sections}
-        <p class="player-controls-note">${translate('player_control_dpad_note')}</p>
-      `;
+    this.panel
+      .querySelector('#player-list')
+      .replaceChildren(
+        ...sections.filter(Boolean),
+        h('p', { class: 'player-controls-note' }, translate('player_control_dpad_note'))
+      );
   },
 
   show() {

@@ -14,6 +14,7 @@ import {
   setGroundLevelY,
 } from './groundLevel.js';
 import { focusBlocklyBlock, rememberUndoFocusTarget } from '../main/blockhandling.js';
+import { h, svgIcon } from './dom.js';
 
 // Section blocks fold via their own sectionCollapsed_ flag rather than
 // Blockly's native collapsed_ (see the setCollapsed override in section.js -
@@ -1009,8 +1010,8 @@ export function initContextMenus(workspace) {
     // except duplicateBtn (a custom icon) (each call site names the icon it draws)
     // by @fontawesome — https://fontawesome.com
     // License: https://fontawesome.com/license/free  Copyright 2024 Fonticons, Inc.
-    const mkFaSvg = (path, vw = '0 0 448 512') =>
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vw}" width="20" height="20" fill="currentColor">${path}</svg>`;
+    const faIcon = (shapes, viewBox = '0 0 448 512') =>
+      svgIcon({ viewBox, width: '20', height: '20', fill: 'currentColor' }, shapes);
 
     // Helper: detect untranslated keys and apply English fallback
     const getToolbarLabel = (key, fallback) => {
@@ -1028,64 +1029,59 @@ export function initContextMenus(workspace) {
     const expandBtn = document.createElement('button');
     expandBtn.type = 'button';
     expandBtn.className = 'fc-block-toolbar-btn';
-    expandBtn.innerHTML = mkFaSvg(`<path d="${CLOSED_ARROW}"/>`, '0 0 30 30');
+    expandBtn.replaceChildren(faIcon([['path', { d: CLOSED_ARROW }]], '0 0 30 30'));
 
     // Only shown for top-level container (c-shaped) blocks.
     const collapseBtn = document.createElement('button');
     collapseBtn.type = 'button';
     collapseBtn.className = 'fc-block-toolbar-btn';
-    collapseBtn.innerHTML = mkFaSvg(`<path d="${OPEN_ARROW}"/>`, '0 0 30 30');
+    collapseBtn.replaceChildren(faIcon([['path', { d: OPEN_ARROW }]], '0 0 30 30'));
 
     const duplicateBtn = document.createElement('button');
     duplicateBtn.type = 'button';
     duplicateBtn.className = 'fc-block-toolbar-btn';
-    duplicateBtn.innerHTML = mkFaSvg(
-      '<rect x="7" y="8" width="20" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="1" y="2" width="20" height="16" rx="3" fill="currentColor"/>',
-      '0 0 28 26'
+    duplicateBtn.replaceChildren(
+      faIcon(
+        [
+          [
+            'rect',
+            { x: '7', y: '8', width: '20', height: '16', rx: '3', fill: 'none', stroke: 'currentColor', 'stroke-width': '2' },
+          ],
+          ['rect', { x: '1', y: '2', width: '20', height: '16', rx: '3', fill: 'currentColor' }],
+        ],
+        '0 0 28 26'
+      )
     );
 
     const copyBtn = document.createElement('button');
     copyBtn.type = 'button';
     copyBtn.className = 'fc-block-toolbar-btn';
     // fa-copy
-    copyBtn.innerHTML = mkFaSvg(
-      '<path d="M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z"/>'
-    );
+    copyBtn.replaceChildren(faIcon([['path', { d: 'M208 0L332.1 0c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9L448 336c0 26.5-21.5 48-48 48l-192 0c-26.5 0-48-21.5-48-48l0-288c0-26.5 21.5-48 48-48zM48 128l80 0 0 64-64 0 0 256 192 0 0-32 64 0 0 48c0 26.5-21.5 48-48 48L48 512c-26.5 0-48-21.5-48-48L0 176c0-26.5 21.5-48 48-48z' }]]));
 
     const pasteBtn = document.createElement('button');
     pasteBtn.type = 'button';
     pasteBtn.className = 'fc-block-toolbar-btn';
     // fa-paste
-    pasteBtn.innerHTML = mkFaSvg(
-      '<path d="M160 0c-23.7 0-44.4 12.9-55.4 32L48 32C21.5 32 0 53.5 0 80L0 400c0 26.5 21.5 48 48 48l144 0 0-272c0-44.2 35.8-80 80-80l48 0 0-16c0-26.5-21.5-48-48-48l-56.6 0C204.4 12.9 183.7 0 160 0zM272 128c-26.5 0-48 21.5-48 48l0 272 0 16c0 26.5 21.5 48 48 48l192 0c26.5 0 48-21.5 48-48l0-220.1c0-12.7-5.1-24.9-14.1-33.9l-67.9-67.9c-9-9-21.2-14.1-33.9-14.1L320 128l-48 0zM160 40a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/>',
-      '0 0 512 512'
-    );
+    pasteBtn.replaceChildren(faIcon([['path', { d: 'M160 0c-23.7 0-44.4 12.9-55.4 32L48 32C21.5 32 0 53.5 0 80L0 400c0 26.5 21.5 48 48 48l144 0 0-272c0-44.2 35.8-80 80-80l48 0 0-16c0-26.5-21.5-48-48-48l-56.6 0C204.4 12.9 183.7 0 160 0zM272 128c-26.5 0-48 21.5-48 48l0 272 0 16c0 26.5 21.5 48 48 48l192 0c26.5 0 48-21.5 48-48l0-220.1c0-12.7-5.1-24.9-14.1-33.9l-67.9-67.9c-9-9-21.2-14.1-33.9-14.1L320 128l-48 0zM160 40a24 24 0 1 1 0 48 24 24 0 1 1 0-48z' }]], '0 0 512 512'));
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'fc-block-toolbar-btn fc-block-toolbar-btn--delete';
     // fa-trash
-    deleteBtn.innerHTML = mkFaSvg(
-      '<path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/>'
-    );
+    deleteBtn.replaceChildren(faIcon([['path', { d: 'M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z' }]]));
 
     const detachBtn = document.createElement('button');
     detachBtn.type = 'button';
     detachBtn.className = 'fc-block-toolbar-btn';
     // fa-share-from-square (solid)
-    detachBtn.innerHTML = mkFaSvg(
-      '<path d="M352 224H305.5c-45 0-81.5 36.5-81.5 81.5c0 22.3 10.3 34.3 19.2 40.5c6.8 4.7 12.8 12 12.8 20.3c0 9.8-8 17.8-17.8 17.8h-2.5c-2.4 0-4.8-.4-7.1-1.4C210.8 374.8 128 333.4 128 240c0-79.5 64.5-144 144-144h80V34.7C352 15.5 367.5 0 386.7 0c8.6 0 16.8 3.2 23.2 8.9L548.1 133.3c7.6 6.8 11.9 16.5 11.9 26.7s-4.3 19.9-11.9 26.7l-139 125.1c-5.9 5.3-13.5 8.2-21.4 8.2H384c-17.7 0-32-14.3-32-32V224zM80 96c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16H400c8.8 0 16-7.2 16-16V384c0-17.7 14.3-32 32-32s32 14.3 32 32v48c0 44.2-35.8 80-80 80H80c-44.2 0-80-35.8-80-80V112C0 67.8 35.8 32 80 32h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H80z"/>',
-      '0 0 576 512'
-    );
+    detachBtn.replaceChildren(faIcon([['path', { d: 'M352 224H305.5c-45 0-81.5 36.5-81.5 81.5c0 22.3 10.3 34.3 19.2 40.5c6.8 4.7 12.8 12 12.8 20.3c0 9.8-8 17.8-17.8 17.8h-2.5c-2.4 0-4.8-.4-7.1-1.4C210.8 374.8 128 333.4 128 240c0-79.5 64.5-144 144-144h80V34.7C352 15.5 367.5 0 386.7 0c8.6 0 16.8 3.2 23.2 8.9L548.1 133.3c7.6 6.8 11.9 16.5 11.9 26.7s-4.3 19.9-11.9 26.7l-139 125.1c-5.9 5.3-13.5 8.2-21.4 8.2H384c-17.7 0-32-14.3-32-32V224zM80 96c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16H400c8.8 0 16-7.2 16-16V384c0-17.7 14.3-32 32-32s32 14.3 32 32v48c0 44.2-35.8 80-80 80H80c-44.2 0-80-35.8-80-80V112C0 67.8 35.8 32 80 32h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H80z' }]], '0 0 576 512'));
 
     const unlockBtn = document.createElement('button');
     unlockBtn.type = 'button';
     unlockBtn.className = 'fc-block-toolbar-btn';
     // fa-unlock
-    unlockBtn.innerHTML = mkFaSvg(
-      '<path d="M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H336c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z"/>',
-      '0 0 576 512'
-    );
+    unlockBtn.replaceChildren(faIcon([['path', { d: 'M352 144c0-44.2 35.8-80 80-80s80 35.8 80 80v48c0 17.7 14.3 32 32 32s32-14.3 32-32V144C576 64.5 511.5 0 432 0S288 64.5 288 144v48H64c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H336c35.3 0 64-28.7 64-64V256c0-35.3-28.7-64-64-64H352V144z' }]], '0 0 576 512'));
 
     // duplicate/delete/detach/unlock labels don't change per-block, so nothing
     // else re-applies them after creation — without this, switching language
@@ -1110,41 +1106,26 @@ export function initContextMenus(workspace) {
     moveHint.className = 'fc-block-toolbar-btn fc-block-toolbar-hint';
     moveHint.setAttribute('aria-hidden', 'true');
     // fa-up-down-left-right
-    moveHint.innerHTML = mkFaSvg(
-      '<path d="M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z"/>',
-      '0 0 512 512'
-    );
+    moveHint.replaceChildren(faIcon([['path', { d: 'M278.6 9.4c-12.5-12.5-32.8-12.5-45.3 0l-64 64c-9.2 9.2-11.9 22.9-6.9 34.9s16.6 19.8 29.6 19.8l32 0 0 96-96 0 0-32c0-12.9-7.8-24.6-19.8-29.6s-25.7-2.2-34.9 6.9l-64 64c-12.5 12.5-12.5 32.8 0 45.3l64 64c9.2 9.2 22.9 11.9 34.9 6.9s19.8-16.6 19.8-29.6l0-32 96 0 0 96-32 0c-12.9 0-24.6 7.8-29.6 19.8s-2.2 25.7 6.9 34.9l64 64c12.5 12.5 32.8 12.5 45.3 0l64-64c9.2-9.2 11.9-22.9 6.9-34.9s-16.6-19.8-29.6-19.8l-32 0 0-96 96 0 0 32c0 12.9 7.8 24.6 19.8 29.6s25.7 2.2 34.9-6.9l64-64c12.5-12.5 12.5-32.8 0-45.3l-64-64c-9.2-9.2-22.9-11.9-34.9-6.9s-19.8 16.6-19.8 29.6l0 32-96 0 0-96 32 0c12.9 0 24.6-7.8 29.6-19.8s2.2-25.7-6.9-34.9l-64-64z' }]], '0 0 512 512'));
 
     const enableBtn = document.createElement('button');
     enableBtn.type = 'button';
     enableBtn.className = 'fc-block-toolbar-btn';
     // fa-toggle-on
-    const blockEnabledSvg = mkFaSvg(
-      '<path d="M384 64c106 0 192 86 192 192s-86 192-192 192l-192 0C86 448 0 362 0 256S86 64 192 64l192 0zm0 288a96 96 0 1 0 0-192 96 96 0 1 0 0 192z"/>',
-      '0 0 576 512'
-    );
+    const blockEnabledIcon = () => faIcon([['path', { d: 'M384 64c106 0 192 86 192 192s-86 192-192 192l-192 0C86 448 0 362 0 256S86 64 192 64l192 0zm0 288a96 96 0 1 0 0-192 96 96 0 1 0 0 192z' }]], '0 0 576 512');
     // fa-toggle-off
-    const blockDisabledSvg = mkFaSvg(
-      '<path d="M192 64C86 64 0 150 0 256S86 448 192 448l192 0c106 0 192-86 192-192S490 64 384 64L192 64zm0 288a96 96 0 1 1 0-192 96 96 0 1 1 0 192z"/>',
-      '0 0 576 512'
-    );
+    const blockDisabledIcon = () => faIcon([['path', { d: 'M192 64C86 64 0 150 0 256S86 448 192 448l192 0c106 0 192-86 192-192S490 64 384 64L192 64zm0 288a96 96 0 1 1 0-192 96 96 0 1 1 0 192z' }]], '0 0 576 512');
 
     // fa-eye
-    const viewEnterSvg = mkFaSvg(
-      '<path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z"/>',
-      '0 0 576 512'
-    );
+    const viewEnterIcon = () => faIcon([['path', { d: 'M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM144 256a144 144 0 1 1 288 0 144 144 0 1 1 -288 0zm144-64c0 35.3-28.7 64-64 64c-7.1 0-13.9-1.2-20.3-3.3c-5.5-1.8-11.9 1.6-11.7 7.4c.3 6.9 1.3 13.8 3.2 20.7c13.7 51.2 66.4 81.6 117.6 67.9s81.6-66.4 67.9-117.6c-11.1-41.5-47.8-69.4-88.6-71.1c-5.8-.2-9.2 6.1-7.4 11.7c2.1 6.4 3.3 13.2 3.3 20.3z' }]], '0 0 576 512');
     // fa-eye-slash
-    const viewExitSvg = mkFaSvg(
-      '<path d="M45.6 32C20.4 32 0 52.4 0 77.6L0 434.4C0 459.6 20.4 480 45.6 480c5.1 0 10-.8 14.7-2.4C74.6 472.8 177.6 440 320 440s245.4 32.8 259.6 37.6c4.7 1.6 9.7 2.4 14.7 2.4c25.2 0 45.6-20.4 45.6-45.6l0-356.7C640 52.4 619.6 32 594.4 32c-5 0-10 .8-14.7 2.4C565.4 39.2 462.4 72 320 72S74.6 39.2 60.4 34.4C55.6 32.8 50.7 32 45.6 32zM96 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm272 0c7.9 0 15.4 3.9 19.8 10.5L512.3 353c5.4 8 5.6 18.4 .4 26.5s-14.7 12.3-24.2 10.7C442.7 382.4 385.2 376 320 376c-65.6 0-123.4 6.5-169.3 14.4c-9.8 1.7-19.7-2.9-24.7-11.5s-4.3-19.4 1.9-27.2L197.3 265c4.6-5.7 11.4-9 18.7-9s14.2 3.3 18.7 9l26.4 33.1 87-127.6c4.5-6.6 11.9-10.5 19.8-10.5z"/>',
-      '0 0 640 512'
-    );
+    const viewExitIcon = () => faIcon([['path', { d: 'M45.6 32C20.4 32 0 52.4 0 77.6L0 434.4C0 459.6 20.4 480 45.6 480c5.1 0 10-.8 14.7-2.4C74.6 472.8 177.6 440 320 440s245.4 32.8 259.6 37.6c4.7 1.6 9.7 2.4 14.7 2.4c25.2 0 45.6-20.4 45.6-45.6l0-356.7C640 52.4 619.6 32 594.4 32c-5 0-10 .8-14.7 2.4C565.4 39.2 462.4 72 320 72S74.6 39.2 60.4 34.4C55.6 32.8 50.7 32 45.6 32zM96 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm272 0c7.9 0 15.4 3.9 19.8 10.5L512.3 353c5.4 8 5.6 18.4 .4 26.5s-14.7 12.3-24.2 10.7C442.7 382.4 385.2 376 320 376c-65.6 0-123.4 6.5-169.3 14.4c-9.8 1.7-19.7-2.9-24.7-11.5s-4.3-19.4 1.9-27.2L197.3 265c4.6-5.7 11.4-9 18.7-9s14.2 3.3 18.7 9l26.4 33.1 87-127.6c4.5-6.6 11.9-10.5 19.8-10.5z' }]], '0 0 640 512');
 
     const viewBtn = document.createElement('button');
     viewBtn.type = 'button';
     viewBtn.className = 'fc-block-toolbar-btn';
     setToolbarLabel(viewBtn, getToolbarLabel('view_in_canvas', 'View in canvas'));
-    viewBtn.innerHTML = viewEnterSvg;
+    viewBtn.replaceChildren(viewEnterIcon());
 
     blockToolbar.append(
       expandBtn,
@@ -1220,9 +1201,14 @@ export function initContextMenus(workspace) {
         badge.className = 'fc-toolbar-key-badge';
         const text = typeof labelSpec === 'function' ? labelSpec() : labelSpec;
         const ctrlMatch = /^Ctrl\+(.)$/.exec(text);
-        badge.innerHTML = ctrlMatch
-          ? `<span class="fc-toolbar-keycap fc-toolbar-keycap--mod">CT<br>RL</span><span class="fc-toolbar-keycap fc-toolbar-keycap--paired">${ctrlMatch[1]}</span>`
-          : `<span class="fc-toolbar-keycap">${text}</span>`;
+        badge.append(
+          ...(ctrlMatch
+            ? [
+                h('span', { class: 'fc-toolbar-keycap fc-toolbar-keycap--mod' }, 'CT', h('br'), 'RL'),
+                h('span', { class: 'fc-toolbar-keycap fc-toolbar-keycap--paired' }, ctrlMatch[1]),
+              ]
+            : [h('span', { class: 'fc-toolbar-keycap' }, text)])
+        );
         badge.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
         badge.style.top = `${Math.round(rect.top + rect.height + 8)}px`;
         badgeOverlay.appendChild(badge);
@@ -1498,7 +1484,7 @@ export function initContextMenus(workspace) {
         enableBtn,
         disabled ? getToolbarLabel('context_enable_option', 'Enable') : getToolbarLabel('context_disable_option', 'Disable')
       );
-      enableBtn.innerHTML = disabled ? blockDisabledSvg : blockEnabledSvg;
+      enableBtn.replaceChildren(disabled ? blockDisabledIcon() : blockEnabledIcon());
     }
 
     function announceBlockToolbar() {
@@ -1555,7 +1541,7 @@ export function initContextMenus(workspace) {
       const exitMode =
         !!window.orbitViewActive &&
         (window.orbitBlock === block || (meshRoot && window.orbitMesh === meshRoot));
-      viewBtn.innerHTML = exitMode ? viewExitSvg : viewEnterSvg;
+      viewBtn.replaceChildren(exitMode ? viewExitIcon() : viewEnterIcon());
       setToolbarLabel(
         viewBtn,
         exitMode

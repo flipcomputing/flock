@@ -30,6 +30,10 @@ User code may only reach the Flock API. See [dev-docs/SANDBOX.md](dev-docs/SANDB
 - Generated code must pass the allowlists in `prepareUserCode`; add a new property, global or syntax there
 - Add a `@sandbox` test for any API that returns, resolves to, or calls back with non-primitive values
 
+## Page security
+
+- Don't use `innerHTML`; build elements with `ui/dom.js`
+
 ## Testing
 
 - See [README_TOOLS.md](README_TOOLS.md) for instructions on running tests
