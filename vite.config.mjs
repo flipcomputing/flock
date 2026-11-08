@@ -37,14 +37,14 @@ function inlineScriptHashes(html) {
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
 function productionMetaPolicy(pageScriptHashes) {
   const scriptHashes = [...new Set([...SANDBOX_SCRIPT_HASHES, ...pageScriptHashes])].join(' ');
-  return `default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' ${scriptHashes} 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'`;
+  return `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' ${scriptHashes} 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'`;
 }
 
 let productionHeaderPolicy = null;
 
 // Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
 const CSP_DEV_META_POLICY =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: ws:; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+  "default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: ws:; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_DEV_POLICY = `${CSP_DEV_META_POLICY}; frame-ancestors 'self'`;
 const CSP_META_PLACEHOLDER = '__FLOCK_CSP_META__';
 
@@ -443,6 +443,8 @@ export default {
         // Note: frame-ancestors is only enforced via HTTP headers, not CSP meta tags.
         const headersContent = `/*
   Content-Security-Policy: ${productionHeaderPolicy}
+  Strict-Transport-Security: max-age=31536000
+  Cross-Origin-Opener-Policy: same-origin
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
@@ -460,6 +462,7 @@ export default {
     host: '0.0.0.0',
     headers: {
       'Content-Security-Policy': CSP_DEV_POLICY,
+      'Cross-Origin-Opener-Policy': 'same-origin',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -477,6 +480,7 @@ export default {
 
   preview: {
     headers: {
+      'Cross-Origin-Opener-Policy': 'same-origin',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'Referrer-Policy': 'strict-origin-when-cross-origin',

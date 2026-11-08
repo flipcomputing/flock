@@ -42,12 +42,31 @@ The dev server keeps `'unsafe-inline'`, because its header is fixed while it ser
 | Deployment | Policy |
 | --- | --- |
 | `app.flockxr.com` (Cloudflare Pages) | `_headers` (the production policy, `X-Frame-Options: SAMEORIGIN` and others), plus the meta tag |
-| `flipcomputing.github.io/flock/` (GitHub Pages) | The meta tag only. GitHub Pages can't send headers |
+| `flipcomputing.github.io/flock/` (GitHub Pages) | The meta tag only. GitHub Pages can't send custom headers |
 | Dev server | `CSP_DEV_POLICY` header, plus the dev meta tag |
 
 Browsers ignore `frame-ancestors` in a meta tag, so on GitHub Pages nothing in the policy stops another
 site from framing the editor. Instead, the editor refuses to start when another site frames it
 (`isFramedByOtherSite` in `main/files.js`). It shows a message with a link to open Flock XR in a new tab.
+
+## Other headers
+
+`_headers` also sends:
+
+- `Strict-Transport-Security: max-age=31536000`. Once a browser has received it over HTTPS, it uses
+  HTTPS for `app.flockxr.com` for the next year. It doesn't cover a browser's first visit: that request
+  can still go over HTTP, which Cloudflare redirects to HTTPS. Only `preload` would cover first visits,
+  and it is left out with `includeSubDomains` because both are hard to undo. GitHub Pages sends its own.
+- `Cross-Origin-Opener-Policy: same-origin`, so a page on another site that opens Flock, or that Flock
+  opens, gets no window reference to it. Flock never talks to another site's window: external links
+  use `noopener`, and the Inspector's pop-outs are blocked (`main/view.js`). The dev and preview servers
+  send it too, so the tests run under it.
+- `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy`.
+
+Cloudflare Pages adds `Access-Control-Allow-Origin: *` to every file. That lets scripts on other sites
+read the responses to requests sent without credentials. A request made with credentials can still send
+cookies, but the browser doesn't show its response to the requesting script, because `*` doesn't allow
+that. Flock's files are public and the same for everyone, so either way nothing private is exposed.
 
 ## The sandbox iframe
 
@@ -74,6 +93,14 @@ what prevent that.
   - `script-src`: Cloudflare's analytics script, added by Cloudflare on `app.flockxr.com`.
 
 These analytics scripts run with full access to the editor page. That's an accepted trade-off.
+
+## Directives set to `'none'`
+
+- `object-src 'none'`: Flock embeds no plugins.
+- `base-uri 'none'`: Flock has no `<base>` element, so injected markup can't change where relative
+  URLs resolve.
+- `form-action 'none'`: Flock submits no forms. Saving and importing use downloads and file inputs, which
+  this doesn't cover.
 
 ## Why the broad allowances are needed
 
