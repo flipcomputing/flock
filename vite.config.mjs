@@ -1,6 +1,6 @@
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
-import { copyFileSync, readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { createHash } from 'node:crypto';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
@@ -20,14 +20,33 @@ const SES_LOCKDOWN_SRI = `sha256-${createHash('sha256')
 // find-inspector-chunks plugin computes these for the service worker manifest.
 const inspectorOnlyChunks = new Set();
 
+const scriptHash = (source) => `'sha256-${createHash('sha256').update(source).digest('base64')}'`;
+
+const SANDBOX_SCRIPT_HASHES = [
+  `'${SES_LOCKDOWN_SRI}'`,
+  scriptHash(readFileSync('runtime/sandboxWrap.js')),
+];
+
+function inlineScriptHashes(html) {
+  return [...html.matchAll(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)]
+    .map(([, source]) => source)
+    .filter((source) => source.trim())
+    .map(scriptHash);
+}
+
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
-const CSP_META_POLICY =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
-const CSP_HEADER_POLICY = `${CSP_META_POLICY}; frame-ancestors 'self'`;
+function productionMetaPolicy(pageScriptHashes) {
+  const scriptHashes = [...new Set([...SANDBOX_SCRIPT_HASHES, ...pageScriptHashes])].join(' ');
+  return `default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' ${scriptHashes} 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'`;
+}
+
+let productionHeaderPolicy = null;
 
 // Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
-const CSP_DEV_POLICY =
-  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://app.flockxr.com https://flipcomputing.github.io/flock/; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://app.flockxr.com; font-src 'self' data:; connect-src 'self' https: ws: https://app.flockxr.com; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'; frame-ancestors 'self'";
+const CSP_DEV_META_POLICY =
+  "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: ws:; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
+const CSP_DEV_POLICY = `${CSP_DEV_META_POLICY}; frame-ancestors 'self'`;
+const CSP_META_PLACEHOLDER = '__FLOCK_CSP_META__';
 
 // An Origin that will not parse is not this server's.
 function sameHost(origin, host) {
@@ -47,6 +66,37 @@ export default {
   },
 
   plugins: [
+    {
+      name: 'inject-csp-meta',
+      enforce: 'post',
+      transformIndexHtml: {
+        order: 'pre',
+        handler(html, ctx) {
+          return ctx.server ? html.replaceAll(CSP_META_PLACEHOLDER, CSP_DEV_META_POLICY) : html;
+        },
+      },
+      generateBundle(_options, bundle) {
+        const htmlFiles = Object.values(bundle).filter((file) => file.fileName.endsWith('.html'));
+        const pageScriptHashes = htmlFiles.flatMap((file) => inlineScriptHashes(String(file.source)));
+        const metaPolicy = productionMetaPolicy(pageScriptHashes);
+        productionHeaderPolicy = `${metaPolicy}; frame-ancestors 'self'`;
+        for (const file of htmlFiles) {
+          file.source = String(file.source).replaceAll(CSP_META_PLACEHOLDER, metaPolicy);
+          if (file.source.includes(CSP_META_PLACEHOLDER)) {
+            throw new Error(`CSP meta placeholder left in ${file.fileName}`);
+          }
+        }
+      },
+      configurePreviewServer(server) {
+        const headers = readFileSync(resolve(server.config.build.outDir, '_headers'), 'utf8');
+        const policy = headers.match(/Content-Security-Policy: (.*)/)?.[1];
+        if (!policy) throw new Error('No Content-Security-Policy in the built _headers');
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Content-Security-Policy', policy);
+          next();
+        });
+      },
+    },
     // Dev-only sink: on-device XR samples land in logs/xr-debug.log.
     {
       name: 'xr-debug-sink',
@@ -381,60 +431,22 @@ export default {
       },
     },
 
-    // Build-time proxy that generates a stable 'flock.js' re-export
-    {
-      name: 'create-flock-proxy',
-      writeBundle(options, bundle) {
-        let hashedFileName;
-        for (const fileName in bundle) {
-          // isEntry matters: the inspector's own chunk is also called
-          // assets/index-*, so a name check alone can pick the wrong one.
-          if (bundle[fileName].isEntry && fileName.startsWith('assets/index-')) {
-            hashedFileName = fileName;
-            break;
-          }
-        }
-        if (hashedFileName) {
-          const proxyContent = `export * from './${hashedFileName}';\n`;
-          const proxyPath = resolve(options.dir, 'flock.js');
-          try {
-            writeFileSync(proxyPath, proxyContent);
-            console.log(`Generated proxy file: flock.js -> ${hashedFileName}`);
-          } catch (error) {
-            console.error(`Failed to create proxy file: ${error.message}`);
-          }
-        } else {
-          console.error('No hashed flock file found in the bundle.');
-        }
-      },
-    },
-
-    // Copy demo files and generate Cloudflare Pages _headers
+    // Generate Cloudflare Pages _headers
     {
       name: 'copy-library-files',
       writeBundle(options) {
         const outDir = options.dir ?? 'dist';
-        copyFileSync('cubeart.html', resolve(outDir, 'cubeart.html'));
-        copyFileSync('embed-example.html', resolve(outDir, 'embed-example.html'));
-        copyFileSync('standalone.css', resolve(outDir, 'standalone.css'));
-        mkdirSync(resolve(outDir, 'standalone'), { recursive: true });
-        copyFileSync(
-          'examples/standalone/alien-planet.html',
-          resolve(outDir, 'standalone/alien-planet.html')
-        );
+        if (!productionHeaderPolicy) throw new Error('Production CSP was not computed');
         // Generate _headers for Cloudflare Pages (and any static host that supports it).
         // The Vite dev/preview server sets these headers directly; the _headers file
         // ensures the same headers are served in production.
         // Note: frame-ancestors is only enforced via HTTP headers, not CSP meta tags.
         const headersContent = `/*
-  Content-Security-Policy: ${CSP_HEADER_POLICY}
+  Content-Security-Policy: ${productionHeaderPolicy}
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), payment=(), usb=(self), gamepad=(self)
-
-/standalone/*
-  Access-Control-Allow-Origin: *
 
 /examples/*
   Access-Control-Allow-Origin: *
@@ -465,7 +477,6 @@ export default {
 
   preview: {
     headers: {
-      'Content-Security-Policy': CSP_HEADER_POLICY,
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'SAMEORIGIN',
       'Referrer-Policy': 'strict-origin-when-cross-origin',

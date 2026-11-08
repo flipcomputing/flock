@@ -3,7 +3,7 @@ import { textMultiline, FieldMultilineInput } from '@blockly/field-multilineinpu
 import { meshMap, meshBlockIdMap } from './mesh-state.js';
 import {
   getFieldValue,
-  sanitizeForCode,
+  toLineComment,
   getVariableInfo,
   maybeParentToGroup,
   getThenCallback,
@@ -265,12 +265,7 @@ export function registerTextGenerators(javascriptGenerator) {
       rawText = m ? m[2] : raw;
     }
 
-    return (
-      rawText
-        .split(/\r\n|\r|\n/)
-        .map((line) => `// ${sanitizeForCode(line)}`)
-        .join('\n') + '\n'
-    );
+    return toLineComment(rawText);
   };
   // Describe -----------------------------------------------
   javascriptGenerator.forBlock['describe'] = function (block) {
@@ -289,10 +284,7 @@ export function registerTextGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock['create_3d_text'] = function (block) {
     const { generatedName: variableName, userVariableName } = getVariableInfo(block, 'ID_VAR');
 
-    let rawText = getFieldValue(block, 'TEXT', 'Hello World');
-    if (typeof rawText !== 'string') rawText = String(rawText ?? '');
-    const m = rawText.match(/^(['"`])(.*)\1$/s);
-    const textLiteral = JSON.stringify(sanitizeForCode(m ? m[2] : rawText));
+    const text = getFieldValue(block, 'TEXT', JSON.stringify('Hello World'));
 
     const fontKey = block.getFieldValue('FONT') || '__fonts_FreeSans_Bold_json';
     const size = getFieldValue(block, 'SIZE', '50');
@@ -322,7 +314,7 @@ export function registerTextGenerators(javascriptGenerator) {
       .join('');
 
     return `${variableName} = create3DText({
-            text: ${textLiteral},
+            text: ${text},
             font: ${JSON.stringify(font)},
             color: ${color},
             size: ${size},

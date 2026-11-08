@@ -1083,6 +1083,11 @@ function startPlacementKeyboardMode() {
   );
 }
 
+document.getElementById('shape-row')?.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-shape]');
+  if (button) selectShape(button.dataset.shape);
+});
+
 // Export functions to be used globally
 window.selectCharacter = selectCharacter;
 window.selectShape = selectShape;

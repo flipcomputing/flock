@@ -1099,20 +1099,6 @@ export default {
   project_save_ui: 'Guardar',
   tools_submenu_ui: 'Ferramentas',
   tools_options_tab_ui: 'Opções', // ai
-  tools_export_tab_ui: 'Exportar', // ai
-  export_web_page_heading_ui: 'Página web', // ai
-  export_web_page_description_ui: 'Guarda um único ficheiro que reproduz o teu projeto num navegador web.', // ai
-  export_web_page_button_ui: 'Guardar como página web', // ai
-  export_web_zip_button_ui: 'Guardar como ZIP web', // ai
-  export_embed_heading_ui: 'Código para incorporar', // ai
-  export_embed_description_ui: 'Copia este código e cola-o noutro site para mostrar lá o teu projeto.', // ai
-  export_embed_copy_button_ui: 'Copiar código', // ai
-  export_hosted_heading_ui: 'Código para incorporar um projeto alojado', // ai
-  export_hosted_comment: 'Substitui o endereço depois de project= pelo endereço do teu próprio ficheiro de projeto, como uma ligação raw do GitHub.', // ai
-  export_embed_copied: 'Copiado.', // ai
-  export_embed_copy_failed: 'Não foi possível copiar. Seleciona o código e copia-o tu.', // ai
-  export_web_page_file_description: 'Página web', // ai
-  export_web_zip_file_description: 'Ficheiro ZIP', // ai
   tools_capture_tab_ui: 'Capturar', // ai
   tools_debug_tab_ui: 'Depuração', // ai
   capture_picture_heading_ui: 'Imagem', // ai

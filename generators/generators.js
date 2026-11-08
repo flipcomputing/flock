@@ -3,6 +3,7 @@ import { javascriptGenerator } from 'blockly/javascript';
 import '@blockly/block-plus-minus';
 import '../blocks/text_join_shadow.js';
 import { clearMeshMaps } from './mesh-state.js';
+import { toLineComment } from './generators-utilities.js';
 import { localVariableIds } from '../blocks/variableScope.js';
 import { SANDBOX_API_NAMES, SANDBOX_RESERVED_NAMES } from '../runtime/sandbox.js';
 
@@ -66,6 +67,26 @@ export function defineGenerators() {
   // The rounded picker sits in a value socket, so it has to yield an
   // expression: an empty slot reads as null, as it would with nothing plugged in.
   javascriptGenerator.forBlock['keyword_value'] = () => ['null', javascriptGenerator.ORDER_ATOMIC];
+
+  // Blockly's scrub_ only splits comments on \n, so a \r, U+2028 or U+2029 would end the // early.
+  javascriptGenerator.scrub_ = function (block, code, thisOnly = false) {
+    let commentCode = '';
+    if (!block.outputConnection?.targetConnection) {
+      const comments = [block.getCommentText()];
+      for (const input of block.inputList) {
+        const child =
+          input.connection?.type === Blockly.ConnectionType.INPUT_VALUE &&
+          input.connection.targetBlock();
+        if (child) comments.push(...child.getDescendants(true).map((b) => b.getCommentText()));
+      }
+      commentCode = comments
+        .filter(Boolean)
+        .map((comment) => toLineComment(Blockly.utils.string.wrap(comment, this.COMMENT_WRAP - 3)))
+        .join('');
+    }
+    const next = thisOnly ? null : block.nextConnection?.targetBlock();
+    return commentCode + code + this.blockToCode(next);
+  };
 
   // Initialise
   javascriptGenerator.init = function (workspace) {

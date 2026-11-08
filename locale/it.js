@@ -1109,20 +1109,6 @@ export default {
   project_save_ui: 'Salva',
   tools_submenu_ui: 'Strumenti',
   tools_options_tab_ui: 'Opzioni', // ai
-  tools_export_tab_ui: 'Esporta', // ai
-  export_web_page_heading_ui: 'Pagina web', // ai
-  export_web_page_description_ui: 'Salva un unico file che riproduce il tuo progetto in un browser web.', // ai
-  export_web_page_button_ui: 'Salva come pagina web', // ai
-  export_web_zip_button_ui: 'Salva come ZIP web', // ai
-  export_embed_heading_ui: 'Codice da incorporare', // ai
-  export_embed_description_ui: 'Copia questo codice e incollalo in un altro sito web per mostrare lì il tuo progetto.', // ai
-  export_embed_copy_button_ui: 'Copia codice', // ai
-  export_hosted_heading_ui: 'Codice da incorporare per un progetto ospitato', // ai
-  export_hosted_comment: 'Sostituisci l’indirizzo dopo project= con l’indirizzo del tuo file di progetto, ad esempio un link raw di GitHub.', // ai
-  export_embed_copied: 'Copiato.', // ai
-  export_embed_copy_failed: 'Impossibile copiare. Seleziona il codice e copialo tu.', // ai
-  export_web_page_file_description: 'Pagina web', // ai
-  export_web_zip_file_description: 'File ZIP', // ai
   tools_capture_tab_ui: 'Cattura', // ai
   tools_debug_tab_ui: 'Debug', // ai
   capture_picture_heading_ui: 'Immagine', // ai

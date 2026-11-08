@@ -150,23 +150,11 @@ export function createMesh(block, meshType, params) {
   return `${variableName} = create${meshType}(${JSON.stringify(meshId)}, { ${options.join(', ')} });\n${parentCode}${doCode}${thenCode}`;
 }
 
-export function sanitizeForCode(input) {
-  let s = String(input);
-
-  // Cut from the first *real* newline (\r, \n, or Unicode line separator)
-  s = s.replace(/[\r\n\u2028\u2029].*$/s, '');
-  // Cut from the first *escaped* newline sequence (\n, \r, \u2028, \u2029, \x0A, \x0D)
-  s = s.replace(/\\(?:n|r|u(?:2028|2029|000a|000d)|x0(?:a|d)).*$/i, '');
-
-  // Remove any trailing backslashes that could remain (edge cases)
-  s = s.replace(/\\+$/, '');
-
-  // Neutralize comment and template literal markers
-  s = s.replace(/\*\//g, '*∕').replace(/\/\//g, '∕∕').replace(/`/g, 'ˋ');
-
-  // Strip control characters (optional, keeps tabs/spaces)
-  // eslint-disable-next-line no-control-regex
-  s = s.replace(/[\u0000-\u001F\u007F]/g, '');
-
-  return s;
+export function toLineComment(text) {
+  return (
+    String(text)
+      .split(/\r\n|[\r\n\p{Zl}\p{Zp}]/u)
+      .map((line) => `// ${line.replace(/(?!\t)\p{Cc}/gu, '')}`)
+      .join('\n') + '\n'
+  );
 }

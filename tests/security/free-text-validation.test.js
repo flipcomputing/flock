@@ -169,8 +169,8 @@ export function runTextFieldValidationTests() {
 
       expect(code).to.include('// safe first line');
       expect(code).to.include('alert(1);');
-      expect(code).not.to.include('*/');
-      expect(code.match(/\/\//g).length).to.be.at.least(4);
+      expect(code).to.include('// */ evil() /*\n');
+      expect(code).to.include('// // nested comment\n');
     });
 
     it('comment block treats U+2028/U+2029 as line terminators too, not just \\n', function () {
@@ -191,8 +191,7 @@ export function runTextFieldValidationTests() {
       const code = generate(block);
       const program = parse(code, { ecmaVersion: 'latest' });
       expect(program.body).to.have.lengthOf(0);
-      expect(code).not.to.include('alert(1)');
-      expect(code).not.to.include('more(2)');
+      expect(code).to.include('// safe text\n// alert(1);\n// more(2);\n');
     });
 
     it('fixes name of procedure without return', function () {

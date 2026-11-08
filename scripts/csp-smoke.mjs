@@ -20,7 +20,13 @@ async function waitForServer(url, timeoutMs = 30_000) {
     }
     await sleep(400);
   }
-  throw new Error(`Timed out waiting for dev server at ${url}`);
+  throw new Error(`Timed out waiting for preview server at ${url}`);
+}
+
+try {
+  await fs.access('dist/index.html');
+} catch {
+  throw new Error('No build found: run `npm run build` before `npm run test:csp-smoke`.');
 }
 
 function originOf(url) {
@@ -50,18 +56,18 @@ function isAnalyticsOrigin(origin) {
 
 // On Windows, `npm` is a .cmd launcher: spawning "npm" directly (no shell)
 // throws ENOENT, so shell:true is required there (see scripts/run-api-tests.mjs).
-// `detached: true` puts npm and its child vite process in their own process
+// `detached: true` puts npx and its child vite process in their own process
 // group so cleanup can kill the whole tree, not just the immediate child.
 const spawnOptions = { stdio: 'pipe', detached: true, env: { ...process.env, FORCE_COLOR: '0' } };
 const devServer =
   process.platform === 'win32'
-    ? spawn(`npm run dev -- --host 127.0.0.1 --port ${PORT} --strictPort`, {
+    ? spawn(`npx vite preview --host 127.0.0.1 --port ${PORT} --strictPort`, {
         ...spawnOptions,
         shell: true,
       })
     : spawn(
-        'npm',
-        ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
+        'npx',
+        ['vite', 'preview', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'],
         spawnOptions
       );
 
@@ -125,8 +131,16 @@ try {
     state: 'attached',
     timeout: 20_000,
   });
+  await page.waitForFunction(
+    () => {
+      const win = document.getElementById('flock-iframe')?.contentWindow;
+      return typeof win?.harden === 'function' && typeof win?.__flockSettle === 'function';
+    },
+    null,
+    { timeout: 20_000 }
+  );
 
-  await page.click('#exportCodeButton', { force: true });
+  await page.evaluate(() => document.getElementById('exportCodeButton').click());
   await page.waitForTimeout(500);
 
   await page.setInputFiles('#importFile', {

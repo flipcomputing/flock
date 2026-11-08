@@ -1,79 +1,99 @@
 # CSP policy rationale
 
-Content Security Policy (CSP) is defined in two places:
+## Where the policy lives
 
-1. **Primary enforcement**: response headers via Vite `server.headers` and `preview.headers`.
-2. **Fallback**: `<meta http-equiv="Content-Security-Policy">` in `index.html`.
+Every Content Security Policy (CSP) is defined once, in `vite.config.mjs`:
 
-## Runtime source inventory (observed)
+| Defined as | Used for |
+| --- | --- |
+| `productionMetaPolicy()` | The production policy. The build computes it once and uses it in the `<meta http-equiv="Content-Security-Policy">` tag, and, with `frame-ancestors 'self'` added, in `dist/_headers`. `vite preview` sends the policy from `dist/_headers` |
+| `CSP_DEV_META_POLICY` / `CSP_DEV_POLICY` | The dev server's meta and header policies: no analytics domains, `ws:` for Vite's hot reload, and `'unsafe-inline'` scripts (see below) |
 
-Core flows tested (app load, Blockly interaction, run code in sandbox, project export/import trigger, analytics path) observed these runtime source origins:
+`index.html` holds a `__FLOCK_CSP_META__` placeholder. The `inject-csp-meta` plugin fills it with the dev
+policy when serving, and with the production policy at the end of the build. The build fails if a
+placeholder is left in any HTML file, because a page with no valid meta policy would have no CSP at all
+on GitHub Pages.
 
-- **document / stylesheet / image / font / xhr**: `self` (`http://127.0.0.1:4173` in local smoke run)
-- **script**: `self`, `https://www.googletagmanager.com`
-- **fetch / connect**: `self`, `https://www.google-analytics.com`
+## Script hashes instead of `'unsafe-inline'`
 
-## Why each non-self origin is required
+The production `script-src` has no `'unsafe-inline'`. Instead it lists a SHA-256 hash for each inline
+script the page runs, so an injected `<script>` is blocked:
 
-- `https://www.googletagmanager.com`
-  - `script-src`: loads `gtag.js` analytics bootstrap script.
-  - `connect-src` / `img-src`: analytics ping traffic originating from GTM tags.
-- `https://www.google-analytics.com`
-  - `img-src` / `connect-src`: receives analytics `g/collect` requests (beacon/pixel and fetch transport).
-  - Not required in `script-src`; GA scripts are served via GTM, not directly from this origin.
-- `https://stats.g.doubleclick.net`
-  - `connect-src`: optional Google Analytics transport endpoint used by some environments.
-- `https://region1.google-analytics.com`
-  - `connect-src`: regional Google Analytics endpoint used by some environments.
-- `https:` (wildcard HTTPS) in `connect-src`
-  - User programs running in the sandboxed iframe share the host page's origin, so their `fetch()` calls and asset loads are governed by this CSP. `https:` allows user programs to connect to arbitrary HTTPS endpoints without triggering CSP violations.
+- every inline script left in the built HTML. These are hashed from the final output, after Vite has
+  moved inline module scripts into files;
+- the SES script that `runtime/sandbox.js` injects into the sandbox iframe. Its hash is the same one used
+  for its integrity check;
+- the wrapper script in `runtime/sandboxWrap.js`, which `runtime/sandbox.js` imports with `?raw` and
+  injects into the sandbox iframe.
 
-## Current CSP
+The hashes are computed on every build, so editing an inline script needs no manual step. Two things
+still break it:
 
-Header policy (authoritative):
+- **Inline event handlers** (`onclick="…"`) and `javascript:` URLs can't be allowed by a hash. Use
+  `addEventListener` instead.
+- **Inline scripts added at runtime**, other than the two sandbox scripts, are blocked. Load them from a
+  file, or add their source to the build's hash list.
+
+The dev server keeps `'unsafe-inline'`, because its header is fixed while it serves pages such as
+`tests.html` with their own inline scripts. `npm run test:csp-smoke` checks the production policy.
+
+## Deployments
+
+| Deployment | Policy |
+| --- | --- |
+| `app.flockxr.com` (Cloudflare Pages) | `_headers` (the production policy, `X-Frame-Options: SAMEORIGIN` and others), plus the meta tag |
+| `flipcomputing.github.io/flock/` (GitHub Pages) | The meta tag only. GitHub Pages can't send headers |
+| Dev server | `CSP_DEV_POLICY` header, plus the dev meta tag |
+
+Browsers ignore `frame-ancestors` in a meta tag, so on GitHub Pages nothing in the policy stops another
+site from framing the editor. Instead, the editor refuses to start when another site frames it
+(`isFramedByOtherSite` in `main/files.js`). It shows a message with a link to open Flock XR in a new tab.
+
+## The sandbox iframe
+
+Project code runs in an SES compartment inside a hidden iframe (see `dev-docs/SANDBOX.md`). The iframe has
+its own policy, set in `runtime/sandbox.js`:
 
 ```text
-default-src 'self';
-base-uri 'self';
-form-action 'self';
-object-src 'none';
-script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com;
-style-src 'self' 'unsafe-inline';
-img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com;
-font-src 'self' data:;
-connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net;
-media-src 'self' data: blob:;
-worker-src 'self' blob:;
-frame-src 'self';
-manifest-src 'self';
-frame-ancestors 'self'
+default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'
 ```
 
-Meta fallback policy (for static hosting without headers): same as above but without `frame-ancestors`, because browsers ignore that directive when delivered in a `<meta>` tag.
+The iframe is created with `srcdoc`, so it also inherits the page's policy, and both apply. Project code
+therefore can't fetch, connect or load anything, whatever the page policy allows.
 
-## Notes on tightening
+## Why each non-self origin is allowed
 
-The policy uses strict defaults (`default-src 'self'`, `object-src 'none'`, explicit `connect-src`/`script-src`/`worker-src`) while preserving required runtime behavior.
+- `https://www.googletagmanager.com`
+  - `script-src`: loads the `gtag.js` analytics script.
+  - `connect-src` / `img-src`: analytics requests made by those tags.
+- `https://www.google-analytics.com`, `https://region1.google-analytics.com`, `https://stats.g.doubleclick.net`
+  - `connect-src` (and `img-src` for the first): Google Analytics collection endpoints.
+- `https://static.cloudflareinsights.com`
+  - `script-src`: Cloudflare's analytics script, added by Cloudflare on `app.flockxr.com`.
 
-Three allowances remain intentionally broad:
+These analytics scripts run with full access to the editor page. That's an accepted trade-off.
 
-- `'unsafe-inline'` in `script-src` / `style-src` due to inline scripts/styles in `index.html` and iframe sandbox bootstrap.
-- `'unsafe-eval'` + `'wasm-unsafe-eval'` in `script-src` to support current sandbox/runtime execution stack.
-- `https:` in `connect-src` to allow user programs to make outbound HTTPS fetch requests (see above).
+## Why the broad allowances are needed
 
-## CSP regression checks before merge
+- `'unsafe-eval'` in `script-src`: SES evaluates project code inside the sandbox iframe, which inherits the
+  page policy.
+- `'wasm-unsafe-eval'` in `script-src`: the Havok physics and Manifold WebAssembly modules.
+- `'unsafe-inline'` in `style-src`: Blockly and Babylon.js add inline styles.
+- `https:` in `connect-src`: Flock can load a project file from any `https://` address the user approves
+  (`?project=`). Project code itself has no `fetch`, and the sandbox iframe's own policy blocks connections.
 
-Run:
+## Regression check before merge
 
 ```bash
 npm run build
 npm run test:csp-smoke
 ```
 
-Smoke check expectations:
+`test:csp-smoke` serves `dist/` with `vite preview`, which sends the production headers. It then loads the
+editor, runs a project, triggers save and import, and checks that:
 
-- App shell loads and Blockly toolbox is interactive.
-- Run button creates sandbox iframe execution path.
-- Import/export controls can be triggered.
-- Analytics request path is observed.
-- No `securitypolicyviolation` events are recorded.
+- the SES and wrapper scripts ran in the sandbox iframe, so their hashes match;
+- no `securitypolicyviolation` events were recorded;
+- analytics requests were made.
+
+It writes a summary to `artifacts/csp-smoke-summary.json`.

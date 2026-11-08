@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import * as acorn from 'acorn';
-import { compileFlockProject } from '../flockCompiler.js';
+import { compileFlockProject } from './utils/flockCompilerTestUtils.js';
 import { extractEmbeddedProjectJson } from '../main/files.js';
 
 const FIXTURES = [
@@ -49,6 +49,29 @@ export function runFlockCompilerTests() {
 
     it('rejects malformed project JSON rather than hanging', function () {
       expect(() => compileFlockProject({ blocks: { blocks: 'not-an-array' } })).to.throw();
+    });
+
+    it('applies the same legacy block upgrades as the editor', function () {
+      const code = compileFlockProject({
+        variables: [{ name: 'player', id: 'p1' }],
+        blocks: {
+          blocks: [
+            { type: 'play_animation', fields: { MODEL: { id: 'p1' }, ANIMATION_NAME: 'Walk' } },
+          ],
+        },
+      });
+      expect(code).to.include('animationName: "Walk"');
+    });
+
+    for (const value of [null, 5, [], 'null', '"text"']) {
+      it(`rejects a project that is ${JSON.stringify(value)} rather than an object`, function () {
+        expect(() => compileFlockProject(value)).to.throw(/expected a JSON object/);
+      });
+    }
+
+    it('rejects keys that a nested merge would follow onto Object.prototype', function () {
+      const project = JSON.parse('{"blocks":{"blocks":[]},"settings":{"__proto__":{"x":1}}}');
+      expect(() => compileFlockProject(project)).to.throw(/Dangerous property/);
     });
 
     describe('extractEmbeddedProjectJson (Open in Flock round-trip)', function () {

@@ -1841,9 +1841,8 @@ body.portrait-canvas #info-panel {
   }
 }
 
-/* Play mode and embeds hide the info panel, so the splitter bar goes too. */
-body.play-mode #infoResizer,
-body.embed-mode #infoResizer {
+/* Play mode hides the info panel, so the splitter bar goes too. */
+body.play-mode #infoResizer {
   display: none;
 }
 
@@ -2449,29 +2448,12 @@ a.project-action-button {
   margin: 0 0 0.5em;
 }
 
-.tools-export-code {
-  box-sizing: border-box;
-  width: 100%;
-  resize: vertical;
-  font-family: monospace;
-  font-size: 12px;
-  color: var(--color-text-primary);
-  background-color: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 6px;
-}
-
 .tools-export-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75em;
   margin-top: 0.5em;
-}
-
-.tools-export-actions--above {
-  margin: 0 0 0.5em;
 }
 
 .hidden {
@@ -2614,73 +2596,22 @@ details summary:focus-visible,
   background-color: var(--color-button-bg-hover);
 }
 
-/* Embed mode — disable safe-area chrome (iframe parent handles it) */
-body.embed-mode {
-  --safe-left: 0px;
-  --safe-right: 0px;
-  padding: 0;
+.framed-refusal {
+  margin: auto;
+  padding: 2em;
+  text-align: center;
+  font-size: 1.1em;
+  color: var(--color-text-primary);
   background: var(--color-bg);
 }
 
-body.embed-mode::before {
-  display: none;
+.framed-refusal a {
+  color: inherit;
+  font-weight: 600;
 }
 
-body.embed-mode #maincontent {
-  display: flex;
-  flex-direction: column;
-}
-
-body.embed-mode #canvasArea {
-  flex: 1;
-}
-
-body.embed-mode #renderCanvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-}
-
-body.embed-mode #maincontent {
-  box-sizing: border-box;
-}
-
-body.embed-mode #embedTopBar {
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-body.embed-mode #embedBottomBar {
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-body.embed-mode #canvasArea {
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body.embed-mode #embedShell {
-  background: #ffffff;
-  border: 2px solid #511d91;
-  border-radius: 12px; /* adjust as needed */
-  box-sizing: border-box;
-  overflow: hidden; /* important: clips inner content to rounded corners */
-}
-
-body.embed-mode #embedBottomBar a,
-body.embed-mode #embedBottomBar img {
-  display: block;
-}
-
-body.embed-mode #renderCanvas:focus {
+.framed-refusal a:focus-visible {
   outline: 3px solid var(--color-focus);
-  outline-offset: -3px;
-  background-color: var(--color-button-bg-hover);
-}
-
-body.embed-mode #embedBottomBar a:focus-visible {
-  outline: 3px solid var(--color-focus-outline);
   outline-offset: 2px;
 }
 

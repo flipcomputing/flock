@@ -30,10 +30,3 @@ export function flockRuntimeBase() {
 export function flockRuntimeUrl(relativePath) {
   return new URL(relativePath, flockRuntimeBase()).href;
 }
-
-export function flockAssetBase() {
-  const configured =
-    typeof window !== 'undefined' && window.FLOCK_CONFIG && window.FLOCK_CONFIG.assetBase;
-  const base = flockConfigUrl(configured);
-  return base ? ensureTrailingSlash(base) : flockRuntimeBase();
-}

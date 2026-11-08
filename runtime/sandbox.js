@@ -2,6 +2,7 @@ import * as acorn from 'acorn';
 import * as walk from 'acorn-walk';
 import { flockRuntimeUrl } from './urls.js';
 import { handleError, isBenignAbort, isReported, markReported } from '../ui/notifications.js';
+import sandboxWrapSource from './sandboxWrap.js?raw';
 
 let flock;
 
@@ -304,66 +305,15 @@ export const flockSandbox = {
       // `.constructor` (sandbox escape). Must run before lockdown.
       const wrapScript = doc.createElement('script');
       wrapScript.type = 'text/javascript';
-      wrapScript.text = `
-        const report = window.__flockReportHostError;
-        const halt = () => Object.defineProperty(new Error('aborted'), 'name', { value: 'AbortError' });
-        const toRealm = (v, source) => {
-          if (v === null || (typeof v !== 'object' && typeof v !== 'function')) return v;
-          if (Array.isArray(v)) {
-            return v instanceof Array ? v : Array.from(v, (item) => toRealm(item, source));
-          }
-          if (v instanceof Object || Object.getPrototypeOf(v) === null) return v;
-          if (typeof v.then === 'function') {
-            return new Promise((resolve, reject) =>
-              v.then(
-                (r) => resolve(toRealm(r, source)),
-                (e) => {
-                  report(e);
-                  reject(halt());
-                }
-              )
-            );
-          }
-          console.warn('Flock sandbox: dropped a host object from ' + source);
-          return undefined;
-        };
-        const userFns = new WeakMap();
-        const toHost = (v, depth) => {
-          if (typeof v === 'function') {
-            if (!userFns.has(v)) {
-              userFns.set(v, (...args) =>
-                v(...args.map((arg) => toRealm(arg, 'a callback argument')))
-              );
-            }
-            return userFns.get(v);
-          }
-          if (depth > 2 || v === null || typeof v !== 'object' || !(v instanceof Object)) return v;
-          const isArray = Array.isArray(v);
-          if (!isArray && Object.getPrototypeOf(v) !== Object.prototype) return v;
-          let copy = null;
-          for (const key of Object.keys(v)) {
-            const converted = toHost(v[key], depth + 1);
-            if (converted !== v[key]) {
-              copy ??= isArray ? [...v] : { ...v };
-              copy[key] = converted;
-            }
-          }
-          return copy ?? v;
-        };
-        window.__flockWrapHostFn = (fn, name) => (...args) => {
-          let result;
-          try {
-            result = fn(...args.map((arg) => toHost(arg, 0)));
-          } catch (e) {
-            report(e);
-            throw halt();
-          }
-          return toRealm(result, name);
-        };`;
+      // Both directions copy into fresh objects only this script holds, so neither
+      // side ever calls the other's code; never pass an object through unchanged.
+      wrapScript.text = sandboxWrapSource;
       // Host errors never reach user code; they're reported on the host page.
       win.__flockReportHostError = (error) => {
         if (!isBenignAbort(error)) Promise.reject(error);
       };
+      win.__flockReportProjectError = (key, error) =>
+        flock.reportBlockError({ key, api: 'user-code', error });
       doc.head.appendChild(wrapScript);
 
       // Lock down the iframe realm. Disable SES's own unhandled-rejection
@@ -524,28 +474,13 @@ export const flockSandbox = {
         code +
         '\n}).call(undefined)\n//# sourceURL=user-code.js';
 
-      // Compartment errors surface on `win` (the iframe realm), not the parent;
-      // preventDefault stops SES double-reporting.
-      win.addEventListener('unhandledrejection', (ev) => {
-        ev.preventDefault?.();
-        const error = flock.sanitizeError(ev.reason);
-        if (error.name === 'AbortError') return;
-        flock.reportBlockError({ key: 'unhandled_rejection', api: 'user-code', error });
-      });
-      win.addEventListener('error', (ev) => {
-        ev.preventDefault?.();
-        const error = flock.sanitizeError(ev.error ?? ev.message);
-        if (error.name === 'AbortError') return;
-        flock.reportBlockError({ key: 'uncaught_error', api: 'user-code', error });
-      });
-
       // Evaluate in SES Compartment
       const c = new win.Compartment(endowments);
 
       // Top-level code only defines functions and starts hats, so outlasting this is a Flock fault.
       setupSource = null;
       await Promise.race([
-        c.evaluate(wrapped),
+        win.__flockSettle(c.evaluate(wrapped)),
         new Promise((_, rej) => {
           timeoutId = window.setTimeout(() => {
             setupSource = 'run-setup';

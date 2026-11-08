@@ -9,13 +9,17 @@ import path from 'node:path';
 // untrusted origin — exactly what a real HTTP redirect produces — since
 // simulating an actual cross-origin redirect chain through Playwright's
 // network mocking is unreliable for fetch() requests.
-const TRUSTED_REQUEST_URL = 'https://github.com/flipcomputing/flockxr-projects/redirect-test.flock';
+const TRUSTED_REQUEST_URL =
+  'https://raw.githubusercontent.com/flipcomputing/flockxr-projects/main/redirect-test.flock';
 const UNTRUSTED_FINAL_URL = 'https://evil.example.com/payload.flock';
 const UNTRUSTED_FINAL_ORIGIN = 'https://evil.example.com';
+// Same host as the trusted repo, but outside it: trust is by path there, not origin.
+const SAME_ORIGIN_UNTRUSTED_FINAL_URL =
+  'https://raw.githubusercontent.com/someone/other-repo/main/payload.flock';
 
 const PROJECT_FIXTURE_BODY = fs.readFileSync(path.resolve('examples/new.flock'), 'utf8');
 
-async function installRedirectingFetchStub(page) {
+async function installRedirectingFetchStub(page, finalUrl = UNTRUSTED_FINAL_URL) {
   await page.addInitScript(
     ({ trustedUrl, finalUrl, body }) => {
       const originalFetch = window.fetch.bind(window);
@@ -45,7 +49,7 @@ async function installRedirectingFetchStub(page) {
         return originalFetch(input, init);
       };
     },
-    { trustedUrl: TRUSTED_REQUEST_URL, finalUrl: UNTRUSTED_FINAL_URL, body: PROJECT_FIXTURE_BODY }
+    { trustedUrl: TRUSTED_REQUEST_URL, finalUrl, body: PROJECT_FIXTURE_BODY }
   );
 }
 
@@ -92,5 +96,20 @@ test.describe('project= URL that redirects cross-origin after passing the trust 
 
     const calls = await page.evaluate(() => [...(window.__fetchCalls || [])]);
     expect(calls).not.toContain('examples/starter.flock');
+  });
+});
+
+test.describe('project= URL that redirects out of the trusted repo on the same host', () => {
+  test('asks before running it', async ({ page }) => {
+    await installRedirectingFetchStub(page, SAME_ORIGIN_UNTRUSTED_FINAL_URL);
+    await page.goto(`/?project=${encodeURIComponent(TRUSTED_REQUEST_URL)}`, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    const modal = page.locator('#untrustedProjectUrlModal');
+    await expect(modal).not.toHaveClass(/hidden/, { timeout: 20000 });
+    await expect(page.locator('#untrustedProjectUrlOrigin')).toHaveText(
+      'https://raw.githubusercontent.com'
+    );
   });
 });

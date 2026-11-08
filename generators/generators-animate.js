@@ -385,9 +385,13 @@ export function registerAnimateGenerators(javascriptGenerator) {
       block.getFieldValue('GROUP_NAME'),
       Blockly.Names.NameType.VARIABLE
     );
-    const action = block.getFieldValue('ACTION');
+    const api = {
+      play: 'playAnimationGroup',
+      pause: 'pauseAnimationGroup',
+      stop: 'stopAnimationGroup',
+    }[block.getFieldValue('ACTION')];
 
-    return `${action}AnimationGroup(${animationGroupName});\n`;
+    return api ? `${api}(${animationGroupName});\n` : '';
   };
   // Animate group
   javascriptGenerator.forBlock['animate_from'] = function (block) {

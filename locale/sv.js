@@ -1092,20 +1092,6 @@ export default {
   project_save_ui: 'Spara',
   tools_submenu_ui: 'Verktyg',
   tools_options_tab_ui: 'Alternativ', // ai
-  tools_export_tab_ui: 'Exportera', // ai
-  export_web_page_heading_ui: 'Webbsida', // ai
-  export_web_page_description_ui: 'Spara en enda fil som spelar upp ditt projekt i en webbläsare.', // ai
-  export_web_page_button_ui: 'Spara som webbsida', // ai
-  export_web_zip_button_ui: 'Spara som webb-zip', // ai
-  export_embed_heading_ui: 'Inbäddningskod', // ai
-  export_embed_description_ui: 'Kopiera den här koden och klistra in den på en annan webbplats för att visa ditt projekt där.', // ai
-  export_embed_copy_button_ui: 'Kopiera kod', // ai
-  export_hosted_heading_ui: 'Inbäddningskod för ett projekt på webben', // ai
-  export_hosted_comment: 'Byt ut adressen efter project= mot adressen till din egen projektfil, till exempel en raw-länk från GitHub.', // ai
-  export_embed_copied: 'Kopierat.', // ai
-  export_embed_copy_failed: 'Det gick inte att kopiera. Markera koden och kopiera den själv.', // ai
-  export_web_page_file_description: 'Webbsida', // ai
-  export_web_zip_file_description: 'ZIP-fil', // ai
   tools_capture_tab_ui: 'Spela in', // ai
   tools_debug_tab_ui: 'Felsökning', // ai
   capture_picture_heading_ui: 'Bild', // ai

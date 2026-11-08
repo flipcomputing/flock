@@ -665,7 +665,6 @@ export const AUTOSAVE_TO_FILE_ENABLED = false;
 // project= URLs are auto-fetched and their contents auto-executed as code,
 // so anything outside this list needs explicit user consent first.
 const TRUSTED_PROJECT_URL_PREFIXES = [
-  'https://github.com/flipcomputing/flockxr-projects',
   'https://raw.githubusercontent.com/flipcomputing/flockxr-projects',
 ];
 

@@ -14,15 +14,12 @@ export function runFilesProjectUrlTrustTests() {
       expect(isTrustedProjectUrl(page, 'https://flipcomputing.github.io')).to.equal(false);
     });
 
-    it('trusts the flockxr-projects GitHub repo and its subpaths', function () {
-      expect(
-        isTrustedProjectUrl(new URL('https://github.com/flipcomputing/flockxr-projects'))
-      ).to.equal(true);
+    it('does not trust github.com pages, which browsers cannot fetch', function () {
       expect(
         isTrustedProjectUrl(
           new URL('https://github.com/flipcomputing/flockxr-projects/blob/main/demo.flock')
         )
-      ).to.equal(true);
+      ).to.equal(false);
     });
 
     it('trusts app.flockxr.com and flockxr.com', function () {

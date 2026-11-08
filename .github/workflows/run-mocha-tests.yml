@@ -49,3 +49,7 @@ jobs:
         if: runner.os == 'Linux'
         run: npx playwright install-deps chromium
       - run: npm run test:api babylon
+      - run: npm run test:api security
+      - run: npm run test:api sandbox
+      - run: npm run test:api commentgenerators
+      - run: npm run test:api actiongenerators

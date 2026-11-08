@@ -674,9 +674,13 @@ export function registerSceneGenerators(javascriptGenerator) {
       block.getFieldValue('SYSTEM_NAME'),
       Blockly.Names.NameType.VARIABLE
     );
-    const action = block.getFieldValue('ACTION');
+    const api = {
+      start: 'startParticleSystem',
+      stop: 'stopParticleSystem',
+      reset: 'resetParticleSystem',
+    }[block.getFieldValue('ACTION')];
 
-    return `${action}ParticleSystem(${systemName});\n`;
+    return api ? `${api}(${systemName});\n` : '';
   };
 
   // Set fog color --------------------------------------------------

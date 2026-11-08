@@ -294,6 +294,20 @@
           pattern: 'generators/generators-control',
         },
         {
+          id: 'actiongenerators',
+          name: 'Action Generator Tests',
+          importPath: './generators-actions.test.js',
+          importFn: 'runActionGeneratorTests',
+          pattern: 'generators/generators-actions',
+        },
+        {
+          id: 'commentgenerators',
+          name: 'Comment Generator Tests',
+          importPath: './generators-comments.test.js',
+          importFn: 'runCommentGeneratorTests',
+          pattern: 'generators/generators-comments',
+        },
+        {
           id: 'axiskeyboard',
           name: 'Axis Keyboard Handler Tests',
           importPath: './axis-keyboard.test.js',

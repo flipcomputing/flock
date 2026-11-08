@@ -1,5 +1,8 @@
 import * as Blockly from 'blockly';
 
+const SORT_TYPES = ['NUMERIC', 'TEXT', 'IGNORE_CASE'];
+let blocklyListsSort;
+
 export function registerDataGenerators(javascriptGenerator) {
   // -------------------------------
   // VARIABLES
@@ -21,6 +24,19 @@ export function registerDataGenerators(javascriptGenerator) {
   // Set list to numeric list
   // Set list to text list
   // Set list to colour list
+
+  // Sort list ------------------------------------------------------
+  // Blockly's generator writes TYPE into code inside hand-written quotes.
+  blocklyListsSort ??= javascriptGenerator.forBlock['lists_sort'];
+  javascriptGenerator.forBlock['lists_sort'] = function (block, generator) {
+    if (SORT_TYPES.includes(block.getFieldValue('TYPE'))) {
+      return blocklyListsSort(block, generator);
+    }
+    const list =
+      javascriptGenerator.valueToCode(block, 'LIST', javascriptGenerator.ORDER_FUNCTION_CALL) ||
+      '[]';
+    return [`${list}.slice()`, javascriptGenerator.ORDER_FUNCTION_CALL];
+  };
 
   // Add string to list ---------------------------------------------
   javascriptGenerator.forBlock['lists_add_item'] = function (block) {

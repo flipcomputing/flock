@@ -18,6 +18,7 @@ import { replaceUnrecognisedBlocks } from '../blocks/unknownBlock.js';
 import { syncWallInputs } from '../blocks/shapes.js';
 import { convertLegacyInitialTransforms } from '../ui/legacyTransforms.js';
 import { setProjectLoading } from './projectLoading.js';
+import { validateBlocklyJson } from './projectJson.js';
 import { DEFAULT_CANVAS_ASPECT, getCanvasAspectName, setCanvasAspectName } from './canvasAspect.js';
 
 // Limits applied to every project source — file, drag-and-drop and fetched URL.
@@ -149,275 +150,6 @@ export function saveWorkspace(workspace) {
 
 let autosaveWarned = false;
 
-function validateBlocklyJson(json) {
-  // 1. Parse JSON safely
-  let data;
-  try {
-    data = typeof json === 'string' ? JSON.parse(json) : json;
-  } catch {
-    throw new Error('Invalid JSON format');
-  }
-
-  // 2. Check for dangerous properties that could execute code
-  const dangerousKeys = [
-    '__proto__',
-    'constructor',
-    'prototype',
-    'eval',
-    'Function',
-    'setTimeout',
-    'setInterval',
-    'innerHTML',
-    'outerHTML',
-    'onclick',
-    'onerror',
-    'onload',
-  ];
-
-  function checkForDangerousContent(obj, path = '') {
-    if (obj === null || obj === undefined) return;
-
-    if (typeof obj === 'object') {
-      // Check for dangerous keys
-      for (const key of Object.keys(obj)) {
-        if (dangerousKeys.includes(key)) {
-          throw new Error(`Dangerous property found: ${key} at ${path}`);
-        }
-        checkForDangerousContent(obj[key], path ? `${path}.${key}` : key);
-      }
-    }
-  }
-
-  const positionOf = (mesh, property) => ({
-    type: 'get_property',
-    fields: { MESH: mesh, PROPERTY: property },
-  });
-
-  function upgradeMoveUseY(block) {
-    if (block.type !== 'move_to_xyz' && block.type !== 'move_to') return;
-    if (!block.fields || !('USE_Y' in block.fields)) return;
-
-    const useY = block.fields.USE_Y;
-    delete block.fields.USE_Y;
-    if (useY !== false && useY !== 'FALSE') return;
-
-    if (block.type === 'move_to') {
-      const { MODEL1: mesh, MODEL2: target } = block.fields;
-      const number = { shadow: { type: 'math_number', fields: { NUM: 0 } } };
-      block.type = 'move_to_xyz';
-      block.fields = { MODEL: mesh };
-      block.inputs = {
-        X: { ...number, block: positionOf(target, 'POSITION_X') },
-        Y: { ...number, block: positionOf(mesh, 'POSITION_Y') },
-        Z: { ...number, block: positionOf(target, 'POSITION_Z') },
-      };
-      return;
-    }
-
-    block.inputs = block.inputs || {};
-    block.inputs.Y = { ...block.inputs.Y, block: positionOf(block.fields.MODEL, 'POSITION_Y') };
-  }
-
-  function upgradeMoveToOffsets(block) {
-    if (block.type !== 'move_to') return;
-    block.inputs = block.inputs || {};
-    for (const name of ['X_OFFSET', 'Y_OFFSET', 'Z_OFFSET']) {
-      block.inputs[name] ??= { shadow: { type: 'math_number', fields: { NUM: 0 } } };
-    }
-  }
-
-  const followSides = { TOP: 'PLACE_ON_TOP', CENTER: 'PLACE_CENTER', BOTTOM: 'PLACE_AT' };
-
-  function upgradeFollowPosition(block) {
-    if (block.type !== 'follow' || !block.fields || !('FOLLOW_POSITION' in block.fields)) return;
-    block.fields.SIDE = followSides[block.fields.FOLLOW_POSITION] ?? 'PLACE_AT';
-    delete block.fields.FOLLOW_POSITION;
-  }
-
-  function upgradeLegacyBlocks(block) {
-    if (!block || typeof block !== 'object') return;
-
-    upgradeMoveUseY(block);
-    upgradeMoveToOffsets(block);
-    upgradeFollowPosition(block);
-
-    const legacyAnimationName = block.fields?.ANIMATION_NAME;
-    const hasNewAnimationInput = block.inputs?.ANIMATION_NAME;
-
-    if (
-      legacyAnimationName &&
-      !hasNewAnimationInput &&
-      (block.type === 'play_animation' || block.type === 'switch_animation')
-    ) {
-      block.inputs = block.inputs || {};
-      block.inputs.ANIMATION_NAME = {
-        shadow: {
-          type: 'animation_name',
-          fields: { ANIMATION_NAME: legacyAnimationName },
-        },
-      };
-
-      delete block.fields.ANIMATION_NAME;
-
-      if (block.fields && Object.keys(block.fields).length === 0) {
-        delete block.fields;
-      }
-    }
-
-    if (block.inputs) {
-      Object.values(block.inputs).forEach((input) => {
-        upgradeLegacyBlocks(input?.block);
-        upgradeLegacyBlocks(input?.shadow);
-      });
-    }
-
-    upgradeLegacyBlocks(block.next?.block);
-  }
-
-  // 3. Validate it's actually a Blockly workspace structure
-  function validateBlocklyStructure(data) {
-    if (data.version !== undefined && typeof data.version !== 'string') {
-      throw new Error('Invalid project version');
-    }
-
-    if (
-      data.settings !== undefined &&
-      (!data.settings || typeof data.settings !== 'object' || Array.isArray(data.settings))
-    ) {
-      throw new Error('Invalid project settings');
-    }
-
-    // Empty workspace is valid
-    if (Object.keys(data).every((key) => key === 'version' || key === 'settings')) {
-      return;
-    }
-
-    // Blockly workspace JSON should have specific structure
-    // Check if data.blocks exists and is a non-null object (not an array)
-    if (!data.blocks || typeof data.blocks !== 'object' || Array.isArray(data.blocks)) {
-      throw new Error('Invalid Blockly structure: missing or invalid blocks object');
-    }
-
-    // Whitelist allowed properties at root level
-    const allowedRootKeys = ['version', 'settings', 'blocks', 'variables', 'workspaceComments'];
-    const rootKeys = Object.keys(data);
-
-    for (const key of rootKeys) {
-      if (!allowedRootKeys.includes(key)) {
-        console.warn(`Unexpected property in Blockly JSON: ${key}`);
-      }
-    }
-
-    // Whitelist allowed properties in blocks object
-    const allowedBlocksKeys = ['languageVersion', 'blocks'];
-    if (data.blocks) {
-      for (const key of Object.keys(data.blocks)) {
-        if (!allowedBlocksKeys.includes(key)) {
-          console.warn(`Unexpected property in blocks object: ${key}`);
-        }
-      }
-    }
-
-    // Validate blocks array if present
-    if (data.blocks.blocks) {
-      if (!Array.isArray(data.blocks.blocks)) {
-        throw new Error('Invalid Blockly structure: blocks.blocks must be an array');
-      }
-      data.blocks.blocks.forEach((block, index) => {
-        validateBlock(block, `blocks.blocks[${index}]`);
-      });
-    }
-
-    // Validate variables if present
-    if (data.variables) {
-      if (!Array.isArray(data.variables)) {
-        throw new Error('Invalid Blockly structure: variables must be an array');
-      }
-      data.variables.forEach((variable, index) => {
-        if (!variable.name || !variable.id) {
-          throw new Error(`Invalid variable at variables[${index}]: must have name and id`);
-        }
-      });
-    }
-  }
-
-  // 4. Validate individual block structure
-  function validateBlock(block, path) {
-    if (!block || typeof block !== 'object') {
-      throw new Error(`Invalid block at ${path}`);
-    }
-
-    // Whitelist allowed block properties
-    const allowedBlockKeys = [
-      'type',
-      'id',
-      'x',
-      'y',
-      'collapsed',
-      'disabled',
-      'deletable',
-      'movable',
-      'editable',
-      'inline',
-      'data',
-      'extraState',
-      'icons',
-      'fields',
-      'inputs',
-      'next',
-      'shadow',
-      'disabledReasons',
-    ];
-
-    for (const key of Object.keys(block)) {
-      if (!allowedBlockKeys.includes(key)) {
-        throw new Error(`Unexpected block property: ${key} at ${path}`);
-      }
-    }
-
-    // Validate field values
-    if (block.fields) {
-      Object.entries(block.fields).forEach(([fieldName, fieldValue]) => {
-        if (fieldValue && typeof fieldValue === 'object') {
-          // Field values can be objects with 'id' property for variables
-          if (!fieldValue.id) {
-            checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
-          }
-        } else if (typeof fieldValue === 'string') {
-          // Check string field values for dangerous content
-          checkForDangerousContent(fieldValue, `${path}.fields.${fieldName}`);
-        }
-      });
-    }
-
-    // Recursively validate nested blocks
-    if (block.inputs) {
-      Object.entries(block.inputs).forEach(([inputName, input]) => {
-        if (input.block) {
-          validateBlock(input.block, `${path}.inputs.${inputName}.block`);
-        }
-        if (input.shadow) {
-          validateBlock(input.shadow, `${path}.inputs.${inputName}.shadow`);
-        }
-      });
-    }
-
-    if (block.next?.block) {
-      validateBlock(block.next.block, `${path}.next.block`);
-    }
-  }
-
-  // Run all validations
-  checkForDangerousContent(data);
-  validateBlocklyStructure(data);
-
-  if (data?.blocks?.blocks) {
-    data.blocks.blocks.forEach((block) => upgradeLegacyBlocks(block));
-  }
-
-  return data;
-}
-
 export function hintIfXrModeMissing(workspace) {
   try {
     if (!workspace || workspace.getBlocksByType('set_xr_mode', false).length > 0) return;
@@ -491,7 +223,31 @@ export function extractEmbeddedProjectJson(htmlText) {
   return match[1];
 }
 
-function parseProjectJsonResponse(response) {
+async function readStreamText(stream) {
+  const reader = stream.getReader();
+  const chunks = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_PROJECT_TEXT_UTF8_BYTES) {
+      await reader.cancel();
+      throw new ProjectTooLargeError();
+    }
+    chunks.push(value);
+  }
+  return new TextDecoder().decode(await new Blob(chunks).arrayBuffer());
+}
+
+async function readResponseText(response) {
+  if (Number(response.headers.get('content-length')) > MAX_PROJECT_TEXT_UTF8_BYTES) {
+    throw new ProjectTooLargeError();
+  }
+  return response.body ? readStreamText(response.body) : response.text();
+}
+
+async function parseProjectJsonResponse(response) {
   if (!response.ok) {
     throw new ProjectFetchError(
       `Failed to load project (${response.status} ${response.statusText})`
@@ -499,23 +255,21 @@ function parseProjectJsonResponse(response) {
   }
 
   const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  const projectText = await readResponseText(response);
+  if (projectText.length > MAX_PROJECT_TEXT_LENGTH) {
+    throw new ProjectTooLargeError();
+  }
 
-  return response.text().then((projectText) => {
-    if (projectText.length > MAX_PROJECT_TEXT_LENGTH) {
-      throw new ProjectTooLargeError();
-    }
+  const projectTextStart = projectText.trimStart().slice(0, 32).toLowerCase();
+  const isHtml =
+    contentType.includes('text/html') ||
+    projectTextStart.startsWith('<!doctype html') ||
+    projectTextStart.startsWith('<html');
 
-    const trimmedProjectText = projectText.trim();
-    const isHtml =
-      contentType.includes('text/html') ||
-      trimmedProjectText.startsWith('<!doctype html') ||
-      trimmedProjectText.startsWith('<html');
+  const jsonText = isHtml ? extractEmbeddedProjectJson(projectText) : projectText;
 
-    const jsonText = isHtml ? extractEmbeddedProjectJson(projectText) : projectText;
-
-    return parseProjectText(jsonText, {
-      describeParseError: `Failed to parse project JSON from ${contentType || 'unknown content type'}`,
-    });
+  return parseProjectText(jsonText, {
+    describeParseError: `Failed to parse project JSON from ${contentType || 'unknown content type'}`,
   });
 }
 
@@ -567,7 +321,7 @@ async function readProjectFile(file) {
 
 const PROJECT_HASH_PREFIX = '#project=';
 
-function isFramedByOtherSite() {
+export function isFramedByOtherSite() {
   if (window.top === window.self) return false;
   try {
     return window.top.location.origin !== window.location.origin;
@@ -583,25 +337,9 @@ async function readProjectFromHash(encoded) {
 
   const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  const reader = new Blob([bytes])
-    .stream()
-    .pipeThrough(new DecompressionStream('gzip'))
-    .getReader();
-
-  const chunks = [];
-  let total = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    total += value.length;
-    if (total > MAX_PROJECT_TEXT_UTF8_BYTES) {
-      await reader.cancel();
-      throw new ProjectTooLargeError();
-    }
-    chunks.push(value);
-  }
-
-  const text = new TextDecoder().decode(await new Blob(chunks).arrayBuffer());
+  const text = await readStreamText(
+    new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))
+  );
   return parseProjectText(text, { describeParseError: 'Failed to parse project from link' });
 }
 
@@ -615,7 +353,7 @@ export async function loadWorkspace(workspace, executeCallback) {
   const savedState = localStorage.getItem(AUTOSAVE_KEY);
   const starter = 'examples/starter.flock';
 
-  if (!flock.embedMode && (urlParams.has('project') || urlParams.has('reset'))) {
+  if (urlParams.has('project') || urlParams.has('reset')) {
     const cleaned = new URLSearchParams(urlParams);
     cleaned.delete('project');
     cleaned.delete('reset');
@@ -692,11 +430,12 @@ export async function loadWorkspace(workspace, executeCallback) {
         return;
       }
 
+      const trusted = isTrustedProjectUrl(validatedUrl);
       const newTabHref = isFramedByOtherSite()
         ? `${window.location.origin}${window.location.pathname}?project=${encodeURIComponent(validatedUrl.href)}`
         : null;
 
-      if (!isTrustedProjectUrl(validatedUrl)) {
+      if (newTabHref || !trusted) {
         const choice = await openUntrustedProjectUrlModal(validatedUrl.origin, { newTabHref });
         if (choice !== 'open') {
           loadStarter();
@@ -708,11 +447,12 @@ export async function loadWorkspace(workspace, executeCallback) {
         const response = await fetch(validatedUrl.href).catch((error) => {
           throw new ProjectFetchError('Failed to fetch project', { cause: error });
         });
-        // fetch follows redirects transparently, so the origin that actually
-        // served the response can differ from the one the user approved.
+        // fetch follows redirects transparently, so the response can come from
+        // somewhere other than the address that was trusted or approved.
         const finalUrl = new URL(response.url);
-        if (finalUrl.origin !== validatedUrl.origin && !isTrustedProjectUrl(finalUrl)) {
-          const choice = await openUntrustedProjectUrlModal(finalUrl.origin, { newTabHref });
+        const approvedOrigin = trusted ? null : validatedUrl.origin;
+        if (!isTrustedProjectUrl(finalUrl) && finalUrl.origin !== approvedOrigin) {
+          const choice = await openUntrustedProjectUrlModal(finalUrl.origin);
           if (choice !== 'open') {
             loadStarter();
             return;

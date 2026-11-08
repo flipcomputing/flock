@@ -6,7 +6,7 @@ import {
   UNKNOWN_BLOCK_TYPE,
   UNRECOGNISED_BLOCK_REASON,
 } from '../blocks/unknownBlock.js';
-import { compileFlockProject } from '../flockCompiler.js';
+import { compileFlockProject } from './utils/flockCompilerTestUtils.js';
 
 function projectWithUnknownBlocks() {
   return {

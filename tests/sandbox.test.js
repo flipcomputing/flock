@@ -329,6 +329,187 @@ export function runSandboxTests(flock) {
       expect(printed[0]).to.equal(`true|${printed[1]}|string|blocked`);
     });
 
+    describe('when user code passes objects with hooks to the API', function () {
+      let originalGetProperty;
+      let originalRunDo;
+      let reported;
+      const onRejection = (event) => {
+        reported.push(event.reason);
+        event.preventDefault();
+      };
+      const escapeCheck = `
+        const k = 'con' + 'structor';
+        let result = 'not called';
+        const escape = (v) => {
+          try {
+            result = v[k][k]('return typeof document')() === 'object' ? 'escaped' : 'blocked';
+          } catch {
+            result = 'blocked';
+          }
+        };
+      `;
+
+      beforeEach(function () {
+        reported = [];
+        originalGetProperty = flock.getProperty;
+        originalRunDo = flock.runDo;
+        window.addEventListener('unhandledrejection', onRejection);
+      });
+
+      afterEach(function () {
+        flock.getProperty = originalGetProperty;
+        flock.runDo = originalRunDo;
+        window.removeEventListener('unhandledrejection', onRejection);
+      });
+
+      const hookedValues = [
+        [
+          'a non-enumerable array method',
+          (list) => list.map((x) => x),
+          `const list = [1, 2];
+           Object.defineProperty(list, 'map', { value: (fn) => escape(fn) });`,
+        ],
+        [
+          'an inherited array method',
+          (list) => list.map((x) => x),
+          `const list = [1, 2];
+           Object.setPrototypeOf(list, { map: (fn) => escape(fn), length: 2 });`,
+        ],
+        [
+          'an inherited object method',
+          (list) => list.forEach((x) => x),
+          `const list = Object.create({ forEach: (fn) => escape(fn) });`,
+        ],
+        [
+          'a setter',
+          (list) => {
+            list.mesh = flock.scene;
+          },
+          `const list = { set mesh(v) { escape(v); } };`,
+        ],
+        [
+          'a deeply nested method',
+          (list) => list.a.b.c.d.e(flock.scene),
+          `const list = { a: { b: { c: { d: { e: (v) => escape(v) } } } } };`,
+        ],
+      ];
+
+      for (const [label, host, setup] of hookedValues) {
+        it(`should not hand host values to ${label}`, async function () {
+          flock.getProperty = host;
+          await run(`
+            ${escapeCheck}
+            ${setup}
+            try {
+              getProperty(list);
+            } catch {}
+            printText({ text: result });
+          `);
+          expect(printed[0]).to.not.equal('escaped');
+        });
+      }
+
+      it('should not let the API hand host values back through a passed array', async function () {
+        flock.getProperty = (list) => {
+          list.push(flock.scene);
+          return list;
+        };
+        await run(`
+          ${escapeCheck}
+          const list = ['a'];
+          const back = getProperty(list);
+          escape(list[1]);
+          const first = result;
+          escape(back[1]);
+          printText({ text: first + '|' + result + '|' + list.length });
+        `);
+        expect(printed).to.deep.equal(['blocked|blocked|1']);
+      });
+
+      it('should not hand host resolvers to a thenable a callback returns', async function () {
+        flock.runDo = async (callback) => {
+          try {
+            await callback();
+          } catch {
+            // the thenable cannot settle without the resolvers
+          }
+        };
+        await run(`
+          ${escapeCheck}
+          await runDo(() => ({ then: (resolve) => { escape(resolve); resolve(); } }));
+          printText({ text: result });
+        `);
+        expect(printed[0]).to.not.equal('escaped');
+      });
+
+      it('should not hand host resolvers to a promise with its own then', async function () {
+        flock.runDo = (callback) => Promise.resolve(callback());
+        await run(`
+          ${escapeCheck}
+          await runDo(() => {
+            const p = Promise.resolve();
+            Object.defineProperty(p, 'then', { value: (resolve) => { escape(resolve); resolve(); } });
+            return p;
+          });
+          printText({ text: result });
+        `);
+        expect(printed[0]).to.not.equal('escaped');
+      });
+
+      it('should still accept plain data and resolve async callbacks', async function () {
+        flock.getProperty = (options) =>
+          `${options.list.join('+')}|${options.nested.deeper.value}|${Object.getPrototypeOf(options.vector)}`;
+        flock.runDo = async (callback) => `${await callback()}`;
+        await run(`
+          const vector = createVector3(1, 2, 3);
+          printText({
+            text: getProperty({ list: [1, [2, 3]], nested: { deeper: { value: vector.y } }, vector }),
+          });
+          printText({ text: await runDo(async () => 'done') });
+        `);
+        expect(printed).to.deep.equal(['1+2,3|2|null', 'done']);
+      });
+    });
+
+    describe('when a project promise rejects unhandled', function () {
+      let previousOnBlockError;
+      let reported;
+
+      beforeEach(function () {
+        reported = [];
+        previousOnBlockError = flock.onBlockError;
+        flock.onBlockError = (info) => reported.push(info);
+      });
+
+      afterEach(function () {
+        flock.onBlockError = previousOnBlockError;
+      });
+
+      it('should report the thrown value as a plain error', async function () {
+        await run(`
+          (async () => {
+            throw { name: 'Oops', get message() { return 'from a getter'; } };
+          })();
+          await wait(0.1);
+        `);
+        expect(reported.map(({ key, error }) => [key, error.name, error.message])).to.deep.equal([
+          ['unhandled_rejection', 'Oops', 'from a getter'],
+        ]);
+      });
+
+      it('should not report an abort', async function () {
+        await run(`
+          (async () => {
+            const e = new Error('stopped');
+            e.name = 'AbortError';
+            throw e;
+          })();
+          await wait(0.1);
+        `);
+        expect(reported).to.deep.equal([]);
+      });
+    });
+
     it('should keep a callback the same function across API calls', async function () {
       await run(`
         async function section() {}

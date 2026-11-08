@@ -1224,20 +1224,6 @@ export default {
   project_save_ui: 'Guardar', // human
   tools_submenu_ui: 'Herramientas', // ai
   tools_options_tab_ui: 'Opciones', // ai
-  tools_export_tab_ui: 'Exportar', // ai
-  export_web_page_heading_ui: 'Página web', // ai
-  export_web_page_description_ui: 'Guarda un único archivo que reproduce tu proyecto en un navegador web.', // ai
-  export_web_page_button_ui: 'Guardar como página web', // ai
-  export_web_zip_button_ui: 'Guardar como ZIP web', // ai
-  export_embed_heading_ui: 'Código para insertar', // ai
-  export_embed_description_ui: 'Copia este código y pégalo en otro sitio web para mostrar tu proyecto allí.', // ai
-  export_embed_copy_button_ui: 'Copiar código', // ai
-  export_hosted_heading_ui: 'Código para insertar un proyecto alojado', // ai
-  export_hosted_comment: 'Sustituye la dirección después de project= por la dirección de tu propio archivo de proyecto, como un enlace raw de GitHub.', // ai
-  export_embed_copied: 'Copiado.', // ai
-  export_embed_copy_failed: 'No se pudo copiar. Selecciona el código y cópialo tú.', // ai
-  export_web_page_file_description: 'Página web', // ai
-  export_web_zip_file_description: 'Archivo ZIP', // ai
   tools_capture_tab_ui: 'Capturar', // ai
   tools_debug_tab_ui: 'Depurar', // ai
   capture_picture_heading_ui: 'Imagen', // ai
@@ -1441,9 +1427,11 @@ export default {
   close_unsaved_changes_ui: 'Cerrar', // ai
   untrusted_project_url_title_ui: '¿Abrir proyecto de otro sitio web?', // ai
   untrusted_project_url_message_ui:
-    'Este enlace de proyecto no está en la lista de confianza de Flock XR. Continúa solo si confías en la fuente — se ejecutará en tu navegador.', // ai
+    'Este proyecto es de otro sitio web. No lo abras a menos que confíes en él.', // ai
   untrusted_project_url_framed_message_ui:
-    'Este enlace de proyecto no está en la lista de confianza de Flock XR, así que se abre en una pestaña nueva donde puedes decidir si ejecutarlo.', // ai
+    'Este proyecto es de otro sitio web. Si confías en él, ábrelo en una pestaña nueva.', // ai
+  framed_editor_message: 'Flock XR no puede funcionar dentro de otro sitio web.', // ai
+  framed_editor_open_link: 'Abrir Flock XR en una pestaña nueva', // ai
   untrusted_project_url_new_tab_link_ui: 'Abrir en una pestaña nueva', // ai
   untrusted_project_link_title_ui: '¿Abrir este proyecto?', // ai
   untrusted_project_link_message_ui:

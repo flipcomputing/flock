@@ -1024,7 +1024,8 @@ async function runTests(suiteId = 'all') {
     const stats = await runSuiteOnPage(page, suiteId);
     printSummary(stats);
     await context.close();
-    return { success: stats.failures === 0, stats };
+    if (stats.total === 0) console.log(`❌ Suite "${suiteId}" ran no tests (did it fail to load?)\n`);
+    return { success: stats.failures === 0 && stats.total > 0, stats };
   } finally {
     if (browser) await browser.close().catch(() => {});
   }
@@ -1138,7 +1139,8 @@ async function runAllBatched() {
     );
   }
 
-  return { success: agg.failures === 0, stats };
+  if (ran === 0) console.log('❌ No tests ran (did the suites fail to load?)\n');
+  return { success: agg.failures === 0 && ran > 0, stats };
 }
 
 /**

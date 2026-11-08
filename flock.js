@@ -15,7 +15,6 @@ import '@fontsource/asap/500.css';
 import '@fontsource/asap/600.css';
 import { characterNames, getModelDisplayName } from './config';
 import { flockRuntimeUrl } from './runtime/urls.js';
-import { startStandaloneWhenReady } from './standalone.js';
 import { getShowInternalNodes, setShowInternalNodes } from './ui/inspectorVisibility.js';
 import * as csg from './api/csg';
 import * as animate from './api/animate';
@@ -282,8 +281,6 @@ bindFlockModules();
 
 flock.runtimeUrl = flockRuntimeUrl;
 
-export { initializeFlock } from './standalone.js';
-
 window.setBPM = sound.flockSound.setBPM;
 window.updateListenerPositionAndOrientation = sound.flockSound.updateListenerPositionAndOrientation;
 window.speak = sound.flockSound.speak;
@@ -291,5 +288,3 @@ window.speak = sound.flockSound.speak;
 document.addEventListener('visibilitychange', () => {
   flock.freezeEvents.dispatchEvent(new Event('change'));
 });
-
-startStandaloneWhenReady();
