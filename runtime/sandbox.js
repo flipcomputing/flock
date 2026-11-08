@@ -20,8 +20,8 @@ async function verifySesIntegrity(sesText) {
   }
 }
 
-// 1) Very broad identifier blocklist (names anywhere in user code)
-const REJECT_IDENTIFIERS = new Set([
+// Generated names avoid these, so a program never declares one of the browser's capabilities.
+const RESERVED_IDENTIFIERS = [
   // dynamic code / reflection
   'eval',
   'Function',
@@ -91,27 +91,124 @@ const REJECT_IDENTIFIERS = new Set([
   'queueMicrotask',
   // module-ish
   'require',
+];
+
+const INDEX_GUARD = '__flockIndex';
+
+export const SANDBOX_RESERVED_NAMES = [...RESERVED_IDENTIFIERS, INDEX_GUARD];
+
+// Everything the generators emit. Code using anything else never runs, so a
+// generator injection can only do what blocks can already do.
+const ALLOWED_NODE_TYPES = new Set([
+  'ArrayExpression',
+  'ArrowFunctionExpression',
+  'AssignmentExpression',
+  'AwaitExpression',
+  'BinaryExpression',
+  'BlockStatement',
+  'BreakStatement',
+  'CallExpression',
+  'CatchClause',
+  'ConditionalExpression',
+  'ContinueStatement',
+  'ExpressionStatement',
+  'ForInStatement',
+  'ForStatement',
+  'FunctionDeclaration',
+  'FunctionExpression',
+  'Identifier',
+  'IfStatement',
+  'Literal',
+  'LogicalExpression',
+  'MemberExpression',
+  'NewExpression',
+  'ObjectExpression',
+  'Program',
+  'Property',
+  'ReturnStatement',
+  'SpreadElement',
+  'TryStatement',
+  'UnaryExpression',
+  'UpdateExpression',
+  'VariableDeclaration',
+  'VariableDeclarator',
+  'WhileStatement',
 ]);
 
-// 2) Callees we never allow (even if shadowed)
-const REJECT_CALLEES = new Set([
-  'eval',
-  'Function',
-  'AsyncFunction',
-  'GeneratorFunction',
-  'setTimeout',
-  'setInterval',
-  'setImmediate',
-  'queueMicrotask',
-  'open',
-  'alert',
-  'confirm',
-  'prompt',
-  'print',
+const ALLOWED_PROPERTIES = new Set([
+  'E',
+  'PI',
+  'SQRT1_2',
+  'SQRT2',
+  'abs',
+  'acos',
+  'asin',
+  'atan',
+  'atan2',
+  'ceil',
+  'charAt',
+  'cos',
+  'exp',
+  'filter',
+  'floor',
+  'indexOf',
+  'isArray',
+  'join',
+  'lastIndexOf',
+  'length',
+  'log',
+  'max',
+  'min',
+  'now',
+  'pop',
+  'pow',
+  'push',
+  'random',
+  'reduce',
+  'replace',
+  'reverse',
+  'round',
+  'shift',
+  'sin',
+  'slice',
+  'sort',
+  'splice',
+  'split',
+  'sqrt',
+  'substring',
+  'tan',
+  'toLowerCase',
+  'toUpperCase',
+  'trim',
+  'unshift',
+  'warn',
 ]);
 
-// Generated names must avoid these, or the validator rejects the project.
-export const SANDBOX_RESERVED_NAMES = [...new Set([...REJECT_IDENTIFIERS, ...REJECT_CALLEES])];
+const ALLOWED_GLOBALS = [
+  'Array',
+  'Infinity',
+  'Math',
+  'Number',
+  'Promise',
+  'RegExp',
+  'String',
+  'console',
+  'isNaN',
+  'parseFloat',
+  'parseInt',
+  'undefined',
+];
+
+const SCOPE_TYPES = new Set([
+  'Program',
+  'BlockStatement',
+  'ForStatement',
+  'ForInStatement',
+  'CatchClause',
+  'FunctionDeclaration',
+  'FunctionExpression',
+  'ArrowFunctionExpression',
+]);
 
 export const flockSandbox = {
   validateCode(code) {
@@ -143,110 +240,77 @@ export const flockSandbox = {
 
     return true;
   },
-  validateUserCodeAST(src) {
-    // 3) Member/property names that are escape hatches
-    const REJECT_PROPERTIES = new Set([
-      'constructor',
-      '__proto__',
-      'prototype',
-      'caller',
-      'callee',
-      'arguments',
-    ]);
+  // Refuses anything outside the allowlists, then routes every computed key
+  // through the index guard so no string can name `constructor` and the like.
+  prepareUserCode(src) {
+    const refuse = (what) => {
+      throw new Error(`Flock sandbox: generated code cannot use ${what}`);
+    };
     const ast = acorn.parse(src, {
       ecmaVersion: 'latest',
       sourceType: 'script',
       allowAwaitOutsideFunction: true,
-      locations: false,
     });
 
-    walk.simple(ast, {
-      // Syntax we never allow
-      WithStatement() {
-        throw new Error('with() not allowed');
-      },
-      DebuggerStatement() {
-        throw new Error('debugger not allowed');
-      },
-      ImportDeclaration() {
-        throw new Error('import declarations not allowed');
-      },
-      ExportNamedDeclaration() {
-        throw new Error('export not allowed');
-      },
-      ExportDefaultDeclaration() {
-        throw new Error('export not allowed');
-      },
-      ImportExpression() {
-        throw new Error('dynamic import() not allowed');
-      },
-      MetaProperty(n) {
-        if (n.meta?.name === 'import') throw new Error('import.meta not allowed');
-      },
+    walk.full(ast, (node) => {
+      if (!ALLOWED_NODE_TYPES.has(node.type)) refuse(node.type);
+    });
 
-      // Any usage of these identifiers anywhere
-      Identifier(n) {
-        if (REJECT_IDENTIFIERS.has(n.name)) {
-          throw new Error(`Identifier '${n.name}' is not allowed`);
+    const declared = new Map();
+    const declare = (scope, name) => {
+      if (!declared.has(scope)) declared.set(scope, new Set());
+      declared.get(scope).add(name);
+    };
+    const enclosingScope = (ancestors) => ancestors.findLast((n) => SCOPE_TYPES.has(n.type));
+    walk.ancestor(ast, {
+      VariableDeclarator(node, _st, ancestors) {
+        declare(enclosingScope(ancestors.slice(0, -1)), node.id.name);
+      },
+      Function(node, _st, ancestors) {
+        for (const param of node.params) declare(node, param.name);
+        if (node.id && node.type === 'FunctionDeclaration') {
+          declare(enclosingScope(ancestors.slice(0, -1)), node.id.name);
+        } else if (node.id) {
+          declare(node, node.id.name);
         }
       },
-
-      // Ban .constructor / .__proto__ / .prototype / .caller / .callee / .arguments
-      MemberExpression(n) {
-        // foo.bar
-        if (
-          !n.computed &&
-          n.property?.type === 'Identifier' &&
-          REJECT_PROPERTIES.has(n.property.name)
-        ) {
-          throw new Error(`Access to '.${n.property.name}' is not allowed`);
-        }
-        // foo["constructor"]
-        if (
-          n.computed &&
-          n.property?.type === 'Literal' &&
-          typeof n.property.value === 'string' &&
-          REJECT_PROPERTIES.has(n.property.value)
-        ) {
-          throw new Error(`Access to '["${n.property.value}"]' is not allowed`);
-        }
-      },
-
-      // Disallow dangerous callees; forbid string-eval timers
-      CallExpression(n) {
-        const callee = n.callee;
-        const name =
-          callee?.type === 'Identifier'
-            ? callee.name
-            : callee?.type === 'MemberExpression' &&
-                !callee.computed &&
-                callee.property?.type === 'Identifier'
-              ? callee.property.name
-              : null;
-
-        if (name && REJECT_CALLEES.has(name)) {
-          // Special case: timers with string as first arg (string-eval)
-          if (
-            (name === 'setTimeout' || name === 'setInterval') &&
-            n.arguments[0]?.type === 'Literal' &&
-            typeof n.arguments[0].value === 'string'
-          ) {
-            throw new Error('String-eval timers are not allowed');
-          }
-          // Block all the listed callees regardless
-          throw new Error(`Call to '${name}()' is not allowed`);
-        }
-      },
-
-      // new Function(), new Worker(), etc.
-      NewExpression(n) {
-        const callee = n.callee;
-        const name = callee?.type === 'Identifier' ? callee.name : null;
-        if (name && (REJECT_CALLEES.has(name) || REJECT_IDENTIFIERS.has(name))) {
-          throw new Error(`'new ${name}()' is not allowed`);
-        }
+      CatchClause(node) {
+        if (node.param) declare(node, node.param.name);
       },
     });
+
+    const computedKeys = [];
+    const checkName = (node, _st, ancestors) => {
+      if (node.name === INDEX_GUARD) refuse(`'${INDEX_GUARD}'`);
+      if (ancestors.some((scope) => declared.get(scope)?.has(node.name))) return;
+      if (!ALLOWED_FREE_NAMES.has(node.name)) refuse(`'${node.name}'`);
+    };
+    walk.ancestor(ast, {
+      Identifier: checkName,
+      VariablePattern: checkName,
+      MemberExpression(node) {
+        if (node.computed) computedKeys.push(node.property);
+        else if (!ALLOWED_PROPERTIES.has(node.property.name)) refuse(`'.${node.property.name}'`);
+      },
+      Property(node) {
+        if (node.kind !== 'init' || node.computed) refuse('this kind of object property');
+        if ((node.key.name ?? node.key.value) === '__proto__') refuse("'__proto__'");
+      },
+    });
+
+    const edits = computedKeys
+      .flatMap((key) => [
+        [key.start, 1, `${INDEX_GUARD}((`],
+        [key.end, 0, '))'],
+      ])
+      .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    let prepared = '';
+    let last = 0;
+    for (const [position, , text] of edits) {
+      prepared += src.slice(last, position) + text;
+      last = position;
+    }
+    return prepared + src.slice(last);
   },
   async runCode(code, options = {}) {
     const { focusCanvas = true, startCamera = null } = options;
@@ -256,7 +320,7 @@ export const flockSandbox = {
     let timeoutId;
 
     try {
-      flock.validateUserCodeAST(code);
+      const prepared = flock.prepareUserCode(code);
       setupSource = 'run-setup';
       await flock.disposeOldScene();
 
@@ -395,6 +459,7 @@ export const flockSandbox = {
 
       endowments.Date = new win.Object();
       endowments.Date.now = win.Date.now.bind(win.Date);
+      endowments[INDEX_GUARD] = win.__flockIndex;
 
       // Undefine unwanted globals
       // --- shadow unsafe / unneeded globals ---
@@ -471,11 +536,12 @@ export const flockSandbox = {
 
       const wrapped =
         '(async function () {\n"use strict";\n' +
-        code +
+        prepared +
         '\n}).call(undefined)\n//# sourceURL=user-code.js';
 
       // Evaluate in SES Compartment
       const c = new win.Compartment(endowments);
+      win.Object.defineProperty(c.globalThis, INDEX_GUARD, { writable: false, configurable: false });
 
       // Top-level code only defines functions and starts hats, so outlasting this is a Flock fault.
       setupSource = null;
@@ -904,3 +970,5 @@ export const SANDBOX_API_NAMES = [
   '__flockLoopPacer',
   'Date',
 ];
+
+const ALLOWED_FREE_NAMES = new Set([...SANDBOX_API_NAMES, ...ALLOWED_GLOBALS]);

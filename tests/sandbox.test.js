@@ -6,6 +6,7 @@ export function runSandboxTests(flock) {
     this.timeout(20000);
     let printed;
     let originalPrintText;
+    let originalPrepare;
 
     const run = (code) => flock.runCode(code, { focusCanvas: false });
 
@@ -13,14 +14,106 @@ export function runSandboxTests(flock) {
       await flock.disposeOldScene();
     });
 
+    // Hand-written code tests the boundary on its own, as if the code check had been bypassed.
     beforeEach(function () {
       printed = [];
       originalPrintText = flock.printText;
       flock.printText = ({ text }) => printed.push(text);
+      originalPrepare = flock.prepareUserCode;
+      flock.prepareUserCode = (code) => code;
     });
 
     afterEach(function () {
       flock.printText = originalPrintText;
+      flock.prepareUserCode = originalPrepare;
+    });
+
+    describe('with the code check', function () {
+      beforeEach(function () {
+        flock.prepareUserCode = originalPrepare;
+      });
+
+      const refused = [
+        ['a property outside the list', 'let x; x.constructor;'],
+        ['a global outside the list', 'Object;'],
+        ['a name only declared in another function', 'function f() { let fetch; } fetch;'],
+        ['this', 'this;'],
+        ['the index guard', '__flockIndex(1);'],
+        ['an assignment to the index guard', '__flockIndex = 1;'],
+        ['a getter', 'const o = { get a() { return 1; } };'],
+        ['a __proto__ key', 'const o = { __proto__: null };'],
+        ['a quoted __proto__ key', "const o = { '__proto__': null };"],
+        ['a computed object key', "const o = { ['a']: 1 };"],
+        ['a template literal', 'const s = `a`;'],
+        ['a class', 'class A {}'],
+        ['destructuring', 'const [a] = [1];'],
+        ['a rest parameter', 'function f(...a) {}'],
+        ['dynamic import', "import('x');"],
+      ];
+
+      for (const [label, code] of refused) {
+        it(`should refuse ${label}`, function () {
+          expect(() => flock.prepareUserCode(code)).to.throw(/^Flock sandbox: /);
+        });
+      }
+
+      it('should route every computed key through the index guard', function () {
+        expect(flock.prepareUserCode('let list, i, j;\nlist[i - 1] = list[j[0]];')).to.equal(
+          'let list, i, j;\nlist[__flockIndex((i - 1))] = list[__flockIndex((j[__flockIndex((0))]))];'
+        );
+      });
+
+      it('should allow a local that shares a global name', async function () {
+        await run(`
+          let name = 'local';
+          function show(fetch) {
+            printText({ text: name + '|' + fetch });
+          }
+          show(1);
+        `);
+        expect(printed).to.deep.equal(['local|1']);
+      });
+
+      it('should index lists with numbers and loop keys', async function () {
+        await run(`
+          const list = ['a', 'b'];
+          let seen = '';
+          for (var i in list) {
+            seen = seen + list[i];
+          }
+          list[list.length] = 'c';
+          printText({ text: seen + '|' + list[1] + '|' + list[list.length - 1] });
+        `);
+        expect(printed).to.deep.equal(['ab|b|c']);
+      });
+
+      it('should stop a computed key naming the constructor at run time', async function () {
+        await run(`
+          const k = 'con' + 'structor';
+          let result;
+          try {
+            result = getObjectsWithTag('missing')[k];
+          } catch (e) {
+            result = 'blocked';
+          }
+          printText({ text: result });
+        `);
+        expect(printed).to.deep.equal(['blocked']);
+      });
+
+      it('should stop an object key that converts to the constructor', async function () {
+        await run(`
+          const key = { toString: function () { return 'constructor'; } };
+          let result;
+          try {
+            result = [][key];
+          } catch (e) {
+            result = 'blocked';
+          }
+          printText({ text: result });
+        `);
+        expect(printed).to.deep.equal(['blocked']);
+      });
     });
 
     it('should return API arrays as sandbox arrays', async function () {

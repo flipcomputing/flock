@@ -6,10 +6,12 @@ and the rules for API and generator code that keep it intact.
 ## Threat model
 
 In the editor, code reaches `flock.runCode` only through the Blockly generators. A project file
-(shared, imported, or loaded with `?project=`) is untrusted JSON. There are two lines of defence:
+(shared, imported, or loaded with `?project=`) is untrusted JSON. There are three lines of defence:
 
 1. **Generators** must never let field text become code.
-2. **The sandbox** must stop generated code reaching anything except the API.
+2. **The code check** refuses any program that uses syntax, names or properties the generators
+   don't produce, so injected code can only do what blocks can do.
+3. **The sandbox** must stop generated code reaching anything except the API.
 
 Flock only runs projects inside its own editor, so a project never runs with another site's access.
 
@@ -38,8 +40,49 @@ so a new API is safe even if it calls `.map()` on an array or writes into an opt
 | The project's own result | `c.evaluate` is settled through `__flockSettle`, so a project error reaches `runCode` as a fresh `Error` too |
 | Unhandled rejections and uncaught errors | The iframe's listeners are in the wrapper script. They convert the value like a callback error before calling the host's `__flockReportProjectError` |
 
-The AST check in `validateUserCodeAST` is a lint. It is not a security boundary: computed property
-names bypass it.
+## The code check
+
+`prepareUserCode` (`runtime/sandbox.js`) parses the program before it runs and refuses it unless:
+
+- every syntax node type is in `ALLOWED_NODE_TYPES`. There is no `this`, class, template literal,
+  destructuring, rest parameter or `import()`;
+- every name either is declared in an enclosing scope, or is an API name or one of `ALLOWED_GLOBALS`;
+- every `.name` property access is in `ALLOWED_PROPERTIES`, which has no `constructor`, `__proto__` or
+  `prototype`;
+- object literals have plain keys only: no getters, setters, computed keys or `__proto__`.
+
+It then rewrites every computed access `a[x]` to `a[__flockIndex((x))]`. `__flockIndex` is defined in
+the sandbox realm by `sandboxWrap.js`. It passes primitives and integer strings (the keys `for…in`
+gives) and throws for any other string, object or symbol, so no key can name `constructor` and the
+like. The name is reserved: source code that mentions it is refused, and the global is read-only.
+
+Code can only get hold of a new object through a name, a property, a computed key, syntax such as
+`this`, or code the engine runs for it, such as a getter. The check closes each of these, so even if a
+host object reached user code, there would be no path from it to `Function` or the page.
+
+The iframe is same-origin, so an escape from the Compartment reaches the editor page. The code check
+does not depend on SES or the wrapper, so it still holds if either has a flaw.
+
+### Changing the allowlists
+
+The generators are not trusted to avoid danger: anything they emit outside the allowlists is refused.
+What is trusted is each allowlist entry, so every new entry needs review:
+
+- A property must be safe on any object, including a host object that leaked by mistake. It must not
+  return a constructor, a prototype or a function the code didn't already have, and must not let code
+  call a function it holds with arguments of its choosing. So `constructor`, `__proto__`,
+  `prototype`, `caller`, `callee`, `apply`, `call`, `bind`, `__defineGetter__` and
+  `__lookupGetter__` never go in.
+- A global must be one of the iframe realm's locked-down built-ins with nothing to reach but values.
+  `Object`, `Reflect`, `Proxy`, `Function`, `Symbol`, `Error`, `globalThis` and anything from the
+  browser never go in.
+- Syntax must not hand code an object it didn't name or run code on its behalf. `this`, `arguments`,
+  classes, `super`, getters, setters, tagged templates and `import()` never go in.
+
+Prefer changing the generator. `math_on_list` min and max use spread (`Math.max(...list)`) instead
+of Blockly's `Math.max.apply(null, list)` so that `apply` stays off the list. A block that needs a
+string key, such as a dictionary, should go through an API helper backed by a `Map` rather than
+`obj[key]`.
 
 ## Rules for API code
 
@@ -68,16 +111,24 @@ names bypass it.
 - Dropdown values that choose between API functions go through a fixed lookup table, never into a
   function name (see `control_animation_group`).
 - Identifiers come from `nameDB_.getName`, which sanitises them.
+- Generated code may only use what the code check allows. Index lists with `[]`, never with a string
+  key. If a generator needs a new property, global or kind of syntax, first try to avoid it; otherwise
+  add it to the allowlist in `runtime/sandbox.js` after the review in "Changing the allowlists".
 
 ## Tests
 
 The `@sandbox` suite (`tests/sandbox.test.js`, `npm run test:api sandbox`) runs real code through
 `runCode` and covers each crossing above, including escape attempts. These include user values that
 carry their own `map`, `forEach`, setter or `then`. Add a case there for any new API that returns,
-resolves to, or calls back with anything other than primitives.
+resolves to, or calls back with anything other than primitives. These cases stub `prepareUserCode`
+so they test the sandbox on its own; the cases under "with the code check" test the check.
 
-To check for escapes by hand, run code like this through `runCode` and confirm it throws or is
-dropped:
+`tests/security/generated-code-check.test.js` (`npm run test:api security`) generates code for every
+toolbox block, each short dropdown's options, and every example project, and confirms the check
+accepts it. A failure there means a generator emits something the allowlists don't have yet.
+
+To check for escapes by hand, stub `flock.prepareUserCode = (code) => code`, run code like this
+through `runCode`, and confirm it throws or is dropped:
 
 ```js
 const k = 'con' + 'structor';

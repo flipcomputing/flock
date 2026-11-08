@@ -87,8 +87,8 @@ export function runTextFieldValidationTests() {
     }
 
     it('renames variables and functions whose names the sandbox rejects', function () {
-      // The validator rejects reads, not declarations, so each name is read back.
-      expect(() => flockSandbox.validateUserCodeAST('let require = 1; require;')).to.throw();
+      // The check refuses a name nothing declares, so each name is declared and read back.
+      expect(() => flockSandbox.prepareUserCode('require;')).to.throw();
 
       Blockly.serialization.blocks.append(
         { type: 'procedures_defnoreturn', fields: { NAME: 'require' } },
@@ -113,7 +113,7 @@ export function runTextFieldValidationTests() {
 
       javascriptGenerator.init(workspace);
       const code = javascriptGenerator.workspaceToCode(workspace);
-      expect(() => flockSandbox.validateUserCodeAST(code)).not.to.throw();
+      expect(() => flockSandbox.prepareUserCode(code)).not.to.throw();
     });
 
     for (const block of scanRegisteredBlocks(workspace)) {

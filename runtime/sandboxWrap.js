@@ -148,6 +148,13 @@ window.__flockWrapHostFn = (fn, name) => {
   hostFnWrappers.add(wrapper);
   return freeze(wrapper);
 };
+const LIST_POSITION = /^(?:0|[1-9]\d*)$/;
+window.__flockIndex = freeze((key) => {
+  if (typeof key === 'string' ? LIST_POSITION.test(key) : !isObjectLike(key) && typeof key !== 'symbol') {
+    return key;
+  }
+  throw new TypeError('Flock sandbox: a list position must be a number');
+});
 window.addEventListener('unhandledrejection', (ev) => {
   ev.preventDefault();
   reportProject('unhandled_rejection', toHostError(ev.reason));

@@ -1,4 +1,4 @@
-{
+      {
   "type": "when_action_event",
   "fields": { "ACTION": "BUTTON1", "EVENT": "pressed" },
   "inputs": {

@@ -58,8 +58,10 @@ its own policy, set in `runtime/sandbox.js`:
 default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'
 ```
 
-The iframe is created with `srcdoc`, so it also inherits the page's policy, and both apply. Project code
-therefore can't fetch, connect or load anything, whatever the page policy allows.
+The iframe is created with `srcdoc`, so it also inherits the page's policy, and both apply. The iframe is
+same-origin, so this policy only limits code that stays inside the SES compartment. Code that escaped would
+reach the editor page and its policy. The compartment and the code check (see `dev-docs/SANDBOX.md`) are
+what prevent that.
 
 ## Why each non-self origin is allowed
 

@@ -57,6 +57,15 @@ export function registerMathGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_NONE];
   };
 
+  // Min and max of a list: spread instead of Blockly's `.apply`, which the sandbox refuses
+  const blocklyOnList = javascriptGenerator.forBlock['math_on_list'];
+  javascriptGenerator.forBlock['math_on_list'] = function (block, generator) {
+    const fn = { MIN: 'Math.min', MAX: 'Math.max' }[block.getFieldValue('OP')];
+    if (!fn) return blocklyOnList.call(this, block, generator);
+    const list = generator.valueToCode(block, 'LIST', generator.ORDER_COMMA) || '[]';
+    return [`${fn}(...${list})`, generator.ORDER_FUNCTION_CALL];
+  };
+
   // The following all use Blockly defaults
 
   // Constants e.g. Pi
@@ -64,7 +73,7 @@ export function registerMathGenerators(javascriptGenerator) {
   // Round
   // Absolute
   // Trig functions
-  // Sum list
+  // Sum, average and the rest of the list maths
   // Remainder
   // Constrain
   // Random fractions

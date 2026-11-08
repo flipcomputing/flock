@@ -27,6 +27,7 @@ User code may only reach the Flock API. See [dev-docs/SANDBOX.md](dev-docs/SANDB
 - API functions return primitives or names/IDs, never Babylon or other host objects (the boundary drops them to `undefined`)
 - Never pass user callbacks straight to Babylon observables; call them with only the values they need
 - Generators put field values and other text into code with `JSON.stringify`
+- Generated code must pass the allowlists in `prepareUserCode`; add a new property, global or syntax there
 - Add a `@sandbox` test for any API that returns, resolves to, or calls back with non-primitive values
 
 ## Testing
