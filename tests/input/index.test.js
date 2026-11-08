@@ -8,7 +8,7 @@ import { runCameraControlsTests } from './cameraControls.test.js';
 import { runXRSourceTests } from './xrSource.test.js';
 import { runConsumerTests } from './consumers.test.js';
 
-export function runInputTests() {
+export function runInputTests(flock) {
   runBindingsTests();
   runInputManagerTests();
   runKeyboardSourceTests();
@@ -17,5 +17,5 @@ export function runInputTests() {
   runJoystickSourceTests();
   runCameraControlsTests();
   runXRSourceTests();
-  runConsumerTests();
+  runConsumerTests(flock);
 }

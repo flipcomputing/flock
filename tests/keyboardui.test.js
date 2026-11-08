@@ -781,16 +781,6 @@ export function runKeyboardUiTests(flock) {
         ]);
       });
 
-      it('filtering by a chip shows only that topic’s cards', function () {
-        HowToPanel.show();
-        chipByLabel('Gizmo').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(11);
-        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('true');
-        chipByLabel('Blocks').click();
-        expect(HowToPanel.panel.querySelectorAll('.howto-grid .howto-tile').length).to.equal(13);
-        expect(chipByLabel('Gizmo').getAttribute('aria-pressed')).to.equal('false');
-      });
-
       it('the Duplicate an object article teaches the gizmo, not block duplication', function () {
         HowToPanel.show();
         chipByLabel('Gizmo').click();

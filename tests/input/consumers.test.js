@@ -3,6 +3,7 @@ import { InputManager } from '../../input/inputManager.js';
 import { OnScreenSource } from '../../input/onScreenSource.js';
 import { flockSensing, setFlockReference as setFlockSensing } from '../../api/sensing.js';
 import { flockEvents, setFlockReference as setFlockEvents } from '../../api/events.js';
+import { flockSections, setFlockReference as setFlockSections } from '../../api/sections.js';
 
 function makeFlock() {
   const inputManager = new InputManager();
@@ -12,19 +13,29 @@ function makeFlock() {
     isPaused: () => false,
     ...flockSensing,
     ...flockEvents,
+    ...flockSections,
   };
   setFlockSensing(flock);
   setFlockEvents(flock);
+  setFlockSections(flock);
   return flock;
 }
 
-export function runConsumerTests() {
+export function runConsumerTests(realFlock) {
   describe('Consumer APIs @consumers @input', function () {
     let flock, inputManager;
 
     beforeEach(function () {
       flock = makeFlock();
       inputManager = flock.inputManager;
+    });
+
+    // Later suites share these modules, so point them back at the real flock.
+    after(function () {
+      if (!realFlock) return;
+      setFlockSensing(realFlock);
+      setFlockEvents(realFlock);
+      setFlockSections(realFlock);
     });
 
     describe('keyPressed', function () {
