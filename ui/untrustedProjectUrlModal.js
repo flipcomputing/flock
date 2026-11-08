@@ -1,6 +1,7 @@
 // UI-only confirm modal for opening a project from a URL outside the trusted list.
 
 import { translate } from '../main/translation.js';
+import { whenDomReady } from '../main/domReady.js';
 
 let previouslyFocused = null;
 let activeResolve = null;
@@ -127,4 +128,4 @@ function installModal() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', installModal);
+whenDomReady(installModal);

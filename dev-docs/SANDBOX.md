@@ -18,8 +18,9 @@ Flock only runs projects inside its own editor, so a project never runs with ano
 ## How the sandbox works
 
 `runCode` (`flock.js`) runs user code in an SES `Compartment` inside a hidden same-origin iframe
-whose realm has been locked down. The API, Babylon and the editor UI live in the host page, which is
-**not** locked down. Any host object that user code can reach exposes the host's untamed `Function`
+whose realm has been locked down. The iframe loads `sandbox.html`, the only document whose policy
+allows `'unsafe-eval'` (see `docs/CSP_POLICY.md`). The API, Babylon and the editor UI live in the host
+page, which is **not** locked down. Any host object that user code can reach exposes the host's untamed `Function`
 through `.constructor.constructor`, which is a full escape.
 
 The API is exposed through `createWhitelist`. Every function is wrapped by `__flockWrapHostFn`, a

@@ -22,10 +22,22 @@ const inspectorOnlyChunks = new Set();
 
 const scriptHash = (source) => `'sha256-${createHash('sha256').update(source).digest('base64')}'`;
 
-const SANDBOX_SCRIPT_HASHES = [
-  `'${SES_LOCKDOWN_SRI}'`,
-  scriptHash(readFileSync('runtime/sandboxWrap.js')),
-];
+// The sandbox iframe's own document. Only it allows 'unsafe-eval', which SES needs to run project
+// code; a srcdoc iframe would inherit the editor's policy instead. The hashes are the two scripts
+// runtime/sandbox.js injects. runCode refuses a document without data-flock-sandbox.
+const SANDBOX_PATH = `${BASE_URL}sandbox.html`;
+
+function sandboxDocument() {
+  const hashes = [`'${SES_LOCKDOWN_SRI}'`, scriptHash(readFileSync('runtime/sandboxWrap.js'))];
+  const policy = `default-src 'none'; base-uri 'none'; form-action 'none'; style-src 'unsafe-inline'; script-src ${hashes.join(' ')} 'unsafe-eval'`;
+  return `<!doctype html>
+<html data-flock-sandbox>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${policy}">
+<canvas id="renderCanvas"></canvas>
+</html>
+`;
+}
 
 function inlineScriptHashes(html) {
   return [...html.matchAll(/<script\b(?![^>]*\bsrc\s*=)[^>]*>([\s\S]*?)<\/script>/gi)]
@@ -34,15 +46,41 @@ function inlineScriptHashes(html) {
     .map(scriptHash);
 }
 
+// 'strict-dynamic' trusts only hashed scripts and what they create, so a script tag with a src is
+// blocked, and so are the imports of a hashed inline module. A hashed loader at the end of the
+// body creates each module entry instead; a modulepreload link keeps its fetch early. It must
+// run while the page parses: Firefox doesn't hold the load event for a script created later.
+// Modules created this way can run after DOMContentLoaded (see main/domReady.js).
+// Any other script tag with a src fails the build.
+function loadModuleEntriesByScript(html, fileName) {
+  const entries = [];
+  const preloaded = html.replace(
+    /<script type="module" crossorigin src="([^"]+)"><\/script>/g,
+    (_, src) => {
+      entries.push(src);
+      return `<link rel="modulepreload" crossorigin href="${src}">`;
+    }
+  );
+  const external = preloaded.match(/<script\b[^>]*\bsrc\s*=[^>]*>/i);
+  if (external) throw new Error(`${fileName} loads a script by tag, which 'strict-dynamic' blocks: ${external[0]}`);
+  if (!entries.length) return preloaded;
+  const loader = `<script>for (const src of ${JSON.stringify(entries)}) { const s = document.createElement('script'); s.type = 'module'; s.src = src; document.body.append(s); }</script>`;
+  if (!preloaded.includes('</body>')) throw new Error(`${fileName} has no </body> for the module loader`);
+  return preloaded.replace('</body>', `${loader}\n</body>`);
+}
+
 // `frame-ancestors` is only enforced from HTTP headers (ignored in CSP meta tags).
+// Browsers that support 'strict-dynamic' ignore 'self' and the Tag Manager host; they are a
+// fallback for browsers that don't.
 function productionMetaPolicy(pageScriptHashes) {
-  const scriptHashes = [...new Set([...SANDBOX_SCRIPT_HASHES, ...pageScriptHashes])].join(' ');
-  return `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' ${scriptHashes} 'unsafe-eval' 'wasm-unsafe-eval' https://www.googletagmanager.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'`;
+  const scriptHashes = [...new Set(pageScriptHashes)].join(' ');
+  return `default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' ${scriptHashes} 'strict-dynamic' 'wasm-unsafe-eval' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.google-analytics.com https://www.googletagmanager.com; font-src 'self' data:; connect-src 'self' https: https://www.googletagmanager.com https://www.google-analytics.com https://region1.google-analytics.com https://stats.g.doubleclick.net; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'`;
 }
 
 let productionHeaderPolicy = null;
 
-// Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket
+// Dev server CSP: no analytics domains, ws: added for Vite HMR WebSocket, and 'unsafe-eval'
+// because the browser tests compile generated code with new Function.
 const CSP_DEV_META_POLICY =
   "default-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: ws:; media-src 'self' data: blob:; worker-src 'self' blob:; frame-src 'self'; manifest-src 'self'";
 const CSP_DEV_POLICY = `${CSP_DEV_META_POLICY}; frame-ancestors 'self'`;
@@ -77,6 +115,7 @@ export default {
       },
       generateBundle(_options, bundle) {
         const htmlFiles = Object.values(bundle).filter((file) => file.fileName.endsWith('.html'));
+        for (const file of htmlFiles) file.source = loadModuleEntriesByScript(String(file.source), file.fileName);
         const pageScriptHashes = htmlFiles.flatMap((file) => inlineScriptHashes(String(file.source)));
         const metaPolicy = productionMetaPolicy(pageScriptHashes);
         productionHeaderPolicy = `${metaPolicy}; frame-ancestors 'self'`;
@@ -86,13 +125,23 @@ export default {
             throw new Error(`CSP meta placeholder left in ${file.fileName}`);
           }
         }
+        this.emitFile({ type: 'asset', fileName: 'sandbox.html', source: sandboxDocument() });
+      },
+      // Served here, not as a page, so Vite doesn't add its client script, and hashed per request
+      // so editing sandboxWrap.js never leaves a stale hash.
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          if (req.url.split('?')[0] !== SANDBOX_PATH) return next();
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.end(sandboxDocument());
+        });
       },
       configurePreviewServer(server) {
         const headers = readFileSync(resolve(server.config.build.outDir, '_headers'), 'utf8');
         const policy = headers.match(/Content-Security-Policy: (.*)/)?.[1];
         if (!policy) throw new Error('No Content-Security-Policy in the built _headers');
-        server.middlewares.use((_req, res, next) => {
-          res.setHeader('Content-Security-Policy', policy);
+        server.middlewares.use((req, res, next) => {
+          if (req.url.split('?')[0] !== SANDBOX_PATH) res.setHeader('Content-Security-Policy', policy);
           next();
         });
       },
@@ -181,6 +230,8 @@ export default {
     VitePWA({
       base: BASE_URL,
       registerType: 'autoUpdate',
+      // Inline, so the build hashes it: 'strict-dynamic' blocks a registerSW.js tag.
+      injectRegister: 'inline',
       devOptions: { enabled: false },
 
       includeAssets: [
@@ -254,6 +305,7 @@ export default {
         ],
         navigateFallback: `${BASE_URL}index.html`,
         navigateFallbackAllowlist: [new RegExp(`^${BASE_URL.replace(/\/$/, '')}/(?!api|assets/)`)],
+        navigateFallbackDenylist: [/\/sandbox(\.html)?$/],
         globPatterns: [
           '**/*.{js,css,html,ico,png,svg,glb,gltf,mp3,aac,wasm,json,woff,woff2}',
           'models/**/*',
@@ -441,6 +493,8 @@ export default {
         // The Vite dev/preview server sets these headers directly; the _headers file
         // ensures the same headers are served in production.
         // Note: frame-ancestors is only enforced via HTTP headers, not CSP meta tags.
+        // The sandbox document keeps only its meta policy: the page policy as well would
+        // block its eval. Cloudflare also serves it without the .html extension.
         const headersContent = `/*
   Content-Security-Policy: ${productionHeaderPolicy}
   Strict-Transport-Security: max-age=31536000
@@ -452,6 +506,12 @@ export default {
 
 /examples/*
   Access-Control-Allow-Origin: *
+
+${SANDBOX_PATH}
+  ! Content-Security-Policy
+
+${SANDBOX_PATH.replace(/\.html$/, '')}
+  ! Content-Security-Policy
 `;
         writeFileSync(resolve(outDir, '_headers'), headersContent);
       },

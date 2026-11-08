@@ -31,8 +31,15 @@
     <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
 
     <meta name="theme-color" content="#511d91" />
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QCGT3X072N"></script>
     <script>
+      // Added by this hashed script, not a tag of its own, so 'strict-dynamic' trusts it.
+      {
+        const gtagScript = document.createElement('script');
+        gtagScript.async = true;
+        gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-QCGT3X072N';
+        document.head.appendChild(gtagScript);
+      }
+
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);

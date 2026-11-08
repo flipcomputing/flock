@@ -101,6 +101,7 @@ import {
   writeClonePositionAxes,
   hasInitialTransformRows,
 } from './initialTransform.js';
+import { whenDomReady } from '../main/domReady.js';
 export let gizmoManager;
 
 // Enable debug messages
@@ -550,7 +551,7 @@ function registerBindings() {
   );
 }
 
-document.addEventListener('DOMContentLoaded', function () {
+whenDomReady(function () {
   const colorButton = document.getElementById('colorPickerButton');
 
   // Register input handlers for gizmo actions

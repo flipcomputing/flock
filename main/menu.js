@@ -16,6 +16,7 @@ import {
   setCanvasAspectName,
 } from './canvasAspect.js';
 import { markProjectModified } from './files.js';
+import { whenDomReady } from './domReady.js';
 
 const menuBtn = document.getElementById('menuBtn');
 const openAbout = document.getElementById('about-menu-item');
@@ -495,7 +496,7 @@ class AccessibleFlyoutMenu {
 
 // Initialize the menu when DOM is loaded
 let menuFlyout;
-document.addEventListener('DOMContentLoaded', () => {
+whenDomReady(() => {
   if (!menuBtn || !document.getElementById('menuDropdown')) {
     return;
   }

@@ -6,6 +6,7 @@ import * as en from 'blockly/msg/en';
 import enLocale from '../locale/en.js';
 import * as es from 'blockly/msg/es';
 import esLocale from '../locale/es.js';
+import { whenDomReady } from './domReady.js';
 
 /*
 // Add when human translations are available
@@ -282,7 +283,7 @@ export function applyTranslations() {
   // after every language change / initial pass.
   document.dispatchEvent(new CustomEvent('translationsapplied'));
 }
-document.addEventListener('DOMContentLoaded', () => applyTranslations());
+whenDomReady(() => applyTranslations());
 
 // Function to update custom block translations
 export function updateCustomBlockTranslations() {

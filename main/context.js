@@ -4,6 +4,7 @@
  */
 import * as Blockly from 'blockly';
 import { isDebugModeEnabled } from './debugMode.js';
+import { whenDomReady } from './domReady.js';
 
 export const ContextManager = {
   // Define priority order (Top of list = most important)
@@ -168,6 +169,6 @@ export function toggleContextDebug() {
   if (document.body) {
     start();
   } else {
-    window.addEventListener('DOMContentLoaded', start);
+    whenDomReady(start);
   }
 })();

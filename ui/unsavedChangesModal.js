@@ -1,6 +1,7 @@
 // UI-only confirm modal; the caller decides what save/discard/cancel do.
 
 import { translate } from '../main/translation.js';
+import { whenDomReady } from '../main/domReady.js';
 
 let previouslyFocused = null;
 let activeResolve = null;
@@ -131,4 +132,4 @@ function installModal() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', installModal);
+whenDomReady(installModal);

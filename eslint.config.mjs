@@ -62,4 +62,18 @@ export default [
       'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
+  {
+    ignores: ['tests/**', 'scripts/**', 'main/domReady.js'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='addEventListener'][arguments.0.value='DOMContentLoaded']",
+          message:
+            "Use whenDomReady from main/domReady.js: in production the app's modules can run after DOMContentLoaded.",
+        },
+      ],
+    },
+  },
 ];

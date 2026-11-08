@@ -211,35 +211,6 @@ const SCOPE_TYPES = new Set([
 ]);
 
 export const flockSandbox = {
-  validateCode(code) {
-    if (typeof code !== 'string') {
-      throw new Error('Code must be a string');
-    }
-
-    // Length check (reasonable)
-    if (code.length > 100000) {
-      throw new Error('Code too long (max 100KB)');
-    }
-
-    // Basic syntax check
-    try {
-      new Function(code); // Just check if it parses
-    } catch (e) {
-      throw new Error(`Syntax error: ${e.message}`, { cause: e });
-    }
-
-    // Optional: Warn about patterns (don't block)
-    const warnings = [];
-    if (/eval\s*\(/.test(code)) {
-      warnings.push("Warning: eval() detected - this won't work in the sandbox");
-    }
-
-    if (warnings.length > 0) {
-      console.warn(warnings.join('\n'));
-    }
-
-    return true;
-  },
   // Refuses anything outside the allowlists, then routes every computed key
   // through the index guard so no string can name `constructor` and the like.
   prepareUserCode(src) {
@@ -350,10 +321,10 @@ export const flockSandbox = {
       }
 
       // --- create fresh same-origin iframe ---
+      setupSource = 'chunk-load';
       const { win, doc } = await flock.replaceSandboxIframe({ id: 'flock-iframe' });
 
-      // --- load SES text in parent and inject inline into iframe (CSP allows inline) ---
-      setupSource = 'chunk-load';
+      // --- load SES text in parent and inject inline into iframe (its policy allows the hash) ---
       const sesResp = await fetch(flockRuntimeUrl('vendor/ses/lockdown.umd.min.js'));
       if (!sesResp.ok) throw new Error(`Failed to fetch SES: ${sesResp.status}`);
       const sesText = await sesResp.text();
@@ -864,7 +835,7 @@ export const flockSandbox = {
       return api;
     }
   },
-  async replaceSandboxIframe({ id = 'flock-iframe', srcdocHtml } = {}) {
+  async replaceSandboxIframe({ id = 'flock-iframe' } = {}) {
     const old = document.getElementById(id);
 
     // --- 1) Hard teardown of the old iframe (if any) ---
@@ -911,15 +882,7 @@ export const flockSandbox = {
     iframe.id = id;
     iframe.style.display = 'none';
 
-    // Prefer srcdoc so CSP is present before any script runs
-    const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'`;
-    const html =
-      srcdocHtml ??
-      `<!doctype html>
-        <meta http-equiv="Content-Security-Policy" content="${csp}">
-        <canvas id="renderCanvas"></canvas>`;
-
-    // Attach to DOM before setting src/srcdoc to ensure load events fire consistently
+    // Attach to DOM before setting src to ensure load events fire consistently
     document.body.appendChild(iframe);
 
     // Load and await readiness
@@ -932,27 +895,18 @@ export const flockSandbox = {
         iframe.onload = iframe.onerror = null;
         reject(new Error('iframe failed to load'));
       };
-      // Use srcdoc when possible; fallback to about:blank + injected head if needed
-      try {
-        iframe.srcdoc = html;
-      } catch {
-        iframe.src = 'about:blank';
-      }
+      // Its own document, not srcdoc: a srcdoc iframe inherits the editor's policy, which
+      // has no 'unsafe-eval'. sandbox.html carries the policy SES needs (see vite.config.mjs).
+      iframe.src = flockRuntimeUrl('sandbox.html');
     });
-
-    // If we fell back to about:blank, inject CSP meta now (runs before user code anyway)
-    if (!('srcdoc' in document.createElement('iframe')) || !iframe.srcdoc) {
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (!doc.head) doc.documentElement.appendChild(doc.createElement('head'));
-      const meta = doc.createElement('meta');
-      meta.httpEquiv = 'Content-Security-Policy';
-      meta.content = csp;
-      doc.head.appendChild(meta);
-    }
 
     const win = iframe.contentWindow;
     const doc = iframe.contentDocument || win?.document;
     if (!win || !doc) throw new Error('New iframe is unavailable');
+    // A 404 page or the service worker's offline fallback would have the wrong policy.
+    if (!doc.documentElement.hasAttribute('data-flock-sandbox')) {
+      throw new Error('Sandbox document failed to load');
+    }
 
     return { iframe, win, doc };
   },

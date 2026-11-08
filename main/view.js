@@ -8,6 +8,7 @@ import { disableGltfValidation } from './gltfvalidation.js';
 import { logViewport } from './viewportDebug.js';
 import { isRestorableWorkspaceNode } from './workspaceFocus.js';
 import { getCanvasAspect, isPortraitCanvas } from './canvasAspect.js';
+import { whenDomReady } from './domReady.js';
 
 export const isNarrowScreen = () => {
   return window.innerWidth <= 1024;
@@ -434,7 +435,7 @@ function toggleMenu() {
 
 window.toggleMenu = toggleMenu;
 
-document.addEventListener('DOMContentLoaded', () => {
+whenDomReady(() => {
   if (window.matchMedia('(display-mode: fullscreen)').matches) {
     // Adjust layout for fullscreen mode
     adjustViewport();
@@ -658,7 +659,7 @@ function setupViewObserver() {
 }
 
 // Initialize the observer when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+whenDomReady(() => {
   setupViewObserver();
 });
 
@@ -1793,7 +1794,7 @@ class InfoPanelResizer {
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+whenDomReady(() => {
   new PanelResizer();
   new InfoPanelResizer();
 });

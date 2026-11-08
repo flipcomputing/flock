@@ -164,12 +164,25 @@ try {
 
   const summary = {
     baseUrl: BASE_URL,
-    cspViolations,
+    cspViolations: [...cspViolations],
     runtimeSources: Object.fromEntries(
       Object.entries(requestSources).map(([key, set]) => [key, [...set].sort()])
     ),
     analyticsOriginsSeen: [...analyticsOriginsSeen].sort(),
   };
+
+  // Strict CSP: the editor page itself can't compile strings, only the sandbox document can.
+  // Checked after a timer, because DevTools allows eval while an evaluate call starts, and
+  // after the summary copies the violations, because this one is expected.
+  summary.editorEval = await page.evaluate(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    try {
+      (0, eval)('1');
+      return 'allowed';
+    } catch {
+      return 'blocked';
+    }
+  });
 
   await fs.mkdir('artifacts', { recursive: true });
   await fs.writeFile('artifacts/csp-smoke-summary.json', JSON.stringify(summary, null, 2));
@@ -178,6 +191,10 @@ try {
     throw new Error(
       `Detected ${summary.cspViolations.length} CSP violation(s). See artifacts/csp-smoke-summary.json`
     );
+  }
+
+  if (summary.editorEval !== 'blocked') {
+    throw new Error('The editor page allows eval. See artifacts/csp-smoke-summary.json');
   }
 
   if (summary.analyticsOriginsSeen.length === 0) {
