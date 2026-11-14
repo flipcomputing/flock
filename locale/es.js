@@ -1577,6 +1577,7 @@ export default {
   model_display_apple: 'Manzana', // ai
   model_display_starboppers: 'Starboppers', // ai
   model_display_headphones: 'Auriculares', // ai
+  model_display_arrow: 'Flecha', // ai
   model_display_flock: 'Pájaro Flock', // ai
   model_display_flock_santa: 'Pájaro Flock con gorro de Papá Noel', // ai
   model_display_character: 'Personaje', // ai

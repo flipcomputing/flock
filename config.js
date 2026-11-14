@@ -144,6 +144,7 @@ export const objectNames = [
   'apple.glb',
   'starboppers.glb',
   'headphones.glb',
+  'arrow.glb',
 ];
 
 function modelNameToDisplayName(modelName) {
@@ -213,6 +214,7 @@ export const objectDisplayNameTranslationKeys = {
   'apple.glb': 'model_display_apple',
   'starboppers.glb': 'model_display_starboppers',
   'headphones.glb': 'model_display_headphones',
+  'arrow.glb': 'model_display_arrow',
   'Flock.glb': 'model_display_flock',
   'Bunny.glb': 'model_display_bunny',
   'Tiger.glb': 'model_display_tiger',
@@ -256,6 +258,7 @@ export const objectColours = {
   'apple.glb': ['#3FAF45', '#A9323F', '#624A20'],
   'starboppers.glb': ['#FFD700', '#FFD700', '#FFD700', '#f9f9f9'],
   'headphones.glb': ['#53E0E7', '#3291E7', '#7D7D7D'],
+  'arrow.glb': ['#E76C79', '#E7BA14', '#21E71A'],
   'camera.glb': ['#3A3A3A', '#511D91', '#6A676E', '#D4FBA7'],
 
   'tree.glb': ['#66CDAA', '#CD853F'],
