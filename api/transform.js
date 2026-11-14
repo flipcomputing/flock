@@ -916,9 +916,9 @@ export const flockTransform = {
     if (dir.lengthSquared() === 0) return; // already at target horizontally
     dir.normalize();
 
-    // RH turns local -Z toward the target, which is the front of Flock models.
+    // LH turns local -Z toward the target, which is the front of Flock models.
     const up = flock.BABYLON.Axis.Y; // world up
-    const q = flock.BABYLON.Quaternion.FromLookDirectionRH(dir, up);
+    const q = flock.BABYLON.Quaternion.FromLookDirectionLH(dir, up);
 
     await this.rotateTo(meshName, { ...flock.quatToEulerDegrees(q), world: true });
 
