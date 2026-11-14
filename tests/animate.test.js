@@ -524,6 +524,37 @@ export function runAnimateTests(flock) {
       });
     });
 
+    describe('property names', function () {
+      const property = '__proto__.flockPolluted';
+      const keyframes = [
+        { value: 1, duration: 0 },
+        { value: 2, duration: 0.1 },
+      ];
+      const calls = [
+        [
+          'animateProperty',
+          (id) => flock.animateProperty(id, { property, targetValue: 1, duration: 0.1 }),
+        ],
+        ['animateKeyFrames', (id) => flock.animateKeyFrames(id, { property, keyframes })],
+        [
+          'createAnimation',
+          (id) => flock.createAnimation(null, id, { property, keyframes, mode: 'AWAIT' }),
+        ],
+      ];
+
+      for (const [api, call] of calls) {
+        it(`should refuse a property path outside the list in ${api}`, async function () {
+          const boxId = `badProperty_${api}`;
+          await flock.createBox(boxId, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+          boxIds.push(boxId);
+
+          await call(boxId);
+
+          expect('flockPolluted' in flock.scene.getMeshByName(boxId)).to.equal(false);
+        });
+      }
+    });
+
     describe('createAnimation function', function () {
       it('should create animation group', async function () {
         const boxId = 'createAnimTest';

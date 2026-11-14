@@ -20,7 +20,14 @@ const drop = (source) => {
   console.warn('Flock sandbox: dropped a host object from ' + source);
   return undefined;
 };
-const isObjectLike = (v) => v !== null && (typeof v === 'object' || typeof v === 'function');
+const reportSafely = (e) => {
+  try {
+    report(e);
+  } catch {
+    /* ignore: user code must still get a sandbox error */
+  }
+};
+const isObjectLike =(v) => v !== null && (typeof v === 'object' || typeof v === 'function');
 const readData = (v, key, onAccessor) => {
   const desc = getOwnPropertyDescriptor(v, key);
   if (!desc) return undefined;
@@ -56,7 +63,7 @@ const toRealm = (v, source, depth = 0) => {
   if (typeof v.then !== 'function') return drop(source);
   return new Promise((resolve, reject) => {
     const fail = (e) => {
-      report(e);
+      reportSafely(e);
       reject(halt());
     };
     try {
@@ -141,7 +148,7 @@ window.__flockWrapHostFn = (fn, name) => {
     try {
       return toRealm(fn(...args.map((arg) => toHost(arg, name))), name);
     } catch (e) {
-      report(e);
+      reportSafely(e);
       throw halt();
     }
   };

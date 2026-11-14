@@ -316,6 +316,45 @@ export function runSandboxTests(flock) {
           expect(reported.map((error) => error?.message)).to.deep.equal([message]);
         });
       }
+
+      const unreportableError = () => {
+        const error = new Error('unreportable');
+        Object.defineProperty(error, 'name', {
+          get() {
+            throw new Error('report failed');
+          },
+        });
+        return error;
+      };
+
+      for (const [kind, call] of failingCalls) {
+        it(`should give user code a sandbox stop signal when reporting a ${kind} failure throws`, async function () {
+          flock.wait = async () => {
+            throw unreportableError();
+          };
+          flock.meshExists = () => {
+            throw unreportableError();
+          };
+          await run(`
+            const k = 'con' + 'structor';
+            let result;
+            try {
+              ${call}
+              result = 'no error';
+            } catch (e) {
+              let escaped;
+              try {
+                escaped = e[k][k]('return typeof document')();
+              } catch {
+                escaped = 'blocked';
+              }
+              result = (e instanceof Error) + '|' + e.name + '|' + escaped;
+            }
+            printText({ text: result });
+          `);
+          expect(printed).to.deep.equal(['true|AbortError|blocked']);
+        });
+      }
     });
 
     describe('when an API call returns a host object', function () {

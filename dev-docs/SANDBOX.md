@@ -97,6 +97,8 @@ string key, such as a dictionary, should go through an API helper backed by a `M
 - Don't pass user callbacks straight to Babylon observables, which call them with
   `(eventData, eventState)`. Call them yourself with just the values they need:
   `observable.add((data) => handler(data))`.
+- An API that takes a property name or path checks it against a fixed list (see
+  `ANIMATABLE_PROPERTIES`), so a string can't reach other properties of a host object.
 - Don't hand host objects to generated code. If a block needs to react to a control, take a callback
   option (see `UISlider`'s `onChange`).
 

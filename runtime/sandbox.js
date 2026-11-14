@@ -295,31 +295,6 @@ export const flockSandbox = {
       setupSource = 'run-setup';
       await flock.disposeOldScene();
 
-      // --- remove any existing iframe ---
-      const oldIframe = document.getElementById('flock-iframe');
-      if (oldIframe) {
-        try {
-          await oldIframe.contentWindow?.flock?.disposeOldScene?.();
-        } catch {
-          /* ignore cleanup errors */
-        }
-        try {
-          oldIframe.onload = oldIframe.onerror = null;
-        } catch {
-          /* ignore cleanup errors */
-        }
-        try {
-          oldIframe.src = 'about:blank';
-        } catch {
-          /* ignore cleanup errors */
-        }
-        try {
-          oldIframe.remove();
-        } catch {
-          /* ignore cleanup errors */
-        }
-      }
-
       // --- create fresh same-origin iframe ---
       setupSource = 'chunk-load';
       const { win, doc } = await flock.replaceSandboxIframe({ id: 'flock-iframe' });
@@ -498,10 +473,6 @@ export const flockSandbox = {
       ];
 
       for (const k of toUndefine) endowments[k] = undefined;
-
-      for (const key of toUndefine) {
-        endowments[key] = undefined;
-      }
 
       Object.freeze(endowments);
 

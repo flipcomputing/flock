@@ -16,6 +16,32 @@ const mapNode = (tnMap, node) => {
 };
 
 const MATERIAL_PROPERTIES = new Set(['color', 'diffuseColor', 'albedoColor', 'alpha']);
+
+// Babylon walks a dotted path and sets the last part, so any other string could
+// write to an arbitrary host object.
+const ANIMATABLE_PROPERTIES = new Set([
+  ...MATERIAL_PROPERTIES,
+  'emissiveColor',
+  'ambientColor',
+  'specularColor',
+  'position',
+  'rotation',
+  'scaling',
+  'position.x',
+  'position.y',
+  'position.z',
+  'rotation.x',
+  'rotation.y',
+  'rotation.z',
+  'scaling.x',
+  'scaling.y',
+  'scaling.z',
+]);
+const isAnimatableProperty = (property, api) => {
+  if (ANIMATABLE_PROPERTIES.has(property)) return true;
+  console.warn(`${api}: invalid property`);
+  return false;
+};
 const animationTarget = (mesh, property) => {
   if (!MATERIAL_PROPERTIES.has(property)) return mesh;
   flock._claimLinked(mesh, property === 'alpha' ? 'alpha' : 'colour');
@@ -746,6 +772,7 @@ export const flockAnimate = {
       __owningSignal = flock.sectionSignal(),
     } = {}
   ) {
+    if (!isAnimatableProperty(property, 'animateKeyFrames')) return;
     let mesh = await flock.whenModelReady(meshName);
     if (!mesh) return;
 
@@ -909,6 +936,7 @@ export const flockAnimate = {
       __owningSection = flock._currentSection,
     } = {}
   ) {
+    if (!isAnimatableProperty(property, 'createAnimation')) return animationGroupName;
     // Generate a unique name if one isn't provided
     animationGroupName = animationGroupName || `animation_${flock.scene.getUniqueId()}`;
 
@@ -1030,6 +1058,7 @@ export const flockAnimate = {
       mode = 'AWAIT',
     } = {}
   ) {
+    if (!isAnimatableProperty(property, 'animateProperty')) return;
     const named = await flock.whenModelReady(meshName);
     if (!named) return;
     const mesh = animationTarget(named, property);
