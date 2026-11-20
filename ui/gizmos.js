@@ -102,6 +102,7 @@ import {
   hasInitialTransformRows,
 } from './initialTransform.js';
 import { whenDomReady } from '../main/domReady.js';
+import { CustomColorPicker } from './colourpicker.js';
 export let gizmoManager;
 
 // Enable debug messages
@@ -559,7 +560,7 @@ whenDomReady(function () {
 
   // Initialize custom color picker
   if (!colorPicker) {
-    colorPicker = new window.CustomColorPicker({
+    colorPicker = new CustomColorPicker({
       color: window.selectedColor,
       onColorChange: (newColor) => {
         window.selectedColor = newColor;

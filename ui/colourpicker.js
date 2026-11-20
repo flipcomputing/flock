@@ -104,7 +104,7 @@ const L_MIN = 15;
 const L_MAX = 95;
 const clampL = (L) => Math.max(L_MIN, Math.min(L_MAX, Math.round(L)));
 
-class CustomColorPicker {
+export class CustomColorPicker {
   constructor(options = {}) {
     this.currentColor = options.color || '#ff0000';
     this.onColorChange = options.onColorChange || (() => {});
@@ -2188,6 +2188,3 @@ class CustomColorPicker {
     }
   }
 }
-
-// Make it global for testing
-window.CustomColorPicker = CustomColorPicker;
