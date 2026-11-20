@@ -21,6 +21,7 @@ import { registerSoundGenerators } from './generators-sound.js';
 import { registerDataGenerators } from './generators-data.js';
 import { registerMathGenerators } from './generators-math.js';
 import { registerFunctionsGenerators } from './generators-functions.js';
+import { registerTablesGenerators } from './generators-tables.js';
 // import { registerDeprecatedGenerators } from "./generators-deprecated.js";
 
 // Used outside of this file
@@ -56,6 +57,7 @@ export function defineGenerators() {
   registerDataGenerators(javascriptGenerator);
   registerMathGenerators(javascriptGenerator);
   registerFunctionsGenerators(javascriptGenerator);
+  registerTablesGenerators(javascriptGenerator);
 
   // Also uncomment import if you want this
   //registerDeprecatedGenerators(javascriptGenerator);

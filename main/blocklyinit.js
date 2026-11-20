@@ -44,10 +44,11 @@ import { installContrastWarnings } from '../blocks/colourcontrast.js';
 import { installAnimationWarnings } from '../blocks/animationWarnings.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
+import { defineTableBlocks } from '../blocks/tables.js';
 import { defineUnknownBlock } from '../blocks/unknownBlock.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
 import { handleRecentObjectEvent } from '../blocks/variableNames.js';
-import { localVariableBlock } from '../toolbox.js';
+import { localVariableBlock, tableFlyoutBlocks } from '../toolbox.js';
 import { defineGenerators } from '../generators/generators.js';
 import { patchWarningIconSize } from './customWarningIcon.js';
 import { initContextMenus, duplicateAndAttach } from '../ui/contextmenu.js';
@@ -349,6 +350,7 @@ export function initializeBlocks() {
   defineColourBlocks();
   defineSensingBlocks();
   defineTextBlocks();
+  defineTableBlocks();
   defineUnknownBlock();
   defineGenerators();
 }
@@ -654,6 +656,12 @@ function nextFreeVariableName(ws, base) {
   return `${base}${suffix}`;
 }
 
+export function tableFlyoutItems(ws) {
+  const fresh = nextFreeVariableName(ws, 'table');
+  const newest = ws.getBlocksByType('table_create', false).at(-1)?.getField('VAR')?.getText();
+  return tableFlyoutBlocks(newest || fresh, fresh);
+}
+
 export function variableFlyoutItems(ws) {
   const local = localVariableIds(ws);
   const variables = ws
@@ -747,6 +755,7 @@ export function initializeWorkspace() {
   Blockly.utils.colour.setHsvValue(0.85);
 
   workspace.registerToolboxCategoryCallback('VARIABLE', variableFlyoutItems);
+  workspace.registerToolboxCategoryCallback('TABLE', tableFlyoutItems);
 
   workspace.registerToolboxCategoryCallback('PROCEDURE', function (ws) {
     const items = Blockly.Procedures.flyoutCategory(ws);

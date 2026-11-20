@@ -38,6 +38,7 @@ import * as microbit from './api/microbit';
 import * as microbitManager from './microbit/manager.js';
 import * as math from './api/math';
 import * as sensing from './api/sensing';
+import * as tables from './api/tables';
 import * as sandbox from './runtime/sandbox.js';
 import * as readiness from './runtime/readiness.js';
 import * as lifecycle from './runtime/lifecycle.js';
@@ -82,6 +83,7 @@ const flockModules = [
   sections,
   microbit,
   sensing,
+  tables,
   sandbox,
   readiness,
   lifecycle,
@@ -215,6 +217,7 @@ export const flock = {
   ...microbit.flockMicrobit,
   ...sensing.flockSensing,
   ...math.flockMath,
+  ...tables.flockTables,
   ...sandbox.flockSandbox,
   ...readiness.flockReadiness,
   ...lifecycle.flockLifecycle,

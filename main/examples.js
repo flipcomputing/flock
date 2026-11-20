@@ -3,6 +3,7 @@
 // its tile image. Register new categories in CATEGORIES.
 import { applyTranslations, translate } from './translation.js';
 import { loadExample, newProject } from './files.js';
+import { isFeatureEnabled } from './features.js';
 
 // Tile thumbnails, captured by scripts/capture-thumbnails.mjs. 16:9 to match the
 // canvas the screenshots come from.
@@ -25,7 +26,8 @@ export const CATEGORIES = [
 // and to `images/thumbnails/<key>.webp`; `category` is a CATEGORIES id.
 // `thumbnailSettleMs` overrides the capture script's default settle delay for
 // projects that keep visibly changing after their mesh count stabilises.
-export const EXAMPLES = [
+// `feature` hides the example unless that feature flag (main/features.js) is on.
+const ALL_EXAMPLES = [
   { i18nKey: 'starter', file: 'examples/starter.flock', category: 'worlds' },
   { i18nKey: 'tree_jump', file: 'examples/tree_jump.flock', category: 'games' },
   {
@@ -90,6 +92,12 @@ export const EXAMPLES = [
     file: 'examples/tallest_buildings.flock',
     category: 'data',
   },
+  {
+    i18nKey: 'tallest_buildings_tables',
+    file: 'examples/tallest_buildings_tables.flock',
+    category: 'data',
+    feature: 'dataScience',
+  },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
     i18nKey: 'flockxr_keyring',
@@ -105,6 +113,8 @@ export const EXAMPLES = [
   { i18nKey: 'vr_demo', file: 'examples/vrdemo.flock', category: 'xr' },
   { i18nKey: 'tower_of_hanoi', file: 'examples/tower_of_hanoi.flock', category: 'xr' },
 ];
+
+export const EXAMPLES = ALL_EXAMPLES.filter((ex) => !ex.feature || isFeatureEnabled(ex.feature));
 
 let previouslyFocused = null;
 let galleryInitialised = false;

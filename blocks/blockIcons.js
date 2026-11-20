@@ -234,6 +234,7 @@ const LOW_VISION_STYLE_BY_ICON_FILE = {
   'data.svg': 'variable_blocks',
   'text.svg': 'text_blocks',
   'lists.svg': 'list_blocks',
+  'tables.svg': 'list_blocks',
   'math.svg': 'math_blocks',
   'functions.svg': 'procedure_blocks',
 };

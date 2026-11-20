@@ -756,7 +756,11 @@ const builtInControlBlocks = [
   'controls_forEach',
 ];
 
-const LOOP_DEFAULT_NAMES = { controls_for: 'count', controls_forEach: 'element' };
+const LOOP_VARIABLE_FIELDS = {
+  controls_for: { VAR: 'count' },
+  controls_forEach: { VAR: 'element' },
+  table_for_each_row: { VAR: 'row', INDEX: 'count' },
+};
 
 builtInControlBlocks.forEach((typeName) => {
   const blockDef = Blockly.Blocks[typeName];
@@ -766,31 +770,33 @@ builtInControlBlocks.forEach((typeName) => {
   blockDef.init = function (...args) {
     originalInit.apply(this, args);
     this.setStyle('control_blocks');
-    const varField = LOOP_DEFAULT_NAMES[typeName] && this.getField('VAR');
-    if (varField) varField.defaultVariableName = LOOP_DEFAULT_NAMES[typeName];
+    const varField = LOOP_VARIABLE_FIELDS[typeName] && this.getField('VAR');
+    if (varField) varField.defaultVariableName = LOOP_VARIABLE_FIELDS[typeName].VAR;
   };
 });
 
-const DEFAULT_LOOP_NAME = new RegExp(
-  `^(${Object.values(LOOP_DEFAULT_NAMES).join('|')})(\\d*)$`,
-  'i'
-);
+function loopVariables(block) {
+  return Object.keys(LOOP_VARIABLE_FIELDS[block.type] ?? {})
+    .map((name) => block.getField(name))
+    .filter((field) => field?.getVariable?.());
+}
 
-function loopVariable(block) {
-  const field = LOOP_DEFAULT_NAMES[block.type] ? block.getField('VAR') : null;
-  return field?.getVariable?.() ? field : null;
+function isLoopVariable(loop, varId) {
+  return loopVariables(loop).some((field) => field.getValue() === varId);
 }
 
 function enclosingLoops(block) {
   const loops = [];
   for (let parent = block.getSurroundParent(); parent; parent = parent.getSurroundParent()) {
-    if (loopVariable(parent)) loops.push(parent);
+    if (loopVariables(parent).length) loops.push(parent);
   }
   return loops;
 }
 
 function loopNames(loops) {
-  return new Set(loops.map((loop) => loopVariable(loop).getVariable().getName().toLowerCase()));
+  return new Set(
+    loops.flatMap(loopVariables).map((field) => field.getVariable().getName().toLowerCase())
+  );
 }
 
 function referencesVariable(block, varId) {
@@ -801,10 +807,10 @@ function referencesVariable(block, varId) {
 
 function usedOutsideLoops(workspace, varId) {
   return workspace.getAllBlocks(false).some((block) => {
-    if (loopVariable(block)?.getValue() === varId || !referencesVariable(block, varId)) {
+    if (isLoopVariable(block, varId) || !referencesVariable(block, varId)) {
       return false;
     }
-    return !enclosingLoops(block).some((loop) => loopVariable(loop).getValue() === varId);
+    return !enclosingLoops(block).some((loop) => isLoopVariable(loop, varId));
   });
 }
 
@@ -820,14 +826,20 @@ function retargetLoopBody(loop, fromId, toId) {
 }
 
 function separateFromEnclosingLoops(loop) {
-  const field = loopVariable(loop);
-  const name = field?.getVariable().getName();
-  const match = name && DEFAULT_LOOP_NAME.exec(name);
-  if (!match) return;
+  for (const field of loopVariables(loop)) {
+    separateLoopVariable(loop, field, LOOP_VARIABLE_FIELDS[loop.type][field.name]);
+  }
+}
+
+function separateLoopVariable(loop, field, base) {
+  const name = field.getVariable().getName();
+  if (!new RegExp(`^${base}\\d*$`, 'i').test(name)) return;
   const enclosing = loopNames(enclosingLoops(loop));
   if (!enclosing.has(name.toLowerCase())) return;
 
-  const nested = loopNames(loop.getDescendants(false).filter((b) => b !== loop && loopVariable(b)));
+  const nested = loopNames(
+    loop.getDescendants(false).filter((b) => b !== loop && loopVariables(b).length)
+  );
   const variableMap = loop.workspace.getVariableMap();
   const isFree = (candidate) => {
     const key = candidate.toLowerCase();
@@ -836,7 +848,6 @@ function separateFromEnclosingLoops(loop) {
     return !existing || !usedOutsideLoops(loop.workspace, existing.getId());
   };
 
-  const base = match[1];
   let n = 2;
   while (!isFree(`${base}${n}`)) n += 1;
   const newName = `${base}${n}`;
@@ -857,7 +868,7 @@ export function separateNestedLoopVariables(event) {
   Blockly.Events.setGroup(event.group || previousGroup);
   try {
     for (const block of moved.getDescendants(false)) {
-      if (loopVariable(block)) separateFromEnclosingLoops(block);
+      if (loopVariables(block).length) separateFromEnclosingLoops(block);
     }
   } finally {
     Blockly.Events.setGroup(previousGroup);

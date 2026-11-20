@@ -20,6 +20,7 @@ import { defineSceneBlocks } from '../blocks/scene.js';
 import { defineModifyBlocks } from '../blocks/modify.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineConnectBlocks } from '../blocks/connect.js';
+import { defineTableBlocks } from '../blocks/tables.js';
 import { highlightBlockById } from '../ui/blocklyutil.js';
 import { setProjectLoading } from '../main/projectLoading.js';
 
@@ -47,6 +48,7 @@ export function runVariableNamesTests() {
       if (!Blockly.Blocks['merge_meshes']) defineModifyBlocks();
       if (!Blockly.Blocks['meshes_touching']) defineSensingBlocks();
       if (!Blockly.Blocks['attach']) defineConnectBlocks();
+      if (!Blockly.Blocks['table_for_each_row']) defineTableBlocks();
     });
 
     beforeEach(function () {
@@ -498,6 +500,18 @@ export function runVariableNamesTests() {
         nest(outer, inner);
 
         expect(varText(get, 'VAR')).to.equal('count2');
+      });
+
+      it('names both table loop variables and renames them when nested', function () {
+        const rowLoop = () => loop('table_for_each_row');
+        const outer = rowLoop();
+        expect([loopName(outer), varText(outer, 'INDEX')]).to.deep.equal(['row', 'count']);
+
+        const inner = nest(outer, rowLoop());
+        expect([loopName(inner), varText(inner, 'INDEX')]).to.deep.equal(['row2', 'count2']);
+
+        const counting = nest(loop(), rowLoop());
+        expect(varText(counting, 'INDEX')).to.equal('count2');
       });
 
       it('numbers each level of nesting', function () {

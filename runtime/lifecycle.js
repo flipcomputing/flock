@@ -920,6 +920,7 @@ export const flockLifecycle = {
 
     // Reset scene-wide state
     flock.events = new Map();
+    flock.tables = new Map();
     flock.modelCache = {};
     flock.globalSounds = [];
     flock.modelsBeingLoaded = {};

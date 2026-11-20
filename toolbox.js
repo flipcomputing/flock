@@ -3,6 +3,7 @@ import '@blockly/toolbox-search';
 import { buildColorsListShadowSpec } from './ui/blocklyshadowutil.js';
 import { newerObjectName, recentObjectNames } from './blocks/variableNames.js';
 import { getPlaceOnGroundEnabled, onControlPreferenceChange } from './ui/controlPreferences.js';
+import { isFeatureEnabled } from './main/features.js';
 
 export const categoryColours = {
   Events: 5,
@@ -4410,12 +4411,101 @@ const toolboxVariables = {
   custom: 'VARIABLE',
 };
 
+const textShadow = (TEXT) => ({ shadow: { type: 'text', fields: { TEXT } } });
+const numberShadow = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
+const textList = (items) => ({
+  block: {
+    type: 'lists_create_with',
+    inline: true,
+    extraState: { itemCount: items.length },
+    inputs: Object.fromEntries(items.map((item, i) => [`ADD${i}`, textShadow(item)])),
+  },
+});
+
+export function tableFlyoutBlocks(table, freshTable) {
+  const TABLE = { name: table };
+  const rowVariable = { block: { type: 'variables_get', fields: { VAR: { name: 'row' } } } };
+  return [
+    {
+      kind: 'block',
+      type: 'table_create',
+      keyword: 'table',
+      fields: { VAR: { name: freshTable } },
+      inputs: { COLUMNS: textList(['Name', 'Value']) },
+    },
+    {
+      kind: 'block',
+      type: 'table_add_row',
+      keyword: 'addrow',
+      fields: { TABLE },
+      inputs: { VALUES: textList(['', '']) },
+    },
+    { kind: 'sep', gap: 24 },
+    {
+      kind: 'block',
+      type: 'table_get_value',
+      keyword: 'cell',
+      fields: { TABLE },
+      inputs: { ROW: numberShadow(0), COLUMN: textShadow('Name') },
+    },
+    {
+      kind: 'block',
+      type: 'table_get_column',
+      keyword: 'column',
+      fields: { TABLE },
+      inputs: { COLUMN: textShadow('Name') },
+    },
+    {
+      kind: 'block',
+      type: 'table_get_row',
+      keyword: 'row',
+      fields: { TABLE },
+      inputs: { ROW: numberShadow(0) },
+    },
+    { kind: 'block', type: 'table_row_count', keyword: 'rows', fields: { TABLE } },
+    { kind: 'sep', gap: 24 },
+    {
+      kind: 'block',
+      type: 'table_for_each_row',
+      keyword: 'eachrow',
+      fields: { TABLE, VAR: { name: 'row' }, INDEX: { name: 'count' } },
+    },
+    {
+      kind: 'block',
+      type: 'table_row_value',
+      keyword: 'of',
+      inputs: { COLUMN: textShadow('Name'), ROW: rowVariable },
+    },
+    { kind: 'sep', gap: 24 },
+    {
+      kind: 'block',
+      type: 'table_set_value',
+      keyword: 'setcell',
+      fields: { TABLE },
+      inputs: { ROW: numberShadow(0), COLUMN: textShadow('Name'), VALUE: textShadow('') },
+    },
+  ];
+}
+
+const toolboxTables = {
+  kind: 'category',
+  name: '%{BKY_CATEGORY_TABLES}',
+  icon: './images/tables.svg',
+  categorystyle: 'lists_category',
+  custom: 'TABLE',
+  contents: tableFlyoutBlocks('table1', 'table1'),
+};
+
 const toolboxData = {
   kind: 'category',
   name: '%{BKY_CATEGORY_VARIABLES}',
   icon: './images/data.svg',
   categorystyle: 'variables_category',
-  contents: [toolboxVariables, toolboxLists],
+  contents: [
+    toolboxVariables,
+    toolboxLists,
+    ...(isFeatureEnabled('dataScience') ? [toolboxTables] : []),
+  ],
 };
 
 const toolboxMath = {

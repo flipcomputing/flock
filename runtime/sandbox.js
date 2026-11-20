@@ -713,6 +713,14 @@ export const flockSandbox = {
       getTime: this.getTime?.bind(this),
       exportMesh: this.exportMesh?.bind(this),
       createVector3: this.createVector3?.bind(this),
+      createTable: this.createTable?.bind(this),
+      addTableRow: this.addTableRow?.bind(this),
+      getTableValue: this.getTableValue?.bind(this),
+      setTableValue: this.setTableValue?.bind(this),
+      getTableColumn: this.getTableColumn?.bind(this),
+      getTableRow: this.getTableRow?.bind(this),
+      getRowValue: this.getRowValue?.bind(this),
+      getTableRowCount: this.getTableRowCount?.bind(this),
     };
 
     // Guard side-effecting APIs so stale runs no-op

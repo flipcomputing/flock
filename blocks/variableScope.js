@@ -7,7 +7,7 @@ const PROCEDURE_DEFINITION_TYPES = new Set([
 ]);
 const DECLARING_FIELDS = ['ID_VAR', 'CLONE_VAR'];
 const LOCAL_BLOCK_TYPE = 'local_variable';
-const LOOP_TYPES = new Set(['controls_for', 'controls_forEach']);
+const LOOP_TYPES = new Set(['controls_for', 'controls_forEach', 'table_for_each_row']);
 const WRITING_FIELDS = { variables_set: ['VAR'], math_change: ['VAR'] };
 
 function procedureParamIds(block) {
@@ -35,8 +35,7 @@ function localBlockVariableIds(block) {
 function scopedVariableIds(block) {
   if (block.type === LOCAL_BLOCK_TYPE) return localBlockVariableIds(block);
   if (LOOP_TYPES.has(block.type)) {
-    const id = block.getFieldValue('VAR');
-    return id ? [id] : [];
+    return ['VAR', 'INDEX'].map((name) => block.getFieldValue(name)).filter(Boolean);
   }
   if (!PROCEDURE_DEFINITION_TYPES.has(block.type)) return [];
   const body = block.getInputTargetBlock('STACK')?.getDescendants(false) ?? [];

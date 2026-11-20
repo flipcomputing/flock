@@ -3,7 +3,7 @@ import { SECTION_NAME_TYPE, findOwningSection } from '../blocks/sectionContainme
 import { getVariableInfo } from './generators-utilities.js';
 import { localVariableIds } from '../blocks/variableScope.js';
 
-function budgetYield(generator, label) {
+export function budgetYield(generator, label) {
   const timingVar = generator.nameDB_.getDistinctName(
     `${label}_yield`,
     Blockly.Names.DEVELOPER_VARIABLE_TYPE

@@ -22,6 +22,7 @@ export default {
   CATEGORY_VARIABLES: 'Datos', // human
   CATEGORY_VARIABLES_SUBCATEGORY: 'Variables', // human
   CATEGORY_LISTS: 'Listas', // human
+  CATEGORY_TABLES: 'Tablas', // ai
   CATEGORY_MATH: 'Matemáticas', // human
   CATEGORY_FUNCTIONS: 'Funciones', // human
   CATEGORY_SNIPPETS: 'Fragmentos', // human
@@ -379,6 +380,15 @@ export default {
   print_text: 'imprimir %1 por %2 segundos %3', // human
   subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
+  table_create: 'crear tabla %1 con columnas %2', // ai
+  table_add_row: 'añadir fila a %1 %2', // ai
+  table_get_value: 'valor en %1 fila %2 columna %3', // ai
+  table_set_value: 'poner en %1 fila %2 columna %3 el valor %4', // ai
+  table_get_column: 'columna %1 de %2', // ai
+  table_get_row: 'fila %1 de %2', // ai
+  table_row_count: 'número de filas en %1', // ai
+  table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
+  table_row_value: '%1 de %2', // ai
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
   ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
@@ -1191,6 +1201,7 @@ export default {
   ball_pit_ui: 'Piscina de Pelotas', // human
   ur_enough_ui: '¡Eres Suficiente!', // human
   tallest_buildings_ui: 'Edificios Más Altos', // human
+  tallest_buildings_tables_ui: 'Edificios Más Altos (tablas)', // ai
   candy_dash_ui: 'Carrera de Dulces', // human
   flockenspiel_ui: 'Flockenspiel', // human
   pendant_ui: 'Colgante imprimible en 3D', // human
@@ -1382,6 +1393,19 @@ export default {
   block_search_result: 'bloque encontrado', // ai
   block_search_results: 'bloques encontrados', // ai
   block_search_tooltip: 'Escribe para buscar un bloque y pulsa Intro para añadirlo.', // ai
+  table_create_tooltip:
+    'Crea una tabla con estos nombres de columna. Si la vuelves a crear, se vacía.', // ai
+  table_add_row_tooltip:
+    'Añade una fila al final de la tabla. Da un valor para cada columna, en el orden de las columnas.', // ai
+  table_get_value_tooltip: 'El valor de una celda de la tabla. Las filas empiezan en 0.', // ai
+  table_set_value_tooltip: 'Cambia el valor de una celda de la tabla. Las filas empiezan en 0.', // ai
+  table_get_column_tooltip: 'Todos los valores de una columna, como una lista.', // ai
+  table_get_row_tooltip:
+    'Una fila de la tabla. Usa un bloque «de» para leer una columna. Las filas empiezan en 0.', // ai
+  table_row_count_tooltip: 'Cuántas filas tiene la tabla.', // ai
+  table_for_each_row_tooltip:
+    'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
+  table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai
   code_workspace_focused: 'Espacio de trabajo de código enfocado', // human
   interactive_element_label: 'Elemento interactivo', // human
   panel_resizer_focused:
@@ -1485,6 +1509,18 @@ export default {
   target_not_clickable: 'No se puede hacer clic en {object}. Elige un objeto o un botón.', // ai
   move_failed: 'No se pudo mover {object}.', // ai
   tag_not_found: '{tag} no es una etiqueta.', // ai
+  table_not_made: 'Esa tabla aún no se ha creado. Usa primero un bloque crear tabla.', // ai
+  table_not_found: 'No hay ninguna tabla llamada {table}.', // ai
+  table_column_not_found: 'No hay ninguna columna llamada {column} en {table}.', // ai
+  table_no_rows: '{table} aún no tiene filas, así que no hay fila {row}.', // ai
+  table_row_out_of_range: '{table} tiene {count} filas (de 0 a {last}), así que no hay fila {row}.', // ai
+  table_row_out_of_range_one: '{table} tiene 1 fila (la fila 0), así que no hay fila {row}.', // ai
+  table_row_length: 'Esa fila tiene {given} valores, pero {table} tiene {count} columnas.', // ai
+  table_duplicate_column:
+    '{table} ya tiene una columna llamada {column}, así que la copia se llama {renamed}.', // ai
+  table_not_a_row:
+    'Eso no es una fila de tabla. Usa una fila de un bloque para cada fila o de un bloque fila de.', // ai
+  table_loop_same_variable: 'Usa variables distintas para la fila y su número.', // ai
   animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
   sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
   text_creation_failed:

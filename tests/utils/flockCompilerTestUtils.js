@@ -24,6 +24,7 @@ import { defineMaterialsBlocks } from '../../blocks/materials.js';
 import { defineColourBlocks } from '../../blocks/colour.js';
 import { defineSensingBlocks } from '../../blocks/sensing.js';
 import { defineTextBlocks } from '../../blocks/text.js';
+import { defineTableBlocks } from '../../blocks/tables.js';
 import { defineUnknownBlock, replaceUnrecognisedBlocks } from '../../blocks/unknownBlock.js';
 import { defineGenerators } from '../../generators/generators.js';
 import { validateBlocklyJson } from '../../main/projectJson.js';
@@ -58,6 +59,7 @@ function registerBlocksAndGenerators() {
     defineColourBlocks,
     defineSensingBlocks,
     defineTextBlocks,
+    defineTableBlocks,
     defineUnknownBlock,
     defineGenerators,
   ];

@@ -138,6 +138,66 @@ export function runSandboxTests(flock) {
       expect(printed).to.deep.equal(['blocked']);
     });
 
+    it('should return table columns as sandbox arrays and rows as sandbox objects', async function () {
+      await run(`
+        const t = createTable('T', ['a']);
+        addTableRow(t, ['x']);
+        const column = getTableColumn(t, 'a');
+        const row = getTableRow(t, 0);
+        printText({
+          text: column instanceof Array && typeof row === 'object' && column[0] + getRowValue(row, 'a'),
+        });
+      `);
+      expect(printed).to.deep.equal(['xx']);
+    });
+
+    it('should not reach the host Function through a table row itself', async function () {
+      await run(`
+        const k = 'con' + 'structor';
+        const t = createTable('T', ['a']);
+        addTableRow(t, ['x']);
+        let result;
+        try {
+          result = getTableRow(t, 0)[k][k]('return typeof document')();
+        } catch (e) {
+          result = 'blocked';
+        }
+        printText({ text: result });
+      `);
+      expect(printed).to.deep.equal(['blocked']);
+    });
+
+    it('should not reach the host Function through a table row', async function () {
+      await run(`
+        const k = 'con' + 'structor';
+        const t = createTable('T', ['a']);
+        addTableRow(t, ['x']);
+        let result;
+        try {
+          result = getTableRow(t, 0).values[k][k]('return typeof document')();
+        } catch (e) {
+          result = 'blocked';
+        }
+        printText({ text: result });
+      `);
+      expect(printed).to.deep.equal(['blocked']);
+    });
+
+    it('should not reach the host Function through a table column', async function () {
+      await run(`
+        const k = 'con' + 'structor';
+        const t = createTable('T', ['a']);
+        let result;
+        try {
+          result = getTableColumn(t, 'a')[k][k]('return typeof document')();
+        } catch (e) {
+          result = 'blocked';
+        }
+        printText({ text: result });
+      `);
+      expect(printed).to.deep.equal(['blocked']);
+    });
+
     it('should return API promises as sandbox promises', async function () {
       await run(`
         printText({ text: wait(0) instanceof Promise });

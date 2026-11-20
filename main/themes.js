@@ -111,6 +111,7 @@ const LOW_VISION_TOOLBOX_ACCENTS = {
   'data.svg': 'variable_blocks',
   'text.svg': 'text_blocks',
   'lists.svg': 'list_blocks',
+  'tables.svg': 'list_blocks',
   'math.svg': 'math_blocks',
   'functions.svg': 'procedure_blocks',
 };
