@@ -452,6 +452,14 @@ export const flockLifecycle = {
 
     if (flock.scene) {
       try {
+        const debugLayer = flock.scene.debugLayer;
+        if (debugLayer?.isVisible()) {
+          debugLayer.hide();
+          for (let i = 0; i < 50 && debugLayer.isVisible(); i++) {
+            await new Promise((resolve) => setTimeout(resolve, 20));
+          }
+        }
+
         // Stop all sounds and animations first
         flock.stopAllSounds();
         flock.engine?.stopRenderLoop();
