@@ -3068,7 +3068,13 @@ export function overrideSearchPlugin(workspace) {
       }
 
       Object.entries(fieldValues).forEach(([fieldName, value]) => {
-        if (value === undefined || value === null || !block.getField(fieldName)) {
+        const field = block.getField(fieldName);
+        if (value === undefined || value === null || !field) {
+          return;
+        }
+
+        if (typeof value === 'object') {
+          field.loadState(value);
           return;
         }
 
