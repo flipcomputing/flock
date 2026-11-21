@@ -438,9 +438,10 @@ export default {
   table_find_row: '%1 row number in %2 where %3 is %4',
   table_find_first_option: 'first',
   table_find_last_option: 'last',
-  table_sort: 'sort %1 by %2 %3',
+  table_sort: 'sort %1 %2 by %3 %4',
   table_sort_ascending_option: 'ascending',
   table_sort_descending_option: 'descending',
+  table_sort_random_option: 'random',
   table_row_count: 'number of rows in %1',
   table_for_each_row: 'for each row %1 number %2 in %3',
   table_row_value: '%1 of %2',
@@ -1517,7 +1518,7 @@ export default {
   table_find_row_tooltip:
     'The number of the first or last row where the column has this value, or -1 if no row has it. Rows count from 0.',
   table_sort_tooltip:
-    'Put the rows in order of one column. In ascending order numbers come before text, and descending order is the reverse. Capital letters sort the same as small letters.',
+    'Put the rows in order of one column, or in a random order. In ascending order numbers come before text, and descending order is the reverse. Capital letters sort the same as small letters.',
   table_row_count_tooltip: 'How many rows the table has.',
   table_for_each_row_tooltip:
     'Run the blocks inside once for each row. The first variable holds the row and the second holds its number, starting at 0.',

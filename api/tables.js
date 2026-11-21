@@ -182,6 +182,15 @@ export const flockTables = {
     const direction = order === 'DESCENDING' ? -1 : 1;
     table.rows.sort((a, b) => direction * compareCells(a[c], b[c]));
   },
+  shuffleTable(name) {
+    const table = findTable('shuffleTable', name);
+    if (!table) return;
+    const rows = table.rows;
+    for (let i = rows.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+    }
+  },
   getRowValue(row, column) {
     if (!checkRow('getRowValue', row)) return '';
     const index = row.columns.indexOf(String(column));

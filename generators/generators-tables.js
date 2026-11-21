@@ -57,7 +57,9 @@ export function registerTablesGenerators(javascriptGenerator) {
   };
 
   javascriptGenerator.forBlock['table_sort'] = function (block) {
-    const order = block.getFieldValue('ORDER') === 'DESCENDING' ? 'DESCENDING' : 'ASCENDING';
+    const field = block.getFieldValue('ORDER');
+    if (field === 'RANDOM') return `shuffleTable(${tableVar(block)});\n`;
+    const order = field === 'DESCENDING' ? 'DESCENDING' : 'ASCENDING';
     return `sortTable(${tableVar(block)}, ${value(block, 'COLUMN', '""')}, '${order}');\n`;
   };
 

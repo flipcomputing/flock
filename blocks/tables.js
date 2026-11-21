@@ -187,6 +187,7 @@ function literalColumnName(owner) {
 }
 
 export function tableColumnWarningFor(owner) {
+  if (owner.getInput('COLUMN')?.isVisible() === false) return null;
   const column = literalColumnName(owner);
   const table = columnTableName(owner);
   if (!column || table === undefined) return null;
@@ -422,22 +423,33 @@ export function defineTableBlocks() {
     output: 'Number',
   }));
 
-  defineTableBlock('table_sort', () => ({
-    args0: [
-      tableField(),
-      { type: 'input_value', name: 'COLUMN', check: 'String' },
-      {
-        type: 'field_dropdown',
-        name: 'ORDER',
-        options: [
-          [translate('table_sort_ascending_option'), 'ASCENDING'],
-          [translate('table_sort_descending_option'), 'DESCENDING'],
-        ],
-      },
-    ],
-    previousStatement: null,
-    nextStatement: null,
-  }));
+  defineTableBlock(
+    'table_sort',
+    () => ({
+      args0: [
+        tableField(),
+        { type: 'input_dummy', name: 'TABLE_ROW' },
+        { type: 'input_value', name: 'COLUMN', check: 'String' },
+        {
+          type: 'field_dropdown',
+          name: 'ORDER',
+          options: [
+            [translate('table_sort_ascending_option'), 'ASCENDING'],
+            [translate('table_sort_descending_option'), 'DESCENDING'],
+            [translate('table_sort_random_option'), 'RANDOM'],
+          ],
+        },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    }),
+    function () {
+      this.getField('ORDER').setValidator((order) => {
+        this.getInput('COLUMN').setVisible(order !== 'RANDOM');
+        return order;
+      });
+    }
+  );
 
   defineTableBlock('table_row_count', () => ({
     args0: [tableField()],

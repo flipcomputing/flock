@@ -385,6 +385,35 @@ export function runTablesTests(flock) {
         ]);
       });
 
+      it('shuffles the rows into a random order and keeps every row whole', function () {
+        flock.createTable('Pets', ['Name', 'Legs']);
+        for (const [name, legs] of [
+          ['rex', 4],
+          ['tweet', 2],
+          ['nemo', 0],
+          ['spider', 8],
+        ]) {
+          flock.addTableRow('Pets', [name, legs]);
+        }
+        const original = Math.random;
+        const picks = [0, 0, 0];
+        Math.random = () => picks.shift();
+        try {
+          flock.shuffleTable('Pets');
+        } finally {
+          Math.random = original;
+        }
+        expect(flock.getTableColumn('Pets', 'Name')).to.deep.equal([
+          'tweet',
+          'nemo',
+          'spider',
+          'rex',
+        ]);
+        expect(flock.getTableColumn('Pets', 'Legs')).to.deep.equal([2, 0, 8, 4]);
+        flock.shuffleTable('Nope');
+        expect(keys()).to.deep.equal(['table_not_found']);
+      });
+
       it('reports sorting a missing table or column and changes nothing', function () {
         makeShop();
         flock.sortTable('Nope', 'Name', 'ASCENDING');
@@ -492,6 +521,10 @@ export function runTablesTests(flock) {
               block('table_sort', {
                 fields: { TABLE: table('Buildings'), ORDER: 'ASCENDING' },
                 inputs: { COLUMN: text('Name') },
+              }),
+              block('table_sort', {
+                fields: { TABLE: table('Buildings'), ORDER: 'RANDOM' },
+                inputs: { COLUMN: text('Floors') },
               })
             )
           )
@@ -504,6 +537,8 @@ export function runTablesTests(flock) {
         expect(code, code).to.include("findTableRow(Buildings, 'Height', 828, 'last')");
         expect(code, code).to.include("sortTable(Buildings, 'Height', 'DESCENDING');");
         expect(code, code).to.include("sortTable(Buildings, 'Name', 'ASCENDING');");
+        expect(code, code).to.include('shuffleTable(Buildings);');
+        expect(code, code).not.to.include('Floors');
         expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
 
@@ -961,6 +996,27 @@ export function runTablesTests(flock) {
           null,
           "Buildings doesn't have a column called 'City'. Its columns are: Name, Height.",
         ]);
+      });
+
+      it('hides the column of a random sort and does not warn about it', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name')),
+              block('table_sort', {
+                fields: { TABLE: table('Buildings'), ORDER: 'RANDOM' },
+                inputs: { COLUMN: menu('Floors') },
+              })
+            )
+          ),
+          workspace
+        );
+        const sort = workspace.getBlocksByType('table_sort', false)[0];
+        expect(sort.getInput('COLUMN').isVisible()).to.equal(false);
+        expect(tableColumnWarningFor(sort)).to.equal(null);
+        sort.getField('ORDER').setValue('ASCENDING');
+        expect(sort.getInput('COLUMN').isVisible()).to.equal(true);
+        expect(tableColumnWarningFor(sort)).to.contain("'Floors'");
       });
 
       it('lists and accepts the names given to repeated columns', function () {

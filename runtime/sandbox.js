@@ -724,6 +724,7 @@ export const flockSandbox = {
       pickTableRow: this.pickTableRow?.bind(this),
       findTableRow: this.findTableRow?.bind(this),
       sortTable: this.sortTable?.bind(this),
+      shuffleTable: this.shuffleTable?.bind(this),
       getRowValue: this.getRowValue?.bind(this),
       getTableRowCount: this.getTableRowCount?.bind(this),
     };
@@ -813,6 +814,7 @@ export const flockSandbox = {
       'deleteAllTableRows',
       'setTableValue',
       'sortTable',
+      'shuffleTable',
     ];
     for (const name of SIDE_EFFECT_APIS) {
       if (typeof api[name] === 'function') api[name] = guard(api[name]);

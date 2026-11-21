@@ -396,9 +396,10 @@ export default {
   table_find_row: 'número de la %1 fila en %2 donde %3 es %4', // ai
   table_find_first_option: 'primera', // ai
   table_find_last_option: 'última', // ai
-  table_sort: 'ordenar %1 por %2 %3', // ai
+  table_sort: 'ordenar %1 %2 por %3 %4', // ai
   table_sort_ascending_option: 'ascendente', // ai
   table_sort_descending_option: 'descendente', // ai
+  table_sort_random_option: 'aleatorio', // ai
   table_row_count: 'número de filas en %1', // ai
   table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
   table_row_value: '%1 de %2', // ai
@@ -1418,7 +1419,7 @@ export default {
   table_find_row_tooltip:
     'El número de la primera o la última fila donde la columna tiene este valor, o -1 si ninguna fila lo tiene. Las filas empiezan en 0.', // ai
   table_sort_tooltip:
-    'Pone las filas en orden según una columna. En orden ascendente los números van antes que el texto, y el orden descendente es al revés. Las mayúsculas se ordenan igual que las minúsculas.', // ai
+    'Pone las filas en orden según una columna, o en un orden aleatorio. En orden ascendente los números van antes que el texto, y el orden descendente es al revés. Las mayúsculas se ordenan igual que las minúsculas.', // ai
   table_row_count_tooltip: 'Cuántas filas tiene la tabla.', // ai
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
