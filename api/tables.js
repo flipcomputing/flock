@@ -54,22 +54,22 @@ function findRow(api, table, name, row) {
   return -1;
 }
 
-function uniqueColumns(name, columns) {
+export function uniqueColumnNames(columns, onRenamed = () => {}) {
   const result = [];
   for (const column of Array.isArray(columns) ? columns : []) {
     const base = String(cellValue(column));
     let unique = base;
     for (let n = 2; result.includes(unique); n++) unique = `${base} ${n}`;
-    if (unique !== base) {
-      report('createTable', 'table_duplicate_column', {
-        table: name,
-        column: base,
-        renamed: unique,
-      });
-    }
+    if (unique !== base) onRenamed(base, unique);
     result.push(unique);
   }
   return result;
+}
+
+function uniqueColumns(name, columns) {
+  return uniqueColumnNames(columns, (column, renamed) =>
+    report('createTable', 'table_duplicate_column', { table: name, column, renamed })
+  );
 }
 
 export const flockTables = {

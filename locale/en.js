@@ -1508,6 +1508,10 @@ export default {
   table_for_each_row_tooltip:
     'Run the blocks inside once for each row. The first variable holds the row and the second holds its number, starting at 0.',
   table_row_value_tooltip: 'The value in this column of a row.',
+  table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
+  table_default_column_name: 'Name',
+  table_default_value_column_name: 'Value',
+  table_column_missing_warning: "%1 doesn't have a column called '%2'. Its columns are: %3.",
   table_delete_row_tooltip:
     'Delete one row from the table, or all its rows. Rows count from 0, and the rows after a deleted row move up by one.',
   code_workspace_focused: 'Code workspace focused',

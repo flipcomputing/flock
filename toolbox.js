@@ -4,6 +4,7 @@ import { buildColorsListShadowSpec } from './ui/blocklyshadowutil.js';
 import { newerObjectName, recentObjectNames } from './blocks/variableNames.js';
 import { getPlaceOnGroundEnabled, onControlPreferenceChange } from './ui/controlPreferences.js';
 import { isFeatureEnabled } from './main/features.js';
+import { translate } from './main/translation.js';
 
 export const categoryColours = {
   Events: 5,
@@ -4422,8 +4423,13 @@ const textList = (items) => ({
   },
 });
 
-export function tableFlyoutBlocks(table, freshTable) {
+export function tableFlyoutBlocks(
+  table,
+  freshTable,
+  firstColumn = translate('table_default_column_name')
+) {
   const TABLE = { name: table };
+  const column = { shadow: { type: 'table_column_menu', fields: { COLUMN: firstColumn } } };
   const rowVariable = { block: { type: 'variables_get', fields: { VAR: { name: 'row' } } } };
   return [
     {
@@ -4431,7 +4437,12 @@ export function tableFlyoutBlocks(table, freshTable) {
       type: 'table_create',
       keyword: 'table',
       fields: { VAR: { name: freshTable } },
-      inputs: { COLUMNS: textList(['Name', 'Value']) },
+      inputs: {
+        COLUMNS: textList([
+          translate('table_default_column_name'),
+          translate('table_default_value_column_name'),
+        ]),
+      },
     },
     {
       kind: 'block',
@@ -4453,14 +4464,14 @@ export function tableFlyoutBlocks(table, freshTable) {
       type: 'table_get_value',
       keyword: 'cell',
       fields: { TABLE },
-      inputs: { ROW: numberShadow(0), COLUMN: textShadow('Name') },
+      inputs: { ROW: numberShadow(0), COLUMN: column },
     },
     {
       kind: 'block',
       type: 'table_get_column',
       keyword: 'column',
       fields: { TABLE },
-      inputs: { COLUMN: textShadow('Name') },
+      inputs: { COLUMN: column },
     },
     {
       kind: 'block',
@@ -4481,7 +4492,7 @@ export function tableFlyoutBlocks(table, freshTable) {
       kind: 'block',
       type: 'table_row_value',
       keyword: 'of',
-      inputs: { COLUMN: textShadow('Name'), ROW: rowVariable },
+      inputs: { COLUMN: column, ROW: rowVariable },
     },
     { kind: 'sep', gap: 24 },
     {
@@ -4489,7 +4500,7 @@ export function tableFlyoutBlocks(table, freshTable) {
       type: 'table_set_value',
       keyword: 'setcell',
       fields: { TABLE },
-      inputs: { ROW: numberShadow(0), COLUMN: textShadow('Name'), VALUE: textShadow('') },
+      inputs: { ROW: numberShadow(0), COLUMN: column, VALUE: textShadow('') },
     },
   ];
 }

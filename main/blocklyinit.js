@@ -44,7 +44,12 @@ import { installContrastWarnings } from '../blocks/colourcontrast.js';
 import { installAnimationWarnings } from '../blocks/animationWarnings.js';
 import { defineSensingBlocks } from '../blocks/sensing.js';
 import { defineTextBlocks } from '../blocks/text.js';
-import { defineTableBlocks } from '../blocks/tables.js';
+import {
+  defineTableBlocks,
+  installTableColumnRenames,
+  installTableColumnWarnings,
+  tableColumns,
+} from '../blocks/tables.js';
 import { defineUnknownBlock } from '../blocks/unknownBlock.js';
 import { localVariableIds, unavailableVariableUses } from '../blocks/variableScope.js';
 import { handleRecentObjectEvent } from '../blocks/variableNames.js';
@@ -659,7 +664,8 @@ function nextFreeVariableName(ws, base) {
 export function tableFlyoutItems(ws) {
   const fresh = nextFreeVariableName(ws, 'table');
   const newest = ws.getBlocksByType('table_create', false).at(-1)?.getField('VAR')?.getText();
-  return tableFlyoutBlocks(newest || fresh, fresh);
+  const table = newest || fresh;
+  return tableFlyoutBlocks(table, fresh, tableColumns(ws, table)[0]);
 }
 
 export function variableFlyoutItems(ws) {
@@ -2636,6 +2642,8 @@ export function createBlocklyWorkspace() {
   installVariableScopeWarnings(workspace);
   window.flockRefreshContrastWarnings = installContrastWarnings(workspace);
   window.flockRefreshAnimationWarnings = installAnimationWarnings(workspace);
+  installTableColumnRenames(workspace);
+  installTableColumnWarnings(workspace);
 
   (function wireToolboxSearchArrowDown() {
     const host = workspace.getInjectionDiv?.() || document;

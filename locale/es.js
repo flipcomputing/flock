@@ -1409,6 +1409,10 @@ export default {
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
   table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai
+  table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
+  table_default_column_name: 'Nombre', // ai
+  table_default_value_column_name: 'Valor', // ai
+  table_column_missing_warning: "%1 no tiene una columna llamada '%2'. Sus columnas son: %3.", // ai
   table_delete_row_tooltip:
     'Borra una fila de la tabla, o todas sus filas. Las filas empiezan en 0, y las filas que siguen a una fila borrada suben un puesto.', // ai
   code_workspace_focused: 'Espacio de trabajo de código enfocado', // human

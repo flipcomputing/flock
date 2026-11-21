@@ -79,6 +79,11 @@ export function registerTablesGenerators(javascriptGenerator) {
     );
   };
 
+  javascriptGenerator.forBlock['table_column_menu'] = function (block) {
+    const column = javascriptGenerator.quote_(block.getFieldValue('COLUMN'));
+    return [column, javascriptGenerator.ORDER_ATOMIC];
+  };
+
   javascriptGenerator.forBlock['table_row_value'] = function (block) {
     const column = value(block, 'COLUMN', '""');
     return call(`getRowValue(${value(block, 'ROW', '""')}, ${column})`);

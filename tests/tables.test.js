@@ -1,10 +1,16 @@
 import { expect } from 'chai';
 import * as Blockly from 'blockly';
 import { compileFlockProject } from './utils/flockCompilerTestUtils.js';
-import { toolbox } from '../toolbox.js';
+import { toolbox, tableFlyoutBlocks } from '../toolbox.js';
 import { EXAMPLES } from '../main/examples.js';
 import { tableRowText } from '../api/tables.js';
-import { defineTableBlocks } from '../blocks/tables.js';
+import {
+  defineTableBlocks,
+  installTableColumnRenames,
+  tableColumnWarningFor,
+} from '../blocks/tables.js';
+import enLocale from '../locale/en.js';
+import esLocale from '../locale/es.js';
 
 const text = (TEXT) => ({ shadow: { type: 'text', fields: { TEXT } } });
 const num = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
@@ -644,6 +650,359 @@ export function runTablesTests(flock) {
         expect(creator.getFieldValue('VAR')).to.equal('current-id');
         expect(workspace.getVariableById('current-id').getType()).to.equal('Table');
         expect(workspace.getVariableMap().getAllVariables()).to.have.length(1);
+      });
+    });
+
+    describe('column menu', function () {
+      let workspace;
+      const menu = (COLUMN) => ({ shadow: { type: 'table_column_menu', fields: { COLUMN } } });
+      const getColumn = (name, column) =>
+        block('table_get_column', {
+          fields: { TABLE: table(name) },
+          inputs: { COLUMN: menu(column) },
+        });
+      const creator = (name, ...items) =>
+        block('table_create', {
+          fields: { VAR: table(name) },
+          inputs: { COLUMNS: list(...items) },
+        });
+      const options = (owner) =>
+        owner
+          .getInputTargetBlock('COLUMN')
+          .getField('COLUMN')
+          .getOptions(false)
+          .map(([, value]) => value);
+
+      before(function () {
+        if (!Blockly.Blocks.table_create) defineTableBlocks();
+      });
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      it("lists the plain text columns of the table's create blocks once each, in order", function () {
+        const joined = value(block('variables_get', { fields: { VAR: { name: 'heading' } } }));
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name'), text('Height')),
+              creator('Buildings', text('Height'), joined, text('City')),
+              creator('Other', text('Score')),
+              print(value(getColumn('Buildings', 'Name')))
+            )
+          ),
+          workspace
+        );
+        const [owner] = workspace.getBlocksByType('table_get_column', false);
+        expect(options(owner)).to.deep.equal(['Name', 'Height', 'City']);
+      });
+
+      it("lists the loop's table for a row value in a loop, and every table outside one", function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('A', text('Name')),
+              creator('B', text('Score')),
+              block('table_for_each_row', {
+                fields: { VAR: { name: 'row' }, INDEX: { name: 'count' }, TABLE: table('B') },
+                inputs: {
+                  DO: {
+                    block: print(
+                      value({
+                        type: 'table_row_value',
+                        inputs: { COLUMN: menu('Score'), ROW: rowVar() },
+                      })
+                    ),
+                  },
+                },
+              }),
+              print(
+                value({ type: 'table_row_value', inputs: { COLUMN: menu('Name'), ROW: rowVar() } })
+              )
+            )
+          ),
+          workspace
+        );
+        const inLoop = (b) => {
+          for (let outer = b.getSurroundParent(); outer; outer = outer.getSurroundParent()) {
+            if (outer.type === 'table_for_each_row') return true;
+          }
+          return false;
+        };
+        const rowValues = workspace.getBlocksByType('table_row_value', false);
+        const inside = rowValues.find(inLoop);
+        const outside = rowValues.find((b) => !inLoop(b));
+        expect(options(inside)).to.deep.equal(['Score']);
+        expect(options(outside)).to.deep.equal(['Name', 'Score']);
+      });
+
+      it('warns when a menu or text names a column the table does not have', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name'), text('Height')),
+              print(value(getColumn('Buildings', 'Floors'))),
+              print(value(getColumn('Buildings', 'Height'))),
+              print(
+                value(
+                  block('table_get_column', {
+                    fields: { TABLE: table('Buildings') },
+                    inputs: { COLUMN: text('City') },
+                  })
+                )
+              )
+            )
+          ),
+          workspace
+        );
+        const warnings = workspace
+          .getBlocksByType('table_get_column', false)
+          .map((owner) => tableColumnWarningFor(owner));
+        expect(warnings).to.deep.equal([
+          "Buildings doesn't have a column called 'Floors'. Its columns are: Name, Height.",
+          null,
+          "Buildings doesn't have a column called 'City'. Its columns are: Name, Height.",
+        ]);
+      });
+
+      it('lists and accepts the names given to repeated columns', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Shop', text('Name'), text('Name'), text('Name')),
+              print(value(getColumn('Shop', 'Name 3'))),
+              print(value(getColumn('Shop', 'Name 4')))
+            )
+          ),
+          workspace
+        );
+        const [third, fourth] = workspace.getBlocksByType('table_get_column', false);
+        expect(options(third)).to.deep.equal(['Name', 'Name 2', 'Name 3']);
+        expect(tableColumnWarningFor(third)).to.equal(null);
+        expect(tableColumnWarningFor(fourth)).to.equal(
+          "Shop doesn't have a column called 'Name 4'. Its columns are: Name, Name 2, Name 3."
+        );
+      });
+
+      it('does not warn when the editor cannot see every column or the table', function () {
+        const heading = value(block('variables_get', { fields: { VAR: { name: 'heading' } } }));
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name'), heading),
+              creator('Other', text('Score')),
+              print(value(getColumn('Buildings', 'Floors'))),
+              print(value(getColumn('Missing', 'Floors'))),
+              print(
+                value({
+                  type: 'table_row_value',
+                  inputs: { COLUMN: menu('Floors'), ROW: rowVar() },
+                })
+              )
+            )
+          ),
+          workspace
+        );
+        const owners = [
+          ...workspace.getBlocksByType('table_get_column', false),
+          ...workspace.getBlocksByType('table_row_value', false),
+        ];
+        expect(owners).to.have.length(3);
+        expect(owners.map((owner) => tableColumnWarningFor(owner))).to.deep.equal([
+          null,
+          null,
+          null,
+        ]);
+      });
+
+      it('has Spanish defaults and warning text', function () {
+        for (const key of [
+          'table_default_column_name',
+          'table_default_value_column_name',
+          'table_column_missing_warning',
+          'table_column_menu_tooltip',
+        ]) {
+          expect(esLocale[key], key).to.be.a('string').and.not.equal(enLocale[key]);
+        }
+      });
+
+      describe('renaming a column', function () {
+        const settle = () => new Promise((resolve) => setTimeout(resolve, 200));
+        const columnText = (name) =>
+          workspace
+            .getBlocksByType('text', false)
+            .find(
+              (b) => b.getFieldValue('TEXT') === name && b.getParent()?.type === 'lists_create_with'
+            );
+        const menuValues = () =>
+          workspace
+            .getBlocksByType('table_column_menu', false)
+            .map((m) => `${m.getParent().type}:${m.getFieldValue('COLUMN')}`);
+
+        beforeEach(function () {
+          installTableColumnRenames(workspace);
+          Blockly.serialization.workspaces.load(
+            project(
+              chain(
+                creator('A', text('Name'), text('Height')),
+                creator('B', text('Height')),
+                print(value(getColumn('A', 'Height'))),
+                print(value(getColumn('B', 'Height'))),
+                print(
+                  value({
+                    type: 'table_row_value',
+                    inputs: { COLUMN: menu('Height'), ROW: rowVar() },
+                  })
+                ),
+                print(
+                  value(
+                    block('table_get_column', {
+                      fields: { TABLE: table('A') },
+                      inputs: { COLUMN: text('Height') },
+                    })
+                  )
+                )
+              )
+            ),
+            workspace
+          );
+          workspace.clearUndo();
+        });
+
+        it("renames only that table's menus", async function () {
+          const tableA = workspace
+            .getBlocksByType('table_create', false)
+            .find((b) => b.getField('VAR').getText() === 'A');
+          tableA
+            .getInputTargetBlock('COLUMNS')
+            .getInputTargetBlock('ADD1')
+            .setFieldValue('Tall', 'TEXT');
+          await settle();
+          expect(menuValues()).to.deep.equal([
+            'table_get_column:Tall',
+            'table_get_column:Height',
+            'table_row_value:Height',
+          ]);
+          const typed = workspace
+            .getBlocksByType('text', false)
+            .filter((b) => b.getParent()?.type === 'table_get_column');
+          expect(typed.map((b) => b.getFieldValue('TEXT'))).to.deep.equal(['Height']);
+        });
+
+        it('follows typing through an empty name and a name already in use', async function () {
+          const tableA = workspace
+            .getBlocksByType('table_create', false)
+            .find((b) => b.getField('VAR').getText() === 'A');
+          const height = tableA.getInputTargetBlock('COLUMNS').getInputTargetBlock('ADD1');
+          for (const step of ['', 'Na', 'Name', 'Names']) {
+            height.setFieldValue(step, 'TEXT');
+            await settle();
+          }
+          expect(menuValues()[0]).to.equal('table_get_column:Names');
+        });
+
+        it('undoes the rename and the menus in one step', async function () {
+          columnText('Name').setFieldValue('Title', 'TEXT');
+          const tableA = workspace
+            .getBlocksByType('table_create', false)
+            .find((b) => b.getField('VAR').getText() === 'A');
+          tableA
+            .getInputTargetBlock('COLUMNS')
+            .getInputTargetBlock('ADD1')
+            .setFieldValue('Tall', 'TEXT');
+          await settle();
+          expect(menuValues()[0]).to.equal('table_get_column:Tall');
+          workspace.undo(false);
+          await settle();
+          expect(menuValues()[0]).to.equal('table_get_column:Height');
+          expect(columnText('Height')).to.exist;
+          expect(columnText('Title')).to.exist;
+          workspace.undo(true);
+          await settle();
+          expect(menuValues()[0]).to.equal('table_get_column:Tall');
+        });
+      });
+
+      it('lists the table named by a row getter', function () {
+        const getRow = block('table_get_row', {
+          fields: { TABLE: table('B') },
+          inputs: { ROW: num(0) },
+        });
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('A', text('Name')),
+              creator('B', text('Score')),
+              print(
+                value({
+                  type: 'table_row_value',
+                  inputs: { COLUMN: menu('Score'), ROW: value(getRow) },
+                })
+              )
+            )
+          ),
+          workspace
+        );
+        const [owner] = workspace.getBlocksByType('table_row_value', false);
+        expect(options(owner)).to.deep.equal(['Score']);
+      });
+
+      it('keeps a column that is not in the menu through save and load', function () {
+        const json = project(
+          print(value(getColumn('Buildings', 'Floors'))),
+          creator('Buildings', text('Name'))
+        );
+        Blockly.serialization.workspaces.load(json, workspace);
+        const [owner] = workspace.getBlocksByType('table_get_column', false);
+        const field = owner.getInputTargetBlock('COLUMN').getField('COLUMN');
+        expect(field.getValue()).to.equal('Floors');
+        expect(field.getText()).to.equal('Floors');
+        expect(options(owner)).to.deep.equal(['Name', 'Floors']);
+        const saved = Blockly.serialization.workspaces.save(workspace);
+        workspace.clear();
+        Blockly.serialization.workspaces.load(saved, workspace);
+        const [reloaded] = workspace.getBlocksByType('table_get_column', false);
+        expect(reloaded.getInputTargetBlock('COLUMN').getFieldValue('COLUMN')).to.equal('Floors');
+      });
+
+      it('generates the same code as a text block with the same name', function () {
+        const compile = (column) =>
+          compileFlockProject(
+            project(
+              chain(
+                creator('Buildings', text('Name')),
+                print(
+                  value(
+                    block('table_get_column', {
+                      fields: { TABLE: table('Buildings') },
+                      inputs: { COLUMN: column },
+                    })
+                  )
+                )
+              )
+            )
+          );
+        const code = compile(menu("Bob's name"));
+        expect(code).to.equal(compile(text("Bob's name")));
+        expect(code).to.include("getTableColumn(Buildings, 'Bob\\'s name')");
+      });
+
+      it('puts a column menu in every column input of the flyout', function () {
+        const columnInputs = tableFlyoutBlocks('Buildings', 'table2', 'Height')
+          .filter((item) => item.inputs?.COLUMN)
+          .map((item) => [item.type, item.inputs.COLUMN.shadow]);
+        expect(columnInputs).to.have.length(4);
+        for (const [type, shadow] of columnInputs) {
+          expect(shadow, type).to.deep.equal({
+            type: 'table_column_menu',
+            fields: { COLUMN: 'Height' },
+          });
+        }
       });
     });
 

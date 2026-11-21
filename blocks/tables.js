@@ -3,6 +3,7 @@ import { loops } from 'blockly/blocks';
 import { getHelpUrlFor } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip } from '../main/translation.js';
+import { uniqueColumnNames } from '../api/tables.js';
 
 export const TABLE_LOOP_TYPE = 'table_for_each_row';
 const TABLE_VARIABLE_TYPE = 'Table';
@@ -75,6 +76,208 @@ function withTableMessages(action) {
 }
 
 Blockly.fieldRegistry.register(TABLE_FIELD, FieldTableVariable);
+
+export const TABLE_COLUMN_MENU = 'table_column_menu';
+const COLUMN_FIELD = 'field_table_column';
+
+const sameName = (a, b) => a?.toLowerCase() === b?.toLowerCase();
+
+export function tableColumnInfo(workspace, tableName) {
+  const columns = [];
+  let found = false;
+  let complete = true;
+  for (const creator of workspace?.getBlocksByType('table_create', false) ?? []) {
+    if (tableName !== undefined && !sameName(creator.getField('VAR')?.getText(), tableName)) {
+      continue;
+    }
+    found = true;
+    const list = creator.getInputTargetBlock('COLUMNS');
+    if (list?.type !== 'lists_create_with') {
+      complete = false;
+      continue;
+    }
+    const given = list.inputList
+      .filter((input) => input.connection)
+      .map((input) => {
+        const item = input.connection.targetBlock();
+        return item?.type === 'text' ? item.getFieldValue('TEXT') : '';
+      });
+    const unique = uniqueColumnNames(given);
+    given.forEach((name, i) => {
+      if (!name) complete = false;
+      else if (!columns.includes(unique[i])) columns.push(unique[i]);
+    });
+  }
+  return { columns, complete: found && complete };
+}
+
+export const tableColumns = (workspace, tableName) => tableColumnInfo(workspace, tableName).columns;
+
+function loopTableFor(block, rowVariableId) {
+  for (let outer = block.getSurroundParent(); outer; outer = outer.getSurroundParent()) {
+    if (outer.type === TABLE_LOOP_TYPE && outer.getFieldValue('VAR') === rowVariableId) {
+      return outer.getField('TABLE')?.getText();
+    }
+  }
+  return undefined;
+}
+
+function columnTableName(owner) {
+  if (!owner) return undefined;
+  const tableField = owner.getField('TABLE');
+  if (tableField) return tableField.getText();
+  const row = owner.getInputTargetBlock('ROW');
+  if (row?.type === 'table_get_row') return row.getField('TABLE')?.getText();
+  if (row?.type === 'variables_get') return loopTableFor(owner, row.getFieldValue('VAR'));
+  return undefined;
+}
+
+const defaultColumnName = () => translate('table_default_column_name');
+
+class FieldTableColumn extends Blockly.FieldDropdown {
+  constructor(value) {
+    super(function () {
+      return this.columnOptions();
+    });
+    this.candidate = null;
+    if (value) this.setValue(value);
+  }
+
+  static fromJson(options) {
+    return new FieldTableColumn(options.value);
+  }
+
+  columnOptions() {
+    const menu = this.getSourceBlock();
+    const workspace = menu?.isInFlyout ? menu.workspace.targetWorkspace : menu?.workspace;
+    const columns = menu ? tableColumns(workspace, columnTableName(menu.getParent())) : [];
+    for (const extra of [this.candidate, this.getValue()]) {
+      if (extra && !columns.includes(extra)) columns.push(extra);
+    }
+    if (columns.length === 0) columns.push(defaultColumnName());
+    return columns.map((name) => [name, name]);
+  }
+
+  doClassValidation_(newValue) {
+    if (typeof newValue !== 'string' || newValue === '') return null;
+    this.candidate = newValue;
+    this.getOptions(false);
+    this.candidate = null;
+    return newValue;
+  }
+}
+
+Blockly.fieldRegistry.register(COLUMN_FIELD, FieldTableColumn);
+
+const COLUMN_WARNING = 'table-column';
+const COLUMN_BLOCKS = ['table_get_value', 'table_set_value', 'table_get_column', 'table_row_value'];
+
+function literalColumnName(owner) {
+  const target = owner.getInputTargetBlock('COLUMN');
+  if (target?.type === TABLE_COLUMN_MENU) return target.getFieldValue('COLUMN');
+  if (target?.type === 'text') return target.getFieldValue('TEXT');
+  return null;
+}
+
+export function tableColumnWarningFor(owner) {
+  const column = literalColumnName(owner);
+  const table = columnTableName(owner);
+  if (!column || table === undefined) return null;
+  const { columns, complete } = tableColumnInfo(owner.workspace, table);
+  if (!complete || columns.includes(column)) return null;
+  return translate('table_column_missing_warning')
+    .replace('%1', table)
+    .replace('%2', column)
+    .replace('%3', columns.join(', '));
+}
+
+export function installTableColumnWarnings(workspace) {
+  const shown = new WeakMap();
+
+  function refresh() {
+    for (const type of COLUMN_BLOCKS) {
+      for (const owner of workspace.getBlocksByType(type, false)) {
+        const text = tableColumnWarningFor(owner);
+        if ((shown.get(owner) ?? null) === text) continue;
+        shown.set(owner, text);
+        owner.setWarningText(text, COLUMN_WARNING);
+      }
+    }
+  }
+
+  workspace.addChangeListener(function (event) {
+    if (event.isUiEvent && event.type !== Blockly.Events.FINISHED_LOADING) return;
+    if (
+      event.type === Blockly.Events.BLOCK_MOVE ||
+      event.type === Blockly.Events.BLOCK_CREATE ||
+      event.type === Blockly.Events.BLOCK_DELETE ||
+      event.type === Blockly.Events.BLOCK_CHANGE ||
+      event.type === Blockly.Events.VAR_RENAME ||
+      event.type === Blockly.Events.FINISHED_LOADING
+    ) {
+      refresh();
+    }
+  });
+
+  refresh();
+  return refresh;
+}
+
+function columnListTable(textBlock) {
+  const list = textBlock?.getParent();
+  const creator = list?.getParent();
+  if (list?.type !== 'lists_create_with' || creator?.type !== 'table_create') return undefined;
+  if (creator.getInputTargetBlock('COLUMNS') !== list) return undefined;
+  return creator.getField('VAR')?.getText();
+}
+
+function columnTexts(workspace, tableName) {
+  const names = [];
+  for (const creator of workspace.getBlocksByType('table_create', false)) {
+    if (!sameName(creator.getField('VAR')?.getText(), tableName)) continue;
+    const list = creator.getInputTargetBlock('COLUMNS');
+    if (list?.type !== 'lists_create_with') continue;
+    for (const input of list.inputList) {
+      const item = input.connection?.targetBlock();
+      if (item?.type === 'text') names.push(item.getFieldValue('TEXT'));
+    }
+  }
+  return names;
+}
+
+export function renameColumnMenus(workspace, tableName, oldName, newName) {
+  const names = columnTexts(workspace, tableName);
+  if (names.includes(oldName)) return 'old-name-still-used';
+  if (!newName || names.filter((name) => name === newName).length !== 1) return 'waiting';
+  for (const menu of workspace.getBlocksByType(TABLE_COLUMN_MENU, false)) {
+    if (menu.getFieldValue('COLUMN') !== oldName) continue;
+    if (!sameName(columnTableName(menu.getParent()), tableName)) continue;
+    menu.setFieldValue(newName, 'COLUMN');
+  }
+  return 'renamed';
+}
+
+export function installTableColumnRenames(workspace) {
+  const following = new Map();
+
+  workspace.addChangeListener(function (event) {
+    if (event.isUiEvent || event.type !== Blockly.Events.BLOCK_CHANGE) return;
+    if (event.element !== 'field' || event.name !== 'TEXT') return;
+    const textBlock = workspace.getBlockById(event.blockId);
+    const tableName = columnListTable(textBlock);
+    if (tableName === undefined) return;
+    const oldName = following.get(textBlock.id) ?? event.oldValue;
+    if (!event.group) event.group = Blockly.utils.idGenerator.genUid();
+    const previousGroup = Blockly.Events.getGroup();
+    Blockly.Events.setGroup(event.group);
+    try {
+      const result = renameColumnMenus(workspace, tableName, oldName, event.newValue);
+      following.set(textBlock.id, result === 'waiting' ? oldName : event.newValue);
+    } finally {
+      Blockly.Events.setGroup(previousGroup);
+    }
+  });
+}
 
 const tableField = (name = 'TABLE') => ({ type: TABLE_FIELD, name, variable: 'table1' });
 
@@ -203,6 +406,12 @@ export function defineTableBlocks() {
       });
     }
   );
+
+  defineTableBlock(TABLE_COLUMN_MENU, () => ({
+    message0: '%1',
+    args0: [{ type: COLUMN_FIELD, name: 'COLUMN', value: defaultColumnName() }],
+    output: 'String',
+  }));
 
   defineTableBlock('table_row_value', () => ({
     args0: [

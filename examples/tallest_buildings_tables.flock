@@ -655,9 +655,9 @@
                                                                     "inputs": {
                                                                       "COLUMN": {
                                                                         "shadow": {
-                                                                          "type": "text",
+                                                                          "type": "table_column_menu",
                                                                           "fields": {
-                                                                            "TEXT": "Height"
+                                                                            "COLUMN": "Height"
                                                                           }
                                                                         }
                                                                       }
@@ -879,9 +879,9 @@
                                                                                     "inputs": {
                                                                                       "COLUMN": {
                                                                                         "shadow": {
-                                                                                          "type": "text",
+                                                                                          "type": "table_column_menu",
                                                                                           "fields": {
-                                                                                            "TEXT": "Height"
+                                                                                            "COLUMN": "Height"
                                                                                           }
                                                                                         }
                                                                                       }
@@ -987,9 +987,9 @@
                                                                                         "inputs": {
                                                                                           "COLUMN": {
                                                                                             "shadow": {
-                                                                                              "type": "text",
+                                                                                              "type": "table_column_menu",
                                                                                               "fields": {
-                                                                                                "TEXT": "Height"
+                                                                                                "COLUMN": "Height"
                                                                                               }
                                                                                             }
                                                                                           }
@@ -1095,9 +1095,9 @@
                                                                                             "inputs": {
                                                                                               "COLUMN": {
                                                                                                 "shadow": {
-                                                                                                  "type": "text",
+                                                                                                  "type": "table_column_menu",
                                                                                                   "fields": {
-                                                                                                    "TEXT": "Height"
+                                                                                                    "COLUMN": "Height"
                                                                                                   }
                                                                                                 }
                                                                                               }
@@ -2216,9 +2216,9 @@
                                                   "inputs": {
                                                     "COLUMN": {
                                                       "shadow": {
-                                                        "type": "text",
+                                                        "type": "table_column_menu",
                                                         "fields": {
-                                                          "TEXT": "Started"
+                                                          "COLUMN": "Started"
                                                         }
                                                       }
                                                     }
@@ -2266,9 +2266,9 @@
                                                       "inputs": {
                                                         "COLUMN": {
                                                           "shadow": {
-                                                            "type": "text",
+                                                            "type": "table_column_menu",
                                                             "fields": {
-                                                              "TEXT": "Completed"
+                                                              "COLUMN": "Completed"
                                                             }
                                                           }
                                                         }
@@ -2391,9 +2391,9 @@
                                                                       "inputs": {
                                                                         "COLUMN": {
                                                                           "shadow": {
-                                                                            "type": "text",
+                                                                            "type": "table_column_menu",
                                                                             "fields": {
-                                                                              "TEXT": "Colour"
+                                                                              "COLUMN": "Colour"
                                                                             }
                                                                           }
                                                                         },
@@ -2593,9 +2593,9 @@
                                                                               "inputs": {
                                                                                 "COLUMN": {
                                                                                   "shadow": {
-                                                                                    "type": "text",
+                                                                                    "type": "table_column_menu",
                                                                                     "fields": {
-                                                                                      "TEXT": "Colour"
+                                                                                      "COLUMN": "Colour"
                                                                                     }
                                                                                   }
                                                                                 },
@@ -2733,9 +2733,9 @@
                                                                                       "inputs": {
                                                                                         "COLUMN": {
                                                                                           "shadow": {
-                                                                                            "type": "text",
+                                                                                            "type": "table_column_menu",
                                                                                             "fields": {
-                                                                                              "TEXT": "Colour"
+                                                                                              "COLUMN": "Colour"
                                                                                             }
                                                                                           }
                                                                                         },
@@ -3207,9 +3207,9 @@
                                                                                                   "inputs": {
                                                                                                     "COLUMN": {
                                                                                                       "shadow": {
-                                                                                                        "type": "text",
+                                                                                                        "type": "table_column_menu",
                                                                                                         "fields": {
-                                                                                                          "TEXT": "Started"
+                                                                                                          "COLUMN": "Started"
                                                                                                         }
                                                                                                       }
                                                                                                     },
@@ -3324,9 +3324,9 @@
                                                                                                       "inputs": {
                                                                                                         "COLUMN": {
                                                                                                           "shadow": {
-                                                                                                            "type": "text",
+                                                                                                            "type": "table_column_menu",
                                                                                                             "fields": {
-                                                                                                              "TEXT": "Name"
+                                                                                                              "COLUMN": "Name"
                                                                                                             }
                                                                                                           }
                                                                                                         },
@@ -3407,9 +3407,9 @@
                                                                                                           "inputs": {
                                                                                                             "COLUMN": {
                                                                                                               "shadow": {
-                                                                                                                "type": "text",
+                                                                                                                "type": "table_column_menu",
                                                                                                                 "fields": {
-                                                                                                                  "TEXT": "Name"
+                                                                                                                  "COLUMN": "Name"
                                                                                                                 }
                                                                                                               }
                                                                                                             },
@@ -3448,9 +3448,9 @@
                                                                                                           "inputs": {
                                                                                                             "COLUMN": {
                                                                                                               "shadow": {
-                                                                                                                "type": "text",
+                                                                                                                "type": "table_column_menu",
                                                                                                                 "fields": {
-                                                                                                                  "TEXT": "Colour"
+                                                                                                                  "COLUMN": "Colour"
                                                                                                                 }
                                                                                                               }
                                                                                                             },
@@ -3610,9 +3610,9 @@
                                                                                                                             "inputs": {
                                                                                                                               "COLUMN": {
                                                                                                                                 "shadow": {
-                                                                                                                                  "type": "text",
+                                                                                                                                  "type": "table_column_menu",
                                                                                                                                   "fields": {
-                                                                                                                                    "TEXT": "Completed"
+                                                                                                                                    "COLUMN": "Completed"
                                                                                                                                   }
                                                                                                                                 }
                                                                                                                               },
@@ -3642,9 +3642,9 @@
                                                                                                                             "inputs": {
                                                                                                                               "COLUMN": {
                                                                                                                                 "shadow": {
-                                                                                                                                  "type": "text",
+                                                                                                                                  "type": "table_column_menu",
                                                                                                                                   "fields": {
-                                                                                                                                    "TEXT": "Started"
+                                                                                                                                    "COLUMN": "Started"
                                                                                                                                   }
                                                                                                                                 }
                                                                                                                               },
@@ -3805,9 +3805,9 @@
                                                                                                                                                 "inputs": {
                                                                                                                                                   "COLUMN": {
                                                                                                                                                     "shadow": {
-                                                                                                                                                      "type": "text",
+                                                                                                                                                      "type": "table_column_menu",
                                                                                                                                                       "fields": {
-                                                                                                                                                        "TEXT": "Height"
+                                                                                                                                                        "COLUMN": "Height"
                                                                                                                                                       }
                                                                                                                                                     }
                                                                                                                                                   },
@@ -4081,9 +4081,9 @@
                                                                                                       "inputs": {
                                                                                                         "COLUMN": {
                                                                                                           "shadow": {
-                                                                                                            "type": "text",
+                                                                                                            "type": "table_column_menu",
                                                                                                             "fields": {
-                                                                                                              "TEXT": "Completed"
+                                                                                                              "COLUMN": "Completed"
                                                                                                             }
                                                                                                           }
                                                                                                         },
@@ -4206,9 +4206,9 @@
                                                                                                                 "inputs": {
                                                                                                                   "COLUMN": {
                                                                                                                     "shadow": {
-                                                                                                                      "type": "text",
+                                                                                                                      "type": "table_column_menu",
                                                                                                                       "fields": {
-                                                                                                                        "TEXT": "Height"
+                                                                                                                        "COLUMN": "Height"
                                                                                                                       }
                                                                                                                     }
                                                                                                                   },
@@ -4268,9 +4268,9 @@
                                                                                                           "inputs": {
                                                                                                             "COLUMN": {
                                                                                                               "shadow": {
-                                                                                                                "type": "text",
+                                                                                                                "type": "table_column_menu",
                                                                                                                 "fields": {
-                                                                                                                  "TEXT": "Colour"
+                                                                                                                  "COLUMN": "Colour"
                                                                                                                 }
                                                                                                               }
                                                                                                             },
@@ -4331,9 +4331,9 @@
                                                                                                               "inputs": {
                                                                                                                 "COLUMN": {
                                                                                                                   "shadow": {
-                                                                                                                    "type": "text",
+                                                                                                                    "type": "table_column_menu",
                                                                                                                     "fields": {
-                                                                                                                      "TEXT": "Completed"
+                                                                                                                      "COLUMN": "Completed"
                                                                                                                     }
                                                                                                                   }
                                                                                                                 },
