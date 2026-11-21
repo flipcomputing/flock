@@ -497,4 +497,9 @@ export function defineTableBlocks() {
     ],
     output: null,
   }));
+
+  defineTableBlock('table_row_values', () => ({
+    args0: [{ type: 'input_value', name: 'ROW' }],
+    output: 'Array',
+  }));
 }

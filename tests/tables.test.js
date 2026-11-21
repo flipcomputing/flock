@@ -157,6 +157,17 @@ export function runTablesTests(flock) {
         expect(reported[0].values).to.deep.equal({ table: 'Shop', column: 'Prise' });
       });
 
+      it("gives a row's values as a new list in column order", function () {
+        makeShop();
+        const values = flock.getRowValues(flock.getTableRow('Shop', 1));
+        expect(values).to.deep.equal(['Pear', 0.75]);
+        values.push('extra');
+        expect(flock.getRowValues(flock.getTableRow('Shop', 1))).to.deep.equal(['Pear', 0.75]);
+        expect(flock.getRowValues(['Pear', 0.75])).to.deep.equal([]);
+        expect(flock.getRowValues('')).to.deep.equal([]);
+        expect(keys()).to.deep.equal(['table_not_a_row']);
+      });
+
       it('stays quiet when a row is missing because of an earlier problem', function () {
         makeShop();
         const row = flock.getTableRow('Shop', 9);
@@ -641,6 +652,36 @@ export function runTablesTests(flock) {
         await run(project(chain(...createBuildings(), loop, tallest)));
         await waitForPrints(5);
         expect(printed).to.deep.equal(['Burj Khalifa', 0, 'Merdeka 118', 1, 828]);
+      });
+
+      it('copies rows into another table with their values', async function () {
+        const copy = block('table_create', {
+          fields: { VAR: table('Copy') },
+          inputs: { COLUMNS: list(text('Name'), text('Height')) },
+        });
+        const loop = block('table_for_each_row', {
+          fields: { VAR: { name: 'row' }, INDEX: { name: 'count' }, TABLE: table('Buildings') },
+          inputs: {
+            DO: {
+              block: block('table_add_row', {
+                fields: { TABLE: table('Copy') },
+                inputs: { VALUES: value(block('table_row_values', { inputs: { ROW: rowVar() } })) },
+              }),
+            },
+          },
+        });
+        const last = print(
+          value(
+            block('table_get_value', {
+              fields: { TABLE: table('Copy') },
+              inputs: { ROW: num(1), COLUMN: text('Name') },
+            })
+          )
+        );
+        await run(project(chain(...createBuildings(), copy, loop, last)));
+        await waitForPrints(1);
+        expect(printed).to.deep.equal(['Merdeka 118']);
+        expect(flock.getTableColumn('Copy', 'Height')).to.deep.equal([828, 679]);
       });
 
       it('still visits every row when one variable is picked for both', async function () {

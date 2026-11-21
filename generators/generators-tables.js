@@ -105,4 +105,8 @@ export function registerTablesGenerators(javascriptGenerator) {
     const column = value(block, 'COLUMN', '""');
     return call(`getRowValue(${value(block, 'ROW', '""')}, ${column})`);
   };
+
+  javascriptGenerator.forBlock['table_row_values'] = function (block) {
+    return call(`getRowValues(${value(block, 'ROW', '""')})`);
+  };
 }

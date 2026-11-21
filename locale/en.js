@@ -445,6 +445,7 @@ export default {
   table_row_count: 'number of rows in %1',
   table_for_each_row: 'for each row %1 number %2 in %3',
   table_row_value: '%1 of %2',
+  table_row_values: 'list from %1',
   ui_text: 'ui text %1 %2 at x: %3 y: %4\nsize: %5 for %6 seconds color: %7 on: %8 alpha: %9',
   ui_align: 'from',
   ui_button: 'ui button %1 %2 at x: %3 y: %4\nsize: %5 text size: %6 text: %7 on: %8',
@@ -1523,6 +1524,8 @@ export default {
   table_for_each_row_tooltip:
     'Run the blocks inside once for each row. The first variable holds the row and the second holds its number, starting at 0.',
   table_row_value_tooltip: 'The value in this column of a row.',
+  table_row_values_tooltip:
+    "A list of a row's values in column order. Use it to copy a row into another table or with list blocks.",
   table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
   table_default_column_name: 'Name',
   table_default_value_column_name: 'Value',

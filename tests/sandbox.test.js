@@ -145,10 +145,14 @@ export function runSandboxTests(flock) {
         const column = getTableColumn(t, 'a');
         const row = getTableRow(t, 0);
         printText({
-          text: column instanceof Array && typeof row === 'object' && column[0] + getRowValue(row, 'a'),
+          text:
+            column instanceof Array &&
+            getRowValues(row) instanceof Array &&
+            typeof row === 'object' &&
+            column[0] + getRowValue(row, 'a') + getRowValues(row)[0],
         });
       `);
-      expect(printed).to.deep.equal(['xx']);
+      expect(printed).to.deep.equal(['xxx']);
     });
 
     it('should not reach the host Function through a table row itself', async function () {

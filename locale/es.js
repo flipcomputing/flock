@@ -403,6 +403,7 @@ export default {
   table_row_count: 'número de filas en %1', // ai
   table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
   table_row_value: '%1 de %2', // ai
+  table_row_values: 'lista de %1', // ai
   ui_text: 'UI texto %1 %2 en x: %3 y: %4\ntamaño: %5 por %6 segundos color: %7 en: %8 alfa %9', // human
   ui_align: 'desde',
   ui_button: 'UI botón %1 %2 en x: %3 y: %4\ntamaño: %5 tamaño del texto: %6 texto: %7 en: %8', // human
@@ -1424,6 +1425,8 @@ export default {
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
   table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai
+  table_row_values_tooltip:
+    'Una lista con los valores de una fila en el orden de las columnas. Úsala para copiar una fila a otra tabla o con bloques de listas.', // ai
   table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
   table_default_column_name: 'Nombre', // ai
   table_default_value_column_name: 'Valor', // ai

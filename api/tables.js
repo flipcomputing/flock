@@ -200,6 +200,9 @@ export const flockTables = {
     }
     return row.values[index];
   },
+  getRowValues(row) {
+    return checkRow('getRowValues', row) ? [...row.values] : [];
+  },
   getTableRowCount(name) {
     const table = findTable('getTableRowCount', name);
     return table ? table.rows.length : 0;

@@ -726,6 +726,7 @@ export const flockSandbox = {
       sortTable: this.sortTable?.bind(this),
       shuffleTable: this.shuffleTable?.bind(this),
       getRowValue: this.getRowValue?.bind(this),
+      getRowValues: this.getRowValues?.bind(this),
       getTableRowCount: this.getTableRowCount?.bind(this),
     };
 

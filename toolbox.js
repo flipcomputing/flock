@@ -4501,6 +4501,25 @@ export function tableFlyoutBlocks(
       keyword: 'of',
       inputs: { COLUMN: column, ROW: rowVariable },
     },
+    {
+      kind: 'block',
+      type: 'table_row_values',
+      keyword: 'rowvalues',
+      inputs: { ROW: rowVariable },
+    },
+    {
+      kind: 'block',
+      type: 'table_row_values',
+      inputs: {
+        ROW: {
+          block: {
+            type: 'table_get_row',
+            fields: { MODE: 'ROW', TABLE },
+            inputs: { ROW: numberShadow(0) },
+          },
+        },
+      },
+    },
     { kind: 'sep', gap: 24 },
     {
       kind: 'block',
