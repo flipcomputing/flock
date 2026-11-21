@@ -54,6 +54,33 @@ function findRow(api, table, name, row) {
   return -1;
 }
 
+function rowOf(name, table, r) {
+  return Object.freeze(
+    Object.assign(Object.create(null), {
+      table: name,
+      number: r,
+      columns: Object.freeze([...table.columns]),
+      values: Object.freeze([...table.rows[r]]),
+    })
+  );
+}
+
+function cellNumber(value) {
+  if (typeof value === 'number') return value;
+  if (typeof value !== 'string' || value.trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function compareCells(a, b) {
+  const x = cellNumber(a);
+  const y = cellNumber(b);
+  if (x !== null && y !== null) return x - y;
+  if (x !== null) return -1;
+  if (y !== null) return 1;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+}
+
 export function uniqueColumnNames(columns, onRenamed = () => {}) {
   const result = [];
   for (const column of Array.isArray(columns) ? columns : []) {
@@ -124,15 +151,36 @@ export const flockTables = {
     const table = findTable('getTableRow', name);
     if (!table) return '';
     const r = findRow('getTableRow', table, name, row);
-    if (r === -1) return '';
-    return Object.freeze(
-      Object.assign(Object.create(null), {
-        table: name,
-        number: r,
-        columns: Object.freeze([...table.columns]),
-        values: Object.freeze([...table.rows[r]]),
-      })
-    );
+    return r === -1 ? '' : rowOf(name, table, r);
+  },
+  pickTableRow(name, which) {
+    const table = findTable('pickTableRow', name);
+    if (!table) return '';
+    const count = table.rows.length;
+    if (count === 0) {
+      report('pickTableRow', 'table_empty', { table: name });
+      return '';
+    }
+    const picks = { first: 0, last: count - 1 };
+    const r = picks[which] ?? Math.floor(Math.random() * count);
+    return rowOf(name, table, r);
+  },
+  findTableRow(name, column, value, which = 'first') {
+    const table = findTable('findTableRow', name);
+    if (!table) return -1;
+    const c = findColumn('findTableRow', table, name, column);
+    if (c === -1) return -1;
+    const wanted = String(cellValue(value));
+    const matches = (row) => String(row[c]) === wanted;
+    return which === 'last' ? table.rows.findLastIndex(matches) : table.rows.findIndex(matches);
+  },
+  sortTable(name, column, order) {
+    const table = findTable('sortTable', name);
+    if (!table) return;
+    const c = findColumn('sortTable', table, name, column);
+    if (c === -1) return;
+    const direction = order === 'DESCENDING' ? -1 : 1;
+    table.rows.sort((a, b) => direction * compareCells(a[c], b[c]));
   },
   getRowValue(row, column) {
     if (!checkRow('getRowValue', row)) return '';

@@ -721,6 +721,9 @@ export const flockSandbox = {
       setTableValue: this.setTableValue?.bind(this),
       getTableColumn: this.getTableColumn?.bind(this),
       getTableRow: this.getTableRow?.bind(this),
+      pickTableRow: this.pickTableRow?.bind(this),
+      findTableRow: this.findTableRow?.bind(this),
+      sortTable: this.sortTable?.bind(this),
       getRowValue: this.getRowValue?.bind(this),
       getTableRowCount: this.getTableRowCount?.bind(this),
     };
@@ -804,6 +807,12 @@ export const flockSandbox = {
       'dispose',
       'clearEffects',
       'stopAnimations',
+      'createTable',
+      'addTableRow',
+      'deleteTableRow',
+      'deleteAllTableRows',
+      'setTableValue',
+      'sortTable',
     ];
     for (const name of SIDE_EFFECT_APIS) {
       if (typeof api[name] === 'function') api[name] = guard(api[name]);

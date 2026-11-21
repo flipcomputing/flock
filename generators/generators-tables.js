@@ -43,7 +43,22 @@ export function registerTablesGenerators(javascriptGenerator) {
   };
 
   javascriptGenerator.forBlock['table_get_row'] = function (block) {
+    const picks = { FIRST: 'first', LAST: 'last', RANDOM: 'random' };
+    const pick = picks[block.getFieldValue('MODE')];
+    if (pick) return call(`pickTableRow(${tableVar(block)}, '${pick}')`);
     return call(`getTableRow(${tableVar(block)}, ${value(block, 'ROW', '0')})`);
+  };
+
+  javascriptGenerator.forBlock['table_find_row'] = function (block) {
+    const column = value(block, 'COLUMN', '""');
+    const which = block.getFieldValue('WHERE') === 'LAST' ? 'last' : 'first';
+    const wanted = value(block, 'VALUE', '""');
+    return call(`findTableRow(${tableVar(block)}, ${column}, ${wanted}, '${which}')`);
+  };
+
+  javascriptGenerator.forBlock['table_sort'] = function (block) {
+    const order = block.getFieldValue('ORDER') === 'DESCENDING' ? 'DESCENDING' : 'ASCENDING';
+    return `sortTable(${tableVar(block)}, ${value(block, 'COLUMN', '""')}, '${order}');\n`;
   };
 
   javascriptGenerator.forBlock['table_row_count'] = function (block) {

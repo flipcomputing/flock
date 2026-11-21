@@ -388,7 +388,17 @@ export default {
   table_get_value: 'valor en %1 fila %2 columna %3', // ai
   table_set_value: 'poner en %1 fila %2 columna %3 el valor %4', // ai
   table_get_column: 'columna %1 de %2', // ai
-  table_get_row: 'fila %1 de %2', // ai
+  table_get_row: '%1 %2 %3 de %4', // ai
+  table_get_row_option: 'fila', // ai
+  table_get_first_row_option: 'primera fila', // ai
+  table_get_last_row_option: 'última fila', // ai
+  table_get_random_row_option: 'fila al azar', // ai
+  table_find_row: 'número de la %1 fila en %2 donde %3 es %4', // ai
+  table_find_first_option: 'primera', // ai
+  table_find_last_option: 'última', // ai
+  table_sort: 'ordenar %1 por %2 %3', // ai
+  table_sort_ascending_option: 'ascendente', // ai
+  table_sort_descending_option: 'descendente', // ai
   table_row_count: 'número de filas en %1', // ai
   table_for_each_row: 'para cada fila %1 número %2 en %3', // ai
   table_row_value: '%1 de %2', // ai
@@ -1404,7 +1414,11 @@ export default {
   table_set_value_tooltip: 'Cambia el valor de una celda de la tabla. Las filas empiezan en 0.', // ai
   table_get_column_tooltip: 'Todos los valores de una columna, como una lista.', // ai
   table_get_row_tooltip:
-    'Una fila de la tabla. Usa un bloque «de» para leer una columna. Las filas empiezan en 0.', // ai
+    'Una fila de la tabla: por su número, o la primera, la última o una al azar. Usa un bloque «de» para leer una columna. Las filas empiezan en 0.', // ai
+  table_find_row_tooltip:
+    'El número de la primera o la última fila donde la columna tiene este valor, o -1 si ninguna fila lo tiene. Las filas empiezan en 0.', // ai
+  table_sort_tooltip:
+    'Pone las filas en orden según una columna. En orden ascendente los números van antes que el texto, y el orden descendente es al revés. Las mayúsculas se ordenan igual que las minúsculas.', // ai
   table_row_count_tooltip: 'Cuántas filas tiene la tabla.', // ai
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
@@ -1522,6 +1536,7 @@ export default {
   table_not_found: 'No hay ninguna tabla llamada {table}.', // ai
   table_column_not_found: 'No hay ninguna columna llamada {column} en {table}.', // ai
   table_no_rows: '{table} aún no tiene filas, así que no hay fila {row}.', // ai
+  table_empty: '{table} aún no tiene filas.', // ai
   table_row_out_of_range: '{table} tiene {count} filas (de 0 a {last}), así que no hay fila {row}.', // ai
   table_row_out_of_range_one: '{table} tiene 1 fila (la fila 0), así que no hay fila {row}.', // ai
   table_row_length: 'Esa fila tiene {given} valores, pero {table} tiene {count} columnas.', // ai

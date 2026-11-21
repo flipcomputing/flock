@@ -4481,6 +4481,13 @@ export function tableFlyoutBlocks(
       inputs: { ROW: numberShadow(0) },
     },
     { kind: 'block', type: 'table_row_count', keyword: 'rows', fields: { TABLE } },
+    {
+      kind: 'block',
+      type: 'table_find_row',
+      keyword: 'findrow',
+      fields: { WHERE: 'FIRST', TABLE },
+      inputs: { COLUMN: column, VALUE: textShadow('') },
+    },
     { kind: 'sep', gap: 24 },
     {
       kind: 'block',
@@ -4501,6 +4508,13 @@ export function tableFlyoutBlocks(
       keyword: 'setcell',
       fields: { TABLE },
       inputs: { ROW: numberShadow(0), COLUMN: column, VALUE: textShadow('') },
+    },
+    {
+      kind: 'block',
+      type: 'table_sort',
+      keyword: 'sortrows',
+      fields: { TABLE, ORDER: 'ASCENDING' },
+      inputs: { COLUMN: column },
     },
   ];
 }

@@ -270,6 +270,128 @@ export function runTablesTests(flock) {
         flock.deleteAllTableRows('Nope');
         expect(keys()).to.deep.equal(['table_not_found']);
       });
+
+      it('picks the first, last and a random row', function () {
+        makeShop();
+        flock.addTableRow('Shop', ['Plum', 0.4]);
+        expect(flock.getRowValue(flock.pickTableRow('Shop', 'first'), 'Name')).to.equal('Apple');
+        const last = flock.pickTableRow('Shop', 'last');
+        expect(flock.getRowValue(last, 'Name')).to.equal('Plum');
+        expect(last.number).to.equal(2);
+        const seen = new Set();
+        for (let i = 0; i < 60; i++) seen.add(flock.pickTableRow('Shop', 'random').number);
+        expect([...seen].sort()).to.deep.equal([0, 1, 2]);
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('reports picking a row from an empty table', function () {
+        flock.createTable('Empty', ['A']);
+        expect(flock.pickTableRow('Empty', 'first')).to.equal('');
+        expect(flock.pickTableRow('Empty', 'random')).to.equal('');
+        expect(flock.pickTableRow('Nope', 'last')).to.equal('');
+        expect(keys()).to.deep.equal(['table_empty', 'table_empty', 'table_not_found']);
+        expect(reported[0].values).to.deep.equal({ table: 'Empty' });
+      });
+
+      it('finds the first or last row with a value in a column', function () {
+        makeShop();
+        flock.addTableRow('Shop', ['Pear', 0.8]);
+        expect(flock.findTableRow('Shop', 'Name', 'Pear')).to.equal(1);
+        expect(flock.findTableRow('Shop', 'Price', 0.5)).to.equal(0);
+        expect(flock.findTableRow('Shop', 'Price', '0.75')).to.equal(1);
+        expect(flock.findTableRow('Shop', 'Name', 'pear')).to.equal(-1);
+        expect(flock.findTableRow('Shop', 'Name', 'Plum')).to.equal(-1);
+        expect(flock.findTableRow('Shop', 'Name', 'Pear', 'last')).to.equal(2);
+        expect(flock.findTableRow('Shop', 'Name', 'Apple', 'last')).to.equal(0);
+        expect(flock.findTableRow('Shop', 'Name', 'Plum', 'last')).to.equal(-1);
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('reports finding in a missing table or column', function () {
+        makeShop();
+        expect(flock.findTableRow('Nope', 'Name', 'Pear')).to.equal(-1);
+        expect(flock.findTableRow('Shop', 'Colour', 'red')).to.equal(-1);
+        expect(keys()).to.deep.equal(['table_not_found', 'table_column_not_found']);
+      });
+
+      it('sorts rows by a column of numbers', function () {
+        flock.createTable('Scores', ['Name', 'Score']);
+        for (const [name, score] of [
+          ['Ana', 10],
+          ['Ben', 9],
+          ['Cy', -2],
+          ['Di', 0.5],
+          ['Ed', '100'],
+        ]) {
+          flock.addTableRow('Scores', [name, score]);
+        }
+        flock.sortTable('Scores', 'Score', 'ASCENDING');
+        expect(flock.getTableColumn('Scores', 'Name')).to.deep.equal([
+          'Cy',
+          'Di',
+          'Ben',
+          'Ana',
+          'Ed',
+        ]);
+        flock.sortTable('Scores', 'Score', 'DESCENDING');
+        expect(flock.getTableColumn('Scores', 'Name')).to.deep.equal([
+          'Ed',
+          'Ana',
+          'Ben',
+          'Di',
+          'Cy',
+        ]);
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('sorts text ignoring capitals, keeps ties in order and puts numbers first', function () {
+        flock.createTable('Pets', ['Name', 'Kind']);
+        for (const [name, kind] of [
+          ['rex', 'dog'],
+          ['Ace', 'cat'],
+          ['bo', 'dog'],
+          ['pet 10', 'fish'],
+          ['pet 2', 'fish'],
+          [7, 'cat'],
+        ]) {
+          flock.addTableRow('Pets', [name, kind]);
+        }
+        flock.sortTable('Pets', 'Name', 'ASCENDING');
+        expect(flock.getTableColumn('Pets', 'Name')).to.deep.equal([
+          7,
+          'Ace',
+          'bo',
+          'pet 2',
+          'pet 10',
+          'rex',
+        ]);
+        flock.sortTable('Pets', 'Kind', 'ASCENDING');
+        expect(flock.getTableColumn('Pets', 'Name')).to.deep.equal([
+          7,
+          'Ace',
+          'bo',
+          'rex',
+          'pet 2',
+          'pet 10',
+        ]);
+        flock.sortTable('Pets', 'Name', 'DESCENDING');
+        expect(flock.getTableColumn('Pets', 'Name')).to.deep.equal([
+          'rex',
+          'pet 10',
+          'pet 2',
+          'bo',
+          'Ace',
+          7,
+        ]);
+      });
+
+      it('reports sorting a missing table or column and changes nothing', function () {
+        makeShop();
+        flock.sortTable('Nope', 'Name', 'ASCENDING');
+        flock.sortTable('Shop', 'Colour', 'DESCENDING');
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal(['Apple', 'Pear']);
+        expect(keys()).to.deep.equal(['table_not_found', 'table_column_not_found']);
+      });
     });
 
     describe('generators', function () {
@@ -328,6 +450,77 @@ export function runTablesTests(flock) {
         expect(code, code).to.include("getTableColumn(Buildings, 'Name')");
         expect(code, code).to.include('getTableRowCount(Buildings)');
         expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('generates picking, finding and sorting rows', function () {
+        const pick = (MODE) =>
+          print(
+            value(
+              block('table_get_row', {
+                fields: { MODE, TABLE: table('Buildings') },
+                inputs: { ROW: num(3) },
+              })
+            )
+          );
+        const code = compileFlockProject(
+          project(
+            chain(
+              ...createBuildings(),
+              pick('FIRST'),
+              pick('LAST'),
+              pick('RANDOM'),
+              print(
+                value(
+                  block('table_find_row', {
+                    fields: { TABLE: table('Buildings') },
+                    inputs: { COLUMN: text('Name'), VALUE: text('Merdeka 118') },
+                  })
+                )
+              ),
+              print(
+                value(
+                  block('table_find_row', {
+                    fields: { WHERE: 'LAST', TABLE: table('Buildings') },
+                    inputs: { COLUMN: text('Height'), VALUE: num(828) },
+                  })
+                )
+              ),
+              block('table_sort', {
+                fields: { TABLE: table('Buildings'), ORDER: 'DESCENDING' },
+                inputs: { COLUMN: text('Height') },
+              }),
+              block('table_sort', {
+                fields: { TABLE: table('Buildings'), ORDER: 'ASCENDING' },
+                inputs: { COLUMN: text('Name') },
+              })
+            )
+          )
+        );
+        expect(code, code).to.include("pickTableRow(Buildings, 'first')");
+        expect(code, code).to.include("pickTableRow(Buildings, 'last')");
+        expect(code, code).to.include("pickTableRow(Buildings, 'random')");
+        expect(code, code).not.to.include('getTableRow(Buildings, 3)');
+        expect(code, code).to.include("findTableRow(Buildings, 'Name', 'Merdeka 118', 'first')");
+        expect(code, code).to.include("findTableRow(Buildings, 'Height', 828, 'last')");
+        expect(code, code).to.include("sortTable(Buildings, 'Height', 'DESCENDING');");
+        expect(code, code).to.include("sortTable(Buildings, 'Name', 'ASCENDING');");
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('loads a saved row getter with no mode as a numbered row', function () {
+        const code = compileFlockProject(
+          project(
+            print(
+              value(
+                block('table_get_row', {
+                  fields: { TABLE: table('Buildings') },
+                  inputs: { ROW: num(1) },
+                })
+              )
+            )
+          )
+        );
+        expect(code, code).to.include('getTableRow(Buildings, 1)');
       });
 
       it('puts each row and its number in the loop variables', function () {
@@ -996,7 +1189,7 @@ export function runTablesTests(flock) {
         const columnInputs = tableFlyoutBlocks('Buildings', 'table2', 'Height')
           .filter((item) => item.inputs?.COLUMN)
           .map((item) => [item.type, item.inputs.COLUMN.shadow]);
-        expect(columnInputs).to.have.length(4);
+        expect(columnInputs).to.have.length(6);
         for (const [type, shadow] of columnInputs) {
           expect(shadow, type).to.deep.equal({
             type: 'table_column_menu',

@@ -170,7 +170,14 @@ class FieldTableColumn extends Blockly.FieldDropdown {
 Blockly.fieldRegistry.register(COLUMN_FIELD, FieldTableColumn);
 
 const COLUMN_WARNING = 'table-column';
-const COLUMN_BLOCKS = ['table_get_value', 'table_set_value', 'table_get_column', 'table_row_value'];
+const COLUMN_BLOCKS = [
+  'table_get_value',
+  'table_set_value',
+  'table_get_column',
+  'table_row_value',
+  'table_find_row',
+  'table_sort',
+];
 
 function literalColumnName(owner) {
   const target = owner.getInputTargetBlock('COLUMN');
@@ -316,6 +323,14 @@ export function defineTableBlocks() {
     nextStatement: null,
   }));
 
+  const showRowFor = (block, hiddenModes) => {
+    const showRow = (mode) => block.getInput('ROW').setVisible(!hiddenModes.includes(mode));
+    block.getField('MODE').setValidator((mode) => {
+      showRow(mode);
+      return mode;
+    });
+  };
+
   defineTableBlock(
     'table_delete_row',
     () => ({
@@ -336,11 +351,7 @@ export function defineTableBlocks() {
       nextStatement: null,
     }),
     function () {
-      const showRow = (mode) => this.getInput('ROW').setVisible(mode !== 'ALL');
-      this.getField('MODE').setValidator((mode) => {
-        showRow(mode);
-        return mode;
-      });
+      showRowFor(this, ['ALL']);
     }
   );
 
@@ -369,9 +380,63 @@ export function defineTableBlocks() {
     output: 'Array',
   }));
 
-  defineTableBlock('table_get_row', () => ({
-    args0: [{ type: 'input_value', name: 'ROW', check: 'Number' }, tableField()],
-    output: null,
+  defineTableBlock(
+    'table_get_row',
+    () => ({
+      args0: [
+        {
+          type: 'field_dropdown',
+          name: 'MODE',
+          options: [
+            [translate('table_get_row_option'), 'ROW'],
+            [translate('table_get_first_row_option'), 'FIRST'],
+            [translate('table_get_last_row_option'), 'LAST'],
+            [translate('table_get_random_row_option'), 'RANDOM'],
+          ],
+        },
+        { type: 'input_dummy', name: 'MODE_ROW' },
+        { type: 'input_value', name: 'ROW', check: 'Number' },
+        tableField(),
+      ],
+      output: null,
+    }),
+    function () {
+      showRowFor(this, ['FIRST', 'LAST', 'RANDOM']);
+    }
+  );
+
+  defineTableBlock('table_find_row', () => ({
+    args0: [
+      {
+        type: 'field_dropdown',
+        name: 'WHERE',
+        options: [
+          [translate('table_find_first_option'), 'FIRST'],
+          [translate('table_find_last_option'), 'LAST'],
+        ],
+      },
+      tableField(),
+      { type: 'input_value', name: 'COLUMN', check: 'String' },
+      { type: 'input_value', name: 'VALUE' },
+    ],
+    output: 'Number',
+  }));
+
+  defineTableBlock('table_sort', () => ({
+    args0: [
+      tableField(),
+      { type: 'input_value', name: 'COLUMN', check: 'String' },
+      {
+        type: 'field_dropdown',
+        name: 'ORDER',
+        options: [
+          [translate('table_sort_ascending_option'), 'ASCENDING'],
+          [translate('table_sort_descending_option'), 'DESCENDING'],
+        ],
+      },
+    ],
+    previousStatement: null,
+    nextStatement: null,
   }));
 
   defineTableBlock('table_row_count', () => ({
