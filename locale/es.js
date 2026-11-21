@@ -1521,6 +1521,12 @@ export default {
   table_not_a_row:
     'Eso no es una fila de tabla. Usa una fila de un bloque para cada fila o de un bloque fila de.', // ai
   table_loop_same_variable: 'Usa variables distintas para la fila y su número.', // ai
+  new_table_decision: 'Nueva tabla...', // ai
+  rename_table_option: "Renombrar la tabla '%1'", // ai
+  delete_table_option: "Borrar la tabla '%1'", // ai
+  new_table_title: 'Nombre de tabla nueva:', // ai
+  rename_table_title: "Renombrar todas las tablas '%1' a:", // ai
+  delete_table_confirmation: "¿Borrar %1 usos de la tabla '%2'?", // ai
   animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
   sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
   text_creation_failed:

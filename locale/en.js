@@ -1618,6 +1618,12 @@ export default {
   table_not_a_row:
     "That isn't a table row. Use the row from a for each row block or a row of block.",
   table_loop_same_variable: 'Use different variables for the row and its number.',
+  new_table_decision: 'New table...',
+  rename_table_option: "Rename the '%1' table",
+  delete_table_option: "Delete the '%1' table",
+  new_table_title: 'New table name:',
+  rename_table_title: "Rename all '%1' tables to:",
+  delete_table_confirmation: "Delete %1 uses of the '%2' table?",
   animation_group_not_found: "Couldn't find an animation called {group}.",
   sound_load_failed: "The sound {sound} couldn't be loaded.",
   text_creation_failed: "The 3D text couldn't be made. Try different text or another font.",

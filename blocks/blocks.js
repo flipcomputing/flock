@@ -2586,6 +2586,19 @@ Blockly.FieldVariable.prototype.getOptions = function (...args) {
   return options;
 };
 
+const originalLoadState = Blockly.FieldVariable.prototype.loadState;
+Blockly.FieldVariable.prototype.loadState = function (state) {
+  const nameOnly = state && typeof state === 'object' && !state.id && !state.type && state.name;
+  const variableMap =
+    nameOnly && !this.variableTypes && this.getSourceBlock()?.workspace.getVariableMap();
+  if (variableMap && !variableMap.getVariable(state.name, '')) {
+    const key = state.name.toLowerCase();
+    const typed = variableMap.getAllVariables().find((v) => v.getName().toLowerCase() === key);
+    if (typed) state = { ...state, id: typed.getId() };
+  }
+  originalLoadState.call(this, state);
+};
+
 // Save a reference to the original `onItemSelected_` method
 const originalOnItemSelected = Blockly.FieldVariable.prototype.onItemSelected_;
 Blockly.FieldVariable.prototype.onItemSelected_ = function (menu, menuItem) {

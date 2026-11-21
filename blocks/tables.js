@@ -5,8 +5,78 @@ import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip } from '../main/translation.js';
 
 export const TABLE_LOOP_TYPE = 'table_for_each_row';
+const TABLE_VARIABLE_TYPE = 'Table';
+const TABLE_FIELD = 'field_table_variable';
 
-const tableField = (name = 'TABLE') => ({ type: 'field_variable', name, variable: 'table1' });
+class FieldTableVariable extends Blockly.FieldVariable {
+  static fromJson(options) {
+    return super.fromJson({
+      ...options,
+      variableTypes: [TABLE_VARIABLE_TYPE],
+      defaultType: TABLE_VARIABLE_TYPE,
+    });
+  }
+
+  loadState(state) {
+    if (state && typeof state === 'object' && !state.type) {
+      const variableMap = this.getSourceBlock()?.workspace.getVariableMap();
+      const untyped =
+        (state.id && variableMap?.getVariableById(state.id)) ||
+        (state.name && variableMap?.getVariable(state.name, ''));
+      if (untyped?.getType() === '') variableMap.changeVariableType(untyped, TABLE_VARIABLE_TYPE);
+      state = { ...state, type: TABLE_VARIABLE_TYPE };
+    }
+    super.loadState(state);
+  }
+
+  getOptions(useCache) {
+    const name = this.getText();
+    const labels = {
+      [Blockly.FieldVariable.ADD_VARIABLE_ID]: translate('new_table_decision'),
+      [Blockly.RENAME_VARIABLE_ID]: translate('rename_table_option').replace('%1', name),
+      [Blockly.DELETE_VARIABLE_ID]: translate('delete_table_option').replace('%1', name),
+    };
+    return super.getOptions(useCache).map(([label, id]) => [labels[id] ?? label, id]);
+  }
+
+  onItemSelected_(menu, menuItem) {
+    const workspace = this.getSourceBlock().workspace;
+    if (menuItem.getValue() !== Blockly.FieldVariable.ADD_VARIABLE_ID) {
+      withTableMessages(() => super.onItemSelected_(menu, menuItem));
+      return;
+    }
+    withTableMessages(() =>
+      Blockly.Variables.createVariableButtonHandler(
+        workspace,
+        (name) => {
+          const variable =
+            name && workspace.getVariableMap().getVariable(name, TABLE_VARIABLE_TYPE);
+          if (variable) this.setValue(variable.getId());
+        },
+        TABLE_VARIABLE_TYPE
+      )
+    );
+  }
+}
+
+function withTableMessages(action) {
+  const messages = {
+    NEW_VARIABLE_TITLE: translate('new_table_title'),
+    RENAME_VARIABLE_TITLE: translate('rename_table_title'),
+    DELETE_VARIABLE_CONFIRMATION: translate('delete_table_confirmation'),
+  };
+  const saved = Object.fromEntries(Object.keys(messages).map((key) => [key, Blockly.Msg[key]]));
+  Object.assign(Blockly.Msg, messages);
+  try {
+    action();
+  } finally {
+    Object.assign(Blockly.Msg, saved);
+  }
+}
+
+Blockly.fieldRegistry.register(TABLE_FIELD, FieldTableVariable);
+
+const tableField = (name = 'TABLE') => ({ type: TABLE_FIELD, name, variable: 'table1' });
 
 function defineTableBlock(type, json, setup) {
   Blockly.Blocks[type] = {
@@ -30,7 +100,7 @@ export function defineTableBlocks() {
 
   defineTableBlock('table_create', (block) => ({
     args0: [
-      { type: 'field_variable', name: 'VAR', variable: nextVariableName(block, 'table') },
+      { type: TABLE_FIELD, name: 'VAR', variable: nextVariableName(block, 'table') },
       { type: 'input_value', name: 'COLUMNS', check: 'Array' },
     ],
     previousStatement: null,

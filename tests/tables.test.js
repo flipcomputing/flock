@@ -1,8 +1,10 @@
 import { expect } from 'chai';
+import * as Blockly from 'blockly';
 import { compileFlockProject } from './utils/flockCompilerTestUtils.js';
 import { toolbox } from '../toolbox.js';
 import { EXAMPLES } from '../main/examples.js';
 import { tableRowText } from '../api/tables.js';
+import { defineTableBlocks } from '../blocks/tables.js';
 
 const text = (TEXT) => ({ shadow: { type: 'text', fields: { TEXT } } });
 const num = (NUM) => ({ shadow: { type: 'math_number', fields: { NUM } } });
@@ -486,6 +488,132 @@ export function runTablesTests(flock) {
         expect(names).to.have.length(4);
         expect(events).to.include('side');
         expect(problems).to.deep.equal([]);
+      });
+    });
+
+    describe('variable type', function () {
+      let workspace;
+
+      before(function () {
+        if (!Blockly.Blocks.table_create) defineTableBlocks();
+      });
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      const tableVariable = (name) =>
+        workspace
+          .getVariableMap()
+          .getAllVariables()
+          .find((variable) => variable.getName() === name);
+
+      it('makes table variables that only table dropdowns and not the Variables flyout list', function () {
+        Blockly.serialization.workspaces.load(project(...createBuildings().slice(0, 1)), workspace);
+        workspace.createVariable('score', '', 'score-id');
+        expect(tableVariable('Buildings').getType()).to.equal('Table');
+        const [creator] = workspace.getBlocksByType('table_create', false);
+        const options = creator
+          .getField('VAR')
+          .getOptions(false)
+          .map(([label]) => label);
+        expect(options).to.include('Buildings');
+        expect(options).not.to.include('score');
+        const untyped = workspace.getVariableMap().getVariablesOfType('');
+        expect(untyped.map((variable) => variable.getName())).to.deep.equal(['score']);
+      });
+
+      it('words the dropdown actions for tables', function () {
+        Blockly.serialization.workspaces.load(project(...createBuildings().slice(0, 1)), workspace);
+        const [creator] = workspace.getBlocksByType('table_create', false);
+        const labels = creator
+          .getField('VAR')
+          .getOptions(false)
+          .map(([label]) => label);
+        expect(labels).to.include.members([
+          'New table...',
+          "Rename the 'Buildings' table",
+          "Delete the 'Buildings' table",
+        ]);
+      });
+
+      it('creates a table variable from New table...', function () {
+        Blockly.serialization.workspaces.load(project(...createBuildings().slice(0, 1)), workspace);
+        const [creator] = workspace.getBlocksByType('table_create', false);
+        workspace.getFlyout = () => null;
+        let promptText;
+        Blockly.dialog.setPrompt((message, _default, callback) => {
+          promptText = message;
+          callback('Scores');
+        });
+        try {
+          creator
+            .getField('VAR')
+            .onItemSelected_(null, { getValue: () => Blockly.FieldVariable.ADD_VARIABLE_ID });
+        } finally {
+          Blockly.dialog.setPrompt();
+        }
+        expect(promptText).to.equal('New table name:');
+        expect(creator.getField('VAR').getText()).to.equal('Scores');
+        expect(tableVariable('Scores').getType()).to.equal('Table');
+        expect(Blockly.Msg.NEW_VARIABLE_TITLE).not.to.equal('New table name:');
+      });
+
+      it('retypes an untyped variable from an older project and keeps it on the block', function () {
+        const json = {
+          ...project(
+            block('table_create', {
+              fields: { VAR: { id: 'old-id' } },
+              inputs: { COLUMNS: list(text('Name')) },
+            })
+          ),
+          variables: [{ name: 'Buildings', id: 'old-id' }],
+        };
+        Blockly.serialization.workspaces.load(json, workspace);
+        const [creator] = workspace.getBlocksByType('table_create', false);
+        expect(creator.getFieldValue('VAR')).to.equal('old-id');
+        expect(workspace.getVariableById('old-id').getType()).to.equal('Table');
+        expect(workspace.getVariableMap().getAllVariables()).to.have.length(1);
+      });
+
+      it('keeps a name-only getter on the same variable as its retyped table', function () {
+        const json = {
+          ...project(
+            chain(
+              block('table_create', {
+                fields: { VAR: { name: 'Buildings' } },
+                inputs: { COLUMNS: list(text('Name')) },
+              }),
+              print(value(block('variables_get', { fields: { VAR: { name: 'Buildings' } } })))
+            )
+          ),
+          variables: [{ name: 'Buildings', id: 'old-id' }],
+        };
+        Blockly.serialization.workspaces.load(json, workspace);
+        const [getter] = workspace.getBlocksByType('variables_get', false);
+        expect(getter.getFieldValue('VAR')).to.equal('old-id');
+        expect(workspace.getVariableMap().getAllVariables()).to.have.length(1);
+      });
+
+      it('reuses an untyped variable by name when the field id is stale', function () {
+        const json = {
+          ...project(
+            block('table_create', {
+              fields: { VAR: { id: 'old-id', name: 'Buildings' } },
+              inputs: { COLUMNS: list(text('Name')) },
+            })
+          ),
+          variables: [{ name: 'Buildings', id: 'current-id' }],
+        };
+        Blockly.serialization.workspaces.load(json, workspace);
+        const [creator] = workspace.getBlocksByType('table_create', false);
+        expect(creator.getFieldValue('VAR')).to.equal('current-id');
+        expect(workspace.getVariableById('current-id').getType()).to.equal('Table');
+        expect(workspace.getVariableMap().getAllVariables()).to.have.length(1);
       });
     });
 
