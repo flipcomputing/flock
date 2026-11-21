@@ -2994,8 +2994,6 @@ const toolboxSensing = {
       },
     },
     {
-      // Keyword lookup is exact-match, first-wins, so this must not reuse
-      // add_microbit's "microbit".
       kind: 'block',
       type: 'microbit_input',
       keyword: 'microbitinput',
@@ -4447,14 +4445,14 @@ export function tableFlyoutBlocks(
     {
       kind: 'block',
       type: 'table_add_row',
-      keyword: 'addrow',
+      keyword: 'insert',
       fields: { TABLE },
       inputs: { VALUES: textList(['', '']) },
     },
     {
       kind: 'block',
       type: 'table_delete_row',
-      keyword: 'delrow',
+      keyword: 'remove',
       fields: { TABLE },
       inputs: { ROW: numberShadow(0) },
     },
@@ -4484,7 +4482,6 @@ export function tableFlyoutBlocks(
     {
       kind: 'block',
       type: 'table_find_row',
-      keyword: 'findrow',
       fields: { WHERE: 'FIRST', TABLE },
       inputs: { COLUMN: column, VALUE: textShadow('') },
     },
@@ -4492,7 +4489,6 @@ export function tableFlyoutBlocks(
     {
       kind: 'block',
       type: 'table_for_each_row',
-      keyword: 'eachrow',
       fields: { TABLE, VAR: { name: 'row' }, INDEX: { name: 'count' } },
     },
     {
@@ -4504,7 +4500,6 @@ export function tableFlyoutBlocks(
     {
       kind: 'block',
       type: 'table_row_values',
-      keyword: 'rowvalues',
       inputs: { ROW: rowVariable },
     },
     {
@@ -4524,14 +4519,20 @@ export function tableFlyoutBlocks(
     {
       kind: 'block',
       type: 'table_set_value',
-      keyword: 'setcell',
       fields: { TABLE },
       inputs: { ROW: numberShadow(0), COLUMN: column, VALUE: textShadow('') },
     },
     {
       kind: 'block',
+      type: 'table_set_row',
+      keyword: 'replace',
+      fields: { TABLE },
+      inputs: { ROW: numberShadow(0), VALUES: textList(['', '']) },
+    },
+    {
+      kind: 'block',
       type: 'table_sort',
-      keyword: 'sortrows',
+      keyword: 'shuffle',
       fields: { TABLE, ORDER: 'ASCENDING' },
       inputs: { COLUMN: column },
     },

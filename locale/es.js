@@ -381,12 +381,15 @@ export default {
   subtitle: 'subtítulo %1 por %2 segundos', // ai
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
   table_create: 'crear tabla %1 con columnas %2', // ai
-  table_add_row: 'añadir fila a %1 %2', // ai
+  table_add_row: 'añadir fila a %1 %2 %3 %4 %5', // ai
+  table_add_row_end_option: 'al final', // ai
+  table_add_row_at_option: 'en la fila', // ai
   table_delete_row: 'borrar %1 %2 %3 de %4', // ai
   table_delete_row_option: 'fila', // ai
   table_delete_all_rows_option: 'todas las filas', // ai
   table_get_value: 'valor en %1 fila %2 columna %3', // ai
   table_set_value: 'poner en %1 fila %2 columna %3 el valor %4', // ai
+  table_set_row: 'poner en %1 fila %2 los valores %3', // ai
   table_get_column: 'columna %1 de %2', // ai
   table_get_row: '%1 %2 %3 de %4', // ai
   table_get_row_option: 'fila', // ai
@@ -1411,9 +1414,11 @@ export default {
   table_create_tooltip:
     'Crea una tabla con estos nombres de columna. Si la vuelves a crear, se vacía.', // ai
   table_add_row_tooltip:
-    'Añade una fila al final de la tabla. Da un valor para cada columna, en el orden de las columnas.', // ai
+    'Añade una fila al final de la tabla, o en un número de fila. Las filas desde ese número bajan una posición. Da un valor para cada columna, en el orden de las columnas. Las filas empiezan en 0.', // ai
   table_get_value_tooltip: 'El valor de una celda de la tabla. Las filas empiezan en 0.', // ai
   table_set_value_tooltip: 'Cambia el valor de una celda de la tabla. Las filas empiezan en 0.', // ai
+  table_set_row_tooltip:
+    'Cambia todos los valores de una fila. Da un valor para cada columna, en el orden de las columnas. Las filas empiezan en 0.', // ai
   table_get_column_tooltip: 'Todos los valores de una columna, como una lista.', // ai
   table_get_row_tooltip:
     'Una fila de la tabla: por su número, o la primera, la última o una al azar. Usa un bloque «de» para leer una columna. Las filas empiezan en 0.', // ai

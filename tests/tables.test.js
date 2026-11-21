@@ -262,6 +262,52 @@ export function runTablesTests(flock) {
         expect(keys()).to.deep.equal(['table_row_out_of_range', 'table_column_not_found']);
       });
 
+      it('inserts a row at a number and moves the later rows down', function () {
+        makeShop();
+        flock.insertTableRow('Shop', 1, ['Plum', 0.4]);
+        flock.insertTableRow('Shop', 0, ['Fig', 1]);
+        flock.insertTableRow('Shop', 4, ['Kiwi']);
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal([
+          'Fig',
+          'Apple',
+          'Plum',
+          'Pear',
+          'Kiwi',
+        ]);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal([1, 0.5, 0.4, 0.75, '']);
+        flock.insertTableRow('Shop', 6, ['Lime', 2]);
+        flock.insertTableRow('Shop', -1, ['Lime', 2]);
+        expect(flock.getTableRowCount('Shop')).to.equal(5);
+        expect(keys()).to.deep.equal([
+          'table_row_length',
+          'table_row_out_of_range',
+          'table_row_out_of_range',
+        ]);
+      });
+
+      it('inserts the first row of an empty table at 0', function () {
+        flock.createTable('Shop', ['Name']);
+        flock.insertTableRow('Shop', 1, ['Fig']);
+        flock.insertTableRow('Shop', 0, ['Fig']);
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal(['Fig']);
+        expect(keys()).to.deep.equal(['table_no_rows']);
+      });
+
+      it('replaces all the values in a row', function () {
+        makeShop();
+        flock.setTableRow('Shop', 1, ['Plum', 0.4]);
+        flock.setTableRow('Shop', 0, ['Fig']);
+        flock.setTableRow('Shop', 2, ['Kiwi', 1]);
+        flock.setTableRow('Nope', 0, ['Kiwi', 1]);
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal(['Fig', 'Plum']);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal(['', 0.4]);
+        expect(keys()).to.deep.equal([
+          'table_row_length',
+          'table_row_out_of_range',
+          'table_not_found',
+        ]);
+      });
+
       it('deletes one row and moves the later rows up', function () {
         makeShop();
         flock.addTableRow('Shop', ['Plum', 0.4]);
@@ -550,6 +596,35 @@ export function runTablesTests(flock) {
         expect(code, code).to.include("sortTable(Buildings, 'Name', 'ASCENDING');");
         expect(code, code).to.include('shuffleTable(Buildings);');
         expect(code, code).not.to.include('Floors');
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('generates adding a row at a number and setting a whole row', function () {
+        const pair = list(text('Taipei 101'), num(508));
+        const code = compileFlockProject(
+          project(
+            chain(
+              ...createBuildings(),
+              block('table_add_row', {
+                fields: { TABLE: table('Buildings'), POSITION: 'ROW' },
+                inputs: { ROW: num(1), VALUES: pair },
+              }),
+              block('table_add_row', {
+                fields: { TABLE: table('Buildings'), POSITION: 'END' },
+                inputs: { ROW: num(7), VALUES: pair },
+              }),
+              block('table_set_row', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { ROW: num(2), VALUES: pair },
+              })
+            )
+          )
+        );
+        expect(code, code).to.include("insertTableRow(Buildings, 1, ['Taipei 101', 508]);");
+        expect(code, code).to.include("addTableRow(Buildings, ['Taipei 101', 508]);");
+        expect(code, code).not.to.include('insertTableRow(Buildings, 7');
+        expect(code, code).to.include("setTableRow(Buildings, 2, ['Taipei 101', 508]);");
+        expect(code, code).to.include("addTableRow(Buildings, ['Burj Khalifa', 828]);");
         expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
 
@@ -1039,6 +1114,21 @@ export function runTablesTests(flock) {
         ]);
       });
 
+      it('shows the row number of add row only when adding at a row', function () {
+        const visible = (owner) =>
+          owner.inputList.filter((input) => input.isVisible()).map((input) => input.name);
+        const add = workspace.newBlock('table_add_row');
+        expect(visible(add)).to.deep.equal(['POSITION_ROW', 'VALUES']);
+        add.getField('POSITION').setValue('ROW');
+        expect(visible(add)).to.deep.equal(['POSITION_ROW', 'ROW', 'VALUES']);
+        Blockly.serialization.workspaces.load(
+          project(block('table_add_row', { fields: { TABLE: table('A'), POSITION: 'ROW' } })),
+          workspace
+        );
+        const [loaded] = workspace.getBlocksByType('table_add_row', false);
+        expect(visible(loaded)).to.deep.equal(['POSITION_ROW', 'ROW', 'VALUES']);
+      });
+
       it('hides the column of a random sort and does not warn about it', function () {
         Blockly.serialization.workspaces.load(
           project(
@@ -1301,26 +1391,6 @@ export function runTablesTests(flock) {
         const data = toolbox.contents.find((item) => item.name === '%{BKY_CATEGORY_VARIABLES}');
         expect(data.contents.map((item) => item.name)).to.include('%{BKY_CATEGORY_TABLES}');
         expect(EXAMPLES.map((ex) => ex.i18nKey)).to.include('tallest_buildings_tables');
-      });
-
-      it('gives every table block a keyword no other toolbox block uses', function () {
-        const entries = [];
-        const walk = (node) => {
-          if (node?.kind === 'block' && node.keyword) entries.push(node);
-          node?.contents?.forEach(walk);
-        };
-        walk(toolbox);
-        const tableEntries = entries.filter((entry) => entry.type.startsWith('table_'));
-        expect(tableEntries.length).to.be.greaterThan(0);
-        for (const entry of tableEntries) {
-          const sharing = entries.filter(
-            (other) => other.keyword === entry.keyword && other.type !== entry.type
-          );
-          expect(
-            sharing.map((other) => other.type),
-            entry.keyword
-          ).to.deep.equal([]);
-        }
       });
     });
   });

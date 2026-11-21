@@ -93,6 +93,17 @@ export function uniqueColumnNames(columns, onRenamed = () => {}) {
   return result;
 }
 
+function rowFrom(api, name, table, values) {
+  const given = Array.isArray(values) ? values : [values];
+  const count = table.columns.length;
+  if (given.length !== count) {
+    report(api, 'table_row_length', { table: name, given: given.length, count });
+  }
+  const row = [];
+  for (let i = 0; i < count; i++) row.push(i < given.length ? cellValue(given[i]) : '');
+  return row;
+}
+
 function uniqueColumns(name, columns) {
   return uniqueColumnNames(columns, (column, renamed) =>
     report('createTable', 'table_duplicate_column', { table: name, column, renamed })
@@ -107,15 +118,23 @@ export const flockTables = {
   },
   addTableRow(name, values) {
     const table = findTable('addTableRow', name);
+    if (table) table.rows.push(rowFrom('addTableRow', name, table, values));
+  },
+  insertTableRow(name, row, values) {
+    const table = findTable('insertTableRow', name);
     if (!table) return;
-    const given = Array.isArray(values) ? values : [values];
-    const count = table.columns.length;
-    if (given.length !== count) {
-      report('addTableRow', 'table_row_length', { table: name, given: given.length, count });
+    const index = Number(row);
+    if (Number.isInteger(index) && index >= 0 && index <= table.rows.length) {
+      table.rows.splice(index, 0, rowFrom('insertTableRow', name, table, values));
+    } else {
+      findRow('insertTableRow', table, name, row);
     }
-    const row = [];
-    for (let i = 0; i < count; i++) row.push(i < given.length ? cellValue(given[i]) : '');
-    table.rows.push(row);
+  },
+  setTableRow(name, row, values) {
+    const table = findTable('setTableRow', name);
+    if (!table) return;
+    const r = findRow('setTableRow', table, name, row);
+    if (r !== -1) table.rows[r] = rowFrom('setTableRow', name, table, values);
   },
   deleteTableRow(name, row) {
     const table = findTable('deleteTableRow', name);

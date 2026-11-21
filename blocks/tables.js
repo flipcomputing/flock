@@ -318,19 +318,40 @@ export function defineTableBlocks() {
     nextStatement: null,
   }));
 
-  defineTableBlock('table_add_row', () => ({
-    args0: [tableField(), { type: 'input_value', name: 'VALUES', check: 'Array' }],
-    previousStatement: null,
-    nextStatement: null,
-  }));
-
-  const showRowFor = (block, hiddenModes) => {
+  const showRowFor = (block, hiddenModes, fieldName = 'MODE') => {
     const showRow = (mode) => block.getInput('ROW').setVisible(!hiddenModes.includes(mode));
-    block.getField('MODE').setValidator((mode) => {
+    const field = block.getField(fieldName);
+    field.setValidator((mode) => {
       showRow(mode);
       return mode;
     });
+    showRow(field.getValue());
   };
+
+  defineTableBlock(
+    'table_add_row',
+    () => ({
+      args0: [
+        tableField(),
+        {
+          type: 'field_dropdown',
+          name: 'POSITION',
+          options: [
+            [translate('table_add_row_end_option'), 'END'],
+            [translate('table_add_row_at_option'), 'ROW'],
+          ],
+        },
+        { type: 'input_dummy', name: 'POSITION_ROW' },
+        { type: 'input_value', name: 'ROW', check: 'Number' },
+        { type: 'input_value', name: 'VALUES', check: 'Array' },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    }),
+    function () {
+      showRowFor(this, ['END'], 'POSITION');
+    }
+  );
 
   defineTableBlock(
     'table_delete_row',
@@ -371,6 +392,16 @@ export function defineTableBlocks() {
       { type: 'input_value', name: 'ROW', check: 'Number' },
       { type: 'input_value', name: 'COLUMN', check: 'String' },
       { type: 'input_value', name: 'VALUE' },
+    ],
+    previousStatement: null,
+    nextStatement: null,
+  }));
+
+  defineTableBlock('table_set_row', () => ({
+    args0: [
+      tableField(),
+      { type: 'input_value', name: 'ROW', check: 'Number' },
+      { type: 'input_value', name: 'VALUES', check: 'Array' },
     ],
     previousStatement: null,
     nextStatement: null,

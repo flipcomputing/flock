@@ -17,7 +17,11 @@ export function registerTablesGenerators(javascriptGenerator) {
   };
 
   javascriptGenerator.forBlock['table_add_row'] = function (block) {
-    return `addTableRow(${tableVar(block)}, ${value(block, 'VALUES', '[]')});\n`;
+    const values = value(block, 'VALUES', '[]');
+    if (block.getFieldValue('POSITION') === 'ROW') {
+      return `insertTableRow(${tableVar(block)}, ${value(block, 'ROW', '0')}, ${values});\n`;
+    }
+    return `addTableRow(${tableVar(block)}, ${values});\n`;
   };
 
   javascriptGenerator.forBlock['table_delete_row'] = function (block) {
@@ -36,6 +40,11 @@ export function registerTablesGenerators(javascriptGenerator) {
     const column = value(block, 'COLUMN', '""');
     const newValue = value(block, 'VALUE', '""');
     return `setTableValue(${tableVar(block)}, ${row}, ${column}, ${newValue});\n`;
+  };
+
+  javascriptGenerator.forBlock['table_set_row'] = function (block) {
+    const row = value(block, 'ROW', '0');
+    return `setTableRow(${tableVar(block)}, ${row}, ${value(block, 'VALUES', '[]')});\n`;
   };
 
   javascriptGenerator.forBlock['table_get_column'] = function (block) {
