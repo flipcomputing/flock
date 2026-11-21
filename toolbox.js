@@ -4440,6 +4440,13 @@ export function tableFlyoutBlocks(table, freshTable) {
       fields: { TABLE },
       inputs: { VALUES: textList(['', '']) },
     },
+    {
+      kind: 'block',
+      type: 'table_delete_row',
+      keyword: 'delrow',
+      fields: { TABLE },
+      inputs: { ROW: numberShadow(0) },
+    },
     { kind: 'sep', gap: 24 },
     {
       kind: 'block',

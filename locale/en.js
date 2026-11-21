@@ -424,6 +424,9 @@ export default {
   say: 'say %1 for %2 s %3 \ntext: %4 on: %5 alpha: %6 size: %7 %8 %9',
   table_create: 'create table %1 with columns %2',
   table_add_row: 'add row to %1 %2',
+  table_delete_row: 'delete %1 %2 %3 from %4',
+  table_delete_row_option: 'row',
+  table_delete_all_rows_option: 'all rows',
   table_get_value: 'value in %1 row %2 column %3',
   table_set_value: 'set %1 row %2 column %3 to %4',
   table_get_column: 'column %1 of %2',
@@ -1505,6 +1508,8 @@ export default {
   table_for_each_row_tooltip:
     'Run the blocks inside once for each row. The first variable holds the row and the second holds its number, starting at 0.',
   table_row_value_tooltip: 'The value in this column of a row.',
+  table_delete_row_tooltip:
+    'Delete one row from the table, or all its rows. Rows count from 0, and the rows after a deleted row move up by one.',
   code_workspace_focused: 'Code workspace focused',
   interactive_element_label: 'Interactive element',
   panel_resizer_focused: 'Panel resizer focused. Use arrow keys to resize panels, Home to reset.',

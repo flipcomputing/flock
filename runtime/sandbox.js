@@ -715,6 +715,8 @@ export const flockSandbox = {
       createVector3: this.createVector3?.bind(this),
       createTable: this.createTable?.bind(this),
       addTableRow: this.addTableRow?.bind(this),
+      deleteTableRow: this.deleteTableRow?.bind(this),
+      deleteAllTableRows: this.deleteAllTableRows?.bind(this),
       getTableValue: this.getTableValue?.bind(this),
       setTableValue: this.setTableValue?.bind(this),
       getTableColumn: this.getTableColumn?.bind(this),

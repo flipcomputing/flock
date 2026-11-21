@@ -382,6 +382,9 @@ export default {
   say: 'decir %1 por %2 s %3 \ntexto %4 en: %5 alfa %6 tamaño %7 %8 %9', // human
   table_create: 'crear tabla %1 con columnas %2', // ai
   table_add_row: 'añadir fila a %1 %2', // ai
+  table_delete_row: 'borrar %1 %2 %3 de %4', // ai
+  table_delete_row_option: 'fila', // ai
+  table_delete_all_rows_option: 'todas las filas', // ai
   table_get_value: 'valor en %1 fila %2 columna %3', // ai
   table_set_value: 'poner en %1 fila %2 columna %3 el valor %4', // ai
   table_get_column: 'columna %1 de %2', // ai
@@ -1406,6 +1409,8 @@ export default {
   table_for_each_row_tooltip:
     'Ejecuta los bloques de dentro una vez por cada fila. La primera variable contiene la fila y la segunda su número, empezando por 0.', // ai
   table_row_value_tooltip: 'El valor de esta columna en una fila.', // ai
+  table_delete_row_tooltip:
+    'Borra una fila de la tabla, o todas sus filas. Las filas empiezan en 0, y las filas que siguen a una fila borrada suben un puesto.', // ai
   code_workspace_focused: 'Espacio de trabajo de código enfocado', // human
   interactive_element_label: 'Elemento interactivo', // human
   panel_resizer_focused:

@@ -244,6 +244,26 @@ export function runTablesTests(flock) {
         expect([...flock.getTableRow('Shop', 0).values]).to.deep.equal(['Apple', 0.5]);
         expect(keys()).to.deep.equal(['table_row_out_of_range', 'table_column_not_found']);
       });
+
+      it('deletes one row and moves the later rows up', function () {
+        makeShop();
+        flock.addTableRow('Shop', ['Plum', 0.4]);
+        flock.deleteTableRow('Shop', 1);
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal(['Apple', 'Plum']);
+        flock.deleteTableRow('Shop', 5);
+        expect(flock.getTableRowCount('Shop')).to.equal(2);
+        expect(keys()).to.deep.equal(['table_row_out_of_range']);
+      });
+
+      it('deletes all rows and keeps the columns', function () {
+        makeShop();
+        flock.deleteAllTableRows('Shop');
+        expect(flock.getTableRowCount('Shop')).to.equal(0);
+        flock.addTableRow('Shop', ['Plum', 0.4]);
+        expect(flock.getTableValue('Shop', 0, 'Price')).to.equal(0.4);
+        flock.deleteAllTableRows('Nope');
+        expect(keys()).to.deep.equal(['table_not_found']);
+      });
     });
 
     describe('generators', function () {
@@ -280,13 +300,23 @@ export function runTablesTests(flock) {
                   })
                 )
               ),
-              print(value(block('table_row_count', { fields: { TABLE: table('Buildings') } })))
+              print(value(block('table_row_count', { fields: { TABLE: table('Buildings') } }))),
+              block('table_delete_row', {
+                fields: { MODE: 'ROW', TABLE: table('Buildings') },
+                inputs: { ROW: num(1) },
+              }),
+              block('table_delete_row', {
+                fields: { MODE: 'ALL', TABLE: table('Buildings') },
+                inputs: { ROW: num(0) },
+              })
             )
           )
         );
         expect(code, code).to.include(`Buildings = createTable("Buildings", ['Name', 'Height']);`);
         expect(code, code).to.include("addTableRow(Buildings, ['Burj Khalifa', 828]);");
         expect(code, code).to.include("setTableValue(Buildings, 0, 'Height', 830);");
+        expect(code, code).to.include('deleteTableRow(Buildings, 1);');
+        expect(code, code).to.include('deleteAllTableRows(Buildings);');
         expect(code, code).to.include("getTableValue(Buildings, 1, 'Name')");
         expect(code, code).to.include('getTableRow(Buildings, 0)');
         expect(code, code).to.include("getTableColumn(Buildings, 'Name')");

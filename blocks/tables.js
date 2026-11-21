@@ -113,6 +113,34 @@ export function defineTableBlocks() {
     nextStatement: null,
   }));
 
+  defineTableBlock(
+    'table_delete_row',
+    () => ({
+      args0: [
+        {
+          type: 'field_dropdown',
+          name: 'MODE',
+          options: [
+            [translate('table_delete_row_option'), 'ROW'],
+            [translate('table_delete_all_rows_option'), 'ALL'],
+          ],
+        },
+        { type: 'input_dummy', name: 'MODE_ROW' },
+        { type: 'input_value', name: 'ROW', check: 'Number' },
+        tableField(),
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    }),
+    function () {
+      const showRow = (mode) => this.getInput('ROW').setVisible(mode !== 'ALL');
+      this.getField('MODE').setValidator((mode) => {
+        showRow(mode);
+        return mode;
+      });
+    }
+  );
+
   defineTableBlock('table_get_value', () => ({
     args0: [
       tableField(),

@@ -90,6 +90,16 @@ export const flockTables = {
     for (let i = 0; i < count; i++) row.push(i < given.length ? cellValue(given[i]) : '');
     table.rows.push(row);
   },
+  deleteTableRow(name, row) {
+    const table = findTable('deleteTableRow', name);
+    if (!table) return;
+    const r = findRow('deleteTableRow', table, name, row);
+    if (r !== -1) table.rows.splice(r, 1);
+  },
+  deleteAllTableRows(name) {
+    const table = findTable('deleteAllTableRows', name);
+    if (table) table.rows = [];
+  },
   getTableValue(name, row, column) {
     const table = findTable('getTableValue', name);
     if (!table) return '';

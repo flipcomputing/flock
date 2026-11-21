@@ -20,6 +20,11 @@ export function registerTablesGenerators(javascriptGenerator) {
     return `addTableRow(${tableVar(block)}, ${value(block, 'VALUES', '[]')});\n`;
   };
 
+  javascriptGenerator.forBlock['table_delete_row'] = function (block) {
+    if (block.getFieldValue('MODE') === 'ALL') return `deleteAllTableRows(${tableVar(block)});\n`;
+    return `deleteTableRow(${tableVar(block)}, ${value(block, 'ROW', '0')});\n`;
+  };
+
   javascriptGenerator.forBlock['table_get_value'] = function (block) {
     const row = value(block, 'ROW', '0');
     const column = value(block, 'COLUMN', '""');
