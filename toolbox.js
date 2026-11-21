@@ -4456,6 +4456,18 @@ export function tableFlyoutBlocks(
       fields: { TABLE },
       inputs: { ROW: numberShadow(0) },
     },
+    {
+      kind: 'block',
+      type: 'table_add_column',
+      fields: { TABLE },
+      inputs: { NAME: textShadow(translate('table_default_new_column_name')) },
+    },
+    {
+      kind: 'block',
+      type: 'table_delete_column',
+      fields: { TABLE },
+      inputs: { COLUMN: column },
+    },
     { kind: 'sep', gap: 24 },
     {
       kind: 'block',
@@ -4471,6 +4483,7 @@ export function tableFlyoutBlocks(
       fields: { TABLE },
       inputs: { COLUMN: column },
     },
+    { kind: 'block', type: 'table_column_names', fields: { TABLE } },
     {
       kind: 'block',
       type: 'table_get_row',
@@ -4528,6 +4541,12 @@ export function tableFlyoutBlocks(
       keyword: 'replace',
       fields: { TABLE },
       inputs: { ROW: numberShadow(0), VALUES: textList(['', '']) },
+    },
+    {
+      kind: 'block',
+      type: 'table_set_column',
+      fields: { TABLE },
+      inputs: { COLUMN: column },
     },
     {
       kind: 'block',

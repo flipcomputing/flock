@@ -148,6 +148,7 @@ export function runSandboxTests(flock) {
           text:
             column instanceof Array &&
             getRowValues(row) instanceof Array &&
+            getTableColumnNames(t) instanceof Array &&
             typeof row === 'object' &&
             column[0] + getRowValue(row, 'a') + getRowValues(row)[0],
         });

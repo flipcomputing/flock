@@ -384,13 +384,17 @@ export default {
   table_add_row: 'añadir fila a %1 %2 %3 %4 %5', // ai
   table_add_row_end_option: 'al final', // ai
   table_add_row_at_option: 'en la fila', // ai
+  table_add_column: 'añadir columna %1 a %2 con los valores %3', // ai
+  table_delete_column: 'borrar columna %1 de %2', // ai
   table_delete_row: 'borrar %1 %2 %3 de %4', // ai
   table_delete_row_option: 'fila', // ai
   table_delete_all_rows_option: 'todas las filas', // ai
   table_get_value: 'valor en %1 fila %2 columna %3', // ai
   table_set_value: 'poner en %1 fila %2 columna %3 el valor %4', // ai
   table_set_row: 'poner en %1 fila %2 los valores %3', // ai
+  table_set_column: 'poner en %1 columna %2 los valores %3', // ai
   table_get_column: 'columna %1 de %2', // ai
+  table_column_names: 'columnas de %1', // ai
   table_get_row: '%1 %2 %3 de %4', // ai
   table_get_row_option: 'fila', // ai
   table_get_first_row_option: 'primera fila', // ai
@@ -1417,9 +1421,15 @@ export default {
     'Añade una fila al final de la tabla, o en un número de fila. Las filas desde ese número bajan una posición. Da un valor para cada columna, en el orden de las columnas. Las filas empiezan en 0.', // ai
   table_get_value_tooltip: 'El valor de una celda de la tabla. Las filas empiezan en 0.', // ai
   table_set_value_tooltip: 'Cambia el valor de una celda de la tabla. Las filas empiezan en 0.', // ai
+  table_set_column_tooltip:
+    'Cambia todos los valores de una columna. Da una lista con un valor para cada fila, en el orden de las filas. Las filas empiezan en 0.', // ai
   table_set_row_tooltip:
     'Cambia todos los valores de una fila. Da un valor para cada columna, en el orden de las columnas. Las filas empiezan en 0.', // ai
   table_get_column_tooltip: 'Todos los valores de una columna, como una lista.', // ai
+  table_column_names_tooltip: 'Los nombres de las columnas de la tabla, como una lista.', // ai
+  table_delete_column_tooltip: 'Borra una columna y sus valores de todas las filas.', // ai
+  table_add_column_tooltip:
+    'Añade una columna al final de la tabla. Da una lista con un valor para cada fila, en el orden de las filas, o deja los valores vacíos para empezar con celdas en blanco.', // ai
   table_get_row_tooltip:
     'Una fila de la tabla: por su número, o la primera, la última o una al azar. Usa un bloque «de» para leer una columna. Las filas empiezan en 0.', // ai
   table_find_row_tooltip:
@@ -1435,6 +1445,7 @@ export default {
   table_column_menu_tooltip: 'Elige una columna de la tabla o pon aquí un bloque de texto.', // ai
   table_default_column_name: 'Nombre', // ai
   table_default_value_column_name: 'Valor', // ai
+  table_default_new_column_name: 'Puntos', // ai
   table_column_missing_warning: "%1 no tiene una columna llamada '%2'. Sus columnas son: %3.", // ai
   table_delete_row_tooltip:
     'Borra una fila de la tabla, o todas sus filas. Las filas empiezan en 0, y las filas que siguen a una fila borrada suben un puesto.', // ai
@@ -1549,6 +1560,7 @@ export default {
   table_row_out_of_range: '{table} tiene {count} filas (de 0 a {last}), así que no hay fila {row}.', // ai
   table_row_out_of_range_one: '{table} tiene 1 fila (la fila 0), así que no hay fila {row}.', // ai
   table_row_length: 'Esa fila tiene {given} valores, pero {table} tiene {count} columnas.', // ai
+  table_column_length: 'Esa columna tiene {given} valores, pero {table} tiene {count} filas.', // ai
   table_duplicate_column:
     '{table} ya tiene una columna llamada {column}, así que la copia se llama {renamed}.', // ai
   table_not_a_row:

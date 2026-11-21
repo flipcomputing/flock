@@ -198,6 +198,80 @@ export function runTablesTests(flock) {
         expect(keys()).to.deep.equal(['table_not_made']);
       });
 
+      it('adds a column filled from a list or with blank cells', function () {
+        makeShop();
+        flock.addTableColumn('Shop', 'Stock', [3, 7]);
+        flock.addTableColumn('Shop', 'Notes');
+        expect(flock.getTableColumnNames('Shop')).to.deep.equal([
+          'Name',
+          'Price',
+          'Stock',
+          'Notes',
+        ]);
+        expect(flock.getTableColumn('Shop', 'Stock')).to.deep.equal([3, 7]);
+        expect(flock.getTableColumn('Shop', 'Notes')).to.deep.equal(['', '']);
+        expect([...flock.getTableRow('Shop', 1).values]).to.deep.equal(['Pear', 0.75, 7, '']);
+        flock.addTableRow('Shop', ['Plum', 0.4, 1, 'new']);
+        expect(flock.getTableValue('Shop', 2, 'Notes')).to.equal('new');
+        expect(reported).to.deep.equal([]);
+      });
+
+      it('reports a column list of the wrong length and a repeated column name', function () {
+        makeShop();
+        flock.addTableColumn('Shop', 'Stock', [3]);
+        flock.addTableColumn('Shop', 'Name', ['a', 'b', 'c']);
+        flock.addTableColumn('Nope', 'Stock');
+        expect(flock.getTableColumn('Shop', 'Stock')).to.deep.equal([3, '']);
+        expect(flock.getTableColumn('Shop', 'Name 2')).to.deep.equal(['a', 'b']);
+        expect(keys()).to.deep.equal([
+          'table_column_length',
+          'table_duplicate_column',
+          'table_column_length',
+          'table_not_found',
+        ]);
+        expect(reported[0].values).to.deep.equal({ table: 'Shop', given: 1, count: 2 });
+      });
+
+      it('replaces all the values in a column', function () {
+        makeShop();
+        flock.setTableColumn('Shop', 'Price', [1, 2]);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal([1, 2]);
+        flock.setTableColumn('Shop', 'Price', [5]);
+        flock.setTableColumn('Shop', 'Colour', [1, 2]);
+        flock.setTableColumn('Nope', 'Price', [1, 2]);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal([5, '']);
+        expect(flock.getTableColumn('Shop', 'Name')).to.deep.equal(['Apple', 'Pear']);
+        expect(keys()).to.deep.equal([
+          'table_column_length',
+          'table_column_not_found',
+          'table_not_found',
+        ]);
+      });
+
+      it('deletes a column and its values from every row', function () {
+        makeShop();
+        flock.addTableColumn('Shop', 'Stock', [3, 7]);
+        const before = flock.getTableRow('Shop', 0);
+        flock.deleteTableColumn('Shop', 'Price');
+        expect(flock.getTableColumnNames('Shop')).to.deep.equal(['Name', 'Stock']);
+        expect([...flock.getTableRow('Shop', 1).values]).to.deep.equal(['Pear', 7]);
+        expect(flock.getRowValue(before, 'Price')).to.equal(0.5);
+        flock.addTableRow('Shop', ['Plum', 1]);
+        expect(flock.getTableColumn('Shop', 'Stock')).to.deep.equal([3, 7, 1]);
+        flock.deleteTableColumn('Shop', 'Price');
+        flock.deleteTableColumn('Nope', 'Name');
+        expect(keys()).to.deep.equal(['table_column_not_found', 'table_not_found']);
+      });
+
+      it('gives a copy of the column names', function () {
+        makeShop();
+        const names = flock.getTableColumnNames('Shop');
+        names.push('Extra');
+        expect(flock.getTableColumnNames('Shop')).to.deep.equal(['Name', 'Price']);
+        expect(flock.getTableColumnNames('Nope')).to.deep.equal([]);
+        expect(keys()).to.deep.equal(['table_not_found']);
+      });
+
       it('reports a missing table', function () {
         expect(flock.getTableColumn('Nope', 'Name')).to.deep.equal([]);
         expect(flock.getTableRowCount('Nope')).to.equal(0);
@@ -596,6 +670,39 @@ export function runTablesTests(flock) {
         expect(code, code).to.include("sortTable(Buildings, 'Name', 'ASCENDING');");
         expect(code, code).to.include('shuffleTable(Buildings);');
         expect(code, code).not.to.include('Floors');
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('generates adding a column with and without values and reading column names', function () {
+        const code = compileFlockProject(
+          project(
+            chain(
+              ...createBuildings(),
+              block('table_add_column', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { NAME: text('Floors'), VALUES: list(num(163), num(118)) },
+              }),
+              block('table_add_column', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { NAME: text('City') },
+              }),
+              print(value(block('table_column_names', { fields: { TABLE: table('Buildings') } }))),
+              block('table_set_column', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { COLUMN: text('Height'), VALUES: list(num(1), num(2)) },
+              }),
+              block('table_delete_column', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { COLUMN: text('City') },
+              })
+            )
+          )
+        );
+        expect(code, code).to.include("addTableColumn(Buildings, 'Floors', [163, 118]);");
+        expect(code, code).to.include("addTableColumn(Buildings, 'City');");
+        expect(code, code).to.include('getTableColumnNames(Buildings)');
+        expect(code, code).to.include("setTableColumn(Buildings, 'Height', [1, 2]);");
+        expect(code, code).to.include("deleteTableColumn(Buildings, 'City');");
         expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
 
@@ -1150,6 +1257,52 @@ export function runTablesTests(flock) {
         expect(tableColumnWarningFor(sort)).to.contain("'Floors'");
       });
 
+      it('lists columns added by add column and warns only while every name is known', function () {
+        const adder = (name, nameInput) =>
+          block('table_add_column', {
+            fields: { TABLE: table(name) },
+            inputs: { NAME: nameInput },
+          });
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name')),
+              adder('Buildings', text('Floors')),
+              adder('Other', text('Colour')),
+              print(value(getColumn('Buildings', 'Floors'))),
+              print(value(getColumn('Buildings', 'City')))
+            )
+          ),
+          workspace
+        );
+        const [floors, city] = workspace.getBlocksByType('table_get_column', false);
+        expect(options(floors)).to.deep.equal(['Name', 'Floors']);
+        expect(tableColumnWarningFor(floors)).to.equal(null);
+        expect(tableColumnWarningFor(city)).to.contain("'City'");
+        const [first] = workspace.getBlocksByType('table_add_column', false);
+        first.getInput('NAME').connection.targetBlock().dispose();
+        expect(tableColumnWarningFor(city)).to.equal(null);
+      });
+
+      it('lists an added column that repeats a name by the name it gets', function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creator('Buildings', text('Name')),
+              block('table_add_column', {
+                fields: { TABLE: table('Buildings') },
+                inputs: { NAME: text('Name') },
+              }),
+              print(value(getColumn('Buildings', 'Name 2')))
+            )
+          ),
+          workspace
+        );
+        const [reader] = workspace.getBlocksByType('table_get_column', false);
+        expect(options(reader)).to.deep.equal(['Name', 'Name 2']);
+        expect(tableColumnWarningFor(reader)).to.equal(null);
+      });
+
       it('lists and accepts the names given to repeated columns', function () {
         Blockly.serialization.workspaces.load(
           project(
@@ -1274,6 +1427,79 @@ export function runTablesTests(flock) {
           expect(typed.map((b) => b.getFieldValue('TEXT'))).to.deep.equal(['Height']);
         });
 
+        const tableId = (name) => workspace.getVariableMap().getVariable(name, 'Table').getId();
+        const addColumnTo = (tableName, columnName) => {
+          const adder = workspace.newBlock('table_add_column');
+          adder.getField('TABLE').setValue(tableId(tableName));
+          const name = workspace.newBlock('text');
+          name.setFieldValue(columnName, 'TEXT');
+          adder.getInput('NAME').connection.connect(name.outputConnection);
+          return name;
+        };
+        const readColumn = (tableName, columnName) => {
+          const reader = workspace.newBlock('table_get_column');
+          reader.getField('TABLE').setValue(tableId(tableName));
+          const menuBlock = workspace.newBlock('table_column_menu');
+          menuBlock.setFieldValue(columnName, 'COLUMN');
+          reader.getInput('COLUMN').connection.connect(menuBlock.outputConnection);
+          return menuBlock;
+        };
+
+        it('renames menus when the name in an add column block changes', async function () {
+          const name = addColumnTo('A', 'Floors');
+          const menuBlock = readColumn('A', 'Floors');
+          await settle();
+          name.setFieldValue('Levels', 'TEXT');
+          await settle();
+          expect(menuBlock.getFieldValue('COLUMN')).to.equal('Levels');
+        });
+
+        it('renames by the name the added column gets when it repeats a column', async function () {
+          const name = addColumnTo('A', 'Name');
+          await settle();
+          const added = readColumn('A', 'Name 2');
+          const original = readColumn('A', 'Name');
+          await settle();
+          name.setFieldValue('City', 'TEXT');
+          await settle();
+          expect(added.getFieldValue('COLUMN')).to.equal('City');
+          expect(original.getFieldValue('COLUMN')).to.equal('Name');
+        });
+
+        it('moves the menus of an added column when a create column frees its name', async function () {
+          addColumnTo('A', 'Name');
+          await settle();
+          const created = readColumn('A', 'Name');
+          const added = readColumn('A', 'Name 2');
+          await settle();
+          columnText('Name').setFieldValue('Title', 'TEXT');
+          await settle();
+          expect(created.getFieldValue('COLUMN')).to.equal('Title');
+          expect(added.getFieldValue('COLUMN')).to.equal('Name');
+        });
+
+        it('keeps the menus when another create block still has the old name', async function () {
+          Blockly.serialization.blocks.append(creator('A', text('Height')), workspace);
+          await settle();
+          columnText('Height').setFieldValue('Tall', 'TEXT');
+          await settle();
+          expect(menuValues()[0]).to.equal('table_get_column:Height');
+        });
+
+        it('moves the menus of a later added column whose name changes too', async function () {
+          const first = addColumnTo('A', 'City');
+          await settle();
+          addColumnTo('A', 'City');
+          await settle();
+          const firstMenu = readColumn('A', 'City');
+          const secondMenu = readColumn('A', 'City 2');
+          await settle();
+          first.setFieldValue('Town', 'TEXT');
+          await settle();
+          expect(firstMenu.getFieldValue('COLUMN')).to.equal('Town');
+          expect(secondMenu.getFieldValue('COLUMN')).to.equal('City');
+        });
+
         it('follows typing through an empty name and a name already in use', async function () {
           const tableA = workspace
             .getBlocksByType('table_create', false)
@@ -1376,7 +1602,7 @@ export function runTablesTests(flock) {
         const columnInputs = tableFlyoutBlocks('Buildings', 'table2', 'Height')
           .filter((item) => item.inputs?.COLUMN)
           .map((item) => [item.type, item.inputs.COLUMN.shadow]);
-        expect(columnInputs).to.have.length(6);
+        expect(columnInputs).to.have.length(8);
         for (const [type, shadow] of columnInputs) {
           expect(shadow, type).to.deep.equal({
             type: 'table_column_menu',

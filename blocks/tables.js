@@ -78,12 +78,19 @@ function withTableMessages(action) {
 Blockly.fieldRegistry.register(TABLE_FIELD, FieldTableVariable);
 
 export const TABLE_COLUMN_MENU = 'table_column_menu';
+const TABLE_ADD_COLUMN = 'table_add_column';
 const COLUMN_FIELD = 'field_table_column';
 
 const sameName = (a, b) => a?.toLowerCase() === b?.toLowerCase();
 
-export function tableColumnInfo(workspace, tableName) {
+const columnText = (item, renamed) => {
+  if (item && item === renamed?.textBlock) return renamed.name;
+  return item?.type === 'text' ? item.getFieldValue('TEXT') : '';
+};
+
+export function tableColumnInfo(workspace, tableName, renamed = null) {
   const columns = [];
+  const named = new Map();
   let found = false;
   let complete = true;
   for (const creator of workspace?.getBlocksByType('table_create', false) ?? []) {
@@ -96,19 +103,38 @@ export function tableColumnInfo(workspace, tableName) {
       complete = false;
       continue;
     }
-    const given = list.inputList
+    const items = list.inputList
       .filter((input) => input.connection)
-      .map((input) => {
-        const item = input.connection.targetBlock();
-        return item?.type === 'text' ? item.getFieldValue('TEXT') : '';
-      });
+      .map((input) => input.connection.targetBlock());
+    const given = items.map((item) => columnText(item, renamed));
     const unique = uniqueColumnNames(given);
     given.forEach((name, i) => {
-      if (!name) complete = false;
-      else if (!columns.includes(unique[i])) columns.push(unique[i]);
+      if (!name) {
+        complete = false;
+        return;
+      }
+      named.set(items[i].id, unique[i]);
+      if (!columns.includes(unique[i])) columns.push(unique[i]);
     });
   }
-  return { columns, complete: found && complete };
+  for (const adder of workspace?.getBlocksByType(TABLE_ADD_COLUMN, false) ?? []) {
+    if (tableName !== undefined && !sameName(adder.getField('TABLE')?.getText(), tableName)) {
+      continue;
+    }
+    const name = addedColumnName(adder, renamed);
+    if (!name) {
+      complete = false;
+      continue;
+    }
+    const unique = uniqueColumnNames([...columns, name]).at(-1);
+    named.set(adder.getInputTargetBlock('NAME').id, unique);
+    columns.push(unique);
+  }
+  return { columns, complete: found && complete, named };
+}
+
+function addedColumnName(adder, renamed = null) {
+  return columnText(adder.getInputTargetBlock('NAME'), renamed);
 }
 
 export const tableColumns = (workspace, tableName) => tableColumnInfo(workspace, tableName).columns;
@@ -173,6 +199,8 @@ const COLUMN_WARNING = 'table-column';
 const COLUMN_BLOCKS = [
   'table_get_value',
   'table_set_value',
+  'table_set_column',
+  'table_delete_column',
   'table_get_column',
   'table_row_value',
   'table_find_row',
@@ -231,7 +259,15 @@ export function installTableColumnWarnings(workspace) {
   return refresh;
 }
 
+function addedColumnFor(textBlock) {
+  const adder = textBlock?.getParent();
+  if (adder?.type !== TABLE_ADD_COLUMN) return null;
+  return adder.getInputTargetBlock('NAME') === textBlock ? adder : null;
+}
+
 function columnListTable(textBlock) {
+  const adder = addedColumnFor(textBlock);
+  if (adder) return adder.getField('TABLE')?.getText();
   const list = textBlock?.getParent();
   const creator = list?.getParent();
   if (list?.type !== 'lists_create_with' || creator?.type !== 'table_create') return undefined;
@@ -239,30 +275,30 @@ function columnListTable(textBlock) {
   return creator.getField('VAR')?.getText();
 }
 
-function columnTexts(workspace, tableName) {
-  const names = [];
-  for (const creator of workspace.getBlocksByType('table_create', false)) {
-    if (!sameName(creator.getField('VAR')?.getText(), tableName)) continue;
-    const list = creator.getInputTargetBlock('COLUMNS');
-    if (list?.type !== 'lists_create_with') continue;
-    for (const input of list.inputList) {
-      const item = input.connection?.targetBlock();
-      if (item?.type === 'text') names.push(item.getFieldValue('TEXT'));
-    }
+function renameColumnMenus(workspace, tableName, textBlock, oldName) {
+  const before = tableColumnInfo(workspace, tableName, { textBlock, name: oldName }).named;
+  const after = tableColumnInfo(workspace, tableName).named;
+  if (!after.has(textBlock.id)) return 'waiting';
+  const kept = new Set();
+  const renames = new Map();
+  for (const [id, now] of after) {
+    const was = before.get(id);
+    if (was === now) kept.add(now);
+    else if (was !== undefined) renames.set(was, now);
   }
-  return names;
+  for (const was of kept) renames.delete(was);
+  setColumnMenus(workspace, tableName, renames);
+  return 'renamed';
 }
 
-export function renameColumnMenus(workspace, tableName, oldName, newName) {
-  const names = columnTexts(workspace, tableName);
-  if (names.includes(oldName)) return 'old-name-still-used';
-  if (!newName || names.filter((name) => name === newName).length !== 1) return 'waiting';
+function setColumnMenus(workspace, tableName, renames) {
+  if (renames.size === 0) return;
   for (const menu of workspace.getBlocksByType(TABLE_COLUMN_MENU, false)) {
-    if (menu.getFieldValue('COLUMN') !== oldName) continue;
+    const renamed = renames.get(menu.getFieldValue('COLUMN'));
+    if (renamed === undefined) continue;
     if (!sameName(columnTableName(menu.getParent()), tableName)) continue;
-    menu.setFieldValue(newName, 'COLUMN');
+    menu.setFieldValue(renamed, 'COLUMN');
   }
-  return 'renamed';
 }
 
 export function installTableColumnRenames(workspace) {
@@ -279,7 +315,7 @@ export function installTableColumnRenames(workspace) {
     const previousGroup = Blockly.Events.getGroup();
     Blockly.Events.setGroup(event.group);
     try {
-      const result = renameColumnMenus(workspace, tableName, oldName, event.newValue);
+      const result = renameColumnMenus(workspace, tableName, textBlock, oldName);
       following.set(textBlock.id, result === 'waiting' ? oldName : event.newValue);
     } finally {
       Blockly.Events.setGroup(previousGroup);
@@ -314,6 +350,22 @@ export function defineTableBlocks() {
       { type: TABLE_FIELD, name: 'VAR', variable: nextVariableName(block, 'table') },
       { type: 'input_value', name: 'COLUMNS', check: 'Array' },
     ],
+    previousStatement: null,
+    nextStatement: null,
+  }));
+
+  defineTableBlock(TABLE_ADD_COLUMN, () => ({
+    args0: [
+      { type: 'input_value', name: 'NAME', check: 'String' },
+      tableField(),
+      { type: 'input_value', name: 'VALUES', check: 'Array' },
+    ],
+    previousStatement: null,
+    nextStatement: null,
+  }));
+
+  defineTableBlock('table_delete_column', () => ({
+    args0: [{ type: 'input_value', name: 'COLUMN', check: 'String' }, tableField()],
     previousStatement: null,
     nextStatement: null,
   }));
@@ -407,8 +459,23 @@ export function defineTableBlocks() {
     nextStatement: null,
   }));
 
+  defineTableBlock('table_set_column', () => ({
+    args0: [
+      tableField(),
+      { type: 'input_value', name: 'COLUMN', check: 'String' },
+      { type: 'input_value', name: 'VALUES', check: 'Array' },
+    ],
+    previousStatement: null,
+    nextStatement: null,
+  }));
+
   defineTableBlock('table_get_column', () => ({
     args0: [{ type: 'input_value', name: 'COLUMN', check: 'String' }, tableField()],
+    output: 'Array',
+  }));
+
+  defineTableBlock('table_column_names', () => ({
+    args0: [tableField()],
     output: 'Array',
   }));
 

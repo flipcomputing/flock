@@ -24,6 +24,16 @@ export function registerTablesGenerators(javascriptGenerator) {
     return `addTableRow(${tableVar(block)}, ${values});\n`;
   };
 
+  javascriptGenerator.forBlock['table_add_column'] = function (block) {
+    const name = value(block, 'NAME', '""');
+    const values = javascriptGenerator.valueToCode(block, 'VALUES', javascriptGenerator.ORDER_NONE);
+    return `addTableColumn(${tableVar(block)}, ${name}${values ? `, ${values}` : ''});\n`;
+  };
+
+  javascriptGenerator.forBlock['table_delete_column'] = function (block) {
+    return `deleteTableColumn(${tableVar(block)}, ${value(block, 'COLUMN', '""')});\n`;
+  };
+
   javascriptGenerator.forBlock['table_delete_row'] = function (block) {
     if (block.getFieldValue('MODE') === 'ALL') return `deleteAllTableRows(${tableVar(block)});\n`;
     return `deleteTableRow(${tableVar(block)}, ${value(block, 'ROW', '0')});\n`;
@@ -47,8 +57,17 @@ export function registerTablesGenerators(javascriptGenerator) {
     return `setTableRow(${tableVar(block)}, ${row}, ${value(block, 'VALUES', '[]')});\n`;
   };
 
+  javascriptGenerator.forBlock['table_set_column'] = function (block) {
+    const column = value(block, 'COLUMN', '""');
+    return `setTableColumn(${tableVar(block)}, ${column}, ${value(block, 'VALUES', '[]')});\n`;
+  };
+
   javascriptGenerator.forBlock['table_get_column'] = function (block) {
     return call(`getTableColumn(${tableVar(block)}, ${value(block, 'COLUMN', '""')})`);
+  };
+
+  javascriptGenerator.forBlock['table_column_names'] = function (block) {
+    return call(`getTableColumnNames(${tableVar(block)})`);
   };
 
   javascriptGenerator.forBlock['table_get_row'] = function (block) {

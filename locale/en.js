@@ -426,13 +426,17 @@ export default {
   table_add_row: 'add row to %1 %2 %3 %4 %5',
   table_add_row_end_option: 'at end',
   table_add_row_at_option: 'at row',
+  table_add_column: 'add column %1 to %2 with values %3',
+  table_delete_column: 'delete column %1 from %2',
   table_delete_row: 'delete %1 %2 %3 from %4',
   table_delete_row_option: 'row',
   table_delete_all_rows_option: 'all rows',
   table_get_value: 'value in %1 row %2 column %3',
   table_set_value: 'set %1 row %2 column %3 to %4',
   table_set_row: 'set %1 row %2 to %3',
+  table_set_column: 'set %1 column %2 to %3',
   table_get_column: 'column %1 of %2',
+  table_column_names: 'columns of %1',
   table_get_row: '%1 %2 %3 of %4',
   table_get_row_option: 'row',
   table_get_first_row_option: 'first row',
@@ -1516,9 +1520,15 @@ export default {
     'Add a row at the end of the table, or at a row number. The rows from that number move down by one. Give one value for each column, in column order. Rows count from 0.',
   table_get_value_tooltip: 'The value in one cell of the table. Rows count from 0.',
   table_set_value_tooltip: 'Change the value in one cell of the table. Rows count from 0.',
+  table_set_column_tooltip:
+    'Change all the values in a column. Give a list with one value for each row, in row order. Rows count from 0.',
   table_set_row_tooltip:
     'Change all the values in a row. Give one value for each column, in column order. Rows count from 0.',
   table_get_column_tooltip: 'All the values in a column, as a list.',
+  table_column_names_tooltip: "The names of the table's columns, as a list.",
+  table_delete_column_tooltip: 'Delete a column and its values from every row.',
+  table_add_column_tooltip:
+    'Add a column to the end of the table. Give a list with one value for each row, in row order, or leave the values empty to start with blank cells.',
   table_get_row_tooltip:
     'One row of the table: by its number, or the first, last or a random row. Use an "of" block to read a column from it. Rows count from 0.',
   table_find_row_tooltip:
@@ -1534,6 +1544,7 @@ export default {
   table_column_menu_tooltip: 'Pick a column of the table, or put a text block here.',
   table_default_column_name: 'Name',
   table_default_value_column_name: 'Value',
+  table_default_new_column_name: 'Score',
   table_column_missing_warning: "%1 doesn't have a column called '%2'. Its columns are: %3.",
   table_delete_row_tooltip:
     'Delete one row from the table, or all its rows. Rows count from 0, and the rows after a deleted row move up by one.',
@@ -1646,6 +1657,7 @@ export default {
   table_row_out_of_range: "{table} has {count} rows (0 to {last}), so there's no row {row}.",
   table_row_out_of_range_one: "{table} has 1 row (row 0), so there's no row {row}.",
   table_row_length: 'That row has {given} values but {table} has {count} columns.',
+  table_column_length: 'That column has {given} values but {table} has {count} rows.',
   table_duplicate_column:
     '{table} already has a column called {column}, so the copy is called {renamed}.',
   table_not_a_row:

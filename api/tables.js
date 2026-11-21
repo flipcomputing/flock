@@ -104,16 +104,16 @@ function rowFrom(api, name, table, values) {
   return row;
 }
 
-function uniqueColumns(name, columns) {
+function uniqueColumns(api, name, columns) {
   return uniqueColumnNames(columns, (column, renamed) =>
-    report('createTable', 'table_duplicate_column', { table: name, column, renamed })
+    report(api, 'table_duplicate_column', { table: name, column, renamed })
   );
 }
 
 export const flockTables = {
   createTable(name, columns) {
     if (typeof name !== 'string' || name === '') return '';
-    allTables().set(name, { columns: uniqueColumns(name, columns), rows: [] });
+    allTables().set(name, { columns: uniqueColumns('createTable', name, columns), rows: [] });
     return name;
   },
   addTableRow(name, values) {
@@ -135,6 +135,26 @@ export const flockTables = {
     if (!table) return;
     const r = findRow('setTableRow', table, name, row);
     if (r !== -1) table.rows[r] = rowFrom('setTableRow', name, table, values);
+  },
+  addTableColumn(name, column, values) {
+    const table = findTable('addTableColumn', name);
+    if (!table) return;
+    const columns = uniqueColumns('addTableColumn', name, [...table.columns, column]);
+    const count = table.rows.length;
+    const given = values === undefined ? null : Array.isArray(values) ? values : [values];
+    if (given && given.length !== count) {
+      report('addTableColumn', 'table_column_length', { table: name, given: given.length, count });
+    }
+    table.columns = columns;
+    table.rows.forEach((row, i) => row.push(given && i < given.length ? cellValue(given[i]) : ''));
+  },
+  deleteTableColumn(name, column) {
+    const table = findTable('deleteTableColumn', name);
+    if (!table) return;
+    const c = findColumn('deleteTableColumn', table, name, column);
+    if (c === -1) return;
+    table.columns.splice(c, 1);
+    for (const row of table.rows) row.splice(c, 1);
   },
   deleteTableRow(name, row) {
     const table = findTable('deleteTableRow', name);
@@ -160,11 +180,27 @@ export const flockTables = {
     const c = findColumn('setTableValue', table, name, column);
     if (r !== -1 && c !== -1) table.rows[r][c] = cellValue(value);
   },
+  setTableColumn(name, column, values) {
+    const table = findTable('setTableColumn', name);
+    if (!table) return;
+    const c = findColumn('setTableColumn', table, name, column);
+    if (c === -1) return;
+    const given = Array.isArray(values) ? values : [values];
+    const count = table.rows.length;
+    if (given.length !== count) {
+      report('setTableColumn', 'table_column_length', { table: name, given: given.length, count });
+    }
+    table.rows.forEach((row, i) => (row[c] = i < given.length ? cellValue(given[i]) : ''));
+  },
   getTableColumn(name, column) {
     const table = findTable('getTableColumn', name);
     if (!table) return [];
     const c = findColumn('getTableColumn', table, name, column);
     return c === -1 ? [] : table.rows.map((row) => row[c]);
+  },
+  getTableColumnNames(name) {
+    const table = findTable('getTableColumnNames', name);
+    return table ? [...table.columns] : [];
   },
   getTableRow(name, row) {
     const table = findTable('getTableRow', name);
