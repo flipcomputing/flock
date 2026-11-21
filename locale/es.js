@@ -1224,6 +1224,7 @@ export default {
   ur_enough_ui: '¡Eres Suficiente!', // human
   tallest_buildings_ui: 'Edificios Más Altos', // human
   tallest_buildings_tables_ui: 'Edificios Más Altos (tablas)', // ai
+  letter_frequency_ui: 'Frecuencia de letras', // ai
   candy_dash_ui: 'Carrera de Dulces', // human
   flockenspiel_ui: 'Flockenspiel', // human
   pendant_ui: 'Colgante imprimible en 3D', // human

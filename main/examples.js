@@ -98,6 +98,12 @@ const ALL_EXAMPLES = [
     category: 'data',
     feature: 'dataScience',
   },
+  {
+    i18nKey: 'letter_frequency',
+    file: 'examples/letter_frequency.flock',
+    category: 'data',
+    feature: 'dataScience',
+  },
   { i18nKey: 'pendant', file: 'examples/pendant.flock', category: 'xr' },
   {
     i18nKey: 'flockxr_keyring',
