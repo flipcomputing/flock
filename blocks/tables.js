@@ -4,6 +4,9 @@ import { getHelpUrlFor } from './blocks.js';
 import { nextVariableName } from './variableNames.js';
 import { translate, getTooltip } from '../main/translation.js';
 import { uniqueColumnNames } from '../api/tables.js';
+import { loadStartData, renameStartDataColumns, saveStartData, startData } from './tableData.js';
+import { openTableEditor } from '../ui/tableEditor.js';
+import { makeTableDataField, TABLE_DATA_FIELD_NAME } from './fieldTableData.js';
 
 export const TABLE_LOOP_TYPE = 'table_for_each_row';
 const TABLE_VARIABLE_TYPE = 'Table';
@@ -265,17 +268,31 @@ function addedColumnFor(textBlock) {
   return adder.getInputTargetBlock('NAME') === textBlock ? adder : null;
 }
 
+function columnListCreator(textBlock) {
+  const list = textBlock?.getParent();
+  const creator = list?.getParent();
+  if (list?.type !== 'lists_create_with' || creator?.type !== 'table_create') return null;
+  return creator.getInputTargetBlock('COLUMNS') === list ? creator : null;
+}
+
 function columnListTable(textBlock) {
   const adder = addedColumnFor(textBlock);
   if (adder) return adder.getField('TABLE')?.getText();
-  const list = textBlock?.getParent();
-  const creator = list?.getParent();
-  if (list?.type !== 'lists_create_with' || creator?.type !== 'table_create') return undefined;
-  if (creator.getInputTargetBlock('COLUMNS') !== list) return undefined;
-  return creator.getField('VAR')?.getText();
+  return columnListCreator(textBlock)?.getField('VAR')?.getText();
 }
 
-function renameColumnMenus(workspace, tableName, textBlock, oldName) {
+function renameCreatorStartData(creator, before, after) {
+  const renames = new Map();
+  for (const input of creator.getInputTargetBlock('COLUMNS').inputList) {
+    const id = input.connection?.targetBlock()?.id;
+    const was = before.get(id);
+    const now = after.get(id);
+    if (was !== undefined && now !== undefined && was !== now) renames.set(was, now);
+  }
+  renameStartDataColumns(creator, renames);
+}
+
+function renameColumnMenus(workspace, tableName, textBlock, oldName, updateStartData) {
   const before = tableColumnInfo(workspace, tableName, { textBlock, name: oldName }).named;
   const after = tableColumnInfo(workspace, tableName).named;
   if (!after.has(textBlock.id)) return 'waiting';
@@ -287,6 +304,8 @@ function renameColumnMenus(workspace, tableName, textBlock, oldName) {
     else if (was !== undefined) renames.set(was, now);
   }
   for (const was of kept) renames.delete(was);
+  const creator = updateStartData && columnListCreator(textBlock);
+  if (creator) renameCreatorStartData(creator, before, after);
   setColumnMenus(workspace, tableName, renames);
   return 'renamed';
 }
@@ -310,17 +329,72 @@ export function installTableColumnRenames(workspace) {
     const textBlock = workspace.getBlockById(event.blockId);
     const tableName = columnListTable(textBlock);
     if (tableName === undefined) return;
+    const handled = textBlock.startDataRenamed_ === event.newValue;
+    delete textBlock.startDataRenamed_;
+    if (!event.recordUndo) {
+      following.delete(textBlock.id);
+      return;
+    }
     const oldName = following.get(textBlock.id) ?? event.oldValue;
     if (!event.group) event.group = Blockly.utils.idGenerator.genUid();
     const previousGroup = Blockly.Events.getGroup();
     Blockly.Events.setGroup(event.group);
     try {
-      const result = renameColumnMenus(workspace, tableName, textBlock, oldName);
+      const result = renameColumnMenus(workspace, tableName, textBlock, oldName, !handled);
       following.set(textBlock.id, result === 'waiting' ? oldName : event.newValue);
     } finally {
       Blockly.Events.setGroup(previousGroup);
     }
   });
+}
+
+function rowCountText(count) {
+  return count === 1
+    ? translate('table_editor_row_count_one')
+    : translate('table_editor_row_count').replace('%1', String(count));
+}
+
+function setupStartData() {
+  const block = this;
+  const openEditor = () => {
+    if (!block.isInFlyout) openTableEditor(block);
+  };
+  this.appendDummyInput('DATA')
+    .appendField(makeTableDataField(openEditor), TABLE_DATA_FIELD_NAME)
+    .appendField(new Blockly.FieldLabel(''), 'ROW_COUNT');
+  this.saveExtraState = () => saveStartData(this);
+  this.loadExtraState = (state) => {
+    loadStartData(this, state);
+    this.updateRowCount_();
+  };
+  this.mutationToDom = () => {
+    const state = saveStartData(this);
+    if (!state) return null;
+    const mutation = Blockly.utils.xml.createElement('mutation');
+    mutation.setAttribute('start_data', JSON.stringify(state));
+    return mutation;
+  };
+  this.domToMutation = (xml) => {
+    let state;
+    try {
+      state = JSON.parse(xml.getAttribute('start_data') ?? 'null');
+    } catch {
+      state = null;
+    }
+    this.loadExtraState(state);
+  };
+  this.updateRowCount_ = () => {
+    const field = this.getField('ROW_COUNT');
+    const count = startData(this).rows.length;
+    field?.setValue(count ? rowCountText(count) : '');
+    field?.setVisible(count > 0);
+    if (this.rendered) this.queueRender();
+  };
+  this.customContextMenu = (options) => {
+    if (this.isInFlyout) return;
+    options.push({ text: translate('table_edit_data'), enabled: true, callback: openEditor });
+  };
+  this.updateRowCount_();
 }
 
 const tableField = (name = 'TABLE') => ({ type: TABLE_FIELD, name, variable: 'table1' });
@@ -345,14 +419,18 @@ function defineTableBlock(type, json, setup) {
 export function defineTableBlocks() {
   loops.loopTypes.add(TABLE_LOOP_TYPE);
 
-  defineTableBlock('table_create', (block) => ({
-    args0: [
-      { type: TABLE_FIELD, name: 'VAR', variable: nextVariableName(block, 'table') },
-      { type: 'input_value', name: 'COLUMNS', check: 'Array' },
-    ],
-    previousStatement: null,
-    nextStatement: null,
-  }));
+  defineTableBlock(
+    'table_create',
+    (block) => ({
+      args0: [
+        { type: TABLE_FIELD, name: 'VAR', variable: nextVariableName(block, 'table') },
+        { type: 'input_value', name: 'COLUMNS', check: 'Array' },
+      ],
+      previousStatement: null,
+      nextStatement: null,
+    }),
+    setupStartData
+  );
 
   defineTableBlock(TABLE_ADD_COLUMN, () => ({
     args0: [

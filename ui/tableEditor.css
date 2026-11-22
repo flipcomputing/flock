@@ -1,0 +1,231 @@
+.table-editor {
+  position: fixed;
+  z-index: 10000;
+  font-family: 'Atkinson Hyperlegible Next', 'Asap', Helvetica, Arial, Lucida, sans-serif;
+}
+
+.table-editor-content {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100vw - 20px));
+  max-height: calc(100vh - 20px);
+  overflow: hidden;
+  background: white;
+  color: var(--color-text-primary);
+  border: 2px solid #511d91;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.table-editor-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 12px 12px;
+}
+
+.table-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.table-editor-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.table-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.table-editor-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-bg);
+  transition: background-color 0.2s;
+}
+
+.table-editor-button:hover:not(:disabled) {
+  background-color: var(--color-button-bg-hover);
+}
+
+.table-editor-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.table-editor-button:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: 2px;
+}
+
+.table-editor-scroll {
+  min-height: 7.5em;
+  max-height: min(50vh, 400px);
+  overflow: auto;
+  padding-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.table-editor-sized .table-editor-inner {
+  flex: 1 1 auto;
+}
+
+.table-editor-sized .table-editor-scroll {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+.table-editor-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 0 0 4px 0;
+  cursor: nwse-resize;
+  touch-action: none;
+  background:
+    linear-gradient(135deg, transparent 50%, #aaa 50%, #aaa 58%, transparent 58%),
+    linear-gradient(135deg, transparent 70%, #aaa 70%, #aaa 78%, transparent 78%);
+}
+
+.table-editor-resize:hover,
+.table-editor-resize:focus-visible {
+  background:
+    linear-gradient(
+      135deg,
+      transparent 50%,
+      var(--color-focus-outline) 50%,
+      var(--color-focus-outline) 58%,
+      transparent 58%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 70%,
+      var(--color-focus-outline) 70%,
+      var(--color-focus-outline) 78%,
+      transparent 78%
+    );
+}
+
+.table-editor-resize:focus-visible {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: -3px;
+}
+
+.table-editor-grid {
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.table-editor-grid th,
+.table-editor-grid td {
+  min-width: 4em;
+  max-width: 16em;
+  height: 1.6em;
+  padding: 4px 8px;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  background: white;
+}
+
+.table-editor-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-weight: 600;
+  background: #eee;
+}
+
+.table-editor-grid tbody th {
+  position: sticky;
+  left: 0;
+  min-width: 2.5em;
+  font-weight: normal;
+  text-align: right;
+  background: #f6f6f6;
+}
+
+.table-editor-grid thead .table-editor-corner {
+  left: 0;
+  z-index: 2;
+  font-weight: normal;
+  text-align: right;
+}
+
+.table-editor-grid [data-row] {
+  cursor: cell;
+}
+
+.table-editor-grid [data-row]:focus {
+  outline: 3px solid var(--color-focus-outline);
+  outline-offset: -3px;
+}
+
+.table-editor-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 6em;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.table-editor-hint,
+.table-editor-message {
+  margin: 0;
+  font-size: 13px;
+}
+
+[data-theme='contrast'] .table-editor-button {
+  background-color: var(--color-button-bg);
+}
+
+[data-theme='contrast'] .table-editor-content,
+[data-theme='dark'] .table-editor-content,
+[data-theme='dark-contrast'] .table-editor-content,
+[data-theme='low-color'] .table-editor-content,
+[data-theme='contrast'] .table-editor-grid th,
+[data-theme='contrast'] .table-editor-grid td,
+[data-theme='dark'] .table-editor-grid th,
+[data-theme='dark'] .table-editor-grid td,
+[data-theme='dark-contrast'] .table-editor-grid th,
+[data-theme='dark-contrast'] .table-editor-grid td,
+[data-theme='low-color'] .table-editor-grid th,
+[data-theme='low-color'] .table-editor-grid td {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-color: grey;
+}
+
+[data-theme='contrast'] .table-editor-grid thead th,
+[data-theme='dark'] .table-editor-grid thead th,
+[data-theme='dark-contrast'] .table-editor-grid thead th,
+[data-theme='low-color'] .table-editor-grid thead th {
+  background: var(--color-bg);
+  border-bottom: 2px solid var(--color-text-primary);
+}

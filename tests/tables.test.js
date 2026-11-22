@@ -9,6 +9,20 @@ import {
   installTableColumnRenames,
   tableColumnWarningFor,
 } from '../blocks/tables.js';
+import {
+  cellFromText,
+  deleteStartColumn,
+  deleteStartRow,
+  insertStartColumn,
+  insertStartRow,
+  moveStartColumn,
+  renameStartColumn,
+  setStartCell,
+  startColumns,
+  startData,
+  startRows,
+} from '../blocks/tableData.js';
+import { openTableEditor } from '../ui/tableEditor.js';
 import enLocale from '../locale/en.js';
 import esLocale from '../locale/es.js';
 
@@ -940,11 +954,9 @@ export function runTablesTests(flock) {
         const visit = (holder) => {
           const b = holder?.block;
           if (!b) return;
-          const next = b.next?.block;
-          const isRow = (x) =>
-            x?.type === 'table_add_row' &&
-            x.inputs.VALUES.block.inputs.ADD0.shadow.fields.TEXT === name;
-          if (isRow(next)) b.next = next.next;
+          if (b.type === 'table_create') {
+            b.extraState.rows = b.extraState.rows.filter((row) => row[0] !== name);
+          }
           Object.values(b.inputs ?? {}).forEach(visit);
           visit(b.next);
         };
@@ -975,6 +987,20 @@ export function runTablesTests(flock) {
         expect(names).to.have.length(4);
         expect(events).to.include('side');
         expect(problems).to.deep.equal([]);
+      });
+    });
+
+    describe('letter frequency example', function () {
+      it('makes the Letters table with all 26 start rows', async function () {
+        const res = await fetch('/examples/letter_frequency.flock');
+        const code = compileFlockProject(await res.json());
+        const line = code.split('\n').find((each) => each.includes('createTable("Letters"'));
+        const rows = JSON.parse(line.slice(line.indexOf('], [') + 3, line.lastIndexOf(')')));
+        expect(rows).to.have.length(26);
+        expect(rows[0]).to.deep.equal(['A', 8.2, rows[0][2]]);
+        expect(rows.every(([, frequency]) => typeof frequency === 'number')).to.equal(true);
+        expect(rows.every(([, , colour]) => /^#[0-9a-f]{6}$/i.test(colour))).to.equal(true);
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
     });
 
@@ -1407,6 +1433,30 @@ export function runTablesTests(flock) {
           workspace.clearUndo();
         });
 
+        it('puts the menus back when a rename onto another column name is undone', async function () {
+          const tableA = workspace
+            .getBlocksByType('table_create', false)
+            .find((b) => b.getField('VAR').getText() === 'A');
+          const nameMenu = readColumn('A', 'Name');
+          await settle();
+          workspace.clearUndo();
+          tableA
+            .getInputTargetBlock('COLUMNS')
+            .getInputTargetBlock('ADD0')
+            .setFieldValue('Height', 'TEXT');
+          await settle();
+          expect(nameMenu.getFieldValue('COLUMN')).to.equal('Height');
+          expect(menuValues()[0]).to.equal('table_get_column:Height 2');
+          workspace.undo(false);
+          await settle();
+          expect(nameMenu.getFieldValue('COLUMN')).to.equal('Name');
+          expect(menuValues()[0]).to.equal('table_get_column:Height');
+          workspace.undo(true);
+          await settle();
+          expect(nameMenu.getFieldValue('COLUMN')).to.equal('Height');
+          expect(menuValues()[0]).to.equal('table_get_column:Height 2');
+        });
+
         it("renames only that table's menus", async function () {
           const tableA = workspace
             .getBlocksByType('table_create', false)
@@ -1608,6 +1658,261 @@ export function runTablesTests(flock) {
             type: 'table_column_menu',
             fields: { COLUMN: 'Height' },
           });
+        }
+      });
+    });
+
+    describe('start data', function () {
+      let workspace;
+      const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+      const creatorWith = (extraState, ...columns) => ({
+        ...block('table_create', {
+          fields: { VAR: table('Buildings') },
+          inputs: { COLUMNS: list(...columns.map(text)) },
+        }),
+        ...(extraState && { extraState }),
+      });
+      const load = (extraState, ...columns) => {
+        Blockly.serialization.workspaces.load(
+          project(creatorWith(extraState, ...columns)),
+          workspace
+        );
+        workspace.clearUndo();
+        return workspace.getBlocksByType('table_create', false)[0];
+      };
+      const columnTexts = (creator) =>
+        creator
+          .getInputTargetBlock('COLUMNS')
+          .inputList.filter((input) => input.name?.startsWith('ADD'))
+          .map((input) => input.connection.targetBlock().getFieldValue('TEXT'));
+      const undo = async () => {
+        await settle();
+        workspace.undo(false);
+        await settle();
+      };
+
+      before(function () {
+        if (!Blockly.Blocks.table_create) defineTableBlocks();
+      });
+
+      beforeEach(function () {
+        workspace = new Blockly.Workspace();
+        installTableColumnRenames(workspace);
+      });
+
+      afterEach(function () {
+        workspace.dispose();
+      });
+
+      it('makes a table with its start rows', function () {
+        flock.createTable('Shop', ['Name', 'Price'], [['Apple', 0.5], ['Pear']]);
+        expect(flock.getTableColumn('Shop', 'Price')).to.deep.equal([0.5, '']);
+        expect(flock.getTableValue('Shop', 1, 'Name')).to.equal('Pear');
+        expect(keys()).to.deep.equal(['table_row_length']);
+      });
+
+      it('generates start rows matched to the columns by name', function () {
+        const code = compileFlockProject(
+          project(
+            creatorWith(
+              { columns: ['Height', 'Name', 'Gone'], rows: [[828, 'Burj "Khalifa"', 'x']] },
+              'Name',
+              'Height',
+              'New'
+            )
+          )
+        );
+        expect(code, code).to.include(
+          `createTable("Buildings", ['Name', 'Height', 'New'], [["Burj \\"Khalifa\\"",828,""]]);`
+        );
+        expect(() => flock.prepareUserCode(code)).not.to.throw();
+      });
+
+      it('saves rows with the block and nothing when there are none', function () {
+        const creator = load({ columns: ['Name'], rows: [['Burj']] }, 'Name');
+        expect(Blockly.serialization.blocks.save(creator).extraState).to.deep.equal({
+          columns: ['Name'],
+          rows: [['Burj']],
+        });
+        expect(creator.getFieldValue('ROW_COUNT')).to.equal('1 row');
+        const empty = load(null, 'Name');
+        expect(Blockly.serialization.blocks.save(empty).extraState).to.equal(undefined);
+      });
+
+      it('stores typed numbers as numbers and keeps other text as typed', function () {
+        const creator = load({ columns: ['Name'], rows: [['a'], ['b'], ['c'], ['d']] }, 'Name');
+        ['828', ' 8.5 ', '007', 'Burj'].forEach((typed, row) =>
+          setStartCell(creator, row, 0, typed)
+        );
+        expect(startRows(creator)).to.deep.equal([[828], [8.5], ['007'], ['Burj']]);
+      });
+
+      it('undoes each edit on its own', async function () {
+        const creator = load({ columns: ['Name'], rows: [['Burj']] }, 'Name');
+        setStartCell(creator, 0, 0, 'Merdeka');
+        await settle();
+        insertStartRow(creator, 1);
+        expect(startRows(creator)).to.deep.equal([['Merdeka'], ['']]);
+        expect(creator.getFieldValue('ROW_COUNT')).to.equal('2 rows');
+        await undo();
+        expect(startRows(creator)).to.deep.equal([['Merdeka']]);
+        await undo();
+        expect(startRows(creator)).to.deep.equal([['Burj']]);
+      });
+
+      it('adds, moves and deletes columns in the list with their cells', async function () {
+        const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Name', 'Height');
+        expect(insertStartColumn(creator, 1)).to.equal('Column 3');
+        expect(columnTexts(creator)).to.deep.equal(['Name', 'Column 3', 'Height']);
+        expect(startRows(creator)).to.deep.equal([['Burj', '', 828]]);
+        await settle();
+        moveStartColumn(creator, 2, 0);
+        expect(columnTexts(creator)).to.deep.equal(['Height', 'Name', 'Column 3']);
+        expect(startRows(creator)).to.deep.equal([[828, 'Burj', '']]);
+        await settle();
+        deleteStartColumn(creator, 1);
+        expect(columnTexts(creator)).to.deep.equal(['Height', 'Column 3']);
+        expect(startRows(creator)).to.deep.equal([[828, '']]);
+        await undo();
+        expect(columnTexts(creator)).to.deep.equal(['Height', 'Name', 'Column 3']);
+        expect(startRows(creator)).to.deep.equal([[828, 'Burj', '']]);
+      });
+
+      it('keeps cells with their column when it is renamed in the editor or on the block', async function () {
+        const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Name', 'Height');
+        renameStartColumn(creator, 1, 'Metres');
+        expect(columnTexts(creator)).to.deep.equal(['Name', 'Metres']);
+        expect(startRows(creator)).to.deep.equal([['Burj', 828]]);
+        await settle();
+        creator.getInputTargetBlock('COLUMNS').getInputTargetBlock('ADD0').setFieldValue('Tower', 'TEXT');
+        await settle();
+        expect(startRows(creator)).to.deep.equal([['Burj', 828]]);
+        expect(startData(creator).columns).to.deep.equal(['Tower', 'Metres']);
+      });
+
+      it('renames start data only on the create block whose column changed', async function () {
+        Blockly.serialization.workspaces.load(
+          project(
+            chain(
+              creatorWith({ columns: ['Height'], rows: [[1]] }, 'Height'),
+              creatorWith({ columns: ['Height'], rows: [[2]] }, 'Height')
+            )
+          ),
+          workspace
+        );
+        const [first, second] = workspace.getBlocksByType('table_create', false);
+        first.getInputTargetBlock('COLUMNS').getInputTargetBlock('ADD0').setFieldValue('Tall', 'TEXT');
+        await settle();
+        expect(startRows(first)).to.deep.equal([[1]]);
+        expect(startData(first).columns).to.deep.equal(['Tall']);
+        expect(startData(second).columns).to.deep.equal(['Height']);
+      });
+
+      it('renames a column to the name of another column once', async function () {
+        const creator = load({ columns: ['A', 'B'], rows: [[10, 20]] }, 'A', 'B');
+        renameStartColumn(creator, 0, 'B');
+        await settle();
+        expect(startColumns(creator)).to.deep.equal(['B', 'B 2']);
+        expect(startRows(creator)).to.deep.equal([[10, 20]]);
+      });
+
+      it('keeps cells with their column when a rename on the block is undone', async function () {
+        const creator = load({ columns: ['A', 'B'], rows: [[10, 20]] }, 'A', 'B');
+        creator.getInputTargetBlock('COLUMNS').getInputTargetBlock('ADD0').setFieldValue('B', 'TEXT');
+        await settle();
+        expect(startRows(creator)).to.deep.equal([[10, 20]]);
+        await undo();
+        expect(columnTexts(creator)).to.deep.equal(['A', 'B']);
+        expect(startRows(creator)).to.deep.equal([[10, 20]]);
+      });
+
+      it('keeps text that is not an ordinary number as text', function () {
+        expect(['NaN', 'Infinity', '-Infinity', '1e999'].map(cellFromText)).to.deep.equal([
+          'NaN',
+          'Infinity',
+          '-Infinity',
+          '1e999',
+        ]);
+      });
+
+      it('keeps start data through the XML reload used when the language changes', function () {
+        const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Name', 'Height');
+        const xml = Blockly.Xml.workspaceToDom(workspace);
+        workspace.clear();
+        Blockly.Xml.domToWorkspace(xml, workspace);
+        const reloaded = workspace.getBlockById(creator.id);
+        expect(startRows(reloaded)).to.deep.equal([['Burj', 828]]);
+        expect(reloaded.getFieldValue('ROW_COUNT')).to.equal('1 row');
+      });
+
+      it('keeps cells with their names when the columns list is changed with blocks', function () {
+        const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Height');
+        expect(startRows(creator)).to.deep.equal([[828]]);
+      });
+
+      it('edits cells from the keyboard in the editor', async function () {
+        const creator = load({ columns: ['Name', 'Height'], rows: [['Burj', 828]] }, 'Name', 'Height');
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        try {
+          const key = (target, keyName, options = {}) =>
+            target.dispatchEvent(
+              new KeyboardEvent('keydown', { key: keyName, bubbles: true, ...options })
+            );
+          expect(panel.hidden).to.equal(false);
+          expect(document.activeElement.textContent).to.equal('Burj');
+          key(document.activeElement, 'ArrowRight');
+          expect(document.activeElement.textContent).to.equal('828');
+          key(document.activeElement, 'Enter');
+          const input = panel.querySelector('.table-editor-input');
+          expect(input.getAttribute('aria-label')).to.equal('Height, row 0');
+          input.value = '830';
+          key(input, 'Tab');
+          expect(startRows(creator)).to.deep.equal([['Burj', 830], ['', '']]);
+          expect(document.activeElement.dataset.row).to.equal('1');
+          key(document.activeElement, 'ArrowUp');
+          key(document.activeElement, 'ArrowUp');
+          key(document.activeElement, 'Enter');
+          const header = panel.querySelector('.table-editor-input');
+          header.value = 'Tower';
+          key(header, 'Enter');
+          expect(columnTexts(creator)).to.deep.equal(['Tower', 'Height']);
+          key(document.activeElement, 'x');
+          key(panel.querySelector('.table-editor-input'), 'Escape');
+          expect(startRows(creator)[0][0]).to.equal('Burj');
+          key(document.activeElement, 'Escape');
+          expect(panel.hidden).to.equal(true);
+        } finally {
+          panel.hidden = true;
+        }
+      });
+
+      it('drops an edit when the rows change under it and resizes from the keyboard', async function () {
+        const creator = load({ columns: ['Name'], rows: [['a'], ['b'], ['c']] }, 'Name');
+        openTableEditor(creator);
+        const panel = document.querySelector('.table-editor');
+        try {
+          const key = (target, keyName, options = {}) =>
+            target.dispatchEvent(
+              new KeyboardEvent('keydown', { key: keyName, bubbles: true, ...options })
+            );
+          key(document.activeElement, 'ArrowDown');
+          key(document.activeElement, 'Enter');
+          panel.querySelector('.table-editor-input').value = 'changed';
+          deleteStartRow(creator, 0);
+          await settle();
+          expect(panel.querySelector('.table-editor-input')).to.equal(null);
+          expect(startRows(creator)).to.deep.equal([['b'], ['c']]);
+
+          const content = panel.querySelector('.table-editor-content');
+          const resizer = panel.querySelector('.table-editor-resize');
+          const width = content.offsetWidth;
+          key(resizer, 'ArrowLeft');
+          expect(content.offsetWidth).to.equal(width - 20);
+          expect(resizer.getAttribute('aria-label')).to.match(/arrow keys/);
+          key(document.activeElement, 'Escape');
+        } finally {
+          panel.hidden = true;
         }
       });
     });

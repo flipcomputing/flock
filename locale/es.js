@@ -1573,6 +1573,33 @@ export default {
   new_table_title: 'Nombre de tabla nueva:', // ai
   rename_table_title: "Renombrar todas las tablas '%1' a:", // ai
   delete_table_confirmation: "¿Borrar %1 usos de la tabla '%2'?", // ai
+  table_edit_data: 'Editar datos de la tabla', // ai
+  table_editor_row_count_one: '1 fila', // ai
+  table_editor_row_count: '%1 filas', // ai
+  table_editor_title: 'Datos iniciales de %1', // ai
+  table_editor_close: 'Cerrar', // ai
+  table_editor_resize: 'Cambiar tamaño. Usa las flechas para hacer el editor más grande o más pequeño.', // ai
+  table_editor_add_row: 'Añadir fila debajo', // ai
+  table_editor_delete_row: 'Borrar fila', // ai
+  table_editor_add_column: 'Añadir columna a la derecha', // ai
+  table_editor_delete_column: 'Borrar columna', // ai
+  table_editor_move_column_left: 'Mover columna a la izquierda', // ai
+  table_editor_move_column_right: 'Mover columna a la derecha', // ai
+  table_editor_row_header: 'Fila', // ai
+  table_editor_new_column: 'Columna', // ai
+  table_editor_column_name: 'Nombre de la columna', // ai
+  table_editor_cell_label: '%1, fila %2', // ai
+  table_editor_keys:
+    'Usa las flechas para moverte entre celdas. Pulsa Intro para cambiar una celda, y luego Intro para guardar o Escape para cancelar.', // ai
+  table_editor_no_columns: 'Esta tabla aún no tiene columnas. Añade una columna para empezar.', // ai
+  table_editor_computed_columns:
+    'Para editar esta tabla aquí, pon bloques de texto con los nombres de las columnas en la lista de columnas.', // ai
+  table_editor_row_added: 'Fila %1 añadida', // ai
+  table_editor_row_deleted: 'Fila %1 borrada', // ai
+  table_editor_column_added: 'Columna %1 añadida', // ai
+  table_editor_column_deleted: 'Columna %1 borrada', // ai
+  table_editor_column_moved_left: 'Columna %1 movida a la izquierda', // ai
+  table_editor_column_moved_right: 'Columna %1 movida a la derecha', // ai
   animation_group_not_found: 'No se encontró ninguna animación llamada {group}.', // ai
   sound_load_failed: 'No se pudo cargar el sonido {sound}.', // ai
   text_creation_failed:

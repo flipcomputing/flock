@@ -9,6 +9,7 @@ import {
 } from '../blocks/blockIcons.js';
 import { updatePickPositionFieldIcons } from '../blocks/fieldPickPosition.js';
 import { updateCameraButtonFieldIcons } from '../blocks/fieldCameraButtons.js';
+import { updateTableDataFieldIcons } from '../blocks/fieldTableData.js';
 
 export const categoryColours = {
   Events: 5,
@@ -365,6 +366,7 @@ function switchTheme(themeName, { persist = true } = {}) {
   updateAllBlockIcons(workspace, iconColor);
   updatePickPositionFieldIcons(workspace, iconColor);
   updateCameraButtonFieldIcons(workspace, iconColor);
+  updateTableDataFieldIcons(workspace, iconColor);
   if (themeName === LOW_VISION_THEME) {
     applyLowVisionDecorations(workspace, {
       hideFlyoutWhileApplying: true,

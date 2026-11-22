@@ -2,6 +2,7 @@ import * as Blockly from 'blockly';
 import { budgetYield } from './generators-control.js';
 import { getVariableInfo } from './generators-utilities.js';
 import { localVariableIds } from '../blocks/variableScope.js';
+import { startRows } from '../blocks/tableData.js';
 
 export function registerTablesGenerators(javascriptGenerator) {
   const value = (block, name, fallback) =>
@@ -13,7 +14,9 @@ export function registerTablesGenerators(javascriptGenerator) {
   javascriptGenerator.forBlock['table_create'] = function (block) {
     const { generatedName, userVariableName } = getVariableInfo(block, 'VAR');
     const columns = value(block, 'COLUMNS', '[]');
-    return `${generatedName} = createTable(${JSON.stringify(userVariableName)}, ${columns});\n`;
+    const rows = startRows(block);
+    const data = rows.length ? `, ${JSON.stringify(rows)}` : '';
+    return `${generatedName} = createTable(${JSON.stringify(userVariableName)}, ${columns}${data});\n`;
   };
 
   javascriptGenerator.forBlock['table_add_row'] = function (block) {

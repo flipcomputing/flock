@@ -111,9 +111,13 @@ function uniqueColumns(api, name, columns) {
 }
 
 export const flockTables = {
-  createTable(name, columns) {
+  createTable(name, columns, rows) {
     if (typeof name !== 'string' || name === '') return '';
-    allTables().set(name, { columns: uniqueColumns('createTable', name, columns), rows: [] });
+    const table = { columns: uniqueColumns('createTable', name, columns), rows: [] };
+    allTables().set(name, table);
+    if (Array.isArray(rows)) {
+      for (const values of rows) table.rows.push(rowFrom('createTable', name, table, values));
+    }
     return name;
   },
   addTableRow(name, values) {
