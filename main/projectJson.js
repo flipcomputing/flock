@@ -74,9 +74,24 @@ export function validateBlocklyJson(json) {
     delete block.fields.FOLLOW_POSITION;
   }
 
+  // The old text material was a statement that stored into a variable.
+  function upgradeTextMaterialStatement(block) {
+    if (block.type !== 'text_material' || !block.fields || !('MATERIAL_VAR' in block.fields)) {
+      return;
+    }
+    const { TEXT, COLOR, BACKGROUND_COLOR } = block.inputs ?? {};
+    const inputs = Object.fromEntries(
+      Object.entries({ TEXT, COLOR, BACKGROUND_COLOR }).filter(([, input]) => input)
+    );
+    block.type = 'variables_set';
+    block.fields = { VAR: block.fields.MATERIAL_VAR };
+    block.inputs = { VALUE: { block: { type: 'text_material', inputs } } };
+  }
+
   function upgradeLegacyBlocks(block) {
     if (!block || typeof block !== 'object') return;
 
+    upgradeTextMaterialStatement(block);
     upgradeMoveUseY(block);
     upgradeMoveToOffsets(block);
     upgradeFollowPosition(block);

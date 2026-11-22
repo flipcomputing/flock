@@ -136,6 +136,29 @@ export function registerMaterialGenerators(javascriptGenerator) {
     return [code, javascriptGenerator.ORDER_ATOMIC];
   };
 
+  javascriptGenerator.forBlock['text_material'] = function (block) {
+    const text =
+      javascriptGenerator.valueToCode(block, 'TEXT', javascriptGenerator.ORDER_ATOMIC) || '""';
+    const color =
+      javascriptGenerator.valueToCode(block, 'COLOR', javascriptGenerator.ORDER_ATOMIC) ||
+      '"#000000"';
+    const background =
+      javascriptGenerator.valueToCode(
+        block,
+        'BACKGROUND_COLOR',
+        javascriptGenerator.ORDER_ATOMIC
+      ) || '"#ffffff"';
+    const alpha =
+      javascriptGenerator.valueToCode(block, 'ALPHA', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const scale =
+      javascriptGenerator.valueToCode(block, 'SCALE', javascriptGenerator.ORDER_ATOMIC) || '1';
+    const angle =
+      javascriptGenerator.valueToCode(block, 'ANGLE', javascriptGenerator.ORDER_ATOMIC) || '0';
+
+    const code = `{ text: ${text}, color: ${color}, background: ${background}, alpha: ${alpha}, scale: ${scale}, angle: ${angle} }`;
+    return [code, javascriptGenerator.ORDER_ATOMIC];
+  };
+
   javascriptGenerator.forBlock['skin_colour'] = function (block) {
     const colour = block.getFieldValue('COLOR');
     const code = JSON.stringify(colour);

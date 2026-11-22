@@ -2543,4 +2543,98 @@ export function runMaterialsTests(flock) {
       expect(flock.scene.materials).to.not.include(coloured);
     });
   });
+  describe('text material @materials', function () {
+    const boxIds = [];
+    const letter = (text, extra = {}) => ({
+      text,
+      color: '#000000',
+      background: '#ffffff',
+      alpha: 1,
+      scale: 1,
+      angle: 0,
+      ...extra,
+    });
+
+    afterEach(function () {
+      boxIds.forEach((id) => flock.dispose(id));
+      boxIds.length = 0;
+    });
+
+    it('draws the text on a texture that repeats once per world unit', function () {
+      const material = flock.getOrCreateMaterial(letter('A'), 1, { cached: false });
+      const texture = material.diffuseTexture;
+      expect(texture).to.be.instanceOf(flock.BABYLON.DynamicTexture);
+      expect(texture.uScale).to.equal(4);
+      expect(texture.vScale).to.equal(4);
+      expect(texture.wrapU).to.equal(flock.BABYLON.Texture.WRAP_ADDRESSMODE);
+      const corner = texture.getContext().getImageData(0, 0, 1, 1).data;
+      expect([...corner.slice(0, 3)]).to.deep.equal([255, 255, 255]);
+      material.dispose(false, true);
+    });
+
+    it('makes each tile bigger as the scale grows', function () {
+      const material = flock.getOrCreateMaterial(letter('A', { scale: 2, angle: 90 }), 1, {
+        cached: false,
+      });
+      expect(material.diffuseTexture.uScale).to.equal(2);
+      expect(material.diffuseTexture.wAng).to.be.closeTo(Math.PI / 2, 1e-6);
+      material.dispose(false, true);
+    });
+
+    it('reuses the cached material for the same text and makes a new one for different text', function () {
+      const a1 = flock.getOrCreateMaterial(letter('Q'));
+      const a2 = flock.getOrCreateMaterial(letter('Q'));
+      const b = flock.getOrCreateMaterial(letter('🙂'));
+      expect(a1).to.equal(a2);
+      expect(b).to.not.equal(a1);
+      flock.disposeOldMaterial(a1);
+      flock.disposeOldMaterial(b);
+    });
+
+    it('applies to a box and survives a change of alpha', async function () {
+      const id = 'boxTextMaterial';
+      await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+      boxIds.push(id);
+
+      flock.setMaterial(id, letter('Z'));
+      await new Promise((resolve) => flock.whenModelReady(id, resolve));
+      const mesh = flock.scene.getMeshByName(id);
+      expect(mesh.material.metadata.textParams.text).to.equal('Z');
+
+      await flock.setAlpha(id, { value: 0.5 });
+      expect(mesh.material.metadata.textParams.text).to.equal('Z');
+      expect(mesh.material.metadata.textParams.alpha).to.be.closeTo(0.5, 0.01);
+    });
+
+    for (const text of ['A', '']) {
+      it(`keeps every text option through setMaterial for ${JSON.stringify(text)}`, async function () {
+        const id = `boxTextOptions${text.length}`;
+        await flock.createBox(id, { width: 1, height: 1, depth: 1, position: [0, 0, 0] });
+        boxIds.push(id);
+
+        flock.setMaterial(
+          id,
+          letter(text, { color: '#000000', background: '#ffffff', alpha: 0.5, scale: 2, angle: 45 })
+        );
+        await new Promise((resolve) => flock.whenModelReady(id, resolve));
+        const material = flock.scene.getMeshByName(id).material;
+        expect(material.metadata.textParams).to.include({ text, alpha: 0.5, scale: 2, angle: 45 });
+        expect(material.diffuseTexture).to.be.instanceOf(flock.BABYLON.DynamicTexture);
+        expect(material.diffuseTexture.uScale).to.equal(2);
+        expect(material.diffuseTexture.wAng).to.be.closeTo(Math.PI / 4, 1e-6);
+      });
+    }
+
+    it('fades the background but keeps the text solid', function () {
+      const material = flock.getOrCreateMaterial(letter('I', { alpha: 0.5 }), 1, {
+        cached: false,
+      });
+      const ctx = material.diffuseTexture.getContext();
+      expect(material.alpha).to.equal(1);
+      expect(material.useAlphaFromDiffuseTexture).to.be.true;
+      expect(ctx.getImageData(0, 0, 1, 1).data[3]).to.be.closeTo(128, 2);
+      expect(ctx.getImageData(256, 256, 1, 1).data[3]).to.equal(255);
+      material.dispose(false, true);
+    });
+  });
 }

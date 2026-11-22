@@ -234,8 +234,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'colora %1 a %2',
   change_material: 'applica materiale %1 a %2 con colore %3',
-  text_material:
-    'materiale %1 testo %2 colore %3 sfondo %4\nlarghezza: %5 altezza: %6 dimensione: %7',
+  text_material: 'materiale testo %1 colore %2 sfondo %3', // AI-generated; needs validation
   place_decal: 'decalcomania %1 angolo %2',
   decal:
     'decal su %1 da x: %2 y: %3 z: %4 \nangolo x: %5 y: %6 z: %7\ndimensione x: %8 y: %9 z: %10 materiale: %11',
@@ -515,7 +514,7 @@ export default {
   change_color_tooltip: "Cambia il colore dell'oggetto selezionato.",
   change_material_tooltip: "Applica un materiale selezionato con tinta all'oggetto indicato.",
   text_material_tooltip:
-    'Crea un materiale con testo o emoji, specificando larghezza, altezza, colore di sfondo e dimensione del testo.',
+    'Crea un materiale da una lettera, un emoji o un breve testo disegnato su una piastrella quadrata che si ripete ogni 1 unità, così appare su ogni faccia di una scatola. Usa + per impostare trasparenza, scala (2 rende ogni piastrella grande il doppio) e angolo in gradi.', // AI-generated; needs validation
   place_decal_tooltip: 'Posiziona una decalcomania su un oggetto usando il materiale selezionato.',
   decal_tooltip: 'Crea una decal su un oggetto con posizione, normale, dimensione e materiale.',
   highlight_tooltip: "Evidenzia l'oggetto selezionato.",

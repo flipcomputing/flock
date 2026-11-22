@@ -233,7 +233,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'changer la couleur de %1 en %2',
   change_material: 'appliquer le matériau %1 à %2 avec la couleur %3',
-  text_material: 'matériau %1 texte %2 couleur %3 fond %4\nlargeur: %5 hauteur: %6 taille: %7',
+  text_material: 'matériau texte %1 couleur %2 fond %3', // AI-generated; needs validation
   place_decal: 'décalcomanie %1 angle %2',
   decal:
     'décalcomanie sur %1 depuis x: %2 y: %3 z: %4\nangle x: %5 y: %6 z: %7\ntaille x: %8 y: %9 z: %10 matériau: %11',
@@ -520,7 +520,7 @@ export default {
   change_material_tooltip:
     "Applique un matériau sélectionné avec une teinte de couleur à l'objet spécifié.",
   text_material_tooltip:
-    'Crée un matériau avec du texte ou un emoji, en spécifiant la largeur, la hauteur, la couleur de fond et la taille du texte.',
+    'Crée un matériau à partir d’une lettre, d’un emoji ou d’un court texte dessiné sur une tuile carrée qui se répète toutes les 1 unité, pour qu’il apparaisse sur chaque face d’une boîte. Utilise + pour régler la transparence, l’échelle (2 rend chaque tuile deux fois plus grande) et l’angle en degrés.', // AI-generated; needs validation
   place_decal_tooltip: 'Place une décalcomanie sur un objet à l’aide du matériau sélectionné.',
   decal_tooltip: 'Crée une décalcomanie sur un objet avec position, normale, taille et matériau.',
   highlight_tooltip: "Met en surbrillance l'objet sélectionné.",

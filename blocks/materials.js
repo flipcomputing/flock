@@ -170,11 +170,6 @@ export function defineMaterialsBlocks() {
         message0: translate('text_material'),
         args0: [
           {
-            type: 'field_variable',
-            name: 'MATERIAL_VAR',
-            variable: 'material',
-          },
-          {
             type: 'input_value',
             name: 'TEXT',
             check: 'String',
@@ -189,31 +184,18 @@ export function defineMaterialsBlocks() {
             name: 'BACKGROUND_COLOR',
             check: 'Colour',
           },
-          {
-            type: 'input_value',
-            name: 'WIDTH',
-            check: 'Number',
-          },
-          {
-            type: 'input_value',
-            name: 'HEIGHT',
-            check: 'Number',
-          },
-          {
-            type: 'input_value',
-            name: 'TEXT_SIZE',
-            check: 'Number',
-          },
         ],
+        output: 'Material',
         inputsInline: true,
-        previousStatement: null,
-        nextStatement: null,
         colour: categoryColours['Materials'],
         tooltip: getTooltip('text_material'),
       });
       this.setHelpUrl(getHelpUrlFor(this.type));
       this.setStyle('materials_blocks');
+      appendMaterialOptions(this, MATERIAL_OPTION_INPUTS);
     },
+
+    ...materialOptionsMethods,
   };
 
   Blockly.Blocks['place_decal'] = {

@@ -3875,6 +3875,16 @@ const toolboxMaterials = {
     },
     {
       kind: 'block',
+      type: 'text_material',
+      keyword: 'textmat',
+      inputs: {
+        TEXT: { shadow: { type: 'text', fields: { TEXT: 'A' } } },
+        COLOR: { shadow: { type: 'colour', fields: { COLOR: '#000000' } } },
+        BACKGROUND_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#ffffff' } } },
+      },
+    },
+    {
+      kind: 'block',
       type: 'gradient_texture_material',
       keyword: 'gradientmat',
       fields: {

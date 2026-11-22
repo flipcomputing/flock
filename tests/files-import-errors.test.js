@@ -187,6 +187,44 @@ export function runFilesImportErrorTests() {
         }
       });
 
+      it('turns an old text material statement into setting its variable', async function () {
+        const snippet = {
+          type: 'text_material',
+          fields: { MATERIAL_VAR: { id: 'legacyTextMatVar', name: 'legacyTextMat' } },
+          inputs: {
+            TEXT: { shadow: { type: 'text', fields: { TEXT: 'Q' } } },
+            COLOR: { shadow: { type: 'colour', fields: { COLOR: '#ff0000' } } },
+            BACKGROUND_COLOR: { shadow: { type: 'colour', fields: { COLOR: '#00ff00' } } },
+            WIDTH: { shadow: { type: 'math_number', fields: { NUM: 512 } } },
+            HEIGHT: { shadow: { type: 'math_number', fields: { NUM: 512 } } },
+            TEXT_SIZE: { shadow: { type: 'math_number', fields: { NUM: 120 } } },
+          },
+          next: {
+            block: {
+              type: 'print_text',
+              inputs: { TEXT: { shadow: { type: 'text', fields: { TEXT: 'after' } } } },
+            },
+          },
+        };
+        try {
+          await importSnippetFile(new File([JSON.stringify(snippet)], 'textmat.fsnip'));
+          expect(alerts).to.have.length(0);
+          const [set] = added();
+          expect(set.type).to.equal('variables_set');
+          expect(set.getField('VAR').getText()).to.equal('legacyTextMat');
+          const material = set.getInputTargetBlock('VALUE');
+          expect(material.type).to.equal('text_material');
+          expect(material.getInputTargetBlock('TEXT').getFieldValue('TEXT')).to.equal('Q');
+          expect(material.getInputTargetBlock('BACKGROUND_COLOR').getFieldValue('COLOR')).to.equal(
+            '#00ff00'
+          );
+          expect(set.getNextBlock()?.type).to.equal('print_text');
+        } finally {
+          const variable = Blockly.getMainWorkspace().getVariableById('legacyTextMatVar');
+          if (variable) Blockly.getMainWorkspace().deleteVariableById(variable.getId());
+        }
+      });
+
       it('says when a file is not a snippet type', async function () {
         await importSnippetFile(new File(['hello'], 'notes.txt', { type: 'text/plain' }));
         expect(alerts).to.deep.equal([translate('invalid_snippet_alert')]);

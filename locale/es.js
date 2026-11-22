@@ -236,7 +236,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'cambiar color de %1 a %2', // human
   change_material: 'aplicar material %1 a %2 con color %3', // human
-  text_material: 'material %1 texto %2 color %3 fondo %4\nancho: %5 alto: %6 tamaño: %7', // human
+  text_material: 'material de texto %1 color %2 fondo %3', // AI-generated; needs validation
   place_decal: 'calcomanía %1 ángulo %2', // human
   decal:
     'calcomanía en %1 desde x: %2 y: %3 z: %4 \nángulo x: %5 y: %6 z: %7\ntamaño x: %8 y: %9 z: %10 material: %11', // human
@@ -601,7 +601,7 @@ export default {
   change_material_tooltip:
     'Aplica un material seleccionado con tinte de color al objeto especificado.', // human
   text_material_tooltip:
-    'Crea un material con texto o emoji, especificando ancho, alto, color de fondo y tamaño de texto.', // human
+    'Crea un material con una letra, emoji o texto corto dibujado en una baldosa cuadrada que se repite cada 1 unidad, así aparece en cada cara de una caja. Usa + para ajustar la transparencia, la escala (2 hace cada baldosa el doble de grande) y el ángulo en grados.', // AI-generated; needs validation
   place_decal_tooltip: 'Coloca una calcomanía en un objeto usando el material seleccionado.', // human
   decal_tooltip: 'Crea una calcomanía en un objeto con posición, normal, tamaño y material.', // human
   highlight_tooltip: 'Resalta el objeto seleccionado.', // human

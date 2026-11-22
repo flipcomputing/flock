@@ -234,7 +234,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'Farbe %1 auf %2 setzen',
   change_material: 'Material %1 auf %2 anwenden mit Farbe %3',
-  text_material: 'Material %1 Text %2 Farbe %3 Hintergrund %4\nBreite: %5 Höhe: %6 Größe: %7',
+  text_material: 'Textmaterial %1 Farbe %2 Hintergrund %3', // AI-generated; needs validation
   place_decal: 'Aufkleber %1 Winkel %2',
   decal:
     'Aufkleber auf %1 von x: %2 y: %3 z: %4 \nWinkel x: %5 y: %6 z: %7\nGröße x: %8 y: %9 z: %10 Material: %11',
@@ -658,7 +658,7 @@ export default {
   change_color_tooltip: 'Farbe des gewählten Objekts ändern.',
   change_material_tooltip: 'Wende ausgewähltes Material mit Farbtönung auf Objekt an.',
   text_material_tooltip:
-    'Erstelle Material mit Text oder Emoji – Breite, Höhe, Hintergrundfarbe und Größenangabe.',
+    'Erstelle ein Material aus einem Buchstaben, Emoji oder kurzen Text auf einer quadratischen Kachel, die sich alle 1 Einheit wiederholt und so auf jeder Seite eines Quaders erscheint. Mit + stellst du Transparenz, Skalierung (2 macht jede Kachel doppelt so groß) und Winkel in Grad ein.', // AI-generated; needs validation
   place_decal_tooltip: 'Plaziere Aufkleber auf einem Objekt mit dem ausgewählten Material.',
   decal_tooltip: 'Erstelle einen Decal mit Position, Normalen, Größe und Material.',
   highlight_tooltip: 'Heb das ausgewählte Objekt hervor.',

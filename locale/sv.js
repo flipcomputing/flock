@@ -232,7 +232,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'färga %1 till %2',
   change_material: 'tillämpa material %1 på %2 med färg %3',
-  text_material: 'material %1 text %2 färg %3 bakgrund %4\nbredd: %5 höjd: %6 storlek: %7',
+  text_material: 'textmaterial %1 färg %2 bakgrund %3', // AI-generated; needs validation
   place_decal: 'dekal %1 vinkel %2',
   decal:
     'dekal på %1 från x: %2 y: %3 z: %4\nvinkel x: %5 y: %6 z: %7\nstorlek x: %8 y: %9 z: %10 material: %11',
@@ -512,7 +512,7 @@ export default {
   change_color_tooltip: 'Ändra färgen på det valda objektet.',
   change_material_tooltip: 'Applicera ett valt material med färgton på det angivna objektet.',
   text_material_tooltip:
-    'Skapa ett material med text eller emoji, där bredd, höjd, bakgrundsfärg och textstorlek anges.',
+    'Skapa ett material av en bokstav, emoji eller kort text ritad på en kvadratisk platta som upprepas varje 1 enhet, så att den syns på varje sida av en låda. Använd + för att ställa in genomskinlighet, skala (2 gör varje platta dubbelt så stor) och vinkel i grader.', // AI-generated; needs validation
   place_decal_tooltip: 'Placera en dekal på ett objekt med valt material.',
   decal_tooltip: 'Skapa en dekal på ett objekt med position, normal, storlek och material.',
   highlight_tooltip: 'Markera det valda objektet.',

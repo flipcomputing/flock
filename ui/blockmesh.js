@@ -587,6 +587,26 @@ export function readColourValue(block) {
     };
   }
 
+  if (block.type === 'text_material') {
+    const textBlock = block.getInputTargetBlock('TEXT');
+    const textIsLiteral = !textBlock || ['text', 'text_multiline'].includes(textBlock.type);
+    if (!textIsLiteral) return UNKNOWN_COLOUR;
+    const color = readColourFromInputOrShadow(block, 'COLOR');
+    const background = readColourFromInputOrShadow(block, 'BACKGROUND_COLOR');
+    if (color.kind === 'unknown' || background.kind === 'unknown') return UNKNOWN_COLOUR;
+    return {
+      value: {
+        text: safeGetFieldValue(textBlock, 'TEXT') ?? '',
+        color: color.value ?? '#000000',
+        background: background.value ?? '#ffffff',
+        alpha: readNumberInput(block, 'ALPHA', 1),
+        scale: readNumberInput(block, 'SCALE', 1),
+        angle: readNumberInput(block, 'ANGLE', 0),
+      },
+      kind: 'material',
+    };
+  }
+
   if (block.type === 'material') {
     if (readColourFromInputOrShadow(block, 'BASE_COLOR').kind === 'unknown') return UNKNOWN_COLOUR;
     return { value: materialDescriptor(block), kind: 'material' };
@@ -922,6 +942,7 @@ const LITERAL_VALUE_TYPES = new Set([
   'gradient_colour',
   'gradient_texture_material',
   'gradient_material',
+  'text_material',
   'lists_create_with',
 ]);
 
@@ -2229,6 +2250,9 @@ export function updateMeshFromBlock(meshesOrMesh, block, changeEvent) {
       })?.name || changed;
 
     if (parent.type === 'material' && ['SCALE', 'ANGLE'].includes(changed)) {
+      changed = 'MATERIAL_OPTION';
+    }
+    if (parent.type === 'text_material' && changed) {
       changed = 'MATERIAL_OPTION';
     }
 

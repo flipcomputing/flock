@@ -233,7 +233,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'cor %1 para %2',
   change_material: 'aplicar material %1 em %2 com cor %3',
-  text_material: 'material %1 texto %2 cor %3 fundo %4\nlargura: %5 altura: %6 tamanho: %7',
+  text_material: 'material de texto %1 cor %2 fundo %3', // AI-generated; needs validation
   place_decal: 'adesivo %1 ângulo %2',
   decal:
     'adesivo em %1 de x: %2 y: %3 z: %4\nângulo x: %5 y: %6 z: %7\ntamanho x: %8 y: %9 z: %10 material: %11',
@@ -517,7 +517,7 @@ export default {
   change_color_tooltip: 'Altera a cor do objeto selecionado.',
   change_material_tooltip: 'Aplica um material selecionado com cor ao objeto especificado.',
   text_material_tooltip:
-    'Cria um material com texto ou emoji, especificando largura, altura, cor de fundo e tamanho da fonte.',
+    'Cria um material a partir de uma letra, emoji ou texto curto desenhado num ladrilho quadrado que se repete a cada 1 unidade, para aparecer em todas as faces de uma caixa. Use + para definir a transparência, a escala (2 deixa cada ladrilho duas vezes maior) e o ângulo em graus.', // AI-generated; needs validation
   place_decal_tooltip: 'Coloca um decalque em um objeto usando o material selecionado.',
   decal_tooltip: 'Cria um decalque em um objeto com posição, normal, tamanho e material.',
   highlight_tooltip: 'Destaca o objeto selecionado.',

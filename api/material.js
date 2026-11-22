@@ -1,4 +1,4 @@
-import { clampToRange } from '../config.js';
+import { clampToRange, TEXTURE_TILE_SIZE } from '../config.js';
 
 let flock;
 
@@ -309,6 +309,62 @@ function materialCacheKey(colorKey, alpha, texName, glow, scale = 1, angle = 0) 
   return `mat_${colorKey}_${alphaKey}_${texName}_${glowKey}${scaleKey}${angleKey}`.toLowerCase();
 }
 
+function isTextDescriptor(value) {
+  return typeof value === 'object' && value !== null && !Array.isArray(value) && 'text' in value;
+}
+
+function readTextParams(value, alpha) {
+  return {
+    text: String(value.text ?? ''),
+    color: flock.getColorFromString(value.color || '#000000'),
+    background: flock.getColorFromString(value.background || '#ffffff'),
+    alpha: clampToRange(Number(value.alpha ?? alpha ?? 1), 'unit'),
+    scale: readTextureScale(value),
+    angle: readTextureAngle(value),
+  };
+}
+
+function textMaterialCacheKey(params) {
+  const { text, color, background, alpha, scale, angle } = params;
+  return `txt_${JSON.stringify([text, color, background, alpha.toFixed(2), scale, angle])}`;
+}
+
+const TEXT_TEXTURE_SIZE = 512;
+const TEXT_FILL = 0.8;
+const TEXT_FONT = 'sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji"';
+
+function drawTextTile(ctx, { text, color, background, alpha }) {
+  const size = TEXT_TEXTURE_SIZE;
+  ctx.clearRect(0, 0, size, size);
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalAlpha = 1;
+  if (!text.trim()) return;
+
+  const probe = 100;
+  ctx.font = `bold ${probe}px ${TEXT_FONT}`;
+  const m = ctx.measureText(text);
+  const width = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  const height = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+  const fit = (size * TEXT_FILL) / Math.max(width, height, 1);
+
+  ctx.save();
+  // Shape UVs run right to left as seen from outside, so the tile is drawn mirrored.
+  ctx.translate(size, 0);
+  ctx.scale(-1, 1);
+  ctx.font = `bold ${probe * fit}px ${TEXT_FONT}`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = color;
+  ctx.fillText(
+    text,
+    size / 2 + ((m.actualBoundingBoxLeft - m.actualBoundingBoxRight) * fit) / 2,
+    size / 2 + ((m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) * fit) / 2
+  );
+  ctx.restore();
+}
+
 // 3D text takes a plain colour list one letter at a time rather than as a
 // gradient. Returns the list when it applies to this mesh, otherwise null.
 function textLetterColors(mesh, colorInput) {
@@ -566,6 +622,10 @@ export const flockMaterial = {
     const mat = mesh.material;
     if (!mat) return null;
 
+    if (mat.metadata?.textParams) {
+      return { ...mat.metadata.textParams };
+    }
+
     const scale = mat.metadata?.textureScale ?? 1;
     const angle = mat.metadata?.textureAngle ?? 0;
     const withScale = (params) => ({
@@ -632,7 +692,9 @@ export const flockMaterial = {
       // The halo comes from the glow layer, not the material, so rebuilding one
       // without an emissive channel just costs a duplicate.
       const canEmit =
-        m.material?.emissiveColor !== undefined && !m.material?.metadata?.gradientColors;
+        m.material?.emissiveColor !== undefined &&
+        !m.material?.metadata?.gradientColors &&
+        !m.material?.metadata?.textParams;
 
       if (params && canEmit) {
         const materialParams = {
@@ -1951,6 +2013,10 @@ export const flockMaterial = {
     flock.disposeOldMaterial(oldMat, [mesh]);
   },
   getOrCreateMaterial(colorInput, alpha = 1, { cached = true } = {}) {
+    if (isTextDescriptor(colorInput)) {
+      return flock.getOrCreateTextMaterial(readTextParams(colorInput, alpha), { cached });
+    }
+
     const isObject =
       typeof colorInput === 'object' && colorInput !== null && !Array.isArray(colorInput);
 
@@ -2061,6 +2127,45 @@ export const flockMaterial = {
     if (cached) flock.materialCache[cacheKey] = newMat;
     return newMat;
   },
+  getOrCreateTextMaterial(params, { cached = true } = {}) {
+    const cacheKey = textMaterialCacheKey(params);
+    if (!flock.materialCache) flock.materialCache = {};
+    if (cached && flock.materialCache[cacheKey]) return flock.materialCache[cacheKey];
+
+    const texture = new flock.BABYLON.DynamicTexture(
+      'textMaterialTexture',
+      { width: TEXT_TEXTURE_SIZE, height: TEXT_TEXTURE_SIZE },
+      flock.scene,
+      true
+    );
+    drawTextTile(texture.getContext(), params);
+    texture.update();
+    texture.wrapU = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+    texture.wrapV = flock.BABYLON.Texture.WRAP_ADDRESSMODE;
+    texture.uScale = TEXTURE_TILE_SIZE / params.scale;
+    texture.vScale = TEXTURE_TILE_SIZE / params.scale;
+    texture.wAng = (params.angle * Math.PI) / 180;
+
+    const material = new flock.BABYLON.StandardMaterial(cacheKey, flock.scene);
+    material.diffuseTexture = texture;
+    material.backFaceCulling = false;
+    if (params.alpha < 1) {
+      texture.hasAlpha = true;
+      material.useAlphaFromDiffuseTexture = true;
+      material.transparencyMode = flock.BABYLON.Material.MATERIAL_ALPHABLEND;
+      flock.setDepthPrePass(material, true);
+    }
+
+    material.metadata = {
+      cacheKey,
+      isManaged: true,
+      texName: 'text',
+      textParams: { ...params },
+    };
+
+    if (cached) flock.materialCache[cacheKey] = material;
+    return material;
+  },
   _ownerBlockKey(node) {
     for (let current = node; current; current = current.parent) {
       if (current.metadata?.blockKey !== undefined) return current.metadata.blockKey;
@@ -2166,6 +2271,7 @@ export const flockMaterial = {
       (isMaterialDescriptor(v) ? (v.alpha ?? opts.alpha) : opts.alpha) ?? m?.material?.alpha ?? 1;
 
     const makeTargetCacheKey = (v, m) => {
+      if (isTextDescriptor(v)) return textMaterialCacheKey(readTextParams(v, getAlpha(v, m)));
       const rawColor = getRawColor(v);
       const texName = String(getTexName(v));
       const style = readGradientStyle(v);

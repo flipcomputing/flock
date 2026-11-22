@@ -234,7 +234,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'zmień kolor %1 na %2',
   change_material: 'nałóż materiał %1 na %2 o kolorze %3',
-  text_material: 'materiał %1 tekst: %2 kolor: %3 tło: %4\nszerokość: %5 wysokość: %6 rozmiar: %7',
+  text_material: 'materiał z tekstem %1 kolor: %2 tło: %3', // AI-generated; needs validation
   place_decal: 'umieść naklejkę %1 kąt: %2',
   decal:
     'naklej na %1 z x: %2 y: %3 z: %4\nkąt x: %5 y: %6 z: %7\nrozmiar x: %8 y: %9 z: %10 materiał: %11',
@@ -510,7 +510,7 @@ export default {
   change_color_tooltip: 'Zmień kolor wybranego obiektu.',
   change_material_tooltip: 'Zastosuj wybrany materiał z odcieniem koloru do określonego obiektu.',
   text_material_tooltip:
-    'Utwórz materiał z tekstem lub emotką, określając szerokość, wysokość, kolor tła i rozmiar tekstu.',
+    'Utwórz materiał z litery, emotki lub krótkiego tekstu narysowanego na kwadratowym kafelku, który powtarza się co 1 jednostkę, więc widać go na każdej ścianie pudełka. Użyj +, aby ustawić przezroczystość, skalę (2 sprawia, że każdy kafelek jest dwa razy większy) i kąt w stopniach.', // AI-generated; needs validation
   place_decal_tooltip: 'Umieść naklejkę (decal) na obiekcie, używając wybranego materiału.',
   decal_tooltip:
     'Utwórz naklejkę (decal) na obiekcie, określając pozycję, normalną, rozmiar i materiał.',

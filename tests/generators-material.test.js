@@ -60,6 +60,20 @@ export function runMaterialGeneratorTests() {
       expect(gradientColour('["#ff5733", "#fdfd96"]', 0)).to.not.include('alpha');
     });
 
+    it('emits a text material descriptor with its options', function () {
+      const originalValueToCode = javascriptGenerator.valueToCode;
+      const inputs = { TEXT: '"A"', COLOR: '"#ff0000"', SCALE: '2' };
+      javascriptGenerator.valueToCode = (_block, name) => inputs[name] ?? '';
+      try {
+        const [code] = javascriptGenerator.forBlock['text_material']({});
+        expect(code).to.equal(
+          '{ text: "A", color: "#ff0000", background: "#ffffff", alpha: 1, scale: 2, angle: 0 }'
+        );
+      } finally {
+        javascriptGenerator.valueToCode = originalValueToCode;
+      }
+    });
+
     function gradientMaterial(fields = {}, inputs = {}) {
       const originalValueToCode = javascriptGenerator.valueToCode;
       javascriptGenerator.valueToCode = (_block, name) =>

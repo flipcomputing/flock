@@ -267,7 +267,7 @@ export default {
   // Custom block translations - Materials blocks
   change_color: 'color %1 to %2',
   change_material: 'apply material %1 to %2 with color %3',
-  text_material: 'material %1 text %2 color %3 background %4\nwidth: %5 height: %6 size: %7',
+  text_material: 'text material %1 color %2 background %3',
   place_decal: 'decal %1 angle %2',
   decal:
     'decal on %1 from x: %2 y: %3 z: %4 \nangle x: %5 y: %6 z: %7\nsize x: %8 y: %9 z: %10 material: %11',
@@ -659,7 +659,7 @@ export default {
   change_color_tooltip: 'Change the color of the selected object.',
   change_material_tooltip: 'Apply a selected material with a color tint to the specified object.',
   text_material_tooltip:
-    'Create a material with text or emoji, specifying width, height, background color, and text size.',
+    'Make a material from a letter, emoji or short text drawn on a square tile that repeats every 1 unit, so it shows on every face of a box. Use + to set transparency, scale (2 makes each tile twice as big) and angle in degrees.',
   place_decal_tooltip: 'Place a decal on an object using the selected material.',
   decal_tooltip: 'Create a decal on an object with position, normal, size, and material.',
   highlight_tooltip: 'Highlight the selected object.',
