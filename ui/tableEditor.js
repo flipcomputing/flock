@@ -139,11 +139,6 @@ function displayText(spec, value) {
     if (spec?.type === 'money') {
       return formatMoney(value, spec.currency);
     }
-    if (spec?.type === 'date') {
-      return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' }).format(
-        new Date(`${value}T00:00:00Z`)
-      );
-    }
     if (spec?.type === 'time') return formatTime(value);
     if (spec?.type === 'datetime') return formatDateTime(value);
   } catch {

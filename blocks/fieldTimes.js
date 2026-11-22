@@ -19,10 +19,23 @@ export function formatTime(value, style = 'short') {
   );
 }
 
-export function formatDateTime(value, dateStyle = 'medium', timeStyle = 'short') {
-  return new Intl.DateTimeFormat(undefined, { dateStyle, timeStyle, timeZone: 'UTC' }).format(
-    dateTimeAsUtc(value)
-  );
+export function formatDateTime(value) {
+  const [date, time] = value.split('T');
+  return `${date} ${formatTime(time)}`;
+}
+
+function spokenDateTime(value) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: 'long',
+    timeStyle: 'short',
+    timeZone: 'UTC',
+  }).format(dateTimeAsUtc(value));
+}
+
+class FieldIsoDate extends FieldDate {
+  getText_() {
+    return this.getValue() || null;
+  }
 }
 
 class FieldTime extends FieldDate {
@@ -71,7 +84,7 @@ class FieldDateTime extends FieldDate {
 
   getText_() {
     const value = this.getValue();
-    return value ? formatDateTime(value, 'short') : null;
+    return value ? formatDateTime(value) : null;
   }
 
   getAriaTypeName() {
@@ -80,7 +93,7 @@ class FieldDateTime extends FieldDate {
 
   getAriaValue() {
     const value = this.getValue();
-    return value ? formatDateTime(value, 'long') : super.getAriaValue();
+    return value ? spokenDateTime(value) : super.getAriaValue();
   }
 
   widgetCreate_() {
@@ -93,5 +106,6 @@ class FieldDateTime extends FieldDate {
 
 FieldDateTime.prototype.DEFAULT_VALUE = `${todayText()}T12:00`;
 
+Blockly.registry.register(Blockly.registry.Type.FIELD, 'field_date', FieldIsoDate, true);
 Blockly.fieldRegistry.register('field_time', FieldTime);
 Blockly.fieldRegistry.register('field_datetime', FieldDateTime);
