@@ -25,24 +25,24 @@ const ICONS = {
     ['rect', { x: 3, y: 3, width: 18, height: 10, rx: 2 }],
     ['path', { d: 'M3 8h18M12 16v6M9 19h6' }],
   ],
-  deleteRow: [
-    ['rect', { x: 3, y: 3, width: 18, height: 10, rx: 2 }],
-    ['path', { d: 'M3 8h18M8 19h8' }],
-  ],
   addColumn: [
     ['rect', { x: 3, y: 3, width: 10, height: 18, rx: 2 }],
     ['path', { d: 'M8 3v18M19 9v6M16 12h6' }],
   ],
-  deleteColumn: [
-    ['rect', { x: 3, y: 3, width: 10, height: 18, rx: 2 }],
-    ['path', { d: 'M8 3v18M15 12h7' }],
-  ],
-  moveUp: [['path', { d: 'M5 14l7-7 7 7M12 7v13' }]],
-  moveDown: [['path', { d: 'M5 10l7 7 7-7M12 17V4' }]],
-  moveLeft: [['path', { d: 'M14 5l-7 7 7 7M7 12h13' }]],
-  moveRight: [['path', { d: 'M10 5l7 7-7 7M17 12H4' }]],
+  delete: [['path', { d: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3' }]],
   close: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
 };
+
+const LETTER_ROW = -2;
+const NAME_ROW = -1;
+
+function columnLetter(index) {
+  let letters = '';
+  for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+    letters = String.fromCharCode(65 + ((n - 1) % 26)) + letters;
+  }
+  return letters;
+}
 
 const icon = (shapes) =>
   svgIcon(
@@ -85,6 +85,7 @@ class TableEditor {
   constructor() {
     this.block = null;
     this.workspace = null;
+    this.drag = null;
     this.columns = [];
     this.rows = [];
     this.active = { row: 0, column: 0 };
@@ -160,13 +161,8 @@ class TableEditor {
             'div',
             { class: 'table-editor-toolbar' },
             button('addRow', () => this.addRow()),
-            button('deleteRow', () => this.deleteRow()),
-            button('moveUp', () => this.moveRow(-1)),
-            button('moveDown', () => this.moveRow(1)),
             button('addColumn', () => this.addColumn()),
-            button('deleteColumn', () => this.deleteColumn()),
-            button('moveLeft', () => this.moveColumn(-1)),
-            button('moveRight', () => this.moveColumn(1))
+            button('delete', () => this.deleteSelection())
           ),
           this.message,
           this.scroller,
@@ -197,18 +193,9 @@ class TableEditor {
     const labels = {
       close: 'table_editor_close',
       addRow: 'table_editor_add_row',
-      deleteRow: 'table_editor_delete_row',
-      moveUp: 'table_editor_move_row_up',
-      moveDown: 'table_editor_move_row_down',
       addColumn: 'table_editor_add_column',
-      deleteColumn: 'table_editor_delete_column',
-      moveLeft: 'table_editor_move_column_left',
-      moveRight: 'table_editor_move_column_right',
     };
-    for (const [name, key] of Object.entries(labels)) {
-      this.buttons[name].setAttribute('aria-label', translate(key));
-      this.buttons[name].title = translate(key);
-    }
+    for (const [name, key] of Object.entries(labels)) this.label(name, key);
     this.hint.textContent = translate('table_editor_keys');
     this.resizer.setAttribute('aria-label', translate('table_editor_resize'));
     this.resizer.title = translate('table_editor_resize');
@@ -238,6 +225,7 @@ class TableEditor {
   }
 
   close({ restoreFocus = false } = {}) {
+    this.drag?.cancel();
     if (this.editing) this.finishEdit(true);
     const block = this.liveBlock();
     this.container.hidden = true;
@@ -262,6 +250,7 @@ class TableEditor {
   }
 
   render() {
+    this.drag?.cancel();
     const block = this.liveBlock();
     const hadFocus = this.grid.contains(document.activeElement);
     const name = block.getField('VAR')?.getText() ?? '';
@@ -280,7 +269,7 @@ class TableEditor {
 
     const lastRow = this.rows.length - 1;
     this.active = {
-      row: clamp(this.active.row, -1, lastRow),
+      row: clamp(this.active.row, LETTER_ROW, lastRow),
       column: clamp(this.active.column, -1, Math.max(0, (this.columns?.length ?? 0) - 1)),
     };
     if (this.active.row < 0 && this.active.column < 0) this.active.column = 0;
@@ -293,7 +282,7 @@ class TableEditor {
 
   buildGrid() {
     const columnCount = this.columns.length;
-    this.grid.setAttribute('aria-rowcount', String(this.rows.length + 1));
+    this.grid.setAttribute('aria-rowcount', String(this.rows.length + 2));
     this.grid.setAttribute('aria-colcount', String(columnCount + 1));
     const cell = (tag, role, row, column, text) =>
       h(
@@ -307,38 +296,58 @@ class TableEditor {
         },
         text
       );
-    const header = h(
+    const corner = (label) =>
+      h('th', {
+        role: 'columnheader',
+        class: 'table-editor-corner',
+        'aria-colindex': 1,
+        'aria-label': label,
+      });
+    const letters = h(
       'tr',
-      { role: 'row', 'aria-rowindex': 1 },
-      h(
-        'th',
-        { role: 'columnheader', class: 'table-editor-corner', 'aria-colindex': 1 },
-        translate('table_editor_row_header')
-      ),
-      this.columns.map((name, c) => cell('th', 'columnheader', -1, c, name))
+      { role: 'row', 'aria-rowindex': 1, class: 'table-editor-letters' },
+      corner(null),
+      this.columns.map((_, c) => cell('th', 'columnheader', LETTER_ROW, c, columnLetter(c)))
+    );
+    const names = h(
+      'tr',
+      { role: 'row', 'aria-rowindex': 2, class: 'table-editor-names' },
+      corner(translate('table_editor_row_header')),
+      this.columns.map((name, c) => cell('th', 'columnheader', NAME_ROW, c, name))
     );
     const body = this.rows.map((values, r) =>
       h(
         'tr',
-        {
-          role: 'row',
-          'aria-rowindex': r + 2,
-          'aria-selected': this.rowSelected(r) ? 'true' : null,
-          class: this.rowSelected(r) ? 'table-editor-row-selected' : null,
-        },
+        { role: 'row', 'aria-rowindex': r + 3 },
         cell('th', 'rowheader', r, -1, String(r)),
         values.map((value, c) => cell('td', 'gridcell', r, c, String(value)))
       )
     );
-    this.grid.append(h('thead', {}, header), h('tbody', {}, body));
+    this.grid.append(h('thead', {}, letters, names), h('tbody', {}, body));
+    this.showSelection();
   }
 
-  rowSelected(row) {
-    return row >= 0 && this.active.row === row && this.active.column === -1;
+  showSelection() {
+    for (const element of this.grid.querySelectorAll('[aria-selected]')) {
+      element.removeAttribute('aria-selected');
+      element.classList.remove('table-editor-selected');
+    }
+    const { row, column } = this.active;
+    const selected =
+      column < 0
+        ? [this.grid.querySelector(`tbody tr[aria-rowindex="${row + 3}"]`)]
+        : row === LETTER_ROW
+          ? this.grid.querySelectorAll(`[data-column="${column}"]`)
+          : [];
+    for (const element of selected) {
+      element?.setAttribute('aria-selected', 'true');
+      element?.classList.add('table-editor-selected');
+    }
   }
 
-  rowAt(row) {
-    return this.grid.querySelector(`tbody tr[aria-rowindex="${row + 2}"]`);
+  label(name, key) {
+    this.buttons[name].setAttribute('aria-label', translate(key));
+    this.buttons[name].title = translate(key);
   }
 
   updateButtons() {
@@ -348,15 +357,18 @@ class TableEditor {
     const { row, column } = this.active;
     const disabled = {
       addRow: !hasColumns,
-      deleteRow: !hasColumns || row < 0 || this.rows.length === 0,
-      moveUp: !hasColumns || row <= 0,
-      moveDown: !hasColumns || row < 0 || row >= this.rows.length - 1,
       addColumn: !editable,
-      deleteColumn: !hasColumns || column < 0,
-      moveLeft: !hasColumns || column <= 0,
-      moveRight: !hasColumns || column < 0 || column >= columnCount - 1,
+      delete: !hasColumns || row === NAME_ROW,
     };
     for (const [name, off] of Object.entries(disabled)) this.buttons[name].disabled = off;
+    this.label(
+      'delete',
+      column < 0
+        ? 'table_editor_delete_row'
+        : row < 0
+          ? 'table_editor_delete_column'
+          : 'table_editor_clear_cell'
+    );
   }
 
   cellAt(row, column) {
@@ -375,16 +387,9 @@ class TableEditor {
 
   setActive(row, column) {
     this.cellAt(this.active.row, this.active.column)?.setAttribute('tabindex', '-1');
-    const previous = this.rowAt(this.active.row);
-    previous?.classList.remove('table-editor-row-selected');
-    previous?.removeAttribute('aria-selected');
-    this.active = { row, column };
-    this.cellAt(row, column)?.setAttribute('tabindex', '0');
-    if (this.rowSelected(row)) {
-      const selected = this.rowAt(row);
-      selected?.classList.add('table-editor-row-selected');
-      selected?.setAttribute('aria-selected', 'true');
-    }
+    this.active = { row, column: row < 0 ? Math.max(0, column) : column };
+    this.cellAt(this.active.row, this.active.column)?.setAttribute('tabindex', '0');
+    this.showSelection();
     this.updateButtons();
     this.focusActive();
   }
@@ -431,7 +436,7 @@ class TableEditor {
     if (Object.hasOwn(moves, event.key) && !event.altKey && !event.shiftKey) {
       event.preventDefault();
       const [r, c] = moves[event.key];
-      const nextRow = clamp(r, -1, lastRow);
+      const nextRow = clamp(r, LETTER_ROW, lastRow);
       this.setActive(nextRow, clamp(c, nextRow < 0 ? 0 : -1, lastColumn));
       return;
     }
@@ -440,13 +445,12 @@ class TableEditor {
       this.startEdit();
       return;
     }
-    if (column < 0) return;
-    if ((event.key === 'Delete' || event.key === 'Backspace') && row >= 0) {
+    if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
-      setStartCell(this.liveBlock(), row, column, '');
-      this.render();
+      this.deleteSelection();
       return;
     }
+    if (column < 0) return;
     if (event.key.length === 1 && !mod && !event.altKey) {
       event.preventDefault();
       this.startEdit(event.key);
@@ -454,7 +458,7 @@ class TableEditor {
   }
 
   onGridPointerDown(event) {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || this.drag) return;
     const cell = event.target.closest?.('[data-row]');
     if (!cell || !this.grid.contains(cell)) return;
     if (this.editing?.input.contains(event.target)) return;
@@ -468,13 +472,14 @@ class TableEditor {
       document.activeElement === cell;
     if (this.editing) this.finishEdit(true);
     this.setActive(row, column);
-    if (again) this.startEdit();
+    if (row === LETTER_ROW || column < 0) this.startDrag(event);
+    else if (again) this.startEdit();
   }
 
   startEdit(initial) {
     const { row, column } = this.active;
     const cell = this.cellAt(row, column);
-    if (!cell || !this.columns || column < 0) return;
+    if (!cell || !this.columns || column < 0 || row === LETTER_ROW) return;
     const original = row === -1 ? this.columns[column] : String(this.rows[row][column]);
     const label =
       row === -1
@@ -548,11 +553,26 @@ class TableEditor {
   }
 
   addRow() {
-    const index = this.active.row + 1;
+    const index = Math.max(0, this.active.row + 1);
     insertStartRow(this.liveBlock(), index);
     this.render();
     this.setActive(index, this.active.column);
     this.announce(translate('table_editor_row_added').replace('%1', String(index)));
+  }
+
+  deleteSelection() {
+    const { row, column } = this.active;
+    if (column < 0) this.deleteRow();
+    else if (row === LETTER_ROW) this.deleteColumn();
+    else if (row >= 0) this.clearCell();
+  }
+
+  clearCell() {
+    const { row, column } = this.active;
+    setStartCell(this.liveBlock(), row, column, '');
+    this.render();
+    this.setActive(row, column);
+    this.announce(translate('table_editor_cell_cleared'));
   }
 
   deleteRow() {
@@ -562,15 +582,6 @@ class TableEditor {
     this.render();
     this.setActive(Math.min(row, this.rows.length - 1), column);
     this.announce(translate('table_editor_row_deleted').replace('%1', String(row)));
-  }
-
-  moveRow(step) {
-    const { row, column } = this.active;
-    if (!moveStartRow(this.liveBlock(), row, row + step)) return;
-    this.render();
-    this.setActive(row + step, column);
-    const key = step < 0 ? 'table_editor_row_moved_up' : 'table_editor_row_moved_down';
-    this.announce(translate(key).replace('%1', String(row + step)));
   }
 
   addColumn() {
@@ -592,14 +603,112 @@ class TableEditor {
     this.announce(translate('table_editor_column_deleted').replace('%1', name));
   }
 
-  moveColumn(step) {
-    const { row, column } = this.active;
-    const name = moveStartColumn(this.liveBlock(), column, column + step);
+  moveRow(from, to) {
+    if (!moveStartRow(this.liveBlock(), from, to)) return;
+    this.render();
+    this.setActive(to, -1);
+    this.announce(translate('table_editor_row_moved').replace('%1', String(to)));
+  }
+
+  moveColumn(from, to) {
+    const name = moveStartColumn(this.liveBlock(), from, to);
     if (name === null) return;
     this.render();
-    this.setActive(row, column + step);
-    const key = step < 0 ? 'table_editor_column_moved_left' : 'table_editor_column_moved_right';
-    this.announce(translate(key).replace('%1', name));
+    this.setActive(LETTER_ROW, to);
+    this.announce(translate('table_editor_column_moved').replace('%1', name));
+  }
+
+  startDrag(event) {
+    const handle = this.cellAt(this.active.row, this.active.column);
+    const axis = this.active.column < 0 ? 'row' : 'column';
+    const from = axis === 'row' ? this.active.row : this.active.column;
+    const { pointerId, clientX: startX, clientY: startY } = event;
+    let dragging = false;
+    let position = 0;
+    let gap = null;
+    let frame = 0;
+    const items = () =>
+      axis === 'row'
+        ? [...this.grid.querySelectorAll('tbody tr')]
+        : [...this.grid.querySelectorAll(`[data-row="${LETTER_ROW}"]`)];
+    const clearMarks = () => {
+      for (const marked of this.grid.querySelectorAll('[data-drop]')) {
+        marked.removeAttribute('data-drop');
+      }
+    };
+    const mark = (index, side) => {
+      const targets =
+        axis === 'row' ? [items()[index]] : this.grid.querySelectorAll(`[data-column="${index}"]`);
+      for (const target of targets) target?.setAttribute('data-drop', `${axis}-${side}`);
+    };
+    const update = () => {
+      const list = items();
+      let next = list.length;
+      for (const [index, item] of list.entries()) {
+        const rect = item.getBoundingClientRect();
+        const middle = axis === 'row' ? rect.top + rect.height / 2 : rect.left + rect.width / 2;
+        if (position < middle) {
+          next = index;
+          break;
+        }
+      }
+      gap = next === from || next === from + 1 ? null : next;
+      clearMarks();
+      if (gap === null) return;
+      if (gap < list.length) mark(gap, 'before');
+      else mark(list.length - 1, 'after');
+    };
+    const scroll = () => {
+      if (this.autoScroll(axis, position)) update();
+      frame = requestAnimationFrame(scroll);
+    };
+    const onMove = (moveEvent) => {
+      if (moveEvent.pointerId !== pointerId) return;
+      if (!dragging) {
+        if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 5) return;
+        dragging = true;
+        this.grid.classList.add('table-editor-dragging');
+        frame = requestAnimationFrame(scroll);
+      }
+      position = axis === 'row' ? moveEvent.clientY : moveEvent.clientX;
+      update();
+    };
+    const finish = (drop) => {
+      this.drag = null;
+      cancelAnimationFrame(frame);
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onCancel);
+      if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
+      this.grid.classList.remove('table-editor-dragging');
+      clearMarks();
+      if (!dragging || !drop || gap === null) return;
+      const to = gap > from ? gap - 1 : gap;
+      if (axis === 'row') this.moveRow(from, to);
+      else this.moveColumn(from, to);
+    };
+    const onUp = (upEvent) => {
+      if (upEvent.pointerId === pointerId) finish(true);
+    };
+    const onCancel = (cancelEvent) => {
+      if (cancelEvent.pointerId === pointerId) finish(false);
+    };
+    this.drag = { cancel: () => finish(false) };
+    handle.setPointerCapture(pointerId);
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onCancel);
+  }
+
+  autoScroll(axis, position) {
+    const rect = this.scroller.getBoundingClientRect();
+    const [start, end] = axis === 'row' ? [rect.top, rect.bottom] : [rect.left, rect.right];
+    const step = position < start + 24 ? -12 : position > end - 24 ? 12 : 0;
+    if (!step) return false;
+    const property = axis === 'row' ? 'scrollTop' : 'scrollLeft';
+    const before = this.scroller[property];
+    this.scroller[property] += step;
+    return this.scroller[property] !== before;
   }
 
   position() {

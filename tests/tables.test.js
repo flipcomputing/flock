@@ -1765,6 +1765,14 @@ export function runTablesTests(flock) {
         expect(startRows(creator)).to.deep.equal([['Burj']]);
       });
 
+      it('moves a row past several others and keeps their order', function () {
+        const creator = load({ columns: ['Name'], rows: [['a'], ['b'], ['c'], ['d']] }, 'Name');
+        moveStartRow(creator, 0, 3);
+        expect(startRows(creator)).to.deep.equal([['b'], ['c'], ['d'], ['a']]);
+        moveStartRow(creator, 3, 0);
+        expect(startRows(creator)).to.deep.equal([['a'], ['b'], ['c'], ['d']]);
+      });
+
       it('moves rows and undoes the move', async function () {
         const creator = load({ columns: ['Name'], rows: [['a'], ['b'], ['c']] }, 'Name');
         await settle();
@@ -1785,6 +1793,12 @@ export function runTablesTests(flock) {
         moveStartColumn(creator, 2, 0);
         expect(columnTexts(creator)).to.deep.equal(['Height', 'Name', 'Column 3']);
         expect(startRows(creator)).to.deep.equal([[828, 'Burj', '']]);
+        await settle();
+        moveStartColumn(creator, 0, 2);
+        expect(columnTexts(creator)).to.deep.equal(['Name', 'Column 3', 'Height']);
+        expect(startRows(creator)).to.deep.equal([['Burj', '', 828]]);
+        await settle();
+        moveStartColumn(creator, 2, 0);
         await settle();
         deleteStartColumn(creator, 1);
         expect(columnTexts(creator)).to.deep.equal(['Height', 'Column 3']);
