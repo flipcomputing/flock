@@ -997,9 +997,13 @@ export function runTablesTests(flock) {
         const line = code.split('\n').find((each) => each.includes('createTable("Letters"'));
         const rows = JSON.parse(line.slice(line.indexOf('], [') + 3, line.lastIndexOf(')')));
         expect(rows).to.have.length(26);
-        expect(rows[0]).to.deep.equal(['A', 8.2, rows[0][2]]);
+        expect(rows[0]).to.deep.equal(['A', 8.2, 'vowel']);
         expect(rows.every(([, frequency]) => typeof frequency === 'number')).to.equal(true);
-        expect(rows.every(([, , colour]) => /^#[0-9a-f]{6}$/i.test(colour))).to.equal(true);
+        expect(
+          rows.every(([letter, , type]) => type === ('AEIOU'.includes(letter) ? 'vowel' : 'consonant')),
+        ).to.equal(true);
+        expect(line.slice(0, line.indexOf('], ['))).to.include('Type');
+        expect(code).to.match(/addTableColumn\(Letters, ['"]Colour['"]\)/);
         expect(() => flock.prepareUserCode(code)).not.to.throw();
       });
     });
