@@ -5,9 +5,225 @@
     "blocks": [
       {
         "type": "start",
-        "id": "W%mO!=*lxz$6-cfF)NQ!",
+        "id": "start-table-letters-0001",
         "x": 10,
         "y": 10,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "comment",
+              "id": "kAvYnmi8,gdY)knH[tk`",
+              "inputs": {
+                "COMMENT": {
+                  "shadow": {
+                    "type": "text_multiline",
+                    "id": "XNDFK4]qq)vde{TP87+I",
+                    "fields": {
+                      "TEXT": "Data source: relative frequencies of letters in English text (percent), from the Wikipedia article \"Letter frequency\", which is based on Robert Lewand, Cryptological Mathematics (2000)."
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "table_create",
+                  "id": ",4r+w;=6]^.3)^^*NS9+",
+                  "fields": {
+                    "VAR": {
+                      "id": "tbl-Letters-0001"
+                    }
+                  },
+                  "inputs": {
+                    "COLUMNS": {
+                      "block": {
+                        "type": "lists_create_with",
+                        "id": "^6[5I[!yPctg*cxnKIq4",
+                        "inline": true,
+                        "extraState": {
+                          "itemCount": 3
+                        },
+                        "inputs": {
+                          "ADD0": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "Dl4NU0HtMba(rSK8*b!9",
+                              "fields": {
+                                "TEXT": "Letter"
+                              }
+                            }
+                          },
+                          "ADD1": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "Mb3L=Da,Vy0-3YFu_XWC",
+                              "fields": {
+                                "TEXT": "Frequency"
+                              }
+                            }
+                          },
+                          "ADD2": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "Hk2]E(@~IK`*I0yixrLo",
+                              "fields": {
+                                "TEXT": "Type"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "extraState": {
+                    "columns": [
+                      "Letter",
+                      "Frequency",
+                      "Type"
+                    ],
+                    "rows": [
+                      [
+                        "A",
+                        8.2,
+                        "vowel"
+                      ],
+                      [
+                        "B",
+                        1.5,
+                        "consonant"
+                      ],
+                      [
+                        "C",
+                        2.8,
+                        "consonant"
+                      ],
+                      [
+                        "D",
+                        4.3,
+                        "consonant"
+                      ],
+                      [
+                        "E",
+                        12.7,
+                        "vowel"
+                      ],
+                      [
+                        "F",
+                        2.2,
+                        "consonant"
+                      ],
+                      [
+                        "G",
+                        2,
+                        "consonant"
+                      ],
+                      [
+                        "H",
+                        6.1,
+                        "consonant"
+                      ],
+                      [
+                        "I",
+                        7,
+                        "vowel"
+                      ],
+                      [
+                        "J",
+                        0.15,
+                        "consonant"
+                      ],
+                      [
+                        "K",
+                        0.77,
+                        "consonant"
+                      ],
+                      [
+                        "L",
+                        4,
+                        "consonant"
+                      ],
+                      [
+                        "M",
+                        2.4,
+                        "consonant"
+                      ],
+                      [
+                        "N",
+                        6.7,
+                        "consonant"
+                      ],
+                      [
+                        "O",
+                        7.5,
+                        "vowel"
+                      ],
+                      [
+                        "P",
+                        1.9,
+                        "consonant"
+                      ],
+                      [
+                        "Q",
+                        0.095,
+                        "consonant"
+                      ],
+                      [
+                        "R",
+                        6,
+                        "consonant"
+                      ],
+                      [
+                        "S",
+                        6.3,
+                        "consonant"
+                      ],
+                      [
+                        "T",
+                        9.1,
+                        "consonant"
+                      ],
+                      [
+                        "U",
+                        2.8,
+                        "vowel"
+                      ],
+                      [
+                        "V",
+                        0.98,
+                        "consonant"
+                      ],
+                      [
+                        "W",
+                        2.4,
+                        "consonant"
+                      ],
+                      [
+                        "X",
+                        0.15,
+                        "consonant"
+                      ],
+                      [
+                        "Y",
+                        2,
+                        "consonant"
+                      ],
+                      [
+                        "Z",
+                        0.074,
+                        "consonant"
+                      ]
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "start",
+        "id": "W%mO!=*lxz$6-cfF)NQ!",
+        "x": 10,
+        "y": 328.5,
         "inputs": {
           "DO": {
             "block": {
@@ -214,610 +430,10 @@
         }
       },
       {
-        "type": "start",
-        "id": "z[Ig7`biX{I{{UncL`XD",
-        "x": 10,
-        "y": 400,
-        "inputs": {
-          "DO": {
-            "block": {
-              "type": "comment",
-              "id": "kAvYnmi8,gdY)knH[tk`",
-              "inputs": {
-                "COMMENT": {
-                  "shadow": {
-                    "type": "text_multiline",
-                    "id": "XNDFK4]qq)vde{TP87+I",
-                    "fields": {
-                      "TEXT": "Data source: relative frequencies of letters in English text (percent), from the Wikipedia article \"Letter frequency\", which is based on Robert Lewand, Cryptological Mathematics (2000)."
-                    }
-                  }
-                }
-              },
-              "next": {
-                "block": {
-                  "type": "table_create",
-                  "id": ",4r+w;=6]^.3)^^*NS9+",
-                  "fields": {
-                    "VAR": {
-                      "id": "tbl-Letters-0001"
-                    }
-                  },
-                  "inputs": {
-                    "COLUMNS": {
-                      "block": {
-                        "type": "lists_create_with",
-                        "id": "^6[5I[!yPctg*cxnKIq4",
-                        "inline": true,
-                        "extraState": {
-                          "itemCount": 3
-                        },
-                        "inputs": {
-                          "ADD0": {
-                            "shadow": {
-                              "type": "text",
-                              "id": "Dl4NU0HtMba(rSK8*b!9",
-                              "fields": {
-                                "TEXT": "Letter"
-                              }
-                            }
-                          },
-                          "ADD1": {
-                            "shadow": {
-                              "type": "text",
-                              "id": "Mb3L=Da,Vy0-3YFu_XWC",
-                              "fields": {
-                                "TEXT": "Frequency"
-                              }
-                            }
-                          },
-                          "ADD2": {
-                            "shadow": {
-                              "type": "text",
-                              "id": "Hk2]E(@~IK`*I0yixrLo",
-                              "fields": {
-                                "TEXT": "Type"
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "next": {
-                    "block": {
-                      "type": "table_add_column",
-                      "id": "colour-add-0001",
-                      "fields": {
-                        "TABLE": {
-                          "id": "tbl-Letters-0001"
-                        }
-                      },
-                      "inputs": {
-                        "NAME": {
-                          "shadow": {
-                            "type": "text",
-                            "id": "colour-name-0001",
-                            "fields": {
-                              "TEXT": "Colour"
-                            }
-                          }
-                        }
-                      },
-                      "next": {
-                        "block": {
-                          "type": "table_for_each_row",
-                          "id": "colour-loop-0001",
-                          "fields": {
-                            "VAR": {
-                              "id": "row-letters-0001"
-                            },
-                            "INDEX": {
-                              "id": "count-letters-0001"
-                            },
-                            "TABLE": {
-                              "id": "tbl-Letters-0001"
-                            }
-                          },
-                          "inputs": {
-                            "DO": {
-                              "block": {
-                                "type": "table_set_value",
-                                "id": "colour-set-0001",
-                                "fields": {
-                                  "TABLE": {
-                                    "id": "tbl-Letters-0001"
-                                  }
-                                },
-                                "inputs": {
-                                  "ROW": {
-                                    "shadow": {
-                                      "type": "math_number",
-                                      "id": "colour-row-0001",
-                                      "fields": {
-                                        "NUM": 0
-                                      }
-                                    },
-                                    "block": {
-                                      "type": "variables_get",
-                                      "id": "colour-count-0001",
-                                      "fields": {
-                                        "VAR": {
-                                          "id": "count-letters-0001"
-                                        }
-                                      }
-                                    }
-                                  },
-                                  "COLUMN": {
-                                    "shadow": {
-                                      "type": "table_column_menu",
-                                      "id": "colour-col-0001",
-                                      "fields": {
-                                        "COLUMN": "Colour"
-                                      }
-                                    }
-                                  },
-                                  "VALUE": {
-                                    "shadow": {
-                                      "type": "text",
-                                      "id": "colour-text-0001",
-                                      "fields": {
-                                        "TEXT": ""
-                                      }
-                                    },
-                                    "block": {
-                                      "type": "logic_ternary",
-                                      "id": "vowel-type-0001",
-                                      "inputs": {
-                                        "IF": {
-                                          "block": {
-                                            "type": "logic_compare",
-                                            "id": "vowel-type-0002",
-                                            "fields": {
-                                              "OP": "EQ"
-                                            },
-                                            "inputs": {
-                                              "A": {
-                                                "block": {
-                                                  "type": "table_row_value",
-                                                  "id": "ta0dD+S^bQa{WNnA)E1!",
-                                                  "inputs": {
-                                                    "COLUMN": {
-                                                      "shadow": {
-                                                        "type": "table_column_menu",
-                                                        "id": "hsJlfD(0V6k:m$r^Yj;.",
-                                                        "fields": {
-                                                          "COLUMN": "Type"
-                                                        }
-                                                      }
-                                                    },
-                                                    "ROW": {
-                                                      "block": {
-                                                        "type": "variables_get",
-                                                        "id": "h3{qELHOYPO5IDjzr:nt",
-                                                        "fields": {
-                                                          "VAR": {
-                                                            "id": "row-letters-0001"
-                                                          }
-                                                        }
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              "B": {
-                                                "block": {
-                                                  "type": "text",
-                                                  "id": "vowel-type-0003",
-                                                  "fields": {
-                                                    "TEXT": "vowel"
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          }
-                                        },
-                                        "THEN": {
-                                          "block": {
-                                            "type": "colour",
-                                            "id": "vowel-type-0004",
-                                            "fields": {
-                                              "COLOR": "#ff7f50"
-                                            }
-                                          }
-                                        },
-                                        "ELSE": {
-                                          "block": {
-                                            "type": "colour",
-                                            "id": "vowel-type-0005",
-                                            "fields": {
-                                              "COLOR": "#4a90d9"
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          "next": {
-                            "block": {
-                              "type": "variables_set",
-                              "id": "bDltb#BR1N#V7eQkshIY",
-                              "fields": {
-                                "VAR": {
-                                  "id": "shapes-list-0001"
-                                }
-                              },
-                              "inputs": {
-                                "VALUE": {
-                                  "block": {
-                                    "type": "lists_create_empty",
-                                    "id": "j+8xyGWbpFX4Fez6m(|A"
-                                  }
-                                }
-                              },
-                              "next": {
-                                "block": {
-                                  "type": "procedures_callnoreturn",
-                                  "id": "8X~NPu]f,(pG9^MzUg|B",
-                                  "extraState": {
-                                    "name": "show letters"
-                                  },
-                                  "next": {
-                                    "block": {
-                                      "type": "ui_button",
-                                      "id": "oE^3PbvJ:pYFbf:8=tVl",
-                                      "fields": {
-                                        "BUTTON_VAR": {
-                                          "id": "sort-button-0001"
-                                        },
-                                        "SIZE": "LARGE",
-                                        "TEXT_SIZE": "18px",
-                                        "H_ALIGN": "RIGHT",
-                                        "V_ALIGN": "TOP"
-                                      },
-                                      "inputs": {
-                                        "TEXT": {
-                                          "shadow": {
-                                            "type": "text",
-                                            "id": "Fu#l~[R]hhT_t*nq!DO-",
-                                            "fields": {
-                                              "TEXT": "Sort by frequency"
-                                            }
-                                          }
-                                        },
-                                        "X": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "_S4ycWTrGf!4-L+!y.x+",
-                                            "fields": {
-                                              "NUM": 20
-                                            }
-                                          }
-                                        },
-                                        "Y": {
-                                          "shadow": {
-                                            "type": "math_number",
-                                            "id": "SP7J=,ui)t5LH+U6a^$W",
-                                            "fields": {
-                                              "NUM": 20
-                                            }
-                                          }
-                                        },
-                                        "TEXT_COLOR": {
-                                          "shadow": {
-                                            "type": "colour",
-                                            "id": "xc[U[EPi{*Xy)~#,t@KP",
-                                            "fields": {
-                                              "COLOR": "#ffffff"
-                                            }
-                                          }
-                                        },
-                                        "BACKGROUND_COLOR": {
-                                          "shadow": {
-                                            "type": "colour",
-                                            "id": "0_Pom({ifqwezn!yme/_",
-                                            "fields": {
-                                              "COLOR": "#000080"
-                                            }
-                                          }
-                                        }
-                                      },
-                                      "next": {
-                                        "block": {
-                                          "type": "ui_button",
-                                          "id": "X{!)[;GgUC?jbA`!k7^h",
-                                          "fields": {
-                                            "BUTTON_VAR": {
-                                              "id": "alphabet-button-0001"
-                                            },
-                                            "SIZE": "LARGE",
-                                            "TEXT_SIZE": "18px",
-                                            "H_ALIGN": "RIGHT",
-                                            "V_ALIGN": "TOP"
-                                          },
-                                          "inputs": {
-                                            "TEXT": {
-                                              "shadow": {
-                                                "type": "text",
-                                                "id": "U-1Vh@I)fjMjB(mmD*Xy",
-                                                "fields": {
-                                                  "TEXT": "Sort A to Z"
-                                                }
-                                              }
-                                            },
-                                            "X": {
-                                              "shadow": {
-                                                "type": "math_number",
-                                                "id": "y){F.]w--1n^/T}6|2nv",
-                                                "fields": {
-                                                  "NUM": 20
-                                                }
-                                              }
-                                            },
-                                            "Y": {
-                                              "shadow": {
-                                                "type": "math_number",
-                                                "id": "x,Z$R{u*=4TO,PV0^3P?",
-                                                "fields": {
-                                                  "NUM": 130
-                                                }
-                                              }
-                                            },
-                                            "TEXT_COLOR": {
-                                              "shadow": {
-                                                "type": "colour",
-                                                "id": "E.+BW,GU55YaeK=c(rMa",
-                                                "fields": {
-                                                  "COLOR": "#ffffff"
-                                                }
-                                              }
-                                            },
-                                            "BACKGROUND_COLOR": {
-                                              "shadow": {
-                                                "type": "colour",
-                                                "id": "MCBOcJ,%-//tme6TtrHU",
-                                                "fields": {
-                                                  "COLOR": "#000080"
-                                                }
-                                              }
-                                            }
-                                          },
-                                          "next": {
-                                            "block": {
-                                              "type": "print_text",
-                                              "id": ":FDGMl/Z.BjP9w!/m=_M",
-                                              "inputs": {
-                                                "TEXT": {
-                                                  "shadow": {
-                                                    "type": "text",
-                                                    "id": "e/WkhQS31pD`?b^]WgN)",
-                                                    "fields": {
-                                                      "TEXT": "Letter frequency in English"
-                                                    }
-                                                  }
-                                                },
-                                                "DURATION": {
-                                                  "shadow": {
-                                                    "type": "math_number",
-                                                    "id": "fO+.tP$Ctg}Y5=/$lC3L",
-                                                    "fields": {
-                                                      "NUM": 60
-                                                    }
-                                                  }
-                                                },
-                                                "COLOR": {
-                                                  "shadow": {
-                                                    "type": "colour",
-                                                    "id": "YsqRk8/g,ZHkZ$3qr9-z",
-                                                    "fields": {
-                                                      "COLOR": "#000080"
-                                                    }
-                                                  }
-                                                }
-                                              },
-                                              "next": {
-                                                "block": {
-                                                  "type": "print_text",
-                                                  "id": "!Y`/z-@)FFjI3P~/lo|0",
-                                                  "inputs": {
-                                                    "TEXT": {
-                                                      "shadow": {
-                                                        "type": "text",
-                                                        "id": "2USyPS=`dNvS@4[s4fDz",
-                                                        "fields": {
-                                                          "TEXT": "Click a letter to see its frequency"
-                                                        }
-                                                      }
-                                                    },
-                                                    "DURATION": {
-                                                      "shadow": {
-                                                        "type": "math_number",
-                                                        "id": "~VtkogF[sKbRoN58cQA*",
-                                                        "fields": {
-                                                          "NUM": 60
-                                                        }
-                                                      }
-                                                    },
-                                                    "COLOR": {
-                                                      "shadow": {
-                                                        "type": "colour",
-                                                        "id": "BA+(H,9[s|cW:{)fGvhK",
-                                                        "fields": {
-                                                          "COLOR": "#000080"
-                                                        }
-                                                      }
-                                                    }
-                                                  }
-                                                }
-                                              }
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  "extraState": {
-                    "columns": [
-                      "Letter",
-                      "Frequency",
-                      "Type"
-                    ],
-                    "rows": [
-                      [
-                        "A",
-                        8.2,
-                        "vowel"
-                      ],
-                      [
-                        "B",
-                        1.5,
-                        "consonant"
-                      ],
-                      [
-                        "C",
-                        2.8,
-                        "consonant"
-                      ],
-                      [
-                        "D",
-                        4.3,
-                        "consonant"
-                      ],
-                      [
-                        "E",
-                        12.7,
-                        "vowel"
-                      ],
-                      [
-                        "F",
-                        2.2,
-                        "consonant"
-                      ],
-                      [
-                        "G",
-                        2,
-                        "consonant"
-                      ],
-                      [
-                        "H",
-                        6.1,
-                        "consonant"
-                      ],
-                      [
-                        "I",
-                        7,
-                        "vowel"
-                      ],
-                      [
-                        "J",
-                        0.15,
-                        "consonant"
-                      ],
-                      [
-                        "K",
-                        0.77,
-                        "consonant"
-                      ],
-                      [
-                        "L",
-                        4,
-                        "consonant"
-                      ],
-                      [
-                        "M",
-                        2.4,
-                        "consonant"
-                      ],
-                      [
-                        "N",
-                        6.7,
-                        "consonant"
-                      ],
-                      [
-                        "O",
-                        7.5,
-                        "vowel"
-                      ],
-                      [
-                        "P",
-                        1.9,
-                        "consonant"
-                      ],
-                      [
-                        "Q",
-                        0.095,
-                        "consonant"
-                      ],
-                      [
-                        "R",
-                        6,
-                        "consonant"
-                      ],
-                      [
-                        "S",
-                        6.3,
-                        "consonant"
-                      ],
-                      [
-                        "T",
-                        9.1,
-                        "consonant"
-                      ],
-                      [
-                        "U",
-                        2.8,
-                        "vowel"
-                      ],
-                      [
-                        "V",
-                        0.98,
-                        "consonant"
-                      ],
-                      [
-                        "W",
-                        2.4,
-                        "consonant"
-                      ],
-                      [
-                        "X",
-                        0.15,
-                        "consonant"
-                      ],
-                      [
-                        "Y",
-                        2,
-                        "consonant"
-                      ],
-                      [
-                        "Z",
-                        0.074,
-                        "consonant"
-                      ]
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      {
         "type": "procedures_defnoreturn",
         "id": "#2A1VUZJ5x/q/~DmIE-3",
-        "x": 700,
-        "y": 10,
+        "x": 10,
+        "y": 1050.5,
         "fields": {
           "NAME": "show letters"
         },
@@ -1992,10 +1608,402 @@
         }
       },
       {
+        "type": "start",
+        "id": "z[Ig7`biX{I{{UncL`XD",
+        "x": 10,
+        "y": 2560.5,
+        "inputs": {
+          "DO": {
+            "block": {
+              "type": "table_add_column",
+              "id": "colour-add-0001",
+              "fields": {
+                "TABLE": {
+                  "id": "tbl-Letters-0001"
+                }
+              },
+              "inputs": {
+                "NAME": {
+                  "shadow": {
+                    "type": "text",
+                    "id": "colour-name-0001",
+                    "fields": {
+                      "TEXT": "Colour"
+                    }
+                  }
+                }
+              },
+              "next": {
+                "block": {
+                  "type": "table_for_each_row",
+                  "id": "colour-loop-0001",
+                  "fields": {
+                    "VAR": {
+                      "id": "row-letters-0001"
+                    },
+                    "INDEX": {
+                      "id": "count-letters-0001"
+                    },
+                    "TABLE": {
+                      "id": "tbl-Letters-0001"
+                    }
+                  },
+                  "inputs": {
+                    "DO": {
+                      "block": {
+                        "type": "table_set_value",
+                        "id": "colour-set-0001",
+                        "fields": {
+                          "TABLE": {
+                            "id": "tbl-Letters-0001"
+                          }
+                        },
+                        "inputs": {
+                          "ROW": {
+                            "shadow": {
+                              "type": "math_number",
+                              "id": "colour-row-0001",
+                              "fields": {
+                                "NUM": 0
+                              }
+                            },
+                            "block": {
+                              "type": "variables_get",
+                              "id": "colour-count-0001",
+                              "fields": {
+                                "VAR": {
+                                  "id": "count-letters-0001"
+                                }
+                              }
+                            }
+                          },
+                          "COLUMN": {
+                            "shadow": {
+                              "type": "table_column_menu",
+                              "id": "colour-col-0001",
+                              "fields": {
+                                "COLUMN": "Colour"
+                              }
+                            }
+                          },
+                          "VALUE": {
+                            "shadow": {
+                              "type": "text",
+                              "id": "colour-text-0001",
+                              "fields": {
+                                "TEXT": ""
+                              }
+                            },
+                            "block": {
+                              "type": "logic_ternary",
+                              "id": "vowel-type-0001",
+                              "inputs": {
+                                "IF": {
+                                  "block": {
+                                    "type": "logic_compare",
+                                    "id": "vowel-type-0002",
+                                    "fields": {
+                                      "OP": "EQ"
+                                    },
+                                    "inputs": {
+                                      "A": {
+                                        "block": {
+                                          "type": "table_row_value",
+                                          "id": "ta0dD+S^bQa{WNnA)E1!",
+                                          "inputs": {
+                                            "COLUMN": {
+                                              "shadow": {
+                                                "type": "table_column_menu",
+                                                "id": "hsJlfD(0V6k:m$r^Yj;.",
+                                                "fields": {
+                                                  "COLUMN": "Type"
+                                                }
+                                              }
+                                            },
+                                            "ROW": {
+                                              "block": {
+                                                "type": "variables_get",
+                                                "id": "h3{qELHOYPO5IDjzr:nt",
+                                                "fields": {
+                                                  "VAR": {
+                                                    "id": "row-letters-0001"
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "B": {
+                                        "block": {
+                                          "type": "text",
+                                          "id": "vowel-type-0003",
+                                          "fields": {
+                                            "TEXT": "vowel"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "THEN": {
+                                  "block": {
+                                    "type": "colour",
+                                    "id": "vowel-type-0004",
+                                    "fields": {
+                                      "COLOR": "#ff7f50"
+                                    }
+                                  }
+                                },
+                                "ELSE": {
+                                  "block": {
+                                    "type": "colour",
+                                    "id": "vowel-type-0005",
+                                    "fields": {
+                                      "COLOR": "#4a90d9"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "next": {
+                    "block": {
+                      "type": "variables_set",
+                      "id": "bDltb#BR1N#V7eQkshIY",
+                      "fields": {
+                        "VAR": {
+                          "id": "shapes-list-0001"
+                        }
+                      },
+                      "inputs": {
+                        "VALUE": {
+                          "block": {
+                            "type": "lists_create_empty",
+                            "id": "j+8xyGWbpFX4Fez6m(|A"
+                          }
+                        }
+                      },
+                      "next": {
+                        "block": {
+                          "type": "procedures_callnoreturn",
+                          "id": "8X~NPu]f,(pG9^MzUg|B",
+                          "extraState": {
+                            "name": "show letters"
+                          },
+                          "next": {
+                            "block": {
+                              "type": "ui_button",
+                              "id": "oE^3PbvJ:pYFbf:8=tVl",
+                              "fields": {
+                                "BUTTON_VAR": {
+                                  "id": "sort-button-0001"
+                                },
+                                "SIZE": "LARGE",
+                                "TEXT_SIZE": "18px",
+                                "H_ALIGN": "RIGHT",
+                                "V_ALIGN": "TOP"
+                              },
+                              "inputs": {
+                                "TEXT": {
+                                  "shadow": {
+                                    "type": "text",
+                                    "id": "Fu#l~[R]hhT_t*nq!DO-",
+                                    "fields": {
+                                      "TEXT": "Sort by frequency"
+                                    }
+                                  }
+                                },
+                                "X": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "_S4ycWTrGf!4-L+!y.x+",
+                                    "fields": {
+                                      "NUM": 20
+                                    }
+                                  }
+                                },
+                                "Y": {
+                                  "shadow": {
+                                    "type": "math_number",
+                                    "id": "SP7J=,ui)t5LH+U6a^$W",
+                                    "fields": {
+                                      "NUM": 20
+                                    }
+                                  }
+                                },
+                                "TEXT_COLOR": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "xc[U[EPi{*Xy)~#,t@KP",
+                                    "fields": {
+                                      "COLOR": "#ffffff"
+                                    }
+                                  }
+                                },
+                                "BACKGROUND_COLOR": {
+                                  "shadow": {
+                                    "type": "colour",
+                                    "id": "0_Pom({ifqwezn!yme/_",
+                                    "fields": {
+                                      "COLOR": "#000080"
+                                    }
+                                  }
+                                }
+                              },
+                              "next": {
+                                "block": {
+                                  "type": "ui_button",
+                                  "id": "X{!)[;GgUC?jbA`!k7^h",
+                                  "fields": {
+                                    "BUTTON_VAR": {
+                                      "id": "alphabet-button-0001"
+                                    },
+                                    "SIZE": "LARGE",
+                                    "TEXT_SIZE": "18px",
+                                    "H_ALIGN": "RIGHT",
+                                    "V_ALIGN": "TOP"
+                                  },
+                                  "inputs": {
+                                    "TEXT": {
+                                      "shadow": {
+                                        "type": "text",
+                                        "id": "U-1Vh@I)fjMjB(mmD*Xy",
+                                        "fields": {
+                                          "TEXT": "Sort A to Z"
+                                        }
+                                      }
+                                    },
+                                    "X": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "y){F.]w--1n^/T}6|2nv",
+                                        "fields": {
+                                          "NUM": 20
+                                        }
+                                      }
+                                    },
+                                    "Y": {
+                                      "shadow": {
+                                        "type": "math_number",
+                                        "id": "x,Z$R{u*=4TO,PV0^3P?",
+                                        "fields": {
+                                          "NUM": 130
+                                        }
+                                      }
+                                    },
+                                    "TEXT_COLOR": {
+                                      "shadow": {
+                                        "type": "colour",
+                                        "id": "E.+BW,GU55YaeK=c(rMa",
+                                        "fields": {
+                                          "COLOR": "#ffffff"
+                                        }
+                                      }
+                                    },
+                                    "BACKGROUND_COLOR": {
+                                      "shadow": {
+                                        "type": "colour",
+                                        "id": "MCBOcJ,%-//tme6TtrHU",
+                                        "fields": {
+                                          "COLOR": "#000080"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "next": {
+                                    "block": {
+                                      "type": "print_text",
+                                      "id": ":FDGMl/Z.BjP9w!/m=_M",
+                                      "inputs": {
+                                        "TEXT": {
+                                          "shadow": {
+                                            "type": "text",
+                                            "id": "e/WkhQS31pD`?b^]WgN)",
+                                            "fields": {
+                                              "TEXT": "Letter frequency in English"
+                                            }
+                                          }
+                                        },
+                                        "DURATION": {
+                                          "shadow": {
+                                            "type": "math_number",
+                                            "id": "fO+.tP$Ctg}Y5=/$lC3L",
+                                            "fields": {
+                                              "NUM": 60
+                                            }
+                                          }
+                                        },
+                                        "COLOR": {
+                                          "shadow": {
+                                            "type": "colour",
+                                            "id": "YsqRk8/g,ZHkZ$3qr9-z",
+                                            "fields": {
+                                              "COLOR": "#000080"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      "next": {
+                                        "block": {
+                                          "type": "print_text",
+                                          "id": "!Y`/z-@)FFjI3P~/lo|0",
+                                          "inputs": {
+                                            "TEXT": {
+                                              "shadow": {
+                                                "type": "text",
+                                                "id": "2USyPS=`dNvS@4[s4fDz",
+                                                "fields": {
+                                                  "TEXT": "Click a letter to see its frequency"
+                                                }
+                                              }
+                                            },
+                                            "DURATION": {
+                                              "shadow": {
+                                                "type": "math_number",
+                                                "id": "~VtkogF[sKbRoN58cQA*",
+                                                "fields": {
+                                                  "NUM": 60
+                                                }
+                                              }
+                                            },
+                                            "COLOR": {
+                                              "shadow": {
+                                                "type": "colour",
+                                                "id": "BA+(H,9[s|cW:{)fGvhK",
+                                                "fields": {
+                                                  "COLOR": "#000080"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
         "type": "when_clicked",
         "id": "YucS~TT]ME$Jh]GXd-JC",
-        "x": 700,
-        "y": 900,
+        "x": 10,
+        "y": 3400.5,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
@@ -2041,8 +2049,8 @@
       {
         "type": "when_clicked",
         "id": "xd@@I?.@D=DD~dTk9r$?",
-        "x": 700,
-        "y": 1100,
+        "x": 10,
+        "y": 3620.5,
         "extraState": "<mutation xmlns=\"http://www.w3.org/1999/xhtml\" inline=\"false\"></mutation>",
         "fields": {
           "MODEL_VAR": {
