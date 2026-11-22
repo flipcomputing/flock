@@ -1581,6 +1581,8 @@ export default {
   table_editor_resize: 'Cambiar tamaño. Usa las flechas para hacer el editor más grande o más pequeño.', // ai
   table_editor_add_row: 'Añadir fila debajo', // ai
   table_editor_delete_row: 'Borrar fila', // ai
+  table_editor_move_row_up: 'Mover fila hacia arriba', // ai
+  table_editor_move_row_down: 'Mover fila hacia abajo', // ai
   table_editor_add_column: 'Añadir columna a la derecha', // ai
   table_editor_delete_column: 'Borrar columna', // ai
   table_editor_move_column_left: 'Mover columna a la izquierda', // ai
@@ -1596,6 +1598,8 @@ export default {
     'Para editar esta tabla aquí, pon bloques de texto con los nombres de las columnas en la lista de columnas.', // ai
   table_editor_row_added: 'Fila %1 añadida', // ai
   table_editor_row_deleted: 'Fila %1 borrada', // ai
+  table_editor_row_moved_up: 'Fila movida arriba a la fila %1', // ai
+  table_editor_row_moved_down: 'Fila movida abajo a la fila %1', // ai
   table_editor_column_added: 'Columna %1 añadida', // ai
   table_editor_column_deleted: 'Columna %1 borrada', // ai
   table_editor_column_moved_left: 'Columna %1 movida a la izquierda', // ai

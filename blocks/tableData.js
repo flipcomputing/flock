@@ -110,6 +110,14 @@ export function deleteStartRow(block, index) {
   inGroup(() => writeStartData(block, current.columns, current.rows));
 }
 
+export function moveStartRow(block, index, to) {
+  const current = editable(block);
+  if (!current?.rows[index] || !current.rows[to]) return false;
+  current.rows.splice(to, 0, current.rows.splice(index, 1)[0]);
+  inGroup(() => writeStartData(block, current.columns, current.rows));
+  return true;
+}
+
 export function renameStartColumn(block, index, name) {
   const found = columnItems(block);
   const item = found?.items[index];

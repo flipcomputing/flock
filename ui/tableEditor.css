@@ -12,7 +12,7 @@
   width: min(560px, calc(100vw - 20px));
   max-height: calc(100vh - 20px);
   overflow: hidden;
-  background: white;
+  background: var(--color-bg);
   color: var(--color-text-primary);
   border: 2px solid #511d91;
   border-radius: 6px;
@@ -61,6 +61,15 @@
   background-color: var(--color-button-bg-hover);
 }
 
+[data-theme='light'] .table-editor-button {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+[data-theme='light'] .table-editor-button:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--color-primary) 80%, black);
+}
+
 .table-editor-button:disabled {
   opacity: 0.4;
   cursor: default;
@@ -76,7 +85,7 @@
   max-height: min(50vh, 400px);
   overflow: auto;
   padding-bottom: 12px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
 }
 
@@ -145,9 +154,10 @@
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  background: white;
+  color: var(--color-text-primary);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
 }
 
 .table-editor-grid thead th {
@@ -155,7 +165,7 @@
   top: 0;
   z-index: 1;
   font-weight: 600;
-  background: #eee;
+  background: var(--color-button-bg);
 }
 
 .table-editor-grid tbody th {
@@ -164,7 +174,7 @@
   min-width: 2.5em;
   font-weight: normal;
   text-align: right;
-  background: #f6f6f6;
+  background: var(--color-button-bg);
 }
 
 .table-editor-grid thead .table-editor-corner {
@@ -176,6 +186,15 @@
 
 .table-editor-grid [data-row] {
   cursor: cell;
+}
+
+.table-editor-grid tbody th[data-row] {
+  cursor: pointer;
+}
+
+.table-editor-grid tbody tr.table-editor-row-selected > th,
+.table-editor-grid tbody tr.table-editor-row-selected > td {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-bg));
 }
 
 .table-editor-grid [data-row]:focus {
@@ -205,27 +224,11 @@
   background-color: var(--color-button-bg);
 }
 
-[data-theme='contrast'] .table-editor-content,
-[data-theme='dark'] .table-editor-content,
-[data-theme='dark-contrast'] .table-editor-content,
-[data-theme='low-color'] .table-editor-content,
-[data-theme='contrast'] .table-editor-grid th,
-[data-theme='contrast'] .table-editor-grid td,
-[data-theme='dark'] .table-editor-grid th,
-[data-theme='dark'] .table-editor-grid td,
-[data-theme='dark-contrast'] .table-editor-grid th,
-[data-theme='dark-contrast'] .table-editor-grid td,
-[data-theme='low-color'] .table-editor-grid th,
-[data-theme='low-color'] .table-editor-grid td {
+[data-theme='contrast'] .table-editor-grid thead th,
+[data-theme='contrast'] .table-editor-grid tbody th {
   background: var(--color-bg);
-  color: var(--color-text-primary);
-  border-color: grey;
 }
 
-[data-theme='contrast'] .table-editor-grid thead th,
-[data-theme='dark'] .table-editor-grid thead th,
-[data-theme='dark-contrast'] .table-editor-grid thead th,
-[data-theme='low-color'] .table-editor-grid thead th {
-  background: var(--color-bg);
+[data-theme='contrast'] .table-editor-grid thead th {
   border-bottom: 2px solid var(--color-text-primary);
 }

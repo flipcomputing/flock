@@ -7,6 +7,7 @@ import {
   insertStartColumn,
   insertStartRow,
   moveStartColumn,
+  moveStartRow,
   renameStartColumn,
   setStartCell,
   startColumns,
@@ -36,6 +37,8 @@ const ICONS = {
     ['rect', { x: 3, y: 3, width: 10, height: 18, rx: 2 }],
     ['path', { d: 'M8 3v18M15 12h7' }],
   ],
+  moveUp: [['path', { d: 'M5 14l7-7 7 7M12 7v13' }]],
+  moveDown: [['path', { d: 'M5 10l7 7 7-7M12 17V4' }]],
   moveLeft: [['path', { d: 'M14 5l-7 7 7 7M7 12h13' }]],
   moveRight: [['path', { d: 'M10 5l7 7-7 7M17 12H4' }]],
   close: [['path', { d: 'M6 6l12 12M18 6L6 18' }]],
@@ -158,6 +161,8 @@ class TableEditor {
             { class: 'table-editor-toolbar' },
             button('addRow', () => this.addRow()),
             button('deleteRow', () => this.deleteRow()),
+            button('moveUp', () => this.moveRow(-1)),
+            button('moveDown', () => this.moveRow(1)),
             button('addColumn', () => this.addColumn()),
             button('deleteColumn', () => this.deleteColumn()),
             button('moveLeft', () => this.moveColumn(-1)),
@@ -193,6 +198,8 @@ class TableEditor {
       close: 'table_editor_close',
       addRow: 'table_editor_add_row',
       deleteRow: 'table_editor_delete_row',
+      moveUp: 'table_editor_move_row_up',
+      moveDown: 'table_editor_move_row_down',
       addColumn: 'table_editor_add_column',
       deleteColumn: 'table_editor_delete_column',
       moveLeft: 'table_editor_move_column_left',
@@ -274,8 +281,9 @@ class TableEditor {
     const lastRow = this.rows.length - 1;
     this.active = {
       row: clamp(this.active.row, -1, lastRow),
-      column: clamp(this.active.column, 0, Math.max(0, (this.columns?.length ?? 0) - 1)),
+      column: clamp(this.active.column, -1, Math.max(0, (this.columns?.length ?? 0) - 1)),
     };
+    if (this.active.row < 0 && this.active.column < 0) this.active.column = 0;
 
     this.grid.replaceChildren();
     if (hasColumns) this.buildGrid();
@@ -312,12 +320,25 @@ class TableEditor {
     const body = this.rows.map((values, r) =>
       h(
         'tr',
-        { role: 'row', 'aria-rowindex': r + 2 },
-        h('th', { role: 'rowheader', 'aria-colindex': 1 }, String(r)),
+        {
+          role: 'row',
+          'aria-rowindex': r + 2,
+          'aria-selected': this.rowSelected(r) ? 'true' : null,
+          class: this.rowSelected(r) ? 'table-editor-row-selected' : null,
+        },
+        cell('th', 'rowheader', r, -1, String(r)),
         values.map((value, c) => cell('td', 'gridcell', r, c, String(value)))
       )
     );
     this.grid.append(h('thead', {}, header), h('tbody', {}, body));
+  }
+
+  rowSelected(row) {
+    return row >= 0 && this.active.row === row && this.active.column === -1;
+  }
+
+  rowAt(row) {
+    return this.grid.querySelector(`tbody tr[aria-rowindex="${row + 2}"]`);
   }
 
   updateButtons() {
@@ -328,10 +349,12 @@ class TableEditor {
     const disabled = {
       addRow: !hasColumns,
       deleteRow: !hasColumns || row < 0 || this.rows.length === 0,
+      moveUp: !hasColumns || row <= 0,
+      moveDown: !hasColumns || row < 0 || row >= this.rows.length - 1,
       addColumn: !editable,
-      deleteColumn: !hasColumns,
+      deleteColumn: !hasColumns || column < 0,
       moveLeft: !hasColumns || column <= 0,
-      moveRight: !hasColumns || column >= columnCount - 1,
+      moveRight: !hasColumns || column < 0 || column >= columnCount - 1,
     };
     for (const [name, off] of Object.entries(disabled)) this.buttons[name].disabled = off;
   }
@@ -352,8 +375,16 @@ class TableEditor {
 
   setActive(row, column) {
     this.cellAt(this.active.row, this.active.column)?.setAttribute('tabindex', '-1');
+    const previous = this.rowAt(this.active.row);
+    previous?.classList.remove('table-editor-row-selected');
+    previous?.removeAttribute('aria-selected');
     this.active = { row, column };
     this.cellAt(row, column)?.setAttribute('tabindex', '0');
+    if (this.rowSelected(row)) {
+      const selected = this.rowAt(row);
+      selected?.classList.add('table-editor-row-selected');
+      selected?.setAttribute('aria-selected', 'true');
+    }
     this.updateButtons();
     this.focusActive();
   }
@@ -400,7 +431,8 @@ class TableEditor {
     if (Object.hasOwn(moves, event.key) && !event.altKey && !event.shiftKey) {
       event.preventDefault();
       const [r, c] = moves[event.key];
-      this.setActive(clamp(r, -1, lastRow), clamp(c, 0, lastColumn));
+      const nextRow = clamp(r, -1, lastRow);
+      this.setActive(nextRow, clamp(c, nextRow < 0 ? 0 : -1, lastColumn));
       return;
     }
     if (event.key === 'Enter' || event.key === 'F2') {
@@ -408,6 +440,7 @@ class TableEditor {
       this.startEdit();
       return;
     }
+    if (column < 0) return;
     if ((event.key === 'Delete' || event.key === 'Backspace') && row >= 0) {
       event.preventDefault();
       setStartCell(this.liveBlock(), row, column, '');
@@ -441,7 +474,7 @@ class TableEditor {
   startEdit(initial) {
     const { row, column } = this.active;
     const cell = this.cellAt(row, column);
-    if (!cell || !this.columns) return;
+    if (!cell || !this.columns || column < 0) return;
     const original = row === -1 ? this.columns[column] : String(this.rows[row][column]);
     const label =
       row === -1
@@ -529,6 +562,15 @@ class TableEditor {
     this.render();
     this.setActive(Math.min(row, this.rows.length - 1), column);
     this.announce(translate('table_editor_row_deleted').replace('%1', String(row)));
+  }
+
+  moveRow(step) {
+    const { row, column } = this.active;
+    if (!moveStartRow(this.liveBlock(), row, row + step)) return;
+    this.render();
+    this.setActive(row + step, column);
+    const key = step < 0 ? 'table_editor_row_moved_up' : 'table_editor_row_moved_down';
+    this.announce(translate(key).replace('%1', String(row + step)));
   }
 
   addColumn() {

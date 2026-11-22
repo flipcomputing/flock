@@ -16,6 +16,7 @@ import {
   insertStartColumn,
   insertStartRow,
   moveStartColumn,
+  moveStartRow,
   renameStartColumn,
   setStartCell,
   startColumns,
@@ -1762,6 +1763,17 @@ export function runTablesTests(flock) {
         expect(startRows(creator)).to.deep.equal([['Merdeka']]);
         await undo();
         expect(startRows(creator)).to.deep.equal([['Burj']]);
+      });
+
+      it('moves rows and undoes the move', async function () {
+        const creator = load({ columns: ['Name'], rows: [['a'], ['b'], ['c']] }, 'Name');
+        await settle();
+        expect(moveStartRow(creator, 2, 0)).to.equal(true);
+        expect(startRows(creator)).to.deep.equal([['c'], ['a'], ['b']]);
+        expect(moveStartRow(creator, 0, -1)).to.equal(false);
+        expect(moveStartRow(creator, 2, 3)).to.equal(false);
+        await undo();
+        expect(startRows(creator)).to.deep.equal([['a'], ['b'], ['c']]);
       });
 
       it('adds, moves and deletes columns in the list with their cells', async function () {
